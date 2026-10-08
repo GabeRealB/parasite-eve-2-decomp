@@ -111892,7 +111892,7 @@ of the 76: `TmdObject::coords` is a `GfxCoord*`, so
 `sll 2`) where the seed's `s32` extern scaled by 0x24*4 (`sll 4`). Both fall out
 of reading the record the data actually holds - `MATRIX` + `u32`, 0x24 bytes,
 translation descending - rather than from the decompiler's placeholder types.
-Calling the unmatched `func_actor_511000_80132E6C` with the live `work` local
+Calling the unmatched `_actor511000TickHelicopterPaletteFlash` with the live `work` local
 instead of re-reading `task->work` at the call site swaps `$s2`/`$s3` for the
 whole function (`lw a0,0x1c(s0)` becomes `move a0,s2` in the delay slot); keep
 the re-read.
@@ -118190,7 +118190,7 @@ is the admission test failing, and `done move-insn matches INSN` says
 Inputs: `base_5.c` SHA256 `c2f22e992788ad019467cc5c4f14389ae40ac48e464f3dcd0e697874353cda82`
 (preprocessed `fcfe8bc55851abcfd4ffa77105f949f0f9e5804364a33de39193230d06433bd6`);
 target `be56732624c165051d3398830f9f47808700b2c833f33e383f1ec3eb574c5062`.
-### A new local for an intermediate pointer adds an allocno whose preferences push a neighbour off its register (func_actor_511000_80133958, 2026-09-17)
+### A new local for an intermediate pointer adds an allocno whose preferences push a neighbour off its register (_actor511000SpawnNo9Golem, 2026-09-17)
 
 **Symptom:** the area-key tint block (`gGameSession` bytes copied into a stack
 `GameLocationKey`, repeated twice) was at 97.96% with `regs` only: the session pointer
@@ -118210,7 +118210,7 @@ went straight to 100%. The byte temp itself (`areaByte3 = key->stage; model =
 ...; key.stage = areaByte3;`) was needed because it is set in both blocks, so
 combine cannot fold it into the store.
 
-## `addu s0, i, base` then `addiu s0, s0, 0xC` kept apart: build the member address in two statements into one pointer (func_actor_511000_80132E6C, 2026-09-17)
+## `addu s0, i, base` then `addiu s0, s0, 0xC` kept apart: build the member address in two statements into one pointer (_actor511000TickHelicopterPaletteFlash, 2026-09-17)
 
 The target forms a byte-array member address as `(i + work) + 0xC` in one register and uses `1(s0)` / `0(s0)`:
 
@@ -128108,7 +128108,7 @@ appears from `.sched2` / `.jump2` on. The earlier failed helper and fallthrough
 forms changed the block graph and the branch count; m2c's rendering of the same function (a `goto` into
 the tail from a case that `return`s) scores 59.030% with `insert=9 delete=15`.
 
-This is one of a family: `func_actor_511000_80132048` and
+This is one of a family: `_actor511000TickRupertBlink` and
 `_actor141000TickAyaBreaBlink` are the same state over their own image trios and
 assemble to the identical instruction sequence, so a sibling's matched source is
 the fastest route to the shape. What differs between them is the work struct:
@@ -147949,7 +147949,7 @@ Where other statements sit between the two halves, write `setaddr(prim, getaddr(
 and `setaddr(&ot[i], prim)` separately with the subscript repeated. All three
 links in the function matched this way with no other change.
 
-### An index reused across basic blocks keeps the element address out of its register; give each block its own local (func_actor_511000_80133958, 2026-10-05)
+### An index reused across basic blocks keeps the element address out of its register; give each block its own local (_actor511000SpawnNo9Golem, 2026-10-05)
 
 Problem: two copies of the same tint sequence shared one integer local that
 was shifted and then had the table base added through `(u32)`, so that the
@@ -147968,7 +147968,7 @@ copy (`placeIndex`, `placeIndex2`). Each is then set and used inside one basic
 block, and the scaled index and the address stay in its register. Calls do not
 end a basic block, so the index still crosses the two calls in `s0`.
 
-### `&p->array[i]` always sums the member offset into the index; `(i + p) + off` has no typed spelling found (func_actor_511000_80132E6C, 2026-10-05)
+### `&p->array[i]` always sums the member offset into the index; `(i + p) + off` has no typed spelling found (_actor511000TickHelicopterPaletteFlash, 2026-10-05)
 
 (Since found: pass the element address to an inline function - see "An inline
 function's argument is expanded as an address" below.)

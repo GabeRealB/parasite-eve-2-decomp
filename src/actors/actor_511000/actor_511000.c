@@ -151,7 +151,7 @@ STATIC_ASSERT_SIZEOF(_Actor511000RupertBroderickWork, 0x4D4);
 static void _modelPlacementAttachPartTask(Task* childTask);
 static void _modelPlacementMirrorParentDrawFlags(Task* childTask);
 static void func_actor_511000_80131E78(Task* arg0);
-static void func_actor_511000_80132048(Task* arg0);
+static void _actor511000TickRupertBlink(Task* task);
 static void _actor511000IdleRupertRevolver(Task* task);
 static void func_actor_511000_80132480(Task* task);
 static void func_actor_511000_801325A4(Task* task);
@@ -168,7 +168,7 @@ static void _actor511000KillHelicopterSearchlight(Task* task);
 static void _actor511000PoseHelicopterSequenceFrame(Task* task, const SVECTOR* rotations, const SVECTOR* translations, s32 frameIndex);
 static void _actor511000PlaceHelicopterPart(Task* task);
 static void func_actor_511000_801337F0(Task* task);
-static void func_actor_511000_80133958(Enemy* enemy, Task* task);
+static void _actor511000SpawnNo9Golem(Enemy* enemy, Task* task);
 static void _actor511000TickNo9Golem(Enemy* enemy, Task* task);
 static void _actor511000AttachNo9GolemPart8Model(Enemy* enemy, Task* task);
 static void _actor511000TickNo9GolemPart8Model(Enemy* enemy, Task* task);
@@ -228,7 +228,7 @@ static const TaskFuncTable3 D_actor_511000_80131E60 = {
 
 /// The enemy's three state handlers - spawn, per-frame tick and teardown.
 static const EnemyTaskFuncTable3 D_actor_511000_80131E6C = {
-    func_actor_511000_80133958,
+    _actor511000SpawnNo9Golem,
     _actor511000TickNo9Golem,
     enemyDestroy,
 };
@@ -280,9 +280,9 @@ extern DVECTOR D_actor_511000_80149014[];
 extern TaskDesc D_actor_511000_80139924[];
 extern s32      D_actor_511000_80149054[];
 
-/// Spawn table for the three children `func_actor_511000_80133958` creates.
+/// Spawn table for the three children `_actor511000SpawnNo9Golem` creates.
 extern TaskDesc D_actor_511000_80155070[];
-/// Message table and animation data `func_actor_511000_80133958` installs.
+/// Message table and animation data `_actor511000SpawnNo9Golem` installs.
 extern TaskMessageEntry D_actor_511000_801550A0[4];
 extern AnimationSet*    D_actor_511000_801550C0[4];
 
@@ -295,7 +295,7 @@ static s32       _actor511000ApplyRupertCommand(Task* task, s32 messageId, const
 static s32       _actor511000SetRupertEyes(Task* task, s32 messageId, s32 eyeMode, s32 unusedArg);
 static void      _actor511000RupertRevolverTask(Task* task);
 static void      _actor511000RupertPropTask(Task* task);
-void             func_actor_511000_80132428(Task*);
+static void      _actor511000RupertBodyTask(Task* task);
 
 static AnimationSet _gActor511000Animation1121C;
 static AnimationSet _gActor511000Animation130D4;
@@ -304,9 +304,9 @@ static AnimationSet _gActor511000Animation14B2C;
 static s32  _actor511000RestartHelicopterSequence(Task* task, s32 messageId, s32 unusedRequest, s32 unusedArg);
 static s32  _actor511000PlaceHelicopter(Task* task, s32 messageId, const ActorTransform* transform, s32 unusedArg);
 s32         func_actor_511000_80133554(Task*, s32, s32, s32);
-s32         func_actor_511000_80133DEC(Task*, s32, AnimationPlayRequest*, s32);
-s32         func_actor_511000_80133EAC(Task*, s32, s32, s32);
-void        func_actor_511000_80133D90(Task*);
+static s32  _actor511000PlayNo9GolemAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
+static s32  _actor511000SetNo9GolemModelDraw(Task* task, s32 messageId, s32 drawFlags, s32 unusedArg);
+static void _actor511000No9GolemTask(Task* task);
 static void _actor511000No9GolemPart8Task(Task* task);
 static void _actor511000No9GolemPart3Task(Task* task);
 static void _actor511000No9GolemPart12Task(Task* task);
@@ -315,7 +315,7 @@ static TmdSource _gActor511000HelicopterBase;
 static TmdSource _gActor511000Prop2;
 static TmdSource _gActor511000Prop3;
 static TmdSource _gActor511000Model0A41C;
-void             func_actor_511000_80133850(Task*);
+static void      _actor511000HelicopterTask(Task* task);
 static void      _actor511000HelicopterRotorTask(Task* task);
 static void      _actor511000HelicopterSearchlightTask(Task* task);
 
@@ -364,7 +364,7 @@ AnimationSet gActor511000Animation07ADC = {
 };
 
 TaskDesc D_actor_511000_80139924[4] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_511000_80133850, { .model = &_gActor511000HelicopterBase } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor511000HelicopterTask, { .model = &_gActor511000HelicopterBase } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor511000HelicopterRotorTask, { .model = &_gActor511000Prop2 } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor511000HelicopterRotorTask, { .model = &_gActor511000Prop3 } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor511000HelicopterSearchlightTask, { .model = &_gActor511000Model0A41C } },
@@ -695,7 +695,7 @@ AnimationSet** D_actor_511000_801472E4[1] = {
 };
 
 TaskDesc D_actor_511000_801472E8[3] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_511000_80132428, { .model = &_gActor511000RupertBroderickBody2 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor511000RupertBodyTask, { .model = &_gActor511000RupertBroderickBody2 } },
     { { { TASK_BODY_TMD, 192 } }, _actor511000RupertRevolverTask, { .model = &_gActor511000RupertBroderickMongoose } },
     { { { TASK_BODY_TMD, 192 } }, _actor511000RupertPropTask, { .model = &_gActor511000Prop1 } },
 };
@@ -1100,16 +1100,16 @@ static AnimationSet _gActor511000Animation23228 = {
 };
 
 TaskDesc D_actor_511000_80155070[4] = {
-    { { { TASK_BODY_TMD, 96 } }, func_actor_511000_80133D90, { .model = &_gActor511000No9GolemAkropolisBody } },
+    { { { TASK_BODY_TMD, 96 } }, _actor511000No9GolemTask, { .model = &_gActor511000No9GolemAkropolisBody } },
     { { { TASK_BODY_TMD, 96 } }, _actor511000No9GolemPart8Task, { .model = &_gActor511000Actor510900Model0FE60 } },
     { { { TASK_BODY_TMD, 96 } }, _actor511000No9GolemPart3Task, { .model = &_gActor511000Actor510900Model10468 } },
     { { { TASK_BODY_TMD, 96 } }, _actor511000No9GolemPart12Task, { .model = &_gActor511000No9GolemAkropolisProp } },
 };
 
 TaskMessageEntry D_actor_511000_801550A0[4] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_511000_80133DEC },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actor511000PlayNo9GolemAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceRotMatrix },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_511000_80133EAC },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor511000SetNo9GolemModelDraw },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1120,7 +1120,7 @@ AnimationSet* D_actor_511000_801550C0[4] = {
     &_gActor511000Animation23228,
 };
 
-static void func_actor_511000_80132E6C(_Actor511000HelicopterWork* work);
+static void _actor511000TickHelicopterPaletteFlash(_Actor511000HelicopterWork* work);
 
 /// Tick state: while `ticking` is set, steps animation slots 1..19; while
 /// clip 1 plays it counts `shotTicks` up and, on the sixteenth tick, plays the
@@ -1164,7 +1164,7 @@ static void func_actor_511000_80131E78(Task* arg0)
         actorRenderComposeCoord(coord);
         worldCoordSetModelLighting(extra, coord->workm.t, 0, 3);
     }
-    func_actor_511000_80132048(arg0);
+    _actor511000TickRupertBlink(arg0);
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
             tmdFreePrimitiveBuffer(extra);
@@ -1173,46 +1173,60 @@ static void func_actor_511000_80131E78(Task* arg0)
     }
 }
 
-/// Blink state: runs `blinkCountdown` down one a frame while `blinkStep`
-/// names the eye image due next, and on the frame it goes below zero posts
-/// that image over the 0x18x0x10 rect at y 0x28 -- restarting the countdown
-/// from `blinkFrameDelay` and advancing `blinkStep` after the closed and
-/// half-open eyes, or clearing `blinkStep` after the open eyes. The first two
-/// steps share their whole tail, which is what makes the compiler emit one
-/// copy of it that the first jumps into; the last only differs in clearing
-/// the step instead of advancing it.
-static void func_actor_511000_80132048(Task* arg0)
+/// Posts the next timed blink image and restarts its display interval.
+///
+/// Requires a live Rupert TMD task and its initialized work. The writable,
+/// terminated upload list and rectangle are borrowed through the call; image
+/// pixels remain live until GPU transfer completes. Rectangle units follow
+/// `actorRenderUploadTexture`. The caller has already expired the countdown.
+/// Upload results are ignored; this does not wait for the GPU.
+static inline void _actor511000AdvanceRupertBlinkImage(Task* task, _Actor511000RupertBroderickWork* work,
+                                                       GpuImageUpload* uploadList, const RECT* eyeRect)
 {
-    _Actor511000RupertBroderickWork* work;
-    RECT                             rect;
+    actorRenderUploadTexture(task, uploadList, eyeRect);
+    work->blinkCountdown = work->blinkFrameDelay;
+    work->blinkStep      = work->blinkStep + 1;
+}
 
-    work   = arg0->work;
-    rect.x = 0;
-    rect.y = 0x28;
-    rect.w = 0x18;
-    rect.h = 0x10;
+/// Advances Rupert's closed, half-open and open eye sequence by one tick.
+///
+/// Requires a live TMD body and initialized work. Active steps decrement the
+/// signed-halfword countdown and post their image when it becomes negative.
+/// Closed and half-open restart the countdown from `blinkFrameDelay`; open
+/// ends the blink without resetting it. Other steps do nothing. The eye patch
+/// spans 24 VRAM words by 16 rows at local Y 40. Pixel storage remains borrowed
+/// until GPU transfer completes; uploads do not wait and their results are ignored.
+static void _actor511000TickRupertBlink(Task* task)
+{
+    enum { ACTOR_511000_BLINK_EYES_Y_ROWS      = 40,
+           ACTOR_511000_BLINK_EYES_WIDTH_WORDS = 24,
+           ACTOR_511000_BLINK_EYES_HEIGHT_ROWS = 16 };
+    _Actor511000RupertBroderickWork* work;
+    RECT                             eyeRect;
+
+    work      = task->work;
+    eyeRect.x = 0;
+    eyeRect.y = ACTOR_511000_BLINK_EYES_Y_ROWS;
+    eyeRect.w = ACTOR_511000_BLINK_EYES_WIDTH_WORDS;
+    eyeRect.h = ACTOR_511000_BLINK_EYES_HEIGHT_ROWS;
 
     switch (work->blinkStep) {
         case ACTOR_511000_BLINK_CLOSED:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                actorRenderUploadTexture(arg0, &D_actor_511000_801472B4[0], &rect);
-                work->blinkCountdown = work->blinkFrameDelay;
-                work->blinkStep      = work->blinkStep + 1;
+                _actor511000AdvanceRupertBlinkImage(task, work, &D_actor_511000_801472B4[0], &eyeRect);
             }
             break;
         case ACTOR_511000_BLINK_HALF:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                actorRenderUploadTexture(arg0, &D_actor_511000_80146F94[0], &rect);
-                work->blinkCountdown = work->blinkFrameDelay;
-                work->blinkStep      = work->blinkStep + 1;
+                _actor511000AdvanceRupertBlinkImage(task, work, &D_actor_511000_80146F94[0], &eyeRect);
             }
             break;
         case ACTOR_511000_BLINK_OPEN:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                actorRenderUploadTexture(arg0, &D_actor_511000_80146C74[0], &rect);
+                actorRenderUploadTexture(task, &D_actor_511000_80146C74[0], &eyeRect);
                 work->blinkStep = ACTOR_511000_BLINK_NONE;
             }
             break;
@@ -1263,12 +1277,18 @@ static void _actor511000RupertPropTask(Task* task)
 
 #include "../../shared/model_placement_mirror_parent.inc.c"
 
-void func_actor_511000_80132428(Task* task)
+/// Runs Rupert Broderick's body initialization, frame update or teardown.
+///
+/// Requires the live descriptor-created twenty-part TMD body and state 0
+/// initialize, 1 update or 2 exit. State is not bounds-checked. Initialization
+/// creates the work and two held-model children; later states require them live.
+/// `spawnArg2.pointer` borrows the owning enemy used by the exit handler.
+static void _actor511000RupertBodyTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_actor_511000_80131E3C;
-    sp.funcs[task->state](task);
+    states = D_actor_511000_80131E3C;
+    states.funcs[task->state](task);
 }
 
 /// Spawn handler: allocates the work block, seeds its head, excludes the model
@@ -1327,9 +1347,15 @@ static void func_actor_511000_801325A4(Task* task)
     worldCoordSetModelLighting(extra, coords[1].workm.t, 0, 3);
 }
 
-/// Reseeds Rupert's driven slots, applies the initial pose and enables ticking.
+/// Reseeds Rupert's driven slots, updates their poses and enables ticking.
 ///
-/// Borrows the request through the call; a nonzero blend uses six frames.
+/// Requires the work's rig bound to a live twenty-part TMD body and a set table
+/// containing the requested clip. Slots 1..19 are driven; slot 0 is retained.
+/// A nonzero blend requires previously initialized slots, captures each slot's
+/// existing pose and blends to the selected track's start over six normal-rate
+/// frames; reset initializes the slots instead. Each slot is ticked before
+/// future frame updates are enabled. Only clip and blend choice are read from
+/// the request, through this call; bank data and playback storage remain borrowed.
 static inline void _actor511000ReseedRupertAnimation(_Actor511000RupertBroderickWork* work, const AnimationPlayRequest* request)
 {
     enum { ACTOR_511000_RUPERT_BLEND_FRAMES = 6 };
@@ -1693,21 +1719,25 @@ static inline void _actor511000BlendPaletteColor(u8* destination, const u8* firs
     destination[0] = packedColor;
 }
 
-/// Palette fade: steps `paletteFade` up by 0x555 per frame while the
-/// `paletteHold` counter is live (counting it down once the fade is full),
-/// otherwise snaps it back to 0 and re-arms the hold. Each of the 16
-/// little-endian 15-bit colours is then blended between
-/// `D_actor_511000_80147E84` and `D_actor_511000_80147EC4` by that weight into
-/// `palette`, which `D_actor_511000_80147EA4[0]` uploads.
-static void func_actor_511000_80132E6C(_Actor511000HelicopterWork* work)
+/// Advances and uploads the helicopter's sixteen-colour palette flash.
+///
+/// Requires initialized helicopter work with a 4.12 fade weight in 0..4096
+/// and a nonnegative hold counter. The weight rises by 1365 per tick, reaching
+/// the dark palette on its fourth increment; full-weight ticks consume the
+/// hold, then the next tick snaps back to the lit palette and rearms it.
+/// Reads and writes RGB555 colours as little-endian byte pairs, discarding bit
+/// 15. The upload record must already borrow `work->palette`, whose storage must
+/// remain live and unchanged until GPU transfer completes. Clobbers GTE state.
+static void _actor511000TickHelicopterPaletteFlash(_Actor511000HelicopterWork* work)
 {
-    s32 i;
-    s32 inv;
-    s32 fade;
+    enum { ACTOR_511000_PALETTE_FADE_STEP = 0x555 };
+    s32 byteIndex;
+    s32 litWeight;
+    s32 darkWeight;
 
+    // Reach the dark palette, hold it, then snap back for the next flash.
     if (work->paletteHold != 0) {
-        work->paletteFade += 0x555;
-        i                  = 0;
+        work->paletteFade += ACTOR_511000_PALETTE_FADE_STEP;
         if (work->paletteFade >= ACTOR_511000_PALETTE_FADE_FULL) {
             work->paletteFade = ACTOR_511000_PALETTE_FADE_FULL;
             if (--work->paletteHold < 0) {
@@ -1716,18 +1746,19 @@ static void func_actor_511000_80132E6C(_Actor511000HelicopterWork* work)
         }
     } else {
         work->paletteFade -= ACTOR_511000_PALETTE_FADE_FULL;
-        i                  = 0;
         if (work->paletteFade <= 0) {
             work->paletteFade = 0;
             work->paletteHold = ACTOR_511000_PALETTE_HOLD_TICKS;
         }
     }
-    inv  = ACTOR_511000_PALETTE_FADE_FULL - work->paletteFade;
-    fade = work->paletteFade;
+    litWeight  = ACTOR_511000_PALETTE_FADE_FULL - work->paletteFade;
+    darkWeight = work->paletteFade;
+    // Keep byte-pair accesses for the packed palette and publish the complete row.
+    byteIndex = 0;
     do {
-        _actor511000BlendPaletteColor(&work->palette[i], &D_actor_511000_80147E84[i], &D_actor_511000_80147EC4[i], inv, fade);
-        i += 2;
-    } while (i < ACTOR_511000_PALETTE_BYTES);
+        _actor511000BlendPaletteColor(&work->palette[byteIndex], &D_actor_511000_80147E84[byteIndex], &D_actor_511000_80147EC4[byteIndex], litWeight, darkWeight);
+        byteIndex += 2;
+    } while (byteIndex < ARRAY_SIZE(work->palette));
     gpuUploadImages(&D_actor_511000_80147EA4[0]);
 }
 
@@ -1782,7 +1813,7 @@ static void func_actor_511000_801330F0(Task* task)
     if (!(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         actorRenderComposeCoord(coord);
         worldCoordSetModelLighting(obj, coord->workm.t, 0, 3);
-        func_actor_511000_80132E6C(task->work);
+        _actor511000TickHelicopterPaletteFlash(task->work);
     }
     if (gGameSession->location.loc.view == 0x18) {
         frame               = task->killCountdown + 1;
@@ -2080,12 +2111,18 @@ static void func_actor_511000_801337F0(Task* task)
     worldCoordSetModelLighting(extra, coord->workm.t, 0, 3);
 }
 
-void func_actor_511000_80133850(Task* task)
+/// Runs the helicopter's initialization, frame update or teardown state.
+///
+/// Requires its live descriptor-created TMD hull and state 0 initialize,
+/// 1 update or 2 kill; state is not bounds-checked. Initialization creates the
+/// work and binds its lighting and palette storage. Attached children borrow
+/// the hull and work until teardown. Frame updates require that storage live.
+static void _actor511000HelicopterTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_actor_511000_80131E48;
-    sp.funcs[task->state](task);
+    states = D_actor_511000_80131E48;
+    states.funcs[task->state](task);
 }
 
 /// Runs the helicopter rotor states: 0 attach, 1 spin and 2 kill.
@@ -2114,53 +2151,60 @@ static void _actor511000HelicopterSearchlightTask(Task* task)
     states.funcs[task->state](task);
 }
 
-/// Spawn handler: allocates the 0x488-byte work block and parks it in
-/// `Task::work`, binds the task's model to the block's matrices and
-/// animation state, installs the message table, then spawns table entries 1
-/// and 2 - tinting each child's model from the current area's record - and
-/// entry 3, and advances to state 1. An allocation failure destroys the enemy.
-static void func_actor_511000_80133958(Enemy* enemy, Task* task)
+/// Initializes the No. 9 golem's hidden body, playback storage and three children.
+///
+/// Requires its owning enemy and live nineteen-part TMD task in state 0.
+/// The zeroed work is owned by the task; body and child models borrow its
+/// lighting matrices. No clip is played until an animation message arrives.
+/// Children attached at parts 8 and 3 receive the parent's area-placement
+/// texture-page and CLUT-row offsets, rebuilding existing buffers; part 12
+/// retains its own offsets. The parent's upper placement-key nibble must select
+/// an existing placement in the synchronized location variant. Advances to
+/// update state 1, or destroys the enemy if work allocation fails. The first
+/// two child spawns are assumed to succeed, matching their unchecked use.
+static void _actor511000SpawnNo9Golem(Enemy* enemy, Task* task)
 {
-    enum { MODEL_HIDDEN = 0x80,
-           STATE_UPDATE = 1 };
+    enum { ACTOR_511000_GOLEM_UPDATE_STATE = 1,
+           ACTOR_511000_GOLEM_NO_CLIP      = 0,
+           ACTOR_511000_GOLEM_PART8_CHILD  = 1,
+           ACTOR_511000_GOLEM_PART3_CHILD  = 2,
+           ACTOR_511000_GOLEM_PART12_CHILD = 3 };
     GameLocationKey           key;
     GameLocationKey*          sessionKey;
     u8                        view;
     u8                        stage;
     AreaVariant*              layout;
     TmdObject*                model;
-    GfxCoord*                 coord;
+    GfxCoord*                 bodyRoot;
     _Actor511000No9GolemWork* work;
-    TaskDesc*                 table;
+    TaskDesc*                 childDescriptors;
     u32                       placeIndex;
     u32                       placeIndex2;
     AreaPlacement*            placements;
     Enemy*                    spawned;
     GameSession*              session;
 
-    model = task->extra.tmd;
-    coord = model->coords;
-    work  = memCalloc(sizeof(*work), 0);
+    model    = task->extra.tmd;
+    bodyRoot = model->coords;
+    work     = memCalloc(sizeof(*work), 0);
     if (work == NULL) {
         enemyDestroy(enemy, task);
         return;
     }
     task->work      = work;
-    model->flags    = MODEL_HIDDEN;
+    model->flags    = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     model->lightMtx = &work->light;
     model->colorMtx = &work->color;
     animationInitContext(&work->rig.anim, D_actor_511000_801550C0, model, work->rig.poses, work->rig.slots);
-    work->animId        = 0;
-    task->msgTable      = D_actor_511000_801550A0;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    work->animId           = ACTOR_511000_GOLEM_NO_CLIP;
+    task->msgTable         = D_actor_511000_801550A0;
+    bodyRoot->composeStamp = GRAPHICS_COORD_DIRTY;
 
-    table   = D_actor_511000_80155070;
-    spawned = enemySpawnFromTable(table, 1, 0, enemy);
-    session = gGameSession;
+    childDescriptors = D_actor_511000_80155070;
+    spawned          = enemySpawnFromTable(childDescriptors, ACTOR_511000_GOLEM_PART8_CHILD, 0, enemy);
+    session          = gGameSession;
     // Child models inherit the texture relocation of the parent's placement.
-    // Reusing the spawn result preserves its register preference at the task load.
-    // Each child has its own index local. With one local shared by both
-    // children the scaled index and the element address leave its register.
+    // The task address retains the spawn-result holder to preserve load order.
     spawned    = (Enemy*)spawned->task;
     sessionKey = &session->location.loc;
     placeIndex = enemy->placeKey;
@@ -2181,7 +2225,7 @@ static void func_actor_511000_80133958(Enemy* enemy, Task* task)
         tmdBuildBufferHalf(model);
         tmdBuildBufferHalf(model);
     }
-    spawned     = enemySpawnFromTable(table, 2, 0, enemy);
+    spawned     = enemySpawnFromTable(childDescriptors, ACTOR_511000_GOLEM_PART3_CHILD, 0, enemy);
     session     = gGameSession;
     spawned     = (Enemy*)spawned->task;
     sessionKey  = &session->location.loc;
@@ -2203,8 +2247,8 @@ static void func_actor_511000_80133958(Enemy* enemy, Task* task)
         tmdBuildBufferHalf(model);
         tmdBuildBufferHalf(model);
     }
-    enemySpawnFromTable(table, 3, 0, enemy);
-    task->state = STATE_UPDATE;
+    enemySpawnFromTable(childDescriptors, ACTOR_511000_GOLEM_PART12_CHILD, 0, enemy);
+    task->state = ACTOR_511000_GOLEM_UPDATE_STATE;
 }
 
 /// Advances the No. 9 golem's pose, lighting, ground shadow and exit fade.
@@ -2288,52 +2332,67 @@ static void _actor511000TickNo9Golem(Enemy* enemy, Task* task)
     SCRATCH_STACK_RELEASE_BYTES(2 * sizeof(*worldPosition));
 }
 
-/// Runs the enemy's current state handler, copying the table onto the stack
-/// before the call.
-void func_actor_511000_80133D90(Task* task)
+/// Runs the No. 9 golem's initialization, frame update or destroy state.
+///
+/// Requires its live nineteen-part TMD task and owning enemy in
+/// `spawnArg2.pointer`. State is 0 initialize, 1 update or 2 destroy and is not
+/// bounds-checked. Update requires initialized work; destroy releases the task
+/// and its enemy. The enemy and borrowed body resources must remain live.
+static void _actor511000No9GolemTask(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 states;
 
-    sp = D_actor_511000_80131E6C;
-    sp.funcs[task->state](task->spawnArg2.pointer, task);
+    states = D_actor_511000_80131E6C;
+    states.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
-/// Copies the animation id from `preset` into the work block parked in
-/// `task->work`, reseeds slots 1..0x12 through `animationResetSlot`, and
-/// restarts `animTicks`.
-s32 func_actor_511000_80133DEC(Task* task, s32 arg1, AnimationPlayRequest* preset, s32 arg3)
+/// Restarts the No. 9 golem's body animation and exit timer.
+///
+/// Requires a live nineteen-part TMD body and initialized work. The borrowed,
+/// read-only request selects a loaded clip 1..3 from the fixed set table;
+/// source bank, blend choice and duration are ignored. Always resets slots
+/// 1..18 and `animTicks`, including repeated clips, without immediately posing
+/// the model. Slot 0 is retained. Bank data must outlive playback. The message
+/// ID and second payload are ignored; returns 0.
+static s32 _actor511000PlayNo9GolemAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg)
 {
     _Actor511000No9GolemWork* work;
-    s32                       i;
+    s32                       slotIndex;
 
     work         = task->work;
-    work->animId = preset->animationId;
-    i            = 1;
+    work->animId = request->animationId;
+    slotIndex    = 1;
     do {
-        animationResetSlot(&work->rig.anim, i, work->animId);
-        i++;
-    } while (i < 0x13);
+        animationResetSlot(&work->rig.anim, slotIndex, work->animId);
+        slotIndex++;
+    } while (slotIndex < ARRAY_SIZE(work->rig.slots));
     work->animTicks = 0;
     return 0;
 }
 
 #include "../../shared/actor_messages_place_rot_matrix.inc.c"
 
-/// Visibility message handler: bit 0 of `arg2` shows the model (flags 0)
-/// instead of hiding it (0x80); bit 1 also sets `TMD_OBJECT_SKIP_AUTO_BUFFER`.
-s32 func_actor_511000_80133EAC(Task* task, s32 arg1, s32 arg2, s32 arg3)
+/// Replaces the No. 9 golem body's drawing and automatic-buffer flags.
+///
+/// Requires a live TMD body. Bit 0 shows the model; clear hides it. Bit 1
+/// disables automatic missing-buffer allocation. Other request bits are ignored
+/// and all other model flags are cleared. No buffers are allocated or released,
+/// and the actor state is retained. The message ID and second payload are
+/// ignored; returns 0.
+static s32 _actor511000SetNo9GolemModelDraw(Task* task, s32 messageId, s32 drawFlags, s32 unusedArg)
 {
-    TmdObject* obj;
+    enum { ACTOR_511000_GOLEM_DRAW_SHOW             = 1 << 0,
+           ACTOR_511000_GOLEM_DRAW_SKIP_AUTO_BUFFER = 1 << 1 };
+    TmdObject* model;
 
-    obj = task->extra.tmd;
-    if (!(arg2 & 1)) {
-        obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    model = task->extra.tmd;
+    if (!(drawFlags & ACTOR_511000_GOLEM_DRAW_SHOW)) {
+        model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
-        obj->flags = 0;
+        model->flags = 0;
     }
-    if (arg2 & 2) {
-        obj         = task->extra.tmd;
-        obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+    if (drawFlags & ACTOR_511000_GOLEM_DRAW_SKIP_AUTO_BUFFER) {
+        task->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     return 0;
 }
