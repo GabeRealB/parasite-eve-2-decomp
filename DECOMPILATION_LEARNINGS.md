@@ -8537,18 +8537,19 @@ instructions and costs a near-match:
 
 ```c
 /* Matches: lui of Gpu_OtBuffers, then li a1,0xA */
-otCtx = Gpu_OtBuffers;
-depth = 0xA;
-otCtx->length = depth;
-/* ... otCtx[1].length = depth reuses a1 */
+orderingTables = Gpu_OtBuffers;
+depthBits = 0xA;
+orderingTables->length = depthBits;
+/* ... orderingTables[1].length = depthBits reuses a1 */
 
 /* Mismatches: li first, then lui */
-depth = 0xA;
-otCtx = Gpu_OtBuffers;
-otCtx->length = depth;
+depthBits = 0xA;
+orderingTables = Gpu_OtBuffers;
+orderingTables->length = depthBits;
 ```
 
-`Gfx_InitGraph` is the example — `depth` is shared across both OT buffers.
+`_gpuInitGameOrderingTableDescriptors`, inlined into `_gameMainInitGraphics`, is
+the example — `depthBits` is shared across both OT buffers.
 
 **Inverse — constant first, then pointer.** When the target does `li aN,K` *then*
 `lui %hi(global)`, assign the constant before the address. A bare
@@ -12396,7 +12397,7 @@ with `Gpu_OtTags` / `+ GPU_ORDERING_TABLE_BUFFER_ENTRIES`, clears the active buf
 
 `GsClearOt` sets `tag = org + (1 << length) - 1` and clears `1 << length`
 entries. `Gpu_OtBuffers` describes `GPU_ORDERING_TABLE_BUFFER_ENTRIES` (`0x440`)
-entries at `length` 10, so `Gfx_InitGraph` stores `tag` itself and the game
+entries at `length` 10, so `_gameMainInitGraphics` stores `tag` itself and the game
 loop clears those tables with `ClearOTagR`.
 
 ## Delay `i = 0` until after a special-case rewrite of the same constant
@@ -19981,14 +19982,14 @@ amount for `flags |= 1 << arg` and as a later live value (`setlen`, compares,
 stores), write the shift with a literal first and assign the named temp after:
 
 ```c
-GameMain_HaltFlags |= 1 << arg0; /* volatile load address can fill prior bnez delay */
+GameMain_HaltFlags |= 1 << haltBitIndex; /* volatile load address can fill prior bnez delay */
 one = 1;                 /* li s2,1 then CSE into the shift as sllv …,s2 */
 tile = &D_8006EC18;
-/* … setlen(dr, one); … if (arg0 == one) … */
+/* … setlen(drawMode, one); … if (haltBitIndex == one) … */
 ```
 
 `one = 1; flags |= one << index` puts `li s2,1` in the branch delay instead of
-the `lui` the target wants. `GameMain_ShowLoading` is the pure example.
+the `lui` the target wants. `_gameMainShowPauseScreen` is the pure example.
 
 ## `(s16)` cast on `u16` fields that the target loads with `lh`
 
@@ -23129,7 +23130,7 @@ Shared status words reloaded twice in a prologue (e.g. `D_800689E8`) CSE into
 one load when non-volatile, and the address often lands in `$a1`. Mark them
 `volatile` so each access reloads and GCC keeps `%hi` in `$a0` after
 `move sN,a0` frees the argument register — same pattern as `GameMain_HaltFlags` in
-`GameMain_ShowLoading`.
+`_gameMainShowPauseScreen`.
 
 Do **not** hard-pin the state pointer to `$s3` with `register … asm("s3")` while
 also pinning `$s2/$s1/$s0`: that steals `$a0` from the flag address. Leave the

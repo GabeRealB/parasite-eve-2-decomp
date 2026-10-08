@@ -338,7 +338,7 @@ This is the only bank we can describe entry-by-entry. Spawn with
 | `1D` | `18` | `playClockTask` | Play-time/HUD updates, death presentation and session restart; six states |
 | `1E` | `F8` | `loadingViewLoadTask` | Six-state view-resource/image load; completion resumes the game loop or publishes scene readiness according to spawn mode |
 | `1F` | `10` | `Boot_LoadInitialFile` | Cold boot (`D_8005EC64 == 1`) |
-| `20` | `10` | `Boot_LoadTask` | Cold boot (otherwise). `GameMain_SpawnBootTask` |
+| `20` | `10` | `Boot_LoadTask` | Title reload after reset (`D_8005EC64 != 1`). `_gameMainSpawnStartupTask` |
 | `21` | `2F` | `fadeResumeSessionTask` | Hold black, reveal the loaded session, then release display/pause holds (`companion_load.c`) |
 | `22` | `F8` | NULL | Unused |
 | `23` | `C0` | `0x80701400` | Stage overlay — not in this tree |

@@ -89,11 +89,11 @@ static s32 D_8005EC7C;
 /// Unreferenced.
 static u32 D_8005EC84[4];
 
-// Drawn by GameMain_ShowLoading (must stay in .rodata for this TU).
-/// "PAUSE!" overlay text for GameMain_ShowLoading (@ VA 0x80013404).
+// Drawn by _gameMainShowPauseScreen (must stay in .rodata for this TU).
+/// "PAUSE!" overlay text for _gameMainShowPauseScreen (@ VA 0x80013404).
 static const u8 GameMain_PauseText[];
 
-static void GameMain_Init(void);
+static void _gameMainInitialize(void);
 
 static inline void _displayPresentFrame(s32 bufferIndex);
 
@@ -101,17 +101,22 @@ static void _displayVSyncCallback(void);
 
 static inline s32 _gameMainPauseBlocked(void);
 
-static void GameMain_ShowLoading(s32 arg0);
+static void _gameMainShowPauseScreen(s32 haltBitIndex);
 
 static inline s32 _gameMainPaceToSceneTiming(s32 frameStartLines, s32 elapsedLines);
 
 static void GameMain_Loop(void);
 
-static void Gfx_InitGraph(void);
+static void _gameMainInitGraphics(void);
 
-static void GameMain_SpawnBootTask(void);
+static void _gameMainSpawnStartupTask(void);
 
 static void _displayPresentGameFrame(s32 bufferIndex);
+
+enum {
+    GAME_MAIN_FIRST_INITIALIZATION           = 1,
+    GAME_MAIN_HALT_CONTROLLER_DISCONNECT_BIT = 1,
+};
 
 static u32   D_8005EC64          = 0;
 s32          D_8005EC68          = 0;
@@ -125,26 +130,13 @@ volatile s32 GameMain_HaltFlags = 0;
 /// Unreferenced.
 static u32 D_8005EC84[4] = { 0, 0x01FF03FF, 0, 0 };
 
-// VSync countdown
-
-static void GameMain_Init(void)
+/// Restores the game loop's display controls and clocks before buffer setup.
+///
+/// Clears the complete resident state and selects NTSC and one-VBlank timing.
+/// Framebuffer environments still need configuration and no previous display
+/// state may be needed by a live task or callback.
+static inline void _displayResetGameState(void)
 {
-    s32 flag; // The indirection is required.
-
-    SetDispMask(0);
-    cdAudioCancelAndWait();
-    ResetCallback();
-    bootResetCd(BOOT_CD_RESET_DRIVE_AND_VOLUME);
-    VSync(10);
-
-    GameResetScratchHead();
-    D_8005EC64++;
-    memConfigureImageMemory(GAME_STAGE_NONE, 0);
-    memInitHeaps();
-    taskResetDefaultList();
-    actorRenderResetLists();
-    Gfx_InitGraph();
-
     memFillBytes(&gDisplayState, 0, sizeof(gDisplayState));
     gDisplayState.field_120                      = 1;
     gDisplayState.region                         = MODE_NTSC;
@@ -159,6 +151,40 @@ static void GameMain_Init(void)
     gDisplayState.loopTicks                      = 0;
     gDisplayState.loopCount                      = 0;
     displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
+}
+
+/// Initializes the resident game run at startup or after an accepted reset.
+///
+/// Blanks display and finishes CD-audio cancellation before replacing callbacks,
+/// heaps and task/render lists. Increments the wrapping initialization count,
+/// queues the corresponding startup task, restores NTSC display/audio defaults
+/// and installs VBlank driver polling. One-time controller, memory-card, CD and
+/// SPU setup must already be complete; prior heap allocations become invalid.
+static void _gameMainInitialize(void)
+{
+    enum {
+        GAME_MAIN_RESET_SETTLE_VBLANKS = 10,
+        GAME_MAIN_INITIAL_DRAW_BUFFER  = 1,
+    };
+    s32 drawBufferIndex;
+
+    // End driver activity before discarding callbacks and live allocations.
+    SetDispMask(0);
+    cdAudioCancelAndWait();
+    ResetCallback();
+    bootResetCd(BOOT_CD_RESET_DRIVE_AND_VOLUME);
+    VSync(GAME_MAIN_RESET_SETTLE_VBLANKS);
+
+    GameResetScratchHead();
+    D_8005EC64++;
+    memConfigureImageMemory(GAME_STAGE_NONE, 0);
+    memInitHeaps();
+    taskResetDefaultList();
+    actorRenderResetLists();
+    _gameMainInitGraphics();
+
+    // Reset the full display state after startup work has been queued.
+    _displayResetGameState();
 
     Display_PendingFlip = 0;
     gpuClearFrameOrderingTable(0);
@@ -168,8 +194,8 @@ static void GameMain_Init(void)
     bootInitCdAudio();
     VSyncCallback(_displayVSyncCallback);
 
-    flag                     = 1;
-    gDisplayState.drawBuffer = flag;
+    drawBufferIndex          = GAME_MAIN_INITIAL_DRAW_BUFFER;
+    gDisplayState.drawBuffer = drawBufferIndex;
     displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT);
     memFillBytes(Pad_RemapState, 0, sizeof(*Pad_RemapState));
 }
@@ -264,8 +290,8 @@ static void _displayVSyncCallback(void)
     D_8005EC74 = VSync(1) - (startScanlines & DISPLAY_VSYNC_SCANLINE_MASK);
 }
 
-// Drawn by GameMain_ShowLoading (must stay in .rodata for this TU).
-/// "PAUSE!" overlay text for GameMain_ShowLoading (@ VA 0x80013404).
+// Drawn by _gameMainShowPauseScreen (must stay in .rodata for this TU).
+/// "PAUSE!" overlay text for _gameMainShowPauseScreen (@ VA 0x80013404).
 static const u8 GameMain_PauseText[] = "PAUSE!";
 
 /// Returns 1 when the loading/pause overlay and halted main-loop path are blocked.
@@ -294,49 +320,80 @@ static inline s32 _gameMainPauseBlocked(void)
     return blocked;
 }
 
-static void GameMain_ShowLoading(s32 arg0)
+/// Dims the 320x240 pause backdrop without following the screen's vertical shake.
+///
+/// Borrows one writable, aligned TILE and DR_TPAGE for synchronous submission.
+/// Requires the current game draw environment; black average blending halves
+/// the framebuffer colour and leaves the packets available for reuse on return.
+static inline void _gameMainDrawPauseBackdrop(TILE* tile, DR_TPAGE* drawMode)
 {
-    TextDrawReq req;
-    TILE*       tile;
-    DR_TPAGE*   dr;
-    s32         buf;
+    enum {
+        GAME_MAIN_PAUSE_WIDTH_PIXELS  = 320,
+        GAME_MAIN_PAUSE_HEIGHT_PIXELS = 240,
+    };
 
-    if (!(GameMain_HaltFlags & ~1)) {
+    setDrawTPage(drawMode, true, true, getTPage(0, GPU_BLEND_AVERAGE, 0, 0));
+    DrawPrim(drawMode);
+    tile->x0                          = -GAME_MAIN_PAUSE_WIDTH_PIXELS / 2;
+    tile->w                           = GAME_MAIN_PAUSE_WIDTH_PIXELS;
+    tile->h                           = GAME_MAIN_PAUSE_HEIGHT_PIXELS;
+    GPU_PRIMITIVE_COLOR_WORD(tile, 0) = 0;
+    setTile(tile);
+    setSemiTrans(tile, true);
+    tile->y0 = -GAME_MAIN_PAUSE_HEIGHT_PIXELS / 2 - gDisplayState.vramYOffset;
+    DrawPrim(tile);
+}
+
+/// Draws and holds the pause screen when the main-loop pause gates allow it.
+///
+/// `haltBitIndex` selects a bit in `GameMain_HaltFlags` (0..30 for the signed
+/// shift). The current caller selects bit 1 for a disconnected controller; the
+/// main loop releases audio ducking when its disconnect-pause condition clears.
+/// Any halt bit except bit 0 prevents another pause. Requires the 320x240 game
+/// environments and large font to be ready; reuses synchronous private GPU
+/// packets without OT storage.
+/// Failed gates leave flags, audio and display untouched.
+static void _gameMainShowPauseScreen(s32 haltBitIndex)
+{
+    enum {
+        GAME_MAIN_PAUSE_EXEMPT_HALT_MASK  = 1,
+        GAME_MAIN_PAUSE_TEXT_BASELINE_Y   = 6,
+        GAME_MAIN_PAUSE_TEXT_OT_INDEX     = 4,
+        GAME_MAIN_PAUSE_TEXT_COLOR_RGB    = 0x037A78,
+        GAME_MAIN_PAUSE_FLIP_REQUEST_NONE = -1,
+    };
+    TextDrawReq textRequest;
+    TILE*       tile;
+    DR_TPAGE*   drawMode;
+    s32         displayBufferIndex;
+
+    if (!(GameMain_HaltFlags & ~GAME_MAIN_PAUSE_EXEMPT_HALT_MASK)) {
         if (!_gameMainPauseBlocked()) {
-            GameMain_HaltFlags |= 1 << arg0;
+            GameMain_HaltFlags |= 1 << haltBitIndex;
             tile                = &D_8006EC18;
-            dr                  = &D_8006EC28;
-            if (arg0 == 1) {
+            drawMode            = &D_8006EC28;
+            if (haltBitIndex == GAME_MAIN_HALT_CONTROLLER_DISCONNECT_BIT) {
                 sndEvtRequestScriptDuckAcquire();
             }
-            setlen(dr, 1);
-            dr->code[0] = 0xE1000600;
-            DrawPrim(dr);
+            // Black average blending dims the current draw buffer; cancel shake.
+            _gameMainDrawPauseBackdrop(tile, drawMode);
 
-            tile->x0                          = -0xA0;
-            tile->w                           = 0x140;
-            tile->h                           = 0xF0;
-            GPU_PRIMITIVE_COLOR_WORD(tile, 0) = 0;
-            setlen(tile, 3);
-            setcode(tile, 0x62);
-            tile->y0 = -0x78 - gDisplayState.vramYOffset;
-            DrawPrim(tile);
+            textRequest.x          = 0;
+            textRequest.otIndex    = GAME_MAIN_PAUSE_TEXT_OT_INDEX;
+            textRequest.colorRgb   = GAME_MAIN_PAUSE_TEXT_COLOR_RGB;
+            textRequest.glyphTable = TEXT_GLYPH_TABLE_LARGE;
+            textRequest.alignment  = TEXT_ALIGNMENT_CENTER;
+            textRequest.drawMode   = TEXT_DRAW_IMMEDIATE;
+            textRequest.y          = GAME_MAIN_PAUSE_TEXT_BASELINE_Y - gDisplayState.vramYOffset;
+            textDrawString(&textRequest, GameMain_PauseText);
 
-            req.x          = 0;
-            req.otIndex    = 4;
-            req.colorRgb   = 0x37A78;
-            req.glyphTable = TEXT_GLYPH_TABLE_LARGE;
-            req.alignment  = TEXT_ALIGNMENT_CENTER;
-            req.drawMode   = TEXT_DRAW_IMMEDIATE;
-            req.y          = 6 - gDisplayState.vramYOffset;
-            textDrawString(&req, GameMain_PauseText);
-
-            buf = gDisplayState.drawBuffer ^ 1;
-            PutDrawEnv(&gDisplayState.drawEnv[buf]);
-            PutDispEnv(&gDisplayState.dispEnv[buf]);
+            // Hold the just-drawn image while redirecting drawing to its partner.
+            displayBufferIndex = gDisplayState.drawBuffer ^ 1;
+            PutDrawEnv(&gDisplayState.drawEnv[displayBufferIndex]);
+            PutDispEnv(&gDisplayState.dispEnv[displayBufferIndex]);
 
             EnterCriticalSection();
-            Display_PendingFlip = -1;
+            Display_PendingFlip = GAME_MAIN_PAUSE_FLIP_REQUEST_NONE;
             ExitCriticalSection();
         }
     }
@@ -409,7 +466,7 @@ static void GameMain_Loop(void)
         if (gDisplayState.gameMode == DISPLAY_GAME_RESTART ||
             (gDisplayState.gameMode == DISPLAY_GAME_ACTIVE && gDisplayState.cdBusy == DISPLAY_CD_IDLE && gDisplayState.gameRunning != 0 &&
              padCheckSoftResetCombo() != 0)) {
-            GameMain_Init();
+            _gameMainInitialize();
             GameMain_HaltFlags = 0;
         }
         GameResetScratchHead();
@@ -417,7 +474,7 @@ static void GameMain_Loop(void)
 
         if (gPadStates[0].inputFormat == PAD_INPUT_FORMAT_UNAVAILABLE && gPadStates[0].inputBlockPolls == 0 && gDisplayState.gameRunning != 0 &&
             gDisplayState.suppressDisconnectPause == 0 && gDisplayState.gameMode == DISPLAY_GAME_ACTIVE) {
-            GameMain_ShowLoading(1);
+            _gameMainShowPauseScreen(GAME_MAIN_HALT_CONTROLLER_DISCONNECT_BIT);
         } else if (GameMain_HaltFlags & 2) {
             sndEvtRequestScriptDuckRelease();
             GameMain_HaltFlags &= ~2;
@@ -639,47 +696,82 @@ void gpuClearFrameOrderingTable(s16 bufferIndex)
     *tableStart = GPU_OT_END_PRIM;
 }
 
-static void Gfx_InitGraph(void)
+/// Binds both resident game OT descriptors to their complete tag ranges.
+///
+/// Each buffer has 0x440 packed DMA words and a ten-bit sorting depth. The
+/// SDK's GsOT_TAG pointers view these same words; no storage is allocated or
+/// cleared. Sets the tail beyond the SDK's usual 1<<length entries so reserved
+/// tags participate in submission. Previous GPU use of the tables must be over.
+static inline void _gpuInitGameOrderingTableDescriptors(void)
 {
-    RECT    rect;
-    GsOT*   otCtx;
-    u_long* ot;
-    s32     depth;
+    GsOT*   orderingTables;
+    u_long* tags;
+    s32     depthBits;
 
-    if (D_8005EC64 == 1) {
-        ResetGraph(0);
+    orderingTables           = Gpu_OtBuffers;
+    depthBits                = GPU_ORDERING_TABLE_DEPTH_BITS;
+    orderingTables->length   = depthBits;
+    tags                     = Gpu_OtTags;
+    orderingTables->tag      = (GsOT_TAG*)(tags + GPU_ORDERING_TABLE_BUFFER_ENTRIES - 1);
+    orderingTables->org      = (GsOT_TAG*)tags;
+    orderingTables[1].length = depthBits;
+    orderingTables[1].org    = (GsOT_TAG*)(tags + GPU_ORDERING_TABLE_BUFFER_ENTRIES);
+    orderingTables[1].tag    = (GsOT_TAG*)(tags + ARRAY_SIZE(Gpu_OtTags) - 1);
+}
+
+/// Restores GPU/GTE and resident view defaults and queues game startup.
+///
+/// Called after the initialization count advances and the default task list is
+/// reset. Resets the GPU only on the first initialization, clears the 320x512
+/// VRAM framebuffer strip synchronously and prepares both game OT descriptors.
+/// The caller subsequently clears display state and ordering-table contents.
+static void _gameMainInitGraphics(void)
+{
+    enum {
+        GAME_MAIN_GRAPH_RESET_FULL        = 0,
+        GAME_MAIN_FRAMEBUFFER_STRIP_WIDTH = 320,
+        GAME_MAIN_VRAM_HEIGHT_PIXELS      = 512,
+    };
+    RECT framebufferStrip;
+
+    if (D_8005EC64 == GAME_MAIN_FIRST_INITIALIZATION) {
+        ResetGraph(GAME_MAIN_GRAPH_RESET_FULL);
     }
 
-    rect.x = 0;
-    rect.y = 0;
-    rect.w = 0x140;
-    rect.h = 0x200;
-    ClearImage(&rect, 0, 0, 0);
+    framebufferStrip.x = 0;
+    framebufferStrip.y = 0;
+    framebufferStrip.w = GAME_MAIN_FRAMEBUFFER_STRIP_WIDTH;
+    framebufferStrip.h = GAME_MAIN_VRAM_HEIGHT_PIXELS;
+    ClearImage(&framebufferStrip, 0, 0, 0);
     DrawSync(0);
     InitGeom();
 
     // The tables exceed `1 << length` entries, so `tag` is set here rather than by `GsClearOt`.
-    otCtx           = Gpu_OtBuffers;
-    depth           = GPU_ORDERING_TABLE_DEPTH_BITS;
-    otCtx->length   = depth;
-    ot              = Gpu_OtTags;
-    otCtx->tag      = (GsOT_TAG*)(ot + GPU_ORDERING_TABLE_BUFFER_ENTRIES - 1);
-    otCtx->org      = (GsOT_TAG*)ot;
-    otCtx[1].length = depth;
-    otCtx[1].org    = (GsOT_TAG*)(ot + GPU_ORDERING_TABLE_BUFFER_ENTRIES);
-    otCtx[1].tag    = (GsOT_TAG*)(ot + 2 * GPU_ORDERING_TABLE_BUFFER_ENTRIES - 1);
-    GameMain_SpawnBootTask();
+    _gpuInitGameOrderingTableDescriptors();
+    _gameMainSpawnStartupTask();
     gfxResetView();
     gfxResetDefaultLights();
     gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
 }
 
-static void GameMain_SpawnBootTask(void)
+/// Queues the first-boot loader or the shorter title reload used after resets.
+///
+/// Uses bank 0 of the default task list, which must already be reset and have
+/// capacity. Initialization count 1 selects ISO/header discovery and the boot
+/// presentation; other counts reload the title directly. Supplies zero spawn
+/// arguments and leaves ownership of the returned task with the task system.
+static void _gameMainSpawnStartupTask(void)
 {
-    if (D_8005EC64 == 1) {
-        taskSpawn(0, 0x1F, 0, 0);
+    enum {
+        GAME_MAIN_STARTUP_TASK_BANK         = 0,
+        GAME_MAIN_STARTUP_TASK_FIRST_BOOT   = 0x1F,
+        GAME_MAIN_STARTUP_TASK_RELOAD_TITLE = 0x20,
+    };
+
+    if (D_8005EC64 == GAME_MAIN_FIRST_INITIALIZATION) {
+        taskSpawn(GAME_MAIN_STARTUP_TASK_BANK, GAME_MAIN_STARTUP_TASK_FIRST_BOOT, 0, 0);
     } else {
-        taskSpawn(0, 0x20, 0, 0);
+        taskSpawn(GAME_MAIN_STARTUP_TASK_BANK, GAME_MAIN_STARTUP_TASK_RELOAD_TITLE, 0, 0);
     }
 }
 
@@ -704,7 +796,7 @@ void GameMain(void)
     bootInitCd();
     memFillBytes(&Wip_SysFlags, 0, sizeof(Wip_SysFlags));
     D_8005EC64 = 0;
-    GameMain_Init();
+    _gameMainInitialize();
     GameMain_Loop();
 }
 
