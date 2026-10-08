@@ -72,6 +72,22 @@ enum {
     ACTOR421600_MESSAGE_IGNORE_2015     = 2015
 };
 
+/// Water Tower route destinations and clips used by its private state handlers.
+enum {
+    ACTOR421600_STATE_ENTRANCE_LUNGE   = 3,
+    ACTOR421600_STATE_ARENA_TRANSITION = 7,
+    ACTOR421600_STATE_LUNGE_RECOVERY   = 29,
+    ACTOR421600_STATE_THROW_PLAYER     = 30,
+    ACTOR421600_STATE_CLOSE_CATCH      = 37,
+    ACTOR421600_STATE_ROUTE_ROAM       = 39,
+    ACTOR421600_CLIP_ARENA_WALK        = 0,
+    ACTOR421600_CLIP_WATCH_RUN         = 2,
+    ACTOR421600_CLIP_LUNGE             = 3,
+    ACTOR421600_CLIP_LEAP_BACK         = 6,
+    ACTOR421600_CLIP_WALL_KNOCK_DOWN   = 10,
+    ACTOR421600_CLIP_ARENA_TRANSITION  = 17
+};
+
 extern SVECTOR ActorContact_ScratchPosition;
 
 /// Returns this carrier's persistent last contact-push correction.
@@ -173,7 +189,7 @@ static TmdSource _gActor421600DesertChaserBurstTorso;
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 
-/// 4x4 zone table `func_actor_421600_8013A404` samples with the X and Z
+/// 4x4 zone table `_actor421600DownedWaitState` samples with the X and Z
 /// buckets of the actor's position, cell `x | z * 4`; the sample is compared
 /// against 0xB to pick between the 6 and 0x24 states.
 extern s8 D_actor_421600_801511C0[16];
@@ -207,7 +223,7 @@ extern AnimationSet* gDesertChaserFrontAnim[5];   // Sets sent to a player caugh
 extern AnimationSet* gDesertChaserRearAnim[5];    // Sets sent to a player caught from behind
 extern SVECTOR       gDesertChaserHitOffsets[12]; // Offsets of the hit effects from their model part, with the part's index in `pad`
 
-static void func_actor_421600_8013E668(Task* task);
+static void _actor421600Exit(Task* task);
 static void _actor421600HideState(Task* task);
 static void func_actor_421600_8013E9D8(Task* arg0);
 static void func_actor_421600_8013EAAC(Task* arg0);
@@ -1273,31 +1289,29 @@ MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
 static __inline__ s32  _actor421600HasPlayerBodyContact(const WorldCollisionContact* contacts);
 static s32             _actor421600PushOutsideArenaCenter(GfxCoord* coord);
-static void            func_actor_421600_80133444(GfxCoord* coord);
+static void            _actor421600SnapToSouthArenaArc(GfxCoord* coord);
 static __inline__ void _actor421600BindLightingMatrices(Task* actor);
 static void            func_actor_421600_80134AD4(Enemy* enemy, Task* actor);
 static __inline__ s32  _actor421600FindAttackContact(const WorldCollisionContact* contacts,
                                                      SVECTOR*                     hitPosition);
 static void            func_actor_421600_801354D8(Task* arg0);
-static void            func_actor_421600_80135F6C(Task* arg0);
+static void            _actor421600ScriptAnimationState(Task* task);
 static __inline__ s16  _actor421600GetArenaZone(const GfxCoord* coord);
-static void            func_actor_421600_80136138(Task* arg0);
+static void            _actor421600TrackArenaRouteState(Task* task);
 static void            _actor421600ShrinkDeathState(Task* task);
 static void            _actor421600WaitToRespawnState(Task* task);
-static void            func_actor_421600_80138D24(Task* arg0);
-static void            func_actor_421600_8013903C(Task* arg0);
-static void            func_actor_421600_8013947C(Task* arg0);
-static void            func_actor_421600_8013A404(Task* arg0);
-static void            func_actor_421600_8013A554(Task* arg0);
-static void            func_actor_421600_8013B00C(Task* arg0);
-static void            func_actor_421600_8013B4C4(Task* arg0);
-static void            func_actor_421600_8013B8E0(Task* arg0);
+static void            _actor421600LeapBackState(Task* task);
+static void            _actor421600WatchRunPlayerState(Task* task);
+static void            _actor421600WallKnockDownState(Task* task);
+static void            _actor421600DownedWaitState(Task* task);
+static void            _actor421600EntranceLungeState(Task* task);
+static void            _actor421600FleeState(Task* task);
+static void            _actor421600MoveToZone5State(Task* task);
+static void            _actor421600ArenaTransitionState(Task* task);
 static __inline__ s32  _actor421600GetRouteQuadrant(s32 x, s32 z);
 static void            func_actor_421600_8013BA70(Task* arg0);
 static void            func_actor_421600_8013C8E0(Task* arg0);
 static void            func_actor_421600_8013D658(Enemy* enemy, Task* actor);
-static void            func_actor_421600_8013E7F8(SVECTOR* arg0, s32 arg1);
-static s8              func_actor_421600_8013E830(s32 arg0, s32 arg1);
 
 /// Returns whether a sphere's contacts include a player or companion body.
 ///
@@ -1322,10 +1336,11 @@ static __inline__ s32 _actor421600HasPlayerBodyContact(const WorldCollisionConta
 
 #include "../../shared/actor_contacts_push_contact.inc.c"
 
-/// Places the root's XZ and yaw for a room command, then refreshes composition.
+/// Places the chaser's root XZ and yaw and refreshes its composed transform.
 ///
-/// Coordinates use root-parent units and yaw uses 4096 units per turn. The
-/// live model is borrowed for the call; Y and the coordinate hierarchy stay intact.
+/// X/Z use game-coordinate units in the root's parent frame; yaw uses 4096
+/// units per turn. Requires a live model root. Y and parent links are preserved;
+/// replacing yaw resets the rotation and scale before composition.
 static inline void _actor421600PlaceRootXZ(Task* task, s32 x, s32 z, s16 yaw)
 {
     task->extra.tmd->coords->coord.t[0] = x;
@@ -1538,47 +1553,44 @@ static s32 _actor421600PushOutsideArenaCenter(GfxCoord* coord)
     return 0;
 }
 
-static void func_actor_421600_80133444(GfxCoord* coord)
+/// Snaps qualifying chaser positions onto the arena's southern 700-unit arc.
+///
+/// Only X in 501..1499 and Z below -500 are considered, in root-parent units.
+/// An XZ offset narrowed to halfwords from (1000, -1) must lie strictly inside
+/// radius 720. Its normalized direction is scaled to 700 and stored about
+/// (1000, 0), preserving the one-unit center difference. Y and rotation stay
+/// intact; a correction marks composition dirty. Requires scratch-stack room
+/// for one OverlayRangeScratch and changes GTE state.
+static void _actor421600SnapToSouthArenaArc(GfxCoord* coord)
 {
-    SVECTOR              vec;
-    SVECTOR*             direction;
-    OverlayRangeScratch* rangeScratch;
-    OverlayRangeScratch* savedScratchHead;
-    s32                  outside;
-    u8*                  scratchBase;
-    u8*                  scratchRestoreBase;
+    enum { ACTOR421600_SOUTH_ARC_X_MIN       = 501,
+           ACTOR421600_SOUTH_ARC_X_SPAN      = 999,
+           ACTOR421600_SOUTH_ARC_Z_GATE      = 500,
+           ACTOR421600_SOUTH_ARC_CENTER_X    = 1000,
+           ACTOR421600_SOUTH_ARC_TEST_RADIUS = 720,
+           ACTOR421600_SOUTH_ARC_RADIUS      = 700 };
+    SVECTOR  radialOffset;
+    SVECTOR* radialDirection;
+    s32      outsideCircle;
 
-    if ((u32)(coord->coord.t[0] - 0x1F5) < 0x3E7) {
-        if (coord->coord.t[2] < 0x1F4) {
-            if (coord->coord.t[2] < -0x1F4) {
-                // Reserve squared-distance operands, then release them before the test.
-                savedScratchHead                                                       = SCRATCH_STACK_CURSOR(OverlayRangeScratch);
-                rangeScratch                                                           = savedScratchHead - 1;
-                scratchBase                                                            = PLAYSTATION_SCRATCHPAD_BASE;
-                *(OverlayRangeScratch**)(scratchBase + SCRATCH_STACK_HEAD_BYTE_OFFSET) = rangeScratch;
-                vec.vx                                                                 = (u16)coord->coord.t[0] - 0x3E8;
-                vec.vy                                                                 = 0;
-                vec.vz                                                                 = (u16)coord->coord.t[2] + 1;
-                rangeScratch->dx                                                       = vec.vx;
-                direction                                                              = &vec;
-                rangeScratch->dz                                                       = direction->vz;
-                rangeScratch->radius                                                   = 0x2D0;
-                rangeScratch->dx                                                       = rangeScratch->dx * rangeScratch->dx;
-                rangeScratch->dz                                                       = rangeScratch->dz * rangeScratch->dz;
-                rangeScratch->radius                                                   = rangeScratch->radius * rangeScratch->radius;
-                scratchRestoreBase                                                     = PLAYSTATION_SCRATCHPAD_BASE + (SCRATCH_STACK_HEAD_BYTE_OFFSET - sizeof(void*));
-                *(OverlayRangeScratch**)(scratchRestoreBase + sizeof(void*))           = savedScratchHead;
-                outside                                                                = rangeScratch->dx + rangeScratch->dz >= rangeScratch->radius;
-                if (outside != 0) {
+    if ((u32)(coord->coord.t[0] - ACTOR421600_SOUTH_ARC_X_MIN) < ACTOR421600_SOUTH_ARC_X_SPAN) {
+        if (coord->coord.t[2] < ACTOR421600_SOUTH_ARC_Z_GATE) {
+            if (coord->coord.t[2] < -ACTOR421600_SOUTH_ARC_Z_GATE) {
+                radialOffset.vx = (u16)coord->coord.t[0] - ACTOR421600_SOUTH_ARC_CENTER_X;
+                radialOffset.vy = 0;
+                radialOffset.vz = (u16)coord->coord.t[2] + 1;
+                radialDirection = &radialOffset;
+                outsideCircle   = _actorRangeOutsideRadiusXZ(radialDirection, ACTOR421600_SOUTH_ARC_TEST_RADIUS);
+                if (outsideCircle != 0) {
                     return;
                 }
-                VectorNormalSS(direction, direction);
-                gte_lddp(0x2BC);
-                gte_ldsv(direction);
+                VectorNormalSS(radialDirection, radialDirection);
+                gte_lddp(ACTOR421600_SOUTH_ARC_RADIUS);
+                gte_ldsv(radialDirection);
                 gte_gpf12();
-                gte_stsv(direction);
-                coord->coord.t[0]   = vec.vx + 0x3E8;
-                coord->coord.t[2]   = vec.vz;
+                gte_stsv(radialDirection);
+                coord->coord.t[0]   = radialOffset.vx + ACTOR421600_SOUTH_ARC_CENTER_X;
+                coord->coord.t[2]   = radialOffset.vz;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
             }
         }
@@ -1991,7 +2003,7 @@ static void func_actor_421600_80134AD4(Enemy* enemy, Task* actor)
         return;
     }
     (sceneAcquireBattleRef)(0);
-    actor->exitCallback = func_actor_421600_8013E668;
+    actor->exitCallback = _actor421600Exit;
     _actor421600BindLightingMatrices(actor);
     enemy->field_4    = &actor->extra.tmd->coords[0].coord;
     enemy->field_48   = 0;
@@ -2457,57 +2469,69 @@ static void func_actor_421600_801354D8(Task* arg0)
     }
 }
 
-static void func_actor_421600_80135F6C(Task* arg0)
+/// Plays room-requested chaser clips and their script-specific transitions and dust.
+///
+/// Entry restores targeting, primitive buffers and root-grid collision at
+/// normal animation rate. Clip 13 follows a control jump into clip 1; settled
+/// clip 15 resets into clip 16. Clip 14 emits part-7 dust on cue records 8/9,
+/// with a second puff on record 8. The state remains active until another
+/// command or the frame driver releases it. Requires live work, enemy and model.
+static void _actor421600ScriptAnimationState(Task* task)
 {
-    SVECTOR           offset;
+    enum { ACTOR421600_SCRIPT_CLIP_BRANCH           = 13,
+           ACTOR421600_SCRIPT_CLIP_AFTER_BRANCH     = 1,
+           ACTOR421600_SCRIPT_CLIP_DUST             = 14,
+           ACTOR421600_SCRIPT_CLIP_TRANSITION       = 15,
+           ACTOR421600_SCRIPT_CLIP_AFTER_TRANSITION = 16 };
+    SVECTOR           dustOffset;
     DesertChaserWork* work;
-    TmdObject*        obj;
+    TmdObject*        model;
 
-    work = arg0->work;
+    work = task->work;
     if (work->stateEntered != 0) {
-        obj                                                       = arg0->extra.tmd;
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
-        obj->flags                                                = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->animRate                                       = 0x10;
+        model                                                     = task->extra.tmd;
+        ((Enemy*)task->spawnArg2.pointer)->node.state.parts.flags = 0;
+        model->flags                                              = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->animRate                                       = ANIMATION_RATE_ONE;
         work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        if (work->animId == 0xD) {
+        if (work->animId == ACTOR421600_SCRIPT_CLIP_BRANCH) {
             work->animRequest = DESERT_CHASER_ANIM_REQUEST_BLEND;
         } else {
             work->animRequest = DESERT_CHASER_ANIM_REQUEST_RESET;
         }
         work->waistYawTarget = 0;
         work->lookYawTarget  = 0;
-        _desertChaserAnimTick(arg0);
+        _desertChaserAnimTick(task);
         return;
     }
-    _desertChaserAnimTick(arg0);
-    if ((work->rig.slots[1].status.fields.flags & 2) && (work->animId == 0xD)) {
-        work->animId      = 1;
+    _desertChaserAnimTick(task);
+    if ((work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) && (work->animId == ACTOR421600_SCRIPT_CLIP_BRANCH)) {
+        work->animId      = ACTOR421600_SCRIPT_CLIP_AFTER_BRANCH;
         work->animRequest = DESERT_CHASER_ANIM_REQUEST_BLEND;
     }
-    if (work->rig.slots[1].status.fields.flags & 0x100) {
-        if (work->animId == 0xF) {
+    if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
+        if (work->animId == ACTOR421600_SCRIPT_CLIP_TRANSITION) {
             work->animRequest = DESERT_CHASER_ANIM_REQUEST_RESET;
-            work->animId      = 0x10;
+            work->animId      = ACTOR421600_SCRIPT_CLIP_AFTER_TRANSITION;
         }
-        _desertChaserAnimTick(arg0);
+        _desertChaserAnimTick(task);
     }
-    if (work->animId == 0xE) {
-        if ((u32)((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) - 8) < 2U) {
-            offset.vz = 0;
-            offset.vx = 0;
-            offset.vy = 0x2BC;
+    if (work->animId == ACTOR421600_SCRIPT_CLIP_DUST) {
+        if ((u32)((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) - 8) < 2U) {
+            dustOffset.vz = 0;
+            dustOffset.vx = 0;
+            dustOffset.vy = 0x2BC;
             if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                effectSpawn(EFFECT_DUST_PUFF, arg0->extra.tmd->coords + 7, 0x80002300, &offset);
+                effectSpawn(EFFECT_DUST_PUFF, task->extra.tmd->coords + 7, (DESERT_CHASER_CUE_DUST_RECURSIVE | (2 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 0x300), &dustOffset);
             }
         }
-        if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 8) {
-            offset.vz = 0;
-            offset.vx = 0;
-            offset.vy = 0x2BC;
+        if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 8) {
+            dustOffset.vz = 0;
+            dustOffset.vx = 0;
+            dustOffset.vy = 0x2BC;
             if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                effectSpawn(EFFECT_DUST_PUFF, arg0->extra.tmd->coords + 7, 0x80003400, &offset);
+                effectSpawn(EFFECT_DUST_PUFF, task->extra.tmd->coords + 7, (DESERT_CHASER_CUE_DUST_RECURSIVE | (3 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 0x400), &dustOffset);
             }
         }
     }
@@ -2546,126 +2570,136 @@ static __inline__ s16 _actor421600GetArenaZone(const GfxCoord* coord)
     return D_actor_421600_801511C0[xBucket | (zBucket * 4)];
 }
 
-static void func_actor_421600_80136138(Task* arg0)
+/// Walks the arena perimeter toward the player's zone until close enough to roam.
+///
+/// Entry selects walking at normal animation rate. Later ticks compare arena
+/// zones and follow the adjacent waypoint with a maximum yaw step of 32/4096
+/// turn and a 20-unit forward step while no reaction is blended. Grid and
+/// body contacts correct movement, then the center exclusion is applied.
+/// Waypoint lookup requires the adjacent index to lie in 0..12; inner-cell
+/// zones 13..15 do not establish that bound. Requires live roots and scratch.
+static void _actor421600TrackArenaRouteState(Task* task)
 {
+    enum { ACTOR421600_ROUTE_MAX_TURN = 32,
+           ACTOR421600_ROUTE_STEP     = 20 };
     DesertChaserWork* work;
-    ActorTurnScratch *head, *turn;
-    Enemy*            ctx;
-    TmdObject*        obj;
-    s16               playerZone, zone;
+    ActorTurnScratch *savedCursor, *routeTurn;
+    Enemy*            enemy;
+    TmdObject*        model;
+    s16               playerZone, actorZone;
     s16               nextZone;
-    s16               angle;
+    s16               waypointTurn;
 
-    work = arg0->work;
-    ctx  = arg0->spawnArg2.pointer;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        obj                         = arg0->extra.tmd;
-        ctx->node.state.parts.flags = 0;
-        obj->flags                  = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->animRate                                       = 0x10;
-        work->animId                                         = 0;
+        model                         = task->extra.tmd;
+        enemy->node.state.parts.flags = 0;
+        model->flags                  = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->animRate                                       = ANIMATION_RATE_ONE;
+        work->animId                                         = ACTOR421600_CLIP_ARENA_WALK;
         work->animRequest                                    = DESERT_CHASER_ANIM_REQUEST_BLEND;
         work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        _desertChaserAnimTick(arg0);
+        _desertChaserAnimTick(task);
         return;
     }
     playerZone = _actor421600GetArenaZone(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords);
-    zone       = _actor421600GetArenaZone(arg0->extra.tmd->coords);
-    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
-    if (playerZone == zone) {
-        work->state = 0x26;
+    actorZone  = _actor421600GetArenaZone(task->extra.tmd->coords);
+    _actorContactApplyGridPushback(task->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
+    if (playerZone == actorZone) {
+        work->state = DESERT_CHASER_STATE_ROAM;
         return;
     }
     switch ((s16)(playerZone - 1)) {
         case 0:
         case 1:
-            if (zone >= 1 && zone <= 3) {
-                work->state = 0x26;
+            if (actorZone >= 1 && actorZone <= 3) {
+                work->state = DESERT_CHASER_STATE_ROAM;
                 return;
             }
             break;
         case 2:
-            if (zone >= 1 && zone <= 6) {
-                work->state = 0x26;
+            if (actorZone >= 1 && actorZone <= 6) {
+                work->state = DESERT_CHASER_STATE_ROAM;
                 return;
             }
             break;
         case 3:
         case 4:
-            if (zone >= 3 && zone <= 6) {
-                work->state = 0x26;
+            if (actorZone >= 3 && actorZone <= 6) {
+                work->state = DESERT_CHASER_STATE_ROAM;
                 return;
             }
             break;
         case 5:
-            if (zone >= 3 && zone <= 9) {
-                work->state = 0x26;
+            if (actorZone >= 3 && actorZone <= 9) {
+                work->state = DESERT_CHASER_STATE_ROAM;
                 return;
             }
             break;
         case 6:
         case 7:
-            if (zone >= 6 && zone <= 9) {
-                work->state = 0x26;
+            if (actorZone >= 6 && actorZone <= 9) {
+                work->state = DESERT_CHASER_STATE_ROAM;
                 return;
             }
             break;
         case 8:
-            if (zone >= 6 && zone <= 11) {
-                work->state = 0x26;
+            if (actorZone >= 6 && actorZone <= 11) {
+                work->state = DESERT_CHASER_STATE_ROAM;
                 return;
             }
             break;
         case 9:
         case 10:
-            if (zone >= 9 && zone <= 11) {
-                work->state = 0x26;
+            if (actorZone >= 9 && actorZone <= 11) {
+                work->state = DESERT_CHASER_STATE_ROAM;
                 return;
             }
             break;
         case 11:
-            if (zone >= 0xB) {
-                work->state = 0x26;
+            if (actorZone >= 0xB) {
+                work->state = DESERT_CHASER_STATE_ROAM;
                 return;
             }
-            if (zone >= 0xC) {
-                work->state = 0x26;
+            if (actorZone >= 0xC) {
+                work->state = DESERT_CHASER_STATE_ROAM;
                 return;
             }
             break;
     }
-    _desertChaserAnimTick(arg0);
-    head = SCRATCH_STACK_CURSOR(ActorTurnScratch);
+    _desertChaserAnimTick(task);
+    savedCursor = SCRATCH_STACK_CURSOR(ActorTurnScratch);
     SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
-    turn = head - 1;
-    if (zone > playerZone)
-        nextZone = zone - 1;
+    routeTurn = savedCursor - 1;
+    if (actorZone > playerZone)
+        nextZone = actorZone - 1;
     else
-        nextZone = zone + 1;
-    head[-1].delta.vx   = D_actor_421600_80151158[nextZone].vx;
-    turn->delta.vy      = D_actor_421600_80151158[nextZone].vy;
-    turn->delta.vz      = D_actor_421600_80151158[nextZone].vz;
-    turn->delta.vx      = turn->delta.vx - (u16)arg0->extra.tmd->coords->coord.t[0];
-    turn->delta.vy      = 0;
-    turn->delta.vz      = turn->delta.vz - (u16)arg0->extra.tmd->coords->coord.t[2];
-    angle               = _actorAngleTurnToOffset(arg0->extra.tmd->coords, turn->delta.vx, turn->delta.vz);
-    turn->angle         = angle;
-    work->lookYawTarget = angle;
-    if (turn->angle >= 0x21)
-        turn->angle = 0x20;
-    if (turn->angle < -0x20)
-        turn->angle = -0x20;
-    work->waistYawTarget = turn->angle;
-    turn->angle          = turn->angle + ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
+        nextZone = actorZone + 1;
+    savedCursor[-1].delta.vx = D_actor_421600_80151158[nextZone].vx;
+    routeTurn->delta.vy      = D_actor_421600_80151158[nextZone].vy;
+    routeTurn->delta.vz      = D_actor_421600_80151158[nextZone].vz;
+    routeTurn->delta.vx      = routeTurn->delta.vx - (u16)task->extra.tmd->coords->coord.t[0];
+    routeTurn->delta.vy      = 0;
+    routeTurn->delta.vz      = routeTurn->delta.vz - (u16)task->extra.tmd->coords->coord.t[2];
+    waypointTurn             = _actorAngleTurnToOffset(task->extra.tmd->coords, routeTurn->delta.vx, routeTurn->delta.vz);
+    routeTurn->angle         = waypointTurn;
+    work->lookYawTarget      = waypointTurn;
+    if (routeTurn->angle >= ACTOR421600_ROUTE_MAX_TURN + 1)
+        routeTurn->angle = ACTOR421600_ROUTE_MAX_TURN;
+    if (routeTurn->angle < -ACTOR421600_ROUTE_MAX_TURN)
+        routeTurn->angle = -ACTOR421600_ROUTE_MAX_TURN;
+    work->waistYawTarget = routeTurn->angle;
+    routeTurn->angle     = routeTurn->angle + ratan2(-task->extra.tmd->coords->coord.m[2][0], task->extra.tmd->coords->coord.m[2][2]);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, routeTurn->angle, GRAPHICS_ROTATION_REPLACE);
     if (work->blendActive == 0) {
-        _actorMovementStepForward(arg0->extra.tmd->coords, 0x14);
+        _actorMovementStepForward(task->extra.tmd->coords, ACTOR421600_ROUTE_STEP);
     }
-    _actorContactApplyAvoidancePushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &turn->delta);
-    _actor421600PushOutsideArenaCenter(arg0->extra.tmd->coords);
+    _actorContactApplyAvoidancePushback(task->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &routeTurn->delta);
+    _actor421600PushOutsideArenaCenter(task->extra.tmd->coords);
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// Flattens and hides a dead chaser before it waits to respawn.
@@ -2730,10 +2764,12 @@ static void _actor421600ShrinkDeathState(Task* task)
     }
 }
 
-/// Restores a chaser at its final-battle entrance and selects the path to zone 5.
+/// Restores health and default color at a final-battle entrance and heads for zone 5.
 ///
-/// Composition deliberately precedes the yaw rebuild, matching the room's
-/// respawn placement sequence. Work, enemy and model are borrowed and live.
+/// X/Z use game-coordinate units in the root's parent frame; yaw uses 4096
+/// units per turn. Task, work and enemy must describe the same live chaser.
+/// Y is preserved. Composition precedes the yaw replacement, so callers must
+/// invalidate and recompose before consuming the new cached orientation.
 static inline void _actor421600RestoreFinalBattleChaser(Task* task, DesertChaserWork* work, Enemy* enemy, s32 x, s32 z, s16 yaw)
 {
     task->extra.tmd->coords->coord.t[0]   = x;
@@ -2837,132 +2873,127 @@ static void _actor421600WaitToRespawnState(Task* task)
 
 #include "../../shared/desert_chaser_strike.inc.c"
 
-/// Aim tick: on the live-actor edge it re-arms the model the way
-/// `_desertChaserThrowPlayer` does -- buffers reallocated, clip 0x10,
-/// `animId` 6, the 0xB6C node's 0x4000 flag up -- with `stateCounter` and the
-/// 0xCD8 offset it owns reseeded, then, while `stateTimer` is inside 9..0x18 and
-/// `stateCounter` below 5, walks the 0xB8C table and counts a retry for every hit.
-/// The 0xCE4 records decide which way the model is aimed: one carrying the
-/// 0x100000 kind turns it by `-0x55`, none by `-0xC8`, through
-/// `_actorMovementStepForward`. Outside that frame window, and in both aim arms,
-/// the 0xB8C walk is what runs.
-static void func_actor_421600_80138D24(Task* arg0)
+/// Leaps backward after a catch, then resumes arena-route tracking.
+///
+/// Entry selects the backward clip and places the capsule probe 800 units
+/// behind the root. Frames 9..24 retreat 200 root-parent units per tick, or
+/// 85 while the capsule touches the grid, until five root-grid corrections
+/// have been counted. A settled clip selects route tracking. Requires live
+/// work, enemy, model and collision contacts.
+static void _actor421600LeapBackState(Task* task)
 {
+    enum { ACTOR421600_LEAP_BACK_FIRST_TICK      = 9,
+           ACTOR421600_LEAP_BACK_TICKS           = 16,
+           ACTOR421600_LEAP_BACK_MAX_GRID_PUSHES = 5,
+           ACTOR421600_LEAP_BACK_PROBE_DISTANCE  = 800,
+           ACTOR421600_LEAP_BACK_STEP            = 200,
+           ACTOR421600_LEAP_BACK_BLOCKED_STEP    = 85 };
     DesertChaserWork* work;
-    Enemy*            ctx;
-    TmdObject*        obj;
-    s16               found;
+    Enemy*            enemy;
+    TmdObject*        model;
+    s16               wallContact;
 
-    work = arg0->work;
+    work = task->work;
     if (work->stateEntered != 0) {
-        obj                         = arg0->extra.tmd;
-        ctx                         = arg0->spawnArg2.pointer;
-        ctx->node.state.parts.flags = 0;
-        obj->flags                  = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->spheres[DESERT_CHASER_SPHERE_FRONT].body.radius = 0x19C;
+        model                         = task->extra.tmd;
+        enemy                         = task->spawnArg2.pointer;
+        enemy->node.state.parts.flags = 0;
+        model->flags                  = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->spheres[DESERT_CHASER_SPHERE_FRONT].body.radius = DESERT_CHASER_FRONT_RADIUS;
         work->animRequest                                     = DESERT_CHASER_ANIM_REQUEST_BLEND;
-        work->animRate                                        = 0x10;
+        work->animRate                                        = ANIMATION_RATE_ONE;
         work->blendActive                                     = 0;
-        work->animId                                          = 6;
+        work->animId                                          = ACTOR421600_CLIP_LEAP_BACK;
         work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        _desertChaserAnimTick(arg0);
+        _desertChaserAnimTick(task);
         work->stateTimer                 = 0;
         work->stateCounter               = 0;
-        work->wallProbe.shape.ends[1].vz = -0x320;
+        work->wallProbe.shape.ends[1].vz = -ACTOR421600_LEAP_BACK_PROBE_DISTANCE;
     }
     work->stateTimer++;
-    _desertChaserAnimTick(arg0);
-    if (work->rig.slots[1].status.fields.flags & 0x100) {
-        work->state = 2;
+    _desertChaserAnimTick(task);
+    if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
+        work->state = ACTOR421600_STATE_TRACK_ARENA_ROUTE;
     }
-    if (((u32)((u16)work->stateTimer - 9) < 0x10) && (work->stateCounter < 5)) {
-        if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts)) != 0) {
+    if (((u32)((u16)work->stateTimer - ACTOR421600_LEAP_BACK_FIRST_TICK) < ACTOR421600_LEAP_BACK_TICKS) && (work->stateCounter < ACTOR421600_LEAP_BACK_MAX_GRID_PUSHES)) {
+        if (_actorContactApplyGridPushback(task->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts)) != 0) {
             work->stateCounter++;
         }
-        found = _desertChaserCapsuleTouchesGrid(arg0);
-        if (found != 0) {
-            _actorMovementStepForward(arg0->extra.tmd->coords, -0x55);
+        wallContact = _desertChaserCapsuleTouchesGrid(task);
+        if (wallContact != 0) {
+            _actorMovementStepForward(task->extra.tmd->coords, -ACTOR421600_LEAP_BACK_BLOCKED_STEP);
         } else {
-            _actorMovementStepForward(arg0->extra.tmd->coords, -0xC8);
+            _actorMovementStepForward(task->extra.tmd->coords, -ACTOR421600_LEAP_BACK_STEP);
         }
     } else {
-        _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
+        _actorContactApplyGridPushback(task->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
     }
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Re-arms the model the way `_desertChaserThrowPlayer` does -- buffers
-/// reallocated, clip 0x10, `animId` 2, the 0xB6C node's 0x4000 flag up --
-/// then applies horizontal grid pushback from the root sphere's contact table
-/// through `_actorContactApplyGridPushback`.
-/// Takes two `SVECTOR`s off the scratch stack and fills the XZ offset of the
-/// model coordinate from `gPlayerStatus.coordMtx` (the player's coordinate matrix),
-/// forms the yaw difference against the model's own facing (row 2 of its
-/// matrix), wraps it into `[-0x800, 0x800]` into `lookYawTarget` and re-aims the
-/// coordinate with `gfxRotMatrixY`. Ends by writing the view index into
-/// `state` on the two view transitions.
+/// Faces the player while waiting for the placed chaser's entrance camera view.
 ///
-/// The coordinate is read twice into two locals: `coord` only feeds the offset
-/// and dies before the first `ratan2`, while `coord2` is live across it, so GCC
-/// 2.8.1 keeps them in a caller-saved and a callee-saved register respectively.
-/// One local assigned twice is one pseudo with one live range and costs a sixth
-/// saved register.
-static void func_actor_421600_8013903C(Task* arg0)
+/// Entry selects the waiting clip; each tick applies root-grid correction,
+/// tracks the player's narrowed XZ offset and points the root at that bearing.
+/// Place 0 starts the entrance lunge in mapped view 3; place 1 does so in
+/// view 8. Borrows live player/model roots and reserves two SVECTORs of
+/// scratch storage, of which only the first vector's XYZ is accessed.
+static void _actor421600WatchRunPlayerState(Task* task)
 {
     DesertChaserWork* work;
-    Enemy*            ctx;
-    TmdObject*        obj;
-    SVECTOR*          head;
-    SVECTOR*          vec;
-    GfxCoord*         coord;
-    GfxCoord*         coord2;
-    s16               angle;
-    s32               view;
+    Enemy*            enemy;
+    TmdObject*        model;
+    SVECTOR*          savedCursor;
+    SVECTOR*          toPlayer;
+    GfxCoord*         positionCoord;
+    GfxCoord*         headingCoord;
+    s16               playerTurn;
+    s32               mappedView;
 
-    head                           = SCRATCH_STACK_CURSOR(SVECTOR);
-    SCRATCH_STACK_CURSOR(SVECTOR) -= 2;
-    vec                            = head - 2;
-    work                           = arg0->work;
-    ctx                            = arg0->spawnArg2.pointer;
+    savedCursor = SCRATCH_STACK_CURSOR(SVECTOR);
+    SCRATCH_STACK_RESERVE_BYTES(2 * sizeof(SVECTOR));
+    toPlayer = savedCursor - 2;
+    work     = task->work;
+    enemy    = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        obj                         = arg0->extra.tmd;
-        ctx->node.state.parts.flags = 0;
-        obj->flags                  = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->spheres[DESERT_CHASER_SPHERE_FRONT].body.radius = 0x19C;
+        model                         = task->extra.tmd;
+        enemy->node.state.parts.flags = 0;
+        model->flags                  = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->spheres[DESERT_CHASER_SPHERE_FRONT].body.radius = DESERT_CHASER_FRONT_RADIUS;
         work->animRequest                                     = DESERT_CHASER_ANIM_REQUEST_BLEND;
-        work->animRate                                        = 0x10;
+        work->animRate                                        = ANIMATION_RATE_ONE;
         work->blendActive                                     = 0;
-        work->animId                                          = 2;
+        work->animId                                          = ACTOR421600_CLIP_WATCH_RUN;
         work->waistYawTarget                                  = 0;
         work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        _desertChaserAnimTick(arg0);
+        _desertChaserAnimTick(task);
         work->stateTimer = 0;
     }
-    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord                                 = arg0->extra.tmd->coords;
-    head[-2].vx                           = (u16)gPlayerStatus.coordMtx->t[0] - (u16)coord->coord.t[0];
-    vec->vy                               = (u16)gPlayerStatus.coordMtx->t[1] - (u16)coord->coord.t[1];
-    vec->vz                               = (u16)gPlayerStatus.coordMtx->t[2] - (u16)coord->coord.t[2];
-    coord2                                = arg0->extra.tmd->coords;
-    angle                                 = ratan2(head[-2].vx, vec->vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
-    angle                                 = _actorAngleNormalizeYaw(angle);
-    work->lookYawTarget                   = angle;
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, (s16)ratan2(vec->vx, vec->vz), 1);
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    _desertChaserAnimTick(arg0);
-    if (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) == 0) {
-        view = viewGetMappedIndex() & 0xFF;
-        if (view == 3) {
-            work->state = view;
+    _actorContactApplyGridPushback(task->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    positionCoord                         = task->extra.tmd->coords;
+    savedCursor[-2].vx                    = (u16)gPlayerStatus.coordMtx->t[0] - (u16)positionCoord->coord.t[0];
+    toPlayer->vy                          = (u16)gPlayerStatus.coordMtx->t[1] - (u16)positionCoord->coord.t[1];
+    toPlayer->vz                          = (u16)gPlayerStatus.coordMtx->t[2] - (u16)positionCoord->coord.t[2];
+    headingCoord                          = task->extra.tmd->coords;
+    playerTurn                            = ratan2(savedCursor[-2].vx, toPlayer->vz) - ratan2(-headingCoord->coord.m[2][0], headingCoord->coord.m[2][2]);
+    playerTurn                            = _actorAngleNormalizeYaw(playerTurn);
+    work->lookYawTarget                   = playerTurn;
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, (s16)ratan2(toPlayer->vx, toPlayer->vz), GRAPHICS_ROTATION_REPLACE);
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    _desertChaserAnimTick(task);
+    if (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) == 0) {
+        mappedView = viewGetMappedIndex() & 0xFF;
+        if (mappedView == 3) {
+            work->state = mappedView;
         }
     }
-    if ((((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) == 1) && ((viewGetMappedIndex() & 0xFF) == 8)) {
-        work->state = 3;
+    if ((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) == 1) && ((viewGetMappedIndex() & 0xFF) == 8)) {
+        work->state = ACTOR421600_STATE_ENTRANCE_LUNGE;
     }
-    SCRATCH_STACK_CURSOR(SVECTOR) += 2;
+    SCRATCH_STACK_RELEASE_BYTES(2 * sizeof(SVECTOR));
 }
 
 #include "../../shared/desert_chaser_steer.inc.c"
@@ -3004,228 +3035,246 @@ static __inline__ void _actor421600ClampInsideArena(GfxCoord* coord)
     }
 }
 
-/// Death / respawn tick: re-arms the model buffers and the 0x828 motion block,
-/// fires the 0x40010009 spawn sound and the 0x40010007 tick sound (draining
-/// `hp` by 0xF and flooring it at 1), then walks the two `WorldCollisionContact`
-/// movement tables. While the last command received is 2 the actor is held
-/// in the arena by clamping X -- and Z only when X was already inside -- and
-/// otherwise `_actor421600PushOutsideArenaCenter` drags it back. Picks the state
-/// `state` from `hp` and the buildup bit of `reactionFlags`.
-static void func_actor_421600_8013947C(Task* arg0)
+/// Plays a wall-impact knockdown, charges 15 HP, and waits downed or starts death.
+///
+/// Entry plays the impact and hurt sounds, floors the HP charge at 1, and
+/// enables the front sphere's grid test as well as the root's. The front grid
+/// bit remains enabled in later states. Final-battle commands clamp the root
+/// inside the arena; other commands apply the center exclusion. On clip end,
+/// living chasers wait downed or stay stunned by buildup; dead ones shrink.
+/// Requires live work, enemy, model, contacts and positional-audio queries.
+static void _actor421600WallKnockDownState(Task* task)
 {
+    enum { ACTOR421600_WALL_KNOCK_DOWN_HP_COST = 15,
+           ACTOR421600_SOUND_WALL_KNOCK_DOWN   = 0x40010009,
+           ACTOR421600_SOUND_HURT              = 0x40010007 };
     DesertChaserWork* work;
-    Enemy*            ctx;
-    TmdObject*        obj;
-    s32               sound;
-    s32               pan;
-    s32               eventSound;
-    s32               eventPan;
+    Enemy*            enemy;
+    TmdObject*        model;
+    s32               knockdownSound;
+    s32               knockdownPan;
+    s32               hurtSound;
+    s32               hurtPan;
 
-    work = arg0->work;
-    ctx  = arg0->spawnArg2.pointer;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        obj                         = arg0->extra.tmd;
-        ctx->node.state.parts.flags = 0;
-        obj->flags                  = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->spheres[DESERT_CHASER_SPHERE_FRONT].body.radius = 0x19C;
-        work->animRate                                        = 0x10;
-        work->animId                                          = 0xA;
+        model                         = task->extra.tmd;
+        enemy->node.state.parts.flags = 0;
+        model->flags                  = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->spheres[DESERT_CHASER_SPHERE_FRONT].body.radius = DESERT_CHASER_FRONT_RADIUS;
+        work->animRate                                        = ANIMATION_RATE_ONE;
+        work->animId                                          = ACTOR421600_CLIP_WALL_KNOCK_DOWN;
         work->animRequest                                     = DESERT_CHASER_ANIM_REQUEST_BLEND;
         work->blendActive                                     = 0;
         work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
         work->spheres[DESERT_CHASER_SPHERE_FRONT].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        _desertChaserAnimTick(arg0);
-        sound = (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40010009;
-        pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(sound, pan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-        ctx->hp -= 0xF;
-        worldTargetAddReadoutAmount(&ctx->node, 0xF, 0);
-        if (ctx->hp <= 0) {
-            ctx->hp = 1;
+        _desertChaserAnimTick(task);
+        knockdownSound = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR421600_SOUND_WALL_KNOCK_DOWN;
+        knockdownPan   = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(knockdownSound, knockdownPan, (s32)(s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+        // The impact costs health but cannot itself empty the pool.
+        enemy->hp -= ACTOR421600_WALL_KNOCK_DOWN_HP_COST;
+        worldTargetAddReadoutAmount(&enemy->node, ACTOR421600_WALL_KNOCK_DOWN_HP_COST, 0);
+        if (enemy->hp <= 0) {
+            enemy->hp = 1;
         }
-        eventSound = (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40010007;
-        eventPan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(eventSound, eventPan,
-                                 (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        hurtSound = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR421600_SOUND_HURT;
+        hurtPan   = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(hurtSound, hurtPan,
+                                 (s32)(s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }
-    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
-    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts));
-    if (work->lastCommand.fields.command == 2) {
-        _actor421600ClampInsideArena(arg0->extra.tmd->coords);
+    _actorContactApplyGridPushback(task->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
+    _actorContactApplyGridPushback(task->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts));
+    if (work->lastCommand.fields.command == DRYFIELD_WATER_TOWER_CHASER_COMMAND_START_FINAL_BATTLE) {
+        _actor421600ClampInsideArena(task->extra.tmd->coords);
     } else {
-        _actor421600PushOutsideArenaCenter(arg0->extra.tmd->coords);
+        _actor421600PushOutsideArenaCenter(task->extra.tmd->coords);
     }
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    _desertChaserAnimTick(arg0);
-    if (work->rig.slots[1].status.fields.flags & 0x100) {
-        if (ctx->hp > 0) {
-            if (ctx->reactionFlags & ENEMY_REACTION_BUILDUP) {
-                work->state = 4;
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    _desertChaserAnimTick(task);
+    if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
+        if (enemy->hp > 0) {
+            if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
+                work->state = DESERT_CHASER_STATE_STUNNED;
             } else {
-                work->state = 0x11;
+                work->state = DESERT_CHASER_STATE_DOWNED;
             }
         } else {
-            work->state = 0x15;
+            work->state = DESERT_CHASER_STATE_DEATH;
         }
     }
 }
 
 #include "../../shared/desert_chaser_roam.inc.c"
 
-static void func_actor_421600_8013A404(Task* arg0)
+/// Waits downFramesBase plus 0..15 random ticks before a command-selected recovery.
+///
+/// Entry advances the shared LCG once. The unsigned timer decrements and its
+/// signed halfword view expires below zero; animation continues during the wait.
+/// START_RUN and END_RUN flee. START_FINAL_BATTLE rises in zone 11 or above,
+/// otherwise routes toward zone 5; other commands rise. Requires live work/model.
+static void _actor421600DownedWaitState(Task* task)
 {
-    DesertChaserWork* temp_s0;
-    GfxCoord*         temp_v0_2;
-    s32               temp_a0;
-    s32               temp_a1;
-    s32               var_a0;
-    s32               var_v1;
-    u32               temp_v0;
-    u8                temp_v1;
+    DesertChaserWork* work;
+    u32               randomState;
+    u8                roomCommand;
 
-    temp_s0 = arg0->work;
-    if (temp_s0->stateEntered != 0) {
-        temp_v0             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-        gRandomLcgState     = temp_v0;
-        temp_s0->stateTimer = temp_s0->downFramesBase + ((temp_v0 >> 0x10) & 0xF);
+    work = task->work;
+    if (work->stateEntered != 0) {
+        randomState      = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        gRandomLcgState  = randomState;
+        work->stateTimer = work->downFramesBase + ((randomState >> 0x10) & 0xF);
     }
-    temp_s0->stateTimer -= 1;
-    _desertChaserAnimTick(arg0);
-    if ((s16)temp_s0->stateTimer < 0) {
-        temp_v1 = temp_s0->lastCommand.fields.command;
-        if ((temp_v1 == 1) || (temp_v1 == 3)) {
-            temp_s0->state = 5;
-        } else if (temp_v1 == 2) {
-            temp_v0_2 = arg0->extra.tmd->coords;
-            temp_a0   = temp_v0_2->coord.t[0];
-            temp_a1   = temp_v0_2->coord.t[2];
-            if (temp_a0 >= 0xD49) {
-                var_a0 = 3;
-            } else if (temp_a0 > 0) {
-                var_a0 = 2;
+    work->stateTimer -= 1;
+    _desertChaserAnimTick(task);
+    if ((s16)work->stateTimer < 0) {
+        roomCommand = work->lastCommand.fields.command;
+        if ((roomCommand == DRYFIELD_WATER_TOWER_CHASER_COMMAND_START_RUN) || (roomCommand == DRYFIELD_WATER_TOWER_CHASER_COMMAND_END_RUN)) {
+            work->state = DESERT_CHASER_STATE_FLEE;
+        } else if (roomCommand == DRYFIELD_WATER_TOWER_CHASER_COMMAND_START_FINAL_BATTLE) {
+            if (_actor421600GetArenaZone(task->extra.tmd->coords) >= 0xB) {
+                work->state = DESERT_CHASER_STATE_RISE;
             } else {
-                var_a0 = temp_a0 >= -0xC7F;
-            }
-            var_v1 = 0;
-            if (temp_a1 < 0xBB9) {
-                var_v1 = 1;
-                if (temp_a1 <= 0) {
-                    var_v1 = 3;
-                    if (temp_a1 >= -0xBB7) {
-                        var_v1 = 2;
-                    }
-                }
-            }
-            if (D_actor_421600_801511C0[var_a0 | (var_v1 * 4)] >= 0xB) {
-                temp_s0->state = 0x24;
-            } else {
-                temp_s0->state = 6;
+                work->state = ACTOR421600_STATE_MOVE_TO_ZONE5;
             }
         } else {
-            temp_s0->state = 0x24;
+            work->state = DESERT_CHASER_STATE_RISE;
         }
     }
 }
 
-static void func_actor_421600_8013A554(Task* arg0)
+/// Lunges from the camera-triggered entrance and catches a contacted player.
+///
+/// Entry engages battle and starts the lunge clip. Later ticks move 200
+/// root-parent units, choose front/rear catch animations from an unwrapped
+/// absolute heading difference, and select attacks 2/3 before 1000 accumulated
+/// units or 0/1 thereafter. Damage replies select player death behavior.
+/// Requires live work, enemy, player/model roots and a scratch lunge block.
+/// The damage reply is only initialized while enemy HP is positive; the
+/// retained dead-enemy path reads the previous scratch contents.
+static void _actor421600EntranceLungeState(Task* task)
 {
-    SVECTOR                   effect;
-    s16                       aimZ;
-    s16                       fallbackZ;
-    s32                       fallbackAngle;
-    s16                       fallbackDelta;
-    s32                       moveAngle;
-    s16                       moveDelta;
-    s32                       playerX;
-    s32                       facingAngle;
-    s16                       facingDelta;
-    s32                       aimAngle;
-    s16                       aimDelta;
-    s16                       targetZ;
-    s16                       yaw;
+    enum { ACTOR421600_LUNGE_STEP              = 200,
+           ACTOR421600_CLOSE_CATCH_DISTANCE    = 1000,
+           ACTOR421600_CATCH_BUTTON_PRESSES    = 8,
+           ACTOR421600_LUNGE_GRID_FLEE_TICK    = 11,
+           ACTOR421600_LUNGE_ABANDON_TURN      = 1536,
+           ACTOR421600_PLAYER_DEATH_STATE      = 10,
+           ACTOR421600_ATTACK_THROW_FRONT      = 0,
+           ACTOR421600_ATTACK_THROW_REAR       = 1,
+           ACTOR421600_ATTACK_CLOSE_FRONT      = 2,
+           ACTOR421600_ATTACK_CLOSE_REAR       = 3,
+           ACTOR421600_PLAYER_CLIP_THROW       = 1,
+           ACTOR421600_PLAYER_CLIP_CLOSE_CATCH = 3,
+           ACTOR421600_SOUND_ENTRANCE_LUNGE    = 0x40010006 };
+    SVECTOR                   dustOffset;
+    s32                       rememberedBearing;
+    s16                       rememberedTurn;
+    s32                       playerFacingX;
+    s32                       catchBearing;
+    s16                       catchTurn;
+    s16                       catchOffsetZ;
+    s16                       reverseBearing;
     s16                       nextState;
-    GfxCoord*                 targetCoord;
-    GfxCoord*                 aimCoord;
-    GfxCoord*                 fallbackCoord;
-    GfxCoord*                 fallbackFacing;
-    GfxCoord*                 moveCoord;
-    GfxCoord*                 facingCoord;
-    GfxCoord*                 aimFacing;
+    GfxCoord*                 catchPositionCoord;
+    GfxCoord*                 rememberedHeadingCoord;
+    GfxCoord*                 catchHeadingCoord;
     GfxCoord*                 stepCoord;
-    GfxCoord*                 coord;
-    s32                       sound;
-    s32                       spawnEffect;
-    s32                       effectFlags;
-    s32                       part;
-    s32                       fallbackYaw;
-    s32                       distance;
-    s32                       closeDistance;
-    s32                       farDistance;
-    s32                       pan;
-    TmdObject*                obj;
-    Enemy*                    ctx;
+    GfxCoord*                 zoneCoord;
+    s32                       lungeSound;
+    s32                       emitDust;
+    s32                       dustFlags;
+    s32                       dustPart;
+    s32                       freeTurnMagnitude;
+    s32                       catchYawDifference;
+    s32                       closeCatchYawDifference;
+    s32                       farCatchYawDifference;
+    s32                       lungePan;
+    TmdObject*                model;
+    Enemy*                    entryEnemy;
     Task*                     player;
     DesertChaserWork*         work;
     Enemy*                    enemy;
     _Actor421600LungeScratch* scratch;
 
-    work   = arg0->work;
-    enemy  = arg0->spawnArg2.pointer;
+    /// Starts a catch clip and a stopped collision-enabled scripted move.
+    ///
+    /// Work/player arguments must be live, side-effect-free pointer expressions:
+    /// each is evaluated repeatedly. `clipId` is evaluated once. Invoke within
+    /// an already braced statement block. Dispatch consumes the borrowed
+    /// animation request synchronously; no value is returned.
+#define ACTOR421600_BEGIN_PLAYER_CATCH(chaserWork, caughtPlayer, clipId)              \
+    (chaserWork)->playerAnim.animationId         = (clipId);                          \
+    (chaserWork)->playerAnim.blend               = ANIMATION_BLEND_RESET;             \
+    (chaserWork)->playerAnim.blendFrames         = 0;                                 \
+    (chaserWork)->playerMove.displacement.vx     = 0;                                 \
+    (chaserWork)->playerMove.displacement.vy     = 0;                                 \
+    (chaserWork)->playerMove.displacement.vz     = 0;                                 \
+    (chaserWork)->playerMove.collisionRequests   = GAME_ACTOR_COLLISION_REQUEST_MASK; \
+    (chaserWork)->playerMove.keepControl         = 1;                                 \
+    (chaserWork)->playerHeld                     = 1;                                 \
+    (chaserWork)->lastCommand.fields.catchFrames = 0;                                 \
+    TASK_MESSAGE_DISPATCH_POINTER((caughtPlayer), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &(chaserWork)->playerAnim, 0)
+
+    work   = task->work;
+    enemy  = task->spawnArg2.pointer;
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (work->stateEntered != 0) {
-        obj                         = arg0->extra.tmd;
-        ctx                         = arg0->spawnArg2.pointer;
-        ctx->node.state.parts.flags = 0;
+        model                              = task->extra.tmd;
+        entryEnemy                         = task->spawnArg2.pointer;
+        entryEnemy->node.state.parts.flags = 0;
         sceneEngageBattle(1);
-        obj->flags = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->spheres[DESERT_CHASER_SPHERE_FRONT].body.radius = 0x19C;
+        model->flags = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->spheres[DESERT_CHASER_SPHERE_FRONT].body.radius = DESERT_CHASER_FRONT_RADIUS;
         work->animRequest                                     = DESERT_CHASER_ANIM_REQUEST_BLEND;
-        work->animRate                                        = 0x10;
+        work->animRate                                        = ANIMATION_RATE_ONE;
         work->blendActive                                     = 0;
-        work->animId                                          = 3;
+        work->animId                                          = ACTOR421600_CLIP_LUNGE;
         work->waistYawTarget                                  = 0;
         work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags   = (u16)(work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
-        _desertChaserAnimTick(arg0);
+        _desertChaserAnimTick(task);
         work->stateTimer    = 0;
         work->stateCounter  = 0;
         work->lungeDistance = 0;
-        sound               = (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40010006;
-        pan                 = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(sound, pan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        lungeSound          = (((u16)entryEnemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR421600_SOUND_ENTRANCE_LUNGE;
+        lungePan            = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(lungeSound, lungePan, (s32)(s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
         return;
     }
+    // The entry returns above; later ticks alone reserve catch workspace.
     scratch       = SCRATCH_STACK_RESERVE_BLOCK(_Actor421600LungeScratch);
-    coord         = arg0->extra.tmd->coords;
-    scratch->zone = _actor421600GetArenaZone(coord);
-    if ((_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts)) != 0) && (work->stateTimer >= 0xB)) {
-        work->state = 5;
+    zoneCoord     = task->extra.tmd->coords;
+    scratch->zone = _actor421600GetArenaZone(zoneCoord);
+    if ((_actorContactApplyGridPushback(task->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts)) != 0) && (work->stateTimer >= ACTOR421600_LUNGE_GRID_FLEE_TICK)) {
+        work->state = DESERT_CHASER_STATE_FLEE;
     }
-    if ((_actorContactApplyAvoidancePushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &scratch->offset) << 0x10) != 0 && work->animId == 3) {
-        work->playerButtonHold.pressCount = 8;
+    if (((s16)_actorContactApplyAvoidancePushback(task->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &scratch->offset)) != 0 && work->animId == ACTOR421600_CLIP_LUNGE) {
+        work->playerButtonHold.pressCount = ACTOR421600_CATCH_BUTTON_PRESSES;
         if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &work->playerButtonHold, 0) == 0) {
-            playerX                = -gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][0];
-            scratch->playerYaw     = ratan2(playerX, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][2]);
-            targetCoord            = arg0->extra.tmd->coords;
-            scratch->offset.vx     = (s16)(gPlayerStatus.coordMtx->t[0] - targetCoord->coord.t[0]);
-            scratch->offset.vy     = (s16)(gPlayerStatus.coordMtx->t[1] - targetCoord->coord.t[1]);
-            targetZ                = gPlayerStatus.coordMtx->t[2] - targetCoord->coord.t[2];
-            scratch->offset.vz     = targetZ;
-            yaw                    = ratan2(scratch->offset.vx, targetZ) + 0x800;
-            scratch->yawFromPlayer = yaw;
-            scratch->yawFromPlayer = _actorAngleNormalizeYaw(yaw);
-            facingCoord            = arg0->extra.tmd->coords;
-            facingAngle            = ratan2(scratch->offset.vx, scratch->offset.vz);
-            facingDelta            = facingAngle - ratan2(-facingCoord->coord.m[2][0], facingCoord->coord.m[2][2]);
-            scratch->turn          = _actorAngleNormalizeYaw(facingDelta);
-            distance               = scratch->yawFromPlayer - scratch->playerYaw;
-            distance               = abs(distance);
-            if (distance < 0x400) {
+            playerFacingX          = -gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][0];
+            scratch->playerYaw     = ratan2(playerFacingX, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][2]);
+            catchPositionCoord     = task->extra.tmd->coords;
+            scratch->offset.vx     = (s16)(gPlayerStatus.coordMtx->t[0] - catchPositionCoord->coord.t[0]);
+            scratch->offset.vy     = (s16)(gPlayerStatus.coordMtx->t[1] - catchPositionCoord->coord.t[1]);
+            catchOffsetZ           = gPlayerStatus.coordMtx->t[2] - catchPositionCoord->coord.t[2];
+            scratch->offset.vz     = catchOffsetZ;
+            reverseBearing         = ratan2(scratch->offset.vx, catchOffsetZ) + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
+            scratch->yawFromPlayer = reverseBearing;
+            scratch->yawFromPlayer = _actorAngleNormalizeYaw(reverseBearing);
+            catchHeadingCoord      = task->extra.tmd->coords;
+            catchBearing           = ratan2(scratch->offset.vx, scratch->offset.vz);
+            catchTurn              = catchBearing - ratan2(-catchHeadingCoord->coord.m[2][0], catchHeadingCoord->coord.m[2][2]);
+            scratch->turn          = _actorAngleNormalizeYaw(catchTurn);
+            catchYawDifference     = scratch->yawFromPlayer - scratch->playerYaw;
+            catchYawDifference     = abs(catchYawDifference);
+            if (catchYawDifference < (ACTOR_TRANSFORM_ANGLE_TURN / 4)) {
                 work->playerAnim.source.sets = gDesertChaserFrontAnim;
             } else {
                 work->playerAnim.source.sets = gDesertChaserRearAnim;
-                scratch->yawFromPlayer       = (s16)((u16)scratch->yawFromPlayer + 0x800);
+                scratch->yawFromPlayer       = (s16)((u16)scratch->yawFromPlayer + ACTOR_TRANSFORM_ANGLE_HALF_TURN);
             }
             work->playerPlacement.rot.vx = 0;
             work->playerPlacement.rot.vy = (u16)scratch->yawFromPlayer;
@@ -3234,427 +3283,308 @@ static void func_actor_421600_8013A554(Task* arg0)
             work->playerPlacement.pos.vy = (s32)player->extra.tmd->coords->coord.t[1];
             work->playerPlacement.pos.vz = (s32)player->extra.tmd->coords->coord.t[2];
             TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_PLACE, &work->playerPlacement, 0);
-            if (work->lungeDistance < 0x3E8) {
+            if (work->lungeDistance < ACTOR421600_CLOSE_CATCH_DISTANCE) {
                 if (enemy->hp > 0) {
-                    closeDistance = scratch->yawFromPlayer - scratch->playerYaw;
-                    closeDistance = abs(closeDistance);
-                    if (closeDistance < 0x400) {
-                        scratch->playerKilled = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 2), 0);
+                    closeCatchYawDifference = scratch->yawFromPlayer - scratch->playerYaw;
+                    closeCatchYawDifference = abs(closeCatchYawDifference);
+                    if (closeCatchYawDifference < (ACTOR_TRANSFORM_ANGLE_TURN / 4)) {
+                        scratch->playerKilled = actorPlayerContactMessage(enemy, ACTOR421600_ATTACK_CLOSE_FRONT);
                     } else {
-                        scratch->playerKilled = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 3), 0);
+                        scratch->playerKilled = actorPlayerContactMessage(enemy, ACTOR421600_ATTACK_CLOSE_REAR);
                     }
                 }
                 if (scratch->playerKilled != 1) {
-                    work->playerAnim.animationId         = 3;
-                    work->playerAnim.blend               = ANIMATION_BLEND_RESET;
-                    work->playerAnim.blendFrames         = 0;
-                    work->playerMove.displacement.vx     = 0;
-                    work->playerMove.displacement.vy     = 0;
-                    work->playerMove.displacement.vz     = 0;
-                    work->playerMove.collisionRequests   = GAME_ACTOR_COLLISION_REQUEST_MASK;
-                    work->playerMove.keepControl         = 1;
-                    work->playerHeld                     = 1;
-                    work->lastCommand.fields.catchFrames = 0;
-                    TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->playerAnim, 0);
+                    ACTOR421600_BEGIN_PLAYER_CATCH(work, player, ACTOR421600_PLAYER_CLIP_CLOSE_CATCH);
                 }
-                nextState = 0x25;
+                nextState = ACTOR421600_STATE_CLOSE_CATCH;
             } else {
                 if (enemy->hp > 0) {
-                    farDistance = scratch->yawFromPlayer - scratch->playerYaw;
-                    farDistance = abs(farDistance);
-                    if (farDistance < 0x400) {
-                        scratch->playerKilled = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 0), 0);
+                    farCatchYawDifference = scratch->yawFromPlayer - scratch->playerYaw;
+                    farCatchYawDifference = abs(farCatchYawDifference);
+                    if (farCatchYawDifference < (ACTOR_TRANSFORM_ANGLE_TURN / 4)) {
+                        scratch->playerKilled = actorPlayerContactMessage(enemy, ACTOR421600_ATTACK_THROW_FRONT);
                     } else {
-                        scratch->playerKilled = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 1), 0);
+                        scratch->playerKilled = actorPlayerContactMessage(enemy, ACTOR421600_ATTACK_THROW_REAR);
                     }
                 }
                 if (scratch->playerKilled == 1) {
-                    ((GameActor*)player->work)->state = 0xA;
+                    ((GameActor*)player->work)->state = ACTOR421600_PLAYER_DEATH_STATE;
                 }
-                work->playerAnim.animationId         = 1;
-                work->playerAnim.blend               = ANIMATION_BLEND_RESET;
-                work->playerAnim.blendFrames         = 0;
-                work->playerMove.displacement.vx     = 0;
-                work->playerMove.displacement.vy     = 0;
-                work->playerMove.displacement.vz     = 0;
-                work->playerMove.collisionRequests   = GAME_ACTOR_COLLISION_REQUEST_MASK;
-                work->playerMove.keepControl         = 1;
-                work->playerHeld                     = 1;
-                work->lastCommand.fields.catchFrames = 0;
-                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->playerAnim, 0);
-                nextState = 0x1E;
+                ACTOR421600_BEGIN_PLAYER_CATCH(work, player, ACTOR421600_PLAYER_CLIP_THROW);
+                nextState = ACTOR421600_STATE_THROW_PLAYER;
             }
             work->state = nextState;
         }
-        aimCoord               = arg0->extra.tmd->coords;
-        scratch->offset.vx     = (s16)(gPlayerStatus.coordMtx->t[0] - aimCoord->coord.t[0]);
-        scratch->offset.vy     = (s16)(gPlayerStatus.coordMtx->t[1] - aimCoord->coord.t[1]);
-        aimZ                   = gPlayerStatus.coordMtx->t[2] - aimCoord->coord.t[2];
-        scratch->offset.vz     = aimZ;
-        aimFacing              = arg0->extra.tmd->coords;
-        aimAngle               = ratan2(scratch->offset.vx, aimZ);
-        aimDelta               = aimAngle - ratan2(-aimFacing->coord.m[2][0], aimFacing->coord.m[2][2]);
-        scratch->playerBearing = _actorAngleNormalizeYaw(aimDelta);
+        scratch->playerBearing = _actorAngleTurnToPlayer(task, &scratch->offset, &gPlayerStatus);
     } else {
-        fallbackCoord          = arg0->extra.tmd->coords;
-        scratch->offset.vx     = (s16)(gPlayerStatus.coordMtx->t[0] - fallbackCoord->coord.t[0]);
-        scratch->offset.vy     = (s16)(gPlayerStatus.coordMtx->t[1] - fallbackCoord->coord.t[1]);
-        fallbackZ              = gPlayerStatus.coordMtx->t[2] - fallbackCoord->coord.t[2];
-        scratch->offset.vz     = fallbackZ;
-        fallbackFacing         = arg0->extra.tmd->coords;
-        fallbackAngle          = ratan2(scratch->offset.vx, fallbackZ);
-        fallbackDelta          = fallbackAngle - ratan2(-fallbackFacing->coord.m[2][0], fallbackFacing->coord.m[2][2]);
-        fallbackYaw            = _actorAngleNormalizeYaw(fallbackDelta);
-        scratch->playerBearing = (s16)fallbackYaw;
-        fallbackYaw            = abs(fallbackYaw);
-        if (fallbackYaw >= 0x601) {
-            work->state = 0x1D;
+        freeTurnMagnitude      = _actorAngleTurnToPlayer(task, &scratch->offset, &gPlayerStatus);
+        scratch->playerBearing = (s16)freeTurnMagnitude;
+        freeTurnMagnitude      = abs(freeTurnMagnitude);
+        if (freeTurnMagnitude >= ACTOR421600_LUNGE_ABANDON_TURN + 1) {
+            work->state = ACTOR421600_STATE_LUNGE_RECOVERY;
         }
     }
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    moveCoord                             = arg0->extra.tmd->coords;
-    moveAngle                             = ratan2(work->playerDelta.vx, work->playerDelta.vz);
-    moveDelta                             = moveAngle - ratan2(-moveCoord->coord.m[2][0], moveCoord->coord.m[2][2]);
-    scratch->turn                         = _actorAngleNormalizeYaw(moveDelta);
-    _desertChaserAnimTick(arg0);
-    stepCoord = arg0->extra.tmd->coords;
-    _actorMovementStepForward(stepCoord, 200);
-    work->lungeDistance = (s16)((u16)work->lungeDistance + 0xC8);
-    if (work->animId == 3) {
-        switch (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) {
+    // Keep moving after a catch or a requested state change on this tick.
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    rememberedHeadingCoord                = task->extra.tmd->coords;
+    rememberedBearing                     = ratan2(work->playerDelta.vx, work->playerDelta.vz);
+    rememberedTurn                        = rememberedBearing - ratan2(-rememberedHeadingCoord->coord.m[2][0], rememberedHeadingCoord->coord.m[2][2]);
+    scratch->turn                         = _actorAngleNormalizeYaw(rememberedTurn);
+    _desertChaserAnimTick(task);
+    stepCoord = task->extra.tmd->coords;
+    _actorMovementStepForward(stepCoord, ACTOR421600_LUNGE_STEP);
+    work->lungeDistance = (s16)((u16)work->lungeDistance + ACTOR421600_LUNGE_STEP);
+    if (work->animId == ACTOR421600_CLIP_LUNGE) {
+        switch (work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) {
             case 5:
-                spawnEffect = 1;
-                part        = 7;
-                effectFlags = 0x4300;
-                effect.vz   = 0;
-                effect.vx   = 0;
-                effect.vy   = 700;
+                emitDust      = 1;
+                dustPart      = 7;
+                dustFlags     = (4 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 0x300;
+                dustOffset.vz = 0;
+                dustOffset.vx = 0;
+                dustOffset.vy = 700;
                 break;
             case 8:
-                spawnEffect = 1;
-                part        = 9;
-                effectFlags = 0x3500;
-                effect.vz   = 0;
-                effect.vx   = 0;
-                effect.vy   = 700;
+                emitDust      = 1;
+                dustPart      = 9;
+                dustFlags     = (3 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 0x500;
+                dustOffset.vz = 0;
+                dustOffset.vx = 0;
+                dustOffset.vy = 700;
                 break;
             case 10:
-                spawnEffect = 1;
-                part        = 14;
-                effectFlags = 0x5A00;
-                effect.vz   = 0;
-                effect.vx   = 0;
-                effect.vy   = 600;
+                emitDust      = 1;
+                dustPart      = 14;
+                dustFlags     = (5 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 0xA00;
+                dustOffset.vz = 0;
+                dustOffset.vx = 0;
+                dustOffset.vy = 600;
                 break;
             case 13:
-                spawnEffect = 1;
-                part        = 17;
-                effectFlags = 0x4800;
-                effect.vz   = 0;
-                effect.vx   = 0;
-                effect.vy   = 600;
+                emitDust      = 1;
+                dustPart      = 17;
+                dustFlags     = (4 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 0x800;
+                dustOffset.vz = 0;
+                dustOffset.vx = 0;
+                dustOffset.vy = 600;
                 break;
             default:
-                effectFlags = 0;
-                spawnEffect = 0;
-                part        = 0;
+                dustFlags = 0;
+                emitDust  = 0;
+                dustPart  = 0;
                 break;
         }
-        if ((gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) && (spawnEffect == 1)) {
-            effectSpawn(EFFECT_DUST_PUFF, arg0->extra.tmd->coords + part, effectFlags | 0x80000000, &effect);
+        if ((gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) && (emitDust == 1)) {
+            effectSpawn(EFFECT_DUST_PUFF, task->extra.tmd->coords + dustPart, dustFlags | DESERT_CHASER_CUE_DUST_RECURSIVE, &dustOffset);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(_Actor421600LungeScratch);
+#undef ACTOR421600_BEGIN_PLAYER_CATCH
 }
 
-static void func_actor_421600_8013B00C(Task* arg0)
+/// Runs along adjacent arena waypoints to the end farthest from the player's zone.
+///
+/// Entry chooses destination zone 1 for player zones 7..15, otherwise zone 11.
+/// Arrival hides the chaser. Each moving tick turns at most 128/4096 turn and
+/// steps 200 root-parent units while no reaction is blended, then applies
+/// body avoidance. The adjacent waypoint index must lie in 0..12; inner-cell
+/// zones 13..15 do not establish that bound. Requires live roots and scratch.
+static void _actor421600FleeState(Task* task)
 {
+    enum { ACTOR421600_ROUTE_MAX_TURN = 128,
+           ACTOR421600_ROUTE_STEP     = 200 };
     DesertChaserWork* work;
-    ActorTurnScratch* head;
-    ActorTurnScratch* turn;
-    Enemy*            ctx;
-    TmdObject*        obj;
-    GfxCoord*         coord;
-    s32               zone;
-    s32               x_entry;
-    s32               z_entry;
-    s32               var_a0_entry;
-    s32               var_v1_entry;
-    Task*             task;
-    GfxCoord*         playerCoord;
-    s32               x;
-    s32               z;
-    s16               angle;
-    s32               var_a0;
-    s32               var_v1;
+    ActorTurnScratch* savedCursor;
+    ActorTurnScratch* routeTurn;
+    Enemy*            enemy;
+    TmdObject*        model;
+    s32               actorZone;
+    Task*             player;
+    s16               waypointTurn;
 
-    work = arg0->work;
-    task = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    work   = task->work;
+    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (work->stateEntered != 0) {
-        obj                         = arg0->extra.tmd;
-        ctx                         = arg0->spawnArg2.pointer;
-        ctx->node.state.parts.flags = 0;
-        obj->flags                  = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->animRate                                       = 0x10;
-        work->animId                                         = 3;
+        model                         = task->extra.tmd;
+        enemy                         = task->spawnArg2.pointer;
+        enemy->node.state.parts.flags = 0;
+        model->flags                  = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->animRate                                       = ANIMATION_RATE_ONE;
+        work->animId                                         = ACTOR421600_CLIP_LUNGE;
         work->animRequest                                    = DESERT_CHASER_ANIM_REQUEST_BLEND;
         work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        _desertChaserAnimTick(arg0);
-        playerCoord = task->extra.tmd->coords;
-        x_entry     = playerCoord->coord.t[0];
-        z_entry     = playerCoord->coord.t[2];
-        if (x_entry >= 0xD49) {
-            var_a0_entry = 3;
-        } else if (x_entry > 0) {
-            var_a0_entry = 2;
-        } else {
-            var_a0_entry = x_entry >= -0xC7F;
-        }
-        var_v1_entry = 0;
-        if (z_entry < 0xBB9) {
-            var_v1_entry = 1;
-            if (z_entry <= 0) {
-                var_v1_entry = 3;
-                if (z_entry >= -0xBB7) {
-                    var_v1_entry = 2;
-                }
-            }
-        }
-        if (D_actor_421600_801511C0[var_a0_entry | (var_v1_entry * 4)] >= 7) {
+        _desertChaserAnimTick(task);
+        if (_actor421600GetArenaZone(player->extra.tmd->coords) >= 7) {
             work->fleeZone = 1;
             return;
         }
         work->fleeZone = 0xB;
         return;
     }
-    coord = arg0->extra.tmd->coords;
-    x     = coord->coord.t[0];
-    z     = coord->coord.t[2];
-    if (x >= 0xD49) {
-        var_a0 = 3;
-    } else if (x > 0) {
-        var_a0 = 2;
-    } else {
-        var_a0 = x >= -0xC7F;
-    }
-    var_v1 = 0;
-    if (z < 0xBB9) {
-        var_v1 = 1;
-        if (z <= 0) {
-            var_v1 = 3;
-            if (z >= -0xBB7) {
-                var_v1 = 2;
-            }
-        }
-    }
-    zone = D_actor_421600_801511C0[var_a0 | (var_v1 * 4)];
-    if ((s16)zone == work->fleeZone) {
-        work->state = 0;
+    actorZone = _actor421600GetArenaZone(task->extra.tmd->coords);
+    if ((s16)actorZone == work->fleeZone) {
+        work->state = DESERT_CHASER_STATE_HIDDEN;
         return;
     }
-    head = SCRATCH_STACK_CURSOR(ActorTurnScratch);
+    savedCursor = SCRATCH_STACK_CURSOR(ActorTurnScratch);
     SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
-    turn = head - 1;
-    if ((s16)zone > work->fleeZone) {
-        head[-1].delta.vx = D_actor_421600_80151158[zone - 1].vx;
-        turn->delta.vy    = D_actor_421600_80151158[zone - 1].vy;
-        turn->delta.vz    = D_actor_421600_80151158[zone - 1].vz;
+    routeTurn = savedCursor - 1;
+    if ((s16)actorZone > work->fleeZone) {
+        savedCursor[-1].delta.vx = D_actor_421600_80151158[actorZone - 1].vx;
+        routeTurn->delta.vy      = D_actor_421600_80151158[actorZone - 1].vy;
+        routeTurn->delta.vz      = D_actor_421600_80151158[actorZone - 1].vz;
     } else {
-        head[-1].delta.vx = D_actor_421600_80151158[zone + 1].vx;
-        turn->delta.vy    = D_actor_421600_80151158[zone + 1].vy;
-        turn->delta.vz    = D_actor_421600_80151158[zone + 1].vz;
+        savedCursor[-1].delta.vx = D_actor_421600_80151158[actorZone + 1].vx;
+        routeTurn->delta.vy      = D_actor_421600_80151158[actorZone + 1].vy;
+        routeTurn->delta.vz      = D_actor_421600_80151158[actorZone + 1].vz;
     }
-    turn->delta.vx = turn->delta.vx - (u16)arg0->extra.tmd->coords->coord.t[0];
-    turn->delta.vy = 0;
-    turn->delta.vz = turn->delta.vz - (u16)arg0->extra.tmd->coords->coord.t[2];
-    _desertChaserAnimTick(arg0);
-    angle               = _actorAngleTurnToOffset(arg0->extra.tmd->coords, turn->delta.vx, turn->delta.vz);
-    turn->angle         = angle;
-    work->lookYawTarget = angle;
-    if (turn->angle >= 0x81) {
-        turn->angle = 0x80;
+    routeTurn->delta.vx = routeTurn->delta.vx - (u16)task->extra.tmd->coords->coord.t[0];
+    routeTurn->delta.vy = 0;
+    routeTurn->delta.vz = routeTurn->delta.vz - (u16)task->extra.tmd->coords->coord.t[2];
+    _desertChaserAnimTick(task);
+    waypointTurn        = _actorAngleTurnToOffset(task->extra.tmd->coords, routeTurn->delta.vx, routeTurn->delta.vz);
+    routeTurn->angle    = waypointTurn;
+    work->lookYawTarget = waypointTurn;
+    if (routeTurn->angle >= ACTOR421600_ROUTE_MAX_TURN + 1) {
+        routeTurn->angle = ACTOR421600_ROUTE_MAX_TURN;
     }
-    if (turn->angle < -0x80) {
-        turn->angle = -0x80;
+    if (routeTurn->angle < -ACTOR421600_ROUTE_MAX_TURN) {
+        routeTurn->angle = -ACTOR421600_ROUTE_MAX_TURN;
     }
-    work->waistYawTarget = turn->angle;
-    turn->angle          = turn->angle + ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
+    work->waistYawTarget = routeTurn->angle;
+    routeTurn->angle     = routeTurn->angle + ratan2(-task->extra.tmd->coords->coord.m[2][0], task->extra.tmd->coords->coord.m[2][2]);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, routeTurn->angle, GRAPHICS_ROTATION_REPLACE);
     if (work->blendActive == 0) {
-        _actorMovementStepForward(arg0->extra.tmd->coords, 0xC8);
+        _actorMovementStepForward(task->extra.tmd->coords, ACTOR421600_ROUTE_STEP);
     }
-    _actorContactApplyAvoidancePushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &turn->delta);
+    _actorContactApplyAvoidancePushback(task->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &routeTurn->delta);
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Zone-aim tick: the live-actor edge re-arms the model the way
-/// `func_actor_421600_80138D24` does -- buffers reallocated, clip 0x10, pose 3,
-/// motion 1, the 0xB6C node's 0x4000 flag up.
+/// Runs the final-battle entrance route to arena zone 5 without accepting lock-on.
 ///
-/// Otherwise the X and Z of the actor's coordinate are bucketed into the 4x4
-/// zone table `D_actor_421600_801511C0` exactly as `func_actor_421600_8013A404`
-/// does, and zone 5 abandons the tick into state 7. Any other zone picks the
-/// neighbouring entry of the 8-byte pose table `D_actor_421600_80151158` --
-/// `zone - 1` above the table's midpoint `mode`, `zone + 1` at or below it --
-/// and copies all three halfwords into a 0xC block taken off the scratch stack,
-/// which becomes the XZ direction from the actor to that pose.
-///
-/// `mode` and the `(s8)` casts on `zone` are load-bearing, and so is the
-/// `turn->delta.vy = 0` between the two coordinate subtractions. A plain `5`
-/// literal lets expand fold `zone > 5` into `zone < 6`, which drops the two
-/// register copies and the `slt` the ROM has; keeping the limit in a
-/// declaration-initialised `s8` leaves it a register operand so the fold never
-/// runs. The midpoint store then lands in the load-delay slot the subtractions
-/// leave open.
-static void func_actor_421600_8013B4C4(Task* arg0)
+/// Arrival starts the arena-transition animation. Other ticks follow adjacent
+/// waypoints with a maximum yaw step of 128/4096 turn and a 200-unit forward
+/// step while no reaction is blended. The adjacent waypoint index must lie
+/// in 0..12; inner-cell zones 13..15 do not establish that bound. Requires
+/// live work, enemy/model roots, body contacts and scratch storage.
+static void _actor421600MoveToZone5State(Task* task)
 {
+    enum { ACTOR421600_ROUTE_MAX_TURN = 128,
+           ACTOR421600_ROUTE_STEP     = 200 };
     DesertChaserWork* work;
-    ActorTurnScratch* head;
-    ActorTurnScratch* turn;
-    Enemy*            ctx;
-    TmdObject*        obj;
-    GfxCoord*         coord;
-    GfxCoord*         coord2;
-    GfxCoord*         coord3;
-    GfxCoord*         coord4;
-    s32               zone;
-    s8                mode = 5;
-    s32               v;
-    s32               x;
-    s32               z;
-    s16               angle;
-    s32               wrapped;
-    s32               var_a0;
-    s32               var_v1;
+    ActorTurnScratch* savedCursor;
+    ActorTurnScratch* routeTurn;
+    Enemy*            enemy;
+    TmdObject*        model;
+    GfxCoord*         rotationCoord;
+    GfxCoord*         stepCoord;
+    s32               actorZone;
+    s8                destinationZone = 5;
+    s16               waypointTurn;
+    s32               wrappedTurn;
 
-    work = arg0->work;
+    work = task->work;
     if (work->stateEntered != 0) {
-        obj                         = arg0->extra.tmd;
-        ctx                         = arg0->spawnArg2.pointer;
-        ctx->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        obj->flags                  = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->animRate                                       = 0x10;
-        work->animId                                         = 3;
+        model                         = task->extra.tmd;
+        enemy                         = task->spawnArg2.pointer;
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        model->flags                  = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->animRate                                       = ANIMATION_RATE_ONE;
+        work->animId                                         = ACTOR421600_CLIP_LUNGE;
         work->animRequest                                    = DESERT_CHASER_ANIM_REQUEST_BLEND;
         work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        _desertChaserAnimTick(arg0);
+        _desertChaserAnimTick(task);
         return;
     }
-    coord = arg0->extra.tmd->coords;
-    x     = coord->coord.t[0];
-    z     = coord->coord.t[2];
-    if (x >= 0xD49) {
-        var_a0 = 3;
-    } else if (x > 0) {
-        var_a0 = 2;
-    } else {
-        var_a0 = x >= -0xC7F;
-    }
-    var_v1 = 0;
-    if (z < 0xBB9) {
-        var_v1 = 1;
-        if (z <= 0) {
-            var_v1 = 3;
-            if (z >= -0xBB7) {
-                var_v1 = 2;
-            }
-        }
-    }
-    zone = D_actor_421600_801511C0[var_a0 | (var_v1 * 4)];
-    if ((s8)zone == mode) {
-        work->state = 7;
+    actorZone = _actor421600GetArenaZone(task->extra.tmd->coords);
+    if ((s8)actorZone == destinationZone) {
+        work->state = ACTOR421600_STATE_ARENA_TRANSITION;
         return;
     }
-    head = SCRATCH_STACK_CURSOR(ActorTurnScratch);
+    savedCursor = SCRATCH_STACK_CURSOR(ActorTurnScratch);
     SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
-    turn = head - 1;
-    if ((s8)zone > mode) {
-        head[-1].delta.vx = D_actor_421600_80151158[zone - 1].vx;
-        turn->delta.vy    = D_actor_421600_80151158[zone - 1].vy;
-        turn->delta.vz    = D_actor_421600_80151158[zone - 1].vz;
+    routeTurn = savedCursor - 1;
+    if ((s8)actorZone > destinationZone) {
+        savedCursor[-1].delta.vx = D_actor_421600_80151158[actorZone - 1].vx;
+        routeTurn->delta.vy      = D_actor_421600_80151158[actorZone - 1].vy;
+        routeTurn->delta.vz      = D_actor_421600_80151158[actorZone - 1].vz;
     } else {
-        head[-1].delta.vx = D_actor_421600_80151158[zone + 1].vx;
-        turn->delta.vy    = D_actor_421600_80151158[zone + 1].vy;
-        turn->delta.vz    = D_actor_421600_80151158[zone + 1].vz;
+        savedCursor[-1].delta.vx = D_actor_421600_80151158[actorZone + 1].vx;
+        routeTurn->delta.vy      = D_actor_421600_80151158[actorZone + 1].vy;
+        routeTurn->delta.vz      = D_actor_421600_80151158[actorZone + 1].vz;
     }
-    turn->delta.vx = turn->delta.vx - (u16)arg0->extra.tmd->coords->coord.t[0];
-    turn->delta.vy = 0;
-    turn->delta.vz = turn->delta.vz - (u16)arg0->extra.tmd->coords->coord.t[2];
-    _desertChaserAnimTick(arg0);
-    coord2 = arg0->extra.tmd->coords;
-    angle  = ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
-    if (angle < 0) {
-    loop_neg:
-        if (angle < -0x800) {
-            angle += 0x1000;
-            goto loop_neg;
-        }
-    } else {
-    loop_pos:
-        if (angle > 0x800) {
-            angle -= 0x1000;
-            goto loop_pos;
-        }
+    routeTurn->delta.vx = routeTurn->delta.vx - (u16)task->extra.tmd->coords->coord.t[0];
+    routeTurn->delta.vy = 0;
+    routeTurn->delta.vz = routeTurn->delta.vz - (u16)task->extra.tmd->coords->coord.t[2];
+    _desertChaserAnimTick(task);
+    waypointTurn        = _actorAngleTurnToOffset(task->extra.tmd->coords, routeTurn->delta.vx, routeTurn->delta.vz);
+    wrappedTurn         = waypointTurn;
+    routeTurn->angle    = wrappedTurn;
+    work->lookYawTarget = wrappedTurn;
+    if (routeTurn->angle >= ACTOR421600_ROUTE_MAX_TURN + 1) {
+        routeTurn->angle = ACTOR421600_ROUTE_MAX_TURN;
     }
-    wrapped             = angle;
-    turn->angle         = wrapped;
-    work->lookYawTarget = wrapped;
-    if (turn->angle >= 0x81) {
-        turn->angle = 0x80;
+    if (routeTurn->angle < -ACTOR421600_ROUTE_MAX_TURN) {
+        routeTurn->angle = -ACTOR421600_ROUTE_MAX_TURN;
     }
-    if (turn->angle < -0x80) {
-        turn->angle = -0x80;
-    }
-    work->waistYawTarget = turn->angle;
-    coord3               = arg0->extra.tmd->coords;
-    turn->angle          = turn->angle + ratan2(-coord3->coord.m[2][0], coord3->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
+    work->waistYawTarget = routeTurn->angle;
+    rotationCoord        = task->extra.tmd->coords;
+    routeTurn->angle     = routeTurn->angle + ratan2(-rotationCoord->coord.m[2][0], rotationCoord->coord.m[2][2]);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, routeTurn->angle, GRAPHICS_ROTATION_REPLACE);
     if (work->blendActive == 0) {
-        coord4 = arg0->extra.tmd->coords;
-        _actorMovementStepForward(coord4, 0xC8);
+        stepCoord = task->extra.tmd->coords;
+        _actorMovementStepForward(stepCoord, ACTOR421600_ROUTE_STEP);
     }
-    _actorContactApplyAvoidancePushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &turn->delta);
+    _actorContactApplyAvoidancePushback(task->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &routeTurn->delta);
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-static void func_actor_421600_8013B8E0(Task* arg0)
+/// Plays the arena transition at the origin, then places the chaser on its patrol route.
+///
+/// Entry resets clip 17, root XYZ and yaw. A settled clip places XYZ at
+/// (-820, 0, -1220), faces +X, resets the walking clip and enters route roam.
+/// Entry ticks animation twice; completion ticks the reset walking clip twice
+/// more. Coordinates use root-parent units and yaw uses 4096 units per turn.
+/// Requires live work, enemy and model.
+static void _actor421600ArenaTransitionState(Task* task)
 {
-    DesertChaserWork* temp_s1;
-    TmdObject*        temp_a0;
+    DesertChaserWork* work;
+    TmdObject*        model;
 
-    temp_s1 = arg0->work;
-    if (temp_s1->stateEntered != 0) {
-        temp_a0                                                   = arg0->extra.tmd;
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
-        temp_a0->flags                                            = 0;
-        tmdAllocPrimitiveBuffer(temp_a0);
-        temp_s1->animRate                                       = 0x10;
-        temp_s1->animId                                         = 0x11;
-        temp_s1->animRequest                                    = DESERT_CHASER_ANIM_REQUEST_RESET;
-        temp_s1->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        arg0->extra.tmd->coords->coord.t[0]                     = 0;
-        arg0->extra.tmd->coords->coord.t[1]                     = 0;
-        arg0->extra.tmd->coords->coord.t[2]                     = 0;
-        arg0->extra.tmd->coords->composeStamp                   = GRAPHICS_COORD_DIRTY;
-        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0, 1);
-        _desertChaserAnimTick(arg0);
+    work = task->work;
+    if (work->stateEntered != 0) {
+        model                                                     = task->extra.tmd;
+        ((Enemy*)task->spawnArg2.pointer)->node.state.parts.flags = 0;
+        model->flags                                              = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->animRate                                       = ANIMATION_RATE_ONE;
+        work->animId                                         = ACTOR421600_CLIP_ARENA_TRANSITION;
+        work->animRequest                                    = DESERT_CHASER_ANIM_REQUEST_RESET;
+        work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        task->extra.tmd->coords->coord.t[0]                  = 0;
+        task->extra.tmd->coords->coord.t[1]                  = 0;
+        task->extra.tmd->coords->coord.t[2]                  = 0;
+        task->extra.tmd->coords->composeStamp                = GRAPHICS_COORD_DIRTY;
+        gfxRotMatrixY(&task->extra.tmd->coords->coord, 0, GRAPHICS_ROTATION_REPLACE);
+        _desertChaserAnimTick(task);
     }
-    _desertChaserAnimTick(arg0);
-    if (temp_s1->rig.slots[1].status.fields.flags & 0x100) {
-        arg0->extra.tmd->coords->coord.t[0]   = -0x334;
-        arg0->extra.tmd->coords->coord.t[1]   = 0;
-        arg0->extra.tmd->coords->coord.t[2]   = -0x4C4;
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0x400, 1);
-        temp_s1->animRequest = DESERT_CHASER_ANIM_REQUEST_RESET;
-        temp_s1->animId      = 0;
-        _desertChaserAnimTick(arg0);
-        _desertChaserAnimTick(arg0);
-        temp_s1->state = 0x27;
+    _desertChaserAnimTick(task);
+    if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
+        task->extra.tmd->coords->coord.t[0]   = -0x334;
+        task->extra.tmd->coords->coord.t[1]   = 0;
+        task->extra.tmd->coords->coord.t[2]   = -0x4C4;
+        task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        gfxRotMatrixY(&task->extra.tmd->coords->coord, 0x400, GRAPHICS_ROTATION_REPLACE);
+        work->animRequest = DESERT_CHASER_ANIM_REQUEST_RESET;
+        work->animId      = ACTOR421600_CLIP_ARENA_WALK;
+        _desertChaserAnimTick(task);
+        _desertChaserAnimTick(task);
+        work->state = ACTOR421600_STATE_ROUTE_ROAM;
     }
 }
 
@@ -4083,13 +4013,13 @@ static void func_actor_421600_8013C8E0(Task* arg0)
 #include "../../shared/desert_chaser_turn_step_probe.inc.c"
 
 static const DesertChaserStateTable D_actor_421600_80131EFC = { { _actor421600HideState,
-                                                                  func_actor_421600_80135F6C,
-                                                                  func_actor_421600_80136138,
-                                                                  func_actor_421600_8013A554,
+                                                                  _actor421600ScriptAnimationState,
+                                                                  _actor421600TrackArenaRouteState,
+                                                                  _actor421600EntranceLungeState,
                                                                   _desertChaserStunned,
-                                                                  func_actor_421600_8013B00C,
-                                                                  func_actor_421600_8013B4C4,
-                                                                  func_actor_421600_8013B8E0,
+                                                                  _actor421600FleeState,
+                                                                  _actor421600MoveToZone5State,
+                                                                  _actor421600ArenaTransitionState,
                                                                   func_actor_421600_8013C8E0,
                                                                   _desertChaserTurnRightState,
                                                                   _desertChaserTurnLeftState,
@@ -4099,7 +4029,7 @@ static const DesertChaserStateTable D_actor_421600_80131EFC = { { _actor421600Hi
                                                                   NULL,
                                                                   NULL,
                                                                   NULL,
-                                                                  func_actor_421600_8013A404,
+                                                                  _actor421600DownedWaitState,
                                                                   NULL,
                                                                   NULL,
                                                                   _desertChaserKnockDown,
@@ -4113,11 +4043,11 @@ static const DesertChaserStateTable D_actor_421600_80131EFC = { { _actor421600Hi
                                                                   desertChaserPursue,
                                                                   func_actor_421600_8013E9D8,
                                                                   _desertChaserThrowPlayer,
-                                                                  func_actor_421600_80138D24,
-                                                                  func_actor_421600_8013903C,
+                                                                  _actor421600LeapBackState,
+                                                                  _actor421600WatchRunPlayerState,
                                                                   desertChaserSteer,
                                                                   func_actor_421600_8013EAAC,
-                                                                  func_actor_421600_8013947C,
+                                                                  _actor421600WallKnockDownState,
                                                                   func_actor_421600_8013EB7C,
                                                                   desertChaserStrike,
                                                                   desertChaserRoam,
@@ -4394,7 +4324,7 @@ static void                         func_actor_421600_8013D658(Enemy* enemy, Tas
     enemy->bodyPos.vz = (s32)scratch->bodyPos.vz;
     enemy->coord      = &gGfxViewCoord;
     SCRATCH_STACK_RELEASE_BLOCK(DesertChaserFrameScratch);
-    func_actor_421600_80133444(actor->extra.tmd->coords);
+    _actor421600SnapToSouthArenaArc(actor->extra.tmd->coords);
 }
 
 /// Ignores message 2015 without accessing the receiver or either payload.
@@ -4449,15 +4379,20 @@ static s32 _actor421600OnRoomEvent(Task* task, s32 messageId, s32 unusedArg, s32
     return 1;
 }
 
-/// `Task::exitCallback` teardown: kill the two helper tasks, unlink the three
-/// display nodes, clear the enemy's `recs`, then `enemyDestroy`.
-static void func_actor_421600_8013E668(Task* task)
+/// Releases the chaser's child tasks and collision links before destroying its enemy task.
+///
+/// A missing work block skips child/link cleanup. Otherwise the front, rear
+/// and root spheres are unlinked and the enemy's borrowed contact pointer is
+/// cleared before enemyDestroy releases the work/model/task. The capsule's
+/// separate grid link is not unlinked here. Requires a live enemy record;
+/// child-task fields may be NULL and are not populated by this package.
+static void _actor421600Exit(Task* task)
 {
     DesertChaserWork* work;
     Enemy*            enemy;
 
     work  = task->work;
-    enemy = (Enemy*)task->spawnArg2.pointer;
+    enemy = task->spawnArg2.pointer;
     if (work != NULL) {
         if (work->childTask0 != NULL) {
             taskKill(work->childTask0);
@@ -4468,31 +4403,42 @@ static void func_actor_421600_8013E668(Task* task)
         worldCollisionUnlinkBody(&work->spheres[DESERT_CHASER_SPHERE_FRONT].body);
         worldCollisionUnlinkBody(&work->spheres[DESERT_CHASER_SPHERE_REAR].body);
         worldCollisionUnlinkBody(&work->spheres[DESERT_CHASER_SPHERE_ROOT].body);
-        enemy->recs = 0;
+        enemy->recs = NULL;
     }
     enemyDestroy(enemy, task);
 }
 
 #include "../../shared/desert_chaser_part_effect.inc.c"
 
-/// Copy the `vx`/`vy`/`vz` of entry `arg1` of the pose table into `arg0`.
-static void func_actor_421600_8013E7F8(SVECTOR* arg0, s32 arg1)
+/// Copies an arena waypoint's XYZ into a borrowed vector, preserving pad.
+///
+/// The low signed halfword of zone must index the thirteen-entry waypoint
+/// table (0..12). Components use root-parent game-coordinate units. Both
+/// storage objects must remain live during the call; no pointer is retained.
+/// This standalone body has no known C caller.
+static void _actor421600CopyArenaWaypoint(SVECTOR* position, s32 zone)
 {
-    arg0->vx = D_actor_421600_80151158[(s16)arg1].vx;
-    arg0->vy = D_actor_421600_80151158[(s16)arg1].vy;
-    arg0->vz = D_actor_421600_80151158[(s16)arg1].vz;
+    position->vx = D_actor_421600_80151158[(s16)zone].vx;
+    position->vy = D_actor_421600_80151158[(s16)zone].vy;
+    position->vz = D_actor_421600_80151158[(s16)zone].vz;
 }
 
-static s8 func_actor_421600_8013E830(s32 arg0, s32 arg1)
+/// Returns the arena patrol quadrant for an XZ position.
+///
+/// Returns 0 for +X/+Z, 1 for nonpositive X/+Z, 2 for +X/nonpositive Z,
+/// and 3 for nonpositive X/Z. Zero lies on the nonpositive side of each axis.
+/// The four-entry lookup accepts all signed 32-bit inputs; coordinates use
+/// root-parent units. This standalone body has no known C caller.
+static s8 _actor421600LookupRouteQuadrant(s32 x, s32 z)
 {
-    s8* p;
-    s32 a;
-    s32 b;
+    const s8* quadrantMap;
+    s32       positiveX;
+    s32       nonPositiveZ;
 
-    p = D_actor_421600_801511D0;
-    a = arg0 > 0;
-    b = arg1 < 1;
-    return p[a + (b << 1)];
+    quadrantMap  = D_actor_421600_801511D0;
+    positiveX    = x > 0;
+    nonPositiveZ = z < 1;
+    return quadrantMap[positiveX + (nonPositiveZ << 1)];
 }
 
 /// Enters the hidden state with zero health, no lock-on and no root-grid test.

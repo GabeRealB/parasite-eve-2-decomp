@@ -1674,8 +1674,8 @@ the original compiled to.
 
 ## A declaration-initialised narrow variable blocks `x > C` folding; the same value as a literal does not
 
-Same fold as the entry above, reached from the other side. `func_actor_421600_8013B4C4`
-tests a mode byte for the value 5 twice — `== 5` to abandon the tick, then `> 5`
+Same fold as the entry above, reached from the other side. `_actor421600MoveToZone5State`
+tests the arena-zone value for the value 5 twice — `== 5` to abandon the tick, then `> 5`
 to pick which neighbour of a pose table to aim at — and the target keeps the
 constant in a register for both:
 
@@ -1689,19 +1689,19 @@ slt   v0,a2,a3
 beqz  v0,...
 ```
 
-Writing the `5` literally, or assigning it (`s32 mode; mode = 5;`), gives
+Writing the `5` literally, or assigning it (`s32 destinationZone; destinationZone = 5;`), gives
 `bne a0,v0` plus `slti v0,a0,6` / `bnez` instead — 97.4% and one branch
 predicate short. A **declaration initialiser** of a narrow type is what the
 target has:
 
 ```c
-    s8 mode = 5;            /* 100% */
+    s8 destinationZone = 5;            /* 100% */
     ...
-    if ((s8)zone == mode) { ... }
-    if ((s8)zone > mode) { ... }
+    if ((s8)actorZone == destinationZone) { ... }
+    if ((s8)actorZone > destinationZone) { ... }
 ```
 
-An initialiser leaves `mode` a register pseudo at expand, so `canonicalize_comparison`
+An initialiser leaves `destinationZone` a register pseudo at expand, so `canonicalize_comparison`
 sees a register and never rewrites `> 5` into `!(< 6)`; the `slt` and both
 `move`s survive. An assignment, and a `s32` limit, both let the fold back in.
 Check the width too: `s16 mode = 5;` with `(s16)` casts scored *below* the
@@ -2065,7 +2065,7 @@ b = arg1 < 1;
 return p[a + (b << 1)];
 ```
 
-`func_actor_421600_8013E830`. Inputs: `base_2.i`
+`_actor421600LookupRouteQuadrant`. Inputs: `base_2.i`
 `4fad32756fa13d832c9a87cb30eb151486f2c4905176e8ef2045d0eec39a56c1` (86.7%,
 `reorder=2`), `base_3.i`
 `1aadd3a31c6abf3fe694c71c8c01aad31d6be01b771533399316314016172355` (100%).
@@ -2199,7 +2199,7 @@ Assigning it only for the reload lets CSE fold `dir` back to `&vec`, the read
 becomes a direct stack slot, and the object shows `lh 0x14(sp)` with the stores
 sp-relative; that alone was 90.821% against 97.359% in
 `func_actor_421600_801392A8` (100%, `base_4.c`), whose matched sibling
-`func_actor_421600_80133444` in the same file is the same idiom.
+`_actor421600SnapToSouthArenaArc` in the same file is the same idiom.
 
 ## Delay-slot table `%hi` paired with a field `lh` is splat, not C
 
@@ -86142,7 +86142,7 @@ matter how many lanes sweep its overlay: the parking and the refusal together
 are a permanent hole, and the remedy is the one the carried-twice case already
 prescribes - land the body as plain C in each carrier.
 
-`func_actor_403000_8013D564` / `func_actor_421600_8013E7F8` is the smallest
+`func_actor_403000_8013D564` / `_actor421600CopyArenaWaypoint` is the smallest
 instance of the shape: 14 instructions, identical modulo the `lui`/`addiu` pair
 naming `D_actor_403000_80158CE0` against `D_actor_421600_80151158`, both 8-byte
 `SVECTOR` runs in the overlay's trailing data. The second copy is a mechanical
@@ -97352,7 +97352,7 @@ edge, but there the reference loads `index->field_20` *after* the `beqz`, so the
 hoisted-local form is wrong: `ctx = index->field_20` has to move inside the `if`,
 which also hands the load `$v0` (freed once the branch is taken) instead of
 `$v1`. Both shapes are correct C and the family carries both -- the sibling
-`func_actor_421600_8013947C` hoists the identical line -- so read the target's
+`_actor421600WallKnockDownState` hoists the identical line -- so read the target's
 block boundary rather than the neighbour. Fixing this last one, after the
 scratch-pointer and store-order work, took 90.821% to 100%.
 ## Make the compared value *be* the stored value: the arm assignment cannot be hoisted (func_actor_421600_8013E9D8, 2026-09-16)
@@ -111157,7 +111157,7 @@ Scratch `nonmatchings/func_actor_421600_8013ED24-vacuum`.
 
 ## One constant address, three spellings: CSE merging is what turns a raw absolute MEM operand into `li`+`sw 0(reg)`
 
-`func_actor_421600_80133444` reads and writes the scratch head `0x1F8003FC`
+`_actor421600SnapToSouthArenaArc` reads and writes the scratch head `0x1F8003FC`
 three times, and the target keeps every access as a *raw absolute* MEM operand —
 what the assembler expands into the target's `lui $a1,0x1f80; lw $a1,0x3fc($a1)`
 (load) and `lui $at,0x1f80; sw $a0,0x3fc($at)` (store):
@@ -111198,16 +111198,16 @@ So keep the three addresses *unequal as values* until they fold. Each spelling
 must reach `0x1F8003FC` from a different value:
 
 ```c
-    OverlayRangeScratch* savedScratchHead;
+    OverlayRangeScratch* savedCursor;
     u8* scratchBase;
     u8* scratchRestoreBase;
 
-    savedScratchHead = SCRATCH_STACK_CURSOR(OverlayRangeScratch); /* folded constant */
+    savedCursor = SCRATCH_STACK_CURSOR(OverlayRangeScratch); /* folded constant */
     scratchBase = PLAYSTATION_SCRATCHPAD_BASE;            /* 0x1F800000 + 0x3FC */
     *(OverlayRangeScratch**)(scratchBase + SCRATCH_STACK_HEAD_BYTE_OFFSET) = rangeScratch;
     scratchRestoreBase = PLAYSTATION_SCRATCHPAD_BASE +
         (SCRATCH_STACK_HEAD_BYTE_OFFSET - sizeof(void*)); /* 0x1F8003F8 + 0x4 */
-    *(OverlayRangeScratch**)(scratchRestoreBase + sizeof(void*)) = savedScratchHead;
+    *(OverlayRangeScratch**)(scratchRestoreBase + sizeof(void*)) = savedCursor;
 ```
 
 Every pseudo now has two references, reload rematerialises each constant into
@@ -111230,7 +111230,7 @@ Inputs: `base_9.i` (100%) SHA256
 `base_8.i` (95.274%) SHA256
 `c2e1cea4b65af3d461201f4abdf03186cd0c81c9ae492c160d041553898e45b3`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_421600_80133444-vacuum`.
+Scratch `nonmatchings/_actor421600SnapToSouthArenaArc-vacuum`.
 
 ## Case labels that share a body must be *fallthrough* labels: the grouping decides jump table vs comparison tree (func_actor_421600_80133B30, 2026-09-16)
 
@@ -111352,10 +111352,10 @@ target SHA256 `db02ab4dbb61e5a17be778b7d131b38cd2371cd49771cf010f6fbdd76aaa6ddc`
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_421600_8013848C-vacuum`.
 
-## A constant stored into one field from every arm is a *single* store the allocator colours - do not write a carrier variable (func_actor_421600_8013947C, 2026-09-16)
+## A constant stored into one field from every arm is a *single* store the allocator colours - do not write a carrier variable (_actor421600WallKnockDownState, 2026-09-16)
 
-`work->state` is set from three arms at the tail of `func_actor_421600_8013947C`
-(`= 4` when `field_40 > 0 && field_4C & 2`, `= 0x11` when `field_40 > 0` alone,
+`work->state` is set from three arms at the tail of `_actor421600WallKnockDownState`
+(`= 4` when `enemy->hp > 0 && enemy->reactionFlags & 2`, `= 0x11` when `enemy->hp > 0` alone,
 `= 0x15` otherwise). Written that way it compiles to one `sh $v0,0($s2)` fed by
 `li $v0,0x15` in the `blez` delay slot, `li $v0,4` in the `bnez` delay slot and
 `li $v0,0x11` on the fall-through. Writing the same logic with a `s16 state`
@@ -111383,11 +111383,11 @@ Read the sibling first: `func_actor_421600_8013EC28` in the same TU has the
 identical tail (same field, same three constants, `animId == 0xA` gating it)
 and is matched with plain per-arm stores, which is where this shape came from.
 The same two mechanisms explain the earlier `s0`/`s1` swap in this function:
-`sound` and `pan` were each assigned in *both* event blocks, so they were
+`knockdownSound` and `knockdownPan` were each assigned in *both* event blocks, so they were
 `dies in 2 places` and not local-eligible, the shift chain could not join their
 quantity and stayed in `$v0` (`lhu $v0 / srl $v0 / sll $v0 / or $v1`). One
-variable per use site (`sound` / `pan` for the spawn event, `eventSound` /
-`eventPan` for the tick event - the naming the matched sibling already uses)
+variable per use site (`knockdownSound` / `knockdownPan` for the spawn event, `hurtSound` /
+`hurtPan` for the tick event - the naming the matched sibling already uses)
 lets the whole `lhu / srl / sll / or` chain join one quantity, and it lands in
 `$s0` with pan in `$s1` as the target has it: 98.80% to 99.88% from that alone.
 
@@ -111397,11 +111397,11 @@ Inputs: `base_4.i` (100%) SHA256
 `6eea2e610c5ff06eabd0f252beccd951b56fc75adea30ec54cc45e77037f030a`;
 target SHA256 `82d491cedf84dbff512d484e92525a77f3b868e46b98b4ad141541ed85e2ab31`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_421600_8013947C-vacuum`.
+Scratch `nonmatchings/_actor421600WallKnockDownState-vacuum`.
 
-## One variable assigned twice is one pseudo and one live range; two variables let the pre-call half take a caller-saved home (func_actor_421600_8013903C, 2026-09-16)
+## One variable assigned twice is one pseudo and one live range; two variables let the pre-call half take a caller-saved home (_actor421600WatchRunPlayerState, 2026-09-16)
 
-`func_actor_421600_8013903C` reads the same `GfxCoord*` twenty instructions
+`_actor421600WatchRunPlayerState` reads the same `GfxCoord*` twenty instructions
 apart: three times to build an XZ offset, then once more after two `ratan2`
 calls for the facing it subtracts that offset's yaw from. The pointer sits in
 `$a1` for the first three reads and is re-loaded into `$s0` for the last, so the
@@ -111410,12 +111410,12 @@ whole function needs five callee-saved registers and a `0x28` frame:
 ```
 lw    a1,8(v0)        ; coord, reads 1-3 (no call between them)
 ...
-lw    v0,0x2c(s2)     ; re-load arg0->field_2C
+lw    v0,0x2c(s2)     ; re-load task->extra.tmd
 lw    s0,8(v0)        ; coord again, live across both ratan2 calls
 ```
 
 Written as one local, every reachable arrangement kept the whole range in
-`$s0` and pushed `head`/`ctx` down a register (`sw s5` and a `0x30` frame,
+`$s0` and pushed `savedCursor`/`enemy` down a register (`sw s5` and a `0x30` frame,
 95.833%). The reason is not CSE: GCC 2.8.1 gives a variable *one* pseudo, and
 `cse` re-loads it after the intervening stores but still writes that same
 pseudo, so `.lreg` shows two `(set (reg/v:SI 86) (mem ...))` and
@@ -111423,7 +111423,7 @@ pseudo, so `.lreg` shows two `(set (reg/v:SI 86) (mem ...))` and
 every call-clobbered register for the whole range, no matter that the first
 three reads sit entirely before a call.
 
-`coord2 = index->field_2C->field_8;` on the line before the `angle` expression
+`headingCoord = task->extra.tmd->coords;` on the line before the `playerTurn` expression
 splits it: the first local dies before the first `ratan2` and takes `$a1`, the
 second crosses it and takes `$s0`. Score 95.833% -> 100%, frame back to `0x28`
 and one fewer `sw`/`lw` pair.
@@ -111443,7 +111443,7 @@ Inputs: `base_9.i` (97.688%) SHA256
 (100%) SHA256 `82fd840ea6ba4827a54e6d45fd8499d012aabdb18a8214c06ab249b233e7a451`;
 target.o SHA256 `a128ed2a884bc9f92cd16c667e8c9e61eec2102e07b5b2902cca6c9ab9aa721d`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_421600_8013903C-vacuum`.
+Scratch `nonmatchings/_actor421600WatchRunPlayerState-vacuum`.
 
 ## The side a difference is written on decides the two temporaries' registers (_actor421600PushOutsideArenaCenter, 2026-09-16)
 
@@ -111511,7 +111511,7 @@ register names short. Inputs: `base_3.i` (91.129%) SHA256
 target.o SHA256
 `2843270708690f47f8f092622d80c4080e183db7d5dfc4bf4c3d99f04045fad9`.
 
-## The arm-fold guard skips a one-insn test, so an arm may not hold the tested value (func_actor_421600_8013A404, 2026-09-16)
+## The arm-fold guard skips a one-insn test, so an arm may not hold the tested value (_actor421600DownedWaitState, 2026-09-16)
 
 The idle tick ends with a table sample feeding one shared store:
 
@@ -111668,7 +111668,7 @@ An `static __inline__` helper that borrows and returns a scratch slot is
 inlined twice per aim arm, and each copy has two locals competing for
 callee-saved registers: the coordinate (live across `gfxReadMatrixZAxis` /
 `VectorNormalSS`) and the scratch `head` (live from the load to `head[-1].vx`).
-`func_actor_421600_80138D24` wants `head` in `$s1` and the coordinate in
+`_actor421600LeapBackState` wants `head` in `$s1` and the coordinate in
 `$s2`.
 
 Writing the tail as `*(SVECTOR**)SCRATCH_STACK_CURSOR_SLOT += 1;` is correct and produces
@@ -147065,7 +147065,7 @@ the counter type and loop. Both preserve the 99.953% seed score
 (`regs=8`, all other penalties zero); the unscoped integration build matches.
 ## An early return before a switch can preserve its separate range-check exits
 
-`func_actor_421600_80136138` had two `SOFT_TOUCH_REG(state)` barriers in
+`_actor421600TrackArenaRouteState` had two `SOFT_TOUCH_REG(state)` barriers in
 switch arms that assign the same state and return. Removing the barriers and
 the unnecessary `s32 state` local scored 95.283%: `.jump2` merged later range
 checks into earlier checks with the same width. Merely inverting each range
@@ -149094,7 +149094,7 @@ none needed a hack. The forms, by what the `goto` was standing for:
   ```
 
   The exit is then not the loop's first jump, so the test is not duplicated.
-  18 of 18 such loops converted this way (`func_actor_421600_8013903C`,
+  18 of 18 such loops converted this way (`_actor421600WatchRunPlayerState`,
   `_8013BA70`, `func_actor_444000_8013E058`, `func_actor_403000_8013C2D4`), and
   the same shape with a larger body in `Actor00400_Fn031A4`
   (`if (kind != -1) { ...; index++; continue; } break;`).

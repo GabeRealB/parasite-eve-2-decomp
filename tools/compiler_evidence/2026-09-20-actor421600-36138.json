@@ -1,5 +1,5 @@
 {
-  "function": "func_actor_421600_80136138",
+  "function": "_actor421600TrackArenaRouteState",
   "date": "2026-09-20",
   "scope": "GCC 2.8.1 psx, current repository compiler and standard scratch flags",
   "candidates": [
@@ -116,12 +116,12 @@
     {
       "file": "base_7.i.combine",
       "uid": 341,
-      "text": "(insn 341 339 342 (set (mem/s:HI (reg/v:SI 81))\n        (asm_operands (\"\") (\"=r\") 0[ \n                (const_int 38)\n            ] \n            [ \n                (asm_input:HI (\"0\"))\n            ]  (\"/home/gabriel/pe2-ov-actor_421600/nonmatchings/func_actor_421600_80136138-vacuum/base_7.i\") 7629)) -1 (nil)\n    (expr_list:REG_DEAD (reg/v:SI 81)\n        (nil)))"
+      "text": "(insn 341 339 342 (set (mem/s:HI (reg/v:SI 81))\n        (asm_operands (\"\") (\"=r\") 0[ \n                (const_int 38)\n            ] \n            [ \n                (asm_input:HI (\"0\"))\n            ]  (\"/home/gabriel/pe2-ov-actor_421600/nonmatchings/_actor421600TrackArenaRouteState-vacuum/base_7.i\") 7629)) -1 (nil)\n    (expr_list:REG_DEAD (reg/v:SI 81)\n        (nil)))"
     },
     {
       "file": "base_10.i.combine",
       "uid": 338,
-      "text": "(insn 338 337 339 (set (reg/v:SI 94)\n        (asm_operands (\"\") (\"=r\") 0[ \n                (const_int 38)\n            ] \n            [ \n                (asm_input:SI (\"0\"))\n            ]  (\"/home/gabriel/pe2-ov-actor_421600/nonmatchings/func_actor_421600_80136138-vacuum/base_10.i\") 7629)) -1 (nil)\n    (nil))"
+      "text": "(insn 338 337 339 (set (reg/v:SI 94)\n        (asm_operands (\"\") (\"=r\") 0[ \n                (const_int 38)\n            ] \n            [ \n                (asm_input:SI (\"0\"))\n            ]  (\"/home/gabriel/pe2-ov-actor_421600/nonmatchings/_actor421600TrackArenaRouteState-vacuum/base_10.i\") 7629)) -1 (nil)\n    (nil))"
     },
     {
       "file": "base_10.i.combine",
