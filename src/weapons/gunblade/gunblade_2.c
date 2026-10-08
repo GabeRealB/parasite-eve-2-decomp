@@ -65,23 +65,33 @@ typedef struct {
 } _GunbladeAttackScratch;
 STATIC_ASSERT_SIZEOF(_GunbladeAttackScratch, 0x68);
 
-/// Publishes the spin movement sign and adds its local forward step to the root.
+/// Applies the Gunblade spin's gated forward displacement and publishes its movement sign.
 ///
-/// `advanceThisFrame` is 0 or 1. Borrows live disjoint actor/root/scratch storage;
-/// divides the unnormalized 4096-scale Z axis by 136, narrows before the flag
-/// multiplication and adds signed game-coordinate displacement. Leaves vector
-/// pad fields and the root's composition stamp unchanged; retains no pointer.
-static inline void _gunbladeAdvanceAttack(GfxCoord* rootCoord, GameActor* actor, _GunbladeAttackScratch* scratch, s32 advanceThisFrame)
-{
-    gfxReadMatrixZAxis(&rootCoord->coord, &scratch->forward);
-    actor->movementSign    = advanceThisFrame;
-    scratch->advance.vx    = (s16)(scratch->forward.vx / GUNBLADE_SPIN_ADVANCE_DIVISOR) * advanceThisFrame;
-    scratch->advance.vy    = (s16)(scratch->forward.vy / GUNBLADE_SPIN_ADVANCE_DIVISOR) * advanceThisFrame;
-    scratch->advance.vz    = (s16)(scratch->forward.vz / GUNBLADE_SPIN_ADVANCE_DIVISOR) * advanceThisFrame;
-    rootCoord->coord.t[0] += scratch->advance.vx;
-    rootCoord->coord.t[1] += scratch->advance.vy;
-    rootCoord->coord.t[2] += scratch->advance.vz;
-}
+/// `advanceThisFrame` is 0 outside a spinning-slash tick, 1 during one. Reads
+/// the root's unnormalized local Z axis into `forward` (4096 per unit), then
+/// stores the flag in the actor before calculating `advance`. Each signed
+/// component is divided by 136 toward zero and narrowed to s16 before s32
+/// multiplication by the flag. Adds XYZ in the root parent's coordinate units;
+/// a scaled root therefore scales the step too. Requires live disjoint writable
+/// actor, root and vector storage, with representable translation sums.
+/// Leaves vector pads and the root's composition stamp untouched; the caller
+/// owns cache invalidation and scratch lifetime. Retains no pointer.
+///
+/// `rootCoord`, `actor`, `advance` and `forward` are respectively `GfxCoord*`,
+/// `GameActor*`, `VECTOR*` and `SVECTOR*`; `advanceThisFrame` must be s32.
+/// Arguments repeat and must have no side effects; captures no caller locals.
+/// The block has no return/break; invoke it as a standalone statement inside braces.
+#define GUNBLADE_ADVANCE_ATTACK(rootCoord, actor, advance, forward, advanceThisFrame)                         \
+    {                                                                                                         \
+        gfxReadMatrixZAxis(&(rootCoord)->coord, (forward));                                                   \
+        (actor)->movementSign    = (advanceThisFrame);                                                        \
+        (advance)->vx            = (s16)((forward)->vx / GUNBLADE_SPIN_ADVANCE_DIVISOR) * (advanceThisFrame); \
+        (advance)->vy            = (s16)((forward)->vy / GUNBLADE_SPIN_ADVANCE_DIVISOR) * (advanceThisFrame); \
+        (advance)->vz            = (s16)((forward)->vz / GUNBLADE_SPIN_ADVANCE_DIVISOR) * (advanceThisFrame); \
+        (rootCoord)->coord.t[0] += (advance)->vx;                                                             \
+        (rootCoord)->coord.t[1] += (advance)->vy;                                                             \
+        (rootCoord)->coord.t[2] += (advance)->vz;                                                             \
+    }
 
 void gunbladeAttackState(Task* playerTask)
 {
@@ -279,6 +289,7 @@ void gunbladeAttackState(Task* playerTask)
             break;
     }
     // Only spinning-slash ticks move the actor along its unnormalized local forward axis.
-    _gunbladeAdvanceAttack(rootCoord, actor, scratch, advanceThisFrame);
+    GUNBLADE_ADVANCE_ATTACK(rootCoord, actor, &scratch->advance, &scratch->forward, advanceThisFrame);
     SCRATCH_STACK_RELEASE_BLOCK(_GunbladeAttackScratch);
 }
+#undef GUNBLADE_ADVANCE_ATTACK

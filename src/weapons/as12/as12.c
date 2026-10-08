@@ -29,20 +29,31 @@
 enum { AS12_AMMUNITION_BUCKSHOT  = 13,
        AS12_FIREFLY_IMPACT_SOUND = SOUND_WEAPON(15, 4) };
 
-/// Places the Firefly impact sound at the first weapon contact point.
+/// Requests the AS12 Firefly impact sound at the first recorded weapon contact.
 ///
-/// Requires a live first contact in the root's composition frame, writable
-/// uninitialized scratch node and the current loaded ammunition selector.
-/// Writes only the cached translation, then plays the sound without retaining
-/// the node. Does not consume the contact or initialize unrelated node fields.
-static inline void _as12PlayFireflyImpact(GameActor* actor, GfxCoord* impactCoord)
-{
-    impactCoord->workm.t[0] = actor->weaponContacts[0].point.vx;
-    impactCoord->workm.t[1] = actor->weaponContacts[0].point.vy;
-    impactCoord->workm.t[2] = actor->weaponContacts[0].point.vz;
-    worldCoordPlaySound(impactCoord,
-                        ((gPlayerStatus.weaponSlotItem - AS12_AMMUNITION_BUCKSHOT) << 0x18) | AS12_FIREFLY_IMPACT_SOUND, 1);
-}
+/// `firstContact` is a readable `const WorldCollisionContact*` supplying signed-halfword
+/// XYZ in view-space game coordinates; `impactCoord` is a writable `GfxCoord*`.
+/// The contact need not be the surface selected by the impact picker. Requires
+/// the Firefly load selected in live player state and a disjoint writable node.
+/// Writes only its three cached translation words, with no jitter, then reads
+/// that origin synchronously for sound and latches combat noise. The retained
+/// cached rotation is loaded into the GTE, but multiplies a zero input point.
+/// Leaves the contact, local matrix, parent and composition stamp untouched.
+/// Requires initialized projection/scratch state; retains neither pointer.
+///
+/// Both pointer arguments repeat and must have no side effects. Reads live
+/// `gPlayerStatus.weaponSlotItem`; captures no caller locals. The block is one
+/// statement with no return/break; invoke it as a standalone statement inside braces.
+#define AS12_PLAY_FIREFLY_IMPACT(firstContact, impactCoord)                                                                                                                          \
+    {                                                                                                                                                                                \
+        enum { AS12_IMPACT_AMMUNITION_BANK_SHIFT = 24,                                                                                                                               \
+               AS12_IMPACT_SIGNAL_NOISE          = 1 };                                                                                                                                       \
+        (impactCoord)->workm.t[0] = (firstContact)->point.vx;                                                                                                                        \
+        (impactCoord)->workm.t[1] = (firstContact)->point.vy;                                                                                                                        \
+        (impactCoord)->workm.t[2] = (firstContact)->point.vz;                                                                                                                        \
+        worldCoordPlaySound((impactCoord),                                                                                                                                           \
+                            ((gPlayerStatus.weaponSlotItem - AS12_AMMUNITION_BUCKSHOT) << AS12_IMPACT_AMMUNITION_BANK_SHIFT) | AS12_FIREFLY_IMPACT_SOUND, AS12_IMPACT_SIGNAL_NOISE); \
+    }
 
 void as12AttackState(Task* playerTask)
 {
@@ -128,7 +139,7 @@ void as12AttackState(Task* playerTask)
                 impactFound = playerActorSpawnWeaponImpact(actor->weaponContacts, rootCoord, impactCoord);
                 if (gPlayerStatus.weaponSlotItem == AS12_AMMUNITION_FIREFLY) {
                     if (impactFound != 0 || worldCollisionCountContactsByKind(actor->weaponContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
-                        _as12PlayFireflyImpact(actor, impactCoord);
+                        AS12_PLAY_FIREFLY_IMPACT(&actor->weaponContacts[0], impactCoord);
                     }
                 } else if (impactFound != 0) {
                     worldCoordPlaySound(impactCoord, AS12_IMPACT_SOUND, 1);
@@ -150,6 +161,7 @@ void as12AttackState(Task* playerTask)
     }
     SCRATCH_STACK_RELEASE_BLOCK(GfxCoord);
 }
+#undef AS12_PLAY_FIREFLY_IMPACT
 
 static TmdBone _gAs12Model00660Skeleton[1] = {
 #include "assets/as12_model_00660_skeleton.inc"

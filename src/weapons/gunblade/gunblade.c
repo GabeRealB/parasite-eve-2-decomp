@@ -42,14 +42,21 @@ static SVECTOR D_gunblade_8011E704[1] = { { 0, 0x0060, 0x0080, 0 } };
 /// to its own address - so it has to be a separate object, not element 1.
 static SVECTOR D_gunblade_8011E70C = { 0, 0x0060, 0x0380, 0 };
 
-/// Stores a composed endpoint as a world-space trail pose independent of the weapon.
+/// Saves a Gunblade endpoint pose in a trail frame that follows the camera independently of the weapon.
 ///
-/// Borrows disjoint word-aligned nodes and current orthonormal world-to-view
-/// `gGfxViewCoord.workm`. Copies the complete composed matrix and removes the
-/// view into the local matrix, with the persistent view node as parent.
-/// Leaves stamp/parameters unchanged; mark dirty before recomposing. Requires
-/// 48 free scratch bytes, released by the relative-transform helper. Changes
-/// GTE rotation, translation and arithmetic state; retains no source pointer.
+/// `composedEndpoint->workm` must be current in view space, and
+/// `gGfxViewCoord.workm` the current orthonormal world-to-view transform.
+/// Copies the complete 32-byte cache, including its alignment bytes, then
+/// removes the view into the destination's local matrix and borrows the
+/// persistent view node as parent. Both rotation and translation are rebased;
+/// the ribbon subsequently uses only the translation. Coefficients have twelve
+/// fractional bits and translations are signed game-coordinate units.
+///
+/// Requires live word-aligned nodes disjoint from each other and the view node,
+/// and an initialized scratch stack with 48 free bytes disjoint from them.
+/// Scratch is released before return; GTE rotation, translation and arithmetic
+/// state change. Leaves the destination's stamp and parameters untouched, so
+/// the caller must mark it dirty before recomposing. Retains no source pointer.
 static inline void _gunbladeStoreTrailFrame(GfxCoord* historyFrame, const GfxCoord* composedEndpoint)
 {
     historyFrame->parent = &gGfxViewCoord;

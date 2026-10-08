@@ -352,21 +352,25 @@ void hypervelocityChargeEffectTask(Task* task)
     }
 }
 
-/// Copies a borrowed word-aligned matrix's 3x3 coefficients onto the round.
+/// Copies the player's local 3x3 basis into the Hypervelocity round's local matrix.
 ///
-/// Transfers exactly 18 bytes as four words and a halfword, preserving the
-/// destination's alignment halfword and translation. Coefficients have twelve
-/// fractional bits. Both matrices must be live and disjoint; retains no pointer.
-static inline void _hypervelocityCopyRoundRotation(MATRIX* destination, const MATRIX* source)
+/// Requires live disjoint word-aligned matrices and a writable `roundMatrix`.
+/// Coefficients have twelve fractional bits; any source scale is copied too.
+/// Transfers exactly 18 bytes as four packed words and a final signed halfword,
+/// preserving the round's alignment halfword and translation. A complete
+/// `GfxRotationWords` assignment would also copy its tail alignment bytes.
+/// Changes no GTE or scratch state and retains no pointer. The caller must
+/// invalidate the round node's composition cache after updating its matrix.
+static inline void _hypervelocityCopyRoundRotation(MATRIX* roundMatrix, const MATRIX* playerMatrix)
 {
-    GfxRotationWords*       destinationRotation = (GfxRotationWords*)destination;
-    const GfxRotationWords* sourceRotation      = (const GfxRotationWords*)source;
+    GfxRotationWords*       roundRotation  = (GfxRotationWords*)roundMatrix;
+    const GfxRotationWords* playerRotation = (const GfxRotationWords*)playerMatrix;
 
-    destinationRotation->m00M01 = sourceRotation->m00M01;
-    destinationRotation->m02M10 = sourceRotation->m02M10;
-    destinationRotation->m11M12 = sourceRotation->m11M12;
-    destinationRotation->m20M21 = sourceRotation->m20M21;
-    destinationRotation->m22    = sourceRotation->m22;
+    roundRotation->m00M01 = playerRotation->m00M01;
+    roundRotation->m02M10 = playerRotation->m02M10;
+    roundRotation->m11M12 = playerRotation->m11M12;
+    roundRotation->m20M21 = playerRotation->m20M21;
+    roundRotation->m22    = playerRotation->m22;
 }
 
 void hypervelocityRoundTask(Task* task)

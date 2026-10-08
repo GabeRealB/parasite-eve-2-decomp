@@ -43,17 +43,24 @@ STATIC_ASSERT_SIZEOF(_M249AttackScratch, 0x68);
 
 enum { M249_IMPACT_SOUND = SOUND_COMMON(0x17) };
 
-/// Disables shot contacts and plays the selected surface impact, when present.
+/// Ends M249 shot contact tests and requests the chosen surface's impact effect and sound.
 ///
-/// Requires live actor contacts, the player model root and a writable temporary
-/// impact node. Picking writes only the node's composed translation on success;
-/// sound uses it before this dispatch releases scratch storage. Preserves
-/// unrelated collision flags and leaves contacts available to the picker.
-static inline void _m249ResolveShotImpact(GameActor* actor, GfxCoord* rootCoord, GfxCoord* impactCoord)
+/// Clears only the weapon body's grid/pair enables; keeps it linked and its
+/// complete six-entry contact table intact. Requires live player/room state,
+/// initialized contacts and `rootCoord->workm` in the contacts' view frame.
+/// Enemy-body hits suppress surface selection. A selected eligible grid point
+/// receives 0..7 units of XYZ jitter; only `impactCoord`'s three cached
+/// translation words are written. Failure leaves that temporary node untouched.
+/// On success, requests the common impact sound synchronously and latches
+/// combat noise. Scratch/GTE requirements follow the picker and sound APIs;
+/// this helper neither releases nor retains the caller's writable impact node.
+static inline void _m249ResolveShotImpact(GameActor* actor, const GfxCoord* rootCoord, GfxCoord* impactCoord)
 {
+    enum { M249_IMPACT_SIGNAL_NOISE = 1 };
+
     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     if (playerActorSpawnWeaponImpact(actor->weaponContacts, rootCoord, impactCoord) != 0) {
-        worldCoordPlaySound(impactCoord, M249_IMPACT_SOUND, 1);
+        worldCoordPlaySound(impactCoord, M249_IMPACT_SOUND, M249_IMPACT_SIGNAL_NOISE);
     }
 }
 
