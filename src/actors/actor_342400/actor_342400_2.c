@@ -87,7 +87,7 @@ static void _madChaserDespawnState(Task* task);
 static void _madChaserCombatToAlertState1(Task* task);
 static void _madChaserCombatToAlertState2(Task* task);
 static void _madChaserWalkState(Task* task);
-static void func_actor_342400_80169A98(Task* arg0);
+static void _madChaserAlertState(Task* task);
 static void func_actor_342400_80169B58(Task* arg0);
 static void func_actor_342400_80169BAC(Task* arg0);
 static void _madChaserLurkIdleState(Task* task);
@@ -133,7 +133,7 @@ static const TaskFuncTable11 gMadChaserCombatStates = { {
     _madChaserCombatToAlertState2,
     _madChaserWalkState,
     madChaserLeapState,
-    func_actor_342400_80169A98,
+    _madChaserAlertState,
     madChaserRecoilLightState,
     func_actor_342400_80169B58,
     func_actor_342400_80169BAC,
@@ -164,7 +164,7 @@ static const TaskFuncTable5 gMadChaserLeapSteps = { {
     _madChaserLeapLand,
 } };
 
-/// Sub-state handlers `func_actor_342400_80169A98` dispatches by `subState`.
+/// Sub-state handlers `_madChaserAlertState` dispatches by `subState`.
 static const TaskFuncTable5 D_actor_342400_80161F00 = { {
     _madChaserAlertCry,
     _madChaserAlertWait,
@@ -1020,12 +1020,13 @@ static __inline__ void set_state_s16(Task* arg0, s16 state)
 
 #include "../../shared/mad_chaser_leap_state.inc.c"
 
-/// A further copy, under this file's own name.
-#define madChaserLeapState  func_actor_342400_80169A98
-#define gMadChaserLeapSteps D_actor_342400_80161F00
-#include "../../shared/mad_chaser_leap_state.inc.c"
-#undef madChaserLeapState
-#undef gMadChaserLeapSteps
+/// Selects this carrier's declared static void(Task*) combat-alert dispatcher.
+#define MAD_CHASER_ALERT_STATE_HANDLER _madChaserAlertState
+/// Supplies the complete TaskFuncTable5 of this carrier's alert phases.
+#define MAD_CHASER_ALERT_STEP_HANDLERS D_actor_342400_80161F00
+#include "../../shared/mad_chaser_alert_state.inc.c"
+#undef MAD_CHASER_ALERT_STATE_HANDLER
+#undef MAD_CHASER_ALERT_STEP_HANDLERS
 
 #include "../../shared/mad_chaser_recoil_light_state.inc.c"
 

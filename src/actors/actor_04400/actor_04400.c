@@ -62,7 +62,7 @@ extern TaskMessageEntry     gMadChaserMsgTable[3];    // stored into `Task::msgT
 static const TaskFuncTable3 gMadChaserKnockdownSteps; // dispatcher table _madChaserKnockdownState copies onto its stack
 static const TaskFuncTable3 gMadChaserWalkSteps;      // dispatcher table _madChaserWalkState copies onto its stack
 static const TaskFuncTable5 gMadChaserLeapSteps;      // dispatcher table madChaserLeapState copies onto its stack
-static const TaskFuncTable5 Actor04400_D0009C;        // dispatcher table Actor04400_Fn06964 copies onto its stack
+static const TaskFuncTable5 Actor04400_D0009C;        // dispatcher table _madChaserAlertState copies onto its stack
 static const TaskFuncTable3 Actor04400_D00150;        // dispatcher table _madChaserLurkIdleState copies onto its stack
 static const TaskFuncTable3 Actor04400_D0015C;        // dispatcher table _madChaserLurkLookState copies onto its stack
 static const TaskFuncTable6 gMadChaserPullSteps;      // dispatcher table _madChaserPullState copies onto its stack
@@ -87,7 +87,7 @@ static void _madChaserDespawnState(Task* task);
 static void _madChaserCombatToAlertState1(Task* task);
 static void _madChaserCombatToAlertState2(Task* task);
 static void _madChaserWalkState(Task* task);
-static void Actor04400_Fn06964(Task* arg0);
+static void _madChaserAlertState(Task* task);
 static void Actor04400_Fn06A24(Task* arg0);
 static void Actor04400_Fn06A78(Task* arg0);
 static void _madChaserLurkIdleState(Task* task);
@@ -795,7 +795,7 @@ static const TaskFuncTable11 gMadChaserCombatStates = { {
     _madChaserCombatToAlertState2,
     _madChaserWalkState,
     madChaserLeapState,
-    Actor04400_Fn06964,
+    _madChaserAlertState,
     madChaserRecoilLightState,
     Actor04400_Fn06A24,
     Actor04400_Fn06A78,
@@ -826,7 +826,7 @@ static const TaskFuncTable5 gMadChaserLeapSteps = { {
     _madChaserLeapLand,
 } };
 
-/// Sub-state handlers `Actor04400_Fn06964` dispatches by `subState`.
+/// Sub-state handlers `_madChaserAlertState` dispatches by `subState`.
 static const TaskFuncTable5 Actor04400_D0009C = { {
     _madChaserAlertCry,
     _madChaserAlertWait,
@@ -1345,12 +1345,13 @@ static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
 
 #include "../../shared/mad_chaser_leap_state.inc.c"
 
-/// A further copy, under this file's own name.
-#define madChaserLeapState  Actor04400_Fn06964
-#define gMadChaserLeapSteps Actor04400_D0009C
-#include "../../shared/mad_chaser_leap_state.inc.c"
-#undef madChaserLeapState
-#undef gMadChaserLeapSteps
+/// Selects this carrier's declared static void(Task*) combat-alert dispatcher.
+#define MAD_CHASER_ALERT_STATE_HANDLER _madChaserAlertState
+/// Supplies the complete TaskFuncTable5 of this carrier's alert phases.
+#define MAD_CHASER_ALERT_STEP_HANDLERS Actor04400_D0009C
+#include "../../shared/mad_chaser_alert_state.inc.c"
+#undef MAD_CHASER_ALERT_STATE_HANDLER
+#undef MAD_CHASER_ALERT_STEP_HANDLERS
 
 /// Use this carrier's signed-halfword behavior setter during recoil recovery.
 #define _madChaserRecoilLightRecover _madChaserRecoilRecover

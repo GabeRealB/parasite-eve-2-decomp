@@ -49382,7 +49382,7 @@ M2C_FIELD((sp + (M2C_FIELD(M2C_FIELD(arg0, void **, 0x1C), s16 *, 0x422) * 4)),
 m2c also never emits the copy itself, so `sp` comes out undeclared and the seed
 does not even compile. A dispatcher whose `jalr` appears to take `$a1`-`$a3`
 arguments *and* whose seed mentions an undeclared `sp` is a stack-copied table,
-not a many-argument callee. `func_actor_341700_801687B4` is the worked example:
+not a many-argument callee. `_madChaserAlertState` is the worked example:
 the sibling `func_actor_341700_80168748` in the same TU is byte-identical except
 for the table's `%hi`/`%lo`, and its matched body ports verbatim once the symbol
 is swapped — `0x80161EBC` is exactly `sizeof(TaskFuncTable5)` past the matched
