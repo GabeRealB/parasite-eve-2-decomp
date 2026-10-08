@@ -97,11 +97,11 @@ enum {
 static void _dryfieldNightMotelLobbyCashRegisterInitialize(Task* task);
 static void _dryfieldNightMotelLobbyCashRegisterArmCursor(Task* task);
 static void _dryfieldNightMotelLobbyCashRegisterOpenPrompt(Task* task);
-static void func_dryfield_night_motel_lobby_8018103C(Task* task);
+static void _dryfieldNightMotelLobbyCashRegisterAnswerPrompt(Task* task);
 static void _actionPromptEventEnd(Task* eventTask);
 static void _dryfieldNightMotelLobbyCashRegisterAcceptCode(Task* task);
 static void _dryfieldNightMotelLobbyCashRegisterPlayAcceptSound(Task* task);
-static void func_dryfield_night_motel_lobby_801811E0(Task* arg0);
+static void _dryfieldNightMotelLobbyCashRegisterStartCompletionCap(Task* task);
 static void _dryfieldNightMotelLobbyCashRegisterExitDelay(Task* task);
 static void _dryfieldNightMotelLobbyCashRegisterFinish(Task* task);
 
@@ -113,11 +113,11 @@ static const TaskFuncTable11 D_dryfield_night_motel_lobby_8017D6B0 = {
         _dryfieldNightMotelLobbyCashRegisterArmCursor,
         dryfieldNightMotelLobbyCashRegisterScanTask,
         _dryfieldNightMotelLobbyCashRegisterOpenPrompt,
-        func_dryfield_night_motel_lobby_8018103C,
+        _dryfieldNightMotelLobbyCashRegisterAnswerPrompt,
         _actionPromptEventEnd,
         _dryfieldNightMotelLobbyCashRegisterAcceptCode,
         _dryfieldNightMotelLobbyCashRegisterPlayAcceptSound,
-        func_dryfield_night_motel_lobby_801811E0,
+        _dryfieldNightMotelLobbyCashRegisterStartCompletionCap,
         _dryfieldNightMotelLobbyCashRegisterExitDelay,
         _dryfieldNightMotelLobbyCashRegisterFinish,
     },
@@ -977,12 +977,15 @@ static void _dryfieldNightMotelLobbyCashRegisterOpenPrompt(Task* task)
     task->state = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_PROMPT_ANSWER;
 }
 
-/// Acts on the answer to the examine prompt: drops the highlight state, then,
-/// when `itemMenuIsHotspotActionConfirmed` reports the action was accepted, marks the register
-/// `examined` (from which point the scan treats a confirm as a key press) and
-/// starts cap slot 9. Returns the task to state 2 either way.
-static void func_dryfield_night_motel_lobby_8018103C(Task* task)
+/// Returns from the cash-register command menu to keypad scanning.
+///
+/// Requires live cash-register work and port 0's cursor. Draws the display first,
+/// then hides and stops the cursor. A confirmed action latches examination and
+/// starts CAP slot 9; either answer returns to scan state 2 on this tick.
+static void _dryfieldNightMotelLobbyCashRegisterAnswerPrompt(Task* task)
 {
+    enum { CASH_REGISTER_SCAN_STATE = 2,
+           EXAMINED_CAP_SLOT        = 9 };
     ActionPrompt*                            prompt = D_80114D28;
     DryfieldNightMotelLobbyCashRegisterWork* work   = task->work;
 
@@ -990,10 +993,10 @@ static void func_dryfield_night_motel_lobby_8018103C(Task* task)
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (itemMenuIsHotspotActionConfirmed() != 0) {
-        work->examined = 1;
-        capStartSequenceSlot(9, 0, 0);
+        work->examined = true;
+        capStartSequenceSlot(EXAMINED_CAP_SLOT, 0, 0);
     }
-    task->state = 2;
+    task->state = CASH_REGISTER_SCAN_STATE;
 }
 
 #include "../../shared/action_prompt_event_end.inc.c"
@@ -1025,10 +1028,16 @@ static void _dryfieldNightMotelLobbyCashRegisterPlayAcceptSound(Task* task)
     task->state = task->state + 1;
 }
 
-static void func_dryfield_night_motel_lobby_801811E0(Task* arg0)
+/// Requests the accepted cash-register code's completion CAP command.
+///
+/// Runs in state 8 after area changes and acceptance sound were requested.
+/// Starts command 8 with transition handling, then advances to the single-tick
+/// exit delay; this callback does not wait for CAP playback to finish.
+static void _dryfieldNightMotelLobbyCashRegisterStartCompletionCap(Task* task)
 {
-    capRunCommandWithTransition(8);
-    arg0->state = (s32)(arg0->state + 1);
+    enum { COMPLETION_CAP_COMMAND = 8 };
+    capRunCommandWithTransition(COMPLETION_CAP_COMMAND);
+    task->state = task->state + 1;
 }
 
 /// Advances the cash-register task through one idle update before restoring play.

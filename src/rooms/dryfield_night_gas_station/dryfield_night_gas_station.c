@@ -333,7 +333,7 @@ extern AnimationPlayRequest D_dryfield_night_gas_station_80184084;
 static void                 _dryfieldNightGasStationSetPlayerUpdateHold(u8 holdPlayerUpdate);
 
 static s32 _dryfieldNightGasStationUseJerryCanMsg(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
-s32        func_dryfield_night_gas_station_8017F89C(Task*, s32, s32, s32);
+static s32 _dryfieldNightGasStationCommandMsg(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg);
 static s32 _dryfieldNightGasStationCompanionActionMsg(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 static s32 _dryfieldNightGasStationArmFollowupSceneMsg(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
@@ -345,7 +345,7 @@ TaskMessageEntry D_dryfield_night_gas_station_80184034[7] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantGasStationMsg },
     { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightGasStationUseJerryCanMsg },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightGasStationCompanionActionMsg },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_night_gas_station_8017F89C },
+    { ROOM_MESSAGE_COMMAND, _dryfieldNightGasStationCommandMsg },
     { ROOM_MESSAGE_SOUND, _gasStationCueSoundMsg },
     { ROOM_MESSAGE_ACTOR_EVENT, _dryfieldNightGasStationArmFollowupSceneMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -2570,31 +2570,51 @@ static s32 _dryfieldNightGasStationUseJerryCanMsg(Task* task, s32 messageId, s32
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-s32 func_dryfield_night_gas_station_8017F89C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Selects the night gas station's CAP sequences for room command messages.
+///
+/// Commands 1 and 5 request the transition sequence and gasoline-dependent
+/// dialogue. Command 23 examines room variant 4, advancing its saved response
+/// when the SUV key has been collected. Other commands do nothing. The receiver,
+/// message ID and second payload are ignored; every path returns zero.
+static s32 _dryfieldNightGasStationCommandMsg(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg)
 {
-    s16 var_a2;
+    enum {
+        CAP_TRANSITION_COMMAND   = 1,
+        GASOLINE_CHECK_COMMAND   = 5,
+        EXAMINE_COMMAND          = 23,
+        EXAMINE_ROOM             = 4,
+        EXAMINE_INITIAL          = 0,
+        EXAMINE_FIRST_KEY_VISIT  = 1,
+        EXAMINE_REPEAT_KEY_VISIT = 2,
+        CAP_TRANSITION_SEQUENCE  = 17,
+        GASOLINE_SEQUENCE        = 18,
+        FIRST_KEY_SEQUENCE       = 32,
+        REPEAT_KEY_SEQUENCE      = 31,
+    };
+    s16 gasolineCollected;
 
-    if (arg2 == 1) {
-        capRunCommandWithTransition(0x11);
+    if (commandId == CAP_TRANSITION_COMMAND) {
+        capRunCommandWithTransition(CAP_TRANSITION_SEQUENCE);
     }
-    if (arg2 == 5) {
+    if (commandId == GASOLINE_CHECK_COMMAND) {
         if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_GASOLINE) == 0) {
+            // Preserve the jerry-can query even though it does not select the reply.
             inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_JERRY_CAN);
-            var_a2 = 0;
+            gasolineCollected = 0;
         } else {
-            var_a2 = 1;
+            gasolineCollected = 1;
         }
-        capStartSequenceSlot(0x12, 1, var_a2);
+        capStartSequenceSlot(GASOLINE_SEQUENCE, 1, gasolineCollected);
     }
-    if ((arg2 == 0x17) && (gGameSession->location.loc.room == 4)) {
+    if ((commandId == EXAMINE_COMMAND) && (gGameSession->location.loc.room == EXAMINE_ROOM)) {
         if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_SUV_KEY) != 0) {
-            if (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE) == 0) {
-                gameFlagSetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE, 1);
+            if (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE) == EXAMINE_INITIAL) {
+                gameFlagSetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE, EXAMINE_FIRST_KEY_VISIT);
             } else {
-                gameFlagSetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE, 2);
+                gameFlagSetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE, EXAMINE_REPEAT_KEY_VISIT);
             }
         }
-        capSpawnEventIfIdle(gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE) != 0 ? (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE) == 1 ? 0x20 : 0x1F) : arg2, CAP_EVENT_NO_FLAGS);
+        capSpawnEventIfIdle(gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE) != EXAMINE_INITIAL ? (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE) == EXAMINE_FIRST_KEY_VISIT ? FIRST_KEY_SEQUENCE : REPEAT_KEY_SEQUENCE) : commandId, CAP_EVENT_NO_FLAGS);
     }
     return 0;
 }
@@ -2684,7 +2704,7 @@ static void _dryfieldNightGasStationSetPlayerUpdateHold(u8 holdPlayerUpdate)
 }
 
 /// The three states of the room's main task, run by
-/// `func_dryfield_night_gas_station_8017FB70`: set-up, the per-frame handler
+/// `dryfieldNightGasStationRoomTask`: set-up, the per-frame handler
 /// and the kill.
 static const TaskFuncTable3 D_dryfield_night_gas_station_8017D644 = {
     {
@@ -2700,15 +2720,13 @@ static const SVECTOR D_dryfield_night_gas_station_8017D650 = { 0x3B23, -0x498, -
 /// The lamp beam's direction vector in the lamp's model space.
 static const SVECTOR D_dryfield_night_gas_station_8017D658 = { -0x1E, 0x122, 0x28, 0 };
 
-/// Gates the room's two sprite records on nibble 0x8D, then dispatches the task
-/// through the room's own three-state table, copied onto the stack first.
-void func_dryfield_night_gas_station_8017FB70(Task* arg0)
+void dryfieldNightGasStationRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 roomStates;
 
-    sp = D_dryfield_night_gas_station_8017D644;
+    roomStates = D_dryfield_night_gas_station_8017D644;
     _dryfieldNightGasStationRestoreBalconySpriteVisibility();
-    sp.funcs[arg0->state](arg0);
+    roomStates.funcs[task->state](task);
 }
 
 /// Restores the cutscene obstacle in the live room collision grid.

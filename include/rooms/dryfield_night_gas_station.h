@@ -91,6 +91,12 @@ void dryfieldNightGasStationTelephoneMenuTask(Task* task);
 /// Task entries the Dryfield-at-night map UI overlay's stage tables name, each
 /// room's entry task started for its location, and the models its enemy
 /// descriptors attach.
-void func_dryfield_night_gas_station_8017FB70(Task* task);
+/// Dispatches the night gas station's room receiver and deferred scene updates.
+///
+/// Requires a live bodyless task in state 0..2: initialize, update, release.
+/// Restores saved balcony sprite visibility before every state call. The map
+/// overlay and this room's callbacks and sprite tables must stay loaded. The
+/// registered room-task slot borrows the task and is not cleared on teardown.
+void dryfieldNightGasStationRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_GAS_STATION_H

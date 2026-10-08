@@ -731,7 +731,7 @@ dryfieldNightJunkYardRoomVisualEffectsTwinTrailTask = 0x8017F02C; // type:func a
 
 dryfieldNightJunkYardRoomVisualEffectsSparkBurstTask = 0x8017F914; // type:func absolute:True owner=dryfield_night_junk_yard
 
-func_dryfield_night_main_street_8017E484 = 0x8017E484; // type:func absolute:True owner=dryfield_night_main_street
+dryfieldNightMainStreetAmbientEffectsTask = 0x8017E484; // type:func absolute:True owner=dryfield_night_main_street
 
 dryfieldNightMainStreetPuffTask = 0x8017F3B0; // type:func absolute:True owner=dryfield_night_main_street
 
@@ -741,18 +741,18 @@ dryfieldNightMainStreetRoomVisualEffectsHaloTask = 0x801807B0; // type:func abso
 
 dryfieldNightMainStreetRoomVisualEffectsHaloOrangeBurstTask = 0x80180B48; // type:func absolute:True owner=dryfield_night_main_street
 
-func_dryfield_night_main_street_80181F58 = 0x80181F58; // type:func absolute:True owner=dryfield_night_main_street
+dryfieldNightMainStreetRoomVisualEffectsSparkEmitterTask = 0x80181F58; // type:func absolute:True owner=dryfield_night_main_street
 
 
 dryfieldNightMotelBalconyAmbientEffectsTask = 0x8017E554; // type:func absolute:True owner=dryfield_night_motel_balcony
 
 dryfieldNightMotelBalconyDebrisTask = 0x8017F84C; // type:func absolute:True owner=dryfield_night_motel_balcony
 
-func_dryfield_night_motel_balcony_80180580 = 0x80180580; // type:func absolute:True owner=dryfield_night_motel_balcony
+dryfieldNightMotelBalconyBreakBurstTask = 0x80180580; // type:func absolute:True owner=dryfield_night_motel_balcony
 
-func_dryfield_night_motel_balcony_801809CC = 0x801809CC; // type:func absolute:True owner=dryfield_night_motel_balcony
+dryfieldNightMotelBalconyFallingParticleTask = 0x801809CC; // type:func absolute:True owner=dryfield_night_motel_balcony
 
-func_dryfield_night_motel_balcony_80181024 = 0x80181024; // type:func absolute:True owner=dryfield_night_motel_balcony
+dryfieldNightMotelBalconyLampBurstTask = 0x80181024; // type:func absolute:True owner=dryfield_night_motel_balcony
 
 dryfieldNightMotelBalconyDriftPuffTask = 0x8018158C; // type:func absolute:True owner=dryfield_night_motel_balcony
 
@@ -1887,7 +1887,7 @@ shelterB2MainCorridorDrawViewGlowsTask = 0x8017EC34; // type:func absolute:True 
 
 shelterB2PodAccessTunnelDrawLightBeamsTask = 0x8017DC6C; // type:func absolute:True owner=shelter_b2_pod_access_tunnel shared=rooms
 
-shelterB3IncineratorControlRoomDrawViewGlowsTask = 0x8017FD10; // type:func absolute:True owner=shelter_b3_incinerator_control_room shared=rooms
+shelterB3IncineratorControlRoomDrawViewGlowsTask = 0x8017FD10; // type:func absolute:True owner=shelter_b3_incinerator_control_room
 
 shelterB4LowerSewerDrawGlowsTask = 0x8017E400; // type:func absolute:True owner=shelter_b4_lower_sewer
 

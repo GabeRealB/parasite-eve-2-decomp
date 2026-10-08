@@ -86,7 +86,7 @@ gRoomCutsceneTaskDescs = 0x801827A8; // size:0x24 defined:True
 D_dryfield_night_motel_lobby_801827CC = 0x801827CC; // size:0x30 defined:True
 D_dryfield_night_motel_lobby_801827FC = 0x801827FC; // size:0x18 defined:True
 
-func_dryfield_night_motel_lobby_8017FD10 = 0x8017FD10; // type:func
+_dryfieldNightMotelLobbyCashRegisterOwnerTask = 0x8017FD10; // type:func
 
 dryfieldNightMotelLobbyTelephoneMenuTask = 0x8017EAE0; // type:func
 
@@ -140,3 +140,7 @@ _dryfieldNightMotelLobbyInitializeRoomTask = 0x8017fd9c; // type:func
 dryfieldNightMotelLobbyRoomTask = 0x8017fe38; // type:func
 _dryfieldNightMotelLobbyCashRegisterTask = 0x80180d58; // type:func
 _dryfieldNightMotelLobbyCashRegisterInitialize = 0x80180e98; // type:func
+_dryfieldNightMotelLobbyCommandMsg = 0x8017fb7c; // type:func
+_dryfieldNightMotelLobbyCashRegisterActionMsg = 0x8017fc6c; // type:func
+_dryfieldNightMotelLobbyCashRegisterAnswerPrompt = 0x8018103c; // type:func
+_dryfieldNightMotelLobbyCashRegisterStartCompletionCap = 0x801811e0; // type:func

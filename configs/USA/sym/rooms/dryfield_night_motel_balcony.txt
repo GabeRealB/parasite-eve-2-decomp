@@ -210,13 +210,13 @@ dryfieldNightMotelBalconyDrawBreathFlame = 0x8017F6C8; // type:func
 
 dryfieldNightMotelBalconyDebrisTask = 0x8017F84C; // type:func
 
-func_dryfield_night_motel_balcony_80180580 = 0x80180580; // type:func
+dryfieldNightMotelBalconyBreakBurstTask = 0x80180580; // type:func
 
 dryfieldNightMotelBalconyFlameTask = 0x80181E7C; // type:func
 
-func_dryfield_night_motel_balcony_801809CC = 0x801809CC; // type:func
+dryfieldNightMotelBalconyFallingParticleTask = 0x801809CC; // type:func
 
-func_dryfield_night_motel_balcony_80181024 = 0x80181024; // type:func
+dryfieldNightMotelBalconyLampBurstTask = 0x80181024; // type:func
 
 dryfieldNightMotelBalconyDriftPuffTask = 0x8018158C; // type:func
 

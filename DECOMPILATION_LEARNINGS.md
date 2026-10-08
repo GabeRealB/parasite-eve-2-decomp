@@ -49470,12 +49470,12 @@ covers four), and the index in the brackets is always a `s16` load off the work
 block.
 
 When the dispatched-to call is *direct* rather than indirect, the callee settles
-it in one look: `func_dryfield_night_gas_station_8017FB70`'s seed passed the
+it in one look: `dryfieldNightGasStationRoomTask`'s seed passed the
 table's three words as arguments to `_dryfieldNightGasStationRestoreBalconySpriteVisibility`,
 and that callee's first act is to overwrite `$a0` (`lui/lw $a0, gGameSession`)
 — it reads none of `$a0`-`$a3`, so it takes no arguments and the three loaded
 registers can only be the copy's temporaries. The body is the ordinary
-`TaskFuncTable3 sp; sp = <rodata table>; <no-arg call>(); sp.funcs[index->state](index);`,
+`TaskFuncTable3 roomStates; roomStates = <rodata table>; <no-arg call>(); roomStates.funcs[task->state](task);`,
 exact on the first build from 36.4%. Input: `base_1.i`
 `3138a1bc11de99b6169b0f4c9cd0a72ee8f1b6ba3362b3af7f15eef297a9a917`.
 
@@ -88710,7 +88710,7 @@ Inputs: `base.i`
 `regs=9`), `base_2.i`
 `38a88e2a0d877ce7faa4ee35ab195575d8541aa75bd639d128b4ed55caaae379` (100%).
 
-## A direct global store materializes its address *after* a call; a local pointer holds it across (func_dryfield_night_motel_lobby_8018103C, 2026-09-15)
+## A direct global store materializes its address *after* a call; a local pointer holds it across (_dryfieldNightMotelLobbyCashRegisterAnswerPrompt, 2026-09-15)
 
 The m2c seed for this room's prompt-confirm state stored through the global
 directly, exactly as m2c renders it:
@@ -94783,7 +94783,7 @@ stores go out `2, 4, 8, 16, 12` pre-schedule and the scheduler hoists the
 the object (m2c's reading) leaves the two `lui`/`ori` pairs swapped at 99.3%
 with `regs=8` and nothing else wrong.
 
-Example: `func_dryfield_night_motel_lobby_8017FB7C`. Inputs: `base_1.i`
+Example: `_dryfieldNightMotelLobbyCommandMsg`. Inputs: `base_1.i`
 `7e8b7e80c9511bc09528f9be9e9b73dd730261eaf351f5c235a2d5c778b46e07`, `base_2.i`
 `c2b01570db8190811762a1f9418bc07fd341b547adf77199d9231bae6a89c812`.
 ## `fold`'s `associate` inverts `a | (b | C)` — so match the target by writing it pre-inverted (_dryfieldBreezewayInitFirstEventTask, 2026-09-16)
@@ -139197,19 +139197,19 @@ Three smaller shapes from the same function:
 Input `base_37.i` SHA256
 `0e74f30433e2ca7214c2975bec0d946f2c3ea1750f706864b03672498fce129d`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-## `lo + ((x << 16) + CONST)` reassociates as well; here the split-value form was the match (func_dryfield_night_motel_balcony_80181024, 2026-09-23)
+## `randomSize + ((x << 16) + CONST)` reassociates as well; here the split-value form was the match (dryfieldNightMotelBalconyLampBurstTask, 2026-09-23)
 
 `fold` treats `+` the same way the `base | (x | CONST)` entry describes for `|`:
 it moves the constant outward, so any single-expression spelling
-(`lo + (y + C)`, `y + C + lo`, `lo + y + C`) emits `lo + y` first and adds the
+(`randomSize + (y + C)`, `y + C + randomSize`, `randomSize + y + C`) emits `randomSize + y` first and adds the
 constant last. The target computed `t0 = (x % 3 << 16) + 0x80000100` into a
 scratch register and then did `addu a2,a2,t0`. Giving the inner sum its own
 statement produced exactly that, taking the match from 99.67% (register-only
 penalties) to 100%:
 
 ```c
-arg = ((((u32)gRandomLcgState >> 16) % 3) << 16) + 0x80000100;
-effectSpawn(0x6003D, coord, lo + arg, &work->field_10);
+debrisArgs = ((((u32)gRandomLcgState >> 16) % 3) << 16) + 0x80000100;
+effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, randomSize + debrisArgs, &work->move);
 ```
 
 Which fix applies depends on where the target's intermediate lives. If it is in
@@ -139654,7 +139654,7 @@ return 1;
 
 This also fixed an unrelated-looking `$v0`/`$v1` swap in the stores before the call. Adding a `ret` variable (`ret = 1; … ret = 2;`), as `RoomsShared8017d638` does, shares the `%hi` too, but it costs a callee-saved register for `ret`. A local pointer to the global (the fix in "A direct global store materializes its address *after* a call") is the wrong tool for this target. It keeps the full `lui+addiu` address in `$sN`, and the target keeps only the `%hi`.
 
-## An LCG draw written *inside* a field store puts the destination's address before the draw (func_dryfield_night_main_street_8017E484, 2026-09-23)
+## An LCG draw written *inside* a field store puts the destination's address before the draw (dryfieldNightMainStreetAmbientEffectsTask, 2026-09-23)
 
 **Symptom.** A loop fills `D[16].vx/.vy/.vz` from three LCG draws. Written as separate statements (`gRandomLcgState = gRandomLcgState * 5 + 0x71357911; D[16].vx = (gRandomLcgState >> 16) % 300 - 0x4A1;`), the object is 98.8% (`regs=18`). Loop hoisting emits `lui %hi(gRandomLcgState)` before `lui/addiu D`, where the target has the opposite order, and the non-loop copy of the same code swaps `$t3`/`$t4`.
 
@@ -140680,7 +140680,7 @@ Tell: a pointer register re-initialised to `sym + k*stride` beside an index
 register set to `k`, with a live counter kept for the `slti` exit, is
 strength reduction over `a[i]`. Write the index form before tuning walkers.
 
-### An invented trailing argument adds hard-register sets and can stop another call's setup from birthing (func_dryfield_night_motel_balcony_801809CC, 2026-09-23)
+### An invented trailing argument adds hard-register sets and can stop another call's setup from birthing (dryfieldNightMotelBalconyFallingParticleTask, 2026-09-23)
 
 **Symptom.** 99.636%, one swap in a call setup: target `lui/ori a0; lh a2; move a1; move a3,zero; jal; addu a2` (delay slot), ours had `move a1` before the `lh`. Two earlier sessions and the permuter treated it as a sched1 tie on the `lh` and found nothing.
 

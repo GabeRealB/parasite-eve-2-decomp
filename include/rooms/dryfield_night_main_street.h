@@ -42,7 +42,16 @@ extern SpriteView D_dryfield_night_main_street_801875E4[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_main_street_80188B84[];
 
-void func_dryfield_night_main_street_8017E484(Task* task);
+/// Draws view-selected night main street lights and maintains its drifting puffs.
+///
+/// Requires loaded room anchor/mask tables, graphics state and a mapped view in
+/// 1..24. Installs this room's four shared-effect callback IDs on the first tick,
+/// updates the room-effect mode and suppresses the broken balcony lamp's shaft.
+/// Views 8 and 19 seed 48 puffs on entry, then add one on odd animation frames.
+/// `spawnArg1.value` stores the previous mapped view (initialize it differently
+/// to force entry seeding). The controller remains live until external teardown;
+/// independently counted puffs use the ordinary room effect pause/cancel rules.
+void dryfieldNightMainStreetAmbientEffectsTask(Task* task);
 
 /// Animates and drifts one nighttime main street puff (effect 0x601B2).
 ///
@@ -106,8 +115,23 @@ void dryfieldNightMainStreetRoomVisualEffectsHaloTask(Task* task);
 /// the work pointer when the effect ends.
 void dryfieldNightMainStreetRoomVisualEffectsHaloOrangeBurstTask(Task* task);
 
-void func_dryfield_night_main_street_80181F58(Task* arg0);
+/// Emits this room's twenty turning, successively higher descending motes.
+///
+/// Requires a coordinate body and zero-aged counted `EffectWork` from
+/// `effectSpawn` in `spawnArg2.pointer`; `spawnArg1` is ignored. Active ages
+/// 1..20 emit at a local radial offset near 768 units and Y = -128 * age.
+/// Motes descend eight units per active tick and live for 48 ticks independently.
+/// This room must have installed its mote callback ID and keep it loaded.
+/// Nonzero room effect control below four pauses; four or above cancels.
+/// Age 21 or cancellation releases the emitter's work and task.
+void dryfieldNightMainStreetRoomVisualEffectsSparkEmitterTask(Task* task);
 
-void func_dryfield_night_main_street_8017E0C0(Task* task);
+/// Dispatches the night main street's room-message receiver task.
+///
+/// Requires a live bodyless task in state 0..2: initialize, idle, release.
+/// Initialization restores saved sprite visibility and registers a borrowed
+/// room-task slot. Keep the map and room callbacks loaded and stop messaging
+/// before teardown, which leaves that slot unchanged. Spawn arguments are unused.
+void dryfieldNightMainStreetRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_MAIN_STREET_H

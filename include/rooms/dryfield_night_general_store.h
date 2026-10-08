@@ -38,6 +38,12 @@ extern WorldCollisionSurfaceProperties* D_dryfield_night_general_store_80185894[
 /// the current frame's primitive arena and depth ordering table.
 void dryfieldNightGeneralStoreDrawLightShaftsTask(Task* unusedTask);
 
-void func_dryfield_night_general_store_8017DE88(Task* task);
+/// Dispatches the night General Store's room-message receiver task.
+///
+/// Requires a live bodyless task in state 0..2: initialize, idle, release.
+/// The map and room callbacks must stay loaded while dispatching. Initialization
+/// registers a borrowed room-task slot; stop messaging before teardown, which
+/// leaves that slot unchanged. Neither spawn argument is consumed.
+void dryfieldNightGeneralStoreRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_GENERAL_STORE_H

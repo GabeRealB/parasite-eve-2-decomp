@@ -383,9 +383,9 @@ AreaObjectRoom D_map_dryfield_full_8017A46C[40] = {
 };
 
 TaskDesc D_map_dryfield_full_8017A5AC[] = {
-    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_gas_station_8017FB70, { .value = GP_TASK_LOC_KEY(3, 1, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_main_street_8017E0C0, { .value = GP_TASK_LOC_KEY(3, 2, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_general_store_8017DE88, { .value = GP_TASK_LOC_KEY(3, 3, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, dryfieldNightGasStationRoomTask, { .value = GP_TASK_LOC_KEY(3, 1, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, dryfieldNightMainStreetRoomTask, { .value = GP_TASK_LOC_KEY(3, 2, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, dryfieldNightGeneralStoreRoomTask, { .value = GP_TASK_LOC_KEY(3, 3, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, dryfieldNightBackStreetRoomTask, { .value = GP_TASK_LOC_KEY(3, 5, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, dryfieldNightSouvenirShopRoomTask, { .value = GP_TASK_LOC_KEY(3, 6, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, dryfieldNightWarehouseRoomTask, { .value = GP_TASK_LOC_KEY(3, 7, 0) } },

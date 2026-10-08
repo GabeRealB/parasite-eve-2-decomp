@@ -112,7 +112,17 @@ void dryfieldNightMotelBalconyDrawBreathFlame(s32 packedScreenPosition, s16 otIn
 /// cancellation releases its work and task.
 void dryfieldNightMotelBalconyDebrisTask(Task* task);
 
-void func_dryfield_night_motel_balcony_80180580(Task* task);
+/// Emits one of five short debris/puff patterns for a balcony break impact.
+///
+/// Requires the counted `EffectWork` and coordinate body made by `effectSpawn`.
+/// `spawnArg1.value` selects 0 large debris, 1 small debris, 2 scattered puffs
+/// followed by downward debris, 3 row-1 puffs followed by large debris, or
+/// 4 row-1 puffs only. Other selectors leave an undispatched state and are invalid.
+/// Initialization takes one active tick, then emissions take one or two ticks;
+/// the following tick releases the controller's work and task. Spawned particles
+/// live independently. Any nonzero room effect control below four pauses;
+/// four or above cancels immediately. Keep the room effect callbacks loaded.
+void dryfieldNightMotelBalconyBreakBurstTask(Task* task);
 
 /// Updates a drifting ten-frame flame particle and fades it before release.
 ///
@@ -130,9 +140,31 @@ void func_dryfield_night_motel_balcony_80180580(Task* task);
 /// its work and task.
 void dryfieldNightMotelBalconyFlameTask(Task* task);
 
-void func_dryfield_night_motel_balcony_801809CC(Task* task);
+/// Drops an animated billboard toward coordinate Y=0 and fades before release.
+///
+/// Requires a counted, zero-aged `EffectWork` and live coordinate body from
+/// `effectSpawn`; bits 0..11 of `spawnArg1` set the sizing numerator. State 0
+/// resets rotation and rolls a frame phase 0..7 and downward speed 0..255 units
+/// per active tick. State 1 adds six units per tick to speed until local Y>0,
+/// emits one slow row-1 puff and settles in state 2. Ages 20..29 fade by twelve
+/// intensity units per tick; age 30 releases the work and task.
+/// Initialization runs while paused, then pause freezes age and motion; hidden
+/// control suspends all updates, and control four or above cancels. Drawing uses
+/// the composed position before that tick's movement. Spawned puffs are independent.
+void dryfieldNightMotelBalconyFallingParticleTask(Task* task);
 
-void func_dryfield_night_motel_balcony_80181024(Task* task);
+/// Emits the broken balcony lamp's debris and puffs, then tapers away from its close view.
+///
+/// Requires counted, zero-aged `EffectWork` and a coordinate body from
+/// `effectSpawn`; `spawnArg1` is ignored. Logical view 39 continuously rolls
+/// independent debris, falling-particle and puff emissions, without advancing
+/// age. Other views advance age toward 150 and emit progressively fewer puffs
+/// through windows of 150 and 120 active ticks. Reentering view 39 preserves age.
+/// Offsets are copied at spawn, in the controller's coordinate frame. Spawned
+/// particles live independently. Nonzero room effect control below four pauses;
+/// four or above cancels. Expiry or cancellation releases this work and task;
+/// keep this room's callbacks and textures loaded while its particles remain.
+void dryfieldNightMotelBalconyLampBurstTask(Task* task);
 
 /// Updates a drifting puff through twelve animation frames, then releases it.
 ///

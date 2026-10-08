@@ -50,7 +50,7 @@ extern TaskDesc gStoreTaskDescs[];
 /// The room's message table, installed by the room task's entry state.
 extern TaskMessageEntry D_dryfield_night_general_store_8017E7BC[];
 
-static void func_dryfield_night_general_store_8017DE34(Task* arg0);
+static void _dryfieldNightGeneralStoreInitializeRoomTask(Task* task);
 static void _dryfieldNightGeneralStoreRoomIdle(Task* unusedTask);
 
 static s32 _dryfieldNightGeneralStoreRejectKeyItem(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
@@ -82,11 +82,11 @@ TaskMessageEntry D_dryfield_night_general_store_8017E7BC[6] = {
 #include "../../shared/general_store_cutscene_task.inc.c"
 
 /// The room task's three-state table, run from a stack copy by
-/// `func_dryfield_night_general_store_8017DE88`: the entry state
-/// `func_dryfield_night_general_store_8017DE34`, the idle state
+/// `dryfieldNightGeneralStoreRoomTask`: the entry state
+/// `_dryfieldNightGeneralStoreInitializeRoomTask`, the idle state
 /// `_dryfieldNightGeneralStoreRoomIdle`, then `taskKill`.
 static const TaskFuncTable3 D_dryfield_night_general_store_8017D5F4 = {
-    { func_dryfield_night_general_store_8017DE34, _dryfieldNightGeneralStoreRoomIdle, taskKill },
+    { _dryfieldNightGeneralStoreInitializeRoomTask, _dryfieldNightGeneralStoreRoomIdle, taskKill },
 };
 
 #include "../../shared/general_store_toggle_task.inc.c"
@@ -114,15 +114,17 @@ static s32 _dryfieldNightGeneralStoreIgnoreRoomAction(Task* unusedTask, s32 unus
     return 0;
 }
 
-/// Entry state of the room task: installs the room's message table, publishes
-/// the task in pointer slot 7, advances to the idle state and raises
-/// `D_80115598`.
-static void func_dryfield_night_general_store_8017DE34(Task* arg0)
+/// Registers the night General Store's room receiver and enables CAP completion cues.
+///
+/// Called in state 0, with this overlay's message table loaded. Publishes a
+/// borrowed task in `GAME_TASK_SLOT_ROOM` and advances to idle state 1.
+/// Stop sending room messages before releasing the task; teardown leaves the slot.
+static void _dryfieldNightGeneralStoreInitializeRoomTask(Task* task)
 {
-    arg0->msgTable = D_dryfield_night_general_store_8017E7BC;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    arg0->state = (s32)(arg0->state + 1);
-    D_80115598  = 1;
+    task->msgTable = D_dryfield_night_general_store_8017E7BC;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    task->state = task->state + 1;
+    D_80115598  = true;
 }
 
 /// Keeps the General Store room task alive to receive messages.
@@ -130,12 +132,10 @@ static void _dryfieldNightGeneralStoreRoomIdle(Task* unusedTask)
 {
 }
 
-/// The room task: runs the state `D_dryfield_night_general_store_8017D5F4`
-/// names for `task->state`, through a stack copy of the table.
-void func_dryfield_night_general_store_8017DE88(Task* task)
+void dryfieldNightGeneralStoreRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 roomStates;
 
-    sp = D_dryfield_night_general_store_8017D5F4;
-    sp.funcs[task->state](task);
+    roomStates = D_dryfield_night_general_store_8017D5F4;
+    roomStates.funcs[task->state](task);
 }

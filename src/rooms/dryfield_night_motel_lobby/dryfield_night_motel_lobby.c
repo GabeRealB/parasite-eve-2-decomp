@@ -52,7 +52,7 @@
 
 static void _roomCutsceneSoundTask(Task* task);
 
-void func_dryfield_night_motel_lobby_8017FD10(Task* task);
+static void _dryfieldNightMotelLobbyCashRegisterOwnerTask(Task* task);
 
 extern UiObjectDesc D_800611E4;
 
@@ -140,21 +140,21 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
 };
 
 static s32 _dryfieldNightMotelLobbyRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
-s32        func_dryfield_night_motel_lobby_8017FB7C(Task*, s32, s32, s32);
-s32        func_dryfield_night_motel_lobby_8017FC6C(Task*, s32, const void*, s32);
+static s32 _dryfieldNightMotelLobbyCommandMsg(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg);
+static s32 _dryfieldNightMotelLobbyCashRegisterActionMsg(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static s32 _dryfieldNightMotelLobbySoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
 
 TaskMessageEntry D_dryfield_night_motel_lobby_801827CC[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantParkingLotMsg },
     { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightMotelLobbyRejectKeyItemUse },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_motel_lobby_8017FC6C },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_night_motel_lobby_8017FB7C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightMotelLobbyCashRegisterActionMsg },
+    { ROOM_MESSAGE_COMMAND, _dryfieldNightMotelLobbyCommandMsg },
     { ROOM_MESSAGE_SOUND, _dryfieldNightMotelLobbySoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_dryfield_night_motel_lobby_801827FC[2] = {
-    { { { TASK_BODY_NONE, 32 } }, func_dryfield_night_motel_lobby_8017FD10, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _dryfieldNightMotelLobbyCashRegisterOwnerTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -187,47 +187,79 @@ static s32 _dryfieldNightMotelLobbyRejectKeyItemUse(Task* unusedTask, s32 unused
 
 #include "../../shared/room_variants_parking_lot.inc.c"
 
-/// Message handler for the lobby's `arg2 == 3` event: on the first visit it
-/// latches the visit flag and starts the scene, otherwise it fills in the cap
-/// script and spawns the cutscene task.
-s32 func_dryfield_night_motel_lobby_8017FB7C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Prepares the persistent lobby revisit cutscene for its chapter's CAP file.
+///
+/// Writes the borrowed playback record before the runner is spawned; the record
+/// must remain live through playback. Texture-page X uses VRAM word coordinates.
+static inline void _dryfieldNightMotelLobbyPrepareRevisitCutscene(void)
 {
-    if (arg2 == 3) {
+    enum { REVISIT_VIEW          = 5,
+           REVISIT_CAP_SLOT      = 1,
+           REVISIT_CHAPTER_SPLIT = 4,
+           EARLY_CAP_TPAGE_X     = 896,
+           LATE_CAP_TPAGE_X      = 960,
+           EARLY_CAP_FILE        = 1,
+           LATE_CAP_FILE         = 2 };
+    D_dryfield_night_motel_lobby_801844E0.view    = REVISIT_VIEW;
+    D_dryfield_night_motel_lobby_801844E0.capSlot = REVISIT_CAP_SLOT;
+    if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < REVISIT_CHAPTER_SPLIT) {
+        D_dryfield_night_motel_lobby_801844E0.capTPageX = EARLY_CAP_TPAGE_X;
+        D_dryfield_night_motel_lobby_801844E0.capFile   = EARLY_CAP_FILE;
+    } else {
+        D_dryfield_night_motel_lobby_801844E0.capTPageX = LATE_CAP_TPAGE_X;
+        D_dryfield_night_motel_lobby_801844E0.capFile   = LATE_CAP_FILE;
+    }
+    D_dryfield_night_motel_lobby_801844E0.skipScene       = 0;
+    D_dryfield_night_motel_lobby_801844E0.startSound      = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOBBY, 3);
+    D_dryfield_night_motel_lobby_801844E0.endSound        = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOBBY, 4);
+    D_dryfield_night_motel_lobby_801844E0.sceneSound      = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOBBY, 5);
+    D_dryfield_night_motel_lobby_801844E0.afterSceneSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOBBY, 6);
+}
+
+/// Starts first-visit or chapter-dependent revisit playback for lobby command 3.
+///
+/// Handles `ROOM_MESSAGE_COMMAND`. The first visit latches its saved flag before
+/// requesting CAP command 10. Later visits configure the overlay's persistent
+/// cutscene record and spawn its runner, which borrows that record. Other commands
+/// do nothing. The receiver, message ID and second payload are unused; returns zero.
+static s32 _dryfieldNightMotelLobbyCommandMsg(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg)
+{
+    enum {
+        VISIT_COMMAND           = 3,
+        FIRST_VISIT_CAP_COMMAND = 10,
+        CUTSCENE_PRIORITY       = 4,
+    };
+    if (commandId == VISIT_COMMAND) {
         if (gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_LOBBY_FIRST_SCENE) == 0) {
-            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_LOBBY_FIRST_SCENE, 1);
-            capRunCommandWithTransition(0xA);
+            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_LOBBY_FIRST_SCENE, true);
+            capRunCommandWithTransition(FIRST_VISIT_CAP_COMMAND);
             return 0;
         }
-        D_dryfield_night_motel_lobby_801844E0.view    = 5;
-        D_dryfield_night_motel_lobby_801844E0.capSlot = 1;
-        if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < 4) {
-            D_dryfield_night_motel_lobby_801844E0.capTPageX = 0x380;
-            D_dryfield_night_motel_lobby_801844E0.capFile   = 1;
-        } else {
-            D_dryfield_night_motel_lobby_801844E0.capTPageX = 0x3C0;
-            D_dryfield_night_motel_lobby_801844E0.capFile   = 2;
-        }
-        D_dryfield_night_motel_lobby_801844E0.skipScene       = 0;
-        D_dryfield_night_motel_lobby_801844E0.startSound      = 0x53110003;
-        D_dryfield_night_motel_lobby_801844E0.endSound        = 0x53110004;
-        D_dryfield_night_motel_lobby_801844E0.sceneSound      = 0x53110005;
-        D_dryfield_night_motel_lobby_801844E0.afterSceneSound = 0x53110006;
-        taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 4, &D_dryfield_night_motel_lobby_801844E0);
+        // Revisit playback selects the CAP file for the current story chapter.
+        _dryfieldNightMotelLobbyPrepareRevisitCutscene();
+        taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, CUTSCENE_PRIORITY, &D_dryfield_night_motel_lobby_801844E0);
     }
     return 0;
 }
 
-s32 func_dryfield_night_motel_lobby_8017FC6C(Task* task, s32 msgId, const void* firstArg, s32 secondArg)
+/// Opens the cash-register interaction for lobby direction action 1.
+///
+/// Handles `DIRECTION_MESSAGE_ROOM_ACTION` with a non-NULL borrowed request.
+/// Before code acceptance, holds player control, hides the model and spawns the
+/// cash-register owner task. Afterwards requests CAP command 8. Ignores the
+/// receiver, message ID and second payload, retains no request and returns zero.
+static s32 _dryfieldNightMotelLobbyCashRegisterActionMsg(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    const DirectionActionRequest* request = firstArg;
+    enum { CASH_REGISTER_ACTION           = 1,
+           COMPLETED_REGISTER_CAP_COMMAND = 8 };
 
-    if (request->actionId == 1) {
+    if (request->actionId == CASH_REGISTER_ACTION) {
         if (gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_LOBBY_EVENT_SEEN) == 0) {
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
             taskSpawnFromTable(D_dryfield_night_motel_lobby_801827FC, 0, 0, 0);
         } else {
-            capRunCommandWithTransition(8);
+            capRunCommandWithTransition(COMPLETED_REGISTER_CAP_COMMAND);
         }
     }
     return 0;
@@ -248,17 +280,25 @@ static s32 _dryfieldNightMotelLobbySoundMsg(Task* unusedTask, s32 unusedMessageI
     return 0;
 }
 
-void func_dryfield_night_motel_lobby_8017FD10(Task* task)
+/// Owns the cash-register interaction task until its requested exit is dispatched.
+///
+/// State 0 spawns the controller and retains its task handle; state 1 polls that
+/// live child, ignoring its result, then releases this bodyless owner. Requires
+/// successful spawning and the lobby callbacks to stay loaded through polling.
+/// The stored child handle is left unchanged after exit.
+static void _dryfieldNightMotelLobbyCashRegisterOwnerTask(Task* task)
 {
-    s32 poll;
+    enum { SPAWN_REGISTER = 0,
+           WAIT_REGISTER  = 1 };
+    s32 childResult;
 
     switch (task->state) {
-        case 0:
+        case SPAWN_REGISTER:
             D_dryfield_night_motel_lobby_801844CC = taskSpawnFromTable(&D_dryfield_night_motel_lobby_801828D4, 0, 0, 0);
             task->state++;
             return;
-        case 1:
-            if (taskPollKill(D_dryfield_night_motel_lobby_801844CC, &poll) != 0) {
+        case WAIT_REGISTER:
+            if (taskPollKill(D_dryfield_night_motel_lobby_801844CC, &childResult) != 0) {
                 taskKill(task);
             }
             return;

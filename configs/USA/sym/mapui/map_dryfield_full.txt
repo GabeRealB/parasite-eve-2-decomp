@@ -3,7 +3,7 @@
 // room records, task entries and models in the Dryfield-at-night room
 // packages, and marker models in the map pictures. Each lives in a package
 // loaded at a slot of its own, so each is absolute.
-func_dryfield_night_gas_station_8017FB70 = 0x8017FB70; // type:func absolute:True owner=dryfield_night_gas_station shared=rooms
+dryfieldNightGasStationRoomTask = 0x8017FB70; // type:func absolute:True owner=dryfield_night_gas_station shared=rooms
 D_dryfield_night_gas_station_80189DB0 = 0x80189DB0; // absolute:True owner=dryfield_night_gas_station
 D_dryfield_night_gas_station_80189DD0 = 0x80189DD0; // absolute:True owner=dryfield_night_gas_station shared=rooms
 D_dryfield_night_gas_station_80189E70 = 0x80189E70; // absolute:True owner=dryfield_night_gas_station
@@ -12,7 +12,7 @@ D_dryfield_night_gas_station_80189E88 = 0x80189E88; // absolute:True owner=dryfi
 D_dryfield_night_gas_station_8018B780 = 0x8018B780; // absolute:True owner=dryfield_night_gas_station
 D_dryfield_night_gas_station_8018F6C4 = 0x8018F6C4; // absolute:True owner=dryfield_night_gas_station
 D_dryfield_night_gas_station_80190780 = 0x80190780; // absolute:True owner=dryfield_night_gas_station
-func_dryfield_night_main_street_8017E0C0 = 0x8017E0C0; // type:func absolute:True owner=dryfield_night_main_street
+dryfieldNightMainStreetRoomTask = 0x8017E0C0; // type:func absolute:True owner=dryfield_night_main_street
 D_dryfield_night_main_street_80182284 = 0x80182284; // absolute:True owner=dryfield_night_main_street shared=rooms
 D_dryfield_night_main_street_801822B4 = 0x801822B4; // absolute:True owner=dryfield_night_main_street
 D_dryfield_night_main_street_801822FC = 0x801822FC; // absolute:True owner=dryfield_night_main_street shared=rooms
@@ -21,7 +21,7 @@ D_dryfield_night_main_street_80182310 = 0x80182310; // absolute:True owner=dryfi
 D_dryfield_night_main_street_80184564 = 0x80184564; // absolute:True owner=dryfield_night_main_street shared=rooms
 D_dryfield_night_main_street_801875E4 = 0x801875E4; // absolute:True owner=dryfield_night_main_street shared=rooms
 D_dryfield_night_main_street_80188B84 = 0x80188B84; // absolute:True owner=dryfield_night_main_street shared=rooms
-func_dryfield_night_general_store_8017DE88 = 0x8017DE88; // type:func absolute:True owner=dryfield_night_general_store
+dryfieldNightGeneralStoreRoomTask = 0x8017DE88; // type:func absolute:True owner=dryfield_night_general_store
 D_dryfield_night_general_store_8017E82C = 0x8017E82C; // absolute:True owner=dryfield_night_general_store
 D_dryfield_night_general_store_8017E834 = 0x8017E834; // absolute:True owner=dryfield_night_general_store shared=rooms
 D_dryfield_night_general_store_8017E844 = 0x8017E844; // absolute:True owner=dryfield_night_general_store

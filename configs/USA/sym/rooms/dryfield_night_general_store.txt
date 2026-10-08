@@ -95,3 +95,5 @@ _generalStoreSoundMsg = 0x8017DDF0; // type:func
 _dryfieldNightGeneralStoreRejectKeyItem = 0x8017de24; // type:func
 _dryfieldNightGeneralStoreIgnoreRoomAction = 0x8017de2c; // type:func
 _dryfieldNightGeneralStoreRoomIdle = 0x8017de80; // type:func
+_dryfieldNightGeneralStoreInitializeRoomTask = 0x8017de34; // type:func
+dryfieldNightGeneralStoreRoomTask = 0x8017de88; // type:func

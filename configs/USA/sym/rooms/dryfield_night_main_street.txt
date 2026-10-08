@@ -118,7 +118,7 @@ gRoomEventActive = 0x80188BC4; // size:0x1 defined:True
 gRoomEventLatched = 0x80188BC8; // size:0x10 defined:True
 gRoomEventReq = 0x80188BD8; // size:0x14 defined:True
 
-func_dryfield_night_main_street_8017E484 = 0x8017E484; // type:func
+dryfieldNightMainStreetAmbientEffectsTask = 0x8017E484; // type:func
 
 dryfieldNightMainStreetPuffTask = 0x8017F3B0; // type:func
 
@@ -128,7 +128,7 @@ dryfieldNightMainStreetRoomVisualEffectsHaloTask = 0x801807B0; // type:func
 
 dryfieldNightMainStreetRoomVisualEffectsHaloOrangeBurstTask = 0x80180B48; // type:func
 
-func_dryfield_night_main_street_80181F58 = 0x80181F58; // type:func
+dryfieldNightMainStreetRoomVisualEffectsSparkEmitterTask = 0x80181F58; // type:func
 _roomVisualEffectsDrawMote = 0x8017FD34; // type:func
 _roomVisualEffectsDrawHaloRing = 0x8017FFF8; // type:func
 _roomVisualEffectsDrawHaloDisc = 0x8018041C; // type:func
@@ -149,3 +149,5 @@ _dryfieldNightMainStreetRejectKeyItemUse = 0x8017e054; // type:func
 _dryfieldNightMainStreetIgnoreRoomAction = 0x8017e05c; // type:func
 _dryfieldNightMainStreetRoomIdle = 0x8017e0b8; // type:func
 _dryfieldNightMainStreetRestoreSectionSpriteVisibility = 0x8017e118; // type:func
+_dryfieldNightMainStreetInitializeRoomTask = 0x8017e064; // type:func
+dryfieldNightMainStreetRoomTask = 0x8017e0c0; // type:func

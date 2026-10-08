@@ -615,7 +615,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, acropolisPlazaSpawnAmbientLightsTask, { NULL } },                                   // 0x04D
     { { { TASK_BODY_COORD, 0x70 } }, acropolisFireEscapeLightEmitterTask, { NULL } },                                    // 0x04E
     { { { TASK_BODY_COORD, 0x70 } }, acropolisFireEscapeFlareTask, { NULL } },                                           // 0x04F
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_motel_balcony_80180580, { NULL } },                             // 0x050
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelBalconyBreakBurstTask, { NULL } },                                // 0x050
     { { { TASK_BODY_COORD, 0x70 } }, acropolisForkedRoadLeafFallTask, { NULL } },                                        // 0x051
     { { { TASK_BODY_COORD, 0x70 } }, actor510900FlameSpriteTask52, { NULL } },                                           // 0x052
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask53, { NULL } },                                                     // 0x053
@@ -682,8 +682,8 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, acropolisRoofGardenFlareTask, { NULL } },                                           // 0x090
     { { { TASK_BODY_TMD, 0x70 } }, effectThrownModelTask, { &D_801124B8 } },                                             // 0x091
     { { { TASK_BODY_COORD, 0x70 } }, effectLineTask92, { NULL } },                                                       // 0x092
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_motel_balcony_801809CC, { NULL } },                             // 0x093
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_motel_balcony_80181024, { NULL } },                             // 0x094
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelBalconyFallingParticleTask, { NULL } },                           // 0x093
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelBalconyLampBurstTask, { NULL } },                                 // 0x094
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelBalconyDriftPuffTask, { NULL } },                                 // 0x095
     { { { TASK_BODY_COORD, 0x70 } }, acropolisPlazaLightGlowTask, { NULL } },                                            // 0x096
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightBackStreetRoomVisualEffectsTwinTrailTask, { NULL } },                  // 0x097
@@ -792,7 +792,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldWaterHoleWaterDriftTaskU16, { NULL } },                                     // 0x0FE
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightWaterHoleWaterRippleTask, { NULL } },                                  // 0x0FF
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightGasStationAmbientEffectsTask, { NULL } },                              // 0x100
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_main_street_8017E484, { NULL } },                               // 0x101
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMainStreetAmbientEffectsTask, { NULL } },                              // 0x101
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightGeneralStoreDrawLightShaftsTask, { NULL } },                           // 0x102
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightBackStreetDrawGlowsTask, { NULL } },                                   // 0x103
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightSouvenirShopPrismLightTask, { NULL } },                                // 0x104
@@ -1184,7 +1184,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMainStreetRoomVisualEffectsMoteTask, { NULL } },                       // 0x286
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMainStreetRoomVisualEffectsHaloTask, { NULL } },                       // 0x287
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMainStreetRoomVisualEffectsHaloOrangeBurstTask, { NULL } },            // 0x288
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_main_street_80181F58, { NULL } },                               // 0x289
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMainStreetRoomVisualEffectsSparkEmitterTask, { NULL } },               // 0x289
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldToiletRoomVisualEffectsGlowDiscTask, { NULL } },                            // 0x28A
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldToiletFlyingSparkTask, { NULL } },                                          // 0x28B
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldToiletFlyingOrangeBurstTask, { NULL } },                                    // 0x28C
