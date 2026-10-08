@@ -82994,7 +82994,7 @@ zero, with no pins. Input `base_3.i`
 `43cdd05339d043262e6be676e37f75c5cbd84afdb163c762a2bd8212aa8c6c8e`.
 
 **Third effect: the same cause scores as `insert` + `reorder`, not `regs`.**
-`func_actor_800100_80161F20`'s case-0 block is eight stores plus one load, and
+`actor800100PykeEmitterTask`'s case-0 block is eight stores plus one load, and
 the target emits the load first (`lw v0, 8(s0)` / `li v1, 0x1000` /
 `sw v1, 4(s1)` / `sw v0, 0x4c(s1)`). With the load's statement written after the
 `0x1000` store GCC keeps it there, one instruction behind its use:
@@ -110115,7 +110115,7 @@ cse share the switch's constant and removed both.
 
 ## An `SVECTOR` filler written in address order beats the asm's store order
 
-`func_actor_800100_80163F04` builds two effect positions as
+`_actor800100TickNativeMode` builds two effect positions as
 `vx = 0; vy = <height>; vz = 0;`. The target emits the `vz` store *between*
 the two `lhu`s that feed `vy` and the `subu` that consumes them:
 
@@ -110140,7 +110140,7 @@ the middle field's store last; the scheduler moves it. Both literals here are
 source stores `vz` before `vy` - also reproduces the *count* of instructions
 and reads as a plausible match until the delay slot is compared.
 
-`func_actor_800100_80163F04`. Inputs: `base_1.i`
+`_actor800100TickNativeMode`. Inputs: `base_1.i`
 `0693ae465ab777f31215fa7ef686d69a1cd6dda9b4b3846504aa6235a284c732`,
 `base_2.i`
 `f94a939374358349b5f5b18cc41d631c5de2ce23cb4be2f404fc265edadc2988`.
@@ -110148,7 +110148,7 @@ and reads as a plausible match until the delay slot is compared.
 ## A matched function's migrated rodata table must be re-emitted from the unit
 
 See "Migrated `D_*` tables have no `D_*.s` after a re-split" above. Matching
-`func_actor_800100_80163F04` dropped the `INCLUDE_ASM` whose `.s` carried
+`_actor800100TickNativeMode` dropped the `INCLUDE_ASM` whose `.s` carried
 `D_actor_800100_80161E58` (a 12-entry `TaskFuncTable12` folded to the top of
 that file), and the unscoped build then failed at link with `undefined
 reference to 'D_actor_800100_80161E58'`. splat's re-split had written the table
@@ -110289,7 +110289,7 @@ chase it.
 ## A load the dispatch cannot reach was written before the `switch`; m2c's scaled `+ 0xNN`
 
 Three m2c artefacts in one function, all read off the object diff rather than a
-dump (`func_actor_800100_80164E60`):
+dump (`_actor800100ReloadState`):
 
 - An argument m2c typed as a byte pointer — `animationGetCurrentRecord(temp_s0 + 0x424, …)`
   — compiles to `lui`/`ori` plus `addu`, because m2c prints a *typed* pointer
@@ -110302,7 +110302,7 @@ dump (`func_actor_800100_80164E60`):
 - A `sll $v0, $v0, 2` before the `addu` that the target does not have means the
   indexed symbol is a byte array: declare `extern u8 D_...[ ];` rather than the
   scalar m2c invents for `*(idx + &sym)`, and the scale disappears.
-- `coord = (GfxCoord*)((TmdObject*)actor->equipmentTasks[1]->extra)->coords;`
+- `weaponCoord = (GfxCoord*)((TmdObject*)actor->equipmentTasks[1]->extra)->coords;`
   sits in the entry block although only `case 12` calls `effectSpawn` with it.
   sched1 cannot have moved it there: `schedule_insns` schedules per basic block
   ("Schedule each basic block, block by block", `sched.c`, one

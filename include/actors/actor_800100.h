@@ -11,7 +11,28 @@
 /// teardown; the state-3 call kills the task and ends that lifetime.
 void actor800100Task(Task* task);
 
-void func_actor_800100_80161F20(Task* task);
+/// Requests for the companion's persistent Pyke emitter in `Task::spawnArg1.value`.
+enum {
+    ACTOR_800100_PYKE_OFF        = 0,
+    ACTOR_800100_PYKE_IDLE       = 1,
+    ACTOR_800100_PYKE_FIRE       = 2,
+    ACTOR_800100_PYKE_RESET_IDLE = 3,
+    ACTOR_800100_PYKE_RESET_OFF  = 4,
+    ACTOR_800100_PYKE_RELEASE    = 5,
+};
+
+/// Draws the companion's Pyke nozzle, lights it and emits child flames.
+///
+/// Requires an effect task with owned `EffectWork` in `spawnArg2.pointer`,
+/// a coordinate body, initial state 0 and a live borrowed muzzle parent.
+/// State 1 consumes `ACTOR_800100_PYKE_*` requests. Idle arms launch speed at
+/// 64 game units per running tick; fire raises it by 64 to 384 and emits one
+/// flame per tick. Children are reparented to the emitter for teardown.
+/// Refreshes transient point-light slot 3 for four frames while running.
+/// Hidden companion/effects suspend all processing, including release requests;
+/// paused idle redraws the nozzle and paused fire retains its launch speed.
+/// Release frees the effect work and kills the task and its coordinate body.
+void actor800100PykeEmitterTask(Task* task);
 
 /// Updates one flame emitted by the companion's Pyke attachment.
 ///

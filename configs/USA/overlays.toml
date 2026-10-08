@@ -3475,7 +3475,7 @@ objects = [
 ]
 
 [actors.overlays.actor_800100]
-label = "the overlay id word is 0x0..0x4 and the jump table of func_actor_800100_80161F20 - the overlay's first function - starts at 0x4, so the head must be its own object or the table's .align 3 pads it"
+label = "the overlay id word is 0x0..0x4 and the jump table of actor800100PykeEmitterTask - the overlay's first function - starts at 0x4, so the head must be its own object or the table's .align 3 pads it"
 slot = 3
 id = 190
 objects = [

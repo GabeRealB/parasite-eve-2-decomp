@@ -46,7 +46,7 @@ playerActorSetTextureSequence = 0x80105AB0; // type:func absolute:True
 D_actor_800100_80167128 = 0x80167128; // size:0x8 defined:True
 D_actor_800100_80167130 = 0x80167130; // size:0xD0 defined:True
 
-func_actor_800100_80161F20 = 0x80161F20; // type:func
+actor800100PykeEmitterTask = 0x80161F20; // type:func
 
 actor800100PykeFlameTask = 0x801624F0; // type:func
 _actor800100GetContactDistance = 0x8016709c; // type:func
@@ -91,3 +91,6 @@ _actor800100DrawAimBeamQuad = 0x801668c0; // type:func
 _actor800100DrawAimBeam = 0x80166514; // type:func
 _actor800100InitAimCollision = 0x80166f50; // type:func
 actor800100Task = 0x80163cf0; // type:func
+_actor800100UpdateMove = 0x801635f4; // type:func
+_actor800100TickNativeMode = 0x80163f04; // type:func
+_actor800100ReloadState = 0x80164e60; // type:func

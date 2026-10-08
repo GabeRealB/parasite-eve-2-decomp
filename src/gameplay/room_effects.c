@@ -919,7 +919,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1SterilizationRoomPuffTask, { NULL } },                                     // 0x17D
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightR08DrawGlowsTask, { NULL } },                                          // 0x17E
     { { { TASK_BODY_COORD, 0x70 } }, m4a1PykeFlameTask, { NULL } },                                                      // 0x17F
-    { { { TASK_BODY_COORD, 0x70 } }, func_actor_800100_80161F20, { NULL } },                                             // 0x180
+    { { { TASK_BODY_COORD, 0x70 } }, actor800100PykeEmitterTask, { NULL } },                                             // 0x180
     { { { TASK_BODY_COORD, 0x70 } }, actor800100PykeFlameTask, { NULL } },                                               // 0x181
     { { { TASK_BODY_COORD, 0x70 } }, m4a1HammerImpactFlashTask, { NULL } },                                              // 0x182
     { { { TASK_BODY_COORD, 0x70 } }, m4a1JavelinContactFlashTask, { NULL } },                                            // 0x183

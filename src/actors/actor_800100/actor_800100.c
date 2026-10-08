@@ -56,7 +56,7 @@
 #include "main/wipsys_types.h"
 #include "../../shared/pyke_flame.h"
 
-static void func_actor_800100_801635F4(Task* arg0);
+static void _actor800100UpdateMove(Task* task);
 static void _actor800100TickTextureSequences(Task* task);
 static void _actor800100TickBehavior(Task* task);
 
@@ -149,14 +149,14 @@ extern u8               D_actor_800100_80167230[];
 static void func_actor_800100_80163214(Task* arg0);
 static void _actor800100Teardown(Task* task);
 static void _actor800100DecideIdleBehavior(Task* task);
-static void func_actor_800100_80163F04(Task* arg0);
+static void _actor800100TickNativeMode(Task* task);
 static void _actor800100FollowPlayerState(Task* task);
 static void _actor800100TurnToTargetState(Task* task);
 static void _actor800100CombatEntryState(Task* task);
 static void _actor800100AttackLoopState(Task* task);
 static void _actor800100RetreatState(Task* task);
 static void _actor800100ApproachState(Task* task);
-static void func_actor_800100_80164E60(Task* arg0);
+static void _actor800100ReloadState(Task* task);
 static void _actor800100ObstacleScanState(Task* task);
 static void _actor800100WanderState(Task* task);
 static void _actor800100EnterCombatEntry(Task* task);
@@ -615,112 +615,123 @@ static void _actor800100ScheduleTeardown(Task* task);
 static void _actor800100DrawAimBeam(Task* task);
 static void _actor800100InitAimCollision(Task* actorTask);
 
-/// Per-frame flare task of the actor: while the player model is visible
-/// (`field_C & 0x80` clear) and effects are visible
-/// (`gRoomEffectState->effectControl < 2`) it refreshes transient point-light slot 3.
-/// State 0 hangs the flare's coordinate off the actor's own at the fixed
-/// offset and zeroes its `age`; state 1 then dispatches on `spawnArg1`:
+/// Refreshes the emitter's transient light in the view coordinate's local frame.
 ///
-/// - 1 draws the flare at the coordinate's `workm.t` every frame and varies
-///   the light's red intensity randomly in `0x400..0xB00`, arming the flare width in
-///   `scale`.
-/// - 2 widens that flare by 0x40 a frame up to 0x180, spawns effect `0x60181`
-///   as a child of this task, and refreshes the light with a much wider
-///   (`0x400` / `0x4000`) falloff and red intensity in `0x800..0xF00`.
-/// - 3 and 4 switch back to sub-state 1 and 0, and 5 releases the pool block.
-///
-/// While `gRoomEffectState->effectControl` is non-zero the two drawing sub-states wind
-/// `age` back down instead of advancing.
-void func_actor_800100_80161F20(Task* task)
+/// Borrows the chosen pool slot and its embedded light/coordinate aliases.
+/// Radii use integer world units; red intensity has 12 fractional bits. Consumes
+/// one unsigned LCG sample and retains halfword narrowing before green/blue shifts.
+static inline void _actor800100RefreshPykeLight(WorldCoordTransientPointLight* transientLight,
+                                                WorldCoordPointLight* pointLight, GfxCoord* lightCoord,
+                                                const GfxCoord* nozzleCoord, s32 innerRadius, s32 outerRadius, s32 redMinimum)
 {
-    EffectWork*                    work;
-    GfxCoord*                      coord;
-    WorldCoordTransientPointLight* lightSlot;
-    WorldCoordPointLight*          slot;
-    GfxCoord*                      light;
-    EffectWork*                    eff;
-    u32                            ang;
+    enum {
+        ACTOR_800100_PYKE_LIGHT_FRAMES      = 4,
+        ACTOR_800100_PYKE_LIGHT_RANDOM_MASK = 0x700,
+    };
+    u32 lightRandom;
 
-    work      = task->spawnArg2.pointer;
-    coord     = task->extra.coordBody->coord;
-    lightSlot = &gWorldCoordTransientPointLights[3];
-    light     = &lightSlot->light.head.transform.coord;
-    slot      = &lightSlot->light;
+    transientLight->framesLeft = ACTOR_800100_PYKE_LIGHT_FRAMES;
+    pointLight->inner          = innerRadius;
+    pointLight->outer          = outerRadius;
+    lightRandom                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    gRandomLcgState            = lightRandom;
+    // Green halves the unsigned red halfword; blue quarters its signed value.
+    pointLight->head.color.r = ((lightRandom >> 16) & ACTOR_800100_PYKE_LIGHT_RANDOM_MASK) + redMinimum;
+    pointLight->head.color.g = (u16)pointLight->head.color.r >> 1;
+    pointLight->head.color.b = pointLight->head.color.r >> 2;
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &nozzleCoord->workm, &lightCoord->coord);
+    lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+}
+
+void actor800100PykeEmitterTask(Task* task)
+{
+    enum {
+        ACTOR_800100_PYKE_STATE_INIT       = 0,
+        ACTOR_800100_PYKE_STATE_UPDATE     = 1,
+        ACTOR_800100_PYKE_LIGHT_SLOT       = 3,
+        ACTOR_800100_PYKE_SPEED_STEP       = 64,
+        ACTOR_800100_PYKE_SPEED_MAX        = 384,
+        ACTOR_800100_PYKE_IDLE_LIGHT_INNER = 128,
+        ACTOR_800100_PYKE_IDLE_LIGHT_OUTER = 1024,
+        ACTOR_800100_PYKE_FIRE_LIGHT_INNER = 1024,
+        ACTOR_800100_PYKE_FIRE_LIGHT_OUTER = 16384,
+        ACTOR_800100_PYKE_IDLE_RED_MIN     = 0x400,
+        ACTOR_800100_PYKE_FIRE_RED_MIN     = 0x800,
+    };
+    EffectWork*                    effectWork;
+    GfxCoord*                      nozzleCoord;
+    WorldCoordTransientPointLight* transientLight;
+    WorldCoordPointLight*          pointLight;
+    GfxCoord*                      lightCoord;
+    EffectWork*                    flameWork;
+
+    effectWork     = task->spawnArg2.pointer;
+    nozzleCoord    = task->extra.coordBody->coord;
+    transientLight = &gWorldCoordTransientPointLights[ACTOR_800100_PYKE_LIGHT_SLOT];
+    lightCoord     = &transientLight->light.head.transform.coord;
+    pointLight     = &transientLight->light;
     if ((gameGetTaskSlot(GAME_TASK_SLOT_COMPANION)->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) != 0) {
         return;
     }
     if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
         return;
     }
-    work->age++;
+    effectWork->age++;
     switch (task->state) {
-        case 0:
-            coord->parent = work->parent;
-            gfxSetRotIdentity(&coord->coord);
-            coord->coord.t[0]   = D_actor_800100_80167128.vx;
-            coord->coord.t[1]   = D_actor_800100_80167128.vy;
-            coord->coord.t[2]   = D_actor_800100_80167128.vz;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(coord);
-            task->state = 1;
+        case ACTOR_800100_PYKE_STATE_INIT:
+            nozzleCoord->parent = effectWork->parent;
+            gfxSetRotIdentity(&nozzleCoord->coord);
+            nozzleCoord->coord.t[0]   = D_actor_800100_80167128.vx;
+            nozzleCoord->coord.t[1]   = D_actor_800100_80167128.vy;
+            nozzleCoord->coord.t[2]   = D_actor_800100_80167128.vz;
+            nozzleCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+            actorRenderComposeCoord(nozzleCoord);
+            task->state = ACTOR_800100_PYKE_STATE_UPDATE;
             break;
-        case 1:
-            actorRenderComposeCoord(coord);
+        case ACTOR_800100_PYKE_STATE_UPDATE:
+            actorRenderComposeCoord(nozzleCoord);
             switch (task->spawnArg1.value) {
-                case 0:
+                case ACTOR_800100_PYKE_OFF:
                     break;
-                case 1:
+                case ACTOR_800100_PYKE_IDLE:
                     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-                        work->age--;
+                        effectWork->age--;
                         _pykeFlameDrawNozzle(
-                            MATRIX_TRANS(&coord->workm), work->age, PYKE_FLAME_NOZZLE_SIZE_SCALE);
+                            MATRIX_TRANS(&nozzleCoord->workm), effectWork->age, PYKE_FLAME_NOZZLE_SIZE_SCALE);
                         break;
                     }
                     _pykeFlameDrawNozzle(
-                        MATRIX_TRANS(&coord->workm), work->age, PYKE_FLAME_NOZZLE_SIZE_SCALE);
-                    lightSlot->framesLeft = 4;
-                    slot->inner           = 0x80;
-                    slot->outer           = 0x400;
-                    ang                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    gRandomLcgState       = ang;
-                    slot->head.color.r    = ((ang >> 16) & 0x700) + 0x400;
-                    slot->head.color.g    = (u16)slot->head.color.r >> 1;
-                    slot->head.color.b    = slot->head.color.r >> 2;
-                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &light->coord);
-                    light->composeStamp = GRAPHICS_COORD_DIRTY;
-                    work->scale         = 0x40;
+                        MATRIX_TRANS(&nozzleCoord->workm), effectWork->age, PYKE_FLAME_NOZZLE_SIZE_SCALE);
+                    _actor800100RefreshPykeLight(transientLight, pointLight, lightCoord, nozzleCoord,
+                                                 ACTOR_800100_PYKE_IDLE_LIGHT_INNER, ACTOR_800100_PYKE_IDLE_LIGHT_OUTER,
+                                                 ACTOR_800100_PYKE_IDLE_RED_MIN);
+                    effectWork->scale = ACTOR_800100_PYKE_SPEED_STEP;
                     break;
-                case 2:
+                case ACTOR_800100_PYKE_FIRE:
                     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-                        work->age--;
+                        effectWork->age--;
                         break;
                     }
-                    if (work->scale < 0x180) {
-                        work->scale = work->scale + 0x40;
+                    // Launch speed grows independently of each child's subsequent motion.
+                    if (effectWork->scale < ACTOR_800100_PYKE_SPEED_MAX) {
+                        effectWork->scale = effectWork->scale + ACTOR_800100_PYKE_SPEED_STEP;
                     }
-                    eff = effectSpawn(EFFECT_ACTOR_800100_PYKE_FLAME, coord, (s32)(work->scale), NULL);
-                    if (eff != NULL) {
-                        taskReparent(task, eff->task);
+                    flameWork = effectSpawn(EFFECT_ACTOR_800100_PYKE_FLAME, nozzleCoord, (s32)effectWork->scale, NULL);
+                    if (flameWork != NULL) {
+                        taskReparent(task, flameWork->task);
                     }
-                    lightSlot->framesLeft = 4;
-                    slot->inner           = 0x400;
-                    slot->outer           = 0x4000;
-                    ang                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    gRandomLcgState       = ang;
-                    slot->head.color.r    = ((ang >> 16) & 0x700) + 0x800;
-                    slot->head.color.g    = (u16)slot->head.color.r >> 1;
-                    slot->head.color.b    = slot->head.color.r >> 2;
-                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &light->coord);
-                    light->composeStamp = GRAPHICS_COORD_DIRTY;
+                    _actor800100RefreshPykeLight(transientLight, pointLight, lightCoord, nozzleCoord,
+                                                 ACTOR_800100_PYKE_FIRE_LIGHT_INNER, ACTOR_800100_PYKE_FIRE_LIGHT_OUTER,
+                                                 ACTOR_800100_PYKE_FIRE_RED_MIN);
                     break;
-                case 3:
-                    task->spawnArg1.value = 1;
+                case ACTOR_800100_PYKE_RESET_IDLE:
+                    task->spawnArg1.value = ACTOR_800100_PYKE_IDLE;
                     break;
-                case 4:
-                    task->spawnArg1.value = 0;
+                case ACTOR_800100_PYKE_RESET_OFF:
+                    task->spawnArg1.value = ACTOR_800100_PYKE_OFF;
                     break;
-                case 5:
-                    effectKillTask(work, task);
+                case ACTOR_800100_PYKE_RELEASE:
+                    effectKillTask(effectWork, task);
                     break;
             }
             break;
@@ -876,113 +887,144 @@ static void func_actor_800100_80163214(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
-static void func_actor_800100_801635F4(Task* arg0)
+/// Restores the root translation from the position accepted before grid response.
+static inline void _actor800100RestorePreviousPosition(GfxCoord* rootCoord, const GameActor* actor)
 {
-    CompanionMoveScratch* scratch;
-    void**                scratchHead;
-    CompanionMoveScratch* head;
-    GameActor*            actor;
-    TmdObject*            work;
-    TmdObject*            extra;
-    GfxCoord*             coord;
-    GfxCoord*             ground;
-    CompanionWork*        companion;
-    Task*                 task;
-    WorldCollisionBody*   objs[2];
-    s32                   dy;
-    s32                   i;
-    s8                    bits;
+    rootCoord->coord.t[0] = actor->previousPosition.vx;
+    rootCoord->coord.t[1] = actor->previousPosition.vy;
+    rootCoord->coord.t[2] = actor->previousPosition.vz;
+}
 
-    scratchHead                                        = SCRATCH_HEAD_ADDR;
-    head                                               = SCRATCH_HEAD_AT(scratchHead, CompanionMoveScratch);
-    extra                                              = arg0->extra.tmd;
-    SCRATCH_HEAD_AT(scratchHead, CompanionMoveScratch) = head - 1;
-    work                                               = extra;
-    scratch                                            = head - 1;
-    coord                                              = work->coords;
-    actor                                              = arg0->work;
-    companion                                          = actor->companionWork;
-
-    if (actor->mode != GAME_ACTOR_MODE_SCRIPTED &&
-        (dy = coord->coord.t[1], dy = dy - actor->previousPosition.vy, dy = ABS(dy), dy >= 0x200)) {
-        coord->coord.t[0] = actor->previousPosition.vx;
-        coord->coord.t[1] = actor->previousPosition.vy;
-        coord->coord.t[2] = actor->previousPosition.vz;
+/// Publishes a Q12 movement or pushback heading to all three motion contexts.
+///
+/// Requires the composed root basis and a live caller-owned scratch block.
+/// Only XYZ halfwords are staged and copied; vector pads remain untouched.
+static inline void _actor800100PublishMotionDirection(GameActor* actor, const GfxCoord* rootCoord, CompanionMoveScratch* block)
+{
+    if (actor->usesPushbackDirection != 0) {
+        block->motionDirection.vx = actor->pushbackDirection.vx;
+        block->motionDirection.vy = actor->pushbackDirection.vy;
+        block->motionDirection.vz = actor->pushbackDirection.vz;
     } else {
-        actor->previousPosition.vx = coord->coord.t[0];
-        actor->previousPosition.vy = coord->coord.t[1];
-        actor->previousPosition.vz = coord->coord.t[2];
-        if (actor->collisionEnableMask & 1) {
-            actor->gridResponse = worldCollisionApplyResponsePushback(coord, actor->collisionMotionContexts[0].contacts, ARRAY_SIZE(actor->collisionContacts), &actor->surfaceClass);
+        block->motionDirection.vx = rootCoord->workm.m[0][2] * actor->movementSign;
+        block->motionDirection.vy = rootCoord->workm.m[1][2] * actor->movementSign;
+        block->motionDirection.vz = rootCoord->workm.m[2][2] * actor->movementSign;
+    }
+    actor->collisionMotionContexts[0].motionDirection.vx = block->motionDirection.vx;
+    actor->collisionMotionContexts[0].motionDirection.vy = block->motionDirection.vy;
+    actor->collisionMotionContexts[0].motionDirection.vz = block->motionDirection.vz;
+    actor->collisionMotionContexts[1].motionDirection.vx = block->motionDirection.vx;
+    actor->collisionMotionContexts[1].motionDirection.vy = block->motionDirection.vy;
+    actor->collisionMotionContexts[1].motionDirection.vz = block->motionDirection.vz;
+    actor->collisionMotionContexts[2].motionDirection.vx = block->motionDirection.vx;
+    actor->collisionMotionContexts[2].motionDirection.vy = block->motionDirection.vy;
+    actor->collisionMotionContexts[2].motionDirection.vz = block->motionDirection.vz;
+}
+
+/// Applies collision response, advances the companion, publishes motion and draws its shadow.
+///
+/// Requires initialized actor/companion work, linked bodies, live native/scripted
+/// playback and room/view resources. Borrows one CompanionMoveScratch until return.
+/// Rejects height jumps of at least 512 game units outside scripted mode. Probe
+/// yaw uses 4096 units per turn; motion headings are Q12. Frozen behavior still
+/// updates textures, clears the preceding contacts and refreshes transforms.
+static void _actor800100UpdateMove(Task* task)
+{
+    enum {
+        ACTOR_800100_MAX_VERTICAL_STEP      = 512,
+        ACTOR_800100_ROOT_FLOOR_LIFT        = 8,
+        ACTOR_800100_SHADOW_HALF_SIZE       = 512,
+        ACTOR_800100_WEAPON_COLLISION_PITCH = -ACTOR_TRANSFORM_ANGLE_TURN / 4,
+    };
+    CompanionMoveScratch* block;
+    void**                cursorSlot;
+    CompanionMoveScratch* blockEnd;
+    GameActor*            actor;
+    TmdObject*            coordsModel;
+    TmdObject*            model;
+    GfxCoord*             rootCoord;
+    GfxCoord*             shadowCoord;
+    CompanionWork*        companion;
+    Task*                 weaponTask;
+    WorldCollisionBody*   bodies[2];
+    s32                   verticalDelta;
+    s32                   bodyIndex;
+    s8                    updateRequests;
+
+    cursorSlot                                        = SCRATCH_HEAD_ADDR;
+    blockEnd                                          = SCRATCH_HEAD_AT(cursorSlot, CompanionMoveScratch);
+    model                                             = task->extra.tmd;
+    SCRATCH_HEAD_AT(cursorSlot, CompanionMoveScratch) = blockEnd - 1;
+    // The two model handles retain the entry loads around the scratch reservation.
+    coordsModel = model;
+    block       = blockEnd - 1;
+    rootCoord   = coordsModel->coords;
+    actor       = task->work;
+    companion   = actor->companionWork;
+
+    // Consume the preceding collision pass before behavior changes the root.
+    if (actor->mode != GAME_ACTOR_MODE_SCRIPTED &&
+        (verticalDelta = rootCoord->coord.t[1], verticalDelta = verticalDelta - actor->previousPosition.vy, verticalDelta = ABS(verticalDelta), verticalDelta >= ACTOR_800100_MAX_VERTICAL_STEP)) {
+        _actor800100RestorePreviousPosition(rootCoord, actor);
+    } else {
+        actor->previousPosition.vx = rootCoord->coord.t[0];
+        actor->previousPosition.vy = rootCoord->coord.t[1];
+        actor->previousPosition.vz = rootCoord->coord.t[2];
+        if (actor->collisionEnableMask & (1 << GAME_ACTOR_BODY_ROOT)) {
+            actor->gridResponse = worldCollisionApplyResponsePushback(rootCoord, actor->collisionMotionContexts[0].contacts, ARRAY_SIZE(actor->collisionContacts), &actor->surfaceClass);
         } else {
-            actor->gridResponse = 0;
+            actor->gridResponse = WORLD_COLLISION_PUSHBACK_NO_GRID_HIT;
         }
     }
 
-    task = actor->equipmentTasks[1];
-    if (task != NULL) {
-        actor->weaponCollisionCoord = *task->extra.tmd->coords;
-        gfxRotMatrixX(&actor->weaponCollisionCoord.workm, -0x400, GRAPHICS_ROTATION_COMPOSE);
+    weaponTask = actor->equipmentTasks[1];
+    if (weaponTask != NULL) {
+        actor->weaponCollisionCoord = *weaponTask->extra.tmd->coords;
+        gfxRotMatrixX(&actor->weaponCollisionCoord.workm, ACTOR_800100_WEAPON_COLLISION_PITCH, GRAPHICS_ROTATION_COMPOSE);
     }
 
-    companion->probe.coord = *arg0->extra.tmd->coords;
-    gfxRotMatrixY(&companion->probe.coord.workm, companion->scanAngle, 0);
+    companion->probe.coord = *task->extra.tmd->coords;
+    gfxRotMatrixY(&companion->probe.coord.workm, companion->scanAngle, GRAPHICS_ROTATION_COMPOSE);
 
-    objs[0] = &actor->collisionBodies[GAME_ACTOR_BODY_ROOT];
-    objs[1] = &actor->collisionBodies[GAME_ACTOR_BODY_PART1];
-    for (i = 0; i < 2; i++) {
-        bits = actor->pendingCollisionUpdates;
-        if ((bits >> i) & 1) {
-            actor->collisionEnableMask |= 1 << i;
-            objs[i]->flags             |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        } else if (bits & (8 << i)) {
-            actor->collisionEnableMask &= ~(1 << i);
-            objs[i]->flags             &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
+    bodies[0] = &actor->collisionBodies[GAME_ACTOR_BODY_ROOT];
+    bodies[1] = &actor->collisionBodies[GAME_ACTOR_BODY_PART1];
+    for (bodyIndex = 0; bodyIndex < (s32)ARRAY_SIZE(bodies); bodyIndex++) {
+        updateRequests = actor->pendingCollisionUpdates;
+        if ((updateRequests >> bodyIndex) & 1) {
+            actor->collisionEnableMask |= 1 << bodyIndex;
+            bodies[bodyIndex]->flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        } else if (updateRequests & ((1 << GAME_ACTOR_COLLISION_DISABLE_REQUEST_SHIFT) << bodyIndex)) {
+            actor->collisionEnableMask &= ~(1 << bodyIndex);
+            bodies[bodyIndex]->flags   &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
         }
     }
     actor->pendingCollisionUpdates = 0;
 
     if (D_80115768 == 0 && gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        _actor800100TickBehavior(arg0);
+        _actor800100TickBehavior(task);
     }
-    _actor800100TickTextureSequences(arg0);
+    _actor800100TickTextureSequences(task);
 
+    // Contacts are consumed above; the next pass starts from fresh tables.
     worldCollisionClearContacts(actor->collisionContacts);
     worldCollisionClearContacts(actor->companionWork->probe.contacts);
     if (actor->equipmentTasks[1] != NULL) {
         worldCollisionClearContacts(actor->weaponContacts);
     }
-    if (actor->collisionEnableMask & 1) {
-        coord->coord.t[1] += 8;
+    if (actor->collisionEnableMask & (1 << GAME_ACTOR_BODY_ROOT)) {
+        rootCoord->coord.t[1] += ACTOR_800100_ROOT_FLOOR_LIFT;
     }
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(coord);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(rootCoord);
 
-    if ((s8)actor->usesPushbackDirection != 0) {
-        scratch->motionDirection.vx = actor->pushbackDirection.vx;
-        scratch->motionDirection.vy = actor->pushbackDirection.vy;
-        scratch->motionDirection.vz = actor->pushbackDirection.vz;
-    } else {
-        scratch->motionDirection.vx = (u16)coord->workm.m[0][2] * (s8) * (volatile u8*)&actor->movementSign;
-        scratch->motionDirection.vy = (u16)coord->workm.m[1][2] * (s8) * (volatile u8*)&actor->movementSign;
-        scratch->motionDirection.vz = (u16)coord->workm.m[2][2] * (s8) * (volatile u8*)&actor->movementSign;
-    }
-    actor->collisionMotionContexts[0].motionDirection.vx = scratch->motionDirection.vx;
-    actor->collisionMotionContexts[0].motionDirection.vy = scratch->motionDirection.vy;
-    actor->collisionMotionContexts[0].motionDirection.vz = scratch->motionDirection.vz;
-    actor->collisionMotionContexts[1].motionDirection.vx = scratch->motionDirection.vx;
-    actor->collisionMotionContexts[1].motionDirection.vy = scratch->motionDirection.vy;
-    actor->collisionMotionContexts[1].motionDirection.vz = scratch->motionDirection.vz;
-    actor->collisionMotionContexts[2].motionDirection.vx = scratch->motionDirection.vx;
-    actor->collisionMotionContexts[2].motionDirection.vy = scratch->motionDirection.vy;
-    actor->collisionMotionContexts[2].motionDirection.vz = scratch->motionDirection.vz;
+    _actor800100PublishMotionDirection(actor, rootCoord, block);
 
-    if (!(work->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        ground               = arg0->extra.tmd->coords + 1;
-        ground->composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(ground);
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&ground->workm), &scratch->shadowCentre) != 0) {
-            effectDrawGroundShadow(&scratch->shadowCentre, 0x200, gRoomEffectState->groundShadowShade);
+    if (!(coordsModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        shadowCoord               = task->extra.tmd->coords + 1;
+        shadowCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(shadowCoord);
+        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&shadowCoord->workm), &block->shadowCentre) != 0) {
+            effectDrawGroundShadow(&block->shadowCentre, ACTOR_800100_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(CompanionMoveScratch);
@@ -990,8 +1032,11 @@ static void func_actor_800100_801635F4(Task* arg0)
 
 /// Posts one texture frame using a borrowed scratch rectangle.
 ///
-/// X counts half VRAM words, width whole words and Y/height rows. The upload
-/// list is writable and terminated; pixel storage stays live for the GPU queue.
+/// Requires a live actor/model texture page and a writable operation-terminated
+/// upload list. X counts two positions per VRAM word; width counts whole words
+/// and Y/height count rows. The actor upload adds its page/VRAM base to this
+/// relative rectangle. The GPU queue copies rectangles during this call and
+/// borrows pixel storage until transfer completion; the scratch RECT is reusable.
 static inline void _actor800100UploadTextureFrame(Task* task, GpuImageUpload* frameUploads, RECT* textureRect,
                                                   s16 xHalfWords, s16 yRows, s16 widthWords, s16 heightRows)
 {
@@ -1130,7 +1175,7 @@ static void _actor800100Teardown(Task* task)
 /// State handlers of the actor's main task, indexed by its state.
 static const TaskFuncTable4 D_actor_800100_80161E3C = { {
     func_actor_800100_80163214,
-    func_actor_800100_801635F4,
+    _actor800100UpdateMove,
     _actor800100ScheduleTeardown,
     _actor800100Teardown,
 } };
@@ -1215,12 +1260,12 @@ static void _actor800100DecideIdleBehavior(Task* task)
 
 /// Handlers `_actor800100TickBehavior` runs, indexed by `mode`.
 static const TaskFuncTable3 D_actor_800100_80161E4C = { {
-    func_actor_800100_80163F04,
+    _actor800100TickNativeMode,
     _actor800100DamageMode,
     _actor800100TickScriptedMode,
 } };
 
-/// Handlers `func_actor_800100_80163F04` runs, indexed by `state`.
+/// Handlers `_actor800100TickNativeMode` runs, indexed by `state`.
 static const TaskFuncTable12 D_actor_800100_80161E58 = { {
     _actor800100IdleState,
     _actor800100FollowPlayerState,
@@ -1231,68 +1276,93 @@ static const TaskFuncTable12 D_actor_800100_80161E58 = { {
     _actor800100RetreatState,
     _actor800100ApproachState,
     _actor800100CombatExitState,
-    func_actor_800100_80164E60,
+    _actor800100ReloadState,
     _actor800100ObstacleScanState,
     _actor800100WanderState,
 } };
 
-/// Drives the actor's `mode`/`state` callback tables while the
-/// `effectTimer.waterDripTicks` countdown runs, spawning the drip effect every tenth frame.
-/// `sp40` / `sp48` hold the effect position: it rides the water surface
-/// (`gGameSession.waterY`) minus the actor coordinate's world Y.
-static void func_actor_800100_80163F04(Task* arg0)
+/// Places an effect at the water surface relative to the actor's room-space root.
+///
+/// Stores XYZ only, retaining the low signed halfword of the height difference.
+static inline void _actor800100SetWaterSurfaceOffset(SVECTOR* surfaceOffset, const GfxCoord* rootCoord)
 {
-    TaskFuncTable12 sp;
-    SVECTOR         sp40;
-    SVECTOR         sp48;
+    surfaceOffset->vx = 0;
+    surfaceOffset->vy = (u16)gGameSession->waterY - (u16)rootCoord->coord.t[1];
+    surfaceOffset->vz = 0;
+}
+
+/// Ticks native decisions, footsteps, damage reactions, animation and motion.
+///
+/// Requires state 0..11, live native slots/model, companion work and the room's
+/// surface-sound/effect bindings. Water footsteps seed 120 ticks of ripples,
+/// emitted every tenth pre-decrement tick at the retained room water height.
+/// Effect offsets are copied during spawning. Contacts are resolved only at
+/// zero recoveryTicks; saved HP at or below zero enters the stopped pose.
+static void _actor800100TickNativeMode(Task* task)
+{
+    enum {
+        ACTOR_800100_WATER_FOOTSTEP_FIRST = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x89,
+        ACTOR_800100_WATER_FOOTSTEP_COUNT = 4,
+        ACTOR_800100_WATER_DRIP_TICKS     = 120,
+        ACTOR_800100_WATER_DRIP_INTERVAL  = 10,
+        // Upward spray: size 384, two ticks per cell, speed 32.
+        ACTOR_800100_WATER_SPRAY_ARGUMENT    = (1 << 24) | (32 << 16) | (2 << 12) | 384,
+        ACTOR_800100_WATER_RIPPLE_SIZE_MASK  = 31,
+        ACTOR_800100_WATER_RIPPLE_MIN_SIZE   = 64,
+        ACTOR_800100_DAMAGE_FIRST_VARIANT    = 1,
+        ACTOR_800100_DAMAGE_SOUND_BANK_SHIFT = 16,
+        ACTOR_800100_DAMAGE_FIRST_SOUND      = SOUND_CHARACTER(SOUND_BANK_ACTOR_800100, 10),
+        ACTOR_800100_STOPPED_POSE_VARIANT    = 0,
+    };
+    TaskFuncTable12 states;
+    SVECTOR         footstepSurfaceOffset;
+    SVECTOR         dripSurfaceOffset;
     GameActor*      actor;
     CompanionWork*  companion;
-    GfxCoord*       coord;
-    s16             temp;
-    s16             rem;
-    s32             pan;
+    GfxCoord*       rootCoord;
+    s16             dripTicks;
+    s16             dripRemainder;
+    s32             audioPan;
 
-    sp        = D_actor_800100_80161E58;
-    actor     = arg0->work;
-    coord     = arg0->extra.tmd->coords;
+    states    = D_actor_800100_80161E58;
+    actor     = task->work;
+    rootCoord = task->extra.tmd->coords;
     companion = actor->companionWork;
     if (companion->decisionTimer > 0) {
         companion->decisionTimer--;
     }
-    sp.funcs[actor->state](arg0);
-    if ((u32)(playerActorPlayFootstepCue(arg0) + 0xEFFFFF77) < 4) {
-        actor->effectTimer.waterDripTicks = 0x78;
-        sp40.vx                           = 0;
-        sp40.vy                           = (u16)gGameSession->waterY - (u16)coord->coord.t[1];
-        sp40.vz                           = 0;
-        effectSpawn(gRoomEffectWaterSprayId, coord, 0x1202180, &sp40);
-        effectSpawn(gRoomEffectWaterRippleId, coord, (rand() & 0x1F) | 0x40, &sp40);
+    states.funcs[actor->state](task);
+    // Preserve unsigned range testing of the four water-footstep sound entries.
+    if ((u32)playerActorPlayFootstepCue(task) - ACTOR_800100_WATER_FOOTSTEP_FIRST < ACTOR_800100_WATER_FOOTSTEP_COUNT) {
+        actor->effectTimer.waterDripTicks = ACTOR_800100_WATER_DRIP_TICKS;
+        _actor800100SetWaterSurfaceOffset(&footstepSurfaceOffset, rootCoord);
+        effectSpawn(gRoomEffectWaterSprayId, rootCoord, ACTOR_800100_WATER_SPRAY_ARGUMENT, &footstepSurfaceOffset);
+        effectSpawn(gRoomEffectWaterRippleId, rootCoord, (rand() & ACTOR_800100_WATER_RIPPLE_SIZE_MASK) | ACTOR_800100_WATER_RIPPLE_MIN_SIZE, &footstepSurfaceOffset);
     }
-    temp = (u16)actor->effectTimer.waterDripTicks;
-    if (temp != 0) {
+    dripTicks = actor->effectTimer.waterDripTicks;
+    if (dripTicks != 0) {
         actor->effectTimer.waterDripTicks--;
-        rem = temp % 10;
-        if (rem == 0) {
-            sp48.vx = 0;
-            sp48.vy = (u16)gGameSession->waterY - (u16)coord->coord.t[1];
-            sp48.vz = 0;
-            effectSpawn(gRoomEffectWaterRippleId, coord, (rand() & 0x1F) | 0x40, &sp48);
+        dripRemainder = dripTicks % ACTOR_800100_WATER_DRIP_INTERVAL;
+        if (dripRemainder == 0) {
+            _actor800100SetWaterSurfaceOffset(&dripSurfaceOffset, rootCoord);
+            effectSpawn(gRoomEffectWaterRippleId, rootCoord, (rand() & ACTOR_800100_WATER_RIPPLE_SIZE_MASK) | ACTOR_800100_WATER_RIPPLE_MIN_SIZE, &dripSurfaceOffset);
         }
     }
     if ((s8)actor->recoveryTicks == 0) {
-        playerActorResolveBodyContacts(arg0, actor->collisionContacts);
+        playerActorResolveBodyContacts(task, actor->collisionContacts);
         if ((u16)actor->hitRegion != 0) {
-            companionEnterDamageReaction(arg0);
-            pan = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant - 1) << 16) + 0x4065000A, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+            companionEnterDamageReaction(task);
+            audioPan = (s8)worldCoordGetOriginAudioPan(rootCoord);
+            sndEvtRequestScriptStart(((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant - ACTOR_800100_DAMAGE_FIRST_VARIANT) << ACTOR_800100_DAMAGE_SOUND_BANK_SHIFT) + ACTOR_800100_DAMAGE_FIRST_SOUND, audioPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
         }
     }
-    playerActorTickAnimationState(arg0);
-    playerActorTickChildSlots(arg0);
-    playerActorUpdateFacing(arg0);
-    playerActorStepMovement(arg0);
+    // Advance poses before facing/movement consume the resulting animation state.
+    playerActorTickAnimationState(task);
+    playerActorTickChildSlots(task);
+    playerActorUpdateFacing(task);
+    playerActorStepMovement(task);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp <= 0) {
-        playerActorEnterStoppedPose(arg0, 0);
+        playerActorEnterStoppedPose(task, ACTOR_800100_STOPPED_POSE_VARIANT);
     }
 }
 
@@ -1544,9 +1614,11 @@ static void _actor800100CombatEntryState(Task* task)
     SCRATCH_STACK_RELEASE_BYTES(sizeof(VECTOR));
 }
 
-/// Returns this attack loop to combat decisions with its held-weapon pose.
+/// Resumes native combat decisions with the held-weapon pose.
 ///
 /// Requires the live actor belonging to task and native animation resources.
+/// Clears the animation controller, behavior phase and movement/turn requests;
+/// blends native hold set 9 for six normal-rate frames, retaining the target.
 static inline void _actor800100ResetAttackDecision(Task* task, GameActor* decisionActor)
 {
     decisionActor->mode           = GAME_ACTOR_MODE_NORMAL;
@@ -1730,10 +1802,12 @@ static void _actor800100RetreatState(Task* task)
     SCRATCH_STACK_RELEASE_BYTES(sizeof(VECTOR));
 }
 
-/// Starts the probe scan after this behavior detects an obstruction.
+/// Starts obstacle scanning from the target-approach behavior.
 ///
-/// Requires live companion work and native playback; saves the prior state
-/// and clears the scan result before the next behavior tick.
+/// Requires live companion work, a bound probe and native playback. Saves the
+/// prior state in stateAux, decays aim, selects 64/4096-turn body steps and
+/// resets the relative probe yaw and clearance. Blends idle for six frames;
+/// the next native behavior tick begins the full yaw sweep in state 10.
 static inline void _actor800100ApproachStartScan(Task* task)
 {
     GameActor*     scanActor;
@@ -1847,52 +1921,65 @@ static void _actor800100ApproachState(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor800100TargetScratch);
 }
 
-static void func_actor_800100_80164E60(Task* arg0)
+/// Plays native reload cues and restores the companion's weapon attack allowance.
+///
+/// Requires native state 9, slot 1 playback, a live equipped weapon and saved
+/// variant 0..4. M950 marks its phase on both cue bits; MM1 emits the effect once
+/// on entry. Refreshes the attack allowance every tick and resumes combat
+/// decisions once a non-NULL record accompanies a settled slot or control jump.
+static void _actor800100ReloadState(Task* task)
 {
+    enum {
+        ACTOR_800100_RELOAD_SLOT        = 1,
+        ACTOR_800100_RELOAD_WEAPON_M950 = 3,
+        ACTOR_800100_RELOAD_WEAPON_MM1  = 12,
+        ACTOR_800100_RELOAD_WAIT_CUE    = 0,
+        ACTOR_800100_RELOAD_CUE_STARTED = 1,
+    };
     GameActor*             actor;
-    GameActor*             target;
+    GameActor*             decisionActor;
     CompanionWork*         companion;
-    const AnimationRecord* rec;
-    GfxCoord*              coord;
-    s16                    sel;
+    const AnimationRecord* reloadRecord;
+    GfxCoord*              weaponCoord;
+    s16                    weaponId;
 
-    actor     = arg0->work;
-    companion = actor->companionWork;
-    rec       = animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1);
-    coord     = actor->equipmentTasks[1]->extra.tmd->coords;
-    sel       = D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant];
+    actor        = task->work;
+    companion    = actor->companionWork;
+    reloadRecord = animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + ACTOR_800100_RELOAD_SLOT);
+    weaponCoord  = actor->equipmentTasks[1]->extra.tmd->coords;
+    weaponId     = D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant];
 
-    switch (sel) {
-        case 3:
-            if (rec != NULL) {
-                if (rec != actor->lastCueRecord) {
-                    actor->lastCueRecord = rec;
-                    if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
-                        if (actor->statePhase == 0) {
-                            actor->statePhase = 1;
+    switch (weaponId) {
+        case ACTOR_800100_RELOAD_WEAPON_M950:
+            if (reloadRecord != NULL) {
+                if (reloadRecord != actor->lastCueRecord) {
+                    actor->lastCueRecord = reloadRecord;
+                    if ((reloadRecord->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
+                        if (actor->statePhase == ACTOR_800100_RELOAD_WAIT_CUE) {
+                            actor->statePhase = ACTOR_800100_RELOAD_CUE_STARTED;
                         }
                     }
                 }
             }
             break;
-        case 12:
-            if (actor->statePhase == 0) {
-                actor->statePhase = 1;
-                effectSpawn(EFFECT_RELOAD_EMITTER, coord, 0xC, NULL);
+        case ACTOR_800100_RELOAD_WEAPON_MM1:
+            if (actor->statePhase == ACTOR_800100_RELOAD_WAIT_CUE) {
+                actor->statePhase = ACTOR_800100_RELOAD_CUE_STARTED;
+                effectSpawn(EFFECT_RELOAD_EMITTER, weaponCoord, ACTOR_800100_RELOAD_WEAPON_MM1, NULL);
             }
-            if (rec != NULL) {
-                if (rec != actor->lastCueRecord) {
-                    actor->lastCueRecord = rec;
+            if (reloadRecord != NULL) {
+                if (reloadRecord != actor->lastCueRecord) {
+                    actor->lastCueRecord = reloadRecord;
                 }
             }
             break;
         default:
-            if (actor->statePhase == 0) {
-                actor->statePhase = 1;
+            if (actor->statePhase == ACTOR_800100_RELOAD_WAIT_CUE) {
+                actor->statePhase = ACTOR_800100_RELOAD_CUE_STARTED;
             } else {
-                if (rec != NULL) {
-                    if (rec != actor->lastCueRecord) {
-                        actor->lastCueRecord = rec;
+                if (reloadRecord != NULL) {
+                    if (reloadRecord != actor->lastCueRecord) {
+                        actor->lastCueRecord = reloadRecord;
                     }
                 }
             }
@@ -1900,15 +1987,9 @@ static void func_actor_800100_80164E60(Task* arg0)
     }
 
     companion->activity.combat.attacksRemaining = D_actor_800100_80167230[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant];
-    if (rec != NULL && playerActorIsSlotAdvancingLinearly(arg0, 1, 0, 0) == 0) {
-        target                 = arg0->work;
-        target->mode           = GAME_ACTOR_MODE_NORMAL;
-        target->state          = 4;
-        target->animationState = 0;
-        target->statePhase     = 0;
-        target->movementSign   = 0;
-        target->turnSign       = 0;
-        playerActorPlayChildSlotsWithBlend(arg0, 9, 0, 6);
+    if (reloadRecord != NULL && playerActorIsSlotAdvancingLinearly(task, ACTOR_800100_RELOAD_SLOT, 0, 0) == 0) {
+        decisionActor = task->work;
+        _actor800100ResetAttackDecision(task, decisionActor);
     }
 }
 
@@ -2025,10 +2106,12 @@ static void _actor800100ObstacleScanState(Task* task)
     playerActorTurnAimTowardPoint(task, MATRIX_TRANS(&playerCoord->coord));
 }
 
-/// Starts the probe scan after this behavior detects an obstruction.
+/// Starts obstacle scanning from the random-wander behavior.
 ///
-/// Requires live companion work and native playback; saves the prior state
-/// and clears the scan result before the next behavior tick.
+/// Requires live companion work, a bound probe and native playback. Saves the
+/// prior state in stateAux, decays aim, selects 64/4096-turn body steps and
+/// resets relative probe yaw and clearance before the next state-10 tick.
+/// Idle playback blends for six normal-rate frames.
 static inline void _actor800100WanderStartScan(Task* task)
 {
     GameActor*     scanActor;
@@ -2039,7 +2122,7 @@ static inline void _actor800100WanderStartScan(Task* task)
     scanActor                    = task->work;
     previousState                = scanActor->state;
     scanActor->state             = ACTOR_800100_STATE_OBSTACLE_SCAN;
-    scanActor->aimTrackingState  = scanIdleSet;
+    scanActor->aimTrackingState  = GAME_ACTOR_AIM_TRACKING_DECAY;
     scanCompanion                = scanActor->companionWork;
     scanActor->mode              = GAME_ACTOR_MODE_NORMAL;
     scanActor->turnRateIndex     = ACTOR_800100_TURN_RATE_64;
@@ -2797,7 +2880,7 @@ static void func_actor_800100_80166190(Task* arg0)
                 actor->actionValue                 = 0x14;
                 worldCoordPlaySound(coord, 0x40680002, 1);
                 if (actor->weaponEffectTask != NULL) {
-                    actor->weaponEffectTask->spawnArg1.value = 2;
+                    actor->weaponEffectTask->spawnArg1.value = ACTOR_800100_PYKE_FIRE;
                 }
                 break;
             }
@@ -2850,7 +2933,7 @@ static void func_actor_800100_80166190(Task* arg0)
             if (actor->actionValue == 0) {
                 actor->stateAux = 6;
                 if (actor->weaponEffectTask != NULL) {
-                    actor->weaponEffectTask->spawnArg1.value = 3;
+                    actor->weaponEffectTask->spawnArg1.value = ACTOR_800100_PYKE_RESET_IDLE;
                 }
                 sndEvtRequestScriptStop(SOUND_COMPANION_PYKE_FIRE_TAIL, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 playerActorPlayChildSlotsWithBlend(arg0, 0xB, 0, 2);
