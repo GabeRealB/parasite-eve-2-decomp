@@ -75,3 +75,9 @@ gViewIdentityMap = 0x8010CAF8; // absolute:True
 D_actor_143900_801413EC = 0x801413EC; // absolute:True owner=actor_143900
 D_actor_143900_80149664 = 0x80149664; // absolute:True owner=actor_143900
 streamedScenePlay = 0x8017DA34; // type:func
+_shelterR36SelectCapFile = 0x8017d870; // type:func
+_shelterR36RejectKeyItemUse = 0x8017d8c8; // type:func
+_shelterR36ResolveRoomVariant = 0x8017d8d0; // type:func
+_shelterR36IgnoreCommand = 0x8017d914; // type:func
+_shelterR36IgnoreRoomAction = 0x8017d91c; // type:func
+_shelterR36MessageIdle = 0x8017d9cc; // type:func

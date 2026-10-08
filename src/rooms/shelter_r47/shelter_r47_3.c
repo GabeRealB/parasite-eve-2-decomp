@@ -56,7 +56,7 @@ static TaskDesc             D_shelter_r47_8018760C;
 static SVECTOR              D_shelter_r47_80187624[10];
 static WorldCoordPointLight D_shelter_r47_80189E90[9];
 static void                 func_shelter_r47_80185214(Task*);
-static void                 func_shelter_r47_8018580C(Task*);
+static void                 _shelterR47MapTerminalPromptTask(Task* task);
 
 static void func_shelter_r47_8018431C(Task* task);
 static void func_shelter_r47_801844A0(Task* task);
@@ -70,7 +70,7 @@ static void func_shelter_r47_801851B8(Task* task);
 static s32  _actionPromptHitTest(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
 static void func_shelter_r47_80185354(Task* task);
 static void func_shelter_r47_80185450(Task* task);
-static void func_shelter_r47_80185510(Task* task);
+static void _shelterR47MapTerminalRestoreRoomTask(Task* task);
 static void func_shelter_r47_801855B8(Task* task);
 static void func_shelter_r47_801856AC(Task* task);
 static void func_shelter_r47_8018571C(Task* task);
@@ -97,7 +97,7 @@ static const TaskFuncTable11 D_shelter_r47_8017D7DC = {
         func_shelter_r47_801844A0,
         func_shelter_r47_80185450,
         func_shelter_r47_80184658,
-        func_shelter_r47_80185510,
+        _shelterR47MapTerminalRestoreRoomTask,
         func_shelter_r47_801855B8,
         func_shelter_r47_801856AC,
         func_shelter_r47_8018571C,
@@ -106,7 +106,7 @@ static const TaskFuncTable11 D_shelter_r47_8017D7DC = {
     },
 };
 
-static TaskDesc D_shelter_r47_8018760C = { { { TASK_BODY_NONE, 192 } }, func_shelter_r47_8018580C, { .value = 0 } };
+static TaskDesc D_shelter_r47_8018760C = { { { TASK_BODY_NONE, 192 } }, _shelterR47MapTerminalPromptTask, { .value = 0 } };
 
 TaskDesc D_shelter_r47_80187618 = { { { TASK_BODY_NONE, 192 } }, func_shelter_r47_80185214, { .value = 0 } };
 
@@ -2050,17 +2050,25 @@ static void func_shelter_r47_80185450(Task* task)
     task->state = 4;
 }
 
-static void func_shelter_r47_80185510(Task* task)
+/// Restores play after map-terminal use and hands the stopped task to its caller.
+///
+/// Requires live map-terminal work and its live cursor task in spawnArg2.
+/// Restores the saved view, actor control/drawing and room holds, releases the
+/// display hold and stops the loop sound. Kills the cursor before requesting
+/// completion with result zero; the polling caller releases this task's work.
+static void _shelterR47MapTerminalRestoreRoomTask(Task* task)
 {
-    ShelterR47MapTerminalWork* state;
+    enum { SHELTER_R47_MAP_ACTION_DELAY_FRAMES = 10 };
+    ShelterR47MapTerminalWork* work;
 
-    state      = (ShelterR47MapTerminalWork*)task->work;
-    D_80114D08 = 0xA;
+    work = task->work;
+    // Delay a fresh directional interaction while room control is restored.
+    D_80114D08 = SHELTER_R47_MAP_ACTION_DELAY_FRAMES;
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     sndEvtRequestScriptStop(SOUND_SHELTER_R47_MAP_TERMINAL_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     displayReleaseMenuHold();
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = state->savedView;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = work->savedView;
     gGameSession->eventState                                   = 0;
     gGameSession->hideHud                                      = 0;
     gGameSession->cutsceneHold                                 = 0;
@@ -2141,17 +2149,20 @@ static void func_shelter_r47_8018571C(Task* task)
     }
 }
 
-/// Two-state dispatcher of the action prompt, with its handler table built on
-/// the stack: state 0 runs `_actionPromptReset` and state 1 runs
-/// `_actionPromptMoveCursors`.
-static void func_shelter_r47_8018580C(Task* task)
+/// Resets and runs the map terminal's action cursors.
+///
+/// State must be 0 (reset both ports and advance) or 1 (move and draw cursors).
+/// Spawn argument 1 selects port 0 with 1, port 1 with 2 and both otherwise;
+/// the terminal spawns port 0. Borrows gameplay's prompts, pad samples, cursor
+/// textures and frame arena/OT. Needs no work; the terminal owns its teardown.
+static void _shelterR47MapTerminalPromptTask(Task* task)
 {
-    TaskFunc funcs[2] = {
+    TaskFunc states[] = {
         _actionPromptReset,
         _actionPromptMoveCursors,
     };
 
-    funcs[task->state](task);
+    states[task->state](task);
 }
 
 // Bind the additional private reset callback, with signature void(Task*).

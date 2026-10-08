@@ -48004,7 +48004,7 @@ grep -n 'INCLUDE_RODATA.*jtbl_' src/<family>/<overlay>/*.c                    # 
 ```
 
 In `rooms/shelter_b6_nursery` four of thirty functions were foreign-table
-cases; `func_shelter_b6_nursery_8017FBC0` matched at 100% in scratch and still
+cases; `_shelterB6NurseryAmbienceTask` matched at 100% in scratch and still
 could not land.
 
 ## Delay-slot filling steals a register insn from the branch target, never a load

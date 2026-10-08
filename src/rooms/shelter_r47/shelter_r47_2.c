@@ -131,7 +131,7 @@ static const TaskFuncTable14 D_shelter_r47_8017D6C8 = {
         func_shelter_r47_8018138C,
         _shelterR47ConsoleResetPromptTask,
         func_shelter_r47_80182CA4,
-        func_shelter_r47_80181568,
+        shelterR47ConsoleSelectHotspotTask,
         _shelterR47ConsoleOpenCommandsTask,
         func_shelter_r47_801816CC,
         _shelterR47ConsoleDismissTask,
@@ -302,7 +302,7 @@ static inline void _shelterR47ConsoleDrawStatus(Task* task, ShelterR47ConsoleWor
     shelterR47ConsoleDrawSprite(messageX, messageY, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + status);
 }
 
-/// Acts on `selection`, the hotspot id stored by `func_shelter_r47_80181568`,
+/// Acts on `selection`, the hotspot id stored by `shelterR47ConsoleSelectHotspotTask`,
 /// when `itemMenuIsHotspotActionConfirmed` returns nonzero: the id's high byte picks the kind.
 /// Kind 0 accepts a new low byte into `row` (checked by
 /// `func_shelter_r47_801829B8` while `guideStep` is set, and the first time

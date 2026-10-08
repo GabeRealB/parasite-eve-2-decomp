@@ -211,7 +211,14 @@ void shelterR47ConsoleDrawSprite(s16 originX, s16 originY, s16 spriteId);
 
 void func_shelter_r47_8018138C(Task* task);
 
-void func_shelter_r47_80181568(Task* task);
+/// Draws the control console and accepts its first confirmed cursor hotspot.
+///
+/// Requires live `ShelterR47ConsoleWork`, the loaded console hotspot/texture
+/// tables and a current frame arena/OT. CAP playback holds input. A confirmed
+/// hotspot stores its ID and prompt kind, hides the cursor and enters state 4.
+/// Guide step 4 enters fade-out state 12; cancel in free use enters state 6.
+/// Hotspot rectangles and cursor coordinates use display-centred pixels.
+void shelterR47ConsoleSelectHotspotTask(Task* task);
 
 /// Advances the control-console presentation and queues its sprites for this frame.
 ///

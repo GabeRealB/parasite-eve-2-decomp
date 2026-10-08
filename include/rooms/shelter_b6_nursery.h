@@ -60,7 +60,15 @@ void shelterB6NurserySetView13SpriteHidden(u8 hidden);
 /// exceeds zero. Room effect control 2..3 pauses it; 4 or above cancels it.
 void shelterB6NurserySparkShowerShardTask(Task* task);
 
-void func_shelter_b6_nursery_80182D14(s32 arg0, s32 arg1);
+/// Sets the nursery's glint-pulse and spark-shower cues for its view-effect task.
+///
+/// Stores the low 16 bits of each argument. A nonzero fastGlintPulse selects
+/// the faster glint pulse in views 3, 6, 8 and 10; a nonzero sparkShowerScale
+/// triggers sixteen shards in view 13 and scales their spread and radius.
+/// The view-effect task clears both on initialization and after that shower.
+/// Requires the nursery overlay and its initialized view-effect task to stay
+/// loaded until the cues are consumed; (0, 0) clears any pending cues.
+void shelterB6NurserySetEffectCues(s32 fastGlintPulse, s32 sparkShowerScale);
 
 void func_shelter_b6_nursery_801800A0(Task* task);
 

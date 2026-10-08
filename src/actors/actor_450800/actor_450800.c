@@ -2717,7 +2717,7 @@ static void _actor450800SetNurseryCaptions(s32 useNurseryCaptions)
 
 void func_actor_450800_80131F70(u32 arg0)
 {
-    func_shelter_b6_nursery_80182D14(arg0 >> 16, arg0 & 0xFFFF);
+    shelterB6NurserySetEffectCues(arg0 >> 16, arg0 & 0xFFFF);
 }
 
 /// Starts the CAP sequence for a repeat nursery interaction.

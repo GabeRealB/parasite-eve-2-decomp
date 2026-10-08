@@ -480,107 +480,144 @@ void shelterB6GrowthRoomResetCollisionBox(s32 useYOffset)
     }
 }
 
-void func_shelter_b6_growth_room_8017D9D8(Task* task)
+void shelterB6GrowthRoomAmbientEffectsTask(Task* task)
 {
-    SVECTOR pos;
-    s32     angle;
-    s32     i;
-    s32     z;
+    enum {
+        SHELTER_B6_GROWTH_ROOM_RAMP_LIMIT           = 304,
+        SHELTER_B6_GROWTH_ROOM_RAMP_FRAME_MASK      = 7,
+        SHELTER_B6_GROWTH_ROOM_MIST_SOURCE_LIMIT    = 6,
+        SHELTER_B6_GROWTH_ROOM_MIST_DENSITY_SHIFT   = 4,
+        SHELTER_B6_GROWTH_ROOM_MIST_ANCHOR_START    = 30,
+        SHELTER_B6_GROWTH_ROOM_MIST_ANGLE_MASK      = 0x7FF,
+        SHELTER_B6_GROWTH_ROOM_MIST_HALF_ARC        = 0x400,
+        SHELTER_B6_GROWTH_ROOM_MIST_RADIUS          = 1000,
+        SHELTER_B6_GROWTH_ROOM_TRIG_SHIFT           = 12,
+        SHELTER_B6_GROWTH_ROOM_MIST_SPAWN_ARG       = (16 << SHELTER_B6_GROWTH_ROOM_PARTICLE_SPEED_SHIFT) | (6 << SHELTER_B6_GROWTH_ROOM_PARTICLE_PERIOD_SHIFT) | 1280,
+        SHELTER_B6_GROWTH_ROOM_PUFF_SPAWN_ARG       = (24 << SHELTER_B6_GROWTH_ROOM_PARTICLE_SPEED_SHIFT) | (3 << SHELTER_B6_GROWTH_ROOM_PARTICLE_PERIOD_SHIFT) | 640,
+        SHELTER_B6_GROWTH_ROOM_GLOW_BASE_BRIGHTNESS = 80,
+        SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_SMALL    = 0x100,
+        SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM   = 0x180,
+        SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE    = 0x200,
+        SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN      = 0x044,
+        SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_RED       = 0x400,
+        SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_YELLOW    = 0x440,
+        SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_GREY      = 0x444
+    };
+    SVECTOR spawnPosition;
+    s32     mistAngle;
+    s32     mistSourceIndex;
+    s32     puffBaseZ;
 
+/// Emits mist around floor anchor 0..5, preserving random draws and s16 stores.
+///
+/// Arguments must be side-effect-free; position and angle are writable locals.
+/// They are evaluated repeatedly. Uses the room's RNG, anchor table and local
+/// particle constants. Sets XYZ only; the fourth vector component is retained.
+/// The effect snapshots XYZ synchronously and these particle tasks do not read
+/// the retained offset pointer. Expands to a braced statement block.
+#define SHELTER_B6_GROWTH_ROOM_SPAWN_MIST(effectTask, anchorIndex, position, angle)                                                                                                                                     \
+    {                                                                                                                                                                                                                   \
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                                                                                               \
+        (angle)         = ((gRandomLcgState >> 16) & SHELTER_B6_GROWTH_ROOM_MIST_ANGLE_MASK) - SHELTER_B6_GROWTH_ROOM_MIST_HALF_ARC;                                                                                    \
+        (position).vx   = D_shelter_b6_growth_room_8017F258[(anchorIndex) + SHELTER_B6_GROWTH_ROOM_MIST_ANCHOR_START].vx + ((rcos((angle)) * SHELTER_B6_GROWTH_ROOM_MIST_RADIUS) >> SHELTER_B6_GROWTH_ROOM_TRIG_SHIFT); \
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                                                                                               \
+        (position).vy   = -((s32)(gRandomLcgState >> 16) % (((effectTask)->spawnArg1.value + 1) * 8));                                                                                                                  \
+        (position).vz   = D_shelter_b6_growth_room_8017F258[(anchorIndex) + SHELTER_B6_GROWTH_ROOM_MIST_ANCHOR_START].vz + ((rsin((angle)) * SHELTER_B6_GROWTH_ROOM_MIST_RADIUS) >> SHELTER_B6_GROWTH_ROOM_TRIG_SHIFT); \
+        effectSpawn(EFFECT_GROWTH_ROOM_MIST, NULL, SHELTER_B6_GROWTH_ROOM_MIST_SPAWN_ARG, &(position));                                                                                                                 \
+    }
+
+    // Ramp the glow and mist spread; source count latches at six floor anchors.
     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-        if (task->spawnArg1.value < 0x130 && !(gDisplayState.animFrame & 7)) {
+        if (task->spawnArg1.value < SHELTER_B6_GROWTH_ROOM_RAMP_LIMIT && !(gDisplayState.animFrame & SHELTER_B6_GROWTH_ROOM_RAMP_FRAME_MASK)) {
             task->spawnArg1.value++;
         }
     }
-    if (task->state < 6) {
-        task->state = (task->spawnArg1.value >> 4) + 1;
+    if (task->state < SHELTER_B6_GROWTH_ROOM_MIST_SOURCE_LIMIT) {
+        task->state = (task->spawnArg1.value >> SHELTER_B6_GROWTH_ROOM_MIST_DENSITY_SHIFT) + 1;
     }
     if (gDisplayState.animFrame % (task->state * 2 + 4) == 0) {
-        for (i = 0; i < task->state; i++) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            angle           = ((gRandomLcgState >> 16) & 0x7FF) - 0x400;
-            pos.vx          = D_shelter_b6_growth_room_8017F258[i + 30].vx + ((rcos(angle) * 1000) >> 12);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            pos.vy          = -((s32)(gRandomLcgState >> 16) % ((task->spawnArg1.value + 1) * 8));
-            pos.vz          = D_shelter_b6_growth_room_8017F258[i + 30].vz + ((rsin(angle) * 1000) >> 12);
-            effectSpawn(EFFECT_GROWTH_ROOM_MIST, NULL, 0x106500, &pos);
+        for (mistSourceIndex = 0; mistSourceIndex < task->state; mistSourceIndex++) {
+            SHELTER_B6_GROWTH_ROOM_SPAWN_MIST(task, mistSourceIndex, spawnPosition, mistAngle);
         }
     }
+#undef SHELTER_B6_GROWTH_ROOM_SPAWN_MIST
+    // Puffs continue on alternating frames even while the ramp is paused.
     if (!(gDisplayState.animFrame & 1)) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        pos.vx          = -1000;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        pos.vy          = -1200 - (gRandomLcgState >> 16) % 400;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        z               = (gRandomLcgState >> 16) % 400 + 0xDAC;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        pos.vz          = z + ((gRandomLcgState >> 16) & 1) * 1000;
-        effectSpawn(EFFECT_SHELTER_B6_GROWTH_ROOM_DRIFT_PUFF, NULL, 0x183280, &pos);
+        gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        spawnPosition.vx = -1000;
+        gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        spawnPosition.vy = -1200 - (gRandomLcgState >> 16) % 400;
+        gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        puffBaseZ        = (gRandomLcgState >> 16) % 400 + 3500;
+        gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        spawnPosition.vz = puffBaseZ + ((gRandomLcgState >> 16) & 1) * 1000;
+        effectSpawn(EFFECT_SHELTER_B6_GROWTH_ROOM_DRIFT_PUFF, NULL, SHELTER_B6_GROWTH_ROOM_PUFF_SPAWN_ARG, &spawnPosition);
     }
-    _shelterB6GrowthRoomDrawBottomGlow(task->spawnArg1.value, (task->spawnArg1.value >> 1) + 0x50);
+    _shelterB6GrowthRoomDrawBottomGlow(task->spawnArg1.value, (task->spawnArg1.value >> 1) + SHELTER_B6_GROWTH_ROOM_GLOW_BASE_BRIGHTNESS);
+    // Mapped views select the visible subset of the first thirty glow anchors.
     switch (viewGetMappedIndex() & 0xFF) {
         case 2:
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[8], 0x180, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[9], 0x200, 0x400);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[14], 0x180, 0x400);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[15], 0x180, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[16], 0x180, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[17], 0x180, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[18], 0x180, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[19], 0x180, 0x440);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[20], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[21], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[22], 0x100, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[23], 0x100, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[28], 0x200, 0x444);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[29], 0x200, 0x444);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[8], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[9], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_RED);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[14], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_RED);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[15], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[16], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[17], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[18], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[19], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_YELLOW);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[20], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[21], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[22], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_SMALL, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[23], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_SMALL, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[28], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_GREY);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[29], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_GREY);
             break;
         case 3:
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[0], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[1], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[2], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[3], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[4], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[5], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[6], 0x200, 0x400);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[7], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[12], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[13], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[24], 0x200, 0x444);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[25], 0x200, 0x444);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[0], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[1], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[2], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[3], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[4], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[5], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[6], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_RED);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[7], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[12], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[13], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[24], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_GREY);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[25], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_GREY);
             break;
         case 4:
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[21], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[22], 0x100, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[23], 0x100, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[21], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[22], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_SMALL, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[23], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_SMALL, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
             break;
         case 5:
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[0], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[1], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[2], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[3], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[4], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[5], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[6], 0x200, 0x400);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[7], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[0], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[1], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[2], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[3], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[4], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[5], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[6], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_RED);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[7], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
             break;
         case 6:
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[14], 0x180, 0x400);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[15], 0x180, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[16], 0x180, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[21], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[22], 0x100, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[23], 0x100, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[14], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_RED);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[15], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[16], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[21], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[22], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_SMALL, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[23], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_SMALL, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
             break;
         case 7:
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[8], 0x180, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[9], 0x200, 0x400);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[10], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[11], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[17], 0x180, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[18], 0x180, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[19], 0x180, 0x440);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[20], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[8], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[9], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_RED);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[10], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[11], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[17], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[18], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[19], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_MEDIUM, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_YELLOW);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[20], SHELTER_B6_GROWTH_ROOM_GLOW_RADIUS_LARGE, SHELTER_B6_GROWTH_ROOM_GLOW_COLOR_CYAN);
             break;
     }
 }

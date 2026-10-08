@@ -37,7 +37,12 @@ extern WorldCoordRoomAmbientEntry D_shelter_b6_growth_room_80180730[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b6_growth_room_801807A8[];
 
-void func_shelter_b6_growth_room_8017D7D4(Task* task);
+/// Runs growth-room entry setup, message service and teardown.
+///
+/// Requires the room and its actor_450900 scene resources to remain loaded.
+/// State 0 installs room messages and starts the entry scene, state 1 waits
+/// for messages, and state 2 tears down the task. No other state is valid.
+void shelterB6GrowthRoomTask(Task* task);
 
 /// Restores the growth room's reserved collision box with an optional Y displacement.
 ///
@@ -49,7 +54,17 @@ void func_shelter_b6_growth_room_8017D7D4(Task* task);
 /// the room's collision grid remains active; no resource is allocated or freed.
 void shelterB6GrowthRoomResetCollisionBox(s32 useYOffset);
 
-void func_shelter_b6_growth_room_8017D9D8(Task* task);
+/// Draws the growth room's glows and emits its mist and drifting puffs.
+///
+/// Gameplay spawns bank-6 slot 0x15D with a coordinate body, state 0 and
+/// spawnArg1 zero. That word grows to 304 every eighth animation frame while
+/// room effects run; it sets the bottom-glow height in pixels and mist's
+/// vertical spread in coordinate units. State becomes the mist-source count,
+/// 1..6, and stays at six once reached. Requires the room overlay, loaded
+/// particle textures, current view matrices, initialized scratch stack and
+/// frame packet arena/OT.
+/// Continues drawing and emitting particles when the ramp is paused.
+void shelterB6GrowthRoomAmbientEffectsTask(Task* task);
 
 /// Animates a ten-cell, fading mist sprite with random horizontal drift.
 ///

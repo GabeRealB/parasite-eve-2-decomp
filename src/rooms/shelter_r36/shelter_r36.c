@@ -51,10 +51,10 @@ extern TaskMessageEntry D_shelter_r36_8017E97C[];
 /// The room's two event tasks, one per arrival warp.
 extern TaskDesc D_shelter_r36_8017DF14[];
 
-s32 func_shelter_r36_8017D8C8(Task*, s32, s32, s32);
-s32 func_shelter_r36_8017D8D0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_r36_8017D914(Task*, s32, s32, s32);
-s32 func_shelter_r36_8017D91C(Task*, s32, s32, s32);
+static s32 _shelterR36RejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
+static s32 _shelterR36ResolveRoomVariant(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* destination);
+static s32 _shelterR36IgnoreCommand(Task* task, s32 messageId, s32 command, s32 unused);
+static s32 _shelterR36IgnoreRoomAction(Task* task, s32 messageId, DirectionActionRequest* action, s32 unused);
 
 extern AnimationPlayRequest D_shelter_r36_8017DC10;
 extern AnimationPlayRequest D_shelter_r36_8017DC54;
@@ -75,7 +75,7 @@ extern ActorCommand         D_shelter_r36_8017DC28;
 void                        func_shelter_r36_8017D5E8(Task*);
 void                        func_shelter_r36_8017D738(void);
 void                        func_shelter_r36_8017D7B4(Task*);
-void                        func_shelter_r36_8017D870(s32);
+static void                 _shelterR36SelectCapFile(s32 capFileId);
 
 AnimationPlayRequest D_shelter_r36_8017DC10 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -242,7 +242,7 @@ EvsCommand D_shelter_r36_8017E664[25] = {
     { EVENT_SCRIPT_OPCODE_REQUEST_SCENE_MUSIC, { .value = 30 }, { .value = 1 }, { .value = 1 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_r36_8017D870 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterR36SelectCapFile }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -253,7 +253,7 @@ EvsCommand D_shelter_r36_8017E664[25] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_r36_8017D870 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterR36SelectCapFile }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -278,10 +278,10 @@ EvsCommand D_shelter_r36_8017E8BC[8] = {
 };
 
 TaskMessageEntry D_shelter_r36_8017E97C[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_r36_8017D8D0 },
-    { 5105, func_shelter_r36_8017D8C8 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_r36_8017D91C },
-    { ROOM_MESSAGE_COMMAND, func_shelter_r36_8017D914 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterR36ResolveRoomVariant },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelterR36RejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterR36IgnoreRoomAction },
+    { ROOM_MESSAGE_COMMAND, _shelterR36IgnoreCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -599,7 +599,7 @@ WorldCollisionSurfaceProperties* D_shelter_r36_8017FAE4[8] = {
 };
 
 static void func_shelter_r36_8017D924(Task* task);
-static void func_shelter_r36_8017D9CC(Task* task);
+static void _shelterR36MessageIdle(Task* task);
 
 /// Entry 0 of `D_shelter_r36_8017DF14`, spawned on arrival by warp 1. If
 /// event nibble 0x113 is clear it starts CAP slot 1; otherwise it loads CAP
@@ -685,49 +685,62 @@ void func_shelter_r36_8017D7B4(Task* task)
     }
 }
 
-/// Loads CAP file `arg0` (non-zero), with `capSetTexturePage` given 0x280 for file
-/// 1 and 0x2C0 otherwise; 0 resets the CAP state instead. Reached from the
-/// room's event data.
-void func_shelter_r36_8017D870(s32 arg0)
+/// Selects a loaded CAP file and its texture origin for the room's event script.
+///
+/// Zero resets CAP playback. File 1 uses VRAM X 640; other nonzero loaded
+/// file IDs use X 704. Both use Y 256. The event script selects files 1 and 2.
+/// Selected CAP data must be loaded and writable for relocation; it and the
+/// corresponding text textures must remain live through playback.
+static void _shelterR36SelectCapFile(s32 capFileId)
 {
-    s16 var_a0;
+    enum {
+        SHELTER_R36_CAP_RESET           = 0,
+        SHELTER_R36_CAP_FIRST_FILE      = 1,
+        SHELTER_R36_CAP_FIRST_TEXTURE_X = 640,
+        SHELTER_R36_CAP_OTHER_TEXTURE_X = 704,
+        SHELTER_R36_CAP_TEXTURE_Y       = 256
+    };
+    s16 textureX;
 
-    if (arg0 != 0) {
+    if (capFileId != SHELTER_R36_CAP_RESET) {
         Gp_CapFile = 0;
-        capSelectLoadedFile(arg0);
-        var_a0 = 0x2C0;
-        if (arg0 == 1) {
-            var_a0 = 0x280;
+        capSelectLoadedFile(capFileId);
+        textureX = SHELTER_R36_CAP_OTHER_TEXTURE_X;
+        if (capFileId == SHELTER_R36_CAP_FIRST_FILE) {
+            textureX = SHELTER_R36_CAP_FIRST_TEXTURE_X;
         }
-        capSetTexturePage(var_a0, 0x100);
+        capSetTexturePage(textureX, SHELTER_R36_CAP_TEXTURE_Y);
         return;
     }
     capReset();
 }
 
-/// Message-table handler for message 0x13F1. Does nothing.
-s32 func_shelter_r36_8017D8C8(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses key-item use in this room without consuming the item.
+static s32 _shelterR36RejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// Message-table handler for message 0x13EE: copies the incoming record onto
-/// the outgoing one and passes both to `mapShelterRoomVariantResolve`. Always returns 1.
-s32 func_shelter_r36_8017D8D0(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves a room-transition destination from the shelter's saved progress.
+///
+/// Borrows an eight-byte request and writable destination for this dispatch;
+/// they may alias. Copies the complete request before resolving its variant,
+/// returns 1 and retains neither record.
+static s32 _shelterR36ResolveRoomVariant(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* destination)
 {
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
+    *destination = *request;
+    mapShelterRoomVariantResolve(request, destination);
     return 1;
 }
 
-/// Message-table handler for message 0x13F0. Does nothing.
-s32 func_shelter_r36_8017D914(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room commands from CAP and returns zero.
+static s32 _shelterR36IgnoreCommand(Task* task, s32 messageId, s32 command, s32 unused)
 {
     return 0;
 }
 
-/// Message-table handler for message 0x13EF. Does nothing.
-s32 func_shelter_r36_8017D91C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores the borrowed room-action request and returns zero.
+static s32 _shelterR36IgnoreRoomAction(Task* task, s32 messageId, DirectionActionRequest* action, s32 unused)
 {
     return 0;
 }
@@ -748,15 +761,16 @@ static void func_shelter_r36_8017D924(Task* task)
     task->state++;
 }
 
-/// The room entry task's idle state.
-static void func_shelter_r36_8017D9CC(Task* task)
+/// Keeps the room task available for messages after entry setup.
+static void _shelterR36MessageIdle(Task* task)
 {
-    char pad[0x10];
+    // The original idle callback retains an otherwise unused 16-byte stack frame.
+    char unusedStackFrame[0x10];
 }
 
 /// The room entry task's three states: set the room up, idle, end.
 static const TaskFuncTable3 D_shelter_r36_8017D5C4 = {
-    { func_shelter_r36_8017D924, func_shelter_r36_8017D9CC, taskKill },
+    { func_shelter_r36_8017D924, _shelterR36MessageIdle, taskKill },
 };
 
 /// Runs the room entry task's current state from its three-entry table, which

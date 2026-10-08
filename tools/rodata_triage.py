@@ -11,7 +11,7 @@ remedy is a `rodata` cut, usually paired with `units`, in
 configs/USA/overlays.toml; see CLAUDE.md, "Compiler-generated jump tables".
 
 This costs real work when it is discovered late. In the first whole-overlay run
-func_shelter_b6_nursery_8017FBC0 reached 100.00% with all-zero penalties and
+_shelterB6NurseryAmbienceTask reached 100.00% with all-zero penalties and
 still could not land, because its table belongs to another unit. Triage first,
 and either take the functions that are free or plan the cut deliberately.
 

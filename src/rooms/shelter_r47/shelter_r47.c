@@ -1314,21 +1314,35 @@ void func_shelter_r47_8018138C(Task* task)
     }
 }
 
-/// Hotspot state of the room's first cap script: redraws the scene, then
-/// hit-tests the action cursor against the room's hotspot table. A miss
-/// leaves the idle cursor; a hit with the prompt confirmed
-/// (`buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED`) hands the raised entry's `id` / `promptKind` to the
-/// work block and advances to state 4. `guideStep` value 4 jumps to state 0xC,
-/// and with `guideStep` clear a dismissed prompt advances to state 6.
-void func_shelter_r47_80181568(Task* task)
+/// Latches a confirmed console hotspot and advances to its command prompt.
+static inline void _shelterR47ConsoleAcceptHotspot(Task* task, ShelterR47ConsoleWork* work, ActionPrompt* prompt, const ActionPromptHotspot* hotspot)
 {
+    enum { SHELTER_R47_CONSOLE_STATE_OPEN_COMMANDS = 4 };
+
+    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
+    work->selection     = hotspot->id;
+    work->promptKind    = hotspot->promptKind;
+    task->state         = SHELTER_R47_CONSOLE_STATE_OPEN_COMMANDS;
+}
+
+void shelterR47ConsoleSelectHotspotTask(Task* task)
+{
+    enum {
+        SHELTER_R47_CONSOLE_GUIDE_FREE           = 0,
+        SHELTER_R47_CONSOLE_GUIDE_DONE           = 4,
+        SHELTER_R47_CONSOLE_STATE_DISMISS        = 6,
+        SHELTER_R47_CONSOLE_STATE_BEGIN_FADE_OUT = 12,
+        SHELTER_R47_CONSOLE_CONFIRM_SLOT         = 0,
+        SHELTER_R47_CONSOLE_CANCEL_SLOT          = 1
+    };
     ShelterR47ConsoleWork* work;
-    ActionPromptHotspot*   hs;
+    ActionPromptHotspot*   hotspot;
     ActionPrompt*          prompt;
 
-    hs     = D_shelter_r47_80186FB4;
-    prompt = D_80114D28;
-    work   = task->work;
+    hotspot = D_shelter_r47_80186FB4;
+    prompt  = D_80114D28;
+    work    = task->work;
     shelterR47ConsoleUpdateAndDraw(task, SHELTER_R47_CONSOLE_LAYOUT_CURRENT);
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
@@ -1337,30 +1351,27 @@ void func_shelter_r47_80181568(Task* task)
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
         return;
     }
-    if (work->guideStep == 4) {
-        task->state = 0xC;
+    if (work->guideStep == SHELTER_R47_CONSOLE_GUIDE_DONE) {
+        task->state = SHELTER_R47_CONSOLE_STATE_BEGIN_FADE_OUT;
         return;
     }
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
-    if (shelterR47ConsoleHitTestHotspots(task, hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    // Overlapping hotspots can be hit together; confirmation takes the first.
+    if (shelterR47ConsoleHitTestHotspots(task, hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
-        if ((prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) && (hs->id != ACTION_PROMPT_HOTSPOT_END)) {
+        if ((prompt->buttons.slots[SHELTER_R47_CONSOLE_CONFIRM_SLOT].state == ACTION_PROMPT_BUTTON_PRESSED) && (hotspot->id != ACTION_PROMPT_HOTSPOT_END)) {
             do {
-                if (hs->hit != 0) {
-                    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
-                    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-                    work->selection     = hs->id;
-                    work->promptKind    = hs->promptKind;
-                    task->state         = 4;
+                if (hotspot->hit != 0) {
+                    _shelterR47ConsoleAcceptHotspot(task, work, prompt, hotspot);
                     return;
                 }
-                hs++;
-            } while (hs->id != ACTION_PROMPT_HOTSPOT_END);
+                hotspot++;
+            } while (hotspot->id != ACTION_PROMPT_HOTSPOT_END);
         }
     } else {
         prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
-    if (work->guideStep == 0 && prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
-        task->state = 6;
+    if (work->guideStep == SHELTER_R47_CONSOLE_GUIDE_FREE && prompt->buttons.slots[SHELTER_R47_CONSOLE_CANCEL_SLOT].state == ACTION_PROMPT_BUTTON_PRESSED) {
+        task->state = SHELTER_R47_CONSOLE_STATE_DISMISS;
     }
 }

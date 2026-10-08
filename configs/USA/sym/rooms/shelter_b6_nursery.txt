@@ -108,7 +108,7 @@ RoomFx_TrailOffsets = 0x801852F4; // size:0x10 defined:True
 
 shelterB6NurserySparkShowerShardTask = 0x80182730; // type:func
 
-func_shelter_b6_nursery_80182D14 = 0x80182D14; // type:func
+shelterB6NurserySetEffectCues = 0x80182D14; // type:func
 
 func_shelter_b6_nursery_801800A0 = 0x801800A0; // type:func
 
@@ -156,3 +156,4 @@ _shelterB6NurseryMessageIdle = 0x8017ff8c; // type:func
 shelterB6NurserySetView13SpriteHidden = 0x80180038; // type:func
 _shelterB6NurseryDrawParticleFrame = 0x80181edc; // type:func
 _shelterB6NurseryDrawSparkShowerShard = 0x801829e4; // type:func
+_shelterB6NurseryAmbienceTask = 0x8017fbc0; // type:func

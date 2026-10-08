@@ -206,7 +206,7 @@ D_shelter_b6_nursery_801872AC = 0x801872AC; // absolute:True owner=shelter_b6_nu
 D_shelter_b6_nursery_8018750C = 0x8018750C; // absolute:True owner=shelter_b6_nursery
 D_shelter_b6_nursery_8018789C = 0x8018789C; // absolute:True owner=shelter_b6_nursery
 D_shelter_b6_nursery_80187958 = 0x80187958; // absolute:True owner=shelter_b6_nursery
-func_shelter_b6_growth_room_8017D7D4 = 0x8017D7D4; // type:func absolute:True owner=shelter_b6_growth_room shared=rooms
+shelterB6GrowthRoomTask = 0x8017D7D4; // type:func absolute:True owner=shelter_b6_growth_room shared=rooms
 D_shelter_b6_growth_room_8017F378 = 0x8017F378; // absolute:True owner=shelter_b6_growth_room shared=rooms
 D_shelter_b6_growth_room_8017F37C = 0x8017F37C; // absolute:True owner=shelter_b6_growth_room
 D_shelter_b6_growth_room_8017F380 = 0x8017F380; // absolute:True owner=shelter_b6_growth_room shared=rooms

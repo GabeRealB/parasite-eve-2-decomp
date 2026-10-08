@@ -260,3 +260,6 @@ _shelterR47ConsoleWaitButtonFlashTask = 0x80183170; // type:func
 _shelterR47ConsoleBeginFadeOutTask = 0x801831c8; // type:func
 shelterR47ResetTerminalFirstUseEvents = 0x80183210; // type:func
 shelterR47ConsolePromptTask = 0x80183234; // type:func
+shelterR47ConsoleSelectHotspotTask = 0x80181568; // type:func
+_shelterR47MapTerminalRestoreRoomTask = 0x80185510; // type:func
+_shelterR47MapTerminalPromptTask = 0x8018580c; // type:func

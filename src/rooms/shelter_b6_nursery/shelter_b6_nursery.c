@@ -207,7 +207,7 @@ static void _shelterB6NurseryMessageIdle(Task* task);
 static void _shelterB6NurseryDrawParticleFrame(const GfxCoord* coord, u16 animationFrame, s16 halfDiagonal, s16 rotation);
 static void _shelterB6NurseryDrawSparkShowerShard(const GfxCoord* coord, s16 radius, s16 shade);
 
-void func_shelter_b6_nursery_8017FBC0(Task*);
+static void _shelterB6NurseryAmbienceTask(Task* task);
 
 #include "../../shared/telephone_data.inc.c"
 
@@ -217,7 +217,7 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-TaskDesc D_shelter_b6_nursery_80185000 = { { { TASK_BODY_NONE, 32 } }, func_shelter_b6_nursery_8017FBC0, { .value = 0 } };
+TaskDesc D_shelter_b6_nursery_80185000 = { { { TASK_BODY_NONE, 32 } }, _shelterB6NurseryAmbienceTask, { .value = 0 } };
 
 s32 func_shelter_b6_nursery_8017FA54(Task*, s32, s32, s32);
 /// Room message carrying an inventory key-item ID in its first argument word.
@@ -917,7 +917,7 @@ s32 func_shelter_b6_nursery_8017FA54(Task* task, s32 msgId, s32 arg2, s32 arg3)
             taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 0x19,
                                &D_shelter_b6_nursery_80187980.rec);
             actor450800PrepareNurseryKyleMadigan();
-            func_shelter_b6_nursery_80182D14(0, 0);
+            shelterB6NurserySetEffectCues(0, 0);
             return 0;
         }
         if (gameFlagGetNibble(GAME_FLAG_NURSERY_SCENE_SEEN) == 0) {
@@ -935,47 +935,73 @@ s32 func_shelter_b6_nursery_8017FA54(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return 0;
 }
 
-void func_shelter_b6_nursery_8017FBC0(Task* arg0)
+/// Refreshes the nursery's fixed sound origin through the current view.
+///
+/// Sets room coordinates (6000, 0, -830), borrows the live view parent and
+/// composes its local-to-view matrix for the spatial pan and depth queries.
+static inline void _shelterB6NurseryComposeAmbienceOrigin(void)
 {
+    D_shelter_b6_nursery_801879A0.coord.t[0]   = 6000;
+    D_shelter_b6_nursery_801879A0.coord.t[1]   = 0;
+    D_shelter_b6_nursery_801879A0.coord.t[2]   = -830;
+    D_shelter_b6_nursery_801879A0.parent       = &gGfxViewCoord;
+    D_shelter_b6_nursery_801879A0.composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(&D_shelter_b6_nursery_801879A0);
+}
+
+/// Plays positional nursery ambience and retunes it after a view change.
+///
+/// Starts once, then waits for saved and active view IDs to diverge. Three
+/// settling states precede the mix update for the active nursery view (1..19).
+/// A depth override of -1 keeps the computed attenuation; pan/depth transport
+/// keeps their signed low bytes. The room's ambience latch requests stopping
+/// in the wait state; the task owns that sound's stop and its own teardown.
+static void _shelterB6NurseryAmbienceTask(Task* task)
+{
+    enum {
+        SHELTER_B6_NURSERY_AMBIENCE_START          = 0,
+        SHELTER_B6_NURSERY_AMBIENCE_WAIT_VIEW      = 1,
+        SHELTER_B6_NURSERY_AMBIENCE_SETTLE_1       = 2,
+        SHELTER_B6_NURSERY_AMBIENCE_SETTLE_2       = 3,
+        SHELTER_B6_NURSERY_AMBIENCE_SETTLE_3       = 4,
+        SHELTER_B6_NURSERY_AMBIENCE_RETUNE         = 5,
+        SHELTER_B6_NURSERY_AMBIENCE_COMPUTED_DEPTH = -1
+    };
     s32 pan;
     s32 depth;
     s32 viewDepth;
 
-    D_shelter_b6_nursery_801879A0.coord.t[0]   = 0x1770;
-    D_shelter_b6_nursery_801879A0.coord.t[1]   = 0;
-    D_shelter_b6_nursery_801879A0.coord.t[2]   = -0x33E;
-    D_shelter_b6_nursery_801879A0.parent       = &gGfxViewCoord;
-    D_shelter_b6_nursery_801879A0.composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(&D_shelter_b6_nursery_801879A0);
+    // Compose the fixed room-space source through the current camera every frame.
+    _shelterB6NurseryComposeAmbienceOrigin();
     pan   = worldCoordGetOriginAudioPan(&D_shelter_b6_nursery_801879A0);
     depth = worldCoordGetOriginAudioDepth(&D_shelter_b6_nursery_801879A0);
-    switch (arg0->state) {
-        case 0:
+    switch (task->state) {
+        case SHELTER_B6_NURSERY_AMBIENCE_START:
             sndEvtRequestScriptStart(SOUND_SHELTER_B6_NURSERY_AMBIENCE, (s8)pan, (s8)depth);
-            arg0->state++;
+            task->state++;
             break;
-        case 1:
+        case SHELTER_B6_NURSERY_AMBIENCE_WAIT_VIEW:
             if (D_shelter_b6_nursery_8018797C == 0) {
                 sndEvtRequestScriptStop(SOUND_SHELTER_B6_NURSERY_AMBIENCE, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-                taskKill(arg0);
+                taskKill(task);
                 return;
             }
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != gGameSession->location.loc.view) {
-                arg0->state++;
+                task->state++;
             }
             break;
-        case 2:
-        case 3:
-        case 4:
-            arg0->state++;
+        case SHELTER_B6_NURSERY_AMBIENCE_SETTLE_1:
+        case SHELTER_B6_NURSERY_AMBIENCE_SETTLE_2:
+        case SHELTER_B6_NURSERY_AMBIENCE_SETTLE_3:
+            task->state++;
             break;
-        case 5:
+        case SHELTER_B6_NURSERY_AMBIENCE_RETUNE:
             viewDepth = D_shelter_b6_nursery_80185034[gGameSession->location.loc.view];
-            if (viewDepth != -1) {
+            if (viewDepth != SHELTER_B6_NURSERY_AMBIENCE_COMPUTED_DEPTH) {
                 depth = viewDepth;
             }
             sndEvtRequestScriptMix(SOUND_SHELTER_B6_NURSERY_AMBIENCE, (s8)pan, (s8)depth);
-            arg0->state = 1;
+            task->state = SHELTER_B6_NURSERY_AMBIENCE_WAIT_VIEW;
             break;
     }
 }
@@ -1703,10 +1729,10 @@ static void _shelterB6NurseryDrawSparkShowerShard(const GfxCoord* coord, s16 rad
     SCRATCH_STACK_RELEASE_BLOCK(_ShelterB6NurseryTriScratch);
 }
 
-void func_shelter_b6_nursery_80182D14(s32 arg0, s32 arg1)
+void shelterB6NurserySetEffectCues(s32 fastGlintPulse, s32 sparkShowerScale)
 {
-    D_shelter_b6_nursery_801879F0.fastGlintPulse   = arg0;
-    D_shelter_b6_nursery_801879F0.sparkShowerScale = arg1;
+    D_shelter_b6_nursery_801879F0.fastGlintPulse   = fastGlintPulse;
+    D_shelter_b6_nursery_801879F0.sparkShowerScale = sparkShowerScale;
 }
 
 #include "../../shared/room_visual_effects.inc.c"

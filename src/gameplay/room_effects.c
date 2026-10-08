@@ -884,7 +884,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, neoArkAltarEffectNoopTask, { NULL } },                                              // 0x15A
     { { { TASK_BODY_COORD, 0x70 } }, neoArkShrineFlareTask, { NULL } },                                                  // 0x15B
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_nursery_801800A0, { NULL } },                                       // 0x15C
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_growth_room_8017D9D8, { NULL } },                                   // 0x15D
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB6GrowthRoomAmbientEffectsTask, { NULL } },                                  // 0x15D
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6CorridorDrawViewGlowsTask, { NULL } },                                     // 0x15E
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6TrainingRoomGlowTask, { NULL } },                                          // 0x15F
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_bridge_8017E954, { NULL } },                                           // 0x160
