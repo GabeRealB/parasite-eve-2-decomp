@@ -853,7 +853,7 @@ static void func_actor_205200_8014C67C(Task* arg0)
             break;
     }
     if (work->room == ACTOR_205200_ROOM_CORRIDOR) {
-        func_shelter_b6_corridor_8017EBA4(arg0);
+        shelterB6CorridorDrawBodyGlow(arg0);
     } else {
         shelterB6TrainingRoomDrawBodyGlow(arg0);
     }

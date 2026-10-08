@@ -525,8 +525,6 @@ RoomEventReqStorage gRoomEventReq;
 
 RoomLatchedEvent gRoomEventLatched;
 
-static __inline__ s32 _accessTunnelStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
-
 #include "../../shared/room_event_gate.inc.c"
 
 #include "../../shared/room_event_task.inc.c"
@@ -535,26 +533,38 @@ static __inline__ s32 _accessTunnelStartEvent(RoomEventMsg* dst, RoomLatchedEven
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
-/// Starts `event` for the outgoing message `dst` unless its flag says it has
-/// already happened (answering 1). Otherwise answers 2, and - unless
-/// `dst->queryOnly` asks for a dry run - latches the message and the event,
-/// sets the flag and spawns the room's event task.
-static __inline__ s32 _accessTunnelStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
+/// Tests and, in execute mode, latches a room-transition event.
+///
+/// Returns 1 when the nonzero event flag is already set, otherwise 2, including
+/// queries. Every call clears the latest-start marker. Only `ROOM_EVENT_EXECUTE`
+/// copies the complete eight-byte transition and twelve-byte event, sets a
+/// nonzero flag to 1 and spawns the staged controller. Flag 0 stays eligible.
+/// Both inputs are borrowed during this call; their copies and CAP/sound
+/// resources must remain in the loaded room until the controller finishes.
+static __inline__ s32 _shelterB1AccessTunnelStartEvent(const RoomEventMsg* transition, const RoomLatchedEvent* event)
 {
-    D_shelter_b1_access_tunnel_8017FF6C[0] = 0;
+    enum {
+        ROOM_EVENT_NOT_STARTED  = 0,
+        ROOM_EVENT_STARTED      = 1,
+        ROOM_EVENT_FLAG_SEEN    = 1,
+        ROOM_EVENT_ALREADY_SEEN = 1,
+        ROOM_EVENT_ELIGIBLE     = 2
+    };
+
+    D_shelter_b1_access_tunnel_8017FF6C[0] = ROOM_EVENT_NOT_STARTED;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
-        if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventStagedMsg = *dst;
+        if (transition->queryOnly == ROOM_EVENT_EXECUTE) {
+            gRoomEventStagedMsg = *transition;
             gRoomEventLatched   = *event;
             if (event->flagId != 0) {
-                gameFlagSetNibble(event->flagId, 1);
+                gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_SEEN);
             }
             taskSpawnFromTable(&D_shelter_b1_access_tunnel_8017E710, 0, 0, 0);
-            D_shelter_b1_access_tunnel_8017FF6C[0] = 1;
+            D_shelter_b1_access_tunnel_8017FF6C[0] = ROOM_EVENT_STARTED;
         }
-        return 2;
+        return ROOM_EVENT_ELIGIBLE;
     }
-    return 1;
+    return ROOM_EVENT_ALREADY_SEEN;
 }
 
 /// Message handler: copies the incoming message to `out` and forwards both to
@@ -599,7 +609,7 @@ s32 func_shelter_b1_access_tunnel_8017DA68(Task* arg0, s32 arg1, RoomEventMsg* i
         event.stageSnd = 0x54130005;
         event.flagId   = GAME_FLAG_B1_ACCESS_TUNNEL_TO_PARKING_SCENE;
         event.fade     = 0;
-        return _accessTunnelStartEvent(out, &event);
+        return _shelterB1AccessTunnelStartEvent(out, &event);
     }
     return 1;
 }

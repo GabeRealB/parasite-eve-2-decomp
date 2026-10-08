@@ -128,7 +128,7 @@ static void _shelterR47MapTerminalDrawPageOverlay(Task* task);
 /// `func_shelter_r47_80182B18`.
 static const TaskFuncTable14 D_shelter_r47_8017D6C8 = {
     {
-        func_shelter_r47_8018138C,
+        shelterR47ConsoleInitializeTask,
         _shelterR47ConsoleResetPromptTask,
         func_shelter_r47_80182CA4,
         shelterR47ConsoleSelectHotspotTask,
@@ -268,21 +268,6 @@ static inline void _shelterR47InitDrawModeSprite(SpriteDrawModePacket* packet, u
     packet->drawMode.code[0] = drawModeCommand;
     setcode(&packet->sprite.sprt, SHELTER_R47_SPRITE_COMMAND);
     MargePrim(packet, &packet->sprite.sprt);
-}
-
-/// Sets the console's circular wipe to a uniform clear-to-black level.
-///
-/// Requires live `ShelterR47ConsoleWork` and `level` in 0..255 (clear to black).
-/// Reloads the task's work and stores all four signed-halfword components;
-/// it does not step or draw the wipe, or change the task state.
-static inline void _shelterR47ConsoleSetWipe(Task* task, s16 level)
-{
-    ShelterR47ConsoleWork* wipeWork = task->work;
-
-    wipeWork->wipeRed   = level;
-    wipeWork->wipeGreen = level;
-    wipeWork->wipeBlue  = level;
-    wipeWork->wipeGrey  = level;
 }
 
 /// Publishes a console status and queues its corresponding message sprite.

@@ -491,7 +491,7 @@ void shelterB6TrainingRoomRoomTask(Task* task)
     states.funcs[task->state](task);
 }
 
-void func_shelter_b6_training_room_8017D940(void)
+void shelterB6TrainingRoomStartPlayerHeadAim(void)
 {
     D_shelter_b6_training_room_80185C5C = taskSpawnFromTable(&D_shelter_b6_training_room_801839A8, 0, 0, 0);
 }

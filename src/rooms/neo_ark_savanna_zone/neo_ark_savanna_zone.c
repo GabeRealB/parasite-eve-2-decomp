@@ -415,40 +415,49 @@ s8 D_neo_ark_savanna_zone_80180998 = 0;
 
 RoomLatchedEvent gRoomEventLatched = { 0 };
 
-static __inline__ s32 NeoArkSavannaZone_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
-static void           _neoArkSavannaZoneInitializeRoom(Task* task);
-static void           _neoArkSavannaZoneSetupIdleState(Task* task);
+static void _neoArkSavannaZoneInitializeRoom(Task* task);
+static void _neoArkSavannaZoneSetupIdleState(Task* task);
 
 #include "../../shared/room_event_staged_task.inc.c"
 
-/// Latches the room's pending event and starts the controller that runs it:
-/// clears the "event running" flag, and once the event's flag nibble is clear
-/// (or the event carries no flag) and `dst->queryOnly` does not ask for the side
-/// effects to be suppressed, commits `dst` and the event and spawns the
-/// controller task. Answers 2 for a started event, 1 when `queryOnly` held it
-/// back.
-static __inline__ s32 NeoArkSavannaZone_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
+/// Tests and, in execute mode, latches a room-transition event.
+///
+/// Returns 1 when the nonzero event flag is already set, otherwise 2, including
+/// queries. Every call clears the latest-start marker. Only `ROOM_EVENT_EXECUTE`
+/// copies the complete eight-byte transition and twelve-byte event, sets a
+/// nonzero flag to 1 and spawns the staged controller. Flag 0 stays eligible.
+/// Both inputs are borrowed during this call; their copies and CAP/sound
+/// resources must remain in the loaded room until the controller finishes.
+static __inline__ s32 _neoArkSavannaZoneStartEvent(const RoomEventMsg* transition, const RoomLatchedEvent* event)
 {
-    D_neo_ark_savanna_zone_80180998 = 0;
+    enum {
+        ROOM_EVENT_NOT_STARTED  = 0,
+        ROOM_EVENT_STARTED      = 1,
+        ROOM_EVENT_FLAG_SEEN    = 1,
+        ROOM_EVENT_ALREADY_SEEN = 1,
+        ROOM_EVENT_ELIGIBLE     = 2
+    };
+
+    D_neo_ark_savanna_zone_80180998 = ROOM_EVENT_NOT_STARTED;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
-        if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventStagedMsg = *dst;
+        if (transition->queryOnly == ROOM_EVENT_EXECUTE) {
+            gRoomEventStagedMsg = *transition;
             gRoomEventLatched   = *event;
             if (event->flagId != 0) {
-                gameFlagSetNibble(event->flagId, 1);
+                gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_SEEN);
             }
             taskSpawnFromTable(&D_neo_ark_savanna_zone_8017F9A0, 0, 0, 0);
-            D_neo_ark_savanna_zone_80180998 = 1;
+            D_neo_ark_savanna_zone_80180998 = ROOM_EVENT_STARTED;
         }
-        return 2;
+        return ROOM_EVENT_ELIGIBLE;
     }
-    return 1;
+    return ROOM_EVENT_ALREADY_SEEN;
 }
 
 /// Room handler for the save-location message: copies the incoming record onto
 /// the outgoing one and forwards both to `mapNeoArkResolveRoomVariant`. Messages 0x13 and
 /// 0x15 build the room's event record - cap command 3 / 2, the stage sound and
-/// flag 0x15E / 0x15F - and hand it to `NeoArkSavannaZone_StartEvent`; every
+/// flag 0x15E / 0x15F - and hand it to `_neoArkSavannaZoneStartEvent`; every
 /// other message is not consumed and answers 1.
 s32 func_neo_ark_savanna_zone_8017D77C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
@@ -470,7 +479,7 @@ start_event:
     event.capCmd = cmd;
     event.flagId = flag;
     event.fade   = 0;
-    return NeoArkSavannaZone_StartEvent(out, &event);
+    return _neoArkSavannaZoneStartEvent(out, &event);
 message15:
     if (in->areaId == GAME_AREA_NEO_ARK_SHRINE) {
         snd            = 0x55120001;

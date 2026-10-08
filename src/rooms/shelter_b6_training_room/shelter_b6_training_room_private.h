@@ -63,7 +63,14 @@ s32 shelterB6TrainingRoomIgnoreRoomAction(Task* unusedTask, s32 unusedMessageId,
 /// storage remain borrowed from the loaded room overlay.
 s32 shelterB6TrainingRoomStartDefeatScene(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
-void func_shelter_b6_training_room_8017D940(void);
+/// Starts and tracks the player head-aim controller for the defeat scene.
+///
+/// The script calls this once before fading head aim in. Publishes the spawned
+/// priority-96, zero-body task handle; allocation failure publishes NULL.
+/// Repeated calls replace the handle without releasing its previous task.
+/// The player, target actor and room resources must stay live through head aim;
+/// `shelterB6TrainingRoomControlPlayerHeadAim` fades or releases the controller.
+void shelterB6TrainingRoomStartPlayerHeadAim(void);
 
 /// Script commands for fading player head aim or releasing its controller task.
 enum {

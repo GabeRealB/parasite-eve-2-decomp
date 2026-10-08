@@ -44,7 +44,16 @@ extern WorldCollisionSurfaceProperties* D_shelter_b6_corridor_80180548[];
 /// The room overlay, session and loaded image workspace must remain available.
 void shelterB6CorridorRoomTask(Task* task);
 
-void func_shelter_b6_corridor_8017EBA4(Task* task);
+/// Draws Eve's two yellow body glows and occasionally spawns a joint flash.
+///
+/// Called by the live corridor body tick. Requires its 19-coordinate TMD with
+/// coordinate 1 and joints 3..18 available and already composed, current view
+/// transforms and a ready frame arena/ordering table. Runs only while room
+/// effects are running. Disc radius numerators 512/1024 scale by 64/(SZ3/4+1);
+/// alternating frames use RGB (64,64,32) and (80,80,40). One LCG draw tests a
+/// one-in-four flash; a second selects joint 3..18, size 128 and palette 1.
+/// The task and coordinates are borrowed; GPU packets live until drawing ends.
+void shelterB6CorridorDrawBodyGlow(Task* task);
 
 /// Scenery states accepted by `shelterB6CorridorSetPartDestroyedSprites`.
 enum {

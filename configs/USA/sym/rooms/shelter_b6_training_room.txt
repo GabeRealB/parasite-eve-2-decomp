@@ -152,3 +152,4 @@ _shelterB6TrainingRoomInitializeRoom = 0x8017d7d4; // type:func
 shelterB6TrainingRoomRoomTask = 0x8017d8e8; // type:func
 shelterB6TrainingRoomPrepareDefeatScene = 0x8017daf8; // type:func
 shelterB6TrainingRoomStopBattlePresentation = 0x8017db70; // type:func
+shelterB6TrainingRoomStartPlayerHeadAim = 0x8017d940; // type:func

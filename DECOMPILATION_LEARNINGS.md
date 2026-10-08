@@ -47173,7 +47173,7 @@ The `TaskFuncTable` recipe ("A room overlay is several task families, each with
 its own `Task::work` block") settles the *dispatched* states, but a room's
 `.text` is mostly helpers that appear in no state table at all, and two families
 in one room routinely use the same low offsets. `shelter_r47` has two:
-`D_shelter_r47_8017D6C8` (state 0 `func_shelter_r47_8018138C`, `memCalloc(0x54)`)
+`D_shelter_r47_8017D6C8` (state 0 `shelterR47ConsoleInitializeTask`, `memCalloc(0x54)`)
 and `D_shelter_r47_8017D7DC` (state 0 `func_shelter_r47_8018431C`,
 `memCalloc(0x30)`). Both read `work` fields `0x18` and `0x1C` as `s16`, so the
 access pattern alone cannot tell them apart, and picking the wrong struct still
@@ -119060,8 +119060,8 @@ pointer variable, `8(s1)` accesses mean it did") has a third route besides a
 pointer local the source writes: the address passed to a `static __inline__`
 helper, whose by-pointer parameter becomes a pseudo holding the frame address.
 `mine_mesa`'s 0x13EE warp handler is the `shelter_1f_bulwark` shape, and that
-matched sibling says which route it was - its `Bulwark_StartEvent` takes
-`BulwarkEvent*` and its target builds the event address once
+matched sibling says which route it was - its `_shelter1fBulwarkStartEvent` takes
+`const RoomLatchedEvent*` and its target builds the event address once
 (`addiu s0,sp,0x10`) and reads the fields off it (`lh a0,8(s0)`, `lh v0,8(s0)`
 after the `gameFlagGetNibble` call, where the address is *not* recomputed).
 
@@ -122621,7 +122621,7 @@ arms:
     snd = 0x55120003; cmd = 3; event.field_4 = snd; flag = 0x15E;
 start_event:
     tail;
-    return NeoArkSavannaZone_StartEvent(out, &event);
+    return _neoArkSavannaZoneStartEvent(out, &event);
 message15:
     if (*(u16*)in == 0x15) { snd = 0x55120001; cmd = 2; event.field_4 = snd; flag = 0x15F; goto start_event; }
     return 1;
@@ -140493,7 +140493,7 @@ priority mechanism was not traced. When the target copies an argument into an
 to try. The last 1.3% was the order of two stores (`clut` before `x0`), which
 moved where the scheduler put a hoisted `li`.
 
-### A shared literal hoisted to the top with its stores sunk late: the source bracketed other stores with it (func_shelter_r47_8018138C, 2026-09-23)
+### A shared literal hoisted to the top with its stores sunk late: the source bracketed other stores with it (shelterR47ConsoleInitializeTask, 2026-09-23)
 
 A run of constant `sh`s into one work block opened with `li a0,-0x68` /
 `li v1,-0x98` and stored those registers only at the very end of the block,

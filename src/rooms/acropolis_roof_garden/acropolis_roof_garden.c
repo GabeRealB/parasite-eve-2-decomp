@@ -1405,17 +1405,21 @@ static void _acropolisRoofGardenReleaseMaggotCaterpillarEntrance(void)
     gSceneCombatState.maggotCaterpillarEntranceReady = ACROPOLIS_ROOF_GARDEN_ENTRANCE_RELEASED;
 }
 
-/// Spawns a red flare at a fixed offset in the emitter coordinate's space.
+/// Spawns a one-frame flare at (-4770, -220, -3865) in the emitter's local space.
 ///
-/// Borrows the emitter's writable work and coordinate through the spawn.
-/// Position is copied during spawning; the flare never reads its retained offset pointer.
-/// `options` uses the packed pulse/radius/shape format of the flare task.
-static inline void _acropolisRoofGardenEmitFlare(EffectWork* work, GfxCoord* coord, s32 options)
+/// Overwrites the emitter work's signed-halfword XYZ move vector. Spawning
+/// transforms XYZ into a new coordinate under the view root. Both emitter
+/// records are borrowed through that call; the flare never reads its retained
+/// offset or emitter pointers. A refused spawn still overwrites the move vector.
+/// `packedFlareOptions` bits 0..7 give pulse phase steps per animation frame,
+/// 8..15 the radius scale, bit 16 selects green instead of red, bit 28 adds
+/// streaks to a diamond, and bit 31 selects a disc instead of a diamond.
+static inline void _acropolisRoofGardenEmitFlare(EffectWork* emitterWork, GfxCoord* emitterCoord, s32 packedFlareOptions)
 {
-    work->move.vx = -4770;
-    work->move.vy = -220;
-    work->move.vz = -3865;
-    effectSpawn(EFFECT_ACROPOLIS_ROOF_GARDEN_FLARE, coord, options, &work->move);
+    emitterWork->move.vx = -4770;
+    emitterWork->move.vy = -220;
+    emitterWork->move.vz = -3865;
+    effectSpawn(EFFECT_ACROPOLIS_ROOF_GARDEN_FLARE, emitterCoord, packedFlareOptions, &emitterWork->move);
 }
 
 void acropolisRoofGardenAmbientEffectsTask(Task* task)

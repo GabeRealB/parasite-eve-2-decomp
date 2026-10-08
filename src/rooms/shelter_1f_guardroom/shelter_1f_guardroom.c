@@ -36,7 +36,7 @@ extern TaskDesc         D_shelter_1f_guardroom_8017DA60;
 extern TaskDesc         D_shelter_1f_guardroom_8017DA6C;
 extern Task*            D_shelter_1f_guardroom_8017E014;
 
-static void func_shelter_1f_guardroom_8017D824(Task* arg0);
+static void _shelter1fGuardroomInitializeRoom(Task* task);
 static void _shelter1fGuardroomRoomIdleState(Task* unusedTask);
 static void _shelter1fGuardroomSetUnlockOverlayVisible(u8 visible);
 static s32  _shelter1fGuardroomRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
@@ -48,7 +48,7 @@ enum { SHELTER_1F_GUARDROOM_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 /// The event task's three states: set-up, idle, and kill.
 static const TaskFuncTable3 D_shelter_1f_guardroom_8017D5C4 = {
     {
-        func_shelter_1f_guardroom_8017D824,
+        _shelter1fGuardroomInitializeRoom,
         _shelter1fGuardroomRoomIdleState,
         taskKill,
     },
@@ -60,23 +60,23 @@ extern WorldCollisionTrigger      D_shelter_1f_guardroom_8017DED4[3];
 extern WorldCoordRoomAmbientEntry D_shelter_1f_guardroom_8017DFB8[4];
 extern WorldCoordRoomLights       D_shelter_1f_guardroom_8017DE24[1];
 static s32                        _shelter1fGuardroomResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
-s32                               func_shelter_1f_guardroom_8017D788(Task*, s32, s32, s32);
+static s32                        _shelter1fGuardroomCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg);
 static s32                        _shelter1fGuardroomPlaySoundCueMessage(Task* task, s32 messageId, s32 cueId, s32 secondArg);
-void                              func_shelter_1f_guardroom_8017D5E8(Task*);
-void                              func_shelter_1f_guardroom_8017D8D8(Task*);
+static void                       _shelter1fGuardroomUnlockBulwarkTask(Task* task);
+static void                       _shelter1fGuardroomUnlockMovieTask(Task* task);
 
 TaskMessageEntry D_shelter_1f_guardroom_8017DA30[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelter1fGuardroomResolveRoomEvent },
     { SHELTER_1F_GUARDROOM_MESSAGE_USE_KEY_ITEM, _shelter1fGuardroomRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelter1fGuardroomIgnoreRoomAction },
-    { ROOM_MESSAGE_COMMAND, func_shelter_1f_guardroom_8017D788 },
+    { ROOM_MESSAGE_COMMAND, _shelter1fGuardroomCommandMessage },
     { ROOM_MESSAGE_SOUND, _shelter1fGuardroomPlaySoundCueMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_shelter_1f_guardroom_8017DA60 = { { { TASK_BODY_NONE, 32 } }, func_shelter_1f_guardroom_8017D5E8, { .value = 0 } };
+TaskDesc D_shelter_1f_guardroom_8017DA60 = { { { TASK_BODY_NONE, 32 } }, _shelter1fGuardroomUnlockBulwarkTask, { .value = 0 } };
 
-TaskDesc D_shelter_1f_guardroom_8017DA6C = { { { TASK_BODY_NONE, 192 } }, func_shelter_1f_guardroom_8017D8D8, { .value = 0 } };
+TaskDesc D_shelter_1f_guardroom_8017DA6C = { { { TASK_BODY_NONE, 192 } }, _shelter1fGuardroomUnlockMovieTask, { .value = 0 } };
 
 WorldCollisionRoomResources D_shelter_1f_guardroom_8017DA78[1] = {
     { D_shelter_1f_guardroom_8017DBF0, D_shelter_1f_guardroom_8017DE3C, D_shelter_1f_guardroom_8017DED4, NULL },
@@ -210,48 +210,66 @@ WorldCollisionSurfaceProperties* D_shelter_1f_guardroom_8017DFF4[8] = {
 
 Task* D_shelter_1f_guardroom_8017E014 = NULL;
 
-/// Cutscene task spawned from the 0x13F0 handler: runs cap command 2, waits for
-/// it, and when the cap event key reads 0xB hides the HUD and runs the task
-/// described at `D_shelter_1f_guardroom_8017DA6C` until it is killed. It then
-/// restores the HUD, calls `_shelter1fGuardroomSetUnlockOverlayVisible(1)`, sets game
-/// nibble 0xB2 to 1 and hands the weapon back. Any other key ends it at once.
-void func_shelter_1f_guardroom_8017D5E8(Task* task)
+/// Commits the completed movie's unlock and restores ordinary player presentation.
+static inline void _shelter1fGuardroomFinishBulwarkUnlock(Task* task)
 {
-    s32 poll;
+    gGameSession->hideHud = 0;
+    _shelter1fGuardroomSetUnlockOverlayVisible(1);
+    gameFlagSetNibble(GAME_FLAG_SHELTER_1F_BULWARK_UNLOCKED, 1);
+    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+    taskKill(task);
+}
+
+/// Runs the dialogue and confirmed movie sequence that unlocks the bulwark.
+///
+/// Starts at state 0 with scripted player control already held. CAP command 2
+/// must finish before its variant key is tested; key 11 starts the movie while
+/// other keys release control and exit. Movie teardown precedes restoring the
+/// HUD, showing the unlocked overlay and setting the unlock flag. Requires the
+/// guardroom resources, CAP slot 2 and session to remain live through completion.
+static void _shelter1fGuardroomUnlockBulwarkTask(Task* task)
+{
+    enum {
+        SHELTER_1F_GUARDROOM_UNLOCK_START_DIALOGUE = 0,
+        SHELTER_1F_GUARDROOM_UNLOCK_WAIT_DIALOGUE  = 1,
+        SHELTER_1F_GUARDROOM_UNLOCK_CHECK_CHOICE   = 2,
+        SHELTER_1F_GUARDROOM_UNLOCK_WAIT_MOVIE     = 3,
+        SHELTER_1F_GUARDROOM_UNLOCK_FINISH         = 4,
+        SHELTER_1F_GUARDROOM_UNLOCK_CAP_COMMAND    = 2,
+        SHELTER_1F_GUARDROOM_UNLOCK_CONFIRMED_KEY  = 0xB
+    };
+    s32 movieKillStatus;
 
     switch (task->state) {
-        case 0:
-            capRunCommandWithTransition(2);
+        case SHELTER_1F_GUARDROOM_UNLOCK_START_DIALOGUE:
+            capRunCommandWithTransition(SHELTER_1F_GUARDROOM_UNLOCK_CAP_COMMAND);
             task->state++;
             break;
-        case 1:
+        case SHELTER_1F_GUARDROOM_UNLOCK_WAIT_DIALOGUE:
             if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
-        case 2:
-            Gp_CapCmds[2].command->counter = 1;
-            if (capGetVariantKey() != 0xB) {
+        case SHELTER_1F_GUARDROOM_UNLOCK_CHECK_CHOICE:
+            Gp_CapCmds[SHELTER_1F_GUARDROOM_UNLOCK_CAP_COMMAND].command->counter = 1;
+            if (capGetVariantKey() != SHELTER_1F_GUARDROOM_UNLOCK_CONFIRMED_KEY) {
                 taskKill(task);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 break;
             }
+            // Keep the HUD hidden until the independent movie task has exited.
             gGameSession->hideHud           = 1;
             D_shelter_1f_guardroom_8017E014 = taskSpawnFromTable(&D_shelter_1f_guardroom_8017DA6C, 0, 0, 0);
             task->state++;
             break;
-        case 3:
-            if (taskPollKill(D_shelter_1f_guardroom_8017E014, &poll) == 0) {
+        case SHELTER_1F_GUARDROOM_UNLOCK_WAIT_MOVIE:
+            if (taskPollKill(D_shelter_1f_guardroom_8017E014, &movieKillStatus) == 0) {
                 break;
             }
             task->state++;
             break;
-        case 4:
-            gGameSession->hideHud = 0;
-            _shelter1fGuardroomSetUnlockOverlayVisible(1);
-            gameFlagSetNibble(GAME_FLAG_SHELTER_1F_BULWARK_UNLOCKED, 1);
-            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-            taskKill(task);
+        case SHELTER_1F_GUARDROOM_UNLOCK_FINISH:
+            _shelter1fGuardroomFinishBulwarkUnlock(task);
             break;
     }
 }
@@ -283,21 +301,29 @@ static s32 _shelter1fGuardroomResolveRoomEvent(Task* task, s32 messageId, RoomEv
     return SHELTER_1F_GUARDROOM_TRANSITION_ALLOWED;
 }
 
-/// The room's handler for message 0x13F0: when its third argument is 2 and game
-/// nibble 0xB2 is still clear, takes the weapon away and spawns the cutscene task
-/// `func_shelter_1f_guardroom_8017D5E8`; once the nibble is set it runs cap
-/// command 3 instead. Returns 0.
-s32 func_shelter_1f_guardroom_8017D788(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Handles the bulwark unlock command from the guardroom's room-message table.
+///
+/// `ROOM_MESSAGE_COMMAND` payload 2 holds player control and starts the unlock
+/// sequence while the flag is clear, or runs CAP command 3 once unlocked. Other
+/// payloads do nothing. Always returns zero; receiver, message ID and second
+/// payload are unused. The room and CAP resources must remain loaded.
+static s32 _shelter1fGuardroomCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg)
 {
-    if (arg2 == 2) {
+    enum {
+        SHELTER_1F_GUARDROOM_COMMAND_UNLOCK_BULWARK = 2,
+        SHELTER_1F_GUARDROOM_CAP_ALREADY_UNLOCKED   = 3,
+        SHELTER_1F_GUARDROOM_COMMAND_HANDLED        = 0
+    };
+
+    if (commandId == SHELTER_1F_GUARDROOM_COMMAND_UNLOCK_BULWARK) {
         if (gameFlagGetNibble(GAME_FLAG_SHELTER_1F_BULWARK_UNLOCKED) == 0) {
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             taskSpawnFromTable(&D_shelter_1f_guardroom_8017DA60, 0, 0, 0);
         } else {
-            capRunCommandWithTransition(3);
+            capRunCommandWithTransition(SHELTER_1F_GUARDROOM_CAP_ALREADY_UNLOCKED);
         }
     }
-    return 0;
+    return SHELTER_1F_GUARDROOM_COMMAND_HANDLED;
 }
 
 /// Ignores trigger action requests in the guardroom and returns zero.
@@ -324,15 +350,17 @@ static s32 _shelter1fGuardroomPlaySoundCueMessage(Task* task, s32 messageId, s32
     return 0;
 }
 
-/// State 0 of the room's event task: installs the room's message table,
-/// publishes the task in pointer slot 7, passes game nibble 0xB2 to
-/// `_shelter1fGuardroomSetUnlockOverlayVisible` and advances to state 1.
-static void func_shelter_1f_guardroom_8017D824(Task* arg0)
+/// Registers the room receiver and restores the unlocked-bulwark overlay.
+///
+/// State 0 installs the message table and publishes the borrowed task in the
+/// room slot. The unlock flag selects overlay visibility before state 1 begins.
+/// Requires the guardroom's loaded sprite tables and current session.
+static void _shelter1fGuardroomInitializeRoom(Task* task)
 {
-    arg0->msgTable = D_shelter_1f_guardroom_8017DA30;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
+    task->msgTable = D_shelter_1f_guardroom_8017DA30;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     _shelter1fGuardroomSetUnlockOverlayVisible(gameFlagGetNibble(GAME_FLAG_SHELTER_1F_BULWARK_UNLOCKED));
-    arg0->state = (s32)(arg0->state + 1);
+    task->state++;
 }
 
 /// Keeps the initialized room event task available for messages in state 1.
@@ -351,32 +379,44 @@ void shelter1fGuardroomRoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-/// Task the cutscene task spawns: calls `_shelter1fGuardroomSetUnlockOverlayVisible(0)`,
-/// raises the CD queue's `field_1EA`, enqueues CD command 0x61 for the stream
-/// slot of the session's current location, waits for the queue's `field_1FA`,
-/// then for the CD to go idle, and requests its own kill.
-void func_shelter_1f_guardroom_8017D8D8(Task* arg0)
+/// Plays the current room's bulwark-unlock movie with its overlay hidden.
+///
+/// State 0 selects movie sub-ID 0 and one-based frame 1. State 1 waits for
+/// `movieReady` (started or skipped); state 2 waits for the CD queue to become
+/// idle before requesting teardown. The surrounding unlock task restores the
+/// overlay and HUD after this task exits. Requires a loaded guardroom movie.
+/// The queue copies the four-byte stack arguments synchronously; the three
+/// opcode-unused bytes remain unwritten, and no stack pointer is retained.
+static void _shelter1fGuardroomUnlockMovieTask(Task* task)
 {
-    u8          slotParam[4];
+    enum {
+        SHELTER_1F_GUARDROOM_MOVIE_START       = 0,
+        SHELTER_1F_GUARDROOM_MOVIE_WAIT_READY  = 1,
+        SHELTER_1F_GUARDROOM_MOVIE_WAIT_IDLE   = 2,
+        SHELTER_1F_GUARDROOM_MOVIE_FIRST_FRAME = 1,
+        SHELTER_1F_GUARDROOM_MOVIE_SUB_ID      = 0
+    };
+    u8          streamArgs[sizeof(gCdCmdQueue.entries[0].args.bytes)];
     CdCmdQueue* queue;
 
     queue = &gCdCmdQueue;
-    switch (arg0->state) {
-        case 0:
+    switch (task->state) {
+        case SHELTER_1F_GUARDROOM_MOVIE_START:
             _shelter1fGuardroomSetUnlockOverlayVisible(0);
-            queue->movieFrame = 1;
-            slotParam[0]      = streamFindMovieSlot(&gGameSession->location.loc, 0, 0);
-            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
-            arg0->state++;
+            queue->movieFrame = SHELTER_1F_GUARDROOM_MOVIE_FIRST_FRAME;
+            streamArgs[0]     = streamFindMovieSlot(&gGameSession->location.loc, SHELTER_1F_GUARDROOM_MOVIE_SUB_ID, 0);
+            // The queue copies four bytes; this opcode uses only the slot byte.
+            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, streamArgs);
+            task->state++;
             break;
-        case 1:
+        case SHELTER_1F_GUARDROOM_MOVIE_WAIT_READY:
             if (queue->movieReady != 0) {
-                arg0->state = 2;
+                task->state = SHELTER_1F_GUARDROOM_MOVIE_WAIT_IDLE;
             }
             break;
-        case 2:
-            if (cdCmdIsIdle() & 0xFFFF) {
-                taskRequestKill(arg0, 0);
+        case SHELTER_1F_GUARDROOM_MOVIE_WAIT_IDLE:
+            if (cdCmdIsIdle()) {
+                taskRequestKill(task, 0);
             }
             break;
     }

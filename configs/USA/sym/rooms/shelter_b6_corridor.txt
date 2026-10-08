@@ -66,7 +66,7 @@ D_shelter_b6_corridor_8017F268 = 0x8017F268; // size:0x14 defined:True
 D_shelter_b6_corridor_801851B0 = 0x801851B0; // size:0x8 defined:True
 D_shelter_b6_corridor_801851B8 = 0x801851B8; // size:0x4 defined:True
 
-func_shelter_b6_corridor_8017EBA4 = 0x8017EBA4; // type:func
+shelterB6CorridorDrawBodyGlow = 0x8017EBA4; // type:func
 
 shelterB6CorridorSetPartDestroyedSprites = 0x8017EE08; // type:func
 

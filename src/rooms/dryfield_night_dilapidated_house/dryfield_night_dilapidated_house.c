@@ -212,7 +212,11 @@ s32 dryfieldNightDilapidatedHouseIgnoreRoomAction(Task* task, s32 messageId, con
     return 0;
 }
 
-/// Starts the first-visit scene when a companion is present and commits its progress.
+/// Commits first-visit progress and starts the scene when a companion is present.
+///
+/// An unseen visit sets chapter 3 and the gas-station objective even without a
+/// companion. The normal and skip scripts remain borrowed from this room while
+/// the scene runs; subsequent calls do nothing once the visit flag is set.
 static inline void _dryfieldNightDilapidatedHouseStartFirstVisitEvent(void)
 {
     enum {

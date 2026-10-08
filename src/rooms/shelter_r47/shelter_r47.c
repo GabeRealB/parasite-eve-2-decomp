@@ -1247,13 +1247,30 @@ void shelterR47ConsoleDrawSprite(s16 originX, s16 originY, s16 spriteId)
 
 #include "../../shared/action_prompt_outline_rect.inc.c"
 
-void func_shelter_r47_8018138C(Task* task)
+/// Clears hit results through the console table's hotspot terminator.
+static inline void _shelterR47ConsoleClearHotspotHits(ActionPromptHotspot* hotspot)
 {
-    ShelterR47ConsoleWork* work;
-    ActionPromptHotspot*   hs;
-    s32                    arg1;
+    while (hotspot->id != ACTION_PROMPT_HOTSPOT_END) {
+        hotspot->hit = 0;
+        hotspot++;
+    }
+}
 
-    work = memCalloc(0x54, false);
+void shelterR47ConsoleInitializeTask(Task* task)
+{
+    enum {
+        SHELTER_R47_CONSOLE_ENTRY_VIEW          = 16,
+        SHELTER_R47_CONSOLE_BACKDROP_SWITCH     = 3,
+        SHELTER_R47_CONSOLE_BACKDROP_OFF        = 0,
+        SHELTER_R47_CONSOLE_BACKDROP_ON         = 1,
+        SHELTER_R47_CONSOLE_BACKDROP_SCROLL_END = 320,
+        SHELTER_R47_CONSOLE_INITIAL_WIPE_LEVEL  = 255,
+        SHELTER_R47_CONSOLE_GUIDE_BEGIN         = 1
+    };
+    ShelterR47ConsoleWork* work;
+    s32                    guideMode;
+
+    work = memCalloc(sizeof(*work), false);
     if (work == NULL) {
         taskKill(task);
         return;
@@ -1261,16 +1278,13 @@ void func_shelter_r47_8018138C(Task* task)
     task->spawnArg2.pointer                                    = taskSpawnFromTable(&D_shelter_r47_801872F0, 0, 1, 0);
     task->work                                                 = work;
     work->savedView                                            = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x10;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = SHELTER_R47_CONSOLE_ENTRY_VIEW;
     task->state++;
     displayAcquireMenuHold();
 
-    hs = D_shelter_r47_80186FB4;
-    while (hs->id != ACTION_PROMPT_HOTSPOT_END) {
-        hs->hit = 0;
-        hs++;
-    }
+    _shelterR47ConsoleClearHotspotHits(D_shelter_r47_80186FB4);
 
+    // Start the console panels off screen before their entrance animation.
     work->headerX              = -0xF8;
     work->headerY              = -0x68;
     work->buttonX              = -0x98;
@@ -1293,24 +1307,17 @@ void func_shelter_r47_8018138C(Task* task)
     gGameSession->hideHud      = 1;
     gGameSession->eventState   = 1;
     shelterR47ConsoleLoadSwitches(task);
-    if (work->toggles[3] == 0) {
-        work->backdropToggle = 0;
-        work->backdropScroll = 0x140;
+    if (work->toggles[SHELTER_R47_CONSOLE_BACKDROP_SWITCH] == 0) {
+        work->backdropToggle = SHELTER_R47_CONSOLE_BACKDROP_OFF;
+        work->backdropScroll = SHELTER_R47_CONSOLE_BACKDROP_SCROLL_END;
     } else {
-        work->backdropToggle = 1;
+        work->backdropToggle = SHELTER_R47_CONSOLE_BACKDROP_ON;
         work->backdropScroll = 0;
     }
-    {
-        ShelterR47ConsoleWork* w = task->work;
-
-        w->wipeRed   = 0xFF;
-        w->wipeGreen = 0xFF;
-        w->wipeBlue  = 0xFF;
-        w->wipeGrey  = 0xFF;
-    }
-    arg1 = task->spawnArg1.value;
-    if (arg1 == 1) {
-        work->guideStep = arg1;
+    _shelterR47ConsoleSetWipe(task, SHELTER_R47_CONSOLE_INITIAL_WIPE_LEVEL);
+    guideMode = task->spawnArg1.value;
+    if (guideMode == SHELTER_R47_CONSOLE_GUIDE_BEGIN) {
+        work->guideStep = guideMode;
     }
 }
 

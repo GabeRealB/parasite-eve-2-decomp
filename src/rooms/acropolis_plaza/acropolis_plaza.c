@@ -2889,45 +2889,44 @@ static inline void _acropolisPlazaQueueStreamAtStart(u8 command, u8 subId)
     cdCmdEnqueue(command, 0, streamArgs);
 }
 
-/// Finds the live enemy spawned from the current area's placement of resource
-/// entry `entryId`.
+/// Finds a live enemy by the resource entry in the current area's placement table.
 ///
-/// The placements searched are those of the session's stage, area and layout
-/// variant. An enemy is identified by its position in that table, so the
-/// result is NULL when the placement was never spawned or its enemy is gone.
-/// An `entryId` the table does not hold selects the position one past its last
-/// placement.
+/// Borrows the current stage/area/variant's sentinel-terminated placements and
+/// returns the scene child's borrowed enemy, or NULL when that instance is gone.
+/// A missing `entryId` uses the terminator index rather than failing the lookup.
+/// Only the low sixteen bits of the stage/area/index key reach the scene search;
+/// a placement index above 15 wraps. The scene and placement table must remain
+/// loaded, and the caller must keep a returned enemy alive while using it.
 static inline Enemy* _acropolisPlazaFindPlacedEnemy(u8 entryId)
 {
-    GameLocationKey  key;
-    GameLocationKey* sessionKey;
-    AreaPlacement*   placement;
-    s32              index;
+    GameLocationKey        locationKey;
+    const GameLocationKey* currentLocation;
+    const AreaPlacement*   currentPlacement;
+    s32                    placementIndex;
 
-    sessionKey  = &gGameSession->location.loc;
-    key.stage   = sessionKey->stage;
-    key.area    = sessionKey->area;
-    key.room    = gGameSession->spriteVariant;
-    key.view    = gGameSession->location.loc.view;
-    key.variant = sessionKey->variant;
-    placement   = areaGetVariant(&key)->placements;
-    index       = 0;
-    // Count the table entries ahead of the one sought. Spelled with `goto`:
-    // the `while`, `do`/`break` and `for`/`break` forms all compile differently.
-    if (placement->entryId != AREA_PLACEMENT_END) {
+    currentLocation     = &gGameSession->location.loc;
+    locationKey.stage   = currentLocation->stage;
+    locationKey.area    = currentLocation->area;
+    locationKey.room    = gGameSession->spriteVariant;
+    locationKey.view    = gGameSession->location.loc.view;
+    locationKey.variant = currentLocation->variant;
+    currentPlacement    = areaGetVariant(&locationKey)->placements;
+    placementIndex      = 0;
+    // A missing resource entry uses the terminator position in the enemy key.
+    if (currentPlacement->entryId != AREA_PLACEMENT_END) {
         for (;;) {
-            if (placement->entryId == entryId) {
+            if (currentPlacement->entryId == entryId) {
                 goto found;
             }
-            placement++;
-            index++;
-            if (placement->entryId == AREA_PLACEMENT_END) {
+            currentPlacement++;
+            placementIndex++;
+            if (currentPlacement->entryId == AREA_PLACEMENT_END) {
                 goto found;
             }
         }
     }
 found:
-    return sceneFindEnemyByPlaceKey((index << ENEMY_PLACE_INDEX_SHIFT) | (sessionKey->stage << ENEMY_PLACE_STAGE_SHIFT) | sessionKey->area);
+    return sceneFindEnemyByPlaceKey((placementIndex << ENEMY_PLACE_INDEX_SHIFT) | (currentLocation->stage << ENEMY_PLACE_STAGE_SHIFT) | currentLocation->area);
 }
 
 /// Plays a clip from the player's equipped-weapon bank with world collision disabled.

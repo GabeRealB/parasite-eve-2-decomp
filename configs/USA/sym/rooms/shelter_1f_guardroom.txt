@@ -38,3 +38,7 @@ _shelter1fGuardroomRoomIdleState = 0x8017d878; // type:func
 _shelter1fGuardroomResolveRoomEvent = 0x8017d744; // type:func
 _shelter1fGuardroomPlaySoundCueMessage = 0x8017d7f0; // type:func
 shelter1fGuardroomRoomTask = 0x8017d880; // type:func
+_shelter1fGuardroomUnlockMovieTask = 0x8017d8d8; // type:func
+_shelter1fGuardroomUnlockBulwarkTask = 0x8017d5e8; // type:func
+_shelter1fGuardroomCommandMessage = 0x8017d788; // type:func
+_shelter1fGuardroomInitializeRoom = 0x8017d824; // type:func

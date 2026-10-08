@@ -1080,9 +1080,8 @@ u8 D_neo_ark_pavilion_80187A1F = 37;
 
 RoomLatchedEvent gRoomEventLatched;
 
-static __inline__ s32 NeoArkPavilion_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
-static void           _neoArkPavilionInitializeRoom(Task* task);
-static void           _neoArkPavilionRoomIdleState(Task* task);
+static void _neoArkPavilionInitializeRoom(Task* task);
+static void _neoArkPavilionRoomIdleState(Task* task);
 
 #include "../../shared/water_refraction_task.inc.c"
 
@@ -1098,28 +1097,44 @@ static s32 _neoArkPavilionRejectKeyItem(Task* task, s32 messageId, s32 itemId, s
     return 0;
 }
 
-static __inline__ s32 NeoArkPavilion_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
+/// Tests and, in execute mode, latches a room-transition event.
+///
+/// Returns 1 when the nonzero event flag is already set, otherwise 2, including
+/// queries. Every call clears the latest-start marker. Only `ROOM_EVENT_EXECUTE`
+/// copies the complete eight-byte transition and twelve-byte event, sets a
+/// nonzero flag to 1 and spawns the staged controller. Flag 0 stays eligible.
+/// Both inputs are borrowed during this call; their copies and CAP/sound
+/// resources must remain in the loaded room until the controller finishes.
+static __inline__ s32 _neoArkPavilionStartEvent(const RoomEventMsg* transition, const RoomLatchedEvent* event)
 {
-    D_neo_ark_pavilion_80187A1C = 0;
+    enum {
+        ROOM_EVENT_NOT_STARTED  = 0,
+        ROOM_EVENT_STARTED      = 1,
+        ROOM_EVENT_FLAG_SEEN    = 1,
+        ROOM_EVENT_ALREADY_SEEN = 1,
+        ROOM_EVENT_ELIGIBLE     = 2
+    };
+
+    D_neo_ark_pavilion_80187A1C = ROOM_EVENT_NOT_STARTED;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
-        if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventStagedMsg = *dst;
+        if (transition->queryOnly == ROOM_EVENT_EXECUTE) {
+            gRoomEventStagedMsg = *transition;
             gRoomEventLatched   = *event;
             if (event->flagId != 0) {
-                gameFlagSetNibble(event->flagId, 1);
+                gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_SEEN);
             }
             taskSpawnFromTable(&D_neo_ark_pavilion_80183864, 0, 0, 0);
-            D_neo_ark_pavilion_80187A1C = 1;
+            D_neo_ark_pavilion_80187A1C = ROOM_EVENT_STARTED;
         }
-        return 2;
+        return ROOM_EVENT_ELIGIBLE;
     }
-    return 1;
+    return ROOM_EVENT_ALREADY_SEEN;
 }
 
 /// Room message handler for the pavilion's save location: copies the incoming
 /// record onto the outgoing one and forwards both to `mapNeoArkResolveRoomVariant`. Message
 /// `0xC` builds the room's event record - cap command 4, flag `0x17E` - and
-/// hands it to `NeoArkPavilion_StartEvent`; every other message answers 1.
+/// hands it to `_neoArkPavilionStartEvent`; every other message answers 1.
 s32 func_neo_ark_pavilion_8017E9F4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomLatchedEvent event;
@@ -1133,7 +1148,7 @@ s32 func_neo_ark_pavilion_8017E9F4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomE
     event.stageSnd = 0;
     event.flagId   = GAME_FLAG_PAVILION_TO_SUB_TUNNEL_SCENE;
     event.fade     = 0;
-    return NeoArkPavilion_StartEvent(out, &event);
+    return _neoArkPavilionStartEvent(out, &event);
 }
 
 /// Room message handler: on message `1`, spawns the pavilion's cap entity —

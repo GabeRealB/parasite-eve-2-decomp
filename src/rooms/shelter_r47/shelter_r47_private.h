@@ -68,6 +68,21 @@ typedef struct {
 } ShelterR47ConsoleWork;
 STATIC_ASSERT_SIZEOF(ShelterR47ConsoleWork, 0x54);
 
+/// Sets the console's circular wipe to a uniform clear-to-black level.
+///
+/// Requires live `ShelterR47ConsoleWork` and `level` in 0..255 (clear to black).
+/// Reloads the task's work and stores all four signed-halfword components;
+/// it does not step or draw the wipe, or change the task state.
+static inline void _shelterR47ConsoleSetWipe(Task* task, s16 level)
+{
+    ShelterR47ConsoleWork* wipeWork = task->work;
+
+    wipeWork->wipeRed   = level;
+    wipeWork->wipeGreen = level;
+    wipeWork->wipeBlue  = level;
+    wipeWork->wipeGrey  = level;
+}
+
 /// Map page shown by the terminal, in previous/next order.
 ///
 /// The marker tables, the page labels and the room view all follow this index.
@@ -209,7 +224,16 @@ s16 shelterR47ConsoleFillWipe(Task* task);
 /// borrowed by the GPU until the frame completes. No sprite bounds are checked.
 void shelterR47ConsoleDrawSprite(s16 originX, s16 originY, s16 spriteId);
 
-void func_shelter_r47_8018138C(Task* task);
+/// Opens the control console and initializes its owned display state.
+///
+/// State 0 allocates the full zeroed console work; failure kills the task.
+/// Saves the live view, selects view 16, clears hotspot hits and starts a
+/// separately tracked prompt task. Acquires the menu hold and holds gameplay
+/// with the HUD hidden. Switch 3 selects backdrop scroll 0 or 320 pixels.
+/// Only spawn argument 1 enables the guided sequence; other values use free
+/// selection. Teardown restores the saved view, releases the hold/work and
+/// kills the prompt task. Requires the loaded console tables and textures.
+void shelterR47ConsoleInitializeTask(Task* task);
 
 /// Draws the control console and accepts its first confirmed cursor hotspot.
 ///

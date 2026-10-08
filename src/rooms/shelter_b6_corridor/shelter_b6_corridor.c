@@ -768,24 +768,35 @@ void shelterB6CorridorDrawViewGlowsTask(Task* task)
 
 #include "../../shared/glow_draw_capsule.inc.c"
 
-void func_shelter_b6_corridor_8017EBA4(Task* task)
+void shelterB6CorridorDrawBodyGlow(Task* task)
 {
-    GfxCoord* coord;
+    enum {
+        SHELTER_B6_CORRIDOR_BODY_GLOW_ANCHOR_JOINT       = 1,
+        SHELTER_B6_CORRIDOR_BODY_GLOW_FIRST_FLASH_JOINT  = 3,
+        SHELTER_B6_CORRIDOR_BODY_GLOW_FLASH_JOINT_MASK   = 15,
+        SHELTER_B6_CORRIDOR_BODY_GLOW_FLASH_CHANCE_MASK  = 3,
+        SHELTER_B6_CORRIDOR_BODY_GLOW_BASE_BRIGHTNESS    = 0x40,
+        SHELTER_B6_CORRIDOR_BODY_GLOW_INNER_RADIUS       = 0x200,
+        SHELTER_B6_CORRIDOR_BODY_GLOW_OUTER_RADIUS       = 0x400,
+        SHELTER_B6_CORRIDOR_BODY_GLOW_FLASH_SIZE_PALETTE = (1 << 16) | 0x80
+    };
+    GfxCoord* anchorCoord;
     u8        rgb[3];
-    u32       shade;
+    u32       brightness;
 
-    coord = task->extra.tmd->coords + 1;
+    anchorCoord = task->extra.tmd->coords + SHELTER_B6_CORRIDOR_BODY_GLOW_ANCHOR_JOINT;
     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-        shade  = ((gDisplayState.animFrame & 1) << 4) + 0x40;
-        rgb[0] = shade;
-        rgb[1] = shade;
-        rgb[2] = shade >> 1;
-        effectDrawGouraudDisc(coord, 0x200, rgb);
-        effectDrawGouraudDisc(coord, 0x400, rgb);
+        brightness = ((gDisplayState.animFrame & 1) << 4) + SHELTER_B6_CORRIDOR_BODY_GLOW_BASE_BRIGHTNESS;
+        rgb[0]     = brightness;
+        rgb[1]     = brightness;
+        rgb[2]     = brightness >> 1;
+        effectDrawGouraudDisc(anchorCoord, SHELTER_B6_CORRIDOR_BODY_GLOW_INNER_RADIUS, rgb);
+        effectDrawGouraudDisc(anchorCoord, SHELTER_B6_CORRIDOR_BODY_GLOW_OUTER_RADIUS, rgb);
+        // Advance once for eligibility, and only on success for the joint choice.
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if (((gRandomLcgState >> 16) & 3) == 0) {
+        if (((gRandomLcgState >> 16) & SHELTER_B6_CORRIDOR_BODY_GLOW_FLASH_CHANCE_MASK) == 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            effectSpawn(EFFECT_FLASH_BURST, task->extra.tmd->coords + (((gRandomLcgState >> 16) & 0xF) + 3), 0x10080, NULL);
+            effectSpawn(EFFECT_FLASH_BURST, task->extra.tmd->coords + (((gRandomLcgState >> 16) & SHELTER_B6_CORRIDOR_BODY_GLOW_FLASH_JOINT_MASK) + SHELTER_B6_CORRIDOR_BODY_GLOW_FIRST_FLASH_JOINT), SHELTER_B6_CORRIDOR_BODY_GLOW_FLASH_SIZE_PALETTE, NULL);
         }
     }
 }

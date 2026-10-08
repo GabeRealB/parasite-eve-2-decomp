@@ -310,26 +310,40 @@ u8 D_shelter_1f_bulwark_80180ECF = 137;
 
 RoomLatchedEvent gRoomEventLatched;
 
-static __inline__ s32 Bulwark_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
-
 #include "../../shared/room_event_staged_task.inc.c"
 
-static __inline__ s32 Bulwark_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
+/// Tests and, in execute mode, latches a room-transition event.
+///
+/// Returns 1 when the nonzero event flag is already set, otherwise 2, including
+/// queries. Every call clears the latest-start marker. Only `ROOM_EVENT_EXECUTE`
+/// copies the complete eight-byte transition and twelve-byte event, sets a
+/// nonzero flag to 1 and spawns the staged controller. Flag 0 stays eligible.
+/// Both inputs are borrowed during this call; their copies and CAP/sound
+/// resources must remain in the loaded room until the controller finishes.
+static __inline__ s32 _shelter1fBulwarkStartEvent(const RoomEventMsg* transition, const RoomLatchedEvent* event)
 {
-    D_shelter_1f_bulwark_80180ECC = 0;
+    enum {
+        ROOM_EVENT_NOT_STARTED  = 0,
+        ROOM_EVENT_STARTED      = 1,
+        ROOM_EVENT_FLAG_SEEN    = 1,
+        ROOM_EVENT_ALREADY_SEEN = 1,
+        ROOM_EVENT_ELIGIBLE     = 2
+    };
+
+    D_shelter_1f_bulwark_80180ECC = ROOM_EVENT_NOT_STARTED;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
-        if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventStagedMsg = *dst;
+        if (transition->queryOnly == ROOM_EVENT_EXECUTE) {
+            gRoomEventStagedMsg = *transition;
             gRoomEventLatched   = *event;
             if (event->flagId != 0) {
-                gameFlagSetNibble(event->flagId, 1);
+                gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_SEEN);
             }
             taskSpawnFromTable(&D_shelter_1f_bulwark_80180320, 0, 0, 0);
-            D_shelter_1f_bulwark_80180ECC = 1;
+            D_shelter_1f_bulwark_80180ECC = ROOM_EVENT_STARTED;
         }
-        return 2;
+        return ROOM_EVENT_ELIGIBLE;
     }
-    return 1;
+    return ROOM_EVENT_ALREADY_SEEN;
 }
 
 s32 func_shelter_1f_bulwark_8017D7B4(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
@@ -355,14 +369,14 @@ s32 func_shelter_1f_bulwark_8017D7B4(Task* task, s32 msgId, RoomEventMsg* src, R
         event.stageSnd = 0x55030003;
         event.flagId   = 0;
         event.fade     = 1;
-        return Bulwark_StartEvent(dst, &event);
+        return _shelter1fBulwarkStartEvent(dst, &event);
     }
     if (src->areaId == GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK) {
         event.capCmd   = 6;
         event.stageSnd = 0x55030001;
         event.flagId   = GAME_FLAG_BULWARK_TO_VEHICULAR_AIRLOCK_SCENE;
         event.fade     = 0;
-        return Bulwark_StartEvent(dst, &event);
+        return _shelter1fBulwarkStartEvent(dst, &event);
     }
     return 1;
 }

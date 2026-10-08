@@ -266,3 +266,4 @@ _shelterR47MapTerminalPromptTask = 0x8018580c; // type:func
 _shelterR47MapTerminalDrawPageOverlay = 0x80183484; // type:func
 shelterR47MapTerminalUpdateAndDrawQuads = 0x80183b84; // type:func
 _shelterR47MapTerminalUpdateAndDraw = 0x801851b8; // type:func
+shelterR47ConsoleInitializeTask = 0x8018138c; // type:func

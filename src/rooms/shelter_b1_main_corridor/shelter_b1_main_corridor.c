@@ -695,9 +695,8 @@ RoomEventReqStorage gRoomEventReq;
 
 RoomLatchedEvent gRoomEventLatched;
 
-static __inline__ s32 _corridorStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
-static void           func_shelter_b1_main_corridor_8017DD4C(Task* task);
-static void           _shelterB1MainCorridorMessageTaskIdle(Task* task);
+static void func_shelter_b1_main_corridor_8017DD4C(Task* task);
+static void _shelterB1MainCorridorMessageTaskIdle(Task* task);
 
 #include "../../shared/room_event_gate.inc.c"
 
@@ -705,26 +704,38 @@ static void           _shelterB1MainCorridorMessageTaskIdle(Task* task);
 
 #include "../../shared/room_event_staged_task.inc.c"
 
-/// Starts `event` for the outgoing message `dst` unless its flag says it has
-/// already happened (answering 1). Otherwise answers 2, and - unless
-/// `dst->queryOnly` asks for a dry run - latches the message and the event,
-/// sets the flag and spawns the room's event task.
-static __inline__ s32 _corridorStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
+/// Tests and, in execute mode, latches a room-transition event.
+///
+/// Returns 1 when the nonzero event flag is already set, otherwise 2, including
+/// queries. Every call clears the latest-start marker. Only `ROOM_EVENT_EXECUTE`
+/// copies the complete eight-byte transition and twelve-byte event, sets a
+/// nonzero flag to 1 and spawns the staged controller. Flag 0 stays eligible.
+/// Both inputs are borrowed during this call; their copies and CAP/sound
+/// resources must remain in the loaded room until the controller finishes.
+static __inline__ s32 _shelterB1MainCorridorStartEvent(const RoomEventMsg* transition, const RoomLatchedEvent* event)
 {
-    D_shelter_b1_main_corridor_80185D44[0] = 0;
+    enum {
+        ROOM_EVENT_NOT_STARTED  = 0,
+        ROOM_EVENT_STARTED      = 1,
+        ROOM_EVENT_FLAG_SEEN    = 1,
+        ROOM_EVENT_ALREADY_SEEN = 1,
+        ROOM_EVENT_ELIGIBLE     = 2
+    };
+
+    D_shelter_b1_main_corridor_80185D44[0] = ROOM_EVENT_NOT_STARTED;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
-        if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventStagedMsg = *dst;
+        if (transition->queryOnly == ROOM_EVENT_EXECUTE) {
+            gRoomEventStagedMsg = *transition;
             gRoomEventLatched   = *event;
             if (event->flagId != 0) {
-                gameFlagSetNibble(event->flagId, 1);
+                gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_SEEN);
             }
             taskSpawnFromTable(&D_shelter_b1_main_corridor_80183098, 0, 0, 0);
-            D_shelter_b1_main_corridor_80185D44[0] = 1;
+            D_shelter_b1_main_corridor_80185D44[0] = ROOM_EVENT_STARTED;
         }
-        return 2;
+        return ROOM_EVENT_ELIGIBLE;
     }
-    return 1;
+    return ROOM_EVENT_ALREADY_SEEN;
 }
 
 /// Message handler: copies the incoming message to `out` and forwards both to
@@ -745,21 +756,21 @@ s32 func_shelter_b1_main_corridor_8017DA8C(Task* task, s32 msgId, RoomEventMsg* 
         event.stageSnd = 0x540F0001;
         event.flagId   = GAME_FLAG_B1_CORRIDOR_TO_ARMORY_SCENE;
         event.fade     = 0;
-        return _corridorStartEvent(out, &event);
+        return _shelterB1MainCorridorStartEvent(out, &event);
     }
     if (in->areaId == GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS) {
         event.capCmd   = 4;
         event.stageSnd = 0x540F0001;
         event.flagId   = GAME_FLAG_B1_CORRIDOR_TO_QUARTERS_SCENE;
         event.fade     = 0;
-        return _corridorStartEvent(out, &event);
+        return _shelterB1MainCorridorStartEvent(out, &event);
     }
     if (in->areaId == GAME_AREA_SHELTER_B1_STERILIZATION_ROOM) {
         event.capCmd   = 6;
         event.stageSnd = 0x540F0001;
         event.flagId   = GAME_FLAG_B1_CORRIDOR_TO_STERILIZATION_SCENE;
         event.fade     = 0;
-        return _corridorStartEvent(out, &event);
+        return _shelterB1MainCorridorStartEvent(out, &event);
     }
     if (in->areaId == GAME_AREA_SHELTER_B1_ELEVATOR_HALL) {
         if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= 6) {
@@ -788,14 +799,14 @@ s32 func_shelter_b1_main_corridor_8017DA8C(Task* task, s32 msgId, RoomEventMsg* 
         event.stageSnd = 0x540F0001;
         event.flagId   = GAME_FLAG_B1_CORRIDOR_TO_TRANSFER_SCENE;
         event.fade     = 0;
-        return _corridorStartEvent(out, &event);
+        return _shelterB1MainCorridorStartEvent(out, &event);
     }
     if (in->areaId == GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL) {
         event.capCmd   = 7;
         event.stageSnd = 0x540F0001;
         event.flagId   = GAME_FLAG_B1_CORRIDOR_TO_CONTROL_TUNNEL_SCENE;
         event.fade     = 0;
-        return _corridorStartEvent(out, &event);
+        return _shelterB1MainCorridorStartEvent(out, &event);
     }
     return 1;
 }

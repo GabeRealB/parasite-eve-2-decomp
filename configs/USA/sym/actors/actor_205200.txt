@@ -78,7 +78,7 @@ shelterB6TrainingRoomDrawBodyGlow = 0x80181930; // type:func absolute:True owner
 
 shelterB6TrainingRoomSetPartDestroyedSprites = 0x80182A14; // type:func absolute:True owner=shelter_b6_training_room
 
-func_shelter_b6_corridor_8017EBA4 = 0x8017EBA4; // type:func absolute:True owner=shelter_b6_corridor
+shelterB6CorridorDrawBodyGlow = 0x8017EBA4; // type:func absolute:True owner=shelter_b6_corridor
 
 shelterB6CorridorSetPartDestroyedSprites = 0x8017EE08; // type:func absolute:True owner=shelter_b6_corridor
 _screenWaveGridTask = 0x80149E54; // type:func
