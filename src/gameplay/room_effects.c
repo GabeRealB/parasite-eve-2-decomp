@@ -730,7 +730,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_apobiosis_8012EF4C, { NULL } },                                                // 0x0C0
     { { { TASK_BODY_COORD, 0x70 } }, effectPolyTaskC1, { NULL } },                                                       // 0x0C1
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldGasStationCyanGlowTask, { NULL } },                                         // 0x0C2
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_main_street_8017E4B0, { NULL } },                                     // 0x0C3
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldMainStreetRoomEffectsTask, { NULL } },                                      // 0x0C3
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldGeneralStoreNoOpEffectTask, { NULL } },                                     // 0x0C4
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldBackStreetConfigureEffectsTask, { NULL } },                                 // 0x0C5
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldSouvenirShopLightPrismsTask, { NULL } },                                    // 0x0C6
@@ -1196,7 +1196,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_forked_road_801802CC, { NULL } },                                    // 0x292
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldMainStreetRoomVisualEffectsFlashTask, { NULL } },                           // 0x293
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldMainStreetRoomVisualEffectsTwinTrailTask, { NULL } },                       // 0x294
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_main_street_80180234, { NULL } },                                     // 0x295
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldMainStreetRoomVisualEffectsSparkBurstTask, { NULL } },                      // 0x295
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldBackStreetRoomVisualEffectsFlashTask, { NULL } },                           // 0x296
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldBackStreetRoomVisualEffectsTwinTrailTask, { NULL } },                       // 0x297
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_back_street_8017ED1C, { NULL } },                                     // 0x298

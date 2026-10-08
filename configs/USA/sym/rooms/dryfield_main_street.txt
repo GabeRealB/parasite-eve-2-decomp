@@ -109,9 +109,9 @@ dryfieldMainStreetRoomVisualEffectsFlashTask = 0x8017EEE8; // type:func
 
 dryfieldMainStreetRoomVisualEffectsTwinTrailTask = 0x8017F94C; // type:func
 
-func_dryfield_main_street_80180234 = 0x80180234; // type:func
+dryfieldMainStreetRoomVisualEffectsSparkBurstTask = 0x80180234; // type:func
 
-func_dryfield_main_street_8017E4B0 = 0x8017E4B0; // type:func
+dryfieldMainStreetRoomEffectsTask = 0x8017E4B0; // type:func
 _roomVisualEffectsDrawFlashRing = 0x8017F18C; // type:func
 _roomVisualEffectsDrawFlashDisc = 0x8017F5B8; // type:func
 _roomVisualEffectsDrawTwinTrail = 0x8017FE3C; // type:func
@@ -127,3 +127,10 @@ _mainStreetDrawPuff = 0x8017EA88; // type:func
 _dryfieldMainStreetRejectKeyItemUse = 0x8017e054; // type:func
 _dryfieldMainStreetIdle = 0x8017e158; // type:func
 _dryfieldMainStreetTurnPlayerTowardAreaActorTask = 0x8017e1c0; // type:func
+_dryfieldMainStreetForgetPlayerHeadAimTask = 0x8017e4a4; // type:func
+_dryfieldMainStreetInitialize = 0x8017e0d8; // type:func
+_dryfieldMainStreetPlayerHeadAimTask = 0x8017e3a8; // type:func
+_dryfieldMainStreetBeginFirstVisitBattle = 0x8017e2f4; // type:func
+_dryfieldMainStreetSetPlayerHeadAim = 0x8017e354; // type:func
+_dryfieldMainStreetStartFirstVisitCutscene = 0x8017e05c; // type:func
+dryfieldMainStreetTask = 0x8017e168; // type:func

@@ -433,7 +433,7 @@ AreaObjectRoom D_map_dryfield_8017A564[40] = {
 
 TaskDesc D_map_dryfield_8017A6A4[] = {
     { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_gas_station_8017FF8C, { .value = GP_TASK_LOC_KEY(2, 1, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_main_street_8017E168, { .value = GP_TASK_LOC_KEY(2, 2, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, dryfieldMainStreetTask, { .value = GP_TASK_LOC_KEY(2, 2, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_general_store_8017DF5C, { .value = GP_TASK_LOC_KEY(2, 3, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_back_street_8017D918, { .value = GP_TASK_LOC_KEY(2, 5, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_souvenir_shop_8017D65C, { .value = GP_TASK_LOC_KEY(2, 6, 0) } },

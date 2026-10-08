@@ -70,10 +70,38 @@ void dryfieldMainStreetRoomVisualEffectsFlashTask(Task* task);
 /// without cancelling. Requires a live `gRoomEffectState` and loaded room overlay.
 void dryfieldMainStreetRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_dryfield_main_street_80180234(Task* task);
+/// Runs Main Street's impact flash followed by smoke or orange rings and sparks.
+///
+/// Effect 0x60295 requires a state-zero coordinate task and counted, zero-aged
+/// `EffectWork` in `spawnArg2.pointer` from `effectSpawn`. Nonzero
+/// `spawnArg1.value` selects smoke; zero selects rings and bouncing sparks.
+/// Enters release at active age seven and frees work and task on age eight.
+/// Room effect control pauses below four when nonzero and cancels at four or
+/// above. Child effects live independently. Requires live room effect state
+/// and the room overlay to stay loaded; discard borrowed work after teardown.
+void dryfieldMainStreetRoomVisualEffectsSparkBurstTask(Task* task);
 
-void func_dryfield_main_street_8017E4B0(Task* task);
+/// Publishes Main Street's view effect mode and maintains view-eight smoke.
+///
+/// Effect 0x600C3 starts in state zero, installs the room's flash/trail/burst
+/// effect IDs, and retains the last mapped view in `spawnArg1.value`.
+/// Entry to mapped view eight requests 48 puffs; later odd animation frames
+/// request one. Placement is sampled in the input space of `GsWSMATRIX`,
+/// with XYZ ranges -1185..-886, -1255..-656 and 9836..10535 game units.
+/// Spawn requests copy the position from reusable room storage and may fail
+/// at the normal effect limit. Requires live room effect state, a mapped view
+/// covered by its mode table, and the room overlay to remain loaded. The
+/// effect spawner owns this task's work and teardown.
+void dryfieldMainStreetRoomEffectsTask(Task* task);
 
-void func_dryfield_main_street_8017E168(Task* task);
+/// Registers and dispatches the daytime Main Street room task.
+///
+/// The Dryfield map spawns this bodyless task in state zero. States 0..2 are
+/// initialization, idle and release; the selector is unchecked. Initialization
+/// installs the room's message table, enables CAP completion sound cues and
+/// broadcasts the initial actor command while the first-visit scene is unseen.
+/// Requires a live scene task and the room overlay to remain loaded while its
+/// callbacks or message table can be reached.
+void dryfieldMainStreetTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_MAIN_STREET_H

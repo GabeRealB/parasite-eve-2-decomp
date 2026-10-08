@@ -98,8 +98,7 @@ extern TaskMessageEntry D_dryfield_main_street_80180EA0[];
 /// Payload of message 0x7DA the room entry task sends to pointer slot 4.
 extern s32 D_dryfield_main_street_80180ED0;
 
-/// The two arguments `func_dryfield_main_street_8017E05C` hands to
-/// `evsStartScriptWithSkip`.
+/// The first-visit scene and its skip continuation.
 extern EvsCommand D_dryfield_main_street_80181624[];
 extern EvsCommand D_dryfield_main_street_80181A14[];
 
@@ -138,9 +137,9 @@ extern RoomEventReq gRoomEventReq;
 /// or forgotten.
 extern Task* D_dryfield_main_street_80185630;
 
-static void func_dryfield_main_street_8017E0D8(Task* task);
+static void _dryfieldMainStreetInitialize(Task* task);
 static void _dryfieldMainStreetIdle(Task* task);
-static void func_dryfield_main_street_8017E4A4(s32 arg0);
+static void _dryfieldMainStreetForgetPlayerHeadAimTask(s32 unusedArg);
 
 extern WorldCollisionGrid    D_dryfield_main_street_80182C9C[1];
 extern WorldCollisionTrigger D_dryfield_main_street_801843A4[26];
@@ -153,16 +152,23 @@ extern AnimationPlayRequest D_dryfield_main_street_801815AC;
 extern AnimationPlayRequest D_dryfield_main_street_801815C0;
 extern AnimationPlayRequest D_dryfield_main_street_801815D4;
 extern ActorTransform       D_dryfield_main_street_801815E8;
-void                        func_dryfield_main_street_8017E2F4(s32);
+static void                 _dryfieldMainStreetBeginFirstVisitBattle(s32 unusedBattleArg);
 void                        func_dryfield_main_street_8017E320(void);
-void                        func_dryfield_main_street_8017E354(s32);
+static void                 _dryfieldMainStreetSetPlayerHeadAim(s32 command);
 
 static s32  _dryfieldMainStreetRejectKeyItemUse(Task* receiver, s32 messageId, s32 itemId, s32 unusedArg);
-s32         func_dryfield_main_street_8017E05C(Task* task, s32 msgId, const void* firstArg, s32);
+static s32  _dryfieldMainStreetStartFirstVisitCutscene(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static void _dryfieldMainStreetTurnPlayerTowardAreaActorTask(Task* task);
-void        func_dryfield_main_street_8017E3A8(Task*);
+static void _dryfieldMainStreetPlayerHeadAimTask(Task* task);
 
 enum { DRYFIELD_MAIN_STREET_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+
+/// Script controls for the player head-aim task; other values also stop it.
+enum {
+    DRYFIELD_MAIN_STREET_HEAD_AIM_DISABLE = 0,
+    DRYFIELD_MAIN_STREET_HEAD_AIM_ENABLE  = 1,
+    DRYFIELD_MAIN_STREET_HEAD_AIM_STOP    = -1,
+};
 
 TaskDesc gMainStreetEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
@@ -173,7 +179,7 @@ TaskDesc gMainStreetPlayTimeTaskDesc = { { { TASK_BODY_NONE, 32 } }, mainStreetP
 TaskMessageEntry D_dryfield_main_street_80180EA0[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, mainStreetResolveMsg },
     { DRYFIELD_MAIN_STREET_MESSAGE_USE_KEY_ITEM, _dryfieldMainStreetRejectKeyItemUse },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_main_street_8017E05C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldMainStreetStartFirstVisitCutscene },
     { ROOM_MESSAGE_COMMAND, mainStreetTalkMsg },
     { ROOM_MESSAGE_SOUND, _mainStreetCapSoundCue },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -227,7 +233,7 @@ static AnimationSet _gDryfieldMainStreetAnimation03F84 = {
 
 TaskDesc D_dryfield_main_street_8018156C[2] = {
     { { { TASK_BODY_NONE, 192 } }, _dryfieldMainStreetTurnPlayerTowardAreaActorTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_main_street_8017E3A8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _dryfieldMainStreetPlayerHeadAimTask, { .value = 0 } },
 };
 
 /// Player clips for extended ids 47-49; NULL at id 47, which nothing plays.
@@ -279,7 +285,7 @@ EvsCommand D_dryfield_main_street_80181624[42] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_main_street_801815E8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_dryfield_main_street_80181618 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_main_street_8017E320 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_main_street_8017E354 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldMainStreetSetPlayerHeadAim }, { .value = DRYFIELD_MAIN_STREET_HEAD_AIM_ENABLE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_main_street_801815D4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -300,8 +306,8 @@ EvsCommand D_dryfield_main_street_80181624[42] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 48 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_main_street_8017E2F4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_main_street_8017E354 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldMainStreetBeginFirstVisitBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldMainStreetSetPlayerHeadAim }, { .value = DRYFIELD_MAIN_STREET_HEAD_AIM_STOP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_dryfield_main_street_8018161C } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
@@ -319,12 +325,12 @@ EvsCommand D_dryfield_main_street_80181A14[16] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_main_street_801815E8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_main_street_801815D4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_dryfield_main_street_8018161C } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_main_street_8017E354 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldMainStreetSetPlayerHeadAim }, { .value = DRYFIELD_MAIN_STREET_HEAD_AIM_STOP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_main_street_8017E2F4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldMainStreetBeginFirstVisitBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -968,7 +974,7 @@ RoomEventReq gRoomEventReq = { 0, 0, 0, 0, 0, 0 };
 
 /// The room entry task's three states: set the room up, idle, end.
 static const TaskFuncTable3 D_dryfield_main_street_8017D5F4 = {
-    { func_dryfield_main_street_8017E0D8, _dryfieldMainStreetIdle, taskKill },
+    { _dryfieldMainStreetInitialize, _dryfieldMainStreetIdle, taskKill },
 };
 
 #include "../../shared/main_street_resolve_msg.inc.c"
@@ -988,16 +994,19 @@ static s32 _dryfieldMainStreetRejectKeyItemUse(Task* receiver, s32 messageId, s3
     return 0;
 }
 
-/// On a message whose `actionId` is 1, the first time only (nibble 0x5F still
-/// clear): forgets the task `func_dryfield_main_street_8017E320` spawned, calls
-/// `evsStartScriptWithSkip` with the room's two data blocks, and sets nibbles 0x5F and
-/// 0x155 and clears nibble 3. Always answers 0.
-s32 func_dryfield_main_street_8017E05C(Task* task, s32 msgId, const void* firstArg, s32 arg3)
+/// Starts the first-visit scene when its room-action trigger has not been seen.
+///
+/// Handles `DIRECTION_MESSAGE_ROOM_ACTION`, borrowing `request` only through
+/// dispatch. Action 1 starts the scene and its skip continuation, records it
+/// as seen and resets the follow-up dialogue state; other actions do nothing.
+/// The remaining arguments are ignored and the reply is always zero.
+static s32 _dryfieldMainStreetStartFirstVisitCutscene(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    const DirectionActionRequest* msg = firstArg;
+    enum { DRYFIELD_MAIN_STREET_ACTION_FIRST_VISIT_SCENE = 1 };
 
-    if ((msg->actionId == 1) && (gameFlagGetNibble(GAME_FLAG_MAIN_STREET_CUTSCENE_SEEN) == 0)) {
-        func_dryfield_main_street_8017E4A4(0);
+    if ((request->actionId == DRYFIELD_MAIN_STREET_ACTION_FIRST_VISIT_SCENE) && (gameFlagGetNibble(GAME_FLAG_MAIN_STREET_CUTSCENE_SEEN) == 0)) {
+        // Begin with no retained head-aim handle; the script may spawn a new one.
+        _dryfieldMainStreetForgetPlayerHeadAimTask(0);
         evsStartScriptWithSkip(D_dryfield_main_street_80181624, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_main_street_80181A14);
         gameFlagSetNibble(GAME_FLAG_MAIN_STREET_CUTSCENE_SEEN, 1);
         gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
@@ -1006,10 +1015,13 @@ s32 func_dryfield_main_street_8017E05C(Task* task, s32 msgId, const void* firstA
     return 0;
 }
 
-/// The room entry task's first state: installs the room's message table,
-/// hands the task to pointer slot 7, raises `D_80115598` and, until nibble
-/// 0x5F is set, sends message 0x7DA to the task in pointer slot 4.
-static void func_dryfield_main_street_8017E0D8(Task* task)
+/// Registers the room's message receiver and enables CAP completion sound cues.
+///
+/// Requires state zero and a live scene task. Before the first-visit scene has
+/// been seen, broadcasts the initial actor command in the stage-2/area-2
+/// namespace. Advances to the idle state; the room overlay must stay loaded
+/// while its task can receive messages.
+static void _dryfieldMainStreetInitialize(Task* task)
 {
     task->msgTable = D_dryfield_main_street_80180EA0;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
@@ -1027,14 +1039,12 @@ static void _dryfieldMainStreetIdle(Task* task)
     char retainedFrame[16];
 }
 
-/// Runs the room entry task's current state from its three-entry table, which
-/// it copies onto the stack before the call.
-void func_dryfield_main_street_8017E168(Task* task)
+void dryfieldMainStreetTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_main_street_8017D5F4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_main_street_8017D5F4;
+    stateHandlers.funcs[task->state](task);
 }
 
 /// Turns the player toward placement zero in the current area during a scripted event.
@@ -1102,11 +1112,14 @@ static void _dryfieldMainStreetTurnPlayerTowardAreaActorTask(Task* task)
     taskKill(task);
 }
 
-/// Passes `arg0` to `sceneEngageBattle` and marks item 0x10A as seen.
-void func_dryfield_main_street_8017E2F4(s32 arg0)
+/// Engages the first-visit battle and identifies the NMC photo in the live save.
+///
+/// Both the normal scene and its skip continuation call this callback. Its
+/// script argument is forwarded to the battle API, which leaves it unread.
+static void _dryfieldMainStreetBeginFirstVisitBattle(s32 unusedBattleArg)
 {
-    sceneEngageBattle(arg0);
-    itemSetIdentified(0x10A, 1);
+    sceneEngageBattle(unusedBattleArg);
+    itemSetIdentified(INVENTORY_COLLECTION_ID_NMC_PHOTO, 1);
 }
 
 /// Spawns the ramp task described at `D_dryfield_main_street_8018156C` and
@@ -1116,19 +1129,22 @@ void func_dryfield_main_street_8017E320(void)
     D_dryfield_main_street_80185630 = taskSpawnFromTable(D_dryfield_main_street_8018156C, 1, 0, 0);
 }
 
-/// Steers the task `func_dryfield_main_street_8017E320` spawned, if there is
-/// one: 0 or 1 becomes its `spawnArg1`, any other value kills and forgets it.
-void func_dryfield_main_street_8017E354(s32 arg0)
+/// Enables, disables or stops the retained player head-aim task.
+///
+/// Zero fades aiming out, one fades it in, and any other value kills the task
+/// and clears its handle. A missing handle is a no-op. The script uses -1
+/// to stop; the retained handle must refer to a live task when non-NULL.
+static void _dryfieldMainStreetSetPlayerHeadAim(s32 command)
 {
-    Task* t = D_dryfield_main_street_80185630;
+    Task* headAimTask = D_dryfield_main_street_80185630;
 
-    if (t == NULL) {
+    if (headAimTask == NULL) {
         return;
     }
-    switch (arg0) {
-        case 0:
-        case 1:
-            t->spawnArg1.value = arg0;
+    switch (command) {
+        case DRYFIELD_MAIN_STREET_HEAD_AIM_DISABLE:
+        case DRYFIELD_MAIN_STREET_HEAD_AIM_ENABLE:
+            headAimTask->spawnArg1.value = command;
             break;
         default:
             taskKill(D_dryfield_main_street_80185630);
@@ -1137,75 +1153,113 @@ void func_dryfield_main_street_8017E354(s32 arg0)
     }
 }
 
-/// Per-frame ramp task. While `D_801156F9` is clear, state 0 ramps
-/// `killCountdown` by 0x100 a frame towards 0x1000 while `spawnArg1` is set,
-/// or towards 0 while it is clear, and passes it to `animationAimHeadAtTask` with the
-/// player and the current area's work object. Any other state ends the task.
-void func_dryfield_main_street_8017E3A8(Task* task)
+/// Steps the task's signed Q12 head-aim weight toward zero or full strength.
+///
+/// Starts with a weight in 0..ONE, takes one sixteenth-strength step and clamps
+/// at the destination. Narrows the step to a signed halfword before comparing.
+static inline void _dryfieldMainStreetStepHeadAimWeight(Task* task)
 {
-    Enemy* enemy;
-    u16    tick;
+    enum { DRYFIELD_MAIN_STREET_HEAD_AIM_STEP = ONE / 16 };
+    s16 nextBlendWeight;
+
+    if (task->spawnArg1.value != 0) {
+        nextBlendWeight     = task->killCountdown + DRYFIELD_MAIN_STREET_HEAD_AIM_STEP;
+        task->killCountdown = nextBlendWeight;
+        if (nextBlendWeight >= ONE + 1) {
+            task->killCountdown = ONE;
+        }
+    } else {
+        nextBlendWeight     = task->killCountdown - DRYFIELD_MAIN_STREET_HEAD_AIM_STEP;
+        task->killCountdown = nextBlendWeight;
+        if (nextBlendWeight < 0) {
+            task->killCountdown = 0;
+        }
+    }
+}
+
+/// Blends the player's head toward placement zero in the current area.
+///
+/// State zero ramps the Q12 weight held in `killCountdown` by 256 per active
+/// tick, clamped to 0..4096: zero `spawnArg1.value` fades out, nonzero fades in.
+/// Both directions still apply head aiming, with yaw/pitch limits of 768/512
+/// angle units (4096 per turn). Event-script suspension pauses all work,
+/// including teardown; any other task state ends it when updates resume.
+/// Requires a live placement-zero actor, a live player and both TMD rigs with
+/// at least five coordinates in root-to-head order. Borrows the actor models.
+static void _dryfieldMainStreetPlayerHeadAimTask(Task* task)
+{
+    enum {
+        DRYFIELD_MAIN_STREET_HEAD_AIM_ACTIVE    = 0,
+        DRYFIELD_MAIN_STREET_HEAD_AIM_MAX_YAW   = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 16,
+        DRYFIELD_MAIN_STREET_HEAD_AIM_MAX_PITCH = ACTOR_TRANSFORM_ANGLE_TURN / 8,
+    };
+    Enemy* areaActor;
 
     if (D_801156F9 == 0) {
-        if (task->state == 0) {
-            if (task->spawnArg1.value != 0) {
-                tick                = task->killCountdown + 0x100;
-                task->killCountdown = tick;
-                if ((s16)tick >= 0x1001) {
-                    task->killCountdown = 0x1000;
-                }
-            } else {
-                tick                = task->killCountdown - 0x100;
-                task->killCountdown = tick;
-                if ((s16)tick < 0) {
-                    task->killCountdown = 0;
-                }
-            }
-            enemy = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
-            animationAimHeadAtTask(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), enemy->task, 0x300, 0x200, task->killCountdown);
+        if (task->state == DRYFIELD_MAIN_STREET_HEAD_AIM_ACTIVE) {
+            _dryfieldMainStreetStepHeadAimWeight(task);
+            areaActor = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
+            animationAimHeadAtTask(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), areaActor->task,
+                                   DRYFIELD_MAIN_STREET_HEAD_AIM_MAX_YAW, DRYFIELD_MAIN_STREET_HEAD_AIM_MAX_PITCH, task->killCountdown);
         } else {
             taskKill(task);
         }
     }
 }
 
-/// Forgets the task `func_dryfield_main_street_8017E320` spawned, without
-/// killing it. The argument is unused; its caller passes 0.
-static void func_dryfield_main_street_8017E4A4(s32 arg0)
+/// Clears the retained player head-aim handle before starting the first-visit scene.
+///
+/// Leaves any live task running independently. The caller passes zero through
+/// the unused argument register.
+static void _dryfieldMainStreetForgetPlayerHeadAimTask(s32 unusedArg)
 {
-    D_dryfield_main_street_80185630 = 0;
+    D_dryfield_main_street_80185630 = NULL;
 }
 
-/// Per-frame room task. On its first run it stores the ids 0x60293-0x60295 in
-/// three gameplay globals. Each run it publishes the current view's
-/// `roomEffectMode`. In view 8 it spawns 0x30 randomly placed 0x601B1 effects
-/// on entering the view, and one more on each run with bit 0 of `gDisplayState.animFrame`
-/// set while it stays. `spawnArg1` holds the view seen on the previous run.
-void func_dryfield_main_street_8017E4B0(Task* task)
+/// Samples one smoke position from three successive LCG draws in X/Y/Z order.
+///
+/// Writes XYZ in -1185..-886, -1255..-656 and 9836..10535 game units, in the
+/// input space of `GsWSMATRIX`. Leaves the vector's fourth halfword untouched.
+static inline void _dryfieldMainStreetChooseSmokePosition(SVECTOR* position)
 {
-    s32 i;
+    position->vx = DRYFIELD_MAIN_STREET_RAND() % 300 - 0x4A1;
+    position->vy = DRYFIELD_MAIN_STREET_RAND() % 600 - 0x4E7;
+    position->vz = 0x2927 - DRYFIELD_MAIN_STREET_RAND() % 700;
+}
 
-    if (task->state == 0) {
+void dryfieldMainStreetRoomEffectsTask(Task* task)
+{
+    enum {
+        DRYFIELD_MAIN_STREET_ROOM_EFFECTS_INITIALIZE = 0,
+        DRYFIELD_MAIN_STREET_ROOM_EFFECTS_ACTIVE     = 1,
+        DRYFIELD_MAIN_STREET_SMOKE_VIEW              = 8,
+        DRYFIELD_MAIN_STREET_INITIAL_PUFF_COUNT      = 48,
+        DRYFIELD_MAIN_STREET_PUFF_RANDOM_MASK        = 0x10FF,
+        // Size 256..511, period 3..4 ticks, drift speed 16 units/tick; add random bits.
+        DRYFIELD_MAIN_STREET_INITIAL_PUFF_ARG = 0x103100,
+        // Size 256..511, period 2..3 ticks, drift speed 8 units/tick; OR random bits.
+        DRYFIELD_MAIN_STREET_STEADY_PUFF_ARG = 0x82100,
+    };
+    s32 puffIndex;
+
+    if (task->state == DRYFIELD_MAIN_STREET_ROOM_EFFECTS_INITIALIZE) {
         gRoomEffectFlashId      = EFFECT_DRYFIELD_MAIN_STREET_FLASH;
         gRoomEffectTwinTrailId  = EFFECT_DRYFIELD_MAIN_STREET_TWIN_TRAIL;
         gRoomEffectSparkBurstId = EFFECT_DRYFIELD_MAIN_STREET_SPARK_BURST;
-        task->state             = 1;
+        task->state             = DRYFIELD_MAIN_STREET_ROOM_EFFECTS_ACTIVE;
     }
     gRoomEffectState->roomEffectMode = D_dryfield_main_street_80181B94[(viewGetMappedIndex() & 0xFF) - 1];
-    if ((viewGetMappedIndex() & 0xFF) == 8) {
+    if ((viewGetMappedIndex() & 0xFF) == DRYFIELD_MAIN_STREET_SMOKE_VIEW) {
         if (task->spawnArg1.value != (viewGetMappedIndex() & 0xFF)) {
-            for (i = 0; i < 0x30; i++) {
-                D_dryfield_main_street_80181BA4.vx = DRYFIELD_MAIN_STREET_RAND() % 300 - 0x4A1;
-                D_dryfield_main_street_80181BA4.vy = DRYFIELD_MAIN_STREET_RAND() % 600 - 0x4E7;
-                D_dryfield_main_street_80181BA4.vz = 0x2927 - DRYFIELD_MAIN_STREET_RAND() % 700;
-                effectSpawn(EFFECT_DRYFIELD_MAIN_STREET_SMOKE_PUFF, NULL, (DRYFIELD_MAIN_STREET_RAND() & 0x10FF) + 0x103100,
+            // Seed the view with fast puffs, then replenish it on odd animation frames.
+            for (puffIndex = 0; puffIndex < DRYFIELD_MAIN_STREET_INITIAL_PUFF_COUNT; puffIndex++) {
+                _dryfieldMainStreetChooseSmokePosition(&D_dryfield_main_street_80181BA4);
+                effectSpawn(EFFECT_DRYFIELD_MAIN_STREET_SMOKE_PUFF, NULL, (DRYFIELD_MAIN_STREET_RAND() & DRYFIELD_MAIN_STREET_PUFF_RANDOM_MASK) + DRYFIELD_MAIN_STREET_INITIAL_PUFF_ARG,
                             &D_dryfield_main_street_80181BA4);
             }
         } else if (gDisplayState.animFrame & 1) {
-            D_dryfield_main_street_80181BA4.vx = DRYFIELD_MAIN_STREET_RAND() % 300 - 0x4A1;
-            D_dryfield_main_street_80181BA4.vy = DRYFIELD_MAIN_STREET_RAND() % 600 - 0x4E7;
-            D_dryfield_main_street_80181BA4.vz = 0x2927 - DRYFIELD_MAIN_STREET_RAND() % 700;
-            effectSpawn(EFFECT_DRYFIELD_MAIN_STREET_SMOKE_PUFF, NULL, (DRYFIELD_MAIN_STREET_RAND() & 0x10FF) | 0x82100,
+            _dryfieldMainStreetChooseSmokePosition(&D_dryfield_main_street_80181BA4);
+            effectSpawn(EFFECT_DRYFIELD_MAIN_STREET_SMOKE_PUFF, NULL, (DRYFIELD_MAIN_STREET_RAND() & DRYFIELD_MAIN_STREET_PUFF_RANDOM_MASK) | DRYFIELD_MAIN_STREET_STEADY_PUFF_ARG,
                         &D_dryfield_main_street_80181BA4);
         }
     }
@@ -1234,7 +1288,7 @@ void dryfieldMainStreetRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_dryfield_main_street_80180234(Task* task)
+void dryfieldMainStreetRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }

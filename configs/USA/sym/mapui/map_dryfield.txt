@@ -12,7 +12,7 @@ D_dryfield_gas_station_8018316C = 0x8018316C; // absolute:True owner=dryfield_ga
 D_dryfield_gas_station_80183EC8 = 0x80183EC8; // absolute:True owner=dryfield_gas_station
 D_dryfield_gas_station_801842A8 = 0x801842A8; // absolute:True owner=dryfield_gas_station shared=rooms
 D_dryfield_gas_station_80184BAC = 0x80184BAC; // absolute:True owner=dryfield_gas_station shared=rooms
-func_dryfield_main_street_8017E168 = 0x8017E168; // type:func absolute:True owner=dryfield_main_street
+dryfieldMainStreetTask = 0x8017E168; // type:func absolute:True owner=dryfield_main_street
 D_dryfield_main_street_80181BBC = 0x80181BBC; // absolute:True owner=dryfield_main_street shared=rooms
 D_dryfield_main_street_80181BCC = 0x80181BCC; // absolute:True owner=dryfield_main_street shared=rooms
 D_dryfield_main_street_80181BD0 = 0x80181BD0; // absolute:True owner=dryfield_main_street shared=rooms

@@ -74565,7 +74565,7 @@ The suppression is about the two compares landing in different blocks, not about
 nesting specifically, so reflecting the comparisons works just as well —
 `if (index >= 2) goto kill; if (index < 0) goto kill;`, which is the form the
 `rooms/lib` copies of this body use (`RoomsShared801807d4`,
-`RoomsShared801845d0`, and `func_dryfield_main_street_8017E354` matched on the
+`RoomsShared801845d0`, and `_dryfieldMainStreetSetPlayerHeadAim` matched on the
 first build with it). Both forms compile to the same 21 instructions here
 (`slti`+`beqz` for the upper bound, `bltz` for the lower one), so which one the
 original used is not recoverable from the binary; follow the sibling whose
@@ -90412,9 +90412,9 @@ Inputs: `base.i`
 `base_1.i` `ec63fe426790b983132367e1f6eaa36744b0c3029e8cda283848278f23cecde4`
 (100%).
 
-## A table handler's payload type comes from the dispatcher that posts its id, not from a twin's declaration (func_dryfield_main_street_8017E05C, 2026-09-15)
+## A table handler's payload type comes from the dispatcher that posts its id, not from a twin's declaration (_dryfieldMainStreetStartFirstVisitCutscene, 2026-09-15)
 
-`func_dryfield_main_street_8017E05C` is the same seed shape as the breezeway
+`_dryfieldMainStreetStartFirstVisitCutscene` is the same seed shape as the breezeway
 handler below - m2c emitted `s32 f(void *arg2)` reading one byte at offset 2,
 99.935% with the payload in `$a0` where the target has `$a2` - and the fix is the
 same padded parameter list. What is worth separating is how the *type* and the
@@ -90436,13 +90436,13 @@ integer, which is why `Room_Snd01` reads `arg2` as an `s32` and never
 dereferences it. Grepping the immediate finds the id's one producer - here
 `addiu $a1, $zero, 0x13EF` occurs exactly once in `asm/USA/`, in `_directionDispatchRoomAction`
 - and that function posts `(s32)&request` where `request` is a 4-byte `DirectionActionRequest`
-(`actionId = Gp_DirByte`). So the third parameter is `DirectionActionRequest*` and the fourth
-`s32 arg3`:
+(`actionId = Gp_DirByte`). So the third parameter is `const DirectionActionRequest*` and the fourth
+`s32 unusedSecondArg`:
 
 ```c
-s32 func_dryfield_main_street_8017E05C(Task* task, s32 msgId, DirectionActionRequest* msg, s32 arg3)
+static s32 _dryfieldMainStreetStartFirstVisitCutscene(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    if ((msg->actionId == 1) && (gameFlagGetNibble(0x5F) == 0)) { ... }
+    if ((request->actionId == DRYFIELD_MAIN_STREET_ACTION_FIRST_VISIT_SCENE) && (gameFlagGetNibble(GAME_FLAG_MAIN_STREET_CUTSCENE_SEEN) == 0)) { ... }
 ```
 
 This contradicts the type given for the same id in the breezeway entry below,
@@ -90464,11 +90464,11 @@ Inputs: `base.i` (99.935%)
 `base_3.i` (100.000%)
 `2447384f609a507ca91b33b233d1cf504f88b6b6a637c2345c213a8abe0dca3e`.
 
-## A constant argument stays at the call site even when the callee's matched body ignores it (func_dryfield_main_street_8017E05C, 2026-09-15)
+## A constant argument stays at the call site even when the callee's matched body ignores it (_dryfieldMainStreetStartFirstVisitCutscene, 2026-09-15)
 
-`func_dryfield_main_street_8017E4A4` is defined in `dryfield_main_street_5.c` as
-`void func_dryfield_main_street_8017E4A4(void)` - it clears one global and reads
-no parameter - so calling it as `func_dryfield_main_street_8017E4A4(0)` looks
+`_dryfieldMainStreetForgetPlayerHeadAimTask` is defined in `dryfield_main_street.c` as
+`static void _dryfieldMainStreetForgetPlayerHeadAimTask(s32 unusedArg)` - it clears one global and reads
+no parameter - so calling it as `_dryfieldMainStreetForgetPlayerHeadAimTask(0)` looks
 like an m2c artifact to clean up. It is not. Dropping the argument takes the
 seed from 100.000% to 93.548% on `insert=1 delete=1` alone: the target's
 `jal` delay slot is `addu $a0, $zero, $zero`, and with no argument to place GCC
