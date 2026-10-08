@@ -1874,10 +1874,10 @@ RotMatrixZXY                = 0x8004C9C8;
 //--------------------------------------------------------------------
 //--- PA: 0x3D458   VA: 0x8004CC58   subsegment: c, 3D458
 //--------------------------------------------------------------------
-Spu_InitSystem               = 0x8004CC58; // type:func
+_spuInitSystem               = 0x8004CC58; // type:func
 sndBankAllocTables               = 0x8004CE28; // type:func
-Spu_Init               = 0x8004CFC8; // type:func
-Spu_WaitDma               = 0x8004CFE8; // type:func
+spuInitSystem               = 0x8004CFC8; // type:func
+spuResetSystem               = 0x8004CFE8; // type:func
 Audio_IrqFrameWork               = 0x8004D008; // type:func
 _sndBankResetDescriptors               = 0x8004D0A0; // type:func
 sndBankFree               = 0x8004D0F0; // type:func

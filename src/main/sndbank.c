@@ -100,6 +100,13 @@ enum {
     LINEAR_INTERPOLATOR_INCREASING = 1
 };
 
+// Initialization lead-ins; every accepted mode then rebuilds playback state.
+enum {
+    SPU_INIT_HARDWARE      = 0,
+    SPU_INIT_WAIT_TRANSFER = 1,
+    SPU_INIT_PLAYBACK_ONLY = 2
+};
+
 #define SNDHEAP_SIZE 0x3D00
 
 #define SNDHEAP_START_MAGIC 0xB25A
@@ -144,7 +151,7 @@ static volatile u32 D_800680C0;
 
 void func_807257A0(Task* arg0);
 
-static void Spu_InitSystem(s32 arg0);
+static void _spuInitSystem(s32 initMode);
 
 static void _sndBankResetDescriptors(void);
 
@@ -397,17 +404,28 @@ s8                  Snd_BankSlotsByType[] = { 0, 1, 2, 3, 4, 7, 0xC, 0xD, -1, -1
 static u32          D_800680BC            = 0;
 static volatile u32 D_800680C0            = 0;
 
-/// Discards previous sound ownership and rebuilds the playback subsystems.
+/// Rebuilds sound playback ownership, silent voices and boot bank reservations.
 ///
-/// Audio updates must be held off and old sound users must have stopped.
+/// Call with audio updates held off and playback, loading and asynchronous job
+/// producers quiescent. Previous sound-heap pointers, bank bindings, voice
+/// references, event reservations and job handles expire without notification.
+/// Separately owned images must already have been released. Resets reverb to
+/// studio B with zero depth, queues all 24 voices on silence, and restores the
+/// MIDI, shared and script voice ranges. Script and sequence reservations require
+/// sufficient sound-heap storage; allocation failures are unchecked.
+/// The caller installs the reverb warmup poll; voice changes apply at the next
+/// SPU flush.
 static inline void _spuResetPlaybackSystems(void)
 {
+    // Discard old ownership before creating new sound-heap allocations.
     _sndHeapReset();
     sndEvtReset();
     asyncCbReset();
     spuInitReverb(SPU_REV_MODE_STUDIO_B);
     spuInitVoices();
     _sndBankResetDescriptors();
+
+    // Rebuild the poll list before reserving script and sequence banks.
     _audioTickReset();
     audioTickInitPlayback();
     sndScriptInitSystem(0);
@@ -426,10 +444,7 @@ static inline void _spuResetPlaybackSystems(void)
 static inline void _spuInitSystemState(s32 initMode)
 {
     enum {
-        SPU_INIT_HARDWARE      = 0,
-        SPU_INIT_WAIT_TRANSFER = 1,
-        SPU_INIT_PLAYBACK_ONLY = 2,
-        SPU_PAL_TIMER_PERIOD   = 0xFFFF
+        SPU_PAL_TIMER_PERIOD = 0xFFFF
     };
     s32* reverbWarmupUpdates;
 
@@ -482,13 +497,26 @@ static inline void _spuInitSystemState(s32 initMode)
     D_8007E0CC = 0;
 }
 
-/// Runs the initialisation with the audio frame work held off (`D_800680C0`
-/// is the flag `Audio_IrqFrameWork` tests).
-static void Spu_InitSystem(s32 arg0)
+/// Initializes the sound system while suppressing vertical-blank and PAL timer audio work.
+///
+/// `initMode` selects hardware initialization (SPU_INIT_HARDWARE), a completed
+/// DMA transfer and common-output reset (SPU_INIT_WAIT_TRANSFER), or playback
+/// rebuilding alone (SPU_INIT_PLAYBACK_ONLY). Other values leave system state
+/// intact and still release the audio-work gate. Accepted modes invalidate old
+/// playback ownership and install reverb warmup and optional PAL timer work.
+/// Callers must serialize initialization and stop playback/loading users first.
+/// The gate is zero while held and one when available; it suppresses new updates
+/// without waiting for an update already in progress.
+static void _spuInitSystem(s32 initMode)
 {
-    D_800680C0 = 0;
-    _spuInitSystemState(arg0);
-    D_800680C0 = 1;
+    enum {
+        SPU_AUDIO_WORK_HELD      = 0,
+        SPU_AUDIO_WORK_AVAILABLE = 1
+    };
+
+    D_800680C0 = SPU_AUDIO_WORK_HELD;
+    _spuInitSystemState(initMode);
+    D_800680C0 = SPU_AUDIO_WORK_AVAILABLE;
 }
 
 SndBank* sndBankAllocTables(const SndBankPayload* payload)
@@ -561,14 +589,14 @@ SndBank* sndBankAllocTables(const SndBankPayload* payload)
     return bank;
 }
 
-void Spu_Init(void)
+void spuInitSystem(void)
 {
-    Spu_InitSystem(0);
+    _spuInitSystem(SPU_INIT_HARDWARE);
 }
 
-void Spu_WaitDma(void)
+void spuResetSystem(void)
 {
-    Spu_InitSystem(1);
+    _spuInitSystem(SPU_INIT_WAIT_TRANSFER);
 }
 
 void Audio_IrqFrameWork(void)

@@ -8417,7 +8417,7 @@ volatile `_gCdAudioState` matches.
 
 `D_800680C0` is another interrupt-shared flag: the SPU timer callback
 `_spuTimerCallback` / `_spuRunTimerAudioUpdate` reads and writes it while main-line
-`Spu_InitSystem` does the same. Marking it `volatile` keeps stores out of
+`_spuInitSystem` does the same. Marking it `volatile` keeps stores out of
 `jal` delay slots (target has `nop` after `D_800680C0 = 0`).
 
 `D_8006EC30` / `D_80070E38` are the same shape for the draw path: main-line
@@ -150286,7 +150286,7 @@ attempts; left as it was.
 ### Goto removal, batch 24: a body between two volatile stores is an inline, nested switches with a silent case (2026-10-06)
 
 - **`goto end;` to a store into a `volatile` global is a `return` from an inline.**
-  `Spu_InitSystem` clears `D_800680C0`, dispatches on its argument and sets the
+  `_spuInitSystem` clears `D_800680C0`, dispatches on its argument and sets the
   flag again at `end:`. Writing `default: D_800680C0 = 1; return;` leaves a
   second store in the image (4 insns longer): cross-jumping did not merge the
   two stores to the volatile object. The body is a `static inline`

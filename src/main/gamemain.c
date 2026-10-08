@@ -166,7 +166,7 @@ static void GameMain_Init(void)
     Display_PendingFlip = 0;
     gpuClearFrameOrderingTable(0);
     gpuClearFrameOrderingTable(1);
-    Spu_WaitDma();
+    spuResetSystem();
     sndVolumeSetReducedMode(0);
     Boot_InitCdAudio();
     VSyncCallback(Display_VSyncCallback);
@@ -679,7 +679,7 @@ void GameMain(void)
     GameResetScratchHead();
     ResetCallback();
     SetVideoMode(MODE_NTSC);
-    Spu_Init();
+    spuInitSystem();
     mcInit();
     Pad_Init();
     Boot_InitCd();

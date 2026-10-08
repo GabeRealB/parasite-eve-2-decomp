@@ -81,7 +81,17 @@ extern volatile u8 D_80082136;
 
 extern void* Snd_SequenceBankBuffer;
 
-void Spu_WaitDma(void);
+/// Waits for outstanding SPU DMA, then rebuilds the resident sound system.
+///
+/// Restores common output and rebuilds playback without calling the SDK hardware
+/// initializer. Audio updates are suppressed while playback is rebuilt and
+/// reverb warmup and optional PAL timer work are registered. Call with playback,
+/// loading and asynchronous job producers quiescent; separately owned images
+/// must already be released.
+/// Old heap pointers, bank bindings, voice references, event reservations and
+/// job handles expire without notification. Boot allocations must succeed;
+/// queued silent-voice changes apply at the next SPU flush.
+void spuResetSystem(void);
 
 void Audio_IrqFrameWork(void);
 
@@ -645,7 +655,14 @@ SndBankSlot* sndBankSlotGet(s32 slotIndex);
 /// the SPU origin remain intact and require their separate cleanup.
 void sndBankSlotReleaseImage(s32 slotIndex);
 
-void Spu_Init(void);
+/// Initializes SPU hardware and the resident sound system at boot.
+///
+/// Call once before audio callbacks and playback/loading users are installed;
+/// subsequent resets use `spuResetSystem`. Restores common output, initializes
+/// playback and bank storage, and installs reverb warmup and optional PAL timer
+/// work while audio updates are suppressed. Boot allocations must succeed;
+/// queued silent-voice changes apply at the next SPU flush.
+void spuInitSystem(void);
 
 /// Services the head asynchronous job once and retires it when finished.
 ///
