@@ -234,9 +234,9 @@ void func_combustion_8012F2BC(Task* arg0)
         case 2:
             actorRenderComposeCoord(coord);
             if (mem->index < 2) {
-                spriteQuadDrawFlicker(coord, mem->age, mem->scale * 3 / 2, 0);
+                _spriteQuadDrawFlicker(coord, mem->age, mem->scale * 3 / 2, 0);
             } else {
-                spriteQuadDrawFlicker(coord, mem->age, mem->scale * 4, 0);
+                _spriteQuadDrawFlicker(coord, mem->age, mem->scale * 4, 0);
             }
             if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) || (mem->age >= 0x21)) {
                 effectKillTask(mem, arg0);

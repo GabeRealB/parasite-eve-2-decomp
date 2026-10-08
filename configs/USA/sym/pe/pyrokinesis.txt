@@ -13,5 +13,5 @@ glowDrawFlameDisc = 0x80130130; // type:func
 glowDrawFlameRing = 0x801312B4; // type:func
 _pyroFlameDrawSprite = 0x80130DC0; // type:func
 spriteQuadDraw = 0x80130848; // type:func
-jetConeDraw = 0x80131784; // type:func
+_jetConeDraw = 0x80131784; // type:func
 _pyrokinesisDrawGroundGlow = 0x801304c4; // type:func

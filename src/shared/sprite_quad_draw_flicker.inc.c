@@ -21,11 +21,47 @@
 #define SPRITE_QUAD_RESERVE_BEFORE_PROJECTION_CHECK 0
 #endif
 
-static void spriteQuadDrawFlicker(GfxCoord* coord, s16 frame, s16 size, s16 angle)
+/// Places the flicker quad's opposite corner pairs around its projected centre.
+///
+/// Borrows live scratch and packet storage. Requires a positive depth and the
+/// carrier's signed-integer SPRITE_QUAD_SCALE binding. sizeFactor controls the
+/// perspective half-diagonal; spinAngle uses 4096 units per turn. GPU corner
+/// sums retain their low 16 bits. No packet is reserved or queued here.
+static inline void _spriteQuadSetFlickerCorners(EffectShapeScratch* block, POLY_FT4* prim, s16 sizeFactor, s16 spinAngle)
+{
+    enum { SPRITE_QUAD_FLICKER_TRIG_FRACTION_BITS = 12,
+           SPRITE_QUAD_FLICKER_QUARTER_TURN       = 1024 };
+    s32 cornerAngle;
+    // Opposite corner pairs use directions a quarter turn apart.
+    cornerAngle            = spinAngle;
+    block->extent.corner.x = (((sizeFactor * SPRITE_QUAD_SCALE) / block->depth) * rsin(cornerAngle)) >> SPRITE_QUAD_FLICKER_TRIG_FRACTION_BITS;
+    block->extent.corner.y = (((sizeFactor * SPRITE_QUAD_SCALE) / block->depth) * rcos(cornerAngle)) >> SPRITE_QUAD_FLICKER_TRIG_FRACTION_BITS;
+    prim->x0               = block->screenX + (u16)block->extent.corner.x;
+    prim->x3               = block->screenX - (u16)block->extent.corner.x;
+    prim->y0               = block->screenY - (u16)block->extent.corner.y;
+    prim->y3               = block->screenY + (u16)block->extent.corner.y;
+    cornerAngle            = cornerAngle + SPRITE_QUAD_FLICKER_QUARTER_TURN;
+    block->extent.corner.x = (((sizeFactor * SPRITE_QUAD_SCALE) / block->depth) * rsin(cornerAngle)) >> SPRITE_QUAD_FLICKER_TRIG_FRACTION_BITS;
+    block->extent.corner.y = (((sizeFactor * SPRITE_QUAD_SCALE) / block->depth) * rcos(cornerAngle)) >> SPRITE_QUAD_FLICKER_TRIG_FRACTION_BITS;
+    prim->x1               = block->screenX + (u16)block->extent.corner.x;
+    prim->x2               = block->screenX - (u16)block->extent.corner.x;
+    prim->y1               = block->screenY - (u16)block->extent.corner.y;
+    prim->y2               = block->screenY + (u16)block->extent.corner.y;
+}
+
+/// Draws a spinning billboard alternating the carrier's two flame looks.
+///
+/// Borrows the coordinate's already-composed translation in GsWSMATRIX input
+/// space, narrowed to s16 for projection. frame parity selects the look;
+/// sizeFactor * SPRITE_QUAD_SCALE / (SZ3/4+1) is the pixel half-diagonal.
+/// spinAngle uses 4096 units per turn. Rejected projections draw nothing;
+/// the reservation binding decides whether they still consume a packet.
+/// Accepted quads sort one depth unit behind the centre. Borrows scratch for
+/// this call and requires room for one FT4 in the frame's live packet arena.
+static void _spriteQuadDrawFlicker(const GfxCoord* coord, s16 frame, s16 sizeFactor, s16 spinAngle)
 {
     EffectShapeScratch* block;
     POLY_FT4*           prim;
-    s32                 ang;
 
     block                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
     block->worldPoint.vx = coord->workm.t[0];
@@ -57,20 +93,7 @@ static void spriteQuadDrawFlicker(GfxCoord* coord, s16 frame, s16 size, s16 angl
         } else {
             SPRITE_QUAD_EVEN_LOOK(prim);
         }
-        ang                    = angle;
-        block->extent.corner.x = (((size * SPRITE_QUAD_SCALE) / block->depth) * rsin(ang)) >> 12;
-        block->extent.corner.y = (((size * SPRITE_QUAD_SCALE) / block->depth) * rcos(ang)) >> 12;
-        prim->x0               = block->screenX + (u16)block->extent.corner.x;
-        prim->x3               = block->screenX - (u16)block->extent.corner.x;
-        prim->y0               = block->screenY - (u16)block->extent.corner.y;
-        prim->y3               = block->screenY + (u16)block->extent.corner.y;
-        ang                    = ang + 0x400;
-        block->extent.corner.x = (((size * SPRITE_QUAD_SCALE) / block->depth) * rsin(ang)) >> 12;
-        block->extent.corner.y = (((size * SPRITE_QUAD_SCALE) / block->depth) * rcos(ang)) >> 12;
-        prim->x1               = block->screenX + (u16)block->extent.corner.x;
-        prim->x2               = block->screenX - (u16)block->extent.corner.x;
-        prim->y1               = block->screenY - (u16)block->extent.corner.y;
-        prim->y2               = block->screenY + (u16)block->extent.corner.y;
+        _spriteQuadSetFlickerCorners(block, prim, sizeFactor, spinAngle);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }

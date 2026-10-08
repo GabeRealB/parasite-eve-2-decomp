@@ -1,6 +1,6 @@
 /* Part of the roaming enemies library; see roaming_enemies.h. */
 
-/// Per-frame state after `roamerArmPoolA`: counts the
+/// Per-frame state after `_roamerArmPoolA`: counts the
 /// countdown down, releases a pending `gSceneCombatState` reference, and once that
 /// reference has dropped folds the still-pending spawn slots back into game
 /// flags 0x168 and 0x10C. On a placement request it hands the first pending

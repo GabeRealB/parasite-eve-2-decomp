@@ -11,7 +11,7 @@ void madChaserWavePairRevealSecond(Task* arg0)
     ActorCommand              msg;
 
     enemy = work->enemy1;
-    madChaserWavePairDropDead(arg0);
+    _overlayEncounterForgetDeadPairMembers(arg0);
     if (work->enemy1 != NULL) {
         if (++work->frames <= 60) {
             return;

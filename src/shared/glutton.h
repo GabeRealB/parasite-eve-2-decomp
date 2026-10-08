@@ -425,19 +425,4 @@ static void _gluttonThrowTask(Task* task);
 void        gluttonPropTask(Task* arg0);
 void        gluttonSetShakeLevel(s8 arg0);
 
-/// Gives the escort the texture page and palette of the current area's
-/// third placement, and refreshes its existing model stream.
-static __inline__ void gluttonTintEscort(TmdObject* model)
-{
-    AreaPlacement* entry;
-
-    entry                    = &(_areaGetCurrentVariant()->placements)[2];
-    model->texturePageOffset = entry->texturePageOffset;
-    model->clutRowOffset     = entry->clutRowOffset;
-    if (model->buffer != NULL) {
-        tmdBuildBufferHalf(model);
-        tmdBuildBufferHalf(model);
-    }
-}
-
 #endif /* SRC_SHARED_GLUTTON_H */

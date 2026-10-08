@@ -255,8 +255,8 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             spriteQuadDraw(coord, mem->age, mem->angle, mem->period);
             glowDrawFlameDisc(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
             if (arg0->spawnArg1.value != 0) {
-                jetConeDraw(coord, mem->age, mem->angle, 0);
-                jetConeDraw(coord, mem->age, mem->angle, 1);
+                _jetConeDraw(coord, mem->age, mem->angle, 0);
+                _jetConeDraw(coord, mem->age, mem->angle, 1);
             }
             if (mem->age < 0x1E) {
                 spawned = effectSpawn(EFFECT_PYROKINESIS_FLAME_PUFF, coord, 0, NULL);

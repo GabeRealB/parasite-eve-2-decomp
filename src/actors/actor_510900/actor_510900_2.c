@@ -56,6 +56,8 @@
 #include "../../shared/actor_messages.h"
 #include "../../shared/no9_golem.h"
 
+static void _no9GolemDrawShadow(const Task* task);
+
 /// Body animation slots selected by the handlers below.
 ///
 /// Event requests use their request index plus 0x1B. Slots 0x1C and 0x1D
@@ -3881,7 +3883,7 @@ static void func_actor_510900_8013B6A0(Enemy* arg0, Task* arg1)
                 arg0->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
                 break;
             case SCENE_COMBAT_ACTORS_PAUSED:
-                no9GolemDrawShadow(arg1);
+                _no9GolemDrawShadow(arg1);
                 actor510900UpdateLighting(arg1, temp_s1);
                 return;
             case SCENE_COMBAT_ACTORS_HIDDEN:
@@ -3906,7 +3908,7 @@ static void func_actor_510900_8013B6A0(Enemy* arg0, Task* arg1)
         temp_s1->composeStamp                   = GRAPHICS_COORD_DIRTY;
         arg1->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(temp_s1);
-        no9GolemDrawShadow(arg1);
+        _no9GolemDrawShadow(arg1);
         actor510900UpdateLighting(arg1, temp_s1);
         _actor510900UpdateGridFaces(arg1);
         func_actor_510900_8013BC80(arg1);

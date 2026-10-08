@@ -498,10 +498,10 @@ void func_hypervelocity_8011D830(Task* task)
             rgb[2]   = work->scale >> 1;
             spriteQuadDraw(coord, work->age, work->angle, work->period);
             effectDrawGouraudDisc(coord, work->angle, rgb);
-            jetConeDraw(coord, work->age, work->angle, 0);
-            jetConeDraw(coord, work->age, work->angle, 1);
+            _jetConeDraw(coord, work->age, work->angle, 0);
+            _jetConeDraw(coord, work->age, work->angle, 1);
             if (gRoomEffectState->groundTraceEnabled != 0 && worldCollisionProjectGroundCoord(coord, &ground) == 1) {
-                groundGlowDraw(&ground, work->angle);
+                _groundGlowDraw(&ground, work->angle);
             }
             if (work->age < 0x15) {
                 effectSpawn(EFFECT_FLASH_BURST, coord, 0x400, NULL);

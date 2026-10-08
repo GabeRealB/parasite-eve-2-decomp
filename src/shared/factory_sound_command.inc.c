@@ -1,16 +1,18 @@
 /* Part of the factory lift library; see factory_lift.h. */
 
-/// Message handler: command 7 plays sound 0x52170007, and command 21 plays
-/// 0x52170015 and sets game flag 0x4A to 2.
-s32 factorySoundCommand(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 factorySoundCommand(Task* task, s32 messageId, s32 soundCue, s32 secondArg)
 {
-    switch (arg2) {
-        case 7:
-            sndEvtRequestStageScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 7), 0, 0);
+    enum { FACTORY_SOUND_CUE_7                    = 7,
+           FACTORY_SOUND_CUE_LAMP_SECOND_POSITION = 21,
+           FACTORY_SOUND_LAMP_SECOND_POSITION     = 2 };
+
+    switch (soundCue) {
+        case FACTORY_SOUND_CUE_7:
+            sndEvtRequestStageScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, FACTORY_SOUND_CUE_7), 0, 0);
             break;
-        case 21:
-            sndEvtRequestStageScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 0x15), 0, 0);
-            gameFlagSetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS, 2);
+        case FACTORY_SOUND_CUE_LAMP_SECOND_POSITION:
+            sndEvtRequestStageScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, FACTORY_SOUND_CUE_LAMP_SECOND_POSITION), 0, 0);
+            gameFlagSetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS, FACTORY_SOUND_LAMP_SECOND_POSITION);
             break;
     }
     return 0;

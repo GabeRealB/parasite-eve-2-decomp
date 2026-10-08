@@ -86933,14 +86933,14 @@ pass.
 `base.c` was off by one argument before that - the handler takes four
 (`index`/`$a0` unused) and the m2c seed had dropped the leading one, which alone
 cost `regs=3` and shifted every `move sN,aN`.
-## m2c's lone parameter lands in `$a0` even when the body reads `$a2` (func_dryfield_night_factory_80180914, 2026-09-15)
+## m2c's lone parameter lands in `$a0` even when the body reads `$a2` (factorySoundCommand, 2026-09-15)
 
 A room message handler whose subject is the *third* argument decompiles to a
 single-parameter function: m2c names it `arg2` because the body reads `$a2`,
 then declares it alone.
 
 ```c
-s32 func_dryfield_night_factory_80180914(s32 arg2) {   /* m2c */
+s32 factorySoundCommand(s32 arg2) {   /* m2c */
     switch (arg2) { case 7: ... case 21: ... }
 }
 ```
@@ -86967,7 +86967,7 @@ for the list. General rule: when m2c names a parameter `argN` with N > 0 but
 declares it alone, pad the list to N+1 before changing anything else; `regs=N`
 with a matching structure and no competing home for the value is the signature.
 
-## `promote` needs the stale `nonmatchings/*.s` removed first (func_dryfield_night_factory_80180914, 2026-09-15)
+## `promote` needs the stale `nonmatchings/*.s` removed first (factorySoundCommand, 2026-09-15)
 
 After integrating a matched body and running the scoped build
 (`./tools/build-and-verify.sh --only rooms`), the overlay's
@@ -86978,9 +86978,9 @@ carries the body twice, once `todo` and once `matched`:
 
 ```
 same body: 3 copies   identical bytes: 2
-  ~ USA/rooms/dryfield_factory         func_dryfield_factory_8017DEA8
-  = USA/rooms/dryfield_night_factory   func_dryfield_night_factory_80180914
-  = USA/rooms/dryfield_night_factory   func_dryfield_night_factory_80180914 matched
+  ~ USA/rooms/dryfield_factory         factorySoundCommand
+  = USA/rooms/dryfield_night_factory   factorySoundCommand
+  = USA/rooms/dryfield_night_factory   factorySoundCommand matched
 ```
 
 `cmd_promote` counts copies per **overlay** (`twice = {u for u, n in

@@ -1,10 +1,10 @@
 /* Part of the Sucklerceph library; see sucklerceph.h. */
 
-/// Restores an unscaled root and multiplies a Q12 Y scale into its rotation.
+/// Rebuilds the root from its saved pose and applies an additional Q12 Y scale.
 ///
 /// The caller supplies live root, work and scratch storage. Translation is
 /// restored from `savedRootMtx`; the caller then invalidates composition.
-static __inline__ void _sucklercephRescaleRoot(GfxCoord* rootCoord, SucklercephWork* work, ActorScaleScratch* scratch)
+static __inline__ void _sucklercephRescaleRoot(GfxCoord* rootCoord, const SucklercephWork* work, ActorScaleScratch* scratch)
 {
     scratch->scale.vx = ONE;
     scratch->scale.vy = work->flattenScaleY;

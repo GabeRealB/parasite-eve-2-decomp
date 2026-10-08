@@ -1,5 +1,24 @@
 /* Part of the Glutton library; see glutton.h. */
 
+/// Applies the current area's escort texture offsets to a live model.
+///
+/// Requires at least three placements in the current variant. Placement row 2
+/// supplies the page and CLUT-row offsets. An existing primitive buffer has
+/// both halves rebuilt; this does not allocate a buffer or take ownership.
+static __inline__ void _gluttonApplyEscortTextureOffsets(TmdObject* model)
+{
+    enum { GLUTTON_ESCORT_PLACEMENT_INDEX = 2 };
+    const AreaPlacement* placement;
+
+    placement                = &(_areaGetCurrentVariant()->placements)[GLUTTON_ESCORT_PLACEMENT_INDEX];
+    model->texturePageOffset = placement->texturePageOffset;
+    model->clutRowOffset     = placement->clutRowOffset;
+    if (model->buffer != NULL) {
+        tmdBuildBufferHalf(model);
+        tmdBuildBufferHalf(model);
+    }
+}
+
 void gluttonEscortState(Task* arg0)
 {
     GluttonWork* work;
@@ -102,7 +121,7 @@ void gluttonEscortState(Task* arg0)
             spawned->workType = ENEMY_WORK_PLAIN;
             work->lastSpawned = spawned;
             if (spawned != NULL) {
-                gluttonTintEscort(spawned->task->extra.tmd);
+                _gluttonApplyEscortTextureOffsets(spawned->task->extra.tmd);
                 work->neckPitchTarget = 0;
             }
             break;

@@ -7,7 +7,7 @@
 /// Requires the task's live work, enemy and root coordinate and a loaded sound
 /// bank. Each request draws the next delay from 80..179 frames and uses the
 /// enemy's placement index as its sound instance tag; request failure is ignored.
-static __inline__ void _sucklercephTickIdleSound(Task* task, GfxCoord* rootCoord, SucklercephWork* work)
+static __inline__ void _sucklercephTickIdleSound(const Task* task, const GfxCoord* rootCoord, SucklercephWork* work)
 {
     enum {
         SUCKLERCEPH_IDLE_SOUND_MIN_FRAMES    = 80,
@@ -19,22 +19,32 @@ static __inline__ void _sucklercephTickIdleSound(Task* task, GfxCoord* rootCoord
     s32    soundId;
     u32    randomState;
     Enemy* enemy;
+    /// Requests the chosen idle script at the enemy's current audio position.
+    ///
+    /// Block statement macro capturing task, rootCoord, enemy and soundId.
+    /// Requires stable live pointers and SUCKLERCEPH_SOUND_INSTANCE_SHIFT.
+    /// Evaluates baseSoundId once; narrows pan/depth to s8 and ignores the
+    /// request result. Undefined after this function.
+#define SUCKLERCEPH_REQUEST_IDLE_SOUND(baseSoundId)                                                                                  \
+    {                                                                                                                                \
+        enemy   = task->spawnArg2.pointer;                                                                                           \
+        soundId = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << SUCKLERCEPH_SOUND_INSTANCE_SHIFT) | (baseSoundId);                \
+        sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord)); \
+    }
     work->idleSoundFrames--;
     if (work->idleSoundFrames <= 0) {
         randomState           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         gRandomLcgState       = randomState;
         work->idleSoundFrames = (randomState >> 16) % SUCKLERCEPH_IDLE_SOUND_FRAME_CHOICES + SUCKLERCEPH_IDLE_SOUND_MIN_FRAMES;
         if (work->variant != 0) {
-            enemy   = task->spawnArg2.pointer;
-            soundId = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << SUCKLERCEPH_SOUND_INSTANCE_SHIFT) | SUCKLERCEPH_VARIANT_IDLE_SOUND;
-            sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord));
+            SUCKLERCEPH_REQUEST_IDLE_SOUND(SUCKLERCEPH_VARIANT_IDLE_SOUND);
         } else {
-            enemy   = task->spawnArg2.pointer;
-            soundId = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << SUCKLERCEPH_SOUND_INSTANCE_SHIFT) | SUCKLERCEPH_IDLE_SOUND;
-            sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord));
+            SUCKLERCEPH_REQUEST_IDLE_SOUND(SUCKLERCEPH_IDLE_SOUND);
         }
     }
 }
+
+#undef SUCKLERCEPH_REQUEST_IDLE_SOUND
 
 /// Rocks an idle Sucklerceph until player contact or damage requests waking.
 ///

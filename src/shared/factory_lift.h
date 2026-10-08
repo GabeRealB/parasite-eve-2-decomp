@@ -304,7 +304,13 @@ void factoryRoomInit(Task* arg0);
 s32  factoryResolveWarp(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
 void factoryPanelSpawn(Task* task);
 s32  factoryCommand(Task* arg0, s32 arg1, s32 cmd, s32 arg3);
-s32  factorySoundCommand(Task* task, s32 msgId, s32 arg2, s32 arg3);
+/// Handles factory sound cues delivered by `ROOM_MESSAGE_SOUND`.
+///
+/// `soundCue` is the first integer payload: 7 starts factory script 7; 21
+/// starts script 21 and records the lamp's second position. Other cues do
+/// nothing. Uses the current stage's sound bank with centred pan/depth;
+/// the receiver, message ID and second payload are ignored. Always returns 0.
+s32  factorySoundCommand(Task* task, s32 messageId, s32 soundCue, s32 secondArg);
 s32  factoryRoomAction(Task* task, s32 msgId, const void* firstArg, s32 arg3);
 void factoryPanelRunStep(Task* task, s16 step);
 void factoryPanelInit(Task* task);
@@ -321,10 +327,12 @@ void factoryLiftRun(Task* task);
 /// this wrapper does not interpret its movement-handler completion result.
 void factoryHatchRun(Task* task);
 void factoryCapScene(Task* arg0);
-s32  factoryIgnoreMessage(Task* task, s32 msgId, s32 arg2, s32 arg3);
+/// Refuses the factory room's `ROOM_MESSAGE_USE_KEY_ITEM` requests.
+///
+/// Ignores all arguments and returns `ROOM_KEY_ITEM_USE_REFUSED`; no item or
+/// room state changes and no payload pointer is retained.
+s32  factoryIgnoreMessage(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
 void factoryPanelRun(Task* task);
-void factoryPromptTask(Task* task);
-void factoryPanelTrigger(Task* task, s32, s32, s32);
 
 static s32 _factoryHatchOpen(Task* task);
 static s32 _factoryHatchClose(Task* task);

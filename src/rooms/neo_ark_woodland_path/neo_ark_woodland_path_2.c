@@ -48,6 +48,7 @@
 #include "../../shared/roaming_enemies.h"
 
 static void _roamerArmPoolB(Task* task);
+static void _roamerArmPoolA(Task* task);
 
 static s32  _roamerAmbushMsg(Task* task, s32 messageId, struct ActorCommand* msg, s32 unusedArg);
 static void _roamerBankRetreat(Task* task, s32 messageId, s32 hp, s32 unusedArg);
@@ -359,6 +360,8 @@ void neoArkWoodlandPathWaterDriftTaskU16(Task* task)
 
 #include "../../shared/roaming_enemies_bank_retreat.inc.c"
 
+#include "../../shared/roaming_enemies_seed_reserve_hp.inc.c"
+
 #include "../../shared/roaming_enemies_arm_pool_a.inc.c"
 
 #include "../../shared/roaming_enemies_tick_pool_a.inc.c"
@@ -366,7 +369,7 @@ void neoArkWoodlandPathWaterDriftTaskU16(Task* task)
 /// State handlers of the first arming sequence's entry task
 /// `func_neo_ark_woodland_path_801814E8`: arm, run, advance, then kill.
 static const TaskFuncTable4 D_neo_ark_woodland_path_8017D638 = {
-    { roamerArmPoolA, roamerTickPoolA,
+    { _roamerArmPoolA, roamerTickPoolA,
       _neoArkWoodlandPathAdvanceRoamerPoolAState, taskKill }
 };
 

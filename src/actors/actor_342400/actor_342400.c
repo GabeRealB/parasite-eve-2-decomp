@@ -72,6 +72,7 @@ static void _actor342400WaveWatchSlouch(Task* waveTask);
 static void _actor342400WaveBeginPairReveal(Task* waveTask);
 
 static void _actor342400WaveControllerTask(Task* controllerTask);
+static void _overlayEncounterForgetDeadPairMembers(Task* task);
 static void _actor342400WaveCullPair(Task* waveTask);
 static void _actor342400WaveStopMessage(Task* controllerTask, s32 messageId, const ActorCommand* request, s32 unusedSecondArg);
 

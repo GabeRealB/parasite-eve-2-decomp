@@ -23,7 +23,6 @@ void madChaserWaveRevealSecond(Task* arg0);
 void madChaserWavePairRevealFirst(Task* arg0);
 void madChaserWavePairRevealSecond(Task* arg0);
 void madChaserWavePairWatch(Task* arg0);
-void madChaserWavePairDropDead(Task* arg0);
 
 /* Defined by each package. */
 void madChaserWaveSpawnSlot(s16 arg0, s16 arg1, s16 arg2);

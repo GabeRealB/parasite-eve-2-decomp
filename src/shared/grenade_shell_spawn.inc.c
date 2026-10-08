@@ -1,10 +1,13 @@
 /* Part of the grenade shell library; see grenade_shell.h. */
 
-/// Links the flight's attack sphere and grid-probing capsule to the projectile.
+/// Arms the flight clock and links the projectile's attack and grid-probe bodies.
 ///
 /// Borrows live task/work/root storage. The initial positive flight divisor
 /// is in whole units and is stored as Q16.16. Contact arrays belong to work
 /// and remain linked until the shell's exit callback unlinks the bodies.
+/// The capsule's initial far end is -64 times that divisor in local Z units;
+/// its later reach is updated by flight. Both contact arrays are initialized
+/// at their complete one-element extents.
 static inline void _grenadeShellLinkFlightBodies(Task* task, WeaponGrenadeWork* work,
                                                  GfxCoord* rootCoord, s32 initialFlightDivisor)
 {

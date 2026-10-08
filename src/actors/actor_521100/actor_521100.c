@@ -53,6 +53,8 @@
 #include "../../shared/actor_messages.h"
 #include "../../shared/no9_golem.h"
 
+static void _no9GolemDrawShadow(const Task* task);
+
 /// Native clips used by the fight's movement and hit reactions.
 enum {
     ACTOR_521100_ANIM_IDLE        = 1,
@@ -3328,7 +3330,7 @@ static void func_actor_521100_80135414(Enemy* arg0, Task* arg1)
     arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     _actor521100TickAnimation(arg1);
     _actor521100UpdateLighting(arg1);
-    no9GolemDrawShadow(arg1);
+    _no9GolemDrawShadow(arg1);
     if (temp_s0->eventBurnStage != 0) {
         _actor521100TickEventFire(arg1);
     }
@@ -3350,7 +3352,7 @@ static void func_actor_521100_80135478(Enemy* arg0, Task* arg1)
     switch (state) {
         case 1:
             _actor521100UpdateLighting(arg1);
-            no9GolemDrawShadow(arg1);
+            _no9GolemDrawShadow(arg1);
             return;
         case 0:
             temp_a1->flags                        = 0;
@@ -3381,7 +3383,7 @@ static void func_actor_521100_80135478(Enemy* arg0, Task* arg1)
     arg1->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(temp_s2);
     _actor521100UpdateLighting(arg1);
-    no9GolemDrawShadow(arg1);
+    _no9GolemDrawShadow(arg1);
 }
 
 static void func_actor_521100_801355C8(Task* arg0)

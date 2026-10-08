@@ -212,6 +212,6 @@ static void spriteQuadDraw(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_FR
     (p)->clut  = 0x428C;        \
     setUV4(p, 0xA8, 0xC8, 0xDF, 0xC8, 0xA8, 0xFF, 0xDF, 0xFF)
 
-static void spriteQuadDrawFlicker(GfxCoord* coord, s16 frame, s16 size, s16 angle);
+static void _spriteQuadDrawFlicker(const GfxCoord* coord, s16 frame, s16 sizeFactor, s16 spinAngle);
 
 #endif /* SRC_SHARED_SPRITE_QUAD_H */

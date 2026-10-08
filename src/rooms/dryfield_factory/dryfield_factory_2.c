@@ -67,7 +67,7 @@ static void _factoryPanelWaitMove(Task* task);
 /// State handlers of the room's script task, run by
 /// `factoryPanelRun`: set-up, prompt arming, the idle hotspot
 /// scan, prompt spawning, the prompt state, the exit and the wait for the
-/// message handler's trigger.
+/// lift movement to settle.
 static const TaskFuncTable7 _gFactoryPanelStates = {
     {
         factoryPanelInit,
@@ -82,9 +82,9 @@ static const TaskFuncTable7 _gFactoryPanelStates = {
 
 static void _actionPromptResetDefault(Task* task);
 
-void factoryPanelRun(Task*);
-void factoryPromptTask(Task*);
-void factoryPanelTrigger(Task*, s32, s32, s32);
+void        factoryPanelRun(Task*);
+static void _factoryPromptTask(Task* task);
+static void _factoryPanelMarkMoveSettled(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -95,7 +95,7 @@ TaskDesc gFactoryPanelSessionDesc[2] = {
 
 TaskMessageEntry gFactoryMsgTable[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, factoryResolveWarp },
-    { 5105, factoryIgnoreMessage },
+    { ROOM_MESSAGE_USE_KEY_ITEM, factoryIgnoreMessage },
     { ROOM_MESSAGE_COMMAND, factoryCommand },
     { ROOM_MESSAGE_SOUND, factorySoundCommand },
     { DIRECTION_MESSAGE_ROOM_ACTION, factoryRoomAction },
@@ -250,7 +250,7 @@ TaskDesc gFactoryDaySpawnTable[8] = {
 };
 
 TaskDesc gFactoryPromptDesc[1] = {
-    { { { TASK_BODY_NONE, 192 } }, factoryPromptTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _factoryPromptTask, { .value = 0 } },
 };
 
 TaskDesc gFactoryDayPanelDesc[1] = {
@@ -258,7 +258,7 @@ TaskDesc gFactoryDayPanelDesc[1] = {
 };
 
 TaskMessageEntry gFactoryPanelMsgTable[2] = {
-    { FACTORY_PANEL_MESSAGE_MOVE_SETTLED, factoryPanelTrigger },
+    { FACTORY_PANEL_MESSAGE_MOVE_SETTLED, _factoryPanelMarkMoveSettled },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

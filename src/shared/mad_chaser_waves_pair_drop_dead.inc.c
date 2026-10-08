@@ -1,10 +1,14 @@
 /* Part of the Mad Chaser waves library; see mad_chaser_waves.h. */
 
-/// Forgets each pair member whose HP is gone and sets its bit in goneMask once
-/// it is empty.
-void madChaserWavePairDropDead(Task* arg0)
+/// Forgets dead encounter-pair enemies and marks their slots gone on the next check.
+///
+/// Requires live pair work and borrowed enemies. HP at or below zero clears
+/// each non-NULL pointer; a pointer already NULL sets its goneMask bit.
+/// Clearing and marking occur on successive calls. Enemy tasks remain owned
+/// by the actor system; this check neither destroys them nor reads workType.
+static void _overlayEncounterForgetDeadPairMembers(Task* task)
 {
-    OverlayEncounterPairWork* work = arg0->work;
+    OverlayEncounterPairWork* work = task->work;
 
     if (work->enemy0 != NULL) {
         if (work->enemy0->hp <= 0) {

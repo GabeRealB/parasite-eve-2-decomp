@@ -4287,7 +4287,7 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
             pointLight->head.transform.coord.coord.t[2]        = coord->coord.t[2];
             lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
             i                                                  = 0;
-            spriteQuadDrawFlicker(coord, work->age, work->angle, work->period);
+            _spriteQuadDrawFlicker(coord, work->age, work->angle, work->period);
             glowDrawFlameDisc(coord, work->angle, work->scale >> 1);
             work->angle = 0x380;
             do {
@@ -4307,7 +4307,7 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
                 }
                 return;
             }
-            spriteQuadDrawFlicker(coord, tick1, work->angle, work->period);
+            _spriteQuadDrawFlicker(coord, tick1, work->angle, work->period);
             glowDrawFlameDisc(coord, work->angle, work->scale >> 1);
             glowDrawFlameDisc(coord, (u16)work->angle * 2, work->scale >> 1);
             work->angle += 0x40;

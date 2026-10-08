@@ -41,10 +41,6 @@ s32 func_dryfield_factory_8017DB08(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 void func_dryfield_factory_8017DD00(Task*);
 
-s32 factoryIgnoreMessage(Task*, s32, s32, s32);
-
-s32 func_dryfield_factory_8017DEA8(Task*, s32, s32, s32);
-
 void func_dryfield_factory_8017FC18(Task*);
 
 void func_dryfield_factory_8017FDDC(Task*);

@@ -723,6 +723,28 @@ the M.I.S.T. shooting-gallery tracer. Its interface is `src/shared/beam_strip.h`
 each carrier's drawer is static. `BEAM_STRIP_` constants describe the four-cell
 texture layout and perspective sizing.
 
+`groundGlow` owns the included two-frame floor quad used by Energy Ball and
+Hypervelocity. Its private interface is `src/shared/ground_glow.h`; each
+carrier keeps a static drawer. It rotates world-ground axes into the composed
+centre's view frame before projection. Constants and carrier tint/palette
+bindings use `GROUND_GLOW_`.
+
+`jetCone` owns the included sixteen-segment textured jet shared by Pyrokinesis
+and Hypervelocity. Its private interface is `src/shared/jet_cone.h`; each
+carrier keeps a static drawer and supplies its rim radii, palette and frame
+offsets through `JET_CONE_` bindings. Both tail-growth modes share the same
+local XY rings and negative-Z axis.
+
+`no9Golem` owns the included No. 9 GOLEM head and shadow routines shared by
+actor_510900 and actor_521100. Its interface is `src/shared/no9_golem.h`;
+carrier-local shadow drawers are static. Shadow constants use `NO9_GOLEM_`.
+
+`overlayEncounter` owns the included scripted encounter bookkeeping in
+`src/shared/mad_chaser_waves.h`, shared with the encounter records in
+`include/overlay.h`. Pair bookkeeping borrows enemy pointers and records
+completion without owning their tasks. Carrier-local helpers keep static
+linkage; encounter constants use `OVERLAY_ENCOUNTER_`.
+
 `modelMorph` owns the included deformation of a TMD model by a ramp: scaled
 vertex deltas added to a snapshot of the rest shape, and normals interpolated
 toward a target set. Its interface is `src/shared/model_morph.h`. The record

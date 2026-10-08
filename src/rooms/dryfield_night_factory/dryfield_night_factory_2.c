@@ -77,10 +77,9 @@ extern TaskDesc gRoomEventTaskDesc;
 
 /// The world-space points the room's three glow discs are drawn at.
 
-s32  factoryIgnoreMessage(Task*, s32, s32, s32);
-void factoryPanelRun(Task*);
-void factoryPromptTask(Task*);
-void factoryPanelTrigger(Task*, s32, s32, s32);
+void        factoryPanelRun(Task*);
+static void _factoryPromptTask(Task* task);
+static void _factoryPanelMarkMoveSettled(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
 
 static WorldCollisionGridFace _gDryfieldNightFactoryCollision0A630Faces[72];
 static SVECTOR                _gDryfieldNightFactoryCollision0A630Normals[28];
@@ -243,7 +242,7 @@ TaskDesc gFactoryPanelSessionDesc[2] = {
 
 TaskMessageEntry gFactoryMsgTable[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, factoryResolveWarp },
-    { 5105, factoryIgnoreMessage },
+    { ROOM_MESSAGE_USE_KEY_ITEM, factoryIgnoreMessage },
     { ROOM_MESSAGE_COMMAND, factoryCommand },
     { ROOM_MESSAGE_SOUND, factorySoundCommand },
     { DIRECTION_MESSAGE_ROOM_ACTION, factoryRoomAction },
@@ -251,7 +250,7 @@ TaskMessageEntry gFactoryMsgTable[6] = {
 };
 
 TaskDesc gFactoryPromptDesc[1] = {
-    { { { TASK_BODY_NONE, 192 } }, factoryPromptTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _factoryPromptTask, { .value = 0 } },
 };
 
 TaskDesc gFactoryNightPanelDesc[1] = {
@@ -259,7 +258,7 @@ TaskDesc gFactoryNightPanelDesc[1] = {
 };
 
 TaskMessageEntry gFactoryPanelMsgTable[2] = {
-    { FACTORY_PANEL_MESSAGE_MOVE_SETTLED, factoryPanelTrigger },
+    { FACTORY_PANEL_MESSAGE_MOVE_SETTLED, _factoryPanelMarkMoveSettled },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

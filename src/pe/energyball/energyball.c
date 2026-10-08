@@ -214,11 +214,11 @@ void func_energyball_8012F180(Task* arg0)
             return;
         }
         actorRenderComposeCoord(coord);
-        spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
+        _spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
         _energyballDrawGlowDisc(coord, mem->angle, mem->scale >> 2);
         if ((arg0->state < 3) && (gRoomEffectState->groundTraceEnabled != 0) &&
             (worldCollisionProjectGroundCoord(coord, &ground) == 1)) {
-            groundGlowDraw(&ground, mem->angle);
+            _groundGlowDraw(&ground, mem->angle);
         }
         return;
     }
@@ -294,10 +294,10 @@ void func_energyball_8012F180(Task* arg0)
             lightCoord->coord.t[1]   = coord->coord.t[1];
             lightCoord->coord.t[2]   = coord->coord.t[2];
             lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-            spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
+            _spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
             _energyballDrawGlowDisc(coord, mem->angle, mem->scale >> 2);
             if ((gRoomEffectState->groundTraceEnabled != 0) && (worldCollisionProjectGroundCoord(coord, &ground) == 1)) {
-                groundGlowDraw(&ground, mem->angle);
+                _groundGlowDraw(&ground, mem->angle);
             }
             coord->workm.t[1] += D_energyball_80131194[mem->index].sizeStep * mem->age;
             func_energyball_80130B54(coord, mem->angle,
@@ -361,11 +361,11 @@ void func_energyball_8012F180(Task* arg0)
             lightCoord->coord.t[1]   = coord->coord.t[1];
             lightCoord->coord.t[2]   = coord->coord.t[2];
             lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-            spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
+            _spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
             _energyballDrawGlowDisc(coord, mem->angle, mem->scale >> 2);
             if (gRoomEffectState->groundTraceEnabled != 0) {
                 if (worldCollisionProjectGroundCoord(coord, &ground) == 1) {
-                    groundGlowDraw(&ground, mem->angle);
+                    _groundGlowDraw(&ground, mem->angle);
                 }
             }
             if ((u16)(Gp_StateC08.attachId / 10) != ATTACHMENT_ID_ENERGY_BALL_FAMILY) {
@@ -410,7 +410,7 @@ void func_energyball_8012F180(Task* arg0)
             return;
         case 3:
             actorRenderComposeCoord(coord);
-            spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
+            _spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
             _energyballDrawGlowDisc(coord, mem->angle, mem->scale >> 2);
             _energyballDrawGlowDisc(coord, (u16)mem->angle * 2, mem->scale >> 2);
             mem->angle = mem->angle + D_energyball_80131194[mem->index].sizeStep;
@@ -438,7 +438,7 @@ void func_energyball_8012F180(Task* arg0)
             return;
         case 4:
             actorRenderComposeCoord(coord);
-            spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
+            _spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
             _energyballDrawGlowDisc(coord, mem->angle, mem->scale >> 2);
             _energyballDrawGlowDisc(coord, (u16)mem->angle * 2, mem->scale >> 2);
             mem->angle = mem->angle - D_energyball_80131194[mem->index].sizeStep;
