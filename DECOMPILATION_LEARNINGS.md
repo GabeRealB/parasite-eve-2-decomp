@@ -83057,7 +83057,7 @@ Preprocessed SHA256:
 - `base_1.i`: `7ee6d80151e9298b342d90ec7901aef411e3d819d603d5ef10a208ca23605832`
 - `base_2.i`: `c0cd0ef648cc301fc0fa1070517b6a39707f418b5a8be91b88e4724a73559d5e`
 
-The signal needs no switch. `func_actor_205200_8014B94C` scores 99.909% off m2c
+The signal needs no switch. `_actor205200RequestControllerStopMsg` scores 99.909% off m2c
 with every instruction matching but one: the payload load reads
 `lhu $v0, 0x2($a1)` where the target has `$a2`, so the missing parameter is in
 the *middle*, not leading. The function is a 0x7DB message handler sitting in
@@ -98477,7 +98477,7 @@ builds; `base_1.i` `a2e617f0005a127770fcc745c691b326b56335166a44e96a3d4ee165f4f5
 It landed as `ActorsShared80134990` in `src/actors/lib/`, shared by all three of
 `actor_101500` / `actor_201500` / `actor_301500`.
 
-## Two-sided clamp as two `if`s: the bound test is emitted twice, and one test hoisted into the first body folds away (func_actor_205200_8014B914, 2026-09-16)
+## Two-sided clamp as two `if`s: the bound test is emitted twice, and one test hoisted into the first body folds away (_actor205200GetDistanceAttenuation, 2026-09-16)
 
 ```c
 s32 f(s32 a)
@@ -98514,10 +98514,10 @@ a `condition_register` on `$v1` instead of `$v0`. Rewriting it as the two
 sequential `if`s above is the whole fix. Worth trying directly whenever a clamp
 seed shows a `move` from `$zero`, or a shortcut value, in place of a compare.
 
-## A dispatch constant that is also stored *and* passed as a call argument must be one C variable: `s32 one; one = 1;` (func_actor_205200_8014B9D4, 2026-09-16)
+## A dispatch constant that is also stored *and* passed as a call argument must be one C variable: `s32 notLockableFlag; notLockableFlag = WORLD_TARGET_NOT_LOCKABLE;` (_actor205200TickLivePart, 2026-09-16)
 
-The tick handler dispatches on `D_801153F4`, and on two of its paths writes the
-constant `1` - `index->node.flags = 1` and `func_actor_205200_8014B048(value, 1)`.
+The tick handler dispatches on `gSceneCombatState.actorControl`, and on two of its paths writes the
+constant `1` - `enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE` and `_actor205200ScanPartHits(task, WORLD_TARGET_NOT_LOCKABLE)`.
 The target materialises that `1` once, in the prologue, and uses `$a1` for all
 three purposes: the dispatch compare (`beq $v1,$a1`), the store (`sb $a1,0x14($a0)`)
 and the call's second argument.
@@ -98528,7 +98528,7 @@ store, but the call still got its own `li a1,1`, in the `jal`'s delay slot:
 
 ```
 move    a0,s0          # arg setup, displaced out of the delay slot
-jal     func_actor_205200_8014B048
+jal     _actor205200ScanPartHits
 li      a1,1           # the call's own copy of the constant
 ```
 
@@ -98537,23 +98537,23 @@ duplicates the displaced `addu a0,s0,zero` into *both* dispatch jumps' delay
 slots (`j .text+74` / `move a0,s0`): 49 insns against the target's 48, 88.5%,
 `insert=3 delete=2 branch=3 reorder=1`.
 
-Holding the constant in a variable fixes all of it. `one` is one pseudo, its
+Holding the constant in a variable fixes all of it. `notLockableFlag` is one pseudo, its
 home is `$a1` (the call's own argument register), so the compare, the store and
 the argument share it and nothing is materialised at the call; the single
 remaining arg setup then falls into the `jal` delay slot, leaving the dispatch
 jumps' slots as `nop`s - 100%:
 
 ```c
-    s32 one;
+    s32 notLockableFlag;
 
-    one = 1;
-    if (state == one) { goto case1; }
+    notLockableFlag = WORLD_TARGET_NOT_LOCKABLE;
+    if (actorControl == notLockableFlag) { goto case1; }
     ...
 case2:
-    arg0->node.flags = one;
+    enemy->node.state.parts.flags = notLockableFlag;
     return;
 default_body:
-    func_actor_205200_8014B048(arg1, one);
+    _actor205200ScanPartHits(task, notLockableFlag);
 ```
 
 Controlled check: changing only that call's argument back to the literal `1`
@@ -98568,7 +98568,7 @@ switch").
 
 The timer halfword at +0x74 is the other half of the match, and confirms the
 `lh` rule three sections up: a *fresh* load of a signed halfword feeding a plain
-`!= 0` folds to `lh`, while `func_actor_205200_8014BA94` counting the same
+`!= 0` folds to `lh`, while `_actor205200TickPartSparks` counting the same
 halfword down reads it `lhu` through the family's `(u16)field - 1` view. The
 field is therefore declared `s16` and the countdown carries the cast - the
 declared type follows the load that is *not* arithmetic.
@@ -100551,7 +100551,7 @@ live across the `gameGetTaskSlot` call, and local-alloc parks it in a
 callee-saved register. The 0x28 frame and the second save are that pseudo's
 cost, not a second source variable: unlike "A dispatch constant that is also
 stored *and* passed as a call argument must be one C variable"
-(`func_actor_205200_8014B9D4`), where the constant came from a `switch` compare
+(`_actor205200TickLivePart`), where the constant came from a `switch` compare
 and had to be named, here both uses are plain stores of a literal and two
 literal `9`s are enough. So before introducing that variable, check whether the
 target's shared register is just a constant cse1 unified.
@@ -149217,7 +149217,7 @@ computes `pos` first).
 - `==1; >=2 -> L; ==0; j default; L: ==2; j default` is the plain three-case
   tree. A case that must skip the code after the switch is that code
   duplicated before a `return` in the case; cross-jumping merges it back
-  (`Actor03800_Fn031B8`, `func_actor_205200_8014B9D4`).
+  (`Actor03800_Fn031B8`, `_actor205200TickLivePart`).
 
 ### When a duplicated tail does and does not merge back
 

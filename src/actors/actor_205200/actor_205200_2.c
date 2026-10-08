@@ -407,9 +407,11 @@ ScreenWaveCtx D_actor_205200_8015B458;
 
 /// Links the stationary body's hit sphere and room-specific touch sphere.
 ///
-/// Requires zeroed work, a live model root and a room index in 0..1. Both
-/// contact tables are initialized before pair testing is enabled; the caller
-/// keeps their storage and coordinate live until the spheres are unlinked.
+/// Requires zeroed work, a live model root and room CORRIDOR or TRAINING_ROOM
+/// (0..1). The hit sphere is centered 300 game units above the root with radius
+/// 300; the touch sphere uses the room's local center and radius and has no
+/// contact key. Each contact table is initialized before its pair tests are
+/// enabled. Keep work and root live until both spheres have been unlinked.
 static inline void _actor205200LinkBodySpheres(_Actor205200Work* work, GfxCoord* rootCoord)
 {
     enum {
