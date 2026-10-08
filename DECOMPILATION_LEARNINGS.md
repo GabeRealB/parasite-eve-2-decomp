@@ -4210,7 +4210,7 @@ two `work` reloads after the dispatcher call is 100%. This is the same
 block split by a call rather than two `case`s.
 ## Negative halfword store: `u16` emits `ori 0xF63C`, `s16` emits `addiu -0x9C4`
 
-`func_actor_405800_80134E80` is the `actor_400600` hop with an extra
+`_actor405800TickCeilingLeap` is the `actor_400600` hop with an extra
 `shadowShade` window and `shadowHeight = -0x9C4` on frame 0x15. With `shadowHeight`
 typed `u16`, the store was the only leftover (99.976%, `regs=1`):
 
@@ -4260,7 +4260,7 @@ readers, which load into `u16` and so still emit `lhu`.
 
 ## Leaf `work` reloads need a memory clobber, and `ret=1` must stay above it
 
-`func_actor_405800_801373E0` is a leaf that still reloads `index->work` on
+`_actor405800TrySelectAttack` is a leaf that still reloads `index->work` on
 every success path except the first (`lw a0, 0x1c(a3)` then `j` to the shared
 `sh state` / `sh subState` tail). Nearby functions get that reload for
 free because a call invalidates memory. Here CSE proves the pointer equals the
@@ -46690,7 +46690,7 @@ slot while every later call reloads it:
     move  $17,$4                  # arg0 kept in $s1
     jal   func_actor_405800_80137948
      nop                          # $a0 is still arg0 - move deleted
-    jal   func_actor_405800_80136A1C
+    jal   _actor405800TakeArmedHitReaction
      move $4,$17                  # $a0 clobbered by the first call
 ```
 

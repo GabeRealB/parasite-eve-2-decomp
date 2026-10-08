@@ -163,7 +163,7 @@ Store signedness is the same decision in the other direction. A negative
 `addiu $v0, $zero, -0x9C4`; the same assignment to `u16` converts the
 constant to `0xF63C` and emits `ori`. Type the field from a store that
 cannot be recast, then confirm every other reader still matches.
-`func_actor_405800_80134E80` needed `s16 field_86A` because the hop writes
+`_actor405800TickCeilingLeap` needed `s16 shadowHeight` because the hop writes
 `-0x9C4`, and the existing `lh` at `func_actor_405800_80138698` already
 agreed.
 
