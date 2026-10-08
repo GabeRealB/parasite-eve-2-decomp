@@ -6447,9 +6447,12 @@ static const _Actor401300StateTable D_actor_401300_80131F34 = { {
 
 /// Plays the selected fall's impact cue and applies the held player's decaying push.
 ///
-/// Requires a held live player and work-owned move payload. impactTick is ticks
-/// since the last player clip request. A blocked move clears XYZ; horizontal
-/// displacement halves from actor state tick 10 onward, retaining signed shifts.
+/// Requires a held live player and a work-owned move payload. impactTick selects
+/// the elapsed player-clip tick on which the sound and optional dust cue fire.
+/// The move request is consumed synchronously in parent-coordinate game units.
+/// The move is applied before its stored wall-contact result can clear XYZ for
+/// subsequent pushes. Actor state tick 10 onward clears vertical push and halves
+/// horizontal displacement with signed shifts, after this tick's move.
 static __inline__ void _actor401300StepKnockedPlayer(Task* playerTask, _Actor401300Work* work, s16 impactTick)
 {
     enum {
@@ -6469,6 +6472,7 @@ static __inline__ void _actor401300StepKnockedPlayer(Task* playerTask, _Actor401
             effectSpawn(EFFECT_DUST_PUFF, &playerTask->extra.tmd->coords[1], ACTOR_401300_PLAYER_IMPACT_DUST_ARG, NULL);
         }
     }
+    // The reply reports stored wall contacts after applying the displacement.
     if (TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_MOVE_BY, &work->playerMove, 0) == 1) {
         work->playerMove.displacement.vx = 0;
         work->playerMove.displacement.vy = 0;

@@ -1843,11 +1843,12 @@ static void _actor160900SpawnOpeningLightPair(void)
     quadWork->corners[3].vy                      = 0;
     quadWork->corners[3].vz                      = -0x3E8;
 }
-/// Places one reveal quad in the view frame and fills its local Y/Z rectangle.
+/// Parents one reveal light quad to the view and lays out its local Y/Z rectangle.
 ///
-/// Requires a live coordinate body and writable quad work. rootY and the two
-/// Z edges use signed game-coordinate units. Writes XYZ, retaining corner pads;
-/// neither pointer is retained.
+/// Requires a live coordinate body and four writable corners. The root is placed
+/// at X=6000, Y=rootY, Z=2700; rootY is a full-width game coordinate, while the
+/// local Z edges are signed halfwords. Corners 0/1 are at Y=-1000 and 2/3 at Y=0,
+/// all at X=0. Keeps corner pads and the composition stamp; retains neither pointer.
 static inline void _actor160900PlaceRevealLightQuad(Task* quadTask, _Actor160900LightQuadWork* quadWork, s32 rootY, s16 rightZ, s16 leftZ)
 {
     quadTask->extra.coordBody->coord->parent     = &gGfxViewCoord;

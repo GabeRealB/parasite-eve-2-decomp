@@ -550,31 +550,38 @@ AnimationBank D_actor_800300_8016CB98 = { { {
 
 /// Stages a Q12 movement or pushback heading for all three motion contexts.
 ///
-/// The composed root basis must be current. The caller owns the live scratch
-/// block; the staged signed halfwords are copied without touching their pad.
-static inline void _actor800300PublishMotionDirection(GameActor* actor, const GfxCoord* rootCoord, CompanionMoveScratch* block)
+/// Requires a current composed root basis and caller-owned scratch. Uses the
+/// Q12 pushback vector while its override is set, otherwise the root's composed
+/// +Z axis times movementSign (-1 backward, 0 stopped, 1 forward). Narrows XYZ
+/// to signed halfwords in scratch before copying them to contexts 0..2; keeps
+/// all vector pads and retains neither pointer.
+static inline void _actor800300PublishMotionDirection(GameActor* actor, const GfxCoord* rootCoord, CompanionMoveScratch* scratch)
 {
     if (actor->usesPushbackDirection != 0) {
-        block->motionDirection.vx = actor->pushbackDirection.vx;
-        block->motionDirection.vy = actor->pushbackDirection.vy;
-        block->motionDirection.vz = actor->pushbackDirection.vz;
+        scratch->motionDirection.vx = actor->pushbackDirection.vx;
+        scratch->motionDirection.vy = actor->pushbackDirection.vy;
+        scratch->motionDirection.vz = actor->pushbackDirection.vz;
     } else {
-        block->motionDirection.vx = rootCoord->workm.m[0][2] * actor->movementSign;
-        block->motionDirection.vy = rootCoord->workm.m[1][2] * actor->movementSign;
-        block->motionDirection.vz = rootCoord->workm.m[2][2] * actor->movementSign;
+        scratch->motionDirection.vx = rootCoord->workm.m[0][2] * actor->movementSign;
+        scratch->motionDirection.vy = rootCoord->workm.m[1][2] * actor->movementSign;
+        scratch->motionDirection.vz = rootCoord->workm.m[2][2] * actor->movementSign;
     }
-    actor->collisionMotionContexts[0].motionDirection.vx = block->motionDirection.vx;
-    actor->collisionMotionContexts[0].motionDirection.vy = block->motionDirection.vy;
-    actor->collisionMotionContexts[0].motionDirection.vz = block->motionDirection.vz;
-    actor->collisionMotionContexts[1].motionDirection.vx = block->motionDirection.vx;
-    actor->collisionMotionContexts[1].motionDirection.vy = block->motionDirection.vy;
-    actor->collisionMotionContexts[1].motionDirection.vz = block->motionDirection.vz;
-    actor->collisionMotionContexts[2].motionDirection.vx = block->motionDirection.vx;
-    actor->collisionMotionContexts[2].motionDirection.vy = block->motionDirection.vy;
-    actor->collisionMotionContexts[2].motionDirection.vz = block->motionDirection.vz;
+    actor->collisionMotionContexts[0].motionDirection.vx = scratch->motionDirection.vx;
+    actor->collisionMotionContexts[0].motionDirection.vy = scratch->motionDirection.vy;
+    actor->collisionMotionContexts[0].motionDirection.vz = scratch->motionDirection.vz;
+    actor->collisionMotionContexts[1].motionDirection.vx = scratch->motionDirection.vx;
+    actor->collisionMotionContexts[1].motionDirection.vy = scratch->motionDirection.vy;
+    actor->collisionMotionContexts[1].motionDirection.vz = scratch->motionDirection.vz;
+    actor->collisionMotionContexts[2].motionDirection.vx = scratch->motionDirection.vx;
+    actor->collisionMotionContexts[2].motionDirection.vy = scratch->motionDirection.vy;
+    actor->collisionMotionContexts[2].motionDirection.vz = scratch->motionDirection.vz;
 }
 
 /// Restores all three root translations from the last accepted collision position.
+///
+/// Requires live actor storage and a writable root in the cache's parent frame.
+/// Copies full-width game coordinates; keeps rotation and composition stamp.
+/// The caller invalidates composition before publishing the next motion heading.
 static inline void _actor800300RestorePreviousPosition(GfxCoord* rootCoord, const GameActor* actor)
 {
     rootCoord->coord.t[0] = actor->previousPosition.vx;

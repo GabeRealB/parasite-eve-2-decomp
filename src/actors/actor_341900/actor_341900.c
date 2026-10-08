@@ -718,9 +718,12 @@ static void _actor341900GluttonPartTask(Task* task)
     _actor341900UpdateModelLighting(task, 1);
 }
 
-/// Starts the advance cue's child vibration script and long Glutton shake.
+/// Starts the Glutton advance cue's child vibration and requests a long screen shake.
 ///
-/// Requires the co-loaded Glutton package and initialized pad-script state.
+/// Requires a live body task and the co-loaded Glutton host's initialized work.
+/// The vibration task borrows both script arrays until teardown and becomes a
+/// child of the body task. Its allocation must succeed: the reparent call has
+/// no NULL guard. The shake request is handled later by the Glutton host.
 static inline void _actor341900StartGluttonAdvanceCue(Task* task)
 {
     taskReparent(task, padScriptSpawn(D_actor_444000_80144A74, D_actor_444000_80144A7C));

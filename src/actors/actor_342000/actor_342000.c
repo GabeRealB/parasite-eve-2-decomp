@@ -727,7 +727,7 @@ static void _actor342000GluttonPartTask(Task* task)
 /// the node's composed transform is invalidated.
 static inline void _actor342000RebuildGluttonBodyTransform(_Actor342000GluttonModelWork* work)
 {
-    s32* rotation;
+    const s32* rotation;
 
     gfxSetRotIdentity(&work->coord.coord);
     rotation = work->rotation;

@@ -178,3 +178,5 @@ _actor206100Task = 0x8014f428; // type:func
 _actor206100DispatchEntrance = 0x8014f524; // type:func
 _actor206100EntranceRelocateTick = 0x8014cb68; // type:func
 _actor206100DeathSinkTick = 0x8014fde8; // type:func
+_actor206100FightTick = 0x8014c458; // type:func
+_actor206100CirclingTick = 0x8014da28; // type:func

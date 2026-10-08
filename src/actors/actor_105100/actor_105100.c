@@ -282,7 +282,7 @@ static void _actor105100Task(Task* task);
 static void _actor105100FireballTask(Task* task);
 static void _actor105100Spawn(Enemy* enemy, Task* task);
 static void func_actor_105100_80132AA0(Enemy* arg0, Task* arg1);
-static void func_actor_105100_80132C2C(Task* arg0);
+static void _actor105100TakeHits(Task* task);
 static void func_actor_105100_80133134(Task* arg0);
 static void _actor105100Idle(Task* task, Enemy* unusedEnemy);
 static void _actor105100SummonFireballs(Task* task, Enemy* unusedEnemy);
@@ -1056,7 +1056,7 @@ static void func_actor_105100_80132AA0(Enemy* arg0, Task* arg1)
     if (arg0->reactionFlags != 0) {
         _actor105100UpdateStatusReactions(arg1);
     }
-    func_actor_105100_80132C2C(arg1);
+    _actor105100TakeHits(arg1);
     func_actor_105100_80133134(arg1);
     if (work->knockbackActive != 0) {
         _actor105100TickPlayerKnockback(arg1);
@@ -1073,94 +1073,120 @@ static void func_actor_105100_80132AA0(Enemy* arg0, Task* arg1)
     _actor105100DrawShadow(arg1);
 }
 
-/// Per-frame hit handler: walks the three `hitContacts` records. A category-2
-/// contact lands only while `hitCooldown` is clear. Damage is the player
-/// distance through `damageComputePlayerAttack`, quadrupled on a successful
-/// `damageRollCriticalHit`, and halved (or zeroed for 0x8000 ids) while the
-/// shield is up, which also plays the deflect flash and sound. The id
-/// parameter may ask for a stagger or, with the shield down, for
-/// `damageStartEnemyBuildup` or `damageTryStartEnemyDamageOverTime`. The hit credits Life Drain healing
-/// through `damageAccumulateLifeDrainHp`, updates the readout through
-/// `worldTargetAddReadoutAmount`, and reduces HP; at 0 the actor goes to
-/// `ACTION_DEFEATED`, and `staggerDamage` reaching 0x1A4 (or the stagger
-/// request) sends it to `ACTION_STAGGER`, breaking a charge in progress.
-/// Either ends `ringEffect`. A new id sparks `effectSpawnHit` once, and
-/// `damageGetPlayerAttackHitCooldown` arms the cooldown. The tail releases the hit table, steps
-/// `staggerTimer`, and starts the knockback when `touchContacts` holds a
-/// player character's body.
-static void func_actor_105100_80132C2C(Task* arg0)
+/// Requests retirement of the current summon or charge ring after a hit interruption.
+///
+/// Borrows live enemy work. The effect task owns its teardown; clearing the saved
+/// handle prevents another request. Strike collision is handled later by the intake.
+static inline void _actor105100StopHitRing(_Actor105100Work* work)
 {
-    s32                     flag;
-    s32                     lastId;
+    enum { ACTOR_105100_HIT_RING_STOP_STATE = 4 };
+
+    if (work->ringEffect != NULL) {
+        work->ringEffect->task->state = ACTOR_105100_HIT_RING_STOP_STATE;
+        work->ringEffect              = NULL;
+    }
+}
+
+/// Applies player hits to the training-room enemy and starts contact knockback.
+///
+/// Requires live work/model/Enemy and player resources, initialized contact
+/// tables and attack keys accepted by the damage tables. Processes all three
+/// hit entries in order, using full XYZ player distance in the roots' common
+/// parent frame. Damage narrows to a signed halfword, including critical scaling
+/// and shield reduction. An active shield blocks attachment damage and status
+/// initiation. Lethal or staggering damage retires the ring; staggering also
+/// breaks a charge and ends summons. A damaging hit disables the strike sphere,
+/// credits healing/readout and can arm a cooldown that suppresses later entries.
+/// Consecutive damaging hits with the same key share one hit effect in this pass.
+/// Clears hit contacts, ages the stagger window, and consumes occupied touch
+/// contacts; a living player body's contact requests player knockback. Borrows
+/// 48 scratch bytes until return and retains no contact or scratch pointer.
+static void _actor105100TakeHits(Task* task)
+{
+    enum {
+        ACTOR_105100_CRITICAL_DAMAGE_MULTIPLIER = 4,
+        ACTOR_105100_ATTACHMENT_ATTACK_BIT      = 0x8000,
+        ACTOR_105100_STAGGER_ROW_MASK           = 0x3F,
+        ACTOR_105100_STAGGER_EXEMPT_ROW         = 0x1C,
+        ACTOR_105100_FORCE_STAGGER_ATTRIBUTE    = 4,
+        ACTOR_105100_STAGGER_WINDOW_TICKS       = 188,
+        ACTOR_105100_STAGGER_DAMAGE_THRESHOLD   = 420,
+        ACTOR_105100_HIT_EFFECT_PART            = 3,
+        ACTOR_105100_SHIELD_FLASH_FORWARD       = 200,
+        ACTOR_105100_SHIELD_HIT_SOUND           = SOUND_CHARACTER(0x33, 13),
+    };
+    s32                     forceStagger;
+    s32                     lastEffectKey;
     _Actor105100HitScratch* scratch;
     _Actor105100Work*       work;
-    Enemy*                  ctx;
-    GfxCoord*               coord;
-    s32                     i;
+    Enemy*                  enemy;
+    GfxCoord*               rootCoord;
+    s32                     contactIndex;
     s16                     damage;
-    s32                     snd;
-    s32                     wait;
+    s32                     shieldSound;
+    s32                     hitCooldownFrames;
 
-    flag    = 0;
-    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor105100HitScratch);
-    lastId  = 0;
-    coord   = arg0->extra.tmd->coords;
-    work    = arg0->work;
-    ctx     = arg0->spawnArg2.pointer;
+    forceStagger  = 0;
+    scratch       = SCRATCH_STACK_RESERVE_BLOCK(_Actor105100HitScratch);
+    lastEffectKey = 0;
+    rootCoord     = task->extra.tmd->coords;
+    work          = task->work;
+    enemy         = task->spawnArg2.pointer;
     if (work->hitCooldown != 0) {
         work->hitCooldown--;
         if (work->hitCooldown <= 0) {
             work->hitCooldown = 0;
         }
     }
-    for (i = 0; i < 3; i++) {
-        if ((u16)(work->hitContacts[i].key.value >> 16) == 2 && work->hitCooldown == 0) {
-            scratch->toPlayer.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-            scratch->toPlayer.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-            scratch->toPlayer.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-            damage               = damageComputePlayerAttack(work->hitContacts[i].key.value,
+    // A cooldown armed by one entry also gates later entries in this pass.
+    for (contactIndex = 0; contactIndex < (s32)ARRAY_SIZE(work->hitContacts); contactIndex++) {
+        if ((u16)(work->hitContacts[contactIndex].key.value >> 16) == (WORLD_COLLISION_CONTACT_ATTACK >> 16) && work->hitCooldown == 0) {
+            scratch->toPlayer.vx = gPlayerStatus.coordMtx->t[0] - rootCoord->coord.t[0];
+            scratch->toPlayer.vy = gPlayerStatus.coordMtx->t[1] - rootCoord->coord.t[1];
+            scratch->toPlayer.vz = gPlayerStatus.coordMtx->t[2] - rootCoord->coord.t[2];
+            damage               = damageComputePlayerAttack(work->hitContacts[contactIndex].key.value,
                                                              SquareRoot0(scratch->toPlayer.vx * scratch->toPlayer.vx + scratch->toPlayer.vy * scratch->toPlayer.vy +
                                                                          scratch->toPlayer.vz * scratch->toPlayer.vz),
                                                              0, 0);
-            if (damageRollCriticalHit(ctx, work->hitContacts[i].key.value, 0) != 0) {
-                damage *= 4;
-                effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
+            if (damageRollCriticalHit(enemy, work->hitContacts[contactIndex].key.value, 0) != 0) {
+                damage *= ACTOR_105100_CRITICAL_DAMAGE_MULTIPLIER;
+                effectSpawn(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[ACTOR_105100_HIT_EFFECT_PART], 0, NULL);
             }
             if (work->shield.fields.active == 1) {
-                if (work->hitContacts[i].key.value & 0x8000) {
+                if (work->hitContacts[contactIndex].key.value & ACTOR_105100_ATTACHMENT_ATTACK_BIT) {
                     damage = 0;
                 } else {
                     damage /= 2;
                 }
                 scratch->flashOffset.vx = 0;
                 scratch->flashOffset.vy = 0;
-                scratch->flashOffset.vz = 0xC8;
-                effectSpawn(EFFECT_SHELTER_B6_TRAINING_ROOM_HIT_FLASH, &arg0->extra.tmd->coords[3], 0, &scratch->flashOffset);
-                snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4033000D;
-                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                scratch->flashOffset.vz = ACTOR_105100_SHIELD_FLASH_FORWARD;
+                effectSpawn(EFFECT_SHELTER_B6_TRAINING_ROOM_HIT_FLASH, &task->extra.tmd->coords[ACTOR_105100_HIT_EFFECT_PART], 0, &scratch->flashOffset);
+                shieldSound = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_105100_SHIELD_HIT_SOUND;
+                sndEvtRequestScriptStart(shieldSound, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord));
             }
-            worldTargetAddReadoutAmount(&ctx->node, damage, 0);
+            worldTargetAddReadoutAmount(&enemy->node, damage, 0);
             if (damage != 0) {
-                switch (damageGetPlayerAttackReaction(work->hitContacts[i].key.value) & 0xFFFF) {
+                switch (damageGetPlayerAttackReaction(work->hitContacts[contactIndex].key.value) & 0xFFFF) {
                     case DAMAGE_PLAYER_REACTION_NONE:
                         break;
                     case DAMAGE_PLAYER_REACTION_STAGGER:
-                        if ((work->hitContacts[i].key.value & 0x3F) != 0x1C) {
-                            flag = 1;
+                        if ((work->hitContacts[contactIndex].key.value & ACTOR_105100_STAGGER_ROW_MASK) != ACTOR_105100_STAGGER_EXEMPT_ROW) {
+                            forceStagger = 1;
                         }
                         break;
                     case DAMAGE_PLAYER_REACTION_BUILDUP:
                         if (work->shield.fields.active == 0) {
-                            damageStartEnemyBuildup(ctx, work->hitContacts[i].key.value, 0);
+                            damageStartEnemyBuildup(enemy, work->hitContacts[contactIndex].key.value, 0);
                         }
                         break;
                     case DAMAGE_PLAYER_REACTION_POISON:
                         if (work->shield.fields.active == 0) {
-                            damageTryStartEnemyDamageOverTime(ctx, work->hitContacts[i].key.value, 0);
+                            damageTryStartEnemyDamageOverTime(enemy, work->hitContacts[contactIndex].key.value, 0);
                         }
                         break;
-                    case 4:
-                        flag = 1;
+                    case ACTOR_105100_FORCE_STAGGER_ATTRIBUTE:
+                        forceStagger = 1;
                         break;
                     case 5:
                     case DAMAGE_PLAYER_REACTION_EXPLOSION:
@@ -1169,27 +1195,21 @@ static void func_actor_105100_80132C2C(Task* arg0)
                     case 9:
                         break;
                 }
-                damageAccumulateLifeDrainHp(ctx, work->hitContacts[i].key.value, damage, 0);
-                ctx->hp -= damage;
-                if (ctx->hp <= 0) {
+                damageAccumulateLifeDrainHp(enemy, work->hitContacts[contactIndex].key.value, damage, 0);
+                enemy->hp -= damage;
+                if (enemy->hp <= 0) {
                     work->action     = ACTOR_105100_ACTION_DEFEATED;
                     work->actionStep = 0;
-                    if (work->ringEffect != NULL) {
-                        work->ringEffect->task->state = 4;
-                        work->ringEffect              = NULL;
-                    }
+                    _actor105100StopHitRing(work);
                 } else {
                     work->staggerDamage += damage;
-                    work->staggerTimer   = 0xBC;
-                    if (work->staggerDamage >= 0x1A4 || flag == 1) {
+                    work->staggerTimer   = ACTOR_105100_STAGGER_WINDOW_TICKS;
+                    if (work->staggerDamage >= ACTOR_105100_STAGGER_DAMAGE_THRESHOLD || forceStagger == 1) {
                         work->staggerTimer  = 0;
                         work->staggerDamage = 0;
                         work->action        = ACTOR_105100_ACTION_STAGGER;
                         work->actionStep    = 0;
-                        if (work->ringEffect != NULL) {
-                            work->ringEffect->task->state = 4;
-                            work->ringEffect              = NULL;
-                        }
+                        _actor105100StopHitRing(work);
                         if (work->charging != 0) {
                             work->charging               = 0;
                             work->chargeBroken           = 1;
@@ -1199,14 +1219,14 @@ static void func_actor_105100_80132C2C(Task* arg0)
                     }
                 }
                 work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                if (lastId != work->hitContacts[i].key.value) {
-                    lastId = work->hitContacts[i].key.value;
-                    effectSpawnHit(damageGetPlayerAttackEffectId(lastId), &arg0->extra.tmd->coords[3], NULL,
+                if (lastEffectKey != work->hitContacts[contactIndex].key.value) {
+                    lastEffectKey = work->hitContacts[contactIndex].key.value;
+                    effectSpawnHit(damageGetPlayerAttackEffectId(lastEffectKey), &task->extra.tmd->coords[ACTOR_105100_HIT_EFFECT_PART], NULL,
                                    &work->hitEffectArg);
                 }
-                wait = damageGetPlayerAttackHitCooldown(work->hitContacts[i].key.value);
-                if (wait > 0) {
-                    work->hitCooldown = wait;
+                hitCooldownFrames = damageGetPlayerAttackHitCooldown(work->hitContacts[contactIndex].key.value);
+                if (hitCooldownFrames > 0) {
+                    work->hitCooldown = hitCooldownFrames;
                 }
             }
         }
@@ -1216,8 +1236,9 @@ static void func_actor_105100_80132C2C(Task* arg0)
     if (work->staggerTimer <= 0) {
         work->staggerDamage = 0;
     }
-    if (work->touchContacts[0].flags & 1) {
-        if ((work->touchContacts[0].key.value & 0xFFFF0000) == 0x10000 && gPlayerStatus.hp > 0) {
+    // Occupied touch entries are consumed even when they do not start knockback.
+    if (work->touchContacts[0].flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
+        if ((work->touchContacts[0].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY && gPlayerStatus.hp > 0) {
             work->knockbackActive = 1;
             Gp_StateC08.flags    |= ATTACHMENT_FLAG_EVENT_LOCK;
         }

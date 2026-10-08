@@ -920,9 +920,9 @@ _Actor206100BogDiverSlot D_actor_206100_80158CBC[2] = { 0 };
 
 ScreenWaveCtx D_actor_206100_80158CCC = { 0 };
 
-static void func_actor_206100_8014DA28(Task* task);
+static void _actor206100CirclingTick(Task* task);
 
-static void func_actor_206100_8014C458(Task* task);
+static void _actor206100FightTick(Task* task);
 
 static void _actor206100DeathTick(Task* task);
 
@@ -1550,14 +1550,14 @@ static void _actor206100Spawn(Task* task)
 }
 /// The actor's five top-level states, dispatched on `Task::state` by its task
 /// callback `_actor206100Task`: `_actor206100Spawn` (which
-/// builds the work block), `func_actor_206100_8014DA28`,
-/// `func_actor_206100_8014C458`, `_actor206100DeathTick` and the exit
+/// builds the work block), `_actor206100CirclingTick`,
+/// `_actor206100FightTick`, `_actor206100DeathTick` and the exit
 /// `_actor206100Despawn`.
 static const TaskFuncTable5 D_actor_206100_80149E5C = {
     {
         _actor206100Spawn,
-        func_actor_206100_8014DA28,
-        func_actor_206100_8014C458,
+        _actor206100CirclingTick,
+        _actor206100FightTick,
         _actor206100DeathTick,
         _actor206100Despawn,
     },
@@ -1628,48 +1628,53 @@ static inline void _actor206100ApplyRootRotation(Task* task)
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Spawns a shot's task and hands it a zeroed `_Actor206100ShotWork`: the
-/// shot starts `ACTOR_206100_SHOT_MUZZLE_DISTANCE` along the head's Z axis,
-/// and the span from the head's origin to the point
-/// `ACTOR_206100_SHOT_SPEED` along that axis becomes its `velocity`. A shot
-/// whose task or block cannot be had is dropped.
+/// Spawns a Sea Diver shot along the head's forward axis.
+///
+/// Requires the loaded shot descriptor and a live model with head coordinate 4
+/// whose parent chain reaches the view. World points narrow to signed halfwords
+/// at each parent. The shot starts 350 local units along +Z; its initial velocity
+/// is the transformed 90-unit +Z span, so head scale affects both distances.
+/// The new task owns zeroed primary-heap work. Spawn failure drops the shot;
+/// work-allocation failure kills the new task. No parent or source pointer is retained.
 static inline void _actor206100SpawnShot(Task* task)
 {
-    _Actor206100ShotWork* shot;
-    GfxCoord*             head;
+    enum { ACTOR_206100_SHOT_HEAD_PART  = 4,
+           ACTOR_206100_SHOT_TASK_INDEX = 1 };
+    _Actor206100ShotWork* shotWork;
+    GfxCoord*             headCoord;
     GfxCoord*             shotCoord;
     Task*                 shotTask;
-    SVECTOR               pos;
-    SVECTOR               base;
-    SVECTOR               tip;
+    SVECTOR               muzzlePosition;
+    SVECTOR               headOrigin;
+    SVECTOR               velocityTip;
 
-    head     = &task->extra.tmd->coords[4];
-    shotTask = taskSpawnFromTable(D_actor_206100_80158B0C, 1, 0, 0);
+    headCoord = &task->extra.tmd->coords[ACTOR_206100_SHOT_HEAD_PART];
+    shotTask  = taskSpawnFromTable(D_actor_206100_80158B0C, ACTOR_206100_SHOT_TASK_INDEX, 0, 0);
     if (shotTask != NULL) {
-        shot = memCalloc(sizeof(_Actor206100ShotWork), 0);
-        if (shot == NULL) {
+        shotWork = memCalloc(sizeof(*shotWork), false);
+        if (shotWork == NULL) {
             taskKill(shotTask);
         } else {
-            base.vx = 0;
-            base.vy = 0;
-            base.vz = 0;
-            tip.vx  = 0;
-            tip.vy  = 0;
-            tip.vz  = ACTOR_206100_SHOT_SPEED;
-            _actorRenderTransformPointToWorld(head, &base);
-            _actorRenderTransformPointToWorld(head, &tip);
-            shotTask->work = shot;
-            shotCoord      = shotTask->extra.tmd->coords;
-            pos.vx         = 0;
-            pos.vy         = 0;
-            pos.vz         = ACTOR_206100_SHOT_MUZZLE_DISTANCE;
-            _actorRenderTransformPointToWorld(head, &pos);
-            shotCoord->coord.t[0] = pos.vx;
-            shotCoord->coord.t[1] = pos.vy;
-            shotCoord->coord.t[2] = pos.vz;
-            shot->velocity.vx     = tip.vx - base.vx;
-            shot->velocity.vy     = tip.vy - base.vy;
-            shot->velocity.vz     = tip.vz - base.vz;
+            headOrigin.vx  = 0;
+            headOrigin.vy  = 0;
+            headOrigin.vz  = 0;
+            velocityTip.vx = 0;
+            velocityTip.vy = 0;
+            velocityTip.vz = ACTOR_206100_SHOT_SPEED;
+            _actorRenderTransformPointToWorld(headCoord, &headOrigin);
+            _actorRenderTransformPointToWorld(headCoord, &velocityTip);
+            shotTask->work    = shotWork;
+            shotCoord         = shotTask->extra.tmd->coords;
+            muzzlePosition.vx = 0;
+            muzzlePosition.vy = 0;
+            muzzlePosition.vz = ACTOR_206100_SHOT_MUZZLE_DISTANCE;
+            _actorRenderTransformPointToWorld(headCoord, &muzzlePosition);
+            shotCoord->coord.t[0] = muzzlePosition.vx;
+            shotCoord->coord.t[1] = muzzlePosition.vy;
+            shotCoord->coord.t[2] = muzzlePosition.vz;
+            shotWork->velocity.vx = velocityTip.vx - headOrigin.vx;
+            shotWork->velocity.vy = velocityTip.vy - headOrigin.vy;
+            shotWork->velocity.vz = velocityTip.vz - headOrigin.vz;
         }
     }
 }
@@ -1749,72 +1754,82 @@ static inline void _actor206100UpdateLockable(Task* task, u8 partIndex)
     }
 }
 
-/// Fight tick: runs the current fight state, drives the animation, re-poses
-/// the root, spawns a requested shot, and gates lock-on by the height of the
-/// target part.
-static void func_actor_206100_8014C458(Task* task)
+/// Advances the attack discharge's sound, spark cues and signed-frame countdown.
+///
+/// Requires live task work, Enemy and trunk coordinate 1. A nonzero countdown
+/// voices each multiple of eight ticks and requests sparks at 24 or 48 ticks
+/// remaining, then decrements once. Effect allocation does not gate that decrement.
+/// Sound pan/depth narrow to signed bytes; the Enemy placement selects the voice.
+static inline void _actor206100TickDischargeEffects(Task* task)
 {
-    _Actor206100Work* work   = task->work;
-    GfxCoord*         coord  = task->extra.tmd->coords;
-    TmdObject*        obj    = task->extra.tmd;
-    Enemy*            enemy  = (Enemy*)task->spawnArg2.pointer;
-    TaskFuncTable9    states = D_actor_206100_80149E70;
-    _Actor206100Work* next;
-    _Actor206100Work* dying;
-    _Actor206100Work* sub;
-    _Actor206100Work* anim;
-    s32               i;
-    s32               sound;
-    s32               pan;
-    s16               state;
+    enum {
+        ACTOR_206100_DISCHARGE_SOUND_INTERVAL_MASK  = 7,
+        ACTOR_206100_DISCHARGE_SPARK_INTERVAL_TICKS = 24,
+        ACTOR_206100_DISCHARGE_EFFECT_PART          = 1,
+        ACTOR_206100_DISCHARGE_SOUND                = SOUND_CHARACTER(4, 11),
+    };
+    _Actor206100Work* work;
+    s32               soundRequestId;
+    s32               audioPan;
+    Enemy*            soundEnemy;
+
+    work = task->work;
+    if (work->attackFrames != 0) {
+        if ((work->attackFrames & ACTOR_206100_DISCHARGE_SOUND_INTERVAL_MASK) == 0) {
+            soundEnemy     = task->spawnArg2.pointer;
+            soundRequestId = ((soundEnemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_206100_DISCHARGE_SOUND;
+            audioPan       = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+            sndEvtRequestScriptStart(soundRequestId, audioPan,
+                                     (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+        }
+        if (work->attackFrames == ACTOR_206100_DISCHARGE_SPARK_INTERVAL_TICKS ||
+            work->attackFrames == 2 * ACTOR_206100_DISCHARGE_SPARK_INTERVAL_TICKS) {
+            effectSpawnHit(EFFECT_HIT_KIND_SPARK_BURST, task->extra.tmd->coords + ACTOR_206100_DISCHARGE_EFFECT_PART, NULL, &work->effectArg);
+        }
+        work->attackFrames--;
+    }
+}
+
+/// Advances the Sea Diver fight, its discharge effects, pose, shots and lock point.
+///
+/// Requires initialized work/model/Enemy, player resources and a populated fight
+/// state (0..3, 7 or 8); entries 4..6 are inert. targetPart must be a live model
+/// coordinate, selected as trunk 1 or head 4. Only running combat advances state,
+/// counters, slots 1..14, damage and root height. Paused combat refreshes colour
+/// and permits drawing; hidden combat suppresses drawing. Every mode refreshes
+/// lock eligibility from depth below the water, excluding the view transform.
+/// Root rotation uses 4096 units per turn and scale uses twelve fractional bits.
+/// Death is selected after the requested shot, preserving that tick's effects.
+static void _actor206100FightTick(Task* task)
+{
+    enum {
+        ACTOR_206100_TASK_STATE_DEATH         = 3,
+        ACTOR_206100_ROOT_HEIGHT_EASING_SHIFT = 4,
+    };
+    _Actor206100Work* work        = task->work;
+    GfxCoord*         rootCoord   = task->extra.tmd->coords;
+    TmdObject*        model       = task->extra.tmd;
+    Enemy*            enemy       = task->spawnArg2.pointer;
+    TaskFuncTable9    fightStates = D_actor_206100_80149E70;
+    _Actor206100Work* counterWork;
+    _Actor206100Work* deathWork;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case SCENE_COMBAT_ACTORS_RUNNING:
             work->bobPhase   = work->bobPhase + 1;
             work->frameCount = work->frameCount + 1;
             _actor206100TrackTarget(task);
-            states.funcs[work->state](task);
-            sub = task->work;
-            if (sub->attackFrames != 0) {
-                if ((sub->attackFrames & 7) == 0) {
-                    sound = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4004000B;
-                    pan   = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-                    sndEvtRequestScriptStart(
-                        sound, pan,
-                        (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
-                }
-                if (sub->attackFrames == 0x18 || sub->attackFrames == 0x30) {
-                    effectSpawnHit(EFFECT_HIT_KIND_SPARK_BURST, task->extra.tmd->coords + 1, NULL, &sub->effectArg);
-                }
-                sub->attackFrames--;
+            fightStates.funcs[work->state](task);
+            _actor206100TickDischargeEffects(task);
+            counterWork = task->work;
+            if (counterWork->field_534 != 0) {
+                counterWork->field_534--;
             }
-            next = task->work;
-            if (next->field_534 != 0) {
-                next->field_534--;
-            }
-            anim  = task->work;
-            state = anim->animRequest;
-            if (state == DIVER_ANIM_REQUEST_BLEND) {
-                if (anim->animPlaying != anim->animClip) {
-                    anim->animFrames = 0;
-                } else {
-                    anim->animFrames = _actor206100ScaleFramesForAnimRate(task, anim->animFrames);
-                }
-                _actor206100BlendRequestedClip(task);
-                anim->animRequest = DIVER_ANIM_REQUEST_PLAYING;
-            } else if (state == DIVER_ANIM_REQUEST_RESET) {
-                _diverRestartClip(task);
-                anim->animRequest = DIVER_ANIM_REQUEST_PLAYING;
-                anim->animFrames  = 0;
-            } else if (state == DIVER_ANIM_REQUEST_PLAYING) {
-                anim->animFrames = anim->animFrames + 1;
-            }
-            for (i = 1; i < ARRAY_SIZE(anim->rig.slots); i++) {
-                animationTickSlot(&anim->rig.anim, i);
-            }
+            // Consume animation requests before applying the independent neck and recoil pose.
+            _actor206100AnimUpdate(task);
             work->animStatus = work->rig.slots[1].status.fields.flags;
             _actor206100UpdateNeckRetraction(task, work->neckRetracted);
             _actor206100RecoilPitchTick(task);
@@ -1828,17 +1843,18 @@ static void func_actor_206100_8014C458(Task* task)
                 work->shotRequested = 0;
             }
             if (enemy->hp <= 0) {
-                dying           = task->work;
-                task->state     = 3;
-                dying->state    = 0;
-                dying->subState = 0;
+                deathWork           = task->work;
+                task->state         = ACTOR_206100_TASK_STATE_DEATH;
+                deathWork->state    = 0;
+                deathWork->subState = 0;
             }
-            coord->coord.t[1] =
-                coord->coord.t[1] + ((work->goalY - coord->coord.t[1]) >> 4);
+            rootCoord->coord.t[1] =
+                rootCoord->coord.t[1] + ((work->goalY - rootCoord->coord.t[1]) >> ACTOR_206100_ROOT_HEIGHT_EASING_SHIFT);
             enemy->coord = &task->extra.tmd->coords[work->targetPart];
+            /* fallthrough */
         case SCENE_COMBAT_ACTORS_PAUSED:
             _actorRenderUpdateModelColor(task);
-            obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
     _actor206100UpdateLockable(task, work->targetPart);
@@ -2383,111 +2399,40 @@ static void _actor206100SurfaceSplashTick(Task* task)
         work->subState    = work->subState + 1;
     }
 }
-/// State-2 tick: the `gSceneCombatState.actorControl` effect mode 0 arm bumps the actor's two frame
-/// counters and runs the handler `funcs[state]` picks out of a
-/// two-entry local table, then drives the animation request and re-poses the
-/// actor; mode 1 is that tail alone and mode 2 excludes the model from active
-/// drawing. The table's entries are the ring stepper
-/// `_actor206100PlaceOnWaypointRing` and the summon tick
-/// `_actor206100SummonBogDiversTick`, which is the `state` index the spawn state
-/// `_actor206100Spawn` leaves at 0.
+/// Advances the Sea Diver's waypoint-ring phase and its body animation.
 ///
-/// The table is two addresses materialised into `$v0`, not a block move out of
-/// `.rodata` -- the head of the function's four `lui` / `addiu` / `sw` pairs
-/// are the declaration initialiser.  They follow the two `Task` walks because
-/// both of those are locals with initialisers as well, and a declaration's
-/// initialiser is emitted where the declaration is.
-///
-/// The animation driver is the same `_actor206100AnimUpdate` expansion used
-/// by `_actor206100DeathPlaybackTick`: the `animRequest` re-arm / ramp / reset
-/// chain over a second `task->work` load, and the same `for (i = 1; i < 0xF; i++)` slot tick whose
-/// initialiser sits *after* the chain for the reason
-/// `_actor206100EnterDeathPlayback` documents.  The chain is the only reader of
-/// `next`; everything else stays on `work`, which is why the two loads exist.
-///
-/// The nine stores onto the coordinate go through a pointer:
-/// through `dest` their address is a register plus a displacement, so the copy
-/// is `4($s3)` followed by eight off `$v1`; naming `coord->coord.m[i][j]`
-/// instead gives nine distinct sums and no register at all, and every store
-/// comes out frame-relative.  `scale` is declared between the two matrices
-/// because the frame slots are handed out in declaration order -- matrix /
-/// scale / scaling is what puts them at 0x18, 0x38 and 0x48.
-static void func_actor_206100_8014DA28(Task* task)
+/// Requires initialized work/model and ring state 0 (place) or 1 (swim and
+/// summon); dispatch is unchecked. Running combat advances the wrapping counters,
+/// dispatches the ring state and ticks slots 1..14 before rebuilding root roll,
+/// heading and signed Q12 scale. Paused combat refreshes colour and allows drawing
+/// without advancing motion or playback. Hidden combat suppresses drawing and
+/// returns. The loaded waypoint and animation resources stay borrowed by work.
+static void _actor206100CirclingTick(Task* task)
 {
-    _Actor206100Work* work               = task->work;
-    TmdObject*        obj                = task->extra.tmd;
-    void              (*funcs[2])(Task*) = {
+    _Actor206100Work* work          = task->work;
+    TmdObject*        model         = task->extra.tmd;
+    TaskFunc          ringStates[2] = {
         _actor206100PlaceOnWaypointRing,
         _actor206100SummonBogDiversTick,
     };
-    _Actor206100Work* next;
-    _Actor206100Work* sub;
-    GfxCoord*         coord;
-    GfxCoord*         scaled;
-    MATRIX*           dest;
-    MATRIX            matrix;
-    VECTOR            scale;
-    MATRIX            scaling;
-    s32               i;
-    s16               state;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
             work->bobPhase   = work->bobPhase + 1;
             work->frameCount = work->frameCount + 1;
-            funcs[work->state](task);
-            next  = task->work;
-            state = next->animRequest;
-            if (state == DIVER_ANIM_REQUEST_BLEND) {
-                if (next->animPlaying != next->animClip) {
-                    next->animFrames = 0;
-                } else {
-                    next->animFrames = _actor206100ScaleFramesForAnimRate(task, next->animFrames);
-                }
-                _actor206100BlendRequestedClip(task);
-                next->animRequest = DIVER_ANIM_REQUEST_PLAYING;
-            } else if (state == DIVER_ANIM_REQUEST_RESET) {
-                _diverRestartClip(task);
-                next->animRequest = DIVER_ANIM_REQUEST_PLAYING;
-                next->animFrames  = 0;
-            } else if (state == DIVER_ANIM_REQUEST_PLAYING) {
-                next->animFrames = next->animFrames + 1;
-            }
-            for (i = 1; i < ARRAY_SIZE(next->rig.slots); i++) {
-                animationTickSlot(&next->rig.anim, i);
-            }
+            ringStates[work->state](task);
+            _actor206100AnimUpdate(task);
             work->animStatus = work->rig.slots[1].status.fields.flags;
             _actor206100UpdateNeckRetraction(task, work->neckRetracted);
-            coord = task->extra.tmd->coords;
-            sub   = task->work;
-            gfxSetRotIdentity(&matrix);
-            RotMatrixZ(sub->rotation.vz, &matrix);
-            RotMatrixY(sub->rotation.vy, &matrix);
-            dest                = &coord->coord;
-            dest->m[0][0]       = matrix.m[0][0];
-            dest->m[0][1]       = matrix.m[0][1];
-            dest->m[0][2]       = matrix.m[0][2];
-            dest->m[1][0]       = matrix.m[1][0];
-            dest->m[1][1]       = matrix.m[1][1];
-            dest->m[1][2]       = matrix.m[1][2];
-            dest->m[2][0]       = matrix.m[2][0];
-            dest->m[2][1]       = matrix.m[2][1];
-            dest->m[2][2]       = matrix.m[2][2];
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            scaled              = task->extra.tmd->coords;
-            scale.vx            = work->modelScale;
-            scale.vy            = scale.vx;
-            scale.vz            = scale.vx;
-            gfxSetRotIdentity(&scaling);
-            ScaleMatrix(&scaling, &scale);
-            MulMatrix(&scaled->coord, &scaling);
+            _actor206100ApplyRootRotation(task);
+            _actor206100ScaleCoordUniform(task->extra.tmd->coords, work->modelScale);
             /* fallthrough */
         case SCENE_COMBAT_ACTORS_PAUSED:
             _actorRenderUpdateModelColor(task);
-            obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
 }

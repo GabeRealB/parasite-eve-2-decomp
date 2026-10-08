@@ -137,10 +137,12 @@ DVECTOR_XZ D_actor_503500_80148330[360] = {
 
 static void _actor503500SliderInit(Task* task);
 
-/// Pulses display shake and controller vibration for the first intro slider.
+/// Pulses shared display shake and controller vibration on alternating slider ticks.
 ///
-/// Borrows a live enemy/work pair. Only a zero low key nibble owns the shared
-/// shake. An odd timer emits vibration and a -1 vertical shake; even clears it.
+/// Borrows a live enemy/work pair. Acts only when the low placement-key nibble
+/// is zero. Odd timers request vibration and set vertical shake to -1 pixel;
+/// even timers clear it. A failed vibration spawn still sets display shake.
+/// The script arrays must remain loaded until the requested vibration task exits.
 static inline void _actor503500SliderPulseShake(const Enemy* enemy, const _Actor503500SliderWork* work)
 {
     enum {

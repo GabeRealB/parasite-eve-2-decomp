@@ -2933,8 +2933,13 @@ static void _actor800100TickM950Attack(Task* task)
 
 /// Resolves a rifle shot's impact after disabling further weapon contacts.
 ///
-/// Borrows live actor storage and the composed weapon coordinate. impactCoord
-/// receives only cached translation and is read synchronously by the sound call.
+/// Requires live actor storage, the initialized six-entry weapon contact table,
+/// a composed weapon coordinate and writable impactCoord. Disables grid and pair
+/// tests, then selects the nearest permitted grid impact; an enemy-body contact
+/// suppresses that effect. Only a selected impact writes cached XYZ to impactCoord
+/// and plays sound, even if effect allocation fails. Other coordinate fields stay
+/// untouched; the sound reads translation synchronously and latches scene noise.
+/// Retains no pointers.
 static inline void _actor800100ResolveRifleImpact(GameActor* actor, const GfxCoord* weaponCoord, GfxCoord* impactCoord)
 {
     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));

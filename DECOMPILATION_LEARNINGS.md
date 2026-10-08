@@ -79378,7 +79378,7 @@ pointers, any earlier `INCLUDE_ASM` jump tables) into a separate asm `rodata`
 subsegment, and the first code unit's `.rodata` then *starts* at the cut:
 
 ```
-# 0x14 holds func_actor_105100_80132C2C's table, 0x3C is this function's
+# 0x14 holds _actor105100TakeHits's table, 0x3C is this function's
 actor_105100 = { rodata_head = "0x3C", rodata = [{ start = "0x90", unit = "actor_105100_2" }], ... }
 ```
 
@@ -117931,24 +117931,25 @@ test has since gone the same way, into the inlined `_diverClipHasBoundaryOrJump`
 helper's own `task->work` local is its own pseudo, so the function keeps one
 explicit reload, the tail's.
 
-## A pointer local is what makes a *local* struct's stores register-relative (func_actor_206100_8014DA28, 2026-09-16)
+## A pointer local is what makes a *local* struct's stores register-relative (_actor206100CirclingTick, 2026-09-16)
 
-The pose block of `func_actor_206100_8014DA28` builds an identity matrix in a
-frame local, hands it to `RotMatrixZ` / `RotMatrixY`, copies the result onto
-the model's root coordinate, and scales a second local the same way. The two
-initialisers write the same five words, and the target emits them split:
+The pose helpers used by `_actor206100CirclingTick`,
+`_actor206100ApplyRootRotation` and `_actor206100ScaleCoordUniform`, build
+identity matrices in frame locals, pass the root basis to `RotMatrixZ` /
+`RotMatrixY`, copy the result onto the model's root coordinate, and scale a
+second local the same way. The two initialisers write the same five words, and the target emits them split:
 
 ```
-sw   s1,0x18(sp)      /* matrix.rotationWords.m00M01   */
-sw   zero,0x1c(sp)    /* matrix.rotationWords.m02M10   */
+sw   s1,0x18(sp)      /* rootBasis.m[0][0..1]   */
+sw   zero,0x1c(sp)    /* rootBasis.m[0][2], m[1][0]   */
 sw   s1,8(s0)         /* *(s32*)&mtx->m[1][1]   */
-sw   zero,0x24(sp)    /* matrix.rotationWords.m20M21   */
+sw   zero,0x24(sp)    /* rootBasis.m[2][0..1]   */
 sh   s1,0x10(s0)      /* mtx->m[2][2]           */
 ```
 
 Three of the five are frame-relative, two are displacements off `$s0`, and
-`$s0` is `&matrix` — the same register the two calls get. Writing all five by
-naming the members (or the union's `rotationWords` view) leaves every one of them
+`$s0` is `&rootBasis` — the same register the two calls get. Writing all five by
+naming the members (or a typed word view) leaves every one of them
 frame-relative and `$s0` is never materialised: 89.822% with the rest of the
 function already correct.
 
@@ -117975,24 +117976,24 @@ pseudo, and survives with a register of its own. Two locals in this overlay
 `Actor444000_80139C80` already carry the `mtx` form for that reason; the split
 is the tell, not the aliasing.
 
-The nine-halfword copy onto the coordinate has the same shape one level down:
+The nine-halfword copy onto the coordinate, now in
+`_actor206100CopyRotationElements`, has the same shape one level down:
 
 ```c
-    dest          = &coord->coord;
-    dest->m[0][0] = matrix.mat.m[0][0];
-    ...
+    rootMatrix = &rootCoord->coord;
+    _actor206100CopyRotationElements(&rootBasis, rootMatrix);
 ```
 
-`dest` is `(plus (reg coord) 4)`, so its stores are a register plus a
+`rootMatrix` is `(plus (reg rootCoord) 4)`, so its stores are a register plus a
 displacement — and `find_best_addr` folds the *first* one back onto the base,
 which is why the target's copy is `sh v0,4(s3)` followed by eight off
-`$v1 = $s3 + 4`. Naming `coord->coord.m[i][j]` for all nine gives nine distinct
+`$v1 = $s3 + 4`. Naming `rootCoord->coord.m[i][j]` for all nine gives nine distinct
 sums off one register (`4(s3)`, `6(s3)`, …) and no second base. That first-store
 fold is the same one "Scratch frame: address the pre-decrement head" documents.
 
 Note the mode flags fall out of the same rewrite and agree with "The same
-exemption from the store side": the `.rotationWords` stores are `mem/s:SI`, the
-`mtx->`/`dest->` ones plain `mem:SI`, because a pointer-typed base clears
+exemption from the store side": the typed word-view stores are `mem/s:SI`, the
+`mtx->`/`rootMatrix->` ones plain `mem:SI`, because a pointer-typed base clears
 `MEM_IN_STRUCT_P`.
 
 The rule crosses families unchanged: `_dryfieldBreezewayDrawKeyItemLineSegment` (a room
@@ -135986,7 +135987,7 @@ The router independently found the same unsigned-read transformation on an alter
 
 Inputs (SHA256): baseline `f3325cde03dec34452d8cebb7dfc78bf0d04088d8460bdfc6a056a72aa91ccb8`; base_1 `5f587c95c26384881722d43b34012808373f82790159e9cfd24457c0b98f12db`; base_2 `9ae83bbf6405dd2eaf2219f4a6337967ebf162aef07f583b452dd27216d09aa3`; base_4 `9d61e0472d78120b0ecbe2b05a8bd046823a2e04a32a7687a85a8cc4216023d2`. Compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`; target object `bfc46784f243eff70364272c30290f56ea077403ab747bc687b69c00b8e1da11`. Full paired sources, plans, conclusions and dumps are retained under `tools/permuter_findings/_actor206100AimHead/`; scratch base_5 is the structured exact port.
 
-## Match the parent-walk exit before tuning its hoisted addresses (func_actor_206100_8014C458, 2026-09-20)
+## Match the parent-walk exit before tuning its hoisted addresses (_actor206100FightTick, 2026-09-20)
 
 An archived 93.071% seed used `while (p->parent != NULL && p != view)` followed
 by `if (p == view) copy_output();`. Its .loop dump rotated the parent check
@@ -136013,7 +136014,7 @@ workarounds do not establish a general unpinned allocation rule. Full unscoped
 build verification passed, and the scratch preserves the unresolved allocation
 question in LEARNINGS.md.
 
-Evidence: `nonmatchings/func_actor_206100_8014C458-vacuum/`:
+Evidence: `nonmatchings/_actor206100FightTick-vacuum/`:
 base.i SHA256 `76afa13bd863aa66221ce2e09d28f6961f8582431a45b5706d6d96d1acf301b4`;
 base_1.i `d092698a6314027aa36dc529597549cf807c598c2d453a780c1c8d1acb82c74d`;
 base_12.i `db3430a4ad341c19efb8f0edc092e649425ab34a7083263019a9afaff81ec436`;
@@ -143558,18 +143559,18 @@ older register), and it cannot keep `p` as canonical without giving it the
 `if` body too. So two `SOFT_TOUCH_REG*` lines kept the copy opaque.
 Helpers, the compound push, a nested push and every ordering of
 `p`/`workspace`/`*scratch` fell short.
-## A prologue `lw v0,X; move sN,v0` with nothing between is not an inline-parameter copy (func_actor_206100_8014C458, 2026-09-26)
+## A prologue `lw v0,X; move sN,v0` with nothing between is not an inline-parameter copy (_actor206100FightTick, 2026-09-26)
 
 The target loads `task->extra.tmd` into `$v0` and copies it into the
-callee-saved home of `obj` at once, before any store, call or label. Combine
-merges `(set P mem)` into `(set obj P)` whenever `P` dies there and
+callee-saved home of `model` at once, before any store, call or label. Combine
+merges `(set P mem)` into `(set model P)` whenever `P` dies there and
 `can_combine_p` finds no store (`mem_last_set`), call or volatile insn between
 them, so every natural spelling collapses to one `lw s6`: a plain initializer,
-a chained `obj = model = ...`, a `static inline` returning the field, and even
+a chained `model = loadedModel = ...`, a `static inline` returning the field, and even
 wrapping the whole body in an inline that takes the model as its parameter
 (the parameter copy sits right next to the argument load). Only the volatile
-load plus an asm tie kept the two pseudos apart, so that pair is still in the
-tree. In the same function, the `gGfxViewCoord` walk that needed four pins and
+load plus an asm tie kept the two pseudos apart, so that pair remained in that
+seed. In the same function, the `gGfxViewCoord` walk that needed four pins and
 a hand-written `lui`/`addiu` was the `while (1) { if (!sub) break; ... continue; }`
 form actor_323400 uses, with the two stack-address locals assigned vector
 first: their order is what decides which one dbr steals into the switch's
@@ -146075,16 +146076,16 @@ memory for the subtraction beside the `lhu` into the local; `dy` stays a
 difference of the fields, computed before `y0 = …`, so `y0` remains a copy of
 its load. Computing `dy` from the locals too adds the ref to `y0` and breaks it.
 
-## `lw v0,off(a); move sN,v0; lw sM,k(sN)` without a pin: the pointer was dereferenced before it was bound (func_actor_206100_8014C458, 2026-09-27)
+## `lw v0,off(a); move sN,v0; lw sM,k(sN)` without a pin: the pointer was dereferenced before it was bound (_actor206100FightTick, 2026-09-27)
 
 The target loads `task->extra.tmd` into `$v0`, copies it to a callee-saved
-register, then reads `->coords` through the copy. `obj = task->extra.tmd;
-coord = obj->coords;` loads straight into `$s6` and drops the `move` (99.0%,
+register, then reads `->coords` through the copy. `model = task->extra.tmd;
+rootCoord = model->coords;` loads straight into `$s6` and drops the `move` (99.0%,
 with the struct copy after it reallocated too); the seed kept the copy with a
 `SOFT_TOUCH_REG_USE` helper and a volatile read. Writing the chained read
-first, `coord = task->extra.tmd->coords;` then `obj = task->extra.tmd;`, gives
-the load a temporary, and cse makes `obj` a copy of it. The temporary is still
-live for `coord`, so combine cannot merge the copy; sched1 then moves the
+first, `rootCoord = task->extra.tmd->coords;` then `model = task->extra.tmd;`, gives
+the load a temporary, and cse makes `model` a copy of it. The temporary is still
+live for `rootCoord`, so combine cannot merge the copy; sched1 then moves the
 `->coords` read below the copy, and local-alloc's `optimize_reg_copy_1` points
 it at the copy, leaving the temporary to die in `$v0`.
 When a pointer local is a `move` of its own load, try initialising whatever
@@ -147641,7 +147642,7 @@ declare each in its own block" reports the opposite of the first row for
 `case`'s `if`, a 0x10 one in a trailing bare block) gave two slots here. That
 function was not re-examined.
 
-## A constant stored `sp`-relative above offset 0 of a shared frame slot is a *nested* helper's local (func_actor_206100_8014C458, 2026-10-04)
+## A constant stored `sp`-relative above offset 0 of a shared frame slot is a *nested* helper's local (_actor206100FightTick, 2026-10-04)
 
 **Symptom.** The fight tick's frame held a rotation matrix at `0x38`, a
 `VECTOR` at `0x58` and a second matrix at `0x68`, and later reused `0x38..0x58`
