@@ -30,7 +30,13 @@ extern SpriteView D_shelter_b2_pod_access_tunnel_80184C6C[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b2_pod_access_tunnel_801856D8[];
 
-void func_shelter_b2_pod_access_tunnel_8017DC14(Task* task);
+/// Runs the pod access tunnel's room setup, idle or teardown state.
+///
+/// The map overlay spawns this bodyless task at state 0. State 0 registers it
+/// for room messages, state 1 idles, and state 2 kills it; only 0..2 are valid.
+/// Spawn arguments are unused. Keep the room overlay and its message table
+/// loaded until teardown; leaving the room releases the registered task.
+void shelterB2PodAccessTunnelRoomTask(Task* task);
 
 /// Advances the pod access tunnel's drifting animated sprite and releases it at completion.
 ///
@@ -83,7 +89,16 @@ void shelterB2PodAccessTunnelRoomVisualEffectsFlashTask(Task* task);
 /// scratch stack and packet arena must remain live while the task runs.
 void shelterB2PodAccessTunnelRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_shelter_b2_pod_access_tunnel_80182F78(Task* task);
+/// Runs this room's impact flash followed by smoke or fading orange spark rings.
+///
+/// Start at state 0 with a coordinate body and counted, zero-aged `EffectWork`
+/// owned through `spawnArg2.pointer`. Nonzero `spawnArg1.value` emits seven
+/// smoke puffs; zero emits two bouncing sparks and draws fixed/expanding rings.
+/// Active age 7 enters release; age 8 releases work and task. Children are
+/// independent. Room-effect control 1..3 pauses and 4 or above cancels. Keep
+/// this room, coordinate ancestors, effect resources, scratch and GPU arena live
+/// until teardown; caller work pointers become invalid when the effect ends.
+void shelterB2PodAccessTunnelRoomVisualEffectsSparkBurstTask(Task* task);
 
 /// Runs an animated vertical mote that brightens or starts steady, then fades.
 ///
@@ -125,7 +140,16 @@ void shelterB2PodAccessTunnelRoomVisualEffectsHaloTask(Task* task);
 /// arena must remain live while it runs.
 void shelterB2PodAccessTunnelRoomVisualEffectsHaloOrangeBurstTask(Task* task);
 
-void func_shelter_b2_pod_access_tunnel_80181AF8(Task* arg0);
+/// Emits twenty motes at rotating, successively higher offsets around its coordinate.
+///
+/// Start at state 0 with a coordinate body and counted, zero-aged `EffectWork`
+/// owned through `spawnArg2.pointer`; `spawnArg1` is unused. Active ages 1..20
+/// emit one mote at local Y = -128*age in coordinate units; age 21 frees the
+/// emitter. Motes are independent, descend eight units per active tick and can
+/// outlive it. Requires this room's installed mote callback and live coordinate
+/// ancestors/effect resources. Room-effect control 1..3 pauses, 4 or above cancels.
+/// Keep the room, scratch and GPU arena live through emitter/child teardown.
+void shelterB2PodAccessTunnelRoomVisualEffectsSparkEmitterTask(Task* task);
 
 /// Registers the room's actor effects once and draws visible light-fixture beams.
 ///

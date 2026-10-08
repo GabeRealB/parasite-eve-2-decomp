@@ -124,7 +124,7 @@ extern SVECTOR D_shelter_b4_upper_sewer_801864D0[];
 /// Per-variant right shifts applied to the red, green and blue channels of a
 /// disc's brightness.
 
-static void func_shelter_b4_upper_sewer_8017DBA8(Task* task);
+static void _shelterB4UpperSewerInitializeRoom(Task* task);
 static void _shelterB4UpperSewerIdleRoom(Task* task);
 static void _shelterB4UpperSewerDrawWaterSurfaces(Task* task, const _ShelterB4UpperSewerWaterSurface* surface, s16 waterY, u8 blueIntensity);
 static void _shelterB4UpperSewerInitializeWater(Task* task);
@@ -138,7 +138,7 @@ static RoomFxShade _gRoomEffectHaloShades[3];
 /// state: the room's setup (message table, pointer slot, water level), an idle
 /// state, and `taskKill`.
 static const TaskFuncTable3 D_shelter_b4_upper_sewer_8017D5C4 = {
-    { func_shelter_b4_upper_sewer_8017DBA8, _shelterB4UpperSewerIdleRoom, taskKill }
+    { _shelterB4UpperSewerInitializeRoom, _shelterB4UpperSewerIdleRoom, taskKill }
 };
 
 static void _shelterB4UpperSewerWaterTask(Task* task);
@@ -1079,17 +1079,27 @@ static void _shelterB4UpperSewerRestoreSavedView(void)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_b4_upper_sewer_80188D2C[0];
 }
 
-static void func_shelter_b4_upper_sewer_8017DBA8(Task* task)
+/// Publishes the room task and restores water rendering after the reservoir event.
+///
+/// Runs in state 0 and advances to idle state 1. A completed reservoir event
+/// seeds water Y at -1800 world units and starts the room's water task; that task
+/// publishes the seed before clamping later drawing ticks to -1600..0. Otherwise
+/// stores Y 0 without starting water rendering. The room's message table and
+/// water resources must stay loaded for their tasks' lifetimes.
+static void _shelterB4UpperSewerInitializeRoom(Task* task)
 {
+    enum { WATER_INITIAL_Y = -1800,
+           WATER_ABSENT_Y  = 0 };
+
     task->msgTable = D_shelter_b4_upper_sewer_801862D0;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
-        D_shelter_b4_upper_sewer_80186438 = -0x708;
+        D_shelter_b4_upper_sewer_80186438 = WATER_INITIAL_Y;
         taskSpawnFromTable(D_shelter_b4_upper_sewer_8018643C, 0, 0, 0);
     } else {
-        D_shelter_b4_upper_sewer_80186438 = 0;
+        D_shelter_b4_upper_sewer_80186438 = WATER_ABSENT_Y;
     }
-    task->state = (s32)(task->state + 1);
+    task->state++;
 }
 
 /// Keeps the initialized room task available for messages without per-frame work.

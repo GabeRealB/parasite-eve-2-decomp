@@ -39,7 +39,13 @@ extern SpriteView D_shelter_b2_pod_bottom_80185904[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b2_pod_bottom_80188770[];
 
-void func_shelter_b2_pod_bottom_8017D708(Task* task);
+/// Runs the pod-bottom room's entry setup, idle or teardown state.
+///
+/// The map overlay spawns this bodyless task at state 0. State 0 registers it
+/// for room messages and selects the entry scene or boss start; state 1 idles
+/// and state 2 kills it. Only 0..2 are valid; spawn arguments are unused. Keep
+/// the room and its scene/boss resources loaded until their tasks end.
+void shelterB2PodBottomRoomTask(Task* task);
 
 /// Spawns one or two rising energy sparks on a random model joint while running.
 ///

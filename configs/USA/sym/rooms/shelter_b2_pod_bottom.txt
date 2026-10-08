@@ -119,3 +119,6 @@ _shelterB2PodBottomResolveRoomEventMessage = 0x8017d5f4; // type:func
 _shelterB2PodBottomIgnoreCommandMessage = 0x8017d638; // type:func
 _shelterB2PodBottomIgnoreActionMessage = 0x8017d640; // type:func
 _shelterB2PodBottomIdleRoomTask = 0x8017d6f8; // type:func
+_shelterB2PodBottomInitializeRoomTask = 0x8017d648; // type:func
+shelterB2PodBottomRoomTask = 0x8017d708; // type:func
+_shelterB2PodBottomDrawWhiteDisc = 0x80180a4c; // type:func

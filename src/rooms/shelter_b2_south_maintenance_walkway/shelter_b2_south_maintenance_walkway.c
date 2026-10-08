@@ -102,7 +102,7 @@ extern RoomEventStartStorage gRoomEventActive;
 extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
-s32        func_shelter_b2_south_maintenance_walkway_8017DA7C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _shelterB2SouthMaintenanceWalkwayResolveRoomEventMessage(Task* unusedTask, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _shelterB2SouthMaintenanceWalkwayIgnoreKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 static s32 _shelterB2SouthMaintenanceWalkwayIgnoreCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
 static s32 _shelterB2SouthMaintenanceWalkwayIgnoreAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
@@ -116,7 +116,7 @@ TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .va
 TaskDesc D_shelter_b2_south_maintenance_walkway_80182544 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 TaskMessageEntry D_shelter_b2_south_maintenance_walkway_80182550[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_south_maintenance_walkway_8017DA7C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB2SouthMaintenanceWalkwayResolveRoomEventMessage },
     { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_MESSAGE_USE_KEY_ITEM, _shelterB2SouthMaintenanceWalkwayIgnoreKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB2SouthMaintenanceWalkwayIgnoreAction },
     { ROOM_MESSAGE_COMMAND, _shelterB2SouthMaintenanceWalkwayIgnoreCommand },
@@ -509,34 +509,50 @@ static __inline__ s32 _shelterB2SouthMaintenanceWalkwayStartEvent(const RoomEven
 
 #include "../../shared/room_event_staged_task.inc.c"
 
-/// Message handler: copies the incoming message to `out` and forwards both to
-/// `mapShelterRoomVariantResolve`. Message 0x1D goes through the room's event gate on flag
-/// 0xAA with no prerequisite; message 0x1B starts the room's own event on flag
-/// 0x13C; any other message answers 1.
-s32 func_shelter_b2_south_maintenance_walkway_8017DA7C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves operating-room and elevator-hall departures through their door events.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE` with complete eight-byte request/reply
+/// records, which may alias. Copies the request and resolves the reply's room
+/// before testing its destination area. The operating-room gate requires no
+/// collected item; the elevator scene latches once. Returns 1 for direct
+/// departure or 2 for an eligible deferred event. Queries preserve the copied
+/// room and suppress event effects, but clear the selected gate's latest-start
+/// indication. Executing events copy the reply into room-owned state; neither
+/// pointer is retained. Keep this overlay, map and CAP/sound resources loaded
+/// until the deferred event ends. Receiver and message ID are unused.
+static s32 _shelterB2SouthMaintenanceWalkwayResolveRoomEventMessage(Task* unusedTask, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    RoomEventReq     req;
+    enum { DEPARTURE_DIRECT           = 1,
+           NO_COLLECTION_REQUIRED     = 0,
+           EVENT_NO_FADE              = 0,
+           CAP_OPERATING_DOOR         = 1,
+           CAP_OPERATING_MISSING_ITEM = 1,
+           CAP_ELEVATOR_DEPARTURE     = 2,
+           SOUND_OPERATING_FIRST      = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY, 5),
+           SOUND_DEPARTURE            = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY, 1) };
+
+    RoomEventReq     gateRequest;
     RoomLatchedEvent event;
 
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    if (in->areaId == GAME_AREA_SHELTER_B2_OPERATING_ROOM) {
-        req.capCmd        = 1;
-        req.missingCapCmd = 1;
-        req.firstSnd      = 0x541C0005;
-        req.secondSnd     = 0x541C0001;
-        req.flagId        = GAME_FLAG_OPERATING_ROOM_SOUTH_DOOR_UNLOCKED;
-        req.collectedBit  = 0;
-        return _roomEventGate(&req, out);
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    if (request->areaId == GAME_AREA_SHELTER_B2_OPERATING_ROOM) {
+        gateRequest.capCmd        = CAP_OPERATING_DOOR;
+        gateRequest.missingCapCmd = CAP_OPERATING_MISSING_ITEM;
+        gateRequest.firstSnd      = SOUND_OPERATING_FIRST;
+        gateRequest.secondSnd     = SOUND_DEPARTURE;
+        gateRequest.flagId        = GAME_FLAG_OPERATING_ROOM_SOUTH_DOOR_UNLOCKED;
+        gateRequest.collectedBit  = NO_COLLECTION_REQUIRED;
+        return _roomEventGate(&gateRequest, reply);
     }
-    if (in->areaId != GAME_AREA_SHELTER_B2_ELEVATOR_HALL) {
-        return 1;
+    if (request->areaId != GAME_AREA_SHELTER_B2_ELEVATOR_HALL) {
+        return DEPARTURE_DIRECT;
     }
-    event.capCmd   = 2;
-    event.stageSnd = 0x541C0001;
+    event.capCmd   = CAP_ELEVATOR_DEPARTURE;
+    event.stageSnd = SOUND_DEPARTURE;
     event.flagId   = GAME_FLAG_B2_SOUTH_WALKWAY_TO_ELEVATOR_SCENE;
-    event.fade     = 0;
-    return _shelterB2SouthMaintenanceWalkwayStartEvent(out, &event);
+    event.fade     = EVENT_NO_FADE;
+    return _shelterB2SouthMaintenanceWalkwayStartEvent(reply, &event);
 }
 
 /// Refuses every key-item use request, returning zero without consuming the item.

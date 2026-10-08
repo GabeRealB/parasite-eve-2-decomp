@@ -7,6 +7,12 @@
 #include "main/coord.h"
 #include "main/tmd_types.h"
 
+/// Boss command that starts combat from its arena position.
+///
+/// Send as `ActorCommand::command` with `ACTOR_COMMAND_MESSAGE_APPLY` to a live
+/// actor_403600 boss. Its handler ignores context tags and the second payload.
+enum { ACTOR_403600_COMMAND_START_FIGHT = 7 };
+
 /// Samples of its wave an `Actor403600Ripple` keeps: two for each of the
 /// sixteen rings its disc is drawn in.
 enum { ACTOR_403600_RIPPLE_SAMPLE_COUNT = 0x20 };

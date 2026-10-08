@@ -76,7 +76,7 @@ shelterB2NorthMaintenanceWalkwayRoomVisualEffectsFlashTask = 0x80181BB4; // type
 
 shelterB2NorthMaintenanceWalkwayRoomVisualEffectsTwinTrailTask = 0x80182618; // type:func
 
-func_shelter_b2_north_maintenance_walkway_80182F00 = 0x80182F00; // type:func
+shelterB2NorthMaintenanceWalkwayRoomVisualEffectsSparkBurstTask = 0x80182F00; // type:func
 
 shelterB2NorthMaintenanceWalkwayRoomVisualEffectsMoteTask = 0x8017F590; // type:func
 

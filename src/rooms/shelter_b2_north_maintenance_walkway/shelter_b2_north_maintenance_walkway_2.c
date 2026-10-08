@@ -279,7 +279,7 @@ void shelterB2NorthMaintenanceWalkwayRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_shelter_b2_north_maintenance_walkway_80182F00(Task* task)
+void shelterB2NorthMaintenanceWalkwayRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }

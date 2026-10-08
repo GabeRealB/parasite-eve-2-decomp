@@ -59,7 +59,16 @@ void shelterB2NorthMaintenanceWalkwayRoomVisualEffectsFlashTask(Task* task);
 /// Teardown releases both work allocations and the coordinate body.
 void shelterB2NorthMaintenanceWalkwayRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_shelter_b2_north_maintenance_walkway_80182F00(Task* task);
+/// Runs this room's impact flash followed by smoke or fading orange spark rings.
+///
+/// Start at state 0 with a coordinate body and counted, zero-aged `EffectWork`
+/// owned through `spawnArg2.pointer`. Nonzero `spawnArg1.value` emits seven
+/// smoke puffs; zero emits two bouncing sparks and draws fixed/expanding rings.
+/// Active age 7 enters release; age 8 releases work and task. Children are
+/// independent. Room-effect control 1..3 pauses and 4 or above cancels. Keep
+/// this room, coordinate ancestors, effect resources, scratch and GPU arena live
+/// until teardown; caller work pointers become invalid when the effect ends.
+void shelterB2NorthMaintenanceWalkwayRoomVisualEffectsSparkBurstTask(Task* task);
 
 /// Runs this room's vertically drifting animated mote until its brightness fades.
 ///

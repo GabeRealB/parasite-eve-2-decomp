@@ -153,3 +153,4 @@ _shelterB4UpperSewerOpenWaterHoleTask = 0x8017d660; // type:func
 _shelterB4UpperSewerExitTransitTask = 0x8017d80c; // type:func
 _shelterB4UpperSewerResolveRoomTransition = 0x8017d9c4; // type:func
 _shelterB4UpperSewerHandleWaterHoleCommand = 0x8017dab0; // type:func
+_shelterB4UpperSewerInitializeRoom = 0x8017dba8; // type:func

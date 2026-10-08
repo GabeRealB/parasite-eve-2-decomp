@@ -93,7 +93,7 @@ u8 D_shelter_b2_pod_access_tunnel_8018570B = 179;
 
 RoomLatchedEvent gRoomEventLatched = { 0 };
 
-static void func_shelter_b2_pod_access_tunnel_8017DBA8(Task* arg0);
+static void _shelterB2PodAccessTunnelInitializeRoomTask(Task* task);
 
 static void _shelterB2PodAccessTunnelIdleRoomTask(Task* unusedTask);
 
@@ -132,83 +132,123 @@ static __inline__ s32 _shelterB2PodAccessTunnelStartEvent(const RoomEventMsg* me
     return ROOM_EVENT_DEPARTURE_DIRECT;
 }
 
-s32 func_shelter_b2_pod_access_tunnel_8017D7C4(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
+s32 shelterB2PodAccessTunnelResolveRoomEventMessage(Task* unusedTask, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
+    enum { DEPARTURE_BLOCKED      = 0,
+           DEPARTURE_DIRECT       = 1,
+           DEPARTURE_HANDLED      = 2,
+           REFUSAL_FLAG_VALUE     = 2,
+           SEPTIC_PROMPT_PROGRESS = 2,
+           LATE_STORY_CHAPTER     = 6,
+           CAP_R48_LOCKED_EARLY   = 2,
+           CAP_R48_LOCKED_LATE    = 6,
+           CAP_SEPTIC_PROMPT      = 4,
+           CAP_SEPTIC_DEPARTURE   = 5,
+           EVENT_NO_FADE          = 0,
+           SOUND_SEPTIC_DEPARTURE = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL, 1) };
+
     RoomLatchedEvent event;
 
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    if (in->areaId == GAME_AREA_SHELTER_R48) {
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    if (request->areaId == GAME_AREA_SHELTER_R48) {
         if (gameFlagGetNibble(GAME_FLAG_B2_POD_TUNNEL_R48_DOOR_UNLOCKED) == 0) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                gameFlagSetNibbleIfPresent(in->flagId, 2);
-                capRunCommandWithTransition(gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < 6 ? 2 : 6);
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                gameFlagSetNibbleIfPresent(request->flagId, REFUSAL_FLAG_VALUE);
+                capRunCommandWithTransition(gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < LATE_STORY_CHAPTER ? CAP_R48_LOCKED_EARLY : CAP_R48_LOCKED_LATE);
             }
-            return 0;
+            return DEPARTURE_BLOCKED;
         }
     }
-    if (in->areaId == GAME_AREA_SHELTER_B2_SEPTIC_TANK) {
-        if (gameFlagGetNibble(GAME_FLAG_118) == 2) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                capRunCommandWithTransition(4);
+    if (request->areaId == GAME_AREA_SHELTER_B2_SEPTIC_TANK) {
+        if (gameFlagGetNibble(GAME_FLAG_118) == SEPTIC_PROMPT_PROGRESS) {
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                capRunCommandWithTransition(CAP_SEPTIC_PROMPT);
             }
-            return 2;
+            return DEPARTURE_HANDLED;
         }
-        event.capCmd   = 5;
-        event.stageSnd = 0x54230001;
+        event.capCmd   = CAP_SEPTIC_DEPARTURE;
+        event.stageSnd = SOUND_SEPTIC_DEPARTURE;
         event.flagId   = GAME_FLAG_B2_POD_TUNNEL_TO_SEPTIC_SCENE;
-        event.fade     = 0;
-        return _shelterB2PodAccessTunnelStartEvent(out, &event);
+        event.fade     = EVENT_NO_FADE;
+        return _shelterB2PodAccessTunnelStartEvent(reply, &event);
     }
-    return 1;
+    return DEPARTURE_DIRECT;
 }
 
-/// The three states `func_shelter_b2_pod_access_tunnel_8017DC14` dispatches
+/// The three states `shelterB2PodAccessTunnelRoomTask` dispatches
 /// the room task through: set-up, an idle tick, and removal.
 static const TaskFuncTable3 D_shelter_b2_pod_access_tunnel_8017D5D8 = {
-    { func_shelter_b2_pod_access_tunnel_8017DBA8, _shelterB2PodAccessTunnelIdleRoomTask, taskKill },
+    { _shelterB2PodAccessTunnelInitializeRoomTask, _shelterB2PodAccessTunnelIdleRoomTask, taskKill },
 };
 
-void func_shelter_b2_pod_access_tunnel_8017D9A8(Task* task)
+/// Commits the B1 pod arrival and requests a captured-frame session reload.
+///
+/// Requires a live ride task with actor/player control held. Commits area,
+/// arrival and room even if reload allocation fails; kills the ride immediately.
+static inline void _shelterB2PodAccessTunnelCommitB1Ride(Task* task)
 {
+    enum { RIDE_ARRIVAL_WARP                = 3,
+           RIDE_ARRIVAL_ROOM                = 1,
+           RIDE_NEXT_SESSION_SPRITE_VARIANT = 1 };
+
+    sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = RIDE_ARRIVAL_WARP;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = RIDE_ARRIVAL_ROOM;
+    gDisplayState.spriteVariant                                = RIDE_NEXT_SESSION_SPRITE_VARIANT;
+    taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+    taskKill(task);
+}
+
+void shelterB2PodAccessTunnelRideToB1Task(Task* task)
+{
+    enum { RIDE_PROMPT,
+           RIDE_WAIT_CAP,
+           RIDE_INTERPRET_CHOICE,
+           RIDE_WAIT_SOUND,
+           RIDE_DEPART,
+           RIDE_CAP_PROMPT           = 1,
+           RIDE_CAP_ALTERNATE_PROMPT = 3,
+           RIDE_CHOICE_ACCEPT        = 10,
+           RIDE_CHOICE_MARK_POD      = 1,
+           RIDE_MAP_MARK_VISIBLE     = 2,
+           RIDE_MAP_MARK_HIDDEN      = 0 };
+
     switch (task->state) {
-        case 0:
-            capRunCommandWithTransition(gameFlagGetNibble(GAME_FLAG_0FC) != 0 ? 3 : 1);
+        case RIDE_PROMPT:
+            capRunCommandWithTransition(gameFlagGetNibble(GAME_FLAG_0FC) != 0 ? RIDE_CAP_ALTERNATE_PROMPT : RIDE_CAP_PROMPT);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             task->state++;
             return;
-        case 1:
+        case RIDE_WAIT_CAP:
             if (capIsBusy() == 0) {
                 task->state++;
             }
             return;
-        case 2:
-            if (capGetVariantKey() != 0xA) {
-                if (capGetVariantKey() == 1) {
-                    gameFlagSetNibble(GAME_FLAG_MAP_MARK_POD, 2);
+        case RIDE_INTERPRET_CHOICE:
+            if (capGetVariantKey() != RIDE_CHOICE_ACCEPT) {
+                if (capGetVariantKey() == RIDE_CHOICE_MARK_POD) {
+                    gameFlagSetNibble(GAME_FLAG_MAP_MARK_POD, RIDE_MAP_MARK_VISIBLE);
                 }
+                // Resume actors before releasing this task, then return player control.
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 taskKill(task);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 return;
             }
             sndEvtRequestScriptStart(SOUND_SHELTER_B2_POD_TUNNEL_RIDE_TO_B1, 0, 0);
-            gameFlagSetNibble(GAME_FLAG_MAP_MARK_POD, 0);
+            gameFlagSetNibble(GAME_FLAG_MAP_MARK_POD, RIDE_MAP_MARK_HIDDEN);
             task->state++;
             return;
-        case 3:
+        case RIDE_WAIT_SOUND:
             if (sndScriptHasActiveId(SOUND_SHELTER_B2_POD_TUNNEL_RIDE_TO_B1) == 0) {
                 task->state++;
             }
             return;
-        case 4:
-            sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 3;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
-            gDisplayState.spriteVariant                                = 1;
-            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
-            taskKill(task);
+        case RIDE_DEPART:
+            // The reload takes over while actor and player control remain held.
+            _shelterB2PodAccessTunnelCommitB1Ride(task);
             break;
     }
 }
@@ -218,9 +258,11 @@ s32 shelterB2PodAccessTunnelRejectKeyItemMessage(Task* unusedTask, s32 messageId
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-s32 func_shelter_b2_pod_access_tunnel_8017DB30(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 shelterB2PodAccessTunnelHandleCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 unusedArg)
 {
-    if (arg2 == 1) {
+    enum { COMMAND_RIDE_TO_B1 = 1 };
+
+    if (commandId == COMMAND_RIDE_TO_B1) {
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         taskSpawnFromTable(&D_shelter_b2_pod_access_tunnel_80183BFC, 0, 0, 0);
     }
@@ -242,14 +284,21 @@ s32 shelterB2PodAccessTunnelHandleSoundMessage(Task* unusedTask, s32 messageId, 
     return 0;
 }
 
-static void func_shelter_b2_pod_access_tunnel_8017DBA8(Task* arg0)
+/// Publishes the room's message task and suppresses automatic music in variant 22.
+///
+/// Runs in state 0 and advances to idle state 1. Variant 22 replaces the session
+/// flow flags with the ending/area music skip bits. The overlay's message table
+/// must stay live while this task is registered in `GAME_TASK_SLOT_ROOM`.
+static void _shelterB2PodAccessTunnelInitializeRoomTask(Task* task)
 {
-    arg0->msgTable = D_shelter_b2_pod_access_tunnel_80183BCC;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (gGameSession->location.loc.variant == 0x16) {
+    enum { ROOM_VARIANT_SKIP_MUSIC = 22 };
+
+    task->msgTable = D_shelter_b2_pod_access_tunnel_80183BCC;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    if (gGameSession->location.loc.variant == ROOM_VARIANT_SKIP_MUSIC) {
         gGameSession->flowFlags = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC);
     }
-    arg0->state = arg0->state + 1;
+    task->state++;
 }
 
 /// Keeps the initialized room task live to receive messages without per-frame work.
@@ -257,13 +306,10 @@ static void _shelterB2PodAccessTunnelIdleRoomTask(Task* unusedTask)
 {
 }
 
-/// Runs one tick of a room task through the three-state table
-/// `D_shelter_b2_pod_access_tunnel_8017D5D8`, copying the table onto the stack
-/// and calling the entry for the task's current state.
-void func_shelter_b2_pod_access_tunnel_8017DC14(Task* task)
+void shelterB2PodAccessTunnelRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_shelter_b2_pod_access_tunnel_8017D5D8;
-    sp.funcs[task->state](task);
+    handlers = D_shelter_b2_pod_access_tunnel_8017D5D8;
+    handlers.funcs[task->state](task);
 }

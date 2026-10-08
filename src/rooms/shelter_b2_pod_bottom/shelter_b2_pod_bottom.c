@@ -8,6 +8,7 @@
 #include "shelter_b2_pod_bottom_private.h"
 
 #include "actors/actor_361100.h"
+#include "actors/actor_403600.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/area.h"
@@ -36,12 +37,12 @@ extern EvsCommand       D_actor_361100_80165F48[];
 extern EvsCommand       D_actor_361100_80166848[];
 extern TaskMessageEntry D_shelter_b2_pod_bottom_80181C6C[];
 
-static void func_shelter_b2_pod_bottom_8017D648(Task* arg0);
+static void _shelterB2PodBottomInitializeRoomTask(Task* task);
 static void _shelterB2PodBottomIdleRoomTask(Task* unusedTask);
 
 /// The room task's states: set up, idle, then `taskKill`.
 static const TaskFuncTable3 D_shelter_b2_pod_bottom_8017D5C4 = {
-    { func_shelter_b2_pod_bottom_8017D648, _shelterB2PodBottomIdleRoomTask, taskKill },
+    { _shelterB2PodBottomInitializeRoomTask, _shelterB2PodBottomIdleRoomTask, taskKill },
 };
 
 static s32 _shelterB2PodBottomRejectKeyItemMessage(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedArg);
@@ -1030,25 +1031,33 @@ static s32 _shelterB2PodBottomIgnoreActionMessage(Task* unusedTask, s32 messageI
     return 0;
 }
 
-/// The room task's setup state: installs the room's message table, stores the
-/// task in pointer slot 7 and, on place 1, calls `actor361100ClearHeadAimTaskHandle` and
-/// `evsStartScriptWithSkip`; elsewhere it sends message 0x7DB to placed actor 0.
-static void func_shelter_b2_pod_bottom_8017D648(Task* arg0)
+/// Publishes the pod-bottom room task and starts its entry scene or boss fight.
+///
+/// Runs in state 0 and advances to idle state 1. Placement variant 1 starts the
+/// skippable actor_361100 scene after clearing its retained head-aim task handle;
+/// its actor overlay and both scripts must stay live through playback. Other
+/// variants require the boss at placement 0 and synchronously send its start-fight
+/// command. The room message table remains borrowed while this task is registered.
+static void _shelterB2PodBottomInitializeRoomTask(Task* task)
 {
-    ActorCommand msg;
+    enum { ROOM_VARIANT_ENTRY_SCENE = 1,
+           BOSS_PLACEMENT_INDEX     = 0 };
 
-    arg0->msgTable = D_shelter_b2_pod_bottom_80181C6C;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (gGameSession->location.loc.variant == 1) {
+    ActorCommand command;
+
+    task->msgTable = D_shelter_b2_pod_bottom_80181C6C;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    if (gGameSession->location.loc.variant == ROOM_VARIANT_ENTRY_SCENE) {
         actor361100ClearHeadAimTaskHandle(0);
         evsStartScriptWithSkip(D_actor_361100_80165F48, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_361100_80166848);
     } else {
-        msg.context.loc.stage = 0;
-        msg.context.loc.area  = 0;
-        msg.command           = 7;
-        TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+        // This boss command ignores its context; keep the complete record initialized.
+        command.context.loc.stage = GAME_STAGE_NONE;
+        command.context.loc.area  = 0;
+        command.command           = ACTOR_403600_COMMAND_START_FIGHT;
+        TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(BOSS_PLACEMENT_INDEX), ACTOR_COMMAND_MESSAGE_APPLY, &command, 0);
     }
-    arg0->state++;
+    task->state++;
 }
 
 /// Keeps the initialized room task live to receive messages without per-frame work.
@@ -1059,12 +1068,10 @@ static void _shelterB2PodBottomIdleRoomTask(Task* unusedTask)
     char unusedStackSpace[0x10];
 }
 
-/// The room task: copies its three-state table to the stack and runs the
-/// entry the task's state selects.
-void func_shelter_b2_pod_bottom_8017D708(Task* task)
+void shelterB2PodBottomRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_shelter_b2_pod_bottom_8017D5C4;
-    sp.funcs[task->state](task);
+    handlers = D_shelter_b2_pod_bottom_8017D5C4;
+    handlers.funcs[task->state](task);
 }

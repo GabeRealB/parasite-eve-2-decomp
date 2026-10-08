@@ -83,7 +83,7 @@ shelterB2PodAccessTunnelRoomVisualEffectsFlashTask = 0x80181C2C; // type:func
 
 shelterB2PodAccessTunnelRoomVisualEffectsTwinTrailTask = 0x80182690; // type:func
 
-func_shelter_b2_pod_access_tunnel_80182F78 = 0x80182F78; // type:func
+shelterB2PodAccessTunnelRoomVisualEffectsSparkBurstTask = 0x80182F78; // type:func
 
 shelterB2PodAccessTunnelRoomVisualEffectsMoteTask = 0x8017F608; // type:func
 
@@ -91,7 +91,7 @@ shelterB2PodAccessTunnelRoomVisualEffectsHaloTask = 0x80180350; // type:func
 
 shelterB2PodAccessTunnelRoomVisualEffectsHaloOrangeBurstTask = 0x801806E8; // type:func
 
-func_shelter_b2_pod_access_tunnel_80181AF8 = 0x80181AF8; // type:func
+shelterB2PodAccessTunnelRoomVisualEffectsSparkEmitterTask = 0x80181AF8; // type:func
 
 shelterB2PodAccessTunnelDrawLightBeamsTask = 0x8017DC6C; // type:func
 _roomVisualEffectsDrawMote = 0x8017F8D4; // type:func
@@ -112,3 +112,8 @@ shelterB2PodAccessTunnelRejectKeyItemMessage = 0x8017db28; // type:func
 shelterB2PodAccessTunnelIgnoreActionMessage = 0x8017db70; // type:func
 shelterB2PodAccessTunnelHandleSoundMessage = 0x8017db78; // type:func
 _shelterB2PodAccessTunnelIdleRoomTask = 0x8017dc0c; // type:func
+shelterB2PodAccessTunnelResolveRoomEventMessage = 0x8017d7c4; // type:func
+shelterB2PodAccessTunnelRideToB1Task = 0x8017d9a8; // type:func
+shelterB2PodAccessTunnelHandleCommandMessage = 0x8017db30; // type:func
+_shelterB2PodAccessTunnelInitializeRoomTask = 0x8017dba8; // type:func
+shelterB2PodAccessTunnelRoomTask = 0x8017dc14; // type:func

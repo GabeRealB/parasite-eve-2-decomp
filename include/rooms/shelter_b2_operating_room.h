@@ -69,7 +69,19 @@ void shelterB2OperatingRoomRoomVisualEffectsFlyingSparkTask(Task* task);
 /// removes the task when leaving the room.
 void shelterB2OperatingRoomDrawGlowsTask(Task* task);
 
-void func_shelter_b2_operating_room_8017ECFC(Task* arg0);
+/// Runs an attached two-tint charge disc with player-joint sparks and a release ring.
+///
+/// Start at state 0 with a coordinate body and counted, zeroed `EffectWork`
+/// owned through `spawnArg2.pointer`; `spawnArg1.value` selects tint 0 or 1.
+/// The work's parent coordinate stays borrowed until teardown; its stored
+/// offset replaces the initial placement on attachment. Growing emits adopted
+/// flying sparks from player parts 3..18 every fourth active age. The live
+/// player rig and this room's installed flying-spark callback are required.
+/// Its owner selects flicker, fading release or cancel through the
+/// `ROOM_VISUAL_EFFECTS_GLOW_DISC_*` states. Room-effect control 1..3 pauses;
+/// 4 or above cancels. Release/cancel frees work and adopted children. Keep the
+/// room, ancestors, effect resources, scratch and GPU arena live until teardown.
+void shelterB2OperatingRoomRoomVisualEffectsGlowDiscTask(Task* task);
 
 /// Runs this room's orange burst with an expanding glow and fading ring.
 ///

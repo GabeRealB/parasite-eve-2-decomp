@@ -79,15 +79,15 @@ extern WorldCoordRoomLights   D_shelter_b2_pod_access_tunnel_80184FC0[1];
 TaskDesc D_shelter_b2_pod_access_tunnel_80183BC0 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 TaskMessageEntry D_shelter_b2_pod_access_tunnel_80183BCC[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_pod_access_tunnel_8017D7C4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, shelterB2PodAccessTunnelResolveRoomEventMessage },
     { ROOM_MESSAGE_USE_KEY_ITEM, shelterB2PodAccessTunnelRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, shelterB2PodAccessTunnelIgnoreActionMessage },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b2_pod_access_tunnel_8017DB30 },
+    { ROOM_MESSAGE_COMMAND, shelterB2PodAccessTunnelHandleCommandMessage },
     { ROOM_MESSAGE_SOUND, shelterB2PodAccessTunnelHandleSoundMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_shelter_b2_pod_access_tunnel_80183BFC = { { { TASK_BODY_NONE, 32 } }, func_shelter_b2_pod_access_tunnel_8017D9A8, { .value = 0 } };
+TaskDesc D_shelter_b2_pod_access_tunnel_80183BFC = { { { TASK_BODY_NONE, 32 } }, shelterB2PodAccessTunnelRideToB1Task, { .value = 0 } };
 
 SVECTOR D_shelter_b2_pod_access_tunnel_80183C08[8] = {
     { 920, 200, -0x29D6, 0 },
@@ -695,9 +695,9 @@ void shelterB2PodAccessTunnelRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 #include "../../shared/room_visual_effects_glow_quad.inc.c"
 #include "../../shared/room_visual_effects_flash.inc.c"
 
-void func_shelter_b2_pod_access_tunnel_80181AF8(Task* arg0)
+void shelterB2PodAccessTunnelRoomVisualEffectsSparkEmitterTask(Task* task)
 {
-    _roomVisualEffectsSparkEmitterTask(arg0);
+    _roomVisualEffectsSparkEmitterTask(task);
 }
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
@@ -716,7 +716,7 @@ void shelterB2PodAccessTunnelRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_shelter_b2_pod_access_tunnel_80182F78(Task* task)
+void shelterB2PodAccessTunnelRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }

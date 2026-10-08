@@ -99,9 +99,9 @@ extern RoomLatchedEvent gRoomEventLatched;
 // Indexed views below share one contiguous table.
 extern TaskDesc D_actor_207000_801575F0;
 
-s32        func_shelter_b2_operating_room_8017DA94(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _shelterB2OperatingRoomResolveRoomEventMessage(Task* unusedTask, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _shelterB2OperatingRoomIgnoreKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
-s32        func_shelter_b2_operating_room_8017DCA4(Task*, s32, s32, s32);
+static s32 _shelterB2OperatingRoomHandleCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 unusedArg);
 static s32 _shelterB2OperatingRoomIgnoreAction(Task* task, s32 messageId, const DirectionActionRequest* action, s32 unusedArg);
 
 /// Inventory key-item message received by this room's task.
@@ -112,10 +112,10 @@ TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .va
 TaskDesc D_shelter_b2_operating_room_80180910 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 TaskMessageEntry D_shelter_b2_operating_room_8018091C[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_operating_room_8017DA94 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB2OperatingRoomResolveRoomEventMessage },
     { SHELTER_B2_OPERATING_ROOM_MESSAGE_USE_KEY_ITEM, _shelterB2OperatingRoomIgnoreKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB2OperatingRoomIgnoreAction },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b2_operating_room_8017DCA4 },
+    { ROOM_MESSAGE_COMMAND, _shelterB2OperatingRoomHandleCommandMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -945,51 +945,70 @@ static __inline__ s32 _shelterB2OperatingRoomStartEvent(const RoomEventMsg* dest
     return SHELTER_B2_OPERATING_ROOM_EVENT_ORDINARY_DEPARTURE;
 }
 
-/// Message handler: copies the incoming message to `out` and forwards both to
-/// `mapShelterRoomVariantResolve`. Message 0x1E goes through the exit gate
-/// `_roomEventGate` on flag 0xA8. Message 0x1C, while nibble 0xAA is clear, answers 0 and - unless
-/// `in->queryOnly` asks for a dry run - passes `in->flagId` to `gameFlagSetNibbleIfPresent`
-/// and runs cap command 3; once the nibble is set it starts the room event on
-/// flag 0x13A instead. Message 0x1F starts the event on flag 0x13B; any other
-/// message answers 1.
-s32 func_shelter_b2_operating_room_8017DA94(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves a departure through the north-door gate or the south/laboratory scenes.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE` with complete eight-byte request/reply
+/// records, which may alias. Copies the request before resolving the reply's
+/// room; the destination area chooses the gate. Returns 0 for a locked south
+/// door, 1 for direct departure, or 2 for an eligible deferred event. Queries
+/// copy the reply and test eligibility without running CAP or latching an event;
+/// the selected gate still clears its latest-start indication. Execution may
+/// set the optional request flag to 2 and copy the reply into room-owned state.
+/// Keep this overlay, the map resolver and CAP/sound resources loaded until any
+/// deferred event ends. No caller pointer is retained; receiver and ID are unused.
+static s32 _shelterB2OperatingRoomResolveRoomEventMessage(Task* unusedTask, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    RoomEventReq     req;
+    enum { DEPARTURE_BLOCKED          = 0,
+           DEPARTURE_DIRECT           = 1,
+           REFUSAL_FLAG_VALUE         = 2,
+           NO_COLLECTION_REQUIRED     = 0,
+           EVENT_NO_FADE              = 0,
+           CAP_NORTH_DOOR             = 2,
+           CAP_NORTH_MISSING_ITEM     = 1,
+           CAP_SOUTH_DOOR_LOCKED      = 3,
+           CAP_SOUTH_DEPARTURE        = 14,
+           CAP_LABORATORY_DEPARTURE   = 13,
+           SOUND_NORTH_FIRST          = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_OPERATING_ROOM, 7),
+           SOUND_NORTH_SECOND         = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_OPERATING_ROOM, 3),
+           SOUND_SOUTH_DEPARTURE      = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_OPERATING_ROOM, 1),
+           SOUND_LABORATORY_DEPARTURE = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_OPERATING_ROOM, 5) };
+
+    RoomEventReq     gateRequest;
     RoomLatchedEvent event;
 
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    if (in->areaId == GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY) {
-        req.capCmd        = 2;
-        req.missingCapCmd = 1;
-        req.firstSnd      = 0x541D0007;
-        req.secondSnd     = 0x541D0003;
-        req.flagId        = GAME_FLAG_OPERATING_ROOM_NORTH_DOOR_UNLOCKED;
-        req.collectedBit  = 0;
-        return _roomEventGate(&req, out);
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    if (request->areaId == GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY) {
+        gateRequest.capCmd        = CAP_NORTH_DOOR;
+        gateRequest.missingCapCmd = CAP_NORTH_MISSING_ITEM;
+        gateRequest.firstSnd      = SOUND_NORTH_FIRST;
+        gateRequest.secondSnd     = SOUND_NORTH_SECOND;
+        gateRequest.flagId        = GAME_FLAG_OPERATING_ROOM_NORTH_DOOR_UNLOCKED;
+        gateRequest.collectedBit  = NO_COLLECTION_REQUIRED;
+        return _roomEventGate(&gateRequest, reply);
     }
-    if (in->areaId == GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY && gameFlagGetNibble(GAME_FLAG_OPERATING_ROOM_SOUTH_DOOR_UNLOCKED) == 0) {
-        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            gameFlagSetNibbleIfPresent(in->flagId, 2);
-            capRunCommandWithTransition(3);
+    if (request->areaId == GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY && gameFlagGetNibble(GAME_FLAG_OPERATING_ROOM_SOUTH_DOOR_UNLOCKED) == 0) {
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            gameFlagSetNibbleIfPresent(request->flagId, REFUSAL_FLAG_VALUE);
+            capRunCommandWithTransition(CAP_SOUTH_DOOR_LOCKED);
         }
-        return 0;
+        return DEPARTURE_BLOCKED;
     }
-    if (in->areaId == GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY) {
-        event.capCmd   = 0xE;
-        event.stageSnd = 0x541D0001;
+    if (request->areaId == GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY) {
+        event.capCmd   = CAP_SOUTH_DEPARTURE;
+        event.stageSnd = SOUND_SOUTH_DEPARTURE;
         event.flagId   = GAME_FLAG_B2_OPERATING_TO_SOUTH_WALKWAY_SCENE;
-        event.fade     = 0;
-        return _shelterB2OperatingRoomStartEvent(out, &event);
+        event.fade     = EVENT_NO_FADE;
+        return _shelterB2OperatingRoomStartEvent(reply, &event);
     }
-    if (in->areaId == GAME_AREA_SHELTER_B2_LABORATORY) {
-        event.capCmd   = 0xD;
-        event.stageSnd = 0x541D0005;
+    if (request->areaId == GAME_AREA_SHELTER_B2_LABORATORY) {
+        event.capCmd   = CAP_LABORATORY_DEPARTURE;
+        event.stageSnd = SOUND_LABORATORY_DEPARTURE;
         event.flagId   = GAME_FLAG_B2_OPERATING_TO_LAB_SCENE;
-        event.fade     = 0;
-        return _shelterB2OperatingRoomStartEvent(out, &event);
+        event.fade     = EVENT_NO_FADE;
+        return _shelterB2OperatingRoomStartEvent(reply, &event);
     }
-    return 1;
+    return DEPARTURE_DIRECT;
 }
 
 /// Refuses key-item use without consuming the item or changing room state.
@@ -1003,14 +1022,27 @@ static s32 _shelterB2OperatingRoomIgnoreKeyItem(Task* task, s32 messageId, s32 i
     return SHELTER_B2_OPERATING_ROOM_KEY_ITEM_UNUSED;
 }
 
-s32 func_shelter_b2_operating_room_8017DCA4(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Selects one of two CAP event pairs from nursery progress for room commands 4/5.
+///
+/// Handles `ROOM_MESSAGE_COMMAND`: command 4 requests CAP 4 before nursery
+/// progress or 16 afterwards; command 5 requests CAP 5 before progress or 15
+/// afterwards. Starts only when CAP is idle. Other commands do nothing and all
+/// return zero. Requires this room's CAP data loaded; other inputs are unused.
+static s32 _shelterB2OperatingRoomHandleCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 unusedArg)
 {
-    switch (arg2) {
-        case 4:
-            capSpawnEventIfIdle(gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == 0 ? 4 : 0x10, CAP_EVENT_NO_FLAGS);
+    enum { COMMAND_NURSERY_CAP4 = 4,
+           COMMAND_NURSERY_CAP5 = 5,
+           CAP4_BEFORE_NURSERY  = 4,
+           CAP4_AFTER_NURSERY   = 16,
+           CAP5_BEFORE_NURSERY  = 5,
+           CAP5_AFTER_NURSERY   = 15 };
+
+    switch (commandId) {
+        case COMMAND_NURSERY_CAP4:
+            capSpawnEventIfIdle(gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == 0 ? CAP4_BEFORE_NURSERY : CAP4_AFTER_NURSERY, CAP_EVENT_NO_FLAGS);
             break;
-        case 5:
-            capSpawnEventIfIdle(gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0 ? 0xF : 5, CAP_EVENT_NO_FLAGS);
+        case COMMAND_NURSERY_CAP5:
+            capSpawnEventIfIdle(gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0 ? CAP5_AFTER_NURSERY : CAP5_BEFORE_NURSERY, CAP_EVENT_NO_FLAGS);
             break;
     }
     return 0;
@@ -1159,9 +1191,9 @@ void shelterB2OperatingRoomDrawGlowsTask(Task* task)
 
 #include "../../shared/room_visual_effects_flying_tasks.inc.c"
 
-void func_shelter_b2_operating_room_8017ECFC(Task* arg0)
+void shelterB2OperatingRoomRoomVisualEffectsGlowDiscTask(Task* task)
 {
-    _roomVisualEffectsGlowDiscTask(arg0);
+    _roomVisualEffectsGlowDiscTask(task);
 }
 
 void shelterB2OperatingRoomRoomVisualEffectsFlyingSparkTask(Task* task)

@@ -92,3 +92,4 @@ _shelterB2SouthMaintenanceWalkwayIgnoreAction = 0x8017dc18; // type:func
 _shelterB2SouthMaintenanceWalkwayInitializeRoomTask = 0x8017dc20; // type:func
 _shelterB2SouthMaintenanceWalkwayIdleRoomTask = 0x8017dc64; // type:func
 shelterB2SouthMaintenanceWalkwayRoomTask = 0x8017dc6c; // type:func
+_shelterB2SouthMaintenanceWalkwayResolveRoomEventMessage = 0x8017da7c; // type:func

@@ -1157,11 +1157,11 @@ shelterB2NorthMaintenanceWalkwayRoomVisualEffectsFlashTask = 0x80181BB4; // type
 
 shelterB2NorthMaintenanceWalkwayRoomVisualEffectsTwinTrailTask = 0x80182618; // type:func absolute:True owner=shelter_b2_north_maintenance_walkway
 
-func_shelter_b2_north_maintenance_walkway_80182F00 = 0x80182F00; // type:func absolute:True owner=shelter_b2_north_maintenance_walkway
+shelterB2NorthMaintenanceWalkwayRoomVisualEffectsSparkBurstTask = 0x80182F00; // type:func absolute:True owner=shelter_b2_north_maintenance_walkway
 
 shelterB2OperatingRoomDrawGlowsTask = 0x8017DDB8; // type:func absolute:True owner=shelter_b2_operating_room
 
-func_shelter_b2_operating_room_8017ECFC = 0x8017ECFC; // type:func absolute:True owner=shelter_b2_operating_room
+shelterB2OperatingRoomRoomVisualEffectsGlowDiscTask = 0x8017ECFC; // type:func absolute:True owner=shelter_b2_operating_room
 
 shelterB2OperatingRoomRoomVisualEffectsFlyingSparkTask = 0x8017F254; // type:func absolute:True owner=shelter_b2_operating_room shared=rooms
 
@@ -1175,13 +1175,13 @@ shelterB2PodAccessTunnelRoomVisualEffectsHaloTask = 0x80180350; // type:func abs
 
 shelterB2PodAccessTunnelRoomVisualEffectsHaloOrangeBurstTask = 0x801806E8; // type:func absolute:True owner=shelter_b2_pod_access_tunnel
 
-func_shelter_b2_pod_access_tunnel_80181AF8 = 0x80181AF8; // type:func absolute:True owner=shelter_b2_pod_access_tunnel
+shelterB2PodAccessTunnelRoomVisualEffectsSparkEmitterTask = 0x80181AF8; // type:func absolute:True owner=shelter_b2_pod_access_tunnel
 
 shelterB2PodAccessTunnelRoomVisualEffectsFlashTask = 0x80181C2C; // type:func absolute:True owner=shelter_b2_pod_access_tunnel
 
 shelterB2PodAccessTunnelRoomVisualEffectsTwinTrailTask = 0x80182690; // type:func absolute:True owner=shelter_b2_pod_access_tunnel
 
-func_shelter_b2_pod_access_tunnel_80182F78 = 0x80182F78; // type:func absolute:True owner=shelter_b2_pod_access_tunnel
+shelterB2PodAccessTunnelRoomVisualEffectsSparkBurstTask = 0x80182F78; // type:func absolute:True owner=shelter_b2_pod_access_tunnel
 
 shelterB2PodBottomEffectSpriteDriftTask = 0x8017D850; // type:func absolute:True owner=shelter_b2_pod_bottom
 
@@ -1869,7 +1869,7 @@ shelterB1AccessTunnelDrawGlowsTask = 0x8017DD60; // type:func absolute:True owne
 
 shelterB1UndergroundParkingDrawGlowsTask = 0x80184A18; // type:func absolute:True owner=shelter_b1_underground_parking
 
-shelterB1GolemFreezer1AmbientEffectsTask = 0x8017DA7C; // type:func absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
+shelterB1GolemFreezer1AmbientEffectsTask = 0x8017DA7C; // type:func absolute:True owner=shelter_b1_golem_freezer_1
 
 shelterB2PodBottomShadowTask = 0x8017D760; // type:func absolute:True owner=shelter_b2_pod_bottom shared=rooms
 
