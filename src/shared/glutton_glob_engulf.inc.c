@@ -4,8 +4,8 @@
 /// the first nine steps the model is stretched taller and thinner each step --
 /// horizontally `step * 400 + 0x800` and vertically `0x800 / step` -- around
 /// the yaw it already faces. On step 7 it is squashed to 0x17A0 wide at normal
-/// height, and if the player is within 1000 units horizontally, is not in mode
-/// 2, still has HP and answers the 0x3F8 query, the overlay's own animation-set
+/// height, and if the player is less than `GLUTTON_GLOB_GRAB_RADIUS` world units
+/// away in XZ, is not in mode 2, still has HP and answers the 0x3F8 query, the overlay's own animation-set
 /// table is sent as message 0x3FF and the take-over is latched in `playerCaught`.
 /// The task steps on once the count passes ten with no animation installed,
 /// once the latched animation has been released, or after 200 steps. Every
@@ -14,6 +14,8 @@
 /// cancelling a still-installed animation on the way out.
 void gluttonGlobEngulf(Enemy* enemy, Task* task)
 {
+    enum { GLUTTON_GLOB_GRAB_RADIUS = 1000 }; // Horizontal game-coordinate units; equality prevents a grab
+
     GluttonProjectileWork* work;
     Task*                  player;
     GameActor*             actor;
@@ -48,13 +50,14 @@ void gluttonGlobEngulf(Enemy* enemy, Task* task)
     if (work->stateTicks == 7) {
         _actorRenderRescaleYawXZ(task->extra.tmd->coords, 0x17A0, 0x800);
 
+        // The reach test takes signed-halfword offsets in the roots' shared world frame.
         gap.vx = task->extra.tmd->coords->coord.t[0] -
                  player->extra.tmd->coords->coord.t[0];
         gap.vy = 0;
         gap.vz = task->extra.tmd->coords->coord.t[2] -
                  player->extra.tmd->coords->coord.t[2];
 
-        if (actorOutOfReach(&gap) == 0 && actor->mode != GAME_ACTOR_MODE_SCRIPTED &&
+        if (_actorRangeOutsideRadiusXZ(&gap, GLUTTON_GLOB_GRAB_RADIUS) == 0 && actor->mode != GAME_ACTOR_MODE_SCRIPTED &&
             cfg->hp > 0) {
             gGluttonGrabQuery.hold.pressCount = 0x28;
             if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &gGluttonGrabQuery.hold, 0) == 0) {

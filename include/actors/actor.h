@@ -1898,24 +1898,6 @@ static __inline__ void _actorRenderAccumulateWorldRotation(const GfxCoord* joint
 }
 #undef ACTOR_RENDER_ACCUMULATE_WORLD_ROTATION_PRODUCT
 
-/// Whether the XZ offset `gap` reaches at least 1000.
-static __inline__ s32 actorOutOfReach(SVECTOR* gap)
-{
-    VECTOR3* v;
-
-    v                             = (VECTOR3*)(SCRATCH_STACK_CURSOR(u8) - sizeof(VECTOR3));
-    SCRATCH_STACK_CURSOR(VECTOR3) = v;
-    v->vx                         = gap->vx;
-    v->vy                         = gap->vz;
-    v->vz                         = 1000;
-    v->vx                         = v->vx * v->vx;
-    v->vy                         = v->vy * v->vy;
-    v->vz                         = v->vz * v->vz;
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(VECTOR3));
-
-    return v->vx + v->vy >= v->vz;
-}
-
 /// Moves the scratch-pad allocation pointer to `head`.
 static __inline__ void actorSetScratchHead(void* head)
 {
