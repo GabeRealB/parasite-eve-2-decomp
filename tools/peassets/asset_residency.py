@@ -206,6 +206,10 @@ VIEW_DIRECTORY = re.compile(r"\bu8\s*\*\s*(\w+)\s*\[[^\]]*\]\s*=\s*\{([^{}]*)\}\
 VIEW_COUNTS = re.compile(r"\bViewCount\s+\w+\s*\[[^\]]*\]\s*=\s*\{([^{}]*)\}")
 POINTER_TABLE = re.compile(r"\bu8\s*\*\s*(\w+)\s*\[[^\]]*\]\s*=\s*\{([^{}]*)\}\s*;")
 IDENTITY_MAP = "gViewIdentityMap"
+# The identity map has 50 entries (`VIEW_IDENTITY_MAP_LENGTH`). A room's `ViewCount` only bounds the reverse search
+# (`viewFindLogicalIndex`); the forward lookup is not bounded by it, so a boundary trigger can select a view past the
+# count and that view's file is a real view (dryfield_motel_room_3 walks views 7 and 8 with a count of 6).
+IDENTITY_VIEWS = list(range(1, 51))
 
 
 def view_maps(files: list[Path], packages: set[str]) -> dict[str, list[list[int]]]:
@@ -231,7 +235,7 @@ def view_maps(files: list[Path], packages: set[str]) -> dict[str, list[list[int]
             maps = []
             for name, count in zip(names, counts):
                 if name == IDENTITY_MAP:
-                    maps.append(list(range(1, count + 1)))
+                    maps.append(IDENTITY_VIEWS)
                 elif name in tables and None not in tables[name][:count]:
                     maps.append(tables[name][:count])
                 else:
@@ -252,7 +256,7 @@ def view_maps(files: list[Path], packages: set[str]) -> dict[str, list[list[int]
                 counts = next((c[:len(names)] for c in counted if len(c) >= len(names) and not any(c[len(names):])), None)
                 if counts is None:
                     continue
-                maps = [list(range(1, count + 1)) if name == IDENTITY_MAP else tables[name][:count] for name, count in zip(names, counts)]
+                maps = [IDENTITY_VIEWS if name == IDENTITY_MAP else tables[name][:count] for name, count in zip(names, counts)]
                 if all(None not in m for m in maps):
                     out[room] = maps
                     break
