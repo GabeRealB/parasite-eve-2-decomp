@@ -303,7 +303,6 @@ typedef struct {
 } _Actor444000CommandStorage;
 STATIC_ASSERT_SIZEOF(_Actor444000CommandStorage, 8);
 
-
 extern AnimationSet* gGluttonCaughtAnimSets[];
 
 /// Which of the three drop-point groups the falling enemies use this round,
@@ -5411,7 +5410,7 @@ static void _actor444000CatchPlayerState(Task* task)
         _actor444000PlaceCaughtPlayer(task, work, player, catchScratch, playerStatus);
 
         _gActor444000GluttonPlayerAtHost.playerAtHost = 0;
-        gAttachmentState.flags                            |= ATTACHMENT_FLAG_EVENT_LOCK;
+        gAttachmentState.flags                       |= ATTACHMENT_FLAG_EVENT_LOCK;
         roomEffectRequestCancelAll();
         worldTargetDisableNodeLockOn(&enemy->node);
         worldTargetDisableNodeLockOn(&work->escorts[3]->node);
