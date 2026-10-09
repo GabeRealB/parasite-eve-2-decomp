@@ -327,6 +327,65 @@ def write_side_data(folder: Path, assets: dict, embedded: dict) -> dict:
     return have
 
 
+def slim_scene(scene: dict) -> dict:
+    """A room's scene (room_scene.py) cut down to what the page draws: geometry, cameras, regions and placements."""
+    flat = lambda points: [c for p in points for c in p]
+    index = lambda tables, symbol: next((i for i, t in enumerate(tables) if t.get("table") == symbol), -1)
+    grids = [g for g in scene.get("grids", []) if not g.get("patch")]
+    def label(t):
+        p, a = t.get("parameters") or {}, t.get("action", "")
+        if a == "WARP":
+            return f"to area {p.get('destinationArea')}"
+        if a in ("CAP", "CAP_WEAPON"):
+            return f"command {p.get('capCommand')}" if "capCommand" in p else "room message"
+        if a == "CALLBACK":
+            return str(p.get("callback", ""))
+        if a == "ROOM":
+            return f"room action {p.get('roomActionId')}"
+        if a == "FACING":
+            return f"stairs, class or flight {p.get('classOrFlight')}"
+        return ""
+    def camera(c):
+        return None if not c else [flat(c["matrix"]), c["position"], c["screenDistance"], 1 if c.get("planView") else 0]
+    warps = scene.get("warps") or {}
+    return {
+        "rooms": [{"i": r["roomIndex"], "grid": next((i for i, g in enumerate(grids) if g["id"] == r.get("grid")), -1),
+                   "bnd": index(scene.get("boundaries", []), r.get("viewBoundaryTriggers")), "trg": index(scene.get("triggers", []), r.get("actionTriggers"))}
+                  for r in scene.get("rooms", [])],
+        "grids": [{"id": g["id"], "v": flat(g["vertices"]), "f": [f["v"] + [f["surfaceClass"], 1 if f["floor"] else 0] for f in g["faces"] if not f.get("skipped")]} for g in grids],
+        "bnd": [[[flat(b["corners"]), b.get("fromView"), b.get("toView")] for b in t["items"]] for t in scene.get("boundaries", [])],
+        "trg": [[[flat(b["corners"]), b.get("action", ""), label(b), 1 if b.get("automatic") else 0] for b in t["items"]] for t in scene.get("triggers", [])],
+        "entries": [[e["slot"], *e["player"]["position"], e["player"]["yaw"] if e["player"].get("yawSpecial") is None else None, e.get("initialView")] for e in warps.get("entries", [])],
+        "exits": [[flat(e["corners"]), e.get("destinationRoom") or f"area {e.get('destinationArea')}", e.get("departureSlot"), e.get("arrivalSlot"), e.get("roomIndices", [])] for e in warps.get("exits", [])],
+        "views": [{"i": v["roomIndex"], "views": [[w["view"], w["file"], (w["background"]["bs"] or [None])[0] if w.get("fileExists") else None, camera(w.get("camera"))] for w in v["views"]]} for v in scene.get("views", [])],
+        "vars": [{"n": v["variant"], "set": 1 if v.get("default") or v.get("hasSetter") else 0, "empty": 1 if v.get("empty") else 0,
+                  "by": [f"{x.get('kind')} in {x.get('by')} ({x.get('file', '')}:{x.get('line', '')})" for x in v.get("setters", [])],
+                  "placed": [[*p["position"], p["yaw"], 1 if p.get("atOrigin") else 0, p.get("package") or "", next((m for m in p.get("models", []) if m.endswith("_body")), (p.get("models") or [""])[0]), p.get("mode"), p.get("entryId")]
+                             for p in v.get("placed", [])]}
+                 for v in (scene.get("placements") or {}).get("variants", [])],
+        "items": [[*o["position"], o.get("yaw", 0), ((o.get("spawn") or {}).get("modelKey")) or "", o.get("kind")] for o in (scene.get("objects") or {}).get("items", []) if not o.get("atOrigin")],
+        "open": [f"{u.get('block')}: {u.get('what')} - {u.get('reason')}" for u in scene.get("unresolved", [])] + list(scene.get("notes", []))[:12],
+    }
+
+
+def write_scenes(folder: Path, rooms: list[str]) -> list[str]:
+    """One script per room with its scene, loaded when the room's page is opened."""
+    import room_scene
+    project, done = room_scene.Project(), []
+    folder.mkdir(parents=True, exist_ok=True)
+    for room in rooms:
+        if room not in project.place_of:
+            continue
+        try:
+            scene = slim_scene(room_scene.Scene(project, room).build())
+        except Exception as error:  # noqa: BLE001 - a room whose scene cannot be read has no viewer; the page says so
+            print(f"room scene {room}: {type(error).__name__}: {error}", file=sys.stderr)
+            continue
+        (folder / f"scene_{room}.js").write_text(f"SCENE({json.dumps(room)},{json.dumps(scene, separators=(',', ':'))});\n", encoding="utf-8")
+        done.append(room)
+    return done
+
+
 def animation_tables(embedded: dict) -> dict:
     """Per animation bank: each set's record and track counts, and the tables of the package that index it."""
     import tomllib
@@ -575,6 +634,7 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
             "source": patch["package"] + ".pe2pkg", "vram": patch["load"] + patch["offset"],
             "notes": "a collision patch (" + ", ".join(patch["pieces"]) + "): arrays the overlay's code copies into a room's live grid"}]
     scripts = {key: [found["bank"], [[list(n) for n in notes] if notes is not None else None for notes in found["entries"]]] for key, found in spk_scripts.all_banks().items()}
+    scenes = write_scenes(out.with_name(out.stem + "_data"), sorted(n for n, o in overlays.items() if o.get("room"))) if pixels else []
     # How the code uses each asset, as read out of the sources (tools/peassets/usage/).
     usage = defaultdict(list)
     by_overlay = defaultdict(lambda: [0, 0])
@@ -617,7 +677,7 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
                 streams[meta.stem] = f"audio/{meta.stem}.wav"
     saves = sorted(p.name for p in (extracted / "mcsave" / "mc_save_header").glob("*.png")) if (extracted / "mcsave" / "mc_save_header").is_dir() else []
     return {
-        "holds": side["holds"], "viewpal": viewpal, "scripts": scripts, "usage": usage, "swept": by_overlay, "remarks": remarks, "notes": notes, "dialogue": dialogue,
+        "holds": side["holds"], "viewpal": viewpal, "scripts": scripts, "scenes": scenes, "usage": usage, "swept": by_overlay, "remarks": remarks, "notes": notes, "dialogue": dialogue,
         "mesh": side["mesh"], "track": side["track"], "banks": banks, "streams": streams, "saves": saves, "side": out.stem + "_data" if pixels else "",
         "files": files, "chunks": chunks, "fp": footprint, "loads": loads, "overlays": overlays, "requests": requests,
         "consts": constants, "findings": findings, "assets": catalogue, "sounds": sounds,
