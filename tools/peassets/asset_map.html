@@ -309,7 +309,7 @@ async function memorySection(name, o, reqs, alive) {
 async function showAsset(key) {
   const mine = ++turn, a = D.assets[key], box = $("subject"); if (!a) { box.replaceChildren(h("p", { text: `No asset named ${key}.` })); return; }
   const [type, attrs] = a, files = placedIn.get(key) || [], sections = [];
-  const head = h("header", {}, h("h2", { text: key }), h("div", { class: "crumbs", text: (TYPE[type] || type).replace(/s$/, "") + (attrs.source ? ` · embedded in ${attrs.source}` : "") }));
+  const head = h("header", {}, h("h2", { text: key }), h("div", { class: "crumbs" }, (TYPE[type] || type.replace(/_/g, " ")).replace(/s$/, ""), attrs.source ? [" · inside ", D.overlays[attrs.source.replace(/\.pe2pkg$/, "")] ? link("o", attrs.source.replace(/\.pe2pkg$/, "")) : attrs.source, ", which is what loads it"] : ""));
   if (type === "pe2img" || type === "image") { const pairs = D.pairs[key] || []; await Promise.all([need(key), ...pairs.filter(p => p[1]).map(p => need(p[1]))]); if (mine !== turn) return;
     const bpps = [].concat(attrs.bpp || 8);
     sections.push(sec(`As used (${pairs.length})`, pairs.length ? "Each way a model's faces read this image: a column of it, at a depth, through a palette row. The other columns are faded." : "No model's faces are known to read this image, so there is no palette to show it with.",
