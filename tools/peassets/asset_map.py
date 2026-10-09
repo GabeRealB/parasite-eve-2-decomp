@@ -636,6 +636,14 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
             "notes": "a collision patch (" + ", ".join(patch["pieces"]) + "): arrays the overlay's code copies into a room's live grid"}]
     scripts = {key: [found["bank"], [[list(n) for n in notes] if notes is not None else None for notes in found["entries"]]] for key, found in spk_scripts.all_banks().items()}
     scenes = write_scenes(out.with_name(out.stem + "_data"), sorted(n for n, o in overlays.items() if o.get("room"))) if pixels else []
+    # Names proposed for a later bulk rename (tools/peassets/asset_names.tsv: current name, new name); the page edits them.
+    names = {}
+    names_path = Path(__file__).with_name("asset_names.tsv")
+    if names_path.is_file():
+        for line in names_path.read_text(encoding="utf-8").splitlines():
+            cells = line.split("\t")
+            if not line.startswith("#") and len(cells) >= 2 and cells[0] and cells[1]:
+                names[cells[0]] = cells[1]
     # How the code uses each asset, as read out of the sources (tools/peassets/usage/).
     usage = defaultdict(list)
     by_overlay = defaultdict(lambda: [0, 0])
@@ -685,7 +693,7 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
                 streams[meta.stem] = f"audio/{meta.stem}.wav"
     saves = sorted(p.name for p in (extracted / "mcsave" / "mc_save_header").glob("*.png")) if (extracted / "mcsave" / "mc_save_header").is_dir() else []
     return {
-        "holds": side["holds"], "viewpal": viewpal, "scripts": scripts, "scenes": scenes, "usage": usage, "swept": by_overlay, "remarks": remarks, "notes": notes, "dialogue": dialogue,
+        "holds": side["holds"], "viewpal": viewpal, "scripts": scripts, "scenes": scenes, "names": names, "usage": usage, "swept": by_overlay, "remarks": remarks, "notes": notes, "dialogue": dialogue,
         "mesh": side["mesh"], "track": side["track"], "banks": banks, "streams": streams, "saves": saves, "side": out.stem + "_data" if pixels else "",
         "files": files, "chunks": chunks, "fp": footprint, "loads": loads, "overlays": overlays, "requests": requests,
         "consts": constants, "findings": findings, "assets": catalogue, "sounds": sounds,
