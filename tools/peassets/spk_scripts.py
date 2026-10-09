@@ -13,6 +13,12 @@ bank's layer table, so its layers follow those of the programs before it. A
 layer's wave address says which sample it plays; the extractor numbers
 samples by address. A sound id in the code is the bank id in its high half
 and the entry in its low byte.
+
+A `oneV` may name another bank: its samples then come from that bank, which has
+to be loaded too. 0xFFFF is looked up as bank 0 (`sndBankFind`,
+src/main/sndbank.c), the boot bank. An entry whose stored offset is 0 has no
+script, and a request for it is rejected (src/main/sndscript.c,
+`SOUND_BANK_ENTRY_ABSENT`).
 """
 from __future__ import annotations
 
@@ -54,7 +60,21 @@ def scripts(data: bytes) -> dict | None:
                 break                      # endC, or something this does not know
             at += CHUNK[tag]
         entries.append(notes)
-    return {"bank": bank, "samples": len(order), "entries": entries}
+    return {"bank": bank, "samples": len(order), "entries": entries, "sizes": sizes, "layers": [order[w] for w in waves]}
+
+
+def foreign(banks: dict[str, dict], other: int, program: int, layer: int) -> str:
+    """Where a voice naming another bank gets its sample: "spk_N sample M", or what stands in the way."""
+    wanted = 0 if other == 0xFFFF else other
+    keys = [k for k, b in banks.items() if b["bank"] == wanted]
+    if not keys:
+        return f"bank {wanted:#06x} (no such bank) program {program} layer {layer}"
+    found = []
+    for key in keys:
+        b = banks[key]
+        index = sum(b["sizes"][:program]) + layer if program < len(b["sizes"]) else None
+        found.append(f"{key} sample {b['layers'][index]}" if index is not None and index < len(b["layers"]) else f"{key} program {program} layer {layer} (no such layer)")
+    return f"bank {wanted:#06x}: " + " or ".join(found)
 
 
 def all_banks() -> dict[str, dict]:
@@ -71,7 +91,7 @@ def main() -> int:
     if not args:
         print(__doc__)
         return 1
-    banks = all_banks() if args[0] == "--id" else {}
+    banks = all_banks()
     keys = [k for k, b in banks.items() if b["bank"] == int(args[1], 0)] if args[0] == "--id" else args
     for key in keys:
         path = RAW / f"{key}.spk"
@@ -82,9 +102,9 @@ def main() -> int:
         print(f"{key}: bank id {found['bank']:#06x}, {found['samples']} samples; a sound id is {found['bank']:#06x}00NN for entry NN")
         for n, notes in enumerate(found["entries"]):
             if notes is None:
-                print(f"  entry {n:#04x}: empty")
+                print(f"  entry {n:#04x}: empty (a request for it is rejected)")
                 continue
-            parts = [f"sample {s}" if s is not None else (f"bank {o:#06x} program {p} layer {l}" if o else f"program {p} layer {l} (no such layer)") for o, s, p, l in notes]
+            parts = [f"sample {s}" if s is not None else (foreign(banks, o, p, l) if o else f"program {p} layer {l} (no such layer)") for o, s, p, l in notes]
             print(f"  entry {n:#04x}: " + (", ".join(parts) or "no voice"))
     return 0 if keys else 1
 
