@@ -39,6 +39,94 @@ TEMPLATE = Path(__file__).with_name("asset_map.html")
 SHOWN = ("x", "y", "w", "h", "bpp", "clips", "parent", "required", "source", "vram", "size", "notes")
 
 
+def spawn_bindings(assets: dict) -> dict[tuple[str, str], set[int]]:
+    """(package, model) -> the stage-zero files a room loads for the entry that spawns that model.
+
+    This is read from the game's own tables, not inferred. A room's
+    `AreaResource` row names a file (`fileNumber`, `fileGroupIndex`) and the
+    actor it is for: `taskTable[taskIndex]`, a `TaskDesc` whose `data.model`
+    is the model's `TmdSource` when its body kind is a TMD model
+    (include/gameplay/area.h, include/main/task_types.h). So the row says
+    which file's textures the model spawned through it is drawn with.
+    """
+    import hashlib
+    import re
+    import struct
+    import asset_journal
+    import pkg_model
+    row = re.compile(r"\{\s*([\w]+)\s*,\s*([-\w]+)\s*,\s*(\w+)\s*,\s*(\w+)\s*,\s*\{[^{}]*\}\s*,\s*&?(\w+)\s*\}")
+    table = re.compile(r"\bAreaResource\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{(.*?)\n\};", re.S)
+    named: dict[str, list[tuple[str, int]]] = defaultdict(list)          # symbol -> (package, address)
+    for sym in (ROOT / "configs/USA/sym").glob("*/*.txt"):
+        for m in residency.asset_journal.SYMBOL.finditer(sym.read_text(encoding="utf-8")):
+            named[m[1]].append((sym.stem, int(m[2], 16)))
+    records = pkg_model.declared_records(ROOT)
+    by_sha = {rec["sha1"]: key for key, rec in assets.items() if rec.get("type") == "model"}
+    blobs: dict[str, bytes] = {}
+    values: dict[str, set[int]] = defaultdict(set)
+    sources = sorted(p for p in (ROOT / "src").rglob("*.c"))
+    for path in sources:
+        if "AreaResource" in path.read_text(encoding="utf-8", errors="replace"):
+            for _scope, symbol, _line, _kind, _expr, value in asset_journal.constants(path):
+                values[symbol].add(value)
+    for header in (ROOT / "include" / "gameplay").glob("*.h"):
+        for _scope, symbol, _line, _kind, _expr, value in asset_journal.constants(header):
+            values[symbol].add(value)
+    known = {name: next(iter(v)) for name, v in values.items() if len(v) == 1}
+    # Which further file of an entry its placements ask for (`AreaPlacement.fileIdLow`): a placement with 0 uses
+    # the entry's base file, one with N the file N beside it. So the entry's models are drawn with those files.
+    placements, _resources, variants = residency.area_tables(sources, known)
+    lows: dict[tuple[str, int], set[int]] = defaultdict(set)
+    for _rel, pairs in variants.values():
+        for placed, resource_table in pairs:
+            for entry, low, _page, _row in placements.get(placed, ()):
+                lows[resource_table, entry].add(low)
+    out: dict[tuple[str, str], set[int]] = defaultdict(set)
+    for path in sources:
+        text = path.read_text(encoding="utf-8", errors="replace")
+        if "AreaResource" not in text:
+            continue
+        for found in table.finditer(asset_journal.code_of(path)):
+            for m in row.finditer(found[2]):
+                entry, number, group, index = (asset_journal.evaluate(c, known) for c in (m[1], m[2], m[3], m[4]))
+                if None in (entry, number, group, index) or not 0 <= group < len(residency.GROUP_BASE):
+                    continue
+                file_id = (residency.GROUP_BASE[group] + number // 100) * 10000 + (number % 100) * 100
+                owners = named.get(m[5], [])
+                direct = re.fullmatch(r"D_([a-z0-9_]+?)_([0-9A-F]{8})", m[5])
+                if direct and not owners:
+                    owners = [(direct[1], int(direct[2], 16))]
+                for package, address in owners:
+                    if package not in records:
+                        continue
+                    load, _sources = records[package]
+                    if package not in blobs:
+                        blob = ROOT / "assets" / "USA" / "pe2pkg" / f"{package}.pe2pkg"
+                        blobs[package] = blob.read_bytes() if blob.is_file() else b""
+                    data, at = blobs[package], address - load + index * 12
+                    if not 0 <= at <= len(data) - 12:
+                        continue
+                    flags, _priority, _callback, model = struct.unpack_from("<HHII", data, at)
+                    if flags & 0xFF != 1 or not load <= model < load + len(data):
+                        continue                      # not a TMD body: the descriptor names no model
+                    try:
+                        src = pkg_model.read_source(data, load, model - load)
+                        key = by_sha.get(hashlib.sha1(data[src["stream_offset"]:src["end"]]).hexdigest())
+                    except Exception:  # noqa: BLE001
+                        key = None
+                    if key:
+                        out[package, key].update(file_id + low for low in (lows.get((found[1], entry)) or {0}))
+    # What the tables cannot say - a model some task spawns itself - is read out of the code and kept beside this
+    # tool: package, model, file ids, evidence, note.
+    stated = Path(__file__).with_name("model_textures.tsv")
+    if stated.is_file():
+        for line in stated.read_text(encoding="utf-8").splitlines():
+            cells = [c.strip() for c in line.split("\t")]
+            if line.strip() and not line.startswith("#") and len(cells) >= 3:
+                out[cells[0], cells[1]] = {int(i) for i in re.findall(r"\d+", cells[2])}
+    return out
+
+
 class Supply:
     """Who can supply a texture page and palette: an overlay's own files, then its ancestors'."""
 
@@ -86,37 +174,32 @@ class Supply:
         mode = (page >> 7) & 3
         return (4, 8, 16)[mode] if mode < 3 else 16, (page & 15) * 64, 256 if page & 16 else 0, (clut & 63) * 16, clut >> 6
 
-    def covers(self, found, page: int, clut: int, box=None):
-        """(image rect, CLUT rect) when these rectangles hold the page and the palette, else None.
-
-        With the part of the page the faces cover (`box`, in texels), the image
-        has to hold all of that part, not merely touch the page.
-        """
+    def covers(self, found, page: int, clut: int):
+        """(image rect, CLUT rect) when these rectangles hold the page and the palette, else None."""
         bpp, tx, ty, cx, cy = self.geometry(page, clut)
         width = 64 if bpp == 4 else 128
-        if box:
-            per = 4 if bpp == 4 else 2 if bpp == 8 else 1
-            x0, x1, y0, y1 = tx + box[0] // per, tx + box[2] // per, ty + box[1], ty + box[3]
-            image = next((r for r in found if r[0] == "image" and r[1] <= x0 and x1 < r[1] + r[3] and r[2] <= y0 and y1 < r[2] + r[4]), None)
-        else:
-            image = next((r for r in found if r[0] == "image" and r[1] < tx + width and tx < r[1] + r[3] and r[2] < ty + 256 and ty < r[2] + r[4]), None)
+        image = next((r for r in found if r[0] == "image" and r[1] < tx + width and tx < r[1] + r[3] and r[2] < ty + 256 and ty < r[2] + r[4]), None)
         palette = next((r for r in found if r[0] == "clut" and r[1] <= cx < r[1] + r[3] and r[2] <= cy < r[2] + r[4]), None)
         return (image, palette) if image and (bpp == 16 or palette) else None
 
-    def resolve(self, package: str, page: int, clut: int, box=None):
-        """("own", [(file, image, palette)]) | ("ancestor", name, [(file, page, row, mode)]) | None.
+    def resolve(self, package: str, page: int, clut: int, bound: set[int] | None = None):
+        """("own", [(file, image, palette)], settled) | ("ancestor", name, [(file, page, row, mode)]) | None.
 
         Several of an overlay's own files can fit: its actors' textures are
-        stored at the same place in each. Those whose image holds all of what
-        the faces cover come first, the tightest first - a model that reads
-        half a page is the one made for the half-page image.
+        stored at the same place in each. Which one a model is drawn with is
+        not guessed: it is the file of the entry that spawns the model
+        (`bound`, from the rooms' resource tables). Without that, every file
+        that fits is returned and the question is left open.
         """
-        fits = [(path, *hit) for path in self.own(package) if box and (hit := self.covers(self.rects(path, None), page, clut, box))]
-        fits.sort(key=lambda found: found[1][3] * found[1][4])
-        loose = [(path, *hit) for path in self.own(package) if (hit := self.covers(self.rects(path, None), page, clut))]
-        mine = fits + [found for found in loose if found[0] not in {f[0] for f in fits}]
+        mine = [(path, *hit) for path in self.own(package) if (hit := self.covers(self.rects(path, None), page, clut))]
+        settled = len(mine) <= 1
+        if bound and len(mine) > 1:
+            # The entry's base file, or the further file its placements ask for.
+            chosen = [found for found in mine if self.files[found[0]]["id"] in bound]
+            if chosen:
+                mine, settled = chosen + [found for found in mine if found not in chosen], len(chosen) == 1
         if mine and not self.is_room(package):
-            return ("own", mine)
+            return ("own", mine, settled)
         for holder in ([package] if self.is_room(package) else []) + asset_schema.ancestors_of(package, self.assets, self.tree):
             via = []
             for path in self.own(holder):
@@ -273,6 +356,7 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
     assets, embedded = asset_schema.load()
     tree = asset_schema.load_tree()
     supply = Supply(db, assets, tree)
+    bindings = spawn_bindings(assets)
     files = [r["path"] for r in db.execute("SELECT path FROM file ORDER BY path")]
     index = {path: n for n, path in enumerate(files)}
     packages = {k for k, r in assets.items() if r["type"] == "pe2pkg"}
@@ -308,14 +392,17 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
         for page, clut in assets[key]["textures"]:
             box = bounds.get((page, clut), [])
             page &= ~0x60
-            found = supply.resolve(package, page, clut, box)
+            found = supply.resolve(package, page, clut, bindings.get((package, key)))
             bpp, tx, ty, cx, cy = supply.geometry(page, clut)
             if found is None:
                 how = ["none"]
                 findings[package].append(f"{key}: page ({tx}, {ty}) {bpp}-bit with palette ({cx}, {cy}) is supplied by nothing in its chain")
             elif found[0] == "own":
-                how = ["own", [index[path] for path, _i, _p in found[1]]]
-                for _path, image, palette in found[1][:1]:      # only the best fit says how the image is meant to be read
+                how = ["own", [index[path] for path, _i, _p in found[1]], int(found[2])]
+                if not found[2]:
+                    findings[package].append(f"{key}: {len(found[1])} of the overlay's files fit its page ({tx}, {ty}) and palette ({cx}, {cy}), "
+                                             "and no resource entry spawning this model says which it is drawn with")
+                for _path, image, palette in found[1][: 1 if found[2] else 0]:      # only an established file says how the image is read
                     column = max(0, (tx - image[1]) // 64)
                     if palette:
                         pairs[image[5]][bpp, palette[5], cy - palette[2], (cx - palette[1]) // 16, column].add(key)
@@ -483,7 +570,7 @@ def main() -> int:
     counts = defaultdict(int)
     for rows in data["requests"].values():
         for row in rows:
-            counts[row[4][0]] += 1
+            counts[row[4][0] if row[4][0] != "own" or row[4][2] else "own, file not established"] += 1
     print(f"wrote {args.out}  ({args.out.stat().st_size // 1024} KB); texture requests: " + ", ".join(f"{k} {v}" for k, v in sorted(counts.items())))
     return 0
 
