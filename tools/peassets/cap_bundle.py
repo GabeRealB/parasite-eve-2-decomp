@@ -8,8 +8,9 @@ package (doc/CAP_FORMAT.md 6): fifty 16-byte descriptors - kind (0 empty, 2
 image, 3 data), length and RAM destination - then the payloads, laid out in
 the file as they are in RAM, the first at 0x7F0. A kind-2 payload has the
 header of an image or CLUT chunk (x, y, height, width) and LZSS data; nearly
-all are a 256 x 6 palette for (0, 255), the palette of one view's sprites,
-in the slot of that view. A kind-3 payload is a `CAP2` dialogue file, or in a
+all are a 256 x 6 palette for (0, 255), the palette of one view's sprites:
+slot N is the palette of the view mapped to file N + 1
+(src/gameplay/view_image.c). A kind-3 payload is a `CAP2` dialogue file, or in a
 few bundles credits (`STF1`) or a bitstream.
 """
 from __future__ import annotations

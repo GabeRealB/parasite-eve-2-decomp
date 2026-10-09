@@ -520,7 +520,7 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
             catalogue[key] = [rec["type"], {k: rec[k] for k in SHOWN if k in rec}]
         else:
             catalogue[key][1].update({k: rec[k] for k in ("source", "vram", "size") if k in rec})
-    # A room's caption bundle holds a palette per view, in that view's slot, besides the dialogue.
+    # A room's caption bundle holds a palette per view, in the slot before that view's number, besides the dialogue.
     import base64
     import cap_bundle
     import spk_scripts
@@ -539,10 +539,11 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
             for slot in cap_bundle.slots(data):
                 name = f"{key}_slot_{slot['slot']:02d}"
                 if slot["what"] == "palette":
-                    catalogue[name] = ["clut", {"source": key, "x": slot["x"], "y": slot["y"], "w": slot["w"], "h": slot["h"], "notes": f"the palette of view {slot['slot']} of {room}"}]
+                    catalogue[name] = ["clut", {"source": key, "x": slot["x"], "y": slot["y"], "w": slot["w"], "h": slot["h"], "notes": f"the palette of the view mapped to file {slot['slot'] + 1} of {room}"}]
                     files.append(f"bundle:{name}")
                     footprint[len(files) - 1].append([name, "c", "", slot["x"], slot["y"], slot["w"], slot["h"], 0])
-                    viewpal.setdefault(room, {})[slot["slot"]] = len(files) - 1
+                    # The slot is the mapped view less one (src/gameplay/view_image.c).
+                    viewpal.setdefault(room, {})[slot["slot"] + 1] = len(files) - 1
                     if pixels:
                         (out.with_name(pixels) / f"{name}.js").write_text(
                             f"PIX({json.dumps(name)},{json.dumps([[slot['x'], slot['y'], slot['w'], slot['h'], base64.b64encode(cap_bundle.palette_words(data, slot)).decode()]])});\n", encoding="utf-8")
