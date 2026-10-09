@@ -542,11 +542,16 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
             for slot in cap_bundle.slots(data):
                 name = f"{key}_slot_{slot['slot']:02d}"
                 if slot["what"] == "palette":
-                    catalogue[name] = ["clut", {"source": key, "x": slot["x"], "y": slot["y"], "w": slot["w"], "h": slot["h"], "notes": f"the palette of the view mapped to file {slot['slot'] + 1} of {room}"}]
+                    # Only a palette for (0, 255) is a view's; one stored elsewhere is something the room's code uploads itself.
+                    of_view = (slot["x"], slot["y"]) == (0, 255)
+                    note = (f"the palette of the view mapped to file {slot['slot'] + 1} of {room}" if of_view
+                            else f"a palette in the bundle {room} loads, for ({slot['x']}, {slot['y']}); not a view's, so some code uploads it")
+                    catalogue[name] = ["clut", {"source": key, "x": slot["x"], "y": slot["y"], "w": slot["w"], "h": slot["h"], "notes": note}]
                     files.append(f"bundle:{name}")
                     footprint[len(files) - 1].append([name, "c", "", slot["x"], slot["y"], slot["w"], slot["h"], 0])
                     # The slot is the mapped view less one (src/gameplay/view_image.c).
-                    viewpal.setdefault(room, {})[slot["slot"] + 1] = len(files) - 1
+                    if of_view:
+                        viewpal.setdefault(room, {})[slot["slot"] + 1] = len(files) - 1
                     if pixels:
                         (out.with_name(pixels) / f"{name}.js").write_text(
                             f"PIX({json.dumps(name)},{json.dumps([[slot['x'], slot['y'], slot['w'], slot['h'], base64.b64encode(cap_bundle.palette_words(data, slot)).decode()]])});\n", encoding="utf-8")
