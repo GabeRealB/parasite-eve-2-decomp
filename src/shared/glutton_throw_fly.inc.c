@@ -48,7 +48,7 @@ static void _gluttonThrowFly(Enemy* enemy, Task* task)
     owner = task->parent->spawnArg2.pointer;
     host  = owner->task->work;
 
-    if (gGluttonEnded == 1 || host->state == 0x10 || host->state == 5 ||
+    if (_gGluttonEncounterEnded == GLUTTON_ENCOUNTER_ENDED || host->state == 0x10 || host->state == 5 ||
         host->state == 0xC || host->state == 0x12) {
         task->state++;
         worldCollisionUnlinkBody(&work->attackBody);

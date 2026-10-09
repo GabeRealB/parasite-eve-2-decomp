@@ -20,7 +20,7 @@ static void _gluttonSpinnerSpawn(Enemy* enemy, Task* task)
            GLUTTON_SPINNER_ORIENTATION_MASK   = 0x4FF };
     GluttonSpinnerWork* work;
 
-    if (gGluttonEnded == 1) {
+    if (_gGluttonEncounterEnded == GLUTTON_ENCOUNTER_ENDED) {
         enemyDestroy(enemy, task);
         return;
     }

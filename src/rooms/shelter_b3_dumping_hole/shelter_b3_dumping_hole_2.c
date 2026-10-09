@@ -13,6 +13,7 @@
 #include "shelter_b3_dumping_hole_private.h"
 
 #include "actors/actor_04400.h"
+#include "actors/actor_403200.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/display.h"
@@ -2126,7 +2127,7 @@ AreaPlacement D_shelter_b3_dumping_hole_8018EAEC[5] = {
 };
 
 AreaResource D_shelter_b3_dumping_hole_8018EB3C[5] = {
-    { 32, 32, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_403200_8015F8D0 },
+    { 32, 32, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor403200GluttonHostTaskDesc },
     { 103, 417, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_shelter_b3_dumping_hole_80188BC8 },
     { 252, 417, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &D_actor_341700_80176354 },
     { 44, 44, AREA_RESOURCE_FILE_GROUP_BASE_60, 2, { 0, 0 }, &D_actor_341700_80174D58 },
@@ -2134,7 +2135,7 @@ AreaResource D_shelter_b3_dumping_hole_8018EB3C[5] = {
 };
 
 AreaResource D_shelter_b3_dumping_hole_8018EB78[2] = {
-    { 32, 32, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_403200_8015F8D0 },
+    { 32, 32, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor403200GluttonHostTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

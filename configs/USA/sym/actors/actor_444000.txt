@@ -2,17 +2,17 @@
 
 // Referenced in another actor load slot, resident beside this one.
 gActor04400MadChaserTaskDescs = 0x80172604; // absolute:True owner=actor_342200
-gGluttonAnimTransitions = 0x80160C5C; // size:0x7E9 defined:True
+_gGluttonAnimBlendFrames = 0x80160C5C; // size:0x7E9 defined:True
 _gActor444000GluttonHostAnimationSets = 0x80161448; // size:0xB8 defined:True
 _gActor444000GluttonRightLegAnimationSets = 0x80161500; // size:0xB8 defined:True
 _gActor444000GluttonLeftLegAnimationSets = 0x801615B8; // size:0xB8 defined:True
 gGluttonRainGroup = 0x80161690; // size:0x1 defined:True
-gGluttonCaughtAnimSets = 0x80161694; // size:0x1C defined:True
+_gGluttonGlobPlayerAnimSets = 0x80161694; // size:0x1C defined:True
 _gActor444000GluttonAttachedTaskDescs = 0x801616B0; // size:0x54 defined:True
 gGluttonRainLaunchOffsets = 0x80161704; // size:0x40 defined:True
 gGluttonRainPoints = 0x80161744; // size:0x80 defined:True
 gGluttonRainPointIndex = 0x801617C4; // size:0x18 defined:True
-gGluttonEscortTasks = 0x801617DC; // size:0x30 defined:True
+_gGluttonProjectileTaskDescs = 0x801617DC; // size:0x30 defined:True
 D_actor_444000_8016180C = 0x8016180C; // size:0xC defined:True
 _gActor444000GluttonMessages = 0x80161818; // size:0x38 defined:True
 _gActor444000GluttonDebrisCoordIndex = 0x80161850; // size:0x2 defined:True
@@ -418,18 +418,18 @@ _gActor444000GluttonHostParams = 0x80144A28; // size:0x10 defined:True
 _gActor444000GluttonRightLegParams = 0x80144A38; // size:0x10 defined:True
 _gActor444000GluttonLeftLegParams = 0x80144A48; // size:0x10 defined:True
 _gActor444000GluttonGroups1To2Params = 0x80144A58; // size:0x10 defined:True
-gGluttonEnded = 0x80144A68; // size:0x2 defined:True
-gGluttonGrabActive = 0x80144A6C; // size:0x4 defined:True
-gGluttonLimbReach = 0x80144A70; // size:0x2 defined:True
-gGluttonSpinnersReleased = 0x80144A72; // size:0x2 defined:True
+_gGluttonEncounterEnded = 0x80144A68; // size:0x2 defined:True
+_gGluttonGlobHoldActive = 0x80144A6C; // size:0x4 defined:True
+_gGluttonLimbReach = 0x80144A70; // size:0x2 defined:True
+_gGluttonSpinnersReleased = 0x80144A72; // size:0x2 defined:True
 D_actor_444000_80161864 = 0x80161864; // size:0x4 defined:True
 _gActor444000GluttonPlayerAtHost = 0x80161868; // size:0x8 defined:True
 ActorContact_ScratchPosition = 0x80161870; // size:0x8 defined:True
 _gGluttonHostTask = 0x80161878; // size:0x8 defined:True
 _gActor444000GluttonRootEffectSpawnArg = 0x80161880; // size:0x8 defined:True
 _gActor444000GluttonMadChaserCommand = 0x80161888; // size:0x8 defined:True
-gGluttonSpinnerTarget = 0x80161890; // size:0x8 defined:True
-gGluttonGrabQuery = 0x80161898; // size:0x20 defined:True
+_gGluttonSpinnerTarget = 0x80161890; // size:0x8 defined:True
+_gGluttonGlobEngulfHold = 0x80161898; // size:0x20 defined:True
 _gActor444000GluttonMouthCoord = 0x801618B8; // size:0x50 defined:True
 _gActor444000GluttonCaughtPlayerPlacement = 0x80161908; // size:0x20 defined:True
 _gActor444000GluttonGrabHold = 0x80161928; // size:0x20 defined:True

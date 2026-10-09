@@ -47,8 +47,8 @@ static void _gluttonPoseLimb(Task* task)
         return;
     }
 
-    if (gGluttonLimbReach < GLUTTON_LIMB_MIN_REACH) {
-        gGluttonLimbReach = GLUTTON_LIMB_MIN_REACH;
+    if (_gGluttonLimbReach < GLUTTON_LIMB_MIN_REACH) {
+        _gGluttonLimbReach = GLUTTON_LIMB_MIN_REACH;
     }
 
     // Distribute the reach along the five extending segments.
@@ -56,7 +56,7 @@ static void _gluttonPoseLimb(Task* task)
         work->escorts[4]->task->extra.tmd->coords[partIndex].coord.t[0]     = work->escorts[4]->task->extra.tmd->coords[partIndex].coord.t[1] =
             work->escorts[4]->task->extra.tmd->coords[partIndex].coord.t[2] = 0;
         if ((u16)partIndex >= 2) {
-            work->escorts[4]->task->extra.tmd->coords[partIndex].coord.t[2] = (s16)(gGluttonLimbReach / 5);
+            work->escorts[4]->task->extra.tmd->coords[partIndex].coord.t[2] = (s16)(_gGluttonLimbReach / 5);
         }
         work->escorts[4]->task->extra.tmd->coords[partIndex].composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(&work->escorts[4]->task->extra.tmd->coords[partIndex]);
@@ -76,18 +76,18 @@ static void _gluttonPoseLimb(Task* task)
 
         case GLUTTON_LIMB_POSE_SHALLOW_CURVE:
             work->limbPitchStep = 8;
-            if (gGluttonLimbReach < 0x400) {
+            if (_gGluttonLimbReach < 0x400) {
                 work->limbPitchTarget[1] = -0x80;
                 for (partIndex = 2; partIndex < GLUTTON_LIMB_PARTS; partIndex++) {
                     work->limbPitchTarget[partIndex] = 0;
                 }
-            } else if (gGluttonLimbReach < 0x604) {
+            } else if (_gGluttonLimbReach < 0x604) {
                 work->limbPitchTarget[1] = 0x80;
                 for (partIndex = 2; partIndex < 6; partIndex++) {
                     work->limbPitchTarget[partIndex] = 0;
                 }
                 work->limbPitchTarget[6] = -0x80;
-            } else if (gGluttonLimbReach < 0x708) {
+            } else if (_gGluttonLimbReach < 0x708) {
                 work->limbPitchTarget[1] = 0x80;
                 for (partIndex = 2; partIndex < 6; partIndex++) {
                     work->limbPitchTarget[partIndex] = 0;
@@ -95,7 +95,7 @@ static void _gluttonPoseLimb(Task* task)
                 for (partIndex = 6; partIndex < GLUTTON_LIMB_PARTS; partIndex++) {
                     work->limbPitchTarget[partIndex] = -0x60;
                 }
-            } else if (gGluttonLimbReach < 0xC80) {
+            } else if (_gGluttonLimbReach < 0xC80) {
                 work->limbPitchTarget[1] = 0x80;
                 for (partIndex = 2; partIndex < 4; partIndex++) {
                     work->limbPitchTarget[partIndex] = 0;
@@ -106,7 +106,7 @@ static void _gluttonPoseLimb(Task* task)
                 for (partIndex = 5; partIndex < GLUTTON_LIMB_PARTS; partIndex++) {
                     work->limbPitchTarget[partIndex] = 0x190;
                 }
-            } else if (gGluttonLimbReach < 0x1900) {
+            } else if (_gGluttonLimbReach < 0x1900) {
                 work->limbPitchTarget[1] = 0x40;
                 work->limbPitchTarget[2] = 0;
                 for (partIndex = 3; partIndex < 4; partIndex++) {
@@ -135,18 +135,18 @@ static void _gluttonPoseLimb(Task* task)
 
         case GLUTTON_LIMB_POSE_UPWARD:
             work->limbPitchStep = 0x59;
-            if (gGluttonLimbReach < 0x400) {
+            if (_gGluttonLimbReach < 0x400) {
                 work->limbPitchTarget[1] = -0x80;
                 for (partIndex = 2; partIndex < GLUTTON_LIMB_PARTS; partIndex++) {
                     work->limbPitchTarget[partIndex] = 0;
                 }
-            } else if (gGluttonLimbReach < 0x604) {
+            } else if (_gGluttonLimbReach < 0x604) {
                 work->limbPitchTarget[1] = 0x80;
                 for (partIndex = 2; partIndex < 6; partIndex++) {
                     work->limbPitchTarget[partIndex] = 0;
                 }
                 work->limbPitchTarget[6] = 0x200;
-            } else if (gGluttonLimbReach < 0x708) {
+            } else if (_gGluttonLimbReach < 0x708) {
                 work->limbPitchTarget[1] = 0x80;
                 for (partIndex = 2; partIndex < 5; partIndex++) {
                     work->limbPitchTarget[partIndex] = 0;
@@ -154,7 +154,7 @@ static void _gluttonPoseLimb(Task* task)
                 for (partIndex = 5; partIndex < GLUTTON_LIMB_PARTS; partIndex++) {
                     work->limbPitchTarget[partIndex] = 0x200;
                 }
-            } else if (gGluttonLimbReach < 0xC80) {
+            } else if (_gGluttonLimbReach < 0xC80) {
                 work->limbPitchTarget[1] = 0x80;
                 for (partIndex = 2; partIndex < 4; partIndex++) {
                     work->limbPitchTarget[partIndex] = 0;
@@ -162,7 +162,7 @@ static void _gluttonPoseLimb(Task* task)
                 for (partIndex = 4; partIndex < GLUTTON_LIMB_PARTS; partIndex++) {
                     work->limbPitchTarget[partIndex] = 0x200;
                 }
-            } else if (gGluttonLimbReach < 0x1900) {
+            } else if (_gGluttonLimbReach < 0x1900) {
                 work->limbPitchTarget[1] = 0x80;
                 work->limbPitchTarget[2] = 0;
                 for (partIndex = 3; partIndex < GLUTTON_LIMB_PARTS; partIndex++) {
@@ -178,23 +178,23 @@ static void _gluttonPoseLimb(Task* task)
 
         case GLUTTON_LIMB_POSE_DOWNWARD:
             work->limbPitchStep = 0x10;
-            if (gGluttonLimbReach < 0x258) {
+            if (_gGluttonLimbReach < 0x258) {
                 work->limbPitchTarget[1] = -0x80;
                 for (partIndex = 2; partIndex < GLUTTON_LIMB_PARTS; partIndex++) {
                     work->limbPitchTarget[partIndex] = 0;
                 }
-            } else if (gGluttonLimbReach < 0x400) {
+            } else if (_gGluttonLimbReach < 0x400) {
                 work->limbPitchTarget[1] = 0x80;
                 for (partIndex = 2; partIndex < GLUTTON_LIMB_PARTS; partIndex++) {
                     work->limbPitchTarget[partIndex] = 0;
                 }
-            } else if (gGluttonLimbReach < 0x604) {
+            } else if (_gGluttonLimbReach < 0x604) {
                 work->limbPitchTarget[1] = 0x100;
                 for (partIndex = 2; partIndex < 6; partIndex++) {
                     work->limbPitchTarget[partIndex] = 0;
                 }
                 work->limbPitchTarget[6] = -0x200;
-            } else if (gGluttonLimbReach < 0x708) {
+            } else if (_gGluttonLimbReach < 0x708) {
                 work->limbPitchTarget[1] = 0x80;
                 for (partIndex = 2; partIndex < 5; partIndex++) {
                     work->limbPitchTarget[partIndex] = 0;
@@ -202,7 +202,7 @@ static void _gluttonPoseLimb(Task* task)
                 for (partIndex = 5; partIndex < GLUTTON_LIMB_PARTS; partIndex++) {
                     work->limbPitchTarget[partIndex] = -0x200;
                 }
-            } else if (gGluttonLimbReach < 0xC80) {
+            } else if (_gGluttonLimbReach < 0xC80) {
                 work->limbPitchTarget[1] = 0x80;
                 for (partIndex = 2; partIndex < 4; partIndex++) {
                     work->limbPitchTarget[partIndex] = 0;
@@ -210,7 +210,7 @@ static void _gluttonPoseLimb(Task* task)
                 for (partIndex = 4; partIndex < GLUTTON_LIMB_PARTS; partIndex++) {
                     work->limbPitchTarget[partIndex] = -0x200;
                 }
-            } else if (gGluttonLimbReach < 0x1900) {
+            } else if (_gGluttonLimbReach < 0x1900) {
                 work->limbPitchTarget[1] = 0x80;
                 work->limbPitchTarget[2] = 0;
                 for (partIndex = 3; partIndex < GLUTTON_LIMB_PARTS; partIndex++) {
@@ -227,18 +227,18 @@ static void _gluttonPoseLimb(Task* task)
         case GLUTTON_LIMB_POSE_FAST_DOWNWARD:
         default:
             work->limbPitchStep = 0x54;
-            if (gGluttonLimbReach < 0x400) {
+            if (_gGluttonLimbReach < 0x400) {
                 work->limbPitchTarget[1] = -0x80;
                 for (partIndex = 2; partIndex < GLUTTON_LIMB_PARTS; partIndex++) {
                     work->limbPitchTarget[partIndex] = 0;
                 }
-            } else if (gGluttonLimbReach < 0x604) {
+            } else if (_gGluttonLimbReach < 0x604) {
                 work->limbPitchTarget[1] = 0x80;
                 for (partIndex = 2; partIndex < 6; partIndex++) {
                     work->limbPitchTarget[partIndex] = 0;
                 }
                 work->limbPitchTarget[6] = -0x200;
-            } else if (gGluttonLimbReach < 0x708) {
+            } else if (_gGluttonLimbReach < 0x708) {
                 work->limbPitchTarget[1] = 0x80;
                 for (partIndex = 2; partIndex < 5; partIndex++) {
                     work->limbPitchTarget[partIndex] = 0;
@@ -246,7 +246,7 @@ static void _gluttonPoseLimb(Task* task)
                 for (partIndex = 5; partIndex < GLUTTON_LIMB_PARTS; partIndex++) {
                     work->limbPitchTarget[partIndex] = -0x200;
                 }
-            } else if (gGluttonLimbReach < 0xC80) {
+            } else if (_gGluttonLimbReach < 0xC80) {
                 work->limbPitchTarget[1] = 0x80;
                 for (partIndex = 2; partIndex < 4; partIndex++) {
                     work->limbPitchTarget[partIndex] = 0;
@@ -254,7 +254,7 @@ static void _gluttonPoseLimb(Task* task)
                 for (partIndex = 4; partIndex < GLUTTON_LIMB_PARTS; partIndex++) {
                     work->limbPitchTarget[partIndex] = -0x200;
                 }
-            } else if (gGluttonLimbReach < 0x1900) {
+            } else if (_gGluttonLimbReach < 0x1900) {
                 work->limbPitchTarget[1] = 0x80;
                 work->limbPitchTarget[2] = 0;
                 for (partIndex = 3; partIndex < GLUTTON_LIMB_PARTS; partIndex++) {

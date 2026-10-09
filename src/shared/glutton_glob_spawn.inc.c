@@ -48,7 +48,7 @@ static void _gluttonGlobSpawn(Enemy* enemy, Task* task)
     hostWork   = hostEnemy->task->work;
     playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
 
-    if (gGluttonEnded == 1) {
+    if (_gGluttonEncounterEnded == GLUTTON_ENCOUNTER_ENDED) {
         enemyDestroy(enemy, task);
         return;
     }

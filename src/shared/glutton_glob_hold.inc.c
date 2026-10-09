@@ -20,7 +20,7 @@ static void _gluttonGlobHold(Enemy* enemy, Task* task)
 
     work   = task->work;
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    if (gGluttonEnded == 1) {
+    if (_gGluttonEncounterEnded == GLUTTON_ENCOUNTER_ENDED) {
         if (work->playerCaught == 1) {
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, GLUTTON_GLOB_RELEASE_IN_PLACE, 0);
             work->playerCaught = 0;
@@ -37,9 +37,9 @@ static void _gluttonGlobHold(Enemy* enemy, Task* task)
             return;
         }
         // Restore a weapon-bank clip before handing scripted control back.
-        gGluttonCaughtAnimSets[GLUTTON_GLOB_RELEASE_CLIP] =
+        _gGluttonGlobPlayerAnimSets[GLUTTON_GLOB_RELEASE_CLIP] =
             (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])->table.sets[GLUTTON_GLOB_WEAPON_RELEASE_SET];
-        work->playerAnim.source.sets = gGluttonCaughtAnimSets;
+        work->playerAnim.source.sets = _gGluttonGlobPlayerAnimSets;
         work->playerAnim.animationId = GLUTTON_GLOB_RELEASE_CLIP;
         work->playerAnim.blend       = ANIMATION_BLEND_INTERPOLATE;
         work->playerAnim.blendFrames = GLUTTON_GLOB_HOLD_TICKS;

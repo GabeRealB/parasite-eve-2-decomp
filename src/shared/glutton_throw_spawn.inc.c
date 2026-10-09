@@ -47,7 +47,7 @@ static void _gluttonThrowSpawn(Enemy* enemy, Task* task)
     hostEnemy = task->parent->spawnArg2.pointer;
     hostWork  = hostEnemy->task->work;
 
-    if (gGluttonEnded == 1 || hostWork->state == 0x10 || hostWork->state == 5 ||
+    if (_gGluttonEncounterEnded == GLUTTON_ENCOUNTER_ENDED || hostWork->state == 0x10 || hostWork->state == 5 ||
         hostWork->state == 0xC || hostWork->state == 0x12 ||
         (work = memCalloc(sizeof(GluttonProjectileWork), false), task->work = work, work == NULL)) {
         enemyDestroy(enemy, task);

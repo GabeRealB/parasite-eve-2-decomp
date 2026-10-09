@@ -49,7 +49,7 @@ static void _gluttonChunkSpawn(Enemy* enemy, Task* task)
     hostEnemy  = task->parent->spawnArg2.pointer;
     playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
 
-    if (gGluttonEnded == 1 ||
+    if (_gGluttonEncounterEnded == GLUTTON_ENCOUNTER_ENDED ||
         (work = memCalloc(sizeof(GluttonProjectileWork), false), task->work = work, work == NULL)) {
         enemyDestroy(enemy, task);
         return;

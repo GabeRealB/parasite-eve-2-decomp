@@ -83310,7 +83310,7 @@ Three consequences, in the order they bite:
   in-object offset and the directive pads nothing. The addresses come out
   `0x11C, 0x13C, 0x18C, 0x1B4, 0x2B4, 0x2E4, 0x334` — the target's.
 - **A run whose carrier is already C loses its `.s` entirely.** The last run,
-  `D_actor_403200_801321B8`, is referenced by `_actor403200HostTask`,
+  `_gActor403200GluttonHostTaskStates`, is referenced by `_actor403200HostTask`,
   a matched body, so nothing defines it. Emit it as file-scope asm in the
   owning unit at the end of the `.c` (the migrated-`D_*` remedy above), *not*
   as a `const` array: GCC collects a C `.rodata` object behind the compiler
@@ -112598,7 +112598,7 @@ head of a block that clears one global and fills a message struct:
 
 ```
     lui v0,%hi(D_actor_403200_8015F8E0)      /* target */
-    lui s0,%hi(D_actor_403200_8015F8F4)
+    lui s0,%hi(_gActor403200GluttonMadChaserCommand)
 ```
 
 The addresses are computed at their first use, and sched1 keeps that order when

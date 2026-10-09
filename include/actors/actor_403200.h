@@ -3,6 +3,15 @@
 
 #include "gameplay/animation.h"
 
+#include "main/task_types.h"
+
+/// Task descriptor for the Shelter B3 dumping-hole Glutton host.
+///
+/// A single TMD-body task at priority 96 owns the host model, combat work and
+/// lifecycle dispatcher. Room resource rows borrow this descriptor from
+/// actor_403200 after loading its package.
+extern TaskDesc gActor403200GluttonHostTaskDesc;
+
 // Native animation sets referenced by room script banks.
 extern AnimationSet gActor403200Animation2CDE0;
 

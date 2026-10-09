@@ -62,7 +62,7 @@ static void _gluttonRainSpawn(Enemy* enemy, Task* task)
     hostEnemy  = task->parent->spawnArg2.pointer;
     hostTask   = task->parent;
 
-    if (gGluttonEnded == 1) {
+    if (_gGluttonEncounterEnded == GLUTTON_ENCOUNTER_ENDED) {
         enemyDestroy(enemy, task);
         return;
     }

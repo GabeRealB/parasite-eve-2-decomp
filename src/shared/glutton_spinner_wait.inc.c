@@ -7,12 +7,12 @@
 /// drawing, including on the tick the state advances.
 static void _gluttonSpinnerWait(Enemy* enemy, Task* task)
 {
-    if (gGluttonEnded == 1) {
+    if (_gGluttonEncounterEnded == GLUTTON_ENCOUNTER_ENDED) {
         enemyDestroy(enemy, task);
         return;
     }
 
-    if (gGluttonSpinnersReleased == 1) {
+    if (_gGluttonSpinnersReleased == GLUTTON_SPINNER_RELEASE_ON) {
         task->state++;
     }
 

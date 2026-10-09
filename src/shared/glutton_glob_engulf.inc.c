@@ -15,10 +15,10 @@ static inline void _gluttonGlobRequestPlayerHold(GluttonProjectileWork* work, Ta
         GLUTTON_GLOB_CAUGHT_ANIMATION    = 1,
         GLUTTON_GLOB_CAUGHT_BLEND_FRAMES = 3
     };
-    gGluttonGrabQuery.hold.pressCount = GLUTTON_GLOB_HOLD_BUTTON_PRESSES;
-    if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &gGluttonGrabQuery.hold, 0) == 0) {
-        gGluttonGrabActive           = 1;
-        work->playerAnim.source.sets = gGluttonCaughtAnimSets;
+    _gGluttonGlobEngulfHold.hold.pressCount = GLUTTON_GLOB_HOLD_BUTTON_PRESSES;
+    if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &_gGluttonGlobEngulfHold.hold, 0) == 0) {
+        _gGluttonGlobHoldActive      = GLUTTON_GLOB_HOLD_ACTIVE;
+        work->playerAnim.source.sets = _gGluttonGlobPlayerAnimSets;
         work->playerAnim.animationId = GLUTTON_GLOB_CAUGHT_ANIMATION;
         work->playerAnim.blend       = ANIMATION_BLEND_RESET;
         work->playerAnim.blendFrames = GLUTTON_GLOB_CAUGHT_BLEND_FRAMES;
@@ -65,7 +65,7 @@ static void _gluttonGlobEngulf(Enemy* enemy, Task* task)
     actor        = player->work;
     playerStatus = &gPlayerStatus;
 
-    if (gGluttonEnded == 1) {
+    if (_gGluttonEncounterEnded == GLUTTON_ENCOUNTER_ENDED) {
         if (work->playerCaught == 1) {
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET, 0);
             work->playerCaught = 0;
@@ -100,10 +100,10 @@ static void _gluttonGlobEngulf(Enemy* enemy, Task* task)
 
     if (work->stateTicks >= GLUTTON_GLOB_UNCAUGHT_ADVANCE_TICK && work->playerCaught == 0) {
         task->state++;
-    } else if (work->playerCaught == 1 && gGluttonGrabActive == 0) {
+    } else if (work->playerCaught == 1 && _gGluttonGlobHoldActive == GLUTTON_GLOB_HOLD_RELEASED) {
         task->state++;
     } else if (work->stateTicks >= GLUTTON_GLOB_HOLD_TIMEOUT_TICK) {
-        gGluttonGrabActive = 0;
+        _gGluttonGlobHoldActive = GLUTTON_GLOB_HOLD_RELEASED;
         task->state++;
     }
 

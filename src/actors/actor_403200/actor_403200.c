@@ -259,62 +259,13 @@ extern TaskDesc D_actor_341700_80174D58;
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
-/// Non-zero while the overlay is shutting down: the spawn states tear their
-/// enemies down instead of standing them up, and the state-selecting tick
-/// holds `stateTicks` at zero and re-rolls its sub-state.
-extern s16 gGluttonEnded;
-
-/// Set while the grab's animation is installed on the player; the player's
-/// side clears it on release.
-extern s32 gGluttonGrabActive;
-
-/// Counter the launch state sets and the tick after it winds down; the escort
-/// pose driver floors it, drops the escort's body by a fifth of it and picks
-/// each phase's targets by its range.
-extern s16 gGluttonLimbReach;
-
-/// Cleared by both halves of the launch state and exposed through the setter /
-/// getter pair `_gluttonSetSpinnersReleased` and `_gluttonGetSpinnersReleased`;
-/// the spinner enemies wait for it to be 1 and die once it is 0.
-extern s16 gGluttonSpinnersReleased;
-
-/// Script pairs spawned on the per-frame body's and the death sequence's cues,
-/// and on the frames the launch tick's phase selects.
-extern PadScriptCmd              D_actor_403200_80141C5C[2];
-extern PadScriptVibrationSegment D_actor_403200_80141C64[2];
-extern PadScriptCmd              D_actor_403200_80141C6C[2];
-extern PadScriptVibrationSegment D_actor_403200_80141C74[2];
-extern PadScriptCmd              D_actor_403200_80141C7C[3];
-extern PadScriptVibrationSegment D_actor_403200_80141C88[2];
-
-/// Pair descriptors the host and its escorts publish as `Enemy::param`;
-/// `hpMax` is the hit-point pool each one starts with.
-extern EnemyParams D_actor_403200_80141C00;
-extern EnemyParams D_actor_403200_80141C20;
-extern EnemyParams D_actor_403200_80141C30;
-extern EnemyParams D_actor_403200_80141C40;
-
-/// Per-animation reset argument, a `[?][0x2D]` table indexed by the id that
-/// was playing before the switch and the id being switched to.
-extern s8 gGluttonAnimTransitions[][0x2D];
-
-/// Animation-set tables: the host's two blocks, escort 0's two and escort 1's.
-extern AnimationSet* D_actor_403200_8015E484[];
-extern AnimationSet* D_actor_403200_8015E53C[];
 extern AnimationSet* D_actor_403200_8015E5F4[];
 
-/// Animation table the stand-up tick publishes to the player in its message
-/// 0x3FF, and the one handed over when the placement yaw is outside +/-0x400.
-extern AnimationSet* D_actor_403200_8015E6AC[];
 extern AnimationSet* D_actor_403200_8015E6CC[];
 
 /// Drop-point group the falling enemies use this round, rerolled whenever a
 /// spawn arrives with `spawnArg1` 0.
 extern u8 gGluttonRainGroup;
-
-/// Animation-set table the grab states send the player as message 0x3FF;
-/// entry 2 is refreshed from the player's own weapon block.
-extern AnimationSet* gGluttonCaughtAnimSets[];
 
 /// Spawn table of the seven escorts, indexed 0..6.
 extern TaskDesc D_actor_403200_8015E72C[];
@@ -328,29 +279,10 @@ extern SVECTOR gGluttonRainPoints[];
 /// `[group][spawnArg1]` index into `gGluttonRainPoints`.
 extern u8 gGluttonRainPointIndex[][8];
 
-/// Enemy spawn table the three launch states of `_actor403200GlobLaunchState`
-/// draw from.
-extern TaskDesc gGluttonEscortTasks[];
-
 /// The enemy task's message-handler table, parked in `Task::msgTable`.
 // Message-table callbacks use the argument views required by this TU.
 
 extern TaskMessageEntry D_actor_403200_8015F770[8];
-
-/// Three formations of nine positions, and each member's model/spawn argument.
-extern SVECTOR                  D_actor_403200_8015F7B0[3][9];
-extern _Actor403200SpinnerSpawn D_actor_403200_8015F888[9];
-
-/// Shared 0x7DA payload buffer.
-extern ActorCommand D_actor_403200_8015F8F4;
-
-/// View-space point the launch tick clears and fills from the host's fourth
-/// model part on a state change; the spinner enemies home on it.
-extern SVECTOR gGluttonSpinnerTarget;
-
-/// Button-press hold the glob's engulf state sends the player, asking for 40
-/// presses.
-extern GluttonButtonPressHoldStorage gGluttonGrabQuery;
 
 /// The scratch coordinate the debris effect of `_actor403200DebrisState` is
 /// built on: `F920` is the whole `GfxCoord` and `F924` its `coord` matrix,
@@ -378,9 +310,9 @@ typedef struct {
 } _Actor403200PlayerPlacementStorage;
 STATIC_ASSERT_SIZEOF(_Actor403200PlayerPlacementStorage, 0x40);
 
-extern _Actor403200PlayerPlacementStorage D_actor_403200_8015F9C0;
+static _Actor403200PlayerPlacementStorage _gActor403200GluttonCaughtPlayerPlacement;
 
-extern GameActorButtonPressHold D_actor_403200_8015FA00;
+static GameActorButtonPressHold _gActor403200GluttonGrabHold;
 
 static void _actor403200BuildAngledWall(Task* host, s16 distance, s16 lowerEdgeDrop, s16 faceIndex);
 
@@ -475,62 +407,170 @@ static s32  _actor403200ReleaseGlobGrab(Task* task, s32 unusedMessageId, s32 unu
 static void _actor403200HostTask(Task* host);
 static void _actor403200IgnoreMessage2015(Task* task, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
-extern DamageAttack D_actor_403200_80141BE8[6];
-
-DamageAttack D_actor_403200_80141BE8[6] = {
-    { 0, 0 },
-    { 30, 0 },
-    { 25, 3 },
-    { 9999, 0 },
-    { 50, 11 },
-    { 35, 0 },
+/// Contact attacks shared by the dumping-hole host and targetable attached parts.
+///
+/// Rows 1..5 are rain, thrown sphere, caught-player damage, limb swipe and
+/// healing chunk. Row 0 has no recovered selector. Packing uses only twelve
+/// power bits and four reaction bits; the thrown sphere poisons and the swipe
+/// applies berserker.
+static DamageAttack _gActor403200GluttonAttacks[6] = {
+    { 0, GAME_ACTOR_REACTION_ORDINARY },    // Unselected zero-power row
+    { 30, GAME_ACTOR_REACTION_ORDINARY },   // Rain blob
+    { 25, GAME_ACTOR_REACTION_POISON },     // Thrown sphere
+    { 9999, GAME_ACTOR_REACTION_ORDINARY }, // Caught-player damage; packed power is 9999 & 0xFFF
+    { 50, GAME_ACTOR_REACTION_BERSERKER },  // Limb swipe
+    { 35, GAME_ACTOR_REACTION_ORDINARY },   // Healing chunk
 };
 
-EnemyParams D_actor_403200_80141C00 = { D_actor_403200_80141BE8, 3000, 500, 200, 100, 100, 0, 0, 0 };
+/// Host combat parameters and release rewards for the dumping-hole encounter.
+///
+/// The host borrows this record. Its 3000 hpMax also initializes all targetable
+/// attached parts; release credits 500 experience, 200 BP and 100 MP.
+static EnemyParams _gActor403200GluttonHostParams = {
+    .attacks              = _gActor403200GluttonAttacks,
+    .hpMax                = 3000,
+    .exp                  = 500,
+    .bp                   = 200,
+    .mp                   = 100,
+    .critChance           = 100,
+    .buildupSteps         = 0,
+    .damageOverTimeChance = 0,
+    .damageOverTimeTicks  = 0,
+};
 
-EnemyParams D_actor_403200_80141C10 = { D_actor_403200_80141BE8, 3000, 700, 200, 100, 100, 0, 0, 0 };
+EnemyParams D_actor_403200_80141C10 = { _gActor403200GluttonAttacks, 3000, 700, 200, 100, 100, 0, 0, 0 };
 
-EnemyParams D_actor_403200_80141C20 = { D_actor_403200_80141BE8, 120, 0, 0, 0, 50, 0, 0, 0 };
+/// Escort-0 combat parameters and the 120-HP reaction pool for hit groups 3..5.
+///
+/// The attached right leg borrows this zero-reward record but starts with the
+/// host's HP. hpMax seeds a separate damage pool; exhausting it triggers a
+/// reaction and refills it to 50.
+static EnemyParams _gActor403200GluttonGroups3To5Params = {
+    .attacks              = _gActor403200GluttonAttacks,
+    .hpMax                = 120,
+    .exp                  = 0,
+    .bp                   = 0,
+    .mp                   = 0,
+    .critChance           = 50,
+    .buildupSteps         = 0,
+    .damageOverTimeChance = 0,
+    .damageOverTimeTicks  = 0,
+};
 
-EnemyParams D_actor_403200_80141C30 = { D_actor_403200_80141BE8, 120, 0, 0, 0, 50, 0, 0, 0 };
+/// Escort-1 combat parameters and the 120-HP reaction pool for hit groups 6..8.
+///
+/// The attached left leg borrows this zero-reward record but starts with the
+/// host's HP. hpMax seeds a separate damage pool; exhausting it triggers a
+/// reaction and refills it to 50 in this encounter.
+static EnemyParams _gActor403200GluttonGroups6To8Params = {
+    .attacks              = _gActor403200GluttonAttacks,
+    .hpMax                = 120,
+    .exp                  = 0,
+    .bp                   = 0,
+    .mp                   = 0,
+    .critChance           = 50,
+    .buildupSteps         = 0,
+    .damageOverTimeChance = 0,
+    .damageOverTimeTicks  = 0,
+};
 
-EnemyParams D_actor_403200_80141C40 = { D_actor_403200_80141BE8, 200, 0, 0, 0, 10, 0, 0, 0 };
+/// Escort-3 combat parameters and the 200-HP pool for host hit groups 1..2.
+///
+/// The targetable attached part starts with the host's HP and borrows this
+/// zero-reward record. hpMax seeds the separate pool, which hits subtract
+/// without an exhaustion test.
+static EnemyParams _gActor403200GluttonGroups1To2Params = {
+    .attacks              = _gActor403200GluttonAttacks,
+    .hpMax                = 200,
+    .exp                  = 0,
+    .bp                   = 0,
+    .mp                   = 0,
+    .critChance           = 10,
+    .buildupSteps         = 0,
+    .damageOverTimeChance = 0,
+    .damageOverTimeTicks  = 0,
+};
 
-s16 gGluttonEnded = 0;
+/// Encounter-end latch shared by the host and its projectiles (0 running, 1 ended).
+///
+/// Boss death sets it; simultaneous player death keeps the boss alive and clears
+/// it. Value 1 makes projectile states release caught players and tear down.
+/// This signed-halfword latch is separate from the spinner-release word.
+static s16 _gGluttonEncounterEnded = GLUTTON_ENCOUNTER_RUNNING;
 
-s32 gGluttonGrabActive = 0;
+/// Glob-hold latch (0 released, 1 following an accepted player hold).
+///
+/// Acceptance of the forty-press request sets it. A caught glob advances when
+/// it is cleared; the engulf timeout also clears it. Dumping-hole player-release
+/// broadcasts clear the same latch. The host's own catches use separate work flags.
+static s32 _gGluttonGlobHoldActive = GLUTTON_GLOB_HOLD_RELEASED;
 
-s16 gGluttonLimbReach = 0;
+/// Total local-Z extension of the limb's five extending segments, in game units.
+///
+/// The pose driver floors this signed-halfword reach at 460 and assigns one
+/// fifth to each of parts 2..6. Swipe states extend and retract it and select
+/// curvature from its range. Unsigned-halfword arithmetic casts preserve wrapping
+/// before the signed-halfword store.
+static s16 _gGluttonLimbReach = 0;
 
-s16 gGluttonSpinnersReleased = 0;
+/// Raw spinner-release word (1 starts waiting spinners, 0 cancels chasing ones).
+///
+/// Zero leaves a spinner still waiting visible. The setter preserves any s16
+/// value; values other than 0 and 1 trigger neither specific test. Encounter end
+/// tears down spinners independently of this word.
+static s16 _gGluttonSpinnersReleased = GLUTTON_SPINNER_RELEASE_OFF;
 
-PadScriptCmd D_actor_403200_80141C5C[2] = {
+/// Simultaneous binary pulse and variable ramp for host impacts.
+///
+/// Advance steps, collapse and summon impacts borrow this two-command script.
+/// Both lanes PLAY once, selecting segments 0 and 1, then STOP at command 1.
+static PadScriptCmd _gActor403200GluttonImpactPadCommands[2] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-PadScriptVibrationSegment D_actor_403200_80141C64[2] = {
+/// Impact-rumble segments borrowed for each vibration script's lifetime.
+///
+/// Segment 0 supplies the seven-frame binary pulse; segment 1 ramps the
+/// variable motor from intensity 255 to 53 over 27 script frames.
+static PadScriptVibrationSegment _gActor403200GluttonImpactPadSegments[2] = {
     { 0, 0, 7, 0 },
     { 255, 53, 27, 1 },
 };
 
-PadScriptCmd D_actor_403200_80141C6C[2] = {
+/// Simultaneous rumble at the scripted limb-retraction cue.
+///
+/// Both lanes PLAY once, selecting binary segment 1 and variable segment 0,
+/// then STOP at command 1. The script borrows its segment table until teardown.
+static PadScriptCmd _gActor403200GluttonRetractPadCommands[2] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-PadScriptVibrationSegment D_actor_403200_80141C74[2] = {
+/// Limb-retraction rumble segments: variable ramp and binary pulse.
+///
+/// Segment 0 ramps intensity 186 to 74 over 32 frames; segment 1 supplies
+/// the binary lane for seven frames. Both use script-frame durations.
+static PadScriptVibrationSegment _gActor403200GluttonRetractPadSegments[2] = {
     { 186, 74, 32, 1 },
     { 0, 0, 7, 0 },
 };
 
-PadScriptCmd D_actor_403200_80141C7C[3] = {
+/// Two successive variable-motor ramps during the inhale pull.
+///
+/// The binary lane remains idle; the variable lane PLAYs segment 0, then
+/// segment 1, then STOPs at command 2. Each spawn borrows both arrays.
+static PadScriptCmd _gActor403200GluttonInhalePadCommands[3] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-PadScriptVibrationSegment D_actor_403200_80141C88[2] = {
+/// Successive inhale-rumble ramps, borrowed until script teardown.
+///
+/// Intensity runs 22 to 109 for 20 frames, then 80 to 31 for 34 frames.
+/// The binary lane ignores these segments; their stored flag byte is unread.
+static PadScriptVibrationSegment _gActor403200GluttonInhalePadSegments[2] = {
     { 22, 109, 20, 1 },
     { 80, 31, 34, 1 },
 };
@@ -2513,7 +2553,12 @@ static AnimationSet _gActor403200Animation2BE50 = {
     { NULL, _gActor403200Animation2BE50Bank1, NULL, NULL, _gActor403200Animation2BE50Bank4, NULL, NULL, NULL },
 };
 
-s8 gGluttonAnimTransitions[45][45] = {
+/// Blend duration in animation frames, indexed by previous and requested clip.
+///
+/// Both indices must be in 0..44; the requested clip must exist in all three
+/// driving rigs. Zero seeks immediately; positive values blend for that duration.
+/// Each compiled encounter owns its matrix and borrows it for its lifetime.
+static s8 _gGluttonAnimBlendFrames[GLUTTON_ANIM_BLEND_CLIP_COUNT][GLUTTON_ANIM_BLEND_CLIP_COUNT] = {
     { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -2561,7 +2606,12 @@ s8 gGluttonAnimTransitions[45][45] = {
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AnimationSet* D_actor_403200_8015E484[46] = {
+/// Host animation bank shared by the driving and blend rigs.
+///
+/// The 46 slots include native clips 1..20; slot 0 and 21..45 are NULL.
+/// The rigs borrow the bank and loaded animation sets for the host's lifetime;
+/// NULL entries must not be selected for playback.
+static AnimationSet* _gActor403200GluttonHostAnimSets[46] = {
     NULL,
     &_gActor403200Animation1D9C0,
     &_gActor403200Animation1DE00,
@@ -2610,7 +2660,11 @@ AnimationSet* D_actor_403200_8015E484[46] = {
     NULL,
 };
 
-AnimationSet* D_actor_403200_8015E53C[46] = {
+/// Right-leg animation bank shared by escort 0's driving and blend rigs.
+///
+/// The 46 slots use the host's clip IDs: 1..20 are populated, with other
+/// entries NULL. Both rigs borrow this bank for the attached part's lifetime.
+static AnimationSet* _gActor403200GluttonRightLegAnimSets[46] = {
     NULL,
     &_gActor403200Animation1DA6C,
     &_gActor403200Animation1E0C4,
@@ -2708,7 +2762,12 @@ AnimationSet* D_actor_403200_8015E5F4[46] = {
     NULL,
 };
 
-AnimationSet* D_actor_403200_8015E6AC[8] = {
+/// Player animation bank for the host's inhale catch and limb swipe.
+///
+/// Slots 1 and 2 hold the facing-mouth inhale and swipe caught clips; slot 4
+/// is filled from equipped-weapon bank clip 7 before release. Other slots are
+/// NULL. This mutable eight-slot bank stays live while the player borrows it.
+static AnimationSet* _gActor403200GluttonPlayerAnimSets[8] = {
     NULL,
     &_gActor403200Animation25B98,
     &_gActor403200Animation2BE50,
@@ -2752,7 +2811,12 @@ _Actor403200ViewFunc D_actor_403200_8015E6E8[9] = {
 
 u8 gGluttonRainGroup = 0;
 
-AnimationSet* gGluttonCaughtAnimSets[7] = {
+/// Player animation bank for a glob engulf and its release.
+///
+/// Slot 1 holds the native caught clip; slot 2 is refreshed from equipped-weapon
+/// bank clip 9 before release. Other slots are NULL. The mutable seven-slot bank
+/// remains live while the player borrows it for playback.
+static AnimationSet* _gGluttonGlobPlayerAnimSets[GLUTTON_GLOB_PLAYER_ANIM_SET_COUNT] = {
     NULL,
     &_gActor403200Animation2B644,
     NULL,
@@ -2808,12 +2872,19 @@ u8 gGluttonRainPointIndex[3][8] = {
     { 14, 13, 9, 0, 12, 7, 10, 11 },
 };
 
-TaskDesc gGluttonEscortTasks[5] = {
-    { { { TASK_BODY_TMD, 96 } }, _gluttonGlobTask, { .model = &_gActor403200Model199E4 } },
-    { { { TASK_BODY_COORD, 96 } }, _gluttonRainTask, { .value = 0 } },
-    { { { TASK_BODY_COORD, 96 } }, _gluttonThrowTask, { .value = 0 } },
-    { { { TASK_BODY_TMD, 96 } }, _gluttonChunkTask, { .model = &_gActor403200Model1AC48 } },
-    { { { TASK_BODY_TMD, 96 } }, _gluttonSpinnerTask, { .model = &_gActor403200Model19284 } },
+/// Spawn recipes for the encounter's attack projectiles and healing chunks.
+///
+/// Indices 0..3 select glob, rain blob, thrown sphere and healing chunk. Rain
+/// and thrown-sphere tasks have coordinate bodies; the other tasks have TMD
+/// bodies. Dumping-hole slot 4 is a spinner whose model is patched per spawn;
+/// the incinerator owns its spinner descriptor separately. Callbacks are private
+/// instances and each spawned task owns its body and work until teardown.
+static TaskDesc _gGluttonProjectileTaskDescs[GLUTTON_PROJECTILE_TASK_COUNT] = {
+    { { { TASK_BODY_TMD, GLUTTON_PROJECTILE_TASK_PRIORITY } }, _gluttonGlobTask, { .model = &_gActor403200Model199E4 } },
+    { { { TASK_BODY_COORD, GLUTTON_PROJECTILE_TASK_PRIORITY } }, _gluttonRainTask, { .value = 0 } },
+    { { { TASK_BODY_COORD, GLUTTON_PROJECTILE_TASK_PRIORITY } }, _gluttonThrowTask, { .value = 0 } },
+    { { { TASK_BODY_TMD, GLUTTON_PROJECTILE_TASK_PRIORITY } }, _gluttonChunkTask, { .model = &_gActor403200Model1AC48 } },
+    { { { TASK_BODY_TMD, GLUTTON_PROJECTILE_TASK_PRIORITY } }, _gluttonSpinnerTask, { .model = &_gActor403200Model19284 } },
 };
 
 static AnimationPackedPose _gActor403200Animation2CDE0Bank1[7] = {
@@ -2915,33 +2986,45 @@ TaskMessageEntry D_actor_403200_8015F770[8] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-SVECTOR D_actor_403200_8015F7B0[3][9] = {
+enum {
+    ACTOR_403200_SPINNER_FORMATION_COUNT = 3,
+    ACTOR_403200_SPINNER_COUNT           = 9,
+    ACTOR_403200_SPINNER_DELAY_SHORT     = 0,
+    ACTOR_403200_SPINNER_DELAY_MEDIUM    = 1,
+    ACTOR_403200_SPINNER_DELAY_LONG      = 2,
+};
+
+/// Three formations of nine room-coordinate spinner positions.
+///
+/// Rows are identical. The random selector maps its fourth outcome to row 0;
+/// columns follow the model/delay recipes. Components are copied into
+/// view-parented spinner roots in signed-halfword game units; pad is unused.
+static SVECTOR _gActor403200GluttonSpinnerPositions[ACTOR_403200_SPINNER_FORMATION_COUNT][ACTOR_403200_SPINNER_COUNT] = {
     { { 0x2EE0, 0, -1500, 0 }, { 0x32C8, 0, -1600, 0 }, { 0x3E80, 0, -1300, 0 }, { 0x2EE0, 0, -0x2904, 0 }, { 0x32C8, 0, -0x2968, 0 }, { 0x3E80, 0, -0x283C, 0 }, { 0x36B0, 0, -0x2904, 0 }, { 0x3A98, 0, -600, 0 }, { 0x4650, 0, -0x283C, 0 } },
     { { 0x2EE0, 0, -1500, 0 }, { 0x32C8, 0, -1600, 0 }, { 0x3E80, 0, -1300, 0 }, { 0x2EE0, 0, -0x2904, 0 }, { 0x32C8, 0, -0x2968, 0 }, { 0x3E80, 0, -0x283C, 0 }, { 0x36B0, 0, -0x2904, 0 }, { 0x3A98, 0, -600, 0 }, { 0x4650, 0, -0x283C, 0 } },
     { { 0x2EE0, 0, -1500, 0 }, { 0x32C8, 0, -1600, 0 }, { 0x3E80, 0, -1300, 0 }, { 0x2EE0, 0, -0x2904, 0 }, { 0x32C8, 0, -0x2968, 0 }, { 0x3E80, 0, -0x283C, 0 }, { 0x36B0, 0, -0x2904, 0 }, { 0x3A98, 0, -600, 0 }, { 0x4650, 0, -0x283C, 0 } },
 };
 
-_Actor403200SpinnerSpawn D_actor_403200_8015F888[9] = {
-    { &_gActor403200Model1C474, 0 },
-    { &_gActor403200GluttonProp, 1 },
-    { &_gActor403200Model1CDA4, 2 },
-    { &_gActor403200Model1CFA0, 2 },
-    { &_gActor403200Model1D26C, 1 },
-    { &_gActor403200Model1D3E8, 0 },
-    { &_gActor403200Model1D524, 0 },
-    { &_gActor403200Model1D5241D630, 1 },
-    { &_gActor403200Model1D754, 2 },
+/// Nine spinner model and chase-delay recipes in formation order.
+///
+/// The selected model replaces the spinner task recipe's model for each
+/// spawn. Delay classes 0, 1 and 2 select 20, 40 and 80 ticks after release;
+/// all nine recipes pair with the corresponding formation-position column.
+static _Actor403200SpinnerSpawn _gActor403200GluttonSpinnerSpawnRecipes[ACTOR_403200_SPINNER_COUNT] = {
+    { &_gActor403200Model1C474, ACTOR_403200_SPINNER_DELAY_SHORT },
+    { &_gActor403200GluttonProp, ACTOR_403200_SPINNER_DELAY_MEDIUM },
+    { &_gActor403200Model1CDA4, ACTOR_403200_SPINNER_DELAY_LONG },
+    { &_gActor403200Model1CFA0, ACTOR_403200_SPINNER_DELAY_LONG },
+    { &_gActor403200Model1D26C, ACTOR_403200_SPINNER_DELAY_MEDIUM },
+    { &_gActor403200Model1D3E8, ACTOR_403200_SPINNER_DELAY_SHORT },
+    { &_gActor403200Model1D524, ACTOR_403200_SPINNER_DELAY_SHORT },
+    { &_gActor403200Model1D5241D630, ACTOR_403200_SPINNER_DELAY_MEDIUM },
+    { &_gActor403200Model1D754, ACTOR_403200_SPINNER_DELAY_LONG },
 };
 
-/// The package's spawn entry: the descriptor the boss's task is created from.
-///
-/// The room's resource tables name the descriptor as a task table of one
-/// entry, which the boss's placement spawns; nothing in the package reads it.
-/// The task it describes carries the host's model and starts in the enemy
-/// task's dispatcher.
-///
-/// The room refers to it as a task descriptor, so that is what the object is.
-TaskDesc D_actor_403200_8015F8D0 = { { { TASK_BODY_TMD, 96 } }, _actor403200HostTask, { .model = &_gActor403200Model10824 } };
+enum { ACTOR_403200_GLUTTON_HOST_TASK_PRIORITY = 96 };
+
+TaskDesc gActor403200GluttonHostTaskDesc = { { { TASK_BODY_TMD, ACTOR_403200_GLUTTON_HOST_TASK_PRIORITY } }, _actor403200HostTask, { .model = &_gActor403200Model10824 } };
 
 /// Four zero bytes between the descriptor and the next object. Nothing refers
 /// to them; what they were is not established.
@@ -2970,19 +3053,46 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
 /// NULL until successful spawn; teardown does not clear this reference.
 static Task* _gGluttonHostTask = NULL;
 
-ActorCommand D_actor_403200_8015F8F4 = { { .loc = { 0, 0 } }, 0 };
+/// Reusable Mad Chaser payload for scene broadcasts and individual summons.
+///
+/// Uses synthetic stage 0, area 44. Initialization, pull and vanish broadcasts
+/// carry commands 0, 2 and 3; emergence packs the spot in the high byte and a motion
+/// command in the low byte. Receivers consume this four-byte record during
+/// synchronous dispatch.
+static ActorCommand _gActor403200GluttonMadChaserCommand = { { .loc = { 0, 0 } }, 0 };
 
-SVECTOR gGluttonSpinnerTarget = { 0, 0, 0, 0 };
+/// Spinner chase point in the spinner roots' parent-coordinate frame.
+///
+/// Components narrow to signed-halfword game units; pad is unused. Inhale
+/// refreshes it from part 3's origin, on the host in the dumping hole or placed
+/// actor 0 in the incinerator. The shared chase subtracts each root translation.
+static SVECTOR _gGluttonSpinnerTarget = { 0, 0, 0, 0 };
 
-GluttonButtonPressHoldStorage gGluttonGrabQuery = { { { 0 }, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
+/// Forty-press player-hold request used by the glob engulf.
+///
+/// Only hold.pressCount is filled; the player copies it during synchronous
+/// dispatch. The eight trailing zero bytes have no established access or
+/// original object boundary and remain in the allocation.
+static GluttonButtonPressHoldStorage _gGluttonGlobEngulfHold = { { { 0 }, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
 
 GfxCoord D_actor_403200_8015F920 = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL };
 
 GfxCoord D_actor_403200_8015F970 = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL };
 
-_Actor403200PlayerPlacementStorage D_actor_403200_8015F9C0;
+/// Placement payload lent to the caught player during synchronous dispatch.
+///
+/// The catch fills a point ahead of host part 4 and a facing or away yaw.
+/// Holding later changes the position to the host root while retaining that
+/// yaw. Positions use game units, angles 4096 per turn. The forty trailing
+/// zero bytes have no established access or original object boundary.
+static _Actor403200PlayerPlacementStorage _gActor403200GluttonCaughtPlayerPlacement;
 
-GameActorButtonPressHold D_actor_403200_8015FA00;
+/// Zero-press player hold requested before the host's inhale catch or swipe.
+///
+/// Dispatch rejects recovery and otherwise takes scripted control; the zero
+/// pressCount completes on the first scripted tick. The player copies the count
+/// during dispatch. This image ends at the last byte of this 24-byte record.
+static GameActorButtonPressHold _gActor403200GluttonGrabHold;
 
 /// Integer part of the last step `_actorContactApplyGridPushback` applied.
 extern SVECTOR ActorContact_ScratchPosition;
@@ -3553,8 +3663,12 @@ static s32 _actor403200PickCloseRangeView(Task* host, s16 phase)
 
 #undef ACTOR_403200_MEASURE_PLAYER_DISTANCE
 
-/// Reference positions the view selector below measures the player against.
-static const _Actor403200ViewAnchors D_actor_403200_80131E64 = {
+/// Fixed room-coordinate reference points for the advancing host's camera.
+///
+/// The selector copies all four points and indexes fight phase 0..3 without
+/// a bounds check. Phases 2 and 3 share a point. XYZ use game units and pad is
+/// zero.
+static const _Actor403200ViewAnchors _gActor403200GluttonAdvanceViewAnchors = {
     {
         { 0x10B4, 1, -0x17DD, 0 },
         { 0x1CD0, 1, -0x17DD, 0 },
@@ -3592,7 +3706,7 @@ static s32 _actor403200PickAdvanceView(Task* unusedHost, s16 phase)
 
     currentView     = viewGetMappedIndex() & ACTOR_403200_VIEW_INDEX_MASK;
     player          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    anchors         = D_actor_403200_80131E64;
+    anchors         = _gActor403200GluttonAdvanceViewAnchors;
     toAnchor.vx     = player->extra.tmd->coords->coord.t[0] - anchors.points[phase].vx;
     playerDistance  = toAnchor.vx * toAnchor.vx;
     toAnchor.vy     = player->extra.tmd->coords->coord.t[1] - anchors.points[phase].vy;
@@ -3710,7 +3824,7 @@ static __inline__ void _actor403200PlayAdvanceFootstep(Task* host, GluttonWork* 
     s32 soundPan;
 
     work->shakeLevel = GLUTTON_SHAKE_LONG;
-    padScriptSpawn(D_actor_403200_80141C5C, D_actor_403200_80141C64);
+    padScriptSpawn(_gActor403200GluttonImpactPadCommands, _gActor403200GluttonImpactPadSegments);
     soundId  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 1);
     soundPan = (s8)worldCoordGetOriginAudioPan(host->extra.tmd->coords);
     sndEvtRequestScriptStart(soundId, soundPan,
@@ -4051,7 +4165,7 @@ static s32 _actor403200ApplyCommand(Task* task, s32 unusedMessageId, const Actor
                 work->collapseSkip = ACTOR_403200_COLLAPSE_SKIP_LONG_TICKS;
                 work->animStep     = GLUTTON_ANIM_STEP_RESTART;
                 work->viewLocked   = 0;
-                gGluttonLimbReach  = 0x640;
+                _gGluttonLimbReach = 0x640;
                 break;
         }
     }
@@ -4131,12 +4245,12 @@ static void _actor403200Spawn(Enemy* enemy, Task* task)
     enemy->coord      = &task->extra.tmd->coords[4];
     worldTargetLinkNode(&enemy->node);
     enemy->reactionFlags = 0;
-    enemy->hp            = D_actor_403200_80141C00.hpMax;
-    enemy->param         = &D_actor_403200_80141C00;
+    enemy->hp            = _gActor403200GluttonHostParams.hpMax;
+    enemy->param         = &_gActor403200GluttonHostParams;
     enemy->recs          = work->hits[0].contacts;
 
-    animationInitContext(&work->hostRig.anim, D_actor_403200_8015E484, hostModel, work->hostRig.poses, work->hostRig.slots);
-    animationInitContext(&work->hostBlendRig.anim, D_actor_403200_8015E484, hostModel, work->hostBlendRig.poses, work->hostBlendRig.slots);
+    animationInitContext(&work->hostRig.anim, _gActor403200GluttonHostAnimSets, hostModel, work->hostRig.poses, work->hostRig.slots);
+    animationInitContext(&work->hostBlendRig.anim, _gActor403200GluttonHostAnimSets, hostModel, work->hostBlendRig.poses, work->hostBlendRig.slots);
 
     work->animStep        = GLUTTON_ANIM_STEP_RESTART;
     work->animId          = ACTOR_403200_SPAWN_WALK_CLIP;
@@ -4189,9 +4303,9 @@ static void _actor403200Spawn(Enemy* enemy, Task* task)
     work->escorts[0]->task->extra.tmd->coords->coord.t[1] = 0;
     work->escorts[0]->task->extra.tmd->coords->coord.t[2] = 0;
     work->escorts[0]->task->extra.tmd->flags              = 0;
-    animationInitContext(&work->escort0Rig.anim, D_actor_403200_8015E53C, work->escorts[0]->task->extra.tmd, work->escort0Rig.poses,
+    animationInitContext(&work->escort0Rig.anim, _gActor403200GluttonRightLegAnimSets, work->escorts[0]->task->extra.tmd, work->escort0Rig.poses,
                          work->escort0Rig.slots);
-    animationInitContext(&work->escort0BlendRig.anim, D_actor_403200_8015E53C, work->escorts[0]->task->extra.tmd, work->escort0BlendRig.poses,
+    animationInitContext(&work->escort0BlendRig.anim, _gActor403200GluttonRightLegAnimSets, work->escorts[0]->task->extra.tmd, work->escort0BlendRig.poses,
                          work->escort0BlendRig.slots);
     work->escorts[0]->field_4    = &task->extra.tmd->coords->coord;
     work->escorts[0]->field_48   = 0;
@@ -4201,9 +4315,9 @@ static void _actor403200Spawn(Enemy* enemy, Task* task)
     work->escorts[0]->coord      = &work->escorts[0]->task->extra.tmd->coords[1];
     worldTargetLinkNode(&work->escorts[0]->node);
     work->escorts[0]->reactionFlags = 0;
-    work->escorts[0]->hp            = D_actor_403200_80141C00.hpMax;
-    work->groups3To5Pool            = D_actor_403200_80141C20.hpMax;
-    work->escorts[0]->param         = &D_actor_403200_80141C20;
+    work->escorts[0]->hp            = _gActor403200GluttonHostParams.hpMax;
+    work->groups3To5Pool            = _gActor403200GluttonGroups3To5Params.hpMax;
+    work->escorts[0]->param         = &_gActor403200GluttonGroups3To5Params;
     work->escorts[0]->recs          = work->hits[3].contacts;
     worldCollisionBindEnemySphere(&work->escorts[0]->task->extra.tmd->coords[1], &work->hits[3].body, work->hits[3].contacts, ARRAY_SIZE(work->hits[3].contacts),
                                   0x20, 0x300);
@@ -4231,9 +4345,9 @@ static void _actor403200Spawn(Enemy* enemy, Task* task)
     work->escorts[1]->coord      = &work->escorts[1]->task->extra.tmd->coords[1];
     worldTargetLinkNode(&work->escorts[1]->node);
     work->escorts[1]->reactionFlags = 0;
-    work->escorts[1]->hp            = D_actor_403200_80141C00.hpMax;
-    work->groups6To8Pool            = D_actor_403200_80141C30.hpMax;
-    work->escorts[1]->param         = &D_actor_403200_80141C30;
+    work->escorts[1]->hp            = _gActor403200GluttonHostParams.hpMax;
+    work->groups6To8Pool            = _gActor403200GluttonGroups6To8Params.hpMax;
+    work->escorts[1]->param         = &_gActor403200GluttonGroups6To8Params;
     work->escorts[1]->recs          = work->hits[6].contacts;
     worldCollisionBindEnemySphere(&work->escorts[1]->task->extra.tmd->coords[1], &work->hits[6].body, work->hits[6].contacts, ARRAY_SIZE(work->hits[6].contacts),
                                   0x20, 0x300);
@@ -4268,9 +4382,9 @@ static void _actor403200Spawn(Enemy* enemy, Task* task)
         work->escorts[3]->coord                               = work->escorts[3]->task->extra.tmd->coords;
         worldTargetLinkNode(&work->escorts[3]->node);
         work->escorts[3]->reactionFlags = 0;
-        work->escorts[3]->hp            = D_actor_403200_80141C00.hpMax;
-        work->groups1To2Pool            = D_actor_403200_80141C40.hpMax;
-        work->escorts[3]->param         = &D_actor_403200_80141C40;
+        work->escorts[3]->hp            = _gActor403200GluttonHostParams.hpMax;
+        work->groups1To2Pool            = _gActor403200GluttonGroups1To2Params.hpMax;
+        work->escorts[3]->param         = &_gActor403200GluttonGroups1To2Params;
         work->escorts[3]->recs          = work->hits[1].contacts;
     }
 
@@ -4361,10 +4475,10 @@ static void _actor403200Spawn(Enemy* enemy, Task* task)
     worldCoordUpdateActorColor(enemy, &lightingPosition, 0, 0);
     _gluttonTickAnim(task);
 
-    D_actor_403200_8015F8F4.context.loc.stage = ACTOR_403200_BROADCAST_CONTEXT_STAGE;
-    D_actor_403200_8015F8F4.context.loc.area  = ACTOR_403200_BROADCAST_CONTEXT_AREA;
-    D_actor_403200_8015F8F4.command           = ACTOR_403200_SUMMON_COMMAND_NONE;
-    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
+    _gActor403200GluttonMadChaserCommand.context.loc.stage = ACTOR_403200_BROADCAST_CONTEXT_STAGE;
+    _gActor403200GluttonMadChaserCommand.context.loc.area  = ACTOR_403200_BROADCAST_CONTEXT_AREA;
+    _gActor403200GluttonMadChaserCommand.command           = ACTOR_403200_SUMMON_COMMAND_NONE;
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &_gActor403200GluttonMadChaserCommand, ACTOR_COMMAND_MESSAGE_APPLY);
 
     work->wallDistance = work->wallDistanceTarget = 0x9C4;
     work->wallDrop                                = 0x190;
@@ -4566,28 +4680,28 @@ static void _actor403200RainLaunchState(Task* hostTask)
     launchTick = work->stateTicks - ACTOR_403200_RAIN_FIRST_LAUNCH_TICK;
     switch (launchTick) {
         case 0:
-            enemySpawnFromTable(gGluttonEscortTasks, 1, 0, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_RAIN, 0, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
             break;
         case 7:
-            enemySpawnFromTable(gGluttonEscortTasks, 1, 1, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_RAIN, 1, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
             break;
         case 9:
-            enemySpawnFromTable(gGluttonEscortTasks, 1, 2, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_RAIN, 2, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
             break;
         case 0x10:
-            enemySpawnFromTable(gGluttonEscortTasks, 1, 3, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_RAIN, 3, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
             break;
         case 0x1F:
-            enemySpawnFromTable(gGluttonEscortTasks, 1, 4, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_RAIN, 4, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
             break;
         case 0x37:
-            enemySpawnFromTable(gGluttonEscortTasks, 1, 5, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_RAIN, 5, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
             break;
         case 0x3B:
-            enemySpawnFromTable(gGluttonEscortTasks, 1, 6, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_RAIN, 6, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
             break;
         case 0x3F:
-            enemySpawnFromTable(gGluttonEscortTasks, 1, 7, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_RAIN, 7, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
             break;
     }
     _gluttonTickAnim(hostTask);
@@ -4619,20 +4733,20 @@ static void _actor403200SpawnSpinnerFormation(Task* hostTask)
 
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     formationIndex  = (gRandomLcgState >> 16) & 3;
-    if (formationIndex == 3) {
+    if (formationIndex == ACTOR_403200_SPINNER_FORMATION_COUNT) {
         formationIndex = 0;
     }
 
-    for (spinnerIndex = 0; spinnerIndex < ARRAY_SIZE(D_actor_403200_8015F888); spinnerIndex++) {
-        gGluttonEscortTasks[4].data.model = D_actor_403200_8015F888[spinnerIndex].model;
-        spinner                           = enemySpawnFromTable(gGluttonEscortTasks, 4, D_actor_403200_8015F888[spinnerIndex].chaseDelayClass, NULL);
-        work->lastSpawned                 = spinner;
+    for (spinnerIndex = 0; spinnerIndex < ARRAY_SIZE(_gActor403200GluttonSpinnerSpawnRecipes); spinnerIndex++) {
+        _gGluttonProjectileTaskDescs[GLUTTON_PROJECTILE_SPINNER].data.model = _gActor403200GluttonSpinnerSpawnRecipes[spinnerIndex].model;
+        spinner                                                             = enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_SPINNER, _gActor403200GluttonSpinnerSpawnRecipes[spinnerIndex].chaseDelayClass, NULL);
+        work->lastSpawned                                                   = spinner;
         if (spinner == NULL) {
             break;
         }
-        spinner->task->extra.tmd->coords->coord.t[0]           = D_actor_403200_8015F7B0[formationIndex][spinnerIndex].vx;
-        work->lastSpawned->task->extra.tmd->coords->coord.t[1] = D_actor_403200_8015F7B0[formationIndex][spinnerIndex].vy;
-        work->lastSpawned->task->extra.tmd->coords->coord.t[2] = D_actor_403200_8015F7B0[formationIndex][spinnerIndex].vz;
+        spinner->task->extra.tmd->coords->coord.t[0]           = _gActor403200GluttonSpinnerPositions[formationIndex][spinnerIndex].vx;
+        work->lastSpawned->task->extra.tmd->coords->coord.t[1] = _gActor403200GluttonSpinnerPositions[formationIndex][spinnerIndex].vy;
+        work->lastSpawned->task->extra.tmd->coords->coord.t[2] = _gActor403200GluttonSpinnerPositions[formationIndex][spinnerIndex].vz;
         work->lastSpawned->workType                            = ENEMY_WORK_PLAIN;
         work->lastSpawned->placeKey                           |= spinnerIndex << ENEMY_PLACE_INDEX_SHIFT;
     }
@@ -4683,23 +4797,23 @@ static void _actor403200InhaleState(Task* hostTask)
         flagIndex                  = 0;
         ACTOR_403200_COPY_ESCORT_MODEL_FLAGS(hostTask, flagWork, flagIndex);
         _actor403200AllocateModelBuffers(hostTask);
-        work->neckPitchTarget    = 0;
-        work->neckPitchEnabled   = 1;
-        work->neckYawEnabled     = 1;
-        work->viewLocked         = 0;
-        work->hostExposed        = 0;
-        gGluttonSpinnerTarget.vz = 0;
-        gGluttonSpinnerTarget.vy = 0;
-        gGluttonSpinnerTarget.vx = 0;
-        _actorRenderTransformLocalPointToWorld(&hostTask->extra.tmd->coords[3], &gGluttonSpinnerTarget);
-        D_actor_403200_8015F8F4.context.loc.stage = ACTOR_403200_BROADCAST_CONTEXT_STAGE;
-        D_actor_403200_8015F8F4.context.loc.area  = ACTOR_403200_BROADCAST_CONTEXT_AREA;
-        D_actor_403200_8015F8F4.command           = ACTOR_403200_SUMMON_COMMAND_PULL;
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
+        work->neckPitchTarget     = 0;
+        work->neckPitchEnabled    = 1;
+        work->neckYawEnabled      = 1;
+        work->viewLocked          = 0;
+        work->hostExposed         = 0;
+        _gGluttonSpinnerTarget.vz = 0;
+        _gGluttonSpinnerTarget.vy = 0;
+        _gGluttonSpinnerTarget.vx = 0;
+        _actorRenderTransformLocalPointToWorld(&hostTask->extra.tmd->coords[3], &_gGluttonSpinnerTarget);
+        _gActor403200GluttonMadChaserCommand.context.loc.stage = ACTOR_403200_BROADCAST_CONTEXT_STAGE;
+        _gActor403200GluttonMadChaserCommand.context.loc.area  = ACTOR_403200_BROADCAST_CONTEXT_AREA;
+        _gActor403200GluttonMadChaserCommand.command           = ACTOR_403200_SUMMON_COMMAND_PULL;
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &_gActor403200GluttonMadChaserCommand, ACTOR_COMMAND_MESSAGE_APPLY);
         {
-            s16 releasedFlag         = 1;
-            work->wallDistanceTarget = 0xC80;
-            gGluttonSpinnersReleased = releasedFlag;
+            s16 releasedFlag          = GLUTTON_SPINNER_RELEASE_ON;
+            work->wallDistanceTarget  = 0xC80;
+            _gGluttonSpinnersReleased = releasedFlag;
         }
     }
 
@@ -4734,7 +4848,7 @@ static void _actor403200InhaleState(Task* hostTask)
             break;
     }
     if (((u32)((work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) - ACTOR_403200_INHALE_FIRST_RUMBLE_CUE) < (u32)ACTOR_403200_INHALE_RUMBLE_CUE_COUNT) && ((work->stateTicks % scratch->rumblePeriod) == 0)) {
-        padScriptSpawn(D_actor_403200_80141C7C, D_actor_403200_80141C88);
+        padScriptSpawn(_gActor403200GluttonInhalePadCommands, _gActor403200GluttonInhalePadSegments);
     }
 
     switch (work->phase) {
@@ -4829,7 +4943,7 @@ static void _actor403200InhaleState(Task* hostTask)
 
     // The catch borrows static placement and animation payloads synchronously.
     if (((u32)((work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) - ACTOR_403200_INHALE_FIRST_CATCH_CUE) < (u32)ACTOR_403200_INHALE_CATCH_CUE_COUNT) && (scratch->playerDistance < ACTOR_403200_INHALE_CATCH_RADIUS) && (enemy->hp > 0) &&
-        (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_403200_8015FA00, 0) == 0)) {
+        (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &_gActor403200GluttonGrabHold, 0) == 0)) {
         SVECTOR* directionPointer;
         s16      playerYaw;
 
@@ -4849,39 +4963,39 @@ static void _actor403200InhaleState(Task* hostTask)
         VectorNormalSS(directionPointer, directionPointer);
         ACTOR_403200_SCALE_PULL_VECTOR(directionPointer, ACTOR_403200_INHALE_PLACEMENT_RADIUS);
 
-        D_actor_403200_8015F9C0.placement.pos.vx = scratch->pullCentre.vx + scratch->offset.vx;
-        D_actor_403200_8015F9C0.placement.pos.vy = playerTask->extra.tmd->coords->coord.t[1];
+        _gActor403200GluttonCaughtPlayerPlacement.placement.pos.vx = scratch->pullCentre.vx + scratch->offset.vx;
+        _gActor403200GluttonCaughtPlayerPlacement.placement.pos.vy = playerTask->extra.tmd->coords->coord.t[1];
         {
             s32 centreZ = scratch->pullCentre.vz;
             s32 offsetZ = scratch->offset.vz;
 
-            D_actor_403200_8015F9C0.placement.rot.vx = 0;
-            D_actor_403200_8015F9C0.placement.rot.vz = 0;
-            D_actor_403200_8015F9C0.placement.pos.vz = centreZ + offsetZ;
+            _gActor403200GluttonCaughtPlayerPlacement.placement.rot.vx = 0;
+            _gActor403200GluttonCaughtPlayerPlacement.placement.rot.vz = 0;
+            _gActor403200GluttonCaughtPlayerPlacement.placement.pos.vz = centreZ + offsetZ;
         }
         {
             u16 centreX = (u16)scratch->pullCentre.vx;
-            u16 placedX = (u16)D_actor_403200_8015F9C0.placement.pos.vx;
+            u16 placedX = (u16)_gActor403200GluttonCaughtPlayerPlacement.placement.pos.vx;
 
             scratch->offset.vy = 0;
             scratch->offset.vx = centreX - placedX;
         }
-        scratch->offset.vz = (u16)scratch->pullCentre.vz - (u16)D_actor_403200_8015F9C0.placement.pos.vz;
+        scratch->offset.vz = (u16)scratch->pullCentre.vz - (u16)_gActor403200GluttonCaughtPlayerPlacement.placement.pos.vz;
         playerYaw          = _actorAngleTurnToDirection(playerTask->extra.tmd->coords, directionPointer);
         {
             s32 playerTurn = playerYaw;
 
             scratch->pullCentreYaw = playerTurn;
             if (abs(playerTurn) < ACTOR_TRANSFORM_ANGLE_HALF_TURN / 2) {
-                D_actor_403200_8015F9C0.placement.rot.vy = ratan2((s32)scratch->offset.vx, (s32)scratch->offset.vz);
-                work->playerAnim.source.sets             = D_actor_403200_8015E6AC;
+                _gActor403200GluttonCaughtPlayerPlacement.placement.rot.vy = ratan2((s32)scratch->offset.vx, (s32)scratch->offset.vz);
+                work->playerAnim.source.sets                               = _gActor403200GluttonPlayerAnimSets;
             } else {
-                D_actor_403200_8015F9C0.placement.rot.vy = ratan2((s32)scratch->offset.vx, (s32)scratch->offset.vz) + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
-                work->playerAnim.source.sets             = D_actor_403200_8015E6CC;
+                _gActor403200GluttonCaughtPlayerPlacement.placement.rot.vy = ratan2((s32)scratch->offset.vx, (s32)scratch->offset.vz) + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
+                work->playerAnim.source.sets                               = D_actor_403200_8015E6CC;
             }
         }
         if (playerStatus->hp > 0) {
-            TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_403200_8015F9C0.placement, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_PLACE, &_gActor403200GluttonCaughtPlayerPlacement.placement, 0);
         }
         work->playerAnim.animationId = ACTOR_403200_PLAYER_CLIP_INHALE_CAUGHT;
         work->playerAnim.blend       = ANIMATION_BLEND_RESET;
@@ -4899,13 +5013,13 @@ static void _actor403200InhaleState(Task* hostTask)
     }
 
     if (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
-        D_actor_403200_8015F8F4.context.loc.stage = ACTOR_403200_BROADCAST_CONTEXT_STAGE;
-        D_actor_403200_8015F8F4.context.loc.area  = ACTOR_403200_BROADCAST_CONTEXT_AREA;
-        D_actor_403200_8015F8F4.command           = ACTOR_403200_SUMMON_COMMAND_VANISH;
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
-        gGluttonSpinnersReleased = 0;
-        work->spinnersSpawned    = 0;
-        work->state              = ACTOR_403200_STATE_CHOOSE_ATTACK;
+        _gActor403200GluttonMadChaserCommand.context.loc.stage = ACTOR_403200_BROADCAST_CONTEXT_STAGE;
+        _gActor403200GluttonMadChaserCommand.context.loc.area  = ACTOR_403200_BROADCAST_CONTEXT_AREA;
+        _gActor403200GluttonMadChaserCommand.command           = ACTOR_403200_SUMMON_COMMAND_VANISH;
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &_gActor403200GluttonMadChaserCommand, ACTOR_COMMAND_MESSAGE_APPLY);
+        _gGluttonSpinnersReleased = GLUTTON_SPINNER_RELEASE_OFF;
+        work->spinnersSpawned     = 0;
+        work->state               = ACTOR_403200_STATE_CHOOSE_ATTACK;
         for (scratch->slot = 0; scratch->slot < ARRAY_SIZE(work->summons); scratch->slot++) {
             work->summons[scratch->slot] = NULL;
         }
@@ -4955,11 +5069,11 @@ static void _actor403200HoldPlayerState(Task* hostTask)
     playerTask   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     playerStatus = &gPlayerStatus;
     if (work->stateChanged != 0) {
-        D_actor_403200_8015F8F4.context.loc.stage = ACTOR_403200_BROADCAST_CONTEXT_STAGE;
-        D_actor_403200_8015F8F4.context.loc.area  = ACTOR_403200_BROADCAST_CONTEXT_AREA;
-        D_actor_403200_8015F8F4.command           = ACTOR_403200_SUMMON_COMMAND_VANISH;
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
-        gGluttonSpinnersReleased = 0;
+        _gActor403200GluttonMadChaserCommand.context.loc.stage = ACTOR_403200_BROADCAST_CONTEXT_STAGE;
+        _gActor403200GluttonMadChaserCommand.context.loc.area  = ACTOR_403200_BROADCAST_CONTEXT_AREA;
+        _gActor403200GluttonMadChaserCommand.command           = ACTOR_403200_SUMMON_COMMAND_VANISH;
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &_gActor403200GluttonMadChaserCommand, ACTOR_COMMAND_MESSAGE_APPLY);
+        _gGluttonSpinnersReleased = GLUTTON_SPINNER_RELEASE_OFF;
         sndEvtRequestScriptStop((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x0A), SOUND_SCRIPT_STOP_KEEP_RELEASE);
         work->animId               = ACTOR_403200_CLIP_HOLD_ENTRY;
         work->animStep             = GLUTTON_ANIM_STEP_RESTART;
@@ -4978,21 +5092,21 @@ static void _actor403200HoldPlayerState(Task* hostTask)
         playerOffset.vy        = 0;
         playerOffset.vx        = 0;
         _actorRenderTransformLocalPointToWorld(&hostTask->extra.tmd->coords[4], &playerOffset);
-        playerOffset.vx                           = playerTask->extra.tmd->coords[0].coord.t[0] - playerOffset.vx;
-        playerOffset.vy                           = 0;
-        playerOffset.vz                           = playerTask->extra.tmd->coords[0].coord.t[2] - playerOffset.vz;
-        offsetPointer                             = &playerOffset;
-        hostRoot                                  = hostTask->extra.tmd->coords;
-        playerYaw                                 = _actorAngleTurnToDirection(hostRoot, offsetPointer);
-        work->neckYawTarget                       = playerYaw;
-        D_actor_403200_8015F8E0[0]                = 0;
-        D_actor_403200_8015F8F4.context.loc.stage = ACTOR_403200_BROADCAST_CONTEXT_STAGE;
-        D_actor_403200_8015F8F4.context.loc.area  = ACTOR_403200_BROADCAST_CONTEXT_AREA;
-        D_actor_403200_8015F8F4.command           = ACTOR_403200_SUMMON_COMMAND_VANISH;
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
-        work->wallDistanceTarget = 0x9C4;
-        gGluttonSpinnersReleased = 0;
-        gAttachmentState.flags  |= ATTACHMENT_FLAG_EVENT_LOCK;
+        playerOffset.vx                                        = playerTask->extra.tmd->coords[0].coord.t[0] - playerOffset.vx;
+        playerOffset.vy                                        = 0;
+        playerOffset.vz                                        = playerTask->extra.tmd->coords[0].coord.t[2] - playerOffset.vz;
+        offsetPointer                                          = &playerOffset;
+        hostRoot                                               = hostTask->extra.tmd->coords;
+        playerYaw                                              = _actorAngleTurnToDirection(hostRoot, offsetPointer);
+        work->neckYawTarget                                    = playerYaw;
+        D_actor_403200_8015F8E0[0]                             = 0;
+        _gActor403200GluttonMadChaserCommand.context.loc.stage = ACTOR_403200_BROADCAST_CONTEXT_STAGE;
+        _gActor403200GluttonMadChaserCommand.context.loc.area  = ACTOR_403200_BROADCAST_CONTEXT_AREA;
+        _gActor403200GluttonMadChaserCommand.command           = ACTOR_403200_SUMMON_COMMAND_VANISH;
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &_gActor403200GluttonMadChaserCommand, ACTOR_COMMAND_MESSAGE_APPLY);
+        work->wallDistanceTarget  = 0x9C4;
+        _gGluttonSpinnersReleased = GLUTTON_SPINNER_RELEASE_OFF;
+        gAttachmentState.flags   |= ATTACHMENT_FLAG_EVENT_LOCK;
         roomEffectRequestCancelAll();
         worldTargetDisableNodeLockOn(&enemy->node);
         worldTargetDisableNodeLockOn(&work->escorts[3]->node);
@@ -5057,10 +5171,10 @@ static void _actor403200HoldPlayerState(Task* hostTask)
         work->prevSlot3Cue = work->hostRig.slots[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     }
     if ((taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) && (playerStatus->hp > 0)) {
-        D_actor_403200_8015F9C0.placement.pos.vx = hostTask->extra.tmd->coords[0].coord.t[0];
-        D_actor_403200_8015F9C0.placement.pos.vy = hostTask->extra.tmd->coords[0].coord.t[1];
-        D_actor_403200_8015F9C0.placement.pos.vz = hostTask->extra.tmd->coords[0].coord.t[2];
-        TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_403200_8015F9C0.placement, 0);
+        _gActor403200GluttonCaughtPlayerPlacement.placement.pos.vx = hostTask->extra.tmd->coords[0].coord.t[0];
+        _gActor403200GluttonCaughtPlayerPlacement.placement.pos.vy = hostTask->extra.tmd->coords[0].coord.t[1];
+        _gActor403200GluttonCaughtPlayerPlacement.placement.pos.vz = hostTask->extra.tmd->coords[0].coord.t[2];
+        TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_PLACE, &_gActor403200GluttonCaughtPlayerPlacement.placement, 0);
         D_actor_403200_8015F8E0[0] = 1;
     }
     if (work->stateTicks < ACTOR_403200_HOLD_PLAYER_REPLAY_TICKS) {
@@ -5217,8 +5331,8 @@ static void _actor403200SwipeState(Task* hostTask)
 
     switch (work->stateTicks) {
         case 0x14:
-            gGluttonLimbReach = 0x640;
-            work->limbPose    = ACTOR_403200_LIMB_POSE_DOWNWARD;
+            _gGluttonLimbReach = 0x640;
+            work->limbPose     = ACTOR_403200_LIMB_POSE_DOWNWARD;
             break;
         case 0x22:
             work->limbPose = ACTOR_403200_SWIPE_LIMB_UPWARD;
@@ -5248,22 +5362,22 @@ static void _actor403200SwipeState(Task* hostTask)
             break;
     }
 
-    if ((u32)((u16)work->stateTicks - 0x29) < 6 && gGluttonLimbReach < 0x1770) {
-        gGluttonLimbReach = (u16)gGluttonLimbReach + 0x258;
+    if ((u32)((u16)work->stateTicks - 0x29) < 6 && _gGluttonLimbReach < 0x1770) {
+        _gGluttonLimbReach = (u16)_gGluttonLimbReach + 0x258;
     }
 
     _gluttonTickAnim(hostTask);
 
     // Collision from the previous pass installs the player's caught animation.
     if (_actor403200HasPlayerContact(work->swipeContacts, ARRAY_SIZE(work->swipeContacts)) != 0 && enemy->hp > 0 &&
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_403200_8015FA00, 0) == 0) {
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &_gActor403200GluttonGrabHold, 0) == 0) {
         damageTarget           = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         damageReply            = taskMessageDispatch(damageTarget, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, ACTOR_403200_SWIPE_ATTACK_ID), 0);
         work->swipeDamageReply = damageReply;
         if (damageReply == 1) {
             ((GameActor*)playerTask->work)->state = ACTOR_403200_PLAYER_FATAL_DAMAGE_STATE;
         }
-        work->playerAnim.source.sets = D_actor_403200_8015E6AC;
+        work->playerAnim.source.sets = _gActor403200GluttonPlayerAnimSets;
         work->playerCaught           = 1;
         work->playerAnim.animationId = ACTOR_403200_PLAYER_CLIP_SWIPE_CAUGHT;
         work->playerAnim.blend       = ANIMATION_BLEND_RESET;
@@ -5279,10 +5393,10 @@ static void _actor403200SwipeState(Task* hostTask)
 
     // Keep the signed reach test separate from each unsigned-halfword subtraction.
     if (work->stateTicks >= 0x39) {
-        if (gGluttonLimbReach >= 0xBB9) {
-            gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
+        if (_gGluttonLimbReach >= 0xBB9) {
+            _gGluttonLimbReach = (u16)_gGluttonLimbReach - 0xC8;
         } else {
-            gGluttonLimbReach = (u16)gGluttonLimbReach - 0x1E;
+            _gGluttonLimbReach = (u16)_gGluttonLimbReach - 0x1E;
         }
     }
 
@@ -5404,7 +5518,7 @@ static void _actor403200GlobLaunchState(Task* hostTask)
         case 0:
         case 12:
         case 19:
-            glob              = enemySpawnFromTable(gGluttonEscortTasks, 0, 0, hostTask->spawnArg2.pointer);
+            glob              = enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_GLOB, 0, hostTask->spawnArg2.pointer);
             glob->workType    = ENEMY_WORK_PLAIN;
             work->lastSpawned = glob;
             break;
@@ -5533,7 +5647,7 @@ static void _actor403200DebrisState(Task* hostTask)
             effectSpawn(EFFECT_SHELTER_B3_DUMPING_HOLE_DRIFT_SPRITE, &D_actor_403200_8015F920, ACTOR_403200_DEBRIS_SPRITE_OPTIONS, NULL);
         }
         if ((s16)((s16)(u16)work->stateTicks % ACTOR_403200_DEBRIS_CHUNK_PERIOD) == ACTOR_403200_DEBRIS_CHUNK_TICK_REMAINDER) {
-            chunk             = enemySpawnFromTable(gGluttonEscortTasks, 2, 0, hostTask->spawnArg2.pointer);
+            chunk             = enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_THROW, 0, hostTask->spawnArg2.pointer);
             chunk->workType   = ENEMY_WORK_PLAIN;
             work->lastSpawned = chunk;
         }
@@ -5589,7 +5703,7 @@ static void _actor403200ScriptedPoseState(Task* hostTask)
         poseCue = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
         if (poseCue == ACTOR_403200_POSE_RETRACT_CUE && work->clip.prevSlot2Cue != poseCue) {
             work->shakeLevel = GLUTTON_SHAKE_LONG;
-            padScriptSpawn(D_actor_403200_80141C6C, D_actor_403200_80141C74);
+            padScriptSpawn(_gActor403200GluttonRetractPadCommands, _gActor403200GluttonRetractPadSegments);
         }
         work->clip.prevSlot2Cue = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     }
@@ -5619,8 +5733,8 @@ static void _actor403200ScriptedPoseState(Task* hostTask)
             work->animRate = ANIMATION_RATE_ONE;
         }
     }
-    if (gGluttonLimbReach >= ACTOR_403200_LIMB_RETRACTION_MIN_REACH) {
-        gGluttonLimbReach = (u16)gGluttonLimbReach - ACTOR_403200_LIMB_RETRACTION_STEP;
+    if (_gGluttonLimbReach >= ACTOR_403200_LIMB_RETRACTION_MIN_REACH) {
+        _gGluttonLimbReach = (u16)_gGluttonLimbReach - ACTOR_403200_LIMB_RETRACTION_STEP;
     }
     _gluttonTickAnim(hostTask);
     hostTask->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -5677,15 +5791,15 @@ static void _actor403200CollapseState(Task* hostTask)
         work->limbPose           = ACTOR_403200_LIMB_POSE_DOWNWARD;
         work->wallDistanceTarget = 0xFA0;
     }
-    if (gGluttonLimbReach >= ACTOR_403200_COLLAPSE_RETRACT_MIN_REACH) {
-        gGluttonLimbReach = (u16)gGluttonLimbReach - ACTOR_403200_LIMB_RETRACTION_STEP;
+    if (_gGluttonLimbReach >= ACTOR_403200_COLLAPSE_RETRACT_MIN_REACH) {
+        _gGluttonLimbReach = (u16)_gGluttonLimbReach - ACTOR_403200_LIMB_RETRACTION_STEP;
     }
     _gluttonTickAnim(hostTask);
     hostTask->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     impactCue                                 = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     if (impactCue == ACTOR_403200_COLLAPSE_IMPACT_CUE && work->clip.prevSlot2Cue != impactCue) {
         work->shakeLevel = GLUTTON_SHAKE_LONG;
-        padScriptSpawn(D_actor_403200_80141C5C, D_actor_403200_80141C64);
+        padScriptSpawn(_gActor403200GluttonImpactPadCommands, _gActor403200GluttonImpactPadSegments);
     }
     work->clip.prevSlot2Cue = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     if (work->animId == ACTOR_403200_CLIP_COLLAPSE) {
@@ -5778,9 +5892,9 @@ static void _actor403200RetractLimbState(Task* task)
     // This twelve-byte reservation is unused by the recovered body.
     SCRATCH_STACK_RESERVE_BYTES(ACTOR_403200_RETRACT_SCRATCH_BYTES);
     _gluttonTickAnim(task);
-    if (gGluttonLimbReach >= ACTOR_403200_LIMB_RETRACTION_MIN_REACH) {
-        gGluttonLimbReach = (u16)gGluttonLimbReach - ACTOR_403200_LIMB_RETRACTION_STEP;
-        work->limbPose    = ACTOR_403200_LIMB_POSE_DOWNWARD;
+    if (_gGluttonLimbReach >= ACTOR_403200_LIMB_RETRACTION_MIN_REACH) {
+        _gGluttonLimbReach = (u16)_gGluttonLimbReach - ACTOR_403200_LIMB_RETRACTION_STEP;
+        work->limbPose     = ACTOR_403200_LIMB_POSE_DOWNWARD;
     }
     if (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = ACTOR_403200_STATE_CHOOSE_ATTACK;
@@ -5834,15 +5948,15 @@ static void _actor403200ChooseAttackState(Task* task)
         work->hostExposed        = 0;
         work->animRate           = ANIMATION_RATE_ONE;
     }
-    if (gGluttonLimbReach >= ACTOR_403200_LIMB_RETRACTION_MIN_REACH) {
-        gGluttonLimbReach = (u16)gGluttonLimbReach - ACTOR_403200_LIMB_RETRACTION_STEP;
-        work->limbPose    = ACTOR_403200_LIMB_POSE_DOWNWARD;
+    if (_gGluttonLimbReach >= ACTOR_403200_LIMB_RETRACTION_MIN_REACH) {
+        _gGluttonLimbReach = (u16)_gGluttonLimbReach - ACTOR_403200_LIMB_RETRACTION_STEP;
+        work->limbPose     = ACTOR_403200_LIMB_POSE_DOWNWARD;
     }
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor403200IdleScratch);
     _gluttonTickAnim(task);
 
     work->neckYawTarget = _actorAngleTurnToPlayer(task, &scratch->toPlayer, &gPlayerStatus);
-    if (gGluttonEnded == 1) {
+    if (_gGluttonEncounterEnded == GLUTTON_ENCOUNTER_ENDED) {
         work->stateTicks = 0;
     }
     // Phase advancement precedes range-based attacks; healing overrides the choice.
@@ -5951,23 +6065,23 @@ static inline void _actor403200CommandSummonOnCue(GluttonWork* work, GluttonSumm
         return;
     }
     if (work->summons[scratch->slot] != NULL) {
-        D_actor_403200_8015F8F4.context.loc.stage = ACTOR_403200_SUMMON_COMMAND_STAGE;
-        D_actor_403200_8015F8F4.context.loc.area  = ACTOR_403200_SUMMON_COMMAND_AREA;
+        _gActor403200GluttonMadChaserCommand.context.loc.stage = ACTOR_403200_SUMMON_COMMAND_STAGE;
+        _gActor403200GluttonMadChaserCommand.context.loc.area  = ACTOR_403200_SUMMON_COMMAND_AREA;
         switch (work->phase) {
             case 0:
                 if (scratch->slot == 0) {
                     gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                     if (!((gRandomLcgState >> 16) & 1)) {
-                        D_actor_403200_8015F8F4.command = ACTOR_403200_SUMMON_SPOT_HIGH_Z_X10500;
+                        _gActor403200GluttonMadChaserCommand.command = ACTOR_403200_SUMMON_SPOT_HIGH_Z_X10500;
                     } else {
-                        D_actor_403200_8015F8F4.command = ACTOR_403200_SUMMON_SPOT_HIGH_Z_X13500;
+                        _gActor403200GluttonMadChaserCommand.command = ACTOR_403200_SUMMON_SPOT_HIGH_Z_X13500;
                     }
                 } else {
                     gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                     if (!((gRandomLcgState >> 16) & 1)) {
-                        D_actor_403200_8015F8F4.command = ACTOR_403200_SUMMON_SPOT_LOW_Z_X10500;
+                        _gActor403200GluttonMadChaserCommand.command = ACTOR_403200_SUMMON_SPOT_LOW_Z_X10500;
                     } else {
-                        D_actor_403200_8015F8F4.command = ACTOR_403200_SUMMON_SPOT_LOW_Z_X13500;
+                        _gActor403200GluttonMadChaserCommand.command = ACTOR_403200_SUMMON_SPOT_LOW_Z_X13500;
                     }
                 }
                 break;
@@ -5975,34 +6089,34 @@ static inline void _actor403200CommandSummonOnCue(GluttonWork* work, GluttonSumm
                 if (scratch->slot == 0) {
                     gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                     if (!((gRandomLcgState >> 16) & 1)) {
-                        D_actor_403200_8015F8F4.command = ACTOR_403200_SUMMON_SPOT_LOW_Z_X13500;
+                        _gActor403200GluttonMadChaserCommand.command = ACTOR_403200_SUMMON_SPOT_LOW_Z_X13500;
                     } else {
-                        D_actor_403200_8015F8F4.command = ACTOR_403200_SUMMON_SPOT_LOW_Z_X16500;
+                        _gActor403200GluttonMadChaserCommand.command = ACTOR_403200_SUMMON_SPOT_LOW_Z_X16500;
                     }
                 } else {
                     gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                     if (!((gRandomLcgState >> 16) & 1)) {
-                        D_actor_403200_8015F8F4.command = ACTOR_403200_SUMMON_SPOT_HIGH_Z_X13500;
+                        _gActor403200GluttonMadChaserCommand.command = ACTOR_403200_SUMMON_SPOT_HIGH_Z_X13500;
                     } else {
-                        D_actor_403200_8015F8F4.command = ACTOR_403200_SUMMON_SPOT_HIGH_Z_X16500;
+                        _gActor403200GluttonMadChaserCommand.command = ACTOR_403200_SUMMON_SPOT_HIGH_Z_X16500;
                     }
                 }
                 break;
             case 2:
             default:
                 if (scratch->slot == 0) {
-                    D_actor_403200_8015F8F4.command = ACTOR_403200_SUMMON_SPOT_HIGH_Z_X16500;
+                    _gActor403200GluttonMadChaserCommand.command = ACTOR_403200_SUMMON_SPOT_HIGH_Z_X16500;
                 } else {
-                    D_actor_403200_8015F8F4.command = ACTOR_403200_SUMMON_SPOT_LOW_Z_X16500;
+                    _gActor403200GluttonMadChaserCommand.command = ACTOR_403200_SUMMON_SPOT_LOW_Z_X16500;
                 }
                 break;
         }
         // Pack the selected spot and one of three emergence motions.
-        D_actor_403200_8015F8F4.command <<= ACTOR_403200_SUMMON_SPOT_SHIFT;
-        nextRandomState                   = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-        D_actor_403200_8015F8F4.command  |= (s16)OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, ((u32)nextRandomState >> 16) % ACTOR_403200_SUMMON_MOTION_COUNT);
-        gRandomLcgState                   = nextRandomState;
-        TASK_MESSAGE_DISPATCH_POINTER(work->summons[scratch->slot]->task, ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_403200_8015F8F4, 0);
+        _gActor403200GluttonMadChaserCommand.command <<= ACTOR_403200_SUMMON_SPOT_SHIFT;
+        nextRandomState                                = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        _gActor403200GluttonMadChaserCommand.command  |= (s16)OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, ((u32)nextRandomState >> 16) % ACTOR_403200_SUMMON_MOTION_COUNT);
+        gRandomLcgState                                = nextRandomState;
+        TASK_MESSAGE_DISPATCH_POINTER(work->summons[scratch->slot]->task, ACTOR_COMMAND_MESSAGE_APPLY, &_gActor403200GluttonMadChaserCommand, 0);
     }
 }
 
@@ -6040,7 +6154,7 @@ static void _actor403200SummonState(Task* hostTask)
 
     work  = hostTask->work;
     enemy = hostTask->spawnArg2.pointer;
-    if (gGluttonEnded != 1) {
+    if (_gGluttonEncounterEnded != GLUTTON_ENCOUNTER_ENDED) {
         scratch = SCRATCH_STACK_RESERVE_BLOCK(GluttonSummonScratch);
         if (work->stateChanged != 0) {
             previousAnimId         = work->animId;
@@ -6080,8 +6194,8 @@ static void _actor403200SummonState(Task* hostTask)
             sndEvtRequestScriptStop((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x0D), SOUND_SCRIPT_STOP_KEEP_RELEASE);
             sndEvtRequestScriptStop((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 9), SOUND_SCRIPT_STOP_KEEP_RELEASE);
         }
-        if (gGluttonLimbReach >= ACTOR_403200_LIMB_RETRACTION_MIN_REACH) {
-            gGluttonLimbReach = (u16)gGluttonLimbReach - ACTOR_403200_LIMB_RETRACTION_STEP;
+        if (_gGluttonLimbReach >= ACTOR_403200_LIMB_RETRACTION_MIN_REACH) {
+            _gGluttonLimbReach = (u16)_gGluttonLimbReach - ACTOR_403200_LIMB_RETRACTION_STEP;
         }
         _gluttonTickAnim(hostTask);
         if (work->animId == ACTOR_403200_CLIP_SUMMON && (exposureCue = work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 4 && exposureCue < 0xD) {
@@ -6108,7 +6222,7 @@ static void _actor403200SummonState(Task* hostTask)
             blastPan = (s8)worldCoordGetOriginAudioPan(hostTask->extra.tmd->coords);
             sndEvtRequestScriptStart(blastId, blastPan, (s8)(worldCoordGetOriginAudioDepth(hostTask->extra.tmd->coords) / 2));
             work->shakeLevel = GLUTTON_SHAKE_LONG;
-            padScriptSpawn(D_actor_403200_80141C5C, D_actor_403200_80141C64);
+            padScriptSpawn(_gActor403200GluttonImpactPadCommands, _gActor403200GluttonImpactPadSegments);
         }
         if (work->stateTicks == 0x23) {
             work->viewSelector = ACTOR_403200_VIEW_SELECTOR_DEFAULT;
@@ -6120,9 +6234,13 @@ static void _actor403200SummonState(Task* hostTask)
 
 #include "../../shared/glutton_escort_state.inc.c"
 
-/// The host's state handlers, indexed by `state`; the last six slots are
-/// empty. Slots 16 and 17 have empty handlers; slot 18 hands death off to the room.
-static const _Actor403200StateTable D_actor_403200_80132154 = {
+/// Combat-state handlers indexed by the host work's signed-halfword state.
+///
+/// All 25 slots are copied before dispatch. States 0..18 are valid; slots
+/// 16 and 17 do nothing, 13 holds the player and 18 hands death off to the room.
+/// The final six slots are NULL and must not be selected. Every handler takes
+/// the live host Task* and returns void; there is no terminator or bounds check.
+static const _Actor403200StateTable _gActor403200GluttonStateHandlers = {
     {
         _actor403200HiddenState,
         _actor403200ShownState,
@@ -6146,9 +6264,11 @@ static const _Actor403200StateTable D_actor_403200_80132154 = {
     },
 };
 
-/// The host task's three states -- spawn/setup, per-frame tick and teardown --
-/// dispatched through by state.
-static const EnemyTaskFuncTable3 D_actor_403200_801321B8 = {
+/// Host enemy-task lifecycle: spawn, per-frame update and teardown.
+///
+/// The callback copies all three entries, then dispatches Task.state 0..2
+/// with the live enemy/task pair. No terminator or bounds check is present.
+static const EnemyTaskFuncTable3 _gActor403200GluttonHostTaskStates = {
     {
         _actor403200Spawn,
         _actor403200Tick,
@@ -6223,7 +6343,7 @@ static void _actor403200Tick(Enemy* enemy, Task* task)
 
     work          = task->work;
     playerTask    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    stateHandlers = D_actor_403200_80132154;
+    stateHandlers = _gActor403200GluttonStateHandlers;
 
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(task->extra.tmd->coords);
@@ -6272,7 +6392,7 @@ static void _actor403200Tick(Enemy* enemy, Task* task)
     }
     worldCoordUpdateActorColor(litEnemy, &lightingPosition, 0, 0);
 
-    if (work->state == GLUTTON_STATE_SWIPE && gGluttonLimbReach >= 0x7D1) {
+    if (work->state == GLUTTON_STATE_SWIPE && _gGluttonLimbReach >= 0x7D1) {
         work->escorts[4]->task->extra.tmd->otOffset = -8;
     } else {
         work->escorts[4]->task->extra.tmd->otOffset = 0;
@@ -6334,8 +6454,8 @@ static void _actor403200Tick(Enemy* enemy, Task* task)
     }
     if (enemy->hp <= 0) {
         if (gPlayerStatus.hp <= 0) {
-            enemy->hp     = 1;
-            gGluttonEnded = 0;
+            enemy->hp               = 1;
+            _gGluttonEncounterEnded = GLUTTON_ENCOUNTER_RUNNING;
         }
     }
 
@@ -6350,17 +6470,17 @@ static void _actor403200Tick(Enemy* enemy, Task* task)
         if (work->deathDelay > 0) {
             enemy->hp = 1;
         }
-        if (enemy->hp <= 0 && gGluttonEnded == 0) {
-            gGluttonEnded                             = 1;
-            D_actor_403200_8015F8F4.context.loc.stage = ACTOR_403200_BROADCAST_CONTEXT_STAGE;
-            D_actor_403200_8015F8F4.context.loc.area  = ACTOR_403200_BROADCAST_CONTEXT_AREA;
-            D_actor_403200_8015F8F4.command           = ACTOR_403200_SUMMON_COMMAND_VANISH;
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
-            gGluttonSpinnersReleased = 0;
+        if (enemy->hp <= 0 && _gGluttonEncounterEnded == GLUTTON_ENCOUNTER_RUNNING) {
+            _gGluttonEncounterEnded                                = GLUTTON_ENCOUNTER_ENDED;
+            _gActor403200GluttonMadChaserCommand.context.loc.stage = ACTOR_403200_BROADCAST_CONTEXT_STAGE;
+            _gActor403200GluttonMadChaserCommand.context.loc.area  = ACTOR_403200_BROADCAST_CONTEXT_AREA;
+            _gActor403200GluttonMadChaserCommand.command           = ACTOR_403200_SUMMON_COMMAND_VANISH;
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &_gActor403200GluttonMadChaserCommand, ACTOR_COMMAND_MESSAGE_APPLY);
+            _gGluttonSpinnersReleased = GLUTTON_SPINNER_RELEASE_OFF;
         }
     }
 
-    if (gGluttonEnded == 1 && work->deathDelay <= 0 && work->playerCaught == 0 &&
+    if (_gGluttonEncounterEnded == GLUTTON_ENCOUNTER_ENDED && work->deathDelay <= 0 && work->playerCaught == 0 &&
         work->deathTicks < ACTOR_403200_DEATH_TICK_LIMIT) {
         work->deathTicks = (s16)((u16)work->deathTicks + 1);
     }
@@ -6485,14 +6605,14 @@ static void _actor403200Tick(Enemy* enemy, Task* task)
         work->caughtTicks = caughtTicks;
         if (work->swipeDamageReply == caughtMode) {
             if (work->playerAnim.animationId == ACTOR_403200_PLAYER_CLIP_SWIPE_CAUGHT) {
-                work->playerAnim.source.sets = D_actor_403200_8015E6AC;
+                work->playerAnim.source.sets = _gActor403200GluttonPlayerAnimSets;
                 work->playerAnim.blend       = ANIMATION_BLEND_RESET;
                 work->playerAnim.blendFrames = 0;
                 TASK_MESSAGE_DISPATCH_POINTER(playerTask, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->playerAnim, 0);
                 work->caughtTicks = 0;
             }
         } else if (work->playerAnim.animationId == ACTOR_403200_PLAYER_CLIP_SWIPE_CAUGHT && (s16)caughtTicks < ACTOR_403200_SWIPE_RELEASE_REPLAY_TICKS) {
-            work->playerAnim.source.sets = D_actor_403200_8015E6AC;
+            work->playerAnim.source.sets = _gActor403200GluttonPlayerAnimSets;
             work->playerAnim.blend       = ANIMATION_BLEND_RESET;
             work->playerAnim.blendFrames = 0;
             TASK_MESSAGE_DISPATCH_POINTER(playerTask, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->playerAnim, 0);
@@ -6502,8 +6622,8 @@ static void _actor403200Tick(Enemy* enemy, Task* task)
             switch (work->playerAnim.animationId) {
                 case ACTOR_403200_PLAYER_CLIP_SWIPE_CAUGHT:
                     if (work->swipeDamageReply != 1 && (s16)work->caughtTicks >= ACTOR_403200_SWIPE_RELEASE_MIN_TICKS) {
-                        work->playerAnim.source.sets = D_actor_403200_8015E6AC;
-                        D_actor_403200_8015E6AC[4] =
+                        work->playerAnim.source.sets = _gActor403200GluttonPlayerAnimSets;
+                        _gActor403200GluttonPlayerAnimSets[4] =
                             (Gp_PlayerAnimBlkTbl
                                  [Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])
                                 ->table.sets[ACTOR_403200_PLAYER_WEAPON_RELEASE_CLIP];
@@ -6524,8 +6644,8 @@ static void _actor403200Tick(Enemy* enemy, Task* task)
         }
     }
 
-    if (gGluttonEnded == 1) {
-        if (work->playerCaught == gGluttonEnded) {
+    if (_gGluttonEncounterEnded == GLUTTON_ENCOUNTER_ENDED) {
+        if (work->playerCaught == _gGluttonEncounterEnded) {
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, ACTOR_403200_PLAYER_SCRIPTED_EXIT_REASON, 0);
             work->playerCaught = 0;
         }
@@ -6663,7 +6783,7 @@ static void _actor403200HostTask(Task* host)
     GfxCoord*           playerCoord;
     GfxCoord*           hostRoot;
 
-    taskStates = D_actor_403200_801321B8;
+    taskStates = _gActor403200GluttonHostTaskStates;
     player     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     work       = host->work;
     enemy      = host->spawnArg2.pointer;
@@ -6914,7 +7034,7 @@ static s32 _actor403200HandleActorEvent(Task* task, s32 unusedMessageId, s32 eve
 /// the engulfing projectile performs its own subsequent release/teardown.
 static s32 _actor403200ReleaseGlobGrab(Task* task, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
-    gGluttonGrabActive = 0;
+    _gGluttonGlobHoldActive = GLUTTON_GLOB_HOLD_RELEASED;
     return 1;
 }
 

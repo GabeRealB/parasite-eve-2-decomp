@@ -15,7 +15,7 @@ static void _gluttonChunkSettle(Enemy* enemy, Task* task)
     VECTOR                 worldPosition;
     s16                    settleTickIndex;
 
-    if (gGluttonEnded == 1) {
+    if (_gGluttonEncounterEnded == GLUTTON_ENCOUNTER_ENDED) {
         worldCollisionUnlinkBody(&work->attackBody);
         worldCollisionUnlinkBody(&work->gridBody);
         enemyDestroy(enemy, task);

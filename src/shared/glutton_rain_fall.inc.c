@@ -19,7 +19,7 @@ static void _gluttonRainFall(Enemy* enemy, Task* task)
     s32                    audioPan;
 
     work = task->work;
-    if (gGluttonEnded == 1) {
+    if (_gGluttonEncounterEnded == GLUTTON_ENCOUNTER_ENDED) {
         worldCollisionUnlinkBody(&work->attackBody);
         enemyDestroy(enemy, task);
         return;

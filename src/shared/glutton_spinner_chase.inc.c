@@ -51,7 +51,7 @@ static void _gluttonSpinnerChase(Enemy* enemy, Task* task)
     actorRenderComposeCoord(task->extra.tmd->coords);
     worldCoordSetModelLighting(task->extra.tmd, task->extra.tmd->coords->workm.t, 0, 3);
 
-    if (gGluttonEnded == 1 || gGluttonSpinnersReleased == 0) {
+    if (_gGluttonEncounterEnded == GLUTTON_ENCOUNTER_ENDED || _gGluttonSpinnersReleased == GLUTTON_SPINNER_RELEASE_OFF) {
         enemyDestroy(enemy, task);
         return;
     }
@@ -75,7 +75,7 @@ static void _gluttonSpinnerChase(Enemy* enemy, Task* task)
     }
 
     movement         = &targetOffset;
-    *movement        = gGluttonSpinnerTarget;
+    *movement        = _gGluttonSpinnerTarget;
     targetOffset.vx -= task->extra.tmd->coords->coord.t[0];
     targetOffset.vy -= task->extra.tmd->coords->coord.t[1];
     targetOffset.vz -= task->extra.tmd->coords->coord.t[2];

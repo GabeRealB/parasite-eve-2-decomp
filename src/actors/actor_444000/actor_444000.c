@@ -279,11 +279,6 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
     return &ActorContact_ScratchPosition;
 }
 
-extern s16 gGluttonEnded;
-extern s32 gGluttonGrabActive;
-extern s16 gGluttonLimbReach;
-extern s16 gGluttonSpinnersReleased;
-
 /// Static storage for the command record the boss sends other actors.
 ///
 /// `command` is the payload of `ACTOR_COMMAND_MESSAGE_APPLY`, lent to the
@@ -303,8 +298,6 @@ typedef struct {
 } _Actor444000CommandStorage;
 STATIC_ASSERT_SIZEOF(_Actor444000CommandStorage, 8);
 
-extern AnimationSet* gGluttonCaughtAnimSets[];
-
 /// Which of the three drop-point groups the falling enemies use this round,
 /// rerolled off `gRandomLcgState` whenever a spawn arrives with `spawnArg1` 0.
 extern u8 gGluttonRainGroup;
@@ -316,13 +309,6 @@ extern SVECTOR gGluttonRainLaunchOffsets[];
 extern SVECTOR gGluttonRainPoints[];
 /// `[group][spawnArg1]` index into `gGluttonRainPoints`.
 extern u8 gGluttonRainPointIndex[][8];
-/// Button-press hold the glob's engulf state sends the player, asking for 40
-/// presses.
-extern GluttonButtonPressHoldStorage gGluttonGrabQuery;
-
-/// World point the spinner chases: written by `_actor444000InhaleState`,
-/// read by the spinner's tick as the target of its step.
-extern SVECTOR gGluttonSpinnerTarget;
 
 /// Number of coordinates the debris launches rotate through.
 enum { ACTOR_444000_DEBRIS_COORD_COUNT = 3 };
@@ -343,9 +329,6 @@ typedef struct {
     u8       unknown_F0[0x118];                       // Zero in the image; no access established and role unproven
 } _Actor444000DebrisCoordStorage;
 STATIC_ASSERT_SIZEOF(_Actor444000DebrisCoordStorage, 0x208);
-
-/// Spawn table of the enemy the arena fight drops in every tenth step.
-extern TaskDesc gGluttonEscortTasks[];
 
 /// Static storage for the mark of how far a catch has taken the player.
 ///
@@ -388,10 +371,6 @@ STATIC_ASSERT_SIZEOF(_Actor444000TransformStorage, 32);
 /// Global game-mode byte; sits inside a small flag block, so it is declared as
 /// an array -- the load has to keep aliasing the scratch stores beside it (see
 /// DECOMPILATION_LEARNINGS.md, "Declare a fixed-address global as an array").
-
-/// Per-animation reset argument, a `[?][0x2D]` table of `animId` indexed by
-/// the id that was playing before the switch.
-extern s8 gGluttonAnimTransitions[][0x2D];
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
@@ -677,13 +656,34 @@ static EnemyParams _gActor444000GluttonGroups1To2Params = {
     .damageOverTimeTicks  = 0,
 };
 
-s16 gGluttonEnded = 0;
+/// Encounter-end latch shared by the host and its projectiles (0 running, 1 ended).
+///
+/// Boss death sets it; simultaneous player death keeps the boss alive and clears
+/// it. Value 1 makes projectile states release caught players and tear down.
+/// This signed-halfword latch is separate from the spinner-release word.
+static s16 _gGluttonEncounterEnded = GLUTTON_ENCOUNTER_RUNNING;
 
-s32 gGluttonGrabActive = 0;
+/// Glob-hold latch (0 released, 1 following an accepted player hold).
+///
+/// Acceptance of the forty-press request sets it. A caught glob advances when
+/// it is cleared; the engulf timeout also clears it. Dumping-hole player-release
+/// broadcasts clear the same latch. The host's own catches use separate work flags.
+static s32 _gGluttonGlobHoldActive = GLUTTON_GLOB_HOLD_RELEASED;
 
-s16 gGluttonLimbReach = 0;
+/// Total local-Z extension of the limb's five extending segments, in game units.
+///
+/// The pose driver floors this signed-halfword reach at 460 and assigns one
+/// fifth to each of parts 2..6. Swipe states extend and retract it and select
+/// curvature from its range. Unsigned-halfword arithmetic casts preserve wrapping
+/// before the signed-halfword store.
+static s16 _gGluttonLimbReach = 0;
 
-s16 gGluttonSpinnersReleased = 0;
+/// Raw spinner-release word (1 starts waiting spinners, 0 cancels chasing ones).
+///
+/// Zero leaves a spinner still waiting visible. The setter preserves any s16
+/// value; values other than 0 and 1 trigger neither specific test. Encounter end
+/// tears down spinners independently of this word.
+static s16 _gGluttonSpinnersReleased = GLUTTON_SPINNER_RELEASE_OFF;
 
 PadScriptCmd gActor444000GluttonImpactPadCommands[2] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
@@ -2462,7 +2462,12 @@ AnimationSet gActor444000Animation2EE14 = {
     { NULL, _gActor444000Animation2EE14Bank1, NULL, NULL, _gActor444000Animation2EE14Bank4, NULL, NULL, NULL },
 };
 
-s8 gGluttonAnimTransitions[45][45] = {
+/// Blend duration in animation frames, indexed by previous and requested clip.
+///
+/// Both indices must be in 0..44; the requested clip must exist in all three
+/// driving rigs. Zero seeks immediately; positive values blend for that duration.
+/// Each compiled encounter owns its matrix and borrows it for its lifetime.
+static s8 _gGluttonAnimBlendFrames[GLUTTON_ANIM_BLEND_CLIP_COUNT][GLUTTON_ANIM_BLEND_CLIP_COUNT] = {
     { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -2694,7 +2699,12 @@ static AnimationSet* _gActor444000GluttonPlayerCaptureAnimationSets[8] = {
 
 u8 gGluttonRainGroup = 0;
 
-AnimationSet* gGluttonCaughtAnimSets[7] = {
+/// Player animation bank for a glob engulf and its release.
+///
+/// Slot 1 holds the native caught clip; slot 2 is refreshed from equipped-weapon
+/// bank clip 9 before release. Other slots are NULL. The mutable seven-slot bank
+/// remains live while the player borrows it for playback.
+static AnimationSet* _gGluttonGlobPlayerAnimSets[GLUTTON_GLOB_PLAYER_ANIM_SET_COUNT] = {
     NULL,
     &_gActor444000Animation2CB24,
     NULL,
@@ -2768,11 +2778,18 @@ u8 gGluttonRainPointIndex[3][8] = {
     { 14, 13, 9, 0, 12, 7, 10, 11 },
 };
 
-TaskDesc gGluttonEscortTasks[4] = {
-    { { { TASK_BODY_TMD, 96 } }, _gluttonGlobTask, { .model = &_gActor444000Actor403200Model199E4 } },
-    { { { TASK_BODY_COORD, 96 } }, _gluttonRainTask, { .value = 0 } },
-    { { { TASK_BODY_COORD, 96 } }, _gluttonThrowTask, { .value = 0 } },
-    { { { TASK_BODY_TMD, 96 } }, _gluttonChunkTask, { .model = &_gActor444000Actor403200Model1AC48 } },
+/// Spawn recipes for the encounter's attack projectiles and healing chunks.
+///
+/// Indices 0..3 select glob, rain blob, thrown sphere and healing chunk. Rain
+/// and thrown-sphere tasks have coordinate bodies; the other tasks have TMD
+/// bodies. Dumping-hole slot 4 is a spinner whose model is patched per spawn;
+/// the incinerator owns its spinner descriptor separately. Callbacks are private
+/// instances and each spawned task owns its body and work until teardown.
+static TaskDesc _gGluttonProjectileTaskDescs[GLUTTON_PROJECTILE_TASK_COUNT] = {
+    { { { TASK_BODY_TMD, GLUTTON_PROJECTILE_TASK_PRIORITY } }, _gluttonGlobTask, { .model = &_gActor444000Actor403200Model199E4 } },
+    { { { TASK_BODY_COORD, GLUTTON_PROJECTILE_TASK_PRIORITY } }, _gluttonRainTask, { .value = 0 } },
+    { { { TASK_BODY_COORD, GLUTTON_PROJECTILE_TASK_PRIORITY } }, _gluttonThrowTask, { .value = 0 } },
+    { { { TASK_BODY_TMD, GLUTTON_PROJECTILE_TASK_PRIORITY } }, _gluttonChunkTask, { .model = &_gActor444000Actor403200Model1AC48 } },
 };
 
 TaskDesc D_actor_444000_8016180C = { { { TASK_BODY_TMD, 96 } }, _gluttonSpinnerTask, { .model = &_gActor444000Actor403200Model19284 } };
@@ -2832,9 +2849,19 @@ static EffectSpawnArg _gActor444000GluttonRootEffectSpawnArg = { NULL, 0, 0 };
 /// zero bytes have no established access or object boundary.
 static _Actor444000CommandStorage _gActor444000GluttonMadChaserCommand = { { { .loc = { 0, 0 } }, 0 }, { 0, 0, 0, 0 } };
 
-SVECTOR gGluttonSpinnerTarget = { 0, 0, 0, 0 };
+/// Spinner chase point in the spinner roots' parent-coordinate frame.
+///
+/// Components narrow to signed-halfword game units; pad is unused. Inhale
+/// refreshes it from part 3's origin, on the host in the dumping hole or placed
+/// actor 0 in the incinerator. The shared chase subtracts each root translation.
+static SVECTOR _gGluttonSpinnerTarget = { 0, 0, 0, 0 };
 
-GluttonButtonPressHoldStorage gGluttonGrabQuery = { { { 0 }, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
+/// Forty-press player-hold request used by the glob engulf.
+///
+/// Only hold.pressCount is filled; the player copies it during synchronous
+/// dispatch. The eight trailing zero bytes have no established access or
+/// original object boundary and remain in the allocation.
+static GluttonButtonPressHoldStorage _gGluttonGlobEngulfHold = { { { 0 }, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
 
 /// Mouth-relative node rebuilt at clip 9 tick 45 with local offset (0,-100,100).
 ///
@@ -3615,8 +3642,8 @@ static void _actor444000CollapseState(Task* task)
     }
 
     if (!(work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
-        if (gGluttonLimbReach >= ACTOR_444000_LIMB_RETRACT_MIN_REACH) {
-            gGluttonLimbReach = (u16)gGluttonLimbReach - ACTOR_444000_LIMB_RETRACT_STEP;
+        if (_gGluttonLimbReach >= ACTOR_444000_LIMB_RETRACT_MIN_REACH) {
+            _gGluttonLimbReach = (u16)_gGluttonLimbReach - ACTOR_444000_LIMB_RETRACT_STEP;
         }
 
         _gluttonTickAnim(task);
@@ -4662,7 +4689,7 @@ static void _actor444000Spawn(Enemy* enemy, Task* task)
 
     lightingWork = task->work;
 
-    gGluttonEnded = 0;
+    _gGluttonEncounterEnded = GLUTTON_ENCOUNTER_RUNNING;
 
     task->extra.tmd->lightMtx = &lightingWork->lightMtx;
     task->extra.tmd->colorMtx = &lightingWork->colorMtx;
@@ -5050,7 +5077,7 @@ static void _actor444000InhaleState(Task* task)
         work->neckPitchEnabled = 1;
         work->neckYawEnabled   = 1;
         work->hostExposed      = 0;
-        spinnerTarget          = &gGluttonSpinnerTarget;
+        spinnerTarget          = &_gGluttonSpinnerTarget;
         spinnerTarget->vz      = 0;
         spinnerTarget->vy      = 0;
         spinnerTarget->vx      = 0;
@@ -5670,8 +5697,8 @@ static void _actor444000SwipeState(Task* task)
 
     switch (work->stateTicks) {
         case 0x14:
-            gGluttonLimbReach = ACTOR_444000_SWIPE_INITIAL_REACH;
-            work->limbPose    = ACTOR_444000_LIMB_POSE_DOWNWARD;
+            _gGluttonLimbReach = ACTOR_444000_SWIPE_INITIAL_REACH;
+            work->limbPose     = ACTOR_444000_LIMB_POSE_DOWNWARD;
             break;
         case 0x22:
             work->limbPose = ACTOR_444000_LIMB_POSE_UPWARD;
@@ -5699,8 +5726,8 @@ static void _actor444000SwipeState(Task* task)
             break;
     }
 
-    if ((u32)((u16)work->stateTicks - ACTOR_444000_SWIPE_EXTENSION_TICK) < ACTOR_444000_SWIPE_EXTENSION_TICKS && gGluttonLimbReach < ACTOR_444000_SWIPE_MAX_REACH) {
-        gGluttonLimbReach = (u16)gGluttonLimbReach + ACTOR_444000_SWIPE_EXTENSION_STEP;
+    if ((u32)((u16)work->stateTicks - ACTOR_444000_SWIPE_EXTENSION_TICK) < ACTOR_444000_SWIPE_EXTENSION_TICKS && _gGluttonLimbReach < ACTOR_444000_SWIPE_MAX_REACH) {
+        _gGluttonLimbReach = (u16)_gGluttonLimbReach + ACTOR_444000_SWIPE_EXTENSION_STEP;
     }
 
     _gluttonTickAnim(task);
@@ -5771,10 +5798,10 @@ static void _actor444000SwipeState(Task* task)
     }
 
     if (work->stateTicks >= ACTOR_444000_SWIPE_RETRACT_TICK) {
-        if (gGluttonLimbReach >= ACTOR_444000_SWIPE_RETRACT_FAST_LIMIT) {
-            gGluttonLimbReach = (u16)gGluttonLimbReach - ACTOR_444000_SWIPE_RETRACT_FAST_STEP;
+        if (_gGluttonLimbReach >= ACTOR_444000_SWIPE_RETRACT_FAST_LIMIT) {
+            _gGluttonLimbReach = (u16)_gGluttonLimbReach - ACTOR_444000_SWIPE_RETRACT_FAST_STEP;
         } else {
-            gGluttonLimbReach = (u16)gGluttonLimbReach - ACTOR_444000_SWIPE_RETRACT_SLOW_STEP;
+            _gGluttonLimbReach = (u16)_gGluttonLimbReach - ACTOR_444000_SWIPE_RETRACT_SLOW_STEP;
         }
     }
 
@@ -5890,7 +5917,7 @@ static void _actor444000ThrowDebrisState(Task* task)
             effectSpawn(EFFECT_196, &_gActor444000GluttonDebrisCoords.coords[_gActor444000GluttonDebrisCoordIndex], ACTOR_444000_DEBRIS_EFFECT_ARGUMENT, NULL);
         }
         if ((s16)((s16)(u16)work->stateTicks % 10) == 4) {
-            spawned           = enemySpawnFromTable(gGluttonEscortTasks, 2, 0, task->spawnArg2.pointer);
+            spawned           = enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_THROW, 0, task->spawnArg2.pointer);
             spawned->workType = ENEMY_WORK_PLAIN;
             work->lastSpawned = spawned;
         }
@@ -5962,8 +5989,8 @@ static void _actor444000LimbAnimationState(Task* task)
         work->animId   = ACTOR_444000_LIMB_RETRACT_CLIP;
         work->animStep = GLUTTON_ANIM_STEP_BLEND;
     }
-    if (gGluttonLimbReach >= ACTOR_444000_LIMB_RETRACT_MIN_REACH) {
-        gGluttonLimbReach = (u16)gGluttonLimbReach - ACTOR_444000_LIMB_RETRACT_STEP;
+    if (_gGluttonLimbReach >= ACTOR_444000_LIMB_RETRACT_MIN_REACH) {
+        _gGluttonLimbReach = (u16)_gGluttonLimbReach - ACTOR_444000_LIMB_RETRACT_STEP;
     }
     _gluttonTickAnim(task);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -6012,8 +6039,8 @@ static void _actor444000ResumeLimbAnimationState(Task* task)
         work->animRate = ANIMATION_RATE_ONE;
         sndEvtRequestScriptStop((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x0A), SOUND_SCRIPT_STOP_KEEP_RELEASE);
     }
-    if (gGluttonLimbReach >= ACTOR_444000_LIMB_RETRACT_MIN_REACH) {
-        gGluttonLimbReach = (u16)gGluttonLimbReach - ACTOR_444000_LIMB_RETRACT_STEP;
+    if (_gGluttonLimbReach >= ACTOR_444000_LIMB_RETRACT_MIN_REACH) {
+        _gGluttonLimbReach = (u16)_gGluttonLimbReach - ACTOR_444000_LIMB_RETRACT_STEP;
     }
     _gluttonTickAnim(task);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -6072,9 +6099,9 @@ static void _actor444000RetractLimbState(Task* task)
     }
     // This twelve-byte reservation is unused by the recovered body.
     SCRATCH_STACK_RESERVE_BYTES(ACTOR_444000_RETRACT_SCRATCH_BYTES);
-    if (gGluttonLimbReach >= ACTOR_444000_LIMB_RETRACTION_MIN_REACH) {
-        work->limbPose    = 0;
-        gGluttonLimbReach = (u16)gGluttonLimbReach - ACTOR_444000_LIMB_RETRACTION_STEP;
+    if (_gGluttonLimbReach >= ACTOR_444000_LIMB_RETRACTION_MIN_REACH) {
+        work->limbPose     = 0;
+        _gGluttonLimbReach = (u16)_gGluttonLimbReach - ACTOR_444000_LIMB_RETRACTION_STEP;
     }
     _gluttonTickAnim(task);
     if (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
@@ -6142,9 +6169,9 @@ static void _actor444000ChooseAttackState(Task* task)
     playerOffsetPointer->vz = gPlayerStatus.coordMtx->t[2] - hostCoord->coord.t[2];
     work->neckYawTarget     = _actorAngleTurnToOffset(task->extra.tmd->coords, playerOffsetPointer->vx, playerOffsetPointer->vz);
 
-    if (gGluttonLimbReach >= ACTOR_444000_LIMB_RETRACTION_MIN_REACH) {
-        gGluttonLimbReach = (u16)gGluttonLimbReach - ACTOR_444000_LIMB_RETRACTION_STEP;
-        work->limbPose    = 0;
+    if (_gGluttonLimbReach >= ACTOR_444000_LIMB_RETRACTION_MIN_REACH) {
+        _gGluttonLimbReach = (u16)_gGluttonLimbReach - ACTOR_444000_LIMB_RETRACTION_STEP;
+        work->limbPose     = 0;
     }
     _gluttonTickAnim(task);
 
@@ -6316,8 +6343,8 @@ static void _actor444000SummonState(Task* task)
         work->wallDistanceTarget = 0xC80;
         sndEvtRequestScriptStop((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x0D), SOUND_SCRIPT_STOP_KEEP_RELEASE);
     }
-    if (gGluttonLimbReach >= ACTOR_444000_LIMB_RETRACT_MIN_REACH) {
-        gGluttonLimbReach = (u16)gGluttonLimbReach - ACTOR_444000_LIMB_RETRACT_STEP;
+    if (_gGluttonLimbReach >= ACTOR_444000_LIMB_RETRACT_MIN_REACH) {
+        _gGluttonLimbReach = (u16)_gGluttonLimbReach - ACTOR_444000_LIMB_RETRACT_STEP;
     }
     _gluttonTickAnim(task);
     if (work->animId == ACTOR_444000_SUMMON_CLIP && (poseCue = work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 4 && poseCue < 0xD) {
@@ -6680,13 +6707,13 @@ static void _actor444000Tick(Enemy* enemy, Task* task)
     // Keep the boss alive on simultaneous player death; otherwise notify the room before collapse.
     if (enemy->hp <= 0) {
         if (playerStatus->hp <= 0) {
-            enemy->hp     = 1;
-            gGluttonEnded = 0;
+            enemy->hp               = 1;
+            _gGluttonEncounterEnded = GLUTTON_ENCOUNTER_RUNNING;
         }
         if (enemy->hp <= 0 && work->state != ACTOR_444000_STATE_DORMANT) {
             switch (work->deathTicks) {
                 case 0:
-                    gGluttonEnded                                                  = 1;
+                    _gGluttonEncounterEnded                                        = GLUTTON_ENCOUNTER_ENDED;
                     _gActor444000GluttonMadChaserCommand.command.context.loc.stage = ACTOR_444000_MAD_CHASER_CONTEXT_STAGE;
                     _gActor444000GluttonMadChaserCommand.command.context.loc.area  = ACTOR_444000_MAD_CHASER_CONTEXT_AREA;
                     _gActor444000GluttonMadChaserCommand.command.command           = MAD_CHASER_COMMAND_VANISH;

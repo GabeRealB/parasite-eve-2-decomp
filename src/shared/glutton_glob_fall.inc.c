@@ -19,7 +19,7 @@ static void _gluttonGlobFall(Enemy* enemy, Task* task)
     s32                    height;
     s32                    fallDistance;
 
-    if (gGluttonEnded == 1) {
+    if (_gGluttonEncounterEnded == GLUTTON_ENCOUNTER_ENDED) {
         enemyDestroy(enemy, task);
         return;
     }

@@ -17,17 +17,17 @@ static void _gluttonSwitchAnim(Task* task)
         for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->hostRig.slots); slotIndex++) {
             work->hostRig.slots[slotIndex].rate = work->animRate;
             animationSeekSlotWithBlend(&work->hostRig.anim, slotIndex, work->animId, 0,
-                                       gGluttonAnimTransitions[work->appliedAnimId][work->animId]);
+                                       _gGluttonAnimBlendFrames[work->appliedAnimId][work->animId]);
         }
         for (slotIndex = 0; slotIndex < ARRAY_SIZE(work->escort0Rig.slots); slotIndex++) {
             work->escort0Rig.slots[slotIndex].rate = work->animRate;
             animationSeekSlotWithBlend(&work->escort0Rig.anim, slotIndex, work->animId, 0,
-                                       gGluttonAnimTransitions[work->appliedAnimId][work->animId]);
+                                       _gGluttonAnimBlendFrames[work->appliedAnimId][work->animId]);
         }
         for (slotIndex = 0; slotIndex < ARRAY_SIZE(work->escort1Rig.slots); slotIndex++) {
             work->escort1Rig.slots[slotIndex].rate = work->animRate;
             animationSeekSlotWithBlend(&work->escort1Rig.anim, slotIndex, work->animId, 0,
-                                       gGluttonAnimTransitions[work->appliedAnimId][work->animId]);
+                                       _gGluttonAnimBlendFrames[work->appliedAnimId][work->animId]);
         }
         work->appliedAnimId = work->animId;
     }

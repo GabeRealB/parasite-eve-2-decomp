@@ -6,5 +6,5 @@
 /// This accessor has no callers in either carrier.
 static s16 _gluttonGetSpinnersReleased(void)
 {
-    return gGluttonSpinnersReleased;
+    return _gGluttonSpinnersReleased;
 }

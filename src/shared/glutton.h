@@ -81,6 +81,7 @@
 #include "actors/actor.h"
 #include "actors/glutton_shake.h"
 
+#include "gameplay/animation_types.h"
 #include "gameplay/message.h"
 
 #include "main/coord.h"
@@ -105,6 +106,44 @@ typedef struct {
     u8                       unknown_18[8]; // Zero in the image; no access established and role unproven
 } GluttonButtonPressHoldStorage;
 STATIC_ASSERT_SIZEOF(GluttonButtonPressHoldStorage, 0x20);
+
+/// Domains of the per-instance animation banks and projectile recipes.
+enum {
+    GLUTTON_ANIM_BLEND_CLIP_COUNT      = 45,
+    GLUTTON_GLOB_PLAYER_ANIM_SET_COUNT = 7,
+    GLUTTON_PROJECTILE_TASK_PRIORITY   = 96,
+    GLUTTON_PROJECTILE_GLOB            = 0,
+    GLUTTON_PROJECTILE_RAIN            = 1,
+    GLUTTON_PROJECTILE_THROW           = 2,
+    GLUTTON_PROJECTILE_CHUNK           = 3,
+    GLUTTON_PROJECTILE_SPINNER         = 4,
+#if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
+    GLUTTON_PROJECTILE_TASK_COUNT = 5,
+#else
+    GLUTTON_PROJECTILE_TASK_COUNT = 4,
+#endif
+};
+
+/// Values stored in the encounter, glob-hold and spinner-release words.
+enum {
+    GLUTTON_ENCOUNTER_RUNNING   = 0,
+    GLUTTON_ENCOUNTER_ENDED     = 1,
+    GLUTTON_GLOB_HOLD_RELEASED  = 0,
+    GLUTTON_GLOB_HOLD_ACTIVE    = 1,
+    GLUTTON_SPINNER_RELEASE_OFF = 0,
+    GLUTTON_SPINNER_RELEASE_ON  = 1,
+};
+
+// Each carrier defines its own private data in image order.
+static s8                            _gGluttonAnimBlendFrames[GLUTTON_ANIM_BLEND_CLIP_COUNT][GLUTTON_ANIM_BLEND_CLIP_COUNT];
+static AnimationSet*                 _gGluttonGlobPlayerAnimSets[GLUTTON_GLOB_PLAYER_ANIM_SET_COUNT];
+static s16                           _gGluttonEncounterEnded;
+static TaskDesc                      _gGluttonProjectileTaskDescs[GLUTTON_PROJECTILE_TASK_COUNT];
+static s32                           _gGluttonGlobHoldActive;
+static GluttonButtonPressHoldStorage _gGluttonGlobEngulfHold;
+static s16                           _gGluttonLimbReach;
+static SVECTOR                       _gGluttonSpinnerTarget;
+static s16                           _gGluttonSpinnersReleased;
 
 /// One hit sphere of the Glutton: a collision body and the contact table it
 /// records into.
