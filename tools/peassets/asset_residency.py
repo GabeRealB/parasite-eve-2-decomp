@@ -288,10 +288,11 @@ def build(db: sqlite3.Connection) -> None:
         db.executemany("INSERT INTO member VALUES (?,?,?,?,?,?)", [(gid,) + m for m in members])
         return gid
 
-    # An overlay and the file that carries it: one cannot be without the other.
+    # An overlay and the file that carries it. This is identity, not a load:
+    # the file is loaded by whoever brings the overlay in, with their offsets.
     for package, paths in sorted(carriers.items()):
         for path in paths:
-            group(package, "always", "", "carrier", path, [(path, 0, 0, "", "")])
+            group(package, "carrier", "", "carrier", path, [(path, 0, 0, "", "")])
     # A room's other files are its views, one loaded at a time; which file a
     # view is comes from the room's view map.
     files = sorted(p for base in ("src", "include") for p in (ROOT / base).rglob("*")
@@ -621,6 +622,59 @@ def regions(db: sqlite3.Connection) -> None:
             print("  CLUT rows: " + ", ".join(f"{row} ({n})" for row, n in sorted(rows.items())))
 
 
+REGIONS = Path(__file__).with_name("residency_regions.tsv")
+
+
+def region_table() -> list[dict]:
+    out = []
+    for line in REGIONS.read_text(encoding="utf-8").splitlines():
+        if not line.strip() or line.startswith("#"):
+            continue
+        kind, name, x, y, w, h, families, note = (line.split("\t") + [""] * 8)[:8]
+        out.append({"kind": kind, "name": name, "x": int(x), "y": int(y), "w": int(w), "h": int(h),
+                    "families": {f.strip() for f in families.split(";") if f.strip()}, "note": note})
+    return out
+
+
+def region_of(table: list[dict], kind: str, x: int, y: int) -> dict | None:
+    return next((r for r in table if r["kind"] == kind and r["x"] <= x < r["x"] + r["w"] and r["y"] <= y < r["y"] + r["h"]), None)
+
+
+def check(db: sqlite3.Connection, verbose: bool) -> int:
+    """Hold every load in the graph against the region table and the load addresses."""
+    table = region_table()
+    kinds = {r["path"]: family_of(r["path"], r["stage"], r["id"]) for r in db.execute("SELECT * FROM file")}
+    counts: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
+    wrong: dict[tuple, list[str]] = defaultdict(list)
+    seen = set()
+    for m in db.execute("SELECT DISTINCT m.file, m.page, m.row, m.mode, g.loader, g.condition FROM member m JOIN grp g ON g.id = m.grp "
+                        "WHERE g.kind != 'carrier'"):
+        for f in db.execute("SELECT * FROM footprint WHERE file = ?", (m["file"],)):
+            x, y = moved(tuple(f)[1:], m["page"], m["row"], m["mode"])
+            key = (m["file"], f["asset"], f["part"], x, y)
+            if key in seen:
+                continue
+            seen.add(key)
+            region = region_of(table, f["kind"], x, y)
+            name = region["name"] if region else "outside every region"
+            family = kinds[m["file"]]
+            counts[name][family] += 1
+            if region is None or family not in region["families"]:
+                wrong[name, family].append(f"{m['file']} {f['asset']} at ({x},{y}) by {m['loader']} [{m['condition'] or 'always'}]")
+    for region in table + [{"name": "outside every region", "kind": "", "families": set()}]:
+        if region["name"] not in counts:
+            continue
+        parts = [f"{family} {n}" + ("" if family in region["families"] else " !") for family, n in sorted(counts[region["name"]].items(), key=lambda kv: -kv[1])]
+        print(f"  {region['kind']:<5} {region['name']:<20} " + ", ".join(parts))
+    total = sum(len(v) for v in wrong.values())
+    print(f"{len(seen)} uploads placed; {total} land where the table does not expect their family")
+    for (name, family), lines in sorted(wrong.items()):
+        print(f"  {family} in {name}: {len(lines)}")
+        for line in lines[: (20 if verbose else 3)]:
+            print(f"      {line}")
+    return 1 if total else 0
+
+
 def slots(db: sqlite3.Connection) -> None:
     """Which overlays share a load address, so cannot be in memory together."""
     import tomllib
@@ -658,6 +712,8 @@ def main() -> int:
     sub.add_parser("stats")
     sub.add_parser("regions", help="where each family of files lands in video memory")
     sub.add_parser("slots", help="the load addresses overlays compete for")
+    p = sub.add_parser("check", help="hold every load against the region table")
+    p.add_argument("--verbose", action="store_true")
     for name in ("show", "dot"):
         p = sub.add_parser(name); p.add_argument("loader")
     p = sub.add_parser("html")
@@ -675,6 +731,8 @@ def main() -> int:
         write_page(db, args.out, args.bare)
     elif args.command == "regions":
         regions(db)
+    elif args.command == "check":
+        return check(db, args.verbose)
     elif args.command == "slots":
         slots(db)
     elif args.command == "stats":

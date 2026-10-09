@@ -1,0 +1,25 @@
+# How video memory is divided by purpose, as the loads show it. asset_residency.py checks every
+# load against this table: an upload landing in a region whose families do not include its file's
+# family is reported, and points at a wrong load or a wrong line here.
+# kind	name	x	y	w	h	families	note
+# The first region of the kind that contains an upload's origin is its region, so narrower lines come first.
+image	display	0	0	320	512		the two frame buffers; nothing is uploaded here
+image	weapon sheet	448	0	64	64	costume, weapon, ammunition	the equipped weapon, 4-bit
+image	small actor sheet	448	64	64	64	actors; companions; actor textures only; room view file	a 4-bit sheet an actor brings besides its texture
+image	shared sheets	448	128	64	128	stage map; companions; menus and previews; room base file	8-bit sheets of the stage map and companion; an item preview while the menu is up
+image	stage sheet	512	0	64	256	stage map; room base file	the stage map's 4-bit sheet
+image	room sheets	384	0	384	256	room base file; room view file	the room's own 4-bit sprites and props
+image	view pages	768	0	256	256	room view file; room base file; menus and previews; map pictures; boot and load screens; actors; actor textures only; uploads by code	the current view's 8-bit pages; a menu, map picture or load screen while it is up
+image	actor strip	320	256	448	256	actors; actor textures only; companions; room base file; room view file; uploads by code; menus and previews	actor textures, packed left to right by the placements' page offsets
+image	costume	768	256	128	256	costume, weapon, ammunition; actors; boot and load screens	the costume, loaded six pages right of where its file stores it
+image	interface	896	256	128	256	boot and load screens; menus and previews	font and interface sheets
+clut	interface palettes	0	240	1024	3	boot and load screens; menus and previews
+clut	weapon palette	0	243	1024	1	costume, weapon, ammunition; boot and load screens; menus and previews
+clut	small sheet palette	0	244	1024	1	actors; companions; actor textures only; room view file; boot and load screens; menus and previews	16 colours for the small actor sheet
+clut	staging rows	0	245	1024	2	boot and load screens; menus and previews; costume, weapon, ammunition; companions	where actor and costume files store their palette; a placement's row offset moves it out
+clut	actor palettes	0	247	1024	6	actors; actor textures only; companions; room view file; boot and load screens; menus and previews	packed upward by the placements' row offsets, in step with the actor strip
+clut	shared palettes	0	253	1024	2	stage map; companions; menus and previews; room base file; actors; actor textures only
+clut	view palette	0	255	1024	6	room view file; menus and previews; map pictures; boot and load screens; room base file; actor textures only; uploads by code	six rows for whatever owns the view pages
+clut	room palettes	0	261	1024	4	room base file; room view file; actors; actor textures only; uploads by code
+clut	stage palette	0	265	1024	5	stage map; room base file	the stage's common palette
+clut	room sprite palettes	0	270	1024	2	room base file; room view file	320 wide, for the room sheets
