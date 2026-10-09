@@ -66,7 +66,7 @@ extern AnimationSet* D_actor_401800_801559F0[];
 
 /// Enemy description record the init body copies `hpMax` out of into
 /// `Enemy.hp` and points `Enemy.param` at. Same role
-/// `D_actor_401300_80141FA0` plays for actor 401300.
+/// `_gActor401300EnemyParams` plays for actor 401300.
 extern EnemyParams D_actor_401800_8013E6F0;
 
 /// The three `ActorStrangerVariant` tunings the init body picks from by the

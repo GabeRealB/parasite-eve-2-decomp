@@ -275,7 +275,13 @@ TaskDesc D_actor_342100_801648DC[2] = {
 
 s32 gScreenWaveRamp = 256;
 
-TaskMessageEntry gBlazeFadeMessages[1] = {
+/// Private one-entry message table controlling this carrier's blaze fade.
+///
+/// Borrowed for the fade task lifetime, with no end marker. Send only
+/// `BLAZE_FADE_MESSAGE_SET_STATE` (2011): first payload 2 fast red, 3 slow red
+/// or 4 wash to white. The full signed state word is stored; the second
+/// payload is ignored and the unspecified result must be discarded.
+static TaskMessageEntry _gBlazeFadeMessages[1] = {
     { BLAZE_FADE_MESSAGE_SET_STATE, _actor342100HandleBlazeFadeState },
 };
 

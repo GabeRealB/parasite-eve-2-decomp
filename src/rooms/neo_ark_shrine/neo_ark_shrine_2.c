@@ -1052,7 +1052,7 @@ AreaResource D_neo_ark_shrine_80186698[2] = {
 };
 
 AreaResource D_neo_ark_shrine_801866B0[2] = {
-    { 39, 39, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_403900_801540E0 },
+    { 39, 39, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor403900GolemTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

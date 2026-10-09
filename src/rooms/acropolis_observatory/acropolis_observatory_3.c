@@ -224,7 +224,7 @@ AreaResource D_acropolis_observatory_80181060[2] = {
 };
 
 AreaResource D_acropolis_observatory_80181078[2] = {
-    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_401300_80158A18 },
+    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401300HornedStrangerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -239,7 +239,7 @@ AreaPlacement D_acropolis_observatory_801810A8[2] = {
 };
 
 AreaResource D_acropolis_observatory_801810C8[2] = {
-    { 12, 12, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_101200_80138E98 },
+    { 12, 12, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101200BoneSucklerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

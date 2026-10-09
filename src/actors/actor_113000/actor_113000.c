@@ -323,12 +323,16 @@ static AnimationSet _gActor113000Animation080E4 = {
     { NULL, _gActor113000Animation080E4Bank1, NULL, NULL, _gActor113000Animation080E4Bank4, NULL, NULL, NULL },
 };
 
-u_long D_actor_113000_80139F2C[256] = {
+/// Packed open-eye texture pixels for the actor's face band.
+///
+/// 32 VRAM halfwords per row by 16 rows (256 packed 32-bit words).
+/// The upload list borrows this word-aligned storage until GPU transfer completion.
+static u_long _gActor113000OpenEyesPixels[256] = {
 #include "assets/actor_113000_image_0810C.inc"
 };
 
 GpuImageUpload D_actor_113000_8013A32C[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 32, 16 }, D_actor_113000_80139F2C },
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 32, 16 }, _gActor113000OpenEyesPixels },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 

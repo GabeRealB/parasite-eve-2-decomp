@@ -9,6 +9,7 @@
 #include "gte.h"
 
 #include "actors/actor.h"
+#include "actors/hit_effect.h"
 #include "actors/task_tables.h"
 
 #include "actors/actor_210600.h"
@@ -284,21 +285,6 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_Actor110600StateTable, ACTOR_110600_STATE_COUNT * sizeof(TaskFunc));
 
 static const _Actor110600StateTable _gActor110600StateHandlers;
-
-/// A part-local hit-effect position and the model part it belongs to.
-///
-/// The effect API reads XYZ through the SDK vector view and ignores its fourth
-/// halfword. The actor reads that halfword as the coordinate index instead.
-typedef union {
-    SVECTOR position;  // SDK XYZ view; the fourth halfword carries the part selector
-    struct {
-        s16 x;         // Local X in model-coordinate units
-        s16 y;         // Local Y in model-coordinate units
-        s16 z;         // Local Z in model-coordinate units
-        s16 partIndex; // Coordinate index in the nineteen-part model (2, 7 or 9)
-    } anchor;
-} _Actor110600HitAnchor;
-STATIC_ASSERT_SIZEOF(_Actor110600HitAnchor, sizeof(SVECTOR));
 
 static s32 _actor110600ApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 secondArg);
 
@@ -1003,7 +989,7 @@ static AnimationSet* _gActor110600AnimationSets[] = {
 ///
 /// Front selection's default row 4 and rear row 6 are unreachable under the
 /// retained random masks. Each eight-byte record is copied intact to scratch.
-static _Actor110600HitAnchor _gActor110600HitAnchors[12] = {
+static ActorHitAnchor _gActor110600HitAnchors[12] = {
     { .anchor = { 60, -12, 30, 2 } },
     { .anchor = { -50, -130, 29, 2 } },
     { .anchor = { 20, -70, 25, 2 } },
@@ -2365,10 +2351,10 @@ static void _actor110600SpawnHitEffect(Task* task, s16 hitYaw, s32 attackKey)
         ACTOR_110600_HIT_EFFECT_ARGUMENT_HIGH = 3,
     };
 
-    _Actor110600HitAnchor* hitAnchor;
-    s32                    absoluteHitYaw;
+    ActorHitAnchor* hitAnchor;
+    s32             absoluteHitYaw;
 
-    hitAnchor = SCRATCH_STACK_RESERVE_BLOCK(_Actor110600HitAnchor);
+    hitAnchor = SCRATCH_STACK_RESERVE_BLOCK(ActorHitAnchor);
     // Use yaw sectors to choose the effect position; the rear mask keeps only bit 1.
     absoluteHitYaw = (hitYaw >= 0) ? hitYaw : -hitYaw;
     if (absoluteHitYaw < ACTOR_110600_HIT_FRONT_YAW_LIMIT) {
@@ -2422,7 +2408,7 @@ static void _actor110600SpawnHitEffect(Task* task, s16 hitYaw, s32 attackKey)
     _gActor110600HitEffectArgs.spawnArgLo = ACTOR_110600_HIT_EFFECT_ARGUMENT_LOW;
     _gActor110600HitEffectArgs.spawnArgHi = ACTOR_110600_HIT_EFFECT_ARGUMENT_HIGH;
     effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), &task->extra.tmd->coords[hitAnchor->anchor.partIndex], &hitAnchor->position, &_gActor110600HitEffectArgs);
-    SCRATCH_STACK_RELEASE_BLOCK(_Actor110600HitAnchor);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorHitAnchor);
 }
 
 /// Returns the first attack contact key and copies its world-space XYZ.

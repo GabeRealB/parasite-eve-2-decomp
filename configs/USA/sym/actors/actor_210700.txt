@@ -1,5 +1,5 @@
 // Overlay-local symbols for actor_210700.
-D_actor_210700_80157C4C = 0x80157C4C; // size:0x300 defined:True
+_gActor210700OpenEyesPixels = 0x80157C4C; // size:0x300 defined:True
 _gActor210700Animation01E2CBank1 = 0x8014A570; // size:0x24C defined:True
 _gActor210700Animation01E2CBank4 = 0x8014A7BC; // size:0x940 defined:True
 _gActor210700Animation01E2CRecords = 0x8014B0FC; // size:0xB28 defined:True
@@ -77,9 +77,9 @@ _gActor210700Animation0DE04Records = 0x80157AC4; // size:0x138 defined:True
 _gActor210700Animation0DE04Indices = 0x80157BFC; // size:0x28 defined:True
 _gActor210700Animation0DE04 = 0x80157C24; // size:0x28 defined:True
 D_actor_210700_80157F4C = 0x80157F4C; // size:0x20 defined:True
-D_actor_210700_80157F6C = 0x80157F6C; // size:0x300 defined:True
+_gActor210700HalfOpenEyesPixels = 0x80157F6C; // size:0x300 defined:True
 D_actor_210700_8015826C = 0x8015826C; // size:0x20 defined:True
-D_actor_210700_8015828C = 0x8015828C; // size:0x300 defined:True
+_gActor210700ClosedEyesPixels = 0x8015828C; // size:0x300 defined:True
 D_actor_210700_8015858C = 0x8015858C; // size:0x20 defined:True
 D_actor_210700_801585AC = 0x801585AC; // size:0x1C defined:True
 D_actor_210700_801585C8 = 0x801585C8; // size:0x4 defined:True

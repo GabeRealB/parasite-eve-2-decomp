@@ -3683,13 +3683,13 @@ objects = [
 
 [actors.overlays.actor_01200]
 slots = [
-  { slot = 1, package = "actor_101200", id = 82, label = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" },
-  { slot = 2, package = "actor_201200", id = 153, label = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body; code starts at 0x130, GCC hoisted the gGameSession lui/lw above the addiu $sp prologue", text = ["0x130", "0x4030"] },
-  { slot = 3, package = "actor_301200", id = 228, label = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" },
+  { slot = 1, package = "actor_101200", id = 82, label = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body", defines = { PACKAGE_ALIASES = "" }, aliases = { gActor01200BoneSucklerTaskDesc = "gActor101200BoneSucklerTaskDesc" } },
+  { slot = 2, package = "actor_201200", id = 153, label = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body; code starts at 0x130, GCC hoisted the gGameSession lui/lw above the addiu $sp prologue", text = ["0x130", "0x4030"], defines = { PACKAGE_ALIASES = "" }, aliases = { gActor01200BoneSucklerTaskDesc = "gActor201200BoneSucklerTaskDesc" } },
+  { slot = 3, package = "actor_301200", id = 228, label = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body", defines = { PACKAGE_ALIASES = "" }, aliases = { gActor01200BoneSucklerTaskDesc = "gActor301200BoneSucklerTaskDesc" } },
 ]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_01200/actor_01200", rodata = "0x4", text = "0x130", data = "0x4030" },
+  { unit = "actor_01200", variant = true, rodata = "0x4", text = "0x130", data = "0x4030" },
   { kind = "model", at = "0x405C", in_c = true },
   { kind = "modelSource", at = "0x5934", in_c = true },
   { kind = "animation", at = "0x5958", sets = ["0x5A94", "0x5D58", "0x5FFC", "0x61DC", "0x6314", "0x64B4", "0x66C8", "0x6AD8", "0x6D98", "0x6F70"], in_c = true },

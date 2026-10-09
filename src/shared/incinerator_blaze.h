@@ -41,14 +41,9 @@ enum {
     BLAZE_FADE_MESSAGE_SET_STATE = ACTOR_COMMAND_MESSAGE_APPLY,
 };
 
-/// Per-instance task-message table controlling the incinerator fade's phases.
-///
-/// Each carrier supplies one record and its callback, borrowed for the fade
-/// task's lifetime. There is no end marker: send only `BLAZE_FADE_MESSAGE_SET_STATE`.
-/// The first payload is stored as the full signed state word. Scene scripts
-/// select 2 (fast red ramp), 3 (slow red ramp), then 4 (wash to white).
-/// The second payload is ignored and the callback has no defined result.
-extern TaskMessageEntry gBlazeFadeMessages[1];
+/* Each carrier defines its private _gBlazeFadeMessages[1] before including
+ * the fade fragment. It must accept only BLAZE_FADE_MESSAGE_SET_STATE with
+ * two signed scalar payloads and an unspecified result the sender discards. */
 
 static void _blazeFadeTask(Task* task);
 static void _blazeBodyFireTask(Task* task);

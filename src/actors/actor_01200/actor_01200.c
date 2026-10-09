@@ -8,6 +8,7 @@
 #include "gte.h"
 
 #include "actors/actor.h"
+#include "actors/task_tables.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
@@ -647,7 +648,9 @@ TaskMessageEntry Actor01200_D07058[4] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc Actor01200_D07078 = { { { TASK_BODY_TMD, 96 } }, _actor01200Task, { .model = &_gActor01200BoneSucklerBody } };
+enum { ACTOR_01200_TASK_PRIORITY = 96 };
+
+TaskDesc gActor01200BoneSucklerTaskDesc = { { { TASK_BODY_TMD, ACTOR_01200_TASK_PRIORITY } }, _actor01200Task, { .model = &_gActor01200BoneSucklerBody } };
 
 SVECTOR ActorContact_ScratchPosition = { 0 };
 
@@ -1984,3 +1987,5 @@ static void _actor01200Task(Task* task)
     taskStates = Actor01200_D0010C;
     taskStates.funcs[task->state](task->spawnArg2.pointer, task);
 }
+
+PACKAGE_ALIASES

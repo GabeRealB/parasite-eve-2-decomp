@@ -44,19 +44,22 @@ static const TaskFuncTable3 D_actor_350500_80161E24 = { {
     _reverseWalkExit,
 } };
 
-/// The walk steps, indexed by `ReverseWalkWork::walk.motionStep`: turn to face
-/// `target`, start moving, approach until arrival, then turn to the placement
-/// yaw.
-static const TaskFuncTable4 D_actor_350500_80161E30 = { {
+/// Scripted walk phases indexed by `ReverseWalkWork::walk.motionStep` (0..3).
+///
+/// Face the target, begin moving, approach until arrival, then turn to the
+/// destination yaw. Every entry is a `void(Task*)` callback; there is no terminator.
+static const TaskFuncTable4 _gReverseWalkStepHandlers = { {
     _reverseWalkOrientForWalk,
     _reverseWalkBeginMove,
     _actorMotionArrive19,
     _reverseWalkTurnToYaw,
 } };
 
-/// Local-space offset the start-moving step rotates: straight ahead along
-/// the part's own +Z.
-static const VECTOR _gReverseWalkForward = { 0, 0, 0x200000, 0 };
+/// Local +Z velocity of a forward reversing-walker step.
+///
+/// Signed 16.16: 32 parent-coordinate units per tick before root rotation.
+/// Backward movement scales it by -0.4 before rotating into the parent frame.
+static const VECTOR _gReverseWalkForwardVelocity = { 0, 0, 0x200000, 0 };
 
 static TmdSource _gActor350500EveBreaMaskedBody;
 static s32       _actor350500ReverseWalkCommandMsg(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
@@ -275,7 +278,7 @@ static void _reverseWalkIdle(Task* task)
 static void _reverseWalkRunStep(Task* task)
 {
     ReverseWalkWork*     work     = task->work;
-    const TaskFuncTable4 handlers = D_actor_350500_80161E30;
+    const TaskFuncTable4 handlers = _gReverseWalkStepHandlers;
 
     handlers.funcs[work->walk.motionStep](task);
 }

@@ -20,7 +20,7 @@ static void _reverseWalkBeginMove(Task* task)
     work      = task->work;
 
     // Rotate displacement without including the root's translation.
-    localVelocity = _gReverseWalkForward;
+    localVelocity = _gReverseWalkForwardVelocity;
     if (work->walksForward == 0) {
         localVelocity.vx = localVelocity.vx * REVERSE_WALK_BACKWARD_VELOCITY_SCALE;
         localVelocity.vy = localVelocity.vy * REVERSE_WALK_BACKWARD_VELOCITY_SCALE;

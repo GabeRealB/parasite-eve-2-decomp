@@ -1,5 +1,5 @@
 // Overlay-local symbols for actor_113000.
-D_actor_113000_80139F2C = 0x80139F2C; // size:0x400 defined:True
+_gActor113000OpenEyesPixels = 0x80139F2C; // size:0x400 defined:True
 _gActor113000RupertBroderickHurtBodySkeleton = 0x80132534; // size:0x2D0 defined:True
 _gActor113000RupertBroderickHurtBodyPartVerts = 0x80132804; // size:0x50 defined:True
 _gActor113000RupertBroderickHurtBodyVerts = 0x80132854; // size:0xAB8 defined:True

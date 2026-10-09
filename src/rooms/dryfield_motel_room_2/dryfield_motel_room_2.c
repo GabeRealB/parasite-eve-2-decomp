@@ -681,7 +681,7 @@ AreaResource D_dryfield_motel_room_2_801803B0[2] = {
 };
 
 AreaResource D_dryfield_motel_room_2_801803C8[3] = {
-    { 12, 12, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_101200_80138E98 },
+    { 12, 12, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101200BoneSucklerTaskDesc },
     { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

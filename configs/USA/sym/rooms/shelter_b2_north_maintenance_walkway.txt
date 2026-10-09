@@ -55,7 +55,7 @@ gActor107000SlouchTaskDescs = 0x8013F5F0; // absolute:True owner=actor_107000
 gActor04400MadChaserTaskDescs = 0x80142604; // absolute:True owner=actor_104400
 gActor101100Tasks = 0x80147400; // absolute:True owner=actor_101100
 gActor100300Tasks = 0x80148110; // absolute:True owner=actor_100300 shared=actors
-D_actor_207200_8014E7A4 = 0x8014E7A4; // absolute:True owner=actor_207200
+gActor207200SkullStalkerTaskDesc = 0x8014E7A4; // absolute:True owner=actor_207200
 gActor207200CreepingStrangerTaskDesc = 0x80153EC8; // absolute:True owner=actor_207200
 gActor207000SlouchTaskDescs = 0x801575F0; // absolute:True owner=actor_207000
 gActor202000PawnGolemTasks = 0x8015FDF0; // absolute:True owner=actor_202000

@@ -458,30 +458,42 @@ static AnimationSet _gActor210700Animation0DE04 = {
     { NULL, _gActor210700Animation0DE04Bank1, NULL, NULL, _gActor210700Animation0DE04Bank4, NULL, NULL, NULL },
 };
 
-u_long D_actor_210700_80157C4C[192] = {
+/// Packed open-eye texture pixels for the actor's face band.
+///
+/// 24 VRAM halfwords per row by 16 rows (192 packed 32-bit words).
+/// The upload list borrows this word-aligned storage until GPU transfer completion.
+static u_long _gActor210700OpenEyesPixels[192] = {
 #include "assets/actor_210700_image_0DE2C.inc"
 };
 
 GpuImageUpload D_actor_210700_80157F4C[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 24, 16 }, D_actor_210700_80157C4C },
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 24, 16 }, _gActor210700OpenEyesPixels },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-u_long D_actor_210700_80157F6C[192] = {
+/// Packed half-open-eye texture pixels for the actor's face band.
+///
+/// 24 VRAM halfwords per row by 16 rows (192 packed 32-bit words).
+/// The upload list borrows this word-aligned storage until GPU transfer completion.
+static u_long _gActor210700HalfOpenEyesPixels[192] = {
 #include "assets/actor_210700_image_0E14C.inc"
 };
 
 GpuImageUpload D_actor_210700_8015826C[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 24, 16 }, D_actor_210700_80157F6C },
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 24, 16 }, _gActor210700HalfOpenEyesPixels },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-u_long D_actor_210700_8015828C[192] = {
+/// Packed closed-eye texture pixels for the actor's face band.
+///
+/// 24 VRAM halfwords per row by 16 rows (192 packed 32-bit words).
+/// The upload list borrows this word-aligned storage until GPU transfer completion.
+static u_long _gActor210700ClosedEyesPixels[192] = {
 #include "assets/actor_210700_image_0E46C.inc"
 };
 
 GpuImageUpload D_actor_210700_8015858C[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 24, 16 }, D_actor_210700_8015828C },
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 24, 16 }, _gActor210700ClosedEyesPixels },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 

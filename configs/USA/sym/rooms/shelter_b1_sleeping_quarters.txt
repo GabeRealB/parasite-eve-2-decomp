@@ -65,7 +65,7 @@ D_shelter_b1_sleeping_quarters_801840B0 = 0x801840B0; // size:0x20 defined:True
 gActor102400Tasks = 0x8013647C; // absolute:True owner=actor_102400
 gActor04400MadChaserTaskDescs = 0x80142604; // absolute:True owner=actor_104400
 gActor207200CreepingStrangerTaskDesc = 0x80153EC8; // absolute:True owner=actor_207200
-D_actor_403900_801540E0 = 0x801540E0; // absolute:True owner=actor_403900
+gActor403900GolemTaskDesc = 0x801540E0; // absolute:True owner=actor_403900
 gActor402200GolemTaskDesc = 0x80154188; // absolute:True owner=actor_402200
 gActor401800OddStrangerTaskDesc = 0x80155AC4; // absolute:True owner=actor_401800
 D_actor_300700_801693AC = 0x801693AC; // absolute:True owner=actor_300700

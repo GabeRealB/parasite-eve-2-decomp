@@ -374,7 +374,13 @@ static AnimationSet _gShelterB3GarbageIncineratorAnimation09988 = {
     { NULL, _gShelterB3GarbageIncineratorAnimation09988Bank1, NULL, NULL, _gShelterB3GarbageIncineratorAnimation09988Bank4, NULL, NULL, NULL },
 };
 
-TaskMessageEntry gBlazeFadeMessages[1] = {
+/// Private one-entry message table controlling this carrier's blaze fade.
+///
+/// Borrowed for the fade task lifetime, with no end marker. Send only
+/// `BLAZE_FADE_MESSAGE_SET_STATE` (2011): first payload 2 fast red, 3 slow red
+/// or 4 wash to white. The full signed state word is stored; the second
+/// payload is ignored and the unspecified result must be discarded.
+static TaskMessageEntry _gBlazeFadeMessages[1] = {
     { BLAZE_FADE_MESSAGE_SET_STATE, _shelterB3GarbageIncineratorHandleBlazeFadeState },
 };
 

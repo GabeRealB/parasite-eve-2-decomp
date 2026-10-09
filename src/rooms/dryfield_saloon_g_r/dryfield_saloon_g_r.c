@@ -653,7 +653,7 @@ AreaResource D_dryfield_saloon_g_r_80181AE0[2] = {
 
 AreaResource D_dryfield_saloon_g_r_80181AF8[3] = {
     { 15, 15, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
-    { 12, 12, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_actor_201200_80150E98 },
+    { 12, 12, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor201200BoneSucklerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

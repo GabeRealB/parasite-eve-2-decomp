@@ -86,7 +86,7 @@ static void _blazeFadeTask(Task* task)
             fadeWork->b    = 0;
             fadeWork->g    = 0;
             fadeWork->r    = 0;
-            task->msgTable = gBlazeFadeMessages;
+            task->msgTable = _gBlazeFadeMessages;
             task->state   += 1;
             break;
         case BLAZE_FADE_STATE_FAST_RED:

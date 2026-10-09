@@ -9,6 +9,7 @@
 #include "gte.h"
 
 #include "actors/actor.h"
+#include "actors/task_tables.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
@@ -1218,7 +1219,9 @@ static s16 _gGolemKnightBishopBeamQuadCorners[2][4] = {
     { 0, 1, 4, 5 },
 };
 
-TaskDesc D_actor_403900_801540E0 = { { { TASK_BODY_TMD, 96 } }, _actor403900GolemTask, { .model = &_gActor403900GolemBody } };
+enum { ACTOR_403900_TASK_PRIORITY = 96 };
+
+TaskDesc gActor403900GolemTaskDesc = { { { TASK_BODY_TMD, ACTOR_403900_TASK_PRIORITY } }, _actor403900GolemTask, { .model = &_gActor403900GolemBody } };
 
 /// GOLEM animation bank indexed by `GOLEM_KNIGHT_BISHOP_ANIM_`.
 ///

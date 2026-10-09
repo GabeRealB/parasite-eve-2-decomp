@@ -488,7 +488,7 @@ AreaResource D_shelter_b2_pod_access_tunnel_80185390[3] = {
 };
 
 AreaResource D_shelter_b2_pod_access_tunnel_801853B4[2] = {
-    { 39, 39, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_403900_801540E0 },
+    { 39, 39, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor403900GolemTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

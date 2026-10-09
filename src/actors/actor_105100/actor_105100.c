@@ -337,12 +337,6 @@ extern EnemyParams D_actor_105100_80141398;
 /// from; the spawn hands it over whole, so it is only ever a byte address here.
 extern u8 D_actor_105100_80141488[];
 
-/// The room positions the pair and triple beams move to, indexed by
-/// `_Actor105100BeamWork::route`; a pair beam's second leg ends at the entry
-/// three rows on. Only the x and z halves are read: the motion subtracts the
-/// beam's current position and moves along the resulting planar offset.
-extern SVECTOR D_actor_105100_80141418[6];
-
 extern SVECTOR D_actor_105100_801413E8[];
 extern s16     D_actor_105100_80141448[];
 extern s16     D_actor_105100_80141450[];
@@ -771,7 +765,11 @@ SVECTOR D_actor_105100_801413E8[6] = {
     { 0, -100, -1200, 0 },
 };
 
-SVECTOR D_actor_105100_80141418[6] = {
+/// Fixed room-space waypoints of the beam routes, in game coordinate units.
+///
+/// Pair routes 0/1 visit their row then row + 3; triple routes 2..4 visit their
+/// row once. Only X/Z are read. All six initialized records are retained.
+static SVECTOR _gActor105100BeamWaypoints[6] = {
     { 0, 0, 6000, 0 },
     { 5000, 0, 6000, 0 },
     { 2500, 0, 0, 0 },
@@ -2571,18 +2569,18 @@ static void _actor105100BeamMovePair(Task* task)
     switch (moveStep) {
         case ACTOR_105100_BEAM_MOVE_START:
             // Divide the complete two-leg distance across the remaining lifetime.
-            toWaypoint->vx = D_actor_105100_80141418[beam->route].vx - coord->coord.t[0];
+            toWaypoint->vx = _gActor105100BeamWaypoints[beam->route].vx - coord->coord.t[0];
             toWaypoint->vy = 0;
-            toWaypoint->vz = D_actor_105100_80141418[beam->route].vz - coord->coord.t[2];
+            toWaypoint->vz = _gActor105100BeamWaypoints[beam->route].vz - coord->coord.t[2];
             VectorNormalS(toWaypoint, &beam->direction);
             firstLegX      = toWaypoint->vx;
             firstLegZ      = toWaypoint->vz;
             firstLegLength = SquareRoot0(firstLegX * firstLegX + firstLegZ * firstLegZ);
-            toWaypoint->vx = D_actor_105100_80141418[beam->route + ACTOR_105100_BEAM_ROUTES_PER_PATTERN].vx -
-                             D_actor_105100_80141418[beam->route].vx;
+            toWaypoint->vx = _gActor105100BeamWaypoints[beam->route + ACTOR_105100_BEAM_ROUTES_PER_PATTERN].vx -
+                             _gActor105100BeamWaypoints[beam->route].vx;
             toWaypoint->vy = 0;
-            secondLegZ     = D_actor_105100_80141418[beam->route + ACTOR_105100_BEAM_ROUTES_PER_PATTERN].vz -
-                         D_actor_105100_80141418[beam->route].vz;
+            secondLegZ     = _gActor105100BeamWaypoints[beam->route + ACTOR_105100_BEAM_ROUTES_PER_PATTERN].vz -
+                         _gActor105100BeamWaypoints[beam->route].vz;
             toWaypoint->vz      = secondLegZ;
             secondLegX          = toWaypoint->vx;
             speed               = (firstLegLength + SquareRoot0(secondLegX * secondLegX + secondLegZ * secondLegZ)) / beam->lifeTicks;
@@ -2593,9 +2591,9 @@ static void _actor105100BeamMovePair(Task* task)
         case ACTOR_105100_BEAM_MOVE_FIRST_LEG:
             _actor105100MoveBeamEndpoint(coord, beam);
             if (--beam->firstLegTicks <= 0) {
-                toWaypoint->vx = D_actor_105100_80141418[beam->route + ACTOR_105100_BEAM_ROUTES_PER_PATTERN].vx - coord->coord.t[0];
+                toWaypoint->vx = _gActor105100BeamWaypoints[beam->route + ACTOR_105100_BEAM_ROUTES_PER_PATTERN].vx - coord->coord.t[0];
                 toWaypoint->vy = 0;
-                toWaypoint->vz = D_actor_105100_80141418[beam->route + ACTOR_105100_BEAM_ROUTES_PER_PATTERN].vz - coord->coord.t[2];
+                toWaypoint->vz = _gActor105100BeamWaypoints[beam->route + ACTOR_105100_BEAM_ROUTES_PER_PATTERN].vz - coord->coord.t[2];
                 VectorNormalS(toWaypoint, &beam->direction);
                 beam->moveStep = ACTOR_105100_BEAM_MOVE_SECOND_LEG;
             }
@@ -2629,9 +2627,9 @@ static void _actor105100BeamMoveTriple(Task* task)
     coord      = task->extra.coordBody->coord;
     switch (moveStep) {
         case ACTOR_105100_BEAM_MOVE_START:
-            toWaypoint->vx = D_actor_105100_80141418[beam->route].vx - coord->coord.t[0];
+            toWaypoint->vx = _gActor105100BeamWaypoints[beam->route].vx - coord->coord.t[0];
             toWaypoint->vy = 0;
-            toWaypoint->vz = D_actor_105100_80141418[beam->route].vz - coord->coord.t[2];
+            toWaypoint->vz = _gActor105100BeamWaypoints[beam->route].vz - coord->coord.t[2];
             VectorNormalS(toWaypoint, &beam->direction);
             offsetX        = toWaypoint->vx;
             offsetZ        = toWaypoint->vz;

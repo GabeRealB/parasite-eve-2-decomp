@@ -46085,11 +46085,11 @@ lower addresses.
 
 One existing cut can also be one cut too few, when the block holds two symbols
 whose referrers part company. `actor_350500`'s leading block (0x10..0x30) is the
-state table `D_actor_350500_80161E30` followed by the constant offset
-`D_actor_350500_80161E40`; after the promote the table's only referrer was
-`func_actor_350500_801624A0`, still in `_2`, while the offset's was
+state table `_gReverseWalkStepHandlers` followed by the constant velocity
+`_gReverseWalkForwardVelocity`; after the promote the table's only referrer was
+`func_actor_350500_801624A0`, still in `_2`, while the velocity's was
 `func_actor_350500_801625E4`, now `_3`. Naming either unit orphans the other
-symbol - the link reports `undefined reference to D_actor_350500_80161E40` from
+symbol - the link reports `undefined reference to _gReverseWalkForwardVelocity` from
 `actor_350500_3.i` - and a manual `INCLUDE_RODATA` in the owning unit links the
 plain block but leaves the split non-self-authoring. Splitting the entry at the
 inner boundary (`0x10`→`_2`, `0x20`→`_3`) restores splat's migration for both:
@@ -101181,7 +101181,7 @@ allocation `_actor350700KyleMadiganWalkerInitialize` parks in a different task's
 split explains `ActorsShared80132860Work::target` sitting at 0x4B8: it is the
 controller's, while the actor's own `target` is at 0x480
 (`ActorsShared80162540Work`). Telling them apart needs the state table, not the
-offsets: `D_actor_350700_80161E30` dispatches the actor (its handlers read
+offsets: `_gReverseWalkStepHandlers` dispatches the actor (its handlers read
 0x43D/0x43E, 0x490, 0x4B0, 0x4C2/0x4C4), `ActorsShared801327f8Table` the
 controller (0x474-0x477, 0x4B8 target, 0x4F0 angles, 0x4F8/0x4FA,
 0x4C8..0x4E0). A shared body reading 0x4B8 is not evidence about the block its
@@ -103250,7 +103250,7 @@ void _actor420700HeadHatTask(Task* task)
 {
     TmdObject*     extra = task->extra;
     GfxCoord* coord = extra->coords;
-    GfxCoord* parts = ((TmdObject*)D_actor_420700_8013EFE4->extra)->coords;
+    GfxCoord* parts = _gActor420700BodyTask->extra.tmd->coords;
     GfxCoord* part  = parts + 4;
     VECTOR         vec;
 
@@ -103276,7 +103276,7 @@ void _actor420700HeadHatTask(Task* task)
 carriers to read: `_actor461800ScriptedWalkerAttachmentTask` (fields score 0.95, cflow 1.00)
 and `_actor450800KyleMadiganAttachmentTask`. The copies vary in exactly two places:
 
-* **How the actor's own model task is reached.** `D_actor_420700_8013EFE4` /
+* **How the actor's own model task is reached.** `_gActor420700BodyTask` /
   `D_actor_461800_80143898` are `Task*` globals the shared state-0 handler
   publishes; `_actor450800KyleMadiganAttachmentTask` uses `task->parent` instead, which
   shows in the object as `lw $v1, 0x8($a2)` rather than `lui`/`lw` of a global.
@@ -103556,9 +103556,9 @@ instruction-for-instruction identical for 190 of 210 instructions: the whole
 scratchpad allocate/free and the prologue need no experiment at all. Only the
 block after the magnitude switch differs, and only in three places:
 
-* the table symbol (`Actor00100_D1B9F4` against `D_actor_401300_80158928`),
+* the table symbol (`Actor00100_D1B9F4` against `_gActor401300HitPlacements`),
 * the part index - a constant 1 in the sibling (`addiu $v1, $v1, 0x50`), here
-  `sc->pad` (the `lh` plus the `sll`/`addu`/`sll` multiply by the 0x50
+  `sc->anchor.partIndex` (the `lh` plus the `sll`/`addu`/`sll` multiply by the 0x50
   `GfxCoord` stride),
 * the third `effectSpawnHit` argument - `sc` itself in the sibling, here a copy
   saved into the work block (`work->field_8A0 = *sc;` then `&work->field_8A0`),

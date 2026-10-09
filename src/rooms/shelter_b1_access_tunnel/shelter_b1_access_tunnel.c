@@ -425,7 +425,7 @@ AreaResource D_shelter_b1_access_tunnel_8017FD80[2] = {
 };
 
 AreaResource D_shelter_b1_access_tunnel_8017FD98[2] = {
-    { 39, 39, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_403900_801540E0 },
+    { 39, 39, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor403900GolemTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

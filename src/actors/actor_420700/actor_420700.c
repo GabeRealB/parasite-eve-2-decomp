@@ -79,11 +79,7 @@ STATIC_ASSERT_SIZEOF(_Actor420700Work, 0x5A0);
 /// head turn; it does not implement the scripted walk's movement.
 static _Actor420700Work* _gScriptedWalkWork;
 
-/// The actor's own task, the `task` the state-0 handler
-/// `_actor420700Spawn` is entered with. Its `Task::extra` holds the
-/// `TmdObject` whose trailing coordinate array `_actor420700HeadHatTask`
-/// hangs the model task's own root off, at frame 4.
-extern Task* D_actor_420700_8013EFE4;
+static Task* _gActor420700BodyTask;
 
 /// The first task the state-0 handler spawns, the frame-4 model task
 /// `_actor420700HeadHatTask`; the actor's exit callback kills it.
@@ -1037,7 +1033,11 @@ u8 D_actor_420700_8013EF8C[84] = {
     128,
 };
 
-Task* D_actor_420700_8013EFE4;
+/// Borrowed body task of this singleton scripted NPC.
+///
+/// Spawn publishes it for animation/draw requests and the head/hat and shotgun
+/// attachment roots. Teardown ends its lifetime without clearing the pointer.
+static Task* _gActor420700BodyTask;
 
 Task* D_actor_420700_8013EFE8;
 
@@ -1092,7 +1092,7 @@ static void _actor420700Spawn(Enemy* enemy, Task* task)
     bodyModel->otOffset              = ACTOR_420700_SPAWN_OT_OFFSET;
     bodyModel->flags                 = 0;
     // The head-and-hat must spawn successfully before its texture binding.
-    D_actor_420700_8013EFE4 = task;
+    _gActor420700BodyTask   = task;
     D_actor_420700_8013EFE8 = taskSpawnFromTable(D_actor_420700_8013EF68, ACTOR_420700_SPAWN_HEAD_HAT_TASK, 0, NULL);
     D_actor_420700_8013EFEC = taskSpawnFromTable(D_actor_420700_8013EF68, ACTOR_420700_SPAWN_SHOTGUN_TASK, 0, NULL);
     _actorRenderApplyTaskPlacementTextureOffsets(D_actor_420700_8013EFE8, enemy);
@@ -1243,7 +1243,7 @@ static void _actor420700HeadHatTask(Task* task)
     enum { ACTOR_420700_HEAD_ATTACHMENT_PART = 4 };
     TmdObject* headModel  = task->extra.tmd;
     GfxCoord*  headRoot   = headModel->coords;
-    GfxCoord*  bodyCoords = D_actor_420700_8013EFE4->extra.tmd->coords;
+    GfxCoord*  bodyCoords = _gActor420700BodyTask->extra.tmd->coords;
     GfxCoord*  headPart   = bodyCoords + ACTOR_420700_HEAD_ATTACHMENT_PART;
     VECTOR     lightingPosition;
 
@@ -1349,7 +1349,7 @@ static s32 _actor420700HandleAnimationMessage(Task* task, s32 messageId, const A
             work->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         _gScriptedWalkWork->st.field_A = 0;
-        _actor420700UpdateAnimation(D_actor_420700_8013EFE4);
+        _actor420700UpdateAnimation(_gActor420700BodyTask);
         return 0;
     }
     return -1;
@@ -1367,7 +1367,7 @@ static s32 _actor420700HandleModelDrawMessage(Task* task, s32 messageId, s32 dra
         ACTOR_420700_DRAW_VISIBLE        = 1 << 0,
         ACTOR_420700_DRAW_NO_AUTO_BUFFER = 1 << 1,
     };
-    TmdObject* bodyModel    = D_actor_420700_8013EFE4->extra.tmd;
+    TmdObject* bodyModel    = _gActor420700BodyTask->extra.tmd;
     TmdObject* headHatModel = D_actor_420700_8013EFE8->extra.tmd;
     TmdObject* shotgunModel = D_actor_420700_8013EFEC->extra.tmd;
 
@@ -1433,7 +1433,7 @@ static void _actor420700ShotgunTask(Task* task)
     };
     TmdObject* shotgunModel   = task->extra.tmd;
     GfxCoord*  shotgunRoot    = shotgunModel->coords;
-    GfxCoord*  bodyCoords     = D_actor_420700_8013EFE4->extra.tmd->coords;
+    GfxCoord*  bodyCoords     = _gActor420700BodyTask->extra.tmd->coords;
     GfxCoord*  attachmentPart = bodyCoords + ACTOR_420700_SHOTGUN_ATTACHMENT_PART;
     VECTOR     lightingPosition;
 

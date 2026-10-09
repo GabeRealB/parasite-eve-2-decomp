@@ -6,6 +6,7 @@
 #include "common.h"
 
 #include "actors/actor.h"
+#include "actors/task_tables.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
@@ -126,7 +127,9 @@ static AnimationSet _gActor207200Animation0495C = {
     { NULL, _gActor207200Animation0495CBank1, NULL, NULL, _gActor207200Animation0495CBank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_207200_8014E7A4 = { { { TASK_BODY_TMD, 96 } }, _skullStalkerTask, { .model = &_gActor207200SkullStalkerBody } };
+enum { ACTOR_207200_TASK_PRIORITY = 96 };
+
+TaskDesc gActor207200SkullStalkerTaskDesc = { { { TASK_BODY_TMD, ACTOR_207200_TASK_PRIORITY } }, _skullStalkerTask, { .model = &_gActor207200SkullStalkerBody } };
 
 /// Skull Stalker animation sets: 0 empty, 1 idle, 2 alert.
 ///

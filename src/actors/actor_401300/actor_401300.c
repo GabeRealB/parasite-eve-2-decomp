@@ -8,6 +8,8 @@
 #include "gte.h"
 
 #include "actors/actor.h"
+#include "actors/hit_effect.h"
+#include "actors/task_tables.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
@@ -231,42 +233,6 @@ typedef struct {
 } _Actor401300StateTable;
 STATIC_ASSERT_SIZEOF(_Actor401300StateTable, ACTOR_401300_STATE_COUNT * sizeof(TaskFunc));
 
-extern ActorHeightClamp D_actor_401300_801589C8[];
-
-/// Halfword table in the overlay's data; element 0 is the value the 0xB05/0xC
-/// event writes into `Enemy::hp`. Declared as an array: a scalar lets
-/// the scheduler hoist its load above the preceding store.
-
-/// Per-animation reset argument for `animationSeekSlotWithBlend`, indexed by the previous
-/// and the new animation id (`appliedAnim`, `animId`).
-extern s8 D_actor_401300_8015804C[][45];
-
-/// Two rest/target rotation pairs `_actor401300BlendFixedJoints` blends by
-/// `0x200 - t` (in 1/512ths) into coord 7 and coord 8.
-extern SVECTOR D_actor_401300_801589F8[2];
-extern SVECTOR D_actor_401300_80158A08[2];
-
-/// Data `_actor401300Spawn` wires up at init: the enemy parameter
-/// record (`Enemy::param`), the three variant records `spawnArg1 & 0xF` picks
-/// `downFramesBase`, `sidestepAngle` and `field_CA4` from, the animation bank passed to
-/// `animationBindContext`, the 0x3FF message seed, and the task's `field_24`.
-extern EnemyParams                D_actor_401300_80141FA0;
-extern ActorHornedStrangerVariant D_actor_401300_80141FB0[3];
-extern AnimationSet*              D_actor_401300_80158838[46];
-/// The animation block the 0x3FF payload in `playerAnim` hands the player.
-extern AnimationSet*        D_actor_401300_801588F0[9];
-extern AnimationPlayRequest D_actor_401300_80158914;
-// Message-table callbacks use the argument views required by this TU.
-
-extern TaskMessageEntry D_actor_401300_80158988[8];
-
-/// Impact offsets selected by `_actor401300SelectHitOffset` from the incoming yaw.
-///
-/// Front draws reach 0..3, rear draws 5/7, and side draws 8/9 or 10/11.
-/// The retained masks leave 4/6 unreachable. XYZ uses local game units;
-/// `pad` selects model part 2, 7 or 9 for the spawned effect.
-extern SVECTOR D_actor_401300_80158928[12];
-
 /// The scratch-stack block of the two states that run at a point: the chase,
 /// at the player, and the withdrawal, at `_Actor401300Work::withdrawPoint`.
 ///
@@ -350,7 +316,7 @@ static TmdSource _gActor401300HornedStrangerBurstHead;
 static TmdSource _gActor401300HornedStrangerEffect2;
 
 /// Overlay-data word `_actor401300StateDormantScripted` points
-/// `D_actor_401300_80158838[16]` at on entering its state.
+/// `_gActor401300AnimationSets[16]` at on entering its state.
 extern AnimationSet gActor401300Animation20D98;
 
 static void _actor401300ReleaseResources(Task* task);
@@ -379,8 +345,6 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
     return &ActorContact_ScratchPosition;
 }
 
-extern DamageAttack D_actor_401300_80141F88[];
-
 static AnimationSet _gActor401300Animation24A48;
 static AnimationSet _gActor401300Animation251E4;
 static AnimationSet _gActor401300Animation259F0;
@@ -388,20 +352,31 @@ static AnimationSet _gActor401300Animation26204;
 static TmdSource    _gActor401300HornedStrangerBody;
 static s32          _actor401300ApplyCommand(Task* task, s32 msgId, const ActorCommand* command, s32 unusedArg);
 static s32          _actor401300PlayMessageAnimation(Task* task, s32 msgId, const AnimationPlayRequest* request, s32 unusedArg);
-static void         _actor401300IgnoreMessage2015(Task* task, s32 msgId, s32 unusedFirstArg, s32 unusedArg);
+static s32          _actor401300IgnoreMessage2015(Task* task, s32 msgId, s32 unusedFirstArg, s32 unusedArg);
 static void         _actor401300Task(Task* task);
 
-DamageAttack D_actor_401300_80141F88[6] = {
-    { 30, 7 },
-    { 30, 7 },
-    { 50, 7 },
-    { 50, 7 },
-    { 40, 0 },
-    { 40, 0 },
+/// Player hit presentation selected by this actor's grab, strikes and leap.
+enum { ACTOR_401300_ATTACK_REACTION_SPARK_AND_PUFFS = 7 };
+
+/// Enemy attack rows used by grab/strike A (0), strike B (1), leap (2/3) and charge (4/5).
+///
+/// Leap/charge choose back then front rows. Power is packed in the low twelve
+/// contact-key bits; reaction 7 produces spark/puff bursts, reaction 0 an ordinary hit.
+static DamageAttack _gActor401300Attacks[6] = {
+    { 30, ACTOR_401300_ATTACK_REACTION_SPARK_AND_PUFFS },
+    { 30, ACTOR_401300_ATTACK_REACTION_SPARK_AND_PUFFS },
+    { 50, ACTOR_401300_ATTACK_REACTION_SPARK_AND_PUFFS },
+    { 50, ACTOR_401300_ATTACK_REACTION_SPARK_AND_PUFFS },
+    { 40, GAME_ACTOR_REACTION_ORDINARY },
+    { 40, GAME_ACTOR_REACTION_ORDINARY },
 };
 
-EnemyParams D_actor_401300_80141FA0 = {
-    D_actor_401300_80141F88,
+/// Shared combat and battle rewards of the Horned Stranger.
+///
+/// All instances borrow this record and its six attack rows for their lifetime.
+/// Starts at 420 HP; awards 115 EXP, 200 BP and 5 MP on enemy release.
+static EnemyParams _gActor401300EnemyParams = {
+    _gActor401300Attacks,
     420,
     115,
     200,
@@ -412,7 +387,12 @@ EnemyParams D_actor_401300_80141FA0 = {
     10,
 };
 
-ActorHornedStrangerVariant D_actor_401300_80141FB0[3] = {
+/// Three Horned Stranger spawn tunings selected by the low argument nibble.
+///
+/// Selector 2 uses row 0, selector 1 row 2, and all others row 1. Rows contain
+/// down duration in ticks, sidestep angle in 4096ths of a turn, an unused
+/// sidestep delay and a final unread zero halfword.
+static ActorHornedStrangerVariant _gActor401300Variants[3] = {
     { 0, 900, 3, 0 },
     { 0, 800, 5, 0 },
     { 0, 500, 7, 0 },
@@ -1206,7 +1186,11 @@ static AnimationSet _gActor401300Animation26204 = {
     { NULL, _gActor401300Animation26204Bank1, NULL, NULL, _gActor401300Animation26204Bank4, NULL, NULL, NULL },
 };
 
-s8 D_actor_401300_8015804C[45][45] = {
+/// Blend durations from the previous animation row to the requested animation column.
+///
+/// Both indices must be 0..44; entries are signed whole normal-rate frames.
+/// Clip 45 belongs to the bank's retained extent but has no transition row or column.
+static s8 _gActor401300AnimationBlendFrames[45][45] = {
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 0, 0, 0, 4, 4, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 3, 3, 0, 0, 0, 3, 3, 5, 0, 0, 0, 5, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -1254,9 +1238,19 @@ s8 D_actor_401300_8015804C[45][45] = {
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AnimationSet* D_actor_401300_80158838[46] = { NULL, NULL, &_gActor401300Animation17714, &_gActor401300Animation21618, NULL, NULL, NULL, NULL, &_gActor401300Animation1C4CC, &_gActor401300Animation1D904, &_gActor401300Animation1F110, &_gActor401300Animation1F4C4, &_gActor401300Animation1AD34, &_gActor401300Animation1A750, &_gActor401300Animation1ED6C, &_gActor401300Animation1B788, NULL, &_gActor401300Animation1DE54, &_gActor401300Animation1A170, &_gActor401300Animation1FF3C, NULL, NULL, &_gActor401300Animation1CD3C, &_gActor401300Animation1F4C4, &_gActor401300Animation1AD34, &_gActor401300Animation186D8, &_gActor401300Animation19700, &_gActor401300Animation21DE0, &_gActor401300Animation2231C, &_gActor401300Animation22A58, &_gActor401300Animation2303C, &_gActor401300Animation23444, &_gActor401300Animation23A98, &_gActor401300Animation24200, &_gActor401300Animation1D0CC, &_gActor401300Animation1F848, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
+/// Writable Horned Stranger animation bank borrowed by both nineteen-slot rigs.
+///
+/// Contains 46 entries; NULL slots require loaded descriptors before playback.
+/// Scripted dormancy installs clip 16 on entry. Blend transitions require keys
+/// below 45; reset playback requires a populated entry with all driven tracks.
+static AnimationSet* _gActor401300AnimationSets[46] = { NULL, NULL, &_gActor401300Animation17714, &_gActor401300Animation21618, NULL, NULL, NULL, NULL, &_gActor401300Animation1C4CC, &_gActor401300Animation1D904, &_gActor401300Animation1F110, &_gActor401300Animation1F4C4, &_gActor401300Animation1AD34, &_gActor401300Animation1A750, &_gActor401300Animation1ED6C, &_gActor401300Animation1B788, NULL, &_gActor401300Animation1DE54, &_gActor401300Animation1A170, &_gActor401300Animation1FF3C, NULL, NULL, &_gActor401300Animation1CD3C, &_gActor401300Animation1F4C4, &_gActor401300Animation1AD34, &_gActor401300Animation186D8, &_gActor401300Animation19700, &_gActor401300Animation21DE0, &_gActor401300Animation2231C, &_gActor401300Animation22A58, &_gActor401300Animation2303C, &_gActor401300Animation23444, &_gActor401300Animation23A98, &_gActor401300Animation24200, &_gActor401300Animation1D0CC, &_gActor401300Animation1F848, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 
-AnimationSet* D_actor_401300_801588F0[9] = {
+/// Player reaction clips borrowed during Horned Stranger holds and knockbacks.
+///
+/// Keys 4/5 are backward/forward falls and 6/7 their recoveries. Keys 0..3 and
+/// 8 are NULL in the initial bank; grab logic requests 1..3, so those paths
+/// require populated entries before playback. Resources must outlive the hold.
+static AnimationSet* _gActor401300PlayerAnimationSets[9] = {
     NULL,
     NULL,
     NULL,
@@ -1268,25 +1262,43 @@ AnimationSet* D_actor_401300_801588F0[9] = {
     NULL,
 };
 
-AnimationPlayRequest D_actor_401300_80158914 = { { .sets = D_actor_401300_801588F0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Seed request copied into each Horned Stranger's held-player state.
+///
+/// Selects the player-reaction bank and clip 1, resets playback and disables
+/// world collision. State handlers change the clip before sending the borrowed request.
+static AnimationPlayRequest _gActor401300PlayerAnimationRequest = { { .sets = _gActor401300PlayerAnimationSets }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-SVECTOR D_actor_401300_80158928[12] = {
-    { 60, -12, 30, 2 },
-    { -50, -130, 29, 2 },
-    { 20, -70, 25, 2 },
-    { -30, -65, 25, 2 },
-    { 60, -120, 30, 2 },
-    { 20, -20, -5, 2 },
-    { -15, -50, 0, 2 },
-    { 2, 10, -15, 2 },
-    { 14, 0, 0, 7 },
-    { 25, 0, 0, 2 },
-    { -14, 0, 0, 9 },
-    { -25, 0, 0, 2 },
+/// Bearing-dependent hit-effect positions and their model-part selectors.
+///
+/// Front chooses rows 0..3, rear 5/7, and sides 8/9 or 10/11. Retained masks
+/// leave rows 4/6 unreachable. XYZ are local game units; the fourth halfword
+/// selects the model coordinate; the SDK vector view passes XYZ to the effect API.
+static ActorHitAnchor _gActor401300HitPlacements[12] = {
+    { .anchor = { 60, -12, 30, 2 } },
+    { .anchor = { -50, -130, 29, 2 } },
+    { .anchor = { 20, -70, 25, 2 } },
+    { .anchor = { -30, -65, 25, 2 } },
+    { .anchor = { 60, -120, 30, 2 } },
+    { .anchor = { 20, -20, -5, 2 } },
+    { .anchor = { -15, -50, 0, 2 } },
+    { .anchor = { 2, 10, -15, 2 } },
+    { .anchor = { 14, 0, 0, 7 } },
+    { .anchor = { 25, 0, 0, 2 } },
+    { .anchor = { -14, 0, 0, 9 } },
+    { .anchor = { -25, 0, 0, 2 } },
 };
 
-TaskMessageEntry D_actor_401300_80158988[8] = {
-    { 2015, _actor401300IgnoreMessage2015 },
+/// Accepted no-op message; its sender-side purpose is unproven.
+enum { ACTOR_401300_MESSAGE_IGNORE = 2015 };
+
+/// Synchronous messages accepted by the Horned Stranger task.
+///
+/// Play-animation, placement and command messages borrow their typed request
+/// records through dispatch. Draw mode and presence use scalar words; release
+/// hold ignores both words. ID 2015 is a no-op with an unspecified result that
+/// senders must discard. Unsupported IDs return zero at the end marker.
+static TaskMessageEntry _gActor401300Messages[8] = {
+    { ACTOR_401300_MESSAGE_IGNORE, _actor401300IgnoreMessage2015 },
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor401300PlayMessageAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetVisibility },
     { ACTOR_MESSAGE_IS_PRESENT, actorMsgIsPresent },
@@ -1296,23 +1308,38 @@ TaskMessageEntry D_actor_401300_80158988[8] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-ActorHeightClamp D_actor_401300_801589C8[3] = {
+/// Root-height bounds for the Acropolis patio and Neo Ark woodland path.
+///
+/// Only the first two rows are searched; stage/area select inclusive Y limits
+/// in parent-coordinate units, with downward-positive Y. The third zero row
+/// and each row's unread eight-byte suffix retain their original storage.
+static ActorHeightClamp _gActor401300RoomHeightClamps[3] = {
     { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, -300, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } },
     { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_WOODLAND_PATH, 0, 300, { 0, 0, 0, 0, 0, 0, 0, 0 } },
     { 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } },
 };
 
-SVECTOR D_actor_401300_801589F8[2] = {
+/// Endpoint rotations of fixed model part 7, in 4096 angle units per turn.
+///
+/// Interpolation uses 0 for row 0 and 512 for row 1; values outside that
+/// interval extrapolate. The fourth halfword is unused.
+static SVECTOR _gActor401300Part7Rotations[2] = {
     { 937, 44, 712, 0 },
     { 29, -106, 193, 0 },
 };
 
-SVECTOR D_actor_401300_80158A08[2] = {
+/// Endpoint rotations of fixed model part 8, in 4096 angle units per turn.
+///
+/// Interpolation uses 0 for row 0 and 512 for row 1; values outside that
+/// interval extrapolate. The fourth halfword is unused.
+static SVECTOR _gActor401300Part8Rotations[2] = {
     { 940, -28, -709, 0 },
     { 30, 130, -190, 0 },
 };
 
-TaskDesc D_actor_401300_80158A18 = { { { TASK_BODY_TMD, 96 } }, _actor401300Task, { .model = &_gActor401300HornedStrangerBody } };
+enum { ACTOR_401300_TASK_PRIORITY = 96 };
+
+TaskDesc gActor401300HornedStrangerTaskDesc = { { { TASK_BODY_TMD, ACTOR_401300_TASK_PRIORITY } }, _actor401300Task, { .model = &_gActor401300HornedStrangerBody } };
 
 SVECTOR ActorContact_ScratchPosition = { 0 };
 
@@ -1522,7 +1549,7 @@ static s32 _actor401300ApplyCommand(Task* task, s32 msgId, const ActorCommand* c
             case ACTOR_401300_COMMAND_ALERT:
                 if ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) == 0) {
                     work->state = ACTOR_401300_STATE_ALERT;
-                    enemy->hp   = D_actor_401300_80141FA0.hpMax;
+                    enemy->hp   = _gActor401300EnemyParams.hpMax;
                     sceneAcquireBattleRef(0);
                 }
                 return 1;
@@ -1613,7 +1640,7 @@ static void _actor401300ClampRoomHeight(const GameLocationKey* location, GfxCoor
     s16                     rowIndex;
 
     for (rowIndex = 0; rowIndex < ACTOR_401300_HEIGHT_CLAMP_COUNT; rowIndex++) {
-        row = &D_actor_401300_801589C8[rowIndex];
+        row = &_gActor401300RoomHeightClamps[rowIndex];
         if (location->stage == row->stage && location->area == row->area) {
             minY  = row->minY;
             rootY = coord->coord.t[1];
@@ -1636,7 +1663,7 @@ static __inline__ s32 _actor401300HasRoomHeightClamp(const GameLocationKey* loca
     s16                     rowIndex;
 
     for (rowIndex = 0; rowIndex < ACTOR_401300_HEIGHT_CLAMP_COUNT; rowIndex++) {
-        row = &D_actor_401300_801589C8[rowIndex];
+        row = &_gActor401300RoomHeightClamps[rowIndex];
         if (location->stage == row->stage && location->area == row->area) {
             return 1;
         }
@@ -1749,10 +1776,10 @@ static void _actor401300BlendToAnimation(Task* actor)
             work->rig.slots[slotIndex].rate = work->animRate;
             if (slotIndex < ACTOR_401300_FIXED_JOINT_FIRST) {
                 animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->animId, 0,
-                                           D_actor_401300_8015804C[work->appliedAnim][work->animId]);
+                                           _gActor401300AnimationBlendFrames[work->appliedAnim][work->animId]);
             } else if (slotIndex >= ACTOR_401300_FIXED_JOINT_END) {
                 animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->animId, 0,
-                                           D_actor_401300_8015804C[work->appliedAnim][work->animId]);
+                                           _gActor401300AnimationBlendFrames[work->appliedAnim][work->animId]);
             }
         }
         work->appliedAnim = work->animId;
@@ -1980,9 +2007,9 @@ static void _actor401300BlendFixedJoints(Task* actor, s16 blendAmount)
     SVECTOR* rotation;
 
     rotation = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
-    _actor401300InterpolateJointRotation(D_actor_401300_801589F8, blendAmount, rotation);
+    _actor401300InterpolateJointRotation(_gActor401300Part7Rotations, blendAmount, rotation);
     RotMatrix_gte(rotation, &actor->extra.tmd->coords[7].coord);
-    _actor401300InterpolateJointRotation(D_actor_401300_80158A08, blendAmount, rotation);
+    _actor401300InterpolateJointRotation(_gActor401300Part8Rotations, blendAmount, rotation);
     RotMatrix_gte(rotation, &actor->extra.tmd->coords[8].coord);
     actor->extra.tmd->coords[7].composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
@@ -2397,7 +2424,7 @@ static __inline__ void _actor401300InitializePoseAndCombat(GfxCoord* coord, _Act
     // Seed the held-player request and the independently posed joint pair.
     work->bodyPosCursor   = 0;
     work->deathPending    = 0;
-    work->playerAnim      = D_actor_401300_80158914;
+    work->playerAnim      = _gActor401300PlayerAnimationRequest;
     work->jointPairBlend  = ACTOR_401300_INITIAL_JOINT_PAIR_BLEND;
     work->jointPairTarget = ACTOR_401300_INITIAL_JOINT_PAIR_TARGET;
     work->jointPairStep   = ACTOR_401300_INITIAL_JOINT_PAIR_STEP;
@@ -2476,12 +2503,12 @@ static void _actor401300Spawn(Enemy* enemy, Task* actor)
     worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->reactionFlags          = 0;
-    enemy->hp                     = (s16)D_actor_401300_80141FA0.hpMax;
-    enemy->param                  = &D_actor_401300_80141FA0;
+    enemy->hp                     = (s16)_gActor401300EnemyParams.hpMax;
+    enemy->param                  = &_gActor401300EnemyParams;
     enemy->recs                   = work->hitContacts;
-    animationBindContext(&work->rig.anim, D_actor_401300_80158838, model,
+    animationBindContext(&work->rig.anim, _gActor401300AnimationSets, model,
                          work->rig.poses, work->rig.slots);
-    animationBindContext(&work->blend.anim, D_actor_401300_80158838, model,
+    animationBindContext(&work->blend.anim, _gActor401300AnimationSets, model,
                          work->blend.poses, work->blend.slots);
     work->animRequest   = ACTOR_401300_ANIM_REQUEST_RESET;
     work->blendActive   = 0;
@@ -2550,7 +2577,7 @@ static void _actor401300Spawn(Enemy* enemy, Task* actor)
     // Seed a horizontal patrol segment from the placed facing.
     ACTOR_401300_SEED_PATROL_POINTS(actor, work, directionScratch, direction);
 
-    actor->msgTable         = D_actor_401300_80158988;
+    actor->msgTable         = _gActor401300Messages;
     rootCoord->parent       = &gGfxViewCoord;
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(rootCoord);
@@ -2586,20 +2613,20 @@ static void _actor401300Spawn(Enemy* enemy, Task* actor)
     }
     switch (actor->spawnArg1.value & ACTOR_401300_VARIANT_MASK) {
         case 2:
-            work->downFramesBase = D_actor_401300_80141FB0[0].downFramesBase;
-            work->sidestepAngle  = D_actor_401300_80141FB0[0].sidestepAngle;
-            work->field_CA4      = D_actor_401300_80141FB0[0].sidestepDelay;
+            work->downFramesBase = _gActor401300Variants[0].downFramesBase;
+            work->sidestepAngle  = _gActor401300Variants[0].sidestepAngle;
+            work->field_CA4      = _gActor401300Variants[0].sidestepDelay;
             break;
         case 1:
-            work->downFramesBase = D_actor_401300_80141FB0[2].downFramesBase;
-            work->sidestepAngle  = D_actor_401300_80141FB0[2].sidestepAngle;
-            work->field_CA4      = D_actor_401300_80141FB0[2].sidestepDelay;
+            work->downFramesBase = _gActor401300Variants[2].downFramesBase;
+            work->sidestepAngle  = _gActor401300Variants[2].sidestepAngle;
+            work->field_CA4      = _gActor401300Variants[2].sidestepDelay;
             break;
         case 0:
         default:
-            work->downFramesBase = D_actor_401300_80141FB0[1].downFramesBase;
-            work->sidestepAngle  = D_actor_401300_80141FB0[1].sidestepAngle;
-            work->field_CA4      = D_actor_401300_80141FB0[1].sidestepDelay;
+            work->downFramesBase = _gActor401300Variants[1].downFramesBase;
+            work->sidestepAngle  = _gActor401300Variants[1].sidestepAngle;
+            work->field_CA4      = _gActor401300Variants[1].sidestepDelay;
             break;
     }
 
@@ -2613,11 +2640,11 @@ static void _actor401300Spawn(Enemy* enemy, Task* actor)
 ///
 /// hitYaw is relative to the actor's facing, in 4096 units per turn. Front
 /// is |yaw| < 512, rear |yaw| > 1536; threshold equality takes a side branch.
-/// hitOffset supplies one writable, word-aligned SVECTOR; all eight bytes
-/// are copied, including pad's model-part selector (2, 7 or 9). Front draws
+/// hitPlacement supplies one writable, word-aligned placement record; all
+/// eight bytes are copied, including its model-part selector (2, 7 or 9). Front draws
 /// choose four offsets, rear draws two and each signed side draws two. The
 /// shared LCG advances once, and no pointer is retained.
-static __inline__ void _actor401300SelectHitOffset(s16 hitYaw, SVECTOR* hitOffset)
+static __inline__ void _actor401300SelectHitOffset(s16 hitYaw, ActorHitAnchor* hitPlacement)
 {
     enum { ACTOR_401300_HIT_FRONT_HALF_ANGLE = 512,
            ACTOR_401300_HIT_REAR_MIN_ANGLE   = 1536 };
@@ -2629,19 +2656,19 @@ static __inline__ void _actor401300SelectHitOffset(s16 hitYaw, SVECTOR* hitOffse
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         switch ((s32)(gRandomLcgState >> 16) & 3) {
             case 0:
-                *hitOffset = D_actor_401300_80158928[0];
+                *hitPlacement = _gActor401300HitPlacements[0];
                 break;
             case 1:
-                *hitOffset = D_actor_401300_80158928[1];
+                *hitPlacement = _gActor401300HitPlacements[1];
                 break;
             case 2:
-                *hitOffset = D_actor_401300_80158928[2];
+                *hitPlacement = _gActor401300HitPlacements[2];
                 break;
             case 3:
-                *hitOffset = D_actor_401300_80158928[3];
+                *hitPlacement = _gActor401300HitPlacements[3];
                 break;
             default:
-                *hitOffset = D_actor_401300_80158928[4];
+                *hitPlacement = _gActor401300HitPlacements[4];
                 break;
         }
     } else if (absoluteHitYaw > ACTOR_401300_HIT_REAR_MIN_ANGLE) {
@@ -2649,28 +2676,28 @@ static __inline__ void _actor401300SelectHitOffset(s16 hitYaw, SVECTOR* hitOffse
         // The retained mask selects only rear offsets 5 and 7.
         switch ((s32)(gRandomLcgState >> 16) & 2) {
             case 0:
-                *hitOffset = D_actor_401300_80158928[5];
+                *hitPlacement = _gActor401300HitPlacements[5];
                 break;
             case 1:
-                *hitOffset = D_actor_401300_80158928[6];
+                *hitPlacement = _gActor401300HitPlacements[6];
                 break;
             default:
-                *hitOffset = D_actor_401300_80158928[7];
+                *hitPlacement = _gActor401300HitPlacements[7];
                 break;
         }
     } else if (hitYaw > 0) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if ((gRandomLcgState >> 16) & 1) {
-            *hitOffset = D_actor_401300_80158928[8];
+            *hitPlacement = _gActor401300HitPlacements[8];
         } else {
-            *hitOffset = D_actor_401300_80158928[9];
+            *hitPlacement = _gActor401300HitPlacements[9];
         }
     } else {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if ((gRandomLcgState >> 16) & 1) {
-            *hitOffset = D_actor_401300_80158928[10];
+            *hitPlacement = _gActor401300HitPlacements[10];
         } else {
-            *hitOffset = D_actor_401300_80158928[11];
+            *hitPlacement = _gActor401300HitPlacements[11];
         }
     }
 }
@@ -2680,26 +2707,26 @@ static __inline__ void _actor401300SelectHitOffset(s16 hitYaw, SVECTOR* hitOffse
 /// Requires live actor work, model parts through index 9 and a live player task.
 /// hitYaw is the wrapped incoming bearing relative to the facing, in 4096 units
 /// per turn. attackKey must select a valid weapon/PE row for the damage lookup.
-/// Advances the LCG once, selects one of the local impact vectors, and uses its
-/// pad as the model-part index. The hit-effect argument record stays in the work;
-/// the local offset borrows one SVECTOR of scratch space only through the spawn.
+/// Advances the LCG once and selects a local impact position and model part.
+/// The hit-effect argument record stays in the work; the placement borrows
+/// one eight-byte scratch record only through the spawn.
 static void _actor401300SpawnHitEffect(Task* actor, s16 hitYaw, s32 attackKey)
 {
     enum {
         ACTOR_401300_HIT_EFFECT_ARGUMENT_LOW = 0x300,
         ACTOR_401300_HIT_EFFECT_COUNT        = 2
     };
-    SVECTOR*          hitOffset;
+    ActorHitAnchor*   hitPlacement;
     _Actor401300Work* work;
 
-    hitOffset = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
-    work      = actor->work;
-    _actor401300SelectHitOffset(hitYaw, hitOffset);
+    hitPlacement = SCRATCH_STACK_RESERVE_BLOCK(ActorHitAnchor);
+    work         = actor->work;
+    _actor401300SelectHitOffset(hitYaw, hitPlacement);
     work->effectArg.coord      = &actor->extra.tmd->coords[1];
     work->effectArg.spawnArgLo = ACTOR_401300_HIT_EFFECT_ARGUMENT_LOW;
     work->effectArg.spawnArgHi = ACTOR_401300_HIT_EFFECT_COUNT;
-    effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), &actor->extra.tmd->coords[hitOffset->pad], hitOffset, &work->effectArg);
-    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
+    effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), &actor->extra.tmd->coords[hitPlacement->anchor.partIndex], &hitPlacement->position, &work->effectArg);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorHitAnchor);
 }
 
 /// Applies player contacts, over-time damage and the Horned Stranger's hit reactions.
@@ -2905,7 +2932,7 @@ static void _actor401300TakeHit(Task* actor)
                                 work->state = ACTOR_401300_STATE_FLINCH;
                             }
                         } else {
-                            work->blendAnimId  = 0xD;
+                            work->blendAnimId  = ACTOR_401300_ANIM_FLINCH;
                             work->blendActive  = 1;
                             work->blendRequest = ACTOR_401300_ANIM_REQUEST_RESET;
                         }
@@ -3806,7 +3833,7 @@ static __inline__ void _actor401300StartPlayerGrab(_Actor401300Work* work)
     enum { ACTOR_401300_GRAB_PRESS_COUNT    = 8,
            ACTOR_401300_PLAYER_ANIM_GRABBED = 1 };
 
-    work->playerAnim.source.sets      = D_actor_401300_801588F0;
+    work->playerAnim.source.sets      = _gActor401300PlayerAnimationSets;
     work->playerButtonHold.pressCount = ACTOR_401300_GRAB_PRESS_COUNT;
     if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &work->playerButtonHold, 0) == 0) {
         work->state                  = ACTOR_401300_STATE_GRAB_PULL;
@@ -4430,11 +4457,11 @@ static void _actor401300StateDormantScripted(Task* actor)
     work  = actor->work;
     enemy = actor->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        model                                                       = actor->extra.tmd;
-        D_actor_401300_80158838[ACTOR_401300_ANIM_DORMANT_SCRIPTED] = &gActor401300Animation20D98;
-        work->animId                                                = ACTOR_401300_ANIM_DORMANT_SCRIPTED;
-        work->animRequest                                           = ACTOR_401300_ANIM_REQUEST_RESET;
-        model->flags                                                = 0;
+        model                                                          = actor->extra.tmd;
+        _gActor401300AnimationSets[ACTOR_401300_ANIM_DORMANT_SCRIPTED] = &gActor401300Animation20D98;
+        work->animId                                                   = ACTOR_401300_ANIM_DORMANT_SCRIPTED;
+        work->animRequest                                              = ACTOR_401300_ANIM_REQUEST_RESET;
+        model->flags                                                   = 0;
         tmdAllocPrimitiveBuffer(model);
         work->hitBody.radius          = ACTOR_401300_HIT_RADIUS;
         work->attackBody.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -5696,7 +5723,7 @@ static void _actor401300StateCharge(Task* actor)
                 if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &work->playerButtonHold, 0) == 0) {
                     padScriptSpawnVariableMotorRamp(ACTOR_401300_KNOCKDOWN_MOTOR_TICKS, ACTOR_401300_KNOCKDOWN_MOTOR_START_INTENSITY, ACTOR_401300_KNOCKDOWN_MOTOR_END_INTENSITY);
                     work->playerHeld                   = 1;
-                    work->playerAnim.source.sets       = D_actor_401300_801588F0;
+                    work->playerAnim.source.sets       = _gActor401300PlayerAnimationSets;
                     work->playerMove.displacement.vz   = 0;
                     work->playerMove.displacement.vy   = 0;
                     work->playerMove.displacement.vx   = 0;
@@ -5942,7 +5969,7 @@ static void _actor401300StateLeap(Task* actor)
                     sndEvtRequestScriptStart(SOUND_PLAYER_STRUCK, (s8)worldCoordGetOriginAudioPan(playerTask->extra.tmd->coords),
                                              (s8)worldCoordGetOriginAudioDepth(playerTask->extra.tmd->coords));
                     work->playerHeld             = 1;
-                    work->playerAnim.source.sets = D_actor_401300_801588F0;
+                    work->playerAnim.source.sets = _gActor401300PlayerAnimationSets;
                     // The launch position, rather than current contact, picks the fall side.
                     leap->delta.vx = work->leapStartPos.vx - playerTask->extra.tmd->coords->coord.t[0];
                     leap->delta.vy = work->leapStartPos.vy - playerTask->extra.tmd->coords->coord.t[1];
@@ -6401,7 +6428,11 @@ static __inline__ void _actor401300AlignHeldPlayerHeight(Task* actor)
     }
 }
 
-static const _Actor401300StateTable D_actor_401300_80131F34 = { {
+/// Behavior callbacks indexed by `ACTOR_401300_STATE_*` (0..40).
+///
+/// Each receives the live actor task. UNUSED_12 (18) is NULL and must never
+/// be dispatched; the other forty entries are live. There is no terminator.
+static const _Actor401300StateTable _gActor401300StateHandlers = { {
     _actor401300StateHidden,
     _actor401300StatePlayWalk,
     _actor401300StatePlayRun,
@@ -6522,7 +6553,7 @@ static void _actor401300Tick(Enemy* enemy, Task* actor)
     work          = actor->work;
     playerTask    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     playerStatus  = &gPlayerStatus;
-    stateHandlers = D_actor_401300_80131F34;
+    stateHandlers = _gActor401300StateHandlers;
 
     actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(actor->extra.tmd->coords);
@@ -6725,15 +6756,16 @@ static void _actor401300Tick(Enemy* enemy, Task* actor)
 /// Ignores message 2015 and both payload words without changing the actor.
 ///
 /// The message's purpose is unproven. Callers must ignore its undefined result.
-static void _actor401300IgnoreMessage2015(Task* task, s32 msgId, s32 unusedFirstArg, s32 unusedArg)
+static s32 _actor401300IgnoreMessage2015(Task* task, s32 msgId, s32 unusedFirstArg, s32 unusedArg)
 {
+    // The binary leaves the result word unspecified; callers must discard it.
 }
 
-/// The task's handlers, indexed by `Task::state` in
-/// `_actor401300Task`: the first allocates and sets up the work
-/// block, the second runs the per-state logic every frame, and the third tears
-/// the enemy down.
-static const EnemyTaskFuncTable3 D_actor_401300_8013201C = { {
+/// Enemy task phases indexed by `Task::state` (0 spawn, 1 update, 2 destroy).
+///
+/// Each receives the borrowed enemy followed by its task. The dispatcher
+/// copies the three callbacks by value; code must remain loaded through teardown.
+static const EnemyTaskFuncTable3 _gActor401300TaskHandlers = { {
     _actor401300Spawn,
     _actor401300Tick,
     enemyDestroy,
@@ -7120,6 +7152,6 @@ static void _actor401300Task(Task* task)
 {
     EnemyTaskFuncTable3 taskStates;
 
-    taskStates = D_actor_401300_8013201C;
+    taskStates = _gActor401300TaskHandlers;
     taskStates.funcs[task->state](task->spawnArg2.pointer, task);
 }

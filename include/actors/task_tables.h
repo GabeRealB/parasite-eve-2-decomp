@@ -3,6 +3,12 @@
 
 #include "main/task_types.h"
 
+/// Bone Suckler TMD descriptor shared by the three actor-slot builds.
+///
+/// Priority 96 with automatic model buffers; spawn at index 0. Room imports
+/// use the corresponding slot alias and must keep that slot's resources loaded.
+extern TaskDesc gActor01200BoneSucklerTaskDesc;
+
 // Room placement records address these tables in the currently loaded actor
 // slots. Different packages occupy those slots over the lifetime of a stage.
 
@@ -131,7 +137,11 @@ extern TaskDesc gActor104600SkullStalkerTaskDesc;
 /// until enemy teardown. Placement entry 7 selects this descriptor.
 extern TaskDesc gActor00700RatTaskDesc;
 
-extern TaskDesc D_actor_101200_80138E98[];
+/// Bone Suckler TMD spawn descriptor exported by actor slot 1.
+///
+/// Spawn at index 0; priority 96 with automatic model buffers. Keep the
+/// slot's callback and borrowed model geometry loaded while its tasks run.
+extern TaskDesc gActor101200BoneSucklerTaskDesc;
 
 /// Moth TMD spawn descriptor shared by actor_100700 and actor_200700; priority 96.
 ///
@@ -306,7 +316,10 @@ extern TaskDesc gActor202400Tasks[2];
 
 extern TaskDesc D_actor_451100_8014E6E4[];
 
-extern TaskDesc D_actor_207200_8014E7A4;
+/// Skull Stalker TMD spawn descriptor; priority 96 with automatic model buffers.
+///
+/// Spawn at index 0. Keep the callback and borrowed model geometry loaded.
+extern TaskDesc gActor207200SkullStalkerTaskDesc;
 
 /// Slot export of `gActor04600SucklercephTaskDesc` from actor_204600, with the same descriptor contract.
 extern TaskDesc gActor204600SucklercephTaskDesc;
@@ -328,7 +341,11 @@ extern TaskDesc D_actor_223600_80150B48;
 /// Slot-2 export of `gActor00700RatTaskDesc`, with the same spawn contract.
 extern TaskDesc gActor200700RatTaskDesc;
 
-extern TaskDesc D_actor_201200_80150E98[];
+/// Bone Suckler TMD spawn descriptor exported by actor slot 2.
+///
+/// Spawn at index 0; priority 96 with automatic model buffers. Keep the
+/// slot's callback and borrowed model geometry loaded while its tasks run.
+extern TaskDesc gActor201200BoneSucklerTaskDesc;
 
 extern TaskDesc D_actor_421600_80151254;
 
@@ -368,7 +385,10 @@ extern TaskDesc gActor400500TaskDesc;
 /// model geometry are in use.
 extern TaskDesc gActor207200CreepingStrangerTaskDesc;
 
-extern TaskDesc D_actor_403900_801540E0;
+/// GOLEM TMD spawn descriptor; priority 96 with automatic model buffers.
+///
+/// Spawn at index 0. Keep the callback and borrowed model geometry loaded.
+extern TaskDesc gActor403900GolemTaskDesc;
 
 /// Knight GOLEM model-task descriptor exported to room resource tables.
 ///
@@ -416,7 +436,10 @@ extern TaskDesc D_actor_210700_801585CC;
 /// the tasks' callbacks and borrowed model/animation resources.
 extern TaskDesc gActor443500PierceTaskDescs[2];
 
-extern TaskDesc D_actor_401300_80158A18;
+/// Horned Stranger TMD spawn descriptor; priority 96 with automatic model buffers.
+///
+/// Spawn at index 0. Keep the callback and borrowed model geometry loaded.
+extern TaskDesc gActor401300HornedStrangerTaskDesc;
 
 extern TaskDesc D_actor_206100_80158B0C[];
 
@@ -469,7 +492,11 @@ extern TaskDesc gActor300700MothTaskDesc;
 
 extern TaskDesc D_actor_510900_80167A18[];
 
-extern TaskDesc D_actor_301200_80168E98[];
+/// Bone Suckler TMD spawn descriptor exported by actor slot 3.
+///
+/// Spawn at index 0; priority 96 with automatic model buffers. Keep the
+/// slot's callback and borrowed model geometry loaded while its tasks run.
+extern TaskDesc gActor301200BoneSucklerTaskDesc;
 
 extern TaskDesc D_actor_350500_80168EA4;
 
