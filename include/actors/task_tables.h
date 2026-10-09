@@ -128,7 +128,12 @@ extern TaskDesc D_actor_141000_8013D77C;
 
 extern TaskDesc D_actor_535700_8013DADC;
 
-extern TaskDesc D_actor_160600_8013DFA0;
+/// Twenty-part model task for the sterilization room's placed scene actor.
+///
+/// Creates a TMD body at priority 96 and runs the paced walker's spawn/frame
+/// states. Scene placement supplies a live owning `Enemy` through `spawnArg2.pointer`.
+/// The `actor_160600` model, clips and callbacks must remain loaded until teardown.
+extern TaskDesc gActor160600PlacedActorTask;
 
 /// Blood Suckler TMD spawn descriptor; priority 96 with automatic model buffers.
 ///
