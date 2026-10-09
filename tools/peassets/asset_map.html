@@ -322,7 +322,7 @@ async function memorySection(name, o, reqs, alive) {
     for (const a of chainUp.reverse()) for (const g of (D.loads[a] || [])) if (g[2] === "a" || (a === "gameplay" && g[4].some(m => m[0] === D.stagemap[o.stage]))) for (const m of g[4]) ups.push([m[0], m[1], m[2], m[3], a]);
     for (const f of (o.carrier || [])) ups.push([f, 0, 0, 0, name]);
     if (e) for (const m of e[4]) ups.push([m[0], m[1], m[2], m[3], e[1]]);
-    if (v) for (const m of v[4]) ups.push([m[0], m[1], m[2], m[3], v[1]]);
+    if (v) for (const m of v[4]) { ups.push([m[0], m[1], m[2], m[3], v[1]]); const n = +(/file(\d+)$/.exec(D.files[m[0]]) || [0, -1])[1], pal = (D.viewpal[name] || {})[n]; if (pal !== undefined) ups.push([pal, 0, 0, 0, `${v[1]}: its palette, from the caption bundle`]); }
     await needFiles(ups.map(u => u[0])); if (!alive()) return; const mem = compose(ups);
     // The sheet: every resident image through the palette its own pairing names when that palette is resident too, else in grey.
     const cv = h("canvas", { width: 1024, height: 512 }), ctx = cv.getContext("2d"), im = ctx.createImageData(1024, 512), d = im.data, depth = new Map(), palAt = new Map();
@@ -355,7 +355,8 @@ async function memorySection(name, o, reqs, alive) {
 async function showAsset(key) {
   const mine = ++turn, a = D.assets[key], box = $("subject"); if (!a) { box.replaceChildren(h("p", { text: `No asset named ${key}.` })); return; }
   const [type, attrs] = a, files = placedIn.get(key) || [], sections = [];
-  const head = h("header", {}, h("h2", { text: key }), h("div", { class: "crumbs" }, (TYPE[type] || type.replace(/_/g, " ")).replace(/s$/, ""), attrs.source ? [" · inside ", D.overlays[attrs.source.replace(/\.pe2pkg$/, "")] ? link("o", attrs.source.replace(/\.pe2pkg$/, "")) : attrs.source, ", which is what loads it"] : ""));
+  if (!files.length && attrs.source && placedIn.get(attrs.source)) files.push(...placedIn.get(attrs.source));   // inside a bundle that is a chunk
+  const head = h("header", {}, h("h2", { text: key }), h("div", { class: "crumbs" }, (TYPE[type] || type.replace(/_/g, " ")).replace(/s$/, ""), attrs.source ? [" · inside ", D.overlays[attrs.source.replace(/\.pe2pkg$/, "")] ? link("o", attrs.source.replace(/\.pe2pkg$/, "")) : D.assets[attrs.source] ? link("a", attrs.source) : attrs.source] : ""));
   if (type === "pe2img" || type === "image") { const pairs = D.pairs[key] || []; await Promise.all([need(key), ...pairs.filter(p => p[1]).map(p => need(p[1]))]); if (mine !== turn) return;
     const bpps = [].concat(attrs.bpp || 8);
     sections.push(sec(`As used (${pairs.length})`, pairs.length ? "Each way a model's faces read this image: a column of it, at a depth, through a palette row. The other columns are faded." : "No model's faces are known to read this image, so there is no palette to show it with.",
@@ -377,7 +378,11 @@ async function showAsset(key) {
       : (how[2].filter(Boolean).slice(0, 3)).map(v => tile(compose([v]), t, c, b, `in ${pkg}`, `from ${how[1]} · ${D.files[v[0]]}`))))));
   } else if (type === "bs" && D.pictures) sections.push(sec("Picture", "", h("div", { class: "shots" }, h("div", { class: "shot" }, h("img", { src: `${D.pictures}/bs/${key}.png`, alt: key, onload: e => zoom(e.target) })))));
   else if (type === "spk" && D.pictures) sections.push(sec(`Sounds (${D.sounds[key] || 0})`, "", h("div", { class: "shots" }, Array.from({ length: D.sounds[key] || 0 }, (_, i) => h("div", { class: "shot" }, h("audio", { controls: "", preload: "none", src: `${D.pictures}/spk/${key}/sample_${String(i).padStart(2, "0")}.wav` }), h("div", { text: `sample ${i}` }))))));
-  else if (type === "txt" && D.pictures) sections.push(sec("Text", "", h("iframe", { src: `${D.pictures}/txt/${key}.txt`, title: key })));
+  if (type === "spk" && D.scripts[key]) { const [bank, entries] = D.scripts[key];
+    sections.push(sec(`Script entries (${entries.length})`, `What each entry of the bank plays. A sound id in the code is 0x${bank.toString(16).padStart(4, "0")} in its high half and the entry in its low byte.`,
+      capped(entries.map((e, i) => [i, e]), 80, part => h("table", {}, h("tr", {}, ["Entry", "Sound id", "Plays"].map(t => h("th", { text: t }))), part.map(([i, e]) => h("tr", {}, h("td", { text: "0x" + i.toString(16).padStart(2, "0") }), h("td", { text: "0x" + ((bank * 65536 + i) >>> 0).toString(16).padStart(8, "0") }),
+        h("td", { text: e === null ? "empty" : e.map(([other, sample, program, layer]) => sample !== null ? `sample ${sample}` : other ? `bank 0x${other.toString(16)} program ${program} layer ${layer}` : `program ${program} layer ${layer}`).join(", ") || "no voice" }))))))); }
+  if (type === "txt" && D.pictures) sections.push(sec("Text", "", h("iframe", { src: `${D.pictures}/txt/${key}.txt`, title: key })));
   else if (type === "movie" && D.pictures) sections.push(sec("Movie", "As the extraction encoded it. If the browser cannot play that encoding, open the file in a player.", h("div", { class: "shots" }, h("div", { class: "shot" }, h("video", { controls: "", preload: "none", width: 640, src: `${D.pictures}/${D.streams[key]}` }), h("div", { text: D.streams[key] })))));
   else if (type === "stream" && D.pictures) sections.push(sec("Audio", "", h("div", { class: "shots" }, h("div", { class: "shot" }, h("audio", { controls: "", preload: "none", src: `${D.pictures}/${D.streams[key]}` }), h("div", { text: D.streams[key] })))));
   else if (type === "mcsave" && D.pictures) sections.push(sec("Decoded", "The save header's palette and icon frames.", h("div", { class: "shots" }, D.saves.map(f => h("div", { class: "shot" }, h("img", { src: `${D.pictures}/mcsave/mc_save_header/${f}`, alt: f, onload: e => zoom(e.target, S * 3) }), h("div", { text: f }))))));

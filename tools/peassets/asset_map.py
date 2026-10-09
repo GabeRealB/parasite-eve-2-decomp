@@ -281,7 +281,7 @@ def write_side_data(folder: Path, assets: dict, embedded: dict) -> dict:
     import tmd_export
     folder.mkdir(parents=True, exist_ok=True)
     by_sha = {rec["sha1"]: key for key, rec in assets.items() if rec.get("type") == "model"}
-    have = {"mesh": [], "track": {}}
+    have = {"mesh": [], "track": {}, "holds": defaultdict(list)}
     for package, (load, sources) in sorted(pkg_model.declared_records(ROOT).items()):
         path = ROOT / "assets" / "USA" / "pe2pkg" / f"{package}.pe2pkg"
         if not path.is_file():
@@ -291,6 +291,8 @@ def write_side_data(folder: Path, assets: dict, embedded: dict) -> dict:
             try:
                 src = pkg_model.read_source(data, load, offset)
                 key = by_sha.get(hashlib.sha1(data[src["stream_offset"]:src["end"]]).hexdigest())
+                if key is not None and key not in have["holds"][package]:
+                    have["holds"][package].append(key)       # a mesh shared with another package is this one's too
                 if key is None or key in have["mesh"]:
                     continue
                 verts = tmd_export.pose_vertices(tmd_export.read_vertices(data, src["verts_offset"], src["vertex_count"]), src.get("skeleton"))
@@ -499,7 +501,7 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
             "carrier": [index[p] for p in supply.carrier[package]]}
 
     extracted = ROOT / "assets" / "USA"
-    side = write_side_data(out.with_name(out.stem + "_data"), assets, embedded) if pixels else {"mesh": [], "track": {}}
+    side = write_side_data(out.with_name(out.stem + "_data"), assets, embedded) if pixels else {"mesh": [], "track": {}, "holds": {}}
     try:
         banks = animation_tables(embedded)
     except Exception as exc:  # noqa: BLE001
@@ -518,6 +520,35 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
             catalogue[key] = [rec["type"], {k: rec[k] for k in SHOWN if k in rec}]
         else:
             catalogue[key][1].update({k: rec[k] for k in ("source", "vram", "size") if k in rec})
+    # A room's caption bundle holds a palette per view, in that view's slot, besides the dialogue.
+    import base64
+    import cap_bundle
+    import spk_scripts
+    viewpal = {}
+    for stage, folder, fkey, node in asset_schema.tree_files(tree):
+        if folder is None:
+            continue
+        room = next((c for c in (node.get("chunks") or {}).values() if c in overlays), None)
+        for key in (node.get("chunks") or {}).values():
+            if assets.get(key, {}).get("type") != "pe2cap2" or room is None:
+                continue
+            raw = extracted / "raw" / "pe2cap2" / f"{key}.pe2cap2"
+            if not raw.is_file():
+                continue
+            data = raw.read_bytes()
+            for slot in cap_bundle.slots(data):
+                name = f"{key}_slot_{slot['slot']:02d}"
+                if slot["what"] == "palette":
+                    catalogue[name] = ["clut", {"source": key, "x": slot["x"], "y": slot["y"], "w": slot["w"], "h": slot["h"], "notes": f"the palette of view {slot['slot']} of {room}"}]
+                    files.append(f"bundle:{name}")
+                    footprint[len(files) - 1].append([name, "c", "", slot["x"], slot["y"], slot["w"], slot["h"], 0])
+                    viewpal.setdefault(room, {})[slot["slot"]] = len(files) - 1
+                    if pixels:
+                        (out.with_name(pixels) / f"{name}.js").write_text(
+                            f"PIX({json.dumps(name)},{json.dumps([[slot['x'], slot['y'], slot['w'], slot['h'], base64.b64encode(cap_bundle.palette_words(data, slot)).decode()]])});\n", encoding="utf-8")
+                else:
+                    catalogue[name] = [slot["what"], {"source": key, "size": slot["length"], "vram": slot["dest"], "notes": f"slot {slot['slot']} of the bundle {room} loads"}]
+    scripts = {key: [found["bank"], [[list(n) for n in notes] if notes is not None else None for notes in found["entries"]]] for key, found in spk_scripts.all_banks().items()}
     # Movies and streamed audio are not chunks of the stage files; the extraction lists them.
     streams = {}
     movies = extracted / "movie" / "movies.json"
@@ -534,6 +565,7 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
                 streams[meta.stem] = f"audio/{meta.stem}.wav"
     saves = sorted(p.name for p in (extracted / "mcsave" / "mc_save_header").glob("*.png")) if (extracted / "mcsave" / "mc_save_header").is_dir() else []
     return {
+        "holds": side["holds"], "viewpal": viewpal, "scripts": scripts,
         "mesh": side["mesh"], "track": side["track"], "banks": banks, "streams": streams, "saves": saves, "side": out.stem + "_data" if pixels else "",
         "files": files, "chunks": chunks, "fp": footprint, "loads": loads, "overlays": overlays, "requests": requests,
         "consts": constants, "findings": findings, "assets": catalogue, "sounds": sounds,
@@ -548,6 +580,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--db", type=Path, default=residency.DB)
     ap.add_argument("--out", type=Path, default=ROOT / "local" / "asset_map.html")
+    ap.add_argument("--checklists", type=Path, help="also write, per overlay, the list of assets it owns: one line each, for a usage sweep")
     args = ap.parse_args()
     if not args.db.is_file():
         print(f"{args.db} is missing: run asset_residency.py build first", file=sys.stderr)
@@ -564,6 +597,29 @@ def main() -> int:
     except ImportError as exc:
         print(f"no pixels, so no rendered textures: {exc} (run with venv/bin/python3 for the image decoders)", file=sys.stderr)
     data = build_data(db, args.out, pixels)
+    if args.checklists:
+        args.checklists.mkdir(parents=True, exist_ok=True)
+        for name, o in data["overlays"].items():
+            lines, seen = [], set()
+            def add(key, where):
+                kind = data["assets"].get(key, ["?"])[0]
+                if kind != "pe2pkg" and key not in seen:
+                    seen.add(key)
+                    lines.append(f"{key}\t{kind}\t{where}")
+            for f in o["own"]:
+                for chunk, key in data["chunks"].get(f, []):
+                    add(key, f"in file {data['files'][f]} as {chunk}")
+                    if data["assets"].get(key, [""])[0] == "pe2cap2":
+                        for other, (kind, attrs) in data["assets"].items():
+                            if attrs.get("source") == key:
+                                add(other, f"in the bundle {key}: {attrs.get('notes', '')}")
+            for key in data["holds"].get(name, ()):
+                add(key, "a model in the package")
+            for key, (kind, attrs) in data["assets"].items():
+                if attrs.get("source") == name + ".pe2pkg":
+                    add(key, "embedded in the package")
+            (args.checklists / f"{name}.txt").write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
+        print(f"checklists for {len(data['overlays'])} overlays written to {args.checklists}")
     template = TEMPLATE.read_text(encoding="utf-8")
     if template.count("/*DATA*/") != 1:
         raise SystemExit(f"{TEMPLATE}: expected one /*DATA*/ marker")
