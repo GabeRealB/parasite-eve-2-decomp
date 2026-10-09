@@ -45,6 +45,7 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_types.h"
 #include "main/stream.h"
 #include "main/task.h"
 #include "main/task_types.h"
@@ -78,8 +79,8 @@ extern WorldCollisionTrigger D_dryfield_night_garage_8018630C[14];
 extern WorldCollisionTrigger D_dryfield_night_garage_80186734[12];
 
 extern WorldCollisionTrigger      D_dryfield_night_garage_8018723C[7];
-extern WorldCoordRoomAmbientEntry D_dryfield_night_garage_8018751C[16];
-extern WorldCoordRoomLights       D_dryfield_night_garage_80186D64[1];
+static WorldCoordRoomAmbientEntry _gDryfieldNightGarageAmbientByView[16];
+static WorldCoordRoomLights       _gDryfieldNightGarageRoomLights;
 
 static void _dryfieldNightGaragePlayMovieTask(Task* task);
 static void _dryfieldNightGarageBlackoutTask(Task* task);
@@ -233,17 +234,22 @@ SVECTOR D_dryfield_night_garage_801833DC[3] = {
     { 6940, -3260, 1662, 0 },
 };
 
-WorldCoordRoomLighting D_dryfield_night_garage_801833F4[2] = {
-    { D_dryfield_night_garage_80186D64, D_dryfield_night_garage_8018751C },
-    { D_dryfield_night_garage_80186D64, D_dryfield_night_garage_8018751C },
+WorldCoordRoomLighting gDryfieldNightGarageRoomLighting[2] = {
+    { &_gDryfieldNightGarageRoomLights, _gDryfieldNightGarageAmbientByView },
+    { &_gDryfieldNightGarageRoomLights, _gDryfieldNightGarageAmbientByView },
 };
 
 WorldCollisionRoomResources D_dryfield_night_garage_80183404[2] = {
-    { &D_dryfield_night_garage_80183DD4, D_dryfield_night_garage_8018630C, D_dryfield_night_garage_80186D7C, NULL },
+    { &gDryfieldNightGarageEarlyRoomCollisionGrid, D_dryfield_night_garage_8018630C, D_dryfield_night_garage_80186D7C, NULL },
     { D_dryfield_night_garage_801843D4, D_dryfield_night_garage_80186734, D_dryfield_night_garage_8018723C, NULL },
 };
 
-u8 D_dryfield_night_garage_80183424[16] = {
+/// Room 2's mapping from logical views 1..15 to camera, image and sprite indices.
+///
+/// Indexed by view minus one. Views 2/6/7 select file 14 and view 3 selects
+/// file 15; the sixteenth stored zero byte is outside the valid view domain,
+/// rather than a terminator. The room overlay owns this mutable byte map.
+static u8 _gDryfieldNightGarageLateRoomViewMap[] = {
     1,
     14,
     15,
@@ -262,9 +268,9 @@ u8 D_dryfield_night_garage_80183424[16] = {
     0,
 };
 
-u8* D_dryfield_night_garage_80183434[2] = {
+u8* gDryfieldNightGarageViewMaps[2] = {
     gViewIdentityMap,
-    D_dryfield_night_garage_80183424,
+    _gDryfieldNightGarageLateRoomViewMap,
 };
 
 ViewCount D_dryfield_night_garage_8018343C[2] = { 15, 15 };
@@ -274,29 +280,46 @@ DirectionWarpEntry D_dryfield_night_garage_80183440[2] = {
     { { { .word = 2048 }, 912, 0, 7143 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 912, 0, 7143 }, { 0, 0, 0, 0 }, 0x53180002, 0x53180001, 0x53180007, 6, DIRECTION_WARP_FLAG_NONE, 472 },
 };
 
-static SVECTOR _gDryfieldNightGarageCollision06814Normals[40] = {
+/// Room-space unit normals for the early-room collision grid, with 4096 as unit length.
+static SVECTOR _gDryfieldNightGarageEarlyRoomCollisionGridNormals[] = {
 #include "assets/dryfield_night_garage_collision_06814_normals.inc"
 };
 
-static SVECTOR _gDryfieldNightGarageCollision06814Verts[110] = {
+/// Signed game-coordinate vertices for the early-room collision grid.
+static SVECTOR _gDryfieldNightGarageEarlyRoomCollisionGridVerts[] = {
 #include "assets/dryfield_night_garage_collision_06814_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldNightGarageCollision06814Faces[55] = {
+/// Indexed collision faces, including the four leading records replaced by box patches.
+static WorldCollisionGridFace _gDryfieldNightGarageEarlyRoomCollisionGridFaces[] = {
 #include "assets/dryfield_night_garage_collision_06814_faces.inc"
 };
 
-static s16 _gDryfieldNightGarageCollision06814Cells[222] = {
+/// Signed face-index lists for the early-room grid's cells, each terminated by -1.
+static s16 _gDryfieldNightGarageEarlyRoomCollisionGridCells[] = {
 #include "assets/dryfield_night_garage_collision_06814_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightGarageCollision06814Cells[i])
-static s16* _gDryfieldNightGarageCollision06814Table[9] = {
+#define GRID_CELL(i) (&_gDryfieldNightGarageEarlyRoomCollisionGridCells[i])
+/// Nine X-major cell-list pointers for the early-room collision grid.
+static s16* _gDryfieldNightGarageEarlyRoomCollisionGridTable[] = {
 #include "assets/dryfield_night_garage_collision_06814_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_night_garage_80183DD4 = { NULL, _gDryfieldNightGarageCollision06814Normals, _gDryfieldNightGarageCollision06814Verts, _gDryfieldNightGarageCollision06814Faces, _gDryfieldNightGarageCollision06814Table, 150, 0, 3, 3, 4000, 55 };
+WorldCollisionGrid gDryfieldNightGarageEarlyRoomCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldNightGarageEarlyRoomCollisionGridNormals,
+    .vertices    = _gDryfieldNightGarageEarlyRoomCollisionGridVerts,
+    .faces       = _gDryfieldNightGarageEarlyRoomCollisionGridFaces,
+    .cellFaceIds = _gDryfieldNightGarageEarlyRoomCollisionGridTable,
+    .xBias       = 150,
+    .zBias       = 0,
+    .cellCountX  = 3,
+    .cellCountZ  = 3,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldNightGarageEarlyRoomCollisionGridFaces),
+};
 
 static SVECTOR _gDryfieldNightGarageCollision06E14Normals[29] = {
 #include "assets/dryfield_night_garage_collision_06E14_normals.inc"
@@ -342,12 +365,20 @@ ViewCamera D_dryfield_night_garage_801843F8[15] = {
     { { { { 1352, 0, 3866 }, { 657, 4036, -230 }, { -3809, 696, 1332 } }, { -0x294D, 1921, -1936 } }, 257 },
 };
 
-SpriteBatch D_dryfield_night_garage_80184614[2] = {
+/// Empty batch list for mapped view file 1, retaining the decoded background.
+///
+/// The zero-count first record precedes SPRITE_BATCH_END. The source slot
+/// retains this list's address but supplies no source elements.
+static SpriteBatch _gDryfieldNightGarageView1SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_garage_80184624[54] = {
+/// The 54 depth-sorted sprite rectangles for mapped view file 2.
+///
+/// XY and dimensions use screen pixels, UV uses texels, and depth is the
+/// unscaled sorting value. The room owns mutable sources while its overlay lives.
+static SpriteSource _gDryfieldNightGarageView2SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 88, 96, 786, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 96, 96, 618, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 104, 96, 608, { .fields = { 48, 8 } }, 128, 128, 128, 0 },
@@ -404,14 +435,22 @@ SpriteSource D_dryfield_night_garage_80184624[54] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -144, 72, 854, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_garage_80184A5C[4] = {
+/// View-file 2 batches selecting source ranges [0, 48) and [48, 54).
+///
+/// The zero-count first record retains the decoded background; SPRITE_BATCH_END
+/// follows both element ranges. The room owns the mutable list.
+static SpriteBatch _gDryfieldNightGarageView2SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 48, 0, 0, { 1, 0 } },
     { 48, 6, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_garage_80184A7C[52] = {
+/// The 52 depth-sorted sprite rectangles for mapped view file 3.
+///
+/// XY and dimensions use screen pixels, UV uses texels, and depth is the
+/// unscaled sorting value. The room owns mutable sources while its overlay lives.
+static SpriteSource _gDryfieldNightGarageView3SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 32 } }, -80, -24, 1900, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 32 } }, -64, 0, 1620, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 16, -40, 2082, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
@@ -466,7 +505,11 @@ SpriteSource D_dryfield_night_garage_80184A7C[52] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 144, 24, 790, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_garage_80184E8C[7] = {
+/// View-file 3 batches selecting [0, 20), [20, 26), [26, 33), [33, 40) and [40, 52).
+///
+/// The zero-count first record retains the decoded background; SPRITE_BATCH_END
+/// follows all five element ranges. The room owns the mutable list.
+static SpriteBatch _gDryfieldNightGarageView3SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 20, 0, 0, { 0, 0 } },
     { 20, 6, 0, 0, { 3, 0 } },
@@ -476,7 +519,11 @@ SpriteBatch D_dryfield_night_garage_80184E8C[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_garage_80184EC4[21] = {
+/// The 21 depth-sorted sprite rectangles for mapped view file 4.
+///
+/// XY and dimensions use screen pixels, UV uses texels, and depth is the
+/// unscaled sorting value. The room owns mutable sources while its overlay lives.
+static SpriteSource _gDryfieldNightGarageView4SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -96, 0, 857, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -56, 0, 888, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, 8, 823, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
@@ -500,13 +547,21 @@ SpriteSource D_dryfield_night_garage_80184EC4[21] = {
     { 143, 0x3FC0, { .fields = { 8, 40 } }, -96, 56, 912, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_garage_80185068[3] = {
+/// View-file 4 batches selecting its complete 21-element source array.
+///
+/// The zero-count first record retains the decoded background; SPRITE_BATCH_END
+/// follows the source range. The room owns the mutable list.
+static SpriteBatch _gDryfieldNightGarageView4SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 21, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldNightGarageView4SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_garage_80185080[25] = {
+/// The 25 depth-sorted sprite rectangles for mapped view file 5.
+///
+/// XY and dimensions use screen pixels, UV uses texels, and depth is the
+/// unscaled sorting value. The room owns mutable sources while its overlay lives.
+static SpriteSource _gDryfieldNightGarageView5SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -120, -48, 1466, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -112, -48, 1468, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 8 } }, -144, -56, 1438, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
@@ -534,7 +589,11 @@ SpriteSource D_dryfield_night_garage_80185080[25] = {
     { 143, 0x3FC0, { .fields = { 24, 8 } }, 48, -88, 1305, { .fields = { 104, 176 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_garage_80185274[5] = {
+/// View-file 5 batches selecting source ranges [0, 5), [5, 11) and [11, 25).
+///
+/// The zero-count first record retains the decoded background; SPRITE_BATCH_END
+/// follows all three element ranges. The room owns the mutable list.
+static SpriteBatch _gDryfieldNightGarageView5SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 5, 0, 0, { 1, 0 } },
     { 5, 6, 0, 0, { 2, 0 } },
@@ -542,7 +601,11 @@ SpriteBatch D_dryfield_night_garage_80185274[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_garage_8018529C[78] = {
+/// The 78 depth-sorted sprite rectangles for mapped view file 6.
+///
+/// XY and dimensions use screen pixels, UV uses texels, and depth is the
+/// unscaled sorting value. The room owns mutable sources while its overlay lives.
+static SpriteSource _gDryfieldNightGarageView6SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 16, -72, 1097, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 32 } }, 128, 88, 799, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 32 } }, 112, 72, 804, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
@@ -623,13 +686,21 @@ SpriteSource D_dryfield_night_garage_8018529C[78] = {
     { 143, 0x3FC0, { .fields = { 32, 16 } }, 72, -88, 959, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_garage_801858B4[3] = {
+/// View-file 6 batches selecting its complete 78-element source array.
+///
+/// The zero-count first record retains the decoded background; SPRITE_BATCH_END
+/// follows the source range. The room owns the mutable list.
+static SpriteBatch _gDryfieldNightGarageView6SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 78, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldNightGarageView6SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_garage_801858CC[46] = {
+/// The 46 depth-sorted sprite rectangles for mapped view file 7.
+///
+/// XY and dimensions use screen pixels, UV uses texels, and depth is the
+/// unscaled sorting value. The room owns mutable sources while its overlay lives.
+static SpriteSource _gDryfieldNightGarageView7SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 48 } }, -48, -24, 963, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 8 } }, -16, -24, 1035, { .fields = { 40, 144 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, -24, 994, { .fields = { 32, 128 } }, 128, 128, 128, 0 },
@@ -678,19 +749,31 @@ SpriteSource D_dryfield_night_garage_801858CC[46] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, -152, 64, 762, { .fields = { 40, 104 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_garage_80185C64[4] = {
+/// View-file 7 batches selecting source ranges [0, 39) and [39, 46).
+///
+/// The zero-count first record retains the decoded background; SPRITE_BATCH_END
+/// follows both element ranges. The room owns the mutable list.
+static SpriteBatch _gDryfieldNightGarageView7SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 39, 0, 0, { 1, 0 } },
     { 39, 7, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_garage_80185C84[2] = {
+/// Empty batch list for mapped view file 8, retaining the decoded background.
+///
+/// The zero-count first record precedes SPRITE_BATCH_END. The source slot
+/// retains this list's address but supplies no source elements.
+static SpriteBatch _gDryfieldNightGarageView8SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_garage_80185C94[36] = {
+/// The 36 depth-sorted sprite rectangles for mapped view file 9.
+///
+/// XY and dimensions use screen pixels, UV uses texels, and depth is the
+/// unscaled sorting value. The room owns mutable sources while its overlay lives.
+static SpriteSource _gDryfieldNightGarageView9SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 88, 112, 712, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 80, 24 } }, 0, 96, 223, { .fields = { 32, 72 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 16 } }, 80, 24, 812, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
@@ -729,13 +812,21 @@ SpriteSource D_dryfield_night_garage_80185C94[36] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 96, 56, 840, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_garage_80185F64[3] = {
+/// View-file 9 batches selecting its complete 36-element source array.
+///
+/// The zero-count first record retains the decoded background; SPRITE_BATCH_END
+/// follows the source range. The room owns the mutable list.
+static SpriteBatch _gDryfieldNightGarageView9SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 36, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldNightGarageView9SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_garage_80185F7C[2] = {
+/// Empty batch list for mapped view file 10, retaining the decoded background.
+///
+/// The zero-count first record precedes SPRITE_BATCH_END. The source slot
+/// retains this list's address but supplies no source elements.
+static SpriteBatch _gDryfieldNightGarageView10SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
@@ -805,16 +896,16 @@ SpriteBatch D_dryfield_night_garage_80186240[3] = {
 };
 
 SpriteView D_dryfield_night_garage_80186258[15] = {
-    { { .empty = D_dryfield_night_garage_80184614 }, D_dryfield_night_garage_80184614, NULL },
-    { { .elements = D_dryfield_night_garage_80184624 }, D_dryfield_night_garage_80184A5C, NULL },
-    { { .elements = D_dryfield_night_garage_80184A7C }, D_dryfield_night_garage_80184E8C, NULL },
-    { { .elements = D_dryfield_night_garage_80184EC4 }, D_dryfield_night_garage_80185068, NULL },
-    { { .elements = D_dryfield_night_garage_80185080 }, D_dryfield_night_garage_80185274, NULL },
-    { { .elements = D_dryfield_night_garage_8018529C }, D_dryfield_night_garage_801858B4, NULL },
-    { { .elements = D_dryfield_night_garage_801858CC }, D_dryfield_night_garage_80185C64, NULL },
-    { { .empty = D_dryfield_night_garage_80185C84 }, D_dryfield_night_garage_80185C84, NULL },
-    { { .elements = D_dryfield_night_garage_80185C94 }, D_dryfield_night_garage_80185F64, NULL },
-    { { .empty = D_dryfield_night_garage_80185F7C }, D_dryfield_night_garage_80185F7C, NULL },
+    { { .empty = _gDryfieldNightGarageView1SpriteBatches }, _gDryfieldNightGarageView1SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightGarageView2SpriteSources }, _gDryfieldNightGarageView2SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightGarageView3SpriteSources }, _gDryfieldNightGarageView3SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightGarageView4SpriteSources }, _gDryfieldNightGarageView4SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightGarageView5SpriteSources }, _gDryfieldNightGarageView5SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightGarageView6SpriteSources }, _gDryfieldNightGarageView6SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightGarageView7SpriteSources }, _gDryfieldNightGarageView7SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightGarageView8SpriteBatches }, _gDryfieldNightGarageView8SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightGarageView9SpriteSources }, _gDryfieldNightGarageView9SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightGarageView10SpriteBatches }, _gDryfieldNightGarageView10SpriteBatches, NULL },
     { { .empty = D_dryfield_night_garage_80185F8C }, D_dryfield_night_garage_80185F8C, NULL },
     { { .elements = D_dryfield_night_garage_80185F9C }, D_dryfield_night_garage_80186168, NULL },
     { { .empty = D_dryfield_night_garage_80186180 }, D_dryfield_night_garage_80186180, NULL },
@@ -963,8 +1054,17 @@ static WorldCoordPointLight _gDryfieldNightGaragePointLights[] = {
     },
 };
 
-WorldCoordRoomLights D_dryfield_night_garage_80186D64[1] = {
-    { 0, NULL, ARRAY_SIZE(_gDryfieldNightGaragePointLights), _gDryfieldNightGaragePointLights, 0, NULL },
+/// One seven-point-light collection shared by both night-garage room entries.
+///
+/// There are no directional or cone lights. The room overlay owns the record
+/// and mutable point-light array; coordinate and lighting queries borrow them.
+static WorldCoordRoomLights _gDryfieldNightGarageRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gDryfieldNightGaragePointLights),
+    .pointLights           = _gDryfieldNightGaragePointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 WorldCollisionTrigger D_dryfield_night_garage_80186D7C[16] = {
@@ -1032,8 +1132,14 @@ AreaVariant D_dryfield_night_garage_801874BC[12] = {
     { NULL, NULL },
 };
 
-WorldCoordRoomAmbientEntry D_dryfield_night_garage_8018751C[16] = {
-    { .viewCount = ARRAY_SIZE(D_dryfield_night_garage_8018751C) - 1 },
+/// Ambient minima for logical views 1..15, shared by both night-garage rooms.
+///
+/// Entry zero is the count; each following RGB/luma entry is indexed by the
+/// logical view, independently of its image remap. RGB uses 16 units per 8-bit
+/// colour level. Views 4 and 6 have minima 200 and 140; all others have 16.
+/// Lighting borrows this room-owned table while the overlay is loaded.
+static WorldCoordRoomAmbientEntry _gDryfieldNightGarageAmbientByView[16] = {
+    { .viewCount = ARRAY_SIZE(_gDryfieldNightGarageAmbientByView) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 16, 16, 16, 16 } },
@@ -1051,29 +1157,48 @@ WorldCoordRoomAmbientEntry D_dryfield_night_garage_8018751C[16] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-WorldCollisionFootstepSounds D_dryfield_night_garage_8018759C = {
-    0x10000051,
-    0x10000053,
-    0x10000051,
+enum {
+    DRYFIELD_NIGHT_GARAGE_CLASS1_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x51,
+    DRYFIELD_NIGHT_GARAGE_CLASS1_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x53,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_garage_801875A8[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Surface class 1's walk/run cue bases; scripted jumping uses the walk pair.
+///
+/// Type-1 requests select the loaded bank. These are cue-2 bases; cue 1 adds
+/// one and companion playback adds 100. The room overlay owns this borrowed data.
+static WorldCollisionFootstepSounds _gDryfieldNightGarageClass1FootstepSounds = {
+    .walk         = DRYFIELD_NIGHT_GARAGE_CLASS1_WALK_SOUND,
+    .run          = DRYFIELD_NIGHT_GARAGE_CLASS1_RUN_SOUND,
+    .scriptedJump = DRYFIELD_NIGHT_GARAGE_CLASS1_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_garage_801875B0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_garage_8018759C },
+/// Solid policy shared by classes 0 and 2..7, with no surface footstep cues.
+static WorldCollisionSurfaceProperties _gDryfieldNightGarageSilentSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_night_garage_801875B8[8] = {
-    D_dryfield_night_garage_801875A8,
-    D_dryfield_night_garage_801875B0,
-    D_dryfield_night_garage_801875A8,
-    D_dryfield_night_garage_801875A8,
-    D_dryfield_night_garage_801875A8,
-    D_dryfield_night_garage_801875A8,
-    D_dryfield_night_garage_801875A8,
-    D_dryfield_night_garage_801875A8,
+/// Solid policy for class 1, borrowing the room's walk/run footstep cue bases.
+static WorldCollisionSurfaceProperties _gDryfieldNightGarageClass1Surface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldNightGarageClass1FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gDryfieldNightGarageSurfacePropertiesByClass[8] = {
+    &_gDryfieldNightGarageSilentSurface,
+    &_gDryfieldNightGarageClass1Surface,
+    &_gDryfieldNightGarageSilentSurface,
+    &_gDryfieldNightGarageSilentSurface,
+    &_gDryfieldNightGarageSilentSurface,
+    &_gDryfieldNightGarageSilentSurface,
+    &_gDryfieldNightGarageSilentSurface,
+    &_gDryfieldNightGarageSilentSurface,
 };
 
 AreaApplyRec D_dryfield_night_garage_801875D8[18] = {

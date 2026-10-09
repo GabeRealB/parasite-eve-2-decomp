@@ -28,7 +28,16 @@ extern EvsCommand D_dryfield_night_garage_80182DF8[40];
 
 extern EvsCommand D_dryfield_night_garage_801831B8[19];
 
-extern WorldCollisionGrid D_dryfield_night_garage_80183DD4;
+/// Room 1's writable collision mesh and XZ cell index for the night garage.
+///
+/// Contains 55 faces, 40 normals, 110 vertices and nine X-major cells. Cell
+/// coordinates use (X + 150) / 4000 and Z / 4000 in game-coordinate units.
+/// The first four faces/normals and eight vertices are reserved for the low or
+/// tall collision box; room scripts replace them without rebuilding cell lists.
+/// Activation borrows the current view coordinate. The descriptor and pools
+/// must remain live while active or edited, including edits made while room 2
+/// selects its separate grid.
+extern WorldCollisionGrid gDryfieldNightGarageEarlyRoomCollisionGrid;
 
 extern WorldCollisionTrigger D_dryfield_night_garage_80186D7C[16];
 

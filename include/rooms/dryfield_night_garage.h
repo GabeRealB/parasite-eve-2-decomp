@@ -17,12 +17,22 @@ extern TaskDesc D_dryfield_night_garage_80181C2C;
 
 extern AreaVariant D_dryfield_night_garage_801874BC[12];
 
-// dryfield_night_garage
-extern WorldCoordRoomLighting D_dryfield_night_garage_801833F4[];
+/// Lighting for night-garage rooms 1 and 2, indexed by room ID minus one.
+///
+/// Both entries borrow the same seven point lights and logical-view ambient
+/// minima. The records and their resources remain valid while this room overlay
+/// is loaded; light transforms and attenuation are writable query state.
+extern WorldCoordRoomLighting gDryfieldNightGarageRoomLighting[2];
 
 extern WorldCollisionRoomResources D_dryfield_night_garage_80183404[];
 
-extern u8* D_dryfield_night_garage_80183434[];
+/// Logical-view maps for night-garage rooms 1 and 2, indexed by room ID minus one.
+///
+/// Each map accepts views 1..15 at index view minus one and returns a 1-based
+/// camera, background-file and sprite-view index. Room 1 borrows gameplay's
+/// identity map; room 2 remaps several views to alternate images. The directory
+/// and room-2 map require the room overlay to remain loaded.
+extern u8* gDryfieldNightGarageViewMaps[2];
 
 extern ViewCount D_dryfield_night_garage_8018343C[];
 
@@ -32,7 +42,13 @@ extern ViewCamera D_dryfield_night_garage_801843F8[];
 
 extern SpriteView D_dryfield_night_garage_80186258[];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_night_garage_801875B8[];
+/// Collision policies for the night garage's eight surface classes, indexed 0..7.
+///
+/// Every class blocks probes and permits weapon impacts and pushback. Class 1
+/// supplies footstep cues; classes 0 and 2..7 share a silent policy. Both room
+/// grids use this directory. The borrowed records and sound data remain valid
+/// only while the room overlay is loaded.
+extern WorldCollisionSurfaceProperties* gDryfieldNightGarageSurfacePropertiesByClass[8];
 
 /// Places the low collision box in the live night-garage mesh.
 ///

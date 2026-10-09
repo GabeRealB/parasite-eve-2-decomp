@@ -556,7 +556,7 @@ void dryfieldNightGaragePlaceLowCollisionBox(s32 useFarPosition)
     SVECTOR                   offset;
     s32                       vertexIndex;
 
-    liveGrid    = &D_dryfield_night_garage_80183DD4;
+    liveGrid    = &gDryfieldNightGarageEarlyRoomCollisionGrid;
     boxTemplate = &D_dryfield_night_garage_80181D7C;
 
     _dryfieldNightGarageCopyCollisionBox(liveGrid, boxTemplate);
@@ -592,7 +592,7 @@ static void _dryfieldNightGarageResetTallCollisionBox(s32 useYOffset)
     SVECTOR                   offset;
     s32                       vertexIndex;
 
-    liveGrid    = &D_dryfield_night_garage_80183DD4;
+    liveGrid    = &gDryfieldNightGarageEarlyRoomCollisionGrid;
     boxTemplate = &D_dryfield_night_garage_80181E40;
 
     _dryfieldNightGarageCopyCollisionBox(liveGrid, boxTemplate);
