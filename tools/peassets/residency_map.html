@@ -14,6 +14,7 @@
   --bg: #10181c; --panel: #162126; --ink: #dfe8ea; --muted: #8fa3aa; --line: #2c3c43; --grid: #1f2d33;
   --accent: #56c0cf; --accent-soft: #173940; --clash: #f08a6e; --clut: #e0bd62; color-scheme: dark }
 body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.45; }
+#one { display: flex; flex-direction: column; gap: 16px; }
 .wrap { max-width: 1500px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 40px; display: flex; flex-direction: column; gap: 16px; }
 h1 { font-size: 20px; font-weight: 600; margin: 0; text-wrap: balance; }
 .lede { color: var(--muted); max-width: 70ch; margin: 4px 0 0; }
@@ -53,13 +54,36 @@ table { border-collapse: collapse; width: 100%; font: 12px var(--mono); font-var
 th { text-align: left; font: 500 11px var(--sans); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 6px 12px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--panel); }
 td { padding: 4px 12px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
 tr.hot td { background: var(--accent-soft); } tr.clash td:first-child { color: var(--clash); }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); }
+.tabs button { font: 500 13px var(--sans); color: var(--muted); background: none; border: 1px solid transparent; border-bottom: none; border-radius: 3px 3px 0 0; padding: 7px 14px; cursor: pointer; margin-bottom: -1px; }
+.tabs button[aria-selected="true"] { color: var(--ink); background: var(--panel); border-color: var(--line); }
+#matrix { display: block; }
+#matrix text { font: 10px var(--mono); fill: var(--ink); }
+#matrix .stage { font: 500 10px var(--sans); letter-spacing: .06em; text-transform: uppercase; fill: var(--muted); }
+#matrix .band { fill: var(--grid); fill-opacity: .5; }
+#matrix .cell { fill: var(--accent); cursor: pointer; }
+#matrix .cell.few { fill-opacity: .45; }
+#matrix .cross { fill: var(--accent-soft); }
+#matrix .rl, #matrix .cl { cursor: pointer; }
+#matrix .lit { fill: var(--accent); font-weight: 500; }
+.readout { font: 12px var(--mono); color: var(--muted); padding: 8px 12px; border-bottom: 1px solid var(--line); min-height: 18px; }
 .note { color: var(--muted); font-size: 12px; max-width: 80ch; }
 </style>
 <div class="wrap">
   <header>
     <h1>PE2 Residency Map</h1>
-    <p class="lede">Pick an overlay to see which disc files it brings into memory, and where their images and palettes land in video memory. Solid edges always load; dashed edges load under a condition. Select a view and an enemy variant to see what is resident together.</p>
+    <p class="lede">Which overlay loads which, and for one overlay, the disc files it brings into memory and where their images and palettes land in video memory. Solid edges always load; dashed edges load under a condition.</p>
   </header>
+  <div class="tabs" role="tablist">
+    <button id="tab-all" role="tab" aria-selected="false">All overlays</button>
+    <button id="tab-one" role="tab" aria-selected="true">One overlay</button>
+  </div>
+  <section class="panel" id="all" hidden>
+    <h2><span>Which overlay loads which</span><span id="allfacts"></span></h2>
+    <div class="readout" id="readout">Rows are the overlays that load others (rooms); columns are the overlays they load (actors). Hover a cell; click it to open that room with that enemy variant.</div>
+    <div class="scroll" style="max-height:none"><svg id="matrix" xmlns="http://www.w3.org/2000/svg"></svg></div>
+  </section>
+  <div id="one">
   <div class="bar">
     <label for="loader">Overlay<input id="loader" list="loaders" autocomplete="off" spellcheck="false" size="34"></label>
     <datalist id="loaders"></datalist>
@@ -80,6 +104,7 @@ tr.hot td { background: var(--accent-soft); } tr.clash td:first-child { color: v
       </div>
       <div class="scroll" style="max-height:300px"><table><thead><tr><th>Asset</th><th>At</th><th>Size</th><th>Depth</th><th>Loaded by</th><th>File</th></tr></thead><tbody id="rows"></tbody></table></div>
     </section>
+  </div>
   </div>
   <p class="note">View edges assume file N of a room's folder is view N, which holds for rooms that use the identity view map. Variant edges come from each room's placement and resource tables, with the page and row offsets the placement loads the file with; a rectangle is drawn where it lands after those offsets. Not yet in the graph: stage-common files, gameplay's own loads (weapons, menus, companions) and uploads done by code.</p>
 </div>
@@ -163,9 +188,52 @@ function pick(name, keep) {
   $("loader").value = name; try { history.replaceState(null, "", "#" + name); } catch (e) {}
   render();
 }
+// All overlays: one row per overlay that loads another, one column per overlay loaded.
+const edges = new Map();                  // "loader|loaded" -> {conds, offsets}
+for (const loader of names) for (const g of D.loaders[loader]) for (const [f, page, row] of g[3]) {
+  const loaded = D.pkg[f]; if (!loaded || loaded === loader) continue;
+  const key = loader + "|" + loaded, e = edges.get(key) || { loader, loaded, conds: [], offs: new Set() };
+  e.conds.push(g[1]); e.offs.add(`${page >= 0 ? "+" : ""}${page}/${row >= 0 ? "+" : ""}${row}`); edges.set(key, e);
+}
+const home = n => { const g = D.loaders[n].find(g => g[0] === "a"); return g ? D.files[g[3][0][0]] : "9/" + n; };
+const stageOf = n => +home(n).split("/")[0];
+function drawMatrix() {
+  const svg = $("matrix"); if (svg.childNodes.length) return;
+  const rows = [...new Set([...edges.values()].map(e => e.loader))].sort((a, b) => stageOf(a) - stageOf(b) || a.localeCompare(b));
+  const first = {}; [...edges.values()].forEach(e => { const r = rows.indexOf(e.loader); if (!(e.loaded in first) || r < first[e.loaded]) first[e.loaded] = r; });
+  const cols = Object.keys(first).sort((a, b) => first[a] - first[b] || a.localeCompare(b));
+  const c = 10, left = 230, top = 96, W = left + cols.length * c + 12, H = top + rows.length * c + 12;
+  svg.setAttribute("width", W); svg.setAttribute("height", H); svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const back = el("g", {}), cross = el("g", {}), front = el("g", {}); svg.append(back, cross, front);
+  const hx = el("rect", { class: "cross", x: left, width: cols.length * c, height: c, y: -99 }), vx = el("rect", { class: "cross", y: top, width: c, height: rows.length * c, x: -99 }); cross.append(hx, vx);
+  let prev = null; const rl = [], cl = [];
+  rows.forEach((r, i) => {
+    const st = stageOf(r);
+    if (st !== prev) { back.append(el("rect", { class: "band", x: 0, y: top + i * c, width: W, height: 1 })); front.append(el("text", { class: "stage", x: 4, y: top + i * c + 9 }, "stage " + st)); prev = st; }
+    const t = el("text", { class: "rl", x: left - 6, y: top + i * c + 8, "text-anchor": "end" }, r); t.addEventListener("click", () => open(r)); rl.push(t); front.append(t);
+  });
+  cols.forEach((n, j) => { const t = el("text", { class: "cl", transform: `translate(${left + j * c + 8},${top - 5}) rotate(-90)` }, n.replace("actor_", "")); t.addEventListener("click", () => open(n)); cl.push(t); front.append(t); });
+  for (const e of edges.values()) {
+    const i = rows.indexOf(e.loader), j = cols.indexOf(e.loaded), n = new Set(e.conds).size;
+    const r = el("rect", { class: "cell" + (n < 2 ? " few" : ""), x: left + j * c + 1, y: top + i * c + 1, width: c - 2, height: c - 2 });
+    const say = `${e.loader} loads ${e.loaded} · ${[...new Set(e.conds)].join(", ")} · page/row offsets ${[...e.offs].join(", ")}`;
+    r.addEventListener("mouseenter", () => { hx.setAttribute("y", top + i * c); vx.setAttribute("x", left + j * c); rl.forEach((t, k) => t.classList.toggle("lit", k === i)); cl.forEach((t, k) => t.classList.toggle("lit", k === j)); $("readout").textContent = say; });
+    r.addEventListener("click", () => { open(e.loader); const v = e.conds.find(x => x.startsWith("variant")); if (v) { $("variant").value = v; render(); } });
+    r.append(el("title", {}, say)); front.append(r);
+  }
+  $("allfacts").textContent = `${rows.length} loaders × ${cols.length} loaded · ${edges.size} edges`;
+}
+function tab(which) {
+  $("all").hidden = which !== "all"; $("one").hidden = which === "all";
+  $("tab-all").setAttribute("aria-selected", which === "all"); $("tab-one").setAttribute("aria-selected", which !== "all");
+  if (which === "all") { drawMatrix(); try { history.replaceState(null, "", "#all"); } catch (e) {} } else if (cur) { try { history.replaceState(null, "", "#" + cur.name); } catch (e) {} }
+}
+function open(name) { tab("one"); pick(name); }
+$("tab-all").addEventListener("click", () => tab("all")); $("tab-one").addEventListener("click", () => tab("one"));
 $("loader").addEventListener("change", e => pick(e.target.value.trim()));
 $("loader").addEventListener("input", e => { if (D.loaders[e.target.value]) pick(e.target.value); });
 $("view").addEventListener("change", render); $("variant").addEventListener("change", render);
 const start = location.hash.slice(1);
 pick(D.loaders[start] ? start : "shelter_b3_dumping_hole");
+if (!start || start === "all") tab("all");
 </script>

@@ -229,7 +229,8 @@ def page_data(db: sqlite3.Connection) -> str:
     for r in db.execute("SELECT * FROM footprint"):
         if index[r["file"]] in used:
             footprint[index[r["file"]]].append([r["asset"], r["kind"][0], r["part"], r["x"], r["y"], r["w"], r["h"], r["bpp"] or 0])
-    return json.dumps({"files": files, "fp": footprint, "loaders": loaders}, separators=(",", ":")).replace("</", "<\\/")
+    carried = {index[r["path"]]: r["package"] for r in db.execute("SELECT path, package FROM file WHERE package IS NOT NULL")}
+    return json.dumps({"files": files, "fp": footprint, "loaders": loaders, "pkg": carried}, separators=(",", ":")).replace("</", "<\\/")
 
 
 def write_page(db: sqlite3.Connection, out: Path, bare: bool) -> None:
