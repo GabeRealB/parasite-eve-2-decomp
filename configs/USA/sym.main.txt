@@ -2460,15 +2460,15 @@ _freep                      = 0x8005ED90;
 //--- PA: 0x4F5A0   VA: 0x8005EDA0   subsegment: data
 //--------------------------------------------------------------------
 gTaskDescBanks              = 0x8005EF74; // size:0x3C
-Mc_PromptTable              = 0x80060D08; // type:McPromptPair
-Mc_FileName                 = 0x80060DD8;
-Mc_FileNameBuf              = 0x80060DF0;
-Mc_GlyphsUpper              = 0x80060E48;
-Mc_GlyphsLower              = 0x80060E80;
-Mc_GlyphsSymbol             = 0x80060EB8;
-Mc_DefaultChecksumSrc       = 0x80060EFC;
+_gMcPrompts              = 0x80060D08; // type:McPromptPair
+_gMcFileName                 = 0x80060DD8;
+_gMcSavedFileName              = 0x80060DF0;
+_gMcTitleUppercaseGlyphs              = 0x80060E48;
+_gMcTitleLowercaseGlyphs              = 0x80060E80;
+_gMcTitleSymbolGlyphs             = 0x80060EB8;
+_gMcFileHeader       = 0x80060EFC;
 Mc_SaveHeaderBody           = 0x80060F00;
-Mc_BufferSlots              = 0x800610FC; // size:0x6C
+_gMcSaveSections              = 0x800610FC; // size:0x6C
 
 //--------------------------------------------------------------------
 //--- PA: 0x51B4C   VA: 0x8006134C   subsegment: o, libgte/sqrtbl
@@ -2854,7 +2854,7 @@ Gfx_ViewOffsetCoord         = 0x80070E90; // type:GfxCoord size:0x50
 gPadConfirmButtonMask             = 0x8005ED70;
 gPadCancelButtonMask              = 0x8005ED74;
 Pad_MaskMenu                = 0x8005ED78;
-Mc_StrMemoryCard            = 0x8001398C;
+_gMcDialogTitle            = 0x8001398C;
 
 // Globals naming pass 2
 Display_PendingFlip         = 0x8005EC70;
@@ -2894,8 +2894,8 @@ CdAudio_DriveFns            = 0x80068B34;
 Stage_TaskStates            = 0x80013F1C;
 GameFlow_States5            = 0x800134BC;
 GameFlow_States3            = 0x800134D0;
-Mc_FileSelectStates         = 0x80013ACC;
-Mc_PromptStates             = 0x800139AC;
+_gMcLoadDialogStates         = 0x80013ACC;
+_gMcSaveDialogStates             = 0x800139AC;
 _gTmdReleaseBufferTaskStates              = 0x80013EDC;
 Ui_ObjectStates             = 0x80013F2C;
 gMcPreviewNightmareLabel = 0x80013B7C;
@@ -2969,15 +2969,15 @@ Fs_Stage0HeaderName = 0x80013304;
 
 Fs_InitBitstreamName = 0x80013310;
 
-McText_NewBlock = 0x80060A48;
+_gMcTextNewBlock = 0x80060A48;
 
-McText_Yes = 0x80060A54;
+gMcTextYes = 0x80060A54;
 
-McText_No = 0x80060A58;
+gMcTextNo = 0x80060A58;
 
-McText_Cancel = 0x80060A5C;
+gMcTextCancel = 0x80060A5C;
 
-McText_Ok = 0x80060A64;
+gMcTextOk = 0x80060A64;
 
 _gMcTextEmpty = 0x80060A68;
 
@@ -3035,15 +3035,15 @@ _gMcTextSaveCorrupted = 0x80060CA0;
 
 _gMcTextCannotLoadData = 0x80060CB8;
 
-McText_LoadAbortedCorrupted = 0x80060CCC;
+_gMcTextLoadAbortedCorrupted = 0x80060CCC;
 
 McText_SlotCorrupted = 0x80060CF0;
 
-Mc_SaveFilePattern = 0x80060DC8;
+_gMcSaveFileNamePattern = 0x80060DC8;
 
-Mc_FileNameAlphabet = 0x80060E08;
+_gMcFileNameSuffixAlphabet = 0x80060E08;
 
-McText_CloseParen = 0x800139A8;
+_gMcTextCloseParen = 0x800139A8;
 
 _gMcMenuSelectLabel = 0x80013B64;
 
@@ -3183,25 +3183,25 @@ SndScript_VoiceRanges = 0x80068A7C;
 
 Spu_InitialAdpcmBlock = 0x80068184;
 
-Mc_MenuWork = 0x80071730;
+_gMcDialogWork = 0x80071730;
 
-Mc_LastRandomValue = 0x80073C08;
+_gMcSaveDialogRandomSample = 0x80073C08;
 
-Mc_ModeLabels = 0x800611B8;
+_gMcPreviewModeLabels = 0x800611B8;
 
-Mc_SaveSlotCallbacks = 0x80061168;
+_gMcLoadFileRowCallbacks = 0x80061168;
 
-Mc_SaveSlotList = 0x8006116C;
+gMcLoadFileList = 0x8006116C;
 
-Mc_LoadSlotCallbacks = 0x80061190;
+_gMcSaveFileRowCallbacks = 0x80061190;
 
-Mc_LoadSlotList = 0x80061194;
+gMcSaveFileList = 0x80061194;
 
-Mc_TaskDescriptors = 0x800611C8;
+gMcDialogDescriptors = 0x800611C8;
 
-Mc_SaveListDesc = 0x80061200;
+_gMcLoadFileListDescriptors = 0x80061200;
 
-Mc_LoadListDescriptors = 0x8006121C;
+_gMcSaveFileListDescriptors = 0x8006121C;
 
 _gMcMenuYesNoRowCallbacks = 0x80061254;
 
@@ -3265,7 +3265,7 @@ Snd_SequenceBankBuffer = 0x8007E0D4; // size:0x4
 gGameFlagNibbleBanks = 0x80073980; // size:0x200
 gGameFlagAcropolisBanks = 0x800733F0; // size:0xD8
 gGameFlagDryfieldBanks = 0x800734C8; // size:0x160
-GameFlag_DryfieldFullBanks = 0x80073628; // size:0x48
+gGameFlagDryfieldNightBanks = 0x80073628; // size:0x48
 gGameFlagMineShelterBanks = 0x80073670; // size:0x1C8
 gGameFlagNeoArkBanks = 0x80073838; // size:0x148
 Gp_FlagBanks = 0x80060A30; // size:0x18

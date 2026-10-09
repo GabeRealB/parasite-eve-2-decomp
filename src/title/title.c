@@ -508,8 +508,8 @@ void titleRestoreAttractDemoState(void)
     memcpy(gGameFlagDryfieldBanks, stateBytes, sizeof(gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE]));
     stateBytes += sizeof(gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE]);
 
-    memcpy(GameFlag_DryfieldFullBanks, stateBytes, sizeof(GameFlag_DryfieldFullBanks[0]));
-    stateBytes += sizeof(GameFlag_DryfieldFullBanks[0]);
+    memcpy(gGameFlagDryfieldNightBanks, stateBytes, sizeof(gGameFlagDryfieldNightBanks[GAME_FLAG_STAGE_BANK_LIVE]));
+    stateBytes += sizeof(gGameFlagDryfieldNightBanks[GAME_FLAG_STAGE_BANK_LIVE]);
 
     // Keep the byte stride's first shift before the bank-base address load.
     bankTimesEight       = bank * 8;

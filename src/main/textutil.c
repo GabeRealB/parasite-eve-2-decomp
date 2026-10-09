@@ -87,7 +87,7 @@ GameFlagStageHeader* Gp_FlagBanks[] = {
     NULL,
     &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].header,
     &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].header,
-    &GameFlag_DryfieldFullBanks[0].header,
+    &gGameFlagDryfieldNightBanks[GAME_FLAG_STAGE_BANK_LIVE].header,
     &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].header,
     &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].header,
 };

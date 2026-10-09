@@ -782,8 +782,6 @@ static u8 Telephone_Data_80181BD0[];
 
 static u8 Telephone_Data_80181C08[];
 
-extern UiObjectDesc D_800611E4;
-
 /// Lists of the usage panel and of the play-data menu, and the descriptor of
 /// the frame the usage panel spawns.
 static UiList Telephone_Data_80181C6C;

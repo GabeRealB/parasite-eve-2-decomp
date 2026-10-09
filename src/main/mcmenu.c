@@ -187,7 +187,7 @@ void mcMenuUpdateLoadFileList(Task* owningTask)
     UiList*   fileList;
 
     listObject = owningTask->spawnArg2.pointer;
-    fileList   = &Mc_SaveSlotList;
+    fileList   = &gMcLoadFileList;
     uiDrawPanelLabel(&listObject->panel, _gMcMenuSelectLabel);
     if (owningTask->state == MEMORY_CARD_MENU_LOAD_LIST_INITIAL) {
         uiInitList(fileList, &listObject->panel);
@@ -263,7 +263,7 @@ void mcMenuUpdateSaveFileList(Task* owningTask)
 
     listObject = owningTask->spawnArg2.pointer;
     dialogWork = owningTask->spawnArg1.pointer;
-    fileList   = &Mc_LoadSlotList;
+    fileList   = &gMcSaveFileList;
     uiDrawPanelLabel(&listObject->panel, _gMcMenuSelectLabel);
     if (owningTask->state == MEMORY_CARD_MENU_SAVE_LIST_INITIAL) {
         uiInitList(fileList, &listObject->panel);
@@ -297,9 +297,9 @@ void mcMenuUpdateFileInformation(Task* owningTask)
     dialogWork = owningTask->spawnArg1.pointer;
     uiDrawTitle(&informationObject->panel, "File Information");
     if (owningTask->killCountdown == MEMORY_CARD_MENU_FILE_INFORMATION_SAVE_LIST) {
-        fileList = &Mc_LoadSlotList;
+        fileList = &gMcSaveFileList;
     } else {
-        fileList = &Mc_SaveSlotList;
+        fileList = &gMcLoadFileList;
     }
     directoryIndex = fileList->selectedItemIndex;
     mcDrawFilePreview(informationObject, dialogWork, directoryIndex, 0, 0);
@@ -333,7 +333,7 @@ static inline void _mcMenuPublishAnswer(UiObject* object, s16 answer, s32 soundS
 /// when both buttons are pressed. The parent closes the prompt after an answer.
 static void _mcMenuYesRow(UiList* list, UiObject* object)
 {
-    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, McText_Yes, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, gMcTextYes, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             _mcMenuPublishAnswer(object, MEMORY_CARD_MENU_ANSWER_SELECTED, SOUND_SYSTEM_CONFIRM);
@@ -353,7 +353,7 @@ static void _mcMenuYesRow(UiList* list, UiObject* object)
 /// and plays the confirm sound. Cancel is ignored; the parent closes the notice.
 static void _mcMenuOkRow(UiList* list, UiObject* object)
 {
-    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, McText_Ok, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, gMcTextOk, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             _mcMenuPublishAnswer(object, MEMORY_CARD_MENU_ANSWER_SELECTED, SOUND_SYSTEM_CONFIRM);
@@ -369,7 +369,7 @@ static void _mcMenuOkRow(UiList* list, UiObject* object)
 /// the selected action and closes the prompt.
 static void _mcMenuCancelRow(UiList* list, UiObject* object)
 {
-    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, McText_Cancel, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, gMcTextCancel, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             _mcMenuPublishAnswer(object, MEMORY_CARD_MENU_ANSWER_SELECTED, SOUND_SYSTEM_CANCEL);
@@ -384,7 +384,7 @@ static void _mcMenuCancelRow(UiList* list, UiObject* object)
 /// and publishes a confirm outcome carrying -1. The parent closes the prompt.
 static void _mcMenuNoRow(UiList* list, UiObject* object)
 {
-    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, McText_No, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, gMcTextNo, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0) {
             _mcMenuPublishAnswer(object, MEMORY_CARD_MENU_ANSWER_NO, SOUND_SYSTEM_CANCEL);

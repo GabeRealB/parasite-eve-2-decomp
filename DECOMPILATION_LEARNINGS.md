@@ -12085,7 +12085,7 @@ if (arg0 == 0) {
 }
 ```
 
-`if (index != 0)` swaps the arms and GCC emits `beqz` with the non-zero path as fall-through — same code, inverted control flow, large score drop. `_mcCopyCardFileName` is a short example (copy between `Mc_FileName` / `Mc_FileNameBuf`).
+`if (index != 0)` swaps the arms and GCC emits `beqz` with the non-zero path as fall-through — same code, inverted control flow, large score drop. `_mcCopyCardFileName` is a short example (copy between `_gMcFileName` / `_gMcSavedFileName`).
 
 **`return` in the `== 0` arm defeats this.** GCC sinks return blocks to the
 function end and rewrites the test as `beqz` → exit, with the continue path as
@@ -12753,9 +12753,9 @@ gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.bufferChecksum = next;
 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.bufferChecksumComplement = ~next;
 ```
 
-Also keep an intermediate `base = Mc_BufferSlots; p = base + 1;` so the address
-forms as `addiu v0, %lo(Mc_BufferSlots)` then `addiu a0, v0, 0xC` rather than a
-folded `%lo(Mc_BufferSlots+0xC)`. `_mcWriteLiveSectionChecksumSummary` is the pure example; its verify
+Also keep an intermediate `base = _gMcSaveSections; p = base + 1;` so the address
+forms as `addiu v0, %lo(_gMcSaveSections)` then `addiu a0, v0, 0xC` rather than a
+folded `%lo(_gMcSaveSections+0xC)`. `_mcWriteLiveSectionChecksumSummary` is the pure example; its verify
 sibling `_mcCheckSectionChecksumSummary` uses a plain `s32 sum` and different scheduling.
 
 ## Statement order picks which local reuses `$a1`
@@ -13301,7 +13301,7 @@ while (j < (u32)size) {
 }
 ```
 
-`_mcBackupLiveSaveSections` is the pure example (`Mc_BufferSlots[1..8]` live records copied to adjacent backups).
+`_mcBackupLiveSaveSections` is the pure example (`_gMcSaveSections[1..8]` live records copied to adjacent backups).
 
 ## Switch result phi via `temp` + goto join
 
@@ -14602,8 +14602,8 @@ temp->field_2 = inv - sum;  /* subu v0, t2, sum */
 temp->field_0 = sum;
 ```
 
-Also form the slot pointer as `base = Mc_BufferSlots; p = base + 1;` (not
-`p = Mc_BufferSlots + 1`) so the address is `addiu v0, %lo(...)` then
+Also form the slot pointer as `base = _gMcSaveSections; p = base + 1;` (not
+`p = _gMcSaveSections + 1`) so the address is `addiu v0, %lo(...)` then
 `addiu t0, v0, 0xC` rather than a folded `%lo(+0xC)`.
 
 For the per-slot size path that does `lw a1, 4(p); addiu a1, a1, -4`, split
@@ -14619,7 +14619,7 @@ count = count - 4;
 count registers. If sum ends up correct in `$a2` but the loop index and count
 are swapped (`$a1`/`$a0`), pin the index: `register u32 j asm("a0")`.
 
-`_mcWriteLiveSaveSectionChecksums` is the pure example (batch write over `Mc_BufferSlots[1..8]`;
+`_mcWriteLiveSaveSectionChecksums` is the pure example (batch write over `_gMcSaveSections[1..8]`;
 contrast `_mcWriteRecordChecksum` which uses `~sum` for a single buffer).
 
 ## Signed `/ 2` chain must land in `$a0` via the call argument
@@ -14728,9 +14728,9 @@ src = base[idx].buffer;
 size = base[idx].bytesPerCopy;
 ```
 
-Pair with `base = Mc_BufferSlots` kept live (not `Mc_BufferSlots[idx]` alone) so the
+Pair with `base = _gMcSaveSections` kept live (not `_gMcSaveSections[idx]` alone) so the
 `%lo` address stays in a temp across the loop. `_mcQuerySectionWriteMask` is the pure
-example (reverse walk of `Mc_BufferSlots[8..1]` comparing each live save record
+example (reverse walk of `_gMcSaveSections[8..1]` comparing each live save record
 to its adjacent backup).
 
 `_actor206100SwimWaypointRing` is the version of this where **both** operands come
@@ -14808,7 +14808,7 @@ sum += (s8)*ptr;
 
 an `s32 sum` collapses the cast to a single `lb`. The target often wants the
 longer form (`lbu` / `sll 24` / `sra 24`) that `_mcWriteLiveSaveSectionChecksums` and its verify
-sibling `_mcCheckSaveSectionChecksums` use over `Mc_BufferSlots[1..8]`.
+sibling `_mcCheckSaveSectionChecksums` use over `_gMcSaveSections[1..8]`.
 
 Declare the accumulator `s16`:
 
@@ -16974,7 +16974,7 @@ cond = size;
 if (cond != 0) { /* 0xFF-fill */ }
 ```
 
-`mcResetSaveData` is the pure example (`Mc_BufferSlots[1..8]` live/backup fill + checksum).
+`mcResetSaveData` is the pure example (`_gMcSaveSections[1..8]` live/backup fill + checksum).
 
 ## `asm("")` pins independent zero-init after a load
 
@@ -17966,7 +17966,7 @@ arg0->field_30 = next;
 ```
 
 Symptom with the `next` form: case bodies that free `$a0` (e.g. after
-`lui/addiu a0, %hi/%lo(Mc_BufferSlots)`) allocate `next` to `$a0`. The target
+`lui/addiu a0, %hi/%lo(_gMcSaveSections)`) allocate `next` to `$a0`. The target
 wants the phi value in `$v0` (`li v0,K` / `sw v0, field_30`), and the early
 `li a0,K` also steals the load-delay slot that the target fills with `nop`
 between `lw v0,8(v0)` and `addu`.
@@ -18135,7 +18135,7 @@ Match by writing the m2c shape with a single shared tail:
 ```c
 status = work->syncResult;
 if (status < 4U) {
-    ptr = Mc_FileName; /* also fills the bnez delay slot on the case-0 path */
+    ptr = _gMcFileName; /* also fills the bnez delay slot on the case-0 path */
     if (status == 0) {
         /* case 0 */
         work->slotsRemaining = 9;
@@ -18146,7 +18146,7 @@ if (status < 4U) {
         goto shared;
     }
 } else {
-    ptr = Mc_FileName;
+    ptr = _gMcFileName;
 shared:
     /* one pad / work block; ends with task->field_30 = 0x2A */
 }
@@ -20993,7 +20993,7 @@ often loads dest first. Pin the registers:
     register s32             size asm("a2");
     register void*           dest asm("a0");
 
-    slots = Mc_BufferSlots;
+    slots = _gMcSaveSections;
     size  = slots[idx].bytesPerCopy;
     dest  = slots[idx].buffer;
     memcpy(dest, src, size << 1);
@@ -21373,13 +21373,13 @@ before the call:
 
 ```c
 {
-    register u8* fn asm("a0");
-    fn = Mc_FileName;
+    register char* fn asm("a0");
+    fn = _gMcFileName;
     _mcBuildSaveFileName(fn, dialogObject->resultValue);
 }
 ```
 
-Plain `_mcBuildSaveFileName(Mc_FileName, dialogObject->resultValue)` keeps the swapped order.
+Plain `_mcBuildSaveFileName(_gMcFileName, dialogObject->resultValue)` keeps the swapped order.
 `_mcStateSelectSaveFile` is the pure example.
 
 ## Dual block pointers reuse angle `$s0` for scratch field access
@@ -21622,7 +21622,7 @@ wrong registers (or vice versa).
 
 Fix: give the second loop its own counter/sum/pointer locals and pin each set
 independently. `_mcStatePrepareSectionRead` is the pure example — block-checksum walk then
-first-byte sum over `Mc_BufferSlots[1..8]`.
+first-byte sum over `_gMcSaveSections[1..8]`.
 
 ## Independent typed pointers can share hard registers across phases
 
@@ -148371,7 +148371,7 @@ choiceObject = choiceTask->spawnArg2.pointer;
 
 `choiceObject` then prefers only `$a0`, `choiceTask` inherits only `$a0`, and
 `spawnedChoice` still lands in `$a0` because `$v0`/`$v1` are taken by temporaries.
-The same four functions also carried `one = 1; base = Mc_PromptTable;` locals
+The same four functions also carried `one = 1; base = _gMcPrompts;` locals
 and a hand-expanded prompt; they are `_mcDrawPrompt(dialogTask, promptId)`, the
 inline the state functions already use, defined above them (GCC 2.8.1 only
 inlines a function defined before its caller).
@@ -149374,7 +149374,7 @@ deleted because it and the default jump to one label; `index >= 1 -> fail`;
 what is left is case 0. With only `case 0` and `case 1..3` (two nodes) the
 result is a single `bnez`. Which case sat above 4 is not recoverable from the
 bytes; `McErrFileNotExist` is a placeholder for it. The hoisted
-`filenameByte = Mc_FileName` written in both arms of the old form was reorg
+`filenameByte = _gMcFileName` written in both arms of the old form was reorg
 filling the two branch delay slots from the one failure block, and is gone.
 
 ### No-op cases stay in the tree; two-node lists pivot on the first node

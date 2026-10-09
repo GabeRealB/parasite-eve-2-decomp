@@ -76,8 +76,6 @@ static void _roomCutsceneTask(Task* task);
 
 static void _roomCutsceneSoundTask(Task* task);
 
-extern UiObjectDesc D_800611E4;
-
 /// Task descriptor of the held-object reflections the mirror spawns.
 static TaskDesc D_acropolis_square_80183468[];
 

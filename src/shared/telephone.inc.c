@@ -758,7 +758,7 @@ static inline void _telephoneMenuTask(Task* task)
     if (showStatistics == 0) {
         if (task->state == TELEPHONE_MENU_INITIALIZE) {
             gGameSession->uiOpen = activeControl;
-            uiSpawnObject(&D_800611E4, 0, USER_INTERFACE_PANEL_INACTIVE, 0, object);
+            uiSpawnObject(&gMcDialogDescriptors[MEMORY_CARD_DIALOG_SAVE], 0, USER_INTERFACE_PANEL_INACTIVE, 0, object);
             object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             object->panel.style       |= USER_INTERFACE_PANEL_NO_FRAME;
             task->state                = task->state + 1;

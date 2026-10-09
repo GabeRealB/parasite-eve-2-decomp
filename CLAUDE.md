@@ -675,7 +675,7 @@ the array, not by its shape. The known embedded ones:
 
 | Asset | Where | Note |
 |---|---|---|
-| Memory-card save header | `Mc_SaveHeaderMagic` + the block after it (main `.data`) | `"SC"` magic, Shift-JIS title, 16-colour CLUT, three 16x16 4bpp icon frames |
+| Memory-card save header | `_gMcFileHeader` (main `.data`) | `"SC"` magic, Shift-JIS title, 16-colour CLUT, three 16x16 4bpp icon frames |
 | UI font glyph metrics | `_gFontGlyphsMedium`, `_gFontGlyphsLarge`, `_gFontGlyphsSmall` (main `.data`) | 224/224/91 x `_FontGlyph`; pixels come from a CLUT image, see ASSET_FORMATS 7.6 |
 | Meshes and animation banks | gameplay `.data` trailing region and room/actor `.pe2pkg` overlays | no separate chunk type; see [`doc/OVERLAYS.md`](doc/OVERLAYS.md) |
 
@@ -687,7 +687,7 @@ from an extracted source than hard-coded in C.
 
 **Not assets, so eligible for C:** program tables such as the item and balance
 tables (`Gp_ItemDescs`, `gAttachmentLevelTable`), function-pointer dispatch tables
-(`Display_TaskStates`, `Mc_FileSelectStates`, `Gp_ItemMenuStates`), index
+(`Display_TaskStates`, `_gMcLoadDialogStates`, `Gp_ItemMenuStates`), index
 tables such as `gWorldCollisionFaceEdges`, constants, UI strings and zero-initialised
 state. Declaring one in C means placing it in the unit that owns it, at the
 position and alignment the original had - the same care as a `rodata` cut

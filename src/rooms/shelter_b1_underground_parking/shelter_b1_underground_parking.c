@@ -220,8 +220,6 @@ extern u16 D_shelter_b1_underground_parking_8018D78C;
 
 extern SVECTOR D_shelter_b1_underground_parking_8018771C[13];
 
-extern UiObjectDesc D_800611E4;
-
 /// Labels of the nine play-data rows, and the help line each row shows while
 /// it is selected.
 static u8 Telephone_Data_80181A20[];

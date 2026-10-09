@@ -66,8 +66,6 @@ extern TaskDesc gRoomCutsceneTaskDescs[];
 
 static s32 _gShopPreviewRowId;
 
-extern UiObjectDesc D_800611E4;
-
 static const u16 _gShopStandardDefaultWeaponsStock[];
 static const u16 _gShopStandardDefaultAmmunitionStock[];
 static const u16 _gShopStandardDefaultArmorStock[];

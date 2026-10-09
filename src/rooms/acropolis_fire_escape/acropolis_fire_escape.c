@@ -76,8 +76,6 @@ static void _roomCutsceneSoundTask(Task* task);
 
 extern WorldCollisionTrigger D_acropolis_fire_escape_8018252C[12];
 
-extern UiObjectDesc D_800611E4;
-
 /// The save's `companionType` byte under a symbol of its own; the cutscene's
 /// end reads it through this name rather than through `gMcSaveData`.
 

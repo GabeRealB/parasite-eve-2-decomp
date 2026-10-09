@@ -2,6 +2,22 @@
 #define MAIN_MC_H
 
 #include "main/mc_types.h"
+#include "main/ui_types.h"
+
+/// Resident memory-card dialog recipes, in load/save order.
+enum {
+    MEMORY_CARD_DIALOG_LOAD  = 0,
+    MEMORY_CARD_DIALOG_SAVE  = 1,
+    MEMORY_CARD_DIALOG_COUNT = 2
+};
+
+/// Resident panel recipes for the complete load and save dialogs.
+///
+/// Pass the selected element to `uiSpawnObject`. Save contentArg zero asks the
+/// initial save question; nonzero skips it. Both dialogs share one resident
+/// work area and must run sequentially, including their child panels and I/O.
+/// The UI lifecycle owns each spawned object; it reads the recipe synchronously.
+extern UiObjectDesc gMcDialogDescriptors[MEMORY_CARD_DIALOG_COUNT];
 
 /// Resident memory-card save images: the live record and its backup.
 ///

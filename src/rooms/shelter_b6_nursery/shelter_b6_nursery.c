@@ -107,8 +107,6 @@ STATIC_ASSERT_SIZEOF(_ShelterB6NurseryTriScratch, 0x20);
 s32 rsin(s32);
 s32 rcos(s32);
 
-extern UiObjectDesc D_800611E4;
-
 extern EvsCommand D_actor_450800_80139964[];
 extern EvsCommand D_actor_450800_8013A33C[];
 extern EvsCommand D_actor_450800_8013A84C[];

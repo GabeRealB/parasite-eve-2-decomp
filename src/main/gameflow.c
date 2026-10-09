@@ -371,7 +371,7 @@ static void _gameFlowSpawnLoadDialog(Task* task)
     UiObject* loadDialog;
 
     displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
-    loadDialog              = uiSpawnObject(&Mc_TaskDescriptors[0], 0, USER_INTERFACE_PANEL_ACTIVE, 0, NULL);
+    loadDialog              = uiSpawnObject(&gMcDialogDescriptors[MEMORY_CARD_DIALOG_LOAD], 0, USER_INTERFACE_PANEL_ACTIVE, 0, NULL);
     task->spawnArg2.pointer = loadDialog;
     if (loadDialog != NULL) {
         gDisplayState.gameMode = DISPLAY_GAME_MODAL;

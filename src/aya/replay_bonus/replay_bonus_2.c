@@ -40,7 +40,6 @@ extern u8           D_replay_bonus_8011906C[];
 extern UiObjectDesc D_replay_bonus_80119154;
 extern UiObjectDesc D_replay_bonus_801191A8;
 
-extern UiObjectDesc D_800611E4;
 extern UiObjectDesc D_replay_bonus_80119170;
 extern UiObjectDesc D_replay_bonus_8011918C;
 extern UiObjectDesc D_replay_bonus_801191C4;
@@ -135,7 +134,7 @@ static void _replayBonusAdvanceAwardScreen(Task* task)
                 displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
                 replayBonusPrepareClearedSave();
                 gDisplayState.gameMode  = DISPLAY_GAME_MODAL;
-                task->spawnArg2.pointer = uiSpawnObject(&D_800611E4, 0, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
+                task->spawnArg2.pointer = uiSpawnObject(&gMcDialogDescriptors[MEMORY_CARD_DIALOG_SAVE], 0, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
                 break;
             case REPLAY_BONUS_SCREEN_SAVE:
                 if (commandResult == USER_INTERFACE_LIST_COMMAND_YES) {
@@ -149,7 +148,7 @@ static void _replayBonusAdvanceAwardScreen(Task* task)
                 if (commandResult == USER_INTERFACE_LIST_COMMAND_YES) {
                     task->spawnArg2.pointer = itemMenuSpawnNotice(NULL, ITEM_MENU_NOTICE_SAVE_CANCELLED, 0, ITEM_MENU_NOTICE_RESULT_CONFIRM);
                 } else {
-                    task->spawnArg2.pointer = uiSpawnObject(&D_800611E4, 1, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
+                    task->spawnArg2.pointer = uiSpawnObject(&gMcDialogDescriptors[MEMORY_CARD_DIALOG_SAVE], 1, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
                     task->state             = task->state - 2;
                 }
                 break;

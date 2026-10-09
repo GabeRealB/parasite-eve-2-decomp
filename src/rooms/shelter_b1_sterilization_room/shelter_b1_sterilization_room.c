@@ -146,8 +146,6 @@ extern _ShelterB1SterilizationRoomDoorDestination D_shelter_b1_sterilization_roo
 /// Area records `_roomCutsceneTask` applies when it
 /// advances game flag nibble 0 from 2 to 3 in one particular view.
 
-extern UiObjectDesc D_800611E4;
-
 extern EvsCommand D_actor_160600_80135AC0[];
 extern EvsCommand D_actor_160600_80135D78[];
 extern EvsCommand D_actor_160600_80136258[];

@@ -53,8 +53,6 @@ static void _roomCutsceneTask(Task* task);
 
 static void _roomCutsceneSoundTask(Task* task);
 
-extern UiObjectDesc D_800611E4;
-
 extern EvsCommand D_actor_142600_801360E4[];
 extern EvsCommand D_actor_142600_80136804[];
 

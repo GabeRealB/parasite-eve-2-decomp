@@ -4,12 +4,6 @@
 #include "main/task_types.h"
 #include "main/ui_types.h"
 
-extern UiList Mc_SaveSlotList;
-
-extern UiList Mc_LoadSlotList;
-
-extern UiObjectDesc Mc_TaskDescriptors[];
-
 /// Choice layouts passed as the first spawn argument with `gMcMenuPromptDesc`.
 ///
 /// Other values use Yes/No with Yes initially selected. Mode 3 selects No

@@ -70,8 +70,6 @@ static void _roomCutsceneSoundTask(Task* task);
 // No separate references identify them; their role (including padding) is unresolved.
 extern u8 D_mine_refuge_80182ADC[4];
 
-extern UiObjectDesc D_800611E4;
-
 extern TaskDesc D_actor_548100_801358D8;
 
 /// The save's `companionType` byte under a symbol of its own; the cutscene's

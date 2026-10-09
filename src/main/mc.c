@@ -48,7 +48,7 @@ enum { MEMORY_CARD_SECTOR_BYTE_SHIFT = 7 };
 /// File-list child delay before opening, in nominal 60-Hz UI ticks.
 enum { MEMORY_CARD_FILE_LIST_OPENING_DELAY_TICKS = 2 };
 
-/// Destination states in the save dialog's `Mc_PromptStates` table.
+/// Destination states in the save dialog's `_gMcSaveDialogStates` table.
 enum {
     MEMORY_CARD_SAVE_STATE_DISMISSED         = -1,
     MEMORY_CARD_SAVE_STATE_ACCEPT_CARD       = 2,
@@ -62,7 +62,7 @@ enum {
     MEMORY_CARD_SAVE_STATE_WRITE_FAILED      = 0x2A,
 };
 
-/// Destination states in the load dialog's `Mc_FileSelectStates` table.
+/// Destination states in the load dialog's `_gMcLoadDialogStates` table.
 enum {
     MEMORY_CARD_LOAD_STATE_FAILED          = 6,
     MEMORY_CARD_LOAD_STATE_NO_DATA         = 0xB,
@@ -98,13 +98,40 @@ enum {
 
 /// The two text lines of one memory-card prompt, drawn one above the other.
 ///
-/// `Mc_PromptTable` has one row per `promptId`. The second line continues the
+/// `_gMcPrompts` has one row per `promptId`. The second line continues the
 /// first or adds another sentence; an empty string leaves that line blank.
 typedef struct {
     u8* upperLine; // Drawn above the panel content origin.
     u8* lowerLine; // Drawn below `upperLine`.
 } McPromptPair;
 STATIC_ASSERT_SIZEOF(McPromptPair, 0x8);
+
+/// Serialized PlayStation card-file header, including its mutable Shift-JIS title.
+///
+/// Byte arrays retain the on-card encoding: glyph pairs and CLUT entries are
+/// little-endian halfwords, and each icon is 16 by 16 pixels at four bits per pixel.
+/// The title writer uses aligned halfword stores; checksum and SDK calls use
+/// the complete object's byte representation. Bytes between the title and palette
+/// remain uninterpreted.
+typedef struct {
+    u8 magic[2];           // SC signature
+    u8 iconDisplay;        // 0x13: three animated icon frames
+    u8 blockCount;         // Number of 8 KB card blocks occupied (1)
+    u8 title[64];          // Full-width Shift-JIS glyph pairs, followed by a zero pair
+    u8 retainedBytes[28];  // Bytes between title and palette; role unproven, retained by title rebuilds
+    u8 iconClut[32];       // Sixteen little-endian RGB555 palette entries; index zero is transparent
+    u8 iconPixels[3][128]; // Three 16x16 four-bit frames; low nibble is the left pixel
+} _McCardFileHeader;
+STATIC_ASSERT_SIZEOF(_McCardFileHeader, 0x200);
+STATIC_ASSERT(OFFSET_OF(_McCardFileHeader, title) == 4, mc_card_title_offset);
+STATIC_ASSERT(OFFSET_OF(_McCardFileHeader, iconClut) == 0x60, mc_card_clut_offset);
+STATIC_ASSERT(OFFSET_OF(_McCardFileHeader, iconPixels) == 0x80, mc_card_icons_offset);
+
+/// Scheduling priority of memory-card dialog and file-list content tasks.
+enum { MEMORY_CARD_DIALOG_TASK_PRIORITY = 0xC0 };
+
+/// Backing extent of each mutable filename, including three retained bytes after NUL.
+enum { MEMORY_CARD_FILENAME_BUFFER_BYTES = 24 };
 
 /// Generic view of a checksummed save record: a four-byte checksum header
 /// followed by the payload it covers.
@@ -170,8 +197,11 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_McFileSelectStateTable, 0x68);
 
 /* Define BSS before API headers to preserve first-declaration order. */
-/// Work area of the memory-card dialogs, passed to every state handler.
-static McWork Mc_MenuWork;
+/// Shared resident work area borrowed by the active memory-card dialog and its children.
+///
+/// Save and load dialogs must run sequentially; a transfer allocation remains
+/// owned by the active dialog until completion or its documented error path.
+static McWork _gMcDialogWork;
 
 McSaveData gMcSaveData[MEMORY_CARD_SAVE_COUNT];
 
@@ -179,7 +209,7 @@ GameFlagAcropolisBank gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_COUNT];
 
 GameFlagDryfieldBank gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_COUNT];
 
-GameFlagDryfieldNightBank GameFlag_DryfieldFullBanks[2];
+GameFlagDryfieldNightBank gGameFlagDryfieldNightBanks[GAME_FLAG_STAGE_BANK_COUNT];
 
 GameFlagMineShelterBank gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_COUNT];
 
@@ -187,13 +217,16 @@ GameFlagNeoArkBank gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_COUNT];
 
 GameFlagNibbleBank gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_COUNT];
 
-/// Unreferenced.
+/// Eight retained BSS bytes with no code or assembly references; role unproven.
 static u8 D_80073B80[8];
 
 PlayerStatus gPlayerStatus;
 
-/// Last `rand()` result drawn by `mcSaveDialogTask`; nothing reads it.
-static s32 Mc_LastRandomValue;
+/// Last random sample taken after a non-dismissed save-dialog step.
+///
+/// The call advances the generator used for new filenames; the stored sample
+/// has no reader, and the reason it was retained is unproven.
+static s32 _gMcSaveDialogRandomSample;
 
 #include "main/gameflag.h"
 #include "main/mc.h"
@@ -223,53 +256,52 @@ enum { GAME_FLAG_MINE_SHELTER_BANK_CARD_SECTORS = 4 };
 /// 128-byte card sectors holding both `GameFlagNeoArkBank` copies.
 enum { GAME_FLAG_NEO_ARK_BANK_CARD_SECTORS = 3 };
 
-extern _McSaveSection Mc_BufferSlots[9];
+static _McSaveSection _gMcSaveSections[MEMORY_CARD_BUFFER_SLOT_COUNT];
 
-static const char Mc_StrMemoryCard[];
+static const char _gMcDialogTitle[sizeof("Memory Card")];
 
-static u8 McText_NewBlock[];
+static u8 _gMcTextNewBlock[sizeof("New Block")];
 
-static u8 McText_LoadAbortedCorrupted[];
+static u8 _gMcTextLoadAbortedCorrupted[sizeof("Save data corrupted.\nLoad aborted")];
 
 /// Unreferenced.
 static u8 McText_SlotCorrupted[];
 
-static McPromptPair Mc_PromptTable[];
+static McPromptPair _gMcPrompts[24];
 
-static u8 Mc_SaveFilePattern[];
+static char _gMcSaveFileNamePattern[sizeof("BASLUS-01042*")];
 
-static u8 Mc_FileName[0x18];
+static char _gMcFileName[MEMORY_CARD_FILENAME_BUFFER_BYTES];
 
-static u8 Mc_FileNameBuf[0x18];
+static char _gMcSavedFileName[MEMORY_CARD_FILENAME_BUFFER_BYTES];
 
-static u8 Mc_FileNameAlphabet[64];
+static char _gMcFileNameSuffixAlphabet[64];
 
-static u16 Mc_GlyphsUpper[];
+static u16 _gMcTitleUppercaseGlyphs[28];
 
-static u16 Mc_GlyphsLower[];
+static u16 _gMcTitleLowercaseGlyphs[28];
 
-static u16 Mc_GlyphsSymbol[];
+static u16 _gMcTitleSymbolGlyphs[34];
 
-static u8 Mc_DefaultChecksumSrc[];
+static _McCardFileHeader _gMcFileHeader;
 
-static UiListRowCallback Mc_SaveSlotCallbacks[];
+static UiListRowCallback _gMcLoadFileRowCallbacks[1];
 
-static UiListRowCallback Mc_LoadSlotCallbacks[];
+static UiListRowCallback _gMcSaveFileRowCallbacks[1];
 
-static const u8* Mc_ModeLabels[];
+static const u8* _gMcPreviewModeLabels[4];
 
-static UiObjectDesc Mc_SaveListDesc[];
+static UiObjectDesc _gMcLoadFileListDescriptors[1];
 
-static UiObjectDesc Mc_LoadListDescriptors[];
+static UiObjectDesc _gMcSaveFileListDescriptors[2];
 
-static const char McText_CloseParen[];
+static const char _gMcTextCloseParen[sizeof(")")];
 
-static const _McSaveStateTable Mc_PromptStates;
+static const _McSaveStateTable _gMcSaveDialogStates;
 
-/// Jump table of 26 _McStateFunc handlers used by mcLoadDialogTask.
-static const _McFileSelectStateTable Mc_FileSelectStates;
+static const _McFileSelectStateTable _gMcLoadDialogStates;
 
-static void _mcBuildSaveFileName(u8* filenameCursor, s32 directoryIndex);
+static void _mcBuildSaveFileName(char* filenameCursor, s32 directoryIndex);
 
 static void _mcSeedNewGameRecords(void);
 
@@ -487,15 +519,15 @@ static void _mcStateAdvanceLoadPreview(Task* task, McWork* work);
 
 static void _mcStateAcknowledgeCorruptLoad(Task* task, McWork* work);
 
-static const char McText_CloseParen[];
+/// NUL-terminated title drawn above memory-card prompts.
+static const char _gMcDialogTitle[sizeof("Memory Card")] = "Memory Card";
 
-static const char Mc_StrMemoryCard[] = "Memory Card";
-
-static u8 McText_NewBlock[] = "New Block";
-u8        McText_Yes[]      = "Yes";
-u8        McText_No[]       = "No";
-u8        McText_Cancel[]   = "Cancel";
-u8        McText_Ok[]       = "OK";
+/// NUL-terminated label for the extra save-destination row that creates a file.
+static u8 _gMcTextNewBlock[sizeof("New Block")] = "New Block";
+u8        gMcTextYes[sizeof("Yes")]             = "Yes";
+u8        gMcTextNo[sizeof("No")]               = "No";
+u8        gMcTextCancel[sizeof("Cancel")]       = "Cancel";
+u8        gMcTextOk[sizeof("OK")]               = "OK";
 /// NUL-only byte string that leaves a prompt line blank.
 static u8 _gMcTextEmpty[] = "";
 
@@ -578,12 +610,18 @@ static u8 _gMcTextCardNotFormatted[] = "MEMORY CARD not formatted.";
 static u8 _gMcTextSaveCorrupted[] = "Save data corrupted.";
 
 /// NUL-terminated lower line explaining that the corrupted save cannot be loaded.
-static u8 _gMcTextCannotLoadData[]      = "Cannot load data.";
-static u8 McText_LoadAbortedCorrupted[] = "Save data corrupted.\nLoad aborted";
+static u8 _gMcTextCannotLoadData[] = "Cannot load data.";
+/// NUL-terminated corrupted-preview notice, with an embedded line break before Load aborted.
+static u8 _gMcTextLoadAbortedCorrupted[sizeof("Save data corrupted.\nLoad aborted")] = "Save data corrupted.\nLoad aborted";
 /// Unreferenced.
 static u8 McText_SlotCorrupted[] = "Save data corrupted.";
 
-static McPromptPair Mc_PromptTable[] = {
+/// Two-line prompts indexed unchecked by McWork.promptId in 0..23.
+///
+/// Positional rows retain the prompt IDs. Rows 0x10 (duplicate access failure),
+/// 0x12 (retry only), 0x14 (optional save) and 0x15 (blank) are never selected;
+/// the changed-card and creating-data rows are also unselected by these dialogs.
+static McPromptPair _gMcPrompts[24] = {
     { _gMcTextAccessFailed, _gMcTextPleaseTryAgain },
     { _gMcTextCheckingCard, _gMcTextDoNotRemoveCard },
     { _gMcTextCardChanged, _gMcTextEmpty },
@@ -610,11 +648,16 @@ static McPromptPair Mc_PromptTable[] = {
     { _gMcTextSaveCorrupted, _gMcTextCannotLoadData },
 };
 
-static u8  Mc_SaveFilePattern[]    = "BASLUS-01042*";
-static u8  Mc_FileName[0x18]       = "BASLUS-01042________";
-static u8  Mc_FileNameBuf[0x18]    = "BASLUS-01042________";
-static u8  Mc_FileNameAlphabet[64] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789;:";
-static u16 Mc_GlyphsUpper[]        = {
+/// NUL-terminated SDK directory pattern: the twelve-byte product prefix and a wildcard.
+static char _gMcSaveFileNamePattern[sizeof("BASLUS-01042*")] = "BASLUS-01042*";
+/// Current SDK card filename: twenty name bytes, NUL, then three retained backing bytes.
+static char _gMcFileName[MEMORY_CARD_FILENAME_BUFFER_BYTES] = "BASLUS-01042________";
+/// Remembered card filename restored after cancellation or failure; same 24-byte backing extent.
+static char _gMcSavedFileName[MEMORY_CARD_FILENAME_BUFFER_BYTES] = "BASLUS-01042________";
+/// Exactly 64 suffix characters, without NUL; the first suffix byte encodes directory index 0..63.
+static char _gMcFileNameSuffixAlphabet[64] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789;:";
+/// Little-endian full-width Shift-JIS words for ASCII A..Z, followed by two retained zero words.
+static u16 _gMcTitleUppercaseGlyphs[28] = {
     0x6082,
     0x6182,
     0x6282,
@@ -644,7 +687,8 @@ static u16 Mc_GlyphsUpper[]        = {
     0x0000,
     0x0000,
 };
-static u16 Mc_GlyphsLower[] = {
+/// Little-endian full-width Shift-JIS words for ASCII a..z, followed by two retained zero words.
+static u16 _gMcTitleLowercaseGlyphs[28] = {
     0x8182,
     0x8282,
     0x8382,
@@ -674,7 +718,8 @@ static u16 Mc_GlyphsLower[] = {
     0x0000,
     0x0000,
 };
-static u16 Mc_GlyphsSymbol[] = {
+/// Little-endian full-width Shift-JIS words for ASCII space..@, followed by one retained zero word.
+static u16 _gMcTitleSymbolGlyphs[34] = {
     0x4081,
     0x4981,
     0x6881,
@@ -711,39 +756,60 @@ static u16 Mc_GlyphsSymbol[] = {
     0x0000,
 };
 
-static u8 Mc_DefaultChecksumSrc[] = {
+/// Mutable card-file header: initial corrupted-data title, palette and three icon frames.
+///
+/// Saving rebuilds the title and checksums all 512 bytes. The SDK writes the
+/// complete header when creating a file; loading checksums a temporary header
+/// without replacing this resident template. Title appends remain unchecked.
+static _McCardFileHeader _gMcFileHeader = {
 #include "assets/mc_save_header.inc"
 };
 
-_McSaveSection Mc_BufferSlots[9] = {
-    { Mc_DefaultChecksumSrc, sizeof(Mc_DefaultChecksumSrc) / 2, MEMORY_CARD_FILE_HEADER_CARD_SECTORS },
+/// Resident sections in on-card order: header, save, player, five stage banks and nibble flags.
+///
+/// Section zero is one 512-byte header, represented by two distinct 256-byte
+/// halves. Each other entry holds a checksummed live record followed by its
+/// comparison backup. Saving writes the live record twice; loading restores
+/// both on-card copies. Sector extents include rounding beyond the record pair.
+static _McSaveSection _gMcSaveSections[MEMORY_CARD_BUFFER_SLOT_COUNT] = {
+    { &_gMcFileHeader, sizeof(_gMcFileHeader) / 2, MEMORY_CARD_FILE_HEADER_CARD_SECTORS },
     { &gMcSaveData[MEMORY_CARD_SAVE_LIVE], sizeof(McSaveData), MEMORY_CARD_SAVE_CARD_SECTORS },
     { &gPlayerStatus, PLAYER_STATUS_SAVE_RECORD_BYTES, PLAYER_STATUS_CARD_SECTORS },
     { gGameFlagAcropolisBanks, sizeof(gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE]), GAME_FLAG_ACROPOLIS_BANK_CARD_SECTORS },
     { gGameFlagDryfieldBanks, sizeof(gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE]), GAME_FLAG_DRYFIELD_BANK_CARD_SECTORS },
-    { GameFlag_DryfieldFullBanks, GAME_FLAG_DRYFIELD_NIGHT_BANK_BYTES, GAME_FLAG_DRYFIELD_NIGHT_BANK_CARD_SECTORS },
+    { gGameFlagDryfieldNightBanks, sizeof(gGameFlagDryfieldNightBanks[GAME_FLAG_STAGE_BANK_LIVE]), GAME_FLAG_DRYFIELD_NIGHT_BANK_CARD_SECTORS },
     { gGameFlagMineShelterBanks, sizeof(gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE]), GAME_FLAG_MINE_SHELTER_BANK_CARD_SECTORS },
     { gGameFlagNeoArkBanks, sizeof(gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE]), GAME_FLAG_NEO_ARK_BANK_CARD_SECTORS },
     { &gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE], sizeof(gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE]), GAME_FLAG_NIBBLE_BANK_CARD_SECTORS },
 };
 
-static UiListRowCallback Mc_SaveSlotCallbacks[] = { _mcDrawLoadFileRow };
-UiList                   Mc_SaveSlotList        = { Mc_SaveSlotCallbacks, 0x0F, 0x0F, 0, 0x2E };
-static UiListRowCallback Mc_LoadSlotCallbacks[] = { mcMenuDrawSaveFileRow };
-UiList                   Mc_LoadSlotList        = { Mc_LoadSlotCallbacks, 0x0F, 0x0F, 0, 0x2E };
+/// Shared callback for every cached load-file row; rejects a preview with an invalid checksum.
+static UiListRowCallback _gMcLoadFileRowCallbacks[1] = { _mcDrawLoadFileRow };
+UiList                   gMcLoadFileList             = { _gMcLoadFileRowCallbacks, MEMORY_CARD_DIRECTORY_CAPACITY, MEMORY_CARD_DIRECTORY_CAPACITY, 0, USER_INTERFACE_LIST_PREVIEW_ROW_HEIGHT };
+/// Shared callback for every save destination, including corrupt files and the New Block row.
+static UiListRowCallback _gMcSaveFileRowCallbacks[1] = { mcMenuDrawSaveFileRow };
+UiList                   gMcSaveFileList             = { _gMcSaveFileRowCallbacks, MEMORY_CARD_DIRECTORY_CAPACITY, MEMORY_CARD_DIRECTORY_CAPACITY, 0, USER_INTERFACE_LIST_PREVIEW_ROW_HEIGHT };
 
-static const u8* Mc_ModeLabels[] = { gMcPreviewReplayLabel, gMcPreviewBountyLabel, gMcPreviewScavengerLabel, gMcPreviewNightmareLabel };
+/// Preview labels indexed unchecked by gameMode 0..3: Replay, Bounty, Scavenger, Nightmare.
+///
+/// Displayed only for a completed run whose save point is not Opening.
+static const u8* _gMcPreviewModeLabels[4] = { gMcPreviewReplayLabel, gMcPreviewBountyLabel, gMcPreviewScavengerLabel, gMcPreviewNightmareLabel };
 
-UiObjectDesc Mc_TaskDescriptors[] = {
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -25, 0x120, 0x32 }, 0x14, 0, TASK_BODY_NONE, 0xC0, mcLoadDialogTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -25, 0x120, 0x32 }, 0x14, 0, TASK_BODY_NONE, 0xC0, mcSaveDialogTask, 0 },
+UiObjectDesc gMcDialogDescriptors[MEMORY_CARD_DIALOG_COUNT] = {
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -25, 0x120, 0x32 }, 0x14, 0, TASK_BODY_NONE, MEMORY_CARD_DIALOG_TASK_PRIORITY, mcLoadDialogTask, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -25, 0x120, 0x32 }, 0x14, 0, TASK_BODY_NONE, MEMORY_CARD_DIALOG_TASK_PRIORITY, mcSaveDialogTask, 0 },
 };
-static UiObjectDesc Mc_SaveListDesc[] = {
-    { 0x80000 | USER_INTERFACE_PANEL_TITLE_STYLE, { -136, 10, 0x120, 0x3C }, 0x0C, 0, TASK_BODY_NONE, 0xC0, mcMenuUpdateLoadFileList, 0 },
+/// One child-panel recipe for choosing a cached file to load; borrows the dialog McWork.
+static UiObjectDesc _gMcLoadFileListDescriptors[1] = {
+    { 0x80000 | USER_INTERFACE_PANEL_TITLE_STYLE, { -136, 10, 0x120, 0x3C }, 0x0C, 0, TASK_BODY_NONE, MEMORY_CARD_DIALOG_TASK_PRIORITY, mcMenuUpdateLoadFileList, 0 },
 };
-static UiObjectDesc Mc_LoadListDescriptors[] = {
-    { 0x80000 | USER_INTERFACE_PANEL_TITLE_STYLE, { -136, 10, 0x120, 0x3C }, 0x0C, 0, TASK_BODY_NONE, 0xC0, mcMenuUpdateSaveFileList, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -60, 30, 0xC8, 0x3C }, 0x1C, 0, TASK_BODY_NONE, 0xC0, mcMenuUpdateFileInformation, 0 },
+/// Save-destination child recipe followed by a retained File Information panel recipe.
+///
+/// The parent spawns only entry zero, borrowing its McWork. Entry one has no
+/// spawning reference; it retains the information callback and its layout.
+static UiObjectDesc _gMcSaveFileListDescriptors[2] = {
+    { 0x80000 | USER_INTERFACE_PANEL_TITLE_STYLE, { -136, 10, 0x120, 0x3C }, 0x0C, 0, TASK_BODY_NONE, MEMORY_CARD_DIALOG_TASK_PRIORITY, mcMenuUpdateSaveFileList, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { -60, 30, 0xC8, 0x3C }, 0x1C, 0, TASK_BODY_NONE, MEMORY_CARD_DIALOG_TASK_PRIORITY, mcMenuUpdateFileInformation, 0 },
 };
 
 /// Build a new card filename from the product prefix, directory index and random suffix.
@@ -752,30 +818,30 @@ static UiObjectDesc Mc_LoadListDescriptors[] = {
 /// character selected by `directoryIndex`, seven random characters and NUL.
 /// The index must be in 0..63; new-save callers use the first free directory row.
 /// Consumes seven `rand()` values and leaves any later backing bytes intact.
-static void _mcBuildSaveFileName(u8* filenameCursor, s32 directoryIndex)
+static void _mcBuildSaveFileName(char* filenameCursor, s32 directoryIndex)
 {
     enum {
         MEMORY_CARD_FILENAME_PREFIX_BYTES = 12,
-        MEMORY_CARD_FILENAME_RANDOM_MASK  = ARRAY_SIZE(Mc_FileNameAlphabet) - 1,
+        MEMORY_CARD_FILENAME_RANDOM_MASK  = ARRAY_SIZE(_gMcFileNameSuffixAlphabet) - 1,
     };
     s32 prefixByteIndex;
 
     prefixByteIndex = 0;
     do {
-        *filenameCursor = Mc_SaveFilePattern[prefixByteIndex];
+        *filenameCursor = _gMcSaveFileNamePattern[prefixByteIndex];
         prefixByteIndex++;
         filenameCursor++;
     } while (prefixByteIndex < MEMORY_CARD_FILENAME_PREFIX_BYTES);
 
     // Skip the directory pattern's wildcard and generate the eight-byte suffix.
-    *filenameCursor   = Mc_FileNameAlphabet[directoryIndex];
-    *++filenameCursor = Mc_FileNameAlphabet[rand() & MEMORY_CARD_FILENAME_RANDOM_MASK];
-    *++filenameCursor = Mc_FileNameAlphabet[rand() & MEMORY_CARD_FILENAME_RANDOM_MASK];
-    *++filenameCursor = Mc_FileNameAlphabet[rand() & MEMORY_CARD_FILENAME_RANDOM_MASK];
-    *++filenameCursor = Mc_FileNameAlphabet[rand() & MEMORY_CARD_FILENAME_RANDOM_MASK];
-    *++filenameCursor = Mc_FileNameAlphabet[rand() & MEMORY_CARD_FILENAME_RANDOM_MASK];
-    *++filenameCursor = Mc_FileNameAlphabet[rand() & MEMORY_CARD_FILENAME_RANDOM_MASK];
-    *++filenameCursor = Mc_FileNameAlphabet[rand() & MEMORY_CARD_FILENAME_RANDOM_MASK];
+    *filenameCursor   = _gMcFileNameSuffixAlphabet[directoryIndex];
+    *++filenameCursor = _gMcFileNameSuffixAlphabet[rand() & MEMORY_CARD_FILENAME_RANDOM_MASK];
+    *++filenameCursor = _gMcFileNameSuffixAlphabet[rand() & MEMORY_CARD_FILENAME_RANDOM_MASK];
+    *++filenameCursor = _gMcFileNameSuffixAlphabet[rand() & MEMORY_CARD_FILENAME_RANDOM_MASK];
+    *++filenameCursor = _gMcFileNameSuffixAlphabet[rand() & MEMORY_CARD_FILENAME_RANDOM_MASK];
+    *++filenameCursor = _gMcFileNameSuffixAlphabet[rand() & MEMORY_CARD_FILENAME_RANDOM_MASK];
+    *++filenameCursor = _gMcFileNameSuffixAlphabet[rand() & MEMORY_CARD_FILENAME_RANDOM_MASK];
+    *++filenameCursor = _gMcFileNameSuffixAlphabet[rand() & MEMORY_CARD_FILENAME_RANDOM_MASK];
     filenameCursor[1] = 0;
 }
 
@@ -802,7 +868,7 @@ static inline void _mcResetStageFlagCopies(void)
     memFillBytes(acropolisBanks, 0, sizeof(*acropolisBanks));
     dryfieldBanks = &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE];
     memFillBytes(dryfieldBanks, 0, sizeof(*dryfieldBanks));
-    dryfieldNightBanks = &GameFlag_DryfieldFullBanks[MEMORY_CARD_STAGE_FLAG_COPY_LIVE];
+    dryfieldNightBanks = &gGameFlagDryfieldNightBanks[MEMORY_CARD_STAGE_FLAG_COPY_LIVE];
     memFillBytes(dryfieldNightBanks, 0, sizeof(*dryfieldNightBanks));
     mineShelterBanks = &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE];
     memFillBytes(mineShelterBanks, 0, sizeof(*mineShelterBanks));
@@ -936,7 +1002,7 @@ void mcResetSaveData(void)
 
     // Section zero is the title and icon header; only record pairs are reset.
     backupFill = MEMORY_CARD_BACKUP_ALL_BITS;
-    sections   = Mc_BufferSlots;
+    sections   = _gMcSaveSections;
     section    = sections + 1;
     do {
         bytesPerCopy = section->bytesPerCopy;
@@ -949,7 +1015,7 @@ void mcResetSaveData(void)
         }
         _mcWriteBlockChecksum(section->buffer, bytesPerCopy);
         section++;
-    } while (section < sections + ARRAY_SIZE(Mc_BufferSlots));
+    } while (section < sections + ARRAY_SIZE(_gMcSaveSections));
 
     gDisplayState.spriteVariant = MEMORY_CARD_DEFAULT_SPRITE_VARIANT;
     _mcSeedNewGameRecords();
@@ -960,7 +1026,7 @@ void mcResetSaveData(void)
 /// Draw one memory-card prompt on the dialog task's panel and clear its UI result.
 ///
 /// `task->spawnArg2.pointer` must borrow a live `UiObject`; `promptId` must index
-/// `Mc_PromptTable`. Draws the title and both prompt lines in the normal text
+/// `_gMcPrompts`. Draws the title and both prompt lines in the normal text
 /// color, with outlines and left alignment.
 static inline void _mcDrawPrompt(Task* task, s32 promptId)
 {
@@ -972,8 +1038,8 @@ static inline void _mcDrawPrompt(Task* task, s32 promptId)
     panelObject         = task->spawnArg2.pointer;
     textColorRgb        = uiGetTextColor(panelObject, USER_INTERFACE_TEXT_COLOR_NORMAL);
     panelObject->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawTitle(&(panelObject)->panel, Mc_StrMemoryCard);
-    prompts = Mc_PromptTable;
+    uiDrawTitle(&(panelObject)->panel, _gMcDialogTitle);
+    prompts = _gMcPrompts;
     prompt  = &prompts[promptId];
     textDrawUiLine(panelObject, panelObject->panel.contentLeft.signedValue + 2, -2, prompt->upperLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     textDrawUiLine(panelObject, panelObject->panel.contentLeft.signedValue + 2, 0xF, prompt->lowerLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -1015,7 +1081,7 @@ static inline void _mcAcceptPromptAnswer(UiObject* dialogObject, UiObject* choic
 /// Draw an acknowledgement prompt and create or poll its OK child.
 ///
 /// The task borrows a live dialog object and its first child, if any, must be
-/// this prompt's choice object. `promptId` indexes `Mc_PromptTable`. Returns
+/// this prompt's choice object. `promptId` indexes `_gMcPrompts`. Returns
 /// 0 while waiting or allocation fails, 1 on acknowledgement. Confirmation
 /// closes the child and restores dialog input; leave the state after an answer.
 /// The callers' lead-in timer is retained but unread: opening is not delayed.
@@ -1070,7 +1136,7 @@ static inline void _mcInitYesNoPromptChild(UiObject* dialogObject, UiObject* cho
 ///
 /// `dialogTask` must own the live `UiObject` in its second spawn argument;
 /// any first child must own this question's choice object. `promptId` indexes
-/// `Mc_PromptTable`. Yes is initially selected. Returns 0 while waiting or
+/// `_gMcPrompts`. Yes is initially selected. Returns 0 while waiting or
 /// allocation fails, 1 for Yes or -1 for No. Confirmation latches the answer,
 /// detaches and starts closing the child, and restores parent input. The caller
 /// must leave this state when answered, since another call can spawn a new child.
@@ -1191,11 +1257,11 @@ static inline u16* _mcAppendAsciiTitleText(const u8* asciiText, u16* titleCursor
         do {
             asciiCode = (s8)asciiByte;
             if (asciiCode >= 'a') {
-                *titleCursor = Mc_GlyphsLower[asciiCode - 'a'];
+                *titleCursor = _gMcTitleLowercaseGlyphs[asciiCode - 'a'];
             } else if (asciiCode >= 'A') {
-                *titleCursor = Mc_GlyphsUpper[asciiCode - 'A'];
+                *titleCursor = _gMcTitleUppercaseGlyphs[asciiCode - 'A'];
             } else if (asciiCode >= ' ') {
-                *titleCursor = Mc_GlyphsSymbol[asciiCode - ' '];
+                *titleCursor = _gMcTitleSymbolGlyphs[asciiCode - ' '];
             }
             asciiText++;
             asciiByte = *asciiText;
@@ -1221,11 +1287,11 @@ static inline u16* _mcAppendAsciiTitleLiteral(const char* asciiText, u16* titleC
         do {
             asciiCode = *(const s8*)asciiText;
             if (asciiCode >= 'a') {
-                *titleCursor = Mc_GlyphsLower[asciiCode - 'a'];
+                *titleCursor = _gMcTitleLowercaseGlyphs[asciiCode - 'a'];
             } else if (asciiCode >= 'A') {
-                *titleCursor = Mc_GlyphsUpper[asciiCode - 'A'];
+                *titleCursor = _gMcTitleUppercaseGlyphs[asciiCode - 'A'];
             } else if (asciiCode >= ' ') {
-                *titleCursor = Mc_GlyphsSymbol[asciiCode - ' '];
+                *titleCursor = _gMcTitleSymbolGlyphs[asciiCode - ' '];
             }
             asciiText++;
             titleCursor++;
@@ -1286,7 +1352,7 @@ static inline u16* _mcAppendEncodedTitleLabel(const u8* encodedLabel, u16* title
 
 /// Store the complete card file header's signed-byte sum in the live save.
 ///
-/// Covers all title, CLUT and icon bytes in `Mc_DefaultChecksumSrc`, retaining
+/// Covers all title, CLUT and icon bytes in `_gMcFileHeader`, retaining
 /// the low 16 bits and storing their complement in the saved checksum pair.
 static inline void _mcWriteCardHeaderChecksum(void)
 {
@@ -1297,8 +1363,8 @@ static inline void _mcWriteCardHeaderChecksum(void)
     s32       byteIndex;
 
     sum                                                                      = 0;
-    headerByteCount                                                          = sizeof(Mc_DefaultChecksumSrc);
-    headerByte                                                               = Mc_DefaultChecksumSrc;
+    headerByteCount                                                          = sizeof(_gMcFileHeader);
+    headerByte                                                               = (const u8*)&_gMcFileHeader;
     checksum                                                                 = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.titleChecksum;
     byteIndex                                                                = 0;
     *checksum                                                                = sum;
@@ -1325,8 +1391,6 @@ static inline void _mcWriteCardHeaderChecksum(void)
 static void _mcBuildCardFileTitle(const McWork* work)
 {
     enum {
-        MEMORY_CARD_TITLE_BYTE_OFFSET = 4,
-        MEMORY_CARD_TITLE_BYTES       = 64,
         MEMORY_CARD_SAVE_NUMBER_FIRST = 1,
         MEMORY_CARD_SAVE_NUMBER_LIMIT = 100,
         MEMORY_CARD_SAVE_COUNT_MAX    = 99,
@@ -1341,7 +1405,7 @@ static void _mcBuildCardFileTitle(const McWork* work)
     const McSavePreview* preview;
 
     // Continue this place's numbering, wrapping to its first unused number.
-    titleCursor = (u16*)(Mc_DefaultChecksumSrc + MEMORY_CARD_TITLE_BYTE_OFFSET);
+    titleCursor = (u16*)_gMcFileHeader.title;
     saveNumber  = MEMORY_CARD_SAVE_NUMBER_FIRST;
     if (work->entryCount > 0) {
         for (previewIndex = 0; previewIndex < work->entryCount; previewIndex++) {
@@ -1370,17 +1434,17 @@ static void _mcBuildCardFileTitle(const McWork* work)
         }
     }
     // ASCII fragments become halfword glyphs; the place label is already encoded.
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveNumber                                = saveNumber;
-    titleCursor                                                                        = _mcAppendAsciiTitleLiteral("PE2 ", titleCursor);
-    titleCursor                                                                        = _mcAppendAsciiTitleText(textFormatPlayTime(formatScratch, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime), titleCursor);
-    titleCursor                                                                        = _mcAppendAsciiTitleLiteral(" ", titleCursor);
-    Mc_DefaultChecksumSrc[MEMORY_CARD_TITLE_BYTE_OFFSET + MEMORY_CARD_TITLE_BYTES - 1] = 0;
-    Mc_DefaultChecksumSrc[MEMORY_CARD_TITLE_BYTE_OFFSET + MEMORY_CARD_TITLE_BYTES - 2] = 0;
-    titleCursor                                                                        = _mcAppendEncodedTitleLabel(Mc_LocationTitleLabels[(s8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.savePoint], titleCursor);
-    titleCursor                                                                        = _mcAppendAsciiTitleLiteral("(", titleCursor);
-    titleCursor                                                                        = _mcAppendAsciiTitleText(textItoaSigned(formatScratch, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveNumber), titleCursor);
-    titleCursor                                                                        = _mcAppendAsciiTitleLiteral(McText_CloseParen, titleCursor);
-    *titleCursor                                                                       = 0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveNumber    = saveNumber;
+    titleCursor                                            = _mcAppendAsciiTitleLiteral("PE2 ", titleCursor);
+    titleCursor                                            = _mcAppendAsciiTitleText(textFormatPlayTime(formatScratch, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime), titleCursor);
+    titleCursor                                            = _mcAppendAsciiTitleLiteral(" ", titleCursor);
+    _gMcFileHeader.title[sizeof(_gMcFileHeader.title) - 1] = 0;
+    _gMcFileHeader.title[sizeof(_gMcFileHeader.title) - 2] = 0;
+    titleCursor                                            = _mcAppendEncodedTitleLabel(Mc_LocationTitleLabels[(s8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.savePoint], titleCursor);
+    titleCursor                                            = _mcAppendAsciiTitleLiteral("(", titleCursor);
+    titleCursor                                            = _mcAppendAsciiTitleText(textItoaSigned(formatScratch, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveNumber), titleCursor);
+    titleCursor                                            = _mcAppendAsciiTitleLiteral(_gMcTextCloseParen, titleCursor);
+    *titleCursor                                           = 0;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveCount == MEMORY_CARD_SAVE_COUNT_NEW) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveCount = 0;
     } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveCount < MEMORY_CARD_SAVE_COUNT_MAX) {
@@ -1392,9 +1456,15 @@ static void _mcBuildCardFileTitle(const McWork* work)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.bufferChecksumComplement = MEMORY_CARD_CHECKSUM_MASK;
 }
 
-static const char McText_CloseParen[] = ")";
+/// NUL-terminated ASCII closing parenthesis shared by card titles and preview save numbers.
+static const char _gMcTextCloseParen[sizeof(")")] = ")";
 
-static const _McSaveStateTable Mc_PromptStates = { {
+/// Complete save-dialog handler table, indexed by nonnegative Task.state in 0..43.
+///
+/// Covers card probing, creation, formatting, file selection and section writes.
+/// It has no terminator or upper-bound check. State -1 leaves this table for
+/// teardown; the task copies the table before each nonnegative dispatch.
+static const _McSaveStateTable _gMcSaveDialogStates = { {
     _mcStateInitSaveWork,
     _mcStatePrepareSaveSections,
     _mcStateAcceptSaveCard,
@@ -1510,7 +1580,7 @@ static void _mcStateReadSaveDirectory(Task* task, McWork* work)
 
     work->entryCount = 0;
     MemCardGetDirentry(
-        work->channel, (char*)Mc_SaveFilePattern, work->directory, &work->entryCount, 0,
+        work->channel, _gMcSaveFileNamePattern, work->directory, &work->entryCount, 0,
         ARRAY_SIZE(work->directory));
     // This game's files count as one block each, so what remains belongs to other products.
     foreignBlockCount       = work->foreignBlockCount - work->entryCount;
@@ -1527,7 +1597,7 @@ static void _mcStateReadSaveDirectory(Task* task, McWork* work)
                 candidateDirectoryIndex = 0;
                 if (entryCount > 0) {
                     do {
-                        if (strncmp(work->directory[candidateDirectoryIndex].name, (char*)Mc_FileName, MEMORY_CARD_FILENAME_BYTES) == 0) {
+                        if (strncmp(work->directory[candidateDirectoryIndex].name, _gMcFileName, MEMORY_CARD_FILENAME_BYTES) == 0) {
                             work->selectedSlot = candidateDirectoryIndex;
                             break;
                         }
@@ -1589,16 +1659,16 @@ static inline void _mcCloseChildUi(Task* task, s32 parentInputControl)
 static inline void _mcCopyFileName(s32 restoreSavedName)
 {
     enum { MEMORY_CARD_FILENAME_COPY_BYTES = 21 };
-    const u8* sourceName;
-    u8*       destinationName;
-    s32       filenameByteIndex;
+    const char* sourceName;
+    char*       destinationName;
+    s32         filenameByteIndex;
 
     if (restoreSavedName == 0) {
-        sourceName      = Mc_FileName;
-        destinationName = Mc_FileNameBuf;
+        sourceName      = _gMcFileName;
+        destinationName = _gMcSavedFileName;
     } else {
-        sourceName      = Mc_FileNameBuf;
-        destinationName = Mc_FileName;
+        sourceName      = _gMcSavedFileName;
+        destinationName = _gMcFileName;
     }
 
     for (filenameByteIndex = 0; filenameByteIndex < MEMORY_CARD_FILENAME_COPY_BYTES; filenameByteIndex++) {
@@ -1641,13 +1711,13 @@ static void _mcStateSelectSaveFile(Task* dialogTask, McWork* dialogWork)
 
     listTask = dialogTask->firstChild;
     if (listTask == NULL) {
-        if (uiSpawnObject(Mc_LoadListDescriptors, dialogWork, USER_INTERFACE_PANEL_ACTIVE,
+        if (uiSpawnObject(_gMcSaveFileListDescriptors, dialogWork, USER_INTERFACE_PANEL_ACTIVE,
                           MEMORY_CARD_FILE_LIST_OPENING_DELAY_TICKS, dialogObject) != NULL) {
-            Mc_LoadSlotList.itemCount = dialogWork->entryCount;
+            gMcSaveFileList.itemCount = dialogWork->entryCount;
             if (dialogWork->entryCount < MEMORY_CARD_BLOCK_COUNT - dialogWork->foreignBlockCount) {
-                Mc_LoadSlotList.itemCount++;
+                gMcSaveFileList.itemCount++;
             }
-            Mc_LoadSlotList.selectedItemIndex = dialogWork->selectedSlot;
+            gMcSaveFileList.selectedItemIndex = dialogWork->selectedSlot;
             dialogObject->resultValue         = 0;
             dialogObject->panel.control.word  = USER_INTERFACE_PANEL_INACTIVE;
         }
@@ -1658,13 +1728,13 @@ static void _mcStateSelectSaveFile(Task* dialogTask, McWork* dialogWork)
             _mcCloseFileList(listObject, &dialogObject->panel);
             if (dialogObject->resultValue >= 0) {
                 if (dialogObject->resultValue < dialogWork->entryCount) {
-                    const u8* directoryName;
-                    u8*       filenameCursor;
-                    s32       differingByteCount;
+                    const char* directoryName;
+                    char*       filenameCursor;
+                    s32         differingByteCount;
 
                     // Remember the old name before replacing the full SDK filename field.
-                    directoryName      = (const u8*)dialogWork->directory[dialogObject->resultValue].name;
-                    filenameCursor     = Mc_FileName;
+                    directoryName      = dialogWork->directory[dialogObject->resultValue].name;
+                    filenameCursor     = _gMcFileName;
                     differingByteCount = sizeof(dialogWork->directory[0].name);
                     _mcCopyFileName(false);
                     for (filenameByteIndex = 0; filenameByteIndex < (s32)sizeof(dialogWork->directory[0].name); filenameByteIndex++) {
@@ -1684,7 +1754,7 @@ static void _mcStateSelectSaveFile(Task* dialogTask, McWork* dialogWork)
                     dialogTask->state    = MEMORY_CARD_SAVE_STATE_BEGIN_OPEN_FILE;
                 } else {
                     _mcCopyFileName(false);
-                    _mcBuildSaveFileName(Mc_FileName, dialogObject->resultValue);
+                    _mcBuildSaveFileName(_gMcFileName, dialogObject->resultValue);
                     dialogWork->promptId = MEMORY_CARD_PROMPT_CHECKING;
                     dialogTask->state    = MEMORY_CARD_SAVE_STATE_BEGIN_OPEN_FILE;
                 }
@@ -1709,7 +1779,7 @@ static void _mcStateSelectSaveFile(Task* dialogTask, McWork* dialogWork)
 
 /// Return the save-section write mask by comparing each live record with its backup.
 ///
-/// Bit n selects `Mc_BufferSlots[n]`. Compare sections 1..8 byte for byte and
+/// Bit n selects `_gMcSaveSections[n]`. Compare sections 1..8 byte for byte and
 /// always select the card file header (0), saved state (1) and nibble bank (8).
 static inline s32 _mcGetSectionWriteMask(void)
 {
@@ -1729,10 +1799,10 @@ static inline s32 _mcGetSectionWriteMask(void)
 
     writeMask    = 0;
     reverseIndex = 0;
-    sections     = Mc_BufferSlots;
+    sections     = _gMcSaveSections;
     do {
-        liveByte     = sections[ARRAY_SIZE(Mc_BufferSlots) - 1 - reverseIndex].buffer;
-        bytesPerCopy = sections[ARRAY_SIZE(Mc_BufferSlots) - 1 - reverseIndex].bytesPerCopy;
+        liveByte     = sections[ARRAY_SIZE(_gMcSaveSections) - 1 - reverseIndex].buffer;
+        bytesPerCopy = sections[ARRAY_SIZE(_gMcSaveSections) - 1 - reverseIndex].bytesPerCopy;
         byteIndex    = 0;
         backupByte   = liveByte + bytesPerCopy;
         while (byteIndex < bytesPerCopy) {
@@ -1745,7 +1815,7 @@ static inline s32 _mcGetSectionWriteMask(void)
         }
         reverseIndex += 1;
         writeMask   <<= 1;
-    } while (reverseIndex < (u32)(ARRAY_SIZE(Mc_BufferSlots) - 1));
+    } while (reverseIndex < (u32)(ARRAY_SIZE(_gMcSaveSections) - 1));
     writeMask |= MEMORY_CARD_SECTION_WRITE_NIBBLE_BANK;
     writeMask |= MEMORY_CARD_SECTION_WRITE_FILE_HEADER | MEMORY_CARD_SECTION_WRITE_SAVE_STATE;
     return writeMask;
@@ -1763,13 +1833,13 @@ static inline void _mcInvalidateFileNameSuffixes(void)
         MEMORY_CARD_FILENAME_UNUSED_CHAR  = '_',
     };
 
-    u8* filenameByte;
-    u8* savedFilenameByte;
-    s32 filenameByteIndex;
-    s32 unusedChar;
+    char* filenameByte;
+    char* savedFilenameByte;
+    s32   filenameByteIndex;
+    s32   unusedChar;
 
-    filenameByte      = Mc_FileName;
-    savedFilenameByte = Mc_FileNameBuf;
+    filenameByte      = _gMcFileName;
+    savedFilenameByte = _gMcSavedFileName;
     filenameByteIndex = 0;
     unusedChar        = MEMORY_CARD_FILENAME_UNUSED_CHAR;
     do {
@@ -1844,7 +1914,7 @@ static void _mcStateOpenSaveFileForWrite(Task* task, McWork* work)
     work->cardTimer -= 1;
     if (work->cardTimer == 0) {
         MemCardClose();
-        openResult       = MemCardOpen(work->channel, (char*)Mc_FileName, O_WRONLY);
+        openResult       = MemCardOpen(work->channel, _gMcFileName, O_WRONLY);
         work->syncResult = openResult;
         switch (openResult) {
             case McErrNone:
@@ -1891,7 +1961,7 @@ static void _mcStateCreateSaveFile(Task* task, McWork* work)
 
     work->cardTimer -= 1;
     if (work->cardTimer == 0) {
-        createResult     = MemCardCreateFile(work->channel, (char*)Mc_FileName, MEMORY_CARD_SAVE_FILE_BLOCKS);
+        createResult     = MemCardCreateFile(work->channel, _gMcFileName, MEMORY_CARD_SAVE_FILE_BLOCKS);
         work->syncResult = createResult;
         switch (createResult) {
             case McErrNone:
@@ -1953,9 +2023,9 @@ static void _mcStateResolveFileHeaderWrite(Task* task, McWork* work)
         *(filenameCursor)      = 0;                                                         \
         (dialogTask)->state    = MEMORY_CARD_SAVE_STATE_WRITE_FAILED;                       \
     } while (0)
-    u32 writeResult;
-    u8* filenameByte;
-    u8* savedFilenameByte;
+    u32   writeResult;
+    char* filenameByte;
+    char* savedFilenameByte;
 
     writeResult = work->syncResult;
     // The compare tree has a case node above McErrNotFormat; which one is not recoverable.
@@ -1971,8 +2041,8 @@ static void _mcStateResolveFileHeaderWrite(Task* task, McWork* work)
         case McErrNewCard:
         case McErrFileNotExist:
         default:
-            filenameByte      = Mc_FileName;
-            savedFilenameByte = Mc_FileNameBuf;
+            filenameByte      = _gMcFileName;
+            savedFilenameByte = _gMcSavedFileName;
             MEMORY_CARD_FAIL_FILE_HEADER_WRITE(task, filenameByte, savedFilenameByte);
             break;
     }
@@ -2040,7 +2110,7 @@ static inline void _mcBackupSaveSections(void)
     u32             byteIndex;
 
     sectionIndex = 1;
-    sections     = Mc_BufferSlots;
+    sections     = _gMcSaveSections;
     section      = sections + 1;
     do {
         liveByte     = section->buffer;
@@ -2053,7 +2123,7 @@ static inline void _mcBackupSaveSections(void)
         }
         sectionIndex += 1;
         section      += 1;
-    } while (sectionIndex < (u32)ARRAY_SIZE(Mc_BufferSlots));
+    } while (sectionIndex < (u32)ARRAY_SIZE(_gMcSaveSections));
 }
 
 /// Store the sum of the live sections' low checksum bytes and its complement.
@@ -2070,14 +2140,14 @@ static inline void _mcWriteSectionChecksumSummary(void)
 
     sum          = 0;
     sectionIndex = 1;
-    sections     = Mc_BufferSlots;
+    sections     = _gMcSaveSections;
     section      = sections + 1;
     do {
         record        = section->buffer;
         section      += 1;
         sectionIndex += 1;
         sum          += (u8)record->checksum;
-    } while (sectionIndex < (u32)ARRAY_SIZE(Mc_BufferSlots));
+    } while (sectionIndex < (u32)ARRAY_SIZE(_gMcSaveSections));
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.bufferChecksum           = sum;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.bufferChecksumComplement = ~sum;
 }
@@ -2102,8 +2172,8 @@ static void _mcStatePrepareSectionWrite(Task* task, McWork* work)
         work->closeAnswer = USER_INTERFACE_LIST_COMMAND_YES;
         task->state       = MEMORY_CARD_SAVE_STATE_CLOSE_PROMPT;
     } else if (work->slotWriteMask & MEMORY_CARD_CURRENT_SECTION_SELECTED) {
-        bytesPerCopy        = Mc_BufferSlots[MEMORY_CARD_BUFFER_SLOT_COUNT - work->slotsRemaining].bytesPerCopy;
-        liveRecordBytes     = Mc_BufferSlots[MEMORY_CARD_BUFFER_SLOT_COUNT - work->slotsRemaining].buffer;
+        bytesPerCopy        = _gMcSaveSections[MEMORY_CARD_BUFFER_SLOT_COUNT - work->slotsRemaining].bytesPerCopy;
+        liveRecordBytes     = _gMcSaveSections[MEMORY_CARD_BUFFER_SLOT_COUNT - work->slotsRemaining].buffer;
         work->transferBytes = (((u32)(bytesPerCopy * 2 - 1) >> MEMORY_CARD_SECTOR_BYTE_SHIFT) + 1) << MEMORY_CARD_SECTOR_BYTE_SHIFT;
         transferBuffer      = memCalloc(work->transferBytes, false);
         if (transferBuffer != NULL) {
@@ -2129,7 +2199,7 @@ static void _mcStatePrepareSectionWrite(Task* task, McWork* work)
             work->cardTimer = work->cardTimer + 1;
         }
     } else {
-        work->sectorOffset   = work->sectorOffset + Mc_BufferSlots[MEMORY_CARD_BUFFER_SLOT_COUNT - work->slotsRemaining].cardSectors;
+        work->sectorOffset   = work->sectorOffset + _gMcSaveSections[MEMORY_CARD_BUFFER_SLOT_COUNT - work->slotsRemaining].cardSectors;
         work->slotsRemaining = work->slotsRemaining - 1;
         work->slotWriteMask  = (u32)work->slotWriteMask >> 1;
     }
@@ -2152,7 +2222,7 @@ static void _mcStateFinishSectionWrite(Task* task, McWork* work)
     writeResult = work->syncResult;
     switch (writeResult) {
         case McErrNone:
-            work->sectorOffset += Mc_BufferSlots[MEMORY_CARD_BUFFER_SLOT_COUNT - 1 - work->slotsRemaining].cardSectors;
+            work->sectorOffset += _gMcSaveSections[MEMORY_CARD_BUFFER_SLOT_COUNT - 1 - work->slotsRemaining].cardSectors;
             task->state         = MEMORY_CARD_SAVE_STATE_PREPARE_SECTION;
             break;
         case McErrCardNotExist:
@@ -2200,7 +2270,7 @@ static void _mcStateFormatCard(Task* task, McWork* work)
             if (formatResult != McErrNone) {
                 nextState = MEMORY_CARD_SAVE_STATE_FORMAT_FAILED;
             } else {
-                _mcBuildSaveFileName(Mc_FileName, 0);
+                _mcBuildSaveFileName(_gMcFileName, 0);
                 nextState        = MEMORY_CARD_SAVE_STATE_BEGIN_CREATE;
                 work->entryCount = 0;
             }
@@ -2226,13 +2296,13 @@ static void _mcStateSelectLoadFile(Task* dialogTask, McWork* dialogWork)
         MEMORY_CARD_LOAD_STATE_ACCEPT_CARD   = 7,
         MEMORY_CARD_LOAD_STATE_BEGIN_SECTION = 0xC,
     };
-    UiObject* dialogObject;
-    s32       syncState;
-    s32       filenameByteIndex;
-    Task*     listTask;
-    UiObject* listObject;
-    const u8* directoryName;
-    u8*       filenameCursor;
+    UiObject*   dialogObject;
+    s32         syncState;
+    s32         filenameByteIndex;
+    Task*       listTask;
+    UiObject*   listObject;
+    const char* directoryName;
+    char*       filenameCursor;
 
     dialogObject         = dialogTask->spawnArg2.pointer;
     dialogWork->promptId = MEMORY_CARD_PROMPT_SELECT;
@@ -2248,9 +2318,9 @@ static void _mcStateSelectLoadFile(Task* dialogTask, McWork* dialogWork)
     }
     listTask = dialogTask->firstChild;
     if (listTask == NULL) {
-        if (uiSpawnObject(Mc_SaveListDesc, dialogWork, USER_INTERFACE_PANEL_ACTIVE,
+        if (uiSpawnObject(_gMcLoadFileListDescriptors, dialogWork, USER_INTERFACE_PANEL_ACTIVE,
                           MEMORY_CARD_FILE_LIST_OPENING_DELAY_TICKS, dialogObject) != NULL) {
-            Mc_SaveSlotList.itemCount        = dialogWork->entryCount;
+            gMcLoadFileList.itemCount        = dialogWork->entryCount;
             dialogObject->resultValue        = 0;
             dialogObject->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
@@ -2260,8 +2330,8 @@ static void _mcStateSelectLoadFile(Task* dialogTask, McWork* dialogWork)
             dialogObject->resultValue = listObject->resultValue;
             _mcCloseFileList(listObject, &dialogObject->panel);
             if (dialogObject->resultValue >= 0) {
-                directoryName  = (const u8*)dialogWork->directory[dialogObject->resultValue].name;
-                filenameCursor = Mc_FileName;
+                directoryName  = dialogWork->directory[dialogObject->resultValue].name;
+                filenameCursor = _gMcFileName;
                 for (filenameByteIndex = 0; filenameByteIndex < (s32)sizeof(dialogWork->directory[0].name); filenameByteIndex++) {
                     *filenameCursor++ = *directoryName++;
                 }
@@ -2274,8 +2344,11 @@ static void _mcStateSelectLoadFile(Task* dialogTask, McWork* dialogWork)
     }
 }
 
-/// Jump table of 26 _McStateFunc handlers used by mcLoadDialogTask.
-static const _McFileSelectStateTable Mc_FileSelectStates = { {
+/// Complete load-dialog handler table, indexed by Task.state in 0..25 without a bounds check.
+///
+/// Covers card probing, directory previews, file selection, section reads and
+/// validation. It has no terminator; the task copies it before each dispatch.
+static const _McFileSelectStateTable _gMcLoadDialogStates = { {
     _mcStateInitLoadWork,
     _mcStateInitLoadSections,
     _mcStateConfirmLoadAfterDelay,
@@ -2366,7 +2439,7 @@ static void _mcStateOpenSaveFileForRead(Task* task, McWork* work)
             }
             work->cardTimer -= 1;
             if (work->cardTimer == 0) {
-                fileName = (char*)Mc_FileName;
+                fileName = _gMcFileName;
                 MemCardClose();
                 openResult       = MemCardOpen(work->channel, fileName, O_RDONLY);
                 work->syncResult = openResult;
@@ -2414,7 +2487,7 @@ static inline s32 _mcVerifySaveSectionChecksums(void)
 
     allMatch     = 1;
     sectionIndex = 1;
-    sections     = Mc_BufferSlots;
+    sections     = _gMcSaveSections;
     section      = sections + 1;
     do {
         sum              = 0;
@@ -2432,7 +2505,7 @@ static inline s32 _mcVerifySaveSectionChecksums(void)
         }
         sectionIndex += 1;
         section      += 1;
-    } while (sectionIndex < (u32)ARRAY_SIZE(Mc_BufferSlots));
+    } while (sectionIndex < (u32)ARRAY_SIZE(_gMcSaveSections));
     return allMatch;
 }
 
@@ -2455,7 +2528,7 @@ static inline void _mcWriteSaveSectionChecksums(void)
 
     sectionIndex = 1;
     checksumMask = MEMORY_CARD_CHECKSUM_MASK;
-    sections     = Mc_BufferSlots;
+    sections     = _gMcSaveSections;
     section      = sections + 1;
     do {
         sum              = 0;
@@ -2472,7 +2545,7 @@ static inline void _mcWriteSaveSectionChecksums(void)
         sectionIndex              += 1;
         record->checksumComplement = checksumMask - sum;
         record->checksum           = sum;
-    } while (sectionIndex < (u32)ARRAY_SIZE(Mc_BufferSlots));
+    } while (sectionIndex < (u32)ARRAY_SIZE(_gMcSaveSections));
 }
 
 /// Return whether the live save has the sum of sections 1..8's low checksum bytes.
@@ -2489,14 +2562,14 @@ static inline s32 _mcVerifySectionChecksumSummary(void)
 
     sum          = 0;
     sectionIndex = 1;
-    sections     = Mc_BufferSlots;
+    sections     = _gMcSaveSections;
     section      = sections + 1;
     do {
         record        = section->buffer;
         sum          += (u8)record->checksum;
         section      += 1;
         sectionIndex += 1;
-    } while (sectionIndex < (u32)ARRAY_SIZE(Mc_BufferSlots));
+    } while (sectionIndex < (u32)ARRAY_SIZE(_gMcSaveSections));
     return (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.bufferChecksum ^ (sum & MEMORY_CARD_CHECKSUM_MASK)) == 0;
 }
 
@@ -2528,7 +2601,7 @@ static void _mcStatePrepareSectionRead(Task* dialogTask, McWork* dialogWork)
         }
     } else if (dialogWork->slotWriteMask & MEMORY_CARD_CURRENT_SECTION_SELECTED) {
         // Preserve unsigned sector rounding of the two-copy byte extent.
-        transferBytes             = Mc_BufferSlots[MEMORY_CARD_BUFFER_SLOT_COUNT - dialogWork->slotsRemaining].bytesPerCopy;
+        transferBytes             = _gMcSaveSections[MEMORY_CARD_BUFFER_SLOT_COUNT - dialogWork->slotsRemaining].bytesPerCopy;
         transferBytes           <<= 1;
         transferBytes            -= 1;
         transferBytes             = (u32)transferBytes >> MEMORY_CARD_SECTOR_BYTE_SHIFT;
@@ -2546,7 +2619,7 @@ static void _mcStatePrepareSectionRead(Task* dialogTask, McWork* dialogWork)
             dialogWork->cardTimer = dialogWork->cardTimer + 1;
         }
     } else {
-        dialogWork->sectorOffset   = dialogWork->sectorOffset + Mc_BufferSlots[MEMORY_CARD_BUFFER_SLOT_COUNT - dialogWork->slotsRemaining].cardSectors;
+        dialogWork->sectorOffset   = dialogWork->sectorOffset + _gMcSaveSections[MEMORY_CARD_BUFFER_SLOT_COUNT - dialogWork->slotsRemaining].cardSectors;
         dialogWork->slotsRemaining = dialogWork->slotsRemaining - 1;
         dialogWork->slotWriteMask  = (u32)dialogWork->slotWriteMask >> 1;
     }
@@ -2558,7 +2631,7 @@ static void _mcStatePrepareSectionRead(Task* dialogTask, McWork* dialogWork)
 /// Store the read card file header's signed-byte sum and complement in dialog work.
 ///
 /// `work->buffer` must borrow the complete card file header for this call. Covers
-/// the same byte extent as `Mc_DefaultChecksumSrc`, retaining the low 16 bits;
+/// the same byte extent as `_gMcFileHeader`, retaining the low 16 bits;
 /// the stored sum can be compared with the live save's title checksum.
 static inline void _mcWriteReadCardHeaderChecksum(McWork* work)
 {
@@ -2569,7 +2642,7 @@ static inline void _mcWriteReadCardHeaderChecksum(McWork* work)
     s32       byteIndex;
 
     sum                                                       = 0;
-    headerByteCount                                           = sizeof(Mc_DefaultChecksumSrc);
+    headerByteCount                                           = sizeof(_gMcFileHeader);
     headerByte                                                = work->buffer;
     checksum                                                  = &work->checksum;
     byteIndex                                                 = 0;
@@ -2609,11 +2682,11 @@ static void _mcStateFinishSectionRead(Task* task, McWork* work)
             if (sectionIndex == MEMORY_CARD_FILE_HEADER_SECTION) {
                 _mcWriteReadCardHeaderChecksum(work);
             } else {
-                recordPairBytes   = Mc_BufferSlots[sectionIndex].bytesPerCopy;
+                recordPairBytes   = _gMcSaveSections[sectionIndex].bytesPerCopy;
                 recordPairBytes <<= 1;
-                memcpy(Mc_BufferSlots[sectionIndex].buffer, work->buffer, recordPairBytes);
+                memcpy(_gMcSaveSections[sectionIndex].buffer, work->buffer, recordPairBytes);
             }
-            work->sectorOffset += Mc_BufferSlots[MEMORY_CARD_BUFFER_SLOT_COUNT - 1 - work->slotsRemaining].cardSectors;
+            work->sectorOffset += _gMcSaveSections[MEMORY_CARD_BUFFER_SLOT_COUNT - 1 - work->slotsRemaining].cardSectors;
             task->state         = MEMORY_CARD_LOAD_STATE_PREPARE_SECTION;
             break;
         case McErrCardNotExist:
@@ -2744,10 +2817,10 @@ void mcDrawFilePreview(UiObject* panelObject, const McWork* work, s32 directoryI
             x = originX + panelObject->panel.contentLeft.signedValue + 8;
             y = originY + panelObject->panel.contentTop.signedValue + 0x11;
             if (work->corruptNoticeStyle == MEMORY_CARD_CORRUPT_NOTICE_PROMPT) {
-                textDrawUiLine(panelObject, x, y, McText_LoadAbortedCorrupted, MEMORY_CARD_PREVIEW_LABEL_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+                textDrawUiLine(panelObject, x, y, _gMcTextLoadAbortedCorrupted, MEMORY_CARD_PREVIEW_LABEL_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
                 return;
             }
-            textDrawUiLines(panelObject, x, y, McText_LoadAbortedCorrupted, MEMORY_CARD_CORRUPT_MULTILINE_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+            textDrawUiLines(panelObject, x, y, _gMcTextLoadAbortedCorrupted, MEMORY_CARD_CORRUPT_MULTILINE_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
             return;
         }
         // Draw the time and completed-run details around the preview footer.
@@ -2766,7 +2839,7 @@ void mcDrawFilePreview(UiObject* panelObject, const McWork* work, s32 directoryI
             textDrawString(&detailRequest, textItoaUnsigned(numberScratch.text, preview->clearCount));
             if ((s8)preview->savePoint != MEMORY_CARD_SAVE_POINT_OPENING) {
                 MEMORY_CARD_INIT_PREVIEW_TEXT_REQUEST(statRequest, panelObject->panel.contentOriginX.unsignedValue + x, panelObject->panel.contentOriginY.unsignedValue + 8 + y, panelObject->panel.otIndex.signedValue + 1, MEMORY_CARD_PREVIEW_LABEL_RGB, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_OUTLINED);
-                textDrawString(&statRequest, Mc_ModeLabels[preview->gameMode]);
+                textDrawString(&statRequest, _gMcPreviewModeLabels[preview->gameMode]);
             }
         }
         x = originX + panelObject->panel.contentLeft.signedValue + 4;
@@ -2776,7 +2849,7 @@ void mcDrawFilePreview(UiObject* panelObject, const McWork* work, s32 directoryI
         saveLabelScratch.text[0] = 0;
         textAppendString(saveLabelScratch.text, gMcPreviewSaveNumberPrefix);
         textAppendString(saveLabelScratch.text, textItoaSigned(numberScratch.text, preview->saveNumber));
-        textAppendString(saveLabelScratch.text, (const u8*)McText_CloseParen);
+        textAppendString(saveLabelScratch.text, (const u8*)_gMcTextCloseParen);
         MEMORY_CARD_INIT_PREVIEW_TEXT_REQUEST(detailRequest, panelObject->panel.contentOriginX.unsignedValue + (x + textMeasureLineWidth(Mc_LocationLabels[(s8)preview->savePoint])), panelObject->panel.contentOriginY.unsignedValue + (y - 3), panelObject->panel.otIndex.signedValue + 1, textColorRgb, TEXT_GLYPH_TABLE_LARGE, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
         textDrawString(&detailRequest, saveLabelScratch.text);
         textX                    = originX + panelObject->panel.contentLeft.signedValue;
@@ -2823,7 +2896,7 @@ void mcDrawFilePreview(UiObject* panelObject, const McWork* work, s32 directoryI
         numberScratch.request.colorRgb   = textColorRgb;
         numberScratch.request.alignment  = TEXT_ALIGNMENT_CENTER;
         numberScratch.request.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&numberScratch.request, McText_NewBlock);
+        textDrawString(&numberScratch.request, _gMcTextNewBlock);
     }
 }
 
@@ -2949,7 +3022,7 @@ static void _mcNoOp(void)
 
 /// Return the nine-bit mask of save sections selected for writing.
 ///
-/// Bit n selects `Mc_BufferSlots[n]`. Sections 1..8 compare their complete live
+/// Bit n selects `_gMcSaveSections[n]`. Sections 1..8 compare their complete live
 /// record with the adjacent backup; bits 0, 1 and 8 are always set for the file
 /// header, save state and nibble bank. Retained unused out-of-line entry point.
 static s32 _mcQuerySectionWriteMask(void)
@@ -3011,7 +3084,7 @@ static void _mcBackupLiveSaveSections(void)
 /// Draw the memory-card title and both lines of a prompt, clearing the UI result.
 ///
 /// `dialogTask->spawnArg2.pointer` must borrow a live `UiObject`. `promptId`
-/// indexes `Mc_PromptTable`; text uses normal color, outlines and left alignment.
+/// indexes `_gMcPrompts`; text uses normal color, outlines and left alignment.
 /// Retained unused out-of-line entry point.
 static void _mcDrawDialogPrompt(Task* dialogTask, s32 promptId)
 {
@@ -3031,7 +3104,7 @@ static void _mcCloseChildAndReactivateDialog(Task* dialogTask)
 
 /// Write the signed-byte checksum pair for the resident or read card file header.
 ///
-/// Zero `useReadBuffer` selects `Mc_DefaultChecksumSrc` and the live save's
+/// Zero `useReadBuffer` selects `_gMcFileHeader` and the live save's
 /// `titleChecksum` pair. Any nonzero value selects `work->buffer` and the work's
 /// checksum pair; that buffer must contain at least the complete 512-byte header.
 /// The source is borrowed for this call; additions retain their low 16 bits.
@@ -3045,9 +3118,9 @@ static void _mcWriteSelectedCardHeaderChecksum(s32 useReadBuffer, McWork* work)
     s32       byteIndex;
 
     sum             = 0;
-    headerByteCount = sizeof(Mc_DefaultChecksumSrc);
+    headerByteCount = sizeof(_gMcFileHeader);
     if (useReadBuffer == 0) {
-        headerByte = Mc_DefaultChecksumSrc;
+        headerByte = (const u8*)&_gMcFileHeader;
         checksum   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.titleChecksum;
     } else {
         headerByte = work->buffer;
@@ -3188,7 +3261,7 @@ static void _mcStatePollCardAdvance(Task* task, McWork* work)
 /// Arm the settle delay before opening the selected save file for writing.
 ///
 /// Draws the current prompt and advances to the open state. `promptId` must index
-/// `Mc_PromptTable`, and the task must borrow a live dialog `UiObject`.
+/// `_gMcPrompts`, and the task must borrow a live dialog `UiObject`.
 static void _mcStateBeginOpenSaveFile(Task* task, McWork* work)
 {
     work->cardTimer = MEMORY_CARD_IO_SETTLE_FRAMES;
@@ -3261,8 +3334,8 @@ static void _mcStateBeginFileHeaderWrite(Task* task, McWork* work)
 static void _mcStateWriteFileHeader(Task* task, McWork* work)
 {
 
-    if (MemCardWriteFile(work->channel, (char*)Mc_FileName, (unsigned long*)Mc_DefaultChecksumSrc, 0,
-                         sizeof(Mc_DefaultChecksumSrc)) != 0) {
+    if (MemCardWriteFile(work->channel, _gMcFileName, (unsigned long*)&_gMcFileHeader, 0,
+                         sizeof(_gMcFileHeader)) != 0) {
         work->cardTimer = 0;
         task->state     = task->state + 1;
     } else {
@@ -3487,7 +3560,7 @@ static void _mcStateAcknowledgeSaveAccessFailure(Task* task, McWork* work)
 ///
 /// Decrements once per run and draws the current prompt. Below the dismiss limit,
 /// clears the task countdown and stores the negative state used by the save
-/// dispatcher. `promptId` must index `Mc_PromptTable`; the dialog object is live.
+/// dispatcher. `promptId` must index `_gMcPrompts`; the dialog object is live.
 static void _mcStateDismissSavePrompt(Task* task, McWork* work)
 {
     work->promptTimer -= 1;
@@ -3694,8 +3767,8 @@ void mcSaveDialogTask(Task* dialogTask)
     McWork*           dialogWork;
     s32               dialogState;
 
-    states      = Mc_PromptStates;
-    dialogWork  = &Mc_MenuWork;
+    states      = _gMcSaveDialogStates;
+    dialogWork  = &_gMcDialogWork;
     dialogState = dialogTask->state;
     // Dismissed dialogs leave the handler table and wait for a teardown request.
     if (dialogState < 0) {
@@ -3707,7 +3780,7 @@ void mcSaveDialogTask(Task* dialogTask)
         _mcHandleSaveTimeout(dialogTask, dialogWork);
     }
     // Advance the random sequence also used to generate new card filenames.
-    Mc_LastRandomValue = rand();
+    _gMcSaveDialogRandomSample = rand();
 }
 
 /// Initialize the shared work for loading and clear a pending player-position update.
@@ -3802,7 +3875,7 @@ static void _mcStateCloseLoadFile(Task* task, McWork* work)
 /// Count down the file-select dialog's closing prompt, then enter its kill state.
 ///
 /// Decrements once per run and draws the current prompt. Below the dismiss limit,
-/// clears the task countdown and advances. `promptId` must index `Mc_PromptTable`,
+/// clears the task countdown and advances. `promptId` must index `_gMcPrompts`,
 /// and the task must borrow a live dialog `UiObject`.
 static void _mcStateDismissLoadPrompt(Task* task, McWork* work)
 {
@@ -3932,7 +4005,7 @@ static void _mcStateWaitNoDataCardRemoval(Task* dialogTask, McWork* dialogWork)
 /// Arm the brief delay before opening the selected file for the load walk.
 ///
 /// Draws the current prompt and advances to the open state. `promptId` must index
-/// `Mc_PromptTable`, and the task must borrow a live dialog `UiObject`.
+/// `_gMcPrompts`, and the task must borrow a live dialog `UiObject`.
 static void _mcStateBeginSectionLoad(Task* task, McWork* work)
 {
     work->cardTimer = MEMORY_CARD_IO_BRIEF_FRAMES;
@@ -3981,7 +4054,7 @@ static void _mcStateReadLoadDirectory(Task* task, McWork* work)
     if (work->cardTimer == 0) {
         work->entryCount = 0;
         MemCardGetDirentry(
-            work->channel, (char*)Mc_SaveFilePattern, work->directory, &work->entryCount, 0,
+            work->channel, _gMcSaveFileNamePattern, work->directory, &work->entryCount, 0,
             ARRAY_SIZE(work->directory));
         if (work->entryCount != 0) {
             work->selectedSlot = 0;
@@ -4082,8 +4155,8 @@ void mcLoadDialogTask(Task* dialogTask)
     _McFileSelectStateTable states;
     McWork*                 dialogWork;
 
-    states     = Mc_FileSelectStates;
-    dialogWork = &Mc_MenuWork;
+    states     = _gMcLoadDialogStates;
+    dialogWork = &_gMcDialogWork;
     states.funcs[dialogTask->state](dialogTask, dialogWork);
     if (dialogWork->cardTimer >= MEMORY_CARD_IO_ABORT_FRAMES) {
         // Retain the transfer buffer when timing out of submission or polling.

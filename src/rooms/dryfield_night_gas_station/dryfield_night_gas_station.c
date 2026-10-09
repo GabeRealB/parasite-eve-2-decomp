@@ -96,8 +96,6 @@ extern Task* D_dryfield_night_gas_station_801907A8;
 /// that the "Play Data" and usage panels open beside their lists.
 static UiObjectDesc Telephone_Data_80181C90;
 
-extern UiObjectDesc D_800611E4;
-
 /// Prompt texts: "Save", "Play Data", "Weapon Data" and "PE Data".
 static u8 Telephone_Data_801819F8[];
 static u8 Telephone_Data_80181A00[];

@@ -56,8 +56,6 @@ static void _roomCutsceneSoundTask(Task* task);
 
 static void _dryfieldNightMotelLobbyCashRegisterOwnerTask(Task* task);
 
-extern UiObjectDesc D_800611E4;
-
 /// Saved `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` (area id), restored when the cutscene ends.
 
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType` (ally present). A distinct symbol so the restore

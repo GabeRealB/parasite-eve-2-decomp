@@ -36,8 +36,6 @@
 
 #include "rooms/room_common.h"
 
-extern UiObjectDesc D_800611E4;
-
 /// Labels the four menu-entry handlers `func_dryfield_motel_lobby_8017F094` to
 /// `func_dryfield_motel_lobby_8017F308` draw: "Save", "Play Data", "Weapon
 /// Data" and "PE Data".

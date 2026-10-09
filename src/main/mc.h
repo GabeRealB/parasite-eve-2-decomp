@@ -8,6 +8,19 @@
 
 #include "main/mc_types.h"
 #include "main/task_types.h"
+#include "main/ui_types.h"
+
+/// Shared mutable load-file list, containing only cached directory entries (0..15).
+///
+/// The active child initializes its viewport and selection; only one load list
+/// may run at a time. Every row uses the shared checksum-gated callback.
+extern UiList gMcLoadFileList;
+
+/// Shared mutable save-destination list, containing files and an optional New Block row.
+///
+/// The parent supplies at most fifteen rows and the remembered directory index.
+/// Only one save list may run at a time; every row uses the shared save callback.
+extern UiList gMcSaveFileList;
 
 /// Usable 8 KB blocks on a card, and the directory entries read for them.
 enum {
@@ -36,7 +49,7 @@ enum {
     MEMORY_CARD_IO_ABORT_FRAMES  = 0xB5
 };
 
-/// `Mc_BufferSlots` entries a save or load walks, including the card-title slot.
+/// Number of save-file sections, including the title, palette and icon header.
 enum { MEMORY_CARD_BUFFER_SLOT_COUNT = 9 };
 
 /// All-bits `McWork.slotWriteMask`: transfer every slot. The directory listing then starts at slot 0.
@@ -54,7 +67,7 @@ enum {
     MEMORY_CARD_CORRUPT_NOTICE_MULTILINE = 1  // Several lines
 };
 
-/// Row of `Mc_PromptTable` stored in `McWork.promptId`.
+/// Row of `_gMcPrompts` stored in `McWork.promptId`.
 enum {
     MEMORY_CARD_PROMPT_ACCESS_FAILED = 0,   // Access failed; please try again
     MEMORY_CARD_PROMPT_CHECKING      = 1,   // Checking the card; do not remove it
@@ -87,14 +100,14 @@ enum {
 typedef struct {
     s32             promptTimer;                               // Lead-in, then dismiss count. Opens at 16 and steps toward 0 by 2; a closing prompt counts down by 1 and ends below -16
     s32             cardTimer;                                 // Frames until the next card call, or frames the current call has been refused. A wait fires at 0; either dispatcher aborts at 181
-    s32             promptId;                                  // Row of `Mc_PromptTable` drawn for this state
+    s32             promptId;                                  // Row of `_gMcPrompts` drawn for this state
     s32             channel;                                   // `MemCard` channel. Port 0 is the only value stored
     long            syncCommand;                               // Command code reported by `MemCardSync`
     long            syncResult;                                // Result code reported by `MemCardSync`
     void*           buffer;                                    // Heap block for the current card transfer, or null
     s32             sectorOffset;                              // Next transfer position, in 128-byte card sectors
     s32             transferBytes;                             // Byte length of that transfer, rounded up to a sector
-    s32             slotsRemaining;                            // `Mc_BufferSlots` not yet visited, counting down from 9. The slot in hand is index `9 - slotsRemaining`; 0 means the walk is finished
+    s32             slotsRemaining;                            // `_gMcSaveSections` not yet visited, counting down from 9. The slot in hand is index `9 - slotsRemaining`; 0 means the walk is finished
     s32             slotWriteMask;                             // Bit n transfers buffer slot n. Shifted right unsigned as the walk advances, so bit 0 is the slot in hand. All bits set also makes the directory listing start at slot 0
     s32             confirmOverwrite;                          // 0 keep the name and start saving, 1 ask with the overwrite prompt first
     struct DIRENTRY directory[MEMORY_CARD_DIRECTORY_CAPACITY]; // Entries from the latest `MemCardGetDirentry`
@@ -111,15 +124,17 @@ typedef struct {
 } McWork;
 STATIC_ASSERT_SIZEOF(McWork, 0xA34);
 
-struct UiObject;
+/// NUL-terminated label for the memory-card Yes choice.
+extern u8 gMcTextYes[sizeof("Yes")];
 
-extern u8 McText_Yes[];
+/// NUL-terminated label for the memory-card No choice.
+extern u8 gMcTextNo[sizeof("No")];
 
-extern u8 McText_No[];
+/// NUL-terminated label for the memory-card Cancel choice.
+extern u8 gMcTextCancel[sizeof("Cancel")];
 
-extern u8 McText_Cancel[];
-
-extern u8 McText_Ok[];
+/// NUL-terminated label for the memory-card OK acknowledgment.
+extern u8 gMcTextOk[sizeof("OK")];
 
 // Save-slot detail labels and indexed descriptions.
 extern u8* Mc_LocationTitleLabels[];

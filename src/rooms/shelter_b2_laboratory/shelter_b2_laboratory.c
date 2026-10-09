@@ -100,8 +100,6 @@ typedef struct {
 } _ShelterB2LaboratoryGlowDiamondScratch;
 STATIC_ASSERT_SIZEOF(_ShelterB2LaboratoryGlowDiamondScratch, 0x18);
 
-extern UiObjectDesc D_800611E4;
-
 extern TaskDesc D_actor_143000_80134564;
 
 /// View saved when the cutscene starts and restored when it ends.

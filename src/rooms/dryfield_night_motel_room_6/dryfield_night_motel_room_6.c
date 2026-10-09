@@ -84,8 +84,6 @@ static s32 _dryfieldNightMotelRoom6HandleCommand(Task* unusedTask, s32 unusedMes
 
 static void _roomCutsceneSoundTask(Task* task);
 
-extern UiObjectDesc D_800611E4;
-
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType` (ally present), read through its own symbol.
 
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` as it was when the cutscene started, restored

@@ -159,7 +159,7 @@ STATIC_ASSERT_SIZEOF(GameFlagDryfieldBank, GAME_FLAG_DRYFIELD_BANK_BYTES);
 
 /// Bytes in one Dryfield night-bank copy, checksum prefix included.
 ///
-/// `GameFlag_DryfieldFullBanks` stores the live copy followed by its
+/// `gGameFlagDryfieldNightBanks` stores the live copy followed by its
 /// memory-card backup. The pair fits one 128-byte card sector.
 enum { GAME_FLAG_DRYFIELD_NIGHT_BANK_BYTES = 0x24 };
 

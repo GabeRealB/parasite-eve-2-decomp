@@ -166,7 +166,7 @@ static void _telephoneSaveMenuRow(UiList* list, UiObject* object)
     if (rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0 && cdCmdIsIdle() != 0) {
         sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
         gDisplayState.gameMode = DISPLAY_GAME_MODAL;
-        uiSpawnObject(&D_800611E4, 1, USER_INTERFACE_PANEL_INACTIVE, 0, object);
+        uiSpawnObject(&gMcDialogDescriptors[MEMORY_CARD_DIALOG_SAVE], 1, USER_INTERFACE_PANEL_INACTIVE, 0, object);
         object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         object->result             = USER_INTERFACE_RESULT_CONFIRM;
         object->owner->state       = rowInputEnabled;

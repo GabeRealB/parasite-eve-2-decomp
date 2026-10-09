@@ -37,10 +37,17 @@ extern GameFlagAcropolisBank gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_COUNT]
 /// Indexed by `GAME_FLAG_STAGE_BANK_LIVE` / `GAME_FLAG_STAGE_BANK_BACKUP`.
 /// Each 0xB0-byte copy holds the daytime visited bits, object states used by
 /// both times of day, and 36 area slots, including the MIST shooting gallery.
-/// Nighttime visited bits are stored separately in `GameFlag_DryfieldFullBanks`.
+/// Nighttime visited bits are stored separately in `gGameFlagDryfieldNightBanks`.
 extern GameFlagDryfieldBank gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_COUNT];
 
-extern GameFlagDryfieldNightBank GameFlag_DryfieldFullBanks[2];
+/// Resident live and backup visited-area state for Dryfield by night.
+///
+/// Indexed by GAME_FLAG_STAGE_BANK_LIVE / GAME_FLAG_STAGE_BANK_BACKUP. Each
+/// 0x24-byte copy contains a checksum header and retained trailing bytes. Night
+/// placement records and object states instead use gGameFlagDryfieldBanks.
+/// Initialization clears the live bank and fills the backup with 0xFF; card
+/// loading restores both copies, while attract-demo restore replaces only live.
+extern GameFlagDryfieldNightBank gGameFlagDryfieldNightBanks[GAME_FLAG_STAGE_BANK_COUNT];
 
 /// Resident live and backup state for the mine and Shelter B1 through B4.
 ///

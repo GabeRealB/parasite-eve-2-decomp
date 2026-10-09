@@ -5,7 +5,7 @@
 // Names follow the overlay that defines each symbol, so a call reads the
 // same here as it does in main/ or gameplay/.
 
-// --- from main (63 symbols)
+// --- from main (64 symbols)
 SetDispMask = 0x80017C00; // type:func absolute:True
 ClearImage = 0x80017E1C; // type:func absolute:True
 LoadImage = 0x80017F44; // type:func absolute:True
@@ -61,6 +61,7 @@ gFsImageWorkspacePtr = 0x8005C364; // absolute:True
 gGameSession = 0x8005ED64; // absolute:True
 gPadCancelButtonMask = 0x8005ED74; // absolute:True
 Pad_MaskMenu = 0x8005ED78; // absolute:True
+gMcDialogDescriptors = 0x800611C8; // absolute:True size:0x38
 gGpuPrimitiveBufferBase = 0x80068F88; // absolute:True
 gGpuPrimitiveBufferBytes = 0x80068F90; // absolute:True
 D_8006C338 = 0x8006C338; // absolute:True
@@ -84,8 +85,7 @@ itemMenuSpawnNotice = 0x800D4E40; // type:func absolute:True
 Gp_ItemDescs = 0x8010D838; // absolute:True
 gAttachmentLevelTable = 0x8011398C; // absolute:True
 
-// --- still unnamed in their own overlay (11)
-D_800611E4 = 0x800611E4; // absolute:True
+// --- still unnamed in their own overlay (10)
 D_80067634 = 0x80067634; // absolute:True
 D_80071068 = 0x80071068; // absolute:True
 D_80071072 = 0x80071072; // absolute:True

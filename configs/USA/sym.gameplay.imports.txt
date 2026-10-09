@@ -485,7 +485,7 @@ D_shelter_b4_reservoir_801850D8 = 0x801850D8; // absolute:True owner=shelter_b4_
 
 gGameFlagAcropolisBanks = 0x800733F0; // absolute:True size:0xD8
 gGameFlagDryfieldBanks = 0x800734C8; // absolute:True size:0x160
-GameFlag_DryfieldFullBanks = 0x80073628; // absolute:True size:0x48
+gGameFlagDryfieldNightBanks = 0x80073628; // absolute:True size:0x48
 gGameFlagMineShelterBanks = 0x80073670; // absolute:True size:0x1C8
 gGameFlagNeoArkBanks = 0x80073838; // absolute:True size:0x148
 Gp_FlagBanks = 0x80060A30; // absolute:True size:0x18

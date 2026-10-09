@@ -596,21 +596,26 @@ either way.
 
 #### Memory-card save header (`main.exe` `0x0516FC`, VA `0x80060EFC`)
 
-One 512-byte PlayStation save header, the entry the game writes for a card that
-failed to validate. Split across two symbols in the disassembly:
-`Mc_DefaultChecksumSrc` is the first 4 bytes (and what `Mc_BufferSlots[0]`
-points at), `Mc_SaveHeaderBody` the rest.
+One mutable 512-byte PlayStation save header, written when creating a save file.
+`_gMcFileHeader` owns the complete object and `_gMcSaveSections[0]` points to it.
+The initial corrupted-data title is replaced before normal saves; checksums
+cover the complete header, including palette and icons. The disassembly label
+`Mc_SaveHeaderBody` marks the title at byte 4 within that object.
 
 | Off | Size | Field |
 |---|---|---|
 | 0x00 | 2 | `"SC"` magic |
 | 0x02 | 1 | icon flag `0x11`-`0x13`; low nibble is the frame count (3 here) |
 | 0x03 | 1 | block count (1) |
-| 0x04 | 0x3C | Shift-JIS title, NUL-terminated - `ＰＥ２　Ｄａｔａ　Ｃｏｒｒｕｐｔｅｄ．` |
+| 0x04 | 0x40 | Shift-JIS title, NUL-terminated - `ＰＥ２　Ｄａｔａ　Ｃｏｒｒｕｐｔｅｄ．` |
+| 0x44 | 0x1C | retained bytes between title and CLUT; role unproven |
 | 0x60 | 0x20 | 16-entry 5-5-5 CLUT; entry 0 transparent |
 | 0x80 | 0x80 x3 | icon frames, 16x16 4bpp, low nibble = left pixel |
 
-The three frames animate a portrait dissolving into the teal PE energy effect.
+The title builder keeps its unchecked appends: a current title can span 66 bytes,
+extending into the retained bytes after the nominal 64-byte title without
+reaching the CLUT. The three frames animate a portrait dissolving into the teal
+PE energy effect.
 
 Overlay packages carry assets the same way, as records whose `source` is the
 package and whose `include` width makes the build write the initializer the C

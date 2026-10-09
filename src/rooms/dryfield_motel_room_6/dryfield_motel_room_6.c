@@ -72,8 +72,7 @@ static void _roomCutsceneTask(Task* task);
 
 static void _roomCutsceneSoundTask(Task* task);
 
-extern UiObjectDesc D_800611E4;
-extern TaskDesc     D_actor_120500_8013843C;
+extern TaskDesc D_actor_120500_8013843C;
 
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType` (ally present), read through its own symbol.
 
