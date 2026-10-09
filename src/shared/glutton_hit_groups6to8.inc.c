@@ -111,7 +111,7 @@ static void _gluttonHitGroups6To8(Task* task)
             scratch->damage *= 4;
             work->state      = GLUTTON_STATE_SUMMON;
 #if GLUTTON_ROOM == GLUTTON_INCINERATOR
-            work->groups6To8Pool = (s16)D_actor_444000_80144A48.hpMax;
+            work->groups6To8Pool = (s16)_gActor444000GluttonLeftLegParams.hpMax;
 #endif
         }
 
@@ -153,7 +153,7 @@ static void _gluttonHitGroups6To8(Task* task)
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
             work->groups6To8Pool = GLUTTON_GROUPS6_TO8_POOL_HP;
 #else
-            work->groups6To8Pool = (s16)D_actor_444000_80144A48.hpMax;
+            work->groups6To8Pool = (s16)_gActor444000GluttonLeftLegParams.hpMax;
 #endif
         }
 

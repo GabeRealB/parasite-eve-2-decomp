@@ -160,9 +160,6 @@ STATIC_ASSERT_SIZEOF(_Actor341900GluttonModelWork, 0x258);
 /// Byte the other actor overlays' one-argument setters write; set to 0xC here
 /// beside `gStageSceneMusicEntry`.
 
-extern PadScriptCmd              D_actor_444000_80144A74[2];
-extern PadScriptVibrationSegment D_actor_444000_80144A7C[2];
-
 /// Parameter record `_actor341900UpdatePlayerAction` sends with message 0x3F4.
 extern AnimationSet* D_actor_341900_801639A4[2];
 extern AnimationSet* D_actor_341900_801639AC[3];
@@ -726,7 +723,7 @@ static void _actor341900GluttonPartTask(Task* task)
 /// no NULL guard. The shake request is handled later by the Glutton host.
 static inline void _actor341900StartGluttonAdvanceCue(Task* task)
 {
-    taskReparent(task, padScriptSpawn(D_actor_444000_80144A74, D_actor_444000_80144A7C));
+    taskReparent(task, padScriptSpawn(gActor444000GluttonImpactPadCommands, gActor444000GluttonImpactPadSegments));
     actor444000GluttonSetShakeLevel(GLUTTON_SHAKE_LONG);
 }
 

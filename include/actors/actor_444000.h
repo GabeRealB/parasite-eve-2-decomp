@@ -6,6 +6,7 @@
 #include "actors/glutton_shake.h"
 
 #include "gameplay/animation.h"
+#include "gameplay/pad_script.h"
 
 #include "main/tmd_types.h"
 
@@ -19,6 +20,21 @@
 /// other values, including `GLUTTON_SHAKE_NONE`, neither arm a changed request
 /// nor immediately clear the display offset.
 void actor444000GluttonSetShakeLevel(s8 level);
+
+/// Two-lane impact vibration program for the incinerator Glutton and its staged body.
+///
+/// Starts a seven-frame binary-motor pulse and a 27-frame variable-motor ramp
+/// simultaneously, then stops both lanes. Pass with
+/// `gActor444000GluttonImpactPadSegments`; both arrays are borrowed by script
+/// tasks, so this overlay must remain loaded until those tasks finish.
+extern PadScriptCmd gActor444000GluttonImpactPadCommands[2];
+
+/// Timed segments of `gActor444000GluttonImpactPadCommands`.
+///
+/// Entry 0 supplies the binary lane's seven frames; entry 1 ramps variable
+/// intensity from 255 toward 53 over 27 script frames. Intensity endpoints
+/// are bytes before attenuation. The stored fourth byte has no established use.
+extern PadScriptVibrationSegment gActor444000GluttonImpactPadSegments[2];
 
 // Native animation sets shared with the companion actor overlay.
 extern AnimationSet gActor444000Animation20BD4;

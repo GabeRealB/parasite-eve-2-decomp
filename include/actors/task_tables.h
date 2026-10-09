@@ -336,7 +336,11 @@ extern TaskDesc D_actor_403600_80160514[];
 
 extern TaskDesc D_actor_205700_801611F8[];
 
-extern TaskDesc D_actor_444000_80161854;
+/// TMD host recipe for the garbage-incinerator Glutton, at execution priority 96.
+///
+/// The room borrows this descriptor from the loaded actor_444000 overlay.
+/// Its model source and callback must remain loaded for the host's lifetime.
+extern TaskDesc gActor444000GluttonHostTaskDesc;
 
 extern TaskDesc D_actor_341300_80165208[];
 

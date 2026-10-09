@@ -72296,7 +72296,7 @@ This supports the eligibility rule in CODEGEN_MODEL §10.3; it does not establis
 
 ## Two overlay globals of the same struct type can own differently-sized work blocks
 
-**Problem.** `actor_444000` publishes two task pointers, `D_actor_444000_80161860`
+**Problem.** `actor_444000` publishes two task pointers, `_gActor444000IncineratorEventTask`
 and `_gGluttonHostTask.task`, and the header had typed both `Actor444000*` with a
 single `Actor444000Work* field_1C`. Fields were then filed into that one struct from
 whichever function touched them, so `playerAction` / `playerActionStep` (reached through
@@ -72316,7 +72316,7 @@ two structs. The family convention for the smaller one is a separate
 `…EventWork` typedef reached through `Task::work`, as in `actor_342000` and `actor_121300`:
 
 ```c
-_Actor444000EventWork* work = D_actor_444000_80161860->work;
+_Actor444000EventWork* work = _gActor444000IncineratorEventTask->work;
 ```
 
 Finding the writers is one grep — `grep -rn 'D_<overlay>_<addr>' asm/… | grep 'sw '`
@@ -74393,7 +74393,7 @@ struct loads". `_actor444000SwipeState` reached 99.899% with a single
 late inside the `%hi`/`%lo` cluster that computes
 
 ```c
-D_actor_444000_80161670[4] =
+_gActor444000GluttonPlayerCaptureAnimationSets[4] =
     ((Actor403200AnimTable*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + D_80073BA9])->sets[7];
 ```
 
@@ -75019,9 +75019,9 @@ Target:
 ```
 lui v1, %hi(D_actor_444000_80144A68)
 li  v0, 1
-lui s0, %hi(D_actor_444000_80161888)
-sb  zero, %lo(D_actor_444000_80161888)(s0)   /* field_0 = 0 still first */
-addiu s0, s0, %lo(D_actor_444000_80161888)
+lui s0, %hi(_gActor444000GluttonMadChaserCommand)
+sb  zero, %lo(_gActor444000GluttonMadChaserCommand)(s0)   /* field_0 = 0 still first */
+addiu s0, s0, %lo(_gActor444000GluttonMadChaserCommand)
 sh  v0, %lo(D_actor_444000_80144A68)(v1)
 ```
 
@@ -153505,7 +153505,7 @@ that step was inferred from the result, not read out of a dump.
   s-registers are used.
 
 **Other cases.**
-- A global `GfxCoord` (`D_actor_403200_8015F970`, `D_actor_444000_801618B8`):
+- A global `GfxCoord` (`D_actor_403200_8015F970`, `_gActor444000GluttonMouthCoord`):
   `gfxSetRotIdentity(&D.node.coord)` makes `D + 4` the first address computed
   and everything else is derived from it (`addiu a0,v1,-4`). The target loads
   `&D` and adds 4. `node = &D.node; gfxSetRotIdentity(&node->coord);` matches,

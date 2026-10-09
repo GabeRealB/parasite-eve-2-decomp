@@ -27,7 +27,7 @@ static void _gluttonSpinnerTask(Task* task)
     EnemyTaskFuncTable4 states;
     GluttonSpinnerWork* work;
 
-    states = gGluttonSpinnerStates;
+    states = GLUTTON_SPINNER_STATES;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:

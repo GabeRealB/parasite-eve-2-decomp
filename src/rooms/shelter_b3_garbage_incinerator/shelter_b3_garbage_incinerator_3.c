@@ -1685,7 +1685,7 @@ WorldCollisionTrigger D_shelter_b3_garbage_incinerator_8018F734[6] = {
 };
 
 AreaResource D_shelter_b3_garbage_incinerator_8018F8FC[4] = {
-    { 32, 440, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_444000_80161854 },
+    { 32, 440, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor444000GluttonHostTaskDesc },
     { 103, 419, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_shelter_b3_garbage_incinerator_8018FAC0 },
     { 44, 422, AREA_RESOURCE_FILE_GROUP_BASE_60, 1, { 0, 0 }, D_shelter_b3_garbage_incinerator_8018FAC0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
@@ -1721,7 +1721,7 @@ AreaPlacement D_shelter_b3_garbage_incinerator_8018F9B8[4] = {
 };
 
 AreaResource D_shelter_b3_garbage_incinerator_8018F9F8[4] = {
-    { 32, 440, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_444000_80161854 },
+    { 32, 440, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor444000GluttonHostTaskDesc },
     { 103, 419, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_shelter_b3_garbage_incinerator_8018FAC0 },
     { 44, 422, AREA_RESOURCE_FILE_GROUP_BASE_60, 1, { 0, 0 }, D_shelter_b3_garbage_incinerator_8018FAC0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },

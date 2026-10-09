@@ -6827,9 +6827,21 @@ static void _actor403200DeathHandoffState(Task* task)
 #include "../../shared/glutton_prop_task.inc.c"
 #undef GLUTTON_PROP_TASK
 
+/// Selects this carrier's 3-state thrown-sphere callback table.
+///
+/// Must name a live const `EnemyTaskFuncTable3` object, copied before
+/// dispatch. Bind only around this fragment inclusion, then undefine it.
+#define GLUTTON_THROW_STATES gGluttonThrowStates
 #include "../../shared/glutton_throw_task.inc.c"
+#undef GLUTTON_THROW_STATES
 
+/// Selects this carrier's 5-state catching-glob callback table.
+///
+/// Must name a live const `EnemyTaskFuncTable5` object, copied before
+/// dispatch. Bind only around this fragment inclusion, then undefine it.
+#define GLUTTON_GLOB_STATES gGluttonGlobStates
 #include "../../shared/glutton_glob_task.inc.c"
+#undef GLUTTON_GLOB_STATES
 
 #include "../../shared/glutton_chunk_task.inc.c"
 
@@ -6837,7 +6849,13 @@ static void _actor403200DeathHandoffState(Task* task)
 
 #include "../../shared/glutton_spinner_wait.inc.c"
 
+/// Selects this carrier's 4-state spinner callback table.
+///
+/// Must name a live const `EnemyTaskFuncTable4` object, copied before
+/// dispatch. Bind only around this fragment inclusion, then undefine it.
+#define GLUTTON_SPINNER_STATES gGluttonSpinnerStates
 #include "../../shared/glutton_spinner_task.inc.c"
+#undef GLUTTON_SPINNER_STATES
 
 /// Empty callback installed for the boss's message 2015.
 ///

@@ -11,7 +11,7 @@ static void _gluttonThrowTask(Task* task)
 {
     EnemyTaskFuncTable3 states;
 
-    states = gGluttonThrowStates;
+    states = GLUTTON_THROW_STATES;
     switch (gSceneCombatState.actorControl) {
         default:
         case SCENE_COMBAT_ACTORS_RUNNING:

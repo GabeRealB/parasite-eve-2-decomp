@@ -15,7 +15,7 @@ static void _gluttonGlobTask(Task* task)
     EnemyTaskFuncTable5    states;
     GluttonProjectileWork* work;
 
-    states = gGluttonGlobStates;
+    states = GLUTTON_GLOB_STATES;
     work   = task->work;
 
     switch (gSceneCombatState.actorControl) {
