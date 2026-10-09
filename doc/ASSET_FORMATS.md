@@ -1081,17 +1081,25 @@ raw/movie/*.str   movie/{stem}.mp4  movie/{stem}.json   # lossless H.264 4:4:4 +
 Two tables:
 
 * **`ASSETS`** — unique raw blobs. Key is a stable id (type-store stem).
-  Value: `sha1` of the on-disc payload, `type`, and optional attributes
-  (`bpp`, `required`, …).
-* **`TREE`** — STAGE*.CDF file tree keyed by integer disc ids. Chunk
-  leaves are asset ids. Folder/file `name` is an optional path component.
+  Value: `sha1` of the on-disc payload, `type`, and the properties code needs
+  to use the asset. `tools/peassets/asset_schema.py` defines which a type has:
+  an image's and a CLUT's place in video memory (`x`, `y`, `w`, `h`, read from
+  the payload), `bpp`, the assets it directly requires (`deps`) and the ways it
+  is used (`variants`).
+* **`TREE`** — STAGE*.CDF file tree. Stages are keyed by number; folders and
+  files by name, each carrying its disc `id`. A file's `chunks` maps the name
+  each chunk is emitted under to the asset placed there, and the chunk's index
+  is its position. The key names the placement, not the asset, because one
+  asset sits in several files: within its folder and file the short name is
+  enough. The default is the asset's name less what the folder and file
+  already say; one written by hand is kept.
 
 ```text
 ASSETS["gameplay"] = {sha1, type: pe2pkg, required: True}
-ASSETS["pe2img_2"] = {sha1, type: pe2img, bpp: 8}
+ASSETS["pe2img_2"] = {sha1, type: pe2img, bpp: [8, 8], x: 768, y: 256, w: 128, h: 256}
 
-TREE[0]["files"][0] = {name: "gameplay", chunks: {1: "gameplay"}}
-TREE[1]["folders"][101]["files"][0]["chunks"][2] = "pe2img_12"
+TREE[0]["files"]["gameplay"] = {id: 0, chunks: {"spk_0": "spk_0", "package": "gameplay"}}
+TREE[2]["folders"]["dryfield_garage"]["files"]["file0"]["chunks"]["package"] = "dryfield_garage"
 ```
 
 Regenerate hashes and placement after extract (preserves extra fields and
