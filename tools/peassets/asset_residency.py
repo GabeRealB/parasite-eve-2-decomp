@@ -727,7 +727,11 @@ def slots(db: sqlite3.Connection) -> None:
 
 def resident(db: sqlite3.Connection, loader: str):
     """(group row, member row, footprint row, x, y) for everything LOADER can bring in."""
-    for g in db.execute("SELECT * FROM grp WHERE loader = ? AND kind != 'carrier' ORDER BY kind, id", (loader,)):
+    # A room's base file is loaded by gameplay, by rule, and is resident whenever the room is.
+    base = db.execute("SELECT g.* FROM grp g JOIN member m ON m.grp = g.id WHERE g.evidence = 'rule' AND m.file IN "
+                      "(SELECT m2.file FROM member m2 JOIN grp g2 ON g2.id = m2.grp WHERE g2.loader = ? AND g2.kind = 'carrier')", (loader,)).fetchall()
+    own = db.execute("SELECT * FROM grp WHERE loader = ? AND kind != 'carrier' ORDER BY kind, id", (loader,)).fetchall()
+    for g in base + own:
         for m in db.execute("SELECT * FROM member WHERE grp = ?", (g["id"],)):
             for f in db.execute("SELECT * FROM footprint WHERE file = ?", (m["file"],)):
                 x, y = moved(tuple(f)[1:], m["page"], m["row"], m["mode"])
@@ -774,6 +778,16 @@ def main() -> int:
                 offsets = f" page {m['page']:+d}, row {m['row']:+d}" if m["page"] or m["row"] else ""
                 n = db.execute("SELECT COUNT(*) FROM footprint WHERE file = ?", (m["file"],)).fetchone()[0]
                 print(f"    {m['file']}{offsets}  ({n} uploads)" + (f"  {m['note']}" if m["note"] else ""))
+        # Who brings this loader's own files in: a package's carrier line is its identity, not a load.
+        own = [r[0] for r in db.execute("SELECT m.file FROM member m JOIN grp g ON g.id = m.grp WHERE g.loader = ? AND g.kind = 'carrier'", (args.loader,))]
+        if own:
+            marks = ",".join("?" * len(own))
+            rows = db.execute(f"SELECT g.loader, g.kind, g.condition, g.evidence, g.layer, m.file, m.page, m.row FROM member m JOIN grp g ON g.id = m.grp "
+                              f"WHERE m.file IN ({marks}) AND g.kind != 'carrier' ORDER BY g.loader, g.condition, m.file", own).fetchall()
+            print("loaded by" + ("" if rows else ": nothing in the graph loads these files"))
+            for r in rows:
+                offsets = f" page {r['page']:+d}, row {r['row']:+d}" if r["page"] or r["row"] else ""
+                print(f"    {r['loader']:<36} {r['condition'] or '-':<12} {r['file']}{offsets}  [{r['evidence']}{', ' + r['layer'] if r['layer'] else ''}]")
     elif args.command == "at":
         seen = set()
         for g, m, f, x, y in resident(db, args.loader):
