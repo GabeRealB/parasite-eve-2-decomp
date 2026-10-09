@@ -228,7 +228,7 @@ void displayPresentTaskFrame(s32 bufferIndex)
         }
         // The snapshot is read as a signed byte; keep its high-bit behavior.
         if ((s8)D_80070E38 < DISPLAY_FLIP_SKIP_TASK_OT) {
-            DrawOTag((u_long*)Gpu_OrderingTables[bufferIndex].tag);
+            DrawOTag((u_long*)gGpuTaskOrderingTables[bufferIndex].tag);
         }
     }
 }
@@ -675,7 +675,7 @@ void displayUploadBackgroundImage(s32 bufferIndex)
             rect.x = 0;
             rect.w = FILE_SYSTEM_IMAGE_WIDTH;
             rect.h = FILE_SYSTEM_IMAGE_HEIGHT - gDisplayState.vramYOffset;
-            LoadImage(&rect, Fs_ImgBuffers->strips[0]);
+            LoadImage(&rect, gFsImageWorkspacePtr->strips[0]);
             return;
         }
         if (bufferIndex == 0) {
@@ -688,7 +688,7 @@ void displayUploadBackgroundImage(s32 bufferIndex)
         offsetYByte = gDisplayState.vramYOffset;
         rect.h      = offsetYByte + FILE_SYSTEM_IMAGE_HEIGHT;
         // Contiguous rows span the workspace's nominal column boundaries.
-        LoadImage(&rect, (u_long*)((u8*)Fs_ImgBuffers + ((-offsetYByte) * FILE_SYSTEM_IMAGE_ROW_BYTES)));
+        LoadImage(&rect, (u_long*)((u8*)gFsImageWorkspacePtr + ((-offsetYByte) * FILE_SYSTEM_IMAGE_ROW_BYTES)));
         return;
     }
     sourceRowOffsetBytes = 0;
@@ -710,9 +710,9 @@ void displayUploadBackgroundImage(s32 bufferIndex)
         do {
             stripIndex16 = stripIndex & DISPLAY_BACKGROUND_STRIP_INDEX_MASK;
             rect.x       = stripIndex16 * FILE_SYSTEM_IMAGE_STRIP_WIDTH;
-            LoadImage(&rect, (u_long*)((u8*)Fs_ImgBuffers->strips[stripIndex16] + sourceRowOffsetBytes));
+            LoadImage(&rect, (u_long*)((u8*)gFsImageWorkspacePtr->strips[stripIndex16] + sourceRowOffsetBytes));
             stripIndex++;
-        } while ((u32)(stripIndex & DISPLAY_BACKGROUND_STRIP_INDEX_MASK) < (u32)ARRAY_SIZE(Fs_ImgBuffers->strips));
+        } while ((u32)(stripIndex & DISPLAY_BACKGROUND_STRIP_INDEX_MASK) < (u32)ARRAY_SIZE(gFsImageWorkspacePtr->strips));
     }
 }
 

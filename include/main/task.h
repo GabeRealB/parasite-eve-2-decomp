@@ -31,10 +31,26 @@ extern TaskNode gTaskDefaultList;
 /// clears it before returning. Callers must clear it after a temporary override.
 extern bool gTaskDeferModelBufferAllocation;
 
-/// Six task descriptors. Entry 5 is a model descriptor whose model is not
-/// fixed: callers store the model in its `data.model` just before spawning effect
-/// 0x80005, which spawns its task from that entry.
-extern TaskDesc D_800626EC[6];
+/// Mutable model-source slots selected immediately before the corresponding burst effect spawn.
+enum {
+    TASK_BANK4_BURST_MODEL_PART_SLOT = 7,
+    TASK_BANK8_BURST_MODEL_PART_SLOT = 5,
+};
+
+/// Resident bank 8: five teardown stubs and one caller-selected flying model part.
+///
+/// Slots 0..5 have program lifetime. Before spawning EFFECT_BURST_BODY_PART_BANK8,
+/// store a borrowed TmdSource in slot 5's `data.model`. Spawning reads it
+/// synchronously; the model source and its overlay must outlive the effect.
+extern TaskDesc gTaskBank8Descs[6];
+
+/// Resident bank 4 for collision updates, development tasks and flying model parts.
+///
+/// Slots 0..8 have program lifetime. Before spawning EFFECT_BURST_BODY_PART_BANK4,
+/// store a borrowed TmdSource in slot 7's `data.model`. Spawning reads it
+/// synchronously; the model source and its overlay must outlive the effect.
+/// Development-image callbacks require their backing code to be loaded.
+extern TaskDesc gTaskBank4Descs[9];
 
 /// Task descriptors of bank 1. Entry 0x32 is a model descriptor whose model is
 /// not fixed: callers store the model in its `data.model` just before spawning

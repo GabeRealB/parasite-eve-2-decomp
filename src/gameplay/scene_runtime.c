@@ -41,7 +41,6 @@
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/gfxgte.h"
-#include "main/loadui.h"
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/random.h"
@@ -1297,7 +1296,7 @@ static s32 _sndLoadTryEnqueuePeFile(s32 fileIndex)
         commandArgs[3] = 0;
         commandArgs[2] = 0;
         cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKey, commandArgs);
-        D_800626E8 = 1;
+        gCdCmdViewSeekPending = CD_COMMAND_VIEW_SEEK_PENDING;
         return SND_LOAD_ENQUEUED;
     }
     return SND_LOAD_QUEUE_BUSY;
@@ -1311,7 +1310,7 @@ void sndLoadEnqueuePeFile(u8 fileIndex)
 
     if (gGameSession->loadedSndId != fileIndex) {
         sndEvtRequestScriptStop(SOUND_BANK_TYPE_PE_ALL, SND_LOAD_PE_STOP_CONTROL);
-        viewSeekRequested = 1;
+        viewSeekRequested = CD_COMMAND_VIEW_SEEK_PENDING;
         fileKey[3]        = 0;
         fileKey[2]        = SND_LOAD_PE_FILE_GROUP;
         fileKey[0]        = fileIndex;
@@ -1320,7 +1319,7 @@ void sndLoadEnqueuePeFile(u8 fileIndex)
         commandArgs[2]    = 0;
         commandArgs[1]    = CD_COMMAND_LOAD_DEFAULT;
         cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKey, commandArgs);
-        D_800626E8                = viewSeekRequested;
+        gCdCmdViewSeekPending     = viewSeekRequested;
         gGameSession->loadedSndId = fileIndex;
     }
 }
@@ -2033,7 +2032,7 @@ static void _gpuBlendRgb555(const u16* first, const u16* second, s32 firstWeight
 /// `otTagOffset` borrows a signed word, live and unchanged during this call.
 /// Its value counts four-byte tags from `gGpuCurrentOt`. Nonzero offsets must
 /// address a live tag in that table. Zero selects tag 0 at either
-/// `Gpu_OrderingTables` root; otherwise it selects tag -10, requiring ten live
+/// `gGpuTaskOrderingTables` root; otherwise it selects tag -10, requiring ten live
 /// tags before the current base. The normal frame base has 32 reserved tags.
 ///
 /// Both packets must be initialized, distinct, word-aligned and writable, and
@@ -2058,7 +2057,7 @@ static inline void _fadeLinkScreenPackets(const s32* otTagOffset, TILE* tile, DR
 
         orderingTable = gGpuCurrentOt;
         // Presentation starts at tag zero; the frame depth base follows its foreground tags.
-        if ((orderingTable == (u_long*)Gpu_OrderingTables[0].org) || (orderingTable == (u_long*)Gpu_OrderingTables[1].org)) {
+        if ((orderingTable == (u_long*)gGpuTaskOrderingTables[0].org) || (orderingTable == (u_long*)gGpuTaskOrderingTables[1].org)) {
             addPrim(orderingTable, tile);
             addPrim(orderingTable, blendCommand);
         } else {

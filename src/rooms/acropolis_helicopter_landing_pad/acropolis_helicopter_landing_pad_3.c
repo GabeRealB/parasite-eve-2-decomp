@@ -697,7 +697,7 @@ static void _acropolisHelicopterLandingPadMovieTask(Task* task)
             break;
         case ACROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_RESTORE:
             if (streamPollGameRestore(0, 0)) {
-                memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
+                memFillBytes(gFsImageWorkspacePtr, 0, sizeof(*gFsImageWorkspacePtr));
                 SetDispMask(1);
                 taskKill(task);
                 displayResumeGameLoop();

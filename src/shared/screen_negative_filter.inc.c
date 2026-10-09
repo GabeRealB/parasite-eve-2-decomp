@@ -59,7 +59,7 @@ static inline void _screenNegativeConvertWordPair(u_long* firstWord, u_long* sec
 
 /// Converts the resident RGB555 frame in place to its weighted grayscale negative.
 ///
-/// `Fs_ImgBuffers` must provide the complete writable, word-aligned 320x240
+/// `gFsImageWorkspacePtr` must provide the complete writable, word-aligned 320x240
 /// frame after GPU capture or image decoding has finished. Other workspace
 /// users must wait until conversion returns. Each output channel is
 /// 31 - floor((3R + 4G + B) / 8) in five-bit channel units; pixel bit 15 is
@@ -72,7 +72,7 @@ static void SCREEN_NEGATIVE_FILTER(void)
     u_long* firstWord;
 
     // Borrow the complete word array so traversal can cross strip boundaries.
-    frameWords         = (u_long(*)[FILE_SYSTEM_IMAGE_STRIP_COUNT * FILE_SYSTEM_IMAGE_STRIP_WORDS]) Fs_ImgBuffers;
+    frameWords         = (u_long(*)[FILE_SYSTEM_IMAGE_STRIP_COUNT * FILE_SYSTEM_IMAGE_STRIP_WORDS]) gFsImageWorkspacePtr;
     firstWord          = *frameWords;
     wordPairsProcessed = 0;
     do {

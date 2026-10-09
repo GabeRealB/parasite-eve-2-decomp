@@ -73,13 +73,13 @@ static inline void _shelterB6TrainingRoomMaskBackdrop(void)
     s32  pixelIndex;
 
     // The decoder stores two RGB16 pixels per word; mask both halfwords.
-    imagePixel = (u16*)Fs_ImgBuffers;
+    imagePixel = (u16*)gFsImageWorkspacePtr;
     pixelIndex = 0;
     do {
         *imagePixel |= FILE_SYSTEM_IMAGE_PIXEL_MASK;
         pixelIndex  += 1;
         imagePixel  += 1;
-    } while (pixelIndex <= (s32)(sizeof(*Fs_ImgBuffers) / sizeof(*imagePixel)) - 1);
+    } while (pixelIndex <= (s32)(sizeof(*gFsImageWorkspacePtr) / sizeof(*imagePixel)) - 1);
 }
 
 extern AreaResource D_shelter_b6_training_room_80185994[6];

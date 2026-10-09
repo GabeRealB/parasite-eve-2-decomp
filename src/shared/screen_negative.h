@@ -1,5 +1,5 @@
 /* An in-place image filter over the 320x240 16-bit frame captured into
- * Fs_ImgBuffers: it turns every pixel into its inverted luminance, a grey
+ * gFsImageWorkspacePtr: it turns every pixel into its inverted luminance, a grey
  * photographic negative, for scenes that freeze the picture as a negative.
  *
  * Include this header in the prologue and screen_negative_filter.inc.c at the
@@ -46,7 +46,7 @@ STATIC_ASSERT_SIZEOF(ScreenNegativeCaptureArgs, 0x4);
 /// restore the capture-task binding. The header guard prevents a second
 /// prototype. This object-like alias has no arguments, captured values or token
 /// construction. The fragment requires `main/fs.h`, `main/fs_types.h` and
-/// `common.h`; it borrows the completed frame from `Fs_ImgBuffers`.
+/// `common.h`; it borrows the completed frame from `gFsImageWorkspacePtr`.
 #define SCREEN_NEGATIVE_FILTER _screenNegativeFilter
 #endif
 

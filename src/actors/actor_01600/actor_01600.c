@@ -78,13 +78,13 @@
 /// Actor, model source and coordinate index must be stable, side-effect-free
 /// expressions; actor and the writable EffectWork* result local are used
 /// repeatedly. Rebinds the bank-8 descriptor synchronously before spawning.
-#define ACTOR_01600_SPAWN_BURST_PART(actor, modelSource, coordIndex, effectResult)                                                \
-    {                                                                                                                             \
-        D_800626EC[5].data.model = (modelSource);                                                                                 \
-        (effectResult)           = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, (actor)->extra.tmd->coords + (coordIndex), 0, NULL); \
-        if ((effectResult) != NULL) {                                                                                             \
-            _actor01600CopyBurstTextures((effectResult)->task, (actor));                                                          \
-        }                                                                                                                         \
+#define ACTOR_01600_SPAWN_BURST_PART(actor, modelSource, coordIndex, effectResult)                                                                                    \
+    {                                                                                                                                                                 \
+        gTaskBank8Descs[TASK_BANK8_BURST_MODEL_PART_SLOT].data.model = (modelSource);                                                                                 \
+        (effectResult)                                               = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, (actor)->extra.tmd->coords + (coordIndex), 0, NULL); \
+        if ((effectResult) != NULL) {                                                                                                                                 \
+            _actor01600CopyBurstTextures((effectResult)->task, (actor));                                                                                              \
+        }                                                                                                                                                             \
     }
 
 /// Navigation sweep steps, in yaw units, degrees and world-coordinate reach.
@@ -499,7 +499,7 @@ extern ActorTransform           Actor01600_D12890;
 extern s32 Actor01600_D12874;
 extern s32 Actor01600_D12870;
 
-/// Models effect 0x80005 spawns, set in `D_800626EC[5].data.model`.
+/// Models effect 0x80005 spawns, set in `gTaskBank8Descs[TASK_BANK8_BURST_MODEL_PART_SLOT].data.model`.
 static TmdSource _gActor01600ScavengerBurstHead;
 static TmdSource _gActor01600ScavengerBurstLeg;
 static TmdSource _gActor01600ScavengerBurstEar;

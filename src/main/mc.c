@@ -256,7 +256,7 @@ static UiListRowCallback Mc_SaveSlotCallbacks[];
 
 static UiListRowCallback Mc_LoadSlotCallbacks[];
 
-static u8* Mc_ModeLabels[];
+static const u8* Mc_ModeLabels[];
 
 static UiObjectDesc Mc_SaveListDesc[];
 
@@ -732,7 +732,7 @@ UiList                   Mc_SaveSlotList        = { Mc_SaveSlotCallbacks, 0x0F, 
 static UiListRowCallback Mc_LoadSlotCallbacks[] = { mcMenuDrawSaveFileRow };
 UiList                   Mc_LoadSlotList        = { Mc_LoadSlotCallbacks, 0x0F, 0x0F, 0, 0x2E };
 
-static u8* Mc_ModeLabels[] = { (u8*)McText_Replay, (u8*)McText_Bounty, (u8*)McText_Scavenger, (u8*)McText_Nightmare };
+static const u8* Mc_ModeLabels[] = { gMcPreviewReplayLabel, gMcPreviewBountyLabel, gMcPreviewScavengerLabel, gMcPreviewNightmareLabel };
 
 UiObjectDesc Mc_TaskDescriptors[] = {
     { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -25, 0x120, 0x32 }, 0x14, 0, TASK_BODY_NONE, 0xC0, mcLoadDialogTask, 0 },
@@ -1033,7 +1033,7 @@ static s32 _mcUpdateOkPrompt(Task* dialogTask, s32 promptId, s32 unusedPromptTim
     if (choiceTask == NULL) {
         UiObject* spawnedChoice;
 
-        spawnedChoice = uiSpawnObject(Mc_PromptDesc, MEMORY_CARD_MENU_PROMPT_OK, USER_INTERFACE_PANEL_ACTIVE, MEMORY_CARD_CHOICE_OPEN_DELAY_TICKS, dialogObject);
+        spawnedChoice = uiSpawnObject(gMcMenuPromptDesc, MEMORY_CARD_MENU_PROMPT_OK, USER_INTERFACE_PANEL_ACTIVE, MEMORY_CARD_CHOICE_OPEN_DELAY_TICKS, dialogObject);
         if (spawnedChoice != NULL) {
             _mcInitSingleActionPromptChild(dialogObject, spawnedChoice);
         }
@@ -1091,7 +1091,7 @@ static s32 _mcUpdateYesNoPrompt(Task* dialogTask, s32 promptId, s32 unusedPrompt
     if (choiceTask == NULL) {
         UiObject* spawnedChoice;
 
-        spawnedChoice = uiSpawnObject(Mc_PromptDesc, MEMORY_CARD_MENU_PROMPT_YES_NO, USER_INTERFACE_PANEL_ACTIVE, MEMORY_CARD_CHOICE_OPEN_DELAY_TICKS, dialogObject);
+        spawnedChoice = uiSpawnObject(gMcMenuPromptDesc, MEMORY_CARD_MENU_PROMPT_YES_NO, USER_INTERFACE_PANEL_ACTIVE, MEMORY_CARD_CHOICE_OPEN_DELAY_TICKS, dialogObject);
         if (spawnedChoice != NULL) {
             _mcInitYesNoPromptChild(dialogObject, spawnedChoice);
         }
@@ -1126,7 +1126,7 @@ static s32 _mcUpdateYesNoPromptInitialNo(Task* dialogTask, s32 promptId, s32 unu
     if (choiceTask == NULL) {
         UiObject* spawnedChoice;
 
-        spawnedChoice = uiSpawnObject(Mc_PromptDesc, MEMORY_CARD_MENU_PROMPT_YES_NO_INITIAL_NO, USER_INTERFACE_PANEL_ACTIVE, MEMORY_CARD_CHOICE_OPEN_DELAY_TICKS, dialogObject);
+        spawnedChoice = uiSpawnObject(gMcMenuPromptDesc, MEMORY_CARD_MENU_PROMPT_YES_NO_INITIAL_NO, USER_INTERFACE_PANEL_ACTIVE, MEMORY_CARD_CHOICE_OPEN_DELAY_TICKS, dialogObject);
         if (spawnedChoice != NULL) {
             _mcInitYesNoPromptChild(dialogObject, spawnedChoice);
         }
@@ -1160,7 +1160,7 @@ static s32 _mcUpdateCancelPrompt(Task* dialogTask, s32 promptId, s32 unusedPromp
     if (choiceTask == NULL) {
         UiObject* spawnedChoice;
 
-        spawnedChoice = uiSpawnObject(Mc_PromptDesc, MEMORY_CARD_MENU_PROMPT_CANCEL, USER_INTERFACE_PANEL_ACTIVE, MEMORY_CARD_CHOICE_OPEN_DELAY_TICKS, dialogObject);
+        spawnedChoice = uiSpawnObject(gMcMenuPromptDesc, MEMORY_CARD_MENU_PROMPT_CANCEL, USER_INTERFACE_PANEL_ACTIVE, MEMORY_CARD_CHOICE_OPEN_DELAY_TICKS, dialogObject);
         if (spawnedChoice != NULL) {
             spawnedChoice->panel.bounds.unsignedRect.h = MEMORY_CARD_CANCEL_PANEL_HEIGHT_PIXELS;
             _mcInitSingleActionPromptChild(dialogObject, spawnedChoice);
@@ -2754,14 +2754,14 @@ void mcDrawFilePreview(UiObject* panelObject, const McWork* work, s32 directoryI
         x = originX + panelObject->panel.contentLeft.signedValue + 2;
         y = (originY + panelObject->panel.contentBottom.signedValue) - 0x10;
         MEMORY_CARD_INIT_PREVIEW_TEXT_REQUEST(timeLabelRequest, panelObject->panel.contentOriginX.unsignedValue + x, panelObject->panel.contentOriginY.unsignedValue + (y - 2), panelObject->panel.otIndex.signedValue + 1, MEMORY_CARD_PREVIEW_LABEL_RGB, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
-        textDrawString(&timeLabelRequest, (const u8*)McText_Time);
+        textDrawString(&timeLabelRequest, gMcPreviewTimeLabel);
         MEMORY_CARD_INIT_PREVIEW_TEXT_REQUEST(timeValueRequest, panelObject->panel.contentOriginX.unsignedValue + 0x28 + x, panelObject->panel.contentOriginY.unsignedValue + y, panelObject->panel.otIndex.signedValue + 1, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
         textDrawString(&timeValueRequest, textFormatPlayTime(numberScratch.text, preview->playTime));
         if (preview->clearCount > 0) {
             x = (originX + panelObject->panel.contentRight.signedValue) - 4;
             y = (originY + panelObject->panel.contentBottom.signedValue) - 0xB;
             MEMORY_CARD_INIT_PREVIEW_TEXT_REQUEST(saveLabelScratch.request, panelObject->panel.contentOriginX.unsignedValue + (x - 0x1E), panelObject->panel.contentOriginY.unsignedValue + (y - 2), panelObject->panel.otIndex.signedValue + 1, MEMORY_CARD_PREVIEW_LABEL_RGB, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_OUTLINED);
-            textDrawString(&saveLabelScratch.request, (const u8*)McText_Clear);
+            textDrawString(&saveLabelScratch.request, gMcPreviewClearLabel);
             MEMORY_CARD_INIT_PREVIEW_TEXT_REQUEST(detailRequest, panelObject->panel.contentOriginX.unsignedValue + x, panelObject->panel.contentOriginY.unsignedValue + y, panelObject->panel.otIndex.signedValue + 1, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
             textDrawString(&detailRequest, textItoaUnsigned(numberScratch.text, preview->clearCount));
             if ((s8)preview->savePoint != MEMORY_CARD_SAVE_POINT_OPENING) {
@@ -2774,7 +2774,7 @@ void mcDrawFilePreview(UiObject* panelObject, const McWork* work, s32 directoryI
         textDrawUiLine(panelObject, x, y, Mc_LocationLabels[(s8)preview->savePoint], textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
         // Reuse the CLEAR request storage for the parenthesized save number.
         saveLabelScratch.text[0] = 0;
-        textAppendString(saveLabelScratch.text, (const u8*)McText_OpenParen);
+        textAppendString(saveLabelScratch.text, gMcPreviewSaveNumberPrefix);
         textAppendString(saveLabelScratch.text, textItoaSigned(numberScratch.text, preview->saveNumber));
         textAppendString(saveLabelScratch.text, (const u8*)McText_CloseParen);
         MEMORY_CARD_INIT_PREVIEW_TEXT_REQUEST(detailRequest, panelObject->panel.contentOriginX.unsignedValue + (x + textMeasureLineWidth(Mc_LocationLabels[(s8)preview->savePoint])), panelObject->panel.contentOriginY.unsignedValue + (y - 3), panelObject->panel.otIndex.signedValue + 1, textColorRgb, TEXT_GLYPH_TABLE_LARGE, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
@@ -2790,13 +2790,13 @@ void mcDrawFilePreview(UiObject* panelObject, const McWork* work, s32 directoryI
         detailRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
         detailRequest.alignment  = TEXT_ALIGNMENT_LEFT;
         detailRequest.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&detailRequest, (const u8*)McText_Exp);
+        textDrawString(&detailRequest, gMcPreviewExpLabel);
         if ((s8)preview->savePoint != MEMORY_CARD_SAVE_POINT_OPENING) {
             MEMORY_CARD_INIT_PREVIEW_TEXT_REQUEST(statRequest, panelObject->panel.contentOriginX.unsignedValue + x, panelObject->panel.contentOriginY.unsignedValue + y, panelObject->panel.otIndex.signedValue + 1, MEMORY_CARD_PREVIEW_LABEL_RGB, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
             textDrawString(&statRequest, textItoaSigned(numberScratch.text, preview->playerExp));
         } else {
             MEMORY_CARD_INIT_PREVIEW_TEXT_REQUEST(statRequest, panelObject->panel.contentOriginX.unsignedValue + x, panelObject->panel.contentOriginY.unsignedValue + y, panelObject->panel.otIndex.signedValue + 1, MEMORY_CARD_PREVIEW_LABEL_RGB, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
-            textDrawString(&statRequest, (const u8*)McText_Unavailable);
+            textDrawString(&statRequest, gMcPreviewUnavailableValue);
         }
         x                      = originX - 0x28;
         statRequest.x          = panelObject->panel.contentOriginX.unsignedValue + x;
@@ -2806,13 +2806,13 @@ void mcDrawFilePreview(UiObject* panelObject, const McWork* work, s32 directoryI
         statRequest.colorRgb   = MEMORY_CARD_PREVIEW_LABEL_RGB;
         statRequest.alignment  = TEXT_ALIGNMENT_LEFT;
         statRequest.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&statRequest, (const u8*)McText_Bp);
+        textDrawString(&statRequest, gMcPreviewBpLabel);
         if ((s8)preview->savePoint != MEMORY_CARD_SAVE_POINT_OPENING) {
             MEMORY_CARD_INIT_PREVIEW_TEXT_REQUEST(bpValueRequest, panelObject->panel.contentOriginX.unsignedValue + 0x1E + x, panelObject->panel.contentOriginY.unsignedValue + y, panelObject->panel.otIndex.signedValue + 1, MEMORY_CARD_PREVIEW_LABEL_RGB, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
             textDrawString(&bpValueRequest, textItoaSigned(numberScratch.text, preview->playerBp));
         } else {
             MEMORY_CARD_INIT_PREVIEW_TEXT_REQUEST(bpValueRequest, panelObject->panel.contentOriginX.unsignedValue + 0x1E + x, panelObject->panel.contentOriginY.unsignedValue + y, panelObject->panel.otIndex.signedValue + 1, MEMORY_CARD_PREVIEW_LABEL_RGB, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
-            textDrawString(&bpValueRequest, (const u8*)McText_Unavailable);
+            textDrawString(&bpValueRequest, gMcPreviewUnavailableValue);
         }
     } else {
         // A free card block has no cached preview to read.

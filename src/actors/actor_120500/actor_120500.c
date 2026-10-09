@@ -425,7 +425,7 @@ static void _actor120500MovieTask(Task* task)
                 return;
             }
             taskSpawnFromTableOnDefaultList(D_actor_120500_80138418, ACTOR_120500_MOVIE_FADE_TASK, ACTOR_120500_MOVIE_FADE_STEP, 0);
-            memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
+            memFillBytes(gFsImageWorkspacePtr, 0, sizeof(*gFsImageWorkspacePtr));
             SetDispMask(1);
             taskKill(task);
             displayResumeGameLoop();

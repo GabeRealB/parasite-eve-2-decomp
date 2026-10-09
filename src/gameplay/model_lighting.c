@@ -2923,12 +2923,12 @@ void playClockInitializeTask(Task* task)
 /// is still removed from the remainder at saturation. The sample is always saved.
 static inline void _playClockAdvanceSavedTime(_PlayClockWork* work, s32 currentGameTick)
 {
-    D_8005ED68        += currentGameTick - work->lastGameTick;
-    work->lastGameTick = currentGameTick;
-    if (D_8005ED68 >= PLAY_CLOCK_TICKS_PER_MINUTE) {
+    gPlayClockPendingTicks += currentGameTick - work->lastGameTick;
+    work->lastGameTick      = currentGameTick;
+    if (gPlayClockPendingTicks >= PLAY_CLOCK_TICKS_PER_MINUTE) {
         McSaveData* minuteSave;
-        D_8005ED68 -= PLAY_CLOCK_TICKS_PER_MINUTE;
-        minuteSave  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+        gPlayClockPendingTicks -= PLAY_CLOCK_TICKS_PER_MINUTE;
+        minuteSave              = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         if (minuteSave->state.playTime <= PLAY_CLOCK_MAX_MINUTES - 1) {
             minuteSave->state.playTime++;
             work->minutes++;
@@ -3004,7 +3004,7 @@ void playClockUpdateTask(Task* task)
         textDrawString(&timeRequest, (const u8*)":");
         textDrawString(&timeRequest, textItoaPadded(numberText, work->minutes, 2));
         textDrawString(&timeRequest, (const u8*)"'");
-        textDrawString(&timeRequest, textItoaPadded(numberText, D_8005ED68 / PLAY_CLOCK_TICKS_PER_SECOND, 2));
+        textDrawString(&timeRequest, textItoaPadded(numberText, gPlayClockPendingTicks / PLAY_CLOCK_TICKS_PER_SECOND, 2));
         padCheckButtons(PLAY_CLOCK_READOUT_PAD_PORT, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_SELECT);
     }
 
@@ -3139,8 +3139,8 @@ void playClockRestartSessionTask(Task* task)
     if (gGameSession->restartMode == GAME_SESSION_RESTART_ENDING) {
         gGpuPrimitiveBufferBytes = PLAY_CLOCK_ENDING_PRIMITIVE_HEAP_BYTES;
         gMemActiveAuxHeapBytes   = PLAY_CLOCK_ENDING_AUXILIARY_HEAP_BYTES;
-        gGpuPrimitiveBufferBase  = (u8*)((u32)Fs_ImgBuffers - PLAY_CLOCK_ENDING_PRIMITIVE_BEFORE_IMAGE_BYTES);
-        gMemActiveAuxHeap        = (void*)((u32)Fs_ImgBuffers - PLAY_CLOCK_ENDING_AUXILIARY_BEFORE_IMAGE_BYTES);
+        gGpuPrimitiveBufferBase  = (u8*)((u32)gFsImageWorkspacePtr - PLAY_CLOCK_ENDING_PRIMITIVE_BEFORE_IMAGE_BYTES);
+        gMemActiveAuxHeap        = (void*)((u32)gFsImageWorkspacePtr - PLAY_CLOCK_ENDING_AUXILIARY_BEFORE_IMAGE_BYTES);
     }
     memInitHeaps();
     memInitAuxHeap();

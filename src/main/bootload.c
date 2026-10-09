@@ -1797,7 +1797,7 @@ void gameFlowStartLoadScreenImage(void)
     RECT clearRect;
 
     // Discard the old image before selecting the next screen's resident captions.
-    memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
+    memFillBytes(gFsImageWorkspacePtr, 0, sizeof(*gFsImageWorkspacePtr));
     _gameFlowPrepareLoadScreenDisplay(&clearRect);
     imageKey.stage      = GAME_STAGE_NONE;
     imageKey.fileGroup  = GAME_FLOW_LOAD_FILE_CATEGORY;

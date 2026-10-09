@@ -138,7 +138,7 @@ static SPRT _gTextImmediateGlyphSprite;
 /// page at VRAM (960,256); calls sharing this packet must not overlap.
 static DR_TPAGE _gTextImmediateTexturePage;
 
-static TaskDesc D_8005EDA0[];
+static TaskDesc _gTaskSystemDescs[39];
 
 static _FontGlyph _gFontGlyphsMedium[FONT_GLYPH_MEDIUM_COUNT];
 
@@ -180,7 +180,12 @@ static void _uiVibrationOptionsTask(Task* task);
 
 static void _bootStartTitleTask(Task* task);
 
-static TaskDesc D_8005EDA0[] = {
+/// Resident bank 0 for boot, title, session loading, memory-card dialogs and the HUD.
+///
+/// Slots 0..38 are selected by task-bank index. NULL callback slots must not
+/// be spawned; overlay callbacks require their owning code to remain loaded.
+/// This table is private even though other overlays spawn its numbered entries.
+static TaskDesc _gTaskSystemDescs[39] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskNoopCallback },
     { { { TASK_BODY_NONE, 0xC0 } }, taskCountdownCallback },
     { { { TASK_BODY_NONE, 0xC0 } }, titleScreenTask },
@@ -223,16 +228,16 @@ static TaskDesc D_8005EDA0[] = {
 };
 
 TaskDesc* gTaskDescBanks[15] = {
-    D_8005EDA0,
+    _gTaskSystemDescs,
     D_800670D0,
     D_80067828,
-    D_80062780,
-    D_800676A8,
-    D_800626AC,
+    gTaskBank3Descs,
+    gTaskBank4Descs,
+    gTaskBank5Descs,
     D_8010FC2C,
     D_800678F4,
-    D_800626EC,
-    D_80067734,
+    gTaskBank8Descs,
+    gTaskBank9Descs,
     D_80114B34,
     D_80067828,
     D_80067828,

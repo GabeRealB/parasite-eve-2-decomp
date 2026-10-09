@@ -66,13 +66,13 @@ static inline void _aya20900FillRedImage(void)
     u_long  redPixelPair;
 
     // Two RGB555 pixels occupy each word; all twenty strips are contiguous.
-    imageWords   = Fs_ImgBuffers->strips[0];
+    imageWords   = gFsImageWorkspacePtr->strips[0];
     redPixelPair = (AYA_20900_RED_FLASH_PIXEL << 16) | AYA_20900_RED_FLASH_PIXEL;
     wordIndex    = 0;
     do {
         *imageWords++ = redPixelPair;
         wordIndex++;
-    } while ((u32)wordIndex <= ARRAY_SIZE(Fs_ImgBuffers->strips) * ARRAY_SIZE(Fs_ImgBuffers->strips[0]) - 1);
+    } while ((u32)wordIndex <= ARRAY_SIZE(gFsImageWorkspacePtr->strips) * ARRAY_SIZE(gFsImageWorkspacePtr->strips[0]) - 1);
 }
 
 /// Replaces the image strips with red beneath a fading additive white flash.
@@ -224,7 +224,7 @@ static s16 _aya20900StepGameOver(Task* task)
                 work->phase   += 1;
             } else {
                 // Nothing to keep on screen: swap in a black background and start fully dark.
-                memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
+                memFillBytes(gFsImageWorkspacePtr, 0, sizeof(*gFsImageWorkspacePtr));
                 gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
                 work->darkness                          = AYA_20900_GAME_OVER_DARKNESS_BLACK;
                 work->phase                             = AYA_20900_GAME_OVER_PHASE_REVEAL_START;
@@ -234,7 +234,7 @@ static s16 _aya20900StepGameOver(Task* task)
             work->darkness += AYA_20900_GAME_OVER_DARKEN_STEP;
             if (work->darkness >= AYA_20900_GAME_OVER_DARKNESS_BLACK) {
                 // The preserved picture is hidden now; replace it with the black background.
-                memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
+                memFillBytes(gFsImageWorkspacePtr, 0, sizeof(*gFsImageWorkspacePtr));
                 gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
                 work->darkness                          = AYA_20900_GAME_OVER_DARKNESS_BLACK;
                 work->phase                            += 1;

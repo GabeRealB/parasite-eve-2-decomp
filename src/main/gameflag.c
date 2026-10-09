@@ -18,7 +18,7 @@ enum {
     GAME_FLAG_HIGH_NIBBLE_MASK = GAME_FLAG_NIBBLE_MASK << GAME_FLAG_BITS_PER_NIBBLE
 };
 
-TaskDesc D_80067734[] = {
+TaskDesc gTaskBank9Descs[19] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },

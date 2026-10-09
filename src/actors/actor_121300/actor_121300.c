@@ -1643,7 +1643,7 @@ static void _actor121300AyaDoubleSceneTask(Task* task)
             ClearImage(&rect, 0, 0, 0);
             rect.y = ACTOR_121300_SCENE_SECOND_FRAME_Y;
             ClearImage(&rect, 0, 0, 0);
-            memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
+            memFillBytes(gFsImageWorkspacePtr, 0, sizeof(*gFsImageWorkspacePtr));
             SetDispMask(1);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_DRYFIELD_NIGHT;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_DRYFIELD_NIGHT_DILAPIDATED_HOUSE;

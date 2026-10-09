@@ -1120,7 +1120,7 @@ static void _actor143000OutlineKeypadHotspots(void)
 /// Captures full-width rows of the stored background into the resident workspace.
 ///
 /// Borrows strip for this call; only its y and h select the source rows.
-/// imageByteOffset is a word-aligned byte offset into Fs_ImgBuffers and the
+/// imageByteOffset is a word-aligned byte offset into gFsImageWorkspacePtr and the
 /// complete 320-pixel strip must fit there. The source starts at VRAM (448,256),
 /// in RGB555 halfwords. The caller owns workspace reuse and GPU synchronization.
 static inline void _actor143000StoreStrip(const RECT* strip, s32 imageByteOffset)
@@ -1130,7 +1130,7 @@ static inline void _actor143000StoreStrip(const RECT* strip, s32 imageByteOffset
     sourceRect.x  = ACTOR_143000_CAPTURE_VRAM_X;
     sourceRect.w  = FILE_SYSTEM_IMAGE_WIDTH;
     sourceRect.y += ACTOR_143000_CAPTURE_VRAM_Y;
-    StoreImage(&sourceRect, (u_long*)((u8*)Fs_ImgBuffers + imageByteOffset));
+    StoreImage(&sourceRect, (u_long*)((u8*)gFsImageWorkspacePtr + imageByteOffset));
 }
 
 void actor143000CaptureStripTask(Task* task)

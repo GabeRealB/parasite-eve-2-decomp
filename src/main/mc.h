@@ -124,27 +124,37 @@ extern u8 McText_Ok[];
 // Save-slot detail labels and indexed descriptions.
 extern u8* Mc_LocationTitleLabels[];
 
-extern const char McText_Time[];
+/// NUL-terminated TIME caption for a cached save preview's elapsed play time.
+extern const u8 gMcPreviewTimeLabel[sizeof("TIME")];
 
-extern const char McText_Clear[];
+/// NUL-terminated CLEAR caption shown beside a cached preview's completed-run count.
+extern const u8 gMcPreviewClearLabel[sizeof("CLEAR")];
 
-extern const char McText_OpenParen[];
+/// NUL-terminated space and opening parenthesis preceding the preview's save number.
+extern const u8 gMcPreviewSaveNumberPrefix[sizeof(" (")];
 
-extern const char McText_Exp[];
+/// NUL-terminated EXP caption for the cached preview's player experience.
+extern const u8 gMcPreviewExpLabel[sizeof("EXP")];
 
-extern const char McText_Unavailable[];
+/// NUL-terminated unavailable-stat text for opening saves without EXP or BP values.
+extern const u8 gMcPreviewUnavailableValue[sizeof("---")];
 
-extern const char McText_Bp[];
+/// NUL-terminated BP caption for the cached preview's bounty points.
+extern const u8 gMcPreviewBpLabel[sizeof("BP")];
 
 extern u8* Mc_LocationLabels[];
 
-extern const char McText_Nightmare[];
+/// NUL-terminated Nightmare label for a completed preview with gameMode 3.
+extern const u8 gMcPreviewNightmareLabel[sizeof("Nightmare")];
 
-extern const char McText_Scavenger[];
+/// NUL-terminated Scavenger label for a completed preview with gameMode 2.
+extern const u8 gMcPreviewScavengerLabel[sizeof("Scavenger")];
 
-extern const char McText_Bounty[];
+/// NUL-terminated Bounty label for a completed preview with gameMode 1.
+extern const u8 gMcPreviewBountyLabel[sizeof("Bounty")];
 
-extern const char McText_Replay[];
+/// NUL-terminated Replay label for a completed preview with gameMode 0.
+extern const u8 gMcPreviewReplayLabel[sizeof("Replay")];
 
 /// Draw a card file's cached preview, corrupt notice or New Block placeholder.
 ///

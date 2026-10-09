@@ -302,7 +302,7 @@ STATIC_ASSERT_SIZEOF(FsImgBuffers, 0x25800);
 
 /// Fixed RAM workspace for resident image loading, decoding and frame capture.
 ///
-/// Lives at 0x801D7000 and is addressed through `Fs_ImgBuffers`; no linked
+/// Lives at 0x801D7000 and is addressed through `gFsImageWorkspacePtr`; no linked
 /// image supplies its contents. Its 0x25800 bytes hold one 320x240 RGB16
 /// frame, or temporary compressed input and VLC data during decoding.
 /// Users must finish CD, MDEC and GPU transfers before reusing the bytes.

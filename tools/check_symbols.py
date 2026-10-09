@@ -99,7 +99,7 @@ NEVER_TOGETHER = {frozenset(('title', 'gameplay'))}
 ALWAYS = 'SLUS_010.42'
 # Memory the game addresses that no image of ours occupies: the kernel's area
 # below the executable, the fixed buffers at the top of the retail console's
-# RAM (the image buffers boot points Fs_ImgBuffers at, and the work area above
+# RAM (the image buffers boot points gFsImageWorkspacePtr at, and the work area above
 # them), and the RAM a development unit had past the retail 2 MB, where debug
 # tooling the game calls into was resident.
 EXTERNAL = {

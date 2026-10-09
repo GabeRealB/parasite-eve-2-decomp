@@ -138,8 +138,8 @@ enum {
     GAME_FLOW_START_SESSION_TASK_SLOT = 9,
 };
 
-GameSession* gGameSession = &_gGameSessionState;
-s32          D_8005ED68   = 0;
+GameSession* gGameSession           = &_gGameSessionState;
+s32          gPlayClockPendingTicks = 0;
 /// Unreferenced.
 static s32 D_8005ED6C            = 0x40;
 s32        gPadConfirmButtonMask = PAD_BUTTON_CROSS;
@@ -466,10 +466,8 @@ void gameFlowLoadDialogTask(Task* task)
 /// trailing bytes, then advances to disk checking and the initial file load.
 static void _gameFlowRestoreSavedLocation(Task* task)
 {
-    enum { LOAD_UI_DISK_SWAP_INITIAL = 0 };
-
     gGameSession->location = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location;
-    D_8007A394             = LOAD_UI_DISK_SWAP_INITIAL;
+    gLoadUiDiskSwapState   = LOAD_UI_DISK_SWAP_CHECK_REQUIRED_DISC;
     task->state            = task->state + 1;
 }
 
@@ -517,7 +515,7 @@ static void _gameFlowQueueGameplayLoad(Task* sessionStartTask)
 
 void playClockResetMinuteTicks(void)
 {
-    D_8005ED68 = 0;
+    gPlayClockPendingTicks = 0;
 }
 
 /// Hands session startup to gameplay's reload task once normal CD dispatch is idle.

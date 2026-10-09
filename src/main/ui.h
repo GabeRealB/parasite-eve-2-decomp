@@ -10,7 +10,7 @@ extern UiList Mc_LoadSlotList;
 
 extern UiObjectDesc Mc_TaskDescriptors[];
 
-/// Choice layouts passed as the first spawn argument with `Mc_PromptDesc`.
+/// Choice layouts passed as the first spawn argument with `gMcMenuPromptDesc`.
 ///
 /// Other values use Yes/No with Yes initially selected. Mode 3 selects No
 /// after viewport initialization, overriding the saved cursor preference.
@@ -21,7 +21,13 @@ enum {
     MEMORY_CARD_MENU_PROMPT_YES_NO_INITIAL_NO = 3
 };
 
-extern UiObjectDesc Mc_PromptDesc[];
+/// Single resident UI recipe for memory-card OK, Cancel and Yes/No choices.
+///
+/// Spawn this recipe with MEMORY_CARD_MENU_PROMPT_* as contentArg and a live
+/// parent dialog object. Its initial 75x32-pixel panel is resized for the
+/// selected list; lists are shared mutable state, so prompts
+/// using the same layout must run sequentially. The parent closes the choice.
+extern UiObjectDesc gMcMenuPromptDesc[1];
 
 /// Draws a save destination and accepts the active row or cancellation.
 ///

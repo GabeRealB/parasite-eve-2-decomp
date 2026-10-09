@@ -348,7 +348,7 @@ DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW`, packed value 0xF010). 320×24
 
 Same `streamFindMovieSlot` path. The id comes from session/stage keys (e.g.
 `gGameSession` field block filled from room/event data such as
-`Stage_Ctx->pendingView`). We have **not** fully decompiled every script path that
+`_gStageTransitionState->pendingView`). We have **not** fully decompiled every script path that
 chooses id 100 vs 101 for stage‑3 duals; the engine side is only **id → slot**.
 
 ### 3.4 Dual descriptors (stage 3) — not dual-valid

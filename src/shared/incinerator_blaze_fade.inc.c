@@ -111,7 +111,7 @@ static void _blazeFadeTask(Task* task)
                 parentWork             = ((Task*)task->spawnArg2.pointer)->work;
                 parentWork->wave.state = SCREEN_WAVE_RAMP_FINISHED;
                 displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
-                memFillBytes(Fs_ImgBuffers, BLAZE_FADE_WHITE_IMAGE_FILL, sizeof(*Fs_ImgBuffers));
+                memFillBytes(gFsImageWorkspacePtr, BLAZE_FADE_WHITE_IMAGE_FILL, sizeof(*gFsImageWorkspacePtr));
                 fadeWork->b = BLAZE_FADE_CHANNEL_MAX;
                 fadeWork->g = BLAZE_FADE_CHANNEL_MAX;
                 task->state = BLAZE_FADE_STATE_HOLD_WHITE;

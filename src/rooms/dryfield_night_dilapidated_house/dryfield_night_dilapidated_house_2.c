@@ -2467,7 +2467,7 @@ static void _dryfieldNightDilapidatedHouseMovieTask(Task* task)
             if (streamPollGameRestore(false, false) == 0) {
                 return;
             }
-            memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
+            memFillBytes(gFsImageWorkspacePtr, 0, sizeof(*gFsImageWorkspacePtr));
             SetDispMask(true);
             taskKill(task);
             displayResumeGameLoop();

@@ -134,7 +134,7 @@ static StageMusicEntry* Stage_CountdownMusicTables[] = {
 static u8 Stage_MusicRowLengths[]  = { 8, 7, 0xB, 0xC, 0xA };
 static u8 Stage_SceneEventLimits[] = { 9, 8, 0xC, 9, 0x14 };
 TaskDesc  Stage_MusicTaskDesc      = { { { TASK_BODY_NONE, 0xC0 } }, _stageMusicTask };
-TaskDesc  D_80062780[]             = {
+TaskDesc  gTaskBank3Descs[8]       = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },

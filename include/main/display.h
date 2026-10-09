@@ -121,7 +121,14 @@ extern DisplayState gDisplayState;
 
 extern GsOT Gpu_OtBuffers[2];
 
-extern GsOT Gpu_OrderingTables[2];
+/// Two resident ordering-table descriptors for task-owned frame presentation.
+///
+/// Indexed by frameBuffer (0 or 1). They borrow either 64-tag small tables or
+/// 1024-tag full tables; configuration and frame clearing rebuild the active
+/// descriptor's head and tail. SDK GsOT_TAG pointers view the same four-byte
+/// DMA words used by raw packet-linking APIs. Tags and packets must remain live
+/// until GPU drawing finishes; these descriptors do not own their storage.
+extern GsOT gGpuTaskOrderingTables[2];
 
 /// Next free address in the selected frame's GPU packet arena.
 ///
@@ -286,7 +293,7 @@ void gpuResetAndInvalidateModelBuffers(void);
 /// Uploads the decoded background into one 240-line framebuffer.
 ///
 /// `bufferIndex` must be 0 or 1, selecting VRAM y=0 or y=272. The CD loader
-/// supplies a complete 320x240 RGB16 image in `Fs_ImgBuffers`, either contiguous
+/// supplies a complete 320x240 RGB16 image in `gFsImageWorkspacePtr`, either contiguous
 /// rows or twenty 16x240 columns, selected by its image-layout field. Other
 /// layouts issue no transfer. This fixed geometry is independent of display mode.
 ///

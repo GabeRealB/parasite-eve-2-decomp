@@ -12362,7 +12362,7 @@ pointer in `$v0` so the first `lbu` can land in `$v1`.
 
 The double-buffered ordering-table descriptors (size `0x14`, two entries =
 `0x28`) are the SDK's `GsOT` from `<psyq/libgs.h>`, which
-`include/main/display.h` includes. Both pairs use it: `Gpu_OrderingTables`
+`include/main/display.h` includes. Both pairs use it: `gGpuTaskOrderingTables`
 (task-owned presentation) and `Gpu_OtBuffers` (the game loop's tables). Do not
 define a local struct with the same layout.
 
@@ -12377,7 +12377,7 @@ typedef struct {
 ```
 
 Init pattern (see `_displayConfigureSmallTaskBuffers`): write `length`/`org`
-through `Gpu_OrderingTables[0]` and `[1]`, with the second `org` as
+through `gGpuTaskOrderingTables[0]` and `[1]`, with the second `org` as
 `tags + (1 << length)`.
 OT tag storage of `0x200` bytes is two buffers of `0x100` (`u_long[0x80]`).
 
@@ -12389,7 +12389,7 @@ GsClearOt(0, 0, &ot[temp->frameBuffer]);
 gGpuCurrentOt = ot[temp->frameBuffer].org;
 ```
 
-`gpuInitTaskOrderingTables` is the reference: sets both `Gpu_OrderingTables` slots to depth `0xA`
+`gpuInitTaskOrderingTables` is the reference: sets both `gGpuTaskOrderingTables` slots to depth `0xA`
 with `Gpu_OtTags` / `+ GPU_ORDERING_TABLE_BUFFER_ENTRIES`, clears the active buffer
 (`gDisplayState.frameBuffer`), then points `gGpuCurrentOt` at the OT base.
 
@@ -12877,7 +12877,7 @@ Also: if the target loads the byte early but stores it late, hold it in a
 local (`val = (u8)...`) so the load schedules before intervening stores.
 
 `Display_BeginTransition` is the pure example (`gGameSession->location.loc.view` →
-`Stage_Ctx->field_20`).
+`_gStageTransitionState->field_20`).
 
 ## BSS adjacency: hold the later symbol, step back by typed size
 
@@ -14563,9 +14563,9 @@ both the `and` and the later `or`:
 s32 mask;
 
 mask = 0x40000000;
-if (!(Stage_Ctx->field_1c & mask)) {
+if (!(_gStageTransitionState->field_1c & mask)) {
     padStartInputBlock(0);
-    temp = Stage_Ctx;
+    temp = _gStageTransitionState;
     temp->field_20 = arg0;
     temp->field_24 = 0;
     temp->field_28 = 0;
@@ -16017,7 +16017,7 @@ jal   memFillBytes
  ori   a2, a2, LO(size)
 ```
 
-plain `memFillBytes(Fs_ImgBuffers, 0, 0x25800)` usually loads the global first
+plain `memFillBytes(gFsImageWorkspacePtr, 0, 0x25800)` usually loads the global first
 (`lui v0` in the delay slot), then sets `a1`/`a2`. Score sticks at ~99% with
 only that reorder left.
 
@@ -16033,7 +16033,7 @@ Two pieces together fix it:
    ch = 0;
    size = 0x20000; /* high half only — do not write 0x25800 here */
    asm("" : "+r"(ch), "+r"(size));
-   memFillBytes(Fs_ImgBuffers, ch, size | 0x5800);
+   memFillBytes(gFsImageWorkspacePtr, ch, size | 0x5800);
    ```
 2. Without the empty `asm`, CSE folds `ch` back to `$zero` / reorders past the
    load. Without splitting `0x25800` into `0x20000 | 0x5800`, the full constant
@@ -18466,7 +18466,7 @@ can swap `$s2`/`$s3` between that global and a competing mid-function
 `&gDisplayState` (~97%).
 
 Match both: keep the if/goto equality dispatch, **and write the shared tail
-inline in every case** (duplicate `Stage_Ctx->field_28++`). GCC CSEs those
+inline in every case** (duplicate `_gStageTransitionState->field_28++`). GCC CSEs those
 copies into the dual-entry shared block the target wants (`lw` via `$s2` at the
 head, case0 preloads and jumps mid-block with `sb` in the delay slot):
 
@@ -19739,7 +19739,7 @@ rect.y = y;
 rect.x = 0;       /* before w */
 rect.w = 0x140;
 rect.h = 0xF0 - field;
-LoadImage(&rect, Fs_ImgBuffers);
+LoadImage(&rect, gFsImageWorkspacePtr);
 ```
 
 `rect.w` then `rect.x` produces `addiu` first. `displayUploadBackgroundImage` is the pure
@@ -20937,12 +20937,12 @@ if (transitionKind == STAGE_TRANSITION_NONE) {
 }
 ```
 
-Same case: to get `lui %hi(gDisplayState+0x118)` *before* `lui %hi(Stage_Ctx)`,
+Same case: to get `lui %hi(gDisplayState+0x118)` *before* `lui %hi(_gStageTransitionState)`,
 preload the display field into a temp before materialising the other global:
 
 ```c
 frameBuffer = gDisplayState.frameBuffer;
-stage       = Stage_Ctx;
+stage       = _gStageTransitionState;
 if (frameBuffer == stage->heldFrameBuffer) { ... }
 ```
 
@@ -37606,7 +37606,7 @@ was to *break* a cross-jump, here it is to *feed* one. 97.6% -> 99.3%.
 head or reserved foreground tag. A single function-scope
 `u_long* orderingTable` reloaded in both arms is allocated one register for the whole
 function ($t0 in both), which also shifts every other pointer down a register
-and reorders the `lui %hi(Gpu_OrderingTables)` / `lw gGpuCurrentOt` pair. The
+and reorders the `lui %hi(gGpuTaskOrderingTables)` / `lw gGpuCurrentOt` pair. The
 target gives each arm its own register ($a3 in the indexed arm, $a2 in the
 head arm), so declare the pointer at block scope inside each arm:
 
@@ -45885,9 +45885,9 @@ lw   a1,8(v0)
 
 *after* the `sw` to the bare scalar `D_80062730`, and reaches that scalar
 through `%lo(D_80062730)` - so the aggregate and owning-struct forms are both
-excluded by the bytes (`D_80062730` is `D_800626EC[5].data.model`, and the sibling
-`_actor01600SpawnBurstParts` in the same build compiles `D_800626EC[5].data.model = x` to
-`lui $v0,%hi(D_800626EC); addiu $s1,$v0,%lo(D_800626EC); … sw $v0,0x44($s1)`).
+excluded by the bytes (`D_80062730` is `gTaskBank8Descs[TASK_BANK8_BURST_MODEL_PART_SLOT].data.model`, and the sibling
+`_actor01600SpawnBurstParts` in the same build compiles `gTaskBank8Descs[TASK_BANK8_BURST_MODEL_PART_SLOT].data.model = x` to
+`lui $v0,%hi(gTaskBank8Descs); addiu $s1,$v0,%lo(gTaskBank8Descs); … sw $v0,0x44($s1)`).
 Writing the field as a typed member - `index->field_2C->field_8 + 3` - scores
 93.291%, with those loads floated above the `sw`; `SOFT_BARRIER()` after the
 store scores 96.582% and is *not* the fix here, because it also pins the
@@ -65717,7 +65717,7 @@ all three retry stores, and changed the return-register scheduling.
 At 97.150%, `.jump2` sent the case 1 and case 2 tails to the last case's
 `return 0xFF`, while `.dbr` filled the disk-kind comparison delay slot with
 `li v0,2`. Adding `return 0xFF` immediately after case 2's high-bit timer reset
-(`D_8007A390 = 5`) reached 100%. The earlier return became the shared tail,
+(`_gLoadUiDiskSwapCountdown = 5`) reached 100%. The earlier return became the shared tail,
 case 5 recovered its direct branch to the epilogue, and the disk-kind delay
 slot used the target's address load. This was a control-flow fix with no pins
 or barriers; inverting case 5's condition alone produced identical code.
@@ -94920,7 +94920,7 @@ value is produced, so a loop that lives inside one arm of an `if` gets its
 induction variables assigned *before* the branch:
 
 ```c
-    u16* pixel = (u16*)Fs_ImgBuffers;   /* outside the if */
+    u16* pixel = (u16*)gFsImageWorkspacePtr;   /* outside the if */
     s32  pixelIndex = 0;
     ...
     if (gGameSession->location.loc.variant == 0xB) {
@@ -94939,7 +94939,7 @@ ranges start after the test:
 
 ```c
     if (gGameSession->location.loc.variant == 0xB) {
-        u16* pixel = (u16*)Fs_ImgBuffers;
+        u16* pixel = (u16*)gFsImageWorkspacePtr;
         s32  pixelIndex = 0;
 
         do { *pixel = (u16)(*pixel | 0x8000); pixelIndex += 1; pixel += 1; } while (pixelIndex <= 0x12BFF);
@@ -120841,11 +120841,11 @@ what proves the leftover is a home swap rather than something structural - but
 treat the pins in a matched sibling as evidence of an allocation `global_alloc`
 does not reach unaided, not as residue to clean up.
 
-The sibling's `firstWord = *frameWords`, after viewing `Fs_ImgBuffers` as
+The sibling's `firstWord = *frameWords`, after viewing `gFsImageWorkspacePtr` as
 a pointer to the complete GPU-word array, needs no editing for a carrier
 that reads the pointer directly: `strips` sits at offset 0 of `FsImgBuffers`
 (`include/main/fs_types.h`), so the view uses the struct's own address and
-compiles to the single `lw $t1,%lo(Fs_ImgBuffers)($v0)` the carrier wants. Only
+compiles to the single `lw $t1,%lo(gFsImageWorkspacePtr)($v0)` the carrier wants. Only
 the include differs - the carrier's TU has to add `#include "main/fs.h"`.
 `promote` refuses this shape for the same family-scoped reason as above ("only
 one copy in rooms, nothing to share"); the two actor copies are a separate
@@ -146730,7 +146730,7 @@ behind.
 
 ## A label right after a call ends its block and changes how sched1 orders the argument setup (bootColdStartTask, 2026-09-27)
 
-**Symptom.** `memFillBytes(Fs_ImgBuffers, 0, 0x25800)` compiles as `lui/lw a0`
+**Symptom.** `memFillBytes(gFsImageWorkspacePtr, 0, 0x25800)` compiles as `lui/lw a0`
 then `move a1,zero; lui a2`, while the target sets `a1` and the `a2` high half
 first and loads `a0` last. The tree forced it with `SOFT_TOUCH_REG2` on two
 locals holding the constants.
@@ -148361,7 +148361,7 @@ choiceTask = dialogTask->firstChild;
 if (choiceTask == NULL) {
     UiObject* spawnedChoice;
 
-    spawnedChoice = uiSpawnObject(Mc_PromptDesc, MEMORY_CARD_MENU_PROMPT_OK,
+    spawnedChoice = uiSpawnObject(gMcMenuPromptDesc, MEMORY_CARD_MENU_PROMPT_OK,
         USER_INTERFACE_PANEL_ACTIVE, MEMORY_CARD_CHOICE_OPEN_DELAY_TICKS, dialogObject);
     if (spawnedChoice != NULL) { ... }
     return MEMORY_CARD_PROMPT_ANSWER_PENDING;
@@ -151117,13 +151117,13 @@ to `4($a0)` and the two tie into `addiu a0,sp,0x18`.
   under the bottom chain's 8571) and takes `$v1`. Built with the stores
   reordered to `y, x, w` (no gap): everything above the copy matches, the
   stores do not (90.3%).
-- In the target the gap is filled by `lw v1,%lo(Fs_ImgBuffers)`. That load is
+- In the target the gap is filled by `lw v1,%lo(gFsImageWorkspacePtr)`. That load is
   only still unscheduled there if the shifts were not launched in front of it.
 
 **2. The shifts are births, and nothing but a second user holds them up.**
 Each is a single-set pseudo, so it is scheduled directly above its first
 scheduled user. The only user is the `$a1` add, itself a birth scheduled first.
-So shifts and the `Fs_ImgBuffers` load pile up above the call, the load's
+So shifts and the `gFsImageWorkspacePtr` load pile up above the call, the load's
 `%hi` gets `$v0` (nothing else is live), and sched2 does not lift the shifts
 back: in its trace the `sourceRect.y` store is not ready when the last shift is, so
 the shift is taken first (with the `%hi` in `$v1`, as in the probe row below,
@@ -153252,7 +153252,7 @@ the call does not end it). Every miss below is one of these three:
    bottom chain's quantity then overlaps the count and takes `$v0` first; with
    it below, the count is the best quantity in its span and takes `$v0` even
    with `$a0` busy.
-3. The `%hi(Fs_ImgBuffers)` set above `lhu sourceRect.y`, so that it overlaps the
+3. The `%hi(gFsImageWorkspacePtr)` set above `lhu sourceRect.y`, so that it overlaps the
    `sourceRect.y` quantity and gets `$v1`. It is a birth chained to the `$a1` add, so
    this fails whenever the shifts are launched first at the bottom (they pull
    the `lw` and the `lui` down with them, and the `lhu sourceRect.y` stall then has
@@ -153273,7 +153273,7 @@ release them. That is the asm.
 | `imageByteOffset = strip.y * 320; imageByteOffset *= 2;` (before `strip.h`, or split around it) | the two shifts come out as one `sll 7` and the code is identical to no asm (which pass folds them was not traced) | 36 |
 | `imageByteOffset = strip.y * 5; imageByteOffset <<= 7;` (either side of `strip.h`) | `sll 7` is not a birth (priority 51): 3 holds, the bottom of the block matches. But it waits behind the whole bottom chain (births and 95), and the `lh strip.y` queue cycle after the first shift is empty: the `a0` copy goes there, below the count store | 26 |
 | the same, and `stripBottom = capture->band.y; stripBottom += ...` (also the permuter's best plain result, 350 from 470) | the `band.y` load is no birth either and fills that cycle; the `a0` copy reaches the `div` stall: 1 and 3 hold, 2 does not, count in `$v0` | 26 |
-| the same two-set offset with `strip.x`/`strip.w` assigned after `strip.h` | the late copies' load stalls pull `sll 7` and the add up between `strip.h` and the struct copy: 1, 2, 3 all hold (count in `$a1`, `%hi` in `$v1`) and everything above the copy matches. The copies and the `Fs_ImgBuffers` load end in the middle; the image has the copies first, with their load stalls unfilled | 22 |
+| the same two-set offset with `strip.x`/`strip.w` assigned after `strip.h` | the late copies' load stalls pull `sll 7` and the add up between `strip.h` and the struct copy: 1, 2, 3 all hold (count in `$a1`, `%hi` in `$v1`) and everything above the copy matches. The copies and the `gFsImageWorkspacePtr` load end in the middle; the image has the copies first, with their load stalls unfilled | 22 |
 | `imageByteOffset` also assigned in `case 0`, or reused for the countdown test | cse renames the other use; one set; identical to no asm | 36 |
 | `strip.h` before `imageByteOffset`, or `strip.y * 640` as the helper's argument | cse shares the read: `lhu`, then `sll 16`/`sra 16` | 33 |
 | the six orders of the `strip.x`, `strip.w`, `strip.y` stores | 36 to 44 (26 to 34 with the two-set offset) | - |

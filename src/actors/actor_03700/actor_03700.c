@@ -34,6 +34,7 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/sound.h"
+#include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
@@ -185,10 +186,6 @@ typedef struct {
     SVECTOR direction; // `toTarget` normalised, 4096 = 1.0; the root moves a fixed fraction of it each tick
 } _Actor03700EntryScratch;
 STATIC_ASSERT_SIZEOF(_Actor03700EntryScratch, 0x18);
-
-/* `D_80067704` selects the model stream the next `effectSpawn` builds its
- * `TmdObject` from. */
-extern void* D_80067704[1];
 
 /* The two model streams the death effect picks between, in this overlay's data. */
 static TmdSource _gActor03700BatBurstWingRight;
@@ -1884,9 +1881,9 @@ static inline void _actor03700SpawnRemains(Task* task)
 
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     if ((gRandomLcgState >> 16) & 1) {
-        D_80067704[0] = &_gActor03700BatBurstWingRight;
+        gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gActor03700BatBurstWingRight;
     } else {
-        D_80067704[0] = &_gActor03700BatBurstWingLeft;
+        gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gActor03700BatBurstWingLeft;
     }
     remains = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &task->extra.tmd->coords[4], ACTOR_03700_REMAINS_PUFF_SIZE, NULL);
     if (remains == NULL) {

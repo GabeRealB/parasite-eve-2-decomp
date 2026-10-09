@@ -45,6 +45,7 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/sound.h"
+#include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
@@ -88,12 +89,6 @@ MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
 /* Animation id -> slot blend value table in this overlay's own data. */
 extern s16 gMaggotCaterpillarAnimBlend[];
-
-/* `D_80067704` is the third word of a `D_800676A8` record: it selects the model
- * stream the next `effectSpawn` uses for the effect's own `TmdObject`. Declared
- * as a one-element array so GCC 2.8.1 cannot treat the store as non-aliasing
- * with the struct traffic that follows and sink it past the loads. */
-extern void* D_80067704[1];
 
 /* Model stream in this overlay's own data. */
 extern TmdSource gMaggotCaterpillarHuskModel;

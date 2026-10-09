@@ -1448,8 +1448,6 @@ static TmdSource _gActor00300Actor100300Model0B8AC;
 
 static TmdSource _gActor00300Actor100300Model0BFC0;
 
-extern void* D_80067704[1];
-
 static inline s16      _actor00300TiltMagnitude(s8 randomByte);
 static void            _actor00300SpawnBurstFragments(Task* task);
 static __inline__ void _actor00300UpdateDrainModel(Task* task);
@@ -3071,24 +3069,24 @@ static void _actor00300SpawnBurstFragments(Task* task)
     EffectWork*     fragmentEffect;
 
     // The descriptor model must be selected immediately before each spawn.
-    D_80067704[0]  = &_gActor00300BrainStingerBurstHead;
-    fragmentEffect = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &task->extra.tmd->coords[ACTOR_00300_BURST_ANCHOR_PART], ACTOR_00300_BURST_EFFECT_ARG, NULL);
+    gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gActor00300BrainStingerBurstHead;
+    fragmentEffect                                               = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &task->extra.tmd->coords[ACTOR_00300_BURST_ANCHOR_PART], ACTOR_00300_BURST_EFFECT_ARG, NULL);
     ACTOR_00300_BIND_BURST_TEXTURE(fragmentEffect);
 
-    D_80067704[0]  = &_gActor00300Actor100300Model0ABC4;
-    fragmentEffect = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &task->extra.tmd->coords[ACTOR_00300_BURST_ANCHOR_PART], ACTOR_00300_BURST_EFFECT_ARG, NULL);
+    gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gActor00300Actor100300Model0ABC4;
+    fragmentEffect                                               = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &task->extra.tmd->coords[ACTOR_00300_BURST_ANCHOR_PART], ACTOR_00300_BURST_EFFECT_ARG, NULL);
     ACTOR_00300_BIND_BURST_TEXTURE(fragmentEffect);
 
-    D_80067704[0]  = &_gActor00300Actor100300Model0B128;
-    fragmentEffect = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &task->extra.tmd->coords[ACTOR_00300_BURST_ANCHOR_PART], ACTOR_00300_BURST_EFFECT_ARG, NULL);
+    gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gActor00300Actor100300Model0B128;
+    fragmentEffect                                               = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &task->extra.tmd->coords[ACTOR_00300_BURST_ANCHOR_PART], ACTOR_00300_BURST_EFFECT_ARG, NULL);
     ACTOR_00300_BIND_BURST_TEXTURE(fragmentEffect);
 
-    D_80067704[0]  = &_gActor00300Actor100300Model0B8AC;
-    fragmentEffect = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &task->extra.tmd->coords[ACTOR_00300_BURST_ANCHOR_PART], ACTOR_00300_BURST_EFFECT_ARG, NULL);
+    gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gActor00300Actor100300Model0B8AC;
+    fragmentEffect                                               = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &task->extra.tmd->coords[ACTOR_00300_BURST_ANCHOR_PART], ACTOR_00300_BURST_EFFECT_ARG, NULL);
     ACTOR_00300_BIND_BURST_TEXTURE(fragmentEffect);
 
-    D_80067704[0]  = &_gActor00300Actor100300Model0BFC0;
-    fragmentEffect = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &task->extra.tmd->coords[ACTOR_00300_BURST_ANCHOR_PART], ACTOR_00300_BURST_EFFECT_ARG, NULL);
+    gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gActor00300Actor100300Model0BFC0;
+    fragmentEffect                                               = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &task->extra.tmd->coords[ACTOR_00300_BURST_ANCHOR_PART], ACTOR_00300_BURST_EFFECT_ARG, NULL);
     ACTOR_00300_BIND_BURST_TEXTURE(fragmentEffect);
 }
 #undef ACTOR_00300_BIND_BURST_TEXTURE

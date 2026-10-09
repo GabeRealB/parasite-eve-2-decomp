@@ -97,7 +97,7 @@ static GfxImageSlot* Gfx_ImageSlotTables[];
 /// Early-image build stamp string @ VA 0x80012750 ("2000/05/01 19:24 ver2.49").
 static const char Boot_BuildStamp[] = "2000/05/01 19:24 ver2.49";
 
-FsImgBuffers* Fs_ImgBuffers = &gFsImageWorkspace;
+FsImgBuffers* gFsImageWorkspacePtr = &gFsImageWorkspace;
 /// Unreferenced.
 static void* Mem_UnusedTopRamPointer = D_801FD000;
 void*        Fs_ActorLoadBase0       = D_80131E20;
@@ -314,7 +314,7 @@ void bootColdStartTask(Task* task)
         case BOOT_COLD_START_FADE_OUT:
             task->killCountdown += BOOT_FADE_BRIGHTNESS_STEP;
             if (task->killCountdown >= BOOT_FADE_FINISHED) {
-                memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
+                memFillBytes(gFsImageWorkspacePtr, 0, sizeof(*gFsImageWorkspacePtr));
                 task->state++;
                 break;
             }

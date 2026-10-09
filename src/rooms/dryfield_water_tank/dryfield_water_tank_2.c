@@ -764,7 +764,7 @@ static inline void _dryfieldWaterTankResumeAfterMovie(Task* task)
     };
 
     sndEvtRequestScriptStart(SOUND_WATER_TANK_AMBIENCE, 0, 0);
-    memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
+    memFillBytes(gFsImageWorkspacePtr, 0, sizeof(*gFsImageWorkspacePtr));
     SetDispMask(1);
     taskKill(task);
     taskSpawnFromTableOnDefaultList(D_dryfield_water_tank_80180764, DRYFIELD_WATER_TANK_FADE_IN_TASK_INDEX, DRYFIELD_WATER_TANK_FADE_IN_RATE, 0);

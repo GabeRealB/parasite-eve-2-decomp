@@ -143,7 +143,14 @@ enum {
     TMD_STREAM_ACTOR_DRAW_VARIANT3 = 0x20000
 };
 
-static const TaskFuncTable3 Tmd_TaskStates;
+/// State indices for the attached-model primitive-buffer release task.
+enum {
+    TMD_RELEASE_BUFFERS_HIDE    = 0,
+    TMD_RELEASE_BUFFERS_RELEASE = 1,
+    TMD_RELEASE_BUFFERS_KILL    = 2,
+};
+
+static const TaskFuncTable3 _gTmdReleaseBufferTaskStates;
 
 static void _tmdResolveSourceDrawHandlers(TmdSource* source);
 
@@ -157,10 +164,15 @@ static void _tmdHideAttachedModelsTask(Task* task);
 
 static void _tmdFreeAttachedBuffersTask(Task* task);
 
-static const TaskFuncTable3 Tmd_TaskStates = { {
-    _tmdHideAttachedModelsTask,
-    _tmdFreeAttachedBuffersTask,
-    taskKill,
+/// Three-state task sequence that hides attached models, releases buffers, then exits.
+///
+/// One slot runs per dispatch, selected by the unchecked task state in 0..2.
+/// Hiding leaves buffers intact until the next dispatch; GPU use must finish
+/// before release. The dispatcher copies all three pointers to its stack.
+static const TaskFuncTable3 _gTmdReleaseBufferTaskStates = { {
+    [TMD_RELEASE_BUFFERS_HIDE]    = _tmdHideAttachedModelsTask,
+    [TMD_RELEASE_BUFFERS_RELEASE] = _tmdFreeAttachedBuffersTask,
+    [TMD_RELEASE_BUFFERS_KILL]    = taskKill,
 } };
 
 /// Resolves and caches the shared source's per-record draw callbacks in place.
@@ -907,7 +919,7 @@ static void _tmdFreeAttachedBuffersTask(Task* task)
 
 void tmdReleaseAttachedBuffersTask(Task* task)
 {
-    const TaskFuncTable3 releaseStates = Tmd_TaskStates;
+    const TaskFuncTable3 releaseStates = _gTmdReleaseBufferTaskStates;
 
     releaseStates.funcs[task->state](task);
 }

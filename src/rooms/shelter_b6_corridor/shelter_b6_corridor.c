@@ -660,7 +660,7 @@ static s32 _shelterB6CorridorStartBattleEndScene(Task* unusedTask, s32 unusedMes
 
 /// Sets bit 15 in all 320-by-240 decoded background pixels, preserving their RGB bits.
 ///
-/// `Fs_ImgBuffers` must contain the completed RGB16 frame and remain writable
+/// `gFsImageWorkspacePtr` must contain the completed RGB16 frame and remain writable
 /// without concurrent decoding, DMA or reuse. It updates the resident RAM
 /// image for subsequent uploads. The halfword view visits both pixels of each
 /// packed GPU word across the complete workspace.
@@ -669,8 +669,8 @@ static inline void _shelterB6CorridorMaskImagePixels(void)
     u16* pixel;
     s32  pixelIndex;
 
-    pixel = (u16*)Fs_ImgBuffers;
-    for (pixelIndex = 0; pixelIndex < (s32)(sizeof(*Fs_ImgBuffers) / sizeof(*pixel)); pixelIndex++) {
+    pixel = (u16*)gFsImageWorkspacePtr;
+    for (pixelIndex = 0; pixelIndex < (s32)(sizeof(*gFsImageWorkspacePtr) / sizeof(*pixel)); pixelIndex++) {
         *pixel |= FILE_SYSTEM_IMAGE_PIXEL_MASK;
         pixel++;
     }

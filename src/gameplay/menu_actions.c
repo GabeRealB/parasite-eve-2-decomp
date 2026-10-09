@@ -31,7 +31,6 @@
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
-#include "main/loadui.h"
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/pad.h"
@@ -1829,7 +1828,7 @@ static void _menuMapLoadPage(void)
     commandArgs[2]  = 0;
     commandArgs[0]  = stage;
     cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKeyBytes, commandArgs);
-    D_800626E8 = 1;
+    gCdCmdViewSeekPending = CD_COMMAND_VIEW_SEEK_PENDING;
 }
 
 /// Returns 1 if a page is unlocked by its flag or by a visited area, otherwise 0.

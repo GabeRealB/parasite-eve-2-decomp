@@ -115,7 +115,7 @@ void dryfieldGasStationArrivalMovieTask(Task* task)
             if (streamPollGameRestore(0, DRYFIELD_GAS_STATION_MOVIE_RELOAD_SPRITES) == 0) {
                 break;
             }
-            memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
+            memFillBytes(gFsImageWorkspacePtr, 0, sizeof(*gFsImageWorkspacePtr));
             taskKill(task);
             taskSpawnFromTableOnDefaultList(D_dryfield_gas_station_80181E7C, DRYFIELD_GAS_STATION_MOVIE_FADE_TASK, DRYFIELD_GAS_STATION_MOVIE_FADE_FRAMES, 0);
             displayResumeGameLoop();

@@ -26,7 +26,7 @@ enum {
     /// by _madChaserSpawnGibs and the diver/actor_400500/400600/405800 burst code.
     EFFECT_BODY_CHUNK = EFFECT_ID(2, 0x010),
     /// Bank-4 task that flings one detached enemy model part (the model is passed
-    /// through D_80067704[0]); spawned when an enemy bursts apart (Scorpion
+    /// through gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model); spawned when an enemy bursts apart (Scorpion
     /// head/pincers, Brain Stinger, Mind Suckler parts, bat wings, Maggot Caterpillar
     /// husk).
     EFFECT_BURST_BODY_PART_BANK4 = EFFECT_ID(4, 0x007),
@@ -2198,7 +2198,7 @@ enum {
     EFFECT_GUNBLADE_CHARGE_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x29A),
     /// Bank 8 slot 5 (effectBurstModelPartTask with a caller-set TMD): a severed body-part
     /// model (head/arm/leg/ear) flung when an enemy bursts; the caller sets
-    /// D_800626EC[5].data.model first.
+    /// gTaskBank8Descs[TASK_BANK8_BURST_MODEL_PART_SLOT].data.model first.
     EFFECT_BURST_BODY_PART_BANK8 = EFFECT_ID(8, 0x005),
     /// Bank-10 model effect: a body-part model (TmdSource the actor stores in
     /// D_80114B34[5]) flung off when an enemy bursts apart, e.g. the Desert Chaser's

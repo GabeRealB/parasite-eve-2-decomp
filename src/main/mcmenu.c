@@ -45,11 +45,11 @@ enum {
         (owningTaskValue)->spawnArg1.pointer = (dialogWorkValue);                                                                   \
     } while (0)
 
-static const char McText_Select[];
+static const char _gMcMenuSelectLabel[sizeof("Select")];
 
-static UiList Mc_YesNoList;
+static UiList _gMcMenuYesNoList;
 
-static UiList Mc_YesList;
+static UiList _gMcMenuCancelList;
 
 static void _uiUpdateListWithCenteredCursor(UiList* list, UiPanel* panel);
 
@@ -63,23 +63,35 @@ static void _mcMenuNoRow(UiList* list, UiObject* object);
 
 static void _mcMenuUpdatePromptChoices(Task* owningTask);
 
-static const char McText_Select[]      = "Select";
-const char        McText_Time[]        = "TIME";
-const char        McText_Clear[]       = "CLEAR";
-const char        McText_Nightmare[]   = "Nightmare";
-const char        McText_Scavenger[]   = "Scavenger";
-const char        McText_Bounty[]      = "Bounty";
-const char        McText_Replay[]      = "Replay";
-const char        McText_OpenParen[]   = " (";
-const char        McText_Exp[]         = "EXP";
-const char        McText_Unavailable[] = "---";
-const char        McText_Bp[]          = "BP";
+/// NUL-terminated title of the memory-card load and save selection panels.
+static const char _gMcMenuSelectLabel[sizeof("Select")]         = "Select";
+const u8          gMcPreviewTimeLabel[sizeof("TIME")]           = "TIME";
+const u8          gMcPreviewClearLabel[sizeof("CLEAR")]         = "CLEAR";
+const u8          gMcPreviewNightmareLabel[sizeof("Nightmare")] = "Nightmare";
+const u8          gMcPreviewScavengerLabel[sizeof("Scavenger")] = "Scavenger";
+const u8          gMcPreviewBountyLabel[sizeof("Bounty")]       = "Bounty";
+const u8          gMcPreviewReplayLabel[sizeof("Replay")]       = "Replay";
+const u8          gMcPreviewSaveNumberPrefix[sizeof(" (")]      = " (";
+const u8          gMcPreviewExpLabel[sizeof("EXP")]             = "EXP";
+const u8          gMcPreviewUnavailableValue[sizeof("---")]     = "---";
+const u8          gMcPreviewBpLabel[sizeof("BP")]               = "BP";
 
 /// Per-item callbacks for the memory-card prompt's Yes row followed by No.
 ///
 /// Borrowed by the two-row prompt list for its resident lifetime.
 static UiListRowCallback _gMcMenuYesNoRowCallbacks[2] = { _mcMenuYesRow, _mcMenuNoRow };
-static UiList            Mc_YesNoList                 = { _gMcMenuYesNoRowCallbacks, 2, 2, 0, 0x0F };
+/// Shared mutable two-row Yes/No control for memory-card questions.
+///
+/// Both rows are visible, navigation clamps, and rows are 15 pixels apart.
+/// Setup resets scrolling and selection; mode 3 then selects No, otherwise Yes.
+/// Prompts using this list must run sequentially. Confirm publishes 1 or -1.
+static UiList _gMcMenuYesNoList = {
+    .rowCallbacks    = _gMcMenuYesNoRowCallbacks,
+    .itemCount       = ARRAY_SIZE(_gMcMenuYesNoRowCallbacks),
+    .visibleRowCount = { .unsignedValue = ARRAY_SIZE(_gMcMenuYesNoRowCallbacks) },
+    .wrapNavigation  = 0,
+    .rowHeight       = 15,
+};
 /// Single OK-row callback borrowed by the memory-card acknowledgement list.
 static UiListRowCallback _gMcMenuOkRowCallbacks[1] = { _mcMenuOkRow };
 /// Shared mutable one-row list for acknowledging memory-card notices with OK.
@@ -98,9 +110,29 @@ static UiList _gMcMenuOkList = {
 ///
 /// Confirming this row publishes answer 1; the parent owns prompt dismissal.
 static UiListRowCallback _gMcMenuCancelRowCallbacks[1] = { _mcMenuCancelRow };
-static UiList            Mc_YesList                    = { _gMcMenuCancelRowCallbacks, 1, 1, 0, 0x0F };
-UiObjectDesc             Mc_PromptDesc[]               = {
-    { 0, { 0, 0, 0x4B, 0x20 }, 0x10, 0, TASK_BODY_NONE, 0xC0, _mcMenuUpdatePromptChoices, 0 },
+/// Shared mutable one-row Cancel control for memory-card operations.
+///
+/// Its one visible row uses clamped navigation and 15-pixel row spacing.
+/// Setup resets selection and scrolling; confirming the row publishes answer 1.
+/// Prompts using this list must run sequentially; the parent closes the prompt.
+static UiList _gMcMenuCancelList = {
+    .rowCallbacks    = _gMcMenuCancelRowCallbacks,
+    .itemCount       = ARRAY_SIZE(_gMcMenuCancelRowCallbacks),
+    .visibleRowCount = { .unsignedValue = ARRAY_SIZE(_gMcMenuCancelRowCallbacks) },
+    .wrapNavigation  = 0,
+    .rowHeight       = 15,
+};
+UiObjectDesc gMcMenuPromptDesc[1] = {
+    {
+        .style           = 0,
+        .bounds          = { 0, 0, 75, 32 },
+        .otIndexSeed     = 16,
+        .field_E         = 0,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = 0xC0,
+        .contentCallback = _mcMenuUpdatePromptChoices,
+        .taskDataValue   = 0,
+    },
 };
 
 void taskNoopBank0Slot12(Task* unusedTask)
@@ -156,7 +188,7 @@ void mcMenuUpdateLoadFileList(Task* owningTask)
 
     listObject = owningTask->spawnArg2.pointer;
     fileList   = &Mc_SaveSlotList;
-    uiDrawPanelLabel(&listObject->panel, McText_Select);
+    uiDrawPanelLabel(&listObject->panel, _gMcMenuSelectLabel);
     if (owningTask->state == MEMORY_CARD_MENU_LOAD_LIST_INITIAL) {
         uiInitList(fileList, &listObject->panel);
         // Start each listing at the first file, overriding the saved cursor mode.
@@ -232,7 +264,7 @@ void mcMenuUpdateSaveFileList(Task* owningTask)
     listObject = owningTask->spawnArg2.pointer;
     dialogWork = owningTask->spawnArg1.pointer;
     fileList   = &Mc_LoadSlotList;
-    uiDrawPanelLabel(&listObject->panel, McText_Select);
+    uiDrawPanelLabel(&listObject->panel, _gMcMenuSelectLabel);
     if (owningTask->state == MEMORY_CARD_MENU_SAVE_LIST_INITIAL) {
         uiInitList(fileList, &listObject->panel);
         // Restore the remembered destination at the viewport's bottom, or start at zero.
@@ -423,11 +455,11 @@ static void _mcMenuUpdatePromptChoices(Task* owningTask)
             choiceList = &_gMcMenuOkList;
             break;
         case MEMORY_CARD_MENU_PROMPT_CANCEL:
-            choiceList = &Mc_YesList;
+            choiceList = &_gMcMenuCancelList;
             break;
         case MEMORY_CARD_MENU_PROMPT_YES_NO_INITIAL_NO:
         default:
-            choiceList = &Mc_YesNoList;
+            choiceList = &_gMcMenuYesNoList;
             break;
     }
     if (owningTask->state == MEMORY_CARD_MENU_PROMPT_INITIAL) {

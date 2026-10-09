@@ -14,13 +14,23 @@ extern TaskDesc* gTaskDescBanks[15];
 
 extern TaskNode gTaskDisplayList;
 
-extern TaskDesc D_80062780[];
+/// Resident bank 3: four teardown stubs followed by four development-image tasks.
+///
+/// Slots 0..7 have program lifetime; slot 7 borrows a development-image model.
+/// Callback/model addresses in that image must be loaded before spawning.
+extern TaskDesc gTaskBank3Descs[8];
 
-extern TaskDesc D_800626AC[];
+/// Resident bank 5: teardown stubs, a debug launcher and a development-image task.
+///
+/// Slots 0..4 have program lifetime; slot 1 launches the debug descriptor.
+/// Slot 4 requires its development-image callback to be loaded.
+extern TaskDesc gTaskBank5Descs[5];
 
-extern TaskDesc D_800676A8[];
-
-extern TaskDesc D_80067734[];
+/// Resident bank 9 for CAP, EVS and room-control tasks.
+///
+/// Slots 0..17 include teardown stubs and unspawnable NULL callbacks; slot 18
+/// is TASK_DESC_END. Callback code must remain loaded for each spawned task.
+extern TaskDesc gTaskBank9Descs[19];
 
 extern TaskDesc D_80067828[];
 

@@ -36,7 +36,7 @@ void displaySetClearColor(s32 red, s32 green, s32 blue);
 
 /// Binds small task-owned ordering tables and the static primitive arena.
 ///
-/// Configures both `Gpu_OrderingTables` slots for 64 tags and a 0x6000-byte
+/// Configures both `gGpuTaskOrderingTables` slots for 64 tags and a 0x6000-byte
 /// primitive arena split into two 0x3000-byte halves. Previous GPU users must
 /// have finished. Does not clear tags, select the current OT or primitive cursor,
 /// initialize a task list, or change display ownership; the frame path clears
@@ -45,7 +45,7 @@ void displayInitTaskBuffers(void);
 
 /// Binds full task-owned ordering tables and clears the selected frame's tags.
 ///
-/// Configures both `Gpu_OrderingTables` slots for 1024 tags in the resident
+/// Configures both `gGpuTaskOrderingTables` slots for 1024 tags in the resident
 /// frame-tag buffers, whose stride includes additional foreground storage.
 /// `gDisplayState.frameBuffer` must be 0 or 1; previous GPU users of the buffers
 /// must have finished. Clears only that slot's 1024-tag table, terminates tag

@@ -35,7 +35,7 @@ static u8* _gGpuDisplayPrimBufferBase;
 /// Total arena capacity in bytes, split evenly between the two frame buffers.
 static s32 _gGpuDisplayPrimBufferBytes;
 
-GsOT Gpu_OrderingTables[2];
+GsOT gGpuTaskOrderingTables[2];
 
 TaskNode gTaskDisplayList;
 
@@ -66,12 +66,12 @@ static TaskDesc Display_MenuTaskDesc = { { { TASK_BODY_NONE, 0xC0 } }, menuRootT
 static __inline__ void _displayConfigureSmallTaskBuffers(void)
 {
     // SDK descriptors view the packed DMA words as tags.
-    Gpu_OrderingTables[0].length = GPU_SMALL_ORDERING_TABLE_DEPTH_BITS;
-    Gpu_OrderingTables[0].org    = (GsOT_TAG*)Gpu_SmallOtTags;
-    Gpu_OrderingTables[1].length = GPU_SMALL_ORDERING_TABLE_DEPTH_BITS;
-    Gpu_OrderingTables[1].org    = (GsOT_TAG*)(Gpu_SmallOtTags + GPU_SMALL_ORDERING_TABLE_ENTRIES);
-    _gGpuDisplayPrimBufferBase   = Gpu_PrimBufStatic;
-    _gGpuDisplayPrimBufferBytes  = sizeof(Gpu_PrimBufStatic);
+    gGpuTaskOrderingTables[0].length = GPU_SMALL_ORDERING_TABLE_DEPTH_BITS;
+    gGpuTaskOrderingTables[0].org    = (GsOT_TAG*)Gpu_SmallOtTags;
+    gGpuTaskOrderingTables[1].length = GPU_SMALL_ORDERING_TABLE_DEPTH_BITS;
+    gGpuTaskOrderingTables[1].org    = (GsOT_TAG*)(Gpu_SmallOtTags + GPU_SMALL_ORDERING_TABLE_ENTRIES);
+    _gGpuDisplayPrimBufferBase       = Gpu_PrimBufStatic;
+    _gGpuDisplayPrimBufferBytes      = sizeof(Gpu_PrimBufStatic);
 }
 
 s32 displayRunTaskFrame(GsOT* unusedOrderingTables, s32 frameStartLines, s32 unusedOtBuffer)
@@ -90,7 +90,7 @@ s32 displayRunTaskFrame(GsOT* unusedOrderingTables, s32 frameStartLines, s32 unu
         if (display->control.flags.flipMode != DISPLAY_FLIP_HOLD) {                     \
             display->drawBuffer = display->frameBuffer;                                 \
         }                                                                               \
-        orderingTables = Gpu_OrderingTables;                                            \
+        orderingTables = gGpuTaskOrderingTables;                                        \
         GsClearOt(0, 0, &orderingTables[display->frameBuffer]);                         \
         firstTag       = (u_long*)orderingTables[display->frameBuffer].org;             \
         halfBytes      = _gGpuDisplayPrimBufferBytes;                                   \
@@ -392,7 +392,7 @@ void gpuInitTaskOrderingTables(void)
     DisplayState* display;
     u_long*       firstTag;
 
-    orderingTables           = Gpu_OrderingTables;
+    orderingTables           = gGpuTaskOrderingTables;
     orderingTables->length   = GPU_ORDERING_TABLE_DEPTH_BITS;
     orderingTables->org      = (GsOT_TAG*)Gpu_OtTags;
     orderingTables[1].length = GPU_ORDERING_TABLE_DEPTH_BITS;

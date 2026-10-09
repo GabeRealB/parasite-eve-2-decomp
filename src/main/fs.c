@@ -382,7 +382,7 @@ void gameFlowBeginLoadScreen(const GameLocationKey* destination, s16 alternateCa
     Fs_LoadParams.area         = destination->area;
     D5B498_8006ACC0            = alternateCaption;
 
-    memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
+    memFillBytes(gFsImageWorkspacePtr, 0, sizeof(*gFsImageWorkspacePtr));
     displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
     Fs_BootLoadPhase = 0;
 }
@@ -769,7 +769,7 @@ static u8 _fsReadChunkHeaderSector(void)
             u8* backgroundBytes;
             if (Fs_ChunkMode != FILE_SYSTEM_CHUNK_LOAD_SKIP_BACKGROUND) {
                 mdecRequestImageVlcRebuild();
-                backgroundBytes = (u8*)Fs_ImgBuffers;
+                backgroundBytes = (u8*)gFsImageWorkspacePtr;
                 for (D_8006ADF8 = 0; (u32)D_8006ADF8 < sizeof(Fs_CdSector.chunk.data.bytes); D_8006ADF8++) {
                     backgroundBytes[D_8006ADF8] = Fs_CdSector.chunk.data.bytes[D_8006ADF8];
                 }
@@ -955,12 +955,12 @@ static u8 _fsReadChunkPayloadSector(void)
             break;
         case FILE_SYSTEM_PAYLOAD_BACKGROUND:
             if (Fs_ChunkMode != FILE_SYSTEM_CHUNK_LOAD_SKIP_BACKGROUND) {
-                CdGetSector((u8*)Fs_ImgBuffers->strips + D_8006ADF8, FS_SECTOR_WORD_SIZE);
+                CdGetSector((u8*)gFsImageWorkspacePtr->strips + D_8006ADF8, FS_SECTOR_WORD_SIZE);
                 D_8006ADF8 += FS_SECTOR_BYTE_SIZE;
             }
             if ((u32)Fs_ReqSector >= (u32)Fs_ChunkEndSector) {
                 if (Fs_ChunkMode != FILE_SYSTEM_CHUNK_LOAD_SKIP_BACKGROUND) {
-                    mdecRequestImageDecode(Fs_ImgBuffers->strips[0]);
+                    mdecRequestImageDecode(gFsImageWorkspacePtr->strips[0]);
                 }
                 endMarker = Fs_ChunkEndFlag;
                 if (endMarker == FILE_SYSTEM_CHUNK_LAST) {

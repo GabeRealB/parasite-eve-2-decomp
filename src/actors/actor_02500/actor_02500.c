@@ -249,7 +249,6 @@ extern _Actor02500DustDirection Actor02500_D05BE8[];
 static TmdSource                _gActor02500ScorpionBurstHead;
 static TmdSource                _gActor02500ScorpionBurstPincer2;
 static TmdSource                _gActor02500ScorpionBurstPincer1;
-extern void*                    D_80067704[1];
 
 static void _actor02500Spawn(Enemy* enemy, Task* actor);
 static void _actor02500Die(Enemy* enemy, Task* actor);
@@ -1562,14 +1561,14 @@ static void _actor02500SpawnBurstFragments(Task* actor)
     }
 
     // Each descriptor payload is consumed by the following model allocation.
-    D_80067704[0] = &_gActor02500ScorpionBurstHead;
-    headEffect    = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &actor->extra.tmd->coords[ACTOR_02500_BURST_ANCHOR_COORD], ACTOR_02500_BURST_EFFECT_ARGUMENT, NULL);
+    gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gActor02500ScorpionBurstHead;
+    headEffect                                                   = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &actor->extra.tmd->coords[ACTOR_02500_BURST_ANCHOR_COORD], ACTOR_02500_BURST_EFFECT_ARGUMENT, NULL);
     ACTOR_02500_APPLY_FRAGMENT_TEXTURE(headEffect);
-    D_80067704[0] = &_gActor02500ScorpionBurstPincer2;
-    pincer2Effect = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &actor->extra.tmd->coords[ACTOR_02500_BURST_ANCHOR_COORD], ACTOR_02500_BURST_EFFECT_ARGUMENT, NULL);
+    gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gActor02500ScorpionBurstPincer2;
+    pincer2Effect                                                = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &actor->extra.tmd->coords[ACTOR_02500_BURST_ANCHOR_COORD], ACTOR_02500_BURST_EFFECT_ARGUMENT, NULL);
     ACTOR_02500_APPLY_FRAGMENT_TEXTURE(pincer2Effect);
-    D_80067704[0] = &_gActor02500ScorpionBurstPincer1;
-    pincer1Effect = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &actor->extra.tmd->coords[ACTOR_02500_BURST_ANCHOR_COORD], ACTOR_02500_BURST_EFFECT_ARGUMENT, NULL);
+    gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gActor02500ScorpionBurstPincer1;
+    pincer1Effect                                                = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &actor->extra.tmd->coords[ACTOR_02500_BURST_ANCHOR_COORD], ACTOR_02500_BURST_EFFECT_ARGUMENT, NULL);
     ACTOR_02500_APPLY_FRAGMENT_TEXTURE(pincer1Effect);
 
 #undef ACTOR_02500_APPLY_FRAGMENT_TEXTURE

@@ -688,8 +688,8 @@ void neoArkEveAccessTunnelRecordCapCompletionTask(Task* task)
 /// or capture may overwrite it during the pass. Pixel order is immaterial.
 static __inline__ void _neoArkEveAccessTunnelMaskBackdrop(void)
 {
-    enum { NEO_ARK_EVE_ACCESS_TUNNEL_BACKDROP_PIXELS = (s32)(sizeof(*Fs_ImgBuffers) / sizeof(u16)) };
-    u16* pixel      = (u16*)Fs_ImgBuffers;
+    enum { NEO_ARK_EVE_ACCESS_TUNNEL_BACKDROP_PIXELS = (s32)(sizeof(*gFsImageWorkspacePtr) / sizeof(u16)) };
+    u16* pixel      = (u16*)gFsImageWorkspacePtr;
     s32  pixelIndex = 0;
 
     do {

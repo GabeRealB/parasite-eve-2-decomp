@@ -2331,7 +2331,7 @@ gMemPrimaryHeapBase          = 0x8005C360;
 //--------------------------------------------------------------------
 //--- PA: 0x4CB64   VA: 0x8005C364   subsegment: data
 //--------------------------------------------------------------------
-Fs_ImgBuffers           = 0x8005C364; // type:u32 size:0x4
+gFsImageWorkspacePtr           = 0x8005C364; // type:u32 size:0x4
 Gfx_ImageSlotTables     = 0x8005C37C;
 
 //--------------------------------------------------------------------
@@ -2788,7 +2788,7 @@ main_BSS_END                = 0x80082948; // absolute:True
 
 // Sound / font / OT / async-cb renames (Snd_ / Font_ / Gpu_ / AsyncCb_)
 Snd_Banks                   = 0x8007E0D8; // type:SndBank size:0x200
-Gpu_OrderingTables          = 0x8007A0E8; // type:GsOT size:0x28
+gGpuTaskOrderingTables          = 0x8007A0E8; // type:GsOT size:0x28
 gTaskDisplayList            = 0x8007A110; // type:TaskNode
 AsyncCb_Queue               = 0x8007E2E0; // size:0x54
 _gFontGlyphsMedium          = 0x8005EFB0; // type:u8 size:0xA80 // medium _FontGlyph[224], byte representation for splitting
@@ -2816,7 +2816,7 @@ _gCdAudioState              = 0x800827A0; // size:0x44
 CdAudio_Tbl                 = 0x80082758; // size:0x18
 CdAudio_Ctl                 = 0x80082780; // size:0x14
 Stream_Slots                = 0x8006D4F0; // type:StreamSlot size:0x258
-Stage_Ctx                   = 0x80062698;
+_gStageTransitionState                   = 0x80062698;
 
 // Remaining GStruct cleanup (Wip_* = weak evidence)
 Snd_BankInitTable           = 0x80068A60;
@@ -2832,7 +2832,7 @@ CdCmd_EntryIter             = 0x8006AC04; // type:func
 
 // Display tables (taskutil.c .rodata)
 Display_WidthTable          = 0x80013E88; // type:u16
-Display_HeightTable         = 0x80013E94; // type:u16
+_gDisplayHeightLinesBySelector         = 0x80013E94; // type:u16
 Display_TaskStates                  = 0x80013E98; // size:0x18
 
 // Gameplay naming pass 2 (main-exe table used by overlay)
@@ -2896,12 +2896,12 @@ GameFlow_States5            = 0x800134BC;
 GameFlow_States3            = 0x800134D0;
 Mc_FileSelectStates         = 0x80013ACC;
 Mc_PromptStates             = 0x800139AC;
-Tmd_TaskStates              = 0x80013EDC;
+_gTmdReleaseBufferTaskStates              = 0x80013EDC;
 Ui_ObjectStates             = 0x80013F2C;
-McText_Nightmare = 0x80013B7C;
-McText_Scavenger = 0x80013B88;
-McText_Bounty = 0x80013B94;
-McText_Replay = 0x80013B9C;
+gMcPreviewNightmareLabel = 0x80013B7C;
+gMcPreviewScavengerLabel = 0x80013B88;
+gMcPreviewBountyLabel = 0x80013B94;
+gMcPreviewReplayLabel = 0x80013B9C;
 
 BootCaptionText_MistEvening = 0x800628F8;
 BootCaption_MistEvening = 0x80062934;
@@ -3045,19 +3045,19 @@ Mc_FileNameAlphabet = 0x80060E08;
 
 McText_CloseParen = 0x800139A8;
 
-McText_Select = 0x80013B64;
+_gMcMenuSelectLabel = 0x80013B64;
 
-McText_Time = 0x80013B6C;
+gMcPreviewTimeLabel = 0x80013B6C;
 
-McText_Clear = 0x80013B74;
+gMcPreviewClearLabel = 0x80013B74;
 
-McText_OpenParen = 0x80013BA4;
+gMcPreviewSaveNumberPrefix = 0x80013BA4;
 
-McText_Exp = 0x80013BA8;
+gMcPreviewExpLabel = 0x80013BA8;
 
-McText_Unavailable = 0x80013BAC;
+gMcPreviewUnavailableValue = 0x80013BAC;
 
-McText_Bp = 0x80013BB0;
+gMcPreviewBpLabel = 0x80013BB0;
 
 _gTextSignedDecimalOverflow = 0x800138BC;
 
@@ -3155,7 +3155,7 @@ Display_MenuTaskDesc = 0x8006268C;
 
 Display_ModeTaskDesc = 0x8006269C;
 
-Stage_Context = 0x8007A320;
+_gStageTransitionStorage = 0x8007A320;
 
 Stage_MusicTables = 0x8006273C;
 
@@ -3205,7 +3205,7 @@ Mc_LoadListDescriptors = 0x8006121C;
 
 _gMcMenuYesNoRowCallbacks = 0x80061254;
 
-Mc_YesNoList = 0x8006125C;
+_gMcMenuYesNoList = 0x8006125C;
 
 _gMcMenuOkRowCallbacks = 0x80061280;
 
@@ -3213,9 +3213,9 @@ _gMcMenuOkList = 0x80061284;
 
 _gMcMenuCancelRowCallbacks = 0x800612A8;
 
-Mc_YesList = 0x800612AC;
+_gMcMenuCancelList = 0x800612AC;
 
-Mc_PromptDesc = 0x800612D0;
+gMcMenuPromptDesc = 0x800612D0;
 
 Mc_LocationLabels = 0x80067418;
 
@@ -3285,3 +3285,13 @@ _gSndScriptMasterVolume = 0x80082748;
 _gSndScriptUnduckedVolume = 0x80082749;
 gActorRenderCoordPassCounter = 0x80071210; // type:s32 size:0x4
 gMidiMusicVolume = 0x8007A396; // type:u16 size:0x2
+gPlayClockPendingTicks = 0x8005ed68;
+_gTaskSystemDescs = 0x8005eda0;
+gTaskBank5Descs = 0x800626ac;
+gCdCmdViewSeekPending = 0x800626e8;
+gTaskBank3Descs = 0x80062780;
+gTaskBank4Descs = 0x800676a8; // type:TaskDesc size:0x6C allow_addend:True
+gTaskBank9Descs = 0x80067734;
+_gLoadUiDiskSwapCountdown = 0x8007a390;
+_gLoadUiDiskSwapMessageKind = 0x8007a392;
+_gLoadUiDiskSwapRequiredDisc = 0x8007a393;

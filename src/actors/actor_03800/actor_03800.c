@@ -36,6 +36,7 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/sound.h"
+#include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
@@ -209,7 +210,6 @@ typedef struct {
 } _Actor03800KnockedOverScratch;
 STATIC_ASSERT_SIZEOF(_Actor03800KnockedOverScratch, 0x18);
 
-extern void*     D_80067704[1];
 static TmdSource _gActor03800BlackBeetleEffect1;
 static TmdSource _gActor03800BlackBeetleEffect2;
 static TmdSource _gActor03800BlackBeetleEffect3;
@@ -2402,19 +2402,19 @@ static void _actor03800SpawnBurstFragment(Task* task, u32 variant)
 
     switch (variant) {
         case 0:
-            D_80067704[0] = &_gActor03800BlackBeetleEffect1;
+            gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gActor03800BlackBeetleEffect1;
             break;
         case 1:
-            D_80067704[0] = &_gActor03800BlackBeetleEffect2;
+            gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gActor03800BlackBeetleEffect2;
             break;
         case 2:
-            D_80067704[0] = &_gActor03800BlackBeetleEffect3;
+            gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gActor03800BlackBeetleEffect3;
             break;
         case 3:
-            D_80067704[0] = &_gActor03800BlackBeetleEffect4;
+            gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gActor03800BlackBeetleEffect4;
             break;
         case 4:
-            D_80067704[0] = &_gActor03800BlackBeetleEffect5;
+            gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gActor03800BlackBeetleEffect5;
             break;
     }
     fragmentEffect = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, task->extra.tmd->coords + ACTOR_03800_BURST_ANCHOR_PART, ACTOR_03800_BURST_PUFF_SIZE, NULL);

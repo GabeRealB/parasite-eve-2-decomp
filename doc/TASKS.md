@@ -272,16 +272,16 @@ NULL.
 
 | Bank | Symbol | n | What it is |
 |------|--------|--:|------------|
-| 0 | `D_8005EDA0` | 39 | System: boot, title, gameflow, memcard, view, HUD |
+| 0 | `_gTaskSystemDescs` | 39 | System: boot, title, gameflow, memcard, view, HUD |
 | 1 | `D_800670D0` | 51 | Enemies / room coords / TMD helpers + `0x807xxxxx` overlay |
 | 2 (=11–13) | `D_80067828` | 17 | Caption, pad helpers, script-18, room overlay, one stage overlay |
-| 3 | `D_80062780` | 8 | Four `taskKill` stubs + four `0x807xxxxx` |
-| 4 | `D_800676A8` | 9 | Stubs + TMD / overlay |
-| 5 | `D_800626AC` | 5 | Stubs + `taskDebugLaunchCallback` + one overlay |
+| 3 | `gTaskBank3Descs` | 8 | Four `taskKill` stubs + four `0x807xxxxx` |
+| 4 | `gTaskBank4Descs` | 9 | Stubs + TMD / overlay |
+| 5 | `gTaskBank5Descs` | 5 | Stubs + `taskDebugLaunchCallback` + one overlay |
 | 6 | `D_8010FC2C` | **667** | Room-overlay actor catalog (gameplay data → `0x8017xxxx`) |
 | 7 | `D_800678F4` | 164 | Equipped TMD attaches (`modelObjectChildTask` + per-item `data.model`) |
-| 8 | `D_800626EC` | 6 | Stubs + shared `effectBurstModelPartTask` |
-| 9 | `D_80067734` | 19 | FX / wait: shake, volume fade, sound fade, end-wait |
+| 8 | `gTaskBank8Descs` | 6 | Stubs + shared `effectBurstModelPartTask` |
+| 9 | `gTaskBank9Descs` | 19 | FX / wait: shake, volume fade, sound fade, end-wait |
 | 10 | `D_80114B34` | 6 | Stubs + `effectBurstModelPartTask`; actors set the last descriptor's model |
 | 14 | `D_80068B7C` | 5 | Stubs + one `0x807xxxxx` |
 
@@ -451,7 +451,7 @@ These are real actors too; they just skip `gTaskDescBanks`.
 | `Display_ModeTaskDesc[0]` | `_stageModeControllerTask` — 6-phase queued mode entry, transition requests, resource reload and movie resumption; grey fade follows every dispatch |
 | `D_80062774[0]` | `_stageMusicTask` — bank-load spawn from gameplay |
 | `D_8006268C[0]` | `0x800BF9FC` (gameplay) |
-| `Stage_Ctx->taskDesc` | Per-stage desc table; `_stageSpawnModeTask` spawns index 0 |
+| `_gStageTransitionState->taskDesc` | Per-stage desc table; `_stageSpawnModeTask` spawns index 0 |
 | `D_80725C54` | External debug-address descriptor view, from `taskDebugLaunchCallback`; backing storage unproven |
 | `D_8010D1FC`, `D_8010FB4C`, `D_80115D9C`, `D_80119218`, `D_8011922C`, `D_80113340`, `D_80183824`, … | Gameplay / save-slot / enemy tables (`sceneStartRoomTasks` selects room startup tasks from the live save's stage/area) |
 | Stack `TaskDesc` | `uiSpawnObject` copies `UiObjectDesc.taskFlags`, `taskPriority` and `taskDataValue`; task callback dispatches the panel, which keeps `contentCallback` |

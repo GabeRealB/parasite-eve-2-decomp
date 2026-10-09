@@ -13,7 +13,7 @@
 /// address; image transfer reads and writes it as a `u_long*`. Heap
 /// configuration uses the same address as the auxiliary region's base.
 /// `byteExtent` counts the bytes from `regionBase` up to, but not including,
-/// the resident image workspace `Fs_ImgBuffers`. It is not the captured
+/// the resident image workspace `gFsImageWorkspacePtr`. It is not the captured
 /// frame's length. Every nonempty slot's base and extent meet at that
 /// workspace.
 ///
@@ -22,7 +22,7 @@
 /// nonempty slot.
 typedef struct {
     u8* regionBase; // First byte of this area's image memory; NULL when the slot is empty
-    s32 byteExtent; // Bytes from `regionBase` to `Fs_ImgBuffers`; 0 when the slot is empty
+    s32 byteExtent; // Bytes from `regionBase` to `gFsImageWorkspacePtr`; 0 when the slot is empty
 } GfxImageSlot;
 STATIC_ASSERT_SIZEOF(GfxImageSlot, 0x8);
 

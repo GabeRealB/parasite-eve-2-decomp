@@ -53,7 +53,12 @@ struct Task;
 /// place. Consumers borrow this object and must not release its storage.
 extern GameSession* gGameSession;
 
-extern s32 D_8005ED68;
+/// Resident nominal 60-Hz play ticks not yet consumed into saved whole minutes.
+///
+/// Reset after loading saved time. Each update consumes at most one minute,
+/// so the accumulator can retain 3600 or more ticks after a long interval.
+/// Elapsed-tick differences and their accumulated sum must fit signed 32 bits.
+extern s32 gPlayClockPendingTicks;
 
 /// Registers a borrowed task in one resident session slot, or clears that slot.
 ///

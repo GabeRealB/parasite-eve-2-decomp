@@ -26,7 +26,7 @@ extern ScreenFade gActor143000CodeAcceptedFade;
 ///
 /// The task divides the band's rows into `stripCount` strips and, one strip
 /// per interval from the top down, stores those rows from VRAM into the same
-/// rows of the resident image workspace (`Fs_ImgBuffers`). The source is the
+/// rows of the resident image workspace (`gFsImageWorkspacePtr`). The source is the
 /// 320-pixel-wide VRAM region whose top-left corner is (448,256), read at the
 /// band's own row offsets. Every strip spans the full image width: the task
 /// copies `band.x` and `band.w` and then replaces them, so only the rows

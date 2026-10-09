@@ -2493,7 +2493,7 @@ static void _mistShootingGalleryModeSplashTask(Task* task)
             if (task->killCountdown < MIST_SHOOTING_GALLERY_SPLASH_INTENSITY_END) {
                 return;
             }
-            memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
+            memFillBytes(gFsImageWorkspacePtr, 0, sizeof(*gFsImageWorkspacePtr));
             SetDispMask(0);
             task->state++;
             return;
@@ -2581,7 +2581,7 @@ static void _mistShootingGalleryClearMovieTask(Task* task)
                 break;
             }
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
-            memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
+            memFillBytes(gFsImageWorkspacePtr, 0, sizeof(*gFsImageWorkspacePtr));
             taskKill(task);
             displayResumeGameLoop();
             break;

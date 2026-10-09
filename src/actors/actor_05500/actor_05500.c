@@ -43,6 +43,7 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/sound.h"
+#include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
@@ -53,8 +54,6 @@
 #define MAGGOT_CATERPILLAR_KIND      CATERPILLAR
 #define MAGGOT_CATERPILLAR_BODY_TASK gMaggotCaterpillarBodyTask
 #include "../../shared/maggot_caterpillar.h"
-
-extern void* D_80067704[1];
 
 extern TmdSource     gMaggotCaterpillarHuskModel;
 extern DamageAttack  gMaggotCaterpillarAttacks[6];

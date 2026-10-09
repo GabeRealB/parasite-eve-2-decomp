@@ -18,8 +18,26 @@ extern u8 Fs_CdOpStatus;
 
 extern StreamSlot Fs_Streams[0xa];
 
-// Boot load-buffer pointer (data unit `boot_loadbuf`)
-extern FsImgBuffers* Fs_ImgBuffers;
+/// Published pointer to the fixed resident image workspace.
+///
+/// Borrows `gFsImageWorkspace` for the program's lifetime. Loading and decoding
+/// reuse the bytes for compressed input and VLC data; completed frames contain
+/// 320x240 RGB16 pixels in contiguous or strip order. Capture and pixel effects
+/// share this storage, so transfers and frame consumers must finish before reuse.
+extern FsImgBuffers* gFsImageWorkspacePtr;
+
+/// Pending return-to-current-view seek latch values, retained as a byte.
+enum {
+    CD_COMMAND_VIEW_SEEK_CLEAR   = 0,
+    CD_COMMAND_VIEW_SEEK_PENDING = 1,
+};
+
+/// Requests a seek back to the current view after other CD resource requests.
+///
+/// Nonzero is pending. The seek-current-view display-load profile consumes and
+/// clears the latch even when pending scene audio suppresses the queued seek.
+/// The resident latch survives overlays; it does not report drive completion.
+extern u8 gCdCmdViewSeekPending;
 
 /// Bytes produced in each streaming destination; -1 means pending.
 extern s32 Fs_ChunkOutputSizes[3];

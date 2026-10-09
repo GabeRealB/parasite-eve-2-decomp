@@ -309,7 +309,7 @@ static void _mistParkingPlayDepartureMovieTask(Task* task)
             if (streamPollGameRestore(0, 0) == 0) {
                 return;
             }
-            memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
+            memFillBytes(gFsImageWorkspacePtr, 0, sizeof(*gFsImageWorkspacePtr));
             SetDispMask(1);
             taskKill(task);
             displayResumeGameLoop();

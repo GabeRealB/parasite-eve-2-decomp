@@ -14,7 +14,7 @@
 
 static const u16 Display_WidthTable[];
 
-static const u16 Display_HeightTable[];
+static const u16 _gDisplayHeightLinesBySelector[2];
 
 /// Gap in VRAM rows between the two 240-line framebuffer regions.
 enum { DISPLAY_FRAMEBUFFER_VERTICAL_GAP = 32 };
@@ -28,9 +28,13 @@ static const u16 Display_WidthTable[] = {
     0,
 };
 
-static const u16 Display_HeightTable[] = {
-    0xF0,
-    0x1E0,
+/// Framebuffer height in lines for setup selectors 0 (240) and 1 (480).
+///
+/// The low four setup bits index this table without checking; callers must
+/// restrict that selector to 0 or 1. Both entries include all display fields.
+static const u16 _gDisplayHeightLinesBySelector[2] = {
+    240,
+    480,
 };
 
 /// Resets both draw/display pairs to use opposite framebuffer regions in VRAM.
@@ -88,7 +92,7 @@ void displayConfigureFramebuffers(s32 setupBits)
     interlaced      = (setupBits & DISPLAY_SETUP_INTERLACE_MASK) != 0;
     display         = &gDisplayState;
     widthPixels     = Display_WidthTable[(setupBits & DISPLAY_SETUP_WIDTH_MASK) >> 4];
-    heightPixels    = Display_HeightTable[setupBits & DISPLAY_SETUP_HEIGHT_MASK];
+    heightPixels    = _gDisplayHeightLinesBySelector[setupBits & DISPLAY_SETUP_HEIGHT_MASK];
     display->width  = widthPixels;
     display->height = heightPixels;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.interlace != 0) {

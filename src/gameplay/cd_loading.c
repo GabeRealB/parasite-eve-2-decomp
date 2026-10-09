@@ -15,7 +15,6 @@
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
-#include "main/loadui.h"
 #include "main/mc.h"
 #include "main/pad.h"
 #include "main/scratch.h"
@@ -805,7 +804,7 @@ static void _loadingEnqueueWeaponAmmoResources(void)
     loadArgs.imageXPageOffset = 0;
     loadArgs.loadMode         = CD_COMMAND_LOAD_DEFAULT;
     cdCmdEnqueue(CD_COMMAND_LOAD_FILE, &fileKey, &loadArgs);
-    D_800626E8 = LOADING_VIEW_SEEK_PENDING;
+    gCdCmdViewSeekPending = LOADING_VIEW_SEEK_PENDING;
 }
 
 void loadingEnqueueViewResourcesTask(Task* task)
@@ -1097,7 +1096,7 @@ void loadingEnqueueEquippedWeaponResources(void)
     loadArgs.loadMode         = CD_COMMAND_LOAD_DEFAULT;
     cdCmdEnqueue(CD_COMMAND_LOAD_FILE, &fileKey, &loadArgs);
     // Loading this library file moves the drive away from the current view.
-    D_800626E8 = LOADING_VIEW_SEEK_PENDING;
+    gCdCmdViewSeekPending = LOADING_VIEW_SEEK_PENDING;
     _loadingEnqueueWeaponAmmoResources();
 }
 

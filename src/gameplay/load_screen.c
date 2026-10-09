@@ -297,9 +297,6 @@ static inline void _gameFlowDiscardSessionTasksAndPackets(DisplayState* displayS
 
 void gameFlowRebuildSessionTask(Task* task)
 {
-    enum {
-        LOAD_UI_DISK_SWAP_CHECK_REQUIRED_DISC = 0,
-    };
     CdCmdQueue*   cdQueue;
     DisplayState* displayState;
 
@@ -327,7 +324,7 @@ void gameFlowRebuildSessionTask(Task* task)
     displayState->skipDraw              = false;
     cdQueue->blockGamePause             = true;
     cdQueue->releasePauseBlockAfterFade = true;
-    D_8007A394                          = LOAD_UI_DISK_SWAP_CHECK_REQUIRED_DISC;
+    gLoadUiDiskSwapState                = LOAD_UI_DISK_SWAP_CHECK_REQUIRED_DISC;
 }
 
 /// Queues the loading screen's subtractive full-screen overlay in the foreground.
