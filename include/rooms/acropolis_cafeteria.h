@@ -32,16 +32,45 @@ extern TmdSource gAcropolisCafeteriaModel0F7A4;
 
 extern TmdSource gAcropolisCafeteriaModel0FDFC;
 
-// acropolis_cafeteria
-extern WorldCollisionRoomResources D_acropolis_cafeteria_8018753C[];
+/// Collision resources indexed by cafeteria room minus one (rooms 1..4).
+///
+/// All rooms share the mesh and two sight occluders. Rooms 1..3 share view
+/// boundaries; room 4 routes through view 6. Room 1 has the initial action set,
+/// rooms 2..4 the expanded follow-up set. Borrowed records and their writable
+/// resources require the cafeteria overlay loaded through binding and unlinking.
+extern WorldCollisionRoomResources gAcropolisCafeteriaCollisionRooms[4];
 
-extern u8* D_acropolis_cafeteria_801875AC[];
+/// Logical-view maps indexed by cafeteria room minus one (rooms 1..4).
+///
+/// Each room uses 24 logical entries, indexed by view minus one, with 1-based
+/// camera/image/sprite values. Room 1 borrows gameplay's identity map; rooms 2/3
+/// share a remap and room 4 has its own. No terminator. Keep gameplay and the
+/// room overlay loaded while the directory and its borrowed maps are used.
+extern u8* gAcropolisCafeteriaViewMaps[4];
 
-extern ViewCount D_acropolis_cafeteria_801875BC[];
+/// Reverse-search lengths for cafeteria rooms 1..4, each 24 logical views.
+///
+/// Indexed by room minus one. Signed halfwords count readable logical-map
+/// byte entries, independently of mapped-resource extents or the identity map
+/// capacity. No terminator; the map directory borrows this loaded-overlay array.
+extern ViewCount gAcropolisCafeteriaViewCounts[4];
 
-extern WorldCoordRoomLighting D_acropolis_cafeteria_801875C4[];
+/// Lighting resources indexed by cafeteria room minus one (rooms 1..4).
+///
+/// All entries borrow the same live fifteen point lights, one cone light and
+/// logical-view ambient table. Ambient element zero counts 24 following views;
+/// queries mutate light caches. The records and borrowed arrays require the
+/// cafeteria overlay loaded while lighting is bound or queried.
+extern WorldCoordRoomLighting gAcropolisCafeteriaRoomLightingTable[4];
 
-extern DirectionWarpEntry D_acropolis_cafeteria_801875E4[];
+/// Cafeteria arrival/departure endpoints indexed by warp minus one (1..3).
+///
+/// Slots connect to hallway arrival 3, patio arrival 3 and hallway arrival 4,
+/// respectively, with initial cafeteria logical views 7, 2 and 5. Player and
+/// companion placements use integer world units and 4096 yaw units per turn.
+/// Sound IDs select the cafeteria area bank; slot 3 also supplies a blocked
+/// sound. No terminator; the map directory borrows this loaded-overlay array.
+extern DirectionWarpEntry gAcropolisCafeteriaWarps[3];
 
 extern SpriteView D_acropolis_cafeteria_8018C48C[];
 

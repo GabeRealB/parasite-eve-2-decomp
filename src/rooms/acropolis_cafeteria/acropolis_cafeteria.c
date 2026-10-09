@@ -69,8 +69,6 @@ extern void func_80724608(void*, s32, s32, void*);
 
 extern TaskMessageEntry D_acropolis_cafeteria_80182AA8[];
 
-extern ActorTransform D_acropolis_cafeteria_80182D28;
-extern s32            D_acropolis_cafeteria_80182DB8;
 extern ActorTransform D_acropolis_cafeteria_80182DDC;
 extern EvsCommand     D_acropolis_cafeteria_80182E74[];
 extern EvsCommand     D_acropolis_cafeteria_801831BC[];
@@ -79,17 +77,47 @@ extern EvsCommand     D_acropolis_cafeteria_801834D4[];
 extern EvsCommand     D_acropolis_cafeteria_8018363C[];
 extern EvsCommand     D_acropolis_cafeteria_80183DBC[];
 extern EvsCommand     D_acropolis_cafeteria_80183F3C[];
-extern s32            D_acropolis_cafeteria_80184164;
-extern RECT           D_acropolis_cafeteria_80184168;
-extern RECT           D_acropolis_cafeteria_80184170;
 
 static void       _acropolisCafeteriaTickPlayerDebug(Task* task);
 static void       _acropolisCafeteriaInitRoom(Task* task);
 static inline s32 _acropolisCafeteriaResolvePatioRoom(const RoomEventMsg* request, RoomEventMsg* reply);
 
 enum {
-    ACROPOLIS_CAFETERIA_PROGRESS_AFTER_SCENE = 2,
-    ACROPOLIS_CAFETERIA_PLACED_STRANGER      = 0,
+    ACROPOLIS_CAFETERIA_PROGRESS_AFTER_SCENE    = 2,
+    ACROPOLIS_CAFETERIA_PLACED_STRANGER         = 0,
+    ACROPOLIS_CAFETERIA_SCENE_NOT_STARTED       = 0,
+    ACROPOLIS_CAFETERIA_SCENE_ACTIVE            = 1,
+    ACROPOLIS_CAFETERIA_PLAYER_ANIMATION        = 1,
+    ACROPOLIS_CAFETERIA_STRANGER_COMMAND_START  = 1,
+    ACROPOLIS_CAFETERIA_STRANGER_COMMAND_RECOIL = 4,
+    ACROPOLIS_CAFETERIA_STRANGER_COMMAND_SETTLE = 7,
+    ACROPOLIS_CAFETERIA_VIEW_COUNT              = 24,
+    ACROPOLIS_CAFETERIA_COLLISION_CELLS_X       = 3,
+    ACROPOLIS_CAFETERIA_COLLISION_CELLS_Z       = 3,
+    ACROPOLIS_CAFETERIA_COLLISION_CELL_SIZE     = 4000,
+    ACROPOLIS_CAFETERIA_UNIT_NORMAL             = ONE,
+    ACROPOLIS_CAFETERIA_WARP1_MAP_FLAG          = 499,
+    ACROPOLIS_CAFETERIA_WARP2_MAP_FLAG          = 501,
+    ACROPOLIS_CAFETERIA_WARP3_MAP_FLAG          = 500,
+    ACROPOLIS_CAFETERIA_TRIGGER_FOLLOW_UP       = 0,
+    ACROPOLIS_CAFETERIA_TRIGGER_CAP_COMMAND     = 2,
+    ACROPOLIS_CAFETERIA_TRIGGER_START_BATTLE    = 3,
+    ACROPOLIS_CAFETERIA_CAP_COMMAND_7           = 7,
+    ACROPOLIS_CAFETERIA_CAP_COMMAND_8           = 8,
+    ACROPOLIS_CAFETERIA_CAP_COMMAND_10          = 10,
+    ACROPOLIS_CAFETERIA_CAP_COMMAND_20          = 20,
+    ACROPOLIS_CAFETERIA_CAP_COMMAND_21          = 21,
+    ACROPOLIS_CAFETERIA_CAP_COMMAND_22          = 22,
+    ACROPOLIS_CAFETERIA_CAP_COMMAND_23          = 23,
+    ACROPOLIS_CAFETERIA_CAP_COMMAND_24          = 24,
+    ACROPOLIS_CAFETERIA_CAP_COMMAND_25          = 25,
+};
+
+// Current-area warp slot in the high nibble; destination arrival slot in the low.
+enum {
+    ACROPOLIS_CAFETERIA_WARP_TO_PATIO     = (2 << 4) | 3,
+    ACROPOLIS_CAFETERIA_WARP_TO_HALLWAY_3 = (1 << 4) | 3,
+    ACROPOLIS_CAFETERIA_WARP_TO_HALLWAY_4 = (3 << 4) | 4,
 };
 
 /// State handlers of the room task: set-up, the per-frame tick and `taskKill`.
@@ -97,14 +125,18 @@ static const TaskFuncTable3 D_acropolis_cafeteria_8017D5C4 = {
     { _acropolisCafeteriaInitRoom, _acropolisCafeteriaTickPlayerDebug, taskKill },
 };
 
-static const char CafeteriaPlayerLabel[12] = "Player";
+/// Player label borrowed by the injected player-debug hook.
+///
+/// The null-terminated text remains read-only for the loaded overlay lifetime.
+/// The external hook's untyped interface does not establish permission to write it.
+static const char _gAcropolisCafeteriaPlayerDebugLabel[12] = "Player";
 
-extern WorldCollisionGrid     D_acropolis_cafeteria_801887A8[1];
-extern WorldCollisionOccluder D_acropolis_cafeteria_80189C94[2];
-extern WorldCollisionTrigger  D_acropolis_cafeteria_801887CC[16];
-extern WorldCollisionTrigger  D_acropolis_cafeteria_80188C8C[18];
-extern WorldCollisionTrigger  D_acropolis_cafeteria_801891E4[16];
-extern WorldCollisionTrigger  D_acropolis_cafeteria_801896A4[20];
+static WorldCollisionGrid     _gAcropolisCafeteriaCollisionGrid;
+static WorldCollisionOccluder _gAcropolisCafeteriaSightOccluders[2];
+static WorldCollisionTrigger  _gAcropolisCafeteriaRooms1To3ViewBoundaries[16];
+static WorldCollisionTrigger  _gAcropolisCafeteriaRoom4ViewBoundaries[18];
+static WorldCollisionTrigger  _gAcropolisCafeteriaRoom1ActionTriggers[16];
+static WorldCollisionTrigger  _gAcropolisCafeteriaRooms2To4ActionTriggers[20];
 
 static AnimationSet _gAcropolisCafeteriaAnimation07704;
 static s32          _acropolisCafeteriaResolveRoomTransition(Task* unusedTask, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
@@ -137,7 +169,18 @@ TaskDesc D_acropolis_cafeteria_80182AD8[4] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-AnimationPlayRequest D_acropolis_cafeteria_80182B08 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player clip-1 request shared by the cafeteria event scenes.
+///
+/// The event interpreter copies the request and resolves its bank from the equipped
+/// weapon before dispatch. Resets playback without blending and disables world
+/// collision; the copied request is consumed synchronously.
+static AnimationPlayRequest _gAcropolisCafeteriaPlayerAnimation1 = {
+    .source               = { .index = 1 },
+    .animationId          = ACROPOLIS_CAFETERIA_PLAYER_ANIMATION,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_acropolis_cafeteria_80182B1C = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -198,7 +241,11 @@ ActorTransform D_acropolis_cafeteria_80182CF8 = { { -3890, -299, -1555, 0 }, { 0
 
 ActorTransform D_acropolis_cafeteria_80182D10 = { { -3490, -299, -4500, 0 }, { 0, 0, 0, 0 } };
 
-ActorTransform D_acropolis_cafeteria_80182D28 = { { -3860, -299, -1253, 0 }, { 0, 200, 0, 0 } };
+/// Stranger placement shared by the recoil scene and its settling controller.
+///
+/// Position is in room game units; Euler rotations use 4096 units per turn.
+/// Borrowed synchronously by placement messages while the overlay is loaded.
+static ActorTransform _gAcropolisCafeteriaStrangerRecoilPlacement = { { -3860, -299, -1253, 0 }, { 0, 200, 0, 0 } };
 
 ActorTransform D_acropolis_cafeteria_80182D40 = { { -3290, -299, -3500, 0 }, { 0, 0, 0, 0 } };
 
@@ -210,17 +257,28 @@ ActorTransform D_acropolis_cafeteria_80182D88 = { { -470, -1400, 701, 0 }, { 0, 
 
 ActorCommand D_acropolis_cafeteria_80182DA0 = { { .loc = { 1, 4 } }, 0 };
 
-ActorCommand D_acropolis_cafeteria_80182DA4 = { { .loc = { 1, 4 } }, 1 };
+/// Starts a cafeteria Stranger in its receiver-specific command-1 state.
+///
+/// The Grinning Stranger resumes animation 1; the combat Stranger enters alert
+/// rewind. The context is Acropolis/cafeteria and dispatch borrows the four bytes.
+static ActorCommand _gAcropolisCafeteriaStrangerStartCommand = { { .loc = { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA } }, ACROPOLIS_CAFETERIA_STRANGER_COMMAND_START };
 
 ActorCommand D_acropolis_cafeteria_80182DA8 = { { .loc = { 1, 4 } }, 2 };
 
 ActorCommand D_acropolis_cafeteria_80182DAC = { { .loc = { 1, 4 } }, 3 };
 
-ActorCommand D_acropolis_cafeteria_80182DB0 = { { .loc = { 1, 4 } }, 4 };
+/// Selects the cafeteria Stranger's scripted slot-3 recoil animation.
+///
+/// Command 4 resets state entry and borrows the recoil clip for playback.
+static ActorCommand _gAcropolisCafeteriaStrangerRecoilCommand = { { .loc = { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA } }, ACROPOLIS_CAFETERIA_STRANGER_COMMAND_RECOIL };
 
 ActorCommand D_acropolis_cafeteria_80182DB4 = { { .loc = { 1, 4 } }, 5 };
 
-s32 D_acropolis_cafeteria_80182DB8 = 0x70401;
+/// Selects the Stranger's recoil animation before room-driven root settling.
+///
+/// Command 7 is the slot-3 recoil alias in the Acropolis/cafeteria context.
+/// The complete four-byte command is borrowed through synchronous dispatch.
+static ActorCommand _gAcropolisCafeteriaStrangerSettleCommand = { { .loc = { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA } }, ACROPOLIS_CAFETERIA_STRANGER_COMMAND_SETTLE };
 
 ActorCommand D_acropolis_cafeteria_80182DBC = { { .loc = { 1, 4 } }, 8 };
 
@@ -271,13 +329,13 @@ EvsCommand D_acropolis_cafeteria_80182E74[35] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_cafeteria_80182B08 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gAcropolisCafeteriaPlayerAnimation1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_MUSIC_LOAD, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_EVENT_STATE, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_cafeteria_80182B08 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gAcropolisCafeteriaPlayerAnimation1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CANCEL_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_cafeteria_80182B84 } }, { .value = 0 } },
@@ -288,12 +346,12 @@ EvsCommand D_acropolis_cafeteria_801831BC[14] = {
     { EVENT_SCRIPT_OPCODE_REQUEST_SCENE_MUSIC, { .value = 6 }, { .value = 1 }, { .value = 1 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_cafeteria_80182B08 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gAcropolisCafeteriaPlayerAnimation1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_MUSIC_LOAD, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_EVENT_STATE, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_cafeteria_80182B08 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gAcropolisCafeteriaPlayerAnimation1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_cafeteria_80182B84 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -328,7 +386,7 @@ EvsCommand D_acropolis_cafeteria_801834D4[15] = {
     { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = 0x5104000C }, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_cafeteria_80182DB0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gAcropolisCafeteriaStrangerRecoilCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _acropolisCafeteriaCopyPostBattleVram }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_cafeteria_80182CE0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -359,7 +417,7 @@ EvsCommand D_acropolis_cafeteria_8018363C[80] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_cafeteria_80182DB0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gAcropolisCafeteriaStrangerRecoilCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_cafeteria_80182BB4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_cafeteria_80182D40 } }, { .value = 0 } },
@@ -378,7 +436,7 @@ EvsCommand D_acropolis_cafeteria_8018363C[80] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_cafeteria_80182C8C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_cafeteria_80182D28 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &_gAcropolisCafeteriaStrangerRecoilPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_cafeteria_80182DDC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_cafeteria_80182DC0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_cafeteria_80182E0C } }, { .value = 0 } },
@@ -392,7 +450,7 @@ EvsCommand D_acropolis_cafeteria_8018363C[80] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 57 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1006 }, { .message = { .pointer = &D_acropolis_cafeteria_80182BFC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_cafeteria_80182B08 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gAcropolisCafeteriaPlayerAnimation1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_cafeteria_80182D58 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_cafeteria_80182DBC } }, { .value = 0 } },
@@ -405,7 +463,7 @@ EvsCommand D_acropolis_cafeteria_8018363C[80] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_cafeteria_80182D88 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_cafeteria_80182DA4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gAcropolisCafeteriaStrangerStartCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_cafeteria_80182DF4 } }, { .value = 0 } },
@@ -440,19 +498,19 @@ EvsCommand D_acropolis_cafeteria_80183DBC[10] = {
 EvsCommand D_acropolis_cafeteria_80183EAC[6] = {
     { EVENT_SCRIPT_OPCODE_SHAKE_SCREEN, { .value = 4 }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 13 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_cafeteria_80182B08 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gAcropolisCafeteriaPlayerAnimation1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 250 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_EVENT_STATE, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_acropolis_cafeteria_80183F3C[19] = {
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_cafeteria_80182B08 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gAcropolisCafeteriaPlayerAnimation1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 12 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_cafeteria_80182CC8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_cafeteria_80182DA4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gAcropolisCafeteriaStrangerStartCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -471,15 +529,27 @@ EvsCommand D_acropolis_cafeteria_80183F3C[19] = {
 EvsCommand D_acropolis_cafeteria_80184104[4] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_cafeteria_80182D88 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_cafeteria_80182DA4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gAcropolisCafeteriaStrangerStartCommand } }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-s32 D_acropolis_cafeteria_80184164 = 0;
+/// Live cafeteria scene progress (0 not started, 1 active, 2 battle released).
+///
+/// Independent of saved story progress, this overlay-local latch gates actions,
+/// commands and departures. It starts at zero whenever the overlay is loaded.
+static s32 _gAcropolisCafeteriaSceneProgress = ACROPOLIS_CAFETERIA_SCENE_NOT_STARTED;
 
-RECT D_acropolis_cafeteria_80184168 = { 704, 0, 64, 256 };
+/// Source image rectangle for the post-battle VRAM copy to (384,256).
+///
+/// X and width count 16-bit VRAM words; Y and height count rows.
+/// The 64-by-256 region's image format and pictured content are unproven.
+static RECT _gAcropolisCafeteriaPostBattleImageSource = { .x = 704, .y = 0, .w = 64, .h = 256 };
 
-RECT D_acropolis_cafeteria_80184170 = { 0, 271, 256, 1 };
+/// Source row rectangle for the post-battle VRAM copy to (0,247).
+///
+/// X and width count 16-bit VRAM words; Y and height count rows.
+/// The 256-word row's content is unproven.
+static RECT _gAcropolisCafeteriaPostBattleRowSource = { .x = 0, .y = 271, .w = 256, .h = 1 };
 
 TaskDesc D_acropolis_cafeteria_80184178[3] = {
     { { { TASK_BODY_NONE, 192 } }, acropolisCafeteriaStartMovieTask, { .value = 0 } },
@@ -514,7 +584,7 @@ TaskMessageEntry D_acropolis_cafeteria_80184CEC[2] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-s32 D_acropolis_cafeteria_80184CFC = 0;
+s32 gAcropolisCafeteriaPuffEnabled = 0;
 
 static TmdBone _gAcropolisCafeteriaModel077D8Skeleton[1] = {
 #include "assets/acropolis_cafeteria_model_077D8_skeleton.inc"
@@ -674,14 +744,19 @@ TmdSource gAcropolisCafeteriaModel09A20 = {
     _gAcropolisCafeteriaModel09A20Stream,
 };
 
-WorldCollisionRoomResources D_acropolis_cafeteria_8018753C[4] = {
-    { D_acropolis_cafeteria_801887A8, D_acropolis_cafeteria_801887CC, D_acropolis_cafeteria_801891E4, D_acropolis_cafeteria_80189C94 },
-    { D_acropolis_cafeteria_801887A8, D_acropolis_cafeteria_801887CC, D_acropolis_cafeteria_801896A4, D_acropolis_cafeteria_80189C94 },
-    { D_acropolis_cafeteria_801887A8, D_acropolis_cafeteria_801887CC, D_acropolis_cafeteria_801896A4, D_acropolis_cafeteria_80189C94 },
-    { D_acropolis_cafeteria_801887A8, D_acropolis_cafeteria_80188C8C, D_acropolis_cafeteria_801896A4, D_acropolis_cafeteria_80189C94 },
+WorldCollisionRoomResources gAcropolisCafeteriaCollisionRooms[4] = {
+    { &_gAcropolisCafeteriaCollisionGrid, _gAcropolisCafeteriaRooms1To3ViewBoundaries, _gAcropolisCafeteriaRoom1ActionTriggers, _gAcropolisCafeteriaSightOccluders },
+    { &_gAcropolisCafeteriaCollisionGrid, _gAcropolisCafeteriaRooms1To3ViewBoundaries, _gAcropolisCafeteriaRooms2To4ActionTriggers, _gAcropolisCafeteriaSightOccluders },
+    { &_gAcropolisCafeteriaCollisionGrid, _gAcropolisCafeteriaRooms1To3ViewBoundaries, _gAcropolisCafeteriaRooms2To4ActionTriggers, _gAcropolisCafeteriaSightOccluders },
+    { &_gAcropolisCafeteriaCollisionGrid, _gAcropolisCafeteriaRoom4ViewBoundaries, _gAcropolisCafeteriaRooms2To4ActionTriggers, _gAcropolisCafeteriaSightOccluders },
 };
 
-u8 D_acropolis_cafeteria_8018757C[24] = {
+/// Logical-view map shared by cafeteria rooms 2 and 3.
+///
+/// The 24 byte entries use logical view minus one and hold 1-based camera, image
+/// and sprite indices. Views 3 and 4 select resources 21 and 14; all others map
+/// to themselves. No terminator; storage lives with the loaded room overlay.
+static u8 _gAcropolisCafeteriaRooms2And3ViewMap[ACROPOLIS_CAFETERIA_VIEW_COUNT] = {
     1,
     2,
     21,
@@ -708,7 +783,12 @@ u8 D_acropolis_cafeteria_8018757C[24] = {
     24,
 };
 
-u8 D_acropolis_cafeteria_80187594[24] = {
+/// Logical-view map for cafeteria room 4's alternate backgrounds.
+///
+/// The 24 byte entries use logical view minus one and hold 1-based camera, image
+/// and sprite indices. Views 3, 4 and 5 select resources 21, 22 and 15; all others
+/// map to themselves. No terminator; storage lives with the loaded room overlay.
+static u8 _gAcropolisCafeteriaRoom4ViewMap[ACROPOLIS_CAFETERIA_VIEW_COUNT] = {
     1,
     2,
     21,
@@ -735,137 +815,180 @@ u8 D_acropolis_cafeteria_80187594[24] = {
     24,
 };
 
-u8* D_acropolis_cafeteria_801875AC[4] = {
+u8* gAcropolisCafeteriaViewMaps[4] = {
     gViewIdentityMap,
-    D_acropolis_cafeteria_8018757C,
-    D_acropolis_cafeteria_8018757C,
-    D_acropolis_cafeteria_80187594,
+    _gAcropolisCafeteriaRooms2And3ViewMap,
+    _gAcropolisCafeteriaRooms2And3ViewMap,
+    _gAcropolisCafeteriaRoom4ViewMap,
 };
 
-ViewCount D_acropolis_cafeteria_801875BC[4] = { 24, 24, 24, 24 };
+ViewCount gAcropolisCafeteriaViewCounts[4] = { ACROPOLIS_CAFETERIA_VIEW_COUNT, ACROPOLIS_CAFETERIA_VIEW_COUNT, ACROPOLIS_CAFETERIA_VIEW_COUNT, ACROPOLIS_CAFETERIA_VIEW_COUNT };
 
-WorldCoordRoomLighting D_acropolis_cafeteria_801875C4[4] = {
+WorldCoordRoomLighting gAcropolisCafeteriaRoomLightingTable[4] = {
     { &gAcropolisCafeteriaRoomLights, gAcropolisCafeteriaViewAmbientColors },
     { &gAcropolisCafeteriaRoomLights, gAcropolisCafeteriaViewAmbientColors },
     { &gAcropolisCafeteriaRoomLights, gAcropolisCafeteriaViewAmbientColors },
     { &gAcropolisCafeteriaRoomLights, gAcropolisCafeteriaViewAmbientColors },
 };
 
-DirectionWarpEntry D_acropolis_cafeteria_801875E4[3] = {
-    { { { .word = 0 }, 1841, -236, -3256 }, { 0, 0, 0, 0 }, { { .word = 0 }, 1841, -236, -3256 }, { 0, 0, 0, 0 }, 0x51040009, 0x51040008, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_NONE, 499 },
-    { { { .word = 2048 }, -4047, -236, 2765 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -4047, -236, 2765 }, { 0, 0, 0, 0 }, 0x51040002, 0x51040001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 501 },
-    { { { .word = 3072 }, -986, -300, -5486 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -986, -300, -5486 }, { 0, 0, 0, 0 }, 0x51040005, 0x51040004, 0x51040003, 5, DIRECTION_WARP_FLAG_NONE, 500 },
+DirectionWarpEntry gAcropolisCafeteriaWarps[3] = {
+    { { { .word = 0 }, 1841, -236, -3256 }, { 0, 0, 0, 0 }, { { .word = 0 }, 1841, -236, -3256 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA, 9), SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA, 8), DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_NONE, ACROPOLIS_CAFETERIA_WARP1_MAP_FLAG },
+    { { { .word = 2048 }, -4047, -236, 2765 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -4047, -236, 2765 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA, 2), SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA, 1), DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, ACROPOLIS_CAFETERIA_WARP2_MAP_FLAG },
+    { { { .word = 3072 }, -986, -300, -5486 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -986, -300, -5486 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA, 5), SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA, 4), SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA, 3), 5, DIRECTION_WARP_FLAG_NONE, ACROPOLIS_CAFETERIA_WARP3_MAP_FLAG },
 };
 
-static SVECTOR _gAcropolisCafeteriaCollision0B1E8Normals[36] = {
+static SVECTOR _gAcropolisCafeteriaCollisionGridNormals[36] = {
 #include "assets/acropolis_cafeteria_collision_0B1E8_normals.inc"
 };
 
-static SVECTOR _gAcropolisCafeteriaCollision0B1E8Verts[207] = {
+static SVECTOR _gAcropolisCafeteriaCollisionGridVerts[207] = {
 #include "assets/acropolis_cafeteria_collision_0B1E8_verts.inc"
 };
 
-static WorldCollisionGridFace _gAcropolisCafeteriaCollision0B1E8Faces[120] = {
+static WorldCollisionGridFace _gAcropolisCafeteriaCollisionGridFaces[120] = {
 #include "assets/acropolis_cafeteria_collision_0B1E8_faces.inc"
 };
 
-static s16 _gAcropolisCafeteriaCollision0B1E8Cells[480] = {
+static s16 _gAcropolisCafeteriaCollisionGridCells[480] = {
 #include "assets/acropolis_cafeteria_collision_0B1E8_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gAcropolisCafeteriaCollision0B1E8Cells[i])
-static s16* _gAcropolisCafeteriaCollision0B1E8Table[9] = {
+#define GRID_CELL(i) (&_gAcropolisCafeteriaCollisionGridCells[i])
+static s16* _gAcropolisCafeteriaCollisionGridTable[9] = {
 #include "assets/acropolis_cafeteria_collision_0B1E8_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_acropolis_cafeteria_801887A8[1] = {
-    { NULL, _gAcropolisCafeteriaCollision0B1E8Normals, _gAcropolisCafeteriaCollision0B1E8Verts, _gAcropolisCafeteriaCollision0B1E8Faces, _gAcropolisCafeteriaCollision0B1E8Table, 5600, 6098, 3, 3, 4000, 120 },
+STATIC_ASSERT(ARRAY_SIZE(_gAcropolisCafeteriaCollisionGridTable) == ACROPOLIS_CAFETERIA_COLLISION_CELLS_X * ACROPOLIS_CAFETERIA_COLLISION_CELLS_Z, cafeteriaCollisionCellTableSize);
+
+/// Collision mesh and 3-by-3 XZ cell index shared by all cafeteria rooms.
+///
+/// Mesh positions, additive origin biases and the 4000-unit cell size use room
+/// game units; normals use 4096 per unit. The X-major table borrows nine terminated
+/// face lists and 120 faces. Room activation binds the mutable view transform;
+/// the descriptor and every pool remain live while this overlay is loaded.
+static WorldCollisionGrid _gAcropolisCafeteriaCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gAcropolisCafeteriaCollisionGridNormals,
+    .vertices    = _gAcropolisCafeteriaCollisionGridVerts,
+    .faces       = _gAcropolisCafeteriaCollisionGridFaces,
+    .cellFaceIds = _gAcropolisCafeteriaCollisionGridTable,
+    .xBias       = 5600,
+    .zBias       = 6098,
+    .cellCountX  = ACROPOLIS_CAFETERIA_COLLISION_CELLS_X,
+    .cellCountZ  = ACROPOLIS_CAFETERIA_COLLISION_CELLS_Z,
+    .cellSize    = ACROPOLIS_CAFETERIA_COLLISION_CELL_SIZE,
+    .faceCount   = ARRAY_SIZE(_gAcropolisCafeteriaCollisionGridFaces),
 };
 
-WorldCollisionTrigger D_acropolis_cafeteria_801887CC[16] = {
-    { NULL, NULL, NULL, { -1458, -1872, 1406, 0 }, { { -1092, 2672, -566, 0 }, { 1084, 2672, 560, 0 }, { -1092, -2672, -566, 0 }, { 1084, -2672, 560, 0 } }, { -1889, 0, 3647, 0 }, { 0, 0, 4096, 0 }, 2930, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1538, 0, 1726, 0 }, { { 1286, 2672, 820, 0 }, { -1293, 2672, -825, 0 }, { 1286, -2672, 820, 0 }, { -1293, -2672, -825, 0 } }, { 2202, 0, -3454, 0 }, { 0, 0, 4096, 0 }, 3072, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -4945, 0, -2273, 0 }, { { -1054, 2672, -199, 0 }, { 1047, 2672, 189, 0 }, { -1054, -2672, -199, 0 }, { 1047, -2672, 189, 0 } }, { -747, 0, 4036, 0 }, { 0, 0, 4096, 0 }, 2873, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -4866, 0, -1921, 0 }, { { 1073, 2672, 165, 0 }, { -1077, 2672, -172, 0 }, { 1073, -2672, 165, 0 }, { -1077, -2672, -172, 0 } }, { 633, 0, -4048, 0 }, { 0, 0, 4096, 0 }, 2884, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1442, 0, -4738, 0 }, { { 520, 2672, 1242, 0 }, { -521, 2672, -1243, 0 }, { 520, -2672, 1242, 0 }, { -521, -2672, -1243, 0 } }, { 3781, 0, -1586, 0 }, { 0, 0, 4096, 0 }, 2985, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1313, 0, -5121, 0 }, { { -441, 2672, -1044, 0 }, { 434, 2672, 1037, 0 }, { -441, -2672, -1044, 0 }, { 434, -2672, 1037, 0 } }, { -3783, 0, 1588, 0 }, { 0, 0, 4096, 0 }, 2896, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -817, 0, -3731, 0 }, { { 499, 2672, 345, 0 }, { -505, 2672, -353, 0 }, { 499, -2672, 345, 0 }, { -505, -2672, -353, 0 } }, { 2338, 0, -3366, 0 }, { 0, 0, 4096, 0 }, 2733, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1248, 0, 63, 0 }, { { 2033, 2672, -23, 0 }, { -2045, 2672, 15, 0 }, { 2033, -2672, -23, 0 }, { -2045, -2672, 15, 0 } }, { -39, 0, -4096, 0 }, { 0, 0, 4096, 0 }, 3357, 0, 7, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1408, 0, -225, 0 }, { { -2047, 2672, 11, 0 }, { 2030, 2672, -26, 0 }, { -2047, -2672, 11, 0 }, { 2030, -2672, -26, 0 } }, { 37, 0, 4112, 0 }, { 0, 0, 4096, 0 }, 3357, 0, 8, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -4320, 0, 1280, 0 }, { { -1410, 2672, 296, 0 }, { 1409, 2672, -297, 0 }, { -1410, -2672, 296, 0 }, { 1409, -2672, -297, 0 } }, { 843, 0, 4010, 0 }, { 0, 0, 4096, 0 }, 3029, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -4002, 0, 1566, 0 }, { { 1745, 2672, -397, 0 }, { -1745, 2672, 397, 0 }, { 1745, -2672, -397, 0 }, { -1745, -2672, 397, 0 } }, { -910, 0, -3999, 0 }, { 0, 0, 4096, 0 }, 3207, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -3040, 0, -2128, 0 }, { { -837, 2672, 8, 0 }, { 838, 2672, -8, 0 }, { -837, -2672, 8, 0 }, { 838, -2672, -8, 0 } }, { 37, 0, 4119, 0 }, { 0, 0, 4096, 0 }, 2792, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -3040, 0, -1792, 0 }, { { 837, 2672, -8, 0 }, { -838, 2672, 8, 0 }, { 837, -2672, -8, 0 }, { -838, -2672, 8, 0 } }, { -40, 0, -4122, 0 }, { 0, 0, 4096, 0 }, 2792, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1377, 0, -1697, 0 }, { { 819, 2672, 148, 0 }, { -829, 2672, -162, 0 }, { 819, -2672, 148, 0 }, { -829, -2672, -162, 0 } }, { 756, 0, -4028, 0 }, { 0, 0, 4096, 0 }, 2792, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1313, 0, -1984, 0 }, { { -829, 2672, -168, 0 }, { 814, 2672, 142, 0 }, { -829, -2672, -168, 0 }, { 814, -2672, 142, 0 } }, { -764, 0, 4040, 0 }, { 0, 0, 4096, 0 }, 2792, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -529, 0, -3825, 0 }, { { -408, 2672, -342, 0 }, { 405, 2672, 335, 0 }, { -408, -2672, -342, 0 }, { 405, -2672, 335, 0 } }, { -2627, 0, 3148, 0 }, { 0, 0, 4096, 0 }, 2721, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Directed logical-view boundaries shared by cafeteria rooms 1 through 3.
+///
+/// Source/destination bytes select logical session views 2..8, independently of
+/// background remapping. Room setup binds transforms, links and enables all
+/// sixteen records through LAST; storage stays mutable while the overlay is loaded.
+static WorldCollisionTrigger _gAcropolisCafeteriaRooms1To3ViewBoundaries[16] = {
+    { NULL, NULL, NULL, { -1458, -1872, 1406, 0 }, { { -1092, 2672, -566, 0 }, { 1084, 2672, 560, 0 }, { -1092, -2672, -566, 0 }, { 1084, -2672, 560, 0 } }, { -1889, 0, 3647, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 2930, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1538, 0, 1726, 0 }, { { 1286, 2672, 820, 0 }, { -1293, 2672, -825, 0 }, { 1286, -2672, 820, 0 }, { -1293, -2672, -825, 0 } }, { 2202, 0, -3454, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 3072, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -4945, 0, -2273, 0 }, { { -1054, 2672, -199, 0 }, { 1047, 2672, 189, 0 }, { -1054, -2672, -199, 0 }, { 1047, -2672, 189, 0 } }, { -747, 0, 4036, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 2873, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -4866, 0, -1921, 0 }, { { 1073, 2672, 165, 0 }, { -1077, 2672, -172, 0 }, { 1073, -2672, 165, 0 }, { -1077, -2672, -172, 0 } }, { 633, 0, -4048, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 2884, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1442, 0, -4738, 0 }, { { 520, 2672, 1242, 0 }, { -521, 2672, -1243, 0 }, { 520, -2672, 1242, 0 }, { -521, -2672, -1243, 0 } }, { 3781, 0, -1586, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 2985, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1313, 0, -5121, 0 }, { { -441, 2672, -1044, 0 }, { 434, 2672, 1037, 0 }, { -441, -2672, -1044, 0 }, { 434, -2672, 1037, 0 } }, { -3783, 0, 1588, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 2896, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -817, 0, -3731, 0 }, { { 499, 2672, 345, 0 }, { -505, 2672, -353, 0 }, { 499, -2672, 345, 0 }, { -505, -2672, -353, 0 } }, { 2338, 0, -3366, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 2733, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1248, 0, 63, 0 }, { { 2033, 2672, -23, 0 }, { -2045, 2672, 15, 0 }, { 2033, -2672, -23, 0 }, { -2045, -2672, 15, 0 } }, { -39, 0, -ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 3357, 0, 7, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1408, 0, -225, 0 }, { { -2047, 2672, 11, 0 }, { 2030, 2672, -26, 0 }, { -2047, -2672, 11, 0 }, { 2030, -2672, -26, 0 } }, { 37, 0, 4112, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 3357, 0, 8, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -4320, 0, 1280, 0 }, { { -1410, 2672, 296, 0 }, { 1409, 2672, -297, 0 }, { -1410, -2672, 296, 0 }, { 1409, -2672, -297, 0 } }, { 843, 0, 4010, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 3029, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -4002, 0, 1566, 0 }, { { 1745, 2672, -397, 0 }, { -1745, 2672, 397, 0 }, { 1745, -2672, -397, 0 }, { -1745, -2672, 397, 0 } }, { -910, 0, -3999, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 3207, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -3040, 0, -2128, 0 }, { { -837, 2672, 8, 0 }, { 838, 2672, -8, 0 }, { -837, -2672, 8, 0 }, { 838, -2672, -8, 0 } }, { 37, 0, 4119, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 2792, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -3040, 0, -1792, 0 }, { { 837, 2672, -8, 0 }, { -838, 2672, 8, 0 }, { 837, -2672, -8, 0 }, { -838, -2672, 8, 0 } }, { -40, 0, -4122, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 2792, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1377, 0, -1697, 0 }, { { 819, 2672, 148, 0 }, { -829, 2672, -162, 0 }, { 819, -2672, 148, 0 }, { -829, -2672, -162, 0 } }, { 756, 0, -4028, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 2792, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1313, 0, -1984, 0 }, { { -829, 2672, -168, 0 }, { 814, 2672, 142, 0 }, { -829, -2672, -168, 0 }, { 814, -2672, 142, 0 } }, { -764, 0, 4040, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 2792, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -529, 0, -3825, 0 }, { { -408, 2672, -342, 0 }, { 405, 2672, 335, 0 }, { -408, -2672, -342, 0 }, { 405, -2672, 335, 0 } }, { -2627, 0, 3148, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 2721, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_acropolis_cafeteria_80188C8C[18] = {
-    { NULL, NULL, NULL, { -1458, -1872, 1406, 0 }, { { -1092, 2672, -566, 0 }, { 1084, 2672, 560, 0 }, { -1092, -2672, -566, 0 }, { 1084, -2672, 560, 0 } }, { -1889, 0, 3647, 0 }, { 0, 0, 4096, 0 }, 2930, 0, 2, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1538, 0, 1726, 0 }, { { 1286, 2672, 820, 0 }, { -1293, 2672, -825, 0 }, { 1286, -2672, 820, 0 }, { -1293, -2672, -825, 0 } }, { 2202, 0, -3454, 0 }, { 0, 0, 4096, 0 }, 3072, 0, 6, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -4945, 0, -2273, 0 }, { { -1054, 2672, -199, 0 }, { 1047, 2672, 189, 0 }, { -1054, -2672, -199, 0 }, { 1047, -2672, 189, 0 } }, { -747, 0, 4036, 0 }, { 0, 0, 4096, 0 }, 2873, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -4866, 0, -1921, 0 }, { { 1073, 2672, 165, 0 }, { -1077, 2672, -172, 0 }, { 1073, -2672, 165, 0 }, { -1077, -2672, -172, 0 } }, { 633, 0, -4048, 0 }, { 0, 0, 4096, 0 }, 2884, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1442, 0, -4738, 0 }, { { 520, 2672, 1242, 0 }, { -521, 2672, -1243, 0 }, { 520, -2672, 1242, 0 }, { -521, -2672, -1243, 0 } }, { 3781, 0, -1586, 0 }, { 0, 0, 4096, 0 }, 2985, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1313, 0, -5121, 0 }, { { -441, 2672, -1044, 0 }, { 434, 2672, 1037, 0 }, { -441, -2672, -1044, 0 }, { 434, -2672, 1037, 0 } }, { -3783, 0, 1588, 0 }, { 0, 0, 4096, 0 }, 2896, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -817, 0, -3731, 0 }, { { 499, 2672, 345, 0 }, { -505, 2672, -353, 0 }, { 499, -2672, 345, 0 }, { -505, -2672, -353, 0 } }, { 2338, 0, -3366, 0 }, { 0, 0, 4096, 0 }, 2733, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1248, 0, 63, 0 }, { { 2033, 2672, -23, 0 }, { -2045, 2672, 15, 0 }, { 2033, -2672, -23, 0 }, { -2045, -2672, 15, 0 } }, { -39, 0, -4096, 0 }, { 0, 0, 4096, 0 }, 3357, 0, 7, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1408, 0, -225, 0 }, { { -2047, 2672, 11, 0 }, { 2030, 2672, -26, 0 }, { -2047, -2672, 11, 0 }, { 2030, -2672, -26, 0 } }, { 37, 0, 4112, 0 }, { 0, 0, 4096, 0 }, 3357, 0, 8, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -4320, 0, 1280, 0 }, { { -1410, 2672, 296, 0 }, { 1409, 2672, -297, 0 }, { -1410, -2672, 296, 0 }, { 1409, -2672, -297, 0 } }, { 843, 0, 4010, 0 }, { 0, 0, 4096, 0 }, 3029, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -4002, 0, 1566, 0 }, { { 1745, 2672, -397, 0 }, { -1745, 2672, 397, 0 }, { 1745, -2672, -397, 0 }, { -1745, -2672, 397, 0 } }, { -910, 0, -3999, 0 }, { 0, 0, 4096, 0 }, 3207, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -3040, 0, -2128, 0 }, { { -837, 2672, 8, 0 }, { 838, 2672, -8, 0 }, { -837, -2672, 8, 0 }, { 838, -2672, -8, 0 } }, { 37, 0, 4119, 0 }, { 0, 0, 4096, 0 }, 2792, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -3040, 0, -1792, 0 }, { { 837, 2672, -8, 0 }, { -838, 2672, 8, 0 }, { 837, -2672, -8, 0 }, { -838, -2672, 8, 0 } }, { -40, 0, -4122, 0 }, { 0, 0, 4096, 0 }, 2792, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1377, 0, -1697, 0 }, { { 819, 2672, 148, 0 }, { -829, 2672, -162, 0 }, { 819, -2672, 148, 0 }, { -829, -2672, -162, 0 } }, { 756, 0, -4028, 0 }, { 0, 0, 4096, 0 }, 2792, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1313, 0, -1984, 0 }, { { -829, 2672, -168, 0 }, { 814, 2672, 142, 0 }, { -829, -2672, -168, 0 }, { 814, -2672, 142, 0 } }, { -764, 0, 4040, 0 }, { 0, 0, 4096, 0 }, 2792, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -529, 0, -3825, 0 }, { { -408, 2672, -342, 0 }, { 405, 2672, 335, 0 }, { -408, -2672, -342, 0 }, { 405, -2672, 335, 0 } }, { -2627, 0, 3148, 0 }, { 0, 0, 4096, 0 }, 2721, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1316, 0, -611, 0 }, { { -827, 2672, 1287, 0 }, { 818, 2672, -1292, 0 }, { -827, -2672, 1287, 0 }, { 818, -2672, -1292, 0 } }, { 3459, 0, 2206, 0 }, { 0, 0, 4096, 0 }, 3072, 0, 6, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1249, -64, -576, 0 }, { { 817, 2672, -1294, 0 }, { -829, 2672, 1285, 0 }, { 817, -2672, -1294, 0 }, { -829, -2672, 1285, 0 } }, { -3454, 0, -2205, 0 }, { 0, 0, 4096, 0 }, 3072, 0, 3, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Directed logical-view boundaries for cafeteria room 4.
+///
+/// Routes view 2 through view 6 to view 3; the other boundaries retain the normal
+/// room routes. Room setup binds, links and enables all eighteen records through
+/// LAST. Endpoints are logical views; storage lives with the loaded overlay.
+static WorldCollisionTrigger _gAcropolisCafeteriaRoom4ViewBoundaries[18] = {
+    { NULL, NULL, NULL, { -1458, -1872, 1406, 0 }, { { -1092, 2672, -566, 0 }, { 1084, 2672, 560, 0 }, { -1092, -2672, -566, 0 }, { 1084, -2672, 560, 0 } }, { -1889, 0, 3647, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 2930, 0, 2, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1538, 0, 1726, 0 }, { { 1286, 2672, 820, 0 }, { -1293, 2672, -825, 0 }, { 1286, -2672, 820, 0 }, { -1293, -2672, -825, 0 } }, { 2202, 0, -3454, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 3072, 0, 6, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -4945, 0, -2273, 0 }, { { -1054, 2672, -199, 0 }, { 1047, 2672, 189, 0 }, { -1054, -2672, -199, 0 }, { 1047, -2672, 189, 0 } }, { -747, 0, 4036, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 2873, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -4866, 0, -1921, 0 }, { { 1073, 2672, 165, 0 }, { -1077, 2672, -172, 0 }, { 1073, -2672, 165, 0 }, { -1077, -2672, -172, 0 } }, { 633, 0, -4048, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 2884, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1442, 0, -4738, 0 }, { { 520, 2672, 1242, 0 }, { -521, 2672, -1243, 0 }, { 520, -2672, 1242, 0 }, { -521, -2672, -1243, 0 } }, { 3781, 0, -1586, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 2985, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1313, 0, -5121, 0 }, { { -441, 2672, -1044, 0 }, { 434, 2672, 1037, 0 }, { -441, -2672, -1044, 0 }, { 434, -2672, 1037, 0 } }, { -3783, 0, 1588, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 2896, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -817, 0, -3731, 0 }, { { 499, 2672, 345, 0 }, { -505, 2672, -353, 0 }, { 499, -2672, 345, 0 }, { -505, -2672, -353, 0 } }, { 2338, 0, -3366, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 2733, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1248, 0, 63, 0 }, { { 2033, 2672, -23, 0 }, { -2045, 2672, 15, 0 }, { 2033, -2672, -23, 0 }, { -2045, -2672, 15, 0 } }, { -39, 0, -ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 3357, 0, 7, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1408, 0, -225, 0 }, { { -2047, 2672, 11, 0 }, { 2030, 2672, -26, 0 }, { -2047, -2672, 11, 0 }, { 2030, -2672, -26, 0 } }, { 37, 0, 4112, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 3357, 0, 8, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -4320, 0, 1280, 0 }, { { -1410, 2672, 296, 0 }, { 1409, 2672, -297, 0 }, { -1410, -2672, 296, 0 }, { 1409, -2672, -297, 0 } }, { 843, 0, 4010, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 3029, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -4002, 0, 1566, 0 }, { { 1745, 2672, -397, 0 }, { -1745, 2672, 397, 0 }, { 1745, -2672, -397, 0 }, { -1745, -2672, 397, 0 } }, { -910, 0, -3999, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 3207, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -3040, 0, -2128, 0 }, { { -837, 2672, 8, 0 }, { 838, 2672, -8, 0 }, { -837, -2672, 8, 0 }, { 838, -2672, -8, 0 } }, { 37, 0, 4119, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 2792, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -3040, 0, -1792, 0 }, { { 837, 2672, -8, 0 }, { -838, 2672, 8, 0 }, { 837, -2672, -8, 0 }, { -838, -2672, 8, 0 } }, { -40, 0, -4122, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 2792, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1377, 0, -1697, 0 }, { { 819, 2672, 148, 0 }, { -829, 2672, -162, 0 }, { 819, -2672, 148, 0 }, { -829, -2672, -162, 0 } }, { 756, 0, -4028, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 2792, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1313, 0, -1984, 0 }, { { -829, 2672, -168, 0 }, { 814, 2672, 142, 0 }, { -829, -2672, -168, 0 }, { 814, -2672, 142, 0 } }, { -764, 0, 4040, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 2792, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -529, 0, -3825, 0 }, { { -408, 2672, -342, 0 }, { 405, 2672, 335, 0 }, { -408, -2672, -342, 0 }, { 405, -2672, 335, 0 } }, { -2627, 0, 3148, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 2721, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1316, 0, -611, 0 }, { { -827, 2672, 1287, 0 }, { 818, 2672, -1292, 0 }, { -827, -2672, 1287, 0 }, { 818, -2672, -1292, 0 } }, { 3459, 0, 2206, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 3072, 0, 6, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1249, -64, -576, 0 }, { { 817, 2672, -1294, 0 }, { -829, 2672, 1285, 0 }, { 817, -2672, -1294, 0 }, { -829, -2672, 1285, 0 } }, { -3454, 0, -2205, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 3072, 0, 3, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_acropolis_cafeteria_801891E4[16] = {
-    { NULL, NULL, NULL, { -3984, -368, 2704, 0 }, { { -496, 0, -272, 0 }, { 496, 0, -272, 0 }, { -496, 0, 272, 0 }, { 496, 0, 272, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 565, WORLD_COLLISION_TRIGGER_ACTION_WARP, 3, 35, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -784, -360, -5440, 0 }, { { 320, 0, -544, 0 }, { 320, 0, 544, 0 }, { -320, 0, -544, 0 }, { -320, 0, 544, 0 } }, { 0, 4111, 0, 0 }, { -4096, 0, 0, 0 }, 630, WORLD_COLLISION_TRIGGER_ACTION_WARP, 7, 52, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1952, -360, -3184, 0 }, { { 768, 0, 272, 0 }, { -768, 0, 272, 0 }, { 768, 0, -272, 0 }, { -768, 0, -272, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, 4096, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_WARP, 7, 19, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -2296, -401, -2424, 0 }, { { -1592, 0, -1272, 0 }, { 1096, 0, -888, 0 }, { -600, 0, 1576, 0 }, { 1096, 0, 584, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -4096, 0 }, 2035, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2720, -392, -2464, 0 }, { { -624, 0, -704, 0 }, { 624, 0, -704, 0 }, { -624, 0, 704, 0 }, { 624, 0, 704, 0 } }, { 0, 4103, 0, 0 }, { -4096, 0, 0, 0 }, 940, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1328, -360, 2160, 0 }, { { 464, 0, -608, 0 }, { 464, 0, 608, 0 }, { -464, 0, -608, 0 }, { -464, 0, 608, 0 } }, { 0, 4119, 0, 0 }, { 0, 0, -4096, 0 }, 762, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 4, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 40, -384, -1272, 0 }, { { -504, 0, 8, 0 }, { 552, 0, -1272, 0 }, { -408, 0, 1224, 0 }, { 1640, 0, 584, 0 } }, { 0, 4111, 0, 0 }, { 0, 0, -4096, 0 }, 1736, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 2, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3112, -384, 64, 0 }, { { -2744, 0, -464, 0 }, { -2744, 0, -944, 0 }, { 2728, 0, 944, 0 }, { 2760, 0, 464, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, -4096, 0 }, 2896, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 3, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { -5200, -384, 2784, 0 }, { { -416, 0, -976, 0 }, { 992, 0, -976, 0 }, { -416, 0, 368, 0 }, { 992, 0, 368, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -4096, 0 }, 1390, WORLD_COLLISION_TRIGGER_ACTION_CAP, 21, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -992, -384, -2208, 0 }, { { -496, 0, -720, 0 }, { 496, 0, -720, 0 }, { -496, 0, 720, 0 }, { 496, 0, 720, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, -4096, 0 }, 872, WORLD_COLLISION_TRIGGER_ACTION_CAP, 20, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 480, -416, -2432, 0 }, { { -496, 0, -720, 0 }, { 496, 0, -720, 0 }, { -496, 0, 720, 0 }, { 496, 0, 720, 0 } }, { 0, 4099, 0, 0 }, { 4096, 0, 0, 0 }, 872, WORLD_COLLISION_TRIGGER_ACTION_CAP, 22, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2464, -384, -928, 0 }, { { -496, 0, -720, 0 }, { 496, 0, -720, 0 }, { -496, 0, 720, 0 }, { 496, 0, 720, 0 } }, { 0, 4099, 0, 0 }, { -4091, 0, 201, 0 }, 872, WORLD_COLLISION_TRIGGER_ACTION_CAP, 23, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2496, -384, 544, 0 }, { { -496, 0, -720, 0 }, { 496, 0, -720, 0 }, { -496, 0, 720, 0 }, { 496, 0, 720, 0 } }, { 0, 4099, 0, 0 }, { -4052, 0, 601, 0 }, 872, WORLD_COLLISION_TRIGGER_ACTION_CAP, 24, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2496, -384, 1761, 0 }, { { -496, 0, -304, 0 }, { 496, 0, -304, 0 }, { -496, 0, 304, 0 }, { 496, 0, 304, 0 } }, { 0, 4105, 0, 0 }, { 201, 0, -4092, 0 }, 579, WORLD_COLLISION_TRIGGER_ACTION_CAP, 25, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -2816, -364, 1872, 0 }, { { -240, 0, -1152, 0 }, { 752, 0, -1152, 0 }, { -752, 0, 1152, 0 }, { 240, 0, 1152, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 1372, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 3, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { -3520, -377, -1688, 0 }, { { -1047, 0, -123, 0 }, { 95, 0, -1086, 0 }, { -178, 0, 1212, 0 }, { 1130, 0, -3, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 1221, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 0, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Cafeteria room-1 warp, CAP and scripted-action quads.
+///
+/// All sixteen records, including the final LAST entry, are mutable and borrowed
+/// by collision setup. Saved progress 2 disables CAP command 20 at index 9.
+/// Geometry uses room game units and normals use 4096 per unit.
+static WorldCollisionTrigger _gAcropolisCafeteriaRoom1ActionTriggers[16] = {
+    { NULL, NULL, NULL, { -3984, -368, 2704, 0 }, { { -496, 0, -272, 0 }, { 496, 0, -272, 0 }, { -496, 0, 272, 0 }, { 496, 0, 272, 0 } }, { 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0, 0 }, { 0, 0, -ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 565, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_PATIO, ACROPOLIS_CAFETERIA_WARP_TO_PATIO, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -784, -360, -5440, 0 }, { { 320, 0, -544, 0 }, { 320, 0, 544, 0 }, { -320, 0, -544, 0 }, { -320, 0, 544, 0 } }, { 0, 4111, 0, 0 }, { -ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0, 0, 0 }, 630, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_HALLWAY, ACROPOLIS_CAFETERIA_WARP_TO_HALLWAY_4, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1952, -360, -3184, 0 }, { { 768, 0, 272, 0 }, { -768, 0, 272, 0 }, { 768, 0, -272, 0 }, { -768, 0, -272, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_HALLWAY, ACROPOLIS_CAFETERIA_WARP_TO_HALLWAY_3, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -2296, -401, -2424, 0 }, { { -1592, 0, -1272, 0 }, { 1096, 0, -888, 0 }, { -600, 0, 1576, 0 }, { 1096, 0, 584, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 2035, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_CAFETERIA_CAP_COMMAND_7, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2720, -392, -2464, 0 }, { { -624, 0, -704, 0 }, { 624, 0, -704, 0 }, { -624, 0, 704, 0 }, { 624, 0, 704, 0 } }, { 0, 4103, 0, 0 }, { -ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0, 0, 0 }, 940, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_CAFETERIA_CAP_COMMAND_8, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1328, -360, 2160, 0 }, { { 464, 0, -608, 0 }, { 464, 0, 608, 0 }, { -464, 0, -608, 0 }, { -464, 0, 608, 0 } }, { 0, 4119, 0, 0 }, { 0, 0, -ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 762, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_CAFETERIA_CAP_COMMAND_10, CAP_EVENT_ACTION_CAPTURE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 40, -384, -1272, 0 }, { { -504, 0, 8, 0 }, { 552, 0, -1272, 0 }, { -408, 0, 1224, 0 }, { 1640, 0, 584, 0 } }, { 0, 4111, 0, 0 }, { 0, 0, -ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 1736, WORLD_COLLISION_TRIGGER_ACTION_ROOM, ACROPOLIS_CAFETERIA_TRIGGER_CAP_COMMAND, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3112, -384, 64, 0 }, { { -2744, 0, -464, 0 }, { -2744, 0, -944, 0 }, { 2728, 0, 944, 0 }, { 2760, 0, 464, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, -ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 2896, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, ACROPOLIS_CAFETERIA_TRIGGER_START_BATTLE, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { -5200, -384, 2784, 0 }, { { -416, 0, -976, 0 }, { 992, 0, -976, 0 }, { -416, 0, 368, 0 }, { 992, 0, 368, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 1390, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_CAFETERIA_CAP_COMMAND_21, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -992, -384, -2208, 0 }, { { -496, 0, -720, 0 }, { 496, 0, -720, 0 }, { -496, 0, 720, 0 }, { 496, 0, 720, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, -ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 872, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_CAFETERIA_CAP_COMMAND_20, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 480, -416, -2432, 0 }, { { -496, 0, -720, 0 }, { 496, 0, -720, 0 }, { -496, 0, 720, 0 }, { 496, 0, 720, 0 } }, { 0, 4099, 0, 0 }, { ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0, 0, 0 }, 872, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_CAFETERIA_CAP_COMMAND_22, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2464, -384, -928, 0 }, { { -496, 0, -720, 0 }, { 496, 0, -720, 0 }, { -496, 0, 720, 0 }, { 496, 0, 720, 0 } }, { 0, 4099, 0, 0 }, { -4091, 0, 201, 0 }, 872, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_CAFETERIA_CAP_COMMAND_23, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2496, -384, 544, 0 }, { { -496, 0, -720, 0 }, { 496, 0, -720, 0 }, { -496, 0, 720, 0 }, { 496, 0, 720, 0 } }, { 0, 4099, 0, 0 }, { -4052, 0, 601, 0 }, 872, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_CAFETERIA_CAP_COMMAND_24, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2496, -384, 1761, 0 }, { { -496, 0, -304, 0 }, { 496, 0, -304, 0 }, { -496, 0, 304, 0 }, { 496, 0, 304, 0 } }, { 0, 4105, 0, 0 }, { 201, 0, -4092, 0 }, 579, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_CAFETERIA_CAP_COMMAND_25, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -2816, -364, 1872, 0 }, { { -240, 0, -1152, 0 }, { 752, 0, -1152, 0 }, { -752, 0, 1152, 0 }, { 240, 0, 1152, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 1372, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, ACROPOLIS_CAFETERIA_TRIGGER_START_BATTLE, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { -3520, -377, -1688, 0 }, { { -1047, 0, -123, 0 }, { 95, 0, -1086, 0 }, { -178, 0, 1212, 0 }, { 1130, 0, -3, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 1221, WORLD_COLLISION_TRIGGER_ACTION_ROOM, ACROPOLIS_CAFETERIA_TRIGGER_FOLLOW_UP, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_acropolis_cafeteria_801896A4[20] = {
-    { NULL, NULL, NULL, { -3984, -368, 2704, 0 }, { { -496, 0, -272, 0 }, { 496, 0, -272, 0 }, { -496, 0, 272, 0 }, { 496, 0, 272, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 565, WORLD_COLLISION_TRIGGER_ACTION_WARP, 3, 35, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -784, -360, -5440, 0 }, { { 320, 0, -544, 0 }, { 320, 0, 544, 0 }, { -320, 0, -544, 0 }, { -320, 0, 544, 0 } }, { 0, 4111, 0, 0 }, { -4096, 0, 0, 0 }, 630, WORLD_COLLISION_TRIGGER_ACTION_WARP, 7, 52, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1952, -360, -3184, 0 }, { { 768, 0, 272, 0 }, { -768, 0, 272, 0 }, { 768, 0, -272, 0 }, { -768, 0, -272, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, 4096, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_WARP, 7, 19, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -2296, -401, -2424, 0 }, { { -1592, 0, -1272, 0 }, { 1096, 0, -888, 0 }, { -600, 0, 1576, 0 }, { 1096, 0, 584, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -4096, 0 }, 2035, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2720, -392, -2464, 0 }, { { -624, 0, -704, 0 }, { 624, 0, -704, 0 }, { -624, 0, 704, 0 }, { 624, 0, 704, 0 } }, { 0, 4103, 0, 0 }, { -4096, 0, 0, 0 }, 940, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1328, -360, 2160, 0 }, { { 464, 0, -608, 0 }, { 464, 0, 608, 0 }, { -464, 0, -608, 0 }, { -464, 0, 608, 0 } }, { 0, 4119, 0, 0 }, { 0, 0, -4096, 0 }, 762, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 4, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 40, -384, -1272, 0 }, { { -504, 0, 8, 0 }, { 552, 0, -1272, 0 }, { -408, 0, 1224, 0 }, { 1640, 0, 584, 0 } }, { 0, 4111, 0, 0 }, { 0, 0, -4096, 0 }, 1736, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 2, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3112, -384, 64, 0 }, { { -2744, 0, -464, 0 }, { -2744, 0, -944, 0 }, { 2728, 0, 944, 0 }, { 2760, 0, 464, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, -4096, 0 }, 2896, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 3, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { -5200, -384, 2784, 0 }, { { -416, 0, -976, 0 }, { 992, 0, -976, 0 }, { -416, 0, 368, 0 }, { 992, 0, 368, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -4096, 0 }, 1390, WORLD_COLLISION_TRIGGER_ACTION_CAP, 21, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -992, -384, -2208, 0 }, { { -496, 0, -720, 0 }, { 496, 0, -720, 0 }, { -496, 0, 720, 0 }, { 496, 0, 720, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, -4096, 0 }, 872, WORLD_COLLISION_TRIGGER_ACTION_CAP, 20, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 480, -416, -2432, 0 }, { { -496, 0, -720, 0 }, { 496, 0, -720, 0 }, { -496, 0, 720, 0 }, { 496, 0, 720, 0 } }, { 0, 4099, 0, 0 }, { 4096, 0, 0, 0 }, 872, WORLD_COLLISION_TRIGGER_ACTION_CAP, 22, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2464, -384, -928, 0 }, { { -496, 0, -720, 0 }, { 496, 0, -720, 0 }, { -496, 0, 720, 0 }, { 496, 0, 720, 0 } }, { 0, 4099, 0, 0 }, { -4091, 0, 201, 0 }, 872, WORLD_COLLISION_TRIGGER_ACTION_CAP, 23, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2496, -384, 544, 0 }, { { -496, 0, -720, 0 }, { 496, 0, -720, 0 }, { -496, 0, 720, 0 }, { 496, 0, 720, 0 } }, { 0, 4099, 0, 0 }, { -4052, 0, 601, 0 }, 872, WORLD_COLLISION_TRIGGER_ACTION_CAP, 24, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2496, -384, 1761, 0 }, { { -496, 0, -304, 0 }, { 496, 0, -304, 0 }, { -496, 0, 304, 0 }, { 496, 0, 304, 0 } }, { 0, 4105, 0, 0 }, { 201, 0, -4092, 0 }, 579, WORLD_COLLISION_TRIGGER_ACTION_CAP, 25, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -2816, -364, 1872, 0 }, { { -240, 0, -1152, 0 }, { 752, 0, -1152, 0 }, { -752, 0, 1152, 0 }, { 240, 0, 1152, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 1372, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 3, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { -3296, -377, -2296, 0 }, { { -1559, 0, 133, 0 }, { 95, 0, -414, 0 }, { -178, 0, 1756, 0 }, { 1130, 0, 317, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, -4096, 0 }, 1764, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 0, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3480, -384, -1368, 0 }, { { -1272, 0, -792, 0 }, { 1320, 0, -632, 0 }, { -760, 0, 712, 0 }, { 712, 0, 712, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, 4096, 0 }, 1498, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 0, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3496, -384, -2824, 0 }, { { 1272, 0, 792, 0 }, { -1320, 0, 632, 0 }, { 760, 0, -712, 0 }, { -712, 0, -712, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -4096, 0 }, 1498, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 0, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4034, -384, -2092, 0 }, { { -162, 0, -1428, 0 }, { 1220, 0, 15, 0 }, { -850, 0, -58, 0 }, { -205, 0, 1472, 0 } }, { 0, 4094, 0, 0 }, { -4096, 0, 0, 0 }, 1481, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 0, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3488, -384, -1728, 0 }, { { -240, 0, -720, 0 }, { 240, 0, -720, 0 }, { -240, 0, 720, 0 }, { 240, 0, 720, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -4096, 0 }, 757, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 0, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Cafeteria rooms 2 through 4's warp, CAP and scripted-action quads.
+///
+/// Shares the initial room's actions with five follow-up action-0 quads around
+/// the Stranger. All twenty records through LAST are bound, linked and enabled
+/// by room setup; geometry and writable records live with the loaded overlay.
+static WorldCollisionTrigger _gAcropolisCafeteriaRooms2To4ActionTriggers[20] = {
+    { NULL, NULL, NULL, { -3984, -368, 2704, 0 }, { { -496, 0, -272, 0 }, { 496, 0, -272, 0 }, { -496, 0, 272, 0 }, { 496, 0, 272, 0 } }, { 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0, 0 }, { 0, 0, -ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 565, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_PATIO, ACROPOLIS_CAFETERIA_WARP_TO_PATIO, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -784, -360, -5440, 0 }, { { 320, 0, -544, 0 }, { 320, 0, 544, 0 }, { -320, 0, -544, 0 }, { -320, 0, 544, 0 } }, { 0, 4111, 0, 0 }, { -ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0, 0, 0 }, 630, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_HALLWAY, ACROPOLIS_CAFETERIA_WARP_TO_HALLWAY_4, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1952, -360, -3184, 0 }, { { 768, 0, 272, 0 }, { -768, 0, 272, 0 }, { 768, 0, -272, 0 }, { -768, 0, -272, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_HALLWAY, ACROPOLIS_CAFETERIA_WARP_TO_HALLWAY_3, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -2296, -401, -2424, 0 }, { { -1592, 0, -1272, 0 }, { 1096, 0, -888, 0 }, { -600, 0, 1576, 0 }, { 1096, 0, 584, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 2035, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_CAFETERIA_CAP_COMMAND_7, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2720, -392, -2464, 0 }, { { -624, 0, -704, 0 }, { 624, 0, -704, 0 }, { -624, 0, 704, 0 }, { 624, 0, 704, 0 } }, { 0, 4103, 0, 0 }, { -ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0, 0, 0 }, 940, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_CAFETERIA_CAP_COMMAND_8, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1328, -360, 2160, 0 }, { { 464, 0, -608, 0 }, { 464, 0, 608, 0 }, { -464, 0, -608, 0 }, { -464, 0, 608, 0 } }, { 0, 4119, 0, 0 }, { 0, 0, -ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 762, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_CAFETERIA_CAP_COMMAND_10, CAP_EVENT_ACTION_CAPTURE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 40, -384, -1272, 0 }, { { -504, 0, 8, 0 }, { 552, 0, -1272, 0 }, { -408, 0, 1224, 0 }, { 1640, 0, 584, 0 } }, { 0, 4111, 0, 0 }, { 0, 0, -ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 1736, WORLD_COLLISION_TRIGGER_ACTION_ROOM, ACROPOLIS_CAFETERIA_TRIGGER_CAP_COMMAND, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3112, -384, 64, 0 }, { { -2744, 0, -464, 0 }, { -2744, 0, -944, 0 }, { 2728, 0, 944, 0 }, { 2760, 0, 464, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, -ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 2896, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, ACROPOLIS_CAFETERIA_TRIGGER_START_BATTLE, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { -5200, -384, 2784, 0 }, { { -416, 0, -976, 0 }, { 992, 0, -976, 0 }, { -416, 0, 368, 0 }, { 992, 0, 368, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 1390, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_CAFETERIA_CAP_COMMAND_21, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -992, -384, -2208, 0 }, { { -496, 0, -720, 0 }, { 496, 0, -720, 0 }, { -496, 0, 720, 0 }, { 496, 0, 720, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, -ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 872, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_CAFETERIA_CAP_COMMAND_20, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 480, -416, -2432, 0 }, { { -496, 0, -720, 0 }, { 496, 0, -720, 0 }, { -496, 0, 720, 0 }, { 496, 0, 720, 0 } }, { 0, 4099, 0, 0 }, { ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0, 0, 0 }, 872, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_CAFETERIA_CAP_COMMAND_22, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2464, -384, -928, 0 }, { { -496, 0, -720, 0 }, { 496, 0, -720, 0 }, { -496, 0, 720, 0 }, { 496, 0, 720, 0 } }, { 0, 4099, 0, 0 }, { -4091, 0, 201, 0 }, 872, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_CAFETERIA_CAP_COMMAND_23, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2496, -384, 544, 0 }, { { -496, 0, -720, 0 }, { 496, 0, -720, 0 }, { -496, 0, 720, 0 }, { 496, 0, 720, 0 } }, { 0, 4099, 0, 0 }, { -4052, 0, 601, 0 }, 872, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_CAFETERIA_CAP_COMMAND_24, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2496, -384, 1761, 0 }, { { -496, 0, -304, 0 }, { 496, 0, -304, 0 }, { -496, 0, 304, 0 }, { 496, 0, 304, 0 } }, { 0, 4105, 0, 0 }, { 201, 0, -4092, 0 }, 579, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_CAFETERIA_CAP_COMMAND_25, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -2816, -364, 1872, 0 }, { { -240, 0, -1152, 0 }, { 752, 0, -1152, 0 }, { -752, 0, 1152, 0 }, { 240, 0, 1152, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 1372, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, ACROPOLIS_CAFETERIA_TRIGGER_START_BATTLE, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { -3296, -377, -2296, 0 }, { { -1559, 0, 133, 0 }, { 95, 0, -414, 0 }, { -178, 0, 1756, 0 }, { 1130, 0, 317, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, -ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 1764, WORLD_COLLISION_TRIGGER_ACTION_ROOM, ACROPOLIS_CAFETERIA_TRIGGER_FOLLOW_UP, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3480, -384, -1368, 0 }, { { -1272, 0, -792, 0 }, { 1320, 0, -632, 0 }, { -760, 0, 712, 0 }, { 712, 0, 712, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 1498, WORLD_COLLISION_TRIGGER_ACTION_ROOM, ACROPOLIS_CAFETERIA_TRIGGER_FOLLOW_UP, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3496, -384, -2824, 0 }, { { 1272, 0, 792, 0 }, { -1320, 0, 632, 0 }, { 760, 0, -712, 0 }, { -712, 0, -712, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 1498, WORLD_COLLISION_TRIGGER_ACTION_ROOM, ACROPOLIS_CAFETERIA_TRIGGER_FOLLOW_UP, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4034, -384, -2092, 0 }, { { -162, 0, -1428, 0 }, { 1220, 0, 15, 0 }, { -850, 0, -58, 0 }, { -205, 0, 1472, 0 } }, { 0, 4094, 0, 0 }, { -ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0, 0, 0 }, 1481, WORLD_COLLISION_TRIGGER_ACTION_ROOM, ACROPOLIS_CAFETERIA_TRIGGER_FOLLOW_UP, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3488, -384, -1728, 0 }, { { -240, 0, -720, 0 }, { 240, 0, -720, 0 }, { -240, 0, 720, 0 }, { 240, 0, 720, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -ACROPOLIS_CAFETERIA_UNIT_NORMAL, 0 }, 757, WORLD_COLLISION_TRIGGER_ACTION_ROOM, ACROPOLIS_CAFETERIA_TRIGGER_FOLLOW_UP, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionOccluder D_acropolis_cafeteria_80189C94[2] = {
+/// Two room-space sight-blocking quads shared by all cafeteria rooms.
+///
+/// Positions and radii use game units; normals use 4096 per unit. Room setup
+/// links and enables both records through LAST. Low flag bit 0 has no established
+/// meaning; keep it separate from runtime ENABLED. Storage lives with the overlay.
+static WorldCollisionOccluder _gAcropolisCafeteriaSightOccluders[2] = {
     { NULL, NULL, { -384, -304, -1136, 0 }, { { 0, 752, -4816, 0 }, { 0, 752, 4816, 0 }, { 0, -752, -4816, 0 }, { 0, -752, 4816, 0 } }, { -4106, 0, 0, 0 }, 4857, 1, 0 },
     { NULL, NULL, { -352, -1456, -3920, 0 }, { { 0, 2208, -2400, 0 }, { 0, 2208, 2400, 0 }, { 0, -2208, -2400, 0 }, { 0, -2208, 2400, 0 } }, { -4099, 0, 0, 0 }, 3258, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
@@ -884,22 +1007,38 @@ AreaResource D_acropolis_cafeteria_80189D3C[4] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_acropolis_cafeteria_80189D6C[2] = {
+/// Actor resource list for variant 3's single Odd Stranger placement.
+///
+/// Entry 18 selects base-40 file 18 and task recipe zero. The second entry is
+/// AREA_PLACEMENT_END; placements and recipes remain borrowed while loaded.
+static AreaResource _gAcropolisCafeteriaSingleOddStrangerResources[2] = {
     { 18, 18, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401800OddStrangerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_acropolis_cafeteria_80189D84[2] = {
+/// Actor resource list for variant 4's two Odd Stranger placements.
+///
+/// Both placements share entry 18: base-40 file 18 and task recipe zero. The
+/// second entry is AREA_PLACEMENT_END; storage lives with the loaded overlay.
+static AreaResource _gAcropolisCafeteriaPairOddStrangerResources[2] = {
     { 18, 18, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401800OddStrangerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_acropolis_cafeteria_80189D9C[2] = {
+/// Actor resource list for variant 5's five Bone Suckler placements.
+///
+/// All placements share entry 12: base-10 file 12 and task recipe zero. The
+/// second entry is AREA_PLACEMENT_END; storage lives with the loaded overlay.
+static AreaResource _gAcropolisCafeteriaBoneSucklerResources[2] = {
     { 12, 12, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101200BoneSucklerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_acropolis_cafeteria_80189DB4[2] = {
+/// Actor resource list for variant 7's Rook Golem placement.
+///
+/// Entry 57 selects base-10 file 57 and task-table slot zero. The second entry
+/// is AREA_PLACEMENT_END; storage lives with the loaded overlay.
+static AreaResource _gAcropolisCafeteriaRookGolemResources[2] = {
     { 57, 57, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor05700RookGolemTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -908,11 +1047,11 @@ AreaVariant D_acropolis_cafeteria_80189DCC[11] = {
     { NULL, NULL },
     { D_map_akropolis_8017AE9C, D_acropolis_cafeteria_80189D0C },
     { D_map_akropolis_8017AEDC, D_acropolis_cafeteria_80189D3C },
-    { D_map_akropolis_8017AF1C, D_acropolis_cafeteria_80189D6C },
-    { D_map_akropolis_8017AF3C, D_acropolis_cafeteria_80189D84 },
-    { D_map_akropolis_8017AF6C, D_acropolis_cafeteria_80189D9C },
+    { D_map_akropolis_8017AF1C, _gAcropolisCafeteriaSingleOddStrangerResources },
+    { D_map_akropolis_8017AF3C, _gAcropolisCafeteriaPairOddStrangerResources },
+    { D_map_akropolis_8017AF6C, _gAcropolisCafeteriaBoneSucklerResources },
     { NULL, NULL },
-    { D_map_akropolis_8017AFCC, D_acropolis_cafeteria_80189DB4 },
+    { D_map_akropolis_8017AFCC, _gAcropolisCafeteriaRookGolemResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -991,7 +1130,7 @@ AcropolisCafeteriaSpotLightStorage gAcropolisCafeteriaSpotLightStorage = {
 static void _acropolisCafeteriaTickPlayerDebug(Task* task)
 {
     if (gDisplayState.debugMode != 0) {
-        func_80724608(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), -0x8C, -0x32, (void*)CafeteriaPlayerLabel);
+        func_80724608(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), -0x8C, -0x32, (void*)_gAcropolisCafeteriaPlayerDebugLabel);
         func_807245E4(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER));
     }
 }
@@ -1062,10 +1201,10 @@ static s32 _acropolisCafeteriaResolveRoomTransition(Task* unusedTask, s32 messag
     destinationArea = request->areaId;
     if (destinationArea == GAME_AREA_ACROPOLIS_PATIO) {
         if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) < ACROPOLIS_CAFETERIA_PROGRESS_AFTER_SCENE) {
-            if (D_acropolis_cafeteria_80184164 == ACROPOLIS_CAFETERIA_SCENE_NOT_STARTED) {
+            if (_gAcropolisCafeteriaSceneProgress == ACROPOLIS_CAFETERIA_SCENE_NOT_STARTED) {
                 return _acropolisCafeteriaResolvePatioRoom(request, reply);
             }
-            if (D_acropolis_cafeteria_80184164 == ACROPOLIS_CAFETERIA_SCENE_RELEASED) {
+            if (_gAcropolisCafeteriaSceneProgress == ACROPOLIS_CAFETERIA_SCENE_RELEASED) {
                 if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                     capStartSequenceSlot(ACROPOLIS_CAFETERIA_PATIO_EXIT_SEQUENCE, CAP_PLAYBACK_DISPLAY_TRANSITION, 0);
                 }
@@ -1239,7 +1378,7 @@ static void _acropolisCafeteriaBattleSceneTask(Task* task)
             sceneReleaseBattleRefWithRewards(sceneFindPlacedActor(ACROPOLIS_CAFETERIA_PLACED_STRANGER), 0xA);
             gGameSession->flowFlags                       |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
             gSceneCombatState.signals.bytes.endDelayFrames = 3;
-            D_acropolis_cafeteria_80184164                 = ACROPOLIS_CAFETERIA_PROGRESS_AFTER_SCENE;
+            _gAcropolisCafeteriaSceneProgress              = ACROPOLIS_CAFETERIA_PROGRESS_AFTER_SCENE;
             task->state                                   += 1;
             break;
         case ACROPOLIS_CAFETERIA_BATTLE_DELAY_BATTLE_CHECK:
@@ -1433,8 +1572,8 @@ static void _acropolisCafeteriaSettleStrangerTask(Task* task)
     switch (task->state) {
         case ACROPOLIS_CAFETERIA_SETTLE_INITIALIZE:
             // Start the recoil clip before taking over the root's translation.
-            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(ACROPOLIS_CAFETERIA_PLACED_STRANGER), ACTOR_MESSAGE_PLACE, &D_acropolis_cafeteria_80182D28, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(ACROPOLIS_CAFETERIA_PLACED_STRANGER), ACTOR_COMMAND_MESSAGE_APPLY, &D_acropolis_cafeteria_80182DB8, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(ACROPOLIS_CAFETERIA_PLACED_STRANGER), ACTOR_MESSAGE_PLACE, &_gAcropolisCafeteriaStrangerRecoilPlacement, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(ACROPOLIS_CAFETERIA_PLACED_STRANGER), ACTOR_COMMAND_MESSAGE_APPLY, &_gAcropolisCafeteriaStrangerSettleCommand, 0);
             D_acropolis_cafeteria_8018D6A0 = 0;
             D_acropolis_cafeteria_8018D6A4 = ACROPOLIS_CAFETERIA_STRANGER_INITIAL_Y_STEP;
             D_acropolis_cafeteria_8018D6A8 = ACROPOLIS_CAFETERIA_STRANGER_INITIAL_Z_STEP;
@@ -1467,7 +1606,7 @@ static s32 _acropolisCafeteriaHandleCommandMessage(Task* unusedTask, s32 message
         ACROPOLIS_CAFETERIA_CAP_PLACEMENT_ID   = 4
     };
     if (commandId == ACROPOLIS_CAFETERIA_COMMAND_SEQUENCE_7) {
-        if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) >= ACROPOLIS_CAFETERIA_PROGRESS_AFTER_SCENE || D_acropolis_cafeteria_80184164 >= ACROPOLIS_CAFETERIA_PROGRESS_AFTER_SCENE) {
+        if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) >= ACROPOLIS_CAFETERIA_PROGRESS_AFTER_SCENE || _gAcropolisCafeteriaSceneProgress >= ACROPOLIS_CAFETERIA_PROGRESS_AFTER_SCENE) {
             if (areaGetCurrentObjectState(ACROPOLIS_CAFETERIA_CAP_PLACEMENT_ID) == 1 || areaGetCurrentObjectState(ACROPOLIS_CAFETERIA_CAP_PLACEMENT_ID) == 0) {
                 capStartSequenceSlot(ACROPOLIS_CAFETERIA_COMMAND_SEQUENCE_7, CAP_PLAYBACK_DISPLAY_TRANSITION, 0);
             }
@@ -1495,7 +1634,7 @@ static s32 _acropolisCafeteriaHandleActionMessage(Task* unusedTask, s32 messageI
     };
 
     if (actionRequest->actionId == ACROPOLIS_CAFETERIA_ACTION_FOLLOW_UP) {
-        if (D_acropolis_cafeteria_80184164 >= ACROPOLIS_CAFETERIA_PROGRESS_AFTER_SCENE || gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) >= ACROPOLIS_CAFETERIA_PROGRESS_AFTER_SCENE) {
+        if (_gAcropolisCafeteriaSceneProgress >= ACROPOLIS_CAFETERIA_PROGRESS_AFTER_SCENE || gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) >= ACROPOLIS_CAFETERIA_PROGRESS_AFTER_SCENE) {
             taskSpawnFromTable(D_acropolis_cafeteria_80182AD8, ACROPOLIS_CAFETERIA_TASK_FOLLOW_UP, 0, 0);
             return 0;
         }
@@ -1503,8 +1642,8 @@ static s32 _acropolisCafeteriaHandleActionMessage(Task* unusedTask, s32 messageI
     if (actionRequest->actionId == ACROPOLIS_CAFETERIA_ACTION_CAP_COMMAND) {
         capRunCommandWithTransition(ACROPOLIS_CAFETERIA_ACTION_CAP_COMMAND_ID);
     } else if (actionRequest->actionId == ACROPOLIS_CAFETERIA_ACTION_START_BATTLE) {
-        if (D_acropolis_cafeteria_80184164 == 0 && gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) == ACROPOLIS_CAFETERIA_PROGRESS_BEFORE_SCENE) {
-            D_acropolis_cafeteria_80184164 = 1;
+        if (_gAcropolisCafeteriaSceneProgress == ACROPOLIS_CAFETERIA_SCENE_NOT_STARTED && gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) == ACROPOLIS_CAFETERIA_PROGRESS_BEFORE_SCENE) {
+            _gAcropolisCafeteriaSceneProgress = ACROPOLIS_CAFETERIA_SCENE_ACTIVE;
             taskSpawnFromTable(D_acropolis_cafeteria_80182AD8, ACROPOLIS_CAFETERIA_TASK_BATTLE, 0, 0);
         }
     }
@@ -1569,8 +1708,8 @@ static void _acropolisCafeteriaCopyPostBattleVram(void)
         ACROPOLIS_CAFETERIA_POST_BATTLE_ROW_Y   = 247,
     };
 
-    MoveImage(&D_acropolis_cafeteria_80184168, ACROPOLIS_CAFETERIA_POST_BATTLE_IMAGE_X, ACROPOLIS_CAFETERIA_POST_BATTLE_IMAGE_Y);
-    MoveImage(&D_acropolis_cafeteria_80184170, ACROPOLIS_CAFETERIA_POST_BATTLE_ROW_X, ACROPOLIS_CAFETERIA_POST_BATTLE_ROW_Y);
+    MoveImage(&_gAcropolisCafeteriaPostBattleImageSource, ACROPOLIS_CAFETERIA_POST_BATTLE_IMAGE_X, ACROPOLIS_CAFETERIA_POST_BATTLE_IMAGE_Y);
+    MoveImage(&_gAcropolisCafeteriaPostBattleRowSource, ACROPOLIS_CAFETERIA_POST_BATTLE_ROW_X, ACROPOLIS_CAFETERIA_POST_BATTLE_ROW_Y);
 }
 
 /// Requests effect cancellation and locks attachment activation for the post-battle scene.
@@ -1614,7 +1753,7 @@ static void _acropolisCafeteriaInitRoom(Task* task)
         sceneSetPlacedActorDrawMode(ACROPOLIS_CAFETERIA_PLACED_STRANGER, ACROPOLIS_CAFETERIA_DRAW_SHOW);
         sceneSetPlacedActorDrawMode(ACROPOLIS_CAFETERIA_PLACED_SCRIPTED_FORM, ACROPOLIS_CAFETERIA_DRAW_SUSPEND);
         sceneSetPlacedActorDrawMode(ACROPOLIS_CAFETERIA_PLACED_RUPERT, ACROPOLIS_CAFETERIA_DRAW_SHOW);
-        disabledTrigger         = &D_acropolis_cafeteria_801891E4[ACROPOLIS_CAFETERIA_CAP_20_TRIGGER_INDEX];
+        disabledTrigger         = &_gAcropolisCafeteriaRoom1ActionTriggers[ACROPOLIS_CAFETERIA_CAP_20_TRIGGER_INDEX];
         disabledTrigger->flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
         TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(ACROPOLIS_CAFETERIA_PLACED_RUPERT), ACTOR_MESSAGE_PLACE, &D_acropolis_cafeteria_80182DDC, 0);
     }

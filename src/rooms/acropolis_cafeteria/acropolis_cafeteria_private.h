@@ -29,7 +29,12 @@ extern TaskDesc D_acropolis_cafeteria_80184178[];
 
 extern TaskMessageEntry D_acropolis_cafeteria_80184CEC[2];
 
-extern s32 D_acropolis_cafeteria_80184CFC;
+/// Shared cafeteria puff gate (0 disabled, any nonzero signed word enabled).
+///
+/// Room-effect initialization clears it; control messages store their value
+/// verbatim. Emitters and individual puffs observe the same gate and release
+/// themselves when it clears. The gate belongs to the loaded room overlay.
+extern s32 gAcropolisCafeteriaPuffEnabled;
 
 /// Authored point lights contributing in every cafeteria view.
 ///

@@ -1191,7 +1191,7 @@ void acropolisCafeteriaInitRoomEffectsTask(Task* task)
     task->msgTable = D_acropolis_cafeteria_80184CEC;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM_EFFECT);
     spawnOffset                    = &work->move;
-    D_acropolis_cafeteria_80184CFC = 0;
+    gAcropolisCafeteriaPuffEnabled = 0;
     work->move.vx                  = 0x220;
     work->move.vy                  = -0x12C;
     work->move.vz                  = -0x6A0;
@@ -1239,7 +1239,7 @@ void acropolisCafeteriaPuffEmitterTask(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (D_acropolis_cafeteria_80184CFC == 0) {
+    if (gAcropolisCafeteriaPuffEnabled == 0) {
         effectKillTask(work, task);
         return;
     }
@@ -1317,7 +1317,7 @@ void acropolisCafeteriaPuffTask(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (D_acropolis_cafeteria_80184CFC != 0) {
+    if (gAcropolisCafeteriaPuffEnabled != 0) {
         view = gGameSession->location.loc.view;
         if (view == PUFF_ACTIVE_VIEW) {
             // Project the centre once; the billboard's rotation is in screen space.
@@ -1554,7 +1554,7 @@ s32 acropolisCafeteriaSetPuffEnabled(Task* task, s32 messageId, s32 enabled, s32
     GfxCoord* coord;
 
     coord                          = task->extra.coordBody->coord;
-    D_acropolis_cafeteria_80184CFC = enabled;
+    gAcropolisCafeteriaPuffEnabled = enabled;
     if (enabled != 0) {
         effectSpawn(EFFECT_ACROPOLIS_CAFETERIA_PUFF_EMITTER, coord, 0, NULL);
     }
