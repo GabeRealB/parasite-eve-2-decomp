@@ -15,6 +15,11 @@
 /// boss and scene figure defer automatic primitive-buffer allocation.
 extern TaskDesc gActor403600TaskTable[3];
 
+/// Boss command that restores its model and starts ascent toward the arena.
+///
+/// The command handler reads only `ActorCommand::command` during dispatch.
+enum { ACTOR_403600_COMMAND_ASCEND_TO_ARENA = 6 };
+
 /// Boss command that starts combat from its arena position.
 ///
 /// Send as `ActorCommand::command` with `ACTOR_COMMAND_MESSAGE_APPLY` to a live

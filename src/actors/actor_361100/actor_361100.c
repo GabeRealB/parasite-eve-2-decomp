@@ -28,6 +28,7 @@
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
@@ -103,25 +104,17 @@ typedef struct {
 } _Actor361100AyaBreaWork;
 STATIC_ASSERT_SIZEOF(_Actor361100AyaBreaWork, 0x4A4);
 
-extern Task* D_actor_361100_80171BE0;
-
-extern TaskDesc D_actor_361100_80165C58[];
+/// Retained head-aim task of the pod scene, or NULL before spawn and after teardown.
+///
+/// The task owns its aim work. Mode changes use this handle to update or kill it;
+/// the room's reset only forgets it, so reset requires any prior task to be gone.
+static Task* _gActor361100HeadAimTask;
 
 /// Script pair handed to `padScriptSpawn` on every even frame of the blink.
 extern PadScriptCmd              D_actor_361100_80166AD0[2];
 extern PadScriptVibrationSegment D_actor_361100_80166AD8;
 
-extern AnimationSet*  D_actor_361100_8016BAD0[4];
 extern AnimationSet** gActorMotionAnimBanks19[1];
-// Handler views preserve the signatures used by this TU. The dispatcher
-// transports each argument in a word register.
-
-extern TaskMessageEntry D_actor_361100_8016BAF0[];
-extern AnimationSet*    D_actor_361100_80171B94[5];
-extern AnimationSet**   D_actor_361100_80171BA8[1];
-// Message-table callbacks use the argument views required by this TU.
-
-extern TaskMessageEntry D_actor_361100_80171BB8[5];
 
 static void _actor361100DrawStreamRefraction(Task* task);
 
@@ -149,6 +142,37 @@ enum {
     ACTOR_361100_SHAKE_TASK_INDEX    = 1,
 };
 
+/// Execution priority of the package's water, control and scripted model tasks.
+enum { ACTOR_361100_TASK_PRIORITY = 192 };
+
+/// Player clip indices: scene pointers extend the equipped bank after its base sets.
+///
+/// The initial bank word is retained in the authored requests; event playback
+/// overwrites it in a local copy with the equipped weapon's actual bank index.
+enum {
+    ACTOR_361100_PLAYER_INITIAL_BANK  = 1,
+    ACTOR_361100_PLAYER_SKIP_CLIP     = 9,
+    ACTOR_361100_PLAYER_SCENE_CLIP_48 = ANIMATION_BANK_BASE_SET_COUNT + 1,
+    ACTOR_361100_PLAYER_SCENE_CLIP_49 = ANIMATION_BANK_BASE_SET_COUNT + 2,
+    ACTOR_361100_PLAYER_SCENE_CLIP_50 = ANIMATION_BANK_BASE_SET_COUNT + 3,
+    ACTOR_361100_PLAYER_SCENE_CLIP_51 = ANIMATION_BANK_BASE_SET_COUNT + 4,
+    ACTOR_361100_PLAYER_SCENE_CLIP_52 = ANIMATION_BANK_BASE_SET_COUNT + 5,
+    ACTOR_361100_PLAYER_SCENE_CLIP_53 = ANIMATION_BANK_BASE_SET_COUNT + 6,
+    ACTOR_361100_PLAYER_SCENE_CLIP_54 = ANIMATION_BANK_BASE_SET_COUNT + 7,
+    ACTOR_361100_PLAYER_SCENE_CLIP_55 = ANIMATION_BANK_BASE_SET_COUNT + 8,
+    ACTOR_361100_PLAYER_SCENE_CLIP_56 = ANIMATION_BANK_BASE_SET_COUNT + 9,
+};
+
+/// Placed-actor indices used by the pod scene's message payloads.
+enum {
+    ACTOR_361100_SCENE_BOSS_INDEX     = 0,
+    ACTOR_361100_SCENE_TENTACLE_INDEX = 1,
+    ACTOR_361100_SCENE_AYA_BREA_INDEX = 2,
+};
+
+/// Authored exit selector of both scripted models; each receiver exits on any unknown command.
+enum { ACTOR_361100_COMMAND_EXIT = 0xFFFF };
+
 static void _actor361100TickTentacle(Task* task);
 static void _actor361100InitTentacle(Task* task);
 static void _actor361100ExitTentacle(Task* task);
@@ -158,8 +182,11 @@ static void _actor361100InitAyaBrea(Task* task);
 static void _actor361100ExitAyaBrea(Task* task);
 static void _actor361100BindAyaBreaLighting(Task* task);
 
-/// `Task::state` handlers `_actor361100TentacleTask` dispatches through.
-static const TaskFuncTable3 D_actor_361100_80161E24 = {
+/// Lifecycle dispatch of the tentacle: state 0 initializes, 1 updates and 2 exits.
+///
+/// The dispatcher copies these three callbacks and requires a state in 0..2.
+/// Scene-actor pause suspends dispatch; the package must stay loaded through exit.
+static const TaskFuncTable3 _gActor361100TentacleStates = {
     {
         _actor361100InitTentacle,
         _actor361100TickTentacle,
@@ -167,8 +194,11 @@ static const TaskFuncTable3 D_actor_361100_80161E24 = {
     },
 };
 
-/// `Task::state` handlers `_actor361100AyaBreaTask` dispatches through.
-static const TaskFuncTable3 D_actor_361100_80161E30 = {
+/// Lifecycle dispatch of Aya's body: state 0 initializes, 1 updates and 2 exits.
+///
+/// The dispatcher copies these three callbacks and requires a state in 0..2.
+/// Scene-actor pause suspends dispatch; the package must stay loaded through exit.
+static const TaskFuncTable3 _gActor361100AyaBreaStates = {
     {
         _actor361100InitAyaBrea,
         _actor361100TickAyaBrea,
@@ -189,22 +219,9 @@ static s32          _actor361100ApplyAyaBreaCommand(Task* task, s32 msgId, const
 static void         _actor361100TentacleTask(Task* task);
 static void         _actor361100AyaBreaTask(Task* task);
 
-extern AnimationPlayRequest D_actor_361100_80165CA0;
-extern ActorCommand         D_actor_361100_80165DD4;
-extern ActorCommand         D_actor_361100_80165E84;
-extern ActorCommand         D_actor_361100_80165F3C;
-extern ActorTransform       D_actor_361100_80165D98;
-static void                 _actor361100SetHeadAimMode(s32 mode);
-static void                 _actor361100AddFlowFlags(s32 bits);
+static void _actor361100SetHeadAimMode(s32 mode);
+static void _actor361100AddFlowFlags(s32 bits);
 
-extern AnimationPlayRequest      D_actor_361100_80165CB4;
-extern AnimationPlayRequest      D_actor_361100_80165CC8;
-extern AnimationPlayRequest      D_actor_361100_80165CDC;
-extern AnimationPlayRequest      D_actor_361100_80165CF0;
-extern AnimationPlayRequest      D_actor_361100_80165D04;
-extern AnimationPlayRequest      D_actor_361100_80165D18;
-extern AnimationPlayRequest      D_actor_361100_80165D40;
-extern AnimationPlayRequest      D_actor_361100_80165D54;
 extern AnimationPlayRequest      D_actor_361100_80165DF0;
 extern AnimationPlayRequest      D_actor_361100_80165E04;
 extern AnimationPlayRequest      D_actor_361100_80165E18;
@@ -212,18 +229,12 @@ extern AnimationPlayRequest      D_actor_361100_80165E9C;
 extern AnimationPlayRequest      D_actor_361100_80165EB0;
 extern AnimationPlayRequest      D_actor_361100_80165EC4;
 extern AnimationPlayRequest      D_actor_361100_80165ED8;
-extern ActorCommand              D_actor_361100_80165DD0;
 extern ActorCommand              D_actor_361100_80165DD8;
 extern ActorCommand              D_actor_361100_80165E78;
 extern ActorCommand              D_actor_361100_80165E7C;
 extern ActorCommand              D_actor_361100_80165E80;
-extern AnimationBankCopyRequest  D_actor_361100_80165C98;
-extern GameActorMoveAnim         D_actor_361100_80165DC8;
 extern PadScriptCmd              D_actor_361100_80166AB8[3];
 extern PadScriptVibrationSegment D_actor_361100_80166AC4[3];
-extern ActorTransform            D_actor_361100_80165D68;
-extern ActorTransform            D_actor_361100_80165D80;
-extern ActorTransform            D_actor_361100_80165DB0;
 extern ActorTransform            D_actor_361100_80165E2C;
 extern ActorTransform            D_actor_361100_80165E5C;
 extern ActorTransform            D_actor_361100_80165EEC;
@@ -240,7 +251,7 @@ static void _actor361100StreamWaterTask(Task* task);
 static void _actor361100HeadAimTask(Task* task);
 static void _actor361100ShakeTask(Task* task);
 
-TaskDesc D_actor_361100_801637C8 = { { { TASK_BODY_COORD, 192 } }, _actor361100StreamWaterTask, { .value = 0 } };
+TaskDesc gActor361100StreamWaterTaskDesc = { { { TASK_BODY_COORD, ACTOR_361100_TASK_PRIORITY } }, _actor361100StreamWaterTask, { .value = 0 } };
 
 static AnimationPackedPose _gActor361100Animation01C90Bank1[6] = {
 #include "assets/actor_361100_animation_01C90_bank1.inc"
@@ -440,12 +451,22 @@ static AnimationSet _gActor361100Animation03E10 = {
     { NULL, _gActor361100Animation03E10Bank1, NULL, NULL, _gActor361100Animation03E10Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_361100_80165C58[2] = {
-    { { { TASK_BODY_NONE, 192 } }, _actor361100HeadAimTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _actor361100ShakeTask, { .value = 0 } },
+/// Bodyless scene-task recipes: index 0 aims the player's head, index 1 shakes the display.
+///
+/// Both run at priority 192. The first spawn word selects relax/track (0/1) for
+/// head aim, or a signed tick countdown for shake; the second word is unused.
+/// Their callbacks and any borrowed vibration data must remain loaded until exit.
+static TaskDesc _gActor361100SceneTasks[] = {
+    { { { TASK_BODY_NONE, ACTOR_361100_TASK_PRIORITY } }, _actor361100HeadAimTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACTOR_361100_TASK_PRIORITY } }, _actor361100ShakeTask, { .value = 0 } },
 };
 
-AnimationSet* D_actor_361100_80165C70[10] = {
+/// Ten words installed at equipped player-bank indices 47..56 for the pod scene.
+///
+/// Index 47 becomes NULL; 48..56 borrow the nine package-owned clips in table
+/// order. Clips 54 and 55 reverse their source declaration order. Copying the
+/// pointers borrows the descriptors and pose data through playback.
+static AnimationSet* _gActor361100PlayerSceneAnimationExtension[] = {
     NULL,
     &_gActor361100Animation01C90,
     &_gActor361100Animation01F98,
@@ -458,41 +479,178 @@ AnimationSet* D_actor_361100_80165C70[10] = {
     &_gActor361100Animation03E10,
 };
 
-AnimationBankCopyRequest D_actor_361100_80165C98 = { { .sets = D_actor_361100_80165C70 }, ARRAY_SIZE(D_actor_361100_80165C70) };
+/// Request to install all ten words of the pod scene's player animation extension.
+///
+/// Synchronous dispatch overwrites indices 47..56 of the equipped weapon bank,
+/// including the leading NULL. The request is borrowed only through dispatch;
+/// the installed clips must remain loaded while the player plays them.
+static AnimationBankCopyRequest _gActor361100CopyPlayerSceneAnimations = {
+    .source    = { .sets = _gActor361100PlayerSceneAnimationExtension },
+    .wordCount = ARRAY_SIZE(_gActor361100PlayerSceneAnimationExtension),
+};
 
-AnimationPlayRequest D_actor_361100_80165CA0 = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player clip 9 requested when the pod scene is skipped.
+///
+/// Resets without blending and disables grid participation. Event playback
+/// copies this borrowed request and resolves the equipped weapon bank in its copy.
+static AnimationPlayRequest _gActor361100PlayerSkipAnimation = {
+    .source               = { .index = ACTOR_361100_PLAYER_INITIAL_BANK },
+    .animationId          = ACTOR_361100_PLAYER_SKIP_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_361100_80165CB4 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player clip 48 requested at the pod scene opening.
+///
+/// Blends for 20 whole frames and disables grid participation. Event playback
+/// copies this borrowed request and resolves the equipped weapon bank in its copy.
+static AnimationPlayRequest _gActor361100PlayerSceneOpeningAnimation = {
+    .source               = { .index = ACTOR_361100_PLAYER_INITIAL_BANK },
+    .animationId          = ACTOR_361100_PLAYER_SCENE_CLIP_48,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 20,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_361100_80165CC8 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player clip 49 requested before the tentacle is shown.
+///
+/// Resets without blending and disables grid participation. Event playback
+/// copies this borrowed request and resolves the equipped weapon bank in its copy.
+static AnimationPlayRequest _gActor361100PlayerSceneAnimation49 = {
+    .source               = { .index = ACTOR_361100_PLAYER_INITIAL_BANK },
+    .animationId          = ACTOR_361100_PLAYER_SCENE_CLIP_49,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_361100_80165CDC = { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player clip 50 requested after the tentacle begins its first move.
+///
+/// Resets without blending and disables grid participation. Event playback
+/// copies this borrowed request and resolves the equipped weapon bank in its copy.
+static AnimationPlayRequest _gActor361100PlayerSceneAnimation50 = {
+    .source               = { .index = ACTOR_361100_PLAYER_INITIAL_BANK },
+    .animationId          = ACTOR_361100_PLAYER_SCENE_CLIP_50,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_361100_80165CF0 = { { .index = 1 }, 51, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player clip 51 requested after Aya's body is shown.
+///
+/// Blends for 4 whole frames and disables grid participation. Event playback
+/// copies this borrowed request and resolves the equipped weapon bank in its copy.
+static AnimationPlayRequest _gActor361100PlayerSceneAnimation51 = {
+    .source               = { .index = ACTOR_361100_PLAYER_INITIAL_BANK },
+    .animationId          = ACTOR_361100_PLAYER_SCENE_CLIP_51,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 4,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_361100_80165D04 = { { .index = 1 }, 52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player clip 52 requested after the first faded scene cut.
+///
+/// Resets without blending and disables grid participation. Event playback
+/// copies this borrowed request and resolves the equipped weapon bank in its copy.
+static AnimationPlayRequest _gActor361100PlayerSceneAnimation52 = {
+    .source               = { .index = ACTOR_361100_PLAYER_INITIAL_BANK },
+    .animationId          = ACTOR_361100_PLAYER_SCENE_CLIP_52,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_361100_80165D18 = { { .index = 1 }, 53, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player clip 53 requested after the run toward Aya begins.
+///
+/// Blends for 8 whole frames and disables grid participation. Event playback
+/// copies this borrowed request and resolves the equipped weapon bank in its copy.
+static AnimationPlayRequest _gActor361100PlayerSceneAnimation53 = {
+    .source               = { .index = ACTOR_361100_PLAYER_INITIAL_BANK },
+    .animationId          = ACTOR_361100_PLAYER_SCENE_CLIP_53,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 8,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_actor_361100_80165D2C = { { .index = 1 }, 54, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_361100_80165D40 = { { .index = 1 }, 55, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player clip 55 requested as the boss is told to ascend to the arena.
+///
+/// Blends for 10 whole frames and disables grid participation. Event playback
+/// copies this borrowed request and resolves the equipped weapon bank in its copy.
+static AnimationPlayRequest _gActor361100PlayerSceneAnimation55 = {
+    .source               = { .index = ACTOR_361100_PLAYER_INITIAL_BANK },
+    .animationId          = ACTOR_361100_PLAYER_SCENE_CLIP_55,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 10,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_361100_80165D54 = { { .index = 1 }, 56, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player clip 56 requested after the second faded scene cut.
+///
+/// Resets without blending and disables grid participation. Event playback
+/// copies this borrowed request and resolves the equipped weapon bank in its copy.
+static AnimationPlayRequest _gActor361100PlayerSceneAnimation56 = {
+    .source               = { .index = ACTOR_361100_PLAYER_INITIAL_BANK },
+    .animationId          = ACTOR_361100_PLAYER_SCENE_CLIP_56,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-ActorTransform D_actor_361100_80165D68 = { { 0x2D14, -4010, 3190, 0 }, { 0, -512, 0, 0 } };
+/// Player's opening pod-scene position and facing.
+///
+/// XYZ uses the model root parent's game units; Euler angles use 4096 units
+/// per turn. The placement message consumes both vectors synchronously.
+static ActorTransform _gActor361100PlayerSceneOpeningPlacement = { { 11540, -4010, 3190, 0 }, { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 8, 0, 0 } };
 
-ActorTransform D_actor_361100_80165D80 = { { 8310, -4010, 6490, 0 }, { 0, -512, 0, 0 } };
+/// Player's pod-scene run destination toward Aya.
+///
+/// The run message consumes only XYZ in the root parent's game units, copying
+/// them into the player's work. Rotation and fourth vector words are unused;
+/// the complete authored transform remains stored here.
+static ActorTransform _gActor361100PlayerSceneRunDestination = { { 8310, -4010, 6490, 0 }, { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 8, 0, 0 } };
 
-ActorTransform D_actor_361100_80165D98 = { { 7760, -4010, 7010, 0 }, { 0, -1480, 0, 0 } };
+/// Player's final pod-scene position and facing, shared by normal and skip paths.
+///
+/// XYZ uses the model root parent's game units; Euler angles use 4096 units
+/// per turn. The placement message consumes both vectors synchronously.
+static ActorTransform _gActor361100PlayerSceneExitPlacement = { { 7760, -4010, 7010, 0 }, { 0, -1480, 0, 0 } };
 
-ActorTransform D_actor_361100_80165DB0 = { { 3836, -8010, 0x2A13, 0 }, { 0, 0, 0, 0 } };
+/// Aya's scripted body placement at the start of the player's approach.
+///
+/// The scene routes this borrowed transform to placed actor 2. XYZ uses root-
+/// parent game units; all three Euler angles are zero. Dispatch consumes it
+/// synchronously, before later messages show and animate the body.
+static ActorTransform _gActor361100AyaBreaSceneOpeningPlacement = { { 3836, -8010, 10771, 0 }, { 0, 0, 0, 0 } };
 
-GameActorMoveAnim D_actor_361100_80165DC8 = { 54, 48 };
+/// Player clips for the pod-scene approach: 54 while running, 48 on arrival.
+///
+/// Both indices address the installed equipped-bank extension. The run message
+/// consumes this borrowed record synchronously and stores its IDs as halfwords.
+static GameActorMoveAnim _gActor361100PlayerSceneRunAnimations = {
+    .approachAnimId = ACTOR_361100_PLAYER_SCENE_CLIP_54,
+    .arrivalAnimId  = ACTOR_361100_PLAYER_SCENE_CLIP_48,
+};
 
-ActorCommand D_actor_361100_80165DD0 = { { .loc = { 4, 22 } }, 6 };
+/// Tells the placed boss to ascend to its arena during the pod scene.
+///
+/// The receiver reads only the command word during synchronous dispatch; the
+/// authored context tags identify the pod-bottom area but are ignored here.
+static ActorCommand _gActor361100BossAscendCommand = {
+    .context = { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM } },
+    .command = ACTOR_403600_COMMAND_ASCEND_TO_ARENA,
+};
 
-ActorCommand D_actor_361100_80165DD4 = { { .loc = { 4, 22 } }, 7 };
+/// Starts the placed boss fight after normal playback or scene skip.
+///
+/// The receiver reads only the command word during synchronous dispatch; the
+/// authored context tags identify the pod-bottom area but are ignored here.
+static ActorCommand _gActor361100BossStartFightCommand = {
+    .context = { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM } },
+    .command = ACTOR_403600_COMMAND_START_FIGHT,
+};
 
 ActorCommand D_actor_361100_80165DD8 = { { .loc = { 4, 22 } }, 8 };
 
@@ -518,7 +676,14 @@ ActorCommand D_actor_361100_80165E7C = { { .loc = { 4, 22 } }, 2 };
 
 ActorCommand D_actor_361100_80165E80 = { { .loc = { 4, 22 } }, 3 };
 
-ActorCommand D_actor_361100_80165E84 = { { .loc = { 4, 22 } }, 0xFFFF };
+/// Exits the tentacle task at the end of normal playback or scene skip.
+///
+/// The receiver reads only the command word during synchronous dispatch; the
+/// authored context tags identify the pod-bottom area but are ignored here.
+static ActorCommand _gActor361100TentacleExitCommand = {
+    .context = { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM } },
+    .command = ACTOR_361100_COMMAND_EXIT,
+};
 
 AnimationPlayRequest D_actor_361100_80165E88 = { 0 };
 
@@ -540,7 +705,14 @@ ActorCommand D_actor_361100_80165F34 = { { .loc = { 4, 22 } }, 0 };
 
 ActorCommand D_actor_361100_80165F38 = { { .loc = { 4, 22 } }, 1 };
 
-ActorCommand D_actor_361100_80165F3C = { { .loc = { 4, 22 } }, 0xFFFF };
+/// Exits Aya's scripted body task at the end of normal playback or scene skip.
+///
+/// The receiver reads only the command word during synchronous dispatch; the
+/// authored context tags identify the pod-bottom area but are ignored here.
+static ActorCommand _gActor361100AyaBreaExitCommand = {
+    .context = { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM } },
+    .command = ACTOR_361100_COMMAND_EXIT,
+};
 
 EvsSceneKey D_actor_361100_80165F40 = { 6, 11, 21 };
 
@@ -548,9 +720,9 @@ EvsCommand D_actor_361100_80165F48[96] = {
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_361100_80165F40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor361100StageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_361100_80165C98 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_361100_80165CB4 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_361100_80165D68 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor361100CopyPlayerSceneAnimations } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor361100PlayerSceneOpeningAnimation }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor361100PlayerSceneOpeningPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_361100_80165DD8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -558,11 +730,11 @@ EvsCommand D_actor_361100_80165F48[96] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor361100SpawnHeadAimTask }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_RUN_TO }, { .message = { .pointer = &D_actor_361100_80165D80 } }, { .message = { .pointer = &D_actor_361100_80165DC8 } } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2004 }, { .message = { .pointer = &D_actor_361100_80165DB0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_RUN_TO }, { .message = { .transform = &_gActor361100PlayerSceneRunDestination } }, { .message = { .moveAnimation = &_gActor361100PlayerSceneRunAnimations } } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_AYA_BREA_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor361100AyaBreaSceneOpeningPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor361100SetHeadAimMode }, { .value = ACTOR_361100_HEAD_AIM_TRACK }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 70 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_361100_80165D18 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor361100PlayerSceneAnimation53 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2004 }, { .message = { .pointer = &D_actor_361100_80165EEC } }, { .value = 0 } },
@@ -573,7 +745,7 @@ EvsCommand D_actor_361100_80165F48[96] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2003 }, { .message = { .pointer = &D_actor_361100_80165ED8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_361100_80165CC8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor361100PlayerSceneAnimation49 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_actor_361100_80165E2C } }, { .value = 0 } },
@@ -581,7 +753,7 @@ EvsCommand D_actor_361100_80165F48[96] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_361100_80165E78 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = D_actor_361100_80166AB8 }, { .vibrationSegments = D_actor_361100_80166AC4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_361100_80165CDC }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor361100PlayerSceneAnimation50 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_actor_361100_80165E5C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_361100_80165E04 } }, { .value = 0 } },
@@ -594,14 +766,14 @@ EvsCommand D_actor_361100_80165F48[96] = {
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_361100_80165D98 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_361100_80165D04 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor361100PlayerSceneExitPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor361100PlayerSceneAnimation52 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2004 }, { .message = { .pointer = &D_actor_361100_80165F04 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2003 }, { .message = { .pointer = &D_actor_361100_80165E9C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 35 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_361100_80165CF0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor361100PlayerSceneAnimation51 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2004 }, { .message = { .pointer = &D_actor_361100_80165F1C } }, { .value = 0 } },
@@ -616,12 +788,12 @@ EvsCommand D_actor_361100_80165F48[96] = {
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_361100_80165D54 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor361100PlayerSceneAnimation56 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_361100_80165D40 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_361100_80165DD0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor361100PlayerSceneAnimation55 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_BOSS_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor361100BossAscendCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -636,9 +808,9 @@ EvsCommand D_actor_361100_80165F48[96] = {
     { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_361100_80165DD4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_361100_80165F3C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_361100_80165E84 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_BOSS_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor361100BossStartFightCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_AYA_BREA_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor361100AyaBreaExitCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_TENTACLE_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor361100TentacleExitCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -648,9 +820,9 @@ EvsCommand D_actor_361100_80166848[26] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_361100_80165DD4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_361100_80165D98 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_361100_80165CA0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_BOSS_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor361100BossStartFightCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor361100PlayerSceneExitPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor361100PlayerSkipAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor361100CancelScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -666,8 +838,8 @@ EvsCommand D_actor_361100_80166848[26] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor361100AddFlowFlags }, { .value = GAME_SESSION_FLOW_SKIP_AREA_MUSIC }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_361100_80165F3C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_361100_80165E84 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_AYA_BREA_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor361100AyaBreaExitCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_TENTACLE_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor361100TentacleExitCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -789,7 +961,12 @@ static AnimationSet _gActor361100Animation09C88 = {
     { NULL, _gActor361100Animation09C88Bank1, NULL, NULL, _gActor361100Animation09C88Bank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_actor_361100_8016BAD0[4] = {
+/// Bank 0 of the tentacle: slot 0 is NULL, playable clips are 1..3.
+///
+/// The nineteen-part motion handler drives slots 1..18 and borrows the table,
+/// descriptors and pose data through playback. Requests must select bank 0
+/// and a non-NULL clip; no range checks occur in the handler.
+static AnimationSet* _gActor361100TentacleAnimationBank[] = {
     NULL,
     &_gActor361100Animation0973C,
     &_gActor361100Animation09AA8,
@@ -797,12 +974,18 @@ AnimationSet* D_actor_361100_8016BAD0[4] = {
 };
 
 AnimationSet** gActorMotionAnimBanks19[1] = {
-    D_actor_361100_8016BAD0,
+    _gActor361100TentacleAnimationBank,
 };
 
-TaskDesc D_actor_361100_8016BAE4 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor361100TentacleTask, { .model = &_gActor361100Model06038 } };
+TaskDesc gActor361100TentacleTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_361100_TASK_PRIORITY } }, _actor361100TentacleTask, { .model = &_gActor361100Model06038 } };
 
-TaskMessageEntry D_actor_361100_8016BAF0[5] = {
+/// Sentinel-terminated message handlers of the initialized tentacle task.
+///
+/// Play borrows an `AnimationPlayRequest` (bank 0, clip 1..3); place borrows an
+/// `ActorTransform` and stops translation. Draw takes mode 0..3; command borrows
+/// an `ActorCommand` (0 stop, 1..3 move, other values exit). Payloads are consumed
+/// synchronously; the task borrows this table until teardown.
+static TaskMessageEntry _gActor361100TentacleMessageTable[] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim19 },
     { ACTOR_MESSAGE_PLACE, _actor361100PlaceTentacle },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor361100SetTentacleDrawMode },
@@ -930,7 +1113,11 @@ static AnimationSet _gActor361100Animation0FD4C = {
     { NULL, _gActor361100Animation0FD4CBank1, NULL, NULL, _gActor361100Animation0FD4CBank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_actor_361100_80171B94[5] = {
+/// Bank 0 of Aya's scripted body: slot 0 is NULL, playable clips are 1..4.
+///
+/// Playback drives model slots 1..18. The table, descriptors and pose data remain
+/// borrowed through playback; the handler requires a non-NULL clip in this bank.
+static AnimationSet* _gActor361100AyaBreaAnimationBank[] = {
     NULL,
     &_gActor361100Animation0F84C,
     &_gActor361100Animation0F9D8,
@@ -938,21 +1125,30 @@ AnimationSet* D_actor_361100_80171B94[5] = {
     &_gActor361100Animation0FD4C,
 };
 
-AnimationSet** D_actor_361100_80171BA8[1] = {
-    D_actor_361100_80171B94,
+/// Single animation bank of Aya's scripted body, selected by `request.source.index` 0.
+///
+/// The play handler indexes this table without a bounds check and stores the
+/// bank selector in a signed byte. The bound rig borrows bank-0 data through playback.
+static AnimationSet** _gActor361100AyaBreaAnimationBanks[] = {
+    _gActor361100AyaBreaAnimationBank,
 };
 
-TaskDesc D_actor_361100_80171BAC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor361100AyaBreaTask, { .model = &_gActor361100AyaBreaBody } };
+TaskDesc gActor361100AyaBreaTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_361100_TASK_PRIORITY } }, _actor361100AyaBreaTask, { .model = &_gActor361100AyaBreaBody } };
 
-TaskMessageEntry D_actor_361100_80171BB8[5] = {
+/// Sentinel-terminated message handlers of Aya's initialized scripted body.
+///
+/// Play borrows an `AnimationPlayRequest` (bank 0, clip 1..4), restarting repeats;
+/// place borrows an `ActorTransform` without cancelling scripted translation.
+/// Draw takes mode 0..3; command borrows an `ActorCommand` (0 stop, 1 rise, other
+/// values exit). Payloads are consumed synchronously; the task borrows this table
+/// until teardown.
+static TaskMessageEntry _gActor361100AyaBreaMessageTable[] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor361100PlayAyaBreaAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor361100SetAyaBreaDrawMode },
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor361100ApplyAyaBreaCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
-
-Task* D_actor_361100_80171BE0;
 
 /// Draws the pod-bottom scene's water while actor data streams into slot 2.
 ///
@@ -1476,7 +1672,7 @@ static void _actor361100HeadAimTask(Task* task)
                 /* fallthrough */
             default:
                 taskKill(task);
-                D_actor_361100_80171BE0 = NULL;
+                _gActor361100HeadAimTask = NULL;
                 break;
         }
     }
@@ -1527,7 +1723,7 @@ static void _actor361100CancelScene(void)
 /// spawning stores NULL. Task teardown owns any subsequently allocated work.
 static void _actor361100SpawnHeadAimTask(void)
 {
-    D_actor_361100_80171BE0 = taskSpawnFromTable(D_actor_361100_80165C58, ACTOR_361100_HEAD_AIM_TASK_INDEX, ACTOR_361100_HEAD_AIM_RELAX, 0);
+    _gActor361100HeadAimTask = taskSpawnFromTable(_gActor361100SceneTasks, ACTOR_361100_HEAD_AIM_TASK_INDEX, ACTOR_361100_HEAD_AIM_RELAX, 0);
 }
 
 /// Sets the retained head-aim task's ramp policy, or kills it for any other value.
@@ -1537,15 +1733,15 @@ static void _actor361100SpawnHeadAimTask(void)
 /// change is applied on the task's next unfrozen update, with work owned by it.
 static void _actor361100SetHeadAimMode(s32 mode)
 {
-    if (D_actor_361100_80171BE0 != NULL) {
+    if (_gActor361100HeadAimTask != NULL) {
         if (mode < ACTOR_361100_HEAD_AIM_TRACK + 1) {
             if (mode >= ACTOR_361100_HEAD_AIM_RELAX) {
-                D_actor_361100_80171BE0->spawnArg1.value = mode;
+                _gActor361100HeadAimTask->spawnArg1.value = mode;
                 return;
             }
         }
-        taskKill(D_actor_361100_80171BE0);
-        D_actor_361100_80171BE0 = NULL;
+        taskKill(_gActor361100HeadAimTask);
+        _gActor361100HeadAimTask = NULL;
     }
 }
 
@@ -1557,7 +1753,7 @@ static void _actor361100SetHeadAimMode(s32 mode)
 /// descriptor and pad/vibration script storage must survive the child task.
 static void _actor361100SpawnShakeTask(s32 durationTicks)
 {
-    taskSpawnFromTable(D_actor_361100_80165C58, ACTOR_361100_SHAKE_TASK_INDEX, durationTicks, 0);
+    taskSpawnFromTable(_gActor361100SceneTasks, ACTOR_361100_SHAKE_TASK_INDEX, durationTicks, 0);
 }
 
 /// Alternates the scene's vertical display offset and emits controller vibration.
@@ -1597,7 +1793,7 @@ static void _actor361100AddFlowFlags(s32 bits)
 
 void actor361100ClearHeadAimTaskHandle(s32 unused)
 {
-    D_actor_361100_80171BE0 = NULL;
+    _gActor361100HeadAimTask = NULL;
 }
 
 /// Applies one signed 16.16 root translation step and retains fractional carry.
@@ -1677,7 +1873,7 @@ static void _actor361100TentacleTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_actor_361100_80161E24;
+    states = _gActor361100TentacleStates;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         states.funcs[task->state](task);
     }
@@ -1718,7 +1914,7 @@ static void _actor361100InitTentacle(Task* task)
 
     _actor361100BindTentacleLighting(task);
 
-    task->msgTable     = D_actor_361100_8016BAF0;
+    task->msgTable     = _gActor361100TentacleMessageTable;
     task->exitCallback = _actor361100ExitTentacle;
     task->state       += 1;
 }
@@ -1941,7 +2137,7 @@ static void _actor361100AyaBreaTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_actor_361100_80161E30;
+    states = _gActor361100AyaBreaStates;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         states.funcs[task->state](task);
     }
@@ -1968,7 +2164,7 @@ static void _actor361100InitAyaBrea(Task* task)
     work->model.bank    = ACTOR_MODEL_STATE_NONE;
     work->freeCountdown = ACTOR_361100_BUFFER_FREE_IDLE;
     _actor361100BindAyaBreaLighting(task);
-    task->msgTable     = D_actor_361100_80171BB8;
+    task->msgTable     = _gActor361100AyaBreaMessageTable;
     task->exitCallback = _actor361100ExitAyaBrea;
     task->state       += 1;
 }
@@ -2046,7 +2242,7 @@ static s32 _actor361100PlayAyaBreaAnimation(Task* task, s32 msgId, const Animati
     if (request->source.index != work->model.bank) {
         work->model.bank   = request->source.index;
         work->model.animId = ACTOR_MODEL_STATE_NONE;
-        animationInitContext(&work->rig.anim, D_actor_361100_80171BA8[work->model.bank], model, work->rig.poses,
+        animationInitContext(&work->rig.anim, _gActor361100AyaBreaAnimationBanks[work->model.bank], model, work->rig.poses,
                              work->rig.slots);
     }
     _actor361100StartAyaBreaClip(work, request);

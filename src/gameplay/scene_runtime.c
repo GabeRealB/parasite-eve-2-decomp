@@ -51,6 +51,8 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+#include "actors/actor_361100.h"
+
 #include "mapui/map_akropolis.h"
 
 #include "mapui/map_dryfield.h"
@@ -475,8 +477,6 @@ extern TaskDesc D_aya_20900_80115D9C[];
 extern TaskDesc D_replay_bonus_80119218;
 
 extern TaskDesc D_replay_bonus_8011922C[];
-
-extern TaskDesc D_actor_361100_801637C8;
 
 _CdCmdSceneSoundBankBit Gp_SndMaskTable[7] = {
     { 1, SOUND_ID(SOUND_BANK_TYPE_COMMON, 0, 0) },
@@ -2204,7 +2204,7 @@ void sceneStartRoomTasks(void)
             taskSpawnFromTable(&D_neo_ark_woodland_path_80181638, 0, 0, 0);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, 0, 0):
-            taskSpawnFromTable(&D_actor_361100_801637C8, 0, 0, 0);
+            taskSpawnFromTable(&gActor361100StreamWaterTaskDesc, 0, 0, 0);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R48, 0, 0):
             taskSpawnFromTable(&D_shelter_r48_80182FAC, 0, 0, 0);

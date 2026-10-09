@@ -88944,7 +88944,7 @@ void _mineMesaSetCompanionHeadAimMode(s32 mode)
 100%, all penalties zero, first build after the baseline. `_actor361100SetHeadAimMode`
 is the same body in the actors family, already matched with this exact nesting,
 which is what makes the shape the original's rather than a matching trick - the
-two bodies differ only in the global they guard (`D_actor_361100_80171BE0`
+two bodies differ only in the global they guard (`_gActor361100HeadAimTask`
 against `D_mine_mesa_80189B58`), both storing `index` into `spawnArg1` and killing
 the task otherwise.
 (`overlay_dup_index.py find` reports the pair as `~` and `promote` refuses it:

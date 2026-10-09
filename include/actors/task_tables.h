@@ -525,8 +525,6 @@ extern TaskDesc D_actor_521100_8016A388[];
 
 extern TaskDesc gMaggotCaterpillarBodyTask;
 
-extern TaskDesc D_actor_361100_8016BAE4;
-
 extern TaskDesc D_actor_317000_8016CF44;
 
 /// Slot export of `gActor04000BloodSucklerTaskDesc` from actor_304000, with the same descriptor contract.
@@ -547,8 +545,6 @@ extern TaskDesc D_actor_311900_8016EC0C;
 extern TaskDesc D_actor_350700_801708DC[];
 
 extern TaskDesc D_actor_323400_8017120C;
-
-extern TaskDesc D_actor_361100_80171BAC;
 
 extern TaskDesc D_actor_323300_8017255C[];
 
