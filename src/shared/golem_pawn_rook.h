@@ -26,6 +26,14 @@
 #ifndef SRC_SHARED_GOLEM_PAWN_ROOK_H
 #define SRC_SHARED_GOLEM_PAWN_ROOK_H
 
+/// Launcher carriers bind `GOLEM_PAWN_ROOK_TASK_DESCRIPTORS` to their exported
+/// writable `TaskDesc` array before including the spawn fragment.
+///
+/// Entries are 0 body, 1 launcher and 2 grenade; a Rook also has shield entry 3.
+/// actor_05600 supplies the three-entry Pawn table and actor_05700 the four-entry
+/// Rook table. The body caches the selected array for later child spawns. Keep
+/// its callbacks and borrowed model geometry loaded while those tasks live.
+
 #define GOLEM_PAWN             1
 #define GOLEM_ROOK             2
 #define GOLEM_BEAM_SWORD       1

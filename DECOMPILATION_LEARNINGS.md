@@ -86342,7 +86342,7 @@ seed that spells both references out reloads the chain:
 
 ```c
 /* 72.417%: lw v1,0x2c(a0) ... lw v0,0x2c(a0)  - task never dies */
-bodyCoords = gActorSelfTask->extra.tmd->coords;
+bodyCoords = _gActor202900BodyTask->extra.tmd->coords;
 rootCoord  = task->extra.tmd->coords;
 rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 task->extra.tmd->flags = 0;        /* reload: $v1 now holds bodyCoords */
@@ -86362,7 +86362,7 @@ entirely - the pseudo is never reloaded - and the allocation falls out
 
 ```c
 model      = task->extra.tmd;
-bodyCoords = gActorSelfTask->extra.tmd->coords;
+bodyCoords = _gActor202900BodyTask->extra.tmd->coords;
 rootCoord  = model->coords;
 rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 model->flags = 0;

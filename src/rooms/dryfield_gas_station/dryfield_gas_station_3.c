@@ -1,5 +1,7 @@
 #include "types.h"
 
+#include "actors/task_tables.h"
+
 #include "main/task_types.h"
 #include "../../shared/glow_draw.h"
 
@@ -126,7 +128,6 @@ extern WorldCollisionTrigger D_dryfield_gas_station_80184350[11];
 extern WorldCollisionTrigger D_dryfield_gas_station_80184694[10];
 extern WorldCoordRoomLights  D_dryfield_gas_station_80184B48[1];
 extern TaskDesc              Actor04400_D107E4;
-extern TaskDesc              Actor00100_D1BA84;
 static void                  _dryfieldGasStationArrivalCutsceneTask(Task* task);
 static void                  _screenFadeInTask(Task* task);
 static void                  _dryfieldGasStationRestorePlayerAndShow(void);
@@ -499,7 +500,7 @@ AreaPlacement D_dryfield_gas_station_801849B0[5] = {
 };
 
 AreaResource D_dryfield_gas_station_80184A00[2] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &Actor00100_D1BA84 },
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

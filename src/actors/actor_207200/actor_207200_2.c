@@ -654,7 +654,7 @@ static AnimationSet _gActor207200Animation0A080 = {
     { NULL, _gActor207200Animation0A080Bank1, NULL, NULL, _gActor207200Animation0A080Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_207200_80153EC8 = { { { TASK_BODY_TMD, 96 } }, _actor207200CreepingStrangerTask, { .model = &_gActor207200CreepingStrangerBody } };
+TaskDesc gActor207200CreepingStrangerTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor207200CreepingStrangerTask, { .model = &_gActor207200CreepingStrangerBody } };
 
 AnimationSet* D_actor_207200_80153ED4[13] = {
     NULL,

@@ -61,8 +61,6 @@ extern WorldCollisionTrigger  D_dryfield_night_junk_yard_80183778[10];
 extern WorldCollisionTrigger  D_dryfield_night_junk_yard_80183D28[20];
 extern WorldCoordRoomLights   D_dryfield_night_junk_yard_80183D10[1];
 
-extern TaskDesc Actor00100_D1BA84;
-
 SVECTOR D_dryfield_night_junk_yard_8018073C[3] = {
     { 4021, -2596, 348, 0 },
     { 4021, -2396, 71, 0 },
@@ -894,8 +892,8 @@ AreaResource D_dryfield_night_junk_yard_80184354[2] = {
 };
 
 AreaResource D_dryfield_night_junk_yard_8018436C[3] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &Actor00100_D1BA84 },
-    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &Actor01500_D0A008 },
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
+    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -905,14 +903,14 @@ AreaResource D_dryfield_night_junk_yard_80184390[2] = {
 };
 
 AreaResource D_dryfield_night_junk_yard_801843A8[3] = {
-    { 56, 56, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_105600_801482C0 },
-    { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_actor_202300_8015FAB8 },
+    { 56, 56, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor105600PawnGolemTasks },
+    { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor202300RookGolemTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_night_junk_yard_801843CC[3] = {
     { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_400600_80151B10 },
-    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &Actor01500_D0A008 },
+    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

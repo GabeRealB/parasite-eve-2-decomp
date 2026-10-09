@@ -1214,7 +1214,7 @@ TaskMessageEntry Actor04000_D0C6B0[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc Actor04000_D0C6E0 = { { { TASK_BODY_TMD, 96 } }, _actor04000Task, { .model = &_gActor04000BloodSucklerBody } };
+TaskDesc gActor04000BloodSucklerTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor04000Task, { .model = &_gActor04000BloodSucklerBody } };
 
 TaskFunc Actor04000_D0C6EC[4] = {
     _actor04000InitHangingPool,
@@ -3605,3 +3605,5 @@ static void _actor04000HangingPoolTask(Task* task)
 {
     Actor04000_D0C6EC[task->state](task);
 }
+
+PACKAGE_ALIASES

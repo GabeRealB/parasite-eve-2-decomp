@@ -26,7 +26,7 @@ gAcropolisCafeteriaSpotLightStorage = 0x8018A3C4; // size:0x654 defined:True
 D_actor_101200_80138E98 = 0x80138E98; // absolute:True owner=actor_101200 shared=actors
 D_actor_110600_80148670 = 0x80148670; // absolute:True owner=actor_110600
 gActor05700GolemPawnRookTasks = 0x801491F8; // absolute:True owner=actor_105700
-D_actor_401800_80155AC4 = 0x80155AC4; // absolute:True owner=actor_401800
+gActor401800OddStrangerTaskDesc = 0x80155AC4; // absolute:True owner=actor_401800
 D_actor_202900_80156E24 = 0x80156E24; // absolute:True owner=actor_202900
 D_actor_210600_8015A4EC = 0x8015A4EC; // absolute:True owner=actor_210600
 D_actor_310600_801796A4 = 0x801796A4; // absolute:True owner=actor_310600

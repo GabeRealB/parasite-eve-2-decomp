@@ -78,7 +78,6 @@ extern WorldCollisionGrid       D_dryfield_driveway_8017ED74[1];
 extern WorldCollisionTrigger    D_dryfield_driveway_8017FC98[6];
 extern WorldCollisionTrigger    D_dryfield_driveway_801802F8[11];
 extern WorldCoordRoomLights     D_dryfield_driveway_801802E0[1];
-extern TaskDesc                 Actor00100_D1BA84;
 static s32                      _dryfieldDrivewayUseKeyItem(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
 static s32                      _dryfieldDrivewayIgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 unusedCommandId, s32 unusedCommandArg);
 static s32                      _dryfieldDrivewayIgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, s32 unusedRequestWord, s32 unusedSecondArg);
@@ -257,7 +256,7 @@ WorldCollisionGrid D_dryfield_driveway_8017ED74[1] = {
 };
 
 AreaResource D_dryfield_driveway_8017ED98[2] = {
-    { 37, 37, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_103700_80139DAC },
+    { 37, 37, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor103700BatTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -266,7 +265,7 @@ AreaResource D_dryfield_driveway_8017EDB0[1] = {
 };
 
 AreaResource D_dryfield_driveway_8017EDBC[2] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &Actor00100_D1BA84 },
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

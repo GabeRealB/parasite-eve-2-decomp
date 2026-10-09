@@ -18,6 +18,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#define ACTOR_MESSAGE_BODY_TASK _gActor110300BodyTask
 #include "../../shared/actor_messages.h"
 // Exported instance: a room spawns from this package's table by name.
 #define gViewFigureTasks gActor110300ViewFigureTasks
@@ -31,11 +32,13 @@ static void _viewFigureStepAnim(Task* task);
 /// `Task::work`.
 extern ViewFigureWork* gViewFigureWork;
 
-/// The actor's own task, stored by the step-0 handler. The message handlers
-/// drive the animation step driver and the model through it, and the helper
-/// task's entry `_actor110300AttachModelTask` parents its coordinate to one of
-/// its model's nodes.
-extern Task* gActorSelfTask;
+/// Borrowed body task of this package's active scripted actor.
+///
+/// Published after successful spawn for animation messages, paired visibility
+/// and model attachments. The body has 20 coordinates. Only the current live
+/// instance may be used: a later spawn replaces the pointer, and teardown
+/// leaves it dangling rather than clearing it. This cache owns no task.
+static Task* _gActor110300BodyTask;
 
 /// The helper task `taskSpawnFromTable` returns in the step-0 handler; the
 /// visibility handler drives its model alongside the actor's, and the exit
@@ -281,8 +284,6 @@ u8 gViewFigureAnimSets[28] = {
 
 ViewFigureWork* gViewFigureWork;
 
-Task* gActorSelfTask;
-
 Task* gActorHelperTask;
 
 #include "../../shared/view_figure_spawn.inc.c"
@@ -315,7 +316,7 @@ static void _actor110300AttachModelTask(Task* task)
     GfxCoord* bodyCoords;
     GfxCoord* helperRoot;
 
-    bodyCoords               = gActorSelfTask->extra.tmd->coords;
+    bodyCoords               = _gActor110300BodyTask->extra.tmd->coords;
     helperRoot               = task->extra.tmd->coords;
     helperRoot->composeStamp = GRAPHICS_COORD_DIRTY;
     helperRoot->parent       = &bodyCoords[ACTOR_110300_HELPER_PARENT_PART];

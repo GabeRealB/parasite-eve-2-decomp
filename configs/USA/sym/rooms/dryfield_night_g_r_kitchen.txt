@@ -33,11 +33,11 @@ D_dryfield_night_g_r_kitchen_8017EBF4 = 0x8017EBF4; // size:0x8 defined:True
 D_dryfield_night_g_r_kitchen_8017EBFC = 0x8017EBFC; // size:0x8 defined:True
 D_dryfield_night_g_r_kitchen_8017EC04 = 0x8017EC04; // size:0x20 defined:True
 gRoomEventMsg = 0x8017EC24; // size:0x8 defined:True
-Actor04000_D0C6E0 = 0x8013E500; // absolute:True owner=actor_104000
-D_actor_101600_801445DC = 0x801445DC; // absolute:True owner=actor_101600
+gActor04000BloodSucklerTaskDesc = 0x8013E500; // absolute:True owner=actor_104000
+gActor101600ScavengerTaskDesc = 0x801445DC; // absolute:True owner=actor_101600
 D_actor_200700_80150C80 = 0x80150C80; // absolute:True owner=actor_200700
 Actor00700_D075A8 = 0x801513C8; // absolute:True owner=actor_200700
-D_actor_204000_80156500 = 0x80156500; // absolute:True owner=actor_204000
+gActor204000BloodSucklerTaskDesc = 0x80156500; // absolute:True owner=actor_204000
 D_map_dryfield_full_8017BF08 = 0x8017BF08; // absolute:True owner=map_dryfield_full
 D_map_dryfield_full_8017BF88 = 0x8017BF88; // absolute:True owner=map_dryfield_full
 D_map_dryfield_full_8017C038 = 0x8017C038; // absolute:True owner=map_dryfield_full

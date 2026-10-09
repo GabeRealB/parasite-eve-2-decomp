@@ -156,8 +156,6 @@ typedef struct {
 } _MineMesaWall;
 STATIC_ASSERT_SIZEOF(_MineMesaWall, 0x18);
 
-extern TaskDesc Actor00100_D1BA84;
-
 extern TaskDesc         D_mine_mesa_801818F8;
 extern TaskMessageEntry D_mine_mesa_80181904[];
 extern TaskDesc         D_mine_mesa_80181990[];
@@ -2326,24 +2324,24 @@ WorldCollisionTrigger D_mine_mesa_801890A0[19] = {
 };
 
 AreaResource D_mine_mesa_80189644[2] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &Actor00100_D1BA84 },
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_mine_mesa_8018965C[2] = {
-    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_101600_801445DC },
+    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101600ScavengerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_mine_mesa_80189674[3] = {
-    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_102500_801379A8 },
-    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &Actor01500_D0A008 },
+    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
+    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_mine_mesa_80189698[3] = {
-    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_102500_801379A8 },
-    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &Actor01500_D0A008 },
+    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
+    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -2354,8 +2352,8 @@ AreaResource D_mine_mesa_801896BC[3] = {
 };
 
 AreaResource D_mine_mesa_801896E0[3] = {
-    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_102500_801379A8 },
-    { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_actor_203700_80151DAC },
+    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
+    { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor203700BatTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -3731,7 +3729,7 @@ static void _mineMesaSpawnEnemyWaveState(Task* task)
         if (D_mine_mesa_80189B74[slotIndex] != NULL) {
             continue;
         }
-        spawnedEnemy                    = enemySpawnFromTable(&Actor00100_D1BA84, 0, MESA_LEAP_TUNING_ZERO, NULL);
+        spawnedEnemy                    = enemySpawnFromTable(&gActor00100DesertChaserTaskDesc, 0, MESA_LEAP_TUNING_ZERO, NULL);
         D_mine_mesa_80189B74[slotIndex] = spawnedEnemy;
         if (spawnedEnemy == NULL) {
             break;

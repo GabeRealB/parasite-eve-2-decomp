@@ -4,7 +4,7 @@
 // *file offset* - what the copies agree on; the address is not.
 
 Actor02100_D00000 = 0x80149E20;
-Actor02100_D00004 = 0x80149E24;
+_gActor02100TaskPhases = 0x80149E24;
 Actor02100_Jt00014 = 0x80149E34;
 _actor02100Initialize = 0x80149E68;
 Actor02100_L00114 = 0x80149F34; // type:label
@@ -149,15 +149,15 @@ _actor02100DestroyState = 0x8014D3F4;
 Actor02100_L03618 = 0x8014D438; // type:label
 Actor02100_L03680 = 0x8014D4A0; // type:label
 Actor02100_L036A4 = 0x8014D4C4; // type:label
-Actor02100_D03E1C = 0x8014DC3C; // size:0x10 defined:True
-Actor02100_D03E2C = 0x8014DC4C; // size:0xA0 defined:True
+_gActor02100BeamQuadCorners = 0x8014DC3C; // size:0x10 defined:True
+_gActor02100TargetExclusions = 0x8014DC4C; // size:0xA0 defined:True
 _gActor02100WatcherBody = 0x8014DB60; // size:0x24 defined:True
-Actor02100_D03D64 = 0x8014DB84; // size:0x14 defined:True
-Actor02100_D03D78 = 0x8014DB98; // size:0x10 defined:True
-Actor02100_D03D88 = 0x8014DBA8; // size:0x50 defined:True
-Actor02100_D03DD8 = 0x8014DBF8; // size:0x28 defined:True
-Actor02100_D03E00 = 0x8014DC20; // size:0x10 defined:True
-Actor02100_D03E10 = 0x8014DC30; // size:0xC defined:True
+_gActor02100WeaponAttacks = 0x8014DB84; // size:0x14 defined:True
+_gActor02100WatcherParams = 0x8014DB98; // size:0x10 defined:True
+_gActor02100WeaponParams = 0x8014DBA8; // size:0x50 defined:True
+_gActor02100BeamEdges = 0x8014DBF8; // size:0x28 defined:True
+_gActor02100SightRanges = 0x8014DC20; // size:0x10 defined:True
+gActor02100WatcherTaskDesc = 0x8014DC30; // size:0xC defined:True
 _gActor02100WatcherBodySkeleton = 0x8014D4DC; // size:0x6C defined:True
 _gActor02100WatcherBodyPartVerts = 0x8014D548; // size:0xC defined:True
 _gActor02100WatcherBodyVerts = 0x8014D554; // size:0x140 defined:True

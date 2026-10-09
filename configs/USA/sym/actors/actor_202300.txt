@@ -194,6 +194,6 @@ Actor02300_D15B88 = 0x8015F9A8; // size:0x50 defined:True
 Actor02300_D15BD8 = 0x8015F9F8; // size:0x64 defined:True
 Actor02300_D15C3C = 0x8015FA5C; // size:0x44 defined:True
 Actor02300_D15C80 = 0x8015FAA0; // size:0x18 defined:True
-Actor02300_D15C98 = 0x8015FAB8; // size:0x24 defined:True
+gActor02300RookGolemTasks = 0x8015FAB8; // size:0x24 defined:True
 Actor02300_D15CBC = 0x8015FADC; // size:0x7C defined:True
 gGolemPawnRookStates = 0x8015FB58; // size:0x3C defined:True

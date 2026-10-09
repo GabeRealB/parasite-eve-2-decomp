@@ -477,7 +477,6 @@ enum { DRYFIELD_WATER_TOWER_SKIP_SOUND_FADE_TICKS = 10 };
 static WorldCollisionGridFace _gDryfieldWaterTowerCollision06004Faces[73];
 static SVECTOR                _gDryfieldWaterTowerCollision06004Normals[29];
 static SVECTOR                _gDryfieldWaterTowerCollision06004Verts[175];
-extern TaskDesc               Actor00100_D1BA84;
 static s16*                   _gDryfieldWaterTowerCollision06004Table[16];
 static s32                    _dryfieldWaterTowerApplyPropCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedSecondArg);
 
@@ -1723,17 +1722,17 @@ AreaResource D_dryfield_water_tower_801874FC[2] = {
 };
 
 AreaResource D_dryfield_water_tower_80187514[2] = {
-    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_102500_801379A8 },
+    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_water_tower_8018752C[2] = {
-    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_102500_801379A8 },
+    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_water_tower_80187544[2] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &Actor00100_D1BA84 },
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

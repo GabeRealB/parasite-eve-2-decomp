@@ -351,7 +351,6 @@ extern DamageAttack Actor01100_D074F8[6];
 
 extern TaskMessageEntry Actor01100_D15660[2];
 extern DamageAttack     Actor01100_D074D0[];
-extern TaskDesc         Actor01100_D155E0[];
 static TmdSource        _gActor01100BruteMossbackBurstArm;
 static TmdSource        _gActor01100BruteMossbackBurstHead;
 
@@ -1043,7 +1042,7 @@ static AnimationSet _gActor01100Actor101100Animation155B8 = {
     { NULL, _gActor01100Actor101100Animation155B8Bank1, NULL, NULL, _gActor01100Actor101100Animation155B8Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc Actor01100_D155E0[3] = {
+TaskDesc gActor01100Tasks[3] = {
     { { { TASK_BODY_TMD, 96 } }, _actor01100Task, { .model = &_gActor01100BruteMossbackBody } },
     { { { TASK_BODY_COORD, 96 } }, _actor01100SpitGlobTask, { .value = 0 } },
     { { { TASK_BODY_COORD, 96 } }, _actor01100SpitCloudTask, { .value = 0 } },
@@ -3139,7 +3138,7 @@ static void _actor01100PunchRight(Enemy* enemy, Task* task, _Actor01100Work* wor
                 (scratch)->shortVector.vx = (positiveSide != 0) ? ACTOR_01100_SPIT_SIDE_OFFSET : -ACTOR_01100_SPIT_SIDE_OFFSET;                                                                                                              \
                 (scratch)->shortVector.vy = 0;                                                                                                                                                                                               \
                 (scratch)->shortVector.vz = 0;                                                                                                                                                                                               \
-                projectile                = taskSpawnFromTable(Actor01100_D155E0, projectileKind, playerYaw, 0);                                                                                                                             \
+                projectile                = taskSpawnFromTable(gActor01100Tasks, projectileKind, playerYaw, 0);                                                                                                                              \
                 if (projectile != NULL) {                                                                                                                                                                                                    \
                     actorRenderCopyCoordBodyTransform(projectile, headCoord, &(scratch)->shortVector);                                                                                                                                       \
                     taskReparent((task), projectile);                                                                                                                                                                                        \
@@ -4536,3 +4535,5 @@ static void _actor01100SpitCloudTick(Task* task)
         }
     }
 }
+
+PACKAGE_ALIASES

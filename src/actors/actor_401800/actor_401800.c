@@ -1091,7 +1091,7 @@ TaskMessageEntry D_actor_401800_80155A80[8] = {
 
 u16 gOddStrangerChaseDistance = 0;
 
-TaskDesc D_actor_401800_80155AC4 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor401800Task, { .model = &_gActor401800OddStrangerBody } };
+TaskDesc gActor401800OddStrangerTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor401800Task, { .model = &_gActor401800OddStrangerBody } };
 
 static SVECTOR ActorContact_ScratchPosition;
 

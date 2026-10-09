@@ -72,8 +72,6 @@ extern WorldCollisionTrigger D_dryfield_back_street_801804C0[6];
 extern WorldCollisionTrigger D_dryfield_back_street_80180688[11];
 extern WorldCoordRoomLights  D_dryfield_back_street_80180FF8[1];
 
-extern TaskDesc Actor00100_D1BA84;
-
 TaskMessageEntry D_dryfield_back_street_8017F964[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantResolveBackStreet },
     { DRYFIELD_BACK_STREET_MESSAGE_USE_KEY_ITEM, _dryfieldBackStreetRejectKeyItemUse },
@@ -219,18 +217,18 @@ WorldCollisionTrigger D_dryfield_back_street_80180688[11] = {
 };
 
 AreaResource D_dryfield_back_street_801809CC[2] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &Actor00100_D1BA84 },
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_back_street_801809E4[3] = {
     { 20, 20, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, Actor02000_D15FD0 },
-    { 56, 56, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_actor_205600_801602C0 },
+    { 56, 56, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor205600PawnGolemTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_back_street_80180A08[2] = {
-    { 15, 15, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &Actor01500_D0A008 },
+    { 15, 15, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

@@ -78,14 +78,27 @@ def compiled_sources(root: Path) -> set[str] | None:
     for ld in lds:
         for m in re.finditer(r"build/\w+/(src/\S+?)\.c\.o", ld.read_text(errors="replace")):
             out.add(m.group(1) + ".c")
+    database = root / "compile_commands.json"
+    compile_entries = json.loads(database.read_text()) if database.is_file() else []
+    # A per-package variant object can compile a shared source under another
+    # path. Count that source only when this command's output object is linked.
+    for entry in compile_entries:
+        command = entry.get("arguments") or shlex.split(entry["command"])
+        if "-o" not in command:
+            continue
+        output = command[command.index("-o") + 1]
+        match = re.fullmatch(r"build/\w+/(src/\S+?)\.i", output)
+        if match and match.group(1) + ".c" in out:
+            source = (Path(entry.get("directory", str(root))) / entry["file"]).resolve()
+            if source.is_relative_to(root.resolve()):
+                out.add(str(source.relative_to(root.resolve())))
     # Included implementations are compiled as part of their parent TU. Ask
     # the preprocessor for active dependencies: a textual include in #if 0
     # must not make an otherwise stranded body appear live.
     parents = {p for p in out if (root / p).is_file()
                and SOURCE_INCLUDE.search((root / p).read_text(errors="replace"))}
-    database = root / "compile_commands.json"
     if parents and database.is_file():
-        entries = [e for e in json.loads(database.read_text()) if e["file"] in parents]
+        entries = [e for e in compile_entries if e["file"] in parents]
 
         def dependencies(entry: dict) -> set[str]:
             command = entry.get("arguments") or shlex.split(entry["command"])

@@ -998,7 +998,7 @@ WorldCollisionTrigger D_dryfield_night_garage_8018723C[7] = {
 };
 
 AreaResource D_dryfield_night_garage_80187450[2] = {
-    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_101600_801445DC },
+    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101600ScavengerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

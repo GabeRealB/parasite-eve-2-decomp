@@ -1,6 +1,6 @@
 // Overlay-local symbols for actor_110300.
 gViewFigureWork = 0x8013A0A0; // size:0x4 defined:True
-gActorSelfTask = 0x8013A0A4; // size:0x4 defined:True
+_gActor110300BodyTask = 0x8013A0A4; // size:0x4 defined:True
 gActorHelperTask = 0x8013A0A8; // size:0x4 defined:True
 gActor110300ViewFigureTasks = 0x8013A06C; // size:0x18 defined:True
 gViewFigureAnimSets = 0x8013A084; // size:0x1C defined:True

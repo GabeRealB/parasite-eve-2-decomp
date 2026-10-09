@@ -63,7 +63,7 @@ D_actor_105500_8013A8DC = 0x8013A8DC; // absolute:True owner=actor_105500 shared
 D_actor_200700_80150C80 = 0x80150C80; // absolute:True owner=actor_200700
 Actor00700_D075A8 = 0x801513C8; // absolute:True owner=actor_200700
 D_actor_402200_80154188 = 0x80154188; // absolute:True owner=actor_402200
-D_actor_301100_80177400 = 0x80177400; // absolute:True owner=actor_301100
+gActor301100Tasks = 0x80177400; // absolute:True owner=actor_301100
 D_map_akropolis_8017B82C = 0x8017B82C; // absolute:True owner=map_akropolis
 D_map_akropolis_8017B85C = 0x8017B85C; // absolute:True owner=map_akropolis
 D_map_akropolis_8017B8DC = 0x8017B8DC; // absolute:True owner=map_akropolis

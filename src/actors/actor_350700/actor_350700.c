@@ -33,8 +33,6 @@
 #include "../../shared/actor_messages.h"
 #include "../../shared/reversing_walker.h"
 
-/// Animation bank tables of the enemy actor and of the parent block.
-extern AnimationSet*  D_actor_350700_80169CF8[5];
 extern AnimationSet** gActorMotionAnimBanks19[1];
 extern AnimationSet*  D_actor_350700_801708C0[6];
 extern AnimationSet** gActorMotionAnimBanks[1];
@@ -248,7 +246,12 @@ static AnimationSet _gActor350700Animation07EB0 = {
     { NULL, _gActor350700Animation07EB0Bank1, NULL, NULL, _gActor350700Animation07EB0Bank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_actor_350700_80169CF8[5] = {
+/// Masked Eve's bank-0 body animation sets: clip 0 absent, clips 1..4 loaded.
+///
+/// These are the nineteen-part reversing walker's clips; its other body uses
+/// a separate bank. `AnimationPlayRequest::animationId` selects a clip after
+/// outer-bank selection. Playback borrows this table and its sets while loaded.
+static AnimationSet* _gActor350700BodyAnimSets[5] = {
     NULL,
     &_gActor350700Animation06AB8,
     &_gActor350700Animation0769C,
@@ -257,7 +260,7 @@ AnimationSet* D_actor_350700_80169CF8[5] = {
 };
 
 AnimationSet** gActorMotionAnimBanks19[1] = {
-    D_actor_350700_80169CF8,
+    _gActor350700BodyAnimSets,
 };
 
 TaskDesc D_actor_350700_80169D10 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor350700ReverseWalkTask, { .model = &_gActor350700EveBreaMaskedBody } };

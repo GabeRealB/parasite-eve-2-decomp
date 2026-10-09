@@ -53,6 +53,8 @@
 #include "../../shared/player_detection.h"
 #define GOLEM_PAWN_ROOK_TYPE   GOLEM_PAWN
 #define GOLEM_PAWN_ROOK_WEAPON GOLEM_GRENADE_LAUNCHER
+// Exported descriptor storage selected by the included spawn implementation.
+#define GOLEM_PAWN_ROOK_TASK_DESCRIPTORS gActor05600PawnGolemTasks
 #include "../../shared/golem_pawn_rook.h"
 
 /// Placement descriptor for this actor.
@@ -65,9 +67,6 @@ extern EnemyParams gGolemPawnRookParams[];
 /// Per-stage tables of streaming cue ids, indexed by `GameSession::location.loc.stage`
 /// and then `GameSession::location.loc.area`.
 extern u16* gGolemPawnRookAreaParams[];
-
-/// Spawn table the approach cycle starts its companion enemy from, index 1.
-extern TaskDesc gGolemPawnRookTasks[];
 
 /// Animation stream set bound into the work block's animation context.
 extern AnimationSet* gGolemPawnRookAnimSets[31];
@@ -1127,12 +1126,11 @@ s16 gGolemPawnRookBeamRibbonCorners[2][4] = {
     { 0, 1, 4, 5 },
 };
 
-TaskDesc gGolemPawnRookTasks[2] = {
+TaskDesc gActor05600PawnGolemTasks[3] = {
     { { { TASK_BODY_TMD, 96 } }, _actor05600BodyTask, { .model = &_gActor05600PawnGolemBody } },
     { { { TASK_BODY_TMD, 96 } }, _actor05600GrenadeLauncherTask, { .model = &_gActor05600GolemGrenadeLauncher } },
+    { { { TASK_BODY_TMD, 96 } }, _actor05600GrenadeTask, { .model = &_gActor05600GolemGrenade } },
 };
-
-TaskDesc Actor05600_D164B8 = { { { TASK_BODY_TMD, 96 } }, _actor05600GrenadeTask, { .model = &_gActor05600GolemGrenade } };
 
 AnimationSet* gGolemPawnRookAnimSets[31] = {
     NULL,
@@ -1244,9 +1242,12 @@ extern s16 gGolemPawnRookBeamRibbonCorners[][4];
 
 #include "../../shared/golem_pawn_rook_nop.inc.c"
 
-/// State handlers of the model child hung off the actor's part 7 - spawn,
-/// per-frame tick and teardown - dispatched through by `_actor05600GrenadeLauncherTask`.
-static const EnemyTaskFuncTable3 Actor05600_D00080 = {
+/// Pawn GOLEM launcher lifecycle: 0 attach, 1 mirror flags/fire, 2 destroy.
+///
+/// The launcher borrows the live body's work, lighting and part-7 coordinate.
+/// Dispatch copies all three handlers before selecting an unchecked state.
+/// Destruction releases the launcher's Enemy and begins task teardown.
+static const EnemyTaskFuncTable3 _gActor05600GrenadeLauncherStates = {
     _golemPawnRookLauncherSpawn,
     _golemPawnRookLauncherTick,
     enemyDestroy,
@@ -1261,7 +1262,7 @@ static const EnemyTaskFuncTable3 Actor05600_D00080 = {
 /// invalidates the enemy and starts task teardown; nothing is read afterwards.
 static void _actor05600GrenadeLauncherTask(Task* launcher)
 {
-    const EnemyTaskFuncTable3 stateHandlers = Actor05600_D00080;
+    const EnemyTaskFuncTable3 stateHandlers = _gActor05600GrenadeLauncherStates;
 
     stateHandlers.funcs[launcher->state](launcher->spawnArg2.pointer, launcher);
 }
@@ -1317,3 +1318,5 @@ static void _actor05600BodyTask(Task* actor)
 
     stateHandlers.funcs[actor->state](actor->spawnArg2.pointer, actor);
 }
+
+PACKAGE_ALIASES

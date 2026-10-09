@@ -216,9 +216,7 @@ extern SpriteSource D_dryfield_night_main_street_80186874[11];
 extern SpriteSource D_dryfield_night_main_street_80186988[39];
 extern SpriteSource D_dryfield_night_main_street_80186CCC[53];
 extern SpriteSource D_dryfield_night_main_street_80187128[57];
-extern TaskDesc     Actor00100_D1BA84;
-
-TaskDesc gMainStreetEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
+TaskDesc            gMainStreetEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -1497,8 +1495,8 @@ WorldCoordRoomLights D_dryfield_night_main_street_8018899C[1] = {
 };
 
 AreaResource D_dryfield_night_main_street_801889B4[3] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &Actor00100_D1BA84 },
-    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &D_actor_300700_80165B88 },
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
+    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor300700MothTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

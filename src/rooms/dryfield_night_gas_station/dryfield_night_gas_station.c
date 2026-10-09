@@ -311,7 +311,6 @@ extern ActorTransform             D_dryfield_night_gas_station_801889AC;
 extern ActorTransform             D_dryfield_night_gas_station_801889C4;
 extern ActorTransform             D_dryfield_night_gas_station_80188AF4;
 extern ActorTransform             D_dryfield_night_gas_station_80188B0C;
-extern TaskDesc                   Actor00100_D1BA84;
 static void                       _dryfieldNightGasStationSetCutsceneFlash(s32 flashIndex);
 static void                       _dryfieldNightGasStationStageSceneAudioStart(void);
 static void                       _dryfieldNightGasStationEnqueueScenePlayback(void);
@@ -2352,7 +2351,7 @@ WorldCollisionTrigger D_dryfield_night_gas_station_801900D4[16] = {
 };
 
 AreaResource D_dryfield_night_gas_station_80190594[2] = {
-    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_101600_801445DC },
+    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101600ScavengerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -2362,19 +2361,19 @@ AreaResource D_dryfield_night_gas_station_801905AC[2] = {
 };
 
 AreaResource D_dryfield_night_gas_station_801905C4[2] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &Actor00100_D1BA84 },
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_night_gas_station_801905DC[3] = {
-    { 23, 23, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_102300_80147AB8 },
+    { 23, 23, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102300RookGolemTasks },
     { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_actor_205700_801611F8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_night_gas_station_80190600[3] = {
     { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_400600_80151B10 },
-    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &Actor01500_D0A008 },
+    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

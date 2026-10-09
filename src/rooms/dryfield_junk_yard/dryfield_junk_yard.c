@@ -108,7 +108,6 @@ extern WorldCollisionTrigger      D_dryfield_junk_yard_80180F74[19];
 extern WorldCoordRoomAmbientEntry D_dryfield_junk_yard_80181BCC[8];
 extern WorldCoordRoomLights       D_dryfield_junk_yard_80181BB4[1];
 extern ActorTransform             D_dryfield_junk_yard_8017DE00;
-extern TaskDesc                   Actor00100_D1BA84;
 static void                       _dryfieldJunkYardSetSceneEvent(s8 sceneEvent);
 
 TaskMessageEntry D_dryfield_junk_yard_8017DD20[5] = {
@@ -343,12 +342,12 @@ AreaResource D_dryfield_junk_yard_8017F4EC[1] = {
 };
 
 AreaResource D_dryfield_junk_yard_8017F4F8[2] = {
-    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_102500_801379A8 },
+    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_junk_yard_8017F510[2] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &Actor00100_D1BA84 },
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

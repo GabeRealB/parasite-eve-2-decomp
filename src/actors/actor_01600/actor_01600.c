@@ -1518,7 +1518,7 @@ TaskMessageEntry Actor01600_D127A4[3] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc Actor01600_D127BC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor01600Task, { .model = &_gActor01600ScavengerBody } };
+TaskDesc gActor01600ScavengerTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor01600Task, { .model = &_gActor01600ScavengerBody } };
 
 AnimationSet* Actor01600_D127C8[4] = {
     NULL,
@@ -5375,3 +5375,5 @@ static s32 _actor01600HandleReleaseHold(Task* actor, s32 messageId, s32 unusedFi
     work->grabBiteCount = ACTOR_01600_GRAB_RELEASE_COUNT;
     return 0;
 }
+
+PACKAGE_ALIASES

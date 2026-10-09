@@ -243,7 +243,6 @@ extern s16                      Actor02500_D05B48[];
 extern s16                      Actor02500_D05B58[];
 extern s16                      Actor02500_D05B68[];
 extern s16                      Actor02500_D05B78[];
-extern TaskDesc                 Actor02500_D05B88[];
 extern AnimationSet*            Actor02500_D05BA0[12];
 extern s16                      Actor02500_D05BD0[];
 extern _Actor02500DustDirection Actor02500_D05BE8[];
@@ -646,7 +645,7 @@ s16 Actor02500_D05B78[8] = {
     38,
 };
 
-TaskDesc Actor02500_D05B88[2] = {
+TaskDesc gActor02500Tasks[2] = {
     { { { TASK_BODY_TMD, 96 } }, _actor02500Task, { .model = &_gActor02500ScorpionBody } },
     { { { TASK_BODY_COORD, 96 } }, _actor02500CorpsePoisonTask, { .value = 0 } },
 };
@@ -1663,7 +1662,7 @@ static void _actor02500Die(Enemy* enemy, Task* actor)
             }
             if (work->timer == ACTOR_02500_CORPSE_POISON_SPAWN_TICK) {
                 effectSpawn(EFFECT_CORPSE_BURN, rootCoord, ACTOR_02500_CORPSE_FLAME_BATCH_COUNT, NULL);
-                enemySpawnFromTable(Actor02500_D05B88, ACTOR_02500_CORPSE_POISON_TASK_INDEX, 0, enemy);
+                enemySpawnFromTable(gActor02500Tasks, ACTOR_02500_CORPSE_POISON_TASK_INDEX, 0, enemy);
             }
             if (work->timer >= ACTOR_02500_DEATH_END_TICK) {
                 model->flags     = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -2233,3 +2232,5 @@ static void _actor02500ReleaseCorpsePoison(Enemy* enemy, Task* task)
             break;
     }
 }
+
+PACKAGE_ALIASES

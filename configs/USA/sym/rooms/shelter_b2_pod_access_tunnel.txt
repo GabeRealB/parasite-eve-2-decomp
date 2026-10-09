@@ -56,14 +56,14 @@ D_shelter_b2_pod_access_tunnel_8018558C = 0x8018558C; // size:0x20 defined:True
 D_shelter_b2_pod_access_tunnel_801855AC = 0x801855AC; // size:0xB8 defined:True
 D_shelter_b2_pod_access_tunnel_80185664 = 0x80185664; // size:0x3C defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
-D_actor_102100_80135C30 = 0x80135C30; // absolute:True owner=actor_102100
+gActor102100WatcherTaskDesc = 0x80135C30; // absolute:True owner=actor_102100
 gActor02600MaggotCaterpillarBodyTask = 0x8013A8D4; // absolute:True owner=actor_102600
-D_actor_102300_80147AB8 = 0x80147AB8; // absolute:True owner=actor_102300
+gActor102300RookGolemTasks = 0x80147AB8; // absolute:True owner=actor_102300
 D_actor_100300_80148110 = 0x80148110; // absolute:True owner=actor_100300 shared=actors
 D_actor_403900_801540E0 = 0x801540E0; // absolute:True owner=actor_403900
-D_actor_201100_8015F400 = 0x8015F400; // absolute:True owner=actor_201100
-D_actor_202300_8015FAB8 = 0x8015FAB8; // absolute:True owner=actor_202300
-D_actor_205600_801602C0 = 0x801602C0; // absolute:True owner=actor_205600
+gActor201100Tasks = 0x8015F400; // absolute:True owner=actor_201100
+gActor202300RookGolemTasks = 0x8015FAB8; // absolute:True owner=actor_202300
+gActor205600PawnGolemTasks = 0x801602C0; // absolute:True owner=actor_205600
 D_shelter_b2_pod_access_tunnel_801856AC = 0x801856AC; // size:0xC defined:True
 D_shelter_b2_pod_access_tunnel_801856B8 = 0x801856B8; // size:0x8 defined:True
 D_shelter_b2_pod_access_tunnel_801856C0 = 0x801856C0; // size:0x8 defined:True

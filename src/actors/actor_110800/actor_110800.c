@@ -19,6 +19,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#define ACTOR_MESSAGE_BODY_TASK _gActor110800BodyTask
 #include "../../shared/actor_messages.h"
 // Exported instance: a room spawns from this package's table by name.
 #define gViewFigureTasks gActor110800ViewFigureTasks
@@ -32,11 +33,13 @@ static void _viewFigureStepAnim(Task* task);
 /// `Task::work`.
 extern ViewFigureWork* gViewFigureWork;
 
-/// The actor's own task, stored by the step-0 handler. The message handlers
-/// drive the step dispatcher and the model through it, and
-/// `_actor110800AttachModelTask` parents a coordinate to one of its model's
-/// nodes.
-extern Task* gActorSelfTask;
+/// Borrowed body task of this package's active scripted actor.
+///
+/// Published after successful spawn for animation messages, paired visibility
+/// and model attachments. The body has 20 coordinates. Only the current live
+/// instance may be used: a later spawn replaces the pointer, and teardown
+/// leaves it dangling rather than clearing it. This cache owns no task.
+static Task* _gActor110800BodyTask;
 
 /// The helper task `taskSpawnFromTable` returns in the step-0 handler; the
 /// visibility handler drives its model alongside the actor's, and the exit
@@ -279,8 +282,6 @@ u8 gViewFigureAnimSets[28] = {
 
 ViewFigureWork* gViewFigureWork;
 
-Task* gActorSelfTask;
-
 Task* gActorHelperTask;
 
 static void _actor110800UpdateViewFigure(Enemy* unusedEnemy, Task* task);
@@ -366,7 +367,7 @@ static void _actor110800ViewFigureTask(Task* task)
 
 /// Attaches the helper model's root to body part 8 with a -50-unit local x translation.
 ///
-/// `task` must be the live slot-1 model task, and `gActorSelfTask` must own
+/// `task` must be the live slot-1 model task, and `_gActor110800BodyTask` must own
 /// the live twenty-part body model. Each call replaces the root's local x
 /// translation in parent-coordinate units, preserving its rotation and y/z
 /// translation, and invalidates its composed transform. The parent coordinate
@@ -381,7 +382,7 @@ static void _actor110800AttachModelTask(Task* task)
     GfxCoord* bodyCoords;
     GfxCoord* helperRoot;
 
-    bodyCoords               = gActorSelfTask->extra.tmd->coords;
+    bodyCoords               = _gActor110800BodyTask->extra.tmd->coords;
     helperRoot               = task->extra.tmd->coords;
     helperRoot->composeStamp = GRAPHICS_COORD_DIRTY;
     helperRoot->coord.t[0]   = ACTOR_110800_HELPER_X_OFFSET;

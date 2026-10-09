@@ -1233,7 +1233,7 @@ TaskMessageEntry Actor00100_D1BA54[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc Actor00100_D1BA84 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _desertChaserTask, { .model = &_gActor00100DesertChaserBody } };
+TaskDesc gActor00100DesertChaserTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _desertChaserTask, { .model = &_gActor00100DesertChaserBody } };
 
 SVECTOR ActorContact_ScratchPosition;
 

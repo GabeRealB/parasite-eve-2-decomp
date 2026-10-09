@@ -331,12 +331,7 @@ MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 /// the new state selects before it re-queues every slot.
 extern s16 D_actor_105100_801414C8[];
 
-/// The spawn's pair tables. `damagePackAttackKey` packs the `DamageAttack` at 0x80141380
-/// into the work's third list node (`_Actor105100Work::strikeBody.key`), and the
-/// `EnemyParams` at 0x80141398 is the parameter record the context points at
-/// with `Enemy::param`. Its `hpMax` seeds the enemy's hit points.
-extern DamageAttack D_actor_105100_80141380[6];
-extern EnemyParams  D_actor_105100_80141398;
+extern EnemyParams D_actor_105100_80141398;
 
 /// The animation data `animationInitContext` builds the work block's clip context
 /// from; the spawn hands it over whole, so it is only ever a byte address here.
@@ -713,7 +708,12 @@ static AnimationSet _gActor105100Animation0F538 = {
     { NULL, _gActor105100Animation0F538Bank1, NULL, NULL, _gActor105100Animation0F538Bank4, NULL, NULL, NULL },
 };
 
-DamageAttack D_actor_105100_80141380[6] = {
+/// Player-contact attacks: 0 fireball, 1 burst, 2..4 beam patterns, 5 body strike.
+///
+/// The boss and its children borrow these rows when packing collision keys.
+/// Beam patterns are 0..2; the pattern selects row 2 plus its value. Powers
+/// are unscaled damage and reactions follow `DamageAttack`.
+static DamageAttack _gActor105100Attacks[6] = {
     { 32, 6 },
     { 32, 6 },
     { 25, 10 },
@@ -722,7 +722,7 @@ DamageAttack D_actor_105100_80141380[6] = {
     { 40, 6 },
 };
 
-EnemyParams D_actor_105100_80141398 = { D_actor_105100_80141380, 4000, 1000, 500, 100, 200, 5, 100, 4 };
+EnemyParams D_actor_105100_80141398 = { _gActor105100Attacks, 4000, 1000, 500, 100, 200, 5, 100, 4 };
 
 u16 D_actor_105100_801413A8[16] = {
     1,
@@ -1007,7 +1007,7 @@ static void _actor105100Spawn(Enemy* enemy, Task* task)
     work->strikeBody.pos.vx           = 0;
     work->strikeBody.pos.vy           = 0;
     work->strikeBody.pos.vz           = 0;
-    work->strikeBody.key              = damagePackAttackKey(D_actor_105100_80141380, ACTOR_105100_STRIKE_ATTACK);
+    work->strikeBody.key              = damagePackAttackKey(_gActor105100Attacks, ACTOR_105100_STRIKE_ATTACK);
     work->strikeBody.radius           = 0x1F4;
     work->strikeBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->strikeBody);
@@ -2161,7 +2161,7 @@ static void _actor105100FireballSpawn(Enemy* enemy, Task* task)
     work->body.pos.vx           = 0;
     work->body.pos.vy           = 0;
     work->body.pos.vz           = 0;
-    work->body.key              = damagePackAttackKey(D_actor_105100_80141380, ACTOR_105100_FIREBALL_ATTACK);
+    work->body.key              = damagePackAttackKey(_gActor105100Attacks, ACTOR_105100_FIREBALL_ATTACK);
     work->body.radius           = 0xC8;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->body);
@@ -2388,7 +2388,7 @@ static void _actor105100FireballTick(Enemy* unusedEnemy, Task* task)
                 // Become the burst: stop sweeping the room and carry the burst's attack.
                 work->sweepBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
                 worldCollisionClearContacts(work->contacts);
-                work->body.key    = damagePackAttackKey(D_actor_105100_80141380, ACTOR_105100_FIREBALL_BURST_ATTACK);
+                work->body.key    = damagePackAttackKey(_gActor105100Attacks, ACTOR_105100_FIREBALL_BURST_ATTACK);
                 work->body.radius = ACTOR_105100_FIREBALL_BURST_RADIUS;
                 work->timer       = ACTOR_105100_FIREBALL_BURST_TICKS;
                 work->step        = ACTOR_105100_FIREBALL_BURST;
@@ -2463,7 +2463,7 @@ static void _actor105100BeamSpawn(Enemy* enemy, Task* task)
     beam->body.pos.vx           = 0;
     beam->body.pos.vy           = 0;
     beam->body.pos.vz           = 0;
-    beam->body.key              = damagePackAttackKey(D_actor_105100_80141380, beam->pattern + ACTOR_105100_BEAM_FIRST_ATTACK);
+    beam->body.key              = damagePackAttackKey(_gActor105100Attacks, beam->pattern + ACTOR_105100_BEAM_FIRST_ATTACK);
     beam->body.radius           = 0xC8;
     beam->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &beam->body);

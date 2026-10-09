@@ -62,9 +62,6 @@ extern EnemyParams Actor02300_D159D8;
 /// Per-room voice-stream sector tables, indexed by `GameSession::location.loc.stage` then
 /// `field_6`; a NULL row means this room has no cue.
 extern u16* Actor02300_D15C80[];
-/// The overlay's own spawn table: entry 0 is this enemy, 1 and 2 the two
-/// companions the setup state spawns.
-extern TaskDesc Actor02300_D15C98[];
 /// Animation bank `animationInitContext` binds to the work block.
 extern AnimationSet* Actor02300_D15CBC[31];
 
@@ -1136,7 +1133,7 @@ u16* Actor02300_D15C80[6] = {
     Actor02300_D15C3C,
 };
 
-TaskDesc Actor02300_D15C98[3] = {
+TaskDesc gActor02300RookGolemTasks[3] = {
     { { { TASK_BODY_TMD, 96 } }, _actor02300BodyTask, { .model = &_gActor02300RookGolemBody } },
     { { { TASK_BODY_TMD, 96 } }, _actor02300SwordTask, { .model = &_gActor02300GolemBeamSword } },
     { { { TASK_BODY_TMD, 96 } }, _actor02300ShieldTask, { .model = &_gActor02300RookGolemShield } },
@@ -1302,7 +1299,7 @@ static void _actor02300SpawnBody(Enemy* enemy, Task* actor)
     model->lightMtx               = &work->lightMtx;
     model->colorMtx               = &work->colorMtx;
     work->actorId                 = ACTOR_02300_ID;
-    work->taskTable               = Actor02300_D15C98;
+    work->taskTable               = gActor02300RookGolemTasks;
     work->hitEffectArg.coord      = &actor->extra.tmd->coords[ACTOR_02300_BODY_PART];
     work->hitEffectArg.spawnArgLo = ACTOR_02300_HIT_EFFECT_SIZE;
     work->hitEffectArg.spawnArgHi = ACTOR_02300_HIT_EFFECT_KIND;
@@ -1311,9 +1308,9 @@ static void _actor02300SpawnBody(Enemy* enemy, Task* actor)
         animationResetSlot(&work->rig.anim, slotIndex, 1);
     }
 
-    shieldEnemy = enemySpawnFromTable(Actor02300_D15C98, ACTOR_02300_SHIELD_TASK, 0, enemy);
+    shieldEnemy = enemySpawnFromTable(gActor02300RookGolemTasks, ACTOR_02300_SHIELD_TASK, 0, enemy);
     _actorRenderApplyPlacementTextureOffsets(shieldEnemy->task->extra.tmd, enemy);
-    swordEnemy = enemySpawnFromTable(Actor02300_D15C98, ACTOR_02300_SWORD_TASK, 0, enemy);
+    swordEnemy = enemySpawnFromTable(gActor02300RookGolemTasks, ACTOR_02300_SWORD_TASK, 0, enemy);
     _actorRenderApplyPlacementTextureOffsets(swordEnemy->task->extra.tmd, enemy);
 
     switch (enemy->spawnState) {
@@ -1525,3 +1522,5 @@ static void _actor02300BodyTask(Task* task)
     lifecycleHandlers = Actor02300_D00078;
     lifecycleHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
+
+PACKAGE_ALIASES

@@ -240,11 +240,10 @@ extern DamageAttack Actor02400_BodyPairs[4];
 extern EnemyParams  Actor02400_Params0;
 extern EnemyParams  Actor02400_Params1;
 /// Frames the grown body waits before it spawns, indexed by `variant`.
-extern s16      Actor02400_D045D4[];
-extern s16      Actor02400_D045D8[];
-extern s16      Actor02400_D045DC[];
-extern s16      Actor02400_D0463C[];
-extern TaskDesc Actor02400_D0465C[];
+extern s16 Actor02400_D045D4[];
+extern s16 Actor02400_D045D8[];
+extern s16 Actor02400_D045DC[];
+extern s16 Actor02400_D0463C[];
 
 static void _actor02400InitBody(Enemy* enemy, Task* task);
 static void _actor02400TeardownBody(Enemy* enemy, Task* task);
@@ -387,7 +386,7 @@ s16 Actor02400_D0463C[16] = {
     0,
 };
 
-TaskDesc Actor02400_D0465C[2] = {
+TaskDesc gActor02400Tasks[2] = {
     { { { TASK_BODY_TMD, 96 } }, _actor02400BodyTask, { .model = &_gActor02400AmoebaBody } },
     { { { TASK_BODY_COORD, 96 } }, _actor02400FireballTask, { .value = 0 } },
 };
@@ -1078,7 +1077,7 @@ static void _actor02400UpdateCast(Task* task)
             break;
         case ACTOR_02400_CAST_PHASE_RELEASE:
             // Release the borrowed charge work before its fading task frees it.
-            enemySpawnFromTable(Actor02400_D0465C, ACTOR_02400_CAST_FIREBALL_SELECTOR, 0, task->spawnArg2.pointer);
+            enemySpawnFromTable(gActor02400Tasks, ACTOR_02400_CAST_FIREBALL_SELECTOR, 0, task->spawnArg2.pointer);
             gSceneCombatState.actor02400Alert = 1;
             work->phase                       = ACTOR_02400_CAST_PHASE_SHRINK;
             if (work->chargeEffect != NULL) {
@@ -1923,3 +1922,5 @@ static void _actor02400TeardownFireball(Enemy* enemy, Task* task)
             return;
     }
 }
+
+PACKAGE_ALIASES

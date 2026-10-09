@@ -21,6 +21,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#define ACTOR_MESSAGE_BODY_TASK _gActor202900BodyTask
 #include "../../shared/actor_messages.h"
 
 /// Work block of the package's actor, the ANMC woman of the Acropolis
@@ -55,9 +56,13 @@ extern AnimationSet*    D_actor_202900_80156E3C[6];
 /// without the task in hand.
 extern _Actor202900Work* D_actor_202900_80156E54;
 
-/// The actor's task, published by the setup handler so the overlay's other
-/// functions can reach the actor's model without the task in hand.
-extern Task* gActorSelfTask;
+/// Borrowed body task of this package's active scripted actor.
+///
+/// Published after successful spawn for animation messages, paired visibility
+/// and model attachments. The body has 19 coordinates. Only the current live
+/// instance may be used: a later spawn replaces the pointer, and teardown
+/// leaves it dangling rather than clearing it. This cache owns no task.
+static Task* _gActor202900BodyTask;
 
 /// The second task the setup handler starts. Its model is textured from the
 /// area record the actor was placed from, shown and hidden together with the
@@ -232,8 +237,6 @@ AnimationSet* D_actor_202900_80156E3C[6] = {
 
 _Actor202900Work* D_actor_202900_80156E54 = NULL;
 
-Task* gActorSelfTask;
-
 Task* gActorHelperTask;
 
 static void _actor202900SpawnBody(Enemy* enemy, Task* task);
@@ -280,7 +283,7 @@ static void _actor202900SpawnBody(Enemy* enemy, Task* task)
     enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
     model->otOffset                  = ACTOR_202900_BODY_OT_OFFSET;
     model->flags                     = 0;
-    gActorSelfTask                   = task;
+    _gActor202900BodyTask            = task;
     gActorHelperTask                 = taskSpawnFromTable(D_actor_202900_80156E24, ACTOR_202900_CARRIED_MODEL_TASK, 0, 0);
     _actorRenderApplyTaskPlacementTextureOffsets(gActorHelperTask, enemy);
     model->lightMtx = &D_actor_202900_80156E54->light;
@@ -332,7 +335,7 @@ static void _actor202900CarriedModelTask(Task* task)
     TmdObject* model;
 
     model                   = task->extra.tmd;
-    bodyCoords              = gActorSelfTask->extra.tmd->coords;
+    bodyCoords              = _gActor202900BodyTask->extra.tmd->coords;
     rootCoord               = model->coords;
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     model->flags            = 0;
@@ -495,7 +498,7 @@ static s32 _actor202900PlayAnimation(Task* unusedTask, s32 messageId, const Anim
 
     if (request->animationId < ACTOR_202900_ANIM_ID_LIMIT) {
         D_actor_202900_80156E54->st.animId  = request->animationId;
-        actorTask                           = gActorSelfTask;
+        actorTask                           = _gActor202900BodyTask;
         D_actor_202900_80156E54->st.state   = ACTOR_ENEMY_ANIM_RESET;
         D_actor_202900_80156E54->st.field_6 = 0;
         _actor202900StepAnim(actorTask);

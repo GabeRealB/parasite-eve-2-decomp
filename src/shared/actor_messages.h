@@ -4,7 +4,8 @@
  * ACTOR_MESSAGE_SET_MODEL_DRAW shows, hides or buffer-flags the model. Each package includes
  * the handlers its table names; a file with a second copy of one includes the
  * fragment again under that copy's name. actorMsgSetPairVisibility reads the
- * package's published tasks, gActorSelfTask and gActorHelperTask.
+ * package's published body task through ACTOR_MESSAGE_BODY_TASK and its
+ * gActorHelperTask.
  *
  * Include this header in the prologue and each fragment at its function's
  * position.
@@ -18,6 +19,14 @@
 #include "gameplay/message.h"
 
 #include "main/task_types.h"
+
+/// Carrier binding for the published body task used by pair visibility.
+///
+/// Define `ACTOR_MESSAGE_BODY_TASK` as the identifier of a writable `Task*`
+/// in the carrier before including the pair-visibility fragment. The view-figure
+/// spawn and animation-message fragments use the same binding. Each carrier
+/// owns its storage; the body must be live whenever a consumer reads it.
+/// actor_110300, actor_110800, actor_146300 and actor_202900 supply this binding.
 
 /// State indices the handlers test and store in `ActorMsgStateWork::state`.
 ///
@@ -159,7 +168,7 @@ enum {
 
 /// Replaces the flags of the carrier's published actor and helper models.
 ///
-/// Requires live TMD tasks in the carrier's `gActorSelfTask` and
+/// Requires live TMD tasks in the carrier's `ACTOR_MESSAGE_BODY_TASK` and
 /// `gActorHelperTask` globals. SHOW clears every model flag; without it both
 /// receive only active-draw exclusion. SKIP_AUTO_BUFFER adds that bit to both.
 /// Other request bits are ignored. Neither allocates nor releases buffers.

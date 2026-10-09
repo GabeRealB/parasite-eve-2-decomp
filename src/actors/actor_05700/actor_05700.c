@@ -52,7 +52,7 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 // Exported instance: rooms spawn from this package's table by name.
-#define gGolemPawnRookTasks gActor05700GolemPawnRookTasks
+#define GOLEM_PAWN_ROOK_TASK_DESCRIPTORS gActor05700GolemPawnRookTasks
 #include "../../shared/player_detection.h"
 #define GOLEM_PAWN_ROOK_TYPE   GOLEM_ROOK
 #define GOLEM_PAWN_ROOK_WEAPON GOLEM_GRENADE_LAUNCHER
@@ -1188,7 +1188,7 @@ s16 gGolemPawnRookBeamRibbonCorners[2][4] = {
     { 0, 1, 4, 5 },
 };
 
-TaskDesc gGolemPawnRookTasks[4] = {
+TaskDesc GOLEM_PAWN_ROOK_TASK_DESCRIPTORS[4] = {
     { { { TASK_BODY_TMD, 96 } }, _actor05700RookGolemTask, { .model = &_gActor05700RookGolemBody } },
     { { { TASK_BODY_TMD, 96 } }, _actor05700GrenadeLauncherTask, { .model = &_gActor05700GolemGrenadeLauncher } },
     { { { TASK_BODY_TMD, 96 } }, _actor05700GrenadeTask, { .model = &_gActor05700GolemGrenade } },
@@ -1261,7 +1261,7 @@ extern AnimationSet* gGolemPawnRookAnimSets[31];
 /// The actor's spawn table: entry 3 is the model child re-skinned with the
 /// placement's texture page, entry 1 the effect child, and the whole table
 /// is kept in `taskTable` for later spawns.
-extern TaskDesc gGolemPawnRookTasks[];
+extern TaskDesc GOLEM_PAWN_ROOK_TASK_DESCRIPTORS[];
 
 /// Per-stage tables of per-area CD cue ids; a NULL stage has no cue.
 extern u16* gGolemPawnRookAreaParams[];
@@ -1298,9 +1298,12 @@ extern s32 gGolemPawnRookBurstCue;
 
 #include "../../shared/golem_pawn_rook_grenade_burst.inc.c"
 
-/// State handlers of the model child hung off the actor's part 7 - spawn,
-/// per-frame tick and teardown - dispatched through by `_actor05700GrenadeLauncherTask`.
-static const EnemyTaskFuncTable3 Actor05700_D00080 = {
+/// Rook GOLEM launcher lifecycle: 0 attach, 1 mirror flags/fire, 2 destroy.
+///
+/// The launcher borrows the live body's work, lighting and part-7 coordinate.
+/// Dispatch copies all three handlers before selecting an unchecked state.
+/// Destruction releases the launcher's Enemy and begins task teardown.
+static const EnemyTaskFuncTable3 _gActor05700GrenadeLauncherStates = {
     _golemPawnRookLauncherSpawn,
     _golemPawnRookLauncherTick,
     enemyDestroy,
@@ -1349,7 +1352,7 @@ static const EnemyTaskFuncTable3 Actor05700_D00080 = {
 /// Destruction may release the task and enemy before returning.
 static void _actor05700GrenadeLauncherTask(Task* launcher)
 {
-    EnemyTaskFuncTable3 lifecycleHandlers = Actor05700_D00080;
+    EnemyTaskFuncTable3 lifecycleHandlers = _gActor05700GrenadeLauncherStates;
 
     lifecycleHandlers.funcs[launcher->state](launcher->spawnArg2.pointer, launcher);
 }

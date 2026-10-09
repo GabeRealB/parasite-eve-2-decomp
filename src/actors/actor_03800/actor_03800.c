@@ -720,7 +720,7 @@ DamageAttack Actor03800_D05F40[1] = {
 
 EnemyParams Actor03800_D05F44 = { Actor03800_D05F40, 280, 15, 53, 1, 0, 10, 100, 0 };
 
-TaskDesc Actor03800_D05F54 = { { { TASK_BODY_TMD, 96 } }, _actor03800Task, { .model = &_gActor03800BlackBeetleBody } };
+TaskDesc gActor03800BlackBeetleTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor03800Task, { .model = &_gActor03800BlackBeetleBody } };
 
 AnimationSet* Actor03800_D05F60[12] = {
     NULL,
@@ -2754,3 +2754,5 @@ static void _actor03800SquashCorpse(Task* task)
     _actor03800ApplyCorpseScale(rootCoord, work, scratch);
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }
+
+PACKAGE_ALIASES

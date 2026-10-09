@@ -617,7 +617,7 @@ u16 Actor03700_D07F7C[8] = {
     48,
 };
 
-TaskDesc Actor03700_D07F8C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor03700Task, { .model = &_gActor03700BatBody } };
+TaskDesc gActor03700BatTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor03700Task, { .model = &_gActor03700BatBody } };
 
 s16 Actor03700_D07F98[30] = {
     0,
@@ -2526,3 +2526,5 @@ static void _actor03700AdvanceWave(Task* task)
             break;
     }
 }
+
+PACKAGE_ALIASES

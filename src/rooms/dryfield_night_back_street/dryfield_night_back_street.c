@@ -71,8 +71,6 @@ extern WorldCollisionTrigger      D_dryfield_night_back_street_80180F38[10];
 extern WorldCoordRoomAmbientEntry D_dryfield_night_back_street_801815C8[6];
 extern WorldCoordRoomLights       D_dryfield_night_back_street_80181470[1];
 
-extern TaskDesc Actor00100_D1BA84;
-
 TaskMessageEntry D_dryfield_night_back_street_80180324[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantResolveBackStreet },
     { DRYFIELD_NIGHT_BACK_STREET_MESSAGE_USE_KEY_ITEM, _dryfieldNightBackStreetRejectKeyItemUse },
@@ -342,19 +340,19 @@ WorldCoordRoomLights D_dryfield_night_back_street_80181470[1] = {
 };
 
 AreaResource D_dryfield_night_back_street_80181488[2] = {
-    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_102500_801379A8 },
+    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_night_back_street_801814A0[3] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &Actor00100_D1BA84 },
-    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &Actor01500_D0A008 },
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
+    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_night_back_street_801814C4[3] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &Actor00100_D1BA84 },
-    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &D_actor_300700_80165B88 },
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
+    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor300700MothTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -364,7 +362,7 @@ AreaResource D_dryfield_night_back_street_801814E8[2] = {
 };
 
 AreaResource D_dryfield_night_back_street_80181500[2] = {
-    { 37, 37, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_103700_80139DAC },
+    { 37, 37, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor103700BatTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

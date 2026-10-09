@@ -71,7 +71,7 @@ static void _golemPawnRookSpawn(Enemy* enemy, Task* actor)
     model->lightMtx               = &work->lightMtx;
     model->colorMtx               = &work->colorMtx;
     work->actorId                 = GOLEM_PAWN_ROOK_ID;
-    work->taskTable               = gGolemPawnRookTasks;
+    work->taskTable               = GOLEM_PAWN_ROOK_TASK_DESCRIPTORS;
     work->hitEffectArg.coord      = &actor->extra.tmd->coords[GOLEM_PAWN_ROOK_BODY_PART];
     work->hitEffectArg.spawnArgLo = GOLEM_PAWN_ROOK_HIT_EFFECT_SIZE;
     work->hitEffectArg.spawnArgHi = GOLEM_PAWN_ROOK_HIT_EFFECT_KIND;
@@ -80,9 +80,9 @@ static void _golemPawnRookSpawn(Enemy* enemy, Task* actor)
         animationResetSlot(&work->rig.anim, slotIndex, GOLEM_PAWN_ROOK_IDLE_ANIM);
     }
 #if GOLEM_PAWN_ROOK_TYPE == GOLEM_ROOK
-    _actorRenderApplyPlacementTextureOffsets(enemySpawnFromTable(gGolemPawnRookTasks, GOLEM_PAWN_ROOK_SHIELD_TASK, 0, enemy)->task->extra.tmd, enemy);
+    _actorRenderApplyPlacementTextureOffsets(enemySpawnFromTable(GOLEM_PAWN_ROOK_TASK_DESCRIPTORS, GOLEM_PAWN_ROOK_SHIELD_TASK, 0, enemy)->task->extra.tmd, enemy);
 #endif
-    weaponEnemy = enemySpawnFromTable(gGolemPawnRookTasks, GOLEM_PAWN_ROOK_WEAPON_TASK, 0, enemy);
+    weaponEnemy = enemySpawnFromTable(GOLEM_PAWN_ROOK_TASK_DESCRIPTORS, GOLEM_PAWN_ROOK_WEAPON_TASK, 0, enemy);
     _actorRenderApplyPlacementTextureOffsets(weaponEnemy->task->extra.tmd, enemy);
 
     // Saved corpses keep their visual children but never rejoin combat.

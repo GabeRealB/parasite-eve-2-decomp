@@ -5,13 +5,53 @@
 
 // Room placement records address these tables in the currently loaded actor
 // slots. Different packages occupy those slots over the lifetime of a stage.
+/// Black Beetle TMD spawn descriptor; priority 96 with automatic model buffers.
+///
+/// Spawn at index 0. Keep the callback and borrowed model geometry loaded.
+extern TaskDesc gActor03800BlackBeetleTaskDesc;
+
+/// Bat TMD spawn descriptor; priority 96, with automatic model buffers disabled.
+///
+/// Spawn at index 0. Keep the callback and borrowed model geometry loaded.
+extern TaskDesc gActor03700BatTaskDesc;
+
+/// Amoeba spawn descriptors: 0 TMD body, 1 coordinate-body fireball.
+///
+/// Spawn indices are 0..1, without a terminator. Keep the callbacks and
+/// borrowed model geometry loaded while their tasks are in use.
+extern TaskDesc gActor02400Tasks[2];
+
+/// Beam Sword Rook GOLEM spawn descriptors: 0 body, 1 sword, 2 shield; all are TMD bodies.
+///
+/// Spawn indices are 0..2, without a terminator. Keep the callbacks and
+/// borrowed model geometry loaded while their tasks are in use.
+extern TaskDesc gActor02300RookGolemTasks[3];
+
+/// Watcher TMD spawn descriptor; priority 96 with automatic model buffers.
+///
+/// Spawn at index 0. Keep the callback and borrowed model geometry loaded.
+extern TaskDesc gActor02100WatcherTaskDesc;
+
+/// Mossback spawn descriptors: 0 body, 1 coordinate-body spit glob, 2 coordinate-body spit cloud.
+///
+/// Spawn indices are 0..2, without a terminator. Keep the callbacks and
+/// borrowed model geometry loaded while their tasks are in use.
+extern TaskDesc gActor01100Tasks[3];
+
+/// Desert Chaser TMD spawn descriptor; priority 96, with automatic model buffers disabled.
+///
+/// Spawn at index 0. Keep the callback and borrowed model geometry loaded.
+extern TaskDesc gActor00100DesertChaserTaskDesc;
+
 extern TaskDesc D_actor_143000_801350B0[];
 
-extern TaskDesc D_actor_102100_80135C30[];
+/// Slot export of `gActor02100WatcherTaskDesc` from actor_102100, with the same descriptor contract.
+extern TaskDesc gActor102100WatcherTaskDesc;
 
 extern TaskDesc D_actor_142600_80135E24;
 
-extern TaskDesc D_actor_102400_8013647C[];
+/// Slot export of `gActor02400Tasks` from actor_102400, with the same descriptor contract.
+extern TaskDesc gActor102400Tasks[2];
 
 extern TaskDesc D_actor_123200_80137234;
 
@@ -19,11 +59,13 @@ extern TaskDesc D_actor_142900_80137600[];
 
 extern TaskDesc Actor04600_D05878;
 
-extern TaskDesc D_actor_102500_801379A8[];
+/// Slot export of `gActor02500Tasks` from actor_102500, with the same descriptor contract.
+extern TaskDesc gActor102500Tasks[2];
 
 extern TaskDesc D_actor_450200_80137A60[];
 
-extern TaskDesc D_actor_103800_80137D74[];
+/// Slot export of `gActor03800BlackBeetleTaskDesc` from actor_103800, with the same descriptor contract.
+extern TaskDesc gActor103800BlackBeetleTaskDesc;
 
 extern TaskDesc Actor04600_D0649C;
 
@@ -35,7 +77,8 @@ extern TaskDesc Actor00700_D075A8;
 
 extern TaskDesc D_actor_511000_80139924[];
 
-extern TaskDesc D_actor_103700_80139DAC[];
+/// Slot export of `gActor03700BatTaskDesc` from actor_103700, with the same descriptor contract.
+extern TaskDesc gActor103700BatTaskDesc;
 
 extern TaskDesc D_actor_107000_80139E60[];
 
@@ -57,7 +100,11 @@ extern TaskDesc D_actor_113000_8013ABB4;
 
 extern TaskDesc D_actor_135600_8013B0C4[];
 
-extern TaskDesc Actor01500_D0A008;
+/// Mind Suckler TMD spawn descriptor; priority 96 with automatic model buffers.
+///
+/// Spawn at index 0. Keep this package loaded while its callback and borrowed
+/// model geometry are in use.
+extern TaskDesc gActor01500MindSucklerTaskDesc;
 
 extern TaskDesc D_actor_110700_8013BF94;
 
@@ -77,7 +124,11 @@ extern TaskDesc D_actor_535700_8013DADC;
 
 extern TaskDesc D_actor_160600_8013DFA0;
 
-extern TaskDesc Actor04000_D0C6E0;
+/// Blood Suckler TMD spawn descriptor; priority 96 with automatic model buffers.
+///
+/// Spawn at index 0. Keep this package loaded while its callback and borrowed
+/// model geometry are in use.
+extern TaskDesc gActor04000BloodSucklerTaskDesc;
 
 extern TaskDesc D_actor_120400_8013E748[];
 
@@ -107,15 +158,18 @@ extern TaskDesc D_actor_461800_801437EC;
 
 extern TaskDesc D_actor_113100_80144308[];
 
-extern TaskDesc D_actor_101600_801445DC[];
+/// Slot export of `gActor01600ScavengerTaskDesc` from actor_101600, with the same descriptor contract.
+extern TaskDesc gActor101600ScavengerTaskDesc;
 
 extern TaskDesc gPairWalkTasks[];
 
 extern TaskDesc D_actor_511000_801472E8[];
 
-extern TaskDesc D_actor_101100_80147400[];
+/// Slot export of `gActor01100Tasks` from actor_101100, with the same descriptor contract.
+extern TaskDesc gActor101100Tasks[3];
 
-extern TaskDesc D_actor_102300_80147AB8[];
+/// Slot export of `gActor02300RookGolemTasks` from actor_102300, with the same descriptor contract.
+extern TaskDesc gActor102300RookGolemTasks[3];
 
 extern TaskDesc Actor02000_D15FD0[];
 
@@ -123,13 +177,18 @@ extern TaskDesc D_actor_100300_80148110[];
 
 extern TaskDesc gActor460200StrideWalkTasks[];
 
-extern TaskDesc D_actor_105600_801482C0[];
+/// Slot export of `gActor05600PawnGolemTasks` from actor_105600, with the same descriptor contract.
+extern TaskDesc gActor105600PawnGolemTasks[3];
 
 extern TaskDesc D_actor_110600_80148670;
 
 extern TaskDesc D_actor_101900_80149120[];
 
-extern TaskDesc gGolemPawnRookTasks[];
+/// Launcher Pawn GOLEM spawn descriptors: 0 body, 1 launcher, 2 grenade; all are TMD bodies.
+///
+/// Indices select live descriptors without a terminator. Keep this package
+/// loaded while its callbacks and borrowed model geometry are in use.
+extern TaskDesc gActor05600PawnGolemTasks[3];
 
 extern TaskDesc D_actor_143900_80149664[];
 
@@ -137,9 +196,11 @@ extern TaskDesc D_actor_450800_8014AC88[];
 
 extern TaskDesc D_actor_205200_8014CA60[];
 
-extern TaskDesc D_actor_202100_8014DC30[];
+/// Slot export of `gActor02100WatcherTaskDesc` from actor_202100, with the same descriptor contract.
+extern TaskDesc gActor202100WatcherTaskDesc;
 
-extern TaskDesc D_actor_202400_8014E47C[];
+/// Slot export of `gActor02400Tasks` from actor_202400, with the same descriptor contract.
+extern TaskDesc gActor202400Tasks[2];
 
 extern TaskDesc D_actor_451100_8014E6E4[];
 
@@ -147,9 +208,14 @@ extern TaskDesc D_actor_207200_8014E7A4;
 
 extern TaskDesc Actor04600_D05878;
 
-extern TaskDesc Actor02500_D05B88[];
+/// Scorpion spawn descriptors: 0 TMD body, 1 coordinate-body corpse poison.
+///
+/// Indices select live descriptors without a terminator. Keep this package
+/// loaded while its callbacks and borrowed model geometry are in use.
+extern TaskDesc gActor02500Tasks[2];
 
-extern TaskDesc D_actor_203800_8014FD74[];
+/// Slot export of `gActor03800BlackBeetleTaskDesc` from actor_203800, with the same descriptor contract.
+extern TaskDesc gActor203800BlackBeetleTaskDesc;
 
 extern TaskDesc Actor04600_D0649C;
 
@@ -169,7 +235,8 @@ extern TaskDesc D_actor_460200_8015152C;
 
 extern TaskDesc D_actor_400600_80151B10;
 
-extern TaskDesc D_actor_203700_80151DAC[];
+/// Slot export of `gActor03700BatTaskDesc` from actor_203700, with the same descriptor contract.
+extern TaskDesc gActor203700BatTaskDesc;
 
 extern TaskDesc D_actor_213100_801521A8[];
 
@@ -181,9 +248,11 @@ extern TaskDesc gPairWalkTasks[];
 
 extern TaskDesc D_actor_400500_80153D60;
 
-extern TaskDesc Actor01500_D0A008;
-
-extern TaskDesc D_actor_207200_80153EC8;
+/// Creeping Stranger TMD spawn descriptor; priority 96 with automatic model buffers.
+///
+/// Spawn at index 0. Keep this package loaded while its callback and borrowed
+/// model geometry are in use.
+extern TaskDesc gActor207200CreepingStrangerTaskDesc;
 
 extern TaskDesc D_actor_403900_801540E0;
 
@@ -197,9 +266,14 @@ extern TaskDesc D_actor_511000_80155070[];
 
 extern TaskDesc D_actor_403100_8015560C[];
 
-extern TaskDesc D_actor_401800_80155AC4;
+/// Odd Stranger TMD spawn descriptor; priority 96, with automatic model buffers disabled.
+///
+/// Spawn at index 0. Keep this package loaded while its callback and borrowed
+/// model geometry are in use.
+extern TaskDesc gActor401800OddStrangerTaskDesc;
 
-extern TaskDesc D_actor_204000_80156500[];
+/// Slot export of `gActor04000BloodSucklerTaskDesc` from actor_204000, with the same descriptor contract.
+extern TaskDesc gActor204000BloodSucklerTaskDesc;
 
 extern TaskDesc D_actor_205200_801567C4;
 
@@ -221,17 +295,23 @@ extern TaskDesc D_actor_260500_80159DB0;
 
 extern TaskDesc D_actor_210600_8015A4EC;
 
-extern TaskDesc Actor01600_D127BC;
+/// Scavenger TMD spawn descriptor; priority 96, with automatic model buffers disabled.
+///
+/// Spawn at index 0. Keep this package loaded while its callback and borrowed
+/// model geometry are in use.
+extern TaskDesc gActor01600ScavengerTaskDesc;
 
 extern TaskDesc D_actor_215100_8015E5D0[];
 
-extern TaskDesc D_actor_201100_8015F400[];
+/// Slot export of `gActor01100Tasks` from actor_201100, with the same descriptor contract.
+extern TaskDesc gActor201100Tasks[3];
 
 extern TaskDesc D_actor_521100_8015F6E4[];
 
 extern TaskDesc D_actor_403200_8015F8D0;
 
-extern TaskDesc D_actor_202300_8015FAB8[];
+/// Slot export of `gActor02300RookGolemTasks` from actor_202300, with the same descriptor contract.
+extern TaskDesc gActor202300RookGolemTasks[3];
 
 extern TaskDesc Actor02000_D15FD0[];
 
@@ -239,7 +319,8 @@ extern TaskDesc D_actor_200400_8015FE48[];
 
 extern TaskDesc D_actor_200300_80160110[];
 
-extern TaskDesc D_actor_205600_801602C0[];
+/// Slot export of `gActor05600PawnGolemTasks` from actor_205600, with the same descriptor contract.
+extern TaskDesc gActor205600PawnGolemTasks[3];
 
 extern TaskDesc D_actor_403600_80160514[];
 
@@ -249,9 +330,11 @@ extern TaskDesc D_actor_444000_80161854;
 
 extern TaskDesc D_actor_341300_80165208[];
 
-extern TaskDesc D_actor_300700_80165B88;
-
-extern TaskDesc Actor02500_D05B88[];
+/// Moth TMD spawn descriptor; priority 96 with automatic model buffers.
+///
+/// Spawn at index 0. Keep this package loaded while its callback and borrowed
+/// model geometry are in use.
+extern TaskDesc gActor300700MothTaskDesc;
 
 extern TaskDesc D_actor_510900_80167A18[];
 
@@ -273,11 +356,10 @@ extern TaskDesc gMaggotCaterpillarBodyTask;
 
 extern TaskDesc D_actor_361100_8016BAE4;
 
-extern TaskDesc Actor01500_D0A008;
-
 extern TaskDesc D_actor_317000_8016CF44;
 
-extern TaskDesc D_actor_304000_8016E500[];
+/// Slot export of `gActor04000BloodSucklerTaskDesc` from actor_304000, with the same descriptor contract.
+extern TaskDesc gActor304000BloodSucklerTaskDesc;
 
 extern TaskDesc D_actor_503500_8016E924[];
 
@@ -303,13 +385,15 @@ extern TaskDesc D_actor_323000_80173A08;
 
 extern TaskDesc D_actor_342400_80173A54[];
 
-extern TaskDesc D_actor_301600_801745DC[];
+/// Slot export of `gActor01600ScavengerTaskDesc` from actor_301600, with the same descriptor contract.
+extern TaskDesc gActor301600ScavengerTaskDesc;
 
 extern TaskDesc D_actor_341700_80176354;
 
 extern TaskDesc D_actor_503500_80176524;
 
-extern TaskDesc D_actor_301100_80177400[];
+/// Slot export of `gActor01100Tasks` from actor_301100, with the same descriptor contract.
+extern TaskDesc gActor301100Tasks[3];
 
 extern TaskDesc D_actor_302000_80177DF0[];
 

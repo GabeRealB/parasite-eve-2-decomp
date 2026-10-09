@@ -44,9 +44,6 @@ typedef struct {
 } _Actor213100JodieBouquetWork;
 STATIC_ASSERT_SIZEOF(_Actor213100JodieBouquetWork, 0x488);
 
-/// Animation bank table the 0x7D3 handler indexes with the preset's
-/// `field_0`.
-extern AnimationSet*  D_actor_213100_8015217C[10];
 extern AnimationSet** gActorMotionAnimBanks19[1];
 
 /// Spawn table the spawn state takes its child from; entry 1 is the child,
@@ -336,7 +333,12 @@ static AnimationSet _gActor213100Animation08334 = {
     { NULL, _gActor213100Animation08334Bank1, NULL, NULL, _gActor213100Animation08334Bank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_actor_213100_8015217C[10] = {
+/// Jodie Bouquet's body animation sets for bank 0: clip 0 absent, clips 1..9 loaded.
+///
+/// `AnimationPlayRequest::animationId` selects an entry after `source.index`
+/// selects bank 0. Animation contexts borrow this table and its sets, so the
+/// package must remain loaded for their playback lifetime.
+static AnimationSet* _gActor213100BodyAnimSets[10] = {
     NULL,
     &_gActor213100Animation068BC,
     &_gActor213100Animation06C90,
@@ -350,7 +352,7 @@ AnimationSet* D_actor_213100_8015217C[10] = {
 };
 
 AnimationSet** gActorMotionAnimBanks19[1] = {
-    D_actor_213100_8015217C,
+    _gActor213100BodyAnimSets,
 };
 
 TaskDesc D_actor_213100_801521A8[2] = {

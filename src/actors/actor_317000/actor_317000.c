@@ -71,12 +71,6 @@ enum {
     ACTOR_317000_DRAW_SHOW_MANUAL   = 3,
 };
 
-/// Indexed by `_Actor317000Work::model.bank` for `animationInitContext`'s second
-/// argument by `_actor317000BeginLeap` and `_actorMotionPlayAnim19`.
-/// Every preset the actor builds has `field_0` 0, so only the first word is
-/// ever read; the words after it (among them the address of
-/// `_actor317000Task`) suggest a larger record, not a bank array.
-extern AnimationSet*  D_actor_317000_8016CF1C[9];
 extern AnimationSet** gActorMotionAnimBanks19[1];
 
 /// `taskMessageDispatch` handler table installed at `Task::msgTable` by
@@ -333,7 +327,12 @@ static AnimationSet _gActor317000Animation0B0D4 = {
     { NULL, _gActor317000Animation0B0D4Bank1, NULL, NULL, _gActor317000Animation0B0D4Bank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_actor_317000_8016CF1C[9] = {
+/// Grinning Stranger body animation sets for bank 0: clip 0 absent, clips 1..8 loaded.
+///
+/// `AnimationPlayRequest::animationId` selects a clip; `source.index` selects
+/// the outer bank. Playback borrows this table and its sets while the package
+/// is loaded, including the launch and landing clips of a leap.
+static AnimationSet* _gActor317000BodyAnimSets[9] = {
     NULL,
     &_gActor317000Animation0699C,
     &_gActor317000Animation074C0,
@@ -346,7 +345,7 @@ AnimationSet* D_actor_317000_8016CF1C[9] = {
 };
 
 AnimationSet** gActorMotionAnimBanks19[1] = {
-    D_actor_317000_8016CF1C,
+    _gActor317000BodyAnimSets,
 };
 
 TaskDesc D_actor_317000_8016CF44 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor317000Task, { .model = &_gActor317000GrinningStrangerBody } };

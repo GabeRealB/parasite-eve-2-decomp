@@ -32,6 +32,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 #include "../../shared/scripted_walk.h"
+#define ACTOR_MESSAGE_BODY_TASK _gActor146300BodyTask
 #include "../../shared/actor_messages.h"
 
 /// Work block of the package's actor, a twenty-part figure that event scripts
@@ -59,11 +60,13 @@ STATIC_ASSERT_SIZEOF(_Actor146300Work, 0x4EC);
 /// it without clearing this pointer. This carrier has no walking countdown.
 static _Actor146300Work* _gScriptedWalkWork;
 
-/// The actor's own task, published by the spawn routine: the 0x7D3 handler
-/// runs the per-frame update on it, and the 0x7D5 handler and the companion's
-/// handler `_actor146300AttachmentTask` reach the actor's model through its
-/// `extra`.
-extern Task* gActorSelfTask;
+/// Borrowed body task of this package's active scripted actor.
+///
+/// Published after successful spawn for animation messages, paired visibility
+/// and model attachments. The body has 20 coordinates. Only the current live
+/// instance may be used: a later spawn replaces the pointer, and teardown
+/// leaves it dangling rather than clearing it. This cache owns no task.
+static Task* _gActor146300BodyTask;
 
 /// The companion task the spawn routine starts from
 /// `D_actor_146300_801427C8`; its `extra` is the model whose texture page and
@@ -1360,8 +1363,6 @@ u8 D_actor_146300_801427E0[68] = {
 
 s32 D_actor_146300_80142824 = 0;
 
-Task* gActorSelfTask;
-
 Task* gActorHelperTask;
 
 static void _actor146300SpawnScriptedWalker(Enemy* enemy, Task* task);
@@ -1629,7 +1630,7 @@ static void _actor146300SpawnScriptedWalker(Enemy* enemy, Task* task)
     enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
     model->otOffset                  = 1;
     model->flags                     = 0;
-    gActorSelfTask                   = task;
+    _gActor146300BodyTask            = task;
     attachmentTask                   = taskSpawnFromTable(D_actor_146300_801427C8, 1, 0, 0);
     gActorHelperTask                 = attachmentTask;
     _actorRenderApplyTaskPlacementTextureOffsets(attachmentTask, enemy);
@@ -1768,7 +1769,7 @@ static s32 _actor146300PlayAnimation(Task* unusedTask, s32 messageId, const Anim
             _gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         _gScriptedWalkWork->st.field_6 = 0;
-        _actor146300UpdateAnimation(gActorSelfTask);
+        _actor146300UpdateAnimation(_gActor146300BodyTask);
         return 0;
     }
     return ACTOR146300_ANIMATION_REJECTED;
@@ -1789,7 +1790,7 @@ static s32 _actor146300IgnoreCommand(Task* unusedTask, s32 messageId, const Acto
 
 /// Attaches the companion model to actor part 4, then relights it from the actor root.
 ///
-/// Requires this live TMD task and `gActorSelfTask` with its twenty coordinates;
+/// Requires this live TMD task and `_gActor146300BodyTask` with its twenty coordinates;
 /// both models remain live while attached. State 0 replaces the companion root's
 /// parent, marks composition dirty, enables drawing and enters state 1. Later
 /// ticks sample all three light rows at the actor root's view-space negative-Y
@@ -1804,7 +1805,7 @@ static void _actor146300AttachmentTask(Task* task)
     };
     TmdObject* attachmentModel = task->extra.tmd;
     GfxCoord*  attachmentRoot  = attachmentModel->coords;
-    GfxCoord*  actorRoot       = gActorSelfTask->extra.tmd->coords;
+    GfxCoord*  actorRoot       = _gActor146300BodyTask->extra.tmd->coords;
     GfxCoord*  attachmentPart  = actorRoot + ACTOR146300_ATTACHMENT_PART;
 
     switch (task->state) {

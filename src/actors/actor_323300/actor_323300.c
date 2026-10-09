@@ -121,9 +121,6 @@ STATIC_ASSERT_SIZEOF(_Actor323300StrangerWork, 0x6B0);
 
 extern TaskMessageEntry D_actor_323300_80172574[];
 
-/// Animation source table `_actor323300WomanApplyCommand` and
-/// `_actorMotionPlayAnim19` index by `_Actor323300WomanWork::model.bank`.
-extern AnimationSet*  D_actor_323300_80172548[4];
 extern AnimationSet** gActorMotionAnimBanks19[1];
 
 /// Descriptor table the 0x7DB handler spawns its child from; index 1 is the
@@ -325,7 +322,12 @@ static AnimationSet _gActor323300Animation10700 = {
     { NULL, _gActor323300Animation10700Bank1, NULL, NULL, _gActor323300Animation10700Bank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_actor_323300_80172548[4] = {
+/// The woman's bank-0 animation sets: clip 0 absent, clips 1..3 loaded.
+///
+/// The transformation's Stranger task has its own separate clip table.
+/// `AnimationPlayRequest::animationId` indexes this inner table after bank
+/// selection; playback borrows the table and sets while the package is loaded.
+static AnimationSet* _gActor323300WomanAnimSets[4] = {
     NULL,
     &_gActor323300Animation0FFC4,
     &_gActor323300Animation10700,
@@ -333,7 +335,7 @@ AnimationSet* D_actor_323300_80172548[4] = {
 };
 
 AnimationSet** gActorMotionAnimBanks19[1] = {
-    D_actor_323300_80172548,
+    _gActor323300WomanAnimSets,
 };
 
 TaskDesc D_actor_323300_8017255C[2] = {

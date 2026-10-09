@@ -139,7 +139,7 @@ u16 gMothSpeeds[8] = {
     36,
 };
 
-TaskDesc D_actor_300700_80165B88 = { { { TASK_BODY_TMD, 96 } }, _mothTask, { .model = &_gActor300700MothBody } };
+TaskDesc gActor300700MothTaskDesc = { { { TASK_BODY_TMD, 96 } }, _mothTask, { .model = &_gActor300700MothBody } };
 
 AnimationSet* gMothAnimSets[2] = {
     NULL,

@@ -3658,17 +3658,17 @@ objects = [
 [actors.overlays.actor_01100]
 label = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body"
 slots = [
-  { slot = 1, package = "actor_101100", id = 81 },
-  { slot = 2, package = "actor_201100", id = 154 },
-  { slot = 3, package = "actor_301100", id = 201 },
+  { slot = 1, package = "actor_101100", id = 81, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor01100Tasks = "gActor101100Tasks" } },
+  { slot = 2, package = "actor_201100", id = 154, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor01100Tasks = "gActor201100Tasks" } },
+  { slot = 3, package = "actor_301100", id = 201, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor01100Tasks = "gActor301100Tasks" } },
   # The same image as the three above, issued under ids of its own: each package
   # matches its slot's counterpart byte for byte past the id word.
-  { slot = 1, package = "actor_104900", id = 107 },
-  { slot = 2, package = "actor_204900", id = 184 },
+  { slot = 1, package = "actor_104900", id = 107, defines = { PACKAGE_ALIASES = "" } },
+  { slot = 2, package = "actor_204900", id = 184, defines = { PACKAGE_ALIASES = "" } },
 ]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_01100/actor_01100", rodata = "0x4", text = "0xE8", data = "0x74D0", bss = "0x15670" },
+  { unit = "actor_01100", variant = true, rodata = "0x4", text = "0xE8", data = "0x74D0", bss = "0x15670" },
   { kind = "model", at = "0x7520", in_c = true },
   { kind = "modelSource", at = "0xCB28", in_c = true },
   { kind = "model", at = "0xCB4C", in_c = true },
@@ -3736,13 +3736,13 @@ objects = [
 
 [actors.overlays.actor_01600]
 slots = [
-  { slot = 1, package = "actor_101600", id = 109 },
-  { slot = 2, package = "actor_201600", id = 169 },
-  { slot = 3, package = "actor_301600", id = 212 },
+  { slot = 1, package = "actor_101600", id = 109, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor01600ScavengerTaskDesc = "gActor101600ScavengerTaskDesc" } },
+  { slot = 2, package = "actor_201600", id = 169, defines = { PACKAGE_ALIASES = "" } },
+  { slot = 3, package = "actor_301600", id = 212, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor01600ScavengerTaskDesc = "gActor301600ScavengerTaskDesc" } },
 ]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_01600/actor_01600", rodata = "0x4", text = "0x1F4", data = "0x7114", bss = "0x12890" },
+  { unit = "actor_01600", variant = true, rodata = "0x4", text = "0x1F4", data = "0x7114", bss = "0x12890" },
   { kind = "model", at = "0x7114", in_c = true },
   { kind = "modelSource", at = "0x8F74", in_c = true },
   { kind = "model", at = "0x8F98", in_c = true },
@@ -3804,12 +3804,12 @@ objects = [
 
 [actors.overlays.actor_02100]
 slots = [
-  { slot = 1, package = "actor_102100", id = 128 },
-  { slot = 2, package = "actor_202100", id = 179 },
+  { slot = 1, package = "actor_102100", id = 128, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor02100WatcherTaskDesc = "gActor102100WatcherTaskDesc" } },
+  { slot = 2, package = "actor_202100", id = 179, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor02100WatcherTaskDesc = "gActor202100WatcherTaskDesc" } },
 ]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_02100/actor_102100_text", rodata = "0x4", text = "0x48", data = "0x36BC" },
+  { unit = "actor_102100_text", variant = true, rodata = "0x4", text = "0x48", data = "0x36BC" },
   { kind = "model", at = "0x36BC", in_c = true },
   { kind = "modelSource", at = "0x3D40", in_c = true },
 ]
@@ -3828,12 +3828,12 @@ objects = [
 [actors.overlays.actor_02300]
 label = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body"
 slots = [
-  { slot = 1, package = "actor_102300", id = 118 },
-  { slot = 2, package = "actor_202300", id = 176 },
+  { slot = 1, package = "actor_102300", id = 118, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor02300RookGolemTasks = "gActor102300RookGolemTasks" } },
+  { slot = 2, package = "actor_202300", id = 176, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor02300RookGolemTasks = "gActor202300RookGolemTasks" } },
 ]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_02300/actor_02300", rodata = "0x4", text = "0x84", data = "0x3F44" },
+  { unit = "actor_02300", variant = true, rodata = "0x4", text = "0x84", data = "0x3F44" },
   { kind = "model", at = "0x3F84", in_c = true },
   { kind = "modelSource", at = "0x8E50", in_c = true },
   { kind = "model", at = "0x8E74", in_c = true },
@@ -3846,25 +3846,25 @@ objects = [
 [actors.overlays.actor_02400]
 label = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body"
 slots = [
-  { slot = 1, package = "actor_102400", id = 108 },
-  { slot = 2, package = "actor_202400", id = 168 },
+  { slot = 1, package = "actor_102400", id = 108, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor02400Tasks = "gActor102400Tasks" } },
+  { slot = 2, package = "actor_202400", id = 168, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor02400Tasks = "gActor202400Tasks" } },
 ]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_02400/actor_02400", rodata = "0x4", text = "0x64", data = "0x3448" },
+  { unit = "actor_02400", variant = true, rodata = "0x4", text = "0x64", data = "0x3448" },
   { kind = "model", at = "0x3448", in_c = true },
   { kind = "modelSource", at = "0x4580", in_c = true },
 ]
 
 [actors.overlays.actor_02500]
 slots = [
-  { slot = 1, package = "actor_102500", id = 112 },
-  { slot = 2, package = "actor_202500", id = 171 },
-  { slot = 3, package = "actor_302500", id = 214 },
+  { slot = 1, package = "actor_102500", id = 112, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor02500Tasks = "gActor102500Tasks" } },
+  { slot = 2, package = "actor_202500", id = 171, defines = { PACKAGE_ALIASES = "" } },
+  { slot = 3, package = "actor_302500", id = 214, defines = { PACKAGE_ALIASES = "" } },
 ]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_02500/actor_02500", rodata = "0x4", text = "0x78", data = "0x2914" },
+  { unit = "actor_02500", variant = true, rodata = "0x4", text = "0x78", data = "0x2914" },
   { kind = "model", at = "0x2914", in_c = true },
   { kind = "modelSource", at = "0x3F20", in_c = true },
   { kind = "model", at = "0x3F44", in_c = true },
@@ -4060,12 +4060,12 @@ objects = [
 
 [actors.overlays.actor_03700]
 slots = [
-  { slot = 1, package = "actor_103700", id = 106 },
-  { slot = 2, package = "actor_203700", id = 165 },
+  { slot = 1, package = "actor_103700", id = 106, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor03700BatTaskDesc = "gActor103700BatTaskDesc" } },
+  { slot = 2, package = "actor_203700", id = 165, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor03700BatTaskDesc = "gActor203700BatTaskDesc" } },
 ]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_03700/actor_03700", rodata = "0x4", text = "0xA4", data = "0x3638" },
+  { unit = "actor_03700", variant = true, rodata = "0x4", text = "0xA4", data = "0x3638" },
   { kind = "model", at = "0x3638", in_c = true },
   { kind = "modelSource", at = "0x4200", in_c = true },
   { kind = "model", at = "0x4224", in_c = true },
@@ -4077,12 +4077,12 @@ objects = [
 
 [actors.overlays.actor_03800]
 slots = [
-  { slot = 1, package = "actor_103800", id = 96 },
-  { slot = 2, package = "actor_203800", id = 160 },
+  { slot = 1, package = "actor_103800", id = 96, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor03800BlackBeetleTaskDesc = "gActor103800BlackBeetleTaskDesc" } },
+  { slot = 2, package = "actor_203800", id = 160, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor03800BlackBeetleTaskDesc = "gActor203800BlackBeetleTaskDesc" } },
 ]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_03800/actor_03800", rodata = "0x4", text = "0xB8", data = "0x38D0" },
+  { unit = "actor_03800", variant = true, rodata = "0x4", text = "0xB8", data = "0x38D0" },
   { kind = "model", at = "0x38D0", in_c = true },
   { kind = "modelSource", at = "0x43A0", in_c = true },
   { kind = "model", at = "0x43C4", in_c = true },
@@ -4111,13 +4111,13 @@ objects = [
 
 [actors.overlays.actor_04000]
 slots = [
-  { slot = 1, package = "actor_104000", id = 86, label = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" },
-  { slot = 2, package = "actor_204000", id = 174, label = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body; code starts at 0x24C, GCC hoisted the gGameSession lui/lw above the addiu $sp prologue", text = ["0x24C", "0x7078"] },
-  { slot = 3, package = "actor_304000", id = 240, label = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" },
+  { slot = 1, package = "actor_104000", id = 86, defines = { PACKAGE_ALIASES = "" }, label = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" },
+  { slot = 2, package = "actor_204000", id = 174, defines = { PACKAGE_ALIASES = "" }, label = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body; code starts at 0x24C, GCC hoisted the gGameSession lui/lw above the addiu $sp prologue", text = ["0x24C", "0x7078"], aliases = { gActor04000BloodSucklerTaskDesc = "gActor204000BloodSucklerTaskDesc" } },
+  { slot = 3, package = "actor_304000", id = 240, defines = { PACKAGE_ALIASES = "" }, label = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body", aliases = { gActor04000BloodSucklerTaskDesc = "gActor304000BloodSucklerTaskDesc" } },
 ]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_04000/actor_04000", rodata = "0x4", text = "0x24C", data = "0x7078", bss = "0xC708" },
+  { unit = "actor_04000", variant = true, rodata = "0x4", text = "0x24C", data = "0x7078", bss = "0xC708" },
   { kind = "model", at = "0x70AC", in_c = true },
   { kind = "modelSource", at = "0x8718", in_c = true },
   { kind = "animation", at = "0x873C", sets = ["0x8878", "0x8B3C", "0x8DE0", "0x8FC0", "0x90F8", "0x9298", "0x94AC", "0x98BC", "0x9A94", "0xA260", "0xA71C", "0xAECC", "0xB374", "0xB6F0", "0xBAA0", "0xBCDC", "0xBF20", "0xC070", "0xC1C0", "0xC2EC", "0xC49C"], in_c = true },
@@ -4222,12 +4222,12 @@ objects = [
 [actors.overlays.actor_05600]
 label = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body"
 slots = [
-  { slot = 1, package = "actor_105600", id = 134 },
-  { slot = 2, package = "actor_205600", id = 182 },
+  { slot = 1, package = "actor_105600", id = 134, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor05600PawnGolemTasks = "gActor105600PawnGolemTasks" } },
+  { slot = 2, package = "actor_205600", id = 182, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor05600PawnGolemTasks = "gActor205600PawnGolemTasks" } },
 ]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_05600/actor_05600", rodata = "0x4", text = "0xA4", data = "0x4CFC" },
+  { unit = "actor_05600", variant = true, rodata = "0x4", text = "0xA4", data = "0x4CFC" },
   { kind = "model", at = "0x4D3C", in_c = true },
   { kind = "modelSource", at = "0xA020", in_c = true },
   { kind = "model", at = "0xA044", in_c = true },

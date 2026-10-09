@@ -75,12 +75,10 @@ extern WorldCollisionOccluder D_dryfield_parking_lot_8017F6E4[2];
 extern WorldCollisionTrigger  D_dryfield_parking_lot_8017F0A8[10];
 extern WorldCollisionTrigger  D_dryfield_parking_lot_8017F3A0[11];
 extern WorldCoordRoomLights   D_dryfield_parking_lot_8017F9FC[1];
-extern TaskDesc               Actor00100_D1BA84;
-
-static s32  _dryfieldParkingLotRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
-static s32  _dryfieldParkingLotIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 commandArg);
-static s32  _dryfieldParkingLotIgnoreActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
-static void _dryfieldParkingLotIdle(Task* task);
+static s32                    _dryfieldParkingLotRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
+static s32                    _dryfieldParkingLotIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+static s32                    _dryfieldParkingLotIgnoreActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
+static void                   _dryfieldParkingLotIdle(Task* task);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -358,13 +356,13 @@ AreaResource D_dryfield_parking_lot_8017FA14[1] = {
 };
 
 AreaResource D_dryfield_parking_lot_8017FA20[2] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &Actor00100_D1BA84 },
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_parking_lot_8017FA38[3] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &Actor00100_D1BA84 },
-    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, Actor02500_D05B88 },
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
+    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, gActor02500Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

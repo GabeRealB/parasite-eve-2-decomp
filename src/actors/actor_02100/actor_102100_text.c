@@ -341,14 +341,6 @@ static SVECTOR _gActor02100WatcherBodyVerts[40];
 static SVECTOR _gActor02100WatcherBodyNormals[32];
 static u32     _gActor02100WatcherBodyStream[243];
 
-extern DamageAttack               Actor02100_D03D64[5];
-extern EnemyParams                Actor02100_D03D78;
-extern _Actor02100WeaponParams    Actor02100_D03D88[];
-extern _Actor02100BeamEdges       Actor02100_D03DD8[][ACTOR_02100_BEAM_STYLE_COUNT];
-extern s16                        Actor02100_D03E00[];
-extern _Actor02100BeamQuadCorners Actor02100_D03E1C[];
-extern s16                        Actor02100_D03E2C[];
-
 static void _actor02100Task(Task* task);
 static void _actor02100Tick(Enemy* enemy, Task* task);
 static void _actor02100TickMode(Task* task);
@@ -357,7 +349,12 @@ static s32  _actor02100UpdateTargetPosition(Task* task);
 
 static void _actor02100Initialize(Enemy* enemy, Task* task);
 
-static const EnemyTaskFuncTable3 Actor02100_D00004 = { {
+/// Watcher lifecycle handlers: 0 initialize, 1 update, 2 destroy.
+///
+/// Copied as a complete value before unchecked state dispatch. Each callback
+/// receives the live Enemy in the task's second spawn argument and its task;
+/// destruction releases the enemy and begins task teardown.
+static const EnemyTaskFuncTable3 _gActor02100TaskPhases = { {
     _actor02100Initialize,
     _actor02100Tick,
     _actor02100DestroyState,
@@ -395,7 +392,11 @@ static TmdSource _gActor02100WatcherBody = {
     _gActor02100WatcherBodyStream,
 };
 
-DamageAttack Actor02100_D03D64[5] = {
+/// Player-contact attacks indexed by the Watcher's weapon variant, 0..4.
+///
+/// The same rows supply beam and gun strike keys. Powers are unscaled damage;
+/// reactions are the player reaction codes defined by `DamageAttack`.
+static DamageAttack _gActor02100WeaponAttacks[ACTOR_02100_WEAPON_COUNT] = {
     { 15, 7 },
     { 25, 7 },
     { 12, 2 },
@@ -403,9 +404,18 @@ DamageAttack Actor02100_D03D64[5] = {
     { 15, 7 },
 };
 
-EnemyParams Actor02100_D03D78 = { Actor02100_D03D64, 70, 15, 0, 0, 100, 0, 0, 0 };
+/// Combat parameters shared by the live Watchers in this loaded package.
+///
+/// Supplies initial HP, release rewards and hit-reaction probabilities. Enemies
+/// borrow the record and its weapon attacks until they are destroyed.
+static EnemyParams _gActor02100WatcherParams = { _gActor02100WeaponAttacks, 70, 15, 0, 0, 100, 0, 0, 0 };
 
-_Actor02100WeaponParams Actor02100_D03D88[5] = {
+/// Aim/recovery ticks and sight/firing RGB colours for weapon variants 0..4.
+///
+/// Each row has two signed-halfword tick counts followed by two RGB triplets
+/// in `ACTOR_02100_BEAM_STYLE_*` order. Colours narrow to GPU bytes on drawing.
+/// The gun uses both tick counts and only the sight colour.
+static _Actor02100WeaponParams _gActor02100WeaponParams[ACTOR_02100_WEAPON_COUNT] = {
     { { 30, 90, 48, 0, 0, 255, 0, 0 } },
     { { 90, 90, 48, 0, 0, 255, 0, 0 } },
     { { 30, 180, 8, 16, 32, 32, 64, 128 } },
@@ -413,7 +423,11 @@ _Actor02100WeaponParams Actor02100_D03D88[5] = {
     { { 30, 180, 48, 48, 48, 0, 64, 16 } },
 };
 
-_Actor02100BeamEdges Actor02100_D03DD8[5][ACTOR_02100_BEAM_STYLE_COUNT] = {
+/// Signed beam-edge offsets indexed by weapon variant and beam style.
+///
+/// Each pair straddles the centre line. Drawing scales the offsets by 768
+/// divided by the segment's ordering depth, projecting the width onto screen.
+static _Actor02100BeamEdges _gActor02100BeamEdges[ACTOR_02100_WEAPON_COUNT][ACTOR_02100_BEAM_STYLE_COUNT] = {
     { { -4, 4 }, { -6, 6 } },
     { { -10, 10 }, { -14, 14 } },
     { { -10, 10 }, { -10, 10 } },
@@ -421,16 +435,28 @@ _Actor02100BeamEdges Actor02100_D03DD8[5][ACTOR_02100_BEAM_STYLE_COUNT] = {
     { { -4, 4 }, { -6, 6 } },
 };
 
-s16 Actor02100_D03E00[8] = { 3000, 3500, 4000, 4500, 5000, 6000, 7000, 8000 };
+/// Target-acquisition distances in game-coordinate units, selected by rowIndex & 7.
+///
+/// Player and enemy scans require distance strictly below the selected range.
+/// A received hit bypasses the ordinary player range test.
+static s16 _gActor02100SightRanges[8] = { 3000, 3500, 4000, 4500, 5000, 6000, 7000, 8000 };
 
-TaskDesc Actor02100_D03E10 = { { { TASK_BODY_TMD, 0x60 } }, _actor02100Task, { .model = &_gActor02100WatcherBody } };
+TaskDesc gActor02100WatcherTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor02100Task, { .model = &_gActor02100WatcherBody } };
 
-_Actor02100BeamQuadCorners Actor02100_D03E1C[2] = {
+/// Corner indices for the two fading edge quads of each beam segment.
+///
+/// Indices address the six X/Y positions in `_Actor02100BeamDrawScratch`:
+/// 0/1 are centre-line endpoints, 2/3 the first edge and 4/5 the second edge.
+static _Actor02100BeamQuadCorners _gActor02100BeamQuadCorners[2] = {
     { { 0, 1, 2, 3 } },
     { { 0, 1, 4, 5 } },
 };
 
-s16 Actor02100_D03E2C[80] = {
+/// Enemy-target eligibility flags indexed by placement entry ID, 0..79.
+///
+/// Zero permits targeting and one excludes it. IDs outside the table use row
+/// zero, which permits targeting; this table does not filter player targets.
+static s16 _gActor02100TargetExclusions[80] = {
     0,
     0,
     0,
@@ -613,9 +639,9 @@ static void _actor02100Initialize(Enemy* enemy, Task* task)
     enemy->coord               = coord;
     enemy->bodyPos.vx          = 0;
     enemy->bodyPos.vy          = 0;
-    enemy->param               = &Actor02100_D03D78;
+    enemy->param               = &_gActor02100WatcherParams;
     enemy->recs                = work->hitContacts;
-    enemy->hp                  = (u16)Actor02100_D03D78.hpMax;
+    enemy->hp                  = _gActor02100WatcherParams.hpMax;
     work->hitEffect.coord      = coord;
     work->hitEffect.spawnArgLo = ACTOR_02100_HIT_EFFECT_MAGNITUDE;
     work->hitEffect.spawnArgHi = 1;
@@ -1055,7 +1081,7 @@ static void _actor02100AcquireTarget(Task* task)
              (scratch->delta.vz * coord->workm.m[2][2])) > 0) {
             distance = SquareRoot0((scratch->delta.vx * scratch->delta.vx) + (scratch->delta.vy * scratch->delta.vy) +
                                    (scratch->delta.vz * scratch->delta.vz));
-            if (distance < Actor02100_D03E00[((Enemy*)task->spawnArg2.pointer)->place->rowIndex & (ARRAY_SIZE(Actor02100_D03E00) - 1)]) {
+            if (distance < _gActor02100SightRanges[((Enemy*)task->spawnArg2.pointer)->place->rowIndex & (ARRAY_SIZE(_gActor02100SightRanges) - 1)]) {
                 scratch->from.vx = playerCoord->workm.t[0];
                 scratch->from.vy = playerCoord->workm.t[1];
                 scratch->from.vz = playerCoord->workm.t[2];
@@ -1164,10 +1190,10 @@ static void _actor02100ScanEnemyTargets(Task* task)
         do {
             enemy   = enemyTask->spawnArg2.pointer;
             entryId = enemy->place->entryId;
-            if (entryId >= ARRAY_SIZE(Actor02100_D03E2C)) {
+            if (entryId >= ARRAY_SIZE(_gActor02100TargetExclusions)) {
                 entryId = 0;
             }
-            if (Actor02100_D03E2C[entryId] == 0 && enemy->hp > 0) {
+            if (_gActor02100TargetExclusions[entryId] == 0 && enemy->hp > 0) {
                 worldTargetGetBodyPosition(&enemy->node, &scratch->lockPos);
                 scratch->delta.vx = scratch->lockPos.vx - coord->coord.t[0];
                 scratch->delta.vy = scratch->lockPos.vy - coord->coord.t[1];
@@ -1180,7 +1206,7 @@ static void _actor02100ScanEnemyTargets(Task* task)
                                            (scratch->delta.vy * scratch->delta.vy) +
                                            (scratch->delta.vz * scratch->delta.vz));
                     if ((work->targetDistance == 0 || distance < work->targetDistance) &&
-                        distance < Actor02100_D03E00[((Enemy*)task->spawnArg2.pointer)->place->rowIndex & (ARRAY_SIZE(Actor02100_D03E00) - 1)]) {
+                        distance < _gActor02100SightRanges[((Enemy*)task->spawnArg2.pointer)->place->rowIndex & (ARRAY_SIZE(_gActor02100SightRanges) - 1)]) {
                         // Bring the world-space lock point into the occluders' view frame.
                         scratch->from.vx = scratch->lockPos.vx;
                         scratch->from.vy = scratch->lockPos.vy;
@@ -1506,7 +1532,7 @@ static void _actor02100TickBeamAttack(Task* task)
             work->enemyStrikeBody.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             work->playerStrikeBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
             work->enemyStrikeBody.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
-            if (stepTick >= Actor02100_D03D88[work->weapon].values[ACTOR_02100_WEAPON_PARAM_AIM_TICKS]) {
+            if (stepTick >= _gActor02100WeaponParams[work->weapon].values[ACTOR_02100_WEAPON_PARAM_AIM_TICKS]) {
                 work->stepFrames = 0;
                 work->step       = ACTOR_02100_BEAM_STEP_LOCK;
             }
@@ -1537,7 +1563,7 @@ static void _actor02100TickBeamAttack(Task* task)
             _actor02100DrawBeam(task, ACTOR_02100_BEAM_STYLE_FIRE);
             stepTick = work->stepFrames;
             if (stepTick == 1) {
-                work->playerStrikeBody.key = damagePackAttackKey(Actor02100_D03D64, work->weapon);
+                work->playerStrikeBody.key = damagePackAttackKey(_gActor02100WeaponAttacks, work->weapon);
                 enemyAttackId              = work->weapon + ACTOR_02100_BEAM_ENEMY_ATTACK_BASE;
                 // Publish the attack kind before reading it back into the packed key.
                 work->enemyStrikeBody.key = attackKind;
@@ -1575,7 +1601,7 @@ static void _actor02100TickBeamAttack(Task* task)
         case ACTOR_02100_BEAM_STEP_RECOVER:
             stepTick         = (u16)work->stepFrames + 1;
             work->stepFrames = stepTick;
-            if (stepTick >= Actor02100_D03D88[work->weapon].values[ACTOR_02100_WEAPON_PARAM_RECOVER_TICKS]) {
+            if (stepTick >= _gActor02100WeaponParams[work->weapon].values[ACTOR_02100_WEAPON_PARAM_RECOVER_TICKS]) {
                 work->stepFrames  = 0;
                 work->step        = ACTOR_02100_BEAM_STEP_AIM;
                 work->mode        = work->patrolRange != 0;
@@ -1654,7 +1680,7 @@ static void _actor02100TickGunAttack(Task* task)
             work->enemyStrikeBody.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             work->playerStrikeBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
             work->enemyStrikeBody.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
-            if (++work->stepFrames >= Actor02100_D03D88[work->weapon].values[ACTOR_02100_WEAPON_PARAM_AIM_TICKS]) {
+            if (++work->stepFrames >= _gActor02100WeaponParams[work->weapon].values[ACTOR_02100_WEAPON_PARAM_AIM_TICKS]) {
                 work->stepFrames = 0;
                 work->step       = ACTOR_02100_GUN_STEP_LOCK;
             }
@@ -1695,7 +1721,7 @@ static void _actor02100TickGunAttack(Task* task)
             break;
 
         case ACTOR_02100_GUN_STEP_ARM:
-            work->playerStrikeBody.key = damagePackAttackKey(Actor02100_D03D64, work->weapon);
+            work->playerStrikeBody.key = damagePackAttackKey(_gActor02100WeaponAttacks, work->weapon);
             work->step                 = ACTOR_02100_GUN_STEP_DISARM;
             work->enemyStrikeBody.key  = ((work->weapon + ACTOR_02100_GUN_ENEMY_ATTACK_BASE) << 8) | WORLD_COLLISION_CONTACT_ATTACK | (work->weapon + ACTOR_02100_GUN_ENEMY_ATTACK_BASE);
             work->shotsFired++;
@@ -1719,7 +1745,7 @@ static void _actor02100TickGunAttack(Task* task)
             break;
 
         case ACTOR_02100_GUN_STEP_RECOVER:
-            if (++work->stepFrames >= Actor02100_D03D88[work->weapon].values[ACTOR_02100_WEAPON_PARAM_RECOVER_TICKS]) {
+            if (++work->stepFrames >= _gActor02100WeaponParams[work->weapon].values[ACTOR_02100_WEAPON_PARAM_RECOVER_TICKS]) {
                 work->stepFrames  = 0;
                 work->step        = ACTOR_02100_GUN_STEP_AIM;
                 work->mode        = work->patrolRange != 0;
@@ -1743,12 +1769,12 @@ static __inline__ void _actor02100ShadeBeamQuad(POLY_G4* quad, const _Actor02100
 {
     enum { ACTOR_02100_COLOR_COMPONENT_COUNT = 3 };
     u8 blue;
-    quad->r0 = (u8)Actor02100_D03D88[work->weapon].values[(beamStyle * ACTOR_02100_COLOR_COMPONENT_COUNT) + ACTOR_02100_WEAPON_PARAM_RED];
-    quad->g0 = (u8)Actor02100_D03D88[work->weapon].values[(beamStyle * ACTOR_02100_COLOR_COMPONENT_COUNT) + ACTOR_02100_WEAPON_PARAM_GREEN];
-    quad->b0 = (u8)Actor02100_D03D88[work->weapon].values[(beamStyle * ACTOR_02100_COLOR_COMPONENT_COUNT) + ACTOR_02100_WEAPON_PARAM_BLUE];
-    quad->r1 = (u8)Actor02100_D03D88[work->weapon].values[(beamStyle * ACTOR_02100_COLOR_COMPONENT_COUNT) + ACTOR_02100_WEAPON_PARAM_RED];
-    quad->g1 = (u8)Actor02100_D03D88[work->weapon].values[(beamStyle * ACTOR_02100_COLOR_COMPONENT_COUNT) + ACTOR_02100_WEAPON_PARAM_GREEN];
-    blue     = (u8)Actor02100_D03D88[work->weapon].values[(beamStyle * ACTOR_02100_COLOR_COMPONENT_COUNT) + ACTOR_02100_WEAPON_PARAM_BLUE];
+    quad->r0 = (u8)_gActor02100WeaponParams[work->weapon].values[(beamStyle * ACTOR_02100_COLOR_COMPONENT_COUNT) + ACTOR_02100_WEAPON_PARAM_RED];
+    quad->g0 = (u8)_gActor02100WeaponParams[work->weapon].values[(beamStyle * ACTOR_02100_COLOR_COMPONENT_COUNT) + ACTOR_02100_WEAPON_PARAM_GREEN];
+    quad->b0 = (u8)_gActor02100WeaponParams[work->weapon].values[(beamStyle * ACTOR_02100_COLOR_COMPONENT_COUNT) + ACTOR_02100_WEAPON_PARAM_BLUE];
+    quad->r1 = (u8)_gActor02100WeaponParams[work->weapon].values[(beamStyle * ACTOR_02100_COLOR_COMPONENT_COUNT) + ACTOR_02100_WEAPON_PARAM_RED];
+    quad->g1 = (u8)_gActor02100WeaponParams[work->weapon].values[(beamStyle * ACTOR_02100_COLOR_COMPONENT_COUNT) + ACTOR_02100_WEAPON_PARAM_GREEN];
+    blue     = (u8)_gActor02100WeaponParams[work->weapon].values[(beamStyle * ACTOR_02100_COLOR_COMPONENT_COUNT) + ACTOR_02100_WEAPON_PARAM_BLUE];
     quad->r2 = 0;
     quad->g2 = 0;
     quad->b2 = 0;
@@ -1834,13 +1860,13 @@ static void _actor02100DrawBeam(Task* task, s32 beamStyle)
             scratch->x[1] = (u16)((u16)work->beamScreenX[0] + (scratch->stepX * nextSegment));
             edge          = 0;
             offsetX0 =
-                (s32)((s32)(scratch->direction.vy * Actor02100_D03DD8[work->weapon][beamStyle].first * ACTOR_02100_BEAM_EDGE_DEPTH_SCALE) >>
+                (s32)((s32)(scratch->direction.vy * _gActor02100BeamEdges[work->weapon][beamStyle].first * ACTOR_02100_BEAM_EDGE_DEPTH_SCALE) >>
                       ACTOR_02100_DIRECTION_FRACTION_BITS) /
                 (s32)scratch->depth;
             scratch->x[2] = (s16)(scratch->x[0] + offsetX0);
             scratch->x[3] = (s16)(scratch->x[1] + offsetX0);
             offsetX1 =
-                (s32)((s32)(scratch->direction.vy * Actor02100_D03DD8[work->weapon][beamStyle].second * ACTOR_02100_BEAM_EDGE_DEPTH_SCALE) >>
+                (s32)((s32)(scratch->direction.vy * _gActor02100BeamEdges[work->weapon][beamStyle].second * ACTOR_02100_BEAM_EDGE_DEPTH_SCALE) >>
                       ACTOR_02100_DIRECTION_FRACTION_BITS) /
                 (s32)scratch->depth;
             scratch->x[4] = (s16)(scratch->x[0] + offsetX1);
@@ -1848,13 +1874,13 @@ static void _actor02100DrawBeam(Task* task, s32 beamStyle)
             scratch->y[0] = (u16)((u16)work->beamScreenY[0] + (scratch->stepY * segment));
             scratch->y[1] = (u16)((u16)work->beamScreenY[0] + (scratch->stepY * nextSegment));
             offsetY0 =
-                (s32)((s32)(scratch->direction.vx * Actor02100_D03DD8[work->weapon][beamStyle].first * ACTOR_02100_BEAM_EDGE_DEPTH_SCALE) >>
+                (s32)((s32)(scratch->direction.vx * _gActor02100BeamEdges[work->weapon][beamStyle].first * ACTOR_02100_BEAM_EDGE_DEPTH_SCALE) >>
                       ACTOR_02100_DIRECTION_FRACTION_BITS) /
                 (s32)scratch->depth;
             scratch->y[2] = (s16)(scratch->y[0] + offsetY0);
             scratch->y[3] = (s16)(scratch->y[1] + offsetY0);
             offsetY1 =
-                (s32)((s32)(scratch->direction.vx * Actor02100_D03DD8[work->weapon][beamStyle].second * ACTOR_02100_BEAM_EDGE_DEPTH_SCALE) >>
+                (s32)((s32)(scratch->direction.vx * _gActor02100BeamEdges[work->weapon][beamStyle].second * ACTOR_02100_BEAM_EDGE_DEPTH_SCALE) >>
                       ACTOR_02100_DIRECTION_FRACTION_BITS) /
                 (s32)scratch->depth;
             scratch->y[4] = (s16)(scratch->y[0] + offsetY1);
@@ -1866,7 +1892,7 @@ static void _actor02100DrawBeam(Task* task, s32 beamStyle)
                 gGpuPrimCursor = quad + 1;
                 setPolyG4(quad);
                 setSemiTrans(quad, 1);
-                corners  = &Actor02100_D03E1C[edge];
+                corners  = &_gActor02100BeamQuadCorners[edge];
                 quad->x0 = (u16)scratch->x[corners->index[0]];
                 quad->y0 = (u16)scratch->y[corners->index[0]];
                 quad->x1 = (u16)scratch->x[corners->index[1]];
@@ -1878,7 +1904,7 @@ static void _actor02100DrawBeam(Task* task, s32 beamStyle)
                 _actor02100ShadeBeamQuad(quad, work, beamStyle);
                 edge += 1;
                 addPrim(&gGpuCurrentOt[((u32)(scratch->depth << gDisplayState.otDepthShift) >> 4) & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*gGpuCurrentOt))], quad);
-            } while (edge < ARRAY_SIZE(Actor02100_D03E1C));
+            } while (edge < ARRAY_SIZE(_gActor02100BeamQuadCorners));
 
             line           = gGpuPrimCursor;
             gGpuPrimCursor = line + 1;
@@ -1893,9 +1919,9 @@ static void _actor02100DrawBeam(Task* task, s32 beamStyle)
                 line->g0 = 0x80U;
                 line->b0 = 0x80U;
             } else {
-                line->r0 = (u8)Actor02100_D03D88[work->weapon].values[(beamStyle * ACTOR_02100_COLOR_COMPONENT_COUNT) + ACTOR_02100_WEAPON_PARAM_RED];
-                line->g0 = (u8)Actor02100_D03D88[work->weapon].values[(beamStyle * ACTOR_02100_COLOR_COMPONENT_COUNT) + ACTOR_02100_WEAPON_PARAM_GREEN];
-                line->b0 = (u8)Actor02100_D03D88[work->weapon].values[(beamStyle * ACTOR_02100_COLOR_COMPONENT_COUNT) + ACTOR_02100_WEAPON_PARAM_BLUE];
+                line->r0 = (u8)_gActor02100WeaponParams[work->weapon].values[(beamStyle * ACTOR_02100_COLOR_COMPONENT_COUNT) + ACTOR_02100_WEAPON_PARAM_RED];
+                line->g0 = (u8)_gActor02100WeaponParams[work->weapon].values[(beamStyle * ACTOR_02100_COLOR_COMPONENT_COUNT) + ACTOR_02100_WEAPON_PARAM_GREEN];
+                line->b0 = (u8)_gActor02100WeaponParams[work->weapon].values[(beamStyle * ACTOR_02100_COLOR_COMPONENT_COUNT) + ACTOR_02100_WEAPON_PARAM_BLUE];
             }
             setaddr(line, getaddr(&gGpuCurrentOt[((u32)(scratch->depth << gDisplayState.otDepthShift) >> 4) & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*gGpuCurrentOt))]));
             drawMode       = gGpuPrimCursor;
@@ -1920,7 +1946,7 @@ static void _actor02100Task(Task* task)
 {
     EnemyTaskFuncTable3 lifecycleHandlers;
 
-    lifecycleHandlers = Actor02100_D00004;
+    lifecycleHandlers = _gActor02100TaskPhases;
     lifecycleHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
@@ -2134,3 +2160,5 @@ static void _actor02100DestroyState(Enemy* enemy, Task* task)
             break;
     }
 }
+
+PACKAGE_ALIASES
