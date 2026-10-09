@@ -112,7 +112,7 @@ tr.hot td { background: var(--accent-soft); } tr.clash td:first-child { color: v
     </section>
   </div>
   </div>
-  <p class="note">View edges assume file N of a room's folder is view N, which holds for rooms that use the identity view map. Variant edges come from each room's placement and resource tables, with the page and row offsets the placement loads the file with; a rectangle is drawn where it lands after those offsets. Not yet in the graph: stage-common files, gameplay's own loads (weapons, menus, companions) and uploads done by code.</p>
+  <p class="note">View edges assume file N of a room's folder is view N, which holds for rooms that use the identity view map. Variant edges come from each room's placement and resource tables, with the page and row offsets the placement loads the file with; a rectangle is drawn where it lands after those offsets. Loads decided by code (weapons, costumes, menus, load screens, sound banks) are traced from the sources; click such a group to switch it on. Not in the graph: uploads done by code without a file.</p>
 </div>
 <script>
 const D = /*DATA*/;
@@ -120,28 +120,29 @@ const $ = id => document.getElementById(id), NS = "http://www.w3.org/2000/svg";
 const el = (tag, attrs, text) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; return e; };
 const names = Object.keys(D.loaders).sort();
 $("loaders").innerHTML = names.map(n => `<option value="${n}">`).join("");
-let cur = null, hot = null;
+let cur = null, hot = null; const picked = new Set();   // optional groups switched on by hand
 
-function landed(r, page, row) {           // the loader's offsets: header rows 245..255 move by rows, images from row 256 by pages
+function landed(r, page, row, relocate) { // as src/main/fs.c moves an upload: palettes at rows 245..255 by rows, images by pages
   let [asset, kind, part, x, y, w, h, bpp] = r;
-  if (y >= 245 && y <= 255) y += row; else if (y >= 256 && kind === "i") x += page * 64;
+  if (kind === "c") y += (y >= 245 && y <= 255 ? row : 0) + (relocate ? 1 : 0);
+  else { if (relocate || y >= 256) x += page * 64; if (relocate && (part === "" || part === "column 0")) y += 128; }
   return { asset, kind, part, x, y, w, h, bpp };
 }
 function resident() {
   const out = [], view = $("view").value, variant = $("variant").value;
   cur.groups.forEach((g, gi) => {
-    const on = g[0] === "a" || g[1] === view || g[1] === variant;
+    const on = g[0] === "a" || g[1] === view || g[1] === variant || picked.has(g[1]);
     g.on = on;
-    if (on) for (const [f, page, row] of g[3]) for (const r of (D.fp[f] || [])) out.push({ ...landed(r, page, row), group: gi, file: D.files[f], by: g[0] === "a" ? "always" : g[1] });
+    if (on) for (const [f, page, row, , rel] of g[3]) for (const r of (D.fp[f] || [])) out.push({ ...landed(r, page, row, rel), group: gi, file: D.files[f], by: g[0] === "a" ? "always" : g[1] });
   });
   out.forEach((a, i) => { a.clash = out.some((b, j) => i !== j && a.file !== b.file && a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h); });
   return out;
 }
 function drawGraph() {
   const svg = $("graph"); svg.replaceChildren();
-  const rowH = 20, gx = 170, fx = 330; let y = 14; const rows = [];
+  const rowH = 20, gx = 170, fx = 390; let y = 14; const rows = [];
   cur.groups.forEach((g, gi) => { rows.push({ gi, y, n: Math.max(1, g[3].length) }); y += Math.max(1, g[3].length) * rowH + 6; });
-  const H = y + 8, W = 760, ly = Math.min(H / 2, 300);
+  const H = y + 8, W = 900, ly = Math.min(H / 2, 300);
   svg.setAttribute("width", W); svg.setAttribute("height", H); svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
   const edges = el("g", {}), nodes = el("g", {}); svg.append(edges, nodes);
   const lg = el("g", { class: "loader" }); lg.append(el("rect", { x: 6, y: ly - 11, width: 130, height: 22, rx: 2 }), el("text", { x: 12, y: ly + 4 }, cur.name.length > 19 ? cur.name.slice(0, 18) + "…" : cur.name)); nodes.append(lg);
@@ -149,12 +150,13 @@ function drawGraph() {
     const g = cur.groups[gi], cy = y + 8, opt = g[0] !== "a";
     edges.append(el("path", { class: "edge" + (opt ? " opt" : "") + (g.on ? " on" : ""), d: `M136 ${ly} C ${gx - 20} ${ly}, ${gx - 30} ${cy}, ${gx} ${cy}` }));
     const node = el("g", { class: "g" + (g.on ? " sel" : ""), tabindex: opt ? 0 : -1, role: "button" });
-    node.append(el("rect", { x: gx, y: cy - 9, width: 110, height: 18, rx: 2 }), el("text", { x: gx + 6, y: cy + 4 }, opt ? g[1] : "always"));
-    if (opt) { const pick = () => { const s = g[1].startsWith("view") ? $("view") : $("variant"); s.value = s.value === g[1] ? "" : g[1]; render(); }; node.addEventListener("click", pick); node.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } }); }
+    const label = opt ? g[1] : "always", shown = label.length > 26 ? label.slice(0, 25) + "…" : label;
+    node.append(el("rect", { x: gx, y: cy - 9, width: 170, height: 18, rx: 2 }), el("text", { x: gx + 6, y: cy + 4 }, shown), el("title", {}, label));
+    if (opt) { const pick = () => { if (/^(view|variant) \d+$/.test(g[1])) { const s = g[1].startsWith("view") ? $("view") : $("variant"); s.value = s.value === g[1] ? "" : g[1]; } else if (!picked.delete(g[1])) picked.add(g[1]); render(); }; node.addEventListener("click", pick); node.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } }); }
     nodes.append(node);
     g[3].forEach(([f, page, row, note], k) => {
       const fy = y + 8 + k * rowH, n = (D.fp[f] || []).length;
-      edges.append(el("path", { class: "edge" + (g.on ? " on" : ""), d: `M${gx + 110} ${cy} C ${fx - 30} ${cy}, ${fx - 30} ${fy}, ${fx - 4} ${fy}` }));
+      edges.append(el("path", { class: "edge" + (g.on ? " on" : ""), d: `M${gx + 170} ${cy} C ${fx - 30} ${cy}, ${fx - 30} ${fy}, ${fx - 4} ${fy}` }));
       nodes.append(el("text", { x: fx, y: fy + 4 }, D.files[f]));
       const extra = [(page || row) ? `page ${page >= 0 ? "+" : ""}${page}, row ${row >= 0 ? "+" : ""}${row}` : "", n ? `${n} upload${n > 1 ? "s" : ""}` : "no uploads", note].filter(Boolean).join(" · ");
       nodes.append(el("text", { class: "dim", x: fx + 8 + D.files[f].length * 6.7, y: fy + 4 }, extra));
@@ -204,8 +206,8 @@ function render() {
 }
 function pick(name, keep) {
   if (!D.loaders[name]) return;
-  cur = { name, groups: D.loaders[name] }; hot = null;
-  const conds = k => cur.groups.filter(g => g[0] === "o" && g[1].startsWith(k)).map(g => g[1]);
+  cur = { name, groups: D.loaders[name] }; hot = null; picked.clear();
+  const conds = k => cur.groups.filter(g => g[0] === "o" && new RegExp("^" + k + " \\d+$").test(g[1])).map(g => g[1]);
   const fill = (s, list, none) => { s.innerHTML = `<option value="">${none}</option>` + list.map(c => `<option>${c}</option>`).join(""); s.disabled = !list.length; };
   fill($("view"), conds("view"), "none"); fill($("variant"), conds("variant"), "none");
   const withUploads = k => cur.groups.find(g => g[0] === "o" && g[1].startsWith(k) && g[3].some(m => (D.fp[m[0]] || []).length));

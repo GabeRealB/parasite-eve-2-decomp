@@ -52,7 +52,7 @@ DROP TABLE IF EXISTS file; DROP TABLE IF EXISTS footprint; DROP TABLE IF EXISTS 
 CREATE TABLE file (path TEXT PRIMARY KEY, stage INTEGER, folder TEXT, id INTEGER, package TEXT);
 CREATE TABLE footprint (file TEXT, asset TEXT, kind TEXT, part TEXT, x INTEGER, y INTEGER, w INTEGER, h INTEGER, bpp INTEGER);
 CREATE TABLE grp (id INTEGER PRIMARY KEY, loader TEXT, kind TEXT, condition TEXT, evidence TEXT, source TEXT);
-CREATE TABLE member (grp INTEGER, file TEXT, page INTEGER, row INTEGER, note TEXT);
+CREATE TABLE member (grp INTEGER, file TEXT, page INTEGER, row INTEGER, mode TEXT, note TEXT);
 CREATE INDEX grp_loader ON grp(loader); CREATE INDEX member_grp ON member(grp); CREATE INDEX footprint_file ON footprint(file);
 """
 
@@ -84,13 +84,22 @@ def footprints(assets: dict, node: dict) -> list[tuple]:
     return out
 
 
-def moved(rect: tuple, page: int, row: int) -> tuple[int, int]:
-    """Where a rectangle lands when its file is loaded with these offsets."""
-    _asset, _kind, _part, x, y, _w, _h, _bpp = rect
-    if y in SHIFTED_ROWS:
-        return x, y + row
-    if y >= RELOCATED_FROM and _kind == "image":
-        return x + page * asset_schema.IMAGE_COLUMN_WIDTH, y
+def moved(rect: tuple, page: int, row: int, mode: str = "") -> tuple[int, int]:
+    """Where a rectangle lands when its file is loaded with these offsets (src/main/fs.c).
+
+    The row offset moves only a CLUT whose header is at rows 245..255. The
+    page offset moves an image at or below row 256, or every image when the
+    mode relocates images; that mode also puts the first image column 128
+    rows down and every CLUT one more row down.
+    """
+    _asset, kind, part, x, y, _w, _h, _bpp = rect
+    relocate = "RELOCATE" in (mode or "")
+    if kind == "clut":
+        return x, y + (row if y in SHIFTED_ROWS else 0) + (1 if relocate else 0)
+    if relocate or y >= RELOCATED_FROM:
+        x += page * asset_schema.IMAGE_COLUMN_WIDTH
+    if relocate and part in ("", "column 0"):
+        y += 128
     return x, y
 
 
@@ -144,25 +153,41 @@ def traced_loads(common: dict[int, str], folders: dict[tuple[int, int], dict[int
         if kind not in ("always", "optional"):
             print(f"{TRACED.name}:{n}: kind is {kind!r}", file=sys.stderr)
             continue
-        offsets = (number(page), number(row))
-        ranged = re.match(r"(\d+)\s*\.\.\s*(\d+)(?:\s+by\s+(.*))?$", spec)
+        # Offsets that depend on the caller ("-8 or 0") are not one number;
+        # the file is then placed unshifted and the note keeps the text.
+        fixed = re.fullmatch(r"[-+]?\w+", page) and re.fullmatch(r"[-+]?\w+", row)
+        offsets = (number(page), number(row), mode) if fixed else (0, 0, "")
+        if not fixed:
+            note = f"offsets {page} / {row} ({mode}); " + note
         placed = re.match(r"(\d)/(\d+)/(\d+|\*)$", spec)
-        if ranged:
+        if spec.startswith("stage/"):
+            continue                       # a rule about the current room, not an edge
+        if placed:
+            files = folders.get((int(placed[1]), int(placed[2])), {})
+            hit = [path for index, path in sorted(files.items()) if placed[3] in ("*", str(index))]
+            if not hit:
+                print(f"{TRACED.name}:{n}: no file {spec}", file=sys.stderr)
+            for path in hit:
+                together[loader, kind, condition, evidence].append((path,) + offsets + (note,))
+            continue
+        what = spec.split(" by ", 1)
+        ids: list[int] = []
+        for part in re.split(r"\s*,\s*", what[0]):
+            span = re.fullmatch(r"(\d+)\s*\.\.\s*(\d+)", part)
+            if span:
+                ids += sorted(i for i in common if int(span[1]) <= i <= int(span[2]))
+            elif part.isdigit() and int(part) in common:
+                ids.append(int(part))
+            elif part.isdigit():
+                print(f"{TRACED.name}:{n}: no stage-zero file {part}", file=sys.stderr)
+        if len(what) == 2 or ".." in what[0]:
             # One of a family at a time: a group of its own for each file.
-            for fid in sorted(i for i in common if int(ranged[1]) <= i <= int(ranged[2])):
+            for fid in ids:
                 name = common[fid].split("/", 1)[1]
                 yield loader, "optional", f"{condition}: {name}" if condition else name, evidence, [(common[fid],) + offsets + (note,)]
-        elif placed:
-            files = folders.get((int(placed[1]), int(placed[2])), {})
-            for index, path in sorted(files.items()):
-                if placed[3] in ("*", str(index)):
-                    together[loader, kind, condition, evidence].append((path,) + offsets + (note,))
         else:
-            for fid in (int(i) for i in re.findall(r"\d+", spec)):
-                if fid in common:
-                    together[loader, kind, condition, evidence].append((common[fid],) + offsets + (note,))
-                else:
-                    print(f"{TRACED.name}:{n}: no stage-zero file {fid}", file=sys.stderr)
+            for fid in ids:
+                together[loader, kind, condition, evidence].append((common[fid],) + offsets + (note,))
     merged: dict[tuple, list] = defaultdict(list)
     evidence_of: dict[tuple, str] = {}
     for (loader, kind, condition, evidence), members in together.items():
@@ -192,12 +217,12 @@ def build(db: sqlite3.Connection) -> None:
     def group(loader, kind, condition, evidence, source, members):
         gid = db.execute("INSERT INTO grp (loader, kind, condition, evidence, source) VALUES (?,?,?,?,?)",
                          (loader, kind, condition, evidence, source)).lastrowid
-        db.executemany("INSERT INTO member VALUES (?,?,?,?,?)", [(gid,) + m for m in members])
+        db.executemany("INSERT INTO member VALUES (?,?,?,?,?,?)", [(gid,) + m for m in members])
 
     # An overlay and the file that carries it: one cannot be without the other.
     for package, paths in sorted(carriers.items()):
         for path in paths:
-            group(package, "always", "", "carrier", path, [(path, 0, 0, "")])
+            group(package, "always", "", "carrier", path, [(path, 0, 0, "", "")])
     # A room's other files are its views, one loaded at a time.
     rooms: dict[str, str] = {}
     for stage, body in tree.items():
@@ -209,7 +234,7 @@ def build(db: sqlite3.Connection) -> None:
             for fkey, node in fnode["files"].items():
                 if not any(c in packages for c in (node.get("chunks") or {}).values()):
                     group(room, "optional", f"view {node['id']}", "folder", f"{stage}/{folder}",
-                          [(f"{stage}/{folder}/{fkey}", 0, 0, "")])
+                          [(f"{stage}/{folder}/{fkey}", 0, 0, "", "")])
 
     # A room's variants: each pairs placements with the resources they name.
     files = sorted(p for base in ("src", "include") for p in (ROOT / base).rglob("*")
@@ -236,14 +261,22 @@ def build(db: sqlite3.Connection) -> None:
             used = defaultdict(list)
             for entry, low, page, row in placements.get(placed, ()):
                 used[entry].append((low, page, row))
+            # (loadingPollAreaBaseResources / loadingPollAreaPlacementFiles.) The
+            # base file of every resource is loaded, placed or not - except a
+            # texture-only resource (group 60), loaded only for a placement
+            # that names it without a further file. A placement's further
+            # file comes in addition, with that placement's own offsets.
             for entry, (base, table) in entries.items():
+                textures = 600000 <= base < 700000
+                if textures and entry not in used:
+                    continue
                 for low, page, row in used.get(entry) or [(0, 0, 0)]:
-                    for fid in sorted({base, base + low}):
+                    for fid in sorted({base, base + low} - ({base} if textures and low else set())):
                         loads[(fid, page, row)] = f"entry {entry}" + ("" if entry in used else ", not placed")
             members = []
             for (fid, page, row), note in sorted(loads.items()):
                 if fid in common:
-                    members.append((common[fid], page, row, note))
+                    members.append((common[fid], page, row, "", note))
                 else:
                     missing += 1
             if members:
@@ -276,7 +309,7 @@ def page_data(db: sqlite3.Connection, pictures: str = "") -> str:
     index = {path: n for n, path in enumerate(files)}
     members = defaultdict(list)
     for r in db.execute("SELECT * FROM member"):
-        members[r["grp"]].append([index[r["file"]], r["page"], r["row"], r["note"]])
+        members[r["grp"]].append([index[r["file"]], r["page"], r["row"], r["note"], int("RELOCATE" in (r["mode"] or ""))])
     loaders = defaultdict(list)
     for g in db.execute("SELECT * FROM grp ORDER BY loader, kind, id"):
         loaders[g["loader"]].append([g["kind"][0], g["condition"], g["evidence"], members[g["id"]]])
@@ -309,7 +342,7 @@ def resident(db: sqlite3.Connection, loader: str):
     for g in db.execute("SELECT * FROM grp WHERE loader = ? ORDER BY kind, id", (loader,)):
         for m in db.execute("SELECT * FROM member WHERE grp = ?", (g["id"],)):
             for f in db.execute("SELECT * FROM footprint WHERE file = ?", (m["file"],)):
-                x, y = moved(tuple(f)[1:], m["page"], m["row"])
+                x, y = moved(tuple(f)[1:], m["page"], m["row"], m["mode"])
                 yield g, m, f, x, y
 
 
