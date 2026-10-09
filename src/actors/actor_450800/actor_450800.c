@@ -119,22 +119,15 @@ extern TaskDesc         D_actor_450800_8014AC88[];
 /// Animation-set table bound to the work block's context by `animationInitContext`.
 extern u8 D_actor_450800_8014ACC4[];
 
-/// The enemy's message table, the `TaskDesc` table its model tasks come from,
-/// and the animation data its work block's slots are seeded from - the same
-/// three roles as the actor's tables above.
-extern TaskMessageEntry gPairWalkMessages[];
-extern TaskDesc         gPairWalkTasks[];
-extern u8               gPairWalkAnimParams[];
+/// The `TaskDesc` table its model tasks come from.
+extern TaskDesc gPairWalkTasks[];
 
-extern s32                  D_actor_450800_8013930C;
-extern AnimationPlayRequest D_actor_450800_801397A4;
-extern ActorTransform       D_actor_450800_801398EC;
-extern EvsCommand           D_actor_450800_8013A564[];
-extern EvsCommand           D_actor_450800_8013A684[];
-extern EvsCommand           D_actor_450800_8013A774[];
-extern EvsCommand           D_actor_450800_8013A984[];
-extern EvsCommand           D_actor_450800_8013AB7C[];
-extern EvsCommand           D_actor_450800_8013ACFC[];
+extern EvsCommand D_actor_450800_8013A564[];
+extern EvsCommand D_actor_450800_8013A684[];
+extern EvsCommand D_actor_450800_8013A774[];
+extern EvsCommand D_actor_450800_8013A984[];
+extern EvsCommand D_actor_450800_8013AB7C[];
+extern EvsCommand D_actor_450800_8013ACFC[];
 
 static inline void _actor450800ApplyHelperPlacementTexture(Task* spawned, Task* actor);
 static void        _actor450800SpawnKyleMadigan(Enemy* enemy, Task* task);
@@ -163,67 +156,47 @@ static TmdSource _gActor450800GolemBeamSword;
 static s32       _actor450800IgnorePawnGolemCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArgument);
 static void      _actor450800PawnGolemWalkerTask(Task* task);
 
-extern AnimationPlayRequest D_actor_450800_80139560;
-extern AnimationPlayRequest D_actor_450800_80139628;
-extern AnimationPlayRequest D_actor_450800_80139894;
-extern ActorTransform       D_actor_450800_8013994C;
-static void                 _actor450800SetNurseryCaptions(s32 useNurseryCaptions);
-static void                 _actor450800EnterGrowthRoom(void);
+static void _actor450800SetNurseryCaptions(s32 useNurseryCaptions);
+static void _actor450800EnterGrowthRoom(void);
 
-extern AnimationPlayRequest     D_actor_450800_80139458;
-extern AnimationPlayRequest     D_actor_450800_8013946C;
-extern AnimationPlayRequest     D_actor_450800_80139480;
-extern AnimationPlayRequest     D_actor_450800_80139494;
-extern AnimationPlayRequest     D_actor_450800_801394A8;
-extern AnimationPlayRequest     D_actor_450800_801395C4;
-extern AnimationPlayRequest     D_actor_450800_801395D8;
-extern AnimationPlayRequest     D_actor_450800_801397CC;
-extern AnimationPlayRequest     D_actor_450800_801397E0;
-extern AnimationPlayRequest     D_actor_450800_801397F4;
-extern AnimationPlayRequest     D_actor_450800_80139808;
-extern AnimationPlayRequest     D_actor_450800_8013981C;
-extern AnimationPlayRequest     D_actor_450800_80139830;
-extern AnimationPlayRequest     D_actor_450800_801398A8;
-extern AnimationPlayRequest     D_actor_450800_8013ADEC;
-extern AnimationPlayRequest     D_actor_450800_8013AE00;
-extern AnimationPlayRequest     D_actor_450800_8013AE14;
-extern ActorCommand             D_actor_450800_801398E0;
-extern ActorCommand             D_actor_450800_801398E4;
-extern AnimationBankCopyRequest D_actor_450800_801398D0;
-extern AnimationBankCopyRequest D_actor_450800_801398D8;
-extern ActorTransform           D_actor_450800_8013AE30;
-extern ActorTransform           D_actor_450800_8013AE48;
-extern ActorTransform           D_actor_450800_8013AE60;
-static void                     _actor450800SetNurseryView13SpriteHidden(s32 hidden);
-static void                     _actor450800SpawnNurseryImpactSpark(void);
+extern AnimationPlayRequest D_actor_450800_80139458;
+extern AnimationPlayRequest D_actor_450800_8013946C;
+extern AnimationPlayRequest D_actor_450800_80139480;
+extern AnimationPlayRequest D_actor_450800_80139494;
+extern AnimationPlayRequest D_actor_450800_801394A8;
+extern AnimationPlayRequest D_actor_450800_801395C4;
+extern AnimationPlayRequest D_actor_450800_801395D8;
+extern AnimationPlayRequest D_actor_450800_801397CC;
+extern AnimationPlayRequest D_actor_450800_801397E0;
+extern AnimationPlayRequest D_actor_450800_801397F4;
+extern AnimationPlayRequest D_actor_450800_80139808;
+extern AnimationPlayRequest D_actor_450800_8013981C;
+extern AnimationPlayRequest D_actor_450800_80139830;
+extern AnimationPlayRequest D_actor_450800_8013ADEC;
+extern AnimationPlayRequest D_actor_450800_8013AE00;
+extern AnimationPlayRequest D_actor_450800_8013AE14;
+extern ActorCommand         D_actor_450800_801398E0;
+extern ActorCommand         D_actor_450800_801398E4;
+extern ActorTransform       D_actor_450800_8013AE30;
+extern ActorTransform       D_actor_450800_8013AE48;
+extern ActorTransform       D_actor_450800_8013AE60;
+static void                 _actor450800SetNurseryView13SpriteHidden(s32 hidden);
+static void                 _actor450800SpawnNurseryImpactSpark(void);
 
-extern AnimationPlayRequest D_actor_450800_80139390;
-extern AnimationPlayRequest D_actor_450800_801393A4;
-extern AnimationPlayRequest D_actor_450800_801393CC;
-extern AnimationPlayRequest D_actor_450800_801393E0;
-extern AnimationPlayRequest D_actor_450800_801393F4;
 extern AnimationPlayRequest D_actor_450800_80139408;
 extern AnimationPlayRequest D_actor_450800_8013941C;
-extern AnimationPlayRequest D_actor_450800_80139430;
 extern AnimationPlayRequest D_actor_450800_8013954C;
-extern AnimationPlayRequest D_actor_450800_80139574;
 extern AnimationPlayRequest D_actor_450800_80139588;
 extern AnimationPlayRequest D_actor_450800_80139650;
 extern AnimationPlayRequest D_actor_450800_80139664;
 extern AnimationPlayRequest D_actor_450800_80139678;
 extern AnimationPlayRequest D_actor_450800_8013968C;
 extern AnimationPlayRequest D_actor_450800_801396A0;
-extern AnimationPlayRequest D_actor_450800_801396C8;
-extern AnimationPlayRequest D_actor_450800_801396DC;
-extern AnimationPlayRequest D_actor_450800_801396F0;
-extern AnimationPlayRequest D_actor_450800_80139704;
-extern AnimationPlayRequest D_actor_450800_80139718;
 extern AnimationPlayRequest D_actor_450800_8013972C;
 extern AnimationPlayRequest D_actor_450800_80139740;
 extern AnimationPlayRequest D_actor_450800_80139754;
 extern AnimationPlayRequest D_actor_450800_80139768;
 extern AnimationPlayRequest D_actor_450800_8013977C;
-extern AnimationPlayRequest D_actor_450800_80139790;
 static void                 _actor450800SetNurseryEffectCues(u32 packedCues);
 // Packed high/low halfwords: fast glint pulse on, spark shower scale zero.
 enum { ACTOR_450800_NURSERY_FAST_GLINT_NO_SHOWER = (1 << 16) | 0 };
@@ -845,45 +818,156 @@ static AnimationSet _gActor450800Animation074C4 = {
     { NULL, _gActor450800Animation074C4Bank1, NULL, NULL, _gActor450800Animation074C4Bank4, NULL, NULL, NULL },
 };
 
-s32 D_actor_450800_8013930C = 0;
+/// Clip keys used by the nursery's base-player and fixed Kyle banks.
+enum {
+    ACTOR_450800_NURSERY_PLAYER_BASE_CLIP       = 1,
+    ACTOR_450800_NURSERY_KYLE_INITIAL_CLIP      = 1,
+    ACTOR_450800_NURSERY_KYLE_CLIP_9            = 9,
+    ACTOR_450800_NURSERY_KYLE_CLIP_10           = 10,
+    ACTOR_450800_NURSERY_KYLE_CLIP_11           = 11,
+    ACTOR_450800_NURSERY_KYLE_CLIP_12           = 12,
+    ACTOR_450800_NURSERY_KYLE_ARRIVAL_IDLE_CLIP = 13,
+    ACTOR_450800_NURSERY_KYLE_CLIP_19           = 19,
+    ACTOR_450800_NURSERY_KYLE_CLIP_20           = 20,
+};
 
-/// Player clips for extended ids 47-63.
+/// Nursery interactions during progress state 1, capped at 3.
 ///
-/// A script sends the player its copy request before it plays any of these
-/// clips. `D_actor_450800_801398D8` copies `ANIMATION_BANK_EXTENSION_CAPACITY`
-/// (32) words starting here into the player's bank, which is 15 words past the
-/// end of this array: the read runs on through `D_actor_450800_80139354`,
-/// `D_actor_450800_80139368` and `D_actor_450800_8013937C`. That overrun is the
-/// original's and is kept as it is: the request carries the bank's fixed
-/// capacity, while the table was stored with only its own entries. The requests
-/// the scripts play on the player select base id 1 and extended ids 47-63 only,
-/// so none of the words installed after the seventeen clips is played as one.
-AnimationSet* D_actor_450800_80139310[17] = { &_gActor450800Animation01B20, &_gActor450800Animation01DFC, &_gActor450800Animation02070, &_gActor450800Animation022D8, &_gActor450800Animation02538, &_gActor450800Animation02840, &_gActor450800Animation02A04, &_gActor450800Animation02C30, &_gActor450800Animation02DE4, &_gActor450800Animation03348, &_gActor450800Animation0359C, &_gActor450800Animation03954, &_gActor450800Animation03D3C, &_gActor450800Animation04078, &_gActor450800Animation04240, &_gActor450800Animation04680, &_gActor450800Animation074C4 };
+/// Starts at 0 on package load and stays in 0..3. Repeat dialogue selects
+/// CAP sequence 2 plus the counter's low halfword.
+static s32 _gActor450800NurseryInteractionCount = 0;
+
+/// Nursery clips installed at player bank indices 47..63.
+///
+/// The copy request transfers 32 words, including 15 words beyond this
+/// table's 17 pointers. This original read into adjacent request data is
+/// retained; only the pointers in this table are playable extension entries.
+/// The copied tail covers the following three request records; it is never
+/// selected for playback. Keep these objects contiguous in their stored order.
+static AnimationSet* _gActor450800NurseryPlayerAnimationSets[17] = {
+    &_gActor450800Animation01B20,
+    &_gActor450800Animation01DFC,
+    &_gActor450800Animation02070,
+    &_gActor450800Animation022D8,
+    &_gActor450800Animation02538,
+    &_gActor450800Animation02840,
+    &_gActor450800Animation02A04,
+    &_gActor450800Animation02C30,
+    &_gActor450800Animation02DE4,
+    &_gActor450800Animation03348,
+    &_gActor450800Animation0359C,
+    &_gActor450800Animation03954,
+    &_gActor450800Animation03D3C,
+    &_gActor450800Animation04078,
+    &_gActor450800Animation04240,
+    &_gActor450800Animation04680,
+    &_gActor450800Animation074C4,
+};
 
 // The run of requests the package keeps for the player starts here; a script resolves the player's weapon bank in its own copy of a request before it dispatches it. This one is not referenced.
 AnimationPlayRequest D_actor_450800_80139354 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_450800_80139368 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the player's nursery clip 47.
+///
+/// Script playback resolves the equipped weapon bank in a copy.
+/// The request disables world-grid collision and is borrowed through dispatch.
+static AnimationPlayRequest _gActor450800NurseryPlayerClip47Reset = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_450800_8013937C = { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the player's nursery clip 48.
+///
+/// Script playback resolves the equipped weapon bank in a copy.
+/// The request disables world-grid collision and is borrowed through dispatch.
+static AnimationPlayRequest _gActor450800NurseryPlayerClip48Reset = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 1,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_450800_80139390 = { { .index = 1 }, 49, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Blends the player's nursery clip 49 over 8 frames.
+///
+/// Script playback resolves the equipped weapon bank in a copy.
+/// The request disables world-grid collision and is borrowed through dispatch.
+static AnimationPlayRequest _gActor450800NurseryPlayerClip49Blend = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 2,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 8,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_450800_801393A4 = { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the player's nursery clip 50.
+///
+/// Script playback resolves the equipped weapon bank in a copy.
+/// The request disables world-grid collision and is borrowed through dispatch.
+static AnimationPlayRequest _gActor450800NurseryPlayerClip50Reset = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 3,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_actor_450800_801393B8 = { { .index = 1 }, 51, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_450800_801393CC = { { .index = 1 }, 52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the player's nursery clip 52.
+///
+/// Script playback resolves the equipped weapon bank in a copy.
+/// The request disables world-grid collision and is borrowed through dispatch.
+static AnimationPlayRequest _gActor450800NurseryPlayerClip52Reset = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 5,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_450800_801393E0 = { { .index = 1 }, 53, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the player's nursery clip 53.
+///
+/// Script playback resolves the equipped weapon bank in a copy.
+/// The request disables world-grid collision and is borrowed through dispatch.
+static AnimationPlayRequest _gActor450800NurseryPlayerClip53Reset = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 6,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_450800_801393F4 = { { .index = 1 }, 54, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the player's nursery clip 54.
+///
+/// Script playback resolves the equipped weapon bank in a copy.
+/// The request disables world-grid collision and is borrowed through dispatch.
+static AnimationPlayRequest _gActor450800NurseryPlayerClip54Reset = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 7,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_actor_450800_80139408 = { { .index = 1 }, 55, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 AnimationPlayRequest D_actor_450800_8013941C = { { .index = 1 }, 56, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_450800_80139430 = { { .index = 1 }, 57, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the player's nursery clip 57.
+///
+/// Script playback resolves the equipped weapon bank in a copy.
+/// The request disables world-grid collision and is borrowed through dispatch.
+static AnimationPlayRequest _gActor450800NurseryPlayerClip57Reset = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 10,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_actor_450800_80139444 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -897,20 +981,26 @@ AnimationPlayRequest D_actor_450800_80139494 = { { .index = 1 }, 62, ANIMATION_B
 
 AnimationPlayRequest D_actor_450800_801394A8 = { { .index = 1 }, 63, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
-/// Companion clips for extended ids 47-57.
+/// Nursery clips installed at companion bank indices 47..57.
 ///
-/// A script sends the companion its copy request before it plays any of these
-/// clips. `D_actor_450800_801398D0` copies `ANIMATION_BANK_EXTENSION_CAPACITY`
-/// (32) words starting here into the companion's bank, which is 21 words past
-/// the end of this array: the read runs on through `D_actor_450800_801394E8`,
-/// `D_actor_450800_801394FC`, `D_actor_450800_80139510`,
-/// `D_actor_450800_80139524` and the first word of `D_actor_450800_80139538`.
-/// That overrun is the original's and is kept as it is: the request carries the
-/// bank's fixed capacity, while the table was stored with only its own entries.
-/// The requests the scripts play on the companion select base id 1 and extended
-/// ids 47-57 only, so none of the words installed after the eleven clips is
-/// played as one.
-AnimationSet* D_actor_450800_801394BC[11] = { &_gActor450800Animation048B8, &_gActor450800Animation04C24, &_gActor450800Animation04E48, &_gActor450800Animation04FD8, &_gActor450800Animation05CB4, &_gActor450800Animation05EDC, &_gActor450800Animation061D0, &_gActor450800Animation063E8, &_gActor450800Animation0690C, &_gActor450800Animation06C64, &_gActor450800Animation070F8 };
+/// The copy request transfers 32 words, including 21 words beyond this
+/// table's 11 pointers. This original read into adjacent request data is
+/// retained; only the pointers in this table are playable extension entries.
+/// The copied tail covers four following requests and the bank word of the
+/// fifth; it is never selected for playback. Keep the stored object order.
+static AnimationSet* _gActor450800NurseryCompanionAnimationSets[11] = {
+    &_gActor450800Animation048B8,
+    &_gActor450800Animation04C24,
+    &_gActor450800Animation04E48,
+    &_gActor450800Animation04FD8,
+    &_gActor450800Animation05CB4,
+    &_gActor450800Animation05EDC,
+    &_gActor450800Animation061D0,
+    &_gActor450800Animation063E8,
+    &_gActor450800Animation0690C,
+    &_gActor450800Animation06C64,
+    &_gActor450800Animation070F8,
+};
 
 // The run of requests the package keeps for the companion starts here; a script resolves the companion's bank in its own copy of a request before it dispatches it. This one is not referenced.
 AnimationPlayRequest D_actor_450800_801394E8 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
@@ -925,9 +1015,29 @@ AnimationPlayRequest D_actor_450800_80139538 = { { .index = 1 }, 50, ANIMATION_B
 
 AnimationPlayRequest D_actor_450800_8013954C = { { .index = 1 }, 51, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_450800_80139560 = { { .index = 1 }, 52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the companion's nursery clip 52.
+///
+/// Script playback resolves the companion bank in a copy.
+/// The request disables world-grid collision and is borrowed through dispatch.
+static AnimationPlayRequest _gActor450800NurseryCompanionClip52Reset = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 5,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_450800_80139574 = { { .index = 1 }, 53, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the companion's nursery clip 53.
+///
+/// Script playback resolves the companion bank in a copy.
+/// The request disables world-grid collision and is borrowed through dispatch.
+static AnimationPlayRequest _gActor450800NurseryCompanionClip53Reset = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 6,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_actor_450800_80139588 = { { .index = 1 }, 54, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -946,7 +1056,17 @@ AnimationPlayRequest D_actor_450800_801395EC[3] = {
     { { .index = 1 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-AnimationPlayRequest D_actor_450800_80139628 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Kyle's nursery clip 1.
+///
+/// Uses the fixed Kyle bank; the selector and collision words are ignored.
+/// The aligned request is borrowed only through synchronous dispatch.
+static AnimationPlayRequest _gActor450800NurseryKyleClip1Reset = {
+    .source               = { .index = 1 },
+    .animationId          = ACTOR_450800_NURSERY_KYLE_INITIAL_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_actor_450800_8013963C = { { .index = 1 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -962,15 +1082,65 @@ AnimationPlayRequest D_actor_450800_801396A0 = { { .index = 1 }, 7, ANIMATION_BL
 
 AnimationPlayRequest D_actor_450800_801396B4 = { { .index = 1 }, 8, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_450800_801396C8 = { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Blends Kyle's nursery clip 9 over 10 frames.
+///
+/// Uses the fixed Kyle bank; the selector and collision words are ignored.
+/// The aligned request is borrowed only through synchronous dispatch.
+static AnimationPlayRequest _gActor450800NurseryKyleClip9Blend = {
+    .source               = { .index = 1 },
+    .animationId          = ACTOR_450800_NURSERY_KYLE_CLIP_9,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 10,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_450800_801396DC = { { .index = 1 }, 10, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Blends Kyle's nursery clip 10 over 10 frames.
+///
+/// Uses the fixed Kyle bank; the selector and collision words are ignored.
+/// The aligned request is borrowed only through synchronous dispatch.
+static AnimationPlayRequest _gActor450800NurseryKyleClip10Blend = {
+    .source               = { .index = 1 },
+    .animationId          = ACTOR_450800_NURSERY_KYLE_CLIP_10,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 10,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_450800_801396F0 = { { .index = 1 }, 11, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Kyle's nursery clip 11.
+///
+/// Uses the fixed Kyle bank; the selector and collision words are ignored.
+/// The aligned request is borrowed only through synchronous dispatch.
+static AnimationPlayRequest _gActor450800NurseryKyleClip11Reset = {
+    .source               = { .index = 1 },
+    .animationId          = ACTOR_450800_NURSERY_KYLE_CLIP_11,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_450800_80139704 = { { .index = 1 }, 12, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Kyle's nursery clip 12.
+///
+/// Uses the fixed Kyle bank; the selector and collision words are ignored.
+/// The aligned request is borrowed only through synchronous dispatch.
+static AnimationPlayRequest _gActor450800NurseryKyleClip12Reset = {
+    .source               = { .index = 1 },
+    .animationId          = ACTOR_450800_NURSERY_KYLE_CLIP_12,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_450800_80139718 = { { .index = 1 }, 13, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Kyle's nursery clip 13.
+///
+/// Uses the fixed Kyle bank; the selector and collision words are ignored.
+/// The aligned request is borrowed only through synchronous dispatch.
+static AnimationPlayRequest _gActor450800NurseryKyleClip13Reset = {
+    .source               = { .index = 1 },
+    .animationId          = ACTOR_450800_NURSERY_KYLE_ARRIVAL_IDLE_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_actor_450800_8013972C = { { .index = 1 }, 14, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -982,9 +1152,29 @@ AnimationPlayRequest D_actor_450800_80139768 = { { .index = 1 }, 17, ANIMATION_B
 
 AnimationPlayRequest D_actor_450800_8013977C = { { .index = 1 }, 18, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_450800_80139790 = { { .index = 1 }, 19, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Kyle's nursery clip 19.
+///
+/// Uses the fixed Kyle bank; the selector and collision words are ignored.
+/// The aligned request is borrowed only through synchronous dispatch.
+static AnimationPlayRequest _gActor450800NurseryKyleClip19Reset = {
+    .source               = { .index = 1 },
+    .animationId          = ACTOR_450800_NURSERY_KYLE_CLIP_19,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_450800_801397A4 = { { .index = 1 }, 20, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Kyle's nursery clip 20.
+///
+/// Uses the fixed Kyle bank; the selector and collision words are ignored.
+/// The aligned request is borrowed only through synchronous dispatch.
+static AnimationPlayRequest _gActor450800NurseryKyleClip20Reset = {
+    .source               = { .index = 1 },
+    .animationId          = ACTOR_450800_NURSERY_KYLE_CLIP_20,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_actor_450800_801397B8 = { { .index = 1 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -1005,19 +1195,75 @@ AnimationPlayRequest D_actor_450800_80139844[2] = {
     { { .index = 1 }, 28, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-AnimationPlayRequest D_actor_450800_8013986C = { { .index = 1 }, 52, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Blends the companion's nursery clip 52 over 10 frames.
+///
+/// Script playback resolves the companion bank in a copy.
+/// The request disables world-grid collision and is borrowed through dispatch.
+static AnimationPlayRequest _gActor450800NurseryCompanionClip52Blend = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 5,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 10,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_450800_80139880 = { { .index = 1 }, 58, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Blends the player's nursery clip 58 over 10 frames.
+///
+/// Script playback resolves the equipped weapon bank in a copy.
+/// The request disables world-grid collision and is borrowed through dispatch.
+static AnimationPlayRequest _gActor450800NurseryPlayerClip58Blend = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 11,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 10,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_450800_80139894 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the player's nursery clip 1.
+///
+/// Script playback resolves the equipped weapon bank in a copy.
+/// The request disables world-grid collision and is borrowed through dispatch.
+static AnimationPlayRequest _gActor450800NurseryPlayerClip1Reset = {
+    .source               = { .index = 1 },
+    .animationId          = ACTOR_450800_NURSERY_PLAYER_BASE_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_450800_801398A8 = { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Blends the player's nursery clip 1 over 10 frames.
+///
+/// Script playback resolves the equipped weapon bank in a copy.
+/// The request disables world-grid collision and is borrowed through dispatch.
+static AnimationPlayRequest _gActor450800NurseryPlayerClip1Blend = {
+    .source               = { .index = 1 },
+    .animationId          = ACTOR_450800_NURSERY_PLAYER_BASE_CLIP,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 10,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_actor_450800_801398BC = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationBankCopyRequest D_actor_450800_801398D0 = { { .sets = D_actor_450800_801394BC }, ANIMATION_BANK_EXTENSION_CAPACITY };
+/// Installs the nursery's clips in the companion's current bank extension.
+///
+/// Transfers 32 words from `_gActor450800NurseryCompanionAnimationSets`, including
+/// 21 words of following request data. The count is the transfer span, not
+/// the playable clip count; the source package must stay loaded for playback.
+static AnimationBankCopyRequest _gActor450800NurseryCompanionBankCopy = {
+    .source    = { .sets = _gActor450800NurseryCompanionAnimationSets },
+    .wordCount = ANIMATION_BANK_EXTENSION_CAPACITY,
+};
 
-AnimationBankCopyRequest D_actor_450800_801398D8 = { { .sets = D_actor_450800_80139310 }, ANIMATION_BANK_EXTENSION_CAPACITY };
+/// Installs the nursery's clips in the player's current bank extension.
+///
+/// Transfers 32 words from `_gActor450800NurseryPlayerAnimationSets`, including
+/// 15 words of following request data. The count is the transfer span, not
+/// the playable clip count; the source package must stay loaded for playback.
+static AnimationBankCopyRequest _gActor450800NurseryPlayerBankCopy = {
+    .source    = { .sets = _gActor450800NurseryPlayerAnimationSets },
+    .wordCount = ANIMATION_BANK_EXTENSION_CAPACITY,
+};
 
 ActorCommand D_actor_450800_801398E0 = { { .loc = { 5, 22 } }, 0 };
 
@@ -1025,25 +1271,43 @@ ActorCommand D_actor_450800_801398E4 = { { .loc = { 5, 22 } }, 1 };
 
 ActorCommand D_actor_450800_801398E8 = { { .loc = { 5, 22 } }, 2 };
 
-ActorTransform D_actor_450800_801398EC = { { 5650, 0, 2400, 0 }, { 0, -1024, 0, 0 } };
+/// Kyle's nursery placement used by scene setup and companion-dialogue reset.
+///
+/// XYZ uses world units in the view parent's frame; yaw is -1/4 turn.
+static ActorTransform _gActor450800NurseryKylePlacement = {
+    .pos = { 5650, 0, 2400, 0 },
+    .rot = { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 },
+};
 
 ActorTransform D_actor_450800_80139904 = { { 6080, 0, 900, 0 }, { 0, 853, 0, 0 } };
 
-ActorTransform D_actor_450800_8013991C = { { 5951, 0, 900, 0 }, { 0, 853, 0, 0 } };
+/// Player placement restored when the nursery scene finishes or is skipped.
+///
+/// XYZ uses world units; yaw is 853/4096 turns. Consumed during placement.
+static ActorTransform _gActor450800NurseryPlayerReturnPlacement = {
+    .pos = { 5951, 0, 900, 0 },
+    .rot = { 0, 853, 0, 0 },
+};
 
 ActorTransform D_actor_450800_80139934 = { { 6770, 0, 900, 0 }, { 0, -1137, 0, 0 } };
 
-ActorTransform D_actor_450800_8013994C = { { 6650, 0, 401, 0 }, { 0, -1024, 0, 0 } };
+/// Companion placement restored after scenes and used for nursery dialogue.
+///
+/// XYZ uses world units; yaw is -1/4 turn. Consumed during placement.
+static ActorTransform _gActor450800NurseryCompanionReturnPlacement = {
+    .pos = { 6650, 0, 401, 0 },
+    .rot = { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 },
+};
 
 EvsCommand D_actor_450800_80139964[105] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450800_801398D8 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450800_801398D0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_80139628 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor450800NurseryPlayerBankCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor450800NurseryCompanionBankCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip1Reset } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_450800_801398E8 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_80139894 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip1Reset }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_801398BC }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1062,24 +1326,24 @@ EvsCommand D_actor_450800_80139964[105] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_80139768 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_80139368 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip47Reset }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_801394FC }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_8013937C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip48Reset }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_80139390 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip49Blend }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_801393A4 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip50Reset }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_8013977C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_801393CC }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip52Reset }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_80139510 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 25 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_80139524 }, { .value = 0 } },
@@ -1089,7 +1353,7 @@ EvsCommand D_actor_450800_80139964[105] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_8013972C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 61 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_80139628 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip1Reset } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_80139740 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1106,9 +1370,9 @@ EvsCommand D_actor_450800_80139964[105] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_801393E0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip53Reset }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_801393F4 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip54Reset }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU32 = _actor450800SetNurseryEffectCues }, { .value = ACTOR_450800_NURSERY_FAST_GLINT_NO_SHOWER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = shelterB6NurseryStartAmbience }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1130,11 +1394,11 @@ EvsCommand D_actor_450800_80139964[105] = {
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_450800_8013991C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_450800_8013994C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor450800NurseryPlayerReturnPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor450800NurseryCompanionReturnPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_80139560 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_80139894 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryCompanionClip52Reset }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip1Reset }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_REQUEST_SCENE_MUSIC, { .value = 25 }, { .value = 1 }, { .value = 1 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1154,14 +1418,14 @@ EvsCommand D_actor_450800_8013A33C[23] = {
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_450800_8013994C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_450800_8013991C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor450800NurseryCompanionReturnPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor450800NurseryPlayerReturnPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_REQUEST_SCENE_MUSIC, { .value = 25 }, { .value = 1 }, { .value = 1 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = shelterB6NurseryStartAmbience }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_80139560 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_80139894 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_80139628 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryCompanionClip52Reset }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip1Reset }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip1Reset } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -1172,12 +1436,12 @@ EvsCommand D_actor_450800_8013A33C[23] = {
 EvsCommand D_actor_450800_8013A564[12] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450800_801398D0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_801398A8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor450800NurseryCompanionBankCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip1Blend }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_80139574 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryCompanionClip53Reset }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_8013986C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryCompanionClip52Blend }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1187,10 +1451,10 @@ EvsCommand D_actor_450800_8013A564[12] = {
 EvsCommand D_actor_450800_8013A684[10] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800StartNurseryRepeatDialogue }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_801398A8 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_801396C8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip1Blend }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip9Blend } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_801396DC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip10Blend } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1200,8 +1464,8 @@ EvsCommand D_actor_450800_8013A684[10] = {
 EvsCommand D_actor_450800_8013A774[9] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800StartNurseryRepeatDialogue }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_801398A8 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_80139790 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip1Blend }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip19Reset } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -1210,42 +1474,42 @@ EvsCommand D_actor_450800_8013A774[9] = {
 };
 
 EvsCommand D_actor_450800_8013A84C[6] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450800_801398D0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_450800_8013994C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor450800NurseryCompanionBankCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor450800NurseryCompanionReturnPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_80139560 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_80139628 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryCompanionClip52Reset }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip1Reset } }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_450800_8013A8DC[7] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450800_801398D0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_450800_8013994C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor450800NurseryCompanionBankCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor450800NurseryCompanionReturnPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_80139560 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_801397A4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_actor_450800_801398EC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryCompanionClip52Reset }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip20Reset } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor450800NurseryKylePlacement } }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_450800_8013A984[21] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450800_801398D8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor450800NurseryPlayerBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 6 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_801398A8 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_801396F0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip1Blend }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip11Reset } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_80139704 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_80139880 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip12Reset } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip58Blend }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_801396F0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip11Reset } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_80139704 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_80139430 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip12Reset } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip57Reset }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_80139718 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip13Reset } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_801397A4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip20Reset } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1254,17 +1518,17 @@ EvsCommand D_actor_450800_8013A984[21] = {
 
 EvsCommand D_actor_450800_8013AB7C[16] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450800_801398D8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor450800NurseryPlayerBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 7 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_801398A8 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_801396F0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip1Blend }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip11Reset } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_80139704 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_80139880 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip12Reset } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip58Blend }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_801396F0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip11Reset } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_80139704 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip12Reset } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1274,10 +1538,10 @@ EvsCommand D_actor_450800_8013AB7C[16] = {
 EvsCommand D_actor_450800_8013ACFC[10] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800StartNurseryRepeatDialogue }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_801398A8 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_801396F0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip1Blend }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip11Reset } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_80139704 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip12Reset } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1337,10 +1601,10 @@ EvsCommand D_actor_450800_8013AF8C[117] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_450800_8013AF68 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_801398A8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip1Blend }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 13 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450800_801398D8 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450800_801398D0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor450800NurseryPlayerBankCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor450800NurseryCompanionBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x55160007 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1464,11 +1728,11 @@ EvsCommand D_actor_450800_8013BA84[20] = {
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_450800_8013994C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor450800NurseryCompanionReturnPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_80139560 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_80139894 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_80139628 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryCompanionClip52Reset }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor450800NurseryPlayerClip1Reset }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor450800NurseryKyleClip1Reset } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -2614,7 +2878,12 @@ static AnimationSet _gActor450800Animation21B64 = {
     { NULL, _gActor450800Animation21B64Bank1, NULL, NULL, _gActor450800Animation21B64Bank4, NULL, NULL, NULL },
 };
 
-TaskMessageEntry gPairWalkMessages[6] = {
+/// Message handlers borrowed by this carrier's pair-walker tasks.
+///
+/// Supports animation, paired draw flags, placement and XZ walk targets;
+/// actor commands are ignored. The terminal entry makes other IDs return 0.
+/// Keep this table and its handlers loaded while the walker can receive messages.
+static TaskMessageEntry _gPairWalkMessages[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _pairWalkPlay },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _pairWalkSetVisibility },
     { ACTOR_MESSAGE_PLACE, _pairWalkPlace },
@@ -2628,31 +2897,18 @@ TaskDesc gPairWalkTasks[2] = {
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _pairWalkSubModelTask, { .model = &_gActor450800GolemBeamSword } },
 };
 
-u8 gPairWalkAnimParams[24] = {
-    0,
-    0,
-    0,
-    0,
-    156,
-    17,
-    21,
-    128,
-    4,
-    25,
-    21,
-    128,
-    244,
-    36,
-    21,
-    128,
-    92,
-    46,
-    21,
-    128,
-    132,
-    57,
-    21,
-    128,
+/// Six-entry clip bank borrowed by this carrier's pair-walker animation context.
+///
+/// Entry 0 is unplayable; entries 1..5 are loaded clips. Entry 1 is the
+/// default pose and entry 4 drives travel. The table and clip data must remain
+/// loaded for the walker's lifetime; the table holds pointers, not packed bytes.
+static AnimationSet* _gPairWalkAnimationSets[6] = {
+    NULL,
+    &_gActor450800Animation1F37C,
+    &_gActor450800Animation1FAE4,
+    &_gActor450800Animation206D4,
+    &_gActor450800Animation2103C,
+    &_gActor450800Animation21B64,
 };
 
 void actor450800StartNurseryInteraction(void)
@@ -2669,10 +2925,10 @@ void actor450800StartNurseryInteraction(void)
 
     if (gGameSession->location.loc.view == ACTOR_450800_NURSERY_INTERACTION_VIEW) {
         if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == ACTOR_450800_NURSERY_REPEAT_PROGRESS) {
-            interactionCount        = D_actor_450800_8013930C + 1;
-            D_actor_450800_8013930C = interactionCount;
+            interactionCount                     = _gActor450800NurseryInteractionCount + 1;
+            _gActor450800NurseryInteractionCount = interactionCount;
             if (interactionCount >= ACTOR_450800_NURSERY_COUNT_LIMIT) {
-                D_actor_450800_8013930C = ACTOR_450800_NURSERY_COUNT_LIMIT;
+                _gActor450800NurseryInteractionCount = ACTOR_450800_NURSERY_COUNT_LIMIT;
                 evsStartScript(D_actor_450800_8013A774, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             } else {
                 evsStartScript(D_actor_450800_8013A684, EVENT_SCRIPT_HUD_HIDE_RESTORE);
@@ -2748,7 +3004,7 @@ static void _actor450800StartNurseryRepeatDialogue(s32 dialogueSelector)
 
     // Separate call sites preserve the two arms' argument setup in the binary.
     if (dialogueSelector == ACTOR_450800_DIALOGUE_FROM_INTERACTION_COUNT) {
-        sequenceIndex = (u16)D_actor_450800_8013930C + ACTOR_450800_INTERACTION_SEQUENCE_BASE;
+        sequenceIndex = (u16)_gActor450800NurseryInteractionCount + ACTOR_450800_INTERACTION_SEQUENCE_BASE;
         capStartSequenceSlot(sequenceIndex, 0, 0);
     } else {
         if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_SCENE_COUNT) == ACTOR_450800_SECOND_REPEAT_SCENE_COUNT) {
@@ -2769,8 +3025,8 @@ void actor450800PrepareNurseryKyleMadigan(void)
 {
     enum { ACTOR_450800_NURSERY_KYLE_SCENE_ACTOR = 0 };
 
-    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(ACTOR_450800_NURSERY_KYLE_SCENE_ACTOR), ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_450800_801397A4, 0);
-    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(ACTOR_450800_NURSERY_KYLE_SCENE_ACTOR), ACTOR_MESSAGE_PLACE, &D_actor_450800_801398EC, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(ACTOR_450800_NURSERY_KYLE_SCENE_ACTOR), ACTOR_MESSAGE_PLAY_ANIMATION, &_gActor450800NurseryKyleClip20Reset, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(ACTOR_450800_NURSERY_KYLE_SCENE_ACTOR), ACTOR_MESSAGE_PLACE, &_gActor450800NurseryKylePlacement, 0);
 }
 
 /// Restarts play in growth room 1 through arrival 1 after the nursery scene.

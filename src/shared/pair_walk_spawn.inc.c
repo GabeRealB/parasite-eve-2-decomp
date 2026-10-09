@@ -56,11 +56,11 @@ static void _pairWalkSpawn(Enemy* enemy, Task* task)
     taskReparent(task, pairedEnemy->task);
     work->pairTask = pairedEnemy->task;
     PAIR_WALK_INITIALIZE_MODEL_LIGHTING(model, work, rootCoord, lightingSample);
-    animationInitContext(&work->rig.anim, (AnimationSet**)gPairWalkAnimParams, model,
+    animationInitContext(&work->rig.anim, _gPairWalkAnimationSets, model,
                          work->rig.poses, work->rig.slots);
     work->st.animId = PAIR_WALK_ANIM_IDLE;
     work->st.state  = ACTOR_ENEMY_ANIM_RESET;
-    task->msgTable  = gPairWalkMessages;
+    task->msgTable  = _gPairWalkMessages;
     _pairWalkUpdate(task);
     task->state++;
 }

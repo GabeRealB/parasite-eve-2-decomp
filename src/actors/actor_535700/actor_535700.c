@@ -78,11 +78,8 @@ extern TaskDesc D_actor_535700_8013346C;
 extern TaskMessageEntry gFootstepWalkMsgTable[];
 extern u8               gFootstepWalkAnims[];
 
-/// The second enemy's message table, the `TaskDesc` table its sub-model task
-/// comes from, and the animation data its work block's slots are seeded from.
-extern TaskMessageEntry gPairWalkMessages[];
-extern TaskDesc         gPairWalkTasks[];
-extern u8               gPairWalkAnimParams[];
+/// The `TaskDesc` table its sub-model task comes from.
+extern TaskDesc gPairWalkTasks[];
 
 static void _actorRenderWalkerFrame(Enemy* unusedEnemy, Task* task);
 static void _actorRenderWalkerFrameSecond(Enemy* unusedEnemy, Task* task);
@@ -1068,7 +1065,12 @@ static AnimationSet _gActor535700Animation14998 = {
     { NULL, _gActor535700Animation14998Bank1, NULL, NULL, _gActor535700Animation14998Bank4, NULL, NULL, NULL },
 };
 
-TaskMessageEntry gPairWalkMessages[6] = {
+/// Message handlers borrowed by this carrier's pair-walker tasks.
+///
+/// Supports animation, paired draw flags, placement and XZ walk targets;
+/// actor commands are ignored. The terminal entry makes other IDs return 0.
+/// Keep this table and its handlers loaded while the walker can receive messages.
+static TaskMessageEntry _gPairWalkMessages[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _pairWalkPlay },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _pairWalkSetVisibility },
     { ACTOR_MESSAGE_PLACE, _pairWalkPlace },
@@ -1082,31 +1084,18 @@ TaskDesc gPairWalkTasks[2] = {
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _pairWalkSubModelTask, { .model = &_gActor535700GolemBeamSword } },
 };
 
-u8 gPairWalkAnimParams[24] = {
-    0,
-    0,
-    0,
-    0,
-    208,
-    63,
-    20,
-    128,
-    56,
-    71,
-    20,
-    128,
-    40,
-    83,
-    20,
-    128,
-    144,
-    92,
-    20,
-    128,
-    184,
-    103,
-    20,
-    128,
+/// Six-entry clip bank borrowed by this carrier's pair-walker animation context.
+///
+/// Entry 0 is unplayable; entries 1..5 are loaded clips. Entry 1 is the
+/// default pose and entry 4 drives travel. The table and clip data must remain
+/// loaded for the walker's lifetime; the table holds pointers, not packed bytes.
+static AnimationSet* _gPairWalkAnimationSets[6] = {
+    NULL,
+    &_gActor535700Animation121B0,
+    &_gActor535700Animation12918,
+    &_gActor535700Animation13508,
+    &_gActor535700Animation13E70,
+    &_gActor535700Animation14998,
 };
 
 s32 D_actor_535700_80146840;
