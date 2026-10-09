@@ -18,6 +18,7 @@
 #include "gameplay/evs_scripts.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/scene_runtime.h"
 
 #include "main/display.h"
@@ -36,26 +37,13 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-static void       _mistParkingSelectShopDialogueResource(s32 resourceOrdinal);
-extern EvsCommand D_mist_parking_80190C74[];
-extern EvsCommand D_mist_parking_80190D64[];
-extern EvsCommand D_mist_parking_80190E84[];
-extern EvsCommand D_mist_parking_80191034[];
-
-extern s8 D_mist_parking_801908C8[];
+static void _mistParkingSelectShopDialogueResource(s32 resourceOrdinal);
 
 static void _mistParkingAimPlayerHeadAtShopPartnerTask(Task* task);
 static void _mistParkingJodieShopTalkTask(Task* task);
 static void _mistParkingShopDepartureMenuTask(Task* task);
 static void _mistParkingDepartForAcropolisTask(Task* unusedTask);
 static void _mistParkingDelayShopDisplayModeExitTask(Task* task);
-
-extern AnimationPlayRequest D_mist_parking_801908A0;
-extern AnimationPlayRequest D_mist_parking_801908B4;
-extern AnimationPlayRequest D_mist_parking_80190944;
-extern AnimationPlayRequest D_mist_parking_801909F8;
-extern ActorCommand         D_mist_parking_80190BA4;
-extern ActorCommand         D_mist_parking_80190BA8;
 
 static void _mistParkingRunShopDialogueCommand(s32 commandIndex);
 static void _mistParkingStartShopDepartureMovie(s32 movieSelector);
@@ -90,161 +78,110 @@ enum {
     MIST_PARKING_SHOP_RELOAD_SPRITE_VARIANT = 1
 };
 
-TaskDesc D_mist_parking_80190824[5] = {
-    { { { TASK_BODY_NONE, 192 } }, _mistParkingDepartForAcropolisTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 97 } }, _mistParkingAimPlayerHeadAtShopPartnerTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _mistParkingDelayShopDisplayModeExitTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _mistParkingJodieShopTalkTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _mistParkingShopDepartureMenuTask, { .value = 0 } },
+/// Execution priorities of the shop controllers and the player's head-aim update.
+enum {
+    MIST_PARKING_SHOP_TASK_PRIORITY     = 192,
+    MIST_PARKING_SHOP_HEAD_AIM_PRIORITY = 97
 };
 
-AnimationSet* D_mist_parking_80190860[4] = {
+/// Player clips installed after the equipped bank's base sets for variant 1.
+enum {
+    MIST_PARKING_PLAYER_SHOP_TALK_CLIP      = ANIMATION_BANK_BASE_SET_COUNT + 1,
+    MIST_PARKING_PLAYER_DEPARTURE_MENU_CLIP = ANIMATION_BANK_BASE_SET_COUNT + 2,
+    MIST_PARKING_PLAYER_STAY_CLIP           = ANIMATION_BANK_BASE_SET_COUNT + 3
+};
+
+/// Pierce's variant-1 departure animations and head-turn commands.
+enum {
+    MIST_PARKING_PIERCE_ANIMATION_BANK       = 0,
+    MIST_PARKING_PIERCE_DEPARTURE_MENU_CLIP  = 6,
+    MIST_PARKING_PIERCE_DEPARTURE_REPLY_CLIP = 15,
+    MIST_PARKING_PIERCE_COMMAND_AIM_HEAD     = 2,
+    MIST_PARKING_PIERCE_COMMAND_RELEASE_HEAD = 3
+};
+
+/// Jodie's bank-zero poses used during the variant-1 shop conversation.
+enum {
+    MIST_PARKING_JODIE_ANIMATION_BANK = 0,
+    MIST_PARKING_JODIE_IDLE_CLIP      = 1,
+    MIST_PARKING_JODIE_SHOP_EXIT_CLIP = 5,
+    MIST_PARKING_JODIE_GREETING_CLIP  = 7,
+    MIST_PARKING_JODIE_REPLY_CLIP     = 8,
+    MIST_PARKING_JODIE_REPLY_END_CLIP = 9
+};
+
+/// CAP commands and scene selectors used by the variant-1 departure scripts.
+enum {
+    MIST_PARKING_SHOP_DEPARTURE_MENU_COMMAND   = 1,
+    MIST_PARKING_SHOP_STAY_COMMAND             = 2,
+    MIST_PARKING_SHOP_PLAZA_COMMAND            = 3,
+    MIST_PARKING_SHOP_SHOOTING_GALLERY_COMMAND = 4,
+    MIST_PARKING_SHOP_PIERCE_PLACEMENT         = 0,
+    MIST_PARKING_SHOP_RETURN_VIEW              = 5,
+    MIST_PARKING_SHOP_DEPARTURE_MOVIE          = 1
+};
+
+TaskDesc gMistParkingShopTaskDescriptors[5] = {
+    { { { TASK_BODY_NONE, MIST_PARKING_SHOP_TASK_PRIORITY } }, _mistParkingDepartForAcropolisTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, MIST_PARKING_SHOP_HEAD_AIM_PRIORITY } }, _mistParkingAimPlayerHeadAtShopPartnerTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, MIST_PARKING_SHOP_TASK_PRIORITY } }, _mistParkingDelayShopDisplayModeExitTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, MIST_PARKING_SHOP_TASK_PRIORITY } }, _mistParkingJodieShopTalkTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, MIST_PARKING_SHOP_TASK_PRIORITY } }, _mistParkingShopDepartureMenuTask, { .value = 0 } },
+};
+
+/// Variant-1 player bank extension: empty slot 47, then talk, menu and stay clips.
+///
+/// The equipped bank copies all four pointers; the room's clip data remains
+/// borrowed for playback while this overlay is loaded.
+static AnimationSet* _gMistParkingShopPlayerAnimationSets[] = {
     NULL,
     &gMistParkingAnimation129F8,
     &gMistParkingAnimation12DCC,
     &gMistParkingAnimation1323C,
 };
 
-AnimationBankCopyRequest D_mist_parking_80190870 = { { .sets = D_mist_parking_80190860 }, ARRAY_SIZE(D_mist_parking_80190860) };
+AnimationBankCopyRequest gMistParkingShopPlayerAnimationBankCopy = { { .sets = _gMistParkingShopPlayerAnimationSets }, ARRAY_SIZE(_gMistParkingShopPlayerAnimationSets) };
 
-AnimationPlayRequest D_mist_parking_80190878 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unused bank-1 clip-1 reset request; intended receiver and presentation unproven.
+static AnimationPlayRequest _gMistParkingUnusedBank1Clip1Animation = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_mist_parking_8019088C = { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+AnimationPlayRequest gMistParkingPlayerShopTalkAnimation = { { .index = 1 }, MIST_PARKING_PLAYER_SHOP_TALK_CLIP, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_mist_parking_801908A0 = { { .index = 1 }, 49, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player pose for the departure prompt, blended for six frames without grid response.
+///
+/// Weapon-animation dispatch replaces the source index with the equipped bank.
+static AnimationPlayRequest _gMistParkingPlayerDepartureMenuAnimation = { { .index = 1 }, MIST_PARKING_PLAYER_DEPARTURE_MENU_CLIP, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_mist_parking_801908B4 = { { .index = 1 }, 50, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player pose for declining departure, blended for six frames without grid response.
+///
+/// Weapon-animation dispatch replaces the source index with the equipped bank.
+static AnimationPlayRequest _gMistParkingPlayerStayAnimation = { { .index = 1 }, MIST_PARKING_PLAYER_STAY_CLIP, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE };
 
-s8 D_mist_parking_801908C8[124] = {
-    0,
-    1,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
-    20,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    2,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
-    20,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    3,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
-    20,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    4,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
-    20,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    5,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
-    20,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
+/// Player head-aim requests by extension index (0 disabled, 1 enabled).
+///
+/// Only indices 1..3 are read: talk and menu aim at Pierce, while stay releases
+/// aiming. Index zero is the extension's empty set and is never selected.
+static s8 _gMistParkingShopPlayerHeadAimFlags[ARRAY_SIZE(_gMistParkingShopPlayerAnimationSets)] = { 0, 1, 1, 0 };
+
+/// Unused bank-0 clip-1 reset request; intended receiver and presentation unproven.
+static AnimationPlayRequest _gMistParkingUnusedBank0Clip1ResetAnimation = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+
+/// Unused bank-0 clips 1..5, each with a twenty-frame blend; receiver unproven.
+static AnimationPlayRequest _gMistParkingUnusedBank0Clips1To5Animations[] = {
+    { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 2, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 3, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 4, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .index = 0 }, 5, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
 };
 
-AnimationPlayRequest D_mist_parking_80190944 = { { .sets = NULL }, 6, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Pierce's departure-prompt pose in body bank zero, with a twenty-frame blend.
+///
+/// His playback handler ignores the collision word and borrows its own clip data.
+static AnimationPlayRequest _gMistParkingPierceDepartureMenuAnimation = { { .index = MIST_PARKING_PIERCE_ANIMATION_BANK }, MIST_PARKING_PIERCE_DEPARTURE_MENU_CLIP, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationPlayRequest D_mist_parking_80190958[8] = {
+/// Unused bank-0 clips 7..14, each with a twenty-frame blend; receiver unproven.
+static AnimationPlayRequest _gMistParkingUnusedBank0Clips7To14Animations[] = {
     { { .index = 0 }, 7, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
     { { .index = 0 }, 8, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
     { { .index = 0 }, 9, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
@@ -255,9 +192,13 @@ AnimationPlayRequest D_mist_parking_80190958[8] = {
     { { .index = 0 }, 14, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
 };
 
-AnimationPlayRequest D_mist_parking_801909F8 = { { .index = 0 }, 15, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Pierce's reply pose for every departure choice, with a twenty-frame blend.
+///
+/// His playback handler ignores the collision word and borrows its own clip data.
+static AnimationPlayRequest _gMistParkingPierceDepartureReplyAnimation = { { .index = MIST_PARKING_PIERCE_ANIMATION_BANK }, MIST_PARKING_PIERCE_DEPARTURE_REPLY_CLIP, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationPlayRequest D_mist_parking_80190A0C[20] = {
+/// Unused bank-0 clips 16..35, each with a twenty-frame blend; receiver unproven.
+static AnimationPlayRequest _gMistParkingUnusedBank0Clips16To35Animations[] = {
     { { .index = 0 }, 16, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
     { { .index = 0 }, 17, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
     { { .index = 0 }, 18, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
@@ -280,93 +221,119 @@ AnimationPlayRequest D_mist_parking_80190A0C[20] = {
     { { .index = 0 }, 35, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
 };
 
-GameActorMoveAnim D_mist_parking_80190B9C = { 0, 0x10000 };
+/// Unreferenced eight-byte storage; its object type and role are unproven.
+static u8 D_mist_parking_80190B9C[8] = { 0, 0, 0, 0, 0, 0, 1, 0 };
 
-ActorCommand D_mist_parking_80190BA4 = { { .loc = { 0, 0 } }, 2 };
+/// Requests Pierce's head turn toward the player; his handler ignores context.
+static ActorCommand _gMistParkingPierceAimHeadCommand = { { .loc = { 0, 0 } }, MIST_PARKING_PIERCE_COMMAND_AIM_HEAD };
 
-ActorCommand D_mist_parking_80190BA8 = { { .loc = { 0, 0 } }, 3 };
+/// Releases Pierce's commanded head turn; his handler ignores context.
+static ActorCommand _gMistParkingPierceReleaseHeadCommand = { { .loc = { 0, 0 } }, MIST_PARKING_PIERCE_COMMAND_RELEASE_HEAD };
 
-AnimationPlayRequest D_mist_parking_80190BAC = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unused bank-0 clip-1 reset request; intended receiver and presentation unproven.
+static AnimationPlayRequest _gMistParkingUnusedBank0Clip1Animation = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_mist_parking_80190BC0 = { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+AnimationPlayRequest gMistParkingJodieIdleAnimation = { { .index = MIST_PARKING_JODIE_ANIMATION_BANK }, MIST_PARKING_JODIE_IDLE_CLIP, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationPlayRequest D_mist_parking_80190BD4[3] = {
+/// Unused bank-0 clips 2..4; transition choices are retained, receiver unproven.
+static AnimationPlayRequest _gMistParkingUnusedBank0Clips2To4Animations[] = {
     { { .index = 0 }, 2, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
     { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
     { { .index = 0 }, 4, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE },
 };
 
-AnimationPlayRequest D_mist_parking_80190C10 = { { .index = 0 }, 5, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+AnimationPlayRequest gMistParkingJodieShopExitAnimation = { { .index = MIST_PARKING_JODIE_ANIMATION_BANK }, MIST_PARKING_JODIE_SHOP_EXIT_CLIP, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationPlayRequest D_mist_parking_80190C24 = { { .index = 0 }, 6, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Unused bank-0 clip-6 reset request; intended receiver and presentation unproven.
+static AnimationPlayRequest _gMistParkingUnusedBank0Clip6Animation = { { .index = 0 }, 6, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationPlayRequest D_mist_parking_80190C38 = { { .index = 0 }, 7, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+AnimationPlayRequest gMistParkingJodieGreetingAnimation = { { .index = MIST_PARKING_JODIE_ANIMATION_BANK }, MIST_PARKING_JODIE_GREETING_CLIP, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationPlayRequest D_mist_parking_80190C4C = { { .index = 0 }, 8, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+AnimationPlayRequest gMistParkingJodieReplyAnimation = { { .index = MIST_PARKING_JODIE_ANIMATION_BANK }, MIST_PARKING_JODIE_REPLY_CLIP, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationPlayRequest D_mist_parking_80190C60 = { { .index = 0 }, 9, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_ENABLE };
+AnimationPlayRequest gMistParkingJodieReplyEndAnimation = { { .index = MIST_PARKING_JODIE_ANIMATION_BANK }, MIST_PARKING_JODIE_REPLY_END_CLIP, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_ENABLE };
 
-EvsCommand D_mist_parking_80190C74[10] = {
+/// Opens the variant-1 departure prompt with player and Pierce head aiming.
+///
+/// Requires the menu CAP resource and both actors. It installs the player
+/// extension, starts CAP command 1, poses both actors at its cues, then waits
+/// thirty frames. The interpreter borrows this stream until its end command.
+static EvsCommand _gMistParkingShopDepartureMenuScript[] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistParkingStartShopPlayerHeadAim }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mist_parking_80190870 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_parking_80190BA4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &gMistParkingShopPlayerAnimationBankCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_SHOP_PIERCE_PLACEMENT }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMistParkingPierceAimHeadCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = MIST_PARKING_SHOP_DEPARTURE_MENU_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_801908A0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_parking_80190944 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerDepartureMenuAnimation }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_SHOP_PIERCE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceDepartureMenuAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_mist_parking_80190D64[12] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mist_parking_80190870 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingRunShopDialogueCommand }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_801908B4 }, { .value = 0 } },
+/// Returns to view 5 after declining the variant-1 departure menu.
+///
+/// Runs menu CAP command 2, poses the player and Pierce, stops the player
+/// head-aim task and releases Pierce's head turn. Borrows the menu resource
+/// and live actors through completion.
+static EvsCommand _gMistParkingShopStayScript[] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &gMistParkingShopPlayerAnimationBankCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingRunShopDialogueCommand }, { .value = MIST_PARKING_SHOP_STAY_COMMAND }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerStayAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_parking_801909F8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_SHOP_PIERCE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceDepartureReplyAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingControlShopPlayerHeadAim }, { .value = MIST_PARKING_HEAD_AIM_STOP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_801908B4 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_parking_80190BA8 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerStayAnimation }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_SHOP_PIERCE_PLACEMENT }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMistParkingPierceReleaseHeadCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = MIST_PARKING_SHOP_RETURN_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_mist_parking_80190E84[18] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mist_parking_80190870 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingRunShopDialogueCommand }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Plays the variant-1 farewell and movie before reloading Acropolis plaza.
+///
+/// Menu CAP command 3 supplies the cues. The fade hides the actors before
+/// default dialogue, movie playback and the loadout-preparing departure task.
+/// Requires the room, movie, dialogue and actor resources until reload.
+static EvsCommand _gMistParkingShopDepartForAcropolisScript[] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &gMistParkingShopPlayerAnimationBankCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingRunShopDialogueCommand }, { .value = MIST_PARKING_SHOP_PLAZA_COMMAND }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_parking_801909F8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_SHOP_PIERCE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceDepartureReplyAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CANCEL_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingQueueDelayedShopDisplayModeExit }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_SHOP_PIERCE_PLACEMENT }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingSelectShopDialogueResource }, { .value = MIST_PARKING_SHOP_DIALOGUE_DEFAULT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4004 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingStartShopDepartureMovie }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_HIDE_HUD }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingStartShopDepartureMovie }, { .value = MIST_PARKING_SHOP_DEPARTURE_MOVIE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistParkingQueueAcropolisDeparture }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_mist_parking_80191034[12] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mist_parking_80190870 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingRunShopDialogueCommand }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Fades the variant-1 farewell before reloading the shooting gallery.
+///
+/// Menu CAP command 4 supplies the cues; the delayed display exit precedes
+/// the reload into Acropolis area 20. Requires the room, menu CAP resource
+/// and live actors through the transition.
+static EvsCommand _gMistParkingShopDepartForShootingGalleryScript[] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &gMistParkingShopPlayerAnimationBankCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingRunShopDialogueCommand }, { .value = MIST_PARKING_SHOP_SHOOTING_GALLERY_COMMAND }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_parking_801909F8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_SHOP_PIERCE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceDepartureReplyAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CANCEL_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingQueueDelayedShopDisplayModeExit }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingReloadShopAcropolisArea }, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingReloadShopAcropolisArea }, { .value = GAME_AREA_MIST_SHOOTING_GALLERY }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -442,8 +409,8 @@ static void _mistParkingAimPlayerHeadAtShopPartnerTask(Task* task)
     if (D_801156F9 == 0) {
         // Extension index zero has no aim flag; the copied bank bounds the lookup.
         extensionIndex = player->animationSlots[1].nextPose.indices.setIndex - ANIMATION_BANK_BASE_SET_COUNT;
-        if ((extensionIndex > 0) && (extensionIndex < D_mist_parking_80190870.wordCount)) {
-            animationRequestsAim = D_mist_parking_801908C8[extensionIndex];
+        if ((extensionIndex > 0) && (extensionIndex < gMistParkingShopPlayerAnimationBankCopy.wordCount)) {
+            animationRequestsAim = _gMistParkingShopPlayerHeadAimFlags[extensionIndex];
         } else {
             animationRequestsAim = 0;
         }
@@ -695,7 +662,7 @@ static void _mistParkingShopDepartureMenuTask(Task* task)
     switch (task->state) {
         case MIST_PARKING_SHOP_DEPARTURE_START:
             _mistParkingSelectShopDialogueResource(MIST_PARKING_SHOP_DIALOGUE_MENU);
-            evsStartScript(D_mist_parking_80190C74, EVENT_SCRIPT_HUD_KEEP);
+            evsStartScript(_gMistParkingShopDepartureMenuScript, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
         case MIST_PARKING_SHOP_DEPARTURE_WAIT_PROMPT:
@@ -711,13 +678,13 @@ static void _mistParkingShopDepartureMenuTask(Task* task)
             task->spawnArg1.value = choiceKey;
             switch (choiceKey) {
                 case MIST_PARKING_SHOP_DEPARTURE_STAY:
-                    evsStartScript(D_mist_parking_80190D64, EVENT_SCRIPT_HUD_KEEP);
+                    evsStartScript(_gMistParkingShopStayScript, EVENT_SCRIPT_HUD_KEEP);
                     break;
                 case MIST_PARKING_SHOP_DEPARTURE_PLAZA:
-                    evsStartScript(D_mist_parking_80190E84, EVENT_SCRIPT_HUD_KEEP);
+                    evsStartScript(_gMistParkingShopDepartForAcropolisScript, EVENT_SCRIPT_HUD_KEEP);
                     break;
                 case MIST_PARKING_SHOP_DEPARTURE_SHOOTING_GALLERY:
-                    evsStartScript(D_mist_parking_80191034, EVENT_SCRIPT_HUD_KEEP);
+                    evsStartScript(_gMistParkingShopDepartForShootingGalleryScript, EVENT_SCRIPT_HUD_KEEP);
                     break;
             }
             task->state++;
@@ -785,7 +752,7 @@ static void _mistParkingQueueAcropolisDeparture(void)
 {
     enum { MIST_PARKING_ACROPOLIS_DEPARTURE_DESCRIPTOR = 0 };
 
-    taskSpawnFromTable(D_mist_parking_80190824, MIST_PARKING_ACROPOLIS_DEPARTURE_DESCRIPTOR, 0, 0);
+    taskSpawnFromTable(gMistParkingShopTaskDescriptors, MIST_PARKING_ACROPOLIS_DEPARTURE_DESCRIPTOR, 0, 0);
 }
 
 /// Prepares the player's Acropolis loadout and reloads into the plaza.
@@ -823,7 +790,7 @@ static void _mistParkingStartShopPlayerHeadAim(void)
     enum {
         MIST_PARKING_SHOP_HEAD_AIM_DESCRIPTOR = 1,
     };
-    D_mist_parking_8019532C.task = taskSpawnFromTable(D_mist_parking_80190824, MIST_PARKING_SHOP_HEAD_AIM_DESCRIPTOR, MIST_PARKING_HEAD_AIM_FOLLOW_ANIMATION, 0);
+    D_mist_parking_8019532C.task = taskSpawnFromTable(gMistParkingShopTaskDescriptors, MIST_PARKING_SHOP_HEAD_AIM_DESCRIPTOR, MIST_PARKING_HEAD_AIM_FOLLOW_ANIMATION, 0);
 }
 
 /// Controls the existing head-aim task used by the variant-1 conversations.
@@ -859,7 +826,7 @@ static void _mistParkingQueueDelayedShopDisplayModeExit(s32 delayTicks)
 {
     enum { MIST_PARKING_SHOP_DISPLAY_EXIT_DESCRIPTOR_INDEX = 2 };
 
-    displayQueueModeTask(taskGetDescAt(D_mist_parking_80190824, MIST_PARKING_SHOP_DISPLAY_EXIT_DESCRIPTOR_INDEX), delayTicks, 0, STAGE_ENTRY_RELOAD);
+    displayQueueModeTask(taskGetDescAt(gMistParkingShopTaskDescriptors, MIST_PARKING_SHOP_DISPLAY_EXIT_DESCRIPTOR_INDEX), delayTicks, 0, STAGE_ENTRY_RELOAD);
 }
 
 /// Counts down callback ticks before releasing the variant-1 talk's display mode.

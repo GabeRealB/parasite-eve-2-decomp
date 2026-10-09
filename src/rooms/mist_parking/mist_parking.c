@@ -1056,7 +1056,7 @@ static s32 _mistParkingHandleCommand(Task* task, s32 messageId, s32 commandId, s
                 }
             } else if (gameFlagGetNibble(GAME_FLAG_0ED) == MIST_PARKING_DEPARTURE_TALK_ENABLED) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                taskSpawnFromTable(D_mist_parking_80190824, MIST_PARKING_SHOP_DEPARTURE_MENU_DESCRIPTOR, 0, 0);
+                taskSpawnFromTable(gMistParkingShopTaskDescriptors, MIST_PARKING_SHOP_DEPARTURE_MENU_DESCRIPTOR, 0, 0);
             }
             break;
         case MIST_PARKING_COMMAND_CUTSCENE:
@@ -1065,7 +1065,7 @@ static s32 _mistParkingHandleCommand(Task* task, s32 messageId, s32 commandId, s
         case MIST_PARKING_COMMAND_SHOP_TALK:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             if (gGameSession->location.loc.variant == MIST_PARKING_SHOP_VARIANT) {
-                taskSpawnFromTable(D_mist_parking_80190824, MIST_PARKING_SHOP_TALK_DESCRIPTOR, 0, 0);
+                taskSpawnFromTable(gMistParkingShopTaskDescriptors, MIST_PARKING_SHOP_TALK_DESCRIPTOR, 0, 0);
             } else {
                 taskSpawnFromTable(gMistParkingConversationTaskDescs, MIST_PARKING_JODIE_TALK_DESCRIPTOR, 0, 0);
             }

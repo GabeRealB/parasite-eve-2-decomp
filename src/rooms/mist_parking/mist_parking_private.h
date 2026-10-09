@@ -67,7 +67,12 @@ extern TaskDesc gMistParkingConversationTaskDescs[9];
 
 extern TaskDesc D_mist_parking_8018FC24[];
 
-extern TaskDesc D_mist_parking_80190824[];
+/// Bodyless variant-1 tasks: departure, player head aim, display exit, Jodie talk and menu.
+///
+/// Indices 0..4 select those roles in order; there is no terminator. Spawning
+/// borrows this room's callbacks, so the overlay must stay loaded through each
+/// task's lifetime. The head-aim task runs at priority 97, the others at 192.
+extern TaskDesc gMistParkingShopTaskDescriptors[5];
 
 /// Tasks the room keeps a handle on while they run.
 extern Task* gRoomCutsceneSoundTask;
@@ -158,19 +163,49 @@ extern AnimationSet gMistParkingAnimation12DCC;
 
 extern AnimationSet gMistParkingAnimation1323C;
 
-extern AnimationBankCopyRequest D_mist_parking_80190870;
+/// Installs the variant-1 player's four-word shop/departure animation extension.
+///
+/// Set 47 is NULL; sets 48..50 are talk, departure-menu and stay clips. The
+/// equipped weapon bank is selected by the receiver. Copy dispatch borrows
+/// this request; the loaded room's clip data must outlive subsequent playback.
+extern AnimationBankCopyRequest gMistParkingShopPlayerAnimationBankCopy;
 
-extern AnimationPlayRequest D_mist_parking_8019088C;
+/// Player pose shared by Jodie's variant-1 shop talks, restarting extension clip 48.
+///
+/// Requires the shop bank extension to be installed. Weapon-animation dispatch
+/// resolves the source bank against the current equipment before playback;
+/// the stored index is ignored. Takes scripted control and disables grid response.
+extern AnimationPlayRequest gMistParkingPlayerShopTalkAnimation;
 
-extern AnimationPlayRequest D_mist_parking_80190BC0;
+/// Jodie's resting pose before and after the variant-1 greeting, in bank 0, clip 1.
+///
+/// Requests a twenty-frame blend when she is already ticking. Her playback
+/// handler ignores the collision word; her own loaded bank supplies the clip.
+extern AnimationPlayRequest gMistParkingJodieIdleAnimation;
 
-extern AnimationPlayRequest D_mist_parking_80190C10;
+/// Jodie's closing pose after shop use or leaving, in bank 0, clip 5.
+///
+/// Requests a twenty-frame blend when already ticking; the collision word is
+/// ignored. Her own loaded bank supplies the clip throughout playback.
+extern AnimationPlayRequest gMistParkingJodieShopExitAnimation;
 
-extern AnimationPlayRequest D_mist_parking_80190C38;
+/// Jodie's greeting/prize-talk pose, restarting bank 0, clip 7 after the initial delay.
+///
+/// Repeating the same clip preserves playback. Her handler ignores the collision
+/// word and uses her own loaded bank through playback.
+extern AnimationPlayRequest gMistParkingJodieGreetingAnimation;
 
-extern AnimationPlayRequest D_mist_parking_80190C4C;
+/// Jodie's first reply pose for the variant-1 shop menu, in bank 0, clip 8.
+///
+/// Requests a twenty-frame blend when already ticking. The reply's CAP cue
+/// selects the following pose; the handler ignores the collision word.
+extern AnimationPlayRequest gMistParkingJodieReplyAnimation;
 
-extern AnimationPlayRequest D_mist_parking_80190C60;
+/// Jodie's pose at the reply's CAP cue, in bank 0, clip 9 with a fifteen-frame blend.
+///
+/// The scripts wait thirty frames before returning to idle or the closing pose.
+/// Her handler ignores the collision word and uses her own loaded bank.
+extern AnimationPlayRequest gMistParkingJodieReplyEndAnimation;
 
 extern EvsCommand D_mist_parking_80191154[8];
 
