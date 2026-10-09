@@ -19,35 +19,108 @@ static void _shopDrawCategoryRow(UiList* list, UiObject* object);
 
 static void _shopDrawItemRow(UiList* list, UiObject* object);
 
-static u16 Shop_Data_801815F8[4] = {
-    140,
-    143,
-    0xFFFF,
+/// Item catalogue keys used by these base stock lists.
+///
+/// Stock rows keep their unsigned halfword representation; service and end
+/// rows use the separate `SHOP_ROW_*` values.
+enum {
+    SHOP_STOCK_ITEM_RECOVERY_1       = 1,
+    SHOP_STOCK_ITEM_RECOVERY_2       = 2,
+    SHOP_STOCK_ITEM_RECOVERY_3       = 3,
+    SHOP_STOCK_ITEM_STIM             = 4,
+    SHOP_STOCK_ITEM_MP_BOOST_1       = 6,
+    SHOP_STOCK_ITEM_MP_BOOST_2       = 7,
+    SHOP_STOCK_ITEM_PENICILLIN       = 8,
+    SHOP_ITEM_SMG_CLIP_HOLDER        = 9,
+    SHOP_ITEM_RIFLE_CLIP_HOLDER      = 10,
+    SHOP_STOCK_ITEM_LIPSTICK         = 11,
+    SHOP_ITEM_BELT_POUCH             = 13,
+    SHOP_STOCK_ITEM_MEDICINE_WHEEL   = 55,
+    SHOP_STOCK_ITEM_FLARE            = 58,
+    SHOP_STOCK_ITEM_PEPPER_SPRAY     = 59,
+    SHOP_STOCK_ITEM_PROTEIN_CAPSULE  = 60,
+    SHOP_STOCK_ITEM_COMBAT_LIGHT     = 65,
+    SHOP_ITEM_HAMMER                 = 66,
+    SHOP_ITEM_PYKE                   = 67,
+    SHOP_ITEM_JAVELIN                = 68,
+    SHOP_ITEM_M203                   = 69,
+    SHOP_ITEM_M9                     = 70,
+    SHOP_STOCK_ITEM_TACTICAL_ARMOR   = 97,
+    SHOP_STOCK_ITEM_COMBAT_ARMOR     = 98,
+    SHOP_STOCK_ITEM_PASGT_VEST       = 100,
+    SHOP_STOCK_ITEM_EOD_SUIT         = 102,
+    SHOP_STOCK_ITEM_TURTLE_VEST      = 103,
+    SHOP_STOCK_ITEM_AYA_SPECIAL      = 107,
+    SHOP_STOCK_ITEM_SHOULDER_HOLSTER = 108,
+    SHOP_STOCK_ITEM_P08              = 131,
+    SHOP_ITEM_GRENADE_PISTOL         = 138,
+    SHOP_STOCK_ITEM_MM1              = 139,
+    SHOP_STOCK_ITEM_PA3              = 140,
+    SHOP_STOCK_ITEM_AS12             = 142,
+    SHOP_STOCK_ITEM_M4A1_RIFLE       = 143,
+    SHOP_STOCK_ITEM_M249             = 144,
+    SHOP_ITEM_MP5A5_FIRST            = 157,
+    SHOP_STOCK_ITEM_9MM_PB           = 160,
+    SHOP_STOCK_ITEM_9MM_SPARTAN      = 162,
+    SHOP_STOCK_ITEM_44_MAGNUM        = 166,
+    SHOP_STOCK_ITEM_GRENADE          = 169,
+    SHOP_STOCK_ITEM_AIRBURST         = 170,
+    SHOP_STOCK_ITEM_RIOT             = 171,
+    SHOP_STOCK_ITEM_BUCKSHOT         = 172,
+    SHOP_STOCK_ITEM_FIREFLY          = 173,
+    SHOP_STOCK_ITEM_R_SLUG           = 174,
+    SHOP_STOCK_ITEM_556_RIFLE        = 175,
+};
+
+/// Weapons stock for the default selector in standard save modes (0 and 1).
+///
+/// M.I.S.T. and unrecognized stock selectors use this fallback.
+/// Two offered item rows; the stored zero after the terminator is outside the list.
+/// Rows are unsigned halfwords, borrowed read-only while the room image is loaded.
+static const u16 _gShopStandardDefaultWeaponsStock[4] SECTION(".data") = {
+    SHOP_STOCK_ITEM_PA3,
+    SHOP_STOCK_ITEM_M4A1_RIFLE,
+    SHOP_ROW_END,
     0,
 };
 
-static u16 Shop_Data_80181600[4] = {
-    172,
-    175,
-    0xFFFE,
-    0xFFFF,
+/// Ammunition stock for the default selector in standard save modes (0 and 1).
+///
+/// M.I.S.T. and unrecognized stock selectors use this fallback.
+/// Two ammunition rows and the Batteries/Fuel recharge service, then the terminator.
+/// Rows are unsigned halfwords, borrowed read-only while the room image is loaded.
+static const u16 _gShopStandardDefaultAmmunitionStock[4] SECTION(".data") = {
+    SHOP_STOCK_ITEM_BUCKSHOT,
+    SHOP_STOCK_ITEM_556_RIFLE,
+    SHOP_ROW_RECHARGE_SERVICE,
+    SHOP_ROW_END,
 };
 
-static u16 Shop_Data_80181608[4] = {
-    103,
-    98,
-    0xFFFF,
+/// Armor stock for the default selector in standard save modes (0 and 1).
+///
+/// M.I.S.T. and unrecognized stock selectors use this fallback.
+/// Two offered item rows; the stored zero after the terminator is outside the list.
+/// Rows are unsigned halfwords, borrowed read-only while the room image is loaded.
+static const u16 _gShopStandardDefaultArmorStock[4] SECTION(".data") = {
+    SHOP_STOCK_ITEM_TURTLE_VEST,
+    SHOP_STOCK_ITEM_COMBAT_ARMOR,
+    SHOP_ROW_END,
     0,
 };
 
-static u16 Shop_Data_80181610[8] = {
-    65,
-    59,
-    1,
-    6,
-    8,
-    4,
-    0xFFFF,
+/// Items stock for the default selector in standard save modes (0 and 1).
+///
+/// M.I.S.T. and unrecognized stock selectors use this fallback.
+/// Six offered item rows; the stored zero after the terminator is outside the list.
+/// Rows are unsigned halfwords, borrowed read-only while the room image is loaded.
+static const u16 _gShopStandardDefaultItemsStock[8] SECTION(".data") = {
+    SHOP_STOCK_ITEM_COMBAT_LIGHT,
+    SHOP_STOCK_ITEM_PEPPER_SPRAY,
+    SHOP_STOCK_ITEM_RECOVERY_1,
+    SHOP_STOCK_ITEM_MP_BOOST_1,
+    SHOP_STOCK_ITEM_PENICILLIN,
+    SHOP_STOCK_ITEM_STIM,
+    SHOP_ROW_END,
     0,
 };
 
@@ -159,59 +232,6 @@ static u16 Shop_Data_801816AC[10] = {
     0xFFFE,
     0xFFFF,
     0,
-};
-
-/// Item catalogue keys used by these base stock lists.
-///
-/// Stock rows keep their unsigned halfword representation; service and end
-/// rows use the separate `SHOP_ROW_*` values.
-enum {
-    SHOP_STOCK_ITEM_RECOVERY_1       = 1,
-    SHOP_STOCK_ITEM_RECOVERY_2       = 2,
-    SHOP_STOCK_ITEM_RECOVERY_3       = 3,
-    SHOP_STOCK_ITEM_STIM             = 4,
-    SHOP_STOCK_ITEM_MP_BOOST_1       = 6,
-    SHOP_STOCK_ITEM_MP_BOOST_2       = 7,
-    SHOP_STOCK_ITEM_PENICILLIN       = 8,
-    SHOP_ITEM_SMG_CLIP_HOLDER        = 9,
-    SHOP_ITEM_RIFLE_CLIP_HOLDER      = 10,
-    SHOP_STOCK_ITEM_LIPSTICK         = 11,
-    SHOP_ITEM_BELT_POUCH             = 13,
-    SHOP_STOCK_ITEM_MEDICINE_WHEEL   = 55,
-    SHOP_STOCK_ITEM_FLARE            = 58,
-    SHOP_STOCK_ITEM_PEPPER_SPRAY     = 59,
-    SHOP_STOCK_ITEM_PROTEIN_CAPSULE  = 60,
-    SHOP_STOCK_ITEM_COMBAT_LIGHT     = 65,
-    SHOP_ITEM_HAMMER                 = 66,
-    SHOP_ITEM_PYKE                   = 67,
-    SHOP_ITEM_JAVELIN                = 68,
-    SHOP_ITEM_M203                   = 69,
-    SHOP_ITEM_M9                     = 70,
-    SHOP_STOCK_ITEM_TACTICAL_ARMOR   = 97,
-    SHOP_STOCK_ITEM_COMBAT_ARMOR     = 98,
-    SHOP_STOCK_ITEM_PASGT_VEST       = 100,
-    SHOP_STOCK_ITEM_EOD_SUIT         = 102,
-    SHOP_STOCK_ITEM_TURTLE_VEST      = 103,
-    SHOP_STOCK_ITEM_AYA_SPECIAL      = 107,
-    SHOP_STOCK_ITEM_SHOULDER_HOLSTER = 108,
-    SHOP_STOCK_ITEM_P08              = 131,
-    SHOP_ITEM_GRENADE_PISTOL         = 138,
-    SHOP_STOCK_ITEM_MM1              = 139,
-    SHOP_STOCK_ITEM_PA3              = 140,
-    SHOP_STOCK_ITEM_AS12             = 142,
-    SHOP_STOCK_ITEM_M4A1_RIFLE       = 143,
-    SHOP_STOCK_ITEM_M249             = 144,
-    SHOP_ITEM_MP5A5_FIRST            = 157,
-    SHOP_STOCK_ITEM_9MM_PB           = 160,
-    SHOP_STOCK_ITEM_9MM_SPARTAN      = 162,
-    SHOP_STOCK_ITEM_44_MAGNUM        = 166,
-    SHOP_STOCK_ITEM_GRENADE          = 169,
-    SHOP_STOCK_ITEM_AIRBURST         = 170,
-    SHOP_STOCK_ITEM_RIOT             = 171,
-    SHOP_STOCK_ITEM_BUCKSHOT         = 172,
-    SHOP_STOCK_ITEM_FIREFLY          = 173,
-    SHOP_STOCK_ITEM_R_SLUG           = 174,
-    SHOP_STOCK_ITEM_556_RIFLE        = 175,
 };
 
 /// Armor stock for late Dryfield in standard modes (save modes 0 and 1).
@@ -852,7 +872,12 @@ static ShopTier Shop_Data_80181950[SHOP_TIER_COUNT] = {
     { 0x7FFFFFFF, { 150, 61, 62 } },
 };
 
-static s32 Shop_Data_801819EC = -1;
+/// Row currently selected for the shop preview, or SHOP_PREVIEW_NONE before selection.
+///
+/// Active list input publishes item and service row ids here. The preview task
+/// draws a loaded item only after its id agrees with this selection; service
+/// rows omit the Amount caption. Each room image owns one active selection.
+static s32 _gShopPreviewRowId = SHOP_PREVIEW_NONE;
 
 static u8 Shop_Data_801819F0[20] = {
     80,

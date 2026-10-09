@@ -68,42 +68,40 @@ extern s8 D_shelter_1f_heliport_80182CB0;
 
 extern TaskDesc D_actor_161500_80136CDC;
 
-/// The 0xFFFF-terminated item id lists `func_shelter_1f_heliport_8017D730`
-/// chooses from, and the one it returns when no case matches.
-static u16 Shop_Data_801815F8[];
-static u16 Shop_Data_80181600[];
-static u16 Shop_Data_80181608[];
-static u16 Shop_Data_80181610[];
-static u16 Shop_Data_80181620[];
-static u16 Shop_Data_80181630[];
-static u16 Shop_Data_80181640[];
-static u16 Shop_Data_80181648[];
-static u16 Shop_Data_80181658[];
-static u16 Shop_Data_80181668[];
-static u16 Shop_Data_80181678[];
-static u16 Shop_Data_80181680[];
-static u16 Shop_Data_80181694[];
-static u16 Shop_Data_801816AC[];
-static u16 Shop_Data_80181888[];
-static u16 Shop_Data_80181890[];
-static u16 Shop_Data_80181898[];
-static u16 Shop_Data_801818A4[];
-static u16 Shop_Data_801818B0[];
-static u16 Shop_Data_801818B8[];
-static u16 Shop_Data_801818C4[];
-static u16 Shop_Data_801818D0[];
-static u16 Shop_Data_801818DC[];
-static u16 Shop_Data_801818E0[];
-static u16 Shop_Data_801818EC[];
-static u16 Shop_Data_801818F8[];
-static u16 Shop_Data_80181904[];
-static u16 Shop_Data_8018190C[];
-static u16 Shop_Data_80181918[];
-static u16 Shop_Data_80181924[];
-static u16 Shop_Data_80181930[];
-static u16 Shop_Data_80181938[];
-static u16 Shop_Data_80181944[];
-static u16 Shop_Data_80181AD4[];
+static const u16 _gShopStandardDefaultWeaponsStock[];
+static const u16 _gShopStandardDefaultAmmunitionStock[];
+static const u16 _gShopStandardDefaultArmorStock[];
+static const u16 _gShopStandardDefaultItemsStock[];
+static u16       Shop_Data_80181620[];
+static u16       Shop_Data_80181630[];
+static u16       Shop_Data_80181640[];
+static u16       Shop_Data_80181648[];
+static u16       Shop_Data_80181658[];
+static u16       Shop_Data_80181668[];
+static u16       Shop_Data_80181678[];
+static u16       Shop_Data_80181680[];
+static u16       Shop_Data_80181694[];
+static u16       Shop_Data_801816AC[];
+static u16       Shop_Data_80181888[];
+static u16       Shop_Data_80181890[];
+static u16       Shop_Data_80181898[];
+static u16       Shop_Data_801818A4[];
+static u16       Shop_Data_801818B0[];
+static u16       Shop_Data_801818B8[];
+static u16       Shop_Data_801818C4[];
+static u16       Shop_Data_801818D0[];
+static u16       Shop_Data_801818DC[];
+static u16       Shop_Data_801818E0[];
+static u16       Shop_Data_801818EC[];
+static u16       Shop_Data_801818F8[];
+static u16       Shop_Data_80181904[];
+static u16       Shop_Data_8018190C[];
+static u16       Shop_Data_80181918[];
+static u16       Shop_Data_80181924[];
+static u16       Shop_Data_80181930[];
+static u16       Shop_Data_80181938[];
+static u16       Shop_Data_80181944[];
+static u16       Shop_Data_80181AD4[];
 
 /// Messages and labels of the shop's panels.
 static u8 Shop_Data_801819F0[];
@@ -124,8 +122,7 @@ static u8 Shop_Data_80181AD0[];
 /// The shop's tier ladder.
 static ShopTier Shop_Data_80181950[SHOP_TIER_COUNT];
 
-/// The item id the shop list's cursor last rested on.
-static s32 Shop_Data_801819EC;
+static s32 _gShopPreviewRowId;
 
 /// Row handlers, lists and panel descriptors of the shop's panels.
 static UiListRowCallback Shop_Data_80181AD8[];
@@ -157,11 +154,8 @@ extern SVECTOR D_shelter_1f_heliport_80181204;
 extern WorldCollisionGrid gFollowCollisionSource;
 extern WorldCollisionGrid gFollowCollisionGrid;
 
-/// Work pair of the charge panel `func_shelter_1f_heliport_8017F2D4`: the
-/// animated quantity in 24.8 fixed point, and the item map of the slot being
-/// charged.
-static s32                          Shop_Data_80187628;
-static const EquipmentWeaponSupply* Shop_Data_8018762C;
+static s32                          _gShopRefillDisplayQuantityFixed;
+static const EquipmentWeaponSupply* _gShopRefillSupply;
 
 /// The event the message handler latched for the room's event task: the spawn
 /// argument of its helper task 0x31, the message, the flag saying one was
@@ -546,9 +540,18 @@ WorldCollisionSurfaceProperties* D_shelter_1f_heliport_80182C78[8] = {
     D_shelter_1f_heliport_80182C68,
 };
 
-static s32 Shop_Data_80187628 = 0;
+/// Displayed weapon-supply quantity in signed 24.8 fixed point.
+///
+/// Refill commits the live weapon load to capacity immediately, then this value
+/// rises from the old quantity by one quarter-unit per callback and clamps at
+/// capacity. The panel uses it for both the number and its meter, through closure.
+static s32 _gShopRefillDisplayQuantityFixed = 0;
 
-static const EquipmentWeaponSupply* Shop_Data_8018762C = NULL;
+/// Borrowed weapon-supply catalogue row currently displayed by the refill panel.
+///
+/// NULL until the first carried supply is selected. Retained while the panel
+/// closes; gameplay and its catalogue must remain loaded throughout the session.
+static const EquipmentWeaponSupply* _gShopRefillSupply = NULL;
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
@@ -566,6 +569,8 @@ u8 D_shelter_1f_heliport_80182CB3 = 224;
 RoomLatchedEvent gRoomEventLatched = { 0 };
 
 #include "../../shared/shop.inc.c"
+#undef SHOP_REFILL_DISPLAY_QUANTITY
+#undef SHOP_REFILL_SUPPLY
 
 #undef SHOP_CHARGE_TITLE_BYTES
 

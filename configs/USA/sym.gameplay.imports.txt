@@ -1385,7 +1385,7 @@ D_dryfield_night_garage_80181C2C = 0x80181C2C; // absolute:True owner=dryfield_n
 
 D_dryfield_night_trailer_coach_801846D0 = 0x801846D0; // absolute:True owner=dryfield_night_trailer_coach
 
-D_dryfield_trailer_coach_80183F84 = 0x80183F84; // absolute:True owner=dryfield_trailer_coach shared=rooms
+gDryfieldTrailerCoachShopSessionTaskDesc = 0x80183F84; // absolute:True owner=dryfield_trailer_coach shared=rooms
 
 D_mist_parking_8018668C = 0x8018668C; // absolute:True owner=mist_parking
 

@@ -3598,7 +3598,7 @@ s32 shopOpenSession(s32 stockSelector)
             displayQueueModeTask(&D_mist_parking_8018668C, stockSelector, 0, STAGE_ENTRY_RELOAD);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TRAILER_COACH, 0, 0):
-            displayQueueModeTask(&D_dryfield_trailer_coach_80183F84, stockSelector, 0, STAGE_ENTRY_RELOAD);
+            displayQueueModeTask(&gDryfieldTrailerCoachShopSessionTaskDesc, stockSelector, 0, STAGE_ENTRY_RELOAD);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_TRAILER_COACH, 0, 0):
             displayQueueModeTask(&D_dryfield_night_trailer_coach_801846D0, stockSelector, 0, STAGE_ENTRY_RELOAD);

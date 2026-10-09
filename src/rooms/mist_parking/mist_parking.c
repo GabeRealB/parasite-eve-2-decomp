@@ -64,52 +64,51 @@ static void _roomCutsceneSoundTask(Task* task);
 /// Task descriptor tables the room spawns its tasks from.
 extern TaskDesc gRoomCutsceneTaskDescs[];
 
-/// The item id the shop list's cursor last rested on.
-static s32 Shop_Data_801819EC;
+static s32 _gShopPreviewRowId;
 
 extern UiObjectDesc D_800611E4;
 
-/// The 0xFFFF-terminated item id lists `func_mist_parking_8017D8F8` chooses
-/// from.
-static u16 Shop_Data_801815F8[];
-static u16 Shop_Data_80181600[];
-static u16 Shop_Data_80181608[];
-static u16 Shop_Data_80181610[];
-static u16 Shop_Data_80181620[];
-static u16 Shop_Data_80181630[];
-static u16 Shop_Data_80181640[];
-static u16 Shop_Data_80181648[];
-static u16 Shop_Data_80181658[];
-static u16 Shop_Data_80181668[];
-static u16 Shop_Data_80181678[];
-static u16 Shop_Data_80181680[];
-static u16 Shop_Data_80181694[];
-static u16 Shop_Data_801816AC[];
-static u16 Shop_Data_80181888[];
-static u16 Shop_Data_80181890[];
-static u16 Shop_Data_80181898[];
-static u16 Shop_Data_801818A4[];
-static u16 Shop_Data_801818B0[];
-static u16 Shop_Data_801818B8[];
-static u16 Shop_Data_801818C4[];
-static u16 Shop_Data_801818D0[];
-static u16 Shop_Data_801818DC[];
-static u16 Shop_Data_801818E0[];
-static u16 Shop_Data_801818EC[];
-static u16 Shop_Data_801818F8[];
-static u16 Shop_Data_80181904[];
-static u16 Shop_Data_8018190C[];
-static u16 Shop_Data_80181918[];
-static u16 Shop_Data_80181924[];
-static u16 Shop_Data_80181930[];
-static u16 Shop_Data_80181938[];
-static u16 Shop_Data_80181944[];
-static u16 Shop_Data_80181AD4[];
+static const u16 _gShopStandardDefaultWeaponsStock[];
+static const u16 _gShopStandardDefaultAmmunitionStock[];
+static const u16 _gShopStandardDefaultArmorStock[];
+static const u16 _gShopStandardDefaultItemsStock[];
+static u16       Shop_Data_80181620[];
+static u16       Shop_Data_80181630[];
+static u16       Shop_Data_80181640[];
+static u16       Shop_Data_80181648[];
+static u16       Shop_Data_80181658[];
+static u16       Shop_Data_80181668[];
+static u16       Shop_Data_80181678[];
+static u16       Shop_Data_80181680[];
+static u16       Shop_Data_80181694[];
+static u16       Shop_Data_801816AC[];
+static u16       Shop_Data_80181888[];
+static u16       Shop_Data_80181890[];
+static u16       Shop_Data_80181898[];
+static u16       Shop_Data_801818A4[];
+static u16       Shop_Data_801818B0[];
+static u16       Shop_Data_801818B8[];
+static u16       Shop_Data_801818C4[];
+static u16       Shop_Data_801818D0[];
+static u16       Shop_Data_801818DC[];
+static u16       Shop_Data_801818E0[];
+static u16       Shop_Data_801818EC[];
+static u16       Shop_Data_801818F8[];
+static u16       Shop_Data_80181904[];
+static u16       Shop_Data_8018190C[];
+static u16       Shop_Data_80181918[];
+static u16       Shop_Data_80181924[];
+static u16       Shop_Data_80181930[];
+static u16       Shop_Data_80181938[];
+static u16       Shop_Data_80181944[];
+static u16       Shop_Data_80181AD4[];
 
 #define TELEPHONE_TITLE_BYTES "Telephone\0\xF2\xEF"
 #include "../../shared/telephone.h"
 
-#define SHOP_CHARGE_TITLE_BYTES "Charge\0\xE2"
+#define SHOP_REFILL_DISPLAY_QUANTITY gShopRefillDisplayQuantityFixed
+#define SHOP_REFILL_SUPPLY           gShopRefillSupply
+#define SHOP_CHARGE_TITLE_BYTES      "Charge\0\xE2"
 #include "../../shared/shop.h"
 
 static s32  _mistParkingHandleCommand(Task* task, s32 messageId, s32 commandId, s32 unusedArg);
@@ -919,6 +918,8 @@ extern EvsCommand D_mist_parking_80186C5C[];
 extern EvsCommand D_mist_parking_80186DC4[];
 
 #include "../../shared/shop.inc.c"
+#undef SHOP_REFILL_DISPLAY_QUANTITY
+#undef SHOP_REFILL_SUPPLY
 
 #undef SHOP_CHARGE_TITLE_BYTES
 

@@ -1,10 +1,10 @@
 // Overlay-local symbols for dryfield_night_trailer_coach.
 _gShopWeaponSupplyRefillTitle = 0x8017D6F4; // force_not_migration:True string with a non-zero byte after its terminator, read from C
 _gTelephoneMenuTitle = 0x8017D770; // force_not_migration:True string with non-zero bytes after its terminator, read from C
-Shop_Data_801815F8 = 0x8018409C; // size:0x8 defined:True
-Shop_Data_80181600 = 0x801840A4; // size:0x8 defined:True
-Shop_Data_80181608 = 0x801840AC; // size:0x8 defined:True
-Shop_Data_80181610 = 0x801840B4; // size:0x10 defined:True
+_gShopStandardDefaultWeaponsStock = 0x8018409C; // size:0x8 defined:True
+_gShopStandardDefaultAmmunitionStock = 0x801840A4; // size:0x8 defined:True
+_gShopStandardDefaultArmorStock = 0x801840AC; // size:0x8 defined:True
+_gShopStandardDefaultItemsStock = 0x801840B4; // size:0x10 defined:True
 Shop_Data_80181620 = 0x801840C4; // size:0x10 defined:True
 Shop_Data_80181630 = 0x801840D4; // size:0x10 defined:True
 Shop_Data_80181640 = 0x801840E4; // size:0x8 defined:True
@@ -66,7 +66,7 @@ Shop_Data_80181930 = 0x801843D4; // size:0x8 defined:True
 Shop_Data_80181938 = 0x801843DC; // size:0xC defined:True
 Shop_Data_80181944 = 0x801843E8; // size:0xC defined:True
 Shop_Data_80181950 = 0x801843F4; // size:0x9C defined:True
-Shop_Data_801819EC = 0x80184490; // size:0x4 defined:True
+_gShopPreviewRowId = 0x80184490; // size:0x4 defined:True
 Shop_Data_801819F0 = 0x80184494; // size:0x14 defined:True
 Shop_Data_80181A04 = 0x801844A8; // size:0x8 defined:True
 Shop_Data_80181A0C = 0x801844B0; // size:0x10 defined:True
@@ -135,8 +135,8 @@ D_dryfield_night_trailer_coach_8018C1D8 = 0x8018C1D8; // size:0x8 defined:True
 D_dryfield_night_trailer_coach_8018C1E0 = 0x8018C1E0; // size:0x8 defined:True
 D_dryfield_night_trailer_coach_8018C1E8 = 0x8018C1E8; // size:0x20 defined:True
 D_dryfield_night_trailer_coach_8018C208 = 0x8018C208; // size:0x8 defined:True
-Shop_Data_80187628 = 0x8018C210; // size:0x4 defined:True
-Shop_Data_8018762C = 0x8018C214; // size:0x4 defined:True
+gShopRefillDisplayQuantityFixed = 0x8018C210; // size:0x4 defined:True
+gShopRefillSupply = 0x8018C214; // size:0x4 defined:True
 gRoomCutsceneSoundTask = 0x8018C218; // size:0x4 defined:True
 D_dryfield_night_trailer_coach_8018C21C = 0x8018C21C; // size:0x18 defined:True
 D_actor_420700_8013EF68 = 0x8013EF68; // absolute:True owner=actor_420700

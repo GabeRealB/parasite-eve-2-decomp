@@ -519,9 +519,9 @@ WorldCollisionSurfaceProperties* D_shelter_b1_armory_80185554[8] = {
     D_shelter_b1_armory_80185544,
 };
 
-s32 Shop_Data_80187628 = 0;
+s32 gShopRefillDisplayQuantityFixed = 0;
 
-const EquipmentWeaponSupply* Shop_Data_8018762C = NULL;
+const EquipmentWeaponSupply* gShopRefillSupply = NULL;
 
 RoomSavedViewStorage D_shelter_b1_armory_8018557C = { 0 };
 

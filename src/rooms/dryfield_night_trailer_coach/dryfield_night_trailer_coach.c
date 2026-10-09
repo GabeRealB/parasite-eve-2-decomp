@@ -67,8 +67,7 @@ static void _trailerCoachSetDepthShift(Task* unusedTask);
 
 static void _roomCutsceneSoundTask(Task* task);
 
-/// The item id the shop list's cursor last rested on.
-static s32 Shop_Data_801819EC;
+static s32 _gShopPreviewRowId;
 
 /// Task descriptor table the room's cutscene tasks spawn from: the room spawns
 /// entry 0 with a cutscene record as its argument, and
@@ -78,46 +77,46 @@ extern TaskDesc gRoomCutsceneTaskDescs[];
 #define TELEPHONE_TITLE_BYTES "Telephone\0N\xF2"
 #include "../../shared/telephone.h"
 
-/// The 0xFFFF-terminated item id lists `func_dryfield_night_trailer_coach_8017D81C`
-/// chooses from.
-static u16 Shop_Data_801815F8[];
-static u16 Shop_Data_80181600[];
-static u16 Shop_Data_80181608[];
-static u16 Shop_Data_80181610[];
-static u16 Shop_Data_80181620[];
-static u16 Shop_Data_80181630[];
-static u16 Shop_Data_80181640[];
-static u16 Shop_Data_80181648[];
-static u16 Shop_Data_80181658[];
-static u16 Shop_Data_80181668[];
-static u16 Shop_Data_80181678[];
-static u16 Shop_Data_80181680[];
-static u16 Shop_Data_80181694[];
-static u16 Shop_Data_801816AC[];
-static u16 Shop_Data_80181888[];
-static u16 Shop_Data_80181890[];
-static u16 Shop_Data_80181898[];
-static u16 Shop_Data_801818A4[];
-static u16 Shop_Data_801818B0[];
-static u16 Shop_Data_801818B8[];
-static u16 Shop_Data_801818C4[];
-static u16 Shop_Data_801818D0[];
-static u16 Shop_Data_801818DC[];
-static u16 Shop_Data_801818E0[];
-static u16 Shop_Data_801818EC[];
-static u16 Shop_Data_801818F8[];
-static u16 Shop_Data_80181904[];
-static u16 Shop_Data_8018190C[];
-static u16 Shop_Data_80181918[];
-static u16 Shop_Data_80181924[];
-static u16 Shop_Data_80181930[];
-static u16 Shop_Data_80181938[];
-static u16 Shop_Data_80181944[];
+static const u16 _gShopStandardDefaultWeaponsStock[];
+static const u16 _gShopStandardDefaultAmmunitionStock[];
+static const u16 _gShopStandardDefaultArmorStock[];
+static const u16 _gShopStandardDefaultItemsStock[];
+static u16       Shop_Data_80181620[];
+static u16       Shop_Data_80181630[];
+static u16       Shop_Data_80181640[];
+static u16       Shop_Data_80181648[];
+static u16       Shop_Data_80181658[];
+static u16       Shop_Data_80181668[];
+static u16       Shop_Data_80181678[];
+static u16       Shop_Data_80181680[];
+static u16       Shop_Data_80181694[];
+static u16       Shop_Data_801816AC[];
+static u16       Shop_Data_80181888[];
+static u16       Shop_Data_80181890[];
+static u16       Shop_Data_80181898[];
+static u16       Shop_Data_801818A4[];
+static u16       Shop_Data_801818B0[];
+static u16       Shop_Data_801818B8[];
+static u16       Shop_Data_801818C4[];
+static u16       Shop_Data_801818D0[];
+static u16       Shop_Data_801818DC[];
+static u16       Shop_Data_801818E0[];
+static u16       Shop_Data_801818EC[];
+static u16       Shop_Data_801818F8[];
+static u16       Shop_Data_80181904[];
+static u16       Shop_Data_8018190C[];
+static u16       Shop_Data_80181918[];
+static u16       Shop_Data_80181924[];
+static u16       Shop_Data_80181930[];
+static u16       Shop_Data_80181938[];
+static u16       Shop_Data_80181944[];
 
 /// The list returned when no case matches.
 static u16 Shop_Data_80181AD4[];
 
-#define SHOP_CHARGE_TITLE_BYTES "Charge\0\xFD"
+#define SHOP_REFILL_DISPLAY_QUANTITY gShopRefillDisplayQuantityFixed
+#define SHOP_REFILL_SUPPLY           gShopRefillSupply
+#define SHOP_CHARGE_TITLE_BYTES      "Charge\0\xFD"
 #include "../../shared/shop.h"
 
 enum { DRYFIELD_NIGHT_TRAILER_COACH_LATE_CHAPTER = 4 };
@@ -832,6 +831,8 @@ static void _dryfieldNightTrailerCoachInitRoomTask(Task* task);
 extern TaskDesc D_dryfield_night_trailer_coach_8018797C;
 
 #include "../../shared/shop.inc.c"
+#undef SHOP_REFILL_DISPLAY_QUANTITY
+#undef SHOP_REFILL_SUPPLY
 
 #undef SHOP_CHARGE_TITLE_BYTES
 

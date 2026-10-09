@@ -217,9 +217,18 @@ extern EvsCommand D_mist_parking_801913C4[8];
 
 extern WorldCollisionGrid D_mist_parking_80192204;
 
-extern s32 Shop_Data_80187628;
+/// Displayed weapon-supply quantity in signed 24.8 fixed point.
+///
+/// Refill commits the live weapon load to capacity immediately, then this value
+/// rises from the old quantity by one quarter-unit per callback and clamps at
+/// capacity. The panel uses it for both the number and its meter, through closure.
+extern s32 gShopRefillDisplayQuantityFixed;
 
-extern const EquipmentWeaponSupply* Shop_Data_8018762C;
+/// Borrowed weapon-supply catalogue row currently displayed by the refill panel.
+///
+/// NULL until the first carried supply is selected. Retained while the panel
+/// closes; gameplay and its catalogue must remain loaded throughout the session.
+extern const EquipmentWeaponSupply* gShopRefillSupply;
 
 extern s32 D_mist_parking_8019531C;
 

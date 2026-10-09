@@ -1227,9 +1227,9 @@ AreaApplyRec D_dryfield_night_garage_80187620[2] = {
     { 255, 0, 0, 0 },
 };
 
-s32 Shop_Data_80187628;
+s32 gShopRefillDisplayQuantityFixed;
 
-const EquipmentWeaponSupply* Shop_Data_8018762C;
+const EquipmentWeaponSupply* gShopRefillSupply;
 
 /// Plays garage dialogue while Gary Douglas turns his head toward the player.
 ///

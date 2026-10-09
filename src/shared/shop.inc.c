@@ -94,8 +94,7 @@ enum {
     SHOP_REFILL_METER_COLOR_RGB     = 0x1741F,
     SHOP_SESSION_CLOSE_FRAMES       = 10,
     SHOP_ITEM_LIST_VISIBLE_ROWS     = 9,
-    SHOP_TEXT_COLOR_RGB             = 0x606060,
-    SHOP_PREVIEW_NONE               = -1
+    SHOP_TEXT_COLOR_RGB             = 0x606060
 };
 
 /// Work block of the shop's item-list panel, parked in `Task::work`.
@@ -219,13 +218,13 @@ static const u16* _shopSelectStockList(s32 stockSelector)
             default:
                 switch ((u32)stockSelector >> 16) {
                     case SHOP_CATEGORY_WEAPONS:
-                        return Shop_Data_801815F8;
+                        return _gShopStandardDefaultWeaponsStock;
                     case SHOP_CATEGORY_AMMUNITION:
-                        return Shop_Data_80181600;
+                        return _gShopStandardDefaultAmmunitionStock;
                     case SHOP_CATEGORY_ARMOR:
-                        return Shop_Data_80181608;
+                        return _gShopStandardDefaultArmorStock;
                     case SHOP_CATEGORY_ITEMS:
-                        return Shop_Data_80181610;
+                        return _gShopStandardDefaultItemsStock;
                 }
                 break;
         }
@@ -362,7 +361,7 @@ static void _shopDrawItemRow(UiList* list, UiObject* object)
     rowId           = work->rowIds[list->currentItemIndex];
     carriedItems    = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        Shop_Data_801819EC = rowId;
+        _gShopPreviewRowId = rowId;
     }
 
     if (rowId == SHOP_ROW_RECHARGE_SERVICE) {
@@ -621,7 +620,7 @@ static void _shopBuildItemList(UiList* list, UiObject* object)
     if ((s8)rowCount >= SHOP_ITEM_LIST_VISIBLE_ROWS + 1) {
         list->visibleRowCount.unsignedValue = SHOP_ITEM_LIST_VISIBLE_ROWS;
     }
-    Shop_Data_801819EC = SHOP_PREVIEW_NONE;
+    _gShopPreviewRowId = SHOP_PREVIEW_NONE;
 }
 
 /// NUL-terminated title of the offered-item list panel.
@@ -1058,44 +1057,44 @@ static void _shopRefillWeaponSupplyTask(Task* task)
             object->result = USER_INTERFACE_RESULT_CONFIRM;
         } else {
             supply             = equipmentGetWeaponSupply(supplyIndex);
-            Shop_Data_8018762C = supply;
+            SHOP_REFILL_SUPPLY = supply;
             refillWeaponItemId = supply->weaponItemId;
             weaponLoad         = equipmentGetWeaponLoad(refillWeaponItemId);
-            if (Shop_Data_8018762C->supplyLoad == EQUIPMENT_WEAPON_SUPPLY_PRIMARY) {
-                Shop_Data_80187628     = weaponLoad->primaryQty;
-                weaponLoad->primaryQty = equipmentGetWeaponLoadCapacity(refillWeaponItemId, EQUIPMENT_WEAPON_SUPPLY_PRIMARY);
+            if (SHOP_REFILL_SUPPLY->supplyLoad == EQUIPMENT_WEAPON_SUPPLY_PRIMARY) {
+                SHOP_REFILL_DISPLAY_QUANTITY = weaponLoad->primaryQty;
+                weaponLoad->primaryQty       = equipmentGetWeaponLoadCapacity(refillWeaponItemId, EQUIPMENT_WEAPON_SUPPLY_PRIMARY);
             } else {
-                Shop_Data_80187628       = weaponLoad->secondaryQty;
-                weaponLoad->secondaryQty = equipmentGetWeaponLoadCapacity(refillWeaponItemId, EQUIPMENT_WEAPON_SUPPLY_SECONDARY);
+                SHOP_REFILL_DISPLAY_QUANTITY = weaponLoad->secondaryQty;
+                weaponLoad->secondaryQty     = equipmentGetWeaponLoadCapacity(refillWeaponItemId, EQUIPMENT_WEAPON_SUPPLY_SECONDARY);
             }
-            task->killCountdown  = SHOP_REFILL_DURATION_FRAMES;
-            Shop_Data_80187628 <<= SHOP_REFILL_FRACTION_BITS;
-            task->state          = task->state + 1;
+            task->killCountdown            = SHOP_REFILL_DURATION_FRAMES;
+            SHOP_REFILL_DISPLAY_QUANTITY <<= SHOP_REFILL_FRACTION_BITS;
+            task->state                    = task->state + 1;
         }
     }
 
     // Keep drawing the last selected supply during completion and closure.
-    weaponItemId = Shop_Data_8018762C->weaponItemId;
-    supplyItemId = Shop_Data_8018762C->supplyItemId;
-    if (Shop_Data_8018762C->supplyLoad == EQUIPMENT_WEAPON_SUPPLY_PRIMARY) {
+    weaponItemId = SHOP_REFILL_SUPPLY->weaponItemId;
+    supplyItemId = SHOP_REFILL_SUPPLY->supplyItemId;
+    if (SHOP_REFILL_SUPPLY->supplyLoad == EQUIPMENT_WEAPON_SUPPLY_PRIMARY) {
         capacityFixed = equipmentGetWeaponLoadCapacity(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_PRIMARY);
     } else {
         capacityFixed = equipmentGetWeaponLoadCapacity(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_SECONDARY);
     }
-    capacityFixed     <<= SHOP_REFILL_FRACTION_BITS;
-    Shop_Data_80187628 += SHOP_REFILL_STEP_FIXED;
-    if (capacityFixed < Shop_Data_80187628) {
-        Shop_Data_80187628 = capacityFixed;
+    capacityFixed               <<= SHOP_REFILL_FRACTION_BITS;
+    SHOP_REFILL_DISPLAY_QUANTITY += SHOP_REFILL_STEP_FIXED;
+    if (capacityFixed < SHOP_REFILL_DISPLAY_QUANTITY) {
+        SHOP_REFILL_DISPLAY_QUANTITY = capacityFixed;
     }
 
     contentTop = object->panel.contentTop.signedValue;
     itemMenuDrawItemRow(object, object->panel.contentLeft.signedValue + 2, contentTop + 0xF, weaponItemId, SHOP_TEXT_COLOR_RGB, 0);
     uiDrawHorizontalSeparator(&object->panel, object->panel.contentLeft.signedValue, object->panel.contentRight.signedValue, contentTop + 0x12);
     itemMenuDrawItemRow(object, object->panel.contentLeft.signedValue + 2, contentTop + 0x23, supplyItemId, SHOP_TEXT_COLOR_RGB, 0);
-    itemMenuDrawQuantity(object, object->panel.contentLeft.signedValue + 2, contentTop + 0x23, Shop_Data_80187628 >> SHOP_REFILL_FRACTION_BITS, SHOP_TEXT_COLOR_RGB);
+    itemMenuDrawQuantity(object, object->panel.contentLeft.signedValue + 2, contentTop + 0x23, SHOP_REFILL_DISPLAY_QUANTITY >> SHOP_REFILL_FRACTION_BITS, SHOP_TEXT_COLOR_RGB);
     contentBottom = object->panel.contentBottom.signedValue;
     itemMenuDrawMeter(&object->panel, object->panel.contentLeft.signedValue + 2, object->panel.contentRight.signedValue - 2, contentBottom - 6, capacityFixed,
-                      Shop_Data_80187628, SHOP_REFILL_METER_COLOR_RGB);
+                      SHOP_REFILL_DISPLAY_QUANTITY, SHOP_REFILL_METER_COLOR_RGB);
 
     if (task->state == SHOP_REFILL_ANIMATE) {
         remainingFrames     = task->killCountdown - 1;
@@ -1152,10 +1151,10 @@ static void _shopItemPreviewTask(Task* task)
     s32         captionOffsetY;
     s32         heldCount;
 
-    rowId        = Shop_Data_801819EC;
+    rowId        = _gShopPreviewRowId;
     object       = task->spawnArg2.pointer;
     task->status = 0;
-    if (cdCmdIsIdle() && Shop_Data_801819EC == itemMenuGetPrimaryPreviewItem()) {
+    if (cdCmdIsIdle() && _gShopPreviewRowId == itemMenuGetPrimaryPreviewItem()) {
         itemMenuDrawPreview(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 2, ITEM_MENU_PREVIEW_SCALE_SHOP);
     } else {
         itemMenuDrawPreview(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 2, ITEM_MENU_PREVIEW_SCALE_SHOP | ITEM_MENU_PREVIEW_HIDDEN);

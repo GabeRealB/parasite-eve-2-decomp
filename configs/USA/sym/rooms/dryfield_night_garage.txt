@@ -1,9 +1,9 @@
 // Overlay-local symbols for dryfield_night_garage.
 _gShopWeaponSupplyRefillTitle = 0x8017D6F4; // force_not_migration:True string with a non-zero byte after its terminator, read from C
-Shop_Data_801815F8 = 0x801815F8; // size:0x8 defined:True
-Shop_Data_80181600 = 0x80181600; // size:0x8 defined:True
-Shop_Data_80181608 = 0x80181608; // size:0x8 defined:True
-Shop_Data_80181610 = 0x80181610; // size:0x10 defined:True
+_gShopStandardDefaultWeaponsStock = 0x801815F8; // size:0x8 defined:True
+_gShopStandardDefaultAmmunitionStock = 0x80181600; // size:0x8 defined:True
+_gShopStandardDefaultArmorStock = 0x80181608; // size:0x8 defined:True
+_gShopStandardDefaultItemsStock = 0x80181610; // size:0x10 defined:True
 Shop_Data_80181620 = 0x80181620; // size:0x10 defined:True
 Shop_Data_80181630 = 0x80181630; // size:0x10 defined:True
 Shop_Data_80181640 = 0x80181640; // size:0x8 defined:True
@@ -65,7 +65,7 @@ Shop_Data_80181930 = 0x80181930; // size:0x8 defined:True
 Shop_Data_80181938 = 0x80181938; // size:0xC defined:True
 Shop_Data_80181944 = 0x80181944; // size:0xC defined:True
 Shop_Data_80181950 = 0x80181950; // size:0x9C defined:True
-Shop_Data_801819EC = 0x801819EC; // size:0x4 defined:True
+_gShopPreviewRowId = 0x801819EC; // size:0x4 defined:True
 Shop_Data_801819F0 = 0x801819F0; // size:0x14 defined:True
 Shop_Data_80181A04 = 0x80181A04; // size:0x8 defined:True
 Shop_Data_80181A0C = 0x80181A0C; // size:0x10 defined:True
@@ -90,8 +90,8 @@ _gDryfieldNightGarageClass1FootstepSounds = 0x8018759C; // size:0xC defined:True
 _gDryfieldNightGarageSilentSurface = 0x801875A8; // size:0x8 defined:True
 _gDryfieldNightGarageClass1Surface = 0x801875B0; // size:0x8 defined:True
 gDryfieldNightGarageSurfacePropertiesByClass = 0x801875B8; // size:0x20 defined:True
-Shop_Data_80187628 = 0x80187628; // size:0x4 defined:True
-Shop_Data_8018762C = 0x8018762C; // size:0x4 defined:True
+gShopRefillDisplayQuantityFixed = 0x80187628; // size:0x4 defined:True
+gShopRefillSupply = 0x8018762C; // size:0x4 defined:True
 D_map_dryfield_full_8017C4E8 = 0x8017C4E8; // absolute:True owner=map_dryfield_full
 D_map_dryfield_full_8017C538 = 0x8017C538; // absolute:True owner=map_dryfield_full
 D_map_dryfield_full_8017C568 = 0x8017C568; // absolute:True owner=map_dryfield_full

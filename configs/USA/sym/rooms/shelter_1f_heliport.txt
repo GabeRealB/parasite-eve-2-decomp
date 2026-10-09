@@ -1,9 +1,9 @@
 // Overlay-local symbols for shelter_1f_heliport.
 _gShopWeaponSupplyRefillTitle = 0x8017D6F4; // force_not_migration:True string with a non-zero byte after its terminator, read from C
-Shop_Data_801815F8 = 0x80180B54; // size:0x8 defined:True
-Shop_Data_80181600 = 0x80180B5C; // size:0x8 defined:True
-Shop_Data_80181608 = 0x80180B64; // size:0x8 defined:True
-Shop_Data_80181610 = 0x80180B6C; // size:0x10 defined:True
+_gShopStandardDefaultWeaponsStock = 0x80180B54; // size:0x8 defined:True
+_gShopStandardDefaultAmmunitionStock = 0x80180B5C; // size:0x8 defined:True
+_gShopStandardDefaultArmorStock = 0x80180B64; // size:0x8 defined:True
+_gShopStandardDefaultItemsStock = 0x80180B6C; // size:0x10 defined:True
 Shop_Data_80181620 = 0x80180B7C; // size:0x10 defined:True
 Shop_Data_80181630 = 0x80180B8C; // size:0x10 defined:True
 Shop_Data_80181640 = 0x80180B9C; // size:0x8 defined:True
@@ -65,7 +65,7 @@ Shop_Data_80181930 = 0x80180E8C; // size:0x8 defined:True
 Shop_Data_80181938 = 0x80180E94; // size:0xC defined:True
 Shop_Data_80181944 = 0x80180EA0; // size:0xC defined:True
 Shop_Data_80181950 = 0x80180EAC; // size:0x9C defined:True
-Shop_Data_801819EC = 0x80180F48; // size:0x4 defined:True
+_gShopPreviewRowId = 0x80180F48; // size:0x4 defined:True
 Shop_Data_801819F0 = 0x80180F4C; // size:0x14 defined:True
 Shop_Data_80181A04 = 0x80180F60; // size:0x8 defined:True
 Shop_Data_80181A0C = 0x80180F68; // size:0x10 defined:True
@@ -147,8 +147,8 @@ D_shelter_1f_heliport_80182C5C = 0x80182C5C; // size:0xC defined:True
 D_shelter_1f_heliport_80182C68 = 0x80182C68; // size:0x8 defined:True
 D_shelter_1f_heliport_80182C70 = 0x80182C70; // size:0x8 defined:True
 D_shelter_1f_heliport_80182C78 = 0x80182C78; // size:0x20 defined:True
-Shop_Data_80187628 = 0x80182C98; // size:0x4 defined:True
-Shop_Data_8018762C = 0x80182C9C; // size:0x4 defined:True
+_gShopRefillDisplayQuantityFixed = 0x80182C98; // size:0x4 defined:True
+_gShopRefillSupply = 0x80182C9C; // size:0x4 defined:True
 gRoomEventFade = 0x80182CA0; // size:0x8 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 gActor161500SoldierBTasks = 0x801401B0; // absolute:True owner=actor_161500

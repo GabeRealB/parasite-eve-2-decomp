@@ -49,48 +49,45 @@
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 #include "../../shared/room_events.h"
 
-/// The 0xFFFF-terminated item id lists `func_shelter_b1_armory_8017D768`
-/// chooses from, and the one it returns when no case matches.
-static u16 Shop_Data_801815F8[];
-static u16 Shop_Data_80181600[];
-static u16 Shop_Data_80181608[];
-static u16 Shop_Data_80181610[];
-static u16 Shop_Data_80181620[];
-static u16 Shop_Data_80181630[];
-static u16 Shop_Data_80181640[];
-static u16 Shop_Data_80181648[];
-static u16 Shop_Data_80181658[];
-static u16 Shop_Data_80181668[];
-static u16 Shop_Data_80181678[];
-static u16 Shop_Data_80181680[];
-static u16 Shop_Data_80181694[];
-static u16 Shop_Data_801816AC[];
-static u16 Shop_Data_80181888[];
-static u16 Shop_Data_80181890[];
-static u16 Shop_Data_80181898[];
-static u16 Shop_Data_801818A4[];
-static u16 Shop_Data_801818B0[];
-static u16 Shop_Data_801818B8[];
-static u16 Shop_Data_801818C4[];
-static u16 Shop_Data_801818D0[];
-static u16 Shop_Data_801818DC[];
-static u16 Shop_Data_801818E0[];
-static u16 Shop_Data_801818EC[];
-static u16 Shop_Data_801818F8[];
-static u16 Shop_Data_80181904[];
-static u16 Shop_Data_8018190C[];
-static u16 Shop_Data_80181918[];
-static u16 Shop_Data_80181924[];
-static u16 Shop_Data_80181930[];
-static u16 Shop_Data_80181938[];
-static u16 Shop_Data_80181944[];
-static u16 Shop_Data_80181AD4[];
+static const u16 _gShopStandardDefaultWeaponsStock[];
+static const u16 _gShopStandardDefaultAmmunitionStock[];
+static const u16 _gShopStandardDefaultArmorStock[];
+static const u16 _gShopStandardDefaultItemsStock[];
+static u16       Shop_Data_80181620[];
+static u16       Shop_Data_80181630[];
+static u16       Shop_Data_80181640[];
+static u16       Shop_Data_80181648[];
+static u16       Shop_Data_80181658[];
+static u16       Shop_Data_80181668[];
+static u16       Shop_Data_80181678[];
+static u16       Shop_Data_80181680[];
+static u16       Shop_Data_80181694[];
+static u16       Shop_Data_801816AC[];
+static u16       Shop_Data_80181888[];
+static u16       Shop_Data_80181890[];
+static u16       Shop_Data_80181898[];
+static u16       Shop_Data_801818A4[];
+static u16       Shop_Data_801818B0[];
+static u16       Shop_Data_801818B8[];
+static u16       Shop_Data_801818C4[];
+static u16       Shop_Data_801818D0[];
+static u16       Shop_Data_801818DC[];
+static u16       Shop_Data_801818E0[];
+static u16       Shop_Data_801818EC[];
+static u16       Shop_Data_801818F8[];
+static u16       Shop_Data_80181904[];
+static u16       Shop_Data_8018190C[];
+static u16       Shop_Data_80181918[];
+static u16       Shop_Data_80181924[];
+static u16       Shop_Data_80181930[];
+static u16       Shop_Data_80181938[];
+static u16       Shop_Data_80181944[];
+static u16       Shop_Data_80181AD4[];
 
 /// The shop's tier ladder.
 static ShopTier Shop_Data_80181950[SHOP_TIER_COUNT];
 
-/// The item id the shop list's cursor last rested on.
-static s32 Shop_Data_801819EC;
+static s32 _gShopPreviewRowId;
 
 /// Messages and labels of the shop's panels.
 static u8 Shop_Data_801819F0[];
@@ -132,7 +129,9 @@ extern TaskMessageEntry D_shelter_b1_armory_80182500[];
 static void _shelterB1ArmoryInitRoomState(Task* task);
 static void _shelterB1ArmoryRoomIdleState(Task* task);
 
-#define SHOP_CHARGE_TITLE_BYTES "Charge\0\xD3"
+#define SHOP_REFILL_DISPLAY_QUANTITY gShopRefillDisplayQuantityFixed
+#define SHOP_REFILL_SUPPLY           gShopRefillSupply
+#define SHOP_CHARGE_TITLE_BYTES      "Charge\0\xD3"
 #include "../../shared/shop.h"
 
 static s32 _shelterB1ArmoryUseKeyItem(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
@@ -180,6 +179,8 @@ TaskMessageEntry D_shelter_b1_armory_80182500[5] = {
 };
 
 #include "../../shared/shop.inc.c"
+#undef SHOP_REFILL_DISPLAY_QUANTITY
+#undef SHOP_REFILL_SUPPLY
 
 #undef SHOP_CHARGE_TITLE_BYTES
 

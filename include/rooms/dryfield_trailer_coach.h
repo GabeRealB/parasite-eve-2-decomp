@@ -12,14 +12,23 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern TaskDesc D_dryfield_trailer_coach_80183F84;
+/// Bodyless daytime trailer-coach shop session, executed at priority 192.
+///
+/// Gameplay's shop dispatcher supplies the packed stock/category selector in
+/// spawnArg1 and requests room reload on exit. Keep this overlay loaded while
+/// the session and its UI tasks run; the UI tasks own their objects.
+extern TaskDesc gDryfieldTrailerCoachShopSessionTaskDesc;
 
 extern AreaVariant D_dryfield_trailer_coach_801876F0[13];
 
 extern TmdSource gDryfieldTrailerCoachAcropolisSanctuaryModel090F0;
 
-// dryfield_trailer_coach
-extern WorldCollisionRoomResources D_dryfield_trailer_coach_801871CC[];
+/// Collision resources for room 1 of daytime Dryfield area 27.
+///
+/// Indexed at room minus one by the stage map. Borrows one mesh, four view
+/// boundaries and twelve action quads; there are no occluders. Room setup
+/// mutates the grid/trigger records. Keep this overlay loaded while active.
+extern WorldCollisionRoomResources gDryfieldTrailerCoachRoomCollisionResources[1];
 
 /// Number of logical views and mapped camera/sprite records in the trailer coach.
 enum { DRYFIELD_TRAILER_COACH_VIEW_COUNT = 11 };
@@ -48,7 +57,13 @@ extern u8* gDryfieldTrailerCoachViewMaps[1];
 /// lookup in `gDryfieldTrailerCoachViewMaps`. Keep the owning overlay loaded.
 extern ViewCount gDryfieldTrailerCoachViewCounts[1];
 
-extern DirectionWarpEntry D_dryfield_trailer_coach_801871EC[];
+/// Two trailer-coach arrival endpoints, selected by warp id minus one.
+///
+/// Both place player and companion at (1579, 0, -800), yaw half a turn, and
+/// update map flag 471; endpoint 1 selects view 2, endpoint 2 selects view 5.
+/// Sound cues belong to daytime Dryfield area 27. The stage map borrows this
+/// array while the room overlay is loaded; there is no terminator.
+extern DirectionWarpEntry gDryfieldTrailerCoachWarpEntries[2];
 
 /// Authored cameras for mapped trailer-coach views 1..11.
 ///
