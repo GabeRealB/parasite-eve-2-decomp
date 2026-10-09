@@ -1,0 +1,308 @@
+<title>PE2 Asset Map</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a navigator on the left (the overlay tree, or assets by type), one subject on the right built from stacked sections. */
+:root {
+  --bg: #eef1f2; --panel: #f8fafa; --ink: #16242b; --muted: #5b6d75; --line: #c9d3d6; --grid: #dde4e6;
+  --accent: #0b6b7a; --accent-soft: #d5e8ea; --clash: #b3402a; --clut: #7a5a0b;
+  --sans: "IBM Plex Sans", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #10181c; --panel: #162126; --ink: #dfe8ea; --muted: #8fa3aa; --line: #2c3c43; --grid: #1f2d33;
+  --accent: #56c0cf; --accent-soft: #173940; --clash: #f08a6e; --clut: #e0bd62; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #10181c; --panel: #162126; --ink: #dfe8ea; --muted: #8fa3aa; --line: #2c3c43; --grid: #1f2d33;
+  --accent: #56c0cf; --accent-soft: #173940; --clash: #f08a6e; --clut: #e0bd62; color-scheme: dark }
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.45; }
+.app { display: grid; grid-template-columns: minmax(240px, 320px) minmax(0, 1fr); height: 100%; }
+@media (max-width: 800px) { .app { grid-template-columns: minmax(0, 1fr); height: auto; } .nav { max-height: 45vh; } }
+.nav { display: flex; flex-direction: column; border-right: 1px solid var(--line); background: var(--panel); min-height: 0; }
+.nav header { padding: 12px 16px 8px; display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid var(--line); }
+h1 { font-size: 16px; font-weight: 600; margin: 0; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 3px; overflow: hidden; align-self: flex-start; }
+.seg button { font: 500 11px var(--sans); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); background: none; border: 0; padding: 4px 10px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--ink); }
+input, select { font: 13px var(--mono); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 3px; padding: 5px 8px; min-width: 0; max-width: 100%; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.list { overflow: auto; padding: 6px 0 16px; flex: 1; min-height: 0; font: 12px var(--mono); }
+.list a, .list summary { display: block; padding: 2px 16px; color: var(--ink); text-decoration: none; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.list a:hover, .list summary:hover { background: var(--grid); }
+.list a.cur { background: var(--accent-soft); }
+.list details > div { padding-left: 12px; border-left: 1px solid var(--grid); margin-left: 16px; }
+.list details > div a, .list details > div summary { padding-left: 6px; }
+.badge { color: var(--clash); font-weight: 500; } .dim { color: var(--muted); }
+main { overflow: auto; min-width: 0; }
+.subject { padding-inline: 20px; padding-block: 16px 48px; display: flex; flex-direction: column; gap: 22px; max-width: 1400px; }
+.subject > header h2 { font-size: 20px; font-weight: 600; margin: 0 0 4px; font-family: var(--mono); overflow-wrap: anywhere; }
+.crumbs { font: 12px var(--mono); color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 6px; }
+a.lnk { color: var(--accent); text-decoration: none; cursor: pointer; } a.lnk:hover { text-decoration: underline; }
+section > h3 { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 500; margin: 0 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--line); display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+section > p { color: var(--muted); font-size: 12px; margin: 0 0 8px; max-width: 80ch; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; }
+.tile { display: flex; flex-direction: column; gap: 4px; min-width: 0; font: 11px var(--mono); }
+.tile canvas, .shot canvas, .shot img { image-rendering: pixelated; border: 1px solid var(--line); max-width: 100%; background: repeating-conic-gradient(var(--grid) 0 25%, var(--bg) 0 50%) 0 0 / 16px 16px; }
+.tile canvas { width: 100%; aspect-ratio: 1; }
+.tile.miss canvas { border-color: var(--clash); border-width: 2px; }
+.tile div { overflow-wrap: anywhere; } .tile .what { color: var(--muted); } .flag { color: var(--clash); font-weight: 500; }
+.shots { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; } .shot { display: flex; flex-direction: column; gap: 4px; font: 11px var(--mono); min-width: 0; max-width: 100%; }
+table { border-collapse: collapse; font: 12px var(--mono); font-variant-numeric: tabular-nums; }
+th { text-align: left; font: 500 11px var(--sans); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 4px 14px 4px 0; border-bottom: 1px solid var(--line); }
+td { padding: 3px 14px 3px 0; border-bottom: 1px solid var(--grid); vertical-align: top; }
+.scrollx { overflow-x: auto; }
+ul.plain { margin: 0; padding-left: 18px; font: 12px var(--mono); } ul.plain li { margin: 2px 0; overflow-wrap: anywhere; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: end; margin-bottom: 10px; }
+label { display: flex; flex-direction: column; gap: 3px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.sheet { position: relative; border: 1px solid var(--line); background: var(--bg); }
+.sheet canvas { display: block; width: 100%; height: auto; image-rendering: pixelated; }
+.sheet svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.sheet .reg { fill: none; stroke: var(--muted); stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; } .sheet text { font: 9px var(--sans); fill: var(--muted); }
+audio { height: 28px; max-width: 100%; } iframe { width: 100%; height: 320px; border: 1px solid var(--line); background: var(--panel); }
+</style>
+<div class="app">
+  <nav class="nav">
+    <header>
+      <h1>PE2 Asset Map</h1>
+      <span class="seg"><button id="nav-o" aria-pressed="true">Overlays</button><button id="nav-a" aria-pressed="false">Assets</button></span>
+      <input id="filter" placeholder="filter by name" autocomplete="off" spellcheck="false" aria-label="Filter the list">
+    </header>
+    <div class="list" id="list"></div>
+  </nav>
+  <main><div class="subject" id="subject"></div></main>
+</div>
+<script>
+const D = /*DATA*/;
+const $ = id => document.getElementById(id);
+const h = (tag, props, ...kids) => { const e = document.createElement(tag); for (const k in (props || {})) { if (k === "class") e.className = props[k]; else if (k.startsWith("on")) e.addEventListener(k.slice(2), props[k]); else if (k === "text") e.textContent = props[k]; else e.setAttribute(k, props[k]); } for (const kid of kids.flat()) if (kid != null && kid !== false) e.append(kid); return e; };
+const link = (kind, name, text) => h("a", { class: "lnk", href: "#" + kind + "." + name, text: text || name });
+const sign = (p, r) => `${p >= 0 ? "+" : ""}${p}/${r >= 0 ? "+" : ""}${r}`;
+const TYPE = { pe2pkg: "overlays", pe2img: "images", pe2clut: "palettes", model: "models", animation: "animation banks", bs: "backgrounds", spk: "sound banks", txt: "text", pe2cap2: "captions", image: "embedded images", clut: "embedded palettes" };
+
+// ---- pixels: each image and palette has its video-memory words in a small script beside the page ----
+const pix = new Map(), waiting = new Map();
+window.PIX = (asset, columns) => { pix.set(asset, columns.map(([x, y, w, hh, b64]) => { const bin = atob(b64), u = new Uint16Array(bin.length >> 1); for (let i = 0; i < u.length; i++) u[i] = bin.charCodeAt(2 * i) | bin.charCodeAt(2 * i + 1) << 8; return { x, y, w, h: hh, u }; })); (waiting.get(asset) || []).forEach(f => f()); waiting.delete(asset); };
+const need = asset => pix.has(asset) || !D.pixels ? Promise.resolve() : new Promise(done => {
+  if (waiting.has(asset)) return waiting.get(asset).push(done);
+  waiting.set(asset, [done]); const tag = document.createElement("script"); tag.src = `${D.pixels}/${asset}.js`;
+  tag.onerror = () => { pix.set(asset, []); (waiting.get(asset) || []).forEach(f => f()); waiting.delete(asset); }; document.head.append(tag);
+});
+const needFiles = fs => Promise.all([...new Set(fs.flatMap(f => (D.fp[f] || []).map(r => r[0])))].map(need));
+// Where an upload lands under a load's offsets, as src/main/fs.c moves it.
+function landed(kind, part, x, y, page, row, relocate) {
+  if (kind === "c") y += (y >= 245 && y <= 255 ? row : 0) + (relocate ? 1 : 0);
+  else { if (relocate || y >= 256) x += page * 64; if (relocate && (part === "" || part === "column 0")) y += 128; }
+  return [x, y];
+}
+// Video memory as a list of loads leaves it: the words, and which asset put each there.
+function compose(ups) {
+  const vram = new Uint16Array(1024 * 512), owner = new Uint16Array(1024 * 512), names = [""];
+  for (const [f, page, row, rel] of ups) { const seen = new Set(); for (const r of (D.fp[f] || [])) { if (seen.has(r[0])) continue; seen.add(r[0]);
+    const id = names.push(r[0]) - 1; (pix.get(r[0]) || []).forEach((col, n) => { const [ax, ay] = landed(r[1], n ? "column " + n : "column 0", col.x, col.y, page, row, rel);
+      for (let yy = 0; yy < col.h; yy++) { const y = ay + yy; if (y < 0 || y > 511) continue; for (let xx = 0; xx < col.w; xx++) { const x = ax + xx; if (x < 0 || x > 1023) continue; vram[y * 1024 + x] = col.u[yy * col.w + xx]; owner[y * 1024 + x] = id; } } }); } }
+  return { vram, owner, names };
+}
+const geo = (t, c) => { const bpp = [4, 8, 16][(t >> 7) & 3] || 16; return { bpp, tx: (t & 15) * 64, ty: (t & 16) ? 256 : 0, cx: (c & 63) * 16, cy: c >> 6, n: bpp === 4 ? 16 : 256 }; };
+const put = (d, k, col, alpha) => { d[k] = (col & 31) * 255 / 31; d[k + 1] = ((col >> 5) & 31) * 255 / 31; d[k + 2] = ((col >> 10) & 31) * 255 / 31; d[k + 3] = alpha; };
+let warn = null;
+const warnColour = () => warn || (warn = (() => { const c = document.createElement("canvas").getContext("2d"); c.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--clash"); c.fillRect(0, 0, 1, 1); return c.getImageData(0, 0, 1, 1).data; })());
+// One texture page read at a depth through a palette. What the faces do not cover is another face's, with its own palette: faded.
+function renderPage(mem, t, c, box) {
+  const { bpp, tx, ty, cx, cy, n } = geo(t, c), { vram, owner, names } = mem, bad = warnColour();
+  const cv = h("canvas", { width: 256, height: 256 }), ctx = cv.getContext("2d"), im = ctx.createImageData(256, 256), d = im.data, bx = box && box.length ? box : [0, 0, 255, 255];
+  let filled = 0, palFilled = 0, lacking = 0; const from = new Set(), pal = new Set();
+  if (bpp < 16 && cy < 512) for (let i = 0; i < n; i++) { const o = owner[cy * 1024 + ((cx + i) & 1023)]; if (o) { palFilled++; pal.add(names[o]); } }
+  for (let v = 0; v < 256; v++) for (let u = 0; u < 256; u++) {
+    const at = (ty + v) * 1024 + ((tx + (bpp === 4 ? u >> 2 : bpp === 8 ? u >> 1 : u)) & 1023), o = owner[at], k = (v * 256 + u) * 4; if (!o) continue;
+    const inside = u >= bx[0] && u <= bx[2] && v >= bx[1] && v <= bx[3], alpha = inside ? 255 : 32; if (inside) { filled++; from.add(names[o]); } let col;
+    if (bpp === 16) col = vram[at]; else { const idx = bpp === 4 ? (vram[at] >> ((u & 3) * 4)) & 15 : (vram[at] >> ((u & 1) * 8)) & 255, pa = cy * 1024 + ((cx + idx) & 1023);
+      if (cy > 511 || !owner[pa]) { if (inside) lacking++; d[k] = bad[0]; d[k + 1] = bad[1]; d[k + 2] = bad[2]; d[k + 3] = alpha; continue; } col = vram[pa]; }
+    if (col) put(d, k, col, alpha);
+  }
+  ctx.putImageData(im, 0, 0);
+  const flags = []; if (!filled) flags.push("page not supplied"); if (bpp < 16 && !palFilled) flags.push("palette not supplied"); else if (bpp < 16 && palFilled < n) flags.push(`palette ${palFilled} of ${n} entries supplied`); if (lacking && palFilled) flags.push("texels use entries that are not supplied");
+  return { cv, flags, from: [...from], pal: [...pal], bpp, tx, ty, cx, cy };
+}
+function tile(mem, t, c, box, who, src) {
+  const r = renderPage(mem, t, c, box);
+  return h("div", { class: "tile" + (r.flags.length ? " miss" : "") }, r.cv, h("div", { text: who }),
+    h("div", { class: "what" }, `page (${r.tx}, ${r.ty}) ${r.bpp}-bit · `, r.from.length ? r.from.map((a, i) => [i ? ", " : "", link("a", a)]) : "nothing"),
+    r.bpp < 16 ? h("div", { class: "what" }, `palette (${r.cx}, ${r.cy}) · `, r.pal.length ? r.pal.map((a, i) => [i ? ", " : "", link("a", a)]) : "nothing") : h("div", { class: "what", text: "direct colour" }),
+    src ? h("div", { class: "what", text: src }) : null, r.flags.length ? h("div", { class: "flag", text: r.flags.join("; ") }) : null);
+}
+// An image on its own: every column side by side, at a depth, through one palette row, or in grey without one.
+function renderImage(asset, bpp, clut, row, pal, only) {
+  const cols = pix.get(asset) || [], per = bpp === 4 ? 4 : bpp === 8 ? 2 : 1, x0 = Math.min(...cols.map(c => c.x)), x1 = Math.max(...cols.map(c => c.x + c.w)), hh = Math.max(...cols.map(c => c.h), 1);
+  if (!cols.length) return h("div", { class: "dim", text: "no pixels in the local extraction" });
+  const cv = h("canvas", { width: (x1 - x0) * per, height: hh }), ctx = cv.getContext("2d"), im = ctx.createImageData(cv.width, hh), d = im.data;
+  const cl = clut && (pix.get(clut) || [])[0], n = bpp === 4 ? 16 : 256;
+  cols.forEach((col, ci) => { for (let y = 0; y < col.h; y++) for (let x = 0; x < col.w; x++) { const w = col.u[y * col.w + x]; for (let s = 0; s < per; s++) {
+    const k = (y * cv.width + (col.x - x0 + x) * per + s) * 4, alpha = only == null || only === ci ? 255 : 40;
+    if (bpp === 16) { if (w) put(d, k, w, alpha); continue; }
+    const idx = bpp === 4 ? (w >> (s * 4)) & 15 : (w >> (s * 8)) & 255;
+    if (cl) { const colr = cl.u[row * cl.w + pal * 16 + idx]; if (colr) put(d, k, colr, alpha); }
+    else { const g = idx * 255 / (n - 1); d[k] = d[k + 1] = d[k + 2] = g; d[k + 3] = alpha; } } } });
+  ctx.putImageData(im, 0, 0); return cv;
+}
+function renderClut(asset) {
+  const c = (pix.get(asset) || [])[0]; if (!c) return h("div", { class: "dim", text: "no pixels in the local extraction" });
+  const s = 6, cv = h("canvas", { width: c.w, height: c.h, style: `width:${Math.min(c.w * s, 1024)}px;height:${c.h * s * Math.min(1, 1024 / (c.w * s))}px` }), ctx = cv.getContext("2d"), im = ctx.createImageData(c.w, c.h);
+  for (let i = 0; i < c.w * c.h; i++) if (c.u[i]) put(im.data, i * 4, c.u[i], 255); ctx.putImageData(im, 0, 0); return cv;
+}
+
+// ---- who loads what ----
+const carriedBy = new Map();             // overlay -> files that carry it
+for (const [name, o] of Object.entries(D.overlays)) for (const f of (o.carrier || [])) carriedBy.set(f, name);
+const loadersOf = new Map();             // file -> [[loader, layer, condition, page, row]]
+for (const [loader, groups] of Object.entries(D.loads)) for (const [layer, cond, , , members] of groups) for (const [f, page, row] of members) { const l = loadersOf.get(f) || []; l.push([loader, layer, cond, page, row]); loadersOf.set(f, l); }
+const placedIn = new Map();              // asset -> files
+for (const [f, list] of Object.entries(D.chunks)) for (const [, key] of list) { const l = placedIn.get(key) || []; l.push(+f); placedIn.set(key, l); }
+const children = new Map();
+for (const [name, o] of Object.entries(D.overlays)) for (const p of o.parents) { const l = children.get(p) || []; l.push(name); children.set(p, l); }
+const usersOf = new Map();               // image or palette -> overlays whose requests it supplies (from the pairings)
+const openFindings = name => (D.findings[name] || []).length;
+
+// ---- navigator ----
+let navMode = "o", current = "";
+function drawNav() {
+  const box = $("list"), q = $("filter").value.trim().toLowerCase(); box.replaceChildren();
+  $("nav-o").setAttribute("aria-pressed", navMode === "o"); $("nav-a").setAttribute("aria-pressed", navMode === "a");
+  if (navMode === "o") {
+    const entry = name => h("a", { href: "#o." + name, class: current === "o." + name ? "cur" : "" }, name, openFindings(name) ? h("span", { class: "badge", text: "  " + openFindings(name) }) : null);
+    if (q) { Object.keys(D.overlays).filter(n => n.includes(q)).sort().slice(0, 400).forEach(n => box.append(entry(n))); return; }
+    const node = (name, depth) => { const kids = (children.get(name) || []).sort(); if (!kids.length) return entry(name);
+      const groups = new Map(); for (const k of kids) { const fam = D.overlays[k].family; (groups.get(fam) || groups.set(fam, []).get(fam)).push(k); }
+      const inner = h("div", {}); for (const [fam, list] of [...groups].sort()) { if (list.length > 6 && groups.size > 1 || list.length > 12) inner.append(h("details", {}, h("summary", { class: "dim", text: `${fam} (${list.length})` }), h("div", {}, list.map(k => node(k, depth + 1)))));
+        else list.forEach(k => inner.append(node(k, depth + 1))); }
+      return h("details", depth < 2 ? { open: "" } : {}, h("summary", {}, entry(name)), inner); };
+    box.append(node("main", 0));
+  } else {
+    const byType = new Map(); for (const [key, [type]] of Object.entries(D.assets)) (byType.get(type) || byType.set(type, []).get(type)).push(key);
+    for (const [type, keys] of [...byType].sort((a, b) => b[1].length - a[1].length)) { const hit = q ? keys.filter(k => k.toLowerCase().includes(q)) : keys; if (!hit.length) continue;
+      box.append(h("details", q && hit.length < 60 ? { open: "" } : {}, h("summary", { class: "dim", text: `${TYPE[type] || type.replace(/_/g, " ")} (${hit.length})` }), h("div", {}, hit.slice(0, 500).map(k => h("a", { href: "#" + (type === "pe2pkg" ? "o." : "a.") + k, class: current === "a." + k ? "cur" : "", text: k })), hit.length > 500 ? h("a", { class: "dim", text: `… ${hit.length - 500} more; filter to narrow` }) : null))); }
+  }
+}
+
+// ---- an overlay ----
+const sec = (title, note, ...body) => h("section", {}, h("h3", {}, title), note ? h("p", { text: note }) : null, ...body);
+const fileLink = f => { const o = carriedBy.get(f); return h("span", {}, D.files[f], o ? [" (", link("o", o), ")"] : null); };
+let turn = 0;
+async function showOverlay(name) {
+  const mine = ++turn, o = D.overlays[name], box = $("subject"); if (!o) { box.replaceChildren(h("p", { text: `No overlay named ${name}.` })); return; }
+  const chain = []; (function up(n) { for (const p of (D.overlays[n] || { parents: [] }).parents) if (!chain.includes(p)) { chain.push(p); up(p); } })(name);
+  const reqs = D.requests[name] || [], loads = D.loads[name] || [];
+  const head = h("header", {}, h("h2", { text: name }), h("div", { class: "crumbs" }, o.family, o.addr ? ` · loads at 0x${o.addr.toString(16)}` : "", chain.length ? [" · under ", chain.map((c, i) => [i ? " › " : "", link("o", c)])] : ""));
+  box.replaceChildren(head, h("p", { class: "dim", text: "reading pixels…" }));
+  const ownFiles = o.own, borrowedFiles = reqs.filter(r => r[4][0] !== "own" && r[4][0] !== "none").flatMap(r => (r[4][2] || []).filter(Boolean).map(v => v[0]));
+  await needFiles([...ownFiles.filter(() => !o.room), ...reqs.filter(r => r[4][0] === "own").flatMap(r => r[4][1]), ...borrowedFiles]); if (mine !== turn) return;
+  const alone = new Map(), fileMem = (f, page, row, rel) => { const k = [f, page, row, rel].join(); return alone.get(k) || (alone.set(k, compose([[f, page || 0, row || 0, rel || 0]])), alone.get(k)); };
+  const group = list => { const m = new Map(); for (const [k, v] of list) { const e = m.get(k) || { ...v, who: new Set(), box: null }; e.who.add(v.model); if (v.b && v.b.length) e.box = e.box ? [Math.min(e.box[0], v.b[0]), Math.min(e.box[1], v.b[1]), Math.max(e.box[2], v.b[2]), Math.max(e.box[3], v.b[3])] : v.b; m.set(k, e); } return [...m.values()]; };
+  const sections = [head];
+  // Textures: the overlay's own models against its own files, as stored. A model and its file are displaced together.
+  const ownTiles = group(reqs.filter(r => r[4][0] === "own").flatMap(([model, t, c, b, how]) => how[1].map(f => [`${f}|${t}|${c}`, { model, t, c, b, f, n: how[1].length }])));
+  if (ownTiles.length) sections.push(sec(`Textures (${ownTiles.length})`, "Each texture page as this overlay's models use it, read from its own file through the palette the faces name. This does not depend on what else is loaded. Faded parts of a page belong to other faces.",
+    h("div", { class: "tiles" }, ownTiles.sort((a, b) => a.f - b.f || a.t - b.t || a.c - b.c).map(e => tile(fileMem(e.f), e.t, e.c, e.box, [...e.who].join(", "), `from ${D.files[e.f]}` + (e.n > 1 ? ` (one of ${e.n} files that fit)` : ""))))));
+  // Borrowed: what an ancestor's files supply.
+  const lent = group(reqs.filter(r => r[4][0] === "ancestor").flatMap(([model, t, c, b, how]) => (how[2].filter(Boolean).length ? how[2].filter(Boolean) : [null]).map(v => [`${how[1]}|${v ? v.join() : ""}|${t}|${c}`, { model, t, c, b, by: how[1], v }])));
+  if (lent.length) sections.push(sec(`Borrowed (${lent.length})`, "Textures its models name that an ancestor's files supply. One tile per file of the ancestor that can supply it, as that file is loaded; for a room, which of them is in memory depends on the view.",
+    h("div", { class: "tiles" }, lent.map(e => e.v ? tile(fileMem(...e.v), e.t, e.c, e.box, [...e.who].join(", "), h("span", {}, "from ", link("o", e.by), " · ", D.files[e.v[0]], e.v[1] || e.v[2] ? ` at ${sign(e.v[1], e.v[2])}` : "").textContent)
+      : h("div", { class: "tile" }, h("div", { text: [...e.who].join(", ") }), h("div", { class: "what" }, "supplied by ", link("o", e.by), ", page and palette from different files of it"))))));
+  // A room: memory under a view and an enemy set.
+  if (o.room) sections.push(await memorySection(name, o, reqs, () => mine === turn));
+  if (mine !== turn) return;
+  const cons = D.consts[name] || [];
+  if (cons.length && !o.room) sections.push(await constantSection(name, chain, cons)); if (mine !== turn) return;
+  const finds = D.findings[name] || [];
+  sections.push(sec(`Findings (${finds.length})`, finds.length ? "What the model of the overlays and of video memory does not explain. Each is a wrong parent, a model in the wrong package, a load that is missing, or a wrong line in the region table." : "Nothing unexplained.", finds.length ? h("ul", { class: "plain" }, finds.map(f => h("li", { text: f }))) : null));
+  const by = [...new Set((o.carrier || []).flatMap(f => (loadersOf.get(f) || []).map(l => `${l[0]}\t${D.layers[l[1]]}\t${l[2] || "always"}\t${sign(l[3], l[4])}`)))].map(s => s.split("\t"));
+  sections.push(sec(`Loaded by (${by.length})`, "", by.length ? h("div", { class: "scrollx" }, h("table", {}, h("tr", {}, ["Overlay", "Layer", "When", "Page / row offset"].map(t => h("th", { text: t }))), by.slice(0, 80).map(r => h("tr", {}, h("td", {}, link("o", r[0])), h("td", { text: r[1] }), h("td", { text: r[2] }), h("td", { text: r[3] }))))) : h("p", { text: name === "main" ? "The executable: the console loads it." : "No load of it is in the graph." })));
+  if (loads.length) { const rows = loads.filter(g => !/^(view|room \d+ view) /.test(g[1])).sort((a, b) => a[0] - b[0]);
+    sections.push(sec(`Loads (${loads.length})`, o.room ? "Its views are listed under Memory." : "", h("div", { class: "scrollx" }, h("table", {}, h("tr", {}, ["Layer", "When", "Files"].map(t => h("th", { text: t }))), rows.slice(0, 300).map(g => h("tr", {}, h("td", { text: D.layers[g[0]] }), h("td", { text: g[1] || "always" }), h("td", {}, g[4].map((m, i) => [i ? h("br") : null, fileLink(m[0]), m[1] || m[2] ? ` at ${sign(m[1], m[2])}` : ""]))))), rows.length > 300 ? h("p", { text: `${rows.length - 300} more not shown.` }) : null))); }
+  sections.push(sec(`Files (${ownFiles.length})`, "Its own files and what each holds.", h("div", { class: "scrollx" }, h("table", {}, h("tr", {}, ["File", "Holds"].map(t => h("th", { text: t }))), ownFiles.slice(0, 120).map(f => h("tr", {}, h("td", { text: D.files[f] }), h("td", {}, (D.chunks[f] || []).map(([n, key], i) => [i ? ", " : "", link(D.assets[key] && D.assets[key][0] === "pe2pkg" ? "o" : "a", key)])))))) ));
+  box.replaceChildren(...sections);
+}
+async function constantSection(name, chain, cons) {
+  // Constants name a place outright; read them from what the chain always has loaded.
+  const ups = []; for (const a of [...chain].reverse()) for (const g of (D.loads[a] || [])) if (g[2] === "a") for (const m of g[4]) ups.push([m[0], m[1], m[2], m[3]]);
+  for (const f of D.overlays[name].own) ups.push([f, 0, 0, 0]);
+  await needFiles(ups.map(u => u[0])); const mem = compose(ups);
+  return sec(`Constants (${cons.length})`, "A texture page and a palette value declared together in one of its functions, read from its own files and what its ancestors always load.", h("div", { class: "tiles" }, cons.map(([label, t, c]) => tile(mem, t, c, null, label, ""))));
+}
+async function memorySection(name, o, reqs, alive) {
+  const views = (D.loads[name] || []).filter(g => /^(room \d+ )?view \d+$/.test(g[1])), variants = (D.loads[name] || []).filter(g => /^variant \d+$/.test(g[1]));
+  const pickOf = (list, id, label) => h("label", { for: id }, label, h("select", { id }, h("option", { value: "", text: "none" }), list.map(g => h("option", { text: g[1] }))));
+  const vs = pickOf(views, "mview", "View"), es = pickOf(variants, "mvar", "Enemy set"), out = h("div", {});
+  const firstWith = list => (list.find(g => g[4].some(m => (D.fp[m[0]] || []).length)) || [0, ""])[1];
+  vs.lastChild.value = firstWith(views); es.lastChild.value = firstWith(variants);
+  const draw = async () => {
+    const v = views.find(g => g[1] === vs.lastChild.value), e = variants.find(g => g[1] === es.lastChild.value), ups = [];
+    const chainUp = []; (function up(n) { for (const p of (D.overlays[n] || { parents: [] }).parents) if (!chainUp.includes(p)) { chainUp.push(p); up(p); } })(name);
+    for (const a of chainUp.reverse()) for (const g of (D.loads[a] || [])) if (g[2] === "a" || (a === "gameplay" && g[4].some(m => m[0] === D.stagemap[o.stage]))) for (const m of g[4]) ups.push([m[0], m[1], m[2], m[3], a]);
+    for (const f of (o.carrier || [])) ups.push([f, 0, 0, 0, name]);
+    if (e) for (const m of e[4]) ups.push([m[0], m[1], m[2], m[3], e[1]]);
+    if (v) for (const m of v[4]) ups.push([m[0], m[1], m[2], m[3], v[1]]);
+    await needFiles(ups.map(u => u[0])); if (!alive()) return; const mem = compose(ups);
+    // The sheet: every resident image through the palette its own pairing names when that palette is resident too, else in grey.
+    const cv = h("canvas", { width: 1024, height: 512 }), ctx = cv.getContext("2d"), im = ctx.createImageData(1024, 512), d = im.data, depth = new Map(), palAt = new Map();
+    for (const [f, page, row, rel] of ups) for (const r of (D.fp[f] || [])) { if (r[1] === "c") { const [x, y] = landed("c", "", r[3], r[4], page, row, rel); palAt.set(r[0], [x, y]); } }
+    for (const [f, page, row, rel] of ups) for (const r of (D.fp[f] || [])) if (r[1] === "i") (pix.get(r[0]) || []).forEach((col, n) => { const [ax, ay] = landed("i", n ? "column " + n : "column 0", col.x, col.y, page, row, rel), pr = (D.pairs[r[0]] || []).find(p => p[4] === n) || (D.pairs[r[0]] || [])[0];
+      const bpp = pr ? pr[0] : (r[7] || 8), at = pr && pr[1] && palAt.get(pr[1]); for (let xx = 0; xx < col.w; xx++) for (let yy = 0; yy < col.h; yy++) depth.set((ay + yy) * 1024 + ax + xx, [bpp, at ? (at[1] + pr[2]) * 1024 + at[0] + pr[3] * 16 : -1]); });
+    for (let i = 0; i < 1024 * 512; i++) { if (!mem.owner[i]) continue; const w = mem.vram[i], k = i * 4, dd = depth.get(i);
+      if (!dd) { if (w) put(d, k, w, 255); continue; } const [bpp, pa] = dd;
+      if (bpp === 16) { if (w) put(d, k, w, 255); } else { const idx = bpp === 4 ? w & 15 : w & 255; if (pa >= 0) { const col = mem.vram[pa + idx]; if (col) put(d, k, col, 255); } else { const g = idx * 255 / (bpp === 4 ? 15 : 255); d[k] = d[k + 1] = d[k + 2] = g; d[k + 3] = 255; } } }
+    ctx.putImageData(im, 0, 0);
+    const NS = "http://www.w3.org/2000/svg", svg = document.createElementNS(NS, "svg"); svg.setAttribute("viewBox", "0 0 1024 512"); svg.setAttribute("preserveAspectRatio", "none");
+    for (const [kind, rname, x, y, w, hh] of D.regions) { if (kind !== "i") continue; const r = document.createElementNS(NS, "rect"); r.setAttribute("class", "reg"); for (const [k, val] of [["x", x], ["y", y], ["width", w], ["height", hh]]) r.setAttribute(k, val); const t = document.createElementNS(NS, "text"); t.setAttribute("x", x + 3); t.setAttribute("y", y + 10); t.textContent = rname; svg.append(r, t); }
+    // What depends on the state: the room's own models, displaced by an actor that binds them if that is what resolves.
+    const offs = [[0, 0], ...(e ? e[5].map(s => [s[1], s[2]]) : [])], seen = new Map();
+    const whole = (t, c) => { const r = renderPage(mem, t, c, null); return !r.flags.length; };
+    for (const [model, t, c, b, how] of reqs) { if (how[0] === "own") continue; let pick = offs[0]; for (const cand of offs) if (whole((t + cand[0]) & 0x19F, c + (cand[1] << 6))) { pick = cand; break; }
+      const tt = (t + pick[0]) & 0x19F, cc = c + (pick[1] << 6), k = tt + "|" + cc, eItem = seen.get(k) || { t: tt, c: cc, who: new Set(), b }; eItem.who.add(model + (pick[0] || pick[1] ? ` (displaced ${sign(pick[0], pick[1])} with an actor of this enemy set)` : "")); seen.set(k, eItem); }
+    const residents = [...new Map(ups.map(u => [u[0] + "|" + u[1] + "|" + u[2], u])).values()];
+    out.replaceChildren(h("div", { class: "sheet" }, cv, svg),
+      h("p", { class: "dim", text: "Images are drawn through the palette their own pairing names when it is in memory, otherwise in grey. Dashed outlines are the regions of residency_regions.tsv; palettes are the thin rows from y 240 to 271 at the left." }),
+      seen.size ? h("div", { class: "tiles" }, [...seen.values()].map(s => tile(mem, s.t, s.c, s.b, [...s.who].join(", "), "from what is in memory"))) : null,
+      h("div", { class: "scrollx" }, h("table", {}, h("tr", {}, ["In memory", "Brought by", "Offset"].map(t => h("th", { text: t }))), residents.map(u => h("tr", {}, h("td", {}, fileLink(u[0])), h("td", { text: u[4] }), h("td", { text: u[1] || u[2] ? sign(u[1], u[2]) : "" }))))));
+  };
+  vs.lastChild.addEventListener("change", draw); es.lastChild.addEventListener("change", draw); await draw();
+  return sec("Memory", "Video memory while this room runs: what its ancestors always load, the stage map, the room's base file, then the enemy set and the view chosen here, later ones replacing earlier ones.", h("div", { class: "bar" }, vs, es), out);
+}
+
+// ---- an asset ----
+async function showAsset(key) {
+  const mine = ++turn, a = D.assets[key], box = $("subject"); if (!a) { box.replaceChildren(h("p", { text: `No asset named ${key}.` })); return; }
+  const [type, attrs] = a, files = placedIn.get(key) || [], sections = [];
+  const head = h("header", {}, h("h2", { text: key }), h("div", { class: "crumbs", text: (TYPE[type] || type).replace(/s$/, "") + (attrs.source ? ` · embedded in ${attrs.source}` : "") }));
+  if (type === "pe2img" || type === "image") { const pairs = D.pairs[key] || []; await Promise.all([need(key), ...pairs.filter(p => p[1]).map(p => need(p[1]))]); if (mine !== turn) return;
+    const bpps = [].concat(attrs.bpp || 8);
+    sections.push(sec(`As used (${pairs.length})`, pairs.length ? "Each way a model's faces read this image: a column of it, at a depth, through a palette row. The other columns are faded." : "No model's faces are known to read this image, so there is no palette to show it with.",
+      h("div", { class: "shots" }, pairs.map(([bpp, clut, row, pal, col, users]) => h("div", { class: "shot" }, renderImage(key, bpp, clut, row, pal, col), h("div", {}, `column ${col} · ${bpp}-bit · `, clut ? [link("a", clut), ` row ${row}` + (pal ? `, palette ${pal}` : "")] : "direct colour"), h("div", { class: "dim", text: users.join(", ") }))))));
+    sections.push(sec("Without a palette", "The indices as grey, at the depth the manifest records.", h("div", { class: "shots" }, h("div", { class: "shot" }, renderImage(key, bpps[0], null, 0, 0, null), h("div", { text: `${bpps.join(", ")}-bit` })))));
+  } else if (type === "pe2clut" || type === "clut") { await need(key); if (mine !== turn) return;
+    const used = Object.entries(D.pairs).flatMap(([img, list]) => list.filter(p => p[1] === key).map(p => [img, p]));
+    sections.push(sec("Colours", "One cell per entry; a row is one palette line of video memory.", h("div", { class: "shots" }, h("div", { class: "shot" }, renderClut(key)))));
+    sections.push(sec(`Used with (${used.length})`, "", used.length ? h("ul", { class: "plain" }, used.map(([img, p]) => h("li", {}, link("a", img), ` column ${p[4]}, ${p[0]}-bit, row ${p[2]}` + (p[3] ? `, palette ${p[3]}` : "")))) : h("p", { text: "No pairing with an image is known." })));
+  } else if (type === "model") { const reqs = Object.entries(D.requests).flatMap(([pkg, list]) => list.filter(r => r[0] === key).map(r => [pkg, r]));
+    await needFiles(reqs.flatMap(([, r]) => r[4][0] === "own" ? r[4][1] : (r[4][2] || []).filter(Boolean).map(v => v[0]))); if (mine !== turn) return;
+    sections.push(sec(`Textures (${reqs.length})`, "The pages its faces name. The mesh itself is not drawn yet.", h("div", { class: "tiles" }, reqs.flatMap(([pkg, [, t, c, b, how]]) => how[0] === "own" ? how[1].map(f => tile(compose([[f, 0, 0, 0]]), t, c, b, `in ${pkg}`, `from ${D.files[f]}`))
+      : how[0] === "none" ? [h("div", { class: "tile miss" }, h("div", { text: `in ${pkg}` }), h("div", { class: "flag", text: "supplied by nothing in its chain" }))]
+      : (how[2].filter(Boolean).slice(0, 3)).map(v => tile(compose([v]), t, c, b, `in ${pkg}`, `from ${how[1]} · ${D.files[v[0]]}`))))));
+  } else if (type === "bs" && D.pictures) sections.push(sec("Picture", "", h("div", { class: "shots" }, h("div", { class: "shot" }, h("img", { src: `${D.pictures}/bs/${key}.png`, alt: key })))));
+  else if (type === "spk" && D.pictures) sections.push(sec(`Sounds (${D.sounds[key] || 0})`, "", h("div", { class: "shots" }, Array.from({ length: D.sounds[key] || 0 }, (_, i) => h("div", { class: "shot" }, h("audio", { controls: "", preload: "none", src: `${D.pictures}/spk/${key}/sample_${String(i).padStart(2, "0")}.wav` }), h("div", { text: `sample ${i}` }))))));
+  else if (type === "txt" && D.pictures) sections.push(sec("Text", "", h("iframe", { src: `${D.pictures}/txt/${key}.txt`, title: key })));
+  const rows = Object.entries(attrs).filter(([k]) => k !== "notes");
+  sections.push(sec("Properties", attrs.notes || "", rows.length ? h("table", {}, rows.map(([k, v]) => h("tr", {}, h("th", { text: k }), h("td", {}, k === "parent" ? [].concat(v).map((p, i) => [i ? ", " : "", link("o", p)]) : k === "vram" ? "0x" + v.toString(16) : String(JSON.stringify(v)).replace(/^"|"$/g, ""))))) : h("p", { text: "None recorded." })));
+  const loaders = files.flatMap(f => (loadersOf.get(f) || []).map(l => [f, ...l]));
+  sections.push(sec(`In files (${files.length})`, "", files.length ? h("ul", { class: "plain" }, files.slice(0, 60).map(f => h("li", {}, fileLink(f)))) : h("p", { text: attrs.source ? "Not a chunk of a disc file: it sits inside the package." : "Not placed in any file." })));
+  sections.push(sec(`Loaded by (${loaders.length})`, "The loads that bring one of those files in.", loaders.length ? h("div", { class: "scrollx" }, h("table", {}, h("tr", {}, ["Overlay", "Layer", "When", "File", "Offset"].map(t => h("th", { text: t }))), loaders.slice(0, 120).map(l => h("tr", {}, h("td", {}, link("o", l[1])), h("td", { text: D.layers[l[2]] }), h("td", { text: l[3] || "always" }), h("td", { text: D.files[l[0]] }), h("td", { text: l[4] || l[5] ? sign(l[4], l[5]) : "" }))))) : null));
+  box.replaceChildren(head, ...sections);
+}
+
+// ---- routing ----
+function route() {
+  const hash = location.hash.slice(1), dot = hash.indexOf("."), kind = hash.slice(0, dot), name = hash.slice(dot + 1);
+  current = hash; if (kind === "a") { showAsset(name); } else { current = "o." + (D.overlays[name] ? name : "gameplay"); showOverlay(D.overlays[name] ? name : "gameplay"); }
+  drawNav(); const m = document.querySelector("main"); if (m && m.scrollTo) m.scrollTo(0, 0);
+}
+$("nav-o").addEventListener("click", () => { navMode = "o"; drawNav(); }); $("nav-a").addEventListener("click", () => { navMode = "a"; drawNav(); });
+$("filter").addEventListener("input", drawNav); window.addEventListener("hashchange", route); route();
+</script>
