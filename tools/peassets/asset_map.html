@@ -256,8 +256,12 @@ async function showOverlay(name) {
   const by = [...new Set((o.carrier || []).flatMap(f => (loadersOf.get(f) || []).map(l => `${l[0]}\t${D.layers[l[1]]}\t${l[2] || "always"}\t${sign(l[3], l[4])}`)))].map(s => s.split("\t"));
   sections.push(sec(`Loaded by (${by.length})`, "", by.length ? h("div", { class: "scrollx" }, h("table", {}, h("tr", {}, ["Overlay", "Layer", "When", "Page / row offset"].map(t => h("th", { text: t }))), by.map(r => h("tr", {}, h("td", {}, link("o", r[0])), h("td", { text: r[1] }), h("td", { text: r[2] }), h("td", { text: r[3] }))))) : h("p", { text: name === "main" ? "The executable: the console loads it." : "No load of it is in the graph." })));
   if (loads.length) { const rows = loads.filter(g => !/^(view|room \d+ view) /.test(g[1])).sort((a, b) => a[0] - b[0]);
-    sections.push(sec(`Loads (${loads.length})`, o.room ? "Its views are listed under Memory." : "", capped(rows, 120, part => h("div", { class: "scrollx" }, h("table", {}, h("tr", {}, ["Layer", "When", "Files"].map(t => h("th", { text: t }))), part.map(g => h("tr", {}, h("td", { text: D.layers[g[0]] }), h("td", { text: g[1] || "always" }), h("td", {}, g[4].map((m, i) => [i ? h("br") : null, fileLink(m[0]), m[1] || m[2] ? ` at ${sign(m[1], m[2])}` : ""]))))))); }
-  sections.push(sec(`Files (${ownFiles.length})`, "Its own files and what each holds.", capped(ownFiles, 80, part => h("div", { class: "scrollx" }, h("table", {}, h("tr", {}, ["File", "Holds"].map(t => h("th", { text: t }))), part.map(f => h("tr", {}, h("td", { text: D.files[f] }), h("td", {}, (D.chunks[f] || []).map(([n, key], i) => [i ? ", " : "", link(D.assets[key] && D.assets[key][0] === "pe2pkg" ? "o" : "a", key)])))))))));
+    const loadRow = g => h("tr", {}, h("td", { text: D.layers[g[0]] }), h("td", { text: g[1] || "always" }), h("td", {}, g[4].map((m, k) => [k ? h("br") : null, fileLink(m[0]), m[1] || m[2] ? ` at ${sign(m[1], m[2])}` : ""])));
+    const loadTable = part => h("div", { class: "scrollx" }, h("table", {}, h("tr", {}, ["Layer", "When", "Files"].map(t => h("th", { text: t }))), part.map(loadRow)));
+    sections.push(sec(`Loads (${loads.length})`, o.room ? "Its views are listed under Memory." : "", capped(rows, 120, loadTable))); }
+  const fileRow = f => h("tr", {}, h("td", { text: D.files[f] }), h("td", {}, (D.chunks[f] || []).map(([n, key], k) => [k ? ", " : "", link(D.assets[key] && D.assets[key][0] === "pe2pkg" ? "o" : "a", key)])));
+  const fileTable = part => h("div", { class: "scrollx" }, h("table", {}, h("tr", {}, ["File", "Holds"].map(t => h("th", { text: t }))), part.map(fileRow)));
+  sections.push(sec(`Files (${ownFiles.length})`, "Its own files and what each holds.", capped(ownFiles, 80, fileTable)));
   box.replaceChildren(...sections);
 }
 async function memorySection(name, o, reqs, alive) {
@@ -336,7 +340,9 @@ async function showAsset(key) {
   sections.push(sec("Properties", attrs.notes || "", rows.length ? h("table", {}, rows.map(([k, v]) => h("tr", {}, h("th", { text: k }), h("td", {}, k === "parent" ? [].concat(v).map((p, i) => [i ? ", " : "", link("o", p)]) : k === "vram" ? "0x" + v.toString(16) : String(JSON.stringify(v)).replace(/^"|"$/g, ""))))) : h("p", { text: "None recorded." })));
   const loaders = files.flatMap(f => (loadersOf.get(f) || []).map(l => [f, ...l]));
   sections.push(sec(`In files (${files.length})`, "", files.length ? h("ul", { class: "plain" }, files.map(f => h("li", {}, fileLink(f)))) : h("p", { text: attrs.source ? "Not a chunk of a disc file: it sits inside the package." : "Not placed in any file." })));
-  sections.push(sec(`Loaded by (${loaders.length})`, "The loads that bring one of those files in.", loaders.length ? capped(loaders, 80, part => h("div", { class: "scrollx" }, h("table", {}, h("tr", {}, ["Overlay", "Layer", "When", "File", "Offset"].map(t => h("th", { text: t }))), part.map(l => h("tr", {}, h("td", {}, link("o", l[1])), h("td", { text: D.layers[l[2]] }), h("td", { text: l[3] || "always" }), h("td", { text: D.files[l[0]] }), h("td", { text: l[4] || l[5] ? sign(l[4], l[5]) : "" })))))) : null));
+  const byRow = l => h("tr", {}, h("td", {}, link("o", l[1])), h("td", { text: D.layers[l[2]] }), h("td", { text: l[3] || "always" }), h("td", { text: D.files[l[0]] }), h("td", { text: l[4] || l[5] ? sign(l[4], l[5]) : "" }));
+  const byTable = part => h("div", { class: "scrollx" }, h("table", {}, h("tr", {}, ["Overlay", "Layer", "When", "File", "Offset"].map(t => h("th", { text: t }))), part.map(byRow)));
+  sections.push(sec(`Loaded by (${loaders.length})`, "The loads that bring one of those files in.", loaders.length ? capped(loaders, 80, byTable) : null));
   box.replaceChildren(head, ...sections);
 }
 
