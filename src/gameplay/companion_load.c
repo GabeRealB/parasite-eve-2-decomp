@@ -408,7 +408,7 @@ void loadingFinishSessionLoadTask(Task* task)
     enum {
         FADE_SESSION_RESUME_TASK_BANK      = 0,
         FADE_SESSION_RESUME_TASK_SLOT      = 0x21,
-        ACROPOLIS_PLAZA_OPENING_TASK_INDEX = 0,
+        ACROPOLIS_PLAZA_OPENING_TASK_INDEX = ACROPOLIS_PLAZA_TASK_SEQUENCE,
     };
     if (gCdCmdQueue.bootLoadActive == 0) {
         // Retire loading before room startup can reuse its task storage.
@@ -426,7 +426,7 @@ void loadingFinishSessionLoadTask(Task* task)
         displayAcquireMenuHold();
         taskSpawn(FADE_SESSION_RESUME_TASK_BANK, FADE_SESSION_RESUME_TASK_SLOT, 0, 0);
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 0, 0)) {
-            taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_OPENING_TASK_INDEX, 0, 0);
+            taskSpawnFromTable(gAcropolisPlazaSequenceTaskDescriptors, ACROPOLIS_PLAZA_OPENING_TASK_INDEX, 0, 0);
             cdCmdReservePlaybackBuffers();
             cdCmdSelectMovieWorkspace();
         }

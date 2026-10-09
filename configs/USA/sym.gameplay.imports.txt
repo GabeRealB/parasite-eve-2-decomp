@@ -1379,7 +1379,7 @@ D_acropolis_bridge_80189A9C = 0x80189A9C; // absolute:True owner=acropolis_bridg
 
 D_shelter_b4_water_supply_801826FC = 0x801826FC; // absolute:True owner=shelter_b4_water_supply shared=rooms
 
-D_acropolis_plaza_80183824 = 0x80183824; // absolute:True owner=acropolis_plaza
+gAcropolisPlazaSequenceTaskDescriptors = 0x80183824; // absolute:True owner=acropolis_plaza
 
 D_dryfield_night_garage_80181C2C = 0x80181C2C; // absolute:True owner=dryfield_night_garage
 

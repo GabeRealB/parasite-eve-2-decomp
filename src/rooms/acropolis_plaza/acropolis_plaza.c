@@ -129,14 +129,14 @@ enum {
         setRGB1((primitive), 0, 0, 0);                                                                                                                             \
         setRGB2((primitive), (red), (green), (blue));                                                                                                              \
         setRGB3((primitive), 0, 0, 0);                                                                                                                             \
-        (primitive)->x0 = (centre).vx + (((radius) * D_acropolis_plaza_801987E0[(sampleIndex) + 4]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);                          \
-        (primitive)->y0 = (centre).vy + (((radius) * D_acropolis_plaza_801987E0[(sampleIndex)]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);                              \
-        (primitive)->x1 = (centre).vx + (((radius) * D_acropolis_plaza_801987E0[(sampleIndex) + 5]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);                          \
-        (primitive)->y1 = (centre).vy + (((radius) * D_acropolis_plaza_801987E0[(sampleIndex) + 1]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);                          \
+        (primitive)->x0 = (centre).vx + (((radius) * _gAcropolisPlazaLightRingSamples[(sampleIndex) + 4]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);                    \
+        (primitive)->y0 = (centre).vy + (((radius) * _gAcropolisPlazaLightRingSamples[(sampleIndex)]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);                        \
+        (primitive)->x1 = (centre).vx + (((radius) * _gAcropolisPlazaLightRingSamples[(sampleIndex) + 5]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);                    \
+        (primitive)->y1 = (centre).vy + (((radius) * _gAcropolisPlazaLightRingSamples[(sampleIndex) + 1]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);                    \
         (primitive)->x2 = (centre).vx;                                                                                                                             \
         (primitive)->y2 = (centre).vy;                                                                                                                             \
-        (primitive)->x3 = (centre).vx + (((radius) * D_acropolis_plaza_801987E0[(sampleIndex) + 6]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);                          \
-        (primitive)->y3 = (centre).vy + (((radius) * D_acropolis_plaza_801987E0[(sampleIndex) + 2]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);                          \
+        (primitive)->x3 = (centre).vx + (((radius) * _gAcropolisPlazaLightRingSamples[(sampleIndex) + 6]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);                    \
+        (primitive)->y3 = (centre).vy + (((radius) * _gAcropolisPlazaLightRingSamples[(sampleIndex) + 2]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);                    \
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(depth) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), (primitive)); \
         gpuSetPrimitiveBlendMode((primitive), GPU_BLEND_ADD, (depth));                                                                                             \
     }
@@ -384,16 +384,7 @@ typedef struct {
 } _AcropolisPlazaEventWork;
 STATIC_ASSERT_SIZEOF(_AcropolisPlazaEventWork, 0x8);
 
-extern s16 D_acropolis_plaza_801987E0[];
-
-/// Gate `_acropolisPlazaUpdateSequenceEvent` applies to a pending `WorldCollisionTrigger` event
-/// whose id has the sign bit clear; a main-executable global with no module
-/// header yet.
-
-/// The three scene `WorldCollisionTrigger` nodes the plaza unlinks: `..._801991F0` when the
-/// opening stream hands over, and `..._801991A4` / `..._8019923C` depending on
-/// which event kind ended the scene.
-extern WorldCollisionTrigger D_acropolis_plaza_801991A4;
+static WorldCollisionTrigger _gAcropolisPlazaStreamSceneTrigger;
 extern WorldCollisionTrigger D_acropolis_plaza_801991F0;
 extern WorldCollisionTrigger D_acropolis_plaza_8019923C[4];
 
@@ -418,19 +409,6 @@ extern EvsCommand D_acropolis_plaza_80183554[];
 extern EvsCommand D_acropolis_plaza_8018365C[];
 extern EvsCommand D_acropolis_plaza_80183764[];
 
-/// The plaza's view tables, one per camera set. Each entry is a *pair* of
-/// `ViewCamera`s -- the two shots the stream alternates between -- indexed by
-/// `gCdCmdQueue.sceneFrame - 1`, so a table row is 0x48 bytes.
-extern ViewCamera D_acropolis_plaza_801838B8[][2];
-extern ViewCamera D_acropolis_plaza_8018A938[][2];
-extern ViewCamera D_acropolis_plaza_8018CAFC[][2];
-extern ViewCamera D_acropolis_plaza_8018F530[][2];
-extern ViewCamera D_acropolis_plaza_8018F9B4[][2];
-
-/// The plaza's camera table: one world position per stream view, indexed by
-/// `gCdCmdQueue.sceneFrame - 1`.
-extern VECTOR3 D_acropolis_plaza_801907C4[];
-
 /// Ambient-effect anchor points, one `SVECTOR` per effect slot. The plaza's
 /// three effect bursts index this table with the same slot number they pass to
 /// `effectSpawn`, so entries 1-6, 7-0xA and 0xC-0x12 belong to the 0x60098,
@@ -450,13 +428,26 @@ static void _acropolisPlazaLetterboxTask(Task* task);
 static void _acropolisPlazaSequenceTask(Task* task);
 static void _acropolisPlazaStartMovieDisplayTask(Task* task);
 
-extern WorldCollisionGrid   D_acropolis_plaza_80199180[1];
-extern WorldCoordRoomLights D_acropolis_plaza_80199EE8[1];
+static WorldCollisionGrid   _gAcropolisPlazaCollisionGrid;
+static WorldCoordRoomLights _gAcropolisPlazaRoomLights;
 
-static SVECTOR _gAcropolisPlazaCollision1BBC0Normals[30];
-static SVECTOR _gAcropolisPlazaCollision1BBC0Verts[80];
+/// Player selection and transition duration in the officer controller's requests.
+enum {
+    ACROPOLIS_PLAZA_ANIMATION_TARGET_PLAYER       = 0,
+    ACROPOLIS_PLAZA_PLAYER_ANIMATION_BLEND_FRAMES = 10
+};
 
-AnimationPlayRequest D_acropolis_plaza_8018261C = { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Selects paired-player scene animation 1 through the officer controller.
+///
+/// The controller installs its player bank and forces a ten-frame blend and
+/// enabled world collision; the stored collision choice is not applied.
+static AnimationPlayRequest _gAcropolisPlazaPlayerAnimation1Request = {
+    .source               = { .index = ACROPOLIS_PLAZA_ANIMATION_TARGET_PLAYER },
+    .animationId          = 1,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = ACROPOLIS_PLAZA_PLAYER_ANIMATION_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_acropolis_plaza_80182630 = { { .index = 2 }, 24, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -483,7 +474,17 @@ AnimationPlayRequest D_acropolis_plaza_801826F8 = { { .index = 0 }, 2, ANIMATION
 
 AnimationPlayRequest D_acropolis_plaza_8018270C = { 0 };
 
-AnimationPlayRequest D_acropolis_plaza_80182720 = { { .index = 0 }, 0, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Selects paired-player scene animation 0 through the officer controller.
+///
+/// The controller installs its player bank and forces a ten-frame blend and
+/// enabled world collision; the stored collision choice is not applied.
+static AnimationPlayRequest _gAcropolisPlazaPlayerAnimation0Request = {
+    .source               = { .index = ACROPOLIS_PLAZA_ANIMATION_TARGET_PLAYER },
+    .animationId          = 0,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = ACROPOLIS_PLAZA_PLAYER_ANIMATION_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 EvsCommand D_acropolis_plaza_80182734[32] = {
     { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -492,7 +493,7 @@ EvsCommand D_acropolis_plaza_80182734[32] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_plaza_8018270C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_plaza_8018261C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisPlazaPlayerAnimation1Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_plaza_80182630 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 90 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_plaza_801826F8 } }, { .value = 0 } },
@@ -512,7 +513,7 @@ EvsCommand D_acropolis_plaza_80182734[32] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_plaza_801826E4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 48 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_plaza_80182720 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisPlazaPlayerAnimation0Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2007 }, { .value = 0 }, { .value = 0 } },
@@ -524,7 +525,7 @@ EvsCommand D_acropolis_plaza_80182A34[10] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_plaza_80182720 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisPlazaPlayerAnimation0Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2007 }, { .value = 0 }, { .value = 0 } },
@@ -694,7 +695,7 @@ EvsCommand D_acropolis_plaza_80183554[11] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .message = { .pointer = &D_acropolis_plaza_8018352C } } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_plaza_80182720 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisPlazaPlayerAnimation0Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_plaza_8018352C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 1 }, { .value = 0 } },
@@ -708,7 +709,7 @@ EvsCommand D_acropolis_plaza_8018365C[11] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .message = { .pointer = &D_acropolis_plaza_80183540 } } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_plaza_80182720 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisPlazaPlayerAnimation0Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_plaza_80183540 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 1 }, { .value = 0 } },
@@ -721,58 +722,103 @@ EvsCommand D_acropolis_plaza_80183764[8] = {
     { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_plaza_80182720 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisPlazaPlayerAnimation0Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskDesc D_acropolis_plaza_80183824[12] = {
-    { { { TASK_BODY_NONE, 192 } }, _acropolisPlazaSequenceTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _acropolisPlazaStreamedSceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _acropolisPlazaStreamSceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _acropolisPlazaFinalSceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _acropolisPlazaFirstSceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _acropolisPlazaStartMovieDisplayTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _acropolisPlazaRepeatSceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _acropolisPlazaFadeToWhiteTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, screenFadeInTileTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _acropolisPlazaCaptionEventTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _acropolisPlazaMovieDisplayTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _acropolisPlazaLetterboxTask, { .value = 0 } },
+enum { ACROPOLIS_PLAZA_SEQUENCE_TASK_PRIORITY = 192 };
+
+TaskDesc gAcropolisPlazaSequenceTaskDescriptors[ACROPOLIS_PLAZA_TASK_COUNT] = {
+    [ACROPOLIS_PLAZA_TASK_SEQUENCE]       = { { { TASK_BODY_NONE, ACROPOLIS_PLAZA_SEQUENCE_TASK_PRIORITY } }, _acropolisPlazaSequenceTask, { .value = 0 } },
+    [ACROPOLIS_PLAZA_TASK_STREAMED_SCENE] = { { { TASK_BODY_NONE, ACROPOLIS_PLAZA_SEQUENCE_TASK_PRIORITY } }, _acropolisPlazaStreamedSceneTask, { .value = 0 } },
+    [ACROPOLIS_PLAZA_TASK_STREAM_SCENE]   = { { { TASK_BODY_NONE, ACROPOLIS_PLAZA_SEQUENCE_TASK_PRIORITY } }, _acropolisPlazaStreamSceneTask, { .value = 0 } },
+    [ACROPOLIS_PLAZA_TASK_FINAL_SCENE]    = { { { TASK_BODY_NONE, ACROPOLIS_PLAZA_SEQUENCE_TASK_PRIORITY } }, _acropolisPlazaFinalSceneTask, { .value = 0 } },
+    [ACROPOLIS_PLAZA_TASK_FIRST_SCENE]    = { { { TASK_BODY_NONE, ACROPOLIS_PLAZA_SEQUENCE_TASK_PRIORITY } }, _acropolisPlazaFirstSceneTask, { .value = 0 } },
+    [ACROPOLIS_PLAZA_TASK_DISPLAY_SETUP]  = { { { TASK_BODY_NONE, ACROPOLIS_PLAZA_SEQUENCE_TASK_PRIORITY } }, _acropolisPlazaStartMovieDisplayTask, { .value = 0 } },
+    [ACROPOLIS_PLAZA_TASK_REPEAT_SCENE]   = { { { TASK_BODY_NONE, ACROPOLIS_PLAZA_SEQUENCE_TASK_PRIORITY } }, _acropolisPlazaRepeatSceneTask, { .value = 0 } },
+    [ACROPOLIS_PLAZA_TASK_FADE_TO_WHITE]  = { { { TASK_BODY_NONE, ACROPOLIS_PLAZA_SEQUENCE_TASK_PRIORITY } }, _acropolisPlazaFadeToWhiteTask, { .value = 0 } },
+    [ACROPOLIS_PLAZA_TASK_FADE_IN]        = { { { TASK_BODY_NONE, ACROPOLIS_PLAZA_SEQUENCE_TASK_PRIORITY } }, screenFadeInTileTask, { .value = 0 } },
+    [ACROPOLIS_PLAZA_TASK_CAPTION]        = { { { TASK_BODY_NONE, ACROPOLIS_PLAZA_SEQUENCE_TASK_PRIORITY } }, _acropolisPlazaCaptionEventTask, { .value = 0 } },
+    [ACROPOLIS_PLAZA_TASK_MOVIE_DISPLAY]  = { { { TASK_BODY_NONE, ACROPOLIS_PLAZA_SEQUENCE_TASK_PRIORITY } }, _acropolisPlazaMovieDisplayTask, { .value = 0 } },
+    [ACROPOLIS_PLAZA_TASK_LETTERBOX]      = { { { TASK_BODY_NONE, ACROPOLIS_PLAZA_SEQUENCE_TASK_PRIORITY } }, _acropolisPlazaLetterboxTask, { .value = 0 } },
 };
 
 s32 D_acropolis_plaza_801838B4 = 800;
 
-ViewCamera D_acropolis_plaza_801838B8[400][2] = {
+/// Stored camera-path lengths in scene frames; each frame has two consecutive samples.
+enum {
+    ACROPOLIS_PLAZA_CAMERA_SAMPLES_PER_FRAME         = 2,
+    ACROPOLIS_PLAZA_CAMERA_TRAVERSAL_FRAME_COUNT     = 400,
+    ACROPOLIS_PLAZA_CAMERA_STREAM_SCENE_FRAME_COUNT  = 120,
+    ACROPOLIS_PLAZA_CAMERA_CLOSING_SCENE_FRAME_COUNT = 150,
+    ACROPOLIS_PLAZA_CAMERA_FINAL_LEAD_IN_FRAME_COUNT = 16,
+    ACROPOLIS_PLAZA_CAMERA_OFFICER_SCENE_FRAME_COUNT = 50
+};
+
+/// Traversal camera path shared by selectors 0..3.
+///
+/// Samples are complete world-to-view transforms and projection distances.
+/// Select sample 2*(sceneFrame-1), then add or subtract the presentation
+/// substep when ready. The selected sample must remain within the array.
+static ViewCamera _gAcropolisPlazaTraversalCameraSamples[ACROPOLIS_PLAZA_CAMERA_TRAVERSAL_FRAME_COUNT * ACROPOLIS_PLAZA_CAMERA_SAMPLES_PER_FRAME] = {
 #include "assets/acropolis_plaza_path_062F8.inc"
 };
 
-ViewCamera D_acropolis_plaza_8018A938[120][2] = {
+/// Camera path for the stream-scene event (camera selector 4).
+///
+/// Samples are complete world-to-view transforms and projection distances.
+/// The selector is independent of the movie sub-ID. Before readiness use
+/// 2*(sceneFrame-1); ready forward playback adds substep+1, reverse subtracts
+/// substep+1 and clamps at zero. Forward sampling must fit the stored extent.
+static ViewCamera _gAcropolisPlazaStreamSceneCameraSamples[ACROPOLIS_PLAZA_CAMERA_STREAM_SCENE_FRAME_COUNT * ACROPOLIS_PLAZA_CAMERA_SAMPLES_PER_FRAME] = {
 #include "assets/acropolis_plaza_path_0D378.inc"
 };
 
 s32 D_acropolis_plaza_8018CAF8 = 300;
 
-ViewCamera D_acropolis_plaza_8018CAFC[150][2] = {
+/// Closing camera path of the final scene (camera selector 5).
+///
+/// Samples are complete world-to-view transforms and projection distances.
+/// The selector is independent of the movie sub-ID. Before readiness use
+/// 2*(sceneFrame-1); ready forward playback adds substep+1, reverse subtracts
+/// substep+1 and clamps at zero. Forward sampling must fit the stored extent.
+static ViewCamera _gAcropolisPlazaClosingSceneCameraSamples[ACROPOLIS_PLAZA_CAMERA_CLOSING_SCENE_FRAME_COUNT * ACROPOLIS_PLAZA_CAMERA_SAMPLES_PER_FRAME] = {
 #include "assets/acropolis_plaza_path_0F53C.inc"
 };
 
 s32 D_acropolis_plaza_8018F52C = 32;
 
-ViewCamera D_acropolis_plaza_8018F530[16][2] = {
+/// Lead-in camera path of the final scene (camera selector 6).
+///
+/// Samples are complete world-to-view transforms and projection distances.
+/// The selector is independent of the movie sub-ID. Before readiness use
+/// 2*(sceneFrame-1); ready forward playback adds substep+1, reverse subtracts
+/// substep+1 and clamps at zero. Forward sampling must fit the stored extent.
+static ViewCamera _gAcropolisPlazaFinalSceneLeadInCameraSamples[ACROPOLIS_PLAZA_CAMERA_FINAL_LEAD_IN_FRAME_COUNT * ACROPOLIS_PLAZA_CAMERA_SAMPLES_PER_FRAME] = {
 #include "assets/acropolis_plaza_path_11F70.inc"
 };
 
 // Retained data: Retained word 100 between the camera table and script data; no reference found.
 s32 D_acropolis_plaza_8018F9B0 = 100;
 
-ViewCamera D_acropolis_plaza_8018F9B4[50][2] = {
+/// Officer camera path of the final scene (camera selector 7).
+///
+/// Samples are complete world-to-view transforms and projection distances.
+/// The selector is independent of the movie sub-ID. Before readiness use
+/// 2*(sceneFrame-1); ready forward playback adds substep+1, reverse subtracts
+/// substep+1 and clamps at zero. Forward sampling must fit the stored extent.
+static ViewCamera _gAcropolisPlazaOfficerSceneCameraSamples[ACROPOLIS_PLAZA_CAMERA_OFFICER_SCENE_FRAME_COUNT * ACROPOLIS_PLAZA_CAMERA_SAMPLES_PER_FRAME] = {
 #include "assets/acropolis_plaza_path_123F4.inc"
 };
 
-VECTOR3 D_acropolis_plaza_801907C4[400] = {
+/// World-space shot reference points for the streamed traversal's collision walls and edge tests.
+///
+/// One XYZ position in whole game units per scene frame, shared by sub-IDs
+/// 0..3. The caller must supply sceneFrame 1..400; indexing is not clamped.
+static VECTOR3 _gAcropolisPlazaTraversalShotPositions[ACROPOLIS_PLAZA_CAMERA_TRAVERSAL_FRAME_COUNT] = {
 #include "assets/acropolis_plaza_path_13204.inc"
 };
 
@@ -1546,7 +1592,12 @@ AnimationSet gAcropolisPlazaAnimation1B1F8 = {
     { NULL, _gAcropolisPlazaAnimation1B1F8Bank1, NULL, NULL, _gAcropolisPlazaAnimation1B1F8Bank4, NULL, NULL, NULL },
 };
 
-s16 D_acropolis_plaza_801987E0[32] = {
+/// Two turns of signed Q12 circle samples for the plaza's additive lights.
+///
+/// Each turn has sixteen samples of -cos(angle); (sample[i+4], sample[i])
+/// supplies screen X/Y at angle i/16 turn. The repeated turn allows adjacent
+/// and quarter-turn offsets without wrapping. Fan indices reach 20; rays 23.
+static s16 _gAcropolisPlazaLightRingSamples[2 * ACROPOLIS_PLAZA_LIGHT_FAN_SAMPLES] = {
     -4096,
     -3784,
     -2896,
@@ -1603,21 +1654,21 @@ SVECTOR D_acropolis_plaza_80198820[19] = {
     { 7970, -640, 4980, 0 },
 };
 
-WorldCollisionRoomResources D_acropolis_plaza_801988B8[1] = {
-    { D_acropolis_plaza_80199180, NULL, &D_acropolis_plaza_801991A4, NULL },
+WorldCollisionRoomResources gAcropolisPlazaRoomCollisionResources[ACROPOLIS_PLAZA_ROOM_COUNT] = {
+    { .grid = &_gAcropolisPlazaCollisionGrid, .viewBoundaryTriggers = NULL, .actionTriggers = &_gAcropolisPlazaStreamSceneTrigger, .occluders = NULL },
 };
 
-u8* D_acropolis_plaza_801988C8[1] = {
+u8* gAcropolisPlazaViewMaps[ACROPOLIS_PLAZA_ROOM_COUNT] = {
     gViewIdentityMap,
 };
 
-ViewCount D_acropolis_plaza_801988CC[1] = { 8 };
+ViewCount gAcropolisPlazaViewCounts[ACROPOLIS_PLAZA_ROOM_COUNT] = { ARRAY_SIZE(gAcropolisPlazaViewCameras) };
 
-WorldCoordRoomLighting D_acropolis_plaza_801988D0[1] = {
-    { D_acropolis_plaza_80199EE8, NULL },
+WorldCoordRoomLighting gAcropolisPlazaRoomLightingTable[ACROPOLIS_PLAZA_ROOM_COUNT] = {
+    { .lights = &_gAcropolisPlazaRoomLights, .ambientTable = NULL },
 };
 
-ViewCamera D_acropolis_plaza_801988D8[8] = {
+ViewCamera gAcropolisPlazaViewCameras[ACROPOLIS_PLAZA_VIEW_COUNT] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x61A8, 0 } }, 380 },
     { { { { 3907, 0, 1229 }, { 691, 3385, -2199 }, { -1015, 2305, 3229 } }, { -3330, 0x2EE0, 0x332C } }, 207 },
     { { { { 1614, 0, 3764 }, { 917, 3972, -393 }, { -3650, 998, 1565 } }, { -2710, 3765, 6480 } }, 230 },
@@ -1628,56 +1679,104 @@ ViewCamera D_acropolis_plaza_801988D8[8] = {
     { { { { 4051, 0, -604 }, { 18, 4094, 124 }, { 604, -126, 4049 } }, { 5040, 3595, 5660 } }, 225 },
 };
 
-SpriteBatch D_acropolis_plaza_801989F8[1] = {
-    { SPRITE_BATCH_END, 1, 0, 0, { 0, 0 } },
+/// Presentation choices carried by a terminal first batch's count.
+enum {
+    ACROPOLIS_PLAZA_SPRITE_SHOW_IMAGE = 0,
+    ACROPOLIS_PLAZA_SPRITE_HIDE_IMAGE = 1
 };
 
-SpriteBatch D_acropolis_plaza_80198A00[1] = {
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Terminal-only sprite list suppressing decoded image strips in views 2 and 8.
+///
+/// The nonzero first count controls presentation; the end marker allocates
+/// no cached sprites, and these views have no sprite sources or clip list.
+static SpriteBatch _gAcropolisPlazaHideImageSpriteBatches[1] = {
+    { SPRITE_BATCH_END, ACROPOLIS_PLAZA_SPRITE_HIDE_IMAGE, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_acropolis_plaza_80198A08[8] = {
-    { { .elements = NULL }, D_acropolis_plaza_80198A00, NULL },
-    { { .elements = NULL }, D_acropolis_plaza_801989F8, NULL },
-    { { .elements = NULL }, D_acropolis_plaza_80198A00, NULL },
-    { { .elements = NULL }, D_acropolis_plaza_80198A00, NULL },
-    { { .elements = NULL }, D_acropolis_plaza_80198A00, NULL },
-    { { .elements = NULL }, D_acropolis_plaza_80198A00, NULL },
-    { { .elements = NULL }, D_acropolis_plaza_80198A00, NULL },
-    { { .elements = NULL }, D_acropolis_plaza_801989F8, NULL },
+/// Terminal-only sprite list retaining decoded image strips in views 1 and 3..7.
+///
+/// The zero first count controls presentation; the end marker allocates no
+/// cached sprites. There is exactly one record, with no following batch.
+static SpriteBatch _gAcropolisPlazaShowImageSpriteBatches[1] = {
+    { SPRITE_BATCH_END, ACROPOLIS_PLAZA_SPRITE_SHOW_IMAGE, 0, 0, { 0, 0 } },
 };
 
-DirectionWarpEntry D_acropolis_plaza_80198A68[1] = {
+SpriteView gAcropolisPlazaSpriteViews[ACROPOLIS_PLAZA_VIEW_COUNT] = {
+    { { .elements = NULL }, _gAcropolisPlazaShowImageSpriteBatches, NULL },
+    { { .elements = NULL }, _gAcropolisPlazaHideImageSpriteBatches, NULL },
+    { { .elements = NULL }, _gAcropolisPlazaShowImageSpriteBatches, NULL },
+    { { .elements = NULL }, _gAcropolisPlazaShowImageSpriteBatches, NULL },
+    { { .elements = NULL }, _gAcropolisPlazaShowImageSpriteBatches, NULL },
+    { { .elements = NULL }, _gAcropolisPlazaShowImageSpriteBatches, NULL },
+    { { .elements = NULL }, _gAcropolisPlazaShowImageSpriteBatches, NULL },
+    { { .elements = NULL }, _gAcropolisPlazaHideImageSpriteBatches, NULL },
+};
+
+DirectionWarpEntry gAcropolisPlazaWarpEntries[ACROPOLIS_PLAZA_WARP_COUNT] = {
     { { { .word = 3072 }, 0x5AA0, 0, 1800 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x5AA0, 0, 1800 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gAcropolisPlazaCollision1BBC0Normals[30] = {
+static SVECTOR _gAcropolisPlazaCollisionGridNormals[30] = {
 #include "assets/acropolis_plaza_collision_1BBC0_normals.inc"
 };
 
-static SVECTOR _gAcropolisPlazaCollision1BBC0Verts[80] = {
+static SVECTOR _gAcropolisPlazaCollisionGridVerts[80] = {
 #include "assets/acropolis_plaza_collision_1BBC0_verts.inc"
 };
 
-static WorldCollisionGridFace _gAcropolisPlazaCollision1BBC0Faces[32] = {
+static WorldCollisionGridFace _gAcropolisPlazaCollisionGridFaces[32] = {
 #include "assets/acropolis_plaza_collision_1BBC0_faces.inc"
 };
 
-static s16 _gAcropolisPlazaCollision1BBC0Cells[192] = {
+static s16 _gAcropolisPlazaCollisionGridCells[192] = {
 #include "assets/acropolis_plaza_collision_1BBC0_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gAcropolisPlazaCollision1BBC0Cells[i])
-static s16* _gAcropolisPlazaCollision1BBC0Table[28] = {
+#define GRID_CELL(i) (&_gAcropolisPlazaCollisionGridCells[i])
+static s16* _gAcropolisPlazaCollisionGridTable[28] = {
 #include "assets/acropolis_plaza_collision_1BBC0_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_acropolis_plaza_80199180[1] = {
-    { NULL, _gAcropolisPlazaCollision1BBC0Normals, _gAcropolisPlazaCollision1BBC0Verts, _gAcropolisPlazaCollision1BBC0Faces, _gAcropolisPlazaCollision1BBC0Table, 0, 0, 7, 4, 4000, 32 },
+/// Plaza collision mesh and its 7-by-4 X-major cell index.
+///
+/// Cells are 4000 game units wide with no X/Z bias; all 32 faces address the
+/// 80-vertex and 30-normal pools. Cell lists end with -1 within the 192-entry
+/// halfword pool. The scene moves vertices 0..7 as two opposing walls;
+/// the remaining authored geometry stays in place.
+static WorldCollisionGrid _gAcropolisPlazaCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gAcropolisPlazaCollisionGridNormals,
+    .vertices    = _gAcropolisPlazaCollisionGridVerts,
+    .faces       = _gAcropolisPlazaCollisionGridFaces,
+    .cellFaceIds = _gAcropolisPlazaCollisionGridTable,
+    .xBias       = 0,
+    .zBias       = 0,
+    .cellCountX  = 7,
+    .cellCountZ  = 4,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gAcropolisPlazaCollisionGridFaces),
 };
 
-WorldCollisionTrigger D_acropolis_plaza_801991A4 = { NULL, NULL, NULL, { 5744, -112, 8227, 0 }, { { 2736, 0, 3200, 0 }, { -3471, 0, -2304, 0 }, { 3471, 0, 2305, 0 }, { -2736, 0, -3199, 0 } }, { 0, 4113, 0, 0 }, { 2106, 0, -3513, 0 }, 4190, WORLD_COLLISION_TRIGGER_ACTION_CLEAR | WORLD_COLLISION_TRIGGER_AUTOMATIC, 0, 119, WORLD_COLLISION_TRIGGER_QUAD, 0 };
+/// Automatic one-shot quad selecting the plaza's stream-scene event.
+///
+/// The sequence unlinks it after the event ends. Geometry uses local game
+/// coordinates and Q12 normals; parameter1 is latched but not read back.
+static WorldCollisionTrigger _gAcropolisPlazaStreamSceneTrigger = {
+    .next         = NULL,
+    .prevLink     = NULL,
+    .coord        = NULL,
+    .origin       = { 5744, -112, 8227, 0 },
+    .vertices     = { { 2736, 0, 3200, 0 }, { -3471, 0, -2304, 0 }, { 3471, 0, 2305, 0 }, { -2736, 0, -3199, 0 } },
+    .normal       = { 0, 4113, 0, 0 },
+    .facingNormal = { 2106, 0, -3513, 0 },
+    .radius       = 4190,
+    .control      = WORLD_COLLISION_TRIGGER_ACTION_CLEAR | WORLD_COLLISION_TRIGGER_AUTOMATIC,
+    .parameter0   = ACROPOLIS_PLAZA_EVENT_STREAM_SCENE,
+    .parameter1   = 119,
+    .flags        = WORLD_COLLISION_TRIGGER_QUAD,
+    .hit          = 0,
+};
 
 WorldCollisionTrigger D_acropolis_plaza_801991F0 = { NULL, NULL, NULL, { 0x4336, -32, 3038, 0 }, { { 1967, 0, 3691, 0 }, { -3037, 0, -2925, 0 }, { 3036, 0, 2925, 0 }, { -1968, 0, -3691, 0 } }, { 0, 4098, 0, 0 }, { 2106, 0, -3513, 0 }, 4190, WORLD_COLLISION_TRIGGER_ACTION_CLEAR | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 };
 
@@ -2159,39 +2258,76 @@ static WorldCoordPointLight _gAcropolisPlazaPointLights[] = {
     },
 };
 
-WorldCoordRoomLights D_acropolis_plaza_80199EE8[1] = {
-    { 0, NULL, ARRAY_SIZE(_gAcropolisPlazaPointLights), _gAcropolisPlazaPointLights, 0, NULL },
+/// Point-light collection borrowed by the plaza's room lighting descriptor.
+///
+/// Contains all authored point lights, with no directional or cone lights.
+/// Gameplay binds and updates the writable lights while the plaza is loaded.
+static WorldCoordRoomLights _gAcropolisPlazaRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gAcropolisPlazaPointLights),
+    .pointLights           = _gAcropolisPlazaPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
-WorldCollisionFootstepSounds D_acropolis_plaza_80199F00 = {
-    0x10000011,
-    0x10000013,
-    0x10000011,
+/// Cue-2 bases in the loaded type-1 bank; cue 1 uses the following entry.
+enum {
+    ACROPOLIS_PLAZA_DEFAULT_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x11,
+    ACROPOLIS_PLAZA_DEFAULT_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x13,
+    ACROPOLIS_PLAZA_CLASS1_WALK_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x2D,
+    ACROPOLIS_PLAZA_CLASS1_RUN_SOUND   = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x2F
 };
 
-WorldCollisionFootstepSounds D_acropolis_plaza_80199F0C = {
-    0x1000002D,
-    0x1000002F,
-    0x1000002D,
+/// Footstep cue bases for plaza surface classes 0 and 2..7.
+///
+/// Scripted stair climbing shares the walking pair; running selects its own pair.
+static WorldCollisionFootstepSounds _gAcropolisPlazaDefaultFootstepSounds = {
+    .walk         = ACROPOLIS_PLAZA_DEFAULT_WALK_SOUND,
+    .run          = ACROPOLIS_PLAZA_DEFAULT_RUN_SOUND,
+    .scriptedJump = ACROPOLIS_PLAZA_DEFAULT_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_plaza_80199F18[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_plaza_80199F00 },
+/// Footstep cue bases for plaza surface class 1.
+///
+/// Scripted stair climbing shares the walking pair; running selects its own pair.
+static WorldCollisionFootstepSounds _gAcropolisPlazaClass1FootstepSounds = {
+    .walk         = ACROPOLIS_PLAZA_CLASS1_WALK_SOUND,
+    .run          = ACROPOLIS_PLAZA_CLASS1_RUN_SOUND,
+    .scriptedJump = ACROPOLIS_PLAZA_CLASS1_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_plaza_80199F20[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_plaza_80199F0C },
+/// Collision policy and footstep cues for plaza classes 0 and 2..7.
+///
+/// Blocks probes, enables weapon impacts and applies grid pushback.
+static WorldCollisionSurfaceProperties _gAcropolisPlazaDefaultSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gAcropolisPlazaDefaultFootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_acropolis_plaza_80199F28[8] = {
-    D_acropolis_plaza_80199F18,
-    D_acropolis_plaza_80199F20,
-    D_acropolis_plaza_80199F18,
-    D_acropolis_plaza_80199F18,
-    D_acropolis_plaza_80199F18,
-    D_acropolis_plaza_80199F18,
-    D_acropolis_plaza_80199F18,
-    D_acropolis_plaza_80199F18,
+/// Collision policy and footstep cues for plaza class 1.
+///
+/// Blocks probes, enables weapon impacts and applies grid pushback.
+static WorldCollisionSurfaceProperties _gAcropolisPlazaClass1SurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gAcropolisPlazaClass1FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gAcropolisPlazaSurfacePropertiesByClass[ACROPOLIS_PLAZA_SURFACE_CLASS_COUNT] = {
+    &_gAcropolisPlazaDefaultSurfaceProperties,
+    &_gAcropolisPlazaClass1SurfaceProperties,
+    &_gAcropolisPlazaDefaultSurfaceProperties,
+    &_gAcropolisPlazaDefaultSurfaceProperties,
+    &_gAcropolisPlazaDefaultSurfaceProperties,
+    &_gAcropolisPlazaDefaultSurfaceProperties,
+    &_gAcropolisPlazaDefaultSurfaceProperties,
+    &_gAcropolisPlazaDefaultSurfaceProperties,
 };
 
 /// Envelope selectors and byte-volume units of the plaza ambience driver.
@@ -2435,55 +2571,56 @@ static void _acropolisPlazaUpdateSceneCollisionWalls(Task* sceneTask)
     s16                       maxZ;
     s16                       rightX;
 
-    _gAcropolisPlazaCollision1BBC0Verts[0].vx = leftX;
-    _gAcropolisPlazaCollision1BBC0Verts[1].vx = leftX;
-    _gAcropolisPlazaCollision1BBC0Verts[2].vx = leftX;
-    _gAcropolisPlazaCollision1BBC0Verts[3].vx = leftX;
+    _gAcropolisPlazaCollisionGridVerts[0].vx = leftX;
+    _gAcropolisPlazaCollisionGridVerts[1].vx = leftX;
+    _gAcropolisPlazaCollisionGridVerts[2].vx = leftX;
+    _gAcropolisPlazaCollisionGridVerts[3].vx = leftX;
 
     topY   = shotY + 0x3E8;
     minZ   = shotZ - 0x1000;
     maxZ   = shotZ + 0x3000;
     rightX = shotX + 0x7D0;
 
-    _gAcropolisPlazaCollision1BBC0Verts[0].vy = shotY;
-    _gAcropolisPlazaCollision1BBC0Verts[1].vy = shotY;
-    _gAcropolisPlazaCollision1BBC0Verts[2].vy = topY;
-    _gAcropolisPlazaCollision1BBC0Verts[3].vy = topY;
+    _gAcropolisPlazaCollisionGridVerts[0].vy = shotY;
+    _gAcropolisPlazaCollisionGridVerts[1].vy = shotY;
+    _gAcropolisPlazaCollisionGridVerts[2].vy = topY;
+    _gAcropolisPlazaCollisionGridVerts[3].vy = topY;
 
-    _gAcropolisPlazaCollision1BBC0Verts[0].vz = minZ;
-    _gAcropolisPlazaCollision1BBC0Verts[1].vz = maxZ;
-    _gAcropolisPlazaCollision1BBC0Verts[2].vz = minZ;
-    _gAcropolisPlazaCollision1BBC0Verts[3].vz = maxZ;
+    _gAcropolisPlazaCollisionGridVerts[0].vz = minZ;
+    _gAcropolisPlazaCollisionGridVerts[1].vz = maxZ;
+    _gAcropolisPlazaCollisionGridVerts[2].vz = minZ;
+    _gAcropolisPlazaCollisionGridVerts[3].vz = maxZ;
 
-    _gAcropolisPlazaCollision1BBC0Verts[4].vx = rightX;
-    _gAcropolisPlazaCollision1BBC0Verts[5].vx = rightX;
-    _gAcropolisPlazaCollision1BBC0Verts[6].vx = rightX;
-    _gAcropolisPlazaCollision1BBC0Verts[7].vx = rightX;
+    _gAcropolisPlazaCollisionGridVerts[4].vx = rightX;
+    _gAcropolisPlazaCollisionGridVerts[5].vx = rightX;
+    _gAcropolisPlazaCollisionGridVerts[6].vx = rightX;
+    _gAcropolisPlazaCollisionGridVerts[7].vx = rightX;
 
-    _gAcropolisPlazaCollision1BBC0Verts[4].vy = shotY;
-    _gAcropolisPlazaCollision1BBC0Verts[5].vy = shotY;
-    _gAcropolisPlazaCollision1BBC0Verts[6].vy = topY;
-    _gAcropolisPlazaCollision1BBC0Verts[7].vy = topY;
+    _gAcropolisPlazaCollisionGridVerts[4].vy = shotY;
+    _gAcropolisPlazaCollisionGridVerts[5].vy = shotY;
+    _gAcropolisPlazaCollisionGridVerts[6].vy = topY;
+    _gAcropolisPlazaCollisionGridVerts[7].vy = topY;
 
-    _gAcropolisPlazaCollision1BBC0Verts[4].vz = maxZ;
-    _gAcropolisPlazaCollision1BBC0Verts[5].vz = minZ;
-    _gAcropolisPlazaCollision1BBC0Verts[6].vz = maxZ;
-    _gAcropolisPlazaCollision1BBC0Verts[7].vz = minZ;
+    _gAcropolisPlazaCollisionGridVerts[4].vz = maxZ;
+    _gAcropolisPlazaCollisionGridVerts[5].vz = minZ;
+    _gAcropolisPlazaCollisionGridVerts[6].vz = maxZ;
+    _gAcropolisPlazaCollisionGridVerts[7].vz = minZ;
 }
 
-/// Applies the camera sample for the plaza stream sub-ID in the low halfword.
+/// Applies one sample from the selected plaza camera path.
 ///
-/// Sub-IDs 0..3 use the 400-row traversal table; 4..7 select the four event
-/// tables. Scene frames are numbered from 1 and each row holds two samples.
+/// Selectors 0..3 use the traversal path; 4..7 select the four event
+/// paths independently of the movie sub-ID. Scene frames start at 1 and
+/// each frame has two consecutive samples.
 /// While playback is ready, direction and the 0/1 presentation substep select
 /// the neighbouring sample. Event tables clamp reverse sampling at zero.
 /// The selected sample must fit the table; forward sampling and the traversal
-/// table's reverse sampling have no clamp. Requires a valid sub-ID and loaded
+/// table's reverse sampling have no clamp. Requires a valid selector and loaded
 /// view data.
 static void _acropolisPlazaApplyStreamCamera(s32 subId)
 {
     CdCmdQueue* queue = &gCdCmdQueue;
-    ViewCamera(*cameraPairs)[2];
+    ViewCamera* cameraSamples;
     ViewCamera* camera;
     s16         cameraIndex;
 
@@ -2492,35 +2629,35 @@ static void _acropolisPlazaApplyStreamCamera(s32 subId)
         case 1:
         case 2:
         case 3:
-            cameraPairs = D_acropolis_plaza_801838B8;
+            cameraSamples = _gAcropolisPlazaTraversalCameraSamples;
             if (queue->movieReady == 0) {
                 s32 sceneIndex = queue->sceneFrame - 1;
-                camera         = cameraPairs[sceneIndex];
+                camera         = cameraSamples + sceneIndex * ACROPOLIS_PLAZA_CAMERA_SAMPLES_PER_FRAME;
             } else if (queue->reverseSceneFrames == 0) {
                 s32 sceneIndex = queue->sceneFrame - 1;
-                camera         = cameraPairs[sceneIndex] + queue->movieFrameSubstep;
+                camera         = cameraSamples + sceneIndex * ACROPOLIS_PLAZA_CAMERA_SAMPLES_PER_FRAME + queue->movieFrameSubstep;
             } else {
                 s32 sceneIndex = queue->sceneFrame - 1;
-                camera         = cameraPairs[sceneIndex] - queue->movieFrameSubstep;
+                camera         = cameraSamples + sceneIndex * ACROPOLIS_PLAZA_CAMERA_SAMPLES_PER_FRAME - queue->movieFrameSubstep;
             }
             viewApplyCamera(camera);
             return;
         case 4:
-            cameraPairs = D_acropolis_plaza_8018A938;
+            cameraSamples = _gAcropolisPlazaStreamSceneCameraSamples;
             break;
         case 5:
-            cameraPairs = D_acropolis_plaza_8018CAFC;
+            cameraSamples = _gAcropolisPlazaClosingSceneCameraSamples;
             break;
         case 6:
-            cameraPairs = D_acropolis_plaza_8018F530;
+            cameraSamples = _gAcropolisPlazaFinalSceneLeadInCameraSamples;
             break;
         case 7:
-            cameraPairs = D_acropolis_plaza_8018F9B4;
+            cameraSamples = _gAcropolisPlazaOfficerSceneCameraSamples;
             break;
     }
     if (queue->movieReady == 0) {
         s32 sceneIndex = queue->sceneFrame - 1;
-        camera         = cameraPairs[sceneIndex];
+        camera         = cameraSamples + sceneIndex * ACROPOLIS_PLAZA_CAMERA_SAMPLES_PER_FRAME;
     } else {
         if (queue->reverseSceneFrames == 0) {
             cameraIndex = ((queue->sceneFrame - 1) * 2) + queue->movieFrameSubstep + 1;
@@ -2530,7 +2667,7 @@ static void _acropolisPlazaApplyStreamCamera(s32 subId)
                 cameraIndex = 0;
             }
         }
-        camera = *cameraPairs + cameraIndex;
+        camera = cameraSamples + cameraIndex;
     }
     viewApplyCamera(camera);
 }
@@ -2609,9 +2746,9 @@ static void _acropolisPlazaStreamedSceneTask(Task* task)
             case 1:
             case 2:
             case 3:
-                work->shotPos.vx = D_acropolis_plaza_801907C4[queue->sceneFrame - 1].vx;
-                work->shotPos.vy = D_acropolis_plaza_801907C4[queue->sceneFrame - 1].vy;
-                work->shotPos.vz = D_acropolis_plaza_801907C4[queue->sceneFrame - 1].vz;
+                work->shotPos.vx = _gAcropolisPlazaTraversalShotPositions[queue->sceneFrame - 1].vx;
+                work->shotPos.vy = _gAcropolisPlazaTraversalShotPositions[queue->sceneFrame - 1].vy;
+                work->shotPos.vz = _gAcropolisPlazaTraversalShotPositions[queue->sceneFrame - 1].vz;
                 work->relX       = work->shotPos.vx - work->playerMtx->t[0];
                 break;
         }
@@ -3119,8 +3256,8 @@ static void _acropolisPlazaFinalSceneTask(Task* task)
         ACROPOLIS_PLAZA_FINAL_OFFICER_SOUND_FRAME     = 30,
         ACROPOLIS_PLAZA_FINAL_OFFICER_EFFECT_FRAME    = 61,
         ACROPOLIS_PLAZA_FINAL_TAIL_EFFECT_FRAME       = 11,
-        ACROPOLIS_PLAZA_FINAL_WHITE_FADE_TASK         = 7,
-        ACROPOLIS_PLAZA_FINAL_FADE_IN_TASK            = 8,
+        ACROPOLIS_PLAZA_FINAL_WHITE_FADE_TASK         = ACROPOLIS_PLAZA_TASK_FADE_TO_WHITE,
+        ACROPOLIS_PLAZA_FINAL_FADE_IN_TASK            = ACROPOLIS_PLAZA_TASK_FADE_IN,
         ACROPOLIS_PLAZA_FINAL_OFFICER_ANIMATION       = 8,
         ACROPOLIS_PLAZA_FINAL_OFFICER_BLEND_FRAMES    = 10,
         ACROPOLIS_PLAZA_FINAL_WHITE_FADE_FRAMES       = 9,
@@ -3230,7 +3367,7 @@ static void _acropolisPlazaFinalSceneTask(Task* task)
             }
             work->elapsedFrames = work->elapsedFrames + 1;
             if (work->elapsedFrames >= ACROPOLIS_PLAZA_FINAL_OFFICER_EFFECT_FRAME) {
-                taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_FINAL_WHITE_FADE_TASK, ACROPOLIS_PLAZA_FINAL_WHITE_FADE_FRAMES, 0);
+                taskSpawnFromTable(gAcropolisPlazaSequenceTaskDescriptors, ACROPOLIS_PLAZA_FINAL_WHITE_FADE_TASK, ACROPOLIS_PLAZA_FINAL_WHITE_FADE_FRAMES, 0);
                 task->state = task->state + 1;
             }
             _acropolisPlazaApplyStreamCamera(ACROPOLIS_PLAZA_FINAL_OFFICER_CAMERA);
@@ -3270,7 +3407,7 @@ static void _acropolisPlazaFinalSceneTask(Task* task)
             work->elapsedFrames = work->elapsedFrames + 1;
             if (work->elapsedFrames >= ACROPOLIS_PLAZA_FINAL_TAIL_EFFECT_FRAME) {
                 sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 0x0B), 0, 0);
-                taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_FINAL_FADE_IN_TASK, ACROPOLIS_PLAZA_FINAL_FADE_IN_FRAMES, 0);
+                taskSpawnFromTable(gAcropolisPlazaSequenceTaskDescriptors, ACROPOLIS_PLAZA_FINAL_FADE_IN_TASK, ACROPOLIS_PLAZA_FINAL_FADE_IN_FRAMES, 0);
                 work->elapsedFrames = 0;
                 task->state         = task->state + 1;
             }
@@ -3525,11 +3662,11 @@ static void _acropolisPlazaUpdateSceneAmbience(Task* task)
 /// stream/room resources alive through that handoff; no CD seek is requested.
 static inline void _acropolisPlazaResumeSequenceStream(_AcropolisPlazaSequenceWork* work)
 {
-    enum { ACROPOLIS_PLAZA_RESUME_STREAM_TASK = 1 };
+    enum { ACROPOLIS_PLAZA_RESUME_STREAM_TASK = ACROPOLIS_PLAZA_TASK_STREAMED_SCENE };
 
     work->sceneArg.skipStreamReset = 1;
     work->sceneArg.startFrame      = work->resumeFrame;
-    work->sceneTask                = taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_RESUME_STREAM_TASK, 0, &work->sceneArg);
+    work->sceneTask                = taskSpawnFromTable(gAcropolisPlazaSequenceTaskDescriptors, ACROPOLIS_PLAZA_RESUME_STREAM_TASK, 0, &work->sceneArg);
 }
 
 /// Advances the plaza's trigger-driven streamed sequence and reports final-scene completion.
@@ -3543,11 +3680,11 @@ static inline void _acropolisPlazaResumeSequenceStream(_AcropolisPlazaSequenceWo
 /// stream resources, trigger storage and sequence work must outlive all children.
 static u16 _acropolisPlazaUpdateSequenceEvent(Task* task)
 {
-    enum { ACROPOLIS_PLAZA_EVENT_TASK_STREAM_SCENE = 2,
-           ACROPOLIS_PLAZA_EVENT_TASK_FINAL_SCENE  = 3,
-           ACROPOLIS_PLAZA_EVENT_TASK_FIRST_SCENE  = 4,
-           ACROPOLIS_PLAZA_EVENT_TASK_REPEAT_SCENE = 6,
-           ACROPOLIS_PLAZA_EVENT_TASK_CAPTION      = 9,
+    enum { ACROPOLIS_PLAZA_EVENT_TASK_STREAM_SCENE = ACROPOLIS_PLAZA_TASK_STREAM_SCENE,
+           ACROPOLIS_PLAZA_EVENT_TASK_FINAL_SCENE  = ACROPOLIS_PLAZA_TASK_FINAL_SCENE,
+           ACROPOLIS_PLAZA_EVENT_TASK_FIRST_SCENE  = ACROPOLIS_PLAZA_TASK_FIRST_SCENE,
+           ACROPOLIS_PLAZA_EVENT_TASK_REPEAT_SCENE = ACROPOLIS_PLAZA_TASK_REPEAT_SCENE,
+           ACROPOLIS_PLAZA_EVENT_TASK_CAPTION      = ACROPOLIS_PLAZA_TASK_CAPTION,
            ACROPOLIS_PLAZA_REPEAT_FIRST_VARIANT    = 0,
            ACROPOLIS_PLAZA_REPEAT_SECOND_VARIANT   = 1,
            ACROPOLIS_PLAZA_REPEAT_LAST_VARIANT     = 2,
@@ -3583,12 +3720,12 @@ static u16 _acropolisPlazaUpdateSequenceEvent(Task* task)
                 work->eventParameter1 = eventParameter1;
                 if ((s8)eventKind == ACROPOLIS_PLAZA_EVENT_FIRST_SCENE) {
                     work->eventTask =
-                        taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_EVENT_TASK_FIRST_SCENE, 0, work);
+                        taskSpawnFromTable(gAcropolisPlazaSequenceTaskDescriptors, ACROPOLIS_PLAZA_EVENT_TASK_FIRST_SCENE, 0, work);
                     work->step = work->step + 1;
                     break;
                 } else if ((s8)eventKind >= ACROPOLIS_PLAZA_EVENT_FIRST_CAPTION) {
                     work->eventTask =
-                        taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_EVENT_TASK_CAPTION, 0, work);
+                        taskSpawnFromTable(gAcropolisPlazaSequenceTaskDescriptors, ACROPOLIS_PLAZA_EVENT_TASK_CAPTION, 0, work);
                     work->step = ACROPOLIS_PLAZA_STEP_RUN_FIRST_CAPTION;
                 }
             }
@@ -3609,31 +3746,31 @@ static u16 _acropolisPlazaUpdateSequenceEvent(Task* task)
                 signedEventKind       = (s8)eventKind;
                 if (signedEventKind == ACROPOLIS_PLAZA_EVENT_STREAM_SCENE) {
                     work->eventTask =
-                        taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_EVENT_TASK_STREAM_SCENE, 0, work);
+                        taskSpawnFromTable(gAcropolisPlazaSequenceTaskDescriptors, ACROPOLIS_PLAZA_EVENT_TASK_STREAM_SCENE, 0, work);
                     work->step = work->step + 1;
                     break;
                 } else if (signedEventKind == ACROPOLIS_PLAZA_EVENT_FINAL_SCENE) {
                     work->eventTask =
-                        taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_EVENT_TASK_FINAL_SCENE, 0, work);
+                        taskSpawnFromTable(gAcropolisPlazaSequenceTaskDescriptors, ACROPOLIS_PLAZA_EVENT_TASK_FINAL_SCENE, 0, work);
                     work->step = work->step + 1;
                     break;
                 } else if (signedEventKind == ACROPOLIS_PLAZA_EVENT_REPEAT_SCENE) {
                     if (work->repeatVariant == ACROPOLIS_PLAZA_REPEAT_FIRST_VARIANT) {
                         work->eventTask =
-                            taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_EVENT_TASK_REPEAT_SCENE, ACROPOLIS_PLAZA_REPEAT_FIRST_VARIANT, work);
+                            taskSpawnFromTable(gAcropolisPlazaSequenceTaskDescriptors, ACROPOLIS_PLAZA_EVENT_TASK_REPEAT_SCENE, ACROPOLIS_PLAZA_REPEAT_FIRST_VARIANT, work);
                         work->step = ACROPOLIS_PLAZA_STEP_RUN_REPEAT_SCENE;
                     } else if (work->repeatVariant == ACROPOLIS_PLAZA_REPEAT_SECOND_VARIANT) {
                         work->eventTask =
-                            taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_EVENT_TASK_REPEAT_SCENE, ACROPOLIS_PLAZA_REPEAT_SECOND_VARIANT, work);
+                            taskSpawnFromTable(gAcropolisPlazaSequenceTaskDescriptors, ACROPOLIS_PLAZA_EVENT_TASK_REPEAT_SCENE, ACROPOLIS_PLAZA_REPEAT_SECOND_VARIANT, work);
                         work->step = ACROPOLIS_PLAZA_STEP_RUN_REPEAT_SCENE;
                     } else {
                         work->eventTask =
-                            taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_EVENT_TASK_REPEAT_SCENE, ACROPOLIS_PLAZA_REPEAT_LAST_VARIANT, work);
+                            taskSpawnFromTable(gAcropolisPlazaSequenceTaskDescriptors, ACROPOLIS_PLAZA_EVENT_TASK_REPEAT_SCENE, ACROPOLIS_PLAZA_REPEAT_LAST_VARIANT, work);
                         work->step = ACROPOLIS_PLAZA_STEP_RUN_REPEAT_SCENE;
                     }
                 } else if (signedEventKind >= ACROPOLIS_PLAZA_EVENT_FIRST_CAPTION) {
                     work->eventTask =
-                        taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_EVENT_TASK_CAPTION, 0, work);
+                        taskSpawnFromTable(gAcropolisPlazaSequenceTaskDescriptors, ACROPOLIS_PLAZA_EVENT_TASK_CAPTION, 0, work);
                     work->step = ACROPOLIS_PLAZA_STEP_RUN_CAPTION;
                 }
             }
@@ -3644,7 +3781,7 @@ static u16 _acropolisPlazaUpdateSequenceEvent(Task* task)
                 latchedKind   = work->eventKind;
                 latchedKind16 = (s8)latchedKind;
                 if (latchedKind16 == ACROPOLIS_PLAZA_EVENT_STREAM_SCENE) {
-                    worldCollisionUnlinkTrigger(0, &D_acropolis_plaza_801991A4);
+                    worldCollisionUnlinkTrigger(0, &_gAcropolisPlazaStreamSceneTrigger);
                 } else if ((u16)(s8)latchedKind == ACROPOLIS_PLAZA_EVENT_FINAL_SCENE) {
                     worldCollisionUnlinkTrigger(0, D_acropolis_plaza_8019923C);
                 }
@@ -3743,10 +3880,10 @@ static void _acropolisPlazaSequenceTask(Task* task)
         ACROPOLIS_PLAZA_SEQUENCE_START_STREAM             = 3,
         ACROPOLIS_PLAZA_SEQUENCE_RUN                      = 4,
         ACROPOLIS_PLAZA_SEQUENCE_LEAVE                    = 5,
-        ACROPOLIS_PLAZA_SEQUENCE_STREAM_TASK_INDEX        = 1,
-        ACROPOLIS_PLAZA_SEQUENCE_DISPLAY_SETUP_TASK_INDEX = 5,
-        ACROPOLIS_PLAZA_SEQUENCE_FADE_TASK_INDEX          = 8,
-        ACROPOLIS_PLAZA_SEQUENCE_LETTERBOX_TASK_INDEX     = 11,
+        ACROPOLIS_PLAZA_SEQUENCE_STREAM_TASK_INDEX        = ACROPOLIS_PLAZA_TASK_STREAMED_SCENE,
+        ACROPOLIS_PLAZA_SEQUENCE_DISPLAY_SETUP_TASK_INDEX = ACROPOLIS_PLAZA_TASK_DISPLAY_SETUP,
+        ACROPOLIS_PLAZA_SEQUENCE_FADE_TASK_INDEX          = ACROPOLIS_PLAZA_TASK_FADE_IN,
+        ACROPOLIS_PLAZA_SEQUENCE_LETTERBOX_TASK_INDEX     = ACROPOLIS_PLAZA_TASK_LETTERBOX,
         ACROPOLIS_PLAZA_SEQUENCE_AMBIENT_LEVEL            = 0x370,
         ACROPOLIS_PLAZA_SEQUENCE_FADE_MODE                = 6,
     };
@@ -3761,7 +3898,7 @@ static void _acropolisPlazaSequenceTask(Task* task)
         case ACROPOLIS_PLAZA_SEQUENCE_INITIALIZE:
             // Hold input while presentation and the owned work block are prepared.
             padInputChangeSuppression(PAD_INPUT_SUPPRESSION_SET_AND_HOLD, PAD_INPUT_SUPPRESS_ACTIONS_AND_MENU & ~PAD_BUTTON_CIRCLE);
-            viewApplyCamera(D_acropolis_plaza_801838B8[0]);
+            viewApplyCamera(&_gAcropolisPlazaTraversalCameraSamples[0]);
             allocatedWork = memMalloc(sizeof(*allocatedWork), false);
             task->work    = allocatedWork;
             if (allocatedWork == NULL) {
@@ -3772,11 +3909,11 @@ static void _acropolisPlazaSequenceTask(Task* task)
             childTask                   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             initializedWork             = task->work;
             initializedWork->playerTask = childTask;
-            childTask                   = taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_SEQUENCE_DISPLAY_SETUP_TASK_INDEX, 0, 0);
+            childTask                   = taskSpawnFromTable(gAcropolisPlazaSequenceTaskDescriptors, ACROPOLIS_PLAZA_SEQUENCE_DISPLAY_SETUP_TASK_INDEX, 0, 0);
             initializedWork             = task->work;
             initializedWork->eventTask  = childTask;
             playerActorRemoveEquipment();
-            taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_SEQUENCE_LETTERBOX_TASK_INDEX, 0, 0);
+            taskSpawnFromTable(gAcropolisPlazaSequenceTaskDescriptors, ACROPOLIS_PLAZA_SEQUENCE_LETTERBOX_TASK_INDEX, 0, 0);
             task->state = task->state + 1;
             return;
         case ACROPOLIS_PLAZA_SEQUENCE_WAIT_FIRST_FRAME:
@@ -3792,9 +3929,9 @@ static void _acropolisPlazaSequenceTask(Task* task)
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
             work->sceneArg.skipStreamReset = 0;
             work->sceneArg.startFrame      = 0;
-            work->sceneTask                = taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_SEQUENCE_STREAM_TASK_INDEX, 0, &work->sceneArg);
+            work->sceneTask                = taskSpawnFromTable(gAcropolisPlazaSequenceTaskDescriptors, ACROPOLIS_PLAZA_SEQUENCE_STREAM_TASK_INDEX, 0, &work->sceneArg);
             stageMusicRequestAreaStart(0);
-            taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_SEQUENCE_FADE_TASK_INDEX, ACROPOLIS_PLAZA_SEQUENCE_FADE_MODE, 0);
+            taskSpawnFromTable(gAcropolisPlazaSequenceTaskDescriptors, ACROPOLIS_PLAZA_SEQUENCE_FADE_TASK_INDEX, ACROPOLIS_PLAZA_SEQUENCE_FADE_MODE, 0);
             queue->blockGamePause = 1;
             task->state           = task->state + 1;
             return;
@@ -3823,8 +3960,8 @@ static void _acropolisPlazaSequenceTask(Task* task)
 /// movie task owns presentation until it restores the ordinary game loop.
 static void _acropolisPlazaStartMovieDisplayTask(Task* task)
 {
-    enum { ACROPOLIS_PLAZA_MOVIE_DISPLAY_TASK_INDEX = 10 };
-    displaySpawnTaskFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_MOVIE_DISPLAY_TASK_INDEX, 0, 0);
+    enum { ACROPOLIS_PLAZA_MOVIE_DISPLAY_TASK_INDEX = ACROPOLIS_PLAZA_TASK_MOVIE_DISPLAY };
+    displaySpawnTaskFromTable(gAcropolisPlazaSequenceTaskDescriptors, ACROPOLIS_PLAZA_MOVIE_DISPLAY_TASK_INDEX, 0, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     viewQueueCurrentCameraAndPackets();
     taskKill(task);
@@ -4113,14 +4250,14 @@ void acropolisPlazaLightFlareTask(Task* task)
                 setRGB1(primitive, 0, 0, 0);
                 setRGB2(primitive, red, green, blue);
                 setRGB3(primitive, 0, 0, 0);
-                primitive->x0 = flare->screenPos.vx + ((flare->innerRadius * D_acropolis_plaza_801987E0[index]) >> (ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT - 1));
-                primitive->y0 = flare->screenPos.vy + ((flare->innerRadius * D_acropolis_plaza_801987E0[index + 12]) >> (ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT - 1));
-                primitive->x1 = flare->screenPos.vx + ((flare->outerRadius * D_acropolis_plaza_801987E0[index + 4]) >> (ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT - 1));
-                primitive->y1 = flare->screenPos.vy + ((flare->outerRadius * D_acropolis_plaza_801987E0[index]) >> (ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT - 1));
+                primitive->x0 = flare->screenPos.vx + ((flare->innerRadius * _gAcropolisPlazaLightRingSamples[index]) >> (ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT - 1));
+                primitive->y0 = flare->screenPos.vy + ((flare->innerRadius * _gAcropolisPlazaLightRingSamples[index + 12]) >> (ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT - 1));
+                primitive->x1 = flare->screenPos.vx + ((flare->outerRadius * _gAcropolisPlazaLightRingSamples[index + 4]) >> (ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT - 1));
+                primitive->y1 = flare->screenPos.vy + ((flare->outerRadius * _gAcropolisPlazaLightRingSamples[index]) >> (ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT - 1));
                 primitive->x2 = flare->screenPos.vx;
                 primitive->y2 = flare->screenPos.vy;
-                primitive->x3 = flare->screenPos.vx + ((flare->innerRadius * D_acropolis_plaza_801987E0[index + 8]) >> (ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT - 1));
-                primitive->y3 = flare->screenPos.vy + ((flare->innerRadius * D_acropolis_plaza_801987E0[index + 4]) >> (ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT - 1));
+                primitive->x3 = flare->screenPos.vx + ((flare->innerRadius * _gAcropolisPlazaLightRingSamples[index + 8]) >> (ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT - 1));
+                primitive->y3 = flare->screenPos.vy + ((flare->innerRadius * _gAcropolisPlazaLightRingSamples[index + 4]) >> (ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT - 1));
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)flare->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), primitive);
                 gpuSetPrimitiveBlendMode(primitive, GPU_BLEND_ADD, flare->otz);
                 primitive      = gGpuPrimCursor;
@@ -4130,14 +4267,14 @@ void acropolisPlazaLightFlareTask(Task* task)
                 setRGB1(primitive, 0, 0, 0);
                 setRGB2(primitive, red, green, blue);
                 setRGB3(primitive, 0, 0, 0);
-                primitive->x0 = flare->screenPos.vx + ((flare->innerRadius * D_acropolis_plaza_801987E0[index + 4]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);
-                primitive->y0 = flare->screenPos.vy + ((flare->innerRadius * D_acropolis_plaza_801987E0[index]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);
-                primitive->x1 = flare->screenPos.vx + ((flare->outerRadius * D_acropolis_plaza_801987E0[index + 8]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);
-                primitive->y1 = flare->screenPos.vy + ((flare->outerRadius * D_acropolis_plaza_801987E0[index + 4]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);
+                primitive->x0 = flare->screenPos.vx + ((flare->innerRadius * _gAcropolisPlazaLightRingSamples[index + 4]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);
+                primitive->y0 = flare->screenPos.vy + ((flare->innerRadius * _gAcropolisPlazaLightRingSamples[index]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);
+                primitive->x1 = flare->screenPos.vx + ((flare->outerRadius * _gAcropolisPlazaLightRingSamples[index + 8]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);
+                primitive->y1 = flare->screenPos.vy + ((flare->outerRadius * _gAcropolisPlazaLightRingSamples[index + 4]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);
                 primitive->x2 = flare->screenPos.vx;
                 primitive->y2 = flare->screenPos.vy;
-                primitive->x3 = flare->screenPos.vx + ((flare->innerRadius * D_acropolis_plaza_801987E0[index + 12]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);
-                primitive->y3 = flare->screenPos.vy + ((flare->innerRadius * D_acropolis_plaza_801987E0[index + 8]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);
+                primitive->x3 = flare->screenPos.vx + ((flare->innerRadius * _gAcropolisPlazaLightRingSamples[index + 12]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);
+                primitive->y3 = flare->screenPos.vy + ((flare->innerRadius * _gAcropolisPlazaLightRingSamples[index + 8]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)flare->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), primitive);
                 gpuSetPrimitiveBlendMode(primitive, GPU_BLEND_ADD, flare->otz);
             }

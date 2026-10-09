@@ -60916,7 +60916,7 @@ The shape that first reproduced the layout above used variables for the two
 arguments that differ, with the whole call behind the label:
 
 ```c
-    desc = &D_acropolis_plaza_80183824; entry = 4; goto spawn;
+    desc = &gAcropolisPlazaSequenceTaskDescriptors; entry = 4; goto spawn;
     ...
 spawn:
     work->eventTask = taskSpawnFromTable(desc, entry, 0, (s32)work);
@@ -61288,16 +61288,16 @@ arm of the `if` that keeps the temp distinct from both colours.
 Six ring-vertex reads out of the same 16-entry sine table,
 
 ```c
-primitive->x0 = flare->screenPos.vx + ((flare->outerRadius * D_acropolis_plaza_801987E0[i + 4]) >> 12);
-primitive->y0 = flare->screenPos.vy + ((flare->outerRadius * D_acropolis_plaza_801987E0[i]) >> 12);
-primitive->x1 = flare->screenPos.vx + ((flare->outerRadius * D_acropolis_plaza_801987E0[i + 5]) >> 12);
+primitive->x0 = flare->screenPos.vx + ((flare->outerRadius * _gAcropolisPlazaLightRingSamples[i + 4]) >> 12);
+primitive->y0 = flare->screenPos.vy + ((flare->outerRadius * _gAcropolisPlazaLightRingSamples[i]) >> 12);
+primitive->x1 = flare->screenPos.vx + ((flare->outerRadius * _gAcropolisPlazaLightRingSamples[i + 5]) >> 12);
 ...
 ```
 
 compile to the naive per-access address the target has —
 `addiu $v0,$s4,K; sll $v0,$v0,1; addu $v0,$v0,$s1; lh $v1,0($v0)` — with the
 table's `lui`/`addiu` hoisted into the loop preheader. Copy the symbol into a
-local first (`s16* tbl = D_acropolis_plaza_801987E0;`) and GCC 2.8.1 computes
+local first (`s16* tbl = _gAcropolisPlazaLightRingSamples;`) and GCC 2.8.1 computes
 `i * 2 + tbl` once and folds every `+ K` into the load displacement
 (`lh $v1, 8($a0)`), rematerialising the symbol *inside* the loop. On
 `acropolisPlazaLightFlareTask` that one difference is 71.2% against 98.6%.

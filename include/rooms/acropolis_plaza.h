@@ -83,24 +83,91 @@ extern AnimationSet gAcropolisPlazaAnimation1AFA4;
 
 extern AnimationSet gAcropolisPlazaAnimation1B1F8;
 
-extern TaskDesc D_acropolis_plaza_80183824[12];
+/// Entry indices of the plaza's direct-spawn sequence task table.
+enum {
+    ACROPOLIS_PLAZA_TASK_SEQUENCE = 0,
+    ACROPOLIS_PLAZA_TASK_STREAMED_SCENE,
+    ACROPOLIS_PLAZA_TASK_STREAM_SCENE,
+    ACROPOLIS_PLAZA_TASK_FINAL_SCENE,
+    ACROPOLIS_PLAZA_TASK_FIRST_SCENE,
+    ACROPOLIS_PLAZA_TASK_DISPLAY_SETUP,
+    ACROPOLIS_PLAZA_TASK_REPEAT_SCENE,
+    ACROPOLIS_PLAZA_TASK_FADE_TO_WHITE,
+    ACROPOLIS_PLAZA_TASK_FADE_IN,
+    ACROPOLIS_PLAZA_TASK_CAPTION,
+    ACROPOLIS_PLAZA_TASK_MOVIE_DISPLAY,
+    ACROPOLIS_PLAZA_TASK_LETTERBOX,
+    ACROPOLIS_PLAZA_TASK_COUNT
+};
 
-// acropolis_plaza
-extern WorldCollisionRoomResources D_acropolis_plaza_801988B8[];
+/// Extents of the plaza's exported room, view, warp and surface tables.
+enum {
+    ACROPOLIS_PLAZA_ROOM_COUNT          = 1,
+    ACROPOLIS_PLAZA_VIEW_COUNT          = 8,
+    ACROPOLIS_PLAZA_WARP_COUNT          = 1,
+    ACROPOLIS_PLAZA_SURFACE_CLASS_COUNT = 8
+};
 
-extern u8* D_acropolis_plaza_801988C8[];
+/// Direct-spawn recipes for the streamed plaza sequence and its presentation tasks.
+///
+/// Indexed by `ACROPOLIS_PLAZA_TASK_*`, with no terminator. Every entry starts
+/// without a body at priority 192; callbacks allocate their own work as needed.
+/// Gameplay starts entry 0 after a plaza session load. Spawn reads a recipe
+/// synchronously, but the plaza overlay must remain loaded while its tasks run.
+extern TaskDesc gAcropolisPlazaSequenceTaskDescriptors[ACROPOLIS_PLAZA_TASK_COUNT];
 
-extern ViewCount D_acropolis_plaza_801988CC[];
+/// Collision resources for the plaza's single room.
+///
+/// Room ID 1 selects the mutable grid and action triggers, with no view-boundary
+/// triggers or sight occluders. The map directory borrows this loaded-overlay
+/// storage; keep it live until the grid is retired and the triggers unlinked.
+extern WorldCollisionRoomResources gAcropolisPlazaRoomCollisionResources[ACROPOLIS_PLAZA_ROOM_COUNT];
 
-extern WorldCoordRoomLighting D_acropolis_plaza_801988D0[];
+/// Logical-view maps for the plaza's single room.
+///
+/// Room ID 1 borrows `gViewIdentityMap`: logical views 1..8 select the same
+/// 1-based camera, image and sprite-view indices. There is no map terminator.
+extern u8* gAcropolisPlazaViewMaps[ACROPOLIS_PLAZA_ROOM_COUNT];
 
-extern ViewCamera D_acropolis_plaza_801988D8[];
+/// Logical-view count for the plaza's single room, in view elements.
+///
+/// Room ID 1 admits eight entries for reverse lookup in the shared identity map.
+extern ViewCount gAcropolisPlazaViewCounts[ACROPOLIS_PLAZA_ROOM_COUNT];
 
-extern SpriteView D_acropolis_plaza_80198A08[];
+/// Lighting descriptors for the plaza's single room.
+///
+/// Room ID 1 selects the mutable point-light collection and default ambient
+/// minima. The map directory borrows these records while the plaza is loaded.
+extern WorldCoordRoomLighting gAcropolisPlazaRoomLightingTable[ACROPOLIS_PLAZA_ROOM_COUNT];
 
-extern DirectionWarpEntry D_acropolis_plaza_80198A68[];
+/// Static room cameras selected by the plaza's eight logical views.
+///
+/// Index by the identity-mapped 1-based view minus one. Each record contains
+/// a world-to-view transform and a projection distance; the streamed sequence
+/// uses its separate sampled camera paths. Keep the plaza loaded during use.
+extern ViewCamera gAcropolisPlazaViewCameras[ACROPOLIS_PLAZA_VIEW_COUNT];
 
-extern WorldCollisionSurfaceProperties* D_acropolis_plaza_80199F28[];
+/// Image-presentation choices for the plaza's eight logical views.
+///
+/// Index by identity-mapped view minus one. All views have no source sprites
+/// or clip lists: terminal first counts suppress image strips in views 2 and
+/// 8 and retain them in views 1 and 3..7. Records and batches belong to the
+/// loaded plaza overlay.
+extern SpriteView gAcropolisPlazaSpriteViews[ACROPOLIS_PLAZA_VIEW_COUNT];
+
+/// The plaza's single arrival/departure endpoint, selected by warp ID 1.
+///
+/// Player and companion share world position (23200, 0, 1800) and yaw 3072
+/// in 4096 units per turn. Arrival selects view 2, with no transition sounds,
+/// scripted-player/departure-fade flags or map marker. Borrow while loaded.
+extern DirectionWarpEntry gAcropolisPlazaWarpEntries[ACROPOLIS_PLAZA_WARP_COUNT];
+
+/// Collision and footstep records selected by room-local surface class 0..7.
+///
+/// Class 1 has its own footstep pairs; every other class shares the default.
+/// All classes block probes, enable weapon impacts and apply grid pushback.
+/// The map directory borrows these writable records while the plaza is loaded.
+extern WorldCollisionSurfaceProperties* gAcropolisPlazaSurfacePropertiesByClass[ACROPOLIS_PLAZA_SURFACE_CLASS_COUNT];
 
 extern AreaVariant D_acropolis_plaza_80199390[3];
 
