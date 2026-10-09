@@ -116,7 +116,9 @@ def describe(command: dict) -> list[str]:
             # A scene step names a view FILE, which the room's view map turns into the logical view; it names the
             # logical view itself only while a script has set direct view ids (event-script opcode 41).
             view = f"view file {record['view']}" if record["view"] else "keeps the view"
-            lines.append(f"    key {record['key']}: scene step, {view}{sent}{action}")
+            # Flag 0x40 holds the step until the script's next WAIT_CAP_CUE (src/gameplay/captions.c:315-330).
+            cue = ", waits for the script's cue" if record["flags"] & 0x40 else ""
+            lines.append(f"    key {record['key']}: scene step, {view}{cue}{sent}{action}")
         else:
             sound = f", room sound {record['sound']}" if record["sound"] else ""
             title = f", title {record['title'] - 1 + (256 if record['flags'] & TITLE_BANK else 0)}" if record["title"] else ""
