@@ -47,6 +47,8 @@ input:focus-visible, select:focus-visible, button:focus-visible, .g:focus-visibl
 #vram .clut { fill: var(--clut); fill-opacity: .55; stroke: var(--clut); vector-effect: non-scaling-stroke; }
 #vram .clash { fill: var(--clash); fill-opacity: .4; stroke: var(--clash); }
 #vram .hot { fill-opacity: .75; }
+#vram .reg { fill: none; stroke: var(--muted); stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; pointer-events: none; }
+#vram .reglab { font: 9px var(--sans); fill: var(--muted); pointer-events: none; }
 #vram image { image-rendering: pixelated; pointer-events: none; }
 #vram.pics .img, #vram.pics .clut { fill-opacity: 0; } #vram.pics .hot { fill-opacity: .25; } #vram.pics .clash { fill-opacity: .25; }
 .check { flex-direction: row; align-items: center; gap: 6px; text-transform: none; letter-spacing: 0; font-size: 12px; }
@@ -122,7 +124,7 @@ tr.hot td { background: var(--accent-soft); } tr.clash td:first-child { color: v
       <div id="rawbox">
       <div class="sheet">
         <svg id="vram" viewBox="-22 -12 1050 530" xmlns="http://www.w3.org/2000/svg"></svg>
-        <div class="legend"><span><i class="sw i"></i>image</span><span><i class="sw c"></i>palette (CLUT)</span><span><i class="sw x"></i>two resident files claim the same area</span><span>grid: 64-wide texture pages, split at row 256</span><label class="check" for="pics" id="picslabel"><input type="checkbox" id="pics" checked>draw the images</label></div>
+        <div class="legend"><span><i class="sw i"></i>image</span><span><i class="sw c"></i>palette (CLUT)</span><span><i class="sw x"></i>two resident files claim the same area</span><span>grid: 64-wide texture pages, split at row 256</span><label class="check" for="regs"><input type="checkbox" id="regs" checked>regions</label><label class="check" for="pics" id="picslabel"><input type="checkbox" id="pics" checked>draw the images</label></div>
       </div>
       <div id="shot" hidden></div>
       <div class="scroll" style="max-height:300px"><table><thead><tr><th>Asset</th><th>At</th><th>Size</th><th>Depth</th><th>Loaded by</th><th>File</th></tr></thead><tbody id="rows"></tbody></table></div>
@@ -130,7 +132,7 @@ tr.hot td { background: var(--accent-soft); } tr.clash td:first-child { color: v
     </section>
   </div>
   </div>
-  <p class="note">View edges come from each room's view map. Variant edges come from each room's placement and resource tables, with the page and row offsets the placement loads the file with; a rectangle is drawn where it lands after those offsets. Loads decided by code (weapons, costumes, menus, load screens, sound banks) are traced from the sources; click such a group to switch it on. An overlay inherits what loaded it: the chain's own always-loads and the group that brought the overlay in are shown first, dimmed, and "Chain" adds further loads of an ancestor (the equipped weapon, a costume).</p>
+  <p class="note">View edges come from each room's view map. Variant edges come from each room's placement and resource tables, with the page and row offsets the placement loads the file with; a rectangle is drawn where it lands after those offsets. Loads decided by code (weapons, costumes, menus, load screens, sound banks) are traced from the sources; click such a group to switch it on. Loads apply in layers (boot, session, stage, room, variant, view, event, transient), a later one replacing an earlier one where they overlap; overlays sharing a load address replace each other. Dashed outlines are the named regions of <code>residency_regions.tsv</code>. An overlay inherits what loaded it: the chain's own always-loads and the group that brought the overlay in are shown first, dimmed, and "Chain" adds further loads of an ancestor (the equipped weapon, a costume).</p>
 </div>
 <script>
 const D = /*DATA*/;
@@ -150,7 +152,7 @@ function resident() {
   const out = [], on = new Set(active());
   cur.groups.forEach(g => { g.on = on.has(g); }); (cur.chain || []).forEach(g => { g.on = true; });
   [...on].forEach(g => { const gi = cur.groups.indexOf(g);
-    {  for (const [f, page, row, , rel] of g[3]) for (const r of (D.fp[f] || [])) out.push({ ...landed(r, page, row, rel), group: gi, file: D.files[f], by: g[0] === "a" ? "always" : g[1] }); }
+    {  for (const [f, page, row, , rel] of g[3]) for (const r of (D.fp[f] || [])) out.push({ ...landed(r, page, row, rel), group: gi, file: D.files[f], by: (g[0] === "a" ? "always" : g[1]) + " · " + D.layers[g[5]] }); }
   });
   out.forEach((a, i) => { a.clash = out.some((b, j) => i !== j && a.file !== b.file && a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h); });
   return out;
@@ -158,7 +160,7 @@ function resident() {
 function drawGraph() {
   const svg = $("graph"); svg.replaceChildren();
   const rowH = 20, gx = 170, fx = 390; let y = 14; const rows = [];
-  const shown = [...(cur.chain || []), ...cur.groups];
+  const shown = [...(cur.chain || []), ...cur.groups.filter(g => g[0] !== "c")], gone = occupancy(active());
   shown.forEach((g, gi) => { rows.push({ gi, y, n: Math.max(1, g[3].length) }); y += Math.max(1, g[3].length) * rowH + 6; });
   const H = y + 8, W = 900, ly = Math.min(H / 2, 300);
   svg.setAttribute("width", W); svg.setAttribute("height", H); svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
@@ -168,15 +170,16 @@ function drawGraph() {
     const g = shown[gi], cy = y + 8, opt = g[0] === "o", inherited = g[0] === "i";
     edges.append(el("path", { class: "edge" + (opt ? " opt" : "") + (g.on ? " on" : ""), d: `M136 ${ly} C ${gx - 20} ${ly}, ${gx - 30} ${cy}, ${gx} ${cy}` }));
     const node = el("g", { class: "g" + (g.on ? " sel" : ""), tabindex: opt ? 0 : -1, role: "button" });
-    const label = opt || inherited ? g[1] : "always", cut = label.length > 26 ? label.slice(0, 25) + "…" : label;
+    const label = (opt || inherited ? g[1] : "always") + " · " + D.layers[g[5]], cut = label.length > 26 ? label.slice(0, 25) + "…" : label;
     node.append(el("rect", { x: gx, y: cy - 9, width: 170, height: 18, rx: 2 }), el("text", { class: inherited ? "dim" : "", x: gx + 6, y: cy + 4 }, cut), el("title", {}, label));
-    if (inherited && chainPicked.has(g[5] + "|" + g[6])) { node.setAttribute("tabindex", 0); node.addEventListener("click", () => { chainPicked.delete(g[5] + "|" + g[6]); buildChain(); render(); }); }
+    if (inherited && chainPicked.has(g[6] + "|" + g[7])) { node.setAttribute("tabindex", 0); node.addEventListener("click", () => { chainPicked.delete(g[6] + "|" + g[7]); buildChain(); render(); }); }
     if (opt) { const pick = () => { if (isView(g[1]) || isVariant(g[1])) { const s = isView(g[1]) ? $("view") : $("variant"); s.value = s.value === g[1] ? "" : g[1]; } else if (!picked.delete(g[1])) picked.add(g[1]); render(); }; node.addEventListener("click", pick); node.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } }); }
     nodes.append(node);
     g[3].forEach(([f, page, row, note], k) => {
       const fy = y + 8 + k * rowH, n = (D.fp[f] || []).length;
       edges.append(el("path", { class: "edge" + (g.on ? " on" : ""), d: `M${gx + 170} ${cy} C ${fx - 30} ${cy}, ${fx - 30} ${fy}, ${fx - 4} ${fy}` }));
       nodes.append(el("text", { x: fx, y: fy + 4 }, D.files[f]));
+      if (g.on && D.pkg[f] && gone.has(D.pkg[f])) note = `overlay put out of memory by ${gone.get(D.pkg[f])}` + (note ? " · " + note : "");
       const extra = [(page || row) ? `page ${page >= 0 ? "+" : ""}${page}, row ${row >= 0 ? "+" : ""}${row}` : "", n ? `${n} upload${n > 1 ? "s" : ""}` : "no uploads", note].filter(Boolean).join(" · ");
       nodes.append(el("text", { class: "dim", x: fx + 8 + D.files[f].length * 6.7, y: fy + 4 }, extra));
     });
@@ -195,6 +198,7 @@ function drawVram(list) {
       im.addEventListener("error", () => im.remove()); svg.append(im);
     }
   }
+  if ($("regs").checked) for (const [kind, name, x, y, w, h] of D.regions) { if (kind !== "i") continue; svg.append(el("rect", { class: "reg", x, y, width: w, height: h })); svg.append(el("text", { class: "reglab", x: x + 3, y: y + h - 4 }, name)); }
   list.forEach((a, i) => {
     const r = el("rect", { class: (a.kind === "c" ? "clut" : "img") + (a.clash ? " clash" : "") + (hot === i ? " hot" : ""), x: a.x, y: a.y, width: a.w, height: Math.max(a.h, a.kind === "c" ? 2 : 1) });
     r.addEventListener("mouseenter", () => { hot = i; mark(list); }); r.addEventListener("mouseleave", () => { hot = null; mark(list); });
@@ -226,8 +230,14 @@ const need = asset => pix.has(asset) ? Promise.resolve() : new Promise(done => {
 });
 let turn = 0;
 const isView = c => /^(room \d+ )?view \d+$/.test(c), isVariant = c => /^variant \d+$/.test(c);
-const rank = g => g[0] === "a" ? 0 : isVariant(g[1]) ? 1 : isView(g[1]) ? 3 : 2;      // views change last, so they win an overlap
-function active() { const view = $("view").value, variant = $("variant").value; return [...(cur.chain || []), ...cur.groups.filter(g => g[0] === "a" || g[1] === view || g[1] === variant || picked.has(g[1])).sort((p, q) => rank(p) - rank(q))]; }
+// A later layer (boot, session, stage, room, variant, view, event, transient) replaces an earlier one where they overlap.
+function active() { const view = $("view").value, variant = $("variant").value;
+  const list = [...(cur.chain || []), ...cur.groups.filter(g => g[0] === "a" || (g[0] === "o" && (g[1] === view || g[1] === variant || picked.has(g[1]))))];
+  return list.map((g, i) => [g, i]).sort((p, q) => p[0][5] - q[0][5] || p[1] - q[1]).map(p => p[0]); }
+// One overlay per load address: a later load at the same address puts the earlier overlay out of memory. Its uploads stay until overwritten.
+function occupancy(groups) { const at = new Map(), out = new Map(); if (D.addr[cur.name] !== undefined) at.set(D.addr[cur.name], cur.name);
+  for (const g of groups) for (const m of g[3]) { const p = D.pkg[m[0]], a = p && D.addr[p]; if (a === undefined || !p) continue; const was = at.get(a); if (was && was !== p && p !== cur.name) out.set(was, p); if (p !== cur.name || !was) at.set(a, p); out.delete(p); }
+  if (out.has(cur.name)) out.delete(cur.name); return out; }
 // The chain: who loads this overlay, and who loads that. What an ancestor always loads is still resident here,
 // and so is the group that brought this overlay in; further loads of an ancestor can be added by hand.
 const parents = new Map();
@@ -239,7 +249,7 @@ function buildChain() {
     const list = (parents.get(child) || []).filter(p => !seen.has(p.loader)); if (!list.length) break;
     const link = (depth === 0 && list.find(p => p.loader === want)) || list.find(p => p.loader === "gameplay") || list[0];
     seen.add(link.loader); cur.ancestors.push(link.loader);
-    const groups = D.loaders[link.loader], add = (g, why) => out.unshift(["i", `${link.loader} · ${why}`, g[2], g[3], g[4] || [], link.loader, g[1]]);
+    const groups = D.loaders[link.loader], add = (g, why) => out.unshift(["i", `${link.loader} · ${why}`, g[2], g[3], g[4] || [], g[5], link.loader, g[1]]);
     groups.forEach((g, gi) => { if (chainPicked.has(link.loader + "|" + g[1])) add(g, g[1]); });
     const stage = +(homeOf(cur.name).split("/")[0]); if (link.loader === "gameplay" && D.stagemap[stage] !== undefined) groups.forEach(g => { if (g[3].some(m => m[0] === D.stagemap[stage])) add(g, g[1]); });
     add(groups[link.gi], groups[link.gi][1] || "always");
@@ -249,13 +259,13 @@ function buildChain() {
   cur.chain = out;
   const more = $("chainadd"); more.innerHTML = `<option value="">add a load of an ancestor…</option>` + cur.ancestors.map(a => D.loaders[a].filter(g => g[0] === "o" && g[3].some(m => (D.fp[m[0]] || []).length) && !/^(room:|file )/.test(g[1])).slice(0, 400).map(g => `<option value="${a}|${g[1].replace(/"/g, "&quot;")}">${a} · ${g[1]}</option>`).join("")).join(""); more.disabled = !cur.ancestors.length;
 }
-const homeOf = n => { const g = D.loaders[n].find(g => g[0] === "a"); return g ? D.files[g[3][0][0]] : "9/" + n; };
+const homeOf = n => { const g = D.loaders[n].find(g => g[0] === "c"); return g ? D.files[g[3][0][0]] : "9/" + n; };
 async function drawApplied() {
   const mine = ++turn, box = $("applied"); box.replaceChildren();
-  const groups = active(), uploads = [], asks = [], offsets = new Map(), spawned = new Set();
+  const groups = active(), uploads = [], asks = [], offsets = new Map(), spawned = new Set(), gone = occupancy(groups);
   const sign = (p, r) => `${p >= 0 ? "+" : ""}${p}/${r >= 0 ? "+" : ""}${r}`;
   // What asks: a package's models, displaced as the placement that spawns them says; failing that, as its file was loaded.
-  const ask = (pkg, cands) => { for (const [model, pairs] of (D.models[pkg] || [])) for (const [tp, cl, u0, v0, u1, v1] of pairs) asks.push({ who: model, tp: tp & ~0x60, cl, cands, box: u0 === undefined ? null : [u0, v0, u1, v1] });
+  const ask = (pkg, cands) => { if (gone.has(pkg)) return; for (const [model, pairs] of (D.models[pkg] || [])) for (const [tp, cl, u0, v0, u1, v1] of pairs) asks.push({ who: model, tp: tp & ~0x60, cl, cands, box: u0 === undefined ? null : [u0, v0, u1, v1] });
     for (const [label, tp, cl] of (D.consts[pkg] || [])) asks.push({ who: label, tp: tp & ~0x60, cl, cands: [[0, 0]], fixed: true }); };
   for (const g of groups) for (const [pkg, page, row] of (g[4] || [])) { offsets.set(sign(page, row), [page, row]); spawned.add(pkg); ask(pkg, [[page, row], [0, 0]]); }
   for (const g of groups) for (const [f, page, row, , rel] of g[3]) { uploads.push({ f, page, row, rel }); const pkg = D.pkg[f];
@@ -334,7 +344,7 @@ for (const loader of names) for (const g of D.loaders[loader]) for (const [f, pa
   const key = loader + "|" + loaded, e = edges.get(key) || { loader, loaded, conds: [], offs: new Set() };
   e.conds.push(g[1]); e.offs.add(`${page >= 0 ? "+" : ""}${page}/${row >= 0 ? "+" : ""}${row}`); edges.set(key, e);
 }
-const home = n => { const g = D.loaders[n].find(g => g[0] === "a"); return g ? D.files[g[3][0][0]] : "9/" + n; };
+const home = n => { const g = D.loaders[n].find(g => g[0] === "c"); return g ? D.files[g[3][0][0]] : "9/" + n; };
 const stageOf = n => +home(n).split("/")[0];
 function drawMatrix() {
   const svg = $("matrix"); if (svg.childNodes.length) return;
@@ -374,7 +384,7 @@ $("loader").addEventListener("input", e => { if (D.loaders[e.target.value]) pick
 $("view").addEventListener("change", render); $("variant").addEventListener("change", render);
 $("parent").addEventListener("change", () => { buildChain(); render(); });
 $("chainadd").addEventListener("change", e => { if (e.target.value) { chainPicked.add(e.target.value); buildChain(); render(); } });
-$("pics").addEventListener("change", render); $("picslabel").hidden = !D.pictures;
+$("pics").addEventListener("change", render); $("regs").addEventListener("change", render); $("picslabel").hidden = !D.pictures;
 $("seg-raw").addEventListener("click", () => side("raw")); $("seg-app").addEventListener("click", () => side("applied")); $("seg").hidden = !D.pixels;
 const start = location.hash.slice(1);
 pick(D.loaders[start] ? start : "shelter_b3_dumping_hole");

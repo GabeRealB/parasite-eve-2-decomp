@@ -60,7 +60,7 @@ DDL = """
 DROP TABLE IF EXISTS file; DROP TABLE IF EXISTS footprint; DROP TABLE IF EXISTS grp; DROP TABLE IF EXISTS member; DROP TABLE IF EXISTS spawn;
 CREATE TABLE file (path TEXT PRIMARY KEY, stage INTEGER, folder TEXT, id INTEGER, package TEXT);
 CREATE TABLE footprint (file TEXT, asset TEXT, kind TEXT, part TEXT, x INTEGER, y INTEGER, w INTEGER, h INTEGER, bpp INTEGER);
-CREATE TABLE grp (id INTEGER PRIMARY KEY, loader TEXT, kind TEXT, condition TEXT, evidence TEXT, source TEXT);
+CREATE TABLE grp (id INTEGER PRIMARY KEY, loader TEXT, kind TEXT, condition TEXT, evidence TEXT, source TEXT, layer TEXT);
 CREATE TABLE spawn (grp INTEGER, package TEXT, page INTEGER, row INTEGER, entry INTEGER);
 CREATE TABLE member (grp INTEGER, file TEXT, page INTEGER, row INTEGER, mode TEXT, note TEXT);
 CREATE INDEX grp_loader ON grp(loader); CREATE INDEX member_grp ON member(grp); CREATE INDEX footprint_file ON footprint(file);
@@ -283,8 +283,9 @@ def build(db: sqlite3.Connection) -> None:
             carriers[package].append(path)
 
     def group(loader, kind, condition, evidence, source, members):
-        gid = db.execute("INSERT INTO grp (loader, kind, condition, evidence, source) VALUES (?,?,?,?,?)",
-                         (loader, kind, condition, evidence, source)).lastrowid
+        layer = "" if kind == "carrier" else layer_of(loader, kind, condition, evidence, [m[0] for m in members])
+        gid = db.execute("INSERT INTO grp (loader, kind, condition, evidence, source, layer) VALUES (?,?,?,?,?,?)",
+                         (loader, kind, condition, evidence, source, layer)).lastrowid
         db.executemany("INSERT INTO member VALUES (?,?,?,?,?,?)", [(gid,) + m for m in members])
         return gid
 
@@ -508,7 +509,8 @@ def page_data(db: sqlite3.Connection, pictures: str = "", pixels: str = "") -> s
         spawns[r["grp"]].append([r["package"], r["page"], r["row"]])
     loaders = defaultdict(list)
     for g in db.execute("SELECT * FROM grp ORDER BY loader, kind, id"):
-        loaders[g["loader"]].append([g["kind"][0], g["condition"], g["evidence"], members[g["id"]], spawns[g["id"]]])
+        loaders[g["loader"]].append([g["kind"][0], g["condition"], g["evidence"], members[g["id"]], spawns[g["id"]],
+                                     LAYERS.index(g["layer"]) if g["layer"] in LAYERS else 0])
     used = {m[0] for groups in loaders.values() for g in groups for m in g[3]}
     footprint = defaultdict(list)
     for r in db.execute("SELECT * FROM footprint"):
@@ -539,9 +541,21 @@ def page_data(db: sqlite3.Connection, pictures: str = "", pixels: str = "") -> s
                 for page_name, page in found["image.tpage"]:
                     for clut_name, clut in found["clut.value"]:
                         constants[package].append([f"{scope}: {page_name} + {clut_name}", page, clut])
+    # Overlays sharing a load address cannot be in memory together.
+    import tomllib
+    sys.path.insert(0, str(ROOT / "tools"))
+    from gen_overlay_configs import slot_packages
+    address = {}
+    for _family, spec in tomllib.loads((ROOT / "configs/USA/overlays.toml").read_text(encoding="utf-8")).items():
+        if isinstance(spec, dict) and "overlays" in spec:
+            own = {int(k): int(v) for k, v in (spec.get("slots") or {}).items()}
+            for name, slot, _entry in slot_packages(spec):
+                address[name] = own.get(slot.get("slot"), int(spec["load_addr"]))
+    regions = [[r["kind"][0], r["name"], r["x"], r["y"], r["w"], r["h"]] for r in region_table()]
     maps = {r["id"] - 900000: index[r["path"]] for r in db.execute("SELECT path, id FROM file WHERE stage = 0 AND id BETWEEN 900001 AND 900005")}
     return json.dumps({"files": files, "fp": footprint, "loaders": loaders, "pkg": carried, "pictures": pictures,
-                       "pixels": pixels, "models": models, "consts": constants, "stagemap": maps}, separators=(",", ":")).replace("</", "<\\/")
+                       "pixels": pixels, "models": models, "consts": constants, "stagemap": maps,
+                       "addr": address, "regions": regions, "layers": LAYERS}, separators=(",", ":")).replace("</", "<\\/")
 
 
 def write_page(db: sqlite3.Connection, out: Path, bare: bool) -> None:
@@ -622,6 +636,36 @@ def regions(db: sqlite3.Connection) -> None:
             print("  CLUT rows: " + ", ".join(f"{row} ({n})" for row, n in sorted(rows.items())))
 
 
+# When a load happens, coarsely: a later layer replaces an earlier one in the
+# slots it touches. `event` is a load some scene makes while the room runs;
+# `transient` is up only for a while (a menu, a load screen) and is undone.
+LAYERS = ("boot", "session", "stage", "room", "variant", "view", "event", "transient")
+
+
+def layer_of(loader: str, kind: str, condition: str, evidence: str, files: list[str]) -> str:
+    if evidence in ("viewmap", "folder"):
+        return "view"
+    if evidence == "placement":
+        return "variant"
+    if evidence == "rule":
+        return "room"
+    if evidence != "traced":
+        return "event"
+    c = condition.lower()
+    if loader in ("main", "title"):
+        if kind == "always":
+            return "boot"
+        return "session" if "session" in c else "stage" if "music" in c else "transient" if ("load screen" in c or "disc" in c) else "event"
+    if loader == "gameplay":
+        if any(f.startswith("0/map_") or "/file9000" in f for f in files) or c.startswith("stage"):
+            return "stage"
+        if any(w in c for w in ("menu", "preview", "game over", "death", "ending", "map help")):
+            return "transient"
+        if any(w in c for w in ("costume", "weapon", "ammo", "spell", "healing", "companion", "parasite")):
+            return "session"
+    return "event"
+
+
 REGIONS = Path(__file__).with_name("residency_regions.tsv")
 
 
@@ -697,7 +741,7 @@ def slots(db: sqlite3.Connection) -> None:
 
 def resident(db: sqlite3.Connection, loader: str):
     """(group row, member row, footprint row, x, y) for everything LOADER can bring in."""
-    for g in db.execute("SELECT * FROM grp WHERE loader = ? ORDER BY kind, id", (loader,)):
+    for g in db.execute("SELECT * FROM grp WHERE loader = ? AND kind != 'carrier' ORDER BY kind, id", (loader,)):
         for m in db.execute("SELECT * FROM member WHERE grp = ?", (g["id"],)):
             for f in db.execute("SELECT * FROM footprint WHERE file = ?", (m["file"],)):
                 x, y = moved(tuple(f)[1:], m["page"], m["row"], m["mode"])
