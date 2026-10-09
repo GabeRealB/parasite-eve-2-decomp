@@ -52,7 +52,7 @@ _gDryfieldNightDilapidatedHouseDefaultSurfaceProperties = 0x8018A0CC; // size:0x
 _gDryfieldNightDilapidatedHouseSurface1Properties = 0x8018A0D4; // size:0x8 defined:True
 _gDryfieldNightDilapidatedHouseSurface2Properties = 0x8018A0DC; // size:0x8 defined:True
 D_dryfield_night_dilapidated_house_8018A0E4 = 0x8018A0E4; // size:0x20 defined:True
-gActor102500Tasks = 0x801379A8; // absolute:True owner=actor_102500 shared=actors
+gActor102500Tasks = 0x801379A8; // absolute:True owner=actor_102500
 gActor101600ScavengerTaskDesc = 0x801445DC; // absolute:True owner=actor_101600
 gActor204000BloodSucklerTaskDesc = 0x80156500; // absolute:True owner=actor_204000
 D_map_dryfield_full_8017B558 = 0x8017B558; // absolute:True owner=map_dryfield_full

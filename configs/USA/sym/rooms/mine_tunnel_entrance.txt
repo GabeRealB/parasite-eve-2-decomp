@@ -48,7 +48,7 @@ D_mine_tunnel_entrance_8017F3D0 = 0x8017F3D0; // size:0x8 defined:True
 D_mine_tunnel_entrance_8017F3D8 = 0x8017F3D8; // size:0x8 defined:True
 D_mine_tunnel_entrance_8017F3E0 = 0x8017F3E0; // size:0x8 defined:True
 D_mine_tunnel_entrance_8017F3E8 = 0x8017F3E8; // size:0x20 defined:True
-gActor102500Tasks = 0x801379A8; // absolute:True owner=actor_102500 shared=actors
+gActor102500Tasks = 0x801379A8; // absolute:True owner=actor_102500
 gActor101600ScavengerTaskDesc = 0x801445DC; // absolute:True owner=actor_101600
 gActor00100DesertChaserTaskDesc = 0x8014D8A4; // absolute:True owner=actor_400100
 gActor00700MothTaskDesc = 0x801513C8; // absolute:True owner=actor_200700

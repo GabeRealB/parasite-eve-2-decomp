@@ -56,7 +56,7 @@ D_dryfield_main_street_801855DC = 0x801855DC; // size:0x8 defined:True
 D_dryfield_main_street_801855E4 = 0x801855E4; // size:0x8 defined:True
 D_dryfield_main_street_801855EC = 0x801855EC; // size:0x20 defined:True
 gRoomEventFade = 0x8018560C; // size:0x8 defined:True
-gActor102500Tasks = 0x801379A8; // absolute:True owner=actor_102500 shared=actors
+gActor102500Tasks = 0x801379A8; // absolute:True owner=actor_102500
 gActor102000PawnGolemTasks = 0x80147DF0; // absolute:True owner=actor_102000
 gActor00100DesertChaserTaskDesc = 0x8014D8A4; // absolute:True owner=actor_400100
 gActor202300RookGolemTasks = 0x8015FAB8; // absolute:True owner=actor_202300

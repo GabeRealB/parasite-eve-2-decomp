@@ -61,7 +61,7 @@ _gDryfieldJunkYardPointLights = 0x80181554; // size:0x300 defined:True
 _gDryfieldJunkYardSpotLights = 0x80181854; // size:0xD8 defined:True
 _gDryfieldJunkYardUnknownData = 0x8018192C; // size:0x288 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
-gActor102500Tasks = 0x801379A8; // absolute:True owner=actor_102500 shared=actors
+gActor102500Tasks = 0x801379A8; // absolute:True owner=actor_102500
 gActor00100DesertChaserTaskDesc = 0x8014D8A4; // absolute:True owner=actor_400100
 D_map_dryfield_8017B9B4 = 0x8017B9B4; // absolute:True owner=map_dryfield
 D_map_dryfield_8017B9C4 = 0x8017B9C4; // absolute:True owner=map_dryfield

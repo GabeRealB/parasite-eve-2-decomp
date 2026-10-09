@@ -46,7 +46,7 @@ D_dryfield_breezeway_80184268 = 0x80184268; // size:0x24 defined:True
 D_dryfield_breezeway_8018428C = 0x8018428C; // size:0x18 defined:True
 D_dryfield_breezeway_801842A4 = 0x801842A4; // size:0x24 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
-gActor102500Tasks = 0x801379A8; // absolute:True owner=actor_102500 shared=actors
+gActor102500Tasks = 0x801379A8; // absolute:True owner=actor_102500
 gActor00100DesertChaserTaskDesc = 0x8014D8A4; // absolute:True owner=actor_400100
 D_actor_323400_8017120C = 0x8017120C; // absolute:True owner=actor_323400
 D_dryfield_breezeway_80181E70 = 0x80181E70; // size:0x120 defined:True
