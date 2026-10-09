@@ -67,8 +67,8 @@ size_t gMemSavedImageRegionBytes;
 #include "mem.h"
 #include "main/stream.h"
 
-/// Fixed addresses no image defines, which main points at: the image-buffer
-/// region, the work area at 0x801FD000, the load addresses of the three actor
+/// Fixed addresses no image defines, which main points at: the work area
+/// at 0x801FD000, the load addresses of the three actor
 /// slots, and 4MB into the dev kit's memory.
 
 extern u8 D_801FD000[];
@@ -97,7 +97,7 @@ static GfxImageSlot* Gfx_ImageSlotTables[];
 /// Early-image build stamp string @ VA 0x80012750 ("2000/05/01 19:24 ver2.49").
 static const char Boot_BuildStamp[] = "2000/05/01 19:24 ver2.49";
 
-FsImgBuffers* Fs_ImgBuffers = &D_801D7000;
+FsImgBuffers* Fs_ImgBuffers = &gFsImageWorkspace;
 /// Unreferenced.
 static void* Mem_UnusedTopRamPointer = D_801FD000;
 void*        Fs_ActorLoadBase0       = D_80131E20;

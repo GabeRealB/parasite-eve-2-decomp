@@ -300,9 +300,15 @@ typedef struct {
 } FsImgBuffers;
 STATIC_ASSERT_SIZEOF(FsImgBuffers, 0x25800);
 
-/// The fixed image buffers at the top of retail memory; no image of the game
-/// holds them.
-extern FsImgBuffers D_801D7000;
+/// Fixed RAM workspace for resident image loading, decoding and frame capture.
+///
+/// Lives at 0x801D7000 and is addressed through `Fs_ImgBuffers`; no linked
+/// image supplies its contents. Its 0x25800 bytes hold one 320x240 RGB16
+/// frame, or temporary compressed input and VLC data during decoding.
+/// Users must finish CD, MDEC and GPU transfers before reusing the bytes.
+/// The extended auxiliary heap can reclaim this storage when no image is in use.
+/// Ends at 0x801FC800; the following 0x800 bytes are outside the workspace.
+extern FsImgBuffers gFsImageWorkspace;
 STATIC_ASSERT(sizeof(FsImgBuffers) == FILE_SYSTEM_IMAGE_WIDTH * FILE_SYSTEM_IMAGE_HEIGHT * 2, fs_image_frame_bytes);
 STATIC_ASSERT(FILE_SYSTEM_IMAGE_VLC_OFFSET + STREAM_VLC_TABLE_BYTES <= sizeof(FsImgBuffers), fs_image_vlc_table_fits);
 

@@ -28,8 +28,8 @@ STATIC_ASSERT_SIZEOF(GfxImageSlot, 0x8);
 
 /// A nonempty slot, by its extent: the area's image memory ends where the fixed
 /// image buffers begin, so its base is that many bytes below them. Needs
-/// `main/fs_types.h` for `D_801D7000`.
-#define GFX_IMAGE_SLOT(bytes) { (u8*)&D_801D7000 - (bytes), (bytes) }
+/// `main/fs_types.h` for `gFsImageWorkspace`.
+#define GFX_IMAGE_SLOT(bytes) { (u8*)&gFsImageWorkspace - (bytes), (bytes) }
 
 /// Word-access view of a `MATRIX`'s nine fixed-point rotation coefficients.
 ///
