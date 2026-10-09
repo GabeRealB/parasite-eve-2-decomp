@@ -17,6 +17,7 @@ in the build reads it.
     asset_journal.py show SYMBOL
     asset_journal.py confirm ID ASSET [--detail D] [--note N]
     asset_journal.py reject ID [--note N]
+    asset_journal.py apply FILE.tsv       a review's decisions, many at once
 
 It also records two things that are not constants: each file a function
 names by group, hundreds and index (`file.ref`), and the image and CLUT each
@@ -493,11 +494,13 @@ def main() -> int:
     sub.add_parser("stats")
     p = sub.add_parser("list")
     p.add_argument("--attribute"); p.add_argument("--match"); p.add_argument("--asset")
-    p.add_argument("--file"); p.add_argument("--status"); p.add_argument("--limit", type=int)
+    p.add_argument("--file"); p.add_argument("--status"); p.add_argument("--limit", type=int); p.add_argument("--package")
     p = sub.add_parser("show"); p.add_argument("symbol")
     p = sub.add_parser("confirm"); p.add_argument("id", type=int); p.add_argument("asset")
     p.add_argument("--detail"); p.add_argument("--note")
     p = sub.add_parser("reject"); p.add_argument("id", type=int); p.add_argument("--note")
+    p = sub.add_parser("apply", help="take a review's decisions: tab-separated id, confirm|reject, asset, detail, note")
+    p.add_argument("tsv", type=Path)
     args = ap.parse_args()
     db = connect(args.db)
 
@@ -513,6 +516,8 @@ def main() -> int:
         for column in ("attribute", "match", "asset", "status"):
             if getattr(args, column):
                 where.append(f"{column} = ?"); params.append(getattr(args, column))
+        if args.package:
+            where.append("package = ?"); params.append(args.package)
         if args.file:
             where.append("file LIKE ?"); params.append("%" + args.file + "%")
         sql = "SELECT * FROM evidence WHERE " + " AND ".join(where) + " ORDER BY attribute, file, line"
@@ -533,6 +538,30 @@ def main() -> int:
                 print(f"     {'near ' if c['local'] else '     '}{c['asset']} {c['detail'] or ''}")
         if not rows:
             return 1
+    elif args.command == "apply":
+        man = Manifest()
+        done = bad = 0
+        for n, line in enumerate(args.tsv.read_text(encoding="utf-8").splitlines(), 1):
+            if not line.strip() or line.startswith("#"):
+                continue
+            cells = (line.split("\t") + [""] * 5)[:5]
+            eid, verdict, asset, detail, note = (c.strip() for c in cells)
+            row = db.execute("SELECT 1 FROM evidence WHERE id = ?", (eid,)).fetchone() if eid.isdigit() else None
+            known = asset in man.assets or asset in man.embedded or asset.count("/") >= 1
+            if row is None or verdict not in ("confirm", "reject") or (verdict == "confirm" and not known):
+                print(f"{args.tsv}:{n}: not applied: {line[:100]}", file=sys.stderr)
+                bad += 1
+                continue
+            if verdict == "confirm":
+                db.execute("UPDATE evidence SET asset = ?, detail = ?, status = 'confirmed', note = ? WHERE id = ?",
+                           (asset, detail or None, note or None, int(eid)))
+            else:
+                db.execute("UPDATE evidence SET asset = NULL, detail = NULL, status = 'rejected', note = ? WHERE id = ?",
+                           (note or None, int(eid)))
+            done += 1
+        db.commit()
+        print(f"{done} decisions applied" + (f", {bad} lines refused" if bad else ""))
+        return 1 if bad else 0
     elif args.command in ("confirm", "reject"):
         if db.execute("SELECT 1 FROM evidence WHERE id = ?", (args.id,)).fetchone() is None:
             print(f"no evidence #{args.id}", file=sys.stderr)
