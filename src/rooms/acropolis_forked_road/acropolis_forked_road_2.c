@@ -424,8 +424,8 @@ AreaResource D_acropolis_forked_road_8018314C[2] = {
 };
 
 AreaResource D_acropolis_forked_road_80183164[3] = {
-    { 46, 46, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &Actor04600_D05878 },
-    { 47, 47, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &Actor04600_D0649C },
+    { 46, 46, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor104600SucklercephTaskDesc },
+    { 47, 47, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor104600SkullStalkerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

@@ -9,6 +9,6 @@ static void _sucklercephTask(Task* task)
 {
     EnemyTaskFuncTable3 states;
 
-    states = gSucklercephTaskStates;
+    states = _gSucklercephTaskStates;
     states.funcs[task->state](task->spawnArg2.pointer, task);
 }

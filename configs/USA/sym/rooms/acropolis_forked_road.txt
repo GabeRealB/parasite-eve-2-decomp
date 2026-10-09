@@ -65,10 +65,10 @@ D_acropolis_forked_road_80183AB0 = 0x80183AB0; // size:0x18 defined:True
 D_acropolis_forked_road_80183AC8 = 0x80183AC8; // size:0x10 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 gActor102400Tasks = 0x8013647C; // absolute:True owner=actor_102400
-Actor04600_D05878 = 0x80137698; // absolute:True owner=actor_104600
+gActor104600SucklercephTaskDesc = 0x80137698; // absolute:True owner=actor_104600
 gActor102500Tasks = 0x801379A8; // absolute:True owner=actor_102500 shared=actors
 gActor103800BlackBeetleTaskDesc = 0x80137D74; // absolute:True owner=actor_103800
-Actor04600_D0649C = 0x801382BC; // absolute:True owner=actor_104600
+gActor104600SkullStalkerTaskDesc = 0x801382BC; // absolute:True owner=actor_104600
 Actor00700_D06E60 = 0x80138C80; // absolute:True owner=actor_100700
 Actor00700_D075A8 = 0x801393C8; // absolute:True owner=actor_100700
 gActor103700BatTaskDesc = 0x80139DAC; // absolute:True owner=actor_103700

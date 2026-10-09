@@ -9,6 +9,6 @@ static void _skullStalkerTask(Task* task)
 {
     EnemyTaskFuncTable3 states;
 
-    states = gSkullStalkerTaskStates;
+    states = _gSkullStalkerTaskStates;
     states.funcs[task->state](task->spawnArg2.pointer, task);
 }

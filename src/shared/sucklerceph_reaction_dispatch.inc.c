@@ -40,7 +40,7 @@ static void _sucklercephReactionDispatch(Task* task)
             nextPuffFrame    = work->animFrames + 1;
             work->animFrames = nextPuffFrame;
             if ((s16)nextPuffFrame >= SUCKLERCEPH_PUFF_INTERVAL_FRAMES) {
-                effectSpawn(EFFECT_ADDITIVE_PUFF, task->extra.tmd->coords, SUCKLERCEPH_PUFF_SIZE, &gSucklercephCollapseFxOffset);
+                effectSpawn(EFFECT_ADDITIVE_PUFF, task->extra.tmd->coords, SUCKLERCEPH_PUFF_SIZE, &_gSucklercephPuffOffset);
                 work->animFrames = 0;
             }
             work->animFrozen = 1;
@@ -53,7 +53,7 @@ static void _sucklercephReactionDispatch(Task* task)
             nextPuffFrame    = work->animFrames + 1;
             work->animFrames = nextPuffFrame;
             if ((s16)nextPuffFrame >= SUCKLERCEPH_PUFF_INTERVAL_FRAMES) {
-                effectSpawn(EFFECT_ADDITIVE_PUFF, task->extra.tmd->coords, SUCKLERCEPH_PUFF_SIZE, &gSucklercephCollapseFxOffset);
+                effectSpawn(EFFECT_ADDITIVE_PUFF, task->extra.tmd->coords, SUCKLERCEPH_PUFF_SIZE, &_gSucklercephPuffOffset);
                 work->animFrames = 0;
                 work->swellFrames++;
                 if (work->swellFrames >= SUCKLERCEPH_DEATH_PUFF_COUNT) {

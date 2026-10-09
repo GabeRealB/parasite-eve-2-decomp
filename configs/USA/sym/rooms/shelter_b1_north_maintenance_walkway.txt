@@ -51,8 +51,8 @@ D_actor_107000_8013F5F0 = 0x8013F5F0; // absolute:True owner=actor_107000
 gActor101100Tasks = 0x80147400; // absolute:True owner=actor_101100
 D_actor_100300_80148110 = 0x80148110; // absolute:True owner=actor_100300 shared=actors
 gActor202400Tasks = 0x8014E47C; // absolute:True owner=actor_202400
-Actor04600_D05878 = 0x8014F698; // absolute:True owner=actor_204600
-Actor04600_D0649C = 0x801502BC; // absolute:True owner=actor_204600
+gActor204600SucklercephTaskDesc = 0x8014F698; // absolute:True owner=actor_204600
+gActor204600SkullStalkerTaskDesc = 0x801502BC; // absolute:True owner=actor_204600
 D_actor_205700_801611F8 = 0x801611F8; // absolute:True owner=actor_205700
 RoomFx_TrailOffsets = 0x80184B64; // size:0x10 defined:True
 _gRoomEffectHaloShades = 0x80184B50; // size:0x14 defined:True

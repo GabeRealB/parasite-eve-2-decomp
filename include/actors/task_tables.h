@@ -5,6 +5,16 @@
 
 // Room placement records address these tables in the currently loaded actor
 // slots. Different packages occupy those slots over the lifetime of a stage.
+/// Standing Sucklerceph TMD spawn descriptor; priority 96 with automatic model buffers.
+///
+/// Spawn at index 0. Keep the callback and borrowed model geometry loaded.
+extern TaskDesc gActor04600SucklercephTaskDesc;
+
+/// Skull Stalker TMD spawn descriptor; priority 96 with automatic model buffers.
+///
+/// Spawn at index 0. Keep the callback and borrowed model geometry loaded.
+extern TaskDesc gActor04600SkullStalkerTaskDesc;
+
 /// Black Beetle TMD spawn descriptor; priority 96 with automatic model buffers.
 ///
 /// Spawn at index 0. Keep the callback and borrowed model geometry loaded.
@@ -61,7 +71,8 @@ extern TaskDesc D_actor_123200_80137234;
 
 extern TaskDesc D_actor_142900_80137600[];
 
-extern TaskDesc Actor04600_D05878;
+/// Slot export of `gActor04600SucklercephTaskDesc` from actor_104600, with the same descriptor contract.
+extern TaskDesc gActor104600SucklercephTaskDesc;
 
 /// Slot export of `gActor02500Tasks` from actor_102500, with the same descriptor contract.
 extern TaskDesc gActor102500Tasks[2];
@@ -77,7 +88,8 @@ extern TaskDesc gActor450200SceneTaskDescs[3];
 /// Slot export of `gActor03800BlackBeetleTaskDesc` from actor_103800, with the same descriptor contract.
 extern TaskDesc gActor103800BlackBeetleTaskDesc;
 
-extern TaskDesc Actor04600_D0649C;
+/// Slot export of `gActor04600SkullStalkerTaskDesc` from actor_104600, with the same descriptor contract.
+extern TaskDesc gActor104600SkullStalkerTaskDesc;
 
 extern TaskDesc Actor00700_D06E60;
 
@@ -216,7 +228,8 @@ extern TaskDesc D_actor_451100_8014E6E4[];
 
 extern TaskDesc D_actor_207200_8014E7A4;
 
-extern TaskDesc Actor04600_D05878;
+/// Slot export of `gActor04600SucklercephTaskDesc` from actor_204600, with the same descriptor contract.
+extern TaskDesc gActor204600SucklercephTaskDesc;
 
 /// Scorpion spawn descriptors: 0 TMD body, 1 coordinate-body corpse poison.
 ///
@@ -227,7 +240,8 @@ extern TaskDesc gActor02500Tasks[2];
 /// Slot export of `gActor03800BlackBeetleTaskDesc` from actor_203800, with the same descriptor contract.
 extern TaskDesc gActor203800BlackBeetleTaskDesc;
 
-extern TaskDesc Actor04600_D0649C;
+/// Slot export of `gActor04600SkullStalkerTaskDesc` from actor_204600, with the same descriptor contract.
+extern TaskDesc gActor204600SkullStalkerTaskDesc;
 
 extern TaskDesc D_actor_223600_80150B48;
 

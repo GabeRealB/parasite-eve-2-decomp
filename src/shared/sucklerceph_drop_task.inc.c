@@ -10,6 +10,6 @@ static void _sucklercephDropTask(Task* task)
 {
     EnemyTaskFuncTable4 states;
 
-    states = gSucklercephDropTaskStates;
+    states = _gSucklercephDropTaskStates;
     states.funcs[task->state](task->spawnArg2.pointer, task);
 }

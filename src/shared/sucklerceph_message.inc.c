@@ -3,14 +3,14 @@
 /// Emits a command's initial puff and advances the requested idle animation.
 ///
 /// task must own work and rootCoord; both command paths invoke this once per
-/// accepted command. The puff copies the model-local collapse offset and uses
+/// accepted command. The puff copies the model-local puff offset and uses
 /// extent 1024. Animation may continue an already selected idle clip rather
 /// than reset it. Requires the live animation rig and room-effect task bank.
 static inline void _sucklercephStartCommandPuff(Task* task, SucklercephWork* work, GfxCoord* rootCoord)
 {
     enum { SUCKLERCEPH_COMMAND_PUFF_SIZE = 1024 };
 
-    effectSpawn(EFFECT_ADDITIVE_PUFF, rootCoord, SUCKLERCEPH_COMMAND_PUFF_SIZE, &gSucklercephCollapseFxOffset);
+    effectSpawn(EFFECT_ADDITIVE_PUFF, rootCoord, SUCKLERCEPH_COMMAND_PUFF_SIZE, &_gSucklercephPuffOffset);
     work->animId = SUCKLERCEPH_ANIM_IDLE;
     _sucklercephTickAnim(task);
 }

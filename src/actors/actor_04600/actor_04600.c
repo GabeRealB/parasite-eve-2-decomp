@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/inline_c.h>
@@ -51,39 +53,8 @@
 static void _sucklercephDropState(Enemy* enemy, Task* task);
 #include "../../shared/skull_stalker.h"
 
-/// The first enemy's attack row, packed into its third body's key, and the
-/// enemy parameters whose `attacks` name it; `hpMax` seeds the enemy's HP.
-extern DamageAttack gSucklercephAttack;
-extern EnemyParams  gSucklercephParams;
-
-/// The two script arguments the first enemy's death hands to
-/// `padScriptSpawn`.
-extern PadScriptCmd              gSucklercephBurstScriptA[];
-extern PadScriptVibrationSegment gSucklercephBurstScriptB[];
-
-/// Message table the dropping first enemy's spawn parks in `Task::msgTable`.
-// Typed callback views for the task message dispatcher.
-
-extern TaskMessageEntry gSucklercephDropMsgTable[2];
-
-/// Animation-set table bound to the first enemy's context by `animationInitContext`.
-extern AnimationSet* gSucklercephAnimSets[4];
-
-/// Offset of the 0x60030 effect the first enemy's death spawns.
-extern SVECTOR gSucklercephBurstFxOffset;
-
-/// Offset of the 0x60080 effect the collapsing first enemy spawns.
-extern SVECTOR gSucklercephCollapseFxOffset;
-
 /// The second enemy's record; `hpMax` seeds its HP.
 extern EnemyParams gSkullStalkerParams;
-
-/// Animation-set table bound to the second enemy's context by `animationInitContext`.
-extern AnimationSet* gSkullStalkerAnimSets[3];
-
-/// Offsets of the spark and hit effects the second enemy's hit handler spawns.
-extern SVECTOR gSkullStalkerSparkOffset;
-extern SVECTOR gSkullStalkerHitFxOffset;
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
@@ -93,20 +64,50 @@ static AnimationSet _gActor04600Actor104600Animation0569C;
 static AnimationSet _gActor04600Actor104600Animation05840;
 static TmdSource    _gActor04600SucklercephBody;
 
-DamageAttack gSucklercephAttack = { 30, 7 };
+/// Burst damage to the player, enabled only while the burst attack sphere is armed.
+static DamageAttack _gSucklercephBurstAttack = { .power = 30, .reaction = SUCKLERCEPH_BURST_PLAYER_REACTION };
 
-EnemyParams gSucklercephParams = { &gSucklercephAttack, 70, 6, 12, 3, 100, 20, 100, 0 };
+/// Enemy-kind parameters borrowed by every standing or dropping Sucklerceph.
+///
+/// The zero damage-over-time pulse base is retained; this kind's pulses do not expire by count.
+static EnemyParams _gSucklercephParams = {
+    .attacks              = &_gSucklercephBurstAttack,
+    .hpMax                = 70,
+    .exp                  = 6,
+    .bp                   = 12,
+    .mp                   = 3,
+    .critChance           = 100,
+    .buildupSteps         = 20,
+    .damageOverTimeChance = 100,
+    .damageOverTimeTicks  = 0,
+};
 
-PadScriptCmd gSucklercephBurstScriptA[3] = {
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2) },
+/// Segment indices used by the two lanes of the burst vibration script.
+enum {
+    SUCKLERCEPH_BURST_VIBRATION_HOLD = 0,
+    SUCKLERCEPH_BURST_VIBRATION_FULL = 1,
+    SUCKLERCEPH_BURST_VIBRATION_FADE = 2
+};
+
+/// Two-lane vibration commands for the Sucklerceph burst.
+///
+/// The binary motor holds for nine script frames, then stops. The variable motor
+/// plays twelve full-intensity frames, then a six-frame fade from 100 to 50.
+/// Both lanes stop within these three commands; the script task borrows the array.
+static PadScriptCmd _gSucklercephBurstPadScript[3] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, SUCKLERCEPH_BURST_VIBRATION_HOLD), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, SUCKLERCEPH_BURST_VIBRATION_FULL) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, SUCKLERCEPH_BURST_VIBRATION_FADE) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
 };
 
-PadScriptVibrationSegment gSucklercephBurstScriptB[3] = {
-    { 0, 0, 9, 0 },
-    { 255, 255, 12, 1 },
-    { 100, 50, 6, 1 },
+/// Timed segments borrowed by the burst script: binary hold, full intensity and fade.
+///
+/// Durations count script frames; variable-motor intensities are bytes in 0..255.
+/// The trailing field_3 bytes are retained, with no interpreter read and an unproven role.
+static PadScriptVibrationSegment _gSucklercephBurstVibrationSegments[3] = {
+    [SUCKLERCEPH_BURST_VIBRATION_HOLD] = { .startIntensity = 0, .endIntensity = 0, .durationFrames = 9, .field_3 = 0 },
+    [SUCKLERCEPH_BURST_VIBRATION_FULL] = { .startIntensity = 255, .endIntensity = 255, .durationFrames = 12, .field_3 = 1 },
+    [SUCKLERCEPH_BURST_VIBRATION_FADE] = { .startIntensity = 100, .endIntensity = 50, .durationFrames = 6, .field_3 = 1 },
 };
 
 static TmdBone _gActor04600SucklercephBodySkeleton[3] = {
@@ -207,29 +208,52 @@ static AnimationSet _gActor04600Actor104600Animation05840 = {
     { NULL, _gActor04600Actor104600Animation05840Bank1, NULL, NULL, _gActor04600Actor104600Animation05840Bank4, NULL, NULL, NULL },
 };
 
-TaskMessageEntry gSucklercephDropMsgTable[2] = {
+/// Commands accepted by a hidden/drop Sucklerceph, followed by the lookup terminator.
+///
+/// APPLY borrows an ActorCommand and returns zero. Unsupported IDs return zero;
+/// never dispatch the reserved end ID. Tasks borrow this table and its callback.
+static TaskMessageEntry _gSucklercephDropMsgTable[2] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, _sucklercephMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc Actor04600_D05878 = { { { TASK_BODY_TMD, 96 } }, _sucklercephTask, { .model = &_gActor04600SucklercephBody } };
+TaskDesc gActor04600SucklercephTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = 96 } },
+    .callback = _sucklercephTask,
+    .data     = { .model = &_gActor04600SucklercephBody },
+};
 
-TaskDesc Actor04600_D05884 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _sucklercephDropTask, { .model = &_gActor04600SucklercephBody } };
+/// Retained hidden/drop Sucklerceph recipe, with no automatic primitive buffer.
+///
+/// Priority 96; reveal allocates the buffer explicitly. No current placement selects it.
+static TaskDesc _gActor04600SucklercephDropTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER, .priority = 96 } },
+    .callback = _sucklercephDropTask,
+    .data     = { .model = &_gActor04600SucklercephBody },
+};
 
-AnimationSet* gSucklercephAnimSets[4] = {
+/// Sucklerceph animation sets: 0 empty, 1 idle, 2 crawl, 3 retained but unrequested.
+///
+/// Contexts borrow this table and its sets for the model's lifetime.
+static AnimationSet* _gSucklercephAnimSets[4] = {
     NULL,
     &_gActor04600Actor104600Animation05554,
     &_gActor04600Actor104600Animation0569C,
     &_gActor04600Actor104600Animation05840,
 };
 
-SVECTOR gSucklercephBurstFxOffset = { 0, -10, 0, 0 };
+/// Burst-particle offset in signed game-coordinate units relative to the model root.
+static SVECTOR _gSucklercephBurstParticleOffset = { 0, -10, 0, 0 };
 
-SVECTOR gSucklercephCollapseFxOffset = { 0, -300, 0, 0 };
+/// Additive-puff offset in signed game-coordinate units relative to the model root.
+static SVECTOR _gSucklercephPuffOffset = { 0, -300, 0, 0 };
 
-DamageAttack Actor04600_D058B0[1] = { 0 };
+/// Zero-power ordinary-reaction row retained by the Skull Stalker parameters.
+///
+/// Its handlers do not pack an outgoing attack; this stored row is not a null attack key.
+static DamageAttack _gSkullStalkerAttacks[1] = { { .power = 0, .reaction = GAME_ACTOR_REACTION_ORDINARY } };
 
-EnemyParams gSkullStalkerParams = { Actor04600_D058B0, 1, 2, 32, 1, 100, 20, 100, 99 };
+EnemyParams gSkullStalkerParams = { _gSkullStalkerAttacks, 1, 2, 32, 1, 100, 20, 100, 99 };
 
 static TmdBone _gActor04600SkullStalkerBodySkeleton[3] = {
 #include "assets/skull_stalker_body_skeleton.inc"
@@ -307,32 +331,42 @@ static AnimationSet _gActor04600Actor104600Animation06474 = {
     { NULL, _gActor04600Actor104600Animation06474Bank1, NULL, NULL, _gActor04600Actor104600Animation06474Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc Actor04600_D0649C = { { { TASK_BODY_TMD, 96 } }, _skullStalkerTask, { .model = &_gActor04600SkullStalkerBody } };
+TaskDesc gActor04600SkullStalkerTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = 96 } },
+    .callback = _skullStalkerTask,
+    .data     = { .model = &_gActor04600SkullStalkerBody },
+};
 
-AnimationSet* gSkullStalkerAnimSets[3] = {
+/// Skull Stalker animation sets: 0 empty, 1 idle, 2 alert.
+///
+/// Contexts borrow this table and its sets for the model's lifetime.
+static AnimationSet* _gSkullStalkerAnimSets[3] = {
     NULL,
     &_gActor04600Actor104600Animation06220,
     &_gActor04600Actor104600Animation06474,
 };
 
-SVECTOR gSkullStalkerSparkOffset = { 0, -100, 0, 0 };
+/// Both death particles' offset in signed game-coordinate units relative to the model root.
+static SVECTOR _gSkullStalkerDeathParticleOffset = { 0, -100, 0, 0 };
 
-SVECTOR gSkullStalkerHitFxOffset = { 0, 0, 100, 0 };
+/// Red death glow's offset in signed game-coordinate units relative to the model root.
+static SVECTOR _gSkullStalkerDeathGlowOffset = { 0, 0, 100, 0 };
 
 #include "../../shared/sucklerceph_inlines.inc.c"
 
 #include "../../shared/sucklerceph_spawn_state.inc.c"
 
-/// Task states of the first enemy as `_sucklercephTask` dispatches them:
-/// spawn, per-frame update and death.
-static const EnemyTaskFuncTable3 gSucklercephTaskStates = {
+/// Standing Sucklerceph task callbacks in Task.state order: spawn, update, death.
+///
+/// The dispatcher copies this value and indexes it without checking; states are 0..2.
+static const EnemyTaskFuncTable3 _gSucklercephTaskStates = {
     { _sucklercephSpawnState, _sucklercephUpdateState, _sucklercephDeathState },
 };
 
-/// Task states of the dropping first enemy as `_sucklercephDropTask` dispatches
-/// them: the same update and death after a spawn that parks the enemy hidden,
-/// and a fourth state for its drop into place.
-static const EnemyTaskFuncTable4 gSucklercephDropTaskStates = {
+/// Hidden/drop Sucklerceph task callbacks: hidden setup, update, death, drop.
+///
+/// The dispatcher copies this value and indexes it without checking; states are 0..3.
+static const EnemyTaskFuncTable4 _gSucklercephDropTaskStates = {
     { _sucklercephDropSpawnState, _sucklercephUpdateState, _sucklercephDeathState, _sucklercephDropState },
 };
 
@@ -394,9 +428,10 @@ static const EnemyTaskFuncTable4 gSucklercephDropTaskStates = {
 
 #include "../../shared/skull_stalker_death_state.inc.c"
 
-/// Task states of the second enemy as `_skullStalkerTask` dispatches them:
-/// spawn, per-frame update and the dying tick.
-static const EnemyTaskFuncTable3 gSkullStalkerTaskStates = {
+/// Skull Stalker task callbacks in Task.state order: spawn, update, death.
+///
+/// The dispatcher copies this value and indexes it without checking; states are 0..2.
+static const EnemyTaskFuncTable3 _gSkullStalkerTaskStates = {
     { _skullStalkerSpawnState, _skullStalkerUpdateState, _skullStalkerDeathState },
 };
 
@@ -417,3 +452,5 @@ static const EnemyTaskFuncTable3 gSkullStalkerTaskStates = {
 #include "../../shared/skull_stalker_flatten.inc.c"
 
 #include "../../shared/skull_stalker_exit.inc.c"
+
+PACKAGE_ALIASES

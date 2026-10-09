@@ -9,13 +9,13 @@
 /// spawned vibration task. actor_04600 uses the defaults; actor_07000 binds its
 /// own objects before inclusion. All three bindings are undefined afterwards.
 #ifndef SUCKLERCEPH_BURST_FX_OFFSET
-#define SUCKLERCEPH_BURST_FX_OFFSET gSucklercephBurstFxOffset
+#define SUCKLERCEPH_BURST_FX_OFFSET _gSucklercephBurstParticleOffset
 #endif
 #ifndef SUCKLERCEPH_BURST_PAD_SCRIPT
-#define SUCKLERCEPH_BURST_PAD_SCRIPT gSucklercephBurstScriptA
+#define SUCKLERCEPH_BURST_PAD_SCRIPT _gSucklercephBurstPadScript
 #endif
 #ifndef SUCKLERCEPH_BURST_VIBRATION_SEGMENTS
-#define SUCKLERCEPH_BURST_VIBRATION_SEGMENTS gSucklercephBurstScriptB
+#define SUCKLERCEPH_BURST_VIBRATION_SEGMENTS _gSucklercephBurstVibrationSegments
 #endif
 
 /// Clears the Sucklerceph's HP and chooses its burst or slump death.

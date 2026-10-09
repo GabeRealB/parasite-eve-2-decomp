@@ -58,10 +58,10 @@ static void _sucklercephDropSpawnState(Enemy* enemy, Task* task)
     enemy->bodyPos.vx             = 0;
     enemy->bodyPos.vy             = 0;
     enemy->bodyPos.vz             = 0;
-    enemy->param                  = &gSucklercephParams;
+    enemy->param                  = &_gSucklercephParams;
     enemy->recs                   = work->contacts;
-    enemy->hp                     = gSucklercephParams.hpMax;
-    animationInitContext(&work->anim, gSucklercephAnimSets, model, work->poses, work->slots);
+    enemy->hp                     = _gSucklercephParams.hpMax;
+    animationInitContext(&work->anim, _gSucklercephAnimSets, model, work->poses, work->slots);
     slotIndex = 1;
     do {
         animationResetSlot(&work->anim, slotIndex, SUCKLERCEPH_ANIM_IDLE);
@@ -107,7 +107,7 @@ static void _sucklercephDropSpawnState(Enemy* enemy, Task* task)
     work->attackBody.pos.vy           = 0;
     work->attackBody.pos.vz           = 0;
     work->body.flags                  = (u16)(work->body.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED)));
-    work->attackBody.key              = damagePackAttackKey(&gSucklercephAttack, 0);
+    work->attackBody.key              = damagePackAttackKey(&_gSucklercephBurstAttack, 0);
     work->attackBody.radius           = SUCKLERCEPH_DROP_BURST_RADIUS;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
@@ -120,6 +120,6 @@ static void _sucklercephDropSpawnState(Enemy* enemy, Task* task)
 
     work->dropArmed       = 0;
     work->blastBody.flags = (u16)(work->blastBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-    task->msgTable        = gSucklercephDropMsgTable;
+    task->msgTable        = _gSucklercephDropMsgTable;
     task->state           = SUCKLERCEPH_DROP_TASK_WAIT;
 }

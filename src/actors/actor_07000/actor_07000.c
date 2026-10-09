@@ -82,9 +82,23 @@ static void         _actor07000SlouchTask(Task* task);
 static void         _actor07000SlouchProjectileTask(Task* task);
 static void         _actor07000SlouchHiddenTask(Task* task);
 
-DamageAttack gSucklercephAttack = { 30, 7 };
+/// Burst damage to the player, enabled only while the burst attack sphere is armed.
+static DamageAttack _gSucklercephBurstAttack = { .power = 30, .reaction = SUCKLERCEPH_BURST_PLAYER_REACTION };
 
-EnemyParams gSucklercephParams = { &gSucklercephAttack, 70, 6, 12, 3, 100, 20, 100, 0 };
+/// Enemy-kind parameters borrowed by every standing or dropping Sucklerceph.
+///
+/// The zero damage-over-time pulse base is retained; this kind's pulses do not expire by count.
+static EnemyParams _gSucklercephParams = {
+    .attacks              = &_gSucklercephBurstAttack,
+    .hpMax                = 70,
+    .exp                  = 6,
+    .bp                   = 12,
+    .mp                   = 3,
+    .critChance           = 100,
+    .buildupSteps         = 20,
+    .damageOverTimeChance = 100,
+    .damageOverTimeTicks  = 0,
+};
 
 PadScriptCmd Actor07000_D06938[3] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
@@ -196,7 +210,11 @@ static AnimationSet _gActor07000Actor107000Animation08008 = {
     { NULL, _gActor07000Actor107000Animation08008Bank1, NULL, NULL, _gActor07000Actor107000Animation08008Bank4, NULL, NULL, NULL },
 };
 
-TaskMessageEntry gSucklercephDropMsgTable[2] = {
+/// Commands accepted by a hidden/drop Sucklerceph, followed by the lookup terminator.
+///
+/// APPLY borrows an ActorCommand and returns zero. Unsupported IDs return zero;
+/// never dispatch the reserved end ID. Tasks borrow this table and its callback.
+static TaskMessageEntry _gSucklercephDropMsgTable[2] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, _sucklercephMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -205,7 +223,10 @@ TaskDesc Actor07000_D08040 = { { { TASK_BODY_TMD, 96 } }, _sucklercephTask, { .m
 
 TaskDesc Actor07000_D0804C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _sucklercephDropTask, { .model = &_gActor07000SucklercephBody } };
 
-AnimationSet* gSucklercephAnimSets[4] = {
+/// Sucklerceph animation sets: 0 empty, 1 idle, 2 crawl, 3 retained but unrequested.
+///
+/// Contexts borrow this table and its sets for the model's lifetime.
+static AnimationSet* _gSucklercephAnimSets[4] = {
     NULL,
     &_gActor07000Actor107000Animation07D1C,
     &_gActor07000Actor107000Animation07E64,
@@ -214,7 +235,8 @@ AnimationSet* gSucklercephAnimSets[4] = {
 
 SVECTOR Actor07000_D08068 = { 0, -10, 0, 0 };
 
-SVECTOR gSucklercephCollapseFxOffset = { 0, -300, 0, 0 };
+/// Additive-puff offset in signed game-coordinate units relative to the model root.
+static SVECTOR _gSucklercephPuffOffset = { 0, -300, 0, 0 };
 
 DamageAttack Actor07000_D08078[2] = {
     { 20, 7 },
@@ -747,26 +769,11 @@ typedef struct {
 } _Actor07000SlouchWork;
 STATIC_ASSERT_SIZEOF(_Actor07000SlouchWork, 0x39C);
 
-/// Node 3's attack row, packed by `damagePackAttackKey` into `SucklercephWork::attackBody`, and the enemy
-/// parameters whose `attacks` point at it; its `hpMax` seeds the enemy's
-/// `field_40`.
-extern DamageAttack gSucklercephAttack;
-
-extern EnemyParams gSucklercephParams;
-
 extern PadScriptCmd Actor07000_D06938[];
 
 extern PadScriptVibrationSegment Actor07000_D06944[];
 
-extern TaskMessageEntry gSucklercephDropMsgTable[2];
-
-/// Animation-set table bound to the caged specimen's context by `animationInitContext`.
-extern AnimationSet* gSucklercephAnimSets[4];
-
 extern SVECTOR Actor07000_D08068;
-
-/// Offset the collapse arms spawn the 0x60080 effect at.
-extern SVECTOR gSucklercephCollapseFxOffset;
 
 /// Pair table the second form's node 3 and the projectile's collision body pack
 /// into their keys.
@@ -861,20 +868,19 @@ static __inline__ void _actor07000SlouchColorAtCoord(Enemy* enemy, GfxCoord* sam
 static __inline__ void _actor07000SlouchApplyDropTwist(Task* task);
 static __inline__ void _actor07000SlouchTwistPart(MATRIX* partMatrix, SVECTOR* twist, MATRIX* twistMatrix);
 
-/// Message dispatch table the caged specimen's spawn parks in `Task::msgTable`.
-
 #include "../../shared/sucklerceph_spawn_state.inc.c"
 
-/// Task states of the caged specimen as `_sucklercephTask` dispatches
-/// them: spawn, per-frame update and teardown.
-static const EnemyTaskFuncTable3 gSucklercephTaskStates = {
+/// Standing Sucklerceph task callbacks in Task.state order: spawn, update, death.
+///
+/// The dispatcher copies this value and indexes it without checking; states are 0..2.
+static const EnemyTaskFuncTable3 _gSucklercephTaskStates = {
     { _sucklercephSpawnState, _sucklercephUpdateState, _sucklercephDeathState },
 };
 
-/// Task states of the caged specimen as `_sucklercephDropTask` dispatches them:
-/// the same update and teardown after a spawn that parks the specimen hidden,
-/// and a fourth state for its drop into place.
-static const EnemyTaskFuncTable4 gSucklercephDropTaskStates = {
+/// Hidden/drop Sucklerceph task callbacks: hidden setup, update, death, drop.
+///
+/// The dispatcher copies this value and indexes it without checking; states are 0..3.
+static const EnemyTaskFuncTable4 _gSucklercephDropTaskStates = {
     { _sucklercephDropSpawnState, _sucklercephUpdateState, _sucklercephDeathState, _sucklercephDropState },
 };
 

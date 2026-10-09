@@ -40,9 +40,6 @@
 #include "../../shared/skull_stalker.h"
 
 extern EnemyParams gSkullStalkerParams;
-extern u8          gSkullStalkerAnimSets[];
-extern SVECTOR     gSkullStalkerSparkOffset;
-extern SVECTOR     gSkullStalkerHitFxOffset;
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
@@ -131,24 +128,20 @@ static AnimationSet _gActor207200Animation0495C = {
 
 TaskDesc D_actor_207200_8014E7A4 = { { { TASK_BODY_TMD, 96 } }, _skullStalkerTask, { .model = &_gActor207200SkullStalkerBody } };
 
-u8 gSkullStalkerAnimSets[12] = {
-    0,
-    0,
-    0,
-    0,
-    40,
-    229,
-    20,
-    128,
-    124,
-    231,
-    20,
-    128,
+/// Skull Stalker animation sets: 0 empty, 1 idle, 2 alert.
+///
+/// Contexts borrow this table and its sets for the model's lifetime.
+static AnimationSet* _gSkullStalkerAnimSets[3] = {
+    NULL,
+    &_gActor207200Animation04708,
+    &_gActor207200Animation0495C,
 };
 
-SVECTOR gSkullStalkerSparkOffset = { 0, -100, 0, 0 };
+/// Both death particles' offset in signed game-coordinate units relative to the model root.
+static SVECTOR _gSkullStalkerDeathParticleOffset = { 0, -100, 0, 0 };
 
-SVECTOR gSkullStalkerHitFxOffset = { 0, 0, 100, 0 };
+/// Red death glow's offset in signed game-coordinate units relative to the model root.
+static SVECTOR _gSkullStalkerDeathGlowOffset = { 0, 0, 100, 0 };
 
 DamageAttack D_actor_207200_8014E7CC[2] = { { 25, 11 }, { 10, 0 } };
 
@@ -162,9 +155,10 @@ DamageAttack D_actor_207200_8014E7CC[2] = { { 25, 11 }, { 10, 0 } };
 
 #include "../../shared/skull_stalker_death_state.inc.c"
 
-/// The small enemy's state handlers - spawn, live tick and dying tick - which
-/// `_skullStalkerTask` dispatches through by task state.
-static const EnemyTaskFuncTable3 gSkullStalkerTaskStates = {
+/// Skull Stalker task callbacks in Task.state order: spawn, update, death.
+///
+/// The dispatcher copies this value and indexes it without checking; states are 0..2.
+static const EnemyTaskFuncTable3 _gSkullStalkerTaskStates = {
     { _skullStalkerSpawnState, _skullStalkerUpdateState, _skullStalkerDeathState }
 };
 

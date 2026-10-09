@@ -3,10 +3,10 @@
 // file offset. Local labels are named only when something outside the
 // shared body reaches them.
 
-gSucklercephTaskStates = 0x80149E24;
-gSucklercephDropTaskStates = 0x80149E30;
+_gSucklercephTaskStates = 0x80149E24;
+_gSucklercephDropTaskStates = 0x80149E30;
 Actor04600_Jt00024 = 0x80149E44;
-gSkullStalkerTaskStates = 0x80149E5C;
+_gSkullStalkerTaskStates = 0x80149E5C;
 _sucklercephSpawnState = 0x80149E68;
 _sucklercephReactionDispatch = 0x8014A1F4;
 _sucklercephDormantTick = 0x8014A3D0;
@@ -45,10 +45,10 @@ _skullStalkerUpdateColor = 0x8014DCE0;
 _skullStalkerUpdateVisibility = 0x8014DD50;
 _skullStalkerFlatten = 0x8014DE2C;
 _skullStalkerExit = 0x8014DF20;
-gSucklercephAttack = 0x8014DF7C; // size:0x4 defined:True
-gSucklercephParams = 0x8014DF80; // size:0x10 defined:True
-gSucklercephBurstScriptA = 0x8014DF90; // size:0xC defined:True
-gSucklercephBurstScriptB = 0x8014DF9C; // size:0xC defined:True
+_gSucklercephBurstAttack = 0x8014DF7C; // size:0x4 defined:True
+_gSucklercephParams = 0x8014DF80; // size:0x10 defined:True
+_gSucklercephBurstPadScript = 0x8014DF90; // size:0xC defined:True
+_gSucklercephBurstVibrationSegments = 0x8014DF9C; // size:0xC defined:True
 _gActor04600SucklercephBodySkeleton = 0x8014DFA8; // size:0x6C defined:True
 _gActor04600SucklercephBodyPartVerts = 0x8014E014; // size:0xC defined:True
 _gActor04600SucklercephBodyVerts = 0x8014E020; // size:0x220 defined:True
@@ -70,13 +70,13 @@ _gActor04600Actor104600Animation05840Bank4 = 0x8014F598; // size:0x30 defined:Tr
 _gActor04600Actor104600Animation05840Records = 0x8014F5C8; // size:0x90 defined:True
 _gActor04600Actor104600Animation05840Indices = 0x8014F658; // size:0x8 defined:True
 _gActor04600Actor104600Animation05840 = 0x8014F660; // size:0x28 defined:True
-gSucklercephDropMsgTable = 0x8014F688; // size:0x10 defined:True
-Actor04600_D05878 = 0x8014F698; // size:0xC defined:True
-Actor04600_D05884 = 0x8014F6A4; // size:0xC defined:True
-gSucklercephAnimSets = 0x8014F6B0; // size:0x10 defined:True
-gSucklercephBurstFxOffset = 0x8014F6C0; // size:0x8 defined:True
-gSucklercephCollapseFxOffset = 0x8014F6C8; // size:0x8 defined:True
-Actor04600_D058B0 = 0x8014F6D0; // size:0x4 defined:True
+_gSucklercephDropMsgTable = 0x8014F688; // size:0x10 defined:True
+gActor04600SucklercephTaskDesc = 0x8014F698; // size:0xC defined:True
+_gActor04600SucklercephDropTaskDesc = 0x8014F6A4; // size:0xC defined:True
+_gSucklercephAnimSets = 0x8014F6B0; // size:0x10 defined:True
+_gSucklercephBurstParticleOffset = 0x8014F6C0; // size:0x8 defined:True
+_gSucklercephPuffOffset = 0x8014F6C8; // size:0x8 defined:True
+_gSkullStalkerAttacks = 0x8014F6D0; // size:0x4 defined:True
 gSkullStalkerParams = 0x8014F6D4; // size:0x10 defined:True
 _gActor04600SkullStalkerBodySkeleton = 0x8014F6E4; // size:0x6C defined:True
 _gActor04600SkullStalkerBodyPartVerts = 0x8014F750; // size:0xC defined:True
@@ -94,10 +94,10 @@ _gActor04600Actor104600Animation06474Bank4 = 0x80150188; // size:0x28 defined:Tr
 _gActor04600Actor104600Animation06474Records = 0x801501B0; // size:0xDC defined:True
 _gActor04600Actor104600Animation06474Indices = 0x8015028C; // size:0x8 defined:True
 _gActor04600Actor104600Animation06474 = 0x80150294; // size:0x28 defined:True
-Actor04600_D0649C = 0x801502BC; // size:0xC defined:True
-gSkullStalkerAnimSets = 0x801502C8; // size:0xC defined:True
-gSkullStalkerSparkOffset = 0x801502D4; // size:0x8 defined:True
-gSkullStalkerHitFxOffset = 0x801502DC; // size:0x8 defined:True
+gActor04600SkullStalkerTaskDesc = 0x801502BC; // size:0xC defined:True
+_gSkullStalkerAnimSets = 0x801502C8; // size:0xC defined:True
+_gSkullStalkerDeathParticleOffset = 0x801502D4; // size:0x8 defined:True
+_gSkullStalkerDeathGlowOffset = 0x801502DC; // size:0x8 defined:True
 
 D_shelter_b3_garbage_incinerator_801874C4 = 0x801874C4; // absolute:True owner=shelter_b3_garbage_incinerator shared=rooms
 

@@ -3,8 +3,8 @@
 // file offset. Local labels are named only when something outside the
 // shared body reaches them.
 
-gSucklercephTaskStates = 0x80131E24;
-gSucklercephDropTaskStates = 0x80131E30;
+_gSucklercephTaskStates = 0x80131E24;
+_gSucklercephDropTaskStates = 0x80131E30;
 Actor07000_Jt00024 = 0x80131E44;
 Actor07000_D0003C = 0x80131E5C;
 Actor07000_D0004C = 0x80131E6C;
@@ -70,8 +70,8 @@ _actor07000SlouchHiddenTask = 0x801385D4;
 _actor07000SlouchFallStep = 0x80138640;
 _actor07000SlouchProjectileExpire = 0x801386D4;
 _actor07000SlouchProjectileExit = 0x80138710;
-gSucklercephAttack = 0x80138744; // size:0x4 defined:True
-gSucklercephParams = 0x80138748; // size:0x10 defined:True
+_gSucklercephBurstAttack = 0x80138744; // size:0x4 defined:True
+_gSucklercephParams = 0x80138748; // size:0x10 defined:True
 Actor07000_D06938 = 0x80138758; // size:0xC defined:True
 Actor07000_D06944 = 0x80138764; // size:0xC defined:True
 _gActor07000SucklercephBodySkeleton = 0x80138770; // size:0x6C defined:True
@@ -95,12 +95,12 @@ _gActor07000Actor107000Animation08008Bank4 = 0x80139D60; // size:0x30 defined:Tr
 _gActor07000Actor107000Animation08008Records = 0x80139D90; // size:0x90 defined:True
 _gActor07000Actor107000Animation08008Indices = 0x80139E20; // size:0x8 defined:True
 _gActor07000Actor107000Animation08008 = 0x80139E28; // size:0x28 defined:True
-gSucklercephDropMsgTable = 0x80139E50; // size:0x10 defined:True
+_gSucklercephDropMsgTable = 0x80139E50; // size:0x10 defined:True
 Actor07000_D08040 = 0x80139E60; // size:0xC defined:True
 Actor07000_D0804C = 0x80139E6C; // size:0xC defined:True
-gSucklercephAnimSets = 0x80139E78; // size:0x10 defined:True
+_gSucklercephAnimSets = 0x80139E78; // size:0x10 defined:True
 Actor07000_D08068 = 0x80139E88; // size:0x8 defined:True
-gSucklercephCollapseFxOffset = 0x80139E90; // size:0x8 defined:True
+_gSucklercephPuffOffset = 0x80139E90; // size:0x8 defined:True
 Actor07000_D08078 = 0x80139E98; // size:0x8 defined:True
 Actor07000_D08080 = 0x80139EA0; // size:0x10 defined:True
 _gActor07000Actor107000Model08BB4Skeleton = 0x80139EB0; // size:0xFC defined:True

@@ -8,9 +8,9 @@
 static __inline__ void _skullStalkerSpawnDeathEffects(const Task* task)
 {
     enum { SKULL_STALKER_PARTICLE_SECONDARY_SIZE = 0x200 };
-    effectSpawn(EFFECT_030, task->extra.tmd->coords, SKULL_STALKER_PARTICLE_SECONDARY_SIZE, &gSkullStalkerSparkOffset);
-    effectSpawn(EFFECT_030, task->extra.tmd->coords, SKULL_STALKER_PARTICLE_SECONDARY_SIZE, &gSkullStalkerSparkOffset);
-    effectSpawn(EFFECT_RED_GROUND_GLOW, task->extra.tmd->coords, 0, &gSkullStalkerHitFxOffset);
+    effectSpawn(EFFECT_030, task->extra.tmd->coords, SKULL_STALKER_PARTICLE_SECONDARY_SIZE, &_gSkullStalkerDeathParticleOffset);
+    effectSpawn(EFFECT_030, task->extra.tmd->coords, SKULL_STALKER_PARTICLE_SECONDARY_SIZE, &_gSkullStalkerDeathParticleOffset);
+    effectSpawn(EFFECT_RED_GROUND_GLOW, task->extra.tmd->coords, 0, &_gSkullStalkerDeathGlowOffset);
 }
 
 /// Resolves root pushback and consumes the four body contacts.

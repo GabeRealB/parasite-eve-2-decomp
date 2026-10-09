@@ -4145,12 +4145,12 @@ objects = [
 [actors.overlays.actor_04600]
 label = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body"
 slots = [
-  { slot = 1, package = "actor_104600", id = 97 },
-  { slot = 2, package = "actor_204600", id = 172 },
+  { slot = 1, package = "actor_104600", id = 97, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor04600SucklercephTaskDesc = "gActor104600SucklercephTaskDesc", gActor04600SkullStalkerTaskDesc = "gActor104600SkullStalkerTaskDesc" } },
+  { slot = 2, package = "actor_204600", id = 172, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor04600SucklercephTaskDesc = "gActor204600SucklercephTaskDesc", gActor04600SkullStalkerTaskDesc = "gActor204600SkullStalkerTaskDesc" } },
 ]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_04600/actor_04600", rodata = "0x4", text = "0x48", data = "0x415C" },
+  { unit = "actor_04600", variant = true, rodata = "0x4", text = "0x48", data = "0x415C" },
   { kind = "model", at = "0x4188", in_c = true },
   { kind = "modelSource", at = "0x5200", in_c = true },
   { kind = "model", at = "0x58C4", in_c = true },
