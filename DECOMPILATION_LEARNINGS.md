@@ -153112,9 +153112,9 @@ a0,s2` is in each arm, and only `jal` / `move a3,zero` is shared.
 **Fix (fitted).**
 
 ```c
-stateOrReactionCount = D_actor_450900_80136C98;
+stateOrReactionCount = _gActor450900PlayerResponseCount;
 stateOrReactionCount++;
-D_actor_450900_80136C98 = stateOrReactionCount;
+_gActor450900PlayerResponseCount = stateOrReactionCount;
 if (stateOrReactionCount != 0) { taskMessageDispatch(playerTask, MSG, 0, 0); }
 else            { taskMessageDispatch(playerTask, MSG, 0, 0); }
 ```
@@ -153789,7 +153789,7 @@ boundaries are certain, and here they are, without using the copy as evidence:
 | +80 ... | `AnimationPlayRequest` records | `{1, id, blend, frames, collision}`, 20 bytes each, continuing past +180 into the records the file already declared one by one; +100 and +120 are named |
 
 Declared consecutively in that order the image is identical, and the code
-matches with no alias: `&Actor450900AllyAnim` and `&D_..._80135F00` are two
+matches with no alias: `&_gActor450900CompanionDistressAnimation` and `&_gActor450900CompanionAnimationBankCopy` are two
 symbols, so GCC forms each address afresh, which is what the alias was
 imitating. The copy requests name the set array (`{ { .sets = D_x },
 ANIMATION_BANK_EXTENSION_CAPACITY }`; `AnimationSet**` converts to the
@@ -153853,7 +153853,7 @@ Follows the plain-batch entry above. The seven storages left - the
   (`%hi/%lo(D_x + 0x50)`), never `addiu rX, rY, off` from a register holding a
   neighbour, so each was its own symbol in the original and the split matches
   with no regrouping. `actor_143000` loads two play requests in two branches of
-  one function, each with a fresh pair - the same shape `Actor450900AllyAnim`
+  one function, each with a fresh pair - the same shape `_gActor450900CompanionDistressAnimation`
   needed an alias for while it was a union member.
 - **One base indexed past a sub-run keeps the run whole.**
   `dryfield_trailer_coach` reads its second two-line menu as `table[i + 2]`

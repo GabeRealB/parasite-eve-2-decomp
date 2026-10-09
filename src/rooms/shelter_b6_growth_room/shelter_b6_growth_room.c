@@ -10,7 +10,6 @@
 #include "gameplay/actor_presentation.h"
 #include "gameplay/gameflag.h"
 #include "gameplay/direction.h"
-#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
 
@@ -23,11 +22,7 @@
 
 #include "mapui/map_neo_ark.h"
 
-extern TaskDesc         D_actor_450900_80135E78[];
 extern TaskMessageEntry D_shelter_b6_growth_room_8017F16C[];
-
-extern EvsCommand D_actor_450900_80136110[];
-extern EvsCommand D_actor_450900_80136308[];
 
 static s32 _shelterB6GrowthRoomRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
 static s32 _shelterB6GrowthRoomResolveRoomVariant(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* destination);
@@ -75,7 +70,6 @@ static s32 _shelterB6GrowthRoomHandleCompanionCommand(Task* unusedTask, s32 unus
     enum {
         SHELTER_B6_GROWTH_ROOM_COMMAND_COMPANION_CHOICE = 1,
         SHELTER_B6_GROWTH_ROOM_COMMAND_IDLE_EVENT       = 16,
-        SHELTER_B6_GROWTH_ROOM_COMPANION_CHOICE_TASK    = 3,
         SHELTER_B6_GROWTH_ROOM_CAP_REPEAT_CHOICE        = 1,
         SHELTER_B6_GROWTH_ROOM_CAP_BEFORE_CHOICE        = 16,
         SHELTER_B6_GROWTH_ROOM_CAP_AFTER_CHOICE         = 17
@@ -84,7 +78,7 @@ static s32 _shelterB6GrowthRoomHandleCompanionCommand(Task* unusedTask, s32 unus
     if (command == SHELTER_B6_GROWTH_ROOM_COMMAND_COMPANION_CHOICE) {
         if (gameFlagGetNibble(GAME_FLAG_0D8) == 0) {
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            taskSpawnFromTable(D_actor_450900_80135E78, SHELTER_B6_GROWTH_ROOM_COMPANION_CHOICE_TASK, 0, 0);
+            taskSpawnFromTable(gActor450900Tasks, ACTOR_450900_TASK_CHOICE_ACTION, 0, 0);
         } else {
             capRunCommandWithTransition(SHELTER_B6_GROWTH_ROOM_CAP_REPEAT_CHOICE);
         }
@@ -126,18 +120,16 @@ static s32 _shelterB6GrowthRoomHandleRoomAction(Task* unusedTask, s32 unusedMess
 static void _shelterB6GrowthRoomInitializeTask(Task* task)
 {
     enum {
-        SHELTER_B6_GROWTH_ROOM_COMPANION_DISTRESS_TASK = 1,
-        SHELTER_B6_GROWTH_ROOM_PLAYER_REACTION_TASK    = 2,
-        SHELTER_B6_GROWTH_ROOM_OBJECTIVE_ON_ENTRY      = 0x33
+        SHELTER_B6_GROWTH_ROOM_OBJECTIVE_ON_ENTRY = 0x33
     };
 
     task->msgTable = D_shelter_b6_growth_room_8017F16C;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     companionRestoreFullHp();
     areaApplySavedUpdates(D_shelter_b6_growth_room_801807C8);
-    evsStartScriptWithSkip(D_actor_450900_80136110, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_450900_80136308);
-    taskSpawnFromTable(D_actor_450900_80135E78, SHELTER_B6_GROWTH_ROOM_COMPANION_DISTRESS_TASK, 0, 0);
-    taskSpawnFromTable(D_actor_450900_80135E78, SHELTER_B6_GROWTH_ROOM_PLAYER_REACTION_TASK, 0, 0);
+    evsStartScriptWithSkip(gActor450900EntryScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor450900EntrySkipScript);
+    taskSpawnFromTable(gActor450900Tasks, ACTOR_450900_TASK_COMPANION_DISTRESS, 0, 0);
+    taskSpawnFromTable(gActor450900Tasks, ACTOR_450900_TASK_PLAYER_REACTION, 0, 0);
     gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_B6_GROWTH_ROOM_OBJECTIVE_ON_ENTRY);
     task->state++;
 }

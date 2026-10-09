@@ -524,14 +524,14 @@ D_actor_548100_801358D8 = 0x801358D8; // absolute:True owner=actor_548100
 D_actor_143400_801359D4 = 0x801359D4; // absolute:True owner=actor_143400
 D_actor_160600_80135AC0 = 0x80135AC0; // absolute:True owner=actor_160600
 D_actor_160600_80135D78 = 0x80135D78; // absolute:True owner=actor_160600
-D_actor_450900_80135E78 = 0x80135E78; // absolute:True owner=actor_450900
+gActor450900Tasks = 0x80135E78; // absolute:True owner=actor_450900
 D_actor_451100_80135FD0 = 0x80135FD0; // absolute:True owner=actor_451100
 D_actor_142600_801360E4 = 0x801360E4; // absolute:True owner=actor_142600
 D_actor_451100_80136108 = 0x80136108; // absolute:True owner=actor_451100 shared=actors
-D_actor_450900_80136110 = 0x80136110; // absolute:True owner=actor_450900
+gActor450900EntryScript = 0x80136110; // absolute:True owner=actor_450900
 D_actor_160600_80136258 = 0x80136258; // absolute:True owner=actor_160600
 D_actor_460200_801362B8 = 0x801362B8; // absolute:True owner=actor_460200
-D_actor_450900_80136308 = 0x80136308; // absolute:True owner=actor_450900
+gActor450900EntrySkipScript = 0x80136308; // absolute:True owner=actor_450900
 D_actor_142600_80136804 = 0x80136804; // absolute:True owner=actor_142600
 D_actor_161500_80136CDC = 0x80136CDC; // absolute:True owner=actor_161500
 D_actor_146300_8013788C = 0x8013788C; // absolute:True owner=actor_146300

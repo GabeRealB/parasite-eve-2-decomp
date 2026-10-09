@@ -34,6 +34,8 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
+#include "actors/actor_450900.h"
+
 #include "mapui/map_neo_ark.h"
 
 #include "rooms/room_common.h"
@@ -66,8 +68,6 @@ enum {
     SHELTER_B6_GROWTH_ROOM_BOX_VERTEX_COUNT = 8,
     SHELTER_B6_GROWTH_ROOM_BOX_Y_OFFSET     = 2000,
 };
-
-extern TaskDesc D_actor_450900_80135E78[];
 
 /// The layout template and the live copy the reset below restores from it.
 extern WorldCollisionGrid D_shelter_b6_growth_room_8017F234;
@@ -287,7 +287,7 @@ WorldCollisionTrigger D_shelter_b6_growth_room_8017FF90[12] = {
 };
 
 AreaResource D_shelter_b6_growth_room_80180320[2] = {
-    { 101, 509, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_450900_80135E78 },
+    { 101, 509, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, gActor450900Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
