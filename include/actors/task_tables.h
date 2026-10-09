@@ -375,7 +375,13 @@ extern TaskDesc gActor304000BloodSucklerTaskDesc;
 
 extern TaskDesc D_actor_503500_8016E924[];
 
-extern TaskDesc D_actor_335800_8016EADC[];
+/// Gary Douglas's body, attached head-and-hat and gun spawn recipes (indices 0..2).
+///
+/// The night motel balcony resource selects body 0. Body initialization spawns
+/// head 1 on part 4 and gun 2 on part 8, borrowing the body's lighting and
+/// lifetime. All run at priority 192; only the body skips automatic model buffers.
+/// The actor package's code and model data must remain loaded for all three tasks.
+extern TaskDesc gActor335800GaryDouglasTasks[3];
 
 extern TaskDesc D_actor_311900_8016EC00;
 
@@ -389,7 +395,12 @@ extern TaskDesc D_actor_361100_80171BAC;
 
 extern TaskDesc D_actor_323300_8017255C[];
 
-extern TaskDesc D_actor_335800_80172E9C;
+/// Spawn recipe for the night motel balcony's independently placed Flint model.
+///
+/// The room resource addresses this single nineteen-part TMD recipe directly.
+/// It runs at priority 192 and skips automatic model buffers; actor_335800's
+/// code and geometry must stay loaded until Flint's task is released.
+extern TaskDesc gActor335800FlintTaskDesc;
 
 extern TaskDesc D_actor_356100_80173294;
 

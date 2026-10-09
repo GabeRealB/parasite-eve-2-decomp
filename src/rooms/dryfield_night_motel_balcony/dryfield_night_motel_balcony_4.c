@@ -3090,8 +3090,8 @@ AreaResource D_dryfield_night_motel_balcony_8018EA1C[2] = {
 
 AreaResource D_dryfield_night_motel_balcony_8018EA34[4] = {
     { 31, 31, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_403100_8015560C },
-    { 106, 358, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_actor_335800_8016EADC },
-    { 114, 358, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &D_actor_335800_80172E9C },
+    { 106, 358, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, gActor335800GaryDouglasTasks },
+    { 114, 358, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &gActor335800FlintTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

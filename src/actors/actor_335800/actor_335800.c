@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -22,6 +24,7 @@
 #include "gameplay/evs_scripts.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
 #include "gameplay/scene_combat.h"
@@ -87,6 +90,12 @@ enum {
     ACTOR_335800_FLINT_FACE_TARGET_STEP = 0
 };
 
+/// One game-coordinate unit in the approach vectors' signed 16.16 velocity.
+enum { ACTOR_335800_WALK_VELOCITY_ONE = 0x10000 };
+
+/// Execution priority shared by the body, attached-part and scene spawn recipes.
+enum { ACTOR_335800_TASK_PRIORITY = 192 };
+
 /// Balcony Z ranges, placement-table entries and ordinary views used by the scenes.
 enum {
     ACTOR_335800_BALCONY_LOW_SCENE_Z         = 1001,
@@ -135,32 +144,15 @@ typedef struct {
 } _Actor335800GaryDouglasWork;
 STATIC_ASSERT_SIZEOF(_Actor335800GaryDouglasWork, 0x50C);
 
-extern ActorTransform D_actor_335800_80164F80;
+extern EvsCommand D_actor_335800_80165FC0[];
+extern EvsCommand D_actor_335800_80166098[];
 
-extern TaskDesc             D_actor_335800_80164DE0[];
-extern AnimationPlayRequest D_actor_335800_80164E7C;
-
-/// The warp-payload table the two dispatchers reach by entry:
-/// `_actor335800PlacePlayerAfterScene` selects an entry of it by index.
-extern ActorTransform D_actor_335800_80164EA4[5];
-extern EvsCommand     D_actor_335800_80165FC0[];
-extern EvsCommand     D_actor_335800_80166098[];
-
-/// Animation bank tables of the parent and the child block.
-extern AnimationSet*  D_actor_335800_8016EAC4[5];
 extern AnimationSet** gActorMotionAnimBanks[1];
 
-/// The two part tasks the parent block spawns, and its message table; both
-/// live in this overlay's trailing data.
-extern TaskDesc D_actor_335800_8016EADC[];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 
 extern TaskMessageEntry D_actor_335800_8016EB00[];
-
-/// `taskMessageDispatch` handler table installed at `Task::msgTable` by
-/// `_actor335800FlintInit`; terminator id `TASK_MESSAGE_TABLE_END`.
-extern TaskMessageEntry D_actor_335800_80172EA8[];
 
 static void _modelPlacementAttachPartTask(Task* childTask);
 static void _actor335800GaryDouglasInit(Task* task);
@@ -181,9 +173,11 @@ static void _actor335800FlintFaceTarget(Task* task);
 static void _actor335800FlintBeginApproach(Task* task);
 static void _actor335800FlintTurnToYaw(Task* task);
 
-/// Spawn, tick and teardown handlers of the two part tasks the parent block
-/// spawns, dispatched by `_actor335800GaryDouglasPartTask`.
-static const TaskFuncTable3 D_actor_335800_80161E24 = { {
+/// States of Gary Douglas's attached head-and-hat and gun model tasks.
+///
+/// `Task::state` must be 0 attach, 1 retain the parent-driven pose, or 2 kill.
+/// Attachment borrows the body's selected part and lighting until teardown.
+static const TaskFuncTable3 _gActor335800GaryDouglasPartStates = { {
     _modelPlacementAttachPartTask,
     _actor335800GaryDouglasPartIdle,
     taskKill,
@@ -197,98 +191,87 @@ static const TaskFuncTable3 D_actor_335800_80161E30 = { {
     _actor335800GaryDouglasExit,
 } };
 
-/// Step handlers of the parent block's motion sequence, indexed by
-/// `ActorWalkState::motionStep`: turn to face `target`, start walking
-/// forward, walk until arrival, then turn to the placement yaw.
-static const TaskFuncTable4 D_actor_335800_80161E3C = { {
+/// Four steps of Gary Douglas's scripted walk, indexed by `walk.motionStep`.
+///
+/// Indices 0..3 face the destination, begin forward movement, detect arrival,
+/// then turn to the destination yaw. The dispatcher does not check bounds.
+static const TaskFuncTable4 _gActor335800GaryDouglasWalkSteps = { {
     _actorMotionFaceTarget,
     _actor335800GaryDouglasBeginApproach,
     _actorMotionArrive,
     _actorMotionTurnToYaw,
 } };
 
-/// The constant local-space offset `_actor335800GaryDouglasBeginApproach` rotates for
-/// the parent block: straight ahead along the part's own +Z.
-static const VECTOR D_actor_335800_80161E4C = { 0, 0, 0x200000, 0 };
+/// Gary Douglas's local +Z approach velocity in signed 16.16 game units per update.
+///
+/// A unit-scale root advances 32 units; its rotation converts this velocity
+/// into the root parent's frame without applying translation.
+static const VECTOR _gActor335800GaryDouglasForwardVelocity = { 0, 0, 32 * ACTOR_335800_WALK_VELOCITY_ONE, 0 };
 
-/// Spawn, tick and teardown handlers of the child block, dispatched by
-/// `_actor335800FlintTask`.
-static const TaskFuncTable3 D_actor_335800_80161E5C = { {
+/// Flint's three task states, dispatched while scene actors are running.
+///
+/// `Task::state` must be 0 initialize, 1 update, or 2 release the enemy task.
+/// Flint's task is independently spawned by the room.
+static const TaskFuncTable3 _gActor335800FlintStates = { {
     _actor335800FlintInit,
     _actor335800FlintUpdate,
     _actor335800FlintExit,
 } };
 
-/// Step handlers of the child block's motion sequence, indexed by
-/// `ActorWalkState::motionStep`, in the same order as the parent's.
-static const TaskFuncTable4 D_actor_335800_80161E68 = { {
+/// Four steps of Flint's scripted walk, indexed by `walk.motionStep`.
+///
+/// Indices 0..3 face the destination, begin forward movement, detect arrival,
+/// then turn to the closing yaw and idle. Indexing is unchecked.
+static const TaskFuncTable4 _gActor335800FlintWalkSteps = { {
     _actor335800FlintFaceTarget,
     _actor335800FlintBeginApproach,
     _actorMotionArrive19,
     _actor335800FlintTurnToYaw,
 } };
 
-/// The child block's copy of the forward offset, rotated by
-/// `_actor335800FlintBeginApproach`.
-static const VECTOR D_actor_335800_80161E78 = { 0, 0, 0x200000, 0 };
+/// Flint's local +Z approach velocity in signed 16.16 game units per update.
+///
+/// A unit-scale root advances 32 units; the approach step rotates the velocity
+/// into the root parent's frame before integration.
+static const VECTOR _gActor335800FlintForwardVelocity = { 0, 0, 32 * ACTOR_335800_WALK_VELOCITY_ONE, 0 };
 
 static void _actor335800SceneGroundShadowTask(Task* task);
 static void _actor335800StartSceneVariantTask(Task* task);
 static void _actor335800RestorePlayerAnimationOnBattleResetTask(Task* task);
 static void _actor335800SceneScreenShakeTask(Task* task);
 
-extern ActorTransform           D_actor_335800_80164F80;
-extern AnimationPlayRequest     D_actor_335800_80164E54;
-extern AnimationPlayRequest     D_actor_335800_80164E90;
-extern AnimationPlayRequest     D_actor_335800_80164F44;
-extern AnimationPlayRequest     D_actor_335800_80164F58;
-extern AnimationPlayRequest     D_actor_335800_80164F6C;
-extern ActorCommand             D_actor_335800_80164FC8;
-extern AnimationBankCopyRequest D_actor_335800_80164E24;
-extern ActorTransform           D_actor_335800_80164EA4[5];
-extern ActorTransform           D_actor_335800_80164F98;
-extern ActorTransform           D_actor_335800_80164FB0;
-static void                     _actor335800StageSceneAudioStart(void);
-static void                     _actor335800StartScenePlayback(void);
-static void                     _actor335800FinishStreamedScene(void);
-static void                     _actor335800SpawnSceneGroundShadow(void);
-static void                     _actor335800StartBalconyMovies(void);
-static void                     _actor335800EnableDisplay(void);
-static void                     _actor335800SetStageAmbientMuted(s32 muted);
-static void                     _actor335800SpawnSceneScreenShake(void);
+extern ActorCommand   D_actor_335800_80164FC8;
+extern ActorTransform D_actor_335800_80164F98;
+extern ActorTransform D_actor_335800_80164FB0;
+static void           _actor335800StageSceneAudioStart(void);
+static void           _actor335800StartScenePlayback(void);
+static void           _actor335800FinishStreamedScene(void);
+static void           _actor335800SpawnSceneGroundShadow(void);
+static void           _actor335800StartBalconyMovies(void);
+static void           _actor335800EnableDisplay(void);
+static void           _actor335800SetStageAmbientMuted(s32 muted);
+static void           _actor335800SpawnSceneScreenShake(void);
 
-extern AnimationPlayRequest     D_actor_335800_80164E40;
-extern AnimationPlayRequest     D_actor_335800_80164E7C;
-extern AnimationPlayRequest     D_actor_335800_80164E90;
-extern ActorCommand             D_actor_335800_8016502C;
-extern ActorCommand             D_actor_335800_80165038;
-extern ActorCommand             D_actor_335800_8016503C;
-extern ActorCommand             D_actor_335800_80165040;
-extern ActorCommand             D_actor_335800_80165044;
-extern AnimationBankCopyRequest D_actor_335800_80164E24;
-extern EvsSceneKey              D_actor_335800_80165050;
-extern EvsSceneKey              D_actor_335800_80165058;
-extern ActorTransform           D_actor_335800_80164EA4[5];
-static s32                      _actor335800GaryDouglasSetDrawMode(Task* task, s32 messageId, s32 mode, s32 unusedArg);
-static s32                      _actor335800GaryDouglasRequestDim(Task* task, s32 messageId, const ActorCommand* request, s32 unusedArg);
-static s32                      _actor335800FlintStartWalk(Task* task, s32 messageId, const ActorTransform* destination, const ActorMotionWalkAnim* clips);
-static s32                      _actor335800FlintPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
-static s32                      _actorMsgPlaceEuler(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg);
-static s32                      _actor335800FlintSetDrawMode(Task* task, s32 messageId, s32 mode, s32 unusedArg);
-static s32                      _actor335800FlintIgnoreCommand(Task* task, s32 messageId, s32 unusedCommand, s32 unusedArg);
-static void                     _actor335800CancelStreamedScene(void);
-static void                     _actor335800SetSceneRoom(u8 room);
-static void                     _actor335800PlacePlayerForScene(void);
-static void                     _actor335800PlacePlayerAfterScene(s32 faceQuarterTurn);
-static void                     _actor335800RestorePlayerView(void);
-static void                     _actor335800SetSceneSpriteBatchesHidden(s32 hidden);
-static void                     _actor335800SetSceneEvent(s8 sceneEvent);
-static void                     _actor335800StopStageMusic(s32 fadeTicks);
-static void                     _actor335800SetPostSceneObjective(void);
-static void                     _actor335800LockAttachmentsAndCancelEffects(void);
-static void                     _actor335800GaryDouglasPartTask(Task* task);
-static void                     _actor335800GaryDouglasTask(Task* task);
-static void                     _actor335800FlintTask(Task* task);
+static s32  _actor335800GaryDouglasSetDrawMode(Task* task, s32 messageId, s32 mode, s32 unusedArg);
+static s32  _actor335800GaryDouglasRequestDim(Task* task, s32 messageId, const ActorCommand* request, s32 unusedArg);
+static s32  _actor335800FlintStartWalk(Task* task, s32 messageId, const ActorTransform* destination, const ActorMotionWalkAnim* clips);
+static s32  _actor335800FlintPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
+static s32  _actorMsgPlaceEuler(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg);
+static s32  _actor335800FlintSetDrawMode(Task* task, s32 messageId, s32 mode, s32 unusedArg);
+static s32  _actor335800FlintIgnoreCommand(Task* task, s32 messageId, s32 unusedCommand, s32 unusedArg);
+static void _actor335800CancelStreamedScene(void);
+static void _actor335800SetSceneRoom(u8 room);
+static void _actor335800PlacePlayerForScene(void);
+static void _actor335800PlacePlayerAfterScene(s32 faceQuarterTurn);
+static void _actor335800RestorePlayerView(void);
+static void _actor335800SetSceneSpriteBatchesHidden(s32 hidden);
+static void _actor335800SetSceneEvent(s8 sceneEvent);
+static void _actor335800StopStageMusic(s32 fadeTicks);
+static void _actor335800SetPostSceneObjective(void);
+static void _actor335800LockAttachmentsAndCancelEffects(void);
+static void _actor335800GaryDouglasPartTask(Task* task);
+static void _actor335800GaryDouglasTask(Task* task);
+static void _actor335800FlintTask(Task* task);
 
 static AnimationPackedPose _gActor335800Animation0255CBank1[6] = {
 #include "assets/actor_335800_animation_0255C_bank1.inc"
@@ -378,14 +361,23 @@ static AnimationSet _gActor335800Animation02F98 = {
     { NULL, _gActor335800Animation02F98Bank1, NULL, NULL, _gActor335800Animation02F98Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_335800_80164DE0[4] = {
-    { { { TASK_BODY_COORD, 192 } }, _actor335800SceneGroundShadowTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _actor335800RestorePlayerAnimationOnBattleResetTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _actor335800StartSceneVariantTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _actor335800SceneScreenShakeTask, { .value = 0 } },
+/// Spawn recipes for the balcony scene's shadow and three control tasks.
+///
+/// Indices 0..3 create a moving ground shadow, wait for battle reset to replay
+/// the player's scene animation, start stream 59/60 from the first spawn word,
+/// or shake the display. Only index 0 has a coordinate body; all run at priority 192.
+static TaskDesc _gActor335800SceneTasks[] = {
+    { { { TASK_BODY_COORD, ACTOR_335800_TASK_PRIORITY } }, _actor335800SceneGroundShadowTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACTOR_335800_TASK_PRIORITY } }, _actor335800RestorePlayerAnimationOnBattleResetTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACTOR_335800_TASK_PRIORITY } }, _actor335800StartSceneVariantTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACTOR_335800_TASK_PRIORITY } }, _actor335800SceneScreenShakeTask, { .value = 0 } },
 };
 
-AnimationSet* D_actor_335800_80164E10[5] = {
+/// Five words installed at player weapon-bank indices 47..51 for balcony scenes.
+///
+/// Index 47 becomes NULL; 48..51 borrow the four package-owned clips. Copying
+/// the pointers does not copy clip data, which must stay loaded through playback.
+static AnimationSet* _gActor335800PlayerSceneAnimationExtension[] = {
     NULL,
     &_gActor335800Animation0255C,
     &_gActor335800Animation02B78,
@@ -393,29 +385,90 @@ AnimationSet* D_actor_335800_80164E10[5] = {
     &_gActor335800Animation02F98,
 };
 
-AnimationBankCopyRequest D_actor_335800_80164E24 = { { .sets = D_actor_335800_80164E10 }, ARRAY_SIZE(D_actor_335800_80164E10) };
+/// Request to overwrite five words of the player's equipped-weapon bank extension.
+///
+/// Copies the full pointer table, including its leading NULL, starting at set
+/// index 47. The request is borrowed synchronously; the copied clips remain
+/// borrowed from this loaded package while playback uses them.
+static AnimationBankCopyRequest _gActor335800CopyPlayerSceneAnimations = {
+    .source    = { .sets = _gActor335800PlayerSceneAnimationExtension },
+    .wordCount = ARRAY_SIZE(_gActor335800PlayerSceneAnimationExtension)
+};
+
+/// Player clips installed by the extension and Douglas clips in bank 0.
+enum {
+    ACTOR_335800_PLAYER_INITIAL_BANK       = 1,
+    ACTOR_335800_PLAYER_SCENE_OPENING_CLIP = ANIMATION_BANK_BASE_SET_COUNT + 1,
+    ACTOR_335800_PLAYER_BALCONY_ENTRY_CLIP = ANIMATION_BANK_BASE_SET_COUNT + 2,
+    ACTOR_335800_PLAYER_SCENE_CLIP_51      = ANIMATION_BANK_BASE_SET_COUNT + 4,
+    ACTOR_335800_PLAYER_RESTORE_CLIP       = 9,
+    ACTOR_335800_GARY_DOUGLAS_GUNSHOT_CLIP = 2,
+    ACTOR_335800_GARY_DOUGLAS_SCENE_CLIP_3 = 3,
+    ACTOR_335800_GARY_DOUGLAS_SCENE_CLIP_4 = 4
+};
 
 AnimationPlayRequest D_actor_335800_80164E2C = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_335800_80164E40 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player clip 48 at the common opening of the Burner retreat and defeat scenes.
+///
+/// Blends for twenty whole frames and disables grid participation. Event
+/// playback copies the request and resolves the equipped weapon's bank in that copy.
+static AnimationPlayRequest _gActor335800PlayerSceneOpeningAnimation = {
+    .source               = { .index = ACTOR_335800_PLAYER_INITIAL_BANK },
+    .animationId          = ACTOR_335800_PLAYER_SCENE_OPENING_CLIP,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 20,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
+};
 
-// Retained parameter record; layout follows the adjacent script arguments.
-AnimationPlayRequest D_actor_335800_80164E54 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Resets player clip 49 in the balcony entry scene with grid participation disabled.
+///
+/// Event playback copies the request before resolving the equipped weapon's bank.
+static AnimationPlayRequest _gActor335800PlayerBalconyEntryAnimation = {
+    .source               = { .index = ACTOR_335800_PLAYER_INITIAL_BANK },
+    .animationId          = ACTOR_335800_PLAYER_BALCONY_ENTRY_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
+};
 
 // Retained parameter record; layout follows the adjacent script arguments.
 AnimationPlayRequest D_actor_335800_80164E68 = { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_335800_80164E7C = { { .index = 1 }, 51, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Resets player clip 51 at Burner scene boundaries and after a battle reset.
+///
+/// Disables grid participation. Event playback resolves the weapon bank in a
+/// copy; the battle-reset task writes `source.index` in this writable record.
+static AnimationPlayRequest _gActor335800PlayerSceneAnimation51 = {
+    .source               = { .index = ACTOR_335800_PLAYER_INITIAL_BANK },
+    .animationId          = ACTOR_335800_PLAYER_SCENE_CLIP_51,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
+};
 
-// Retained parameter record; layout follows the adjacent script arguments.
-AnimationPlayRequest D_actor_335800_80164E90 = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Restores player weapon-bank clip 9 and grid participation after entry or skip.
+///
+/// Resets without blending; event playback resolves the weapon bank in its copy.
+static AnimationPlayRequest _gActor335800PlayerRestoreAnimation = {
+    .source               = { .index = ACTOR_335800_PLAYER_INITIAL_BANK },
+    .animationId          = ACTOR_335800_PLAYER_RESTORE_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE
+};
 
-ActorTransform D_actor_335800_80164EA4[5] = {
-    { { -7180, -3200, 4310, 0 }, { 0, 1024, 0, 0 } },
-    { { -6280, -3200, 1000, 0 }, { 0, 1024, 0, 0 } },
-    { { -6280, -3200, 5570, 0 }, { 0, 1024, 0, 0 } },
-    { { -6280, -3200, 1000, 0 }, { 0, 2047, 0, 0 } },
-    { { -6280, -3200, 5570, 0 }, { 0, 2047, 0, 0 } },
+/// Player poses for balcony entry and the low/high ends of later scene playback.
+///
+/// Positions use the root parent's game units, angles 4096 units per turn.
+/// Entry 0 is the entry/skip pose; 1/2 face +X at the low/high end, and 3/4
+/// use yaw 2047 at those same ends. Placement messages borrow individual entries.
+static ActorTransform _gActor335800PlayerScenePlacements[] = {
+    { { -7180, -3200, 4310, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } }, // Entry and skip recovery
+    { { -6280, -3200, 1000, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } }, // Low-end scene pose
+    { { -6280, -3200, 5570, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } }, // High-end scene pose
+    { { -6280, -3200, 1000, 0 }, { 0, 2047, 0, 0 } },                           // Low-end exit pose
+    { { -6280, -3200, 5570, 0 }, { 0, 2047, 0, 0 } },                           // High-end exit pose
 };
 
 AnimationPlayRequest D_actor_335800_80164F1C[2] = {
@@ -423,13 +476,48 @@ AnimationPlayRequest D_actor_335800_80164F1C[2] = {
     { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-AnimationPlayRequest D_actor_335800_80164F44 = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Resets Douglas's bank-0 gunshot clip in the balcony entry scene.
+///
+/// Clip 2 drives slots 1..19; slot 1's cue-2 falling edge fires the gun flash.
+/// The actor ignores the request's world-collision choice and borrows it only
+/// through dispatch; loaded clip data remains borrowed during playback.
+static AnimationPlayRequest _gActor335800GaryDouglasGunshotAnimation = {
+    .source               = { .index = ACTOR_MOTION_WALK_ANIMATION_BANK },
+    .animationId          = ACTOR_335800_GARY_DOUGLAS_GUNSHOT_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
+};
 
-AnimationPlayRequest D_actor_335800_80164F58 = { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Resets Douglas's bank-0 clip 3 after the entry scene's second placement.
+///
+/// No blend; the actor ignores the world-collision choice. The request is
+/// borrowed through dispatch and the package's clip data through playback.
+static AnimationPlayRequest _gActor335800GaryDouglasSceneAnimation3 = {
+    .source               = { .index = ACTOR_MOTION_WALK_ANIMATION_BANK },
+    .animationId          = ACTOR_335800_GARY_DOUGLAS_SCENE_CLIP_3,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
+};
 
-AnimationPlayRequest D_actor_335800_80164F6C = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Resets Douglas's bank-0 clip 4 in view 19 near the end of the entry scene.
+///
+/// No blend; the actor ignores the world-collision choice. The request is
+/// borrowed through dispatch and the package's clip data through playback.
+static AnimationPlayRequest _gActor335800GaryDouglasSceneAnimation4 = {
+    .source               = { .index = ACTOR_MOTION_WALK_ANIMATION_BANK },
+    .animationId          = ACTOR_335800_GARY_DOUGLAS_SCENE_CLIP_4,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
+};
 
-ActorTransform D_actor_335800_80164F80 = { { -4000, 0, 1970, 0 }, { 0, 2047, 0, 0 } };
+/// Douglas's initial entry-scene pose and reference for the moving ground shadow.
+///
+/// Position uses root-parent game units and yaw 2047 in a 4096-unit turn. The
+/// shadow begins 1000 units below this Z and decelerates after passing it.
+static ActorTransform _gActor335800GaryDouglasSceneArrivalPlacement = { { -4000, 0, 1970, 0 }, { 0, 2047, 0, 0 } };
 
 ActorTransform D_actor_335800_80164F98 = { { -7730, 0, 1280, 0 }, { 0, -1024, 0, 0 } };
 
@@ -451,25 +539,62 @@ ActorCommand D_actor_335800_80165024 = { { .loc = { 3, 29 } }, 2 };
 
 ActorCommand D_actor_335800_80165028 = { { .loc = { 3, 29 } }, 3 };
 
-ActorCommand D_actor_335800_8016502C = { { .loc = { 3, 29 } }, 0xFFFF };
+/// Commands in the Burner's stage-3/area-29 namespace.
+enum {
+    ACTOR_335800_BURNER_COMMAND_BEGIN_FIGHT   = 0xFFFF,
+    ACTOR_335800_BURNER_COMMAND_TURN          = 6,
+    ACTOR_335800_BURNER_COMMAND_FLAME_RETREAT = 7,
+    ACTOR_335800_BURNER_COMMAND_DEPARTURE     = 8,
+    ACTOR_335800_BURNER_COMMAND_DEFEAT        = 10
+};
+
+/// Command returning the Burner from the entry scene to combat initialization.
+///
+/// Context is stage 3/area 29. Value 65535 selects task state 2, whose callback
+/// runs combat, and clears both behaviour and substate. Dispatch borrows this record.
+static ActorCommand _gActor335800BurnerBeginFightCommand = { .context = { .loc = { 3, 29 } }, .command = ACTOR_335800_BURNER_COMMAND_BEGIN_FIGHT };
 
 ActorCommand D_actor_335800_80165030 = { { .loc = { 3, 29 } }, 4 };
 
 ActorCommand D_actor_335800_80165034 = { { .loc = { 3, 29 } }, 5 };
 
-ActorCommand D_actor_335800_80165038 = { { .loc = { 3, 29 } }, 6 };
+/// Command selecting the Burner's turn-to-walk scene sequence.
+///
+/// Context is stage 3/area 29. Value 6 enters scene task state 1, selects scene
+/// sequence 6 and resets its substate. Both later balcony scenes borrow this record.
+static ActorCommand _gActor335800BurnerTurnCommand = { .context = { .loc = { 3, 29 } }, .command = ACTOR_335800_BURNER_COMMAND_TURN };
 
-ActorCommand D_actor_335800_8016503C = { { .loc = { 3, 29 } }, 7 };
+/// Command selecting the Burner's flame bursts and walking retreat.
+///
+/// Context is stage 3/area 29. Value 7 enters scene task state 1, selects scene
+/// sequence 7 and resets its substate. Stream 59's ending borrows this record.
+static ActorCommand _gActor335800BurnerFlameRetreatCommand = { .context = { .loc = { 3, 29 } }, .command = ACTOR_335800_BURNER_COMMAND_FLAME_RETREAT };
 
-ActorCommand D_actor_335800_80165040 = { { .loc = { 3, 29 } }, 8 };
+/// Command selecting the Burner's final departure and reward release.
+///
+/// Context is stage 3/area 29. Value 8 enters scene task state 1, selects scene
+/// sequence 8 and resets its substate. Stream 59's ending borrows this record.
+static ActorCommand _gActor335800BurnerDepartureCommand = { .context = { .loc = { 3, 29 } }, .command = ACTOR_335800_BURNER_COMMAND_DEPARTURE };
 
-ActorCommand D_actor_335800_80165044 = { { .loc = { 3, 29 } }, 10 };
+/// Command selecting the Burner's defeat task state during stream 60's ending.
+///
+/// Context is stage 3/area 29. Value 10 selects task state 3 and clears behaviour
+/// and substate. Dispatch borrows this complete four-byte record.
+static ActorCommand _gActor335800BurnerDefeatCommand = { .context = { .loc = { 3, 29 } }, .command = ACTOR_335800_BURNER_COMMAND_DEFEAT };
 
 EvsSceneKey D_actor_335800_80165048 = { 3, 58, 11 };
 
-EvsSceneKey D_actor_335800_80165050 = { 3, 59, 11 };
+/// Stream key for the balcony scene that ends with the Burner's retreat.
+///
+/// Group 3, stream 59, first qualifier 11; the second qualifier is implicitly
+/// zero. Caption/audio selection borrows the key until the event script ends.
+static EvsSceneKey _gActor335800BurnerRetreatSceneKey = { .group = 3, .streamId = 59, .subId = 11 };
 
-EvsSceneKey D_actor_335800_80165058 = { 3, 60, 11 };
+/// Stream key for the balcony scene that ends with the Burner's defeat.
+///
+/// Group 3, stream 60, first qualifier 11; the second qualifier is implicitly
+/// zero. Caption/audio selection borrows the key until the event script ends.
+static EvsSceneKey _gActor335800BurnerDefeatSceneKey = { .group = 3, .streamId = 60, .subId = 11 };
 
 EvsCommand D_actor_335800_80165060[72] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800SetStageAmbientMuted }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -480,13 +605,13 @@ EvsCommand D_actor_335800_80165060[72] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800StageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800SpawnSceneScreenShake }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_335800_80164E24 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = D_actor_335800_80164EA4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor335800CopyPlayerSceneAnimations } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = _gActor335800PlayerScenePlacements } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 22 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_335800_80164E54 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor335800PlayerBalconyEntryAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_335800_80165034 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800StartScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -512,8 +637,8 @@ EvsCommand D_actor_335800_80165060[72] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_actor_335800_80164F80 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_335800_80164F44 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor335800GaryDouglasSceneArrivalPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor335800GaryDouglasGunshotAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 21 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800SpawnSceneGroundShadow }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -522,23 +647,23 @@ EvsCommand D_actor_335800_80165060[72] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_335800_80164FC8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_actor_335800_80164F98 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_335800_80164F58 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor335800GaryDouglasSceneAnimation3 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_335800_80165028 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_actor_335800_80164FB0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 45 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_335800_80164F6C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor335800GaryDouglasSceneAnimation4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 45 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 29 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800FinishStreamedScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_335800_80164E90 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor335800PlayerRestoreAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_335800_8016502C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor335800BurnerBeginFightCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -561,12 +686,12 @@ EvsCommand D_actor_335800_80165798[19] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800SetStageAmbientMuted }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800LockAttachmentsAndCancelEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_335800_80164E90 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = D_actor_335800_80164EA4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor335800PlayerRestoreAnimation }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = _gActor335800PlayerScenePlacements } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_335800_8016502C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor335800BurnerBeginFightCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800EnableDisplay }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -576,105 +701,143 @@ EvsCommand D_actor_335800_80165798[19] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_335800_80165960[21] = {
+/// Scene-script selectors and cues used by the two Burner endings.
+enum {
+    ACTOR_335800_BURNER_PLACEMENT    = 0,
+    ACTOR_335800_SCENE_ROOM          = 3,
+    ACTOR_335800_RETREAT_SCENE_EVENT = 7,
+    ACTOR_335800_DEFEAT_SOUND        = 0x401F000A,
+    ACTOR_335800_SCENE_FADE_WHITE    = 1
+};
+
+/// Common opening subscript for the Burner's retreat and defeat streams.
+///
+/// Requires a selected stream with staged audio, the night-balcony resources,
+/// the player and its writable weapon-animation bank. Locks attachments, hides
+/// the player, starts playback and times the lamp sprites before selecting
+/// room 3 and objective 24. All 21 commands remain loaded until RETURN pops
+/// the caller; waits count interpreter updates and a zero wait still yields.
+static EvsCommand _gActor335800BalconySceneOpeningScript[] = {
+    // Hold presentation and install the player's package-owned clips before playback.
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800LockAttachmentsAndCancelEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 12 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_335800_80164E24 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_335800_80164E40 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor335800CopyPlayerSceneAnimations } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor335800PlayerSceneOpeningAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800PlacePlayerForScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800SpawnSceneScreenShake }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800StartScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 140 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 38 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Time the balcony lamp burst against the selected stream.
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 39 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800SetSceneSpriteBatchesHidden }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800SetSceneSpriteBatchesHidden }, { .value = false }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800SetSceneSpriteBatchesHidden }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800SetSceneSpriteBatchesHidden }, { .value = true }, { .value = false }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 42 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 37 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 150 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _actor335800SetSceneRoom }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Keep the stream active as control returns to its retreat or defeat ending.
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _actor335800SetSceneRoom }, { .value = ACTOR_335800_SCENE_ROOM }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800SetPostSceneObjective }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-EvsCommand D_actor_335800_80165B58[26] = {
+/// Stream 59's ending: Burner flame retreat, departure and return to play.
+///
+/// Called after the common opening with the Burner at placement index 0 and
+/// the player and balcony resources loaded. Runs scene sequences 7 and 8,
+/// finishes streaming, restores the player/view and selects scene event 7.
+/// The 26 commands and borrowed payloads remain loaded through RETURN;
+/// this subscript requires a live caller on the interpreter's return stack.
+static EvsCommand _gActor335800BurnerRetreatSceneEndingScript[] = {
+    // Hide the player while the Burner emits flames and retreats.
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 36 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_335800_80164E24 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_335800_80164E7C }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_335800_8016503C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor335800CopyPlayerSceneAnimations } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor335800PlayerSceneAnimation51 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_BURNER_PLACEMENT }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor335800BurnerFlameRetreatCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 270 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // The departure sequence also releases the encounter reward.
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 29 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_335800_80165040 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_BURNER_PLACEMENT }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor335800BurnerDepartureCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 180 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800FinishStreamedScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800SetStageAmbientMuted }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Restore the ordinary balcony view and model before releasing scripted control.
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800SetStageAmbientMuted }, { .value = false }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800RestorePlayerView }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800PlacePlayerAfterScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800PlacePlayerAfterScene }, { .value = false }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 100 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _actor335800SetSceneEvent }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _actor335800SetSceneEvent }, { .value = ACTOR_335800_RETREAT_SCENE_EVENT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-EvsCommand D_actor_335800_80165DC8[21] = {
+/// Stream 60's ending: Burner defeat, sound cue and return to player control.
+///
+/// Called after the common opening with the Burner at placement index 0 and
+/// its sound bank and balcony resources loaded. Enters Burner defeat, places
+/// the player with quarter-turn yaw, fades to white, ends streaming, restores
+/// the model/view and releases scripted control. All 21 commands and payloads
+/// remain loaded through RETURN, which requires a live script caller.
+static EvsCommand _gActor335800BurnerDefeatSceneEndingScript[] = {
+    // Keep the player hidden through the Burner's defeat playback.
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 36 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_335800_80164E24 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_335800_80164E7C }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_335800_80165044 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor335800CopyPlayerSceneAnimations } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor335800PlayerSceneAnimation51 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_BURNER_PLACEMENT }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor335800BurnerDefeatCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 300 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 37 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800PlacePlayerAfterScene }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800PlacePlayerAfterScene }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 180 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x401F000A }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 1 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Use the Burner's loaded sound bank during the white-fade transition.
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = ACTOR_335800_DEFEAT_SOUND }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = ACTOR_335800_SCENE_FADE_WHITE }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800FinishStreamedScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800SetStageAmbientMuted }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800SetStageAmbientMuted }, { .value = false }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800RestorePlayerView }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 75 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
 EvsCommand D_actor_335800_80165FC0[9] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_335800_80164E24 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_335800_80164E7C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor335800CopyPlayerSceneAnimations } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor335800PlayerSceneAnimation51 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_335800_80165050 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gActor335800BurnerRetreatSceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800StageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_335800_80165038 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALL_SCRIPT, { .commands = D_actor_335800_80165960 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALL_SCRIPT, { .commands = D_actor_335800_80165B58 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor335800BurnerTurnCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALL_SCRIPT, { .commands = _gActor335800BalconySceneOpeningScript }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALL_SCRIPT, { .commands = _gActor335800BurnerRetreatSceneEndingScript }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_335800_80166098[10] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_335800_80164E24 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_335800_80164E7C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor335800CopyPlayerSceneAnimations } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor335800PlayerSceneAnimation51 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800StopStageMusic }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_335800_80165058 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gActor335800BurnerDefeatSceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800StageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_335800_80165038 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALL_SCRIPT, { .commands = D_actor_335800_80165960 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALL_SCRIPT, { .commands = D_actor_335800_80165DC8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor335800BurnerTurnCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALL_SCRIPT, { .commands = _gActor335800BalconySceneOpeningScript }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALL_SCRIPT, { .commands = _gActor335800BurnerDefeatSceneEndingScript }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -862,7 +1025,12 @@ static AnimationSet _gActor335800Animation0CC7C = {
     { NULL, _gActor335800Animation0CC7CBank1, NULL, NULL, _gActor335800Animation0CC7CBank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_actor_335800_8016EAC4[5] = {
+/// Gary Douglas's bank-0 clip table for his twenty-part rig.
+///
+/// Clip IDs 1..4 borrow the four loaded animation sets; entry 0 is NULL and
+/// cannot be played. `gActorMotionAnimBanks[0]` supplies this table to the rig.
+/// The table and all referenced data must stay loaded while playback uses them.
+static AnimationSet* _gActor335800GaryDouglasAnimationBank[] = {
     NULL,
     &_gActor335800Animation0AB18,
     &_gActor335800Animation0B59C,
@@ -871,13 +1039,13 @@ AnimationSet* D_actor_335800_8016EAC4[5] = {
 };
 
 AnimationSet** gActorMotionAnimBanks[1] = {
-    D_actor_335800_8016EAC4,
+    _gActor335800GaryDouglasAnimationBank,
 };
 
-TaskDesc D_actor_335800_8016EADC[3] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor335800GaryDouglasTask, { .model = &_gActor335800GaryDouglasBody } },
-    { { { TASK_BODY_TMD, 192 } }, _actor335800GaryDouglasPartTask, { .model = &_gActor335800GaryDouglasHeadHat } },
-    { { { TASK_BODY_TMD, 192 } }, _actor335800GaryDouglasPartTask, { .model = &_gActor335800Actor120300Model082F8 } },
+TaskDesc gActor335800GaryDouglasTasks[3] = {
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_335800_TASK_PRIORITY } }, _actor335800GaryDouglasTask, { .model = &_gActor335800GaryDouglasBody } },
+    { { { TASK_BODY_TMD, ACTOR_335800_TASK_PRIORITY } }, _actor335800GaryDouglasPartTask, { .model = &_gActor335800GaryDouglasHeadHat } },
+    { { { TASK_BODY_TMD, ACTOR_335800_TASK_PRIORITY } }, _actor335800GaryDouglasPartTask, { .model = &_gActor335800Actor120300Model082F8 } },
 };
 
 TaskMessageEntry D_actor_335800_8016EB00[6] = {
@@ -961,9 +1129,16 @@ static AnimationSet** _gActor335800FlintAnimationBanks[1] = {
     _gActor335800FlintAnimationBank,
 };
 
-TaskDesc D_actor_335800_80172E9C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor335800FlintTask, { .model = &_gActor335800FlintBody } };
+TaskDesc gActor335800FlintTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_335800_TASK_PRIORITY } }, _actor335800FlintTask, { .model = &_gActor335800FlintBody } };
 
-TaskMessageEntry D_actor_335800_80172EA8[6] = {
+/// Flint's synchronous placed-actor message table.
+///
+/// Plays clips, applies full Euler placement, changes drawing, starts a walk,
+/// and ignores actor commands. The final end-ID/NULL pair stops unsupported
+/// lookups; the table and callbacks must stay loaded while his task can receive
+/// messages. Walks require explicit valid clips: the retained NULL default
+/// selects clip 13 beyond Flint's two-entry bank.
+static TaskMessageEntry _gActor335800FlintMessages[] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor335800FlintPlayAnimation },
     { ACTOR_MESSAGE_PLACE, _actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor335800FlintSetDrawMode },
@@ -1021,12 +1196,12 @@ static void _actor335800SceneGroundShadowTask(Task* task)
     coord = task->extra.coordBody->coord;
     switch (task->state) {
         case ACTOR_335800_SHADOW_INIT:
-            _actor335800PlaceSceneShadow(coord, &D_actor_335800_80164F80);
+            _actor335800PlaceSceneShadow(coord, &_gActor335800GaryDouglasSceneArrivalPlacement);
             task->killCountdown = ACTOR_335800_SHADOW_INITIAL_SPEED;
             task->state++;
             // Initialization also performs the first movement tick.
         case ACTOR_335800_SHADOW_MOVING:
-            if (D_actor_335800_80164F80.pos.vz < coord->coord.t[2]) {
+            if (_gActor335800GaryDouglasSceneArrivalPlacement.pos.vz < coord->coord.t[2]) {
                 task->killCountdown -= ACTOR_335800_SHADOW_DECELERATION;
                 if (task->killCountdown < ACTOR_335800_SHADOW_STOP_SPEED) {
                     task->killCountdown = 0;
@@ -1095,7 +1270,7 @@ static void _actor335800CancelStreamedScene(void)
 static void _actor335800SpawnSceneGroundShadow(void)
 {
     enum { ACTOR_335800_SCENE_GROUND_SHADOW_TASK = 0 };
-    taskSpawnFromTable(D_actor_335800_80164DE0, ACTOR_335800_SCENE_GROUND_SHADOW_TASK, 0, 0);
+    taskSpawnFromTable(_gActor335800SceneTasks, ACTOR_335800_SCENE_GROUND_SHADOW_TASK, 0, 0);
 }
 
 /// Selects the saved and live scene room and requests deferred object relinking.
@@ -1123,10 +1298,10 @@ static void _actor335800PlacePlayerForScene(void)
     if (playerTask != NULL) {
         coord = playerTask->extra.tmd->coords;
         if ((u32)(coord->coord.t[2] - ACTOR_335800_BALCONY_SPLIT_Z) < ACTOR_335800_BALCONY_HIGH_SCENE_Z - ACTOR_335800_BALCONY_SPLIT_Z) {
-            TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_335800_80164EA4[ACTOR_335800_BALCONY_HIGH_PLACEMENT], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_PLACE, &_gActor335800PlayerScenePlacements[ACTOR_335800_BALCONY_HIGH_PLACEMENT], 0);
         }
         if ((u32)(coord->coord.t[2] - ACTOR_335800_BALCONY_LOW_SCENE_Z) < ACTOR_335800_BALCONY_SPLIT_Z - ACTOR_335800_BALCONY_LOW_SCENE_Z) {
-            TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_335800_80164EA4[ACTOR_335800_BALCONY_LOW_PLACEMENT], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_PLACE, &_gActor335800PlayerScenePlacements[ACTOR_335800_BALCONY_LOW_PLACEMENT], 0);
         }
     }
 }
@@ -1155,9 +1330,9 @@ static void _actor335800PlacePlayerAfterScene(s32 faceQuarterTurn)
             highPlacementIndex = ACTOR_335800_BALCONY_HIGH_EXIT_PLACEMENT;
         }
         if (coord->coord.t[2] >= ACTOR_335800_BALCONY_SPLIT_Z) {
-            TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_335800_80164EA4[highPlacementIndex], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_PLACE, &_gActor335800PlayerScenePlacements[highPlacementIndex], 0);
         } else {
-            TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_335800_80164EA4[lowPlacementIndex], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_PLACE, &_gActor335800PlayerScenePlacements[lowPlacementIndex], 0);
         }
     }
 }
@@ -1321,7 +1496,7 @@ static void _actor335800SetStageAmbientMuted(s32 muted)
 ///
 /// Requires a live player and the package's animation bank and request.
 /// Retrieves the player slot before writing the weapon-animation bank index,
-/// then synchronously plays bank 1 clip 51. A missing player is not tested;
+/// then synchronously plays clip 51 in that bank. A missing player is not tested;
 /// the reset flag remains set. The task waits indefinitely while it is clear.
 static void _actor335800RestorePlayerAnimationOnBattleResetTask(Task* task)
 {
@@ -1329,8 +1504,8 @@ static void _actor335800RestorePlayerAnimationOnBattleResetTask(Task* task)
 
     if (gGameSession->battleResetPending != 0) {
         playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-        playerActorWriteWeaponAnimationBankIndex(&D_actor_335800_80164E7C.source.index);
-        TASK_MESSAGE_DISPATCH_POINTER(playerTask, ANIMATION_MESSAGE_PLAY, &D_actor_335800_80164E7C, 0);
+        playerActorWriteWeaponAnimationBankIndex(&_gActor335800PlayerSceneAnimation51.source.index);
+        TASK_MESSAGE_DISPATCH_POINTER(playerTask, ANIMATION_MESSAGE_PLAY, &_gActor335800PlayerSceneAnimation51, 0);
         taskKill(task);
     }
 }
@@ -1339,7 +1514,7 @@ static void _actor335800RestorePlayerAnimationOnBattleResetTask(Task* task)
 static void _actor335800SpawnSceneScreenShake(void)
 {
     enum { ACTOR_335800_SCENE_SCREEN_SHAKE_TASK = 3 };
-    taskSpawnFromTable(D_actor_335800_80164DE0, ACTOR_335800_SCENE_SCREEN_SHAKE_TASK, 0, 0);
+    taskSpawnFromTable(_gActor335800SceneTasks, ACTOR_335800_SCENE_SCREEN_SHAKE_TASK, 0, 0);
 }
 
 /// Samples a one-pixel shake from vibration task activity and the tick's parity.
@@ -1441,7 +1616,7 @@ static void _actor335800GaryDouglasInit(Task* task)
     work->walk.carry[2].word = 0;
     // Attached head and gun inherit this enemy placement's texture offsets.
     // Resolve each attached model's texture offsets from this enemy's area placement.
-    partTask = taskSpawnFromTable(D_actor_335800_8016EADC, ACTOR_335800_DOUGLAS_HEAD_TASK, ACTOR_335800_DOUGLAS_HEAD_PART, task);
+    partTask = taskSpawnFromTable(gActor335800GaryDouglasTasks, ACTOR_335800_DOUGLAS_HEAD_TASK, ACTOR_335800_DOUGLAS_HEAD_PART, task);
     if (partTask != NULL) {
         TmdObject*     partModel;
         AreaVariant*   areaVariant;
@@ -1461,7 +1636,7 @@ static void _actor335800GaryDouglasInit(Task* task)
         placement   = gpAreaPlaceAt(areaVariant->placements, placementIndex);
         _actorRenderApplyPartPlacementTextures(partModel, placement);
     }
-    partTask = taskSpawnFromTable(D_actor_335800_8016EADC, ACTOR_335800_DOUGLAS_GUN_TASK, ACTOR_335800_DOUGLAS_GUN_PART, task);
+    partTask = taskSpawnFromTable(gActor335800GaryDouglasTasks, ACTOR_335800_DOUGLAS_GUN_TASK, ACTOR_335800_DOUGLAS_GUN_PART, task);
     if (partTask != NULL) {
         TmdObject*     partModel;
         AreaVariant*   areaVariant;
@@ -1605,7 +1780,7 @@ static void _actor335800GaryDouglasPartTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_actor_335800_80161E24;
+    handlers = _gActor335800GaryDouglasPartStates;
     handlers.funcs[task->state](task);
 }
 
@@ -1676,7 +1851,7 @@ static void _actor335800GaryDouglasRunWalkStep(Task* task)
     TaskFuncTable4               handlers;
 
     work     = task->work;
-    handlers = D_actor_335800_80161E3C;
+    handlers = _gActor335800GaryDouglasWalkSteps;
     handlers.funcs[work->walk.motionStep](task);
 }
 
@@ -1699,7 +1874,7 @@ static void _actor335800GaryDouglasBeginApproach(Task* task)
     work      = task->work;
 
     // Rotate velocity without adding the root's translation.
-    forwardVelocity = D_actor_335800_80161E4C;
+    forwardVelocity = _gActor335800GaryDouglasForwardVelocity;
     ApplyMatrixLV(&rootCoord->coord, &forwardVelocity, &work->walk.velocity);
     work->walk.lastDistance.vx = ACTOR_WALK_DISTANCE_NONE;
     work->walk.lastDistance.vy = ACTOR_WALK_DISTANCE_NONE;
@@ -1964,7 +2139,7 @@ static void _actor335800FlintTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_actor_335800_80161E5C;
+    handlers = _gActor335800FlintStates;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         handlers.funcs[task->state](task);
     }
@@ -1997,7 +2172,7 @@ static void _actor335800FlintInit(Task* task)
 
     _actor335800FlintBindLighting(task);
 
-    task->msgTable     = D_actor_335800_80172EA8;
+    task->msgTable     = _gActor335800FlintMessages;
     task->exitCallback = _actor335800FlintExit;
     task->state       += 1;
 }
@@ -2043,7 +2218,7 @@ static void _actor335800FlintRunWalkStep(Task* task)
     _Actor335800FlintWork* work;
 
     work     = task->work;
-    handlers = D_actor_335800_80161E68;
+    handlers = _gActor335800FlintWalkSteps;
     handlers.funcs[work->walk.motionStep](task);
 }
 
@@ -2096,7 +2271,7 @@ static void _actor335800FlintBeginApproach(Task* task)
     coord = task->extra.tmd->coords;
     work  = task->work;
 
-    localVelocity = D_actor_335800_80161E78;
+    localVelocity = _gActor335800FlintForwardVelocity;
     ApplyMatrixLV(&coord->coord, &localVelocity, &work->walk.velocity);
     work->walk.lastDistance.vx = ACTOR_WALK_DISTANCE_NONE;
     work->walk.lastDistance.vy = ACTOR_WALK_DISTANCE_NONE;

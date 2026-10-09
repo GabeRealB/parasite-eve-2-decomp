@@ -84572,9 +84572,9 @@ An actor or room function that republishes the equipped weapon to pointer slot 3
 reads like this in the m2c seed:
 
 ```c
-extern s32 D_actor_335800_80164E7C;                    /* wrong width */
-playerActorWriteWeaponAnimationBankIndex(&D_actor_335800_80164E7C);
-taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E8, &D_actor_335800_80164E7C, 0);
+extern s32 _gActor335800PlayerSceneAnimation51;                    /* wrong width */
+playerActorWriteWeaponAnimationBankIndex(&_gActor335800PlayerSceneAnimation51);
+taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E8, &_gActor335800PlayerSceneAnimation51, 0);
 ```
 
 The payload is not an `s32`: it is the five-word `AnimationPlayRequest`
@@ -84667,7 +84667,7 @@ What transfers is the *body shape*, not the sibling's header. Its
 `step`/`limit`/`turnCount` trio is this overlay's `step`/`limit`/`field_4C2`
 (0x490/0x4B0/0x4C2), and that last field is a state index: this overlay's
 dispatcher `_actor335800FlintRunWalkStep` copies the four-entry table
-`D_actor_335800_80161E68` onto the stack and indexes it with a sign-extending
+`_gActor335800FlintWalkSteps` onto the stack and indexes it with a sign-extending
 `lh` of 0x4C2, so the body's `field_4C2++` is what advances the state. Pair the
 twin with the overlay's *table* before writing the fields: the counter, the
 `VECTOR3 step` `ApplyMatrixLV` writes and the `SVECTOR limit` it opens are three
@@ -99291,7 +99291,7 @@ reference pins the init where it was written:
             unit = lowIdx * 3;
             SOFT_USE_REG(msgId);       /* ref 3, emits nothing */
         }
-        taskMessageDispatch(slot, msgId, (s32)((unit * 8) + (s32)D_actor_335800_80164EA4), 0);
+        taskMessageDispatch(slot, msgId, (s32)((unit * 8) + (s32)_gActor335800PlayerScenePlacements), 0);
 ```
 
 The soft use must not sit *between* the init and the branch: the backward scan

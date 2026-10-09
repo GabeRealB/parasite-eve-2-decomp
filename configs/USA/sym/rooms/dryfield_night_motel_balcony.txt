@@ -138,8 +138,8 @@ gActor01500MindSucklerTaskDesc = 0x8013BE28; // absolute:True owner=actor_101500
 gActor101600ScavengerTaskDesc = 0x801445DC; // absolute:True owner=actor_101600
 D_actor_400600_80151B10 = 0x80151B10; // absolute:True owner=actor_400600
 D_actor_403100_8015560C = 0x8015560C; // absolute:True owner=actor_403100
-D_actor_335800_8016EADC = 0x8016EADC; // absolute:True owner=actor_335800
-D_actor_335800_80172E9C = 0x80172E9C; // absolute:True owner=actor_335800
+gActor335800GaryDouglasTasks = 0x8016EADC; // absolute:True owner=actor_335800
+gActor335800FlintTaskDesc = 0x80172E9C; // absolute:True owner=actor_335800
 D_map_dryfield_full_8017CA28 = 0x8017CA28; // absolute:True owner=map_dryfield_full
 D_map_dryfield_full_8017CA88 = 0x8017CA88; // absolute:True owner=map_dryfield_full
 D_map_dryfield_full_8017CAC8 = 0x8017CAC8; // absolute:True owner=map_dryfield_full
