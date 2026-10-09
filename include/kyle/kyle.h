@@ -3,8 +3,11 @@
 
 #include "main/tmd_types.h"
 
-/// Models those descriptors attach, named after the package that holds them.
-extern TmdSource D_kyle_800101_8016C594;
+/// Kyle Madigan's twenty-part companion body for resource variant 1.
+///
+/// Borrows this package's geometry and writable command stream. Keep the
+/// package loaded until all models using this source have been released.
+extern TmdSource gKyle800101KyleMadiganBody;
 
 extern TmdSource D_kyle_800101_8016C9E8;
 
@@ -14,7 +17,11 @@ extern TmdSource D_kyle_800101_8016D32C;
 
 extern TmdSource D_kyle_800101_8016D81C;
 
-extern TmdSource D_kyle_800103_8016C594;
+/// Kyle Madigan's twenty-part companion body for resource variant 3.
+///
+/// Borrows this package's geometry and writable command stream. Keep the
+/// package loaded until all models using this source have been released.
+extern TmdSource gKyle800103KyleMadiganBody;
 
 extern TmdSource D_kyle_800103_8016C9E8;
 
@@ -24,7 +31,11 @@ extern TmdSource D_kyle_800103_8016D32C;
 
 extern TmdSource D_kyle_800103_8016D81C;
 
-extern TmdSource D_kyle_800104_8016C594;
+/// Kyle Madigan's twenty-part companion body for resource variant 4.
+///
+/// Borrows this package's geometry and writable command stream. Keep the
+/// package loaded until all models using this source have been released.
+extern TmdSource gKyle800104KyleMadiganBody;
 
 extern TmdSource D_kyle_800104_8016C9E8;
 
@@ -34,7 +45,11 @@ extern TmdSource D_kyle_800104_8016D32C;
 
 extern TmdSource D_kyle_800104_8016D81C;
 
-extern TmdSource D_kyle_800102_8016CE38;
+/// Kyle Madigan's twenty-part companion body for resource variant 2.
+///
+/// Borrows this package's geometry and writable command stream. Keep the
+/// package loaded until all models using this source have been released.
+extern TmdSource gKyle800102KyleMadiganBody;
 
 extern TmdSource D_kyle_800102_8016D28C;
 

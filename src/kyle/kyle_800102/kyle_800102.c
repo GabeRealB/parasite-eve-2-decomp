@@ -2,11 +2,13 @@
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 
 #include "gte.h"
 #include "types.h"
 
+#include "kyle/kyle.h"
 #include "kyle_800102_private.h"
 
 #include "gameplay/actor.h"
@@ -28,7 +30,6 @@
 #include "main/session_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
-#include "main/tmd_types.h"
 
 #include "weapons/weapon.h"
 #include "../../shared/grenade_shell.h"
@@ -56,36 +57,45 @@ void kyle800102GrenadeShellTask(Task* projectileTask)
     stateHandlers[projectileTask->state](projectileTask);
 }
 
-static TmdBone _gKyle800102KyleMadiganBodySkeleton[20] = {
+/// Initial part-local pose and parent indices copied into each body model.
+static TmdBone _gKyle800102KyleMadiganBodySkeleton[] = {
 #include "assets/kyle_madigan_body_skeleton.inc"
 };
 
-static u32 _gKyle800102KyleMadiganBodyPartVerts[20] = {
+/// Vertex counts for the twenty consecutive part-local groups, totalling 300.
+static u32 _gKyle800102KyleMadiganBodyPartVerts[] = {
 #include "assets/kyle_madigan_body_partVerts.inc"
 };
 
-static SVECTOR _gKyle800102KyleMadiganBodyVerts[300] = {
+/// Body vertices in integer part-local coordinates, ordered by skeletal part.
+static SVECTOR _gKyle800102KyleMadiganBodyVerts[] = {
 #include "assets/kyle_madigan_body_verts.inc"
 };
 
-static SVECTOR _gKyle800102KyleMadiganBodyNormals[298] = {
+/// Body lighting normals with twelve fractional bits, indexed independently of vertices.
+static SVECTOR _gKyle800102KyleMadiganBodyNormals[] = {
 #include "assets/kyle_madigan_body_normals.inc"
 };
 
-static u32 _gKyle800102KyleMadiganBodyStream[3412] = {
+/// Writable draw commands: twenty skeletal groups and a final pre-transformed group.
+///
+/// First model creation resolves handler slots in place; the last word is
+/// `TMD_STREAM_END`. Projection commands fill the first primitive-buffer region.
+static u32 _gKyle800102KyleMadiganBodyStream[] = {
 #include "assets/kyle_madigan_body_stream.inc"
 };
 
-TmdSource D_kyle_800102_8016CE38 = {
-    0,
-    18224,
-    5696,
-    20,
-    _gKyle800102KyleMadiganBodyPartVerts,
-    _gKyle800102KyleMadiganBodyVerts,
-    _gKyle800102KyleMadiganBodyNormals,
-    _gKyle800102KyleMadiganBodySkeleton,
-    _gKyle800102KyleMadiganBodyStream,
+TmdSource gKyle800102KyleMadiganBody = {
+    .handlersResolved = false,
+    // Each half holds all textured faces and one untextured Gouraud triangle.
+    .bufferHalfBytes     = (204 * sizeof(POLY_GT3)) + (193 * sizeof(POLY_GT4)) + sizeof(POLY_G3),
+    .preXformRegionBytes = (80 * sizeof(POLY_GT3)) + (48 * sizeof(POLY_GT4)),
+    .partCount           = ARRAY_SIZE(_gKyle800102KyleMadiganBodySkeleton),
+    .partVertexCounts    = _gKyle800102KyleMadiganBodyPartVerts,
+    .verts               = _gKyle800102KyleMadiganBodyVerts,
+    .normals             = _gKyle800102KyleMadiganBodyNormals,
+    .skeleton            = _gKyle800102KyleMadiganBodySkeleton,
+    .stream              = _gKyle800102KyleMadiganBodyStream,
 };
 
 static TmdBone _gKyle800102KyleMadiganHandRightSkeleton[1] = {

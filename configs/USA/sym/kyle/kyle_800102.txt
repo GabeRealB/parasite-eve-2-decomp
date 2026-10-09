@@ -1,5 +1,5 @@
 // Overlay-local symbols for kyle_800102 (file 800102).
-D_kyle_800102_8016CE38 = 0x8016CE38; // model named by a task descriptor
+gKyle800102KyleMadiganBody = 0x8016CE38; // model named by a task descriptor
 D_kyle_800102_8016D28C = 0x8016D28C; // model named by a task descriptor
 D_kyle_800102_8016D77C = 0x8016D77C; // model named by a task descriptor
 D_kyle_800102_8016DBD0 = 0x8016DBD0; // model named by a task descriptor

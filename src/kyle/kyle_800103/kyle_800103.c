@@ -1,40 +1,51 @@
+#include "kyle/kyle.h"
+
 #include <psyq/sys/types.h>
+#include <psyq/libgpu.h>
 
 #include "types.h"
 
-#include "main/tmd_types.h"
 #include "gameplay/animation.h"
 
-static TmdBone _gKyle800103KyleMadiganBodySkeleton[20] = {
+/// Initial part-local pose and parent indices copied into each body model.
+static TmdBone _gKyle800103KyleMadiganBodySkeleton[] = {
 #include "assets/kyle_madigan_body_skeleton.inc"
 };
 
-static u32 _gKyle800103KyleMadiganBodyPartVerts[20] = {
+/// Vertex counts for the twenty consecutive part-local groups, totalling 300.
+static u32 _gKyle800103KyleMadiganBodyPartVerts[] = {
 #include "assets/kyle_madigan_body_partVerts.inc"
 };
 
-static SVECTOR _gKyle800103KyleMadiganBodyVerts[300] = {
+/// Body vertices in integer part-local coordinates, ordered by skeletal part.
+static SVECTOR _gKyle800103KyleMadiganBodyVerts[] = {
 #include "assets/kyle_madigan_body_verts.inc"
 };
 
-static SVECTOR _gKyle800103KyleMadiganBodyNormals[298] = {
+/// Body lighting normals with twelve fractional bits, indexed independently of vertices.
+static SVECTOR _gKyle800103KyleMadiganBodyNormals[] = {
 #include "assets/kyle_madigan_body_normals.inc"
 };
 
-static u32 _gKyle800103KyleMadiganBodyStream[3412] = {
+/// Writable draw commands: twenty skeletal groups and a final pre-transformed group.
+///
+/// First model creation resolves handler slots in place; the last word is
+/// `TMD_STREAM_END`. Projection commands fill the first primitive-buffer region.
+static u32 _gKyle800103KyleMadiganBodyStream[] = {
 #include "assets/kyle_madigan_body_stream.inc"
 };
 
-TmdSource D_kyle_800103_8016C594 = {
-    0,
-    18224,
-    5696,
-    20,
-    _gKyle800103KyleMadiganBodyPartVerts,
-    _gKyle800103KyleMadiganBodyVerts,
-    _gKyle800103KyleMadiganBodyNormals,
-    _gKyle800103KyleMadiganBodySkeleton,
-    _gKyle800103KyleMadiganBodyStream,
+TmdSource gKyle800103KyleMadiganBody = {
+    .handlersResolved = false,
+    // Each half holds all textured faces and one untextured Gouraud triangle.
+    .bufferHalfBytes     = (204 * sizeof(POLY_GT3)) + (193 * sizeof(POLY_GT4)) + sizeof(POLY_G3),
+    .preXformRegionBytes = (80 * sizeof(POLY_GT3)) + (48 * sizeof(POLY_GT4)),
+    .partCount           = ARRAY_SIZE(_gKyle800103KyleMadiganBodySkeleton),
+    .partVertexCounts    = _gKyle800103KyleMadiganBodyPartVerts,
+    .verts               = _gKyle800103KyleMadiganBodyVerts,
+    .normals             = _gKyle800103KyleMadiganBodyNormals,
+    .skeleton            = _gKyle800103KyleMadiganBodySkeleton,
+    .stream              = _gKyle800103KyleMadiganBodyStream,
 };
 
 static TmdBone _gKyle800103KyleMadiganHandRightSkeleton[1] = {
