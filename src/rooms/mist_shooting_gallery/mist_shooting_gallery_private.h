@@ -6,7 +6,15 @@
 #include "gameplay/collision.h"
 #include "gameplay/room.h"
 
-extern WorldCollisionGrid D_mist_shooting_gallery_80189968;
+/// Live gallery room collision mesh and its 7-by-4 XZ cell index.
+///
+/// Cells span 4000 room-coordinate units from origin (-12000, -7000).
+/// The 57 faces index 22 normals and 136 vertices. Story-barrier edits use
+/// faces/normals 0..2 and vertices 0..7; training-barrier edits use face/normal 3
+/// and vertices 8..11, with the retained offset pass also moving vertices 12..15.
+/// Activation binds the view transform. The descriptor and writable pools belong
+/// to the loaded gallery overlay; borrowed pointers must not outlive it.
+extern WorldCollisionGrid gMistShootingGalleryCollisionGrid;
 
 extern WorldCollisionTrigger D_mist_shooting_gallery_8018BDE8[28];
 

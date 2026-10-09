@@ -79,7 +79,13 @@ extern ViewCamera D_mist_shooting_gallery_8018998C[];
 
 extern SpriteView D_mist_shooting_gallery_8018BD10[];
 
-extern WorldCollisionSurfaceProperties* D_mist_shooting_gallery_8018E09C[];
+/// Collision and footstep properties indexed by the gallery's surface class (0..7).
+///
+/// Every class blocks probes, allows weapon impacts and applies pushback.
+/// Classes 1 and 2 select distinct footstep cue pairs; classes 0 and 3..7 share
+/// a record without footstep cues. The table and borrowed records remain valid
+/// only while the gallery overlay is loaded.
+extern WorldCollisionSurfaceProperties* gMistShootingGallerySurfacePropertiesByClass[8];
 
 /// Restores the training barrier and optionally lowers it out of the firing lane.
 ///

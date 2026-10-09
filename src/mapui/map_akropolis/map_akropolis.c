@@ -883,7 +883,7 @@ WorldCollisionSurfaceProperties** D_map_akropolis_8017AC6C[20] = {
     gAcropolisWestElevatorHallSurfacePropertiesByClass,
     gMistR18SurfacePropertiesByClass,
     D_mist_parking_801952F0,
-    D_mist_shooting_gallery_8018E09C,
+    gMistShootingGallerySurfacePropertiesByClass,
 };
 
 AreaPlacement D_map_akropolis_8017ACBC[2] = {

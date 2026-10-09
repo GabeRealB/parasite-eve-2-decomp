@@ -1204,29 +1204,47 @@ TmdSource gMistShootingGalleryModel0B6A0 = {
     _gMistShootingGalleryModel0B6A0Stream,
 };
 
-static SVECTOR _gMistShootingGalleryCollision0C3A8Normals[22] = {
+/// Writable room-space normal pool, including the four barrier normal slots.
+static SVECTOR _gMistShootingGalleryCollisionGridNormals[22] = {
 #include "assets/mist_shooting_gallery_collision_0C3A8_normals.inc"
 };
 
-static SVECTOR _gMistShootingGalleryCollision0C3A8Verts[136] = {
+/// Writable room-space vertex pool; the first sixteen slots are reserved for barrier edits.
+static SVECTOR _gMistShootingGalleryCollisionGridVerts[136] = {
 #include "assets/mist_shooting_gallery_collision_0C3A8_verts.inc"
 };
 
-static WorldCollisionGridFace _gMistShootingGalleryCollision0C3A8Faces[57] = {
+/// Room collision faces, with the first four slots populated from barrier templates.
+static WorldCollisionGridFace _gMistShootingGalleryCollisionGridFaces[57] = {
 #include "assets/mist_shooting_gallery_collision_0C3A8_faces.inc"
 };
 
-static s16 _gMistShootingGalleryCollision0C3A8Cells[474] = {
+/// Cell face-index lists, each ending at WORLD_COLLISION_GRID_CELL_END.
+static s16 _gMistShootingGalleryCollisionGridCells[474] = {
 #include "assets/mist_shooting_gallery_collision_0C3A8_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gMistShootingGalleryCollision0C3A8Cells[i])
-static s16* _gMistShootingGalleryCollision0C3A8Table[28] = {
+// The generated table supplies an element offset into the live grid's cell-list pool.
+#define GRID_CELL(i) (&_gMistShootingGalleryCollisionGridCells[i])
+/// X-major 7-by-4 directory of the live grid's face-index lists.
+static s16* _gMistShootingGalleryCollisionGridTable[28] = {
 #include "assets/mist_shooting_gallery_collision_0C3A8_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_mist_shooting_gallery_80189968 = { NULL, _gMistShootingGalleryCollision0C3A8Normals, _gMistShootingGalleryCollision0C3A8Verts, _gMistShootingGalleryCollision0C3A8Faces, _gMistShootingGalleryCollision0C3A8Table, 0x2EE0, 7000, 7, 4, 4000, 57 };
+WorldCollisionGrid gMistShootingGalleryCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gMistShootingGalleryCollisionGridNormals,
+    .vertices    = _gMistShootingGalleryCollisionGridVerts,
+    .faces       = _gMistShootingGalleryCollisionGridFaces,
+    .cellFaceIds = _gMistShootingGalleryCollisionGridTable,
+    .xBias       = 12000,
+    .zBias       = 7000,
+    .cellCountX  = 7,
+    .cellCountZ  = 4,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gMistShootingGalleryCollisionGridFaces),
+};
 
 ViewCamera D_mist_shooting_gallery_8018998C[18] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -500, 0x7530, 0 } }, 289 },
@@ -1249,248 +1267,343 @@ ViewCamera D_mist_shooting_gallery_8018998C[18] = {
     { { { { 640, 0, 4045 }, { 292, 4085, -46 }, { -4035, 295, 638 } }, { -3070, 1850, -1700 } }, 257 },
 };
 
-SpriteBatch D_mist_shooting_gallery_80189C14[2] = {
+/// Initial colour modulation and code flags for gallery background sprites.
+enum {
+    MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB = 128,
+    MIST_SHOOTING_GALLERY_SPRITE_OPAQUE      = 0,
+};
+
+/// Background-only batch list for mapped gallery view 1.
+///
+/// The zero-count header keeps decoded image strips, followed by the end
+/// marker. Its retained `SpriteView.sources.empty` address supplies no sprites.
+static SpriteBatch _gMistShootingGalleryView1SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mist_shooting_gallery_80189C24[2] = {
+/// Background-only batch list for mapped gallery view 2.
+///
+/// The zero-count header keeps decoded image strips, followed by the end
+/// marker. Its retained `SpriteView.sources.empty` address supplies no sprites.
+static SpriteBatch _gMistShootingGalleryView2SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mist_shooting_gallery_80189C34[2] = {
+/// Background-only batch list for mapped gallery view 3.
+///
+/// The zero-count header keeps decoded image strips, followed by the end
+/// marker. Its retained `SpriteView.sources.empty` address supplies no sprites.
+static SpriteBatch _gMistShootingGalleryView3SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mist_shooting_gallery_80189C44[13] = {
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, -160, 112, 625, { .fields = { 40, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, -160, 104, 625, { .fields = { 40, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, -160, 96, 625, { .fields = { 40, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, -160, 88, 650, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, -160, 80, 675, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, -160, 72, 700, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, -160, 64, 725, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, -160, 56, 750, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -160, 48, 775, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, 40, 800, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -160, 32, 750, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -160, 24, 750, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -160, 0, 750, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+/// Depth-sorted background sprite rectangles for mapped gallery view 4.
+///
+/// Positions are pixels from the view centre; depths are unscaled OT sorting
+/// values. Textures and the palette come from the loaded mapped background.
+/// The overlay owns this mutable source pool while the view is active.
+static SpriteSource _gMistShootingGalleryView4SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 88, 8 } }, -160, 112, 625, { .fields = { 40, 24 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 88, 8 } }, -160, 104, 625, { .fields = { 40, 32 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 88, 8 } }, -160, 96, 625, { .fields = { 40, 40 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 88, 8 } }, -160, 88, 650, { .fields = { 40, 48 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 80, 8 } }, -160, 80, 675, { .fields = { 48, 56 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 80, 8 } }, -160, 72, 700, { .fields = { 48, 64 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 80, 8 } }, -160, 64, 725, { .fields = { 48, 96 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 80, 8 } }, -160, 56, 750, { .fields = { 48, 80 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 8 } }, -160, 48, 775, { .fields = { 80, 88 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -160, 40, 800, { .fields = { 104, 72 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -160, 32, 750, { .fields = { 112, 104 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -160, 24, 750, { .fields = { 112, 112 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -160, 0, 750, { .fields = { 120, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_mist_shooting_gallery_80189D48[3] = {
+/// Drawing batches for mapped gallery view 4's background sprites.
+///
+/// A zero-count header keeps decoded image strips; the end marker follows the
+/// source ranges. The source range covers all 13 elements.
+static SpriteBatch _gMistShootingGalleryView4SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 13, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gMistShootingGalleryView4SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mist_shooting_gallery_80189D60[32] = {
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 88, 48, 750, { .fields = { 88, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 96, 32, 750, { .fields = { 120, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 104, 16, 750, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 112, 0, 650, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 120, -16, 625, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 128, -32, 600, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 136, -48, 550, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 144, -64, 550, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 152, -72, 550, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 104, 56, 750, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 112, 32, 750, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 120, 16, 725, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 128, 0, 650, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 136, -16, 600, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 144, -32, 550, { .fields = { 104, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 152, -48, 550, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 112, 64, 750, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 120, 48, 725, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 128, 32, 725, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 136, 16, 650, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 144, 0, 600, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 152, -16, 550, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 120, 80, 750, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 128, 64, 725, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 136, 48, 725, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 144, 32, 650, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 152, 16, 600, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 128, 96, 750, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 136, 80, 700, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 144, 64, 725, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 152, 48, 650, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 152, 80, 725, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
+/// Depth-sorted background sprite rectangles for mapped gallery view 5.
+///
+/// Positions are pixels from the view centre; depths are unscaled OT sorting
+/// values. Textures and the palette come from the loaded mapped background.
+/// The overlay owns this mutable source pool while the view is active.
+static SpriteSource _gMistShootingGalleryView5SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 88, 48, 750, { .fields = { 88, 24 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, 96, 32, 750, { .fields = { 120, 56 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 104, 16, 750, { .fields = { 120, 104 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 112, 0, 650, { .fields = { 112, 96 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 120, -16, 625, { .fields = { 112, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 128, -32, 600, { .fields = { 120, 224 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 136, -48, 550, { .fields = { 112, 32 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 144, -64, 550, { .fields = { 112, 64 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 152, -72, 550, { .fields = { 88, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 104, 56, 750, { .fields = { 112, 128 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 112, 32, 750, { .fields = { 112, 160 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 120, 16, 725, { .fields = { 112, 192 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 128, 0, 650, { .fields = { 112, 224 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 136, -16, 600, { .fields = { 104, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 144, -32, 550, { .fields = { 104, 32 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 152, -48, 550, { .fields = { 104, 64 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 112, 64, 750, { .fields = { 96, 96 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 120, 48, 725, { .fields = { 104, 96 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 128, 32, 725, { .fields = { 104, 128 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 136, 16, 650, { .fields = { 96, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 144, 0, 600, { .fields = { 104, 192 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 152, -16, 550, { .fields = { 104, 224 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 120, 80, 750, { .fields = { 104, 160 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 128, 64, 725, { .fields = { 96, 32 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 136, 48, 725, { .fields = { 96, 64 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 144, 32, 650, { .fields = { 96, 192 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 152, 16, 600, { .fields = { 96, 128 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 128, 96, 750, { .fields = { 96, 224 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 136, 80, 700, { .fields = { 120, 144 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, 144, 64, 725, { .fields = { 120, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 152, 48, 650, { .fields = { 96, 160 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 152, 80, 725, { .fields = { 120, 184 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_mist_shooting_gallery_80189FE0[3] = {
+/// Drawing batches for mapped gallery view 5's background sprites.
+///
+/// A zero-count header keeps decoded image strips; the end marker follows the
+/// source ranges. The source range covers all 32 elements.
+static SpriteBatch _gMistShootingGalleryView5SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 32, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gMistShootingGalleryView5SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mist_shooting_gallery_80189FF8[2] = {
+/// Background-only batch list for mapped gallery view 6.
+///
+/// The zero-count header keeps decoded image strips, followed by the end
+/// marker. Its retained `SpriteView.sources.empty` address supplies no sprites.
+static SpriteBatch _gMistShootingGalleryView6SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mist_shooting_gallery_8018A008[24] = {
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -144, -104, 1000, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, -136, -104, 937, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, -136, -24, 1000, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, -120, -104, 937, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, -120, -24, 975, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, -104, -104, 937, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, -104, -24, 950, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -88, -96, 937, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -88, -24, 950, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -80, -24, 950, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -80, -56, 937, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 72, -40, 1037, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 64, -32, 875, { .fields = { 24, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, 56, -24, 750, { .fields = { 16, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 56, -16, 775, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, 56, -8, 750, { .fields = { 16, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, 56, 0, 400, { .fields = { 16, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 16 } }, 56, 8, 375, { .fields = { 8, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 112, 16 } }, 48, 24, 300, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 112, 16 } }, 48, 40, 287, { .fields = { 104, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 112, 16 } }, 48, 56, 275, { .fields = { 104, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 120, 16 } }, 40, 72, 187, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 120, 16 } }, 40, 88, 125, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 128, 16 } }, 32, 104, 125, { .fields = { 0, 240 } }, 128, 128, 128, 0 },
+/// Depth-sorted background sprite rectangles for mapped gallery view 7.
+///
+/// Positions are pixels from the view centre; depths are unscaled OT sorting
+/// values. Textures and the palette come from the loaded mapped background.
+/// The overlay owns this mutable source pool while the view is active.
+static SpriteSource _gMistShootingGalleryView7SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 72 } }, -144, -104, 1000, { .fields = { 80, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 80 } }, -136, -104, 937, { .fields = { 112, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 80 } }, -136, -24, 1000, { .fields = { 96, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 80 } }, -120, -104, 937, { .fields = { 112, 160 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 80 } }, -120, -24, 975, { .fields = { 112, 80 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 80 } }, -104, -104, 937, { .fields = { 96, 80 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 80 } }, -104, -24, 950, { .fields = { 96, 160 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 72 } }, -88, -96, 937, { .fields = { 88, 160 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 80 } }, -88, -24, 950, { .fields = { 88, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 80 } }, -80, -24, 950, { .fields = { 88, 80 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -80, -56, 937, { .fields = { 80, 72 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, 72, -40, 1037, { .fields = { 56, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 8 } }, 64, -32, 875, { .fields = { 24, 224 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 72, 8 } }, 56, -24, 750, { .fields = { 16, 216 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 8 } }, 56, -16, 775, { .fields = { 24, 208 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 72, 8 } }, 56, -8, 750, { .fields = { 16, 200 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 80, 8 } }, 56, 0, 400, { .fields = { 16, 232 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 80, 16 } }, 56, 8, 375, { .fields = { 8, 184 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 112, 16 } }, 48, 24, 300, { .fields = { 104, 168 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 112, 16 } }, 48, 40, 287, { .fields = { 104, 152 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 112, 16 } }, 48, 56, 275, { .fields = { 104, 136 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 120, 16 } }, 40, 72, 187, { .fields = { 96, 120 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 120, 16 } }, 40, 88, 125, { .fields = { 96, 104 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 128, 16 } }, 32, 104, 125, { .fields = { 0, 240 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_mist_shooting_gallery_8018A1E8[4] = {
+/// Drawing batches for mapped gallery view 7's background sprites.
+///
+/// A zero-count header keeps decoded image strips; the end marker follows the
+/// source ranges. The source ranges split 24 elements at index 11.
+static SpriteBatch _gMistShootingGalleryView7SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 11, 0, 0, { 1, 0 } },
-    { 11, 13, 0, 0, { 0, 0 } },
+    { 11, ARRAY_SIZE(_gMistShootingGalleryView7SpriteSources) - 11, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mist_shooting_gallery_8018A208[25] = {
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -104, -8, 975, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -112, 0, 862, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -136, 8, 762, { .fields = { 32, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -136, 16, 662, { .fields = { 24, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, -144, 24, 630, { .fields = { 0, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, -152, 32, 600, { .fields = { 0, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, -152, 40, 580, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, -152, 48, 437, { .fields = { 8, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, -152, 56, 495, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, -152, 64, 462, { .fields = { 40, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, -152, 72, 431, { .fields = { 0, 8 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 8 } }, -152, 80, 405, { .fields = { 120, 16 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 8 } }, -152, 88, 350, { .fields = { 120, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 104, 8 } }, -160, 96, 325, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 104, 8 } }, -160, 104, 312, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 104, 8 } }, -160, 112, 287, { .fields = { 112, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, 64, 0, 950, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, 64, -64, 912, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, 80, -80, 912, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, 80, 0, 975, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, 96, 0, 962, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, 96, -80, 937, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, 112, -80, 950, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 112, 0, 1012, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, 128, -80, 969, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+/// Depth-sorted background sprite rectangles for mapped gallery view 8.
+///
+/// Positions are pixels from the view centre; depths are unscaled OT sorting
+/// values. Textures and the palette come from the loaded mapped background.
+/// The overlay owns this mutable source pool while the view is active.
+static SpriteSource _gMistShootingGalleryView8SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -104, -8, 975, { .fields = { 64, 64 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -112, 0, 862, { .fields = { 56, 216 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 8 } }, -136, 8, 762, { .fields = { 32, 224 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 8 } }, -136, 16, 662, { .fields = { 24, 72 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 80, 8 } }, -144, 24, 630, { .fields = { 0, 80 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 88, 8 } }, -152, 32, 600, { .fields = { 0, 56 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 88, 8 } }, -152, 40, 580, { .fields = { 40, 240 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 88, 8 } }, -152, 48, 437, { .fields = { 8, 232 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 88, 8 } }, -152, 56, 495, { .fields = { 0, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 88, 8 } }, -152, 64, 462, { .fields = { 40, 248 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 88, 8 } }, -152, 72, 431, { .fields = { 0, 8 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 96, 8 } }, -152, 80, 405, { .fields = { 120, 16 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 96, 8 } }, -152, 88, 350, { .fields = { 120, 32 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 104, 8 } }, -160, 96, 325, { .fields = { 112, 40 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 104, 8 } }, -160, 104, 312, { .fields = { 112, 48 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 104, 8 } }, -160, 112, 287, { .fields = { 112, 24 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 80 } }, 64, 0, 950, { .fields = { 88, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 64 } }, 64, -64, 912, { .fields = { 80, 152 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 80 } }, 80, -80, 912, { .fields = { 104, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 80 } }, 80, 0, 975, { .fields = { 96, 80 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 80 } }, 96, 0, 962, { .fields = { 96, 160 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 80 } }, 96, -80, 937, { .fields = { 112, 160 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 80 } }, 112, -80, 950, { .fields = { 112, 80 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 72 } }, 112, 0, 1012, { .fields = { 80, 80 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 80 } }, 128, -80, 969, { .fields = { 120, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_mist_shooting_gallery_8018A3FC[4] = {
+/// Drawing batches for mapped gallery view 8's background sprites.
+///
+/// A zero-count header keeps decoded image strips; the end marker follows the
+/// source ranges. The source ranges split 25 elements at index 16.
+static SpriteBatch _gMistShootingGalleryView8SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 16, 0, 0, { 1, 0 } },
-    { 16, 9, 0, 0, { 0, 0 } },
+    { 16, ARRAY_SIZE(_gMistShootingGalleryView8SpriteSources) - 16, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mist_shooting_gallery_8018A41C[2] = {
+/// Background-only batch list for mapped gallery view 9.
+///
+/// The zero-count header keeps decoded image strips, followed by the end
+/// marker. Its retained `SpriteView.sources.empty` address supplies no sprites.
+static SpriteBatch _gMistShootingGalleryView9SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mist_shooting_gallery_8018A42C[9] = {
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, 88, -56, 2625, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, 72, -48, 2812, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, 80, -56, 2750, { .fields = { 120, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -48, -48, 3250, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -56, -48, 3000, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -64, -48, 2875, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -8, -40, 3675, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, 8, -40, 3675, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, 24, -40, 3675, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
+/// Depth-sorted background sprite rectangles for mapped gallery view 10.
+///
+/// Positions are pixels from the view centre; depths are unscaled OT sorting
+/// values. Textures and the palette come from the loaded mapped background.
+/// The overlay owns this mutable source pool while the view is active.
+static SpriteSource _gMistShootingGalleryView10SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 88 } }, 88, -56, 2625, { .fields = { 112, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 80 } }, 72, -48, 2812, { .fields = { 120, 176 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 88 } }, 80, -56, 2750, { .fields = { 120, 88 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 72 } }, -48, -48, 3250, { .fields = { 112, 88 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 72 } }, -56, -48, 3000, { .fields = { 104, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 72 } }, -64, -48, 2875, { .fields = { 112, 160 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, -8, -40, 3675, { .fields = { 96, 72 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, 8, -40, 3675, { .fields = { 96, 184 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 56 } }, 24, -40, 3675, { .fields = { 88, 128 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_mist_shooting_gallery_8018A4E0[5] = {
+/// Drawing batches for mapped gallery view 10's background sprites.
+///
+/// A zero-count header keeps decoded image strips; the end marker follows the
+/// source ranges. The source ranges split nine elements into three groups of three.
+static SpriteBatch _gMistShootingGalleryView10SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 3, 0, 0, { 1, 0 } },
     { 3, 3, 0, 0, { 2, 0 } },
-    { 6, 3, 0, 0, { 0, 0 } },
+    { 6, ARRAY_SIZE(_gMistShootingGalleryView10SpriteSources) - 6, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mist_shooting_gallery_8018A508[13] = {
-    { 143, 0x3FC0, { .fields = { 16, 112 } }, -56, -56, 1837, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 112 } }, -40, -56, 1837, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 112 } }, -24, -56, 1837, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 112 } }, -8, -56, 1837, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 112 } }, 8, -56, 1837, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 112 } }, 24, -56, 1837, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 112 } }, 40, -56, 1837, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 136, -80, 1250, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, 136, -8, 1250, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, 144, -88, 1237, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, 144, -8, 1237, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, 152, -96, 1162, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, 152, -8, 1162, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
+/// Depth-sorted background sprite rectangles for mapped gallery view 11.
+///
+/// Positions are pixels from the view centre; depths are unscaled OT sorting
+/// values. Textures and the palette come from the loaded mapped background.
+/// The overlay owns this mutable source pool while the view is active.
+static SpriteSource _gMistShootingGalleryView11SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 112 } }, -56, -56, 1837, { .fields = { 80, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 112 } }, -40, -56, 1837, { .fields = { 80, 112 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 112 } }, -24, -56, 1837, { .fields = { 64, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 112 } }, -8, -56, 1837, { .fields = { 96, 112 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 112 } }, 8, -56, 1837, { .fields = { 112, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 112 } }, 24, -56, 1837, { .fields = { 112, 112 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 112 } }, 40, -56, 1837, { .fields = { 96, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 72 } }, 136, -80, 1250, { .fields = { 48, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 80 } }, 136, -8, 1250, { .fields = { 56, 160 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 80 } }, 144, -88, 1237, { .fields = { 56, 80 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 80 } }, 144, -8, 1237, { .fields = { 56, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 88 } }, 152, -96, 1162, { .fields = { 72, 112 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 88 } }, 152, -8, 1162, { .fields = { 64, 112 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_mist_shooting_gallery_8018A60C[5] = {
+/// Drawing batches for mapped gallery view 11's background sprites.
+///
+/// A zero-count header keeps decoded image strips; the end marker follows the
+/// source ranges. The source ranges split 13 elements at index 7; a zero-count range starts
+/// at the end of the pool.
+static SpriteBatch _gMistShootingGalleryView11SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 1, 0 } },
-    { 7, 6, 0, 0, { 2, 0 } },
-    { 13, 0, 0, 0, { 0, 0 } },
+    { 7, ARRAY_SIZE(_gMistShootingGalleryView11SpriteSources) - 7, 0, 0, { 2, 0 } },
+    { ARRAY_SIZE(_gMistShootingGalleryView11SpriteSources), 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mist_shooting_gallery_8018A634[14] = {
-    { 143, 0x3FC0, { .fields = { 16, 112 } }, -160, -120, 1000, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 128 } }, -160, -8, 1000, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 112 } }, -144, -120, 1000, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 128 } }, -144, -8, 1000, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 112 } }, -128, -120, 1000, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 128 } }, -128, -8, 1000, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 128 } }, -112, -8, 1000, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 112 } }, -112, -120, 1000, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 104 } }, -104, -120, 1000, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 128 } }, -104, -16, 1000, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 112 } }, -96, -16, 1000, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 104 } }, -96, -120, 1000, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -88, -120, 1000, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -88, -48, 1000, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
+/// Depth-sorted background sprite rectangles for mapped gallery view 12.
+///
+/// Positions are pixels from the view centre; depths are unscaled OT sorting
+/// values. Textures and the palette come from the loaded mapped background.
+/// The overlay owns this mutable source pool while the view is active.
+static SpriteSource _gMistShootingGalleryView12SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 112 } }, -160, -120, 1000, { .fields = { 64, 112 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 128 } }, -160, -8, 1000, { .fields = { 112, 128 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 112 } }, -144, -120, 1000, { .fields = { 80, 112 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 128 } }, -144, -8, 1000, { .fields = { 112, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 112 } }, -128, -120, 1000, { .fields = { 80, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 128 } }, -128, -8, 1000, { .fields = { 96, 128 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 128 } }, -112, -8, 1000, { .fields = { 96, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 112 } }, -112, -120, 1000, { .fields = { 72, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 104 } }, -104, -120, 1000, { .fields = { 56, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 128 } }, -104, -16, 1000, { .fields = { 104, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 112 } }, -96, -16, 1000, { .fields = { 64, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 104 } }, -96, -120, 1000, { .fields = { 56, 104 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 72 } }, -88, -120, 1000, { .fields = { 48, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, -88, -48, 1000, { .fields = { 48, 72 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_mist_shooting_gallery_8018A74C[3] = {
+/// Drawing batches for mapped gallery view 12's background sprites.
+///
+/// A zero-count header keeps decoded image strips; the end marker follows the
+/// source ranges. The source range covers all 14 elements.
+static SpriteBatch _gMistShootingGalleryView12SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 14, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gMistShootingGalleryView12SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mist_shooting_gallery_8018A764[12] = {
-    { 143, 0x3FC0, { .fields = { 8, 96 } }, 88, -40, 850, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, 88, -120, 850, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 96 } }, 96, -120, 850, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 120 } }, 96, -24, 850, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 112 } }, 104, -8, 850, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 112 } }, 104, -120, 850, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 112 } }, 112, -120, 850, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 128 } }, 112, -8, 850, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 112 } }, 128, -120, 850, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 128 } }, 128, -8, 850, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 128 } }, 144, -8, 850, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 112 } }, 144, -120, 850, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
+/// Depth-sorted background sprite rectangles for mapped gallery view 13.
+///
+/// Positions are pixels from the view centre; depths are unscaled OT sorting
+/// values. Textures and the palette come from the loaded mapped background.
+/// The overlay owns this mutable source pool while the view is active.
+static SpriteSource _gMistShootingGalleryView13SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 96 } }, 88, -40, 850, { .fields = { 64, 112 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 80 } }, 88, -120, 850, { .fields = { 56, 96 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 96 } }, 96, -120, 850, { .fields = { 56, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 120 } }, 96, -24, 850, { .fields = { 104, 128 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 112 } }, 104, -8, 850, { .fields = { 72, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 112 } }, 104, -120, 850, { .fields = { 64, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 112 } }, 112, -120, 850, { .fields = { 72, 112 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 128 } }, 112, -8, 850, { .fields = { 112, 128 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 112 } }, 128, -120, 850, { .fields = { 80, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 128 } }, 128, -8, 850, { .fields = { 112, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 128 } }, 144, -8, 850, { .fields = { 96, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 112 } }, 144, -120, 850, { .fields = { 88, 128 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
 };
 
 SpriteBatch D_mist_shooting_gallery_8018A854[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 12, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gMistShootingGalleryView13SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
@@ -1797,19 +1910,19 @@ SpriteBatch D_mist_shooting_gallery_8018BD00[2] = {
 };
 
 SpriteView D_mist_shooting_gallery_8018BD10[18] = {
-    { { .empty = D_mist_shooting_gallery_80189C14 }, D_mist_shooting_gallery_80189C14, NULL },
-    { { .empty = D_mist_shooting_gallery_80189C24 }, D_mist_shooting_gallery_80189C24, NULL },
-    { { .empty = D_mist_shooting_gallery_80189C34 }, D_mist_shooting_gallery_80189C34, NULL },
-    { { .elements = D_mist_shooting_gallery_80189C44 }, D_mist_shooting_gallery_80189D48, NULL },
-    { { .elements = D_mist_shooting_gallery_80189D60 }, D_mist_shooting_gallery_80189FE0, NULL },
-    { { .empty = D_mist_shooting_gallery_80189FF8 }, D_mist_shooting_gallery_80189FF8, NULL },
-    { { .elements = D_mist_shooting_gallery_8018A008 }, D_mist_shooting_gallery_8018A1E8, NULL },
-    { { .elements = D_mist_shooting_gallery_8018A208 }, D_mist_shooting_gallery_8018A3FC, NULL },
-    { { .empty = D_mist_shooting_gallery_8018A41C }, D_mist_shooting_gallery_8018A41C, NULL },
-    { { .elements = D_mist_shooting_gallery_8018A42C }, D_mist_shooting_gallery_8018A4E0, NULL },
-    { { .elements = D_mist_shooting_gallery_8018A508 }, D_mist_shooting_gallery_8018A60C, NULL },
-    { { .elements = D_mist_shooting_gallery_8018A634 }, D_mist_shooting_gallery_8018A74C, NULL },
-    { { .elements = D_mist_shooting_gallery_8018A764 }, D_mist_shooting_gallery_8018A854, NULL },
+    { { .empty = _gMistShootingGalleryView1SpriteBatches }, _gMistShootingGalleryView1SpriteBatches, NULL },
+    { { .empty = _gMistShootingGalleryView2SpriteBatches }, _gMistShootingGalleryView2SpriteBatches, NULL },
+    { { .empty = _gMistShootingGalleryView3SpriteBatches }, _gMistShootingGalleryView3SpriteBatches, NULL },
+    { { .elements = _gMistShootingGalleryView4SpriteSources }, _gMistShootingGalleryView4SpriteBatches, NULL },
+    { { .elements = _gMistShootingGalleryView5SpriteSources }, _gMistShootingGalleryView5SpriteBatches, NULL },
+    { { .empty = _gMistShootingGalleryView6SpriteBatches }, _gMistShootingGalleryView6SpriteBatches, NULL },
+    { { .elements = _gMistShootingGalleryView7SpriteSources }, _gMistShootingGalleryView7SpriteBatches, NULL },
+    { { .elements = _gMistShootingGalleryView8SpriteSources }, _gMistShootingGalleryView8SpriteBatches, NULL },
+    { { .empty = _gMistShootingGalleryView9SpriteBatches }, _gMistShootingGalleryView9SpriteBatches, NULL },
+    { { .elements = _gMistShootingGalleryView10SpriteSources }, _gMistShootingGalleryView10SpriteBatches, NULL },
+    { { .elements = _gMistShootingGalleryView11SpriteSources }, _gMistShootingGalleryView11SpriteBatches, NULL },
+    { { .elements = _gMistShootingGalleryView12SpriteSources }, _gMistShootingGalleryView12SpriteBatches, NULL },
+    { { .elements = _gMistShootingGalleryView13SpriteSources }, D_mist_shooting_gallery_8018A854, NULL },
     { { .elements = D_mist_shooting_gallery_8018A86C }, D_mist_shooting_gallery_8018AAB0, NULL },
     { { .elements = D_mist_shooting_gallery_8018AAD8 }, D_mist_shooting_gallery_8018B7A8, NULL },
     { { .elements = D_mist_shooting_gallery_8018B7D0 }, D_mist_shooting_gallery_8018BC58, NULL },
@@ -2175,39 +2288,70 @@ const WorldCoordRoomAmbientEntry gMistShootingGalleryViewAmbientTable[MIST_SHOOT
     [18] = { .color = { 600, 600, 600, 600 } },
 };
 
-WorldCollisionFootstepSounds D_mist_shooting_gallery_8018E06C = {
-    0x10000009,
-    0x1000000B,
-    0x10000009,
+/// Paired cue-2 requests in the loaded type-1 sound bank; cue 1 uses base + 1.
+enum {
+    MIST_SHOOTING_GALLERY_SURFACE1_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 9,
+    MIST_SHOOTING_GALLERY_SURFACE1_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 11,
+    MIST_SHOOTING_GALLERY_SURFACE2_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 65,
+    MIST_SHOOTING_GALLERY_SURFACE2_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 67,
 };
 
-WorldCollisionFootstepSounds D_mist_shooting_gallery_8018E078 = {
-    0x10000041,
-    0x10000043,
-    0x10000041,
+/// Footstep cue bases for gallery surface class 1, borrowed while the overlay is loaded.
+///
+/// Walking and scripted jumps share entries 9/10; running uses 11/12.
+/// Companion playback adds 100 to these entry indices. The material is unproven.
+static WorldCollisionFootstepSounds _gMistShootingGallerySurface1FootstepSounds = {
+    .walk         = MIST_SHOOTING_GALLERY_SURFACE1_WALK_SOUND,
+    .run          = MIST_SHOOTING_GALLERY_SURFACE1_RUN_SOUND,
+    .scriptedJump = MIST_SHOOTING_GALLERY_SURFACE1_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_mist_shooting_gallery_8018E084[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Footstep cue bases for gallery surface class 2, borrowed while the overlay is loaded.
+///
+/// Walking and scripted jumps share entries 65/66; running uses 67/68.
+/// Companion playback adds 100 to these entry indices. The material is unproven.
+static WorldCollisionFootstepSounds _gMistShootingGallerySurface2FootstepSounds = {
+    .walk         = MIST_SHOOTING_GALLERY_SURFACE2_WALK_SOUND,
+    .run          = MIST_SHOOTING_GALLERY_SURFACE2_RUN_SOUND,
+    .scriptedJump = MIST_SHOOTING_GALLERY_SURFACE2_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_mist_shooting_gallery_8018E08C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_mist_shooting_gallery_8018E06C },
+/// Blocking collision properties without footstep cues, shared by gallery classes 0 and 3..7.
+static WorldCollisionSurfaceProperties _gMistShootingGallerySilentSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_mist_shooting_gallery_8018E094[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_mist_shooting_gallery_8018E078 },
+/// Blocking collision properties and footstep cues for gallery surface class 1.
+static WorldCollisionSurfaceProperties _gMistShootingGallerySurface1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gMistShootingGallerySurface1FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_mist_shooting_gallery_8018E09C[8] = {
-    D_mist_shooting_gallery_8018E084,
-    D_mist_shooting_gallery_8018E08C,
-    D_mist_shooting_gallery_8018E094,
-    D_mist_shooting_gallery_8018E084,
-    D_mist_shooting_gallery_8018E084,
-    D_mist_shooting_gallery_8018E084,
-    D_mist_shooting_gallery_8018E084,
-    D_mist_shooting_gallery_8018E084,
+/// Blocking collision properties and footstep cues for gallery surface class 2.
+static WorldCollisionSurfaceProperties _gMistShootingGallerySurface2Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gMistShootingGallerySurface2FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gMistShootingGallerySurfacePropertiesByClass[8] = {
+    &_gMistShootingGallerySilentSurfaceProperties,
+    &_gMistShootingGallerySurface1Properties,
+    &_gMistShootingGallerySurface2Properties,
+    &_gMistShootingGallerySilentSurfaceProperties,
+    &_gMistShootingGallerySilentSurfaceProperties,
+    &_gMistShootingGallerySilentSurfaceProperties,
+    &_gMistShootingGallerySilentSurfaceProperties,
+    &_gMistShootingGallerySilentSurfaceProperties,
 };
 
 s32 D_mist_shooting_gallery_8018E0BC = 0;

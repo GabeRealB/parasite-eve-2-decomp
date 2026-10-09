@@ -847,7 +847,7 @@ TaskDesc D_mist_shooting_gallery_80185384[3] = {
 };
 
 WorldCollisionRoomResources D_mist_shooting_gallery_801853A8[1] = {
-    { &D_mist_shooting_gallery_80189968, D_mist_shooting_gallery_8018BDE8, D_mist_shooting_gallery_8018C638, NULL },
+    { &gMistShootingGalleryCollisionGrid, D_mist_shooting_gallery_8018BDE8, D_mist_shooting_gallery_8018C638, NULL },
 };
 
 u8* D_mist_shooting_gallery_801853B8[1] = {
@@ -2132,7 +2132,7 @@ static void _mistShootingGallerySetStoryBarrierLowered(s32 lowered)
     enum { MIST_SHOOTING_GALLERY_STORY_BARRIER_FACE_COUNT   = 3,
            MIST_SHOOTING_GALLERY_STORY_BARRIER_VERTEX_COUNT = 8,
            MIST_SHOOTING_GALLERY_STORY_BARRIER_LOWER_Y      = 3000 };
-    WorldCollisionGrid* liveGrid     = &D_mist_shooting_gallery_80189968;
+    WorldCollisionGrid* liveGrid     = &gMistShootingGalleryCollisionGrid;
     WorldCollisionGrid* templateGrid = &D_mist_shooting_gallery_80185198;
     SVECTOR             offset;
     s32                 index;
@@ -2170,9 +2170,9 @@ void mistShootingGallerySetTrainingBarrierLowered(s32 lowered)
            MIST_SHOOTING_GALLERY_TRAINING_BARRIER_VERTEX_COUNT  = 4,
            MIST_SHOOTING_GALLERY_TRAINING_BARRIER_OFFSET_COUNT  = 8,
            MIST_SHOOTING_GALLERY_TRAINING_BARRIER_LOWER_Y       = 4000 };
-    WorldCollisionGrid*     liveGrid     = &D_mist_shooting_gallery_80189968;
+    WorldCollisionGrid*     liveGrid     = &gMistShootingGalleryCollisionGrid;
     WorldCollisionGrid*     templateGrid = &D_mist_shooting_gallery_801851F8;
-    WorldCollisionGridFace* liveFace     = &D_mist_shooting_gallery_80189968.faces[MIST_SHOOTING_GALLERY_TRAINING_BARRIER_NORMAL_OFFSET];
+    WorldCollisionGridFace* liveFace     = &gMistShootingGalleryCollisionGrid.faces[MIST_SHOOTING_GALLERY_TRAINING_BARRIER_NORMAL_OFFSET];
     WorldCollisionGridFace* templateFace = D_mist_shooting_gallery_801851F8.faces;
     SVECTOR                 offset;
     s32                     index;
