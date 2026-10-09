@@ -51,7 +51,7 @@ label.row { flex-direction: row; align-items: center; gap: 8px; }
 table { border-collapse: collapse; font: 12px var(--mono); font-variant-numeric: tabular-nums; }
 th { text-align: left; font: 500 11px var(--sans); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 4px 14px 4px 0; border-bottom: 1px solid var(--line); }
 td { padding: 3px 14px 3px 0; border-bottom: 1px solid var(--grid); vertical-align: top; }
-.scrollx { overflow-x: auto; }
+.scrollx { overflow-x: auto; } table.wide td { white-space: normal; min-width: 90px; max-width: 360px; overflow-wrap: anywhere; }
 button { font: 12px var(--sans); color: var(--accent); background: none; border: 1px solid var(--line); border-radius: 3px; padding: 3px 10px; margin-top: 6px; cursor: pointer; }
 .seg button { margin-top: 0; }
 video { max-width: 100%; border: 1px solid var(--line); background: #000; }
@@ -248,7 +248,7 @@ function drawNav() {
   const box = $("list"), q = $("filter").value.trim().toLowerCase(); box.replaceChildren();
   $("nav-o").setAttribute("aria-pressed", navMode === "o"); $("nav-a").setAttribute("aria-pressed", navMode === "a");
   if (navMode === "o") {
-    const entry = (name, inSummary) => h("a", { href: "#o." + name, class: current === "o." + name ? "cur" : "", onclick: inSummary ? e => { e.preventDefault(); location.hash = "o." + name; } : () => {} }, name, openFindings(name) ? h("span", { class: "badge", text: "  " + openFindings(name) }) : null);
+    const entry = (name, inSummary) => h("a", { href: "#o." + name, class: current === "o." + name ? "cur" : "", onclick: inSummary ? e => { e.preventDefault(); location.hash = "o." + name; } : () => {} }, name, D.swept[name] ? h("span", { class: "dim", text: "  ✓" }) : null, openFindings(name) ? h("span", { class: "badge", text: "  " + openFindings(name) }) : null);
     if (q) { Object.keys(D.overlays).filter(n => n.includes(q)).sort().slice(0, 400).forEach(n => box.append(entry(n))); return; }
     const node = (name, depth) => { const kids = (children.get(name) || []).sort(); if (!kids.length) return entry(name);
       const groups = new Map(); for (const k of kids) { const fam = D.overlays[k].family; (groups.get(fam) || groups.set(fam, []).get(fam)).push(k); }
@@ -264,6 +264,14 @@ function drawNav() {
 }
 
 function markNav() { const want = "#" + current, alt = "#" + current.replace(/^o\./, "a."); for (const a of $("list").querySelectorAll("a")) { const href = a.getAttribute("href"); a.classList.toggle("cur", href === want || href === alt); } }
+
+// Usage records: [overlay swept, part, user, how, when, evidence, status, note], with the asset in front when listed by overlay.
+function useTable(list, byAsset) {
+  const row = u => h("tr", {}, byAsset ? null : h("td", {}, D.assets[u.asset] ? link("a", u.asset) : u.asset), h("td", { text: u[1] }), h("td", { text: u[2] }), h("td", { text: u[3] }), h("td", { text: u[4] }), h("td", { class: "dim", text: u[5] }), h("td", { class: u[6] === "open" ? "flag" : "", text: u[6] }), h("td", { class: "dim", text: u[7] }));
+  return capped(list, 60, part => h("div", { class: "scrollx" }, h("table", { class: "wide" }, h("tr", {}, [...(byAsset ? [] : ["Asset"]), "Part", "User", "How", "When", "Evidence", "Status", "Note"].map(t => h("th", { text: t }))), part.map(row))));
+}
+const usesByOverlay = new Map();
+for (const [asset, list] of Object.entries(D.usage)) for (const u of list) { const l = usesByOverlay.get(u[0]) || []; l.push(Object.assign([...u], { asset })); usesByOverlay.set(u[0], l); }
 
 // ---- an overlay ----
 const sec = (title, note, ...body) => h("section", {}, h("h3", {}, title), note ? h("p", { text: note }) : null, ...body);
@@ -297,6 +305,10 @@ async function showOverlay(name) {
     sections.push(sec(`Constants (${cons.length})`, "A texture page and a palette value declared together in one of its functions. A constant states a place in memory, so it is read from the first file of the overlay or an ancestor that puts both there, as that file is loaded.",
       h("div", { class: "tiles" }, cons.map(([label, t, c, how]) => how[0] === "none" ? h("div", { class: "tile miss" }, h("div", { text: label }), h("div", { class: "flag", text: "supplied by nothing in its chain" }))
         : tile(fileMem(...how[2]), t, c, null, label, (how[0] === "own" ? "from " : `from ${how[1]} · `) + D.files[how[2][0]] + (how[2][1] || how[2][2] ? ` at ${sign(how[2][1], how[2][2])}` : "")))))); }
+  const swept = usesByOverlay.get(name) || [];
+  if (swept.length) { const open = swept.filter(u => u[6] === "open");
+    sections.push(sec(`Uses (${swept.length}, ${open.length} open)`, "How this overlay's code uses its assets and its ancestors', read out of the sources. Open lines first.", useTable([...open, ...swept.filter(u => u[6] !== "open")], false))); }
+  else sections.push(sec("Uses", "This overlay has not been swept yet: how its code uses its assets is not recorded."));
   const finds = D.findings[name] || [];
   sections.push(sec(`Findings (${finds.length})`, finds.length ? "What the model of the overlays and of video memory does not explain. Each is a wrong parent, a model in the wrong package, a load that is missing, or a wrong line in the region table." : "Nothing unexplained.", finds.length ? h("ul", { class: "plain" }, finds.map(f => h("li", { text: f }))) : null));
   const by = [...new Set((o.carrier || []).flatMap(f => (loadersOf.get(f) || []).map(l => `${l[0]}\t${D.layers[l[1]]}\t${l[2] || "always"}\t${sign(l[3], l[4])}`)))].map(s => s.split("\t"));
@@ -390,6 +402,8 @@ async function showAsset(key) {
     sections.push(sec(`Clips (${b.sets.length})`, "Each set in the bank, in address order. Playback is not decoded; this is the bank's structure.", capped(b.sets.map((x, i) => [i, ...x]), 60, part => h("table", {}, h("tr", {}, ["Set", "Records", "Tracks"].map(t => h("th", { text: t }))), part.map(r => h("tr", {}, r.map(v => h("td", { text: v }))))))));
     sections.push(sec(`Played through (${b.tables.length})`, "The package's tables of set pointers that index this bank: a clip constant is an index into one of these. A dash is an empty slot; \"other\" is a set of another bank.", b.tables.map(([tname, entries]) => h("p", {}, h("b", { text: tname + ": " }), entries.map((e, i) => `${i}→${e === -1 ? "–" : e === -2 ? "other" : "set " + e}`).join("  ")))));
   } else if (D.track[key] !== undefined) { await needSide(key); if (mine !== turn) return; sections.push(sec("Samples", "", h("div", { class: "shots" }, renderTrack(key)))); }
+  const uses = D.usage[key] || [];
+  if (uses.length) sections.push(sec(`Uses (${uses.length})`, "How the code uses this asset, read out of the sources. An open line says what is still missing.", useTable(uses, true)));
   const rows = Object.entries(attrs).filter(([k]) => k !== "notes");
   sections.push(sec("Properties", attrs.notes || "", rows.length ? h("table", {}, rows.map(([k, v]) => h("tr", {}, h("th", { text: k }), h("td", {}, k === "parent" ? [].concat(v).map((p, i) => [i ? ", " : "", link("o", p)]) : k === "vram" ? "0x" + v.toString(16) : String(JSON.stringify(v)).replace(/^"|"$/g, ""))))) : h("p", { text: "None recorded." })));
   const loaders = files.flatMap(f => (loadersOf.get(f) || []).map(l => [f, ...l]));

@@ -558,6 +558,17 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
             "notes": "the room's collision grid: normals, vertices, faces and per-cell face lists; its header follows at "
                      f"0x{grid['load'] + grid['source']:08X}"}]
     scripts = {key: [found["bank"], [[list(n) for n in notes] if notes is not None else None for notes in found["entries"]]] for key, found in spk_scripts.all_banks().items()}
+    # How the code uses each asset, as read out of the sources (tools/peassets/usage/).
+    usage = defaultdict(list)
+    by_overlay = defaultdict(lambda: [0, 0])
+    for path in sorted((Path(__file__).with_name("usage")).glob("*.tsv")):
+        for line in path.read_text(encoding="utf-8").splitlines():
+            cells = line.split("\t")
+            if line.startswith("#") or len(cells) < 8:
+                continue
+            key = cells[0].split()[0] if cells[0].split() and cells[0].split()[0] in catalogue else cells[0]
+            usage[key].append([path.stem] + cells[1:8])
+            by_overlay[path.stem][0 if cells[6] == "established" else 1] += 1
     # Movies and streamed audio are not chunks of the stage files; the extraction lists them.
     streams = {}
     movies = extracted / "movie" / "movies.json"
@@ -574,7 +585,7 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
                 streams[meta.stem] = f"audio/{meta.stem}.wav"
     saves = sorted(p.name for p in (extracted / "mcsave" / "mc_save_header").glob("*.png")) if (extracted / "mcsave" / "mc_save_header").is_dir() else []
     return {
-        "holds": side["holds"], "viewpal": viewpal, "scripts": scripts,
+        "holds": side["holds"], "viewpal": viewpal, "scripts": scripts, "usage": usage, "swept": by_overlay,
         "mesh": side["mesh"], "track": side["track"], "banks": banks, "streams": streams, "saves": saves, "side": out.stem + "_data" if pixels else "",
         "files": files, "chunks": chunks, "fp": footprint, "loads": loads, "overlays": overlays, "requests": requests,
         "consts": constants, "findings": findings, "assets": catalogue, "sounds": sounds,
