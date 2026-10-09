@@ -28,33 +28,99 @@ extern TaskDesc D_dryfield_night_motel_loft_8017EB4C[1];
 
 extern EvsCommand D_dryfield_night_motel_loft_8017EB78[17];
 
-extern SpriteBatch D_dryfield_night_motel_loft_8017F2D0[2];
+/// Mapped view 1's decoded-image background selector and empty sprite list.
+///
+/// The zero-count first record and SPRITE_BATCH_END select no sources. The
+/// view retains this address in sources.empty; storage lives with the overlay.
+extern SpriteBatch gDryfieldNightMotelLoftView1SpriteBatches[2];
 
-extern SpriteBatch D_dryfield_night_motel_loft_8017F2E0[2];
+/// Empty sprite list shared by mapped views 2 and 9, retaining decoded-image strips.
+///
+/// A zero-count background selector precedes SPRITE_BATCH_END. Both views
+/// retain the list in sources.empty; mutable storage lives with the overlay.
+extern SpriteBatch gDryfieldNightMotelLoftView2SpriteBatches[2];
 
-extern SpriteSource D_dryfield_night_motel_loft_8017F2F0[8];
+/// Eight foreground texture rectangles and sorting depths shared by mapped views 3 and 10.
+///
+/// Positions and sizes are view-centred pixels, UVs texels, and depths unscaled
+/// sorting values. One range selects all elements; mutable storage lives with
+/// the overlay and cached packets retain their initialized geometry.
+extern SpriteSource gDryfieldNightMotelLoftView3SpriteSources[8];
 
-extern SpriteBatch D_dryfield_night_motel_loft_8017F390[3];
+/// Background selector and complete eight-source range shared by mapped views 3 and 10.
+///
+/// The zero-count first record keeps decoded-image strips; SPRITE_BATCH_END
+/// terminates the list. Mutable range storage lives with the room overlay.
+extern SpriteBatch gDryfieldNightMotelLoftView3SpriteBatches[3];
 
-extern SpriteSource D_dryfield_night_motel_loft_8017F3A8[13];
+/// Thirteen foreground texture rectangles and sorting depths for mapped view 4.
+///
+/// Positions and sizes are view-centred pixels, UVs texels, and depths unscaled
+/// sorting values. One range selects all elements; mutable storage lives with
+/// the overlay and cached packets retain their initialized geometry.
+extern SpriteSource gDryfieldNightMotelLoftView4SpriteSources[13];
 
-extern SpriteBatch D_dryfield_night_motel_loft_8017F4AC[3];
+/// Mapped view 4's background selector, complete thirteen-source range and end sentinel.
+///
+/// The zero-count first record keeps decoded-image strips; SPRITE_BATCH_END
+/// terminates the list. Mutable range storage lives with the room overlay.
+extern SpriteBatch gDryfieldNightMotelLoftView4SpriteBatches[3];
 
-extern SpriteSource D_dryfield_night_motel_loft_8017F4C4[20];
+/// Twenty foreground texture rectangles and sorting depths for mapped view 5.
+///
+/// Positions and sizes are view-centred pixels, UVs texels, and depths unscaled
+/// sorting values. One range selects all elements; mutable storage lives with
+/// the overlay and cached packets retain their initialized geometry.
+extern SpriteSource gDryfieldNightMotelLoftView5SpriteSources[20];
 
-extern SpriteBatch D_dryfield_night_motel_loft_8017F654[3];
+/// Mapped view 5's background selector, complete twenty-source range and end sentinel.
+///
+/// The zero-count first record keeps decoded-image strips; SPRITE_BATCH_END
+/// terminates the list. Mutable range storage lives with the room overlay.
+extern SpriteBatch gDryfieldNightMotelLoftView5SpriteBatches[3];
 
-extern SpriteSource D_dryfield_night_motel_loft_8017F66C[13];
+/// Thirteen foreground texture rectangles and sorting depths for mapped view 6.
+///
+/// Positions and sizes are view-centred pixels, UVs texels, and depths unscaled
+/// sorting values. One range selects all elements; mutable storage lives with
+/// the overlay and cached packets retain their initialized geometry.
+extern SpriteSource gDryfieldNightMotelLoftView6SpriteSources[13];
 
-extern SpriteBatch D_dryfield_night_motel_loft_8017F770[3];
+/// Mapped view 6's background selector, complete thirteen-source range and end sentinel.
+///
+/// The zero-count first record keeps decoded-image strips; SPRITE_BATCH_END
+/// terminates the list. Mutable range storage lives with the room overlay.
+extern SpriteBatch gDryfieldNightMotelLoftView6SpriteBatches[3];
 
-extern SpriteSource D_dryfield_night_motel_loft_8017F788[25];
+/// Twenty-five foreground texture rectangles and depths shared by mapped views 7 and 11.
+///
+/// Positions and sizes are view-centred pixels, UVs texels, and depths unscaled
+/// sorting values. Four ranges select all elements using palette rows 255..258;
+/// mutable storage lives with the overlay. Cached packets snapshot geometry.
+extern SpriteSource gDryfieldNightMotelLoftView7SpriteSources[25];
 
-extern SpriteBatch D_dryfield_night_motel_loft_8017F97C[6];
+/// Background selector and four contiguous source ranges shared by mapped views 7 and 11.
+///
+/// Ranges cover all twenty-five sources as 18, 5, 1 and 1 elements, followed by
+/// SPRITE_BATCH_END. The zero-count first record keeps decoded-image strips.
+/// Serialized `SpriteBatch.field_6` bytes retain 3, 2 and 1 in three ranges; their role is
+/// unproven. Mutable range storage lives with the room overlay.
+extern SpriteBatch gDryfieldNightMotelLoftView7SpriteBatches[6];
 
-extern SpriteSource D_dryfield_night_motel_loft_8017F9AC[22];
+/// Twenty-two foreground texture rectangles and sorting depths for mapped view 8.
+///
+/// Positions and sizes are view-centred pixels, UVs texels, and depths unscaled
+/// sorting values. Two ranges select all elements; mutable storage lives with
+/// the overlay and cached packets retain their initialized geometry.
+extern SpriteSource gDryfieldNightMotelLoftView8SpriteSources[22];
 
-extern SpriteBatch D_dryfield_night_motel_loft_8017FB64[4];
+/// Mapped view 8's background selector, two source ranges and end sentinel.
+///
+/// Ranges cover all twenty-two sources as 10 and 12 elements, followed by
+/// SPRITE_BATCH_END. The zero-count first record keeps decoded-image strips.
+/// The first range retains 1 in serialized `SpriteBatch.field_6`; its role is unproven.
+/// Mutable range storage lives with the room overlay.
+extern SpriteBatch gDryfieldNightMotelLoftView8SpriteBatches[4];
 
 /// Rebuilds the movable collision wall beside the Jerry Can from its template.
 ///

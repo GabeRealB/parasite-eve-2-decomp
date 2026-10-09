@@ -16,18 +16,45 @@ extern AreaVariant D_dryfield_night_motel_loft_80180888[13];
 
 extern TmdSource gDryfieldNightMotelLoftActor135400Model071AC;
 
-// dryfield_night_motel_loft
-extern WorldCoordRoomLighting D_dryfield_night_motel_loft_8017EDB0[];
+/// Lighting descriptors for room selectors 1 and 2, sharing one point-light collection.
+///
+/// Indexed by room minus one. Both use the default ambient minima; the room
+/// overlay owns the records and borrowed lights, which remain live while loaded.
+extern WorldCoordRoomLighting gDryfieldNightMotelLoftRoomLighting[2];
 
 extern WorldCollisionRoomResources D_dryfield_night_motel_loft_8017EDC0[];
 
-extern u8* D_dryfield_night_motel_loft_8017EDF0[];
+/// Logical-to-mapped view byte arrays for the loft's two room selectors.
+///
+/// Indexed by room minus one, then logical view minus one (logical views 1..14).
+/// Room 1 borrows the gameplay identity map; room 2 substitutes mapped views
+/// 9, 10 and 11 at logical slots 2, 3 and 7 after the encounter switches rooms.
+/// Mapped camera, image and sprite bounds are independent. Room-owned pointers
+/// require this overlay to remain loaded.
+extern u8* gDryfieldNightMotelLoftViewMaps[2];
 
-extern ViewCount D_dryfield_night_motel_loft_8017EDF8[];
+/// Signed element counts for reverse-view lookup in room selectors 1 and 2.
+///
+/// Indexed by room minus one; each searches fourteen logical-map bytes.
+/// These counts do not describe map capacity or camera/image/sprite extents.
+/// The stage map borrows the array while this room overlay is loaded.
+extern ViewCount gDryfieldNightMotelLoftViewCounts[2];
 
-extern DirectionWarpEntry D_dryfield_night_motel_loft_8017EDFC[];
+/// The loft's balcony-door warp endpoint, indexed by warp ID 1 minus one.
+///
+/// Player and companion arrive at (3953, 0, -2156) world units with yaw zero,
+/// in logical view 2. Arrival/departure use this area's door sounds; there is
+/// no blocked sound or departure fade. Map-marker nibble 466 tracks the door.
+/// The stage directory borrows this complete record while the overlay is loaded.
+extern DirectionWarpEntry gDryfieldNightMotelLoftWarpEntries[1];
 
-extern ViewCamera D_dryfield_night_motel_loft_8017F144[];
+/// Eleven cameras selected by mapped view index 1..11, stored at index minus one.
+///
+/// Rotations use ONE (4096) for unity; translations are negated world origins
+/// in integer units and screen distances are pixels. Views 2/9, 3/10 and 7/11
+/// share camera transforms. The fourteen-entry logical-view search does not
+/// extend this camera array. The stage map borrows it while the overlay is loaded.
+extern ViewCamera gDryfieldNightMotelLoftViewCameras[11];
 
 extern SpriteView D_dryfield_night_motel_loft_8017FBE4[];
 
