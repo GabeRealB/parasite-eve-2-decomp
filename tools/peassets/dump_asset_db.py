@@ -2,7 +2,8 @@
 """Rebuild ``asset_data.py`` (ASSETS + EMBEDDED_ASSETS + TREE) from an extracted assets tree.
 
 Unique blobs come from ``raw/{type}/`` (SHA-1 of the on-disc payload).
-CDF placement comes from ``stages.json``. Extra ASSETS fields (``bpp``,
+CDF placement comes from ``stages.json``. An image's or a CLUT's place in video
+memory (``x``, ``y``, ``w``, ``h``) is read from its header every time. Extra ASSETS fields (``bpp``,
 ``required``, …), model names, the whole ``EMBEDDED_ASSETS`` map and TREE folder/file **keys** are preserved across
 regenerations (matched by sha1 / disc id). pe2img ``bpp`` is an int, or a
 list (one depth per work-entry column). Missing ``bpp`` is filled with
@@ -19,6 +20,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import struct
 import sys
 from pathlib import Path
 from typing import Any
@@ -37,6 +39,7 @@ from asset_db import (  # noqa: E402
 )
 from image_codec import (  # noqa: E402
     guess_bpp,
+    height_from_work_entries,
     iter_lzss_strips,
     parse_work_entries,
 )
@@ -108,6 +111,38 @@ def _pe2img_bpp_field(path: Path, current: object) -> int | list[int]:
     if n_cols == 1:
         return vals[0]
     return vals
+
+
+# Where an image or a CLUT lands in video memory is written in its own header,
+# so it is a property of the asset: the texture page and CLUT values the code
+# draws with are derived from it. Units are the header's - `x` and `w` in
+# 16-bit VRAM pixels, `y` and `h` in rows. Unlike `bpp`, which a person may
+# correct, these are read from the payload on every regeneration.
+IMAGE_COLUMN_WIDTH = 0x40
+
+
+def _pe2img_geometry(path: Path) -> dict[str, Any]:
+    entries, term_y = parse_work_entries(path.read_bytes())
+    if not entries:
+        return {}
+    xs = [e.x for e in entries]
+    out: dict[str, Any] = {"y": entries[0].y, "h": height_from_work_entries(entries, term_y)}
+    if all(e.y == entries[0].y for e in entries) and xs == [xs[0] + IMAGE_COLUMN_WIDTH * i for i in range(len(xs))]:
+        out["x"], out["w"] = xs[0], IMAGE_COLUMN_WIDTH * len(xs)
+    else:
+        # Columns that do not sit side by side: one origin per column.
+        out["x"], out["w"] = xs, IMAGE_COLUMN_WIDTH
+        if any(e.y != entries[0].y for e in entries):
+            out["y"] = [e.y for e in entries]
+    return out
+
+
+def _pe2clut_geometry(path: Path) -> dict[str, Any]:
+    data = path.read_bytes()
+    if len(data) < 8:
+        return {}
+    x, y, h, w = struct.unpack_from("<4H", data, 0)
+    return {"x": x, "y": y, "w": w, "h": h}
 
 
 def _asset_id_from_stages_path(rel: str) -> str | None:
@@ -217,6 +252,9 @@ def collect_assets(assets_root: Path, old_assets: dict[str, dict[str, Any]]) -> 
                 rec["required"] = True
             if type_dir == "pe2img":
                 rec["bpp"] = _pe2img_bpp_field(path, rec.get("bpp"))
+                rec.update(_pe2img_geometry(path))
+            elif type_dir == "pe2clut":
+                rec.update(_pe2clut_geometry(path))
             out[aid] = rec
     return out
 
