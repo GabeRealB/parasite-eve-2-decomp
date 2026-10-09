@@ -161,324 +161,521 @@ static u16 Shop_Data_801816AC[10] = {
     0,
 };
 
-static u16 Shop_Data_801816C0[4] = {
-    108,
-    100,
-    102,
-    0xFFFF,
+/// Item catalogue keys used by these base stock lists.
+///
+/// Stock rows keep their unsigned halfword representation; service and end
+/// rows use the separate `SHOP_ROW_*` values.
+enum {
+    SHOP_STOCK_ITEM_RECOVERY_1       = 1,
+    SHOP_STOCK_ITEM_RECOVERY_2       = 2,
+    SHOP_STOCK_ITEM_RECOVERY_3       = 3,
+    SHOP_STOCK_ITEM_STIM             = 4,
+    SHOP_STOCK_ITEM_MP_BOOST_1       = 6,
+    SHOP_STOCK_ITEM_MP_BOOST_2       = 7,
+    SHOP_STOCK_ITEM_PENICILLIN       = 8,
+    SHOP_ITEM_SMG_CLIP_HOLDER        = 9,
+    SHOP_ITEM_RIFLE_CLIP_HOLDER      = 10,
+    SHOP_STOCK_ITEM_LIPSTICK         = 11,
+    SHOP_ITEM_BELT_POUCH             = 13,
+    SHOP_STOCK_ITEM_MEDICINE_WHEEL   = 55,
+    SHOP_STOCK_ITEM_FLARE            = 58,
+    SHOP_STOCK_ITEM_PEPPER_SPRAY     = 59,
+    SHOP_STOCK_ITEM_PROTEIN_CAPSULE  = 60,
+    SHOP_STOCK_ITEM_COMBAT_LIGHT     = 65,
+    SHOP_ITEM_HAMMER                 = 66,
+    SHOP_ITEM_PYKE                   = 67,
+    SHOP_ITEM_JAVELIN                = 68,
+    SHOP_ITEM_M203                   = 69,
+    SHOP_ITEM_M9                     = 70,
+    SHOP_STOCK_ITEM_TACTICAL_ARMOR   = 97,
+    SHOP_STOCK_ITEM_COMBAT_ARMOR     = 98,
+    SHOP_STOCK_ITEM_PASGT_VEST       = 100,
+    SHOP_STOCK_ITEM_EOD_SUIT         = 102,
+    SHOP_STOCK_ITEM_TURTLE_VEST      = 103,
+    SHOP_STOCK_ITEM_AYA_SPECIAL      = 107,
+    SHOP_STOCK_ITEM_SHOULDER_HOLSTER = 108,
+    SHOP_STOCK_ITEM_P08              = 131,
+    SHOP_ITEM_GRENADE_PISTOL         = 138,
+    SHOP_STOCK_ITEM_MM1              = 139,
+    SHOP_STOCK_ITEM_PA3              = 140,
+    SHOP_STOCK_ITEM_AS12             = 142,
+    SHOP_STOCK_ITEM_M4A1_RIFLE       = 143,
+    SHOP_STOCK_ITEM_M249             = 144,
+    SHOP_ITEM_MP5A5_FIRST            = 157,
+    SHOP_STOCK_ITEM_9MM_PB           = 160,
+    SHOP_STOCK_ITEM_9MM_SPARTAN      = 162,
+    SHOP_STOCK_ITEM_44_MAGNUM        = 166,
+    SHOP_STOCK_ITEM_GRENADE          = 169,
+    SHOP_STOCK_ITEM_AIRBURST         = 170,
+    SHOP_STOCK_ITEM_RIOT             = 171,
+    SHOP_STOCK_ITEM_BUCKSHOT         = 172,
+    SHOP_STOCK_ITEM_FIREFLY          = 173,
+    SHOP_STOCK_ITEM_R_SLUG           = 174,
+    SHOP_STOCK_ITEM_556_RIFLE        = 175,
 };
 
-static u16 Shop_Data_801816C8[8] = {
-    65,
-    59,
-    1,
-    6,
-    8,
-    4,
-    0xFFFF,
+/// Armor stock for late Dryfield in standard modes (save modes 0 and 1).
+///
+/// 3 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+static u16 _gShopStandardDryfieldLateArmorStock[4] = {
+    SHOP_STOCK_ITEM_SHOULDER_HOLSTER,
+    SHOP_STOCK_ITEM_PASGT_VEST,
+    SHOP_STOCK_ITEM_EOD_SUIT,
+    SHOP_ROW_END,
+};
+
+/// Items stock for late Dryfield in standard modes (save modes 0 and 1).
+///
+/// 6 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// The stored word after the terminator is outside the offered list.
+static u16 _gShopStandardDryfieldLateItemsStock[8] = {
+    SHOP_STOCK_ITEM_COMBAT_LIGHT,
+    SHOP_STOCK_ITEM_PEPPER_SPRAY,
+    SHOP_STOCK_ITEM_RECOVERY_1,
+    SHOP_STOCK_ITEM_MP_BOOST_1,
+    SHOP_STOCK_ITEM_PENICILLIN,
+    SHOP_STOCK_ITEM_STIM,
+    SHOP_ROW_END,
     0,
 };
 
-static u16 Shop_Data_801816D8[12] = {
-    157,
-    9,
-    140,
-    142,
-    138,
-    143,
-    10,
-    70,
-    69,
-    66,
-    67,
-    0xFFFF,
+/// Weapons stock for Shelter in standard modes (save modes 0 and 1).
+///
+/// 11 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+static u16 _gShopStandardShelterWeaponsStock[12] = {
+    SHOP_ITEM_MP5A5_FIRST,
+    SHOP_ITEM_SMG_CLIP_HOLDER,
+    SHOP_STOCK_ITEM_PA3,
+    SHOP_STOCK_ITEM_AS12,
+    SHOP_ITEM_GRENADE_PISTOL,
+    SHOP_STOCK_ITEM_M4A1_RIFLE,
+    SHOP_ITEM_RIFLE_CLIP_HOLDER,
+    SHOP_ITEM_M9,
+    SHOP_ITEM_M203,
+    SHOP_ITEM_HAMMER,
+    SHOP_ITEM_PYKE,
+    SHOP_ROW_END,
 };
 
-static u16 Shop_Data_801816F0[10] = {
-    162,
-    166,
-    173,
-    174,
-    171,
-    169,
-    170,
-    175,
-    0xFFFE,
-    0xFFFF,
+/// Ammunition stock for Shelter in standard modes (save modes 0 and 1).
+///
+/// 9 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// `SHOP_ROW_RECHARGE_SERVICE` is a service row, outside the item catalogue.
+static u16 _gShopStandardShelterAmmunitionStock[10] = {
+    SHOP_STOCK_ITEM_9MM_SPARTAN,
+    SHOP_STOCK_ITEM_44_MAGNUM,
+    SHOP_STOCK_ITEM_FIREFLY,
+    SHOP_STOCK_ITEM_R_SLUG,
+    SHOP_STOCK_ITEM_RIOT,
+    SHOP_STOCK_ITEM_GRENADE,
+    SHOP_STOCK_ITEM_AIRBURST,
+    SHOP_STOCK_ITEM_556_RIFLE,
+    SHOP_ROW_RECHARGE_SERVICE,
+    SHOP_ROW_END,
 };
 
-static u16 Shop_Data_80181704[4] = {
-    100,
-    98,
-    97,
-    0xFFFF,
+/// Armor stock for Shelter in standard modes (save modes 0 and 1).
+///
+/// 3 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+static u16 _gShopStandardShelterArmorStock[4] = {
+    SHOP_STOCK_ITEM_PASGT_VEST,
+    SHOP_STOCK_ITEM_COMBAT_ARMOR,
+    SHOP_STOCK_ITEM_TACTICAL_ARMOR,
+    SHOP_ROW_END,
 };
 
-static u16 Shop_Data_8018170C[10] = {
-    65,
-    59,
-    58,
-    1,
-    2,
-    3,
-    6,
-    8,
-    4,
-    0xFFFF,
+/// Items stock for Shelter in standard modes (save modes 0 and 1).
+///
+/// 9 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+static u16 _gShopStandardShelterItemsStock[10] = {
+    SHOP_STOCK_ITEM_COMBAT_LIGHT,
+    SHOP_STOCK_ITEM_PEPPER_SPRAY,
+    SHOP_STOCK_ITEM_FLARE,
+    SHOP_STOCK_ITEM_RECOVERY_1,
+    SHOP_STOCK_ITEM_RECOVERY_2,
+    SHOP_STOCK_ITEM_RECOVERY_3,
+    SHOP_STOCK_ITEM_MP_BOOST_1,
+    SHOP_STOCK_ITEM_PENICILLIN,
+    SHOP_STOCK_ITEM_STIM,
+    SHOP_ROW_END,
 };
 
-static u16 Shop_Data_80181720[14] = {
-    157,
-    9,
-    140,
-    142,
-    143,
-    10,
-    70,
-    69,
-    66,
-    67,
-    68,
-    138,
-    0xFFFF,
+/// Weapons stock for Shelter's alternate profile in standard modes (save modes 0 and 1).
+///
+/// 12 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// The stored word after the terminator is outside the offered list.
+static u16 _gShopStandardShelterAlternateWeaponsStock[14] = {
+    SHOP_ITEM_MP5A5_FIRST,
+    SHOP_ITEM_SMG_CLIP_HOLDER,
+    SHOP_STOCK_ITEM_PA3,
+    SHOP_STOCK_ITEM_AS12,
+    SHOP_STOCK_ITEM_M4A1_RIFLE,
+    SHOP_ITEM_RIFLE_CLIP_HOLDER,
+    SHOP_ITEM_M9,
+    SHOP_ITEM_M203,
+    SHOP_ITEM_HAMMER,
+    SHOP_ITEM_PYKE,
+    SHOP_ITEM_JAVELIN,
+    SHOP_ITEM_GRENADE_PISTOL,
+    SHOP_ROW_END,
     0,
 };
 
-static u16 Shop_Data_8018173C[8] = {
-    162,
-    173,
-    174,
-    171,
-    170,
-    0xFFFE,
-    0xFFFF,
+/// Ammunition stock for Shelter's alternate profile in standard modes (save modes 0 and 1).
+///
+/// 6 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// `SHOP_ROW_RECHARGE_SERVICE` is a service row, outside the item catalogue.
+/// The stored word after the terminator is outside the offered list.
+static u16 _gShopStandardShelterAlternateAmmunitionStock[8] = {
+    SHOP_STOCK_ITEM_9MM_SPARTAN,
+    SHOP_STOCK_ITEM_FIREFLY,
+    SHOP_STOCK_ITEM_R_SLUG,
+    SHOP_STOCK_ITEM_RIOT,
+    SHOP_STOCK_ITEM_AIRBURST,
+    SHOP_ROW_RECHARGE_SERVICE,
+    SHOP_ROW_END,
     0,
 };
 
-static u16 Shop_Data_8018174C[6] = {
-    103,
-    98,
-    100,
-    97,
-    107,
-    0xFFFF,
+/// Armor stock for Shelter's alternate profile in standard modes (save modes 0 and 1).
+///
+/// 5 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+static u16 _gShopStandardShelterAlternateArmorStock[6] = {
+    SHOP_STOCK_ITEM_TURTLE_VEST,
+    SHOP_STOCK_ITEM_COMBAT_ARMOR,
+    SHOP_STOCK_ITEM_PASGT_VEST,
+    SHOP_STOCK_ITEM_TACTICAL_ARMOR,
+    SHOP_STOCK_ITEM_AYA_SPECIAL,
+    SHOP_ROW_END,
 };
 
-static u16 Shop_Data_80181758[12] = {
-    65,
-    59,
-    58,
-    1,
-    2,
-    3,
-    6,
-    7,
-    8,
-    4,
-    0xFFFF,
+/// Items stock for Shelter's alternate profile in standard modes (save modes 0 and 1).
+///
+/// 10 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// The stored word after the terminator is outside the offered list.
+static u16 _gShopStandardShelterAlternateItemsStock[12] = {
+    SHOP_STOCK_ITEM_COMBAT_LIGHT,
+    SHOP_STOCK_ITEM_PEPPER_SPRAY,
+    SHOP_STOCK_ITEM_FLARE,
+    SHOP_STOCK_ITEM_RECOVERY_1,
+    SHOP_STOCK_ITEM_RECOVERY_2,
+    SHOP_STOCK_ITEM_RECOVERY_3,
+    SHOP_STOCK_ITEM_MP_BOOST_1,
+    SHOP_STOCK_ITEM_MP_BOOST_2,
+    SHOP_STOCK_ITEM_PENICILLIN,
+    SHOP_STOCK_ITEM_STIM,
+    SHOP_ROW_END,
     0,
 };
 
-static u16 Shop_Data_80181770[14] = {
-    140,
-    142,
-    138,
-    143,
-    10,
-    70,
-    69,
-    66,
-    67,
-    68,
-    157,
-    9,
-    0xFFFF,
+/// Weapons stock for Shelter's event profile in standard modes (save modes 0 and 1).
+///
+/// 12 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// The stored word after the terminator is outside the offered list.
+static u16 _gShopStandardShelterEventWeaponsStock[14] = {
+    SHOP_STOCK_ITEM_PA3,
+    SHOP_STOCK_ITEM_AS12,
+    SHOP_ITEM_GRENADE_PISTOL,
+    SHOP_STOCK_ITEM_M4A1_RIFLE,
+    SHOP_ITEM_RIFLE_CLIP_HOLDER,
+    SHOP_ITEM_M9,
+    SHOP_ITEM_M203,
+    SHOP_ITEM_HAMMER,
+    SHOP_ITEM_PYKE,
+    SHOP_ITEM_JAVELIN,
+    SHOP_ITEM_MP5A5_FIRST,
+    SHOP_ITEM_SMG_CLIP_HOLDER,
+    SHOP_ROW_END,
     0,
 };
 
-static u16 Shop_Data_8018178C[10] = {
-    162,
-    166,
-    173,
-    174,
-    171,
-    169,
-    170,
-    175,
-    0xFFFE,
-    0xFFFF,
+/// Ammunition stock for Shelter's event profile in standard modes (save modes 0 and 1).
+///
+/// 9 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// `SHOP_ROW_RECHARGE_SERVICE` is a service row, outside the item catalogue.
+static u16 _gShopStandardShelterEventAmmunitionStock[10] = {
+    SHOP_STOCK_ITEM_9MM_SPARTAN,
+    SHOP_STOCK_ITEM_44_MAGNUM,
+    SHOP_STOCK_ITEM_FIREFLY,
+    SHOP_STOCK_ITEM_R_SLUG,
+    SHOP_STOCK_ITEM_RIOT,
+    SHOP_STOCK_ITEM_GRENADE,
+    SHOP_STOCK_ITEM_AIRBURST,
+    SHOP_STOCK_ITEM_556_RIFLE,
+    SHOP_ROW_RECHARGE_SERVICE,
+    SHOP_ROW_END,
 };
 
-static u16 Shop_Data_801817A0[4] = {
-    100,
-    98,
-    97,
-    0xFFFF,
+/// Armor stock for Shelter's event profile in standard modes (save modes 0 and 1).
+///
+/// 3 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+static u16 _gShopStandardShelterEventArmorStock[4] = {
+    SHOP_STOCK_ITEM_PASGT_VEST,
+    SHOP_STOCK_ITEM_COMBAT_ARMOR,
+    SHOP_STOCK_ITEM_TACTICAL_ARMOR,
+    SHOP_ROW_END,
 };
 
-static u16 Shop_Data_801817A8[10] = {
-    65,
-    59,
-    58,
-    1,
-    2,
-    3,
-    6,
-    8,
-    4,
-    0xFFFF,
+/// Items stock for Shelter's event profile in standard modes (save modes 0 and 1).
+///
+/// 9 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+static u16 _gShopStandardShelterEventItemsStock[10] = {
+    SHOP_STOCK_ITEM_COMBAT_LIGHT,
+    SHOP_STOCK_ITEM_PEPPER_SPRAY,
+    SHOP_STOCK_ITEM_FLARE,
+    SHOP_STOCK_ITEM_RECOVERY_1,
+    SHOP_STOCK_ITEM_RECOVERY_2,
+    SHOP_STOCK_ITEM_RECOVERY_3,
+    SHOP_STOCK_ITEM_MP_BOOST_1,
+    SHOP_STOCK_ITEM_PENICILLIN,
+    SHOP_STOCK_ITEM_STIM,
+    SHOP_ROW_END,
 };
 
-static u16 Shop_Data_801817BC[16] = {
-    140,
-    142,
-    138,
-    139,
-    143,
-    10,
-    70,
-    69,
-    66,
-    67,
-    68,
-    144,
-    157,
-    9,
-    0xFFFF,
+/// Weapons stock for Shelter's alternate event profile in standard modes (save modes 0 and 1).
+///
+/// 14 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// The stored word after the terminator is outside the offered list.
+static u16 _gShopStandardShelterAlternateEventWeaponsStock[16] = {
+    SHOP_STOCK_ITEM_PA3,
+    SHOP_STOCK_ITEM_AS12,
+    SHOP_ITEM_GRENADE_PISTOL,
+    SHOP_STOCK_ITEM_MM1,
+    SHOP_STOCK_ITEM_M4A1_RIFLE,
+    SHOP_ITEM_RIFLE_CLIP_HOLDER,
+    SHOP_ITEM_M9,
+    SHOP_ITEM_M203,
+    SHOP_ITEM_HAMMER,
+    SHOP_ITEM_PYKE,
+    SHOP_ITEM_JAVELIN,
+    SHOP_STOCK_ITEM_M249,
+    SHOP_ITEM_MP5A5_FIRST,
+    SHOP_ITEM_SMG_CLIP_HOLDER,
+    SHOP_ROW_END,
     0,
 };
 
-static u16 Shop_Data_801817DC[8] = {
-    162,
-    173,
-    174,
-    171,
-    170,
-    0xFFFE,
-    0xFFFF,
+/// Ammunition stock for Shelter's alternate event profile in standard modes (save modes 0 and 1).
+///
+/// 6 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// `SHOP_ROW_RECHARGE_SERVICE` is a service row, outside the item catalogue.
+/// The stored word after the terminator is outside the offered list.
+static u16 _gShopStandardShelterAlternateEventAmmunitionStock[8] = {
+    SHOP_STOCK_ITEM_9MM_SPARTAN,
+    SHOP_STOCK_ITEM_FIREFLY,
+    SHOP_STOCK_ITEM_R_SLUG,
+    SHOP_STOCK_ITEM_RIOT,
+    SHOP_STOCK_ITEM_AIRBURST,
+    SHOP_ROW_RECHARGE_SERVICE,
+    SHOP_ROW_END,
     0,
 };
 
-static u16 Shop_Data_801817EC[6] = {
-    100,
-    98,
-    97,
-    103,
-    107,
-    0xFFFF,
+/// Armor stock for Shelter's alternate event profile in standard modes (save modes 0 and 1).
+///
+/// 5 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+static u16 _gShopStandardShelterAlternateEventArmorStock[6] = {
+    SHOP_STOCK_ITEM_PASGT_VEST,
+    SHOP_STOCK_ITEM_COMBAT_ARMOR,
+    SHOP_STOCK_ITEM_TACTICAL_ARMOR,
+    SHOP_STOCK_ITEM_TURTLE_VEST,
+    SHOP_STOCK_ITEM_AYA_SPECIAL,
+    SHOP_ROW_END,
 };
 
-static u16 Shop_Data_801817F8[12] = {
-    65,
-    59,
-    58,
-    1,
-    2,
-    3,
-    6,
-    7,
-    8,
-    4,
-    0xFFFF,
+/// Items stock for Shelter's alternate event profile in standard modes (save modes 0 and 1).
+///
+/// 10 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// The stored word after the terminator is outside the offered list.
+static u16 _gShopStandardShelterAlternateEventItemsStock[12] = {
+    SHOP_STOCK_ITEM_COMBAT_LIGHT,
+    SHOP_STOCK_ITEM_PEPPER_SPRAY,
+    SHOP_STOCK_ITEM_FLARE,
+    SHOP_STOCK_ITEM_RECOVERY_1,
+    SHOP_STOCK_ITEM_RECOVERY_2,
+    SHOP_STOCK_ITEM_RECOVERY_3,
+    SHOP_STOCK_ITEM_MP_BOOST_1,
+    SHOP_STOCK_ITEM_MP_BOOST_2,
+    SHOP_STOCK_ITEM_PENICILLIN,
+    SHOP_STOCK_ITEM_STIM,
+    SHOP_ROW_END,
     0,
 };
 
-static u16 Shop_Data_80181810[2] = {
-    139,
-    0xFFFF,
+/// Weapons stock for M.I.S.T. in restricted modes (save modes 2 and above).
+///
+/// 1 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+static u16 _gShopRestrictedMistWeaponsStock[2] = {
+    SHOP_STOCK_ITEM_MM1,
+    SHOP_ROW_END,
 };
 
-static u16 Shop_Data_80181814[2] = {
-    171,
-    0xFFFF,
+/// Ammunition stock for M.I.S.T. in restricted modes (save modes 2 and above).
+///
+/// 1 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+static u16 _gShopRestrictedMistAmmunitionStock[2] = {
+    SHOP_STOCK_ITEM_RIOT,
+    SHOP_ROW_END,
 };
 
-static u16 Shop_Data_80181818[4] = {
-    108,
-    13,
-    0xFFFF,
+/// Armor stock for M.I.S.T. in restricted modes (save modes 2 and above).
+///
+/// 2 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// The stored word after the terminator is outside the offered list.
+static u16 _gShopRestrictedMistArmorStock[4] = {
+    SHOP_STOCK_ITEM_SHOULDER_HOLSTER,
+    SHOP_ITEM_BELT_POUCH,
+    SHOP_ROW_END,
     0,
 };
 
-static u16 Shop_Data_80181820[8] = {
-    65,
-    59,
-    58,
-    60,
-    11,
-    55,
-    0xFFFF,
+/// Items stock for M.I.S.T. in restricted modes (save modes 2 and above).
+///
+/// 6 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// The stored word after the terminator is outside the offered list.
+static u16 _gShopRestrictedMistItemsStock[8] = {
+    SHOP_STOCK_ITEM_COMBAT_LIGHT,
+    SHOP_STOCK_ITEM_PEPPER_SPRAY,
+    SHOP_STOCK_ITEM_FLARE,
+    SHOP_STOCK_ITEM_PROTEIN_CAPSULE,
+    SHOP_STOCK_ITEM_LIPSTICK,
+    SHOP_STOCK_ITEM_MEDICINE_WHEEL,
+    SHOP_ROW_END,
     0,
 };
 
-static u16 Shop_Data_80181830[4] = {
-    131,
-    138,
-    0xFFFF,
+/// Weapons stock for Dryfield in restricted modes (save modes 2 and above).
+///
+/// 2 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// The stored word after the terminator is outside the offered list.
+static u16 _gShopRestrictedDryfieldWeaponsStock[4] = {
+    SHOP_STOCK_ITEM_P08,
+    SHOP_ITEM_GRENADE_PISTOL,
+    SHOP_ROW_END,
     0,
 };
 
-static u16 Shop_Data_80181838[4] = {
-    160,
-    171,
-    0xFFFF,
+/// Ammunition stock for Dryfield in restricted modes (save modes 2 and above).
+///
+/// 2 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// The stored word after the terminator is outside the offered list.
+static u16 _gShopRestrictedDryfieldAmmunitionStock[4] = {
+    SHOP_STOCK_ITEM_9MM_PB,
+    SHOP_STOCK_ITEM_RIOT,
+    SHOP_ROW_END,
     0,
 };
 
-static u16 Shop_Data_80181840[4] = {
-    108,
-    100,
-    13,
-    0xFFFF,
+/// Armor stock for Dryfield in restricted modes (save modes 2 and above).
+///
+/// 3 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+static u16 _gShopRestrictedDryfieldArmorStock[4] = {
+    SHOP_STOCK_ITEM_SHOULDER_HOLSTER,
+    SHOP_STOCK_ITEM_PASGT_VEST,
+    SHOP_ITEM_BELT_POUCH,
+    SHOP_ROW_END,
 };
 
-static u16 Shop_Data_80181848[6] = {
-    65,
-    59,
-    58,
-    60,
-    11,
-    0xFFFF,
+/// Items stock for Dryfield in restricted modes (save modes 2 and above).
+///
+/// 5 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+static u16 _gShopRestrictedDryfieldItemsStock[6] = {
+    SHOP_STOCK_ITEM_COMBAT_LIGHT,
+    SHOP_STOCK_ITEM_PEPPER_SPRAY,
+    SHOP_STOCK_ITEM_FLARE,
+    SHOP_STOCK_ITEM_PROTEIN_CAPSULE,
+    SHOP_STOCK_ITEM_LIPSTICK,
+    SHOP_ROW_END,
 };
 
-static u16 Shop_Data_80181854[4] = {
-    140,
-    138,
-    0xFFFF,
+/// Weapons stock for the armory in restricted modes (save modes 2 and above).
+///
+/// 2 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// The stored word after the terminator is outside the offered list.
+static u16 _gShopRestrictedArmoryWeaponsStock[4] = {
+    SHOP_STOCK_ITEM_PA3,
+    SHOP_ITEM_GRENADE_PISTOL,
+    SHOP_ROW_END,
     0,
 };
 
-static u16 Shop_Data_8018185C[6] = {
-    160,
-    172,
-    171,
-    175,
-    0xFFFF,
+/// Ammunition stock for the armory in restricted modes (save modes 2 and above).
+///
+/// 4 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// The stored word after the terminator is outside the offered list.
+static u16 _gShopRestrictedArmoryAmmunitionStock[6] = {
+    SHOP_STOCK_ITEM_9MM_PB,
+    SHOP_STOCK_ITEM_BUCKSHOT,
+    SHOP_STOCK_ITEM_RIOT,
+    SHOP_STOCK_ITEM_556_RIFLE,
+    SHOP_ROW_END,
     0,
 };
 
-static u16 Shop_Data_80181868[4] = {
-    98,
-    13,
-    0xFFFF,
+/// Armor stock for the armory in restricted modes (save modes 2 and above).
+///
+/// 2 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// The stored word after the terminator is outside the offered list.
+static u16 _gShopRestrictedArmoryArmorStock[4] = {
+    SHOP_STOCK_ITEM_COMBAT_ARMOR,
+    SHOP_ITEM_BELT_POUCH,
+    SHOP_ROW_END,
     0,
 };
 
-static u16 Shop_Data_80181870[6] = {
-    65,
-    59,
-    58,
-    60,
-    11,
-    0xFFFF,
+/// Items stock for the armory in restricted modes (save modes 2 and above).
+///
+/// 5 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+static u16 _gShopRestrictedArmoryItemsStock[6] = {
+    SHOP_STOCK_ITEM_COMBAT_LIGHT,
+    SHOP_STOCK_ITEM_PEPPER_SPRAY,
+    SHOP_STOCK_ITEM_FLARE,
+    SHOP_STOCK_ITEM_PROTEIN_CAPSULE,
+    SHOP_STOCK_ITEM_LIPSTICK,
+    SHOP_ROW_END,
 };
 
-static u16 Shop_Data_8018187C[6] = {
-    131,
-    138,
-    143,
-    70,
-    0xFFFF,
+/// Weapons stock for late Dryfield in restricted modes (save modes 2 and above).
+///
+/// 4 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// The stored word after the terminator is outside the offered list.
+static u16 _gShopRestrictedDryfieldLateWeaponsStock[6] = {
+    SHOP_STOCK_ITEM_P08,
+    SHOP_ITEM_GRENADE_PISTOL,
+    SHOP_STOCK_ITEM_M4A1_RIFLE,
+    SHOP_ITEM_M9,
+    SHOP_ROW_END,
     0,
 };
 

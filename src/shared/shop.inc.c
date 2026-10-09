@@ -60,21 +60,11 @@ enum {
     SHOP_CARRIED_ITEM_ID_LIMIT     = 0x100,
     SHOP_GAME_MODE_NORMAL          = 0,
     SHOP_GAME_MODE_SCAVENGER       = 2,
-    SHOP_ITEM_SMG_CLIP_HOLDER      = 9,
-    SHOP_ITEM_RIFLE_CLIP_HOLDER    = 0xA,
     SHOP_ITEM_SNAIL_MAGAZINE       = 0xC,
-    SHOP_ITEM_BELT_POUCH           = 0xD,
-    SHOP_ITEM_HAMMER               = 0x42,
-    SHOP_ITEM_PYKE                 = 0x43,
-    SHOP_ITEM_JAVELIN              = 0x44,
-    SHOP_ITEM_M203                 = 0x45,
-    SHOP_ITEM_M9                   = 0x46,
     SHOP_ARMOR_ITEM_FIRST          = 0x60,
     SHOP_ARMOR_ITEM_COUNT          = 0x20,
     SHOP_ITEM_TACTICAL_VEST        = 0x65,
     SHOP_WEAPON_ITEM_COUNT         = 0x20,
-    SHOP_ITEM_GRENADE_PISTOL       = 0x8A,
-    SHOP_ITEM_MP5A5_FIRST          = 0x9D,
     SHOP_ITEM_MP5A5_COUNT          = 3
 };
 
@@ -149,46 +139,46 @@ static const u16* _shopSelectStockList(s32 stockSelector)
             case SHOP_STOCK_SHELTER:
                 switch ((u32)stockSelector >> 16) {
                     case SHOP_CATEGORY_WEAPONS:
-                        return Shop_Data_801816D8;
+                        return _gShopStandardShelterWeaponsStock;
                     case SHOP_CATEGORY_AMMUNITION:
-                        return Shop_Data_801816F0;
+                        return _gShopStandardShelterAmmunitionStock;
                     case SHOP_CATEGORY_ARMOR:
-                        return Shop_Data_80181704;
+                        return _gShopStandardShelterArmorStock;
                     case SHOP_CATEGORY_ITEMS:
-                        return Shop_Data_8018170C;
+                        return _gShopStandardShelterItemsStock;
                 }
             case SHOP_STOCK_SHELTER_ALTERNATE:
                 switch ((u32)stockSelector >> 16) {
                     case SHOP_CATEGORY_WEAPONS:
-                        return Shop_Data_80181720;
+                        return _gShopStandardShelterAlternateWeaponsStock;
                     case SHOP_CATEGORY_AMMUNITION:
-                        return Shop_Data_8018173C;
+                        return _gShopStandardShelterAlternateAmmunitionStock;
                     case SHOP_CATEGORY_ARMOR:
-                        return Shop_Data_8018174C;
+                        return _gShopStandardShelterAlternateArmorStock;
                     case SHOP_CATEGORY_ITEMS:
-                        return Shop_Data_80181758;
+                        return _gShopStandardShelterAlternateItemsStock;
                 }
             case SHOP_STOCK_SHELTER_EVENT:
                 switch ((u32)stockSelector >> 16) {
                     case SHOP_CATEGORY_WEAPONS:
-                        return Shop_Data_80181770;
+                        return _gShopStandardShelterEventWeaponsStock;
                     case SHOP_CATEGORY_AMMUNITION:
-                        return Shop_Data_8018178C;
+                        return _gShopStandardShelterEventAmmunitionStock;
                     case SHOP_CATEGORY_ARMOR:
-                        return Shop_Data_801817A0;
+                        return _gShopStandardShelterEventArmorStock;
                     case SHOP_CATEGORY_ITEMS:
-                        return Shop_Data_801817A8;
+                        return _gShopStandardShelterEventItemsStock;
                 }
             case SHOP_STOCK_SHELTER_ALTERNATE_EVENT:
                 switch ((u32)stockSelector >> 16) {
                     case SHOP_CATEGORY_WEAPONS:
-                        return Shop_Data_801817BC;
+                        return _gShopStandardShelterAlternateEventWeaponsStock;
                     case SHOP_CATEGORY_AMMUNITION:
-                        return Shop_Data_801817DC;
+                        return _gShopStandardShelterAlternateEventAmmunitionStock;
                     case SHOP_CATEGORY_ARMOR:
-                        return Shop_Data_801817EC;
+                        return _gShopStandardShelterAlternateEventArmorStock;
                     case SHOP_CATEGORY_ITEMS:
-                        return Shop_Data_801817F8;
+                        return _gShopStandardShelterAlternateEventItemsStock;
                 }
             case SHOP_STOCK_DRYFIELD:
                 switch ((u32)stockSelector >> 16) {
@@ -209,9 +199,9 @@ static const u16* _shopSelectStockList(s32 stockSelector)
                     case SHOP_CATEGORY_AMMUNITION:
                         return Shop_Data_801816AC;
                     case SHOP_CATEGORY_ARMOR:
-                        return Shop_Data_801816C0;
+                        return _gShopStandardDryfieldLateArmorStock;
                     case SHOP_CATEGORY_ITEMS:
-                        return Shop_Data_801816C8;
+                        return _gShopStandardDryfieldLateItemsStock;
                 }
                 break;
             case SHOP_STOCK_ARMORY:
@@ -288,19 +278,19 @@ static const u16* _shopSelectStockList(s32 stockSelector)
             case SHOP_STOCK_DRYFIELD:
                 switch ((u32)stockSelector >> 16) {
                     case SHOP_CATEGORY_WEAPONS:
-                        return Shop_Data_80181830;
+                        return _gShopRestrictedDryfieldWeaponsStock;
                     case SHOP_CATEGORY_AMMUNITION:
-                        return Shop_Data_80181838;
+                        return _gShopRestrictedDryfieldAmmunitionStock;
                     case SHOP_CATEGORY_ARMOR:
-                        return Shop_Data_80181840;
+                        return _gShopRestrictedDryfieldArmorStock;
                     case SHOP_CATEGORY_ITEMS:
-                        return Shop_Data_80181848;
+                        return _gShopRestrictedDryfieldItemsStock;
                 }
                 break;
             case SHOP_STOCK_DRYFIELD_LATE:
                 switch ((u32)stockSelector >> 16) {
                     case SHOP_CATEGORY_WEAPONS:
-                        return Shop_Data_8018187C;
+                        return _gShopRestrictedDryfieldLateWeaponsStock;
                     case SHOP_CATEGORY_AMMUNITION:
                         return Shop_Data_80181888;
                     case SHOP_CATEGORY_ARMOR:
@@ -312,25 +302,25 @@ static const u16* _shopSelectStockList(s32 stockSelector)
             case SHOP_STOCK_ARMORY:
                 switch ((u32)stockSelector >> 16) {
                     case SHOP_CATEGORY_WEAPONS:
-                        return Shop_Data_80181854;
+                        return _gShopRestrictedArmoryWeaponsStock;
                     case SHOP_CATEGORY_AMMUNITION:
-                        return Shop_Data_8018185C;
+                        return _gShopRestrictedArmoryAmmunitionStock;
                     case SHOP_CATEGORY_ARMOR:
-                        return Shop_Data_80181868;
+                        return _gShopRestrictedArmoryArmorStock;
                     case SHOP_CATEGORY_ITEMS:
-                        return Shop_Data_80181870;
+                        return _gShopRestrictedArmoryItemsStock;
                 }
                 break;
             default:
                 switch ((u32)stockSelector >> 16) {
                     case SHOP_CATEGORY_WEAPONS:
-                        return Shop_Data_80181810;
+                        return _gShopRestrictedMistWeaponsStock;
                     case SHOP_CATEGORY_AMMUNITION:
-                        return Shop_Data_80181814;
+                        return _gShopRestrictedMistAmmunitionStock;
                     case SHOP_CATEGORY_ARMOR:
-                        return Shop_Data_80181818;
+                        return _gShopRestrictedMistArmorStock;
                     case SHOP_CATEGORY_ITEMS:
-                        return Shop_Data_80181820;
+                        return _gShopRestrictedMistItemsStock;
                 }
                 break;
         }
