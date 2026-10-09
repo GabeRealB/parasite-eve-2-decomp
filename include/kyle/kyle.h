@@ -9,7 +9,12 @@
 /// package loaded until all models using this source have been released.
 extern TmdSource gKyle800101KyleMadiganBody;
 
-extern TmdSource D_kyle_800101_8016C9E8;
+/// Kyle Madigan's one-part right-hand model for resource variant 1.
+///
+/// Parent its root to the companion body's right-hand joint (part 12).
+/// Borrows this package's geometry and writable command stream; keep the
+/// package loaded until every model using this source has been released.
+extern TmdSource gKyle800101KyleMadiganHandRight;
 
 extern TmdSource D_kyle_800101_8016CED8;
 
@@ -23,7 +28,12 @@ extern TmdSource D_kyle_800101_8016D81C;
 /// package loaded until all models using this source have been released.
 extern TmdSource gKyle800103KyleMadiganBody;
 
-extern TmdSource D_kyle_800103_8016C9E8;
+/// Kyle Madigan's one-part right-hand model for resource variant 3.
+///
+/// Parent its root to the companion body's right-hand joint (part 12).
+/// Borrows this package's geometry and writable command stream; keep the
+/// package loaded until every model using this source has been released.
+extern TmdSource gKyle800103KyleMadiganHandRight;
 
 extern TmdSource D_kyle_800103_8016CED8;
 
@@ -37,7 +47,12 @@ extern TmdSource D_kyle_800103_8016D81C;
 /// package loaded until all models using this source have been released.
 extern TmdSource gKyle800104KyleMadiganBody;
 
-extern TmdSource D_kyle_800104_8016C9E8;
+/// Kyle Madigan's one-part right-hand model for resource variant 4.
+///
+/// Parent its root to the companion body's right-hand joint (part 12).
+/// Borrows this package's geometry and writable command stream; keep the
+/// package loaded until every model using this source has been released.
+extern TmdSource gKyle800104KyleMadiganHandRight;
 
 extern TmdSource D_kyle_800104_8016CED8;
 
@@ -51,7 +66,12 @@ extern TmdSource D_kyle_800104_8016D81C;
 /// package loaded until all models using this source have been released.
 extern TmdSource gKyle800102KyleMadiganBody;
 
-extern TmdSource D_kyle_800102_8016D28C;
+/// Kyle Madigan's one-part right-hand model for resource variant 2.
+///
+/// Parent its root to the companion body's right-hand joint (part 12).
+/// Borrows this package's geometry and writable command stream; keep the
+/// package loaded until every model using this source has been released.
+extern TmdSource gKyle800102KyleMadiganHandRight;
 
 extern TmdSource D_kyle_800102_8016D77C;
 
