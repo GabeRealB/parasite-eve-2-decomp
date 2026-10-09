@@ -1497,7 +1497,7 @@ AreaPlacement D_shelter_b1_underground_parking_8018B57C[1] = {
 };
 
 AreaResource D_shelter_b1_underground_parking_8018B58C[2] = {
-    { 116, 615, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gStrideWalkTasks },
+    { 116, 615, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor161500SoldierBTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

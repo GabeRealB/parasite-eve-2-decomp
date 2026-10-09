@@ -42,7 +42,7 @@
 #include "main/tmd_types.h"
 
 // Exported instance: a room spawns from this package's table by name.
-#define gStrideWalkTasks gActor460200StrideWalkTasks
+#define STRIDE_WALK_TASKS gActor460200StrideWalkTasks
 #include "../../shared/screen_negative.h"
 #include "../../shared/paced_walk.h"
 #include "../../shared/walker.h"
@@ -79,7 +79,7 @@ extern EvsCommand           D_actor_460200_80137FE0[];
 extern EvsCommand           D_actor_460200_80138028[];
 extern EvsCommand           D_actor_460200_80138070[];
 
-extern TaskDesc         gStrideWalkTasks[];
+extern TaskDesc         STRIDE_WALK_TASKS[];
 extern u8               gStrideWalkAnimParams[];
 extern TaskMessageEntry gStrideWalkMessages[6];
 extern TaskMessageEntry D_actor_460200_801514FC[6];
@@ -1656,7 +1656,7 @@ TaskMessageEntry gStrideWalkMessages[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc gStrideWalkTasks[2] = {
+TaskDesc STRIDE_WALK_TASKS[2] = {
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor460200SoldierBTask, { .model = &_gActor460200SoldierBBody } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _strideWalkSubModelTask, { .model = &_gActor460200SoldierBRifle } },
 };
@@ -2359,6 +2359,7 @@ static s32 _pacedWalkStartSmoking(Task* task, s32 messageId, const ActorCommand*
 #include "../../shared/paced_walk_to.inc.c"
 
 #include "../../shared/stride_walk_spawn.inc.c"
+#undef STRIDE_WALK_TASKS
 
 #undef PACED_WALK_BLEND_ANIM
 #define PACED_WALK_BLEND_ANIM _pacedWalkBlendSoldierBAnim

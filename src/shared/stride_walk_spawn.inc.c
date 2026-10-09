@@ -1,5 +1,13 @@
 /* Part of the stride walk library; see stride_walk.h. */
 
+/* STRIDE_WALK_TASKS names this carrier's declared TaskDesc table. Element 1
+ * creates the optional carried model; the table and its resources must be live.
+ * Both actor_161500 and actor_460200 bind their own package's table. The binding
+ * is an object identifier with no side effects, evaluated once when spawning. */
+#ifndef STRIDE_WALK_TASKS
+#error "Bind STRIDE_WALK_TASKS before including this fragment"
+#endif
+
 /// Binds a stride walker's lighting matrices and samples its cached root position.
 ///
 /// The model borrows work-owned matrices until task teardown. Samples three
@@ -57,7 +65,7 @@ static void _strideWalkSpawn(Enemy* enemy, Task* task)
     model->otOffset                  = 1;
     work->enemy                      = enemy;
     if (task->spawnArg1.value != 0) {
-        pairedEnemy = enemySpawnFromTable(gStrideWalkTasks, 1, 0, enemy);
+        pairedEnemy = enemySpawnFromTable(STRIDE_WALK_TASKS, 1, 0, enemy);
         taskReparent(task, pairedEnemy->task);
         work->pairTask  = pairedEnemy->task;
         work->st.animId = STRIDE_WALK_ANIM_ARMED_IDLE;

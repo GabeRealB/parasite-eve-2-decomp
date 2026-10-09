@@ -142,8 +142,6 @@ extern TaskDesc D_actor_135400_8013F8D8;
 
 extern TaskDesc D_actor_460200_8013FC80;
 
-extern TaskDesc gStrideWalkTasks[];
-
 extern TaskDesc D_actor_136100_80140744[];
 
 extern TaskDesc D_actor_143900_801413EC;

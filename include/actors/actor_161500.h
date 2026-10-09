@@ -1,6 +1,17 @@
 #ifndef INCLUDE_ACTORS_ACTOR_161500_H
 #define INCLUDE_ACTORS_ACTOR_161500_H
 
+#include "main/task_types.h"
+
+/// Spawn recipes for this package's soldier B body (0) and carried rifle (1).
+///
+/// Rooms spawn descriptor 0 with a live Enemy in the second spawn payload.
+/// A nonzero first payload creates descriptor 1 as its child, attached to body
+/// part 7 and borrowing the body's lighting. Both use priority 96 and suppress
+/// automatic model buffers. Keep this overlay's code, models and clips loaded
+/// until the tasks are released. The two-entry table has no terminator.
+extern TaskDesc gActor161500SoldierBTasks[2];
+
 /// Starts Soldier B's parking conversation and consumes the pending remark.
 ///
 /// Sterilization outcomes take priority over the departed visitor's remark.
