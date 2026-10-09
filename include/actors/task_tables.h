@@ -419,7 +419,11 @@ extern TaskDesc gActor301600ScavengerTaskDesc;
 
 extern TaskDesc D_actor_341700_80176354;
 
-extern TaskDesc D_actor_503500_80176524;
+/// Scripted tentacle used by Shelter R48 resource slot 45.
+///
+/// Creates the nineteen-part actor_361100 model with explicit primitive-buffer
+/// control, then handles placement, animation, translation and a burning collapse.
+extern TaskDesc gActor503500TentacleTaskDesc;
 
 /// Slot export of `gActor01100Tasks` from actor_301100, with the same descriptor contract.
 extern TaskDesc gActor301100Tasks[3];

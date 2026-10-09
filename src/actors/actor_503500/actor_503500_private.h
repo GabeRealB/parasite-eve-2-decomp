@@ -297,31 +297,68 @@ extern Task* D_actor_503500_80176558;
 
 extern ActorTransform D_actor_503500_8017655C;
 
-extern AnimationSet** D_actor_503500_8016EAB8[2];
+/// Extents and shared indices of the boss's clip and attack-selection tables.
+enum {
+    ACTOR_503500_BOSS_ANIMATION_SOURCE_COUNT = 2,
+    ACTOR_503500_BOSS_ANIMATION_PRESET_COUNT = 20,
+    ACTOR_503500_BOSS_IDLE_BLEND_PRESET      = 1,
+    ACTOR_503500_SIDE_CHAIN_CANDIDATE_COUNT  = 4,
+    ACTOR_503500_SIDE_COUNT                  = 2,
+    ACTOR_503500_LUNGING_CHAIN_COUNT         = ACTOR_503500_SLOT_LUNGING_CHAIN_3 - ACTOR_503500_SLOT_LUNGING_CHAIN_0 + 1,
+    ACTOR_503500_KNOCKBACK_RESTORE_SET       = 5,
+    ACTOR_503500_KNOCKBACK_SET_COUNT         = ACTOR_503500_KNOCKBACK_RESTORE_SET + 1,
+};
 
-extern AnimationPlayRequest D_actor_503500_8016EAC0[1];
+/// Boss clip tables selected by the play request's source index (0 or 1).
+///
+/// Source 0 accepts clip ids 1..19; source 1 accepts 1..4. Both reserve id 0
+/// as NULL. The tables and loaded clip data must outlive their borrowed rigs.
+extern AnimationSet** gActor503500BossAnimationSources[ACTOR_503500_BOSS_ANIMATION_SOURCE_COUNT];
 
-extern AnimationPlayRequest D_actor_503500_8016EAD4;
+/// Boss playback presets: reset idle, blended idle, then source-0 clips 2..19.
+///
+/// Indexed by preset 0..19. Blend durations count whole animation frames;
+/// every request disables animation-driven world collision.
+extern AnimationPlayRequest gActor503500BossAnimationPresets[ACTOR_503500_BOSS_ANIMATION_PRESET_COUNT];
 
-extern SVECTOR D_actor_503500_8016EC50;
+/// Scalar view of the idle-blend preset; an lvalue with no separate storage.
+#define D_actor_503500_8016EAD4 (gActor503500BossAnimationPresets[ACTOR_503500_BOSS_IDLE_BLEND_PRESET])
+
+/// Boss target/sphere center in part-3 local game units, also the orange-flash origin.
+extern SVECTOR gActor503500BossTargetOffset;
 
 extern Actor503500AttackChoice** D_actor_503500_8016EF10[2][3];
 
 extern s16* D_actor_503500_8016EF28[2][3];
 
-extern s16 D_actor_503500_8016EF40[4];
+/// Cooldowns in boss upkeep frames, parallel to either side's four chain candidates.
+///
+/// The large chain and two lunging chains wait one frame; the base waits 100.
+extern s16 gActor503500SideChainCooldownFrames[ACTOR_503500_SIDE_CHAIN_CANDIDATE_COUNT];
 
-extern s16 D_actor_503500_8016EF48[4];
+/// Positive-side selection order: large chain, outer/inner lunging chains, base.
+///
+/// Entries are boss descriptor slots, paired with `gActor503500SideChainCooldownFrames`.
+extern s16 gActor503500PositiveSideChainCandidates[ACTOR_503500_SIDE_CHAIN_CANDIDATE_COUNT];
 
-extern s16 D_actor_503500_8016EF50[4];
+/// Negative-side selection order: large chain, outer/inner lunging chains, base.
+///
+/// Entries are boss descriptor slots, paired with `gActor503500SideChainCooldownFrames`.
+extern s16 gActor503500NegativeSideChainCandidates[ACTOR_503500_SIDE_CHAIN_CANDIDATE_COUNT];
 
 extern SVECTOR D_actor_503500_8016EF58[7];
 
-extern WorldCollisionGrid D_actor_503500_8016F03C;
+/// Source mesh for the boss's four-face obstacle in the room collision grid.
+///
+/// Four Q12 normals and eight game-unit vertices are local to boss model part 1;
+/// updates transform them into the reserved leading pools of the live room grid.
+/// The source remains loaded with the actor overlay and is never rebuilt in place.
+extern WorldCollisionGrid gActor503500BossBodyCollisionGrid;
 
 extern SVECTOR D_actor_503500_8016F060;
 
-extern SVECTOR D_actor_503500_8016F068;
+/// Pink-flash emitter target/sphere center in emitter-root local game units.
+extern SVECTOR gActor503500PinkFlashEmitterTargetOffset;
 
 extern SVECTOR D_actor_503500_8016F070;
 
@@ -333,7 +370,8 @@ extern SVECTOR D_actor_503500_8016F0A0[1];
 
 extern SVECTOR D_actor_503500_8016F0A8[1];
 
-extern SVECTOR D_actor_503500_8016F0B0;
+/// Large-chain target/sphere center in tip-coordinate local game units.
+extern SVECTOR gActor503500LargeChainTipTargetOffset;
 
 extern SVECTOR D_actor_503500_8016F0B8[2];
 
@@ -343,7 +381,8 @@ extern SVECTOR D_actor_503500_8016F0D0[3];
 
 extern s32 D_actor_503500_8016F0E8[2];
 
-extern SVECTOR D_actor_503500_8016F0F0[2];
+/// Large-orb emitter target/sphere centers in root-local game units, ordered by slots 4, 5.
+extern SVECTOR gActor503500LargeOrbEmitterTargetOffsets[ACTOR_503500_SIDE_COUNT];
 
 extern RECT D_actor_503500_8016F100;
 
@@ -355,11 +394,13 @@ extern RECT D_actor_503500_8016F148[2][2];
 
 extern SVECTOR D_actor_503500_8016F168[9];
 
-extern SVECTOR D_actor_503500_8016F1B0;
+/// Rear-part target/sphere center in root-local game units (root attached to boss part 16).
+extern SVECTOR gActor503500RearPartTargetOffset;
 
 extern SVECTOR D_actor_503500_8016F1B8[18];
 
-extern SVECTOR D_actor_503500_8016F248[2];
+/// Chain-base target/sphere centers in root-local game units, ordered by slots 7, 8.
+extern SVECTOR gActor503500ChainBaseTargetOffsets[ACTOR_503500_SIDE_COUNT];
 
 extern SVECTOR D_actor_503500_8016F258;
 
@@ -369,7 +410,8 @@ extern SVECTOR D_actor_503500_8016F278[3];
 
 extern SVECTOR D_actor_503500_8016F290[9];
 
-extern SVECTOR D_actor_503500_8016F2D8;
+/// Small-orb emitter target/sphere center in emitter-root local game units.
+extern SVECTOR gActor503500SmallOrbEmitterTargetOffset;
 
 extern s16 D_actor_503500_8016F2E0[6];
 
@@ -379,7 +421,8 @@ extern SVECTOR D_actor_503500_8016F31C[9];
 
 extern RECT D_actor_503500_8016F364;
 
-extern SVECTOR D_actor_503500_8016F36C;
+/// Yellow-flash emitter target/sphere center in emitter-root local game units.
+extern SVECTOR gActor503500YellowFlashEmitterTargetOffset;
 
 extern SVECTOR D_actor_503500_8016F374[6];
 
@@ -389,11 +432,15 @@ extern SVECTOR D_actor_503500_8016F3AC[4];
 
 extern SVECTOR D_actor_503500_8016F3CC[4];
 
-extern SVECTOR D_actor_503500_8016F3EC;
+/// Lunging-chain target/sphere center in tip-coordinate local game units.
+extern SVECTOR gActor503500LungingChainTipTargetOffset;
 
 extern SVECTOR D_actor_503500_8016F3F4[4];
 
-extern SVECTOR D_actor_503500_8016F414[4];
+/// Resting tip positions in boss-part-1 local game units, ordered by slots 13..16.
+///
+/// Initialization seeds both tip position and target; idle steps restore the target.
+extern SVECTOR gActor503500LungingChainRestTipOffsets[ACTOR_503500_LUNGING_CHAIN_COUNT];
 
 extern s16 D_actor_503500_8016F434[10];
 
@@ -405,11 +452,19 @@ extern TaskDesc D_actor_503500_8017146C;
 
 extern SVECTOR D_actor_503500_80171478;
 
-extern SVECTOR D_actor_503500_80171480[2];
+/// Arm target/sphere centers in arm-root local game units, ordered by slots 10, 11.
+extern SVECTOR gActor503500ArmTargetOffsets[ACTOR_503500_SIDE_COUNT];
 
 extern s8 D_actor_503500_80171490[56];
 
-extern s32 D_actor_503500_801714DC;
+/// Player knockback clips: NULL, two falls, two recoveries, and the weapon's restore pose.
+///
+/// Entry 5 is writable: knockback copies set 7 from the loaded character/weapon
+/// bank immediately before playing it. Keep both overlays loaded during playback.
+extern AnimationSet* gActor503500PlayerKnockbackAnimationSets[ACTOR_503500_KNOCKBACK_SET_COUNT];
+
+/// Writable restore-clip view; an AnimationSet* lvalue with no separate storage.
+#define D_actor_503500_801714DC (gActor503500PlayerKnockbackAnimationSets[ACTOR_503500_KNOCKBACK_RESTORE_SET])
 
 extern AnimationPlayRequest D_actor_503500_801714E0[2];
 

@@ -9,6 +9,7 @@
 #include "gte.h"
 
 #include "actors/actor.h"
+#include "actors/task_tables.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
@@ -44,10 +45,6 @@
 #include "main/wipsys_types.h"
 #include "../../shared/actor_motion.h"
 #include "../../shared/actor_messages.h"
-
-extern AnimationSet* D_actor_503500_8016EA54[20];
-
-extern AnimationSet* D_actor_503500_8016EAA4[5];
 
 /// Frames the yellow-flash attack charges before its sphere is switched on.
 #define ACTOR_503500_YELLOW_FLASH_ATTACK_CHARGE_FRAMES 95
@@ -255,10 +252,7 @@ static void _actor503500BindTentacleLighting(Task* task);
 
 extern TaskMessageEntry D_actor_503500_80176530[];
 
-/// Local offset of the display node `_actor503500PinkFlashAttackInit` links, and the
-/// offsets it seeds its `WorldCollisionCapsule` with.
 extern SVECTOR D_actor_503500_801715C4;
-extern SVECTOR D_actor_503500_801715CC;
 /// Local offset of the display node `_actor503500YellowFlashAttackInit` links.
 extern SVECTOR D_actor_503500_801715D4;
 static void    _actor503500PinkFlashAttackExit(Task* task);
@@ -276,7 +270,6 @@ static void    _actor503500OrangeFlashAttackExit(Task* task);
 static void    _actor503500CollapseTentacle(Task* task);
 static void    _actor503500TentacleIdle(Task* unusedTask);
 
-extern AnimationSet*  D_actor_503500_80176514[3];
 extern AnimationSet** gActorMotionAnimBanks19[1];
 static void           _actor503500PinkFlashAttackInit(Task* task);
 static void           _actor503500PinkFlashAttackUpdate(Task* task);
@@ -317,7 +310,14 @@ TaskMessageEntry D_actor_503500_8016EA2C[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-AnimationSet* D_actor_503500_8016EA54[20] = {
+enum {
+    ACTOR_503500_BOSS_SOURCE_0_SET_COUNT = 20,
+    ACTOR_503500_BOSS_SOURCE_1_SET_COUNT = 5,
+    ACTOR_503500_TENTACLE_SET_COUNT      = 3,
+};
+
+/// Boss source 0: clip ids 1..19, with id 0 reserved as NULL.
+static AnimationSet* _gActor503500BossAnimationSets0[ACTOR_503500_BOSS_SOURCE_0_SET_COUNT] = {
     NULL,
     &gActor503500Animation2DB14,
     &gActor503500Animation2E4DC,
@@ -340,7 +340,8 @@ AnimationSet* D_actor_503500_8016EA54[20] = {
     &gActor503500Animation38AE0,
 };
 
-AnimationSet* D_actor_503500_8016EAA4[5] = {
+/// Boss source 1: clip ids 1..4, with id 0 reserved as NULL.
+static AnimationSet* _gActor503500BossAnimationSets1[ACTOR_503500_BOSS_SOURCE_1_SET_COUNT] = {
     NULL,
     &gActor503500Animation38AE0,
     &gActor503500Animation3A190,
@@ -348,18 +349,14 @@ AnimationSet* D_actor_503500_8016EAA4[5] = {
     &gActor503500Animation3C968,
 };
 
-AnimationSet** D_actor_503500_8016EAB8[2] = {
-    D_actor_503500_8016EA54,
-    D_actor_503500_8016EAA4,
+AnimationSet** gActor503500BossAnimationSources[ACTOR_503500_BOSS_ANIMATION_SOURCE_COUNT] = {
+    _gActor503500BossAnimationSets0,
+    _gActor503500BossAnimationSets1,
 };
 
-AnimationPlayRequest D_actor_503500_8016EAC0[1] = {
+AnimationPlayRequest gActor503500BossAnimationPresets[ACTOR_503500_BOSS_ANIMATION_PRESET_COUNT] = {
     { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-};
-
-AnimationPlayRequest D_actor_503500_8016EAD4 = { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
-
-AnimationPlayRequest D_actor_503500_8016EAE8[18] = {
+    { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE },
     { { .index = 0 }, 2, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
     { { .index = 0 }, 3, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
     { { .index = 0 }, 4, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
@@ -380,23 +377,33 @@ AnimationPlayRequest D_actor_503500_8016EAE8[18] = {
     { { .index = 0 }, 19, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-SVECTOR D_actor_503500_8016EC50 = { 0, -500, 1600, 0 };
+SVECTOR gActor503500BossTargetOffset = { 0, -500, 1600, 0 };
 
-Actor503500AttackChoice D_actor_503500_8016EC58[4] = {
+/// Set-0 upper-height attacks for absolute bearing 0..700 (4096 units per turn).
+///
+/// Weights accumulate against a random byte; a NULL callback ends the list.
+static Actor503500AttackChoice _gActor503500AttackChoicesSet0UpperBearing0[4] = {
     { actor503500AttackPinkOrYellowFlash, 127 },
     { actor503500AttackArmStrike, 79 },
     { actor503500AttackLargeOrbPair, 47 },
     { NULL, 0 },
 };
 
-Actor503500AttackChoice D_actor_503500_8016EC78[4] = {
+/// Set-0 upper-height attacks shared by absolute bearing bands 701..1000 and 1001..1300.
+///
+/// Angles use 4096 units per turn. Weights accumulate against a random byte;
+/// a NULL callback ends the list.
+static Actor503500AttackChoice _gActor503500AttackChoicesSet0UpperBearing1And2[4] = {
     { actor503500AttackArmStrike, 127 },
     { actor503500AttackYellowFlash, 79 },
     { actor503500AttackLargeOrbPair, 47 },
     { NULL, 0 },
 };
 
-Actor503500AttackChoice D_actor_503500_8016EC98[5] = {
+/// Set-0 upper-height attacks for absolute bearing 1301..2048 (4096 units per turn).
+///
+/// Weights accumulate against a random byte; a NULL callback ends the list.
+static Actor503500AttackChoice _gActor503500AttackChoicesSet0UpperBearing3[5] = {
     { actor503500AttackYellowFlash, 79 },
     { actor503500AttackSideChain, 63 },
     { actor503500AttackChainBases, 47 },
@@ -404,7 +411,10 @@ Actor503500AttackChoice D_actor_503500_8016EC98[5] = {
     { NULL, 0 },
 };
 
-Actor503500AttackChoice D_actor_503500_8016ECC0[3] = {
+/// Set-0 middle-height attacks for absolute bearing 0..700 (4096 units per turn).
+///
+/// Weights accumulate against a random byte; a NULL callback ends the list.
+static Actor503500AttackChoice _gActor503500AttackChoicesSet0MiddleBearing0[3] = {
     { actor503500AttackPinkOrYellowFlash, 159 },
     { actor503500AttackLargeOrbPair, 95 },
     { NULL, 0 },
@@ -450,10 +460,10 @@ Actor503500AttackChoice D_actor_503500_8016ED68[3] = {
 };
 
 Actor503500AttackChoice* D_actor_503500_8016ED80[4] = {
-    D_actor_503500_8016EC58,
-    D_actor_503500_8016EC78,
-    D_actor_503500_8016EC78,
-    D_actor_503500_8016EC98,
+    _gActor503500AttackChoicesSet0UpperBearing0,
+    _gActor503500AttackChoicesSet0UpperBearing1And2,
+    _gActor503500AttackChoicesSet0UpperBearing1And2,
+    _gActor503500AttackChoicesSet0UpperBearing3,
 };
 
 s16 D_actor_503500_8016ED90[4] = {
@@ -464,7 +474,7 @@ s16 D_actor_503500_8016ED90[4] = {
 };
 
 Actor503500AttackChoice* D_actor_503500_8016ED98[4] = {
-    D_actor_503500_8016ECC0,
+    _gActor503500AttackChoicesSet0MiddleBearing0,
     D_actor_503500_8016ECD8,
     D_actor_503500_8016ECF0,
     D_actor_503500_8016ED10,
@@ -605,25 +615,30 @@ s16* D_actor_503500_8016EF28[2][3] = {
     { D_actor_503500_8016EED8, D_actor_503500_8016EEF0, D_actor_503500_8016EF08 },
 };
 
-s16 D_actor_503500_8016EF40[4] = {
-    1,
-    1,
-    1,
-    100,
+enum {
+    ACTOR_503500_SIDE_CHAIN_NEXT_FRAME_COOLDOWN  = 1,
+    ACTOR_503500_SIDE_CHAIN_BASE_COOLDOWN_FRAMES = 100,
 };
 
-s16 D_actor_503500_8016EF48[4] = {
-    2,
-    13,
-    14,
-    7,
+s16 gActor503500SideChainCooldownFrames[ACTOR_503500_SIDE_CHAIN_CANDIDATE_COUNT] = {
+    ACTOR_503500_SIDE_CHAIN_NEXT_FRAME_COOLDOWN,
+    ACTOR_503500_SIDE_CHAIN_NEXT_FRAME_COOLDOWN,
+    ACTOR_503500_SIDE_CHAIN_NEXT_FRAME_COOLDOWN,
+    ACTOR_503500_SIDE_CHAIN_BASE_COOLDOWN_FRAMES,
 };
 
-s16 D_actor_503500_8016EF50[4] = {
-    3,
-    16,
-    15,
-    8,
+s16 gActor503500PositiveSideChainCandidates[ACTOR_503500_SIDE_CHAIN_CANDIDATE_COUNT] = {
+    ACTOR_503500_SLOT_LARGE_CHAIN_0,
+    ACTOR_503500_SLOT_LUNGING_CHAIN_0,
+    ACTOR_503500_SLOT_LUNGING_CHAIN_1,
+    ACTOR_503500_SLOT_CHAIN_BASE_0,
+};
+
+s16 gActor503500NegativeSideChainCandidates[ACTOR_503500_SIDE_CHAIN_CANDIDATE_COUNT] = {
+    ACTOR_503500_SLOT_LARGE_CHAIN_1,
+    ACTOR_503500_SLOT_LUNGING_CHAIN_3,
+    ACTOR_503500_SLOT_LUNGING_CHAIN_2,
+    ACTOR_503500_SLOT_CHAIN_BASE_1,
 };
 
 SVECTOR D_actor_503500_8016EF58[7] = {
@@ -636,33 +651,33 @@ SVECTOR D_actor_503500_8016EF58[7] = {
     { 300, -800, 2500, 0 },
 };
 
-static SVECTOR _gActor503500Collision3D21CNormals[4] = {
+static SVECTOR _gActor503500BossBodyCollisionGridNormals[4] = {
 #include "assets/actor_503500_collision_3D21C_normals.inc"
 };
 
-static SVECTOR _gActor503500Collision3D21CVerts[8] = {
+static SVECTOR _gActor503500BossBodyCollisionGridVerts[8] = {
 #include "assets/actor_503500_collision_3D21C_verts.inc"
 };
 
-static WorldCollisionGridFace _gActor503500Collision3D21CFaces[4] = {
+static WorldCollisionGridFace _gActor503500BossBodyCollisionGridFaces[4] = {
 #include "assets/actor_503500_collision_3D21C_faces.inc"
 };
 
-static s16 _gActor503500Collision3D21CCells[10] = {
+static s16 _gActor503500BossBodyCollisionGridCells[10] = {
 #include "assets/actor_503500_collision_3D21C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gActor503500Collision3D21CCells[i])
-static s16* _gActor503500Collision3D21CTable[2] = {
+#define GRID_CELL(i) (&_gActor503500BossBodyCollisionGridCells[i])
+static s16* _gActor503500BossBodyCollisionGridTable[2] = {
 #include "assets/actor_503500_collision_3D21C_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_actor_503500_8016F03C = { NULL, _gActor503500Collision3D21CNormals, _gActor503500Collision3D21CVerts, _gActor503500Collision3D21CFaces, _gActor503500Collision3D21CTable, 2393, 1502, 2, 1, 4000, 4 };
+WorldCollisionGrid gActor503500BossBodyCollisionGrid = { NULL, _gActor503500BossBodyCollisionGridNormals, _gActor503500BossBodyCollisionGridVerts, _gActor503500BossBodyCollisionGridFaces, _gActor503500BossBodyCollisionGridTable, 2393, 1502, 2, 1, 4000, ARRAY_SIZE(_gActor503500BossBodyCollisionGridFaces) };
 
 SVECTOR D_actor_503500_8016F060 = { 0, -80, 596, 0 };
 
-SVECTOR D_actor_503500_8016F068 = { 0, -80, 1000, 0 };
+SVECTOR gActor503500PinkFlashEmitterTargetOffset = { 0, -80, 1000, 0 };
 
 SVECTOR D_actor_503500_8016F070 = { 0, -200, 800, 0 };
 
@@ -685,7 +700,7 @@ SVECTOR D_actor_503500_8016F0A8[1] = {
     { -364, -1479, 0, 0 },
 };
 
-SVECTOR D_actor_503500_8016F0B0 = { 0, 0, 400, 0 };
+SVECTOR gActor503500LargeChainTipTargetOffset = { 0, 0, 400, 0 };
 
 SVECTOR D_actor_503500_8016F0B8[2] = {
     { 3500, -1500, -5200, 0 },
@@ -705,7 +720,7 @@ s32 D_actor_503500_8016F0E8[2] = {
     5,
 };
 
-SVECTOR D_actor_503500_8016F0F0[2] = {
+SVECTOR gActor503500LargeOrbEmitterTargetOffsets[ACTOR_503500_SIDE_COUNT] = {
     { 300, 0, 0, 0 },
     { -300, 0, 0, 0 },
 };
@@ -742,7 +757,7 @@ SVECTOR D_actor_503500_8016F168[9] = {
     { 1800, 400, 600, 0 },
 };
 
-SVECTOR D_actor_503500_8016F1B0 = { 0, 500, -1500, 0 };
+SVECTOR gActor503500RearPartTargetOffset = { 0, 500, -1500, 0 };
 
 SVECTOR D_actor_503500_8016F1B8[18] = {
     { 0, -400, -2000, 0 },
@@ -765,7 +780,7 @@ SVECTOR D_actor_503500_8016F1B8[18] = {
     { -600, 300, -3500, 0 },
 };
 
-SVECTOR D_actor_503500_8016F248[2] = {
+SVECTOR gActor503500ChainBaseTargetOffsets[ACTOR_503500_SIDE_COUNT] = {
     { 1300, -1468, -2800, 0 },
     { -1300, -1468, -2800, 0 },
 };
@@ -797,7 +812,7 @@ SVECTOR D_actor_503500_8016F290[9] = {
     { -2800, -850, -3000, 0 },
 };
 
-SVECTOR D_actor_503500_8016F2D8 = { 0, 800, 2000, 0 };
+SVECTOR gActor503500SmallOrbEmitterTargetOffset = { 0, 800, 2000, 0 };
 
 s16 D_actor_503500_8016F2E0[6] = {
     3584,
@@ -831,7 +846,7 @@ SVECTOR D_actor_503500_8016F31C[9] = {
 
 RECT D_actor_503500_8016F364 = { 358, 480, 25, 31 };
 
-SVECTOR D_actor_503500_8016F36C = { 0, 0, 800, 0 };
+SVECTOR gActor503500YellowFlashEmitterTargetOffset = { 0, 0, 800, 0 };
 
 SVECTOR D_actor_503500_8016F374[6] = {
     { 0, 250, 800, 0 },
@@ -858,7 +873,7 @@ SVECTOR D_actor_503500_8016F3CC[4] = {
     { -364, -1479, 0, 0 },
 };
 
-SVECTOR D_actor_503500_8016F3EC = { 0, 0, 400, 0 };
+SVECTOR gActor503500LungingChainTipTargetOffset = { 0, 0, 400, 0 };
 
 SVECTOR D_actor_503500_8016F3F4[4] = {
     { -200, 0, 400, 0 },
@@ -867,7 +882,7 @@ SVECTOR D_actor_503500_8016F3F4[4] = {
     { 200, 0, 400, 0 },
 };
 
-SVECTOR D_actor_503500_8016F414[4] = {
+SVECTOR gActor503500LungingChainRestTipOffsets[ACTOR_503500_LUNGING_CHAIN_COUNT] = {
     { 3500, -3000, -5200, 0 },
     { 1800, -2000, -5200, 0 },
     { -1800, -2000, -5200, 0 },
@@ -990,7 +1005,7 @@ TaskDesc D_actor_503500_8017146C = { { { TASK_BODY_NONE, 192 } }, actor503500Kno
 
 SVECTOR D_actor_503500_80171478 = { 0 };
 
-SVECTOR D_actor_503500_80171480[2] = {
+SVECTOR gActor503500ArmTargetOffsets[ACTOR_503500_SIDE_COUNT] = {
     { 500, 0, 0, 0 },
     { -500, 0, 0, 0 },
 };
@@ -1054,27 +1069,26 @@ s8 D_actor_503500_80171490[56] = {
     0,
 };
 
-AnimationSet* D_actor_503500_801714C8[5] = {
+AnimationSet* gActor503500PlayerKnockbackAnimationSets[ACTOR_503500_KNOCKBACK_SET_COUNT] = {
     NULL,
     &_gActor503500Animation3DE60,
     &_gActor503500Animation3E5FC,
     &_gActor503500Animation3EE08,
     &_gActor503500Animation3F61C,
+    NULL,
 };
 
-s32 D_actor_503500_801714DC = 0;
-
 AnimationPlayRequest D_actor_503500_801714E0[2] = {
-    { { .sets = D_actor_503500_801714C8 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .sets = D_actor_503500_801714C8 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .sets = gActor503500PlayerKnockbackAnimationSets }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .sets = gActor503500PlayerKnockbackAnimationSets }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
 };
 
 AnimationPlayRequest D_actor_503500_80171508[2] = {
-    { { .sets = D_actor_503500_801714C8 }, 3, ANIMATION_BLEND_INTERPOLATE, 3, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .sets = D_actor_503500_801714C8 }, 4, ANIMATION_BLEND_INTERPOLATE, 3, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .sets = gActor503500PlayerKnockbackAnimationSets }, 3, ANIMATION_BLEND_INTERPOLATE, 3, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .sets = gActor503500PlayerKnockbackAnimationSets }, 4, ANIMATION_BLEND_INTERPOLATE, 3, ANIMATION_WORLD_COLLISION_ENABLE },
 };
 
-AnimationPlayRequest D_actor_503500_80171530 = { { .sets = D_actor_503500_801714C8 }, 5, ANIMATION_BLEND_INTERPOLATE, 3, ANIMATION_WORLD_COLLISION_ENABLE };
+AnimationPlayRequest D_actor_503500_80171530 = { { .sets = gActor503500PlayerKnockbackAnimationSets }, 5, ANIMATION_BLEND_INTERPOLATE, 3, ANIMATION_WORLD_COLLISION_ENABLE };
 
 GameActorButtonPressHold D_actor_503500_80171544 = { 0 };
 
@@ -1110,7 +1124,10 @@ s32 D_actor_503500_801715BC[2] = {
 
 SVECTOR D_actor_503500_801715C4 = { 0 };
 
-SVECTOR D_actor_503500_801715CC = { 0, 2000, 6000, 0 };
+/// Unrotated far endpoint of the pink-flash capsule, in attack-root local game units.
+///
+/// Initialization copies it; the sweep rotates it about Y into capsule end 0.
+static SVECTOR _gActor503500PinkFlashAttackFarEnd = { 0, 2000, 6000, 0 };
 
 SVECTOR D_actor_503500_801715D4 = { 0 };
 
@@ -1194,17 +1211,22 @@ static AnimationSet _gActor503500Animation446CC = {
     { NULL, _gActor503500Animation446CCBank1, NULL, NULL, _gActor503500Animation446CCBank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_actor_503500_80176514[3] = {
+/// Scripted tentacle clips 1 and 2 for its nineteen-part rig; id 0 is NULL.
+///
+/// The motion handler borrows this table through bank 0 for the model's lifetime.
+static AnimationSet* _gActor503500TentacleAnimationSets[ACTOR_503500_TENTACLE_SET_COUNT] = {
     NULL,
     &_gActor503500Animation444F4,
     &_gActor503500Animation446CC,
 };
 
 AnimationSet** gActorMotionAnimBanks19[1] = {
-    D_actor_503500_80176514,
+    _gActor503500TentacleAnimationSets,
 };
 
-TaskDesc D_actor_503500_80176524 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor503500TentacleTask, { .model = &_gActor503500Actor361100Model06038 } };
+enum { ACTOR_503500_TENTACLE_TASK_PRIORITY = 192 };
+
+TaskDesc gActor503500TentacleTaskDesc = { { { TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER, ACTOR_503500_TENTACLE_TASK_PRIORITY } }, _actor503500TentacleTask, { .model = &_gActor503500Actor361100Model06038 } };
 
 TaskMessageEntry D_actor_503500_80176530[5] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim19 },
@@ -1242,9 +1264,9 @@ static inline void _actor503500PinkFlashAttackLinkCapsule(_Actor503500PinkFlashA
     capsule->ends[1].vx = 0;
     capsule->ends[1].vy = 0;
     capsule->ends[1].vz = 0;
-    capsule->ends[0].vx = D_actor_503500_801715CC.vx;
-    capsule->ends[0].vy = D_actor_503500_801715CC.vy;
-    capsule->ends[0].vz = D_actor_503500_801715CC.vz;
+    capsule->ends[0].vx = _gActor503500PinkFlashAttackFarEnd.vx;
+    capsule->ends[0].vy = _gActor503500PinkFlashAttackFarEnd.vy;
+    capsule->ends[0].vz = _gActor503500PinkFlashAttackFarEnd.vz;
     capsule->end1Radius = ACTOR_503500_PINK_FLASH_ATTACK_NEAR_RADIUS;
     capsule->end0Radius = ACTOR_503500_PINK_FLASH_ATTACK_INITIAL_FAR_RADIUS;
 
@@ -1409,7 +1431,7 @@ static void _actor503500PinkFlashAttackUpdatePhase(Task* task)
         capsule->end1Radius = work->radiusScale * (ACTOR_503500_PINK_FLASH_ATTACK_NEAR_RADIUS / 8) >> ACTOR_503500_PINK_FLASH_ATTACK_RADIUS_FRACTION_BITS;
         // Turn the far end about Y by the sweep angle.
         gte_SetRotMatrix(&work->sweepRotation);
-        gte_ldv0(&D_actor_503500_801715CC);
+        gte_ldv0(&_gActor503500PinkFlashAttackFarEnd);
         gte_rtv0();
         gte_stsv(&capsule->ends[0]);
     }

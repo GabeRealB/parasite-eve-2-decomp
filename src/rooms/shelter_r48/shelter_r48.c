@@ -1676,13 +1676,13 @@ WorldCollisionTrigger D_shelter_r48_8018B670[16] = {
 
 AreaResource D_shelter_r48_8018BB30[3] = {
     { 35, 35, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, D_actor_503500_8016E924 },
-    { 45, 45, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &D_actor_503500_80176524 },
+    { 45, 45, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &gActor503500TentacleTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_r48_8018BB54[3] = {
     { 35, 35, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, D_actor_503500_8016E924 },
-    { 45, 45, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &D_actor_503500_80176524 },
+    { 45, 45, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &gActor503500TentacleTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

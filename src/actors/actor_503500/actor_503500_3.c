@@ -468,9 +468,9 @@ static void _actor503500InitBoss(Task* task)
     enemy->field_48                = 0;
     enemy->coord                   = targetCoord;
     enemy->node.state.parts.flags |= (WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE);
-    enemy->bodyPos.vx              = D_actor_503500_8016EC50.vx;
-    enemy->bodyPos.vy              = D_actor_503500_8016EC50.vy;
-    enemy->bodyPos.vz              = D_actor_503500_8016EC50.vz;
+    enemy->bodyPos.vx              = gActor503500BossTargetOffset.vx;
+    enemy->bodyPos.vy              = gActor503500BossTargetOffset.vy;
+    enemy->bodyPos.vz              = gActor503500BossTargetOffset.vz;
     contacts                       = work->contacts;
     enemy->param                   = &D_actor_503500_8016E7EC[task->spawnArg1.value];
     enemy->recs                    = contacts;
@@ -481,9 +481,9 @@ static void _actor503500InitBoss(Task* task)
     work->body.key              = ACTOR_503500_PART_BODY_KEY;
     work->body.radius           = ACTOR_503500_BOSS_INIT_TARGET_RADIUS;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    work->body.pos.vx           = D_actor_503500_8016EC50.vx;
-    work->body.pos.vy           = D_actor_503500_8016EC50.vy;
-    work->body.pos.vz           = D_actor_503500_8016EC50.vz;
+    work->body.pos.vx           = gActor503500BossTargetOffset.vx;
+    work->body.pos.vy           = gActor503500BossTargetOffset.vy;
+    work->body.pos.vz           = gActor503500BossTargetOffset.vz;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
     worldCollisionInitContacts(contacts, ARRAY_SIZE(work->contacts), 0);
     work->hitEffect.spawnArgLo = ACTOR_503500_BOSS_INIT_HIT_EFFECT_ARG;
@@ -505,7 +505,7 @@ static void _actor503500InitBoss(Task* task)
     for (slotIndex = ARRAY_SIZE(D_actor_503500_80176D64) - 1; slotIndex >= 0; slotIndex--) {
         D_actor_503500_80176D64[slotIndex] = 0;
     }
-    actor503500HandlePlayAnimation(task, ACTOR_MESSAGE_PLAY_ANIMATION, D_actor_503500_8016EAC0, 0);
+    actor503500HandlePlayAnimation(task, ACTOR_MESSAGE_PLAY_ANIMATION, gActor503500BossAnimationPresets, 0);
     task->exitCallback = _actor503500ExitBoss;
     task->msgTable     = D_actor_503500_8016EA2C;
     task->state       += 1;
@@ -924,10 +924,10 @@ static s32 _actor503500AttackPositiveSideChain(Task* task, Actor503500Work* work
         case ACTOR_503500_ATTACK_PHASE_COMMAND:
             idleDelay      = ACTOR_503500_ATTACK_MIN_IDLE_DELAY_FRAMES;
             candidateIndex = 0;
-            candidateSlots = D_actor_503500_8016EF48;
+            candidateSlots = gActor503500PositiveSideChainCandidates;
             playerBearing  = work->playerBearing;
             // Choose the first ready candidate whose bearing and partner-presence gate passes.
-            for (; candidateIndex < (s32)ARRAY_SIZE(D_actor_503500_8016EF48); candidateIndex++) {
+            for (; candidateIndex < (s32)ARRAY_SIZE(gActor503500PositiveSideChainCandidates); candidateIndex++) {
                 slot = *candidateSlots;
                 if (_actor503500IsSlotReady(work, slot) != 0) {
                     switch (slot) {
@@ -961,7 +961,7 @@ static s32 _actor503500AttackPositiveSideChain(Task* task, Actor503500Work* work
                             break;
                     }
                     if (idleDelay == ACTOR_503500_ATTACK_RUNNING) {
-                        _actor503500StartSideChainAttack(work, slot, D_actor_503500_8016EF40[candidateIndex]);
+                        _actor503500StartSideChainAttack(work, slot, gActor503500SideChainCooldownFrames[candidateIndex]);
                         break;
                     }
                 }
@@ -1023,10 +1023,10 @@ static s32 _actor503500AttackNegativeSideChain(Task* task, Actor503500Work* work
         case ACTOR_503500_ATTACK_PHASE_COMMAND:
             idleDelay      = ACTOR_503500_ATTACK_MIN_IDLE_DELAY_FRAMES;
             candidateIndex = 0;
-            candidateSlots = D_actor_503500_8016EF50;
+            candidateSlots = gActor503500NegativeSideChainCandidates;
             playerBearing  = work->playerBearing;
             // Choose the first ready candidate whose bearing and partner-presence gate passes.
-            for (; candidateIndex < (s32)ARRAY_SIZE(D_actor_503500_8016EF50); candidateIndex++) {
+            for (; candidateIndex < (s32)ARRAY_SIZE(gActor503500NegativeSideChainCandidates); candidateIndex++) {
                 slot = *candidateSlots;
                 if (_actor503500IsSlotReady(work, slot) != 0) {
                     switch (slot) {
@@ -1064,7 +1064,7 @@ static s32 _actor503500AttackNegativeSideChain(Task* task, Actor503500Work* work
                             break;
                     }
                     if (idleDelay == ACTOR_503500_ATTACK_RUNNING) {
-                        _actor503500StartSideChainAttack(work, slot, D_actor_503500_8016EF40[candidateIndex]);
+                        _actor503500StartSideChainAttack(work, slot, gActor503500SideChainCooldownFrames[candidateIndex]);
                         break;
                     }
                 }
@@ -1237,9 +1237,9 @@ static void _actor503500StepDefeatedState(Task* task)
     if (flashTask != NULL) {                                                                                       \
         flashCoord             = flashTask->extra.coordBody->coord;                                                \
         flashCoord->parent     = &task->extra.tmd->coords[ACTOR_503500_ORANGE_FLASH_PARENT_PART];                  \
-        flashCoord->coord.t[0] = D_actor_503500_8016EC50.vx;                                                       \
-        flashCoord->coord.t[1] = D_actor_503500_8016EC50.vy;                                                       \
-        flashCoord->coord.t[2] = D_actor_503500_8016EC50.vz;                                                       \
+        flashCoord->coord.t[0] = gActor503500BossTargetOffset.vx;                                                  \
+        flashCoord->coord.t[1] = gActor503500BossTargetOffset.vy;                                                  \
+        flashCoord->coord.t[2] = gActor503500BossTargetOffset.vz;                                                  \
     }
 
 /// Runs the boss's phase-transition spray, held flash and return to combat.
@@ -1989,7 +1989,7 @@ s32 actor503500HandlePlayAnimation(Task* task, s32 messageId, const AnimationPla
     // Bind a changed source before reseeding the driven tracks.
     if (request->source.index != work->animationSourceIndex) {
         work->animationSourceIndex = request->source.index;
-        animationInitContext(&work->rig.anim, D_actor_503500_8016EAB8[work->animationSourceIndex], model, work->rig.poses, work->rig.slots);
+        animationInitContext(&work->rig.anim, gActor503500BossAnimationSources[work->animationSourceIndex], model, work->rig.poses, work->rig.slots);
         work->animationStarted = 0;
     }
     work->animationId = request->animationId;
@@ -2191,7 +2191,7 @@ void actor503500PlayAnimationPreset(Task* task, s32 presetIndex, s32 rate)
         slot->rate = rate;
         slot++;
     }
-    actor503500HandlePlayAnimation(task, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_503500_8016EAC0[presetIndex], 0);
+    actor503500HandlePlayAnimation(task, ACTOR_MESSAGE_PLAY_ANIMATION, &gActor503500BossAnimationPresets[presetIndex], 0);
 }
 
 s32 actor503500HasAnimationFinished(Task* unusedTask, s32 animationId)
@@ -2725,7 +2725,7 @@ static void _actor503500UpdateBodyCollisionGrid(Task* task, s32 initializeFaces,
     const SVECTOR*            sourceVector;
     SVECTOR*                  destinationVector;
     WorldCollisionGrid*       roomGrid = D_shelter_r48_80183EEC;
-    const WorldCollisionGrid* bodyGrid = &D_actor_503500_8016F03C;
+    const WorldCollisionGrid* bodyGrid = &gActor503500BossBodyCollisionGrid;
 
     if (initializeFaces != 0) {
         for (elementIndex = 0; elementIndex < ACTOR_503500_BODY_GRID_FACE_COUNT; elementIndex++) {
@@ -3045,9 +3045,9 @@ static void _actor503500PinkFlashEmitterInit(Task* task)
     worldTargetLinkNode(&enemy->node);
     enemy->coord                  = rootCoord;
     enemy->node.state.parts.flags = (enemy->node.state.parts.flags | WORLD_TARGET_HIDE_HP) & WORLD_TARGET_NOT_LOCKABLE_CLEAR;
-    enemy->bodyPos.vx             = D_actor_503500_8016F068.vx;
-    enemy->bodyPos.vy             = D_actor_503500_8016F068.vy;
-    enemy->bodyPos.vz             = D_actor_503500_8016F068.vz;
+    enemy->bodyPos.vx             = gActor503500PinkFlashEmitterTargetOffset.vx;
+    enemy->bodyPos.vy             = gActor503500PinkFlashEmitterTargetOffset.vy;
+    enemy->bodyPos.vz             = gActor503500PinkFlashEmitterTargetOffset.vz;
     contacts                      = D_actor_503500_80176D88.contacts;
     enemy->param                  = &D_actor_503500_8016E7EC[task->spawnArg1.value];
     enemy->recs                   = contacts;
@@ -3058,9 +3058,9 @@ static void _actor503500PinkFlashEmitterInit(Task* task)
     D_actor_503500_80176D88.body.key              = ACTOR_503500_PART_BODY_KEY;
     D_actor_503500_80176D88.body.radius           = ACTOR_503500_ATTACHED_TARGET_RADIUS;
     D_actor_503500_80176D88.body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    D_actor_503500_80176D88.body.pos.vx           = D_actor_503500_8016F068.vx;
-    D_actor_503500_80176D88.body.pos.vy           = D_actor_503500_8016F068.vy;
-    D_actor_503500_80176D88.body.pos.vz           = D_actor_503500_8016F068.vz;
+    D_actor_503500_80176D88.body.pos.vx           = gActor503500PinkFlashEmitterTargetOffset.vx;
+    D_actor_503500_80176D88.body.pos.vy           = gActor503500PinkFlashEmitterTargetOffset.vy;
+    D_actor_503500_80176D88.body.pos.vz           = gActor503500PinkFlashEmitterTargetOffset.vz;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &D_actor_503500_80176D88.body);
     worldCollisionInitContacts(contacts, ARRAY_SIZE(D_actor_503500_80176D88.contacts), 0);
     D_actor_503500_80176D88.hitEffect.spawnArgLo = ACTOR_503500_PINK_FLASH_EMITTER_HIT_EFFECT_LOW_ARG;
@@ -3396,9 +3396,9 @@ static inline void _actor503500PinkFlashEmitterHandleHit(Task* task, _Actor50350
     gte_ldv0(&effectPosition);
     gte_rtv0();
     gte_stsv(&effectPosition);
-    effectPosition.vx += D_actor_503500_8016F068.vx;
-    effectPosition.vy += D_actor_503500_8016F068.vy;
-    effectPosition.vz += D_actor_503500_8016F068.vz;
+    effectPosition.vx += gActor503500PinkFlashEmitterTargetOffset.vx;
+    effectPosition.vy += gActor503500PinkFlashEmitterTargetOffset.vy;
+    effectPosition.vz += gActor503500PinkFlashEmitterTargetOffset.vz;
     effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), coord, &effectPosition, &work->hitEffect);
     if (criticalHit != 0) {
         effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, &effectPosition);
@@ -3683,9 +3683,9 @@ static void _actor503500LargeChainInit(Task* task)
     worldTargetLinkNode(&enemy->node);
     enemy->coord                  = tipCoord;
     enemy->node.state.parts.flags = (enemy->node.state.parts.flags | WORLD_TARGET_HIDE_HP) & WORLD_TARGET_NOT_LOCKABLE_CLEAR;
-    enemy->bodyPos.vx             = D_actor_503500_8016F0B0.vx;
-    enemy->bodyPos.vy             = D_actor_503500_8016F0B0.vy;
-    enemy->bodyPos.vz             = D_actor_503500_8016F0B0.vz;
+    enemy->bodyPos.vx             = gActor503500LargeChainTipTargetOffset.vx;
+    enemy->bodyPos.vy             = gActor503500LargeChainTipTargetOffset.vy;
+    enemy->bodyPos.vz             = gActor503500LargeChainTipTargetOffset.vz;
     contacts                      = work->contacts;
     enemy->param                  = &D_actor_503500_8016E7EC[task->spawnArg1.value];
     enemy->recs                   = contacts;
@@ -3693,9 +3693,9 @@ static void _actor503500LargeChainInit(Task* task)
 
     work->body.coord            = tipCoord;
     work->body.context.contacts = contacts;
-    work->body.pos.vx           = D_actor_503500_8016F0B0.vx;
-    work->body.pos.vy           = D_actor_503500_8016F0B0.vy;
-    work->body.pos.vz           = D_actor_503500_8016F0B0.vz;
+    work->body.pos.vx           = gActor503500LargeChainTipTargetOffset.vx;
+    work->body.pos.vy           = gActor503500LargeChainTipTargetOffset.vy;
+    work->body.pos.vz           = gActor503500LargeChainTipTargetOffset.vz;
     work->body.key              = ACTOR_503500_PART_BODY_KEY;
     work->body.radius           = ACTOR_503500_ATTACHED_TARGET_RADIUS;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
@@ -4371,9 +4371,9 @@ static inline void _actor503500LargeChainHandleHit(Task* task, _Actor503500Large
     gte_ldv0(&effectPosition);
     gte_rtv0();
     gte_stsv(&effectPosition);
-    effectPosition.vx += D_actor_503500_8016F0B0.vx;
-    effectPosition.vy += D_actor_503500_8016F0B0.vy;
-    effectPosition.vz += D_actor_503500_8016F0B0.vz;
+    effectPosition.vx += gActor503500LargeChainTipTargetOffset.vx;
+    effectPosition.vy += gActor503500LargeChainTipTargetOffset.vy;
+    effectPosition.vz += gActor503500LargeChainTipTargetOffset.vz;
     effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), coord, &effectPosition, &work->hitEffect);
     if (criticalHit != 0) {
         effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, &effectPosition);

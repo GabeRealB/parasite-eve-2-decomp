@@ -70075,7 +70075,7 @@ splitting another pseudo so `tmd` fit again).
 The second group indexes `spawnArg1` directly, which would run past the
 4-entry table - the tell. It is really the *next* table, `D_8016F414`, indexed
 by `spawnArg1 - 0xD`, reached through an address:
-`copyVector(&work->tipTarget, &D_actor_503500_8016F414[task->spawnArg1.value - ACTOR_503500_SLOT_LUNGING_CHAIN_0])`.
+`copyVector(&work->tipTarget, &gActor503500LungingChainRestTipOffsets[task->spawnArg1.value - ACTOR_503500_SLOT_LUNGING_CHAIN_0])`.
 `&a[i]` is built as `a + i`, and `pointer_int_sum` (`c-typeck.c`) applies the
 distributive law, so the bias folds into the constant `D_8016F414 - 0x68`,
 which is numerically `0x8016F3AC` - splat names it after the wrong table.

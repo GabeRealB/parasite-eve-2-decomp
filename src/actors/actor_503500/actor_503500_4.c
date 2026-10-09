@@ -837,9 +837,9 @@ static void _actor503500LargeOrbEmitterInit(Task* task)
     worldTargetLinkNode(&enemy->node);
     enemy->coord                   = coord;
     enemy->node.state.parts.flags |= (WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE);
-    enemy->bodyPos.vx              = D_actor_503500_8016F0F0[side].vx;
-    enemy->bodyPos.vy              = D_actor_503500_8016F0F0[side].vy;
-    enemy->bodyPos.vz              = D_actor_503500_8016F0F0[side].vz;
+    enemy->bodyPos.vx              = gActor503500LargeOrbEmitterTargetOffsets[side].vx;
+    enemy->bodyPos.vy              = gActor503500LargeOrbEmitterTargetOffsets[side].vy;
+    enemy->bodyPos.vz              = gActor503500LargeOrbEmitterTargetOffsets[side].vz;
     contacts                       = work->contacts;
     enemy->param                   = &D_actor_503500_8016E7EC[task->spawnArg1.value];
     enemy->recs                    = contacts;
@@ -847,9 +847,9 @@ static void _actor503500LargeOrbEmitterInit(Task* task)
 
     work->body.coord            = coord;
     work->body.context.contacts = contacts;
-    work->body.pos.vx           = D_actor_503500_8016F0F0[side].vx;
-    work->body.pos.vy           = D_actor_503500_8016F0F0[side].vy;
-    work->body.pos.vz           = D_actor_503500_8016F0F0[side].vz;
+    work->body.pos.vx           = gActor503500LargeOrbEmitterTargetOffsets[side].vx;
+    work->body.pos.vy           = gActor503500LargeOrbEmitterTargetOffsets[side].vy;
+    work->body.pos.vz           = gActor503500LargeOrbEmitterTargetOffsets[side].vz;
     work->body.key              = ACTOR_503500_PART_BODY_KEY;
     work->body.radius           = 1500;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
@@ -897,9 +897,9 @@ static inline void _actor503500LargeOrbEmitterHandleHit(Task* task, _Actor503500
     gte_ldv0(&effectPosition);                                                                                                                                                                                 \
     gte_rtv0();                                                                                                                                                                                                \
     gte_stsv(&effectPosition);                                                                                                                                                                                 \
-    effectPosition.vx += D_actor_503500_8016F0F0[work->side].vx;                                                                                                                                               \
-    effectPosition.vy += D_actor_503500_8016F0F0[work->side].vy;                                                                                                                                               \
-    effectPosition.vz += D_actor_503500_8016F0F0[work->side].vz;
+    effectPosition.vx += gActor503500LargeOrbEmitterTargetOffsets[work->side].vx;                                                                                                                              \
+    effectPosition.vy += gActor503500LargeOrbEmitterTargetOffsets[work->side].vy;                                                                                                                              \
+    effectPosition.vz += gActor503500LargeOrbEmitterTargetOffsets[work->side].vz;
     enum { ACTOR_503500_LARGE_ORB_HIT_EFFECT_RADIUS = 1600 };
     MATRIX    worldRotation;
     MATRIX    inverseRotation;
@@ -1435,9 +1435,9 @@ static void _actor503500RearPartInit(Task* task)
     worldTargetLinkNode(&enemy->node);
     enemy->coord                  = coord;
     enemy->node.state.parts.flags = (enemy->node.state.parts.flags | WORLD_TARGET_HIDE_HP) & WORLD_TARGET_NOT_LOCKABLE_CLEAR;
-    enemy->bodyPos.vx             = D_actor_503500_8016F1B0.vx;
-    enemy->bodyPos.vy             = D_actor_503500_8016F1B0.vy;
-    enemy->bodyPos.vz             = D_actor_503500_8016F1B0.vz;
+    enemy->bodyPos.vx             = gActor503500RearPartTargetOffset.vx;
+    enemy->bodyPos.vy             = gActor503500RearPartTargetOffset.vy;
+    enemy->bodyPos.vz             = gActor503500RearPartTargetOffset.vz;
     contacts                      = D_actor_503500_801776A0.contacts;
     enemy->param                  = &D_actor_503500_8016E7EC[task->spawnArg1.value];
     enemy->recs                   = contacts;
@@ -1448,9 +1448,9 @@ static void _actor503500RearPartInit(Task* task)
     D_actor_503500_801776A0.body.key              = ACTOR_503500_PART_BODY_KEY;
     D_actor_503500_801776A0.body.radius           = 1000;
     D_actor_503500_801776A0.body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    D_actor_503500_801776A0.body.pos.vx           = D_actor_503500_8016F1B0.vx;
-    D_actor_503500_801776A0.body.pos.vy           = D_actor_503500_8016F1B0.vy;
-    D_actor_503500_801776A0.body.pos.vz           = D_actor_503500_8016F1B0.vz;
+    D_actor_503500_801776A0.body.pos.vx           = gActor503500RearPartTargetOffset.vx;
+    D_actor_503500_801776A0.body.pos.vy           = gActor503500RearPartTargetOffset.vy;
+    D_actor_503500_801776A0.body.pos.vz           = gActor503500RearPartTargetOffset.vz;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &D_actor_503500_801776A0.body);
     worldCollisionInitContacts(contacts, ARRAY_SIZE(D_actor_503500_801776A0.contacts), 0);
     D_actor_503500_801776A0.hitEffect.spawnArgLo = ACTOR_503500_PART_HIT_EFFECT_LOW_ARG;
@@ -1495,9 +1495,9 @@ static inline void _actor503500RearPartHandleHit(Task* task, _Actor503500RearPar
     gte_ldv0(&effectPosition);                                                                                                                                                                                 \
     gte_rtv0();                                                                                                                                                                                                \
     gte_stsv(&effectPosition);                                                                                                                                                                                 \
-    effectPosition.vx += D_actor_503500_8016F1B0.vx;                                                                                                                                                           \
-    effectPosition.vy += D_actor_503500_8016F1B0.vy;                                                                                                                                                           \
-    effectPosition.vz += D_actor_503500_8016F1B0.vz;
+    effectPosition.vx += gActor503500RearPartTargetOffset.vx;                                                                                                                                                  \
+    effectPosition.vy += gActor503500RearPartTargetOffset.vy;                                                                                                                                                  \
+    effectPosition.vz += gActor503500RearPartTargetOffset.vz;
     enum { ACTOR_503500_REAR_PART_HIT_EFFECT_RADIUS = 1400 };
     VECTOR    attackerOffset;
     SVECTOR   effectPosition;
@@ -1847,13 +1847,13 @@ static void _actor503500ChainBaseInit(Task* task)
     GfxCoord*                  coord;
     WorldCollisionContact*     contacts;
     _Actor503500ChainBaseWork* work;
-    SVECTOR*                   bodyOffset;
+    const SVECTOR*             bodyOffset;
     s32                        slot;
 
     slot       = task->spawnArg1.value;
     enemy      = task->spawnArg2.pointer;
     work       = &D_actor_503500_80177794[slot - ACTOR_503500_CHAIN_BASE_FIRST_SLOT];
-    bodyOffset = &D_actor_503500_8016F248[slot - ACTOR_503500_CHAIN_BASE_FIRST_SLOT];
+    bodyOffset = &gActor503500ChainBaseTargetOffsets[slot - ACTOR_503500_CHAIN_BASE_FIRST_SLOT];
     coord      = task->extra.tmd->coords;
     parent     = task->parent;
     memFillBytes(work, 0, sizeof(*work));
@@ -1926,15 +1926,15 @@ static inline void _actor503500ChainBaseHandleHit(Task* task, _Actor503500ChainB
     gte_rtv0();                                                                                                                                                                                                 \
     gte_stsv(&effectPosition);                                                                                                                                                                                  \
     {                                                                                                                                                                                                           \
-        const SVECTOR* targetCenter = &D_actor_503500_8016F248[task->spawnArg1.value - ACTOR_503500_CHAIN_BASE_FIRST_SLOT];                                                                                     \
+        const SVECTOR* targetCenter = &gActor503500ChainBaseTargetOffsets[task->spawnArg1.value - ACTOR_503500_CHAIN_BASE_FIRST_SLOT];                                                                          \
         effectPosition.vx          += targetCenter->vx;                                                                                                                                                         \
     }                                                                                                                                                                                                           \
     {                                                                                                                                                                                                           \
-        const SVECTOR* targetCenter = &D_actor_503500_8016F248[task->spawnArg1.value - ACTOR_503500_CHAIN_BASE_FIRST_SLOT];                                                                                     \
+        const SVECTOR* targetCenter = &gActor503500ChainBaseTargetOffsets[task->spawnArg1.value - ACTOR_503500_CHAIN_BASE_FIRST_SLOT];                                                                          \
         effectPosition.vy          += targetCenter->vy;                                                                                                                                                         \
     }                                                                                                                                                                                                           \
     {                                                                                                                                                                                                           \
-        const SVECTOR* targetCenter = &D_actor_503500_8016F248[task->spawnArg1.value - ACTOR_503500_CHAIN_BASE_FIRST_SLOT];                                                                                     \
+        const SVECTOR* targetCenter = &gActor503500ChainBaseTargetOffsets[task->spawnArg1.value - ACTOR_503500_CHAIN_BASE_FIRST_SLOT];                                                                          \
         effectPosition.vz          += targetCenter->vz;                                                                                                                                                         \
     }
     enum { ACTOR_503500_CHAIN_BASE_HIT_EFFECT_RADIUS = 200 };
@@ -2514,9 +2514,9 @@ static void _actor503500SmallOrbEmitterInit(Task* task)
     worldTargetLinkNode(&enemy->node);
     enemy->coord                  = coord;
     enemy->node.state.parts.flags = (enemy->node.state.parts.flags | WORLD_TARGET_HIDE_HP) & WORLD_TARGET_NOT_LOCKABLE_CLEAR;
-    enemy->bodyPos.vx             = D_actor_503500_8016F2D8.vx;
-    enemy->bodyPos.vy             = D_actor_503500_8016F2D8.vy;
-    enemy->bodyPos.vz             = D_actor_503500_8016F2D8.vz;
+    enemy->bodyPos.vx             = gActor503500SmallOrbEmitterTargetOffset.vx;
+    enemy->bodyPos.vy             = gActor503500SmallOrbEmitterTargetOffset.vy;
+    enemy->bodyPos.vz             = gActor503500SmallOrbEmitterTargetOffset.vz;
     contacts                      = D_actor_503500_8017797C.contacts;
     enemy->param                  = &D_actor_503500_8016E7EC[task->spawnArg1.value];
     enemy->recs                   = contacts;
@@ -2527,9 +2527,9 @@ static void _actor503500SmallOrbEmitterInit(Task* task)
     D_actor_503500_8017797C.body.key              = ACTOR_503500_PART_BODY_KEY;
     D_actor_503500_8017797C.body.radius           = 1000;
     D_actor_503500_8017797C.body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    D_actor_503500_8017797C.body.pos.vx           = D_actor_503500_8016F2D8.vx;
-    D_actor_503500_8017797C.body.pos.vy           = D_actor_503500_8016F2D8.vy;
-    D_actor_503500_8017797C.body.pos.vz           = D_actor_503500_8016F2D8.vz;
+    D_actor_503500_8017797C.body.pos.vx           = gActor503500SmallOrbEmitterTargetOffset.vx;
+    D_actor_503500_8017797C.body.pos.vy           = gActor503500SmallOrbEmitterTargetOffset.vy;
+    D_actor_503500_8017797C.body.pos.vz           = gActor503500SmallOrbEmitterTargetOffset.vz;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &D_actor_503500_8017797C.body);
     worldCollisionInitContacts(contacts, ARRAY_SIZE(D_actor_503500_8017797C.contacts), 0);
     D_actor_503500_8017797C.hitEffect.spawnArgLo = ACTOR_503500_PART_HIT_EFFECT_LOW_ARG;
@@ -2574,9 +2574,9 @@ static inline void _actor503500SmallOrbEmitterHandleHit(Task* task, _Actor503500
     gte_ldv0(&effectPosition);                                                                                                                                                                                 \
     gte_rtv0();                                                                                                                                                                                                \
     gte_stsv(&effectPosition);                                                                                                                                                                                 \
-    effectPosition.vx += D_actor_503500_8016F2D8.vx;                                                                                                                                                           \
-    effectPosition.vy += D_actor_503500_8016F2D8.vy;                                                                                                                                                           \
-    effectPosition.vz += D_actor_503500_8016F2D8.vz;
+    effectPosition.vx += gActor503500SmallOrbEmitterTargetOffset.vx;                                                                                                                                           \
+    effectPosition.vy += gActor503500SmallOrbEmitterTargetOffset.vy;                                                                                                                                           \
+    effectPosition.vz += gActor503500SmallOrbEmitterTargetOffset.vz;
     enum { ACTOR_503500_SMALL_ORB_HIT_EFFECT_RADIUS = 600 };
     VECTOR    attackerOffset;
     SVECTOR   effectPosition;
@@ -3057,9 +3057,9 @@ static void _actor503500YellowFlashEmitterInit(Task* task)
     worldTargetLinkNode(&enemy->node);
     enemy->coord                   = coord;
     enemy->node.state.parts.flags |= (WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE);
-    enemy->bodyPos.vx              = D_actor_503500_8016F36C.vx;
-    enemy->bodyPos.vy              = D_actor_503500_8016F36C.vy;
-    enemy->bodyPos.vz              = D_actor_503500_8016F36C.vz;
+    enemy->bodyPos.vx              = gActor503500YellowFlashEmitterTargetOffset.vx;
+    enemy->bodyPos.vy              = gActor503500YellowFlashEmitterTargetOffset.vy;
+    enemy->bodyPos.vz              = gActor503500YellowFlashEmitterTargetOffset.vz;
     contacts                       = D_actor_503500_80177A6C.contacts;
     enemy->param                   = &D_actor_503500_8016E7EC[task->spawnArg1.value];
     enemy->recs                    = contacts;
@@ -3067,9 +3067,9 @@ static void _actor503500YellowFlashEmitterInit(Task* task)
 
     D_actor_503500_80177A6C.body.coord            = coord;
     D_actor_503500_80177A6C.body.context.contacts = contacts;
-    D_actor_503500_80177A6C.body.pos.vx           = D_actor_503500_8016F36C.vx;
-    D_actor_503500_80177A6C.body.pos.vy           = D_actor_503500_8016F36C.vy;
-    D_actor_503500_80177A6C.body.pos.vz           = D_actor_503500_8016F36C.vz;
+    D_actor_503500_80177A6C.body.pos.vx           = gActor503500YellowFlashEmitterTargetOffset.vx;
+    D_actor_503500_80177A6C.body.pos.vy           = gActor503500YellowFlashEmitterTargetOffset.vy;
+    D_actor_503500_80177A6C.body.pos.vz           = gActor503500YellowFlashEmitterTargetOffset.vz;
     D_actor_503500_80177A6C.body.key              = ACTOR_503500_PART_BODY_KEY;
     D_actor_503500_80177A6C.body.radius           = 800;
     D_actor_503500_80177A6C.body.flags            = WORLD_COLLISION_BODY_SPHERE;
@@ -3117,9 +3117,9 @@ static inline void _actor503500YellowFlashEmitterHandleHit(Task* task, _Actor503
     gte_ldv0(&effectPosition);                                                                                                                                                                                    \
     gte_rtv0();                                                                                                                                                                                                   \
     gte_stsv(&effectPosition);                                                                                                                                                                                    \
-    effectPosition.vx += D_actor_503500_8016F36C.vx;                                                                                                                                                              \
-    effectPosition.vy += D_actor_503500_8016F36C.vy;                                                                                                                                                              \
-    effectPosition.vz += D_actor_503500_8016F36C.vz;
+    effectPosition.vx += gActor503500YellowFlashEmitterTargetOffset.vx;                                                                                                                                           \
+    effectPosition.vy += gActor503500YellowFlashEmitterTargetOffset.vy;                                                                                                                                           \
+    effectPosition.vz += gActor503500YellowFlashEmitterTargetOffset.vz;
     enum { ACTOR_503500_YELLOW_FLASH_HIT_EFFECT_RADIUS = 400 };
     VECTOR    attackerOffset;
     SVECTOR   effectPosition;
@@ -3606,18 +3606,18 @@ static void _actor503500LungingChainInit(Task* task)
     enemy->field_48               = 0;
     enemy->coord                  = tipCoord;
     enemy->node.state.parts.flags = (enemy->node.state.parts.flags | WORLD_TARGET_HIDE_HP) & WORLD_TARGET_NOT_LOCKABLE_CLEAR;
-    enemy->bodyPos.vx             = D_actor_503500_8016F3EC.vx;
-    enemy->bodyPos.vy             = D_actor_503500_8016F3EC.vy;
-    enemy->bodyPos.vz             = D_actor_503500_8016F3EC.vz;
+    enemy->bodyPos.vx             = gActor503500LungingChainTipTargetOffset.vx;
+    enemy->bodyPos.vy             = gActor503500LungingChainTipTargetOffset.vy;
+    enemy->bodyPos.vz             = gActor503500LungingChainTipTargetOffset.vz;
     targetContacts                = work->contacts;
     enemy->param                  = &D_actor_503500_8016E7EC[task->spawnArg1.value];
     enemy->recs                   = targetContacts;
 
     work->body.coord            = tipCoord;
     work->body.context.contacts = targetContacts;
-    work->body.pos.vx           = D_actor_503500_8016F3EC.vx;
-    work->body.pos.vy           = D_actor_503500_8016F3EC.vy;
-    work->body.pos.vz           = D_actor_503500_8016F3EC.vz;
+    work->body.pos.vx           = gActor503500LungingChainTipTargetOffset.vx;
+    work->body.pos.vy           = gActor503500LungingChainTipTargetOffset.vy;
+    work->body.pos.vz           = gActor503500LungingChainTipTargetOffset.vz;
     work->body.key              = ACTOR_503500_PART_BODY_KEY;
     work->body.radius           = ACTOR_503500_LUNGING_CHAIN_TARGET_RADIUS;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
@@ -3641,8 +3641,8 @@ static void _actor503500LungingChainInit(Task* task)
     work->attackBody.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     // Seed the rest pose before selecting unfold, regrow or immediate targeting.
-    copyVector(&work->tipTarget, &D_actor_503500_8016F414[task->spawnArg1.value - ACTOR_503500_SLOT_LUNGING_CHAIN_0]);
-    copyVector(&work->tipPosition, &D_actor_503500_8016F414[task->spawnArg1.value - ACTOR_503500_SLOT_LUNGING_CHAIN_0]);
+    copyVector(&work->tipTarget, &gActor503500LungingChainRestTipOffsets[task->spawnArg1.value - ACTOR_503500_SLOT_LUNGING_CHAIN_0]);
+    copyVector(&work->tipPosition, &gActor503500LungingChainRestTipOffsets[task->spawnArg1.value - ACTOR_503500_SLOT_LUNGING_CHAIN_0]);
     work->tipSpeedLimit.word = ACTOR_503500_LUNGING_CHAIN_INITIAL_SPEED_LIMIT;
     work->swayAmplitude      = ACTOR_503500_LUNGING_CHAIN_INITIAL_SWAY;
     work->swayWeight         = ONE;
@@ -4183,9 +4183,9 @@ static inline void _actor503500LungingChainHandleHit(Task* task, _Actor503500Lun
     gte_ldv0(&effectPosition);                                                                                                                                                                                     \
     gte_rtv0();                                                                                                                                                                                                    \
     gte_stsv(&effectPosition);                                                                                                                                                                                     \
-    effectPosition.vx += D_actor_503500_8016F3EC.vx;                                                                                                                                                               \
-    effectPosition.vy += D_actor_503500_8016F3EC.vy;                                                                                                                                                               \
-    effectPosition.vz += D_actor_503500_8016F3EC.vz;
+    effectPosition.vx += gActor503500LungingChainTipTargetOffset.vx;                                                                                                                                               \
+    effectPosition.vy += gActor503500LungingChainTipTargetOffset.vy;                                                                                                                                               \
+    effectPosition.vz += gActor503500LungingChainTipTargetOffset.vz;
     enum { ACTOR_503500_LUNGING_CHAIN_HIT_EFFECT_RADIUS = 500 };
     SVECTOR   effectPosition;
     MATRIX    inverseRotation;
@@ -4649,7 +4649,7 @@ static void _actor503500LungingChainStepIdle(Task* task)
     if (work->curlWeight < 0) {
         work->curlWeight = 0;
     }
-    copyVector(&work->tipTarget, &D_actor_503500_8016F414[task->spawnArg1.value - ACTOR_503500_SLOT_LUNGING_CHAIN_0]);
+    copyVector(&work->tipTarget, &gActor503500LungingChainRestTipOffsets[task->spawnArg1.value - ACTOR_503500_SLOT_LUNGING_CHAIN_0]);
 }
 
 /// Blends a newly split chain into its laid-out pose, then exposes its target.
@@ -4868,7 +4868,7 @@ static void _actor503500ArmInit(Task* task)
     _Actor503500ArmWork*   work;
     GfxCoord*              coord;
     TmdObject*             bossModel;
-    SVECTOR*               bodyOffset;
+    const SVECTOR*         bodyOffset;
     WorldCollisionContact* contacts;
     GfxCoord*              forearmCoords;
     GfxCoord*              handCoords;
@@ -4896,7 +4896,7 @@ static void _actor503500ArmInit(Task* task)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
     enemy->field_4                = &coord->coord;
-    bodyOffset                    = &D_actor_503500_80171480[side];
+    bodyOffset                    = &gActor503500ArmTargetOffsets[side];
     enemy->field_48               = 0;
     enemy->coord                  = coord;
     enemy->node.state.parts.flags = (enemy->node.state.parts.flags | WORLD_TARGET_HIDE_HP) & WORLD_TARGET_NOT_LOCKABLE_CLEAR;
@@ -5355,9 +5355,9 @@ static inline void _actor503500ArmHandleHit(Task* task, _Actor503500ArmWork* wor
     gte_ldv0(&effectPosition);                                                                                                                                                                           \
     gte_rtv0();                                                                                                                                                                                          \
     gte_stsv(&effectPosition);                                                                                                                                                                           \
-    effectPosition.vx += D_actor_503500_80171480[work->side].vx;                                                                                                                                         \
-    effectPosition.vy += D_actor_503500_80171480[work->side].vy;                                                                                                                                         \
-    effectPosition.vz += D_actor_503500_80171480[work->side].vz;
+    effectPosition.vx += gActor503500ArmTargetOffsets[work->side].vx;                                                                                                                                    \
+    effectPosition.vy += gActor503500ArmTargetOffsets[work->side].vy;                                                                                                                                    \
+    effectPosition.vz += gActor503500ArmTargetOffsets[work->side].vz;
     enum {
         ACTOR_503500_ARM_HIT_EFFECT_RADIUS            = 1500,
         ACTOR_503500_ARM_HIT_NORMAL                   = 0,
@@ -5693,7 +5693,7 @@ void actor503500KnockbackTask(Task* task)
             if (taskMessageDispatch(player, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
                 D_actor_503500_801714DC =
                     Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]
-                        ->table.words[ACTOR_503500_KNOCKBACK_WEAPON_BANK_WORD];
+                        ->table.sets[ACTOR_503500_KNOCKBACK_WEAPON_BANK_WORD];
                 TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_503500_80171530, 0);
                 task->state++;
             }
