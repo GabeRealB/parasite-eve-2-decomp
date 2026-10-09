@@ -552,10 +552,21 @@ def page_data(db: sqlite3.Connection, pictures: str = "", pixels: str = "") -> s
             for name, slot, _entry in slot_packages(spec):
                 address[name] = own.get(slot.get("slot"), int(spec["load_addr"]))
     regions = [[r["kind"][0], r["name"], r["x"], r["y"], r["w"], r["h"]] for r in region_table()]
+    # An overlay's own files, for those that are not rooms: the one that
+    # carries it, the further files of its entry and its texture-only file.
+    # A model and its file are displaced together, so its faces can be read
+    # against one of these as stored, whatever else is in memory.
+    zero = {r["id"]: r["path"] for r in db.execute("SELECT path, id FROM file WHERE stage = 0 AND id IS NOT NULL")}
+    own = {}
+    for r in db.execute("SELECT path, id, package FROM file WHERE stage = 0 AND package IS NOT NULL"):
+        if r["package"] in models:
+            paths = {r["path"]} | {p for i, p in zero.items() if i // 100 == r["id"] // 100}
+            paths |= {p for i, p in zero.items() if 60 <= i // 10000 < 70 and (i % 100000) // 100 == (r["id"] % 100000) // 100}
+            own[r["package"]] = sorted(index[p] for p in paths)
     maps = {r["id"] - 900000: index[r["path"]] for r in db.execute("SELECT path, id FROM file WHERE stage = 0 AND id BETWEEN 900001 AND 900005")}
     return json.dumps({"files": files, "fp": footprint, "loaders": loaders, "pkg": carried, "pictures": pictures,
                        "pixels": pixels, "models": models, "consts": constants, "stagemap": maps,
-                       "addr": address, "regions": regions, "layers": LAYERS}, separators=(",", ":")).replace("</", "<\\/")
+                       "addr": address, "regions": regions, "layers": LAYERS, "own": own}, separators=(",", ":")).replace("</", "<\\/")
 
 
 def write_page(db: sqlite3.Connection, out: Path, bare: bool) -> None:

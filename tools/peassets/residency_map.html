@@ -118,7 +118,7 @@ tr.hot td { background: var(--accent-soft); } tr.clash td:first-child { color: v
     <section class="panel">
       <h2><span>Video memory, 1024 × 512</span><span class="seg" id="seg"><button id="seg-raw" aria-pressed="true">Uploads</button><button id="seg-app" aria-pressed="false">Applied</button></span><span id="hover">hover a rectangle</span></h2>
       <div id="appliedbox" hidden>
-        <div class="empty" id="appliednote">Each tile is one texture page as a resident model, or a pair of the code's constants, asks for it: read at the depth and through the palette it names, from what the selected groups have loaded. A model is displaced as the placement that spawns it says; where that leaves it without a page or palette and another displacement in use does not, that one is taken and marked "guessed". The outline is the part of the page the faces cover; the rest of the page belongs to other faces and their palette, and is faded.</div>
+        <div class="empty" id="appliednote">Each tile is one texture page as a resident model, or a pair of the code's constants, asks for it: read at the depth and through the palette it names. A model and its file are displaced together, so its faces are read first against its overlay's own files as stored ("own file"), which does not depend on what else is loaded. Only what no own file supplies is read from what the selected groups have loaded; there the model is displaced as the placement that spawns it says, and where that leaves it without a page or palette and another displacement in use does not, that one is taken and marked "guessed". The outline is the part of the page the faces cover; the rest of the page belongs to other faces and their palette, and is faded.</div>
         <div id="applied"></div>
       </div>
       <div id="rawbox">
@@ -277,7 +277,7 @@ async function drawApplied() {
   let ownAt = null;                        // the offsets this overlay's own file was brought in with
   const sign = (p, r) => `${p >= 0 ? "+" : ""}${p}/${r >= 0 ? "+" : ""}${r}`;
   // What asks: a package's models, displaced as the placement that spawns them says; failing that, as its file was loaded.
-  const ask = (pkg, cands) => { if (gone.has(pkg)) return; for (const [model, pairs] of (D.models[pkg] || [])) for (const [tp, cl, u0, v0, u1, v1] of pairs) asks.push({ who: model, tp: tp & ~0x60, cl, cands, box: u0 === undefined ? null : [u0, v0, u1, v1] });
+  const ask = (pkg, cands) => { if (gone.has(pkg)) return; for (const [model, pairs] of (D.models[pkg] || [])) for (const [tp, cl, u0, v0, u1, v1] of pairs) asks.push({ who: model, pkg, tp: tp & ~0x60, cl, cands, box: u0 === undefined ? null : [u0, v0, u1, v1] });
     for (const [label, tp, cl] of (D.consts[pkg] || [])) asks.push({ who: label, tp: tp & ~0x60, cl, cands: [[0, 0]], fixed: true }); };
   for (const g of groups) for (const [pkg, page, row] of (g[4] || [])) { offsets.set(sign(page, row), [page, row]); spawned.add(pkg); ask(pkg, [[page, row], [0, 0]]); }
   // Every package a resident file carries asks, this overlay itself included when its context brought it in.
@@ -288,44 +288,53 @@ async function drawApplied() {
   for (const a of (cur.ancestors || [])) if (!spawned.has(a)) { spawned.add(a); ask(a, [[0, 0], ...offsets.values()]); }
   if (!asks.length) { box.innerHTML = `<div class="empty">No model or constant of this overlay, or of an overlay the selected groups load, names a texture.</div>`; return; }
   const kinds = new Map(); uploads.forEach(u => (D.fp[u.f] || []).forEach(r => kinds.set(r[0], r[1])));
+  for (const a of asks) for (const f of (D.own[a.pkg] || [])) (D.fp[f] || []).forEach(r => kinds.set(r[0], r[1]));
   await Promise.all([...kinds.keys()].map(need)); if (mine !== turn) return;
-  const vram = new Uint16Array(1024 * 512), owner = new Uint16Array(1024 * 512), names = [""];
-  for (const up of uploads) { const seen = new Set(); for (const r of (D.fp[up.f] || [])) { if (seen.has(r[0])) continue; seen.add(r[0]);
-    const id = names.push(r[0]) - 1; (pix.get(r[0]) || []).forEach((col, n) => { const at = landed([r[0], r[1], n ? "column " + n : "column 0", col.x, col.y, col.w, col.h, 0], up.page, up.row, up.rel);
-      for (let yy = 0; yy < col.h; yy++) { const y = at.y + yy; if (y < 0 || y > 511) continue; for (let xx = 0; xx < col.w; xx++) { const x = at.x + xx; if (x < 0 || x > 1023) continue; vram[y * 1024 + x] = col.u[yy * col.w + xx]; owner[y * 1024 + x] = id; } } }); } }
+  // Video memory as a list of loads leaves it: the words, and which asset put each there.
+  const compose = ups => { const vram = new Uint16Array(1024 * 512), owner = new Uint16Array(1024 * 512), names = [""];
+    for (const up of ups) { const seen = new Set(); for (const r of (D.fp[up.f] || [])) { if (seen.has(r[0])) continue; seen.add(r[0]);
+      const id = names.push(r[0]) - 1; (pix.get(r[0]) || []).forEach((col, n) => { const at = landed([r[0], r[1], n ? "column " + n : "column 0", col.x, col.y, col.w, col.h, 0], up.page, up.row, up.rel);
+        for (let yy = 0; yy < col.h; yy++) { const y = at.y + yy; if (y < 0 || y > 511) continue; for (let xx = 0; xx < col.w; xx++) { const x = at.x + xx; if (x < 0 || x > 1023) continue; vram[y * 1024 + x] = col.u[yy * col.w + xx]; owner[y * 1024 + x] = id; } } }); } }
+    return { vram, owner, names }; };
+  const state = compose(uploads), alone = new Map(), fileMem = f => alone.get(f) || (alone.set(f, compose([{ f, page: 0, row: 0, rel: 0 }])), alone.get(f));
   const geo = (t, c) => { const bpp = [4, 8, 16][(t >> 7) & 3] || 16; return { bpp, tx: (t & 15) * 64, ty: (t & 16) ? 256 : 0, cx: (c & 63) * 16, cy: c >> 6, n: bpp === 4 ? 16 : 256 }; };
-  const whole = (t, c) => { const { bpp, tx, ty, cx, cy, n } = geo(t, c); let page = false; const w = bpp === 4 ? 64 : bpp === 8 ? 128 : 256;
-    for (let v = 0; v < 256 && !page; v += 8) for (let x = 0; x < w; x += 8) if (owner[(ty + v) * 1024 + ((tx + x) & 1023)]) { page = true; break; }
-    if (!page || bpp === 16) return page; if (cy > 511) return false; for (let i = 0; i < n; i++) if (!owner[cy * 1024 + ((cx + i) & 1023)]) return false; return true; };
-  // Each ask settles on the first displacement under which its page and palette are both resident.
-  const tiles = new Map();
-  for (const a of asks) { let pick = a.cands[0], guess = false;
-    for (const cand of a.cands) { if (whole((a.tp + cand[0]) & 0x19F, a.cl + (cand[1] << 6))) { guess = cand !== a.cands[0]; pick = cand; break; } }
-    const t = (a.tp + pick[0]) & 0x19F, c = a.cl + (pick[1] << 6), k = t + "|" + c, tile = tiles.get(k) || { t, c, who: new Set(), box: null };
-    if (a.box) tile.box = tile.box ? [Math.min(tile.box[0], a.box[0]), Math.min(tile.box[1], a.box[1]), Math.max(tile.box[2], a.box[2]), Math.max(tile.box[3], a.box[3])] : a.box;
-    tile.who.add(a.who + (a.fixed ? "" : pick[0] || pick[1] ? ` (${sign(pick[0], pick[1])}${guess ? ", guessed" : ""})` : guess ? " (undisplaced, guessed)" : "")); tiles.set(k, tile); }
+  // Whether a memory holds what a face asks for: something under the part of the page the faces cover, and the whole palette.
+  const whole = (mem, t, c, box) => { const { bpp, tx, ty, cx, cy, n } = geo(t, c), per = bpp === 4 ? 4 : bpp === 8 ? 2 : 1, bx = box || [0, 0, 255, 255]; let page = false;
+    for (let v = bx[1]; v <= bx[3] && !page; v += 4) for (let u = bx[0]; u <= bx[2]; u += 4) if (mem.owner[(ty + v) * 1024 + ((tx + Math.floor(u / per)) & 1023)]) { page = true; break; }
+    if (!page || bpp === 16) return page; if (cy > 511) return false; for (let i = 0; i < n; i++) if (!mem.owner[cy * 1024 + ((cx + i) & 1023)]) return false; return true; };
+  // A model and its file are displaced together. So a face is first read against each of its overlay's own files as
+  // stored, whatever else is in memory; only what no own file supplies is read from the composed state, where its
+  // displacement has to be chosen: the first candidate under which its page and palette are both resident.
+  const tiles = new Map(), put = (k, base, who, box) => { const tile = tiles.get(k) || { ...base, who: new Set(), box: null }; tile.who.add(who);
+    if (box) tile.box = tile.box ? [Math.min(tile.box[0], box[0]), Math.min(tile.box[1], box[1]), Math.max(tile.box[2], box[2]), Math.max(tile.box[3], box[3])] : box; tiles.set(k, tile); };
+  for (const a of asks) {
+    const mineFiles = a.fixed ? [] : (D.own[a.pkg] || []).filter(f => whole(fileMem(f), a.tp & 0x19F, a.cl, a.box));
+    if (mineFiles.length) { mineFiles.forEach((f, n) => put(`f${f}|${a.tp & 0x19F}|${a.cl}`, { t: a.tp & 0x19F, c: a.cl, mem: fileMem(f), src: `own file ${D.files[f]}` + (mineFiles.length > 1 ? ` (one of ${mineFiles.length} that fit)` : "") }, a.who, a.box)); continue; }
+    let pick = a.cands[0], guess = false;
+    for (const cand of a.cands) { if (whole(state, (a.tp + cand[0]) & 0x19F, a.cl + (cand[1] << 6), a.box)) { guess = cand !== a.cands[0]; pick = cand; break; } }
+    const t = (a.tp + pick[0]) & 0x19F, c = a.cl + (pick[1] << 6);
+    put(`s|${t}|${c}`, { t, c, mem: state, src: "from what is resident" }, a.who + (a.fixed ? "" : pick[0] || pick[1] ? ` (${sign(pick[0], pick[1])}${guess ? ", guessed" : ""})` : guess ? " (undisplaced, guessed)" : ""), a.box);
+  }
   const css = getComputedStyle(document.documentElement), rgb = v => { const c = document.createElement("canvas").getContext("2d"); c.fillStyle = css.getPropertyValue(v); c.fillRect(0, 0, 1, 1); return c.getImageData(0, 0, 1, 1).data; }, bad = rgb("--clash");
-  for (const a of [...tiles.values()].sort((p, q) => p.t - q.t || p.c - q.c)) {
-    const { bpp, tx, ty, cx, cy, n } = geo(a.t, a.c);
+  for (const a of [...tiles.values()].sort((p, q) => (p.mem === state) - (q.mem === state) || p.t - q.t || p.c - q.c)) {
+    const { bpp, tx, ty, cx, cy, n } = geo(a.t, a.c), { vram, owner, names } = a.mem;
     const cv = document.createElement("canvas"); cv.width = cv.height = 256; const ctx = cv.getContext("2d"), im = ctx.createImageData(256, 256), d = im.data;
-    let filled = 0, palFilled = 0, lacking = 0; const from = new Set(), pal = new Set();
+    let filled = 0, palFilled = 0, lacking = 0; const from = new Set(), pal = new Set(), bx = a.box || [0, 0, 255, 255];
     if (bpp < 16 && cy < 512) for (let i = 0; i < n; i++) { const o = owner[cy * 1024 + ((cx + i) & 1023)]; if (o) { palFilled++; pal.add(names[o]); } }
     for (let v = 0; v < 256; v++) for (let u = 0; u < 256; u++) {
       const wx = tx + (bpp === 4 ? u >> 2 : bpp === 8 ? u >> 1 : u), at = (ty + v) * 1024 + (wx & 1023), o = owner[at], k = (v * 256 + u) * 4; if (!o) continue;
-      filled++; from.add(names[o]); let col;
+      const inside = u >= bx[0] && u <= bx[2] && v >= bx[1] && v <= bx[3]; if (inside) { filled++; from.add(names[o]); } let col;
       if (bpp === 16) col = vram[at]; else { const idx = bpp === 4 ? (vram[at] >> ((u & 3) * 4)) & 15 : (vram[at] >> ((u & 1) * 8)) & 255, pa = cy * 1024 + ((cx + idx) & 1023);
-        if (cy > 511 || !owner[pa]) { lacking++; d[k] = bad[0]; d[k + 1] = bad[1]; d[k + 2] = bad[2]; d[k + 3] = 255; continue; } col = vram[pa]; }
+        if (cy > 511 || !owner[pa]) { if (inside) lacking++; d[k] = bad[0]; d[k + 1] = bad[1]; d[k + 2] = bad[2]; d[k + 3] = inside ? 255 : 32; continue; } col = vram[pa]; }
       if (!col) continue;
-      d[k] = (col & 31) * 255 / 31; d[k + 1] = ((col >> 5) & 31) * 255 / 31; d[k + 2] = ((col >> 10) & 31) * 255 / 31; d[k + 3] = 255;
+      d[k] = (col & 31) * 255 / 31; d[k + 1] = ((col >> 5) & 31) * 255 / 31; d[k + 2] = ((col >> 10) & 31) * 255 / 31; d[k + 3] = inside ? 255 : 32;
     }
-    // A page is shared: its other columns belong to other faces, with their own palette. Fade what these faces do not cover.
-    if (a.box) for (let v = 0; v < 256; v++) for (let u = 0; u < 256; u++) if (u < a.box[0] || u > a.box[2] || v < a.box[1] || v > a.box[3]) d[(v * 256 + u) * 4 + 3] >>= 3;
     ctx.putImageData(im, 0, 0);
     if (a.box) { ctx.strokeStyle = css.getPropertyValue("--accent"); ctx.lineWidth = 1; ctx.strokeRect(a.box[0] + .5, a.box[1] + .5, Math.max(1, a.box[2] - a.box[0]), Math.max(1, a.box[3] - a.box[1])); }
     const flags = []; if (!filled) flags.push("page not resident"); if (bpp < 16 && !palFilled) flags.push("palette not resident"); else if (bpp < 16 && palFilled < n) flags.push(`palette ${palFilled} of ${n} entries resident`); if (lacking && palFilled) flags.push("texels use entries that are not resident");
     const tile = document.createElement("div"); tile.className = "tile" + (flags.length ? " miss" : "");
     const line = (cls, text) => { const e = document.createElement("div"); e.className = cls; e.textContent = text; return e; };
-    tile.append(cv, line("who", [...a.who].join(", ")), line("what", `page (${tx}, ${ty}) ${bpp}-bit · ${[...from].join(", ") || "nothing"}`), line("what", bpp < 16 ? `palette (${cx}, ${cy}) · ${[...pal].join(", ") || "nothing"}` : "direct colour"));
+    tile.append(cv, line("who", [...a.who].join(", ")), line("what", `page (${tx}, ${ty}) ${bpp}-bit · ${[...from].join(", ") || "nothing"}`), line("what", bpp < 16 ? `palette (${cx}, ${cy}) · ${[...pal].join(", ") || "nothing"}` : "direct colour"), line("what", a.src));
     if (flags.length) tile.append(line("flag", flags.join("; ")));
     box.append(tile);
   }
