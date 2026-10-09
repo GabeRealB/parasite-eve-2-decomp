@@ -2,6 +2,10 @@
 
 #include "mad_chaser_frame_shadows.inc.c"
 
+// Bind MAD_CHASER_LURK_STATE_HANDLERS to this carrier's complete, readable
+// TaskFuncTable5 of lurking behaviors before inclusion. The object-like binding
+// evaluates no arguments and constructs no tokens; it is undefined afterwards.
+
 /// Advances lurking behavior and contacts before selecting death or combat.
 ///
 /// Requires live enemy/model/work, initialized nine-part animation and behavior
@@ -19,7 +23,7 @@ static void _madChaserLurkTick(Task* task)
     Enemy*         enemy     = task->spawnArg2.pointer;
     MadChaserWork* work      = task->work;
     GfxCoord*      rootCoord = model->coords;
-    TaskFuncTable5 states    = gMadChaserLurkStates;
+    TaskFuncTable5 states    = MAD_CHASER_LURK_STATE_HANDLERS;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
@@ -55,3 +59,5 @@ static void _madChaserLurkTick(Task* task)
             return;
     }
 }
+
+#undef MAD_CHASER_LURK_STATE_HANDLERS

@@ -958,6 +958,7 @@ static const TaskFuncTable5 gMadChaserLurkStates = { {
     _madChaserLurkShiftState,
 } };
 
+#define MAD_CHASER_LURK_STATE_HANDLERS gMadChaserLurkStates
 #include "../../shared/mad_chaser_lurk_tick.inc.c"
 
 /// Sub-state handlers `_madChaserLurkIdleState` dispatches by `subState`.

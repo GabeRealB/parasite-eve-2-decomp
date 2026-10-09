@@ -60,13 +60,20 @@ STATIC_ASSERT_SIZEOF(_Actor342400CullZone, 0x4);
 
 // Message-table callbacks use the argument views required by this TU.
 
-extern TaskMessageEntry     D_actor_342400_8016BF48[2]; // stored into `Task::msgTable` by _actor342400WaveInitialize
-extern OverlayEncounterSlot gMadChaserWaveSlots[];
-extern TaskDesc             D_actor_342400_8016BFE0[];
-extern _Actor342400CullZone D_actor_342400_8016C010[];
-extern s16                  D_actor_342400_8016C054[][4]; // spawn variant per player-position band, 4 random picks
+/// Enemy kinds selected by this encounter's row table.
+enum {
+    OVERLAY_ENCOUNTER_SLOT_KIND_MAD_CHASER       = 0,
+    OVERLAY_ENCOUNTER_SLOT_KIND_SLOUCH           = 1,
+    OVERLAY_ENCOUNTER_SLOT_KIND_SUCKLERCEPH_PAIR = 2,
+};
 
-                                                          // spawn counter, `<< 12` into `Enemy::placeKey`
+/// Command fields stored before the spawner selects a room spot.
+enum {
+    ACTOR_342400_ENCOUNTER_SPOT_CHOSEN_ON_SPAWN = 0,
+    ACTOR_342400_ENCOUNTER_ENTRY_DEFAULT        = 0, // Mad Chaser backflip; other kinds have no entry modifier
+    ACTOR_342400_ENCOUNTER_ENTRY_ARC_BACK       = 1,
+    ACTOR_342400_ENCOUNTER_ENTRY_HIGH_ARC       = 2,
+};
 
 static s16  _actor342400PickEncounterSpot(void);
 static s16  _actor342400InCullZone(s16 zoneId, s16 worldX, s16 worldZ);
@@ -91,43 +98,65 @@ static void _overlayEncounterForgetDeadPairMembers(Task* task);
 static void _actor342400WaveCullPair(Task* waveTask);
 static void _actor342400WaveStopMessage(Task* controllerTask, s32 messageId, const ActorCommand* request, s32 unusedSecondArg);
 
-TaskMessageEntry D_actor_342400_8016BF48[2] = {
+/// Stop-command messages accepted by the incinerator encounter controller.
+///
+/// APPLY borrows an ActorCommand synchronously; only STOP suspends feeding.
+/// The second entry terminates lookup. The controller borrows this table and
+/// its void-returning handler while actor_342400 is loaded; ignore the result.
+static TaskMessageEntry _gActor342400EncounterMessages[2] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor342400WaveStopMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-OverlayEncounterSlot gMadChaserWaveSlots[17] = {
-    { 1, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { 0, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { 2, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { 2, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { 1, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { 0, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 1), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { 0, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 2), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { 2, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { 0, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { 2, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { 0, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { 1, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { 2, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { 1, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { 0, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 1), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { 0, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 2), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { 2, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+/// Ordered spawner rows and mutable completion states for the incinerator encounter.
+///
+/// Rows 0..16 contain seven Mad Chasers, four Slouches and six Sucklerceph pairs.
+/// Initialization resets every status; the opening consumes three rows and
+/// feeding consumes the remainder. Each spawner marks its row live, then done.
+/// Commands supply the entry move; spawning adds a player-band spot in bits
+/// 8..11. A pair occupies one row but can receive two placement identities.
+static OverlayEncounterSlot _gActor342400EncounterSlots[17] = {
+    { OVERLAY_ENCOUNTER_SLOT_KIND_SLOUCH, OVERLAY_ENCOUNTER_APPEAR_COMMAND(ACTOR_342400_ENCOUNTER_SPOT_CHOSEN_ON_SPAWN, ACTOR_342400_ENCOUNTER_ENTRY_DEFAULT), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { OVERLAY_ENCOUNTER_SLOT_KIND_MAD_CHASER, OVERLAY_ENCOUNTER_APPEAR_COMMAND(ACTOR_342400_ENCOUNTER_SPOT_CHOSEN_ON_SPAWN, ACTOR_342400_ENCOUNTER_ENTRY_DEFAULT), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { OVERLAY_ENCOUNTER_SLOT_KIND_SUCKLERCEPH_PAIR, OVERLAY_ENCOUNTER_APPEAR_COMMAND(ACTOR_342400_ENCOUNTER_SPOT_CHOSEN_ON_SPAWN, ACTOR_342400_ENCOUNTER_ENTRY_DEFAULT), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { OVERLAY_ENCOUNTER_SLOT_KIND_SUCKLERCEPH_PAIR, OVERLAY_ENCOUNTER_APPEAR_COMMAND(ACTOR_342400_ENCOUNTER_SPOT_CHOSEN_ON_SPAWN, ACTOR_342400_ENCOUNTER_ENTRY_DEFAULT), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { OVERLAY_ENCOUNTER_SLOT_KIND_SLOUCH, OVERLAY_ENCOUNTER_APPEAR_COMMAND(ACTOR_342400_ENCOUNTER_SPOT_CHOSEN_ON_SPAWN, ACTOR_342400_ENCOUNTER_ENTRY_DEFAULT), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { OVERLAY_ENCOUNTER_SLOT_KIND_MAD_CHASER, OVERLAY_ENCOUNTER_APPEAR_COMMAND(ACTOR_342400_ENCOUNTER_SPOT_CHOSEN_ON_SPAWN, ACTOR_342400_ENCOUNTER_ENTRY_ARC_BACK), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { OVERLAY_ENCOUNTER_SLOT_KIND_MAD_CHASER, OVERLAY_ENCOUNTER_APPEAR_COMMAND(ACTOR_342400_ENCOUNTER_SPOT_CHOSEN_ON_SPAWN, ACTOR_342400_ENCOUNTER_ENTRY_HIGH_ARC), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { OVERLAY_ENCOUNTER_SLOT_KIND_SUCKLERCEPH_PAIR, OVERLAY_ENCOUNTER_APPEAR_COMMAND(ACTOR_342400_ENCOUNTER_SPOT_CHOSEN_ON_SPAWN, ACTOR_342400_ENCOUNTER_ENTRY_DEFAULT), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { OVERLAY_ENCOUNTER_SLOT_KIND_MAD_CHASER, OVERLAY_ENCOUNTER_APPEAR_COMMAND(ACTOR_342400_ENCOUNTER_SPOT_CHOSEN_ON_SPAWN, ACTOR_342400_ENCOUNTER_ENTRY_DEFAULT), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { OVERLAY_ENCOUNTER_SLOT_KIND_SUCKLERCEPH_PAIR, OVERLAY_ENCOUNTER_APPEAR_COMMAND(ACTOR_342400_ENCOUNTER_SPOT_CHOSEN_ON_SPAWN, ACTOR_342400_ENCOUNTER_ENTRY_DEFAULT), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { OVERLAY_ENCOUNTER_SLOT_KIND_MAD_CHASER, OVERLAY_ENCOUNTER_APPEAR_COMMAND(ACTOR_342400_ENCOUNTER_SPOT_CHOSEN_ON_SPAWN, ACTOR_342400_ENCOUNTER_ENTRY_DEFAULT), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { OVERLAY_ENCOUNTER_SLOT_KIND_SLOUCH, OVERLAY_ENCOUNTER_APPEAR_COMMAND(ACTOR_342400_ENCOUNTER_SPOT_CHOSEN_ON_SPAWN, ACTOR_342400_ENCOUNTER_ENTRY_DEFAULT), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { OVERLAY_ENCOUNTER_SLOT_KIND_SUCKLERCEPH_PAIR, OVERLAY_ENCOUNTER_APPEAR_COMMAND(ACTOR_342400_ENCOUNTER_SPOT_CHOSEN_ON_SPAWN, ACTOR_342400_ENCOUNTER_ENTRY_DEFAULT), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { OVERLAY_ENCOUNTER_SLOT_KIND_SLOUCH, OVERLAY_ENCOUNTER_APPEAR_COMMAND(ACTOR_342400_ENCOUNTER_SPOT_CHOSEN_ON_SPAWN, ACTOR_342400_ENCOUNTER_ENTRY_DEFAULT), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { OVERLAY_ENCOUNTER_SLOT_KIND_MAD_CHASER, OVERLAY_ENCOUNTER_APPEAR_COMMAND(ACTOR_342400_ENCOUNTER_SPOT_CHOSEN_ON_SPAWN, ACTOR_342400_ENCOUNTER_ENTRY_ARC_BACK), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { OVERLAY_ENCOUNTER_SLOT_KIND_MAD_CHASER, OVERLAY_ENCOUNTER_APPEAR_COMMAND(ACTOR_342400_ENCOUNTER_SPOT_CHOSEN_ON_SPAWN, ACTOR_342400_ENCOUNTER_ENTRY_HIGH_ARC), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { OVERLAY_ENCOUNTER_SLOT_KIND_SUCKLERCEPH_PAIR, OVERLAY_ENCOUNTER_APPEAR_COMMAND(ACTOR_342400_ENCOUNTER_SPOT_CHOSEN_ON_SPAWN, ACTOR_342400_ENCOUNTER_ENTRY_DEFAULT), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
 };
 
 static void _actor342400WaveMadChaserTask(Task* waveTask);
 static void _actor342400WaveSlouchTask(Task* waveTask);
 static void _actor342400WavePairTask(Task* waveTask);
 
-TaskDesc D_actor_342400_8016BFE0[4] = {
-    { { { TASK_BODY_NONE, 32 } }, _actor342400WaveControllerTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 97 } }, _actor342400WaveMadChaserTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 97 } }, _actor342400WaveSlouchTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 97 } }, _actor342400WavePairTask, { .value = 0 } },
+enum {
+    ACTOR_342400_ENCOUNTER_CONTROLLER_PRIORITY = 32,
+    ACTOR_342400_ENCOUNTER_SPAWNER_PRIORITY    = 97,
 };
 
-_Actor342400CullZone D_actor_342400_8016C010[17] = {
+TaskDesc gActor342400EncounterTaskDescs[ACTOR_342400_ENCOUNTER_DESCRIPTOR_COUNT] = {
+    { { { TASK_BODY_NONE, ACTOR_342400_ENCOUNTER_CONTROLLER_PRIORITY } }, _actor342400WaveControllerTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACTOR_342400_ENCOUNTER_SPAWNER_PRIORITY } }, _actor342400WaveMadChaserTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACTOR_342400_ENCOUNTER_SPAWNER_PRIORITY } }, _actor342400WaveSlouchTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACTOR_342400_ENCOUNTER_SPAWNER_PRIORITY } }, _actor342400WavePairTask, { .value = 0 } },
+};
+
+/// World-coordinate limits of the incinerator's enemy-culling regions.
+///
+/// The session's enemyCullZone selects rows 1..16; 0 disables culling.
+/// X rows cull x below the limit, Z rows cull z at or above the limit.
+/// Positions and limits are signed-halfword world units; row 0 is not read.
+static _Actor342400CullZone _gActor342400EncounterCullZones[17] = {
     { ACTOR_342400_CULL_ZONE_AXIS_X, 0 }, // 0 selects no zone, so this row is never read
     { ACTOR_342400_CULL_ZONE_AXIS_X, 1295 },
     { ACTOR_342400_CULL_ZONE_AXIS_X, 2700 },
@@ -147,7 +176,13 @@ _Actor342400CullZone D_actor_342400_8016C010[17] = {
     { ACTOR_342400_CULL_ZONE_AXIS_Z, -25205 },
 };
 
-s16 D_actor_342400_8016C054[6][4] = {
+/// Four equiprobable encounter-spot choices for each incinerator player-position band.
+///
+/// In order: x <= 5000, x <= 8000, x <= 11000, z >= -5500, z >= -8500,
+/// then all remaining positions, after excluding earlier bands. Coordinates
+/// are signed-halfword world units. Values index room spots 2..15, not variants;
+/// the repeated final-row entries give spots 9 and 15 half the probability each.
+static s16 _gActor342400EncounterSpotChoices[6][4] = {
     { 2, 3, 11, 12 },
     { 3, 4, 12, 5 },
     { 5, 6, 7, 13 },
@@ -284,11 +319,17 @@ TmdSource gActor342400MadChaserBody = {
     _gActor342400MadChaserBodyStream,
 };
 
-DamageAttack D_actor_342400_80170584[1] = {
-    { 22, 0 },
+enum { MAD_CHASER_ATTACK_REACTION_NORMAL = 0 };
+
+/// Mad Chaser contact attack: index 0, base power 22, ordinary player hit without status.
+///
+/// Enemy parameters borrow this row while the carrier is loaded. Its key is
+/// shared by the attack sphere; HP-band scaling is applied by the victim.
+static DamageAttack _gMadChaserAttacks[1] = {
+    { 22, MAD_CHASER_ATTACK_REACTION_NORMAL },
 };
 
-EnemyParams gMadChaserEnemyParams = { D_actor_342400_80170584, 110, 20, 40, 1, 100, 10, 100, 0 };
+EnemyParams gMadChaserEnemyParams = { _gMadChaserAttacks, 110, 20, 40, 1, 100, 10, 100, 0 };
 
 static void _actor342400SpawnEncounterSlot(s16 slotIndex, s16 enemyKind, s16 command);
 
@@ -348,8 +389,8 @@ static inline s16 _actor342400WaveCountLiveSlots(void)
     s16 liveSlotCount = 0;
     s16 slotIndex;
 
-    for (slotIndex = 0; slotIndex < (s32)ARRAY_SIZE(gMadChaserWaveSlots); slotIndex++) {
-        if (gMadChaserWaveSlots[slotIndex].status == OVERLAY_ENCOUNTER_SLOT_LIVE) {
+    for (slotIndex = 0; slotIndex < (s32)ARRAY_SIZE(_gActor342400EncounterSlots); slotIndex++) {
+        if (_gActor342400EncounterSlots[slotIndex].status == OVERLAY_ENCOUNTER_SLOT_LIVE) {
             liveSlotCount++;
         }
     }
@@ -368,17 +409,11 @@ static inline s16 _actor342400WaveCountLiveSlots(void)
 static void _actor342400WaveFeed(Task* controllerTask)
 {
     enum {
-        ACTOR_342400_WAVE_LIVE_SLOT_LIMIT            = 3,
-        ACTOR_342400_WAVE_FEED_MIN_SCENE_CLOCK       = 61,
-        OVERLAY_ENCOUNTER_SLOT_KIND_MAD_CHASER       = 0,
-        OVERLAY_ENCOUNTER_SLOT_KIND_SLOUCH           = 1,
-        OVERLAY_ENCOUNTER_SLOT_KIND_SUCKLERCEPH_PAIR = 2,
-        ACTOR_342400_MAD_CHASER_SPAWNER_DESCRIPTOR   = 1,
-        ACTOR_342400_SLOUCH_SPAWNER_DESCRIPTOR       = 2,
-        ACTOR_342400_PAIR_SPAWNER_DESCRIPTOR         = 3,
-        OVERLAY_ENCOUNTER_SLOT_INDEX_SHIFT           = 16,
-        OVERLAY_ENCOUNTER_SPOT_INDEX_SHIFT           = 8,
-        ACTOR_342400_SIGNED_HALFWORD_SHIFT           = 16,
+        ACTOR_342400_WAVE_LIVE_SLOT_LIMIT      = 3,
+        ACTOR_342400_WAVE_FEED_MIN_SCENE_CLOCK = 61,
+        OVERLAY_ENCOUNTER_SLOT_INDEX_SHIFT     = 16,
+        OVERLAY_ENCOUNTER_SPOT_INDEX_SHIFT     = 8,
+        ACTOR_342400_SIGNED_HALFWORD_SHIFT     = 16,
     };
     OverlayEncounterControllerWork* work = controllerTask->work;
     s16                             liveSlotCount;
@@ -389,19 +424,19 @@ static void _actor342400WaveFeed(Task* controllerTask)
     liveSlotCount = _actor342400WaveCountLiveSlots();
     if (liveSlotCount < ACTOR_342400_WAVE_LIVE_SLOT_LIMIT) {
         nextSlotIndex = work->nextSlot;
-        if (nextSlotIndex < (s32)ARRAY_SIZE(gMadChaserWaveSlots) && gGameSession->sceneClock >= ACTOR_342400_WAVE_FEED_MIN_SCENE_CLOCK) {
-            enemyKind = gMadChaserWaveSlots[nextSlotIndex].kind;
-            command   = gMadChaserWaveSlots[nextSlotIndex].command;
+        if (nextSlotIndex < (s32)ARRAY_SIZE(_gActor342400EncounterSlots) && gGameSession->sceneClock >= ACTOR_342400_WAVE_FEED_MIN_SCENE_CLOCK) {
+            enemyKind = _gActor342400EncounterSlots[nextSlotIndex].kind;
+            command   = _gActor342400EncounterSlots[nextSlotIndex].command;
             // Preserve the signed-halfword spot expansion before adding command bits.
             switch (enemyKind) {
                 case OVERLAY_ENCOUNTER_SLOT_KIND_MAD_CHASER:
-                    taskSpawnFromTable(D_actor_342400_8016BFE0, ACTOR_342400_MAD_CHASER_SPAWNER_DESCRIPTOR, (nextSlotIndex << OVERLAY_ENCOUNTER_SLOT_INDEX_SHIFT) + command + (_actor342400PickEncounterSpot() << ACTOR_342400_SIGNED_HALFWORD_SHIFT >> (ACTOR_342400_SIGNED_HALFWORD_SHIFT - OVERLAY_ENCOUNTER_SPOT_INDEX_SHIFT)), 0);
+                    taskSpawnFromTable(gActor342400EncounterTaskDescs, ACTOR_342400_MAD_CHASER_SPAWNER_DESCRIPTOR, (nextSlotIndex << OVERLAY_ENCOUNTER_SLOT_INDEX_SHIFT) + command + (_actor342400PickEncounterSpot() << ACTOR_342400_SIGNED_HALFWORD_SHIFT >> (ACTOR_342400_SIGNED_HALFWORD_SHIFT - OVERLAY_ENCOUNTER_SPOT_INDEX_SHIFT)), 0);
                     break;
                 case OVERLAY_ENCOUNTER_SLOT_KIND_SLOUCH:
-                    taskSpawnFromTable(D_actor_342400_8016BFE0, ACTOR_342400_SLOUCH_SPAWNER_DESCRIPTOR, (nextSlotIndex << OVERLAY_ENCOUNTER_SLOT_INDEX_SHIFT) + command + (_actor342400PickEncounterSpot() << ACTOR_342400_SIGNED_HALFWORD_SHIFT >> (ACTOR_342400_SIGNED_HALFWORD_SHIFT - OVERLAY_ENCOUNTER_SPOT_INDEX_SHIFT)), 0);
+                    taskSpawnFromTable(gActor342400EncounterTaskDescs, ACTOR_342400_SLOUCH_SPAWNER_DESCRIPTOR, (nextSlotIndex << OVERLAY_ENCOUNTER_SLOT_INDEX_SHIFT) + command + (_actor342400PickEncounterSpot() << ACTOR_342400_SIGNED_HALFWORD_SHIFT >> (ACTOR_342400_SIGNED_HALFWORD_SHIFT - OVERLAY_ENCOUNTER_SPOT_INDEX_SHIFT)), 0);
                     break;
                 case OVERLAY_ENCOUNTER_SLOT_KIND_SUCKLERCEPH_PAIR:
-                    taskSpawnFromTable(D_actor_342400_8016BFE0, ACTOR_342400_PAIR_SPAWNER_DESCRIPTOR, (nextSlotIndex << OVERLAY_ENCOUNTER_SLOT_INDEX_SHIFT) + command + (_actor342400PickEncounterSpot() << ACTOR_342400_SIGNED_HALFWORD_SHIFT >> (ACTOR_342400_SIGNED_HALFWORD_SHIFT - OVERLAY_ENCOUNTER_SPOT_INDEX_SHIFT)), 0);
+                    taskSpawnFromTable(gActor342400EncounterTaskDescs, ACTOR_342400_PAIR_SPAWNER_DESCRIPTOR, (nextSlotIndex << OVERLAY_ENCOUNTER_SLOT_INDEX_SHIFT) + command + (_actor342400PickEncounterSpot() << ACTOR_342400_SIGNED_HALFWORD_SHIFT >> (ACTOR_342400_SIGNED_HALFWORD_SHIFT - OVERLAY_ENCOUNTER_SPOT_INDEX_SHIFT)), 0);
                     break;
             }
             work->nextSlot++;
@@ -419,34 +454,34 @@ static s16 _actor342400PickEncounterSpot(void)
 {
     enum {
         ACTOR_342400_ENCOUNTER_RANDOM_SHIFT = 16,
-        ACTOR_342400_ENCOUNTER_PICK_MASK    = ARRAY_SIZE(D_actor_342400_8016C054[0]) - 1,
+        ACTOR_342400_ENCOUNTER_PICK_MASK    = ARRAY_SIZE(_gActor342400EncounterSpotChoices[0]) - 1,
     };
     GfxCoord* playerCoord = (*gPlayerActorTasks)->extra.tmd->coords;
     s16       playerX     = playerCoord->coord.t[0];
     s16       playerZ     = playerCoord->coord.t[2];
 
     if (playerX <= 5000) {
-        return D_actor_342400_8016C054[0][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
+        return _gActor342400EncounterSpotChoices[0][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
     }
     if (playerX <= 8000) {
-        return D_actor_342400_8016C054[1][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
+        return _gActor342400EncounterSpotChoices[1][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
     }
     if (playerX <= 11000) {
-        return D_actor_342400_8016C054[2][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
+        return _gActor342400EncounterSpotChoices[2][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
     }
     if (playerZ >= -5500) {
-        return D_actor_342400_8016C054[3][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
+        return _gActor342400EncounterSpotChoices[3][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
     }
     if (playerZ >= -8500) {
-        return D_actor_342400_8016C054[4][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
+        return _gActor342400EncounterSpotChoices[4][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
     }
     if (playerZ >= -11500) {
-        return D_actor_342400_8016C054[5][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
+        return _gActor342400EncounterSpotChoices[5][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
     }
     if (playerZ >= -24500) {
-        return D_actor_342400_8016C054[5][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
+        return _gActor342400EncounterSpotChoices[5][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
     }
-    return D_actor_342400_8016C054[5][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
+    return _gActor342400EncounterSpotChoices[5][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
 }
 
 /// Latches a stop command that suspends the controller's feeding stage.
@@ -473,24 +508,28 @@ static void _actor342400WaveStopMessage(Task* controllerTask, s32 messageId, con
 /// than the region in which an enemy may remain.
 static s16 _actor342400InCullZone(s16 zoneId, s16 worldX, s16 worldZ)
 {
-    if (zoneId == 0 || zoneId > (s32)ARRAY_SIZE(D_actor_342400_8016C010) - 1) {
+    if (zoneId == 0 || zoneId > (s32)ARRAY_SIZE(_gActor342400EncounterCullZones) - 1) {
         return 0;
     }
-    if (D_actor_342400_8016C010[zoneId].axis == ACTOR_342400_CULL_ZONE_AXIS_X) {
-        if (worldX < D_actor_342400_8016C010[zoneId].limit) {
+    if (_gActor342400EncounterCullZones[zoneId].axis == ACTOR_342400_CULL_ZONE_AXIS_X) {
+        if (worldX < _gActor342400EncounterCullZones[zoneId].limit) {
             return 1;
         }
     } else {
-        if (worldZ >= D_actor_342400_8016C010[zoneId].limit) {
+        if (worldZ >= _gActor342400EncounterCullZones[zoneId].limit) {
             return 1;
         }
     }
     return 0;
 }
 
-/// The controller task's four state handlers, dispatched by
-/// `_actor342400WaveControllerTask` on `Task::state`.
-static const TaskFuncTable4 D_actor_342400_80161E24 = { {
+/// States of the incinerator encounter controller.
+///
+/// `Task::state` selects 0 initialize, 1 open three rows, 2 arm battle, 3 feed and
+/// finish. Dispatch copies all four non-NULL void(Task*) callbacks before the
+/// scene-actor running gate; the index must be 0..3 and task work initialized
+/// for its state. The carrier remains loaded through controller teardown.
+static const TaskFuncTable4 _gActor342400EncounterControllerStates = { {
     _actor342400WaveInitialize,
     _overlayEncounterOpen,
     _actor342400WaveArmBattle,
@@ -505,15 +544,19 @@ static void _actor342400WaveControllerTask(Task* controllerTask)
 {
     TaskFuncTable4 handlers;
 
-    handlers = D_actor_342400_80161E24;
+    handlers = _gActor342400EncounterControllerStates;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         handlers.funcs[controllerTask->state](controllerTask);
     }
 }
 
-/// The first spawner task's four state handlers, dispatched by
-/// `_actor342400WaveMadChaserTask`.
-static const TaskFuncTable4 D_actor_342400_80161E34 = { {
+/// States of one incinerator Mad Chaser row spawner.
+///
+/// `Task::state` selects 0 spawn, 1 delayed reveal, 2 advance, 3 watch death/cull.
+/// Dispatch copies all four non-NULL void(Task*) callbacks; the index must be
+/// 0..3. Spawn initializes owned work and borrows the enemy for later states;
+/// keep the carrier and that enemy's task loaded while they are used.
+static const TaskFuncTable4 _gActor342400EncounterMadChaserStates = { {
     _actor342400WaveSpawnMadChaser,
     _actor342400WaveRevealMadChaser,
     _actor342400WaveBeginMadChaserWatch,
@@ -528,13 +571,17 @@ static void _actor342400WaveMadChaserTask(Task* waveTask)
 {
     TaskFuncTable4 handlers;
 
-    handlers = D_actor_342400_80161E34;
+    handlers = _gActor342400EncounterMadChaserStates;
     handlers.funcs[waveTask->state](waveTask);
 }
 
-/// The second spawner task's four state handlers, dispatched by
-/// `_actor342400WaveSlouchTask`.
-static const TaskFuncTable4 D_actor_342400_80161E44 = { {
+/// States of one incinerator Slouch row spawner.
+///
+/// `Task::state` selects 0 spawn, 1 delayed reveal, 2 advance, 3 watch death/cull.
+/// Dispatch copies all four non-NULL void(Task*) callbacks; the index must be
+/// 0..3. Spawn initializes owned work and borrows the enemy for later states;
+/// keep the carrier and that enemy's task loaded while they are used.
+static const TaskFuncTable4 _gActor342400EncounterSlouchStates = { {
     _actor342400WaveSpawnSlouch,
     _overlayEncounterRevealSlouch,
     _actor342400WaveBeginSlouchWatch,
@@ -550,13 +597,17 @@ static void _actor342400WaveSlouchTask(Task* waveTask)
 {
     TaskFuncTable4 handlers;
 
-    handlers = D_actor_342400_80161E44;
+    handlers = _gActor342400EncounterSlouchStates;
     handlers.funcs[waveTask->state](waveTask);
 }
 
-/// The five state handlers `_actor342400WavePairTask` dispatches through by
-/// `Task::state`.
-static const TaskFuncTable5 D_actor_342400_80161E54 = { {
+/// States of one incinerator Sucklerceph-pair row spawner.
+///
+/// `Task::state` selects 0 spawn, 1 advance, 2 reveal first, 3 reveal second,
+/// 4 watch death/cull. Dispatch copies all five non-NULL void(Task*) callbacks;
+/// the index must be 0..4. Spawn owns pair work and borrows surviving enemies;
+/// keep their tasks and both actor overlays live while the pointers are used.
+static const TaskFuncTable5 _gActor342400EncounterPairStates = { {
     _overlayEncounterPairSpawn,
     _actor342400WaveBeginPairReveal,
     _overlayEncounterPairRevealFirst,
@@ -574,7 +625,7 @@ static void _actor342400WavePairTask(Task* waveTask)
 {
     TaskFuncTable5 handlers;
 
-    handlers = D_actor_342400_80161E54;
+    handlers = _gActor342400EncounterPairStates;
     handlers.funcs[waveTask->state](waveTask);
 }
 
@@ -593,12 +644,12 @@ static void _actor342400WaveInitialize(Task* controllerTask)
         taskKill(controllerTask);
         return;
     }
-    for (slotIndex = (s32)ARRAY_SIZE(gMadChaserWaveSlots) - 1; slotIndex >= 0; slotIndex--) {
-        gMadChaserWaveSlots[slotIndex].status = OVERLAY_ENCOUNTER_SLOT_WAITING;
+    for (slotIndex = (s32)ARRAY_SIZE(_gActor342400EncounterSlots) - 1; slotIndex >= 0; slotIndex--) {
+        _gActor342400EncounterSlots[slotIndex].status = OVERLAY_ENCOUNTER_SLOT_WAITING;
     }
-    gMadChaserWaveEnemyCount = 0;
-    controllerTask->work     = work;
-    controllerTask->msgTable = D_actor_342400_8016BF48;
+    gActor342400EncounterNextPlaceIndex = 0;
+    controllerTask->work                = work;
+    controllerTask->msgTable            = _gActor342400EncounterMessages;
     controllerTask->state++;
 }
 
@@ -642,12 +693,12 @@ static void _actor342400WaveRun(Task* controllerTask)
     doneSlotCount = 0;
     if (work->stop != OVERLAY_ENCOUNTER_COMMAND_STOP) {
         _actor342400WaveFeed(controllerTask);
-        for (slotIndex = 0; slotIndex < (s32)ARRAY_SIZE(gMadChaserWaveSlots); slotIndex++) {
-            if (gMadChaserWaveSlots[slotIndex].status == OVERLAY_ENCOUNTER_SLOT_DONE) {
+        for (slotIndex = 0; slotIndex < (s32)ARRAY_SIZE(_gActor342400EncounterSlots); slotIndex++) {
+            if (_gActor342400EncounterSlots[slotIndex].status == OVERLAY_ENCOUNTER_SLOT_DONE) {
                 doneSlotCount++;
             }
         }
-        if (doneSlotCount == (s32)ARRAY_SIZE(gMadChaserWaveSlots)) {
+        if (doneSlotCount == (s32)ARRAY_SIZE(_gActor342400EncounterSlots)) {
             sceneReleaseBattleRefAndClearRewards(controllerTask, 0);
             gGameSession->spawnPhase[1] = GAME_SESSION_SPAWN_COMPLETE;
             taskKill(controllerTask);
@@ -670,12 +721,12 @@ static void _actor342400WaveSpawnMadChaser(Task* waveTask)
     if (work != NULL) {
         // Attach the work before spawning so task teardown also handles failure.
         waveTask->work = work;
-        enemy          = enemySpawnFromTable(D_actor_342400_80173A54, ACTOR_342400_WAVE_MAD_CHASER_HIDDEN_TASK, 0, NULL);
+        enemy          = enemySpawnFromTable(gActor342400MadChaserTaskDescs, ACTOR_342400_WAVE_MAD_CHASER_HIDDEN_TASK, 0, NULL);
         if (enemy != NULL) {
-            gMadChaserWaveSlots[(s16)(waveTask->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_LIVE;
-            work->enemy                                                        = enemy;
-            enemy->placeKey                                                    = gMadChaserWaveEnemyCount << ENEMY_PLACE_INDEX_SHIFT;
-            gMadChaserWaveEnemyCount++;
+            _gActor342400EncounterSlots[(s16)(waveTask->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_LIVE;
+            work->enemy                                                                = enemy;
+            enemy->placeKey                                                            = gActor342400EncounterNextPlaceIndex << ENEMY_PLACE_INDEX_SHIFT;
+            gActor342400EncounterNextPlaceIndex++;
             waveTask->state++;
             return;
         }
@@ -742,7 +793,7 @@ static void _actor342400WaveWatchMadChaser(Task* waveTask)
     enemyTask  = enemy->task;
     enemyCoord = enemyTask->extra.tmd->coords;
     if (enemy->hp <= 0) {
-        gMadChaserWaveSlots[(s16)(waveTask->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_DONE;
+        _gActor342400EncounterSlots[(s16)(waveTask->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_DONE;
         taskKill(waveTask);
         return;
     }
@@ -751,7 +802,7 @@ static void _actor342400WaveWatchMadChaser(Task* waveTask)
         request.context.loc.area  = ACTOR_342400_WAVE_MAD_CHASER_COMMAND_AREA;
         request.command           = MAD_CHASER_COMMAND_SHRINK_DEATH;
         TASK_MESSAGE_DISPATCH_POINTER(enemyTask, ACTOR_COMMAND_MESSAGE_APPLY, &request, 0);
-        gMadChaserWaveSlots[(s16)(waveTask->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_DONE;
+        _gActor342400EncounterSlots[(s16)(waveTask->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_DONE;
         taskKill(waveTask);
     }
 }
@@ -778,10 +829,10 @@ static void _actor342400WaveSpawnSlouch(Task* waveTask)
         waveTask->work = work;
         enemy          = enemySpawnFromTable(gActor207000SlouchTaskDescs, ACTOR_342400_WAVE_SLOUCH_HIDDEN_TASK, 0, NULL);
         if (enemy != NULL) {
-            gMadChaserWaveSlots[(s16)(waveTask->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_LIVE;
-            work->enemy                                                        = enemy;
-            enemy->placeKey                                                    = gMadChaserWaveEnemyCount << ENEMY_PLACE_INDEX_SHIFT;
-            gMadChaserWaveEnemyCount++;
+            _gActor342400EncounterSlots[(s16)(waveTask->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_LIVE;
+            work->enemy                                                                = enemy;
+            enemy->placeKey                                                            = gActor342400EncounterNextPlaceIndex << ENEMY_PLACE_INDEX_SHIFT;
+            gActor342400EncounterNextPlaceIndex++;
             model                    = enemy->task->extra.tmd;
             model->texturePageOffset = ACTOR_342400_WAVE_SLOUCH_TEXTURE_PAGE;
             model->clutRowOffset     = ACTOR_342400_WAVE_SLOUCH_CLUT_ROW;
@@ -818,7 +869,7 @@ static void _actor342400WaveWatchSlouch(Task* waveTask)
     enemyTask  = enemy->task;
     enemyCoord = enemyTask->extra.tmd->coords;
     if (enemy->hp <= 0) {
-        gMadChaserWaveSlots[(s16)(waveTask->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_DONE;
+        _gActor342400EncounterSlots[(s16)(waveTask->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_DONE;
         taskKill(waveTask);
         return;
     }
@@ -827,7 +878,7 @@ static void _actor342400WaveWatchSlouch(Task* waveTask)
         request.context.loc.area  = 0;
         request.command           = ACTOR_342400_WAVE_SLOUCH_RESTART_PUFFING;
         TASK_MESSAGE_DISPATCH_POINTER(enemyTask, ACTOR_COMMAND_MESSAGE_APPLY, &request, 0);
-        gMadChaserWaveSlots[(s16)(waveTask->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_DONE;
+        _gActor342400EncounterSlots[(s16)(waveTask->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_DONE;
         taskKill(waveTask);
     }
 }
@@ -871,24 +922,18 @@ static void _actor342400SetEncounterRevealView(s16 revealEnabled)
 static void _actor342400SpawnEncounterSlot(s16 slotIndex, s16 enemyKind, s16 command)
 {
     enum {
-        OVERLAY_ENCOUNTER_SLOT_KIND_MAD_CHASER       = 0,
-        OVERLAY_ENCOUNTER_SLOT_KIND_SLOUCH           = 1,
-        OVERLAY_ENCOUNTER_SLOT_KIND_SUCKLERCEPH_PAIR = 2,
-        ACTOR_342400_MAD_CHASER_SPAWNER_DESCRIPTOR   = 1,
-        ACTOR_342400_SLOUCH_SPAWNER_DESCRIPTOR       = 2,
-        ACTOR_342400_PAIR_SPAWNER_DESCRIPTOR         = 3,
-        OVERLAY_ENCOUNTER_SLOT_INDEX_SHIFT           = 16,
-        OVERLAY_ENCOUNTER_SPOT_INDEX_SHIFT           = 8,
+        OVERLAY_ENCOUNTER_SLOT_INDEX_SHIFT = 16,
+        OVERLAY_ENCOUNTER_SPOT_INDEX_SHIFT = 8,
     };
     switch (enemyKind) {
         case OVERLAY_ENCOUNTER_SLOT_KIND_MAD_CHASER:
-            taskSpawnFromTable(D_actor_342400_8016BFE0, ACTOR_342400_MAD_CHASER_SPAWNER_DESCRIPTOR, (slotIndex << OVERLAY_ENCOUNTER_SLOT_INDEX_SHIFT) + command + (_actor342400PickEncounterSpot() << OVERLAY_ENCOUNTER_SPOT_INDEX_SHIFT), 0);
+            taskSpawnFromTable(gActor342400EncounterTaskDescs, ACTOR_342400_MAD_CHASER_SPAWNER_DESCRIPTOR, (slotIndex << OVERLAY_ENCOUNTER_SLOT_INDEX_SHIFT) + command + (_actor342400PickEncounterSpot() << OVERLAY_ENCOUNTER_SPOT_INDEX_SHIFT), 0);
             break;
         case OVERLAY_ENCOUNTER_SLOT_KIND_SLOUCH:
-            taskSpawnFromTable(D_actor_342400_8016BFE0, ACTOR_342400_SLOUCH_SPAWNER_DESCRIPTOR, (slotIndex << OVERLAY_ENCOUNTER_SLOT_INDEX_SHIFT) + command + (_actor342400PickEncounterSpot() << OVERLAY_ENCOUNTER_SPOT_INDEX_SHIFT), 0);
+            taskSpawnFromTable(gActor342400EncounterTaskDescs, ACTOR_342400_SLOUCH_SPAWNER_DESCRIPTOR, (slotIndex << OVERLAY_ENCOUNTER_SLOT_INDEX_SHIFT) + command + (_actor342400PickEncounterSpot() << OVERLAY_ENCOUNTER_SPOT_INDEX_SHIFT), 0);
             break;
         case OVERLAY_ENCOUNTER_SLOT_KIND_SUCKLERCEPH_PAIR:
-            taskSpawnFromTable(D_actor_342400_8016BFE0, ACTOR_342400_PAIR_SPAWNER_DESCRIPTOR, (slotIndex << OVERLAY_ENCOUNTER_SLOT_INDEX_SHIFT) + command + (_actor342400PickEncounterSpot() << OVERLAY_ENCOUNTER_SPOT_INDEX_SHIFT), 0);
+            taskSpawnFromTable(gActor342400EncounterTaskDescs, ACTOR_342400_PAIR_SPAWNER_DESCRIPTOR, (slotIndex << OVERLAY_ENCOUNTER_SLOT_INDEX_SHIFT) + command + (_actor342400PickEncounterSpot() << OVERLAY_ENCOUNTER_SPOT_INDEX_SHIFT), 0);
             break;
     }
 }

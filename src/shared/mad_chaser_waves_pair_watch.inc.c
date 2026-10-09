@@ -12,7 +12,7 @@ static void _overlayEncounterPairWatch(Task* waveTask)
 
     _actor342400WaveCullPair(waveTask);
     if (work->goneMask == OVERLAY_ENCOUNTER_PAIR_GONE_BOTH) {
-        gMadChaserWaveSlots[(s16)(waveTask->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_DONE;
+        _gActor342400EncounterSlots[(s16)(waveTask->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_DONE;
         taskKill(waveTask);
     }
 }

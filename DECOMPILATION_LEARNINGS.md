@@ -67477,7 +67477,7 @@ at its definition, interleaved with the top-level `INCLUDE_ASM` /
 `INCLUDE_RODATA` blocks, so a table defined *mid-file* lands correctly as long
 as the line sits where its block falls in the unit's rodata order - usually
 straight above the dispatcher, when the rodata migrated into the `INCLUDE_ASM`
-above is the block before it. `D_actor_342400_80161E54` (offset `0x34`) sits
+above is the block before it. `_gActor342400EncounterPairStates` (offset `0x34`) sits
 between `_actor342400WaveSlouchTask`'s migrated `0x24` block and the
 `INCLUDE_RODATA` of `D_actor_342400_80161E68`, and checksums unscoped. Write
 it as a `TaskFuncTable5` global copied by struct assignment: a local
@@ -70774,7 +70774,7 @@ or via a `rng` local) expands the table address after the multiply: 65%, regs ro
 Putting the assignment in the subscript expands the array base first and matches:
 
 ```c
-return D_actor_342400_8016C054[k][(gRandomLcgState = gRandomLcgState * 5 + 0x71357911) >> 16 & 3];
+return _gActor342400EncounterSpotChoices[k][(gRandomLcgState = gRandomLcgState * 5 + 0x71357911) >> 16 & 3];
 ```
 
 `gRandomLcgState` is declared `u32` in `main/random.h` (`srl`, not `sra`).
@@ -85176,7 +85176,7 @@ static void _actor341300SpawnPlayerHitPuffs(void) { ... }
 `splat migrates this table into that function's own .s, so there is no
 standalone rodata file to INCLUDE_RODATA; defining it here emits it where the
 function sits` - the same comment, and the same fix, as `actor_342400_7.c`'s
-`D_actor_342400_80161F50` and `actor_342400.c`'s `D_actor_342400_80161E54`,
+`D_actor_342400_80161F50` and `actor_342400.c`'s `_gActor342400EncounterPairStates`,
 which is the worked precedent in this family.
 
 The promoted body itself is ordinary: m2c had dropped the copy entirely (a

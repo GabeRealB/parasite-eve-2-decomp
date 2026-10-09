@@ -11,6 +11,8 @@ u16 D_shelter_b3_garbage_incinerator_801855DC;
 
 #include "shelter_b3_garbage_incinerator_private.h"
 
+#include "actors/task_tables.h"
+
 #include "gameplay/companion_load.h"
 #include "gameplay/captions.h"
 #include "gameplay/actor_presentation.h"
@@ -31,7 +33,6 @@ u16 D_shelter_b3_garbage_incinerator_801855DC;
 
 #include "mapui/map_shelter.h"
 
-extern TaskDesc         D_actor_342400_8016BFE0[];
 extern TaskDesc         D_actor_444000_801449F4;
 extern TaskMessageEntry D_shelter_b3_garbage_incinerator_80185594[];
 
@@ -307,7 +308,7 @@ static void _shelterB3GarbageIncineratorInitializeRoom(Task* task)
         taskSpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 0, 0, 0);
     }
     if (gGameSession->location.loc.variant == SHELTER_B3_GARBAGE_INCINERATOR_MAD_CHASER_VARIANT) {
-        taskSpawnFromTable(D_actor_342400_8016BFE0, 0, 0, 0);
+        taskSpawnFromTable(gActor342400EncounterTaskDescs, ACTOR_342400_ENCOUNTER_CONTROLLER_DESCRIPTOR, 0, 0);
     }
     task->state = task->state + 1;
 }

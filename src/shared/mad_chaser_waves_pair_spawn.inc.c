@@ -25,18 +25,18 @@ static void _overlayEncounterPairSpawn(Task* waveTask)
 /// Applies the encounter identity, palette and HP to one live Sucklerceph.
 ///
 /// Used only in this spawner. Evaluates member once; captures its enemy,
-/// enemyTask and model locals, gMadChaserWaveEnemyCount and the pair constants.
+/// enemyTask and model locals, gActor342400EncounterNextPlaceIndex and the pair constants.
 /// The member and its model task must be live. Expands to one compound statement.
-#define OVERLAY_ENCOUNTER_PREPARE_PAIR_MEMBER(member)                          \
-    {                                                                          \
-        enemy           = (member);                                            \
-        enemy->placeKey = gMadChaserWaveEnemyCount << ENEMY_PLACE_INDEX_SHIFT; \
-        gMadChaserWaveEnemyCount++;                                            \
-        enemyTask                = enemy->task;                                \
-        model                    = enemyTask->extra.tmd;                       \
-        model->texturePageOffset = OVERLAY_ENCOUNTER_PAIR_TEXTURE_PAGE_OFFSET; \
-        model->clutRowOffset     = OVERLAY_ENCOUNTER_PAIR_CLUT_ROW_OFFSET;     \
-        enemy->hp                = OVERLAY_ENCOUNTER_PAIR_INITIAL_HP;          \
+#define OVERLAY_ENCOUNTER_PREPARE_PAIR_MEMBER(member)                                     \
+    {                                                                                     \
+        enemy           = (member);                                                       \
+        enemy->placeKey = gActor342400EncounterNextPlaceIndex << ENEMY_PLACE_INDEX_SHIFT; \
+        gActor342400EncounterNextPlaceIndex++;                                            \
+        enemyTask                = enemy->task;                                           \
+        model                    = enemyTask->extra.tmd;                                  \
+        model->texturePageOffset = OVERLAY_ENCOUNTER_PAIR_TEXTURE_PAGE_OFFSET;            \
+        model->clutRowOffset     = OVERLAY_ENCOUNTER_PAIR_CLUT_ROW_OFFSET;                \
+        enemy->hp                = OVERLAY_ENCOUNTER_PAIR_INITIAL_HP;                     \
     }
 
     work = memCalloc(sizeof(*work), false);
@@ -58,7 +58,7 @@ static void _overlayEncounterPairSpawn(Task* waveTask)
     if (work->enemy1 != NULL) {
         OVERLAY_ENCOUNTER_PREPARE_PAIR_MEMBER(work->enemy1);
     }
-    gMadChaserWaveSlots[(s16)(waveTask->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_LIVE;
+    _gActor342400EncounterSlots[(s16)(waveTask->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_LIVE;
     waveTask->state++;
 }
 
