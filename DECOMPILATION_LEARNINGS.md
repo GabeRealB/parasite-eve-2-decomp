@@ -123092,8 +123092,8 @@ callee-saved register. `dryfieldNightDrivewayDrawLightShaftsTask` (43 insns, the
 ```c
 case 3:
 case 10:
-    Room_Draw08(&D_dryfield_night_driveway_801805B0[0], 0x180);
-    Room_Draw08(&D_dryfield_night_driveway_801805B0[2], 0x180);   /* C0 = B0 + 0x10 */
+    Room_Draw08(_gDryfieldNightDrivewayLightShaftPoints[0], 0x180);
+    Room_Draw08(_gDryfieldNightDrivewayLightShaftPoints[1], 0x180);   /* C0 = B0 + 0x10 */
     break;
 ```
 
