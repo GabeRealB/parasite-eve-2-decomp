@@ -12,3 +12,9 @@ Tab-separated, eight fields:
 missing. Lines starting with `#` are remarks about the overlay as a whole.
 `tools/peassets/asset_map.py` reads these and shows them with each asset and
 overlay.
+
+An evidence line number is as of the sweep date (2026-10-09); the sources are
+still being edited, so the function or symbol the line names is the stable
+reference. A use is `established` when both the mechanism and its reach are
+shown; a mechanism with no path found to it is `open`, with what was checked;
+a use the code excludes is `established` with "not reached" in `when`.
