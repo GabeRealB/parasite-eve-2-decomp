@@ -753,7 +753,7 @@ static void _shelterB6CorridorFinishScriptedBattle(s32 endDelayFrames)
 /// stays set until ordinary HUD updates resume after the event.
 static void _shelterB6CorridorLockAttachmentsAndCancelEffects(void)
 {
-    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+    gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
     roomEffectRequestCancelAll();
 }
 

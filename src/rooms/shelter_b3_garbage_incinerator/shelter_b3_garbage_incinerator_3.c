@@ -2580,9 +2580,9 @@ static void _shelterB3GarbageIncineratorSetVariant2Walls(void)
      (pool)[(index)].surfaceClass     = (propertyIndex),                                       \
      (pool)[(index)].normalIndex      = (index))
 
-    normals  = Gp_GridParams->normals;
-    vertices = Gp_GridParams->vertices;
-    faces    = Gp_GridParams->faces;
+    normals  = gWorldCollisionActiveGrid->normals;
+    vertices = gWorldCollisionActiveGrid->vertices;
+    faces    = gWorldCollisionActiveGrid->faces;
     if (gGameSession->location.loc.variant == SHELTER_B3_GARBAGE_INCINERATOR_EXTRA_WALL_VARIANT) {
         faceIndex = SHELTER_B3_GARBAGE_INCINERATOR_FIRST_EXTRA_WALL;
         do {
@@ -2646,9 +2646,9 @@ void shelterB3GarbageIncineratorSetExitCollisionWalls(void)
     SVECTOR*                normalPointer;
 
     faceIndex     = 0;
-    normals       = Gp_GridParams->normals;
-    vertices      = Gp_GridParams->vertices;
-    faces         = Gp_GridParams->faces;
+    normals       = gWorldCollisionActiveGrid->normals;
+    vertices      = gWorldCollisionActiveGrid->vertices;
+    faces         = gWorldCollisionActiveGrid->faces;
     normalPointer = &normal;
     // Extra variant walls use separate slots; the existing cell lists stay valid.
     _shelterB3GarbageIncineratorSetVariant2Walls();
@@ -2708,9 +2708,9 @@ void shelterB3GarbageIncineratorSetLiftCollisionWalls(void)
     SVECTOR*                normalPointer;
 
     faceIndex     = 0;
-    normals       = Gp_GridParams->normals;
-    vertices      = Gp_GridParams->vertices;
-    faces         = Gp_GridParams->faces;
+    normals       = gWorldCollisionActiveGrid->normals;
+    vertices      = gWorldCollisionActiveGrid->vertices;
+    faces         = gWorldCollisionActiveGrid->faces;
     normalPointer = &normal;
     // Extra variant walls use separate slots; the existing cell lists stay valid.
     _shelterB3GarbageIncineratorSetVariant2Walls();
@@ -2748,9 +2748,9 @@ void shelterB3GarbageIncineratorSetLiftArrivalCollisionWalls(void)
     s16                     faceIndex;
 
     faceIndex = 0;
-    normals   = Gp_GridParams->normals;
-    vertices  = Gp_GridParams->vertices;
-    faces     = Gp_GridParams->faces;
+    normals   = gWorldCollisionActiveGrid->normals;
+    vertices  = gWorldCollisionActiveGrid->vertices;
+    faces     = gWorldCollisionActiveGrid->faces;
     // Extra variant walls use separate slots; the existing cell lists stay valid.
     _shelterB3GarbageIncineratorSetVariant2Walls();
     do {

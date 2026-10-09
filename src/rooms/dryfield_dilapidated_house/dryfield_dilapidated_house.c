@@ -2605,7 +2605,7 @@ static void _dryfieldDilapidatedHouseRoomUpdate(Task* task)
             D_dryfield_dilapidated_house_80183EFC = ENCOUNTER_WAIT_RELEASE;
         } else if ((D_dryfield_dilapidated_house_80183EFC == ENCOUNTER_WAIT_RELEASE) &&
                    (taskMessageDispatch(sceneFindPlacedActor(ENCOUNTER_ACTOR_SLOT), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0)) {
-            if (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) {
+            if (gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) {
                 if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                     D_dryfield_dilapidated_house_80183EFC += 1;
                     taskSpawnFromTable(D_dryfield_dilapidated_house_80183EB4, ENCOUNTER_FINISH_TASK, 0, 0);
@@ -3102,7 +3102,7 @@ static void _dryfieldDilapidatedHouseSetMorphAttachment(s32 enabled)
 static void _dryfieldDilapidatedHouseLockAttachmentsForEvent(void)
 {
     roomEffectRequestCancelAll();
-    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+    gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
 /// Registers the room controller and starts its persistent encounter helpers.

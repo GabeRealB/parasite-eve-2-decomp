@@ -102,7 +102,7 @@ static EffectBandShape D_inferno_801304E4[] = {
 };
 
 /// The `sndEvtRequestScriptStart` id the inferno cast plays, indexed by
-/// the cast's level, `Gp_StateC08.attachId % 10 - 1`.
+/// the cast's level, `gAttachmentState.attachId % 10 - 1`.
 /// The same index also picks the state `infernoCastTask` advances to,
 /// which is why the three ids and the three state chains run in step.
 static s32 D_inferno_801304F0[] = { 0xE0100001, 0xE0130001, 0xE00D0001 };
@@ -227,7 +227,7 @@ void infernoCastTask(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+    if ((gAttachmentState.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
         effectKillTask(work, task);
         return;
     }
@@ -239,15 +239,15 @@ void infernoCastTask(Task* task)
             work->scale = INFERNO_CAST_INITIAL_RADIUS;
             work->angle = INFERNO_CAST_MAX_BRIGHTNESS;
             pan         = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(D_inferno_801304F0[(u16)(Gp_StateC08.attachId % 10) - 1], pan,
+            sndEvtRequestScriptStart(D_inferno_801304F0[(u16)(gAttachmentState.attachId % 10) - 1], pan,
                                      (s8)worldCoordGetOriginAudioDepth(coord));
             // The PE level chooses one of three state chains, starting at 1, 5 or 9.
-            task->state = ((u16)(Gp_StateC08.attachId % 10) - 1) * INFERNO_CAST_LEVEL_STATE_STRIDE + INFERNO_CAST_STATE_LEVEL_ONE;
+            task->state = ((u16)(gAttachmentState.attachId % 10) - 1) * INFERNO_CAST_LEVEL_STATE_STRIDE + INFERNO_CAST_STATE_LEVEL_ONE;
             return;
         case INFERNO_CAST_STATE_LEVEL_ONE:
             effectSpawn((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, INFERNO_CAST_FAN_WIDE_IGNITION, NULL);
             effectSpawn((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, INFERNO_CAST_FAN_FAST_IGNITION, NULL);
-            Gp_StateC08.flags |= ATTACHMENT_FLAG_APPLY_STATS;
+            gAttachmentState.flags |= ATTACHMENT_FLAG_APPLY_STATS;
             padScriptSpawnVariableMotorRamp(INFERNO_CAST_LEVEL_ONE_MOTOR_FRAMES, INFERNO_CAST_MOTOR_START, INFERNO_CAST_MOTOR_END);
             task->state = INFERNO_CAST_STATE_FADING;
             return;
@@ -257,7 +257,7 @@ void infernoCastTask(Task* task)
             effectSpawn((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, INFERNO_CAST_FAN_WIDE_IGNITION, NULL);
             work->scale = INFERNO_CAST_INNER_RADIUS;
             INFERNO_SPAWN_OFFSET_FANS(coord, work, yaw, INFERNO_CAST_LEVEL_TWO_YAW_STEP, INFERNO_CAST_LEVEL_TWO_YAW_END, INFERNO_CAST_FAN_SHALLOW_RING);
-            Gp_StateC08.flags |= ATTACHMENT_FLAG_APPLY_STATS;
+            gAttachmentState.flags |= ATTACHMENT_FLAG_APPLY_STATS;
             padScriptSpawnVariableMotorRamp(INFERNO_CAST_LEVEL_TWO_MOTOR_FRAMES, INFERNO_CAST_MOTOR_START, INFERNO_CAST_MOTOR_END);
             task->state = INFERNO_CAST_STATE_FADING;
             return;
@@ -290,7 +290,7 @@ void infernoCastTask(Task* task)
             work->scale = INFERNO_CAST_OUTER_RADIUS;
             yaw         = 0;
             INFERNO_SPAWN_OFFSET_FANS(coord, work, yaw, INFERNO_CAST_FAN_YAW_STEP, INFERNO_CAST_OUTER_YAW_END, INFERNO_CAST_FAN_DRIFTING_BURST);
-            Gp_StateC08.flags |= ATTACHMENT_FLAG_APPLY_STATS;
+            gAttachmentState.flags |= ATTACHMENT_FLAG_APPLY_STATS;
             padScriptSpawnVariableMotorRamp(INFERNO_CAST_FINAL_MOTOR_FRAMES, INFERNO_CAST_MOTOR_START, INFERNO_CAST_MOTOR_END);
             task->state = INFERNO_CAST_STATE_FADING;
             work->angle = INFERNO_CAST_MAX_BRIGHTNESS;
@@ -411,7 +411,7 @@ void infernoFlameFanTask(Task* task)
     texturePhase = task->work;
     work         = task->spawnArg2.pointer;
     coord        = task->extra.coordBody->coord;
-    if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+    if ((gAttachmentState.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
         effectKillTask(work, task);
         return;
     }

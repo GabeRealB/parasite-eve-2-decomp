@@ -2812,7 +2812,7 @@ static void _acropolisBridgeKeypadSequenceTask(Task* task)
 static void _acropolisBridgePrepareArrivalScene(void)
 {
     roomEffectRequestCancelAll();
-    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+    gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
 /// Installs the room receiver, spawns the bridge model and synchronizes arrival sprites.

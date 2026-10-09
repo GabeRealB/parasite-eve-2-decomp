@@ -108,7 +108,7 @@ static void _neoArkPowerPlant1UpdateRoom(Task* unusedTask)
         generatorTask = sceneFindPlacedActor(NEO_ARK_POWER_PLANT_1_GENERATOR_PLACEMENT);
         if (generatorTask != NULL) {
             if (taskMessageDispatch(generatorTask, ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) {
-                if (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) {
+                if (gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) {
                     if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                         gameFlagSetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED, 1);
                         gameFlagSetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_UNLOCKED, 1);
@@ -221,7 +221,7 @@ s32 neoArkPowerPlant1IgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, con
 void neoArkPowerPlant1PrepareGeneratorClearScene(void)
 {
     roomEffectRequestCancelAll();
-    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+    gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
 void neoArkPowerPlant1StopSkippedSceneVibration(void)

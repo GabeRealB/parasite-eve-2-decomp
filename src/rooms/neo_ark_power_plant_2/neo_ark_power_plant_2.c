@@ -858,7 +858,7 @@ static s32 _neoArkPowerPlant2IgnoreRoomAction(Task* task, s32 messageId, const D
 static void _neoArkPowerPlant2PrepareGeneratorClearScene(void)
 {
     roomEffectRequestCancelAll();
-    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+    gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
 /// Stops scene vibration when the generator-clear event is skipped.
@@ -909,7 +909,7 @@ static void _neoArkPowerPlant2UpdateRoom(Task* unusedTask)
     // Commit progress before admitting the clear scene; presentation may defer it.
     if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0) {
         generatorTask = sceneFindPlacedActor(GENERATOR_PLACEMENT);
-        if ((generatorTask != NULL) && (taskMessageDispatch(generatorTask, ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) &&
+        if ((generatorTask != NULL) && (taskMessageDispatch(generatorTask, ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) && (gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) &&
             (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
             gameFlagSetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED, 1);
             gameFlagSetNibble(GAME_FLAG_NEO_ARK_EVE_ELEVATOR_UNLOCKED, 1);

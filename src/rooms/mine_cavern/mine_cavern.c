@@ -389,7 +389,7 @@ s32 mineCavernAdvanceEvent(Task* task, s32 msgId, s32 unusedEventId, s32 unusedA
 
     if (gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == MINE_CAVERN_EVENT_NOT_STARTED) {
         // Let the room tick start the first scene after the attachment wheel closes.
-        Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+        gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
         roomEffectRequestCancelAll();
         gameFlagSetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS, MINE_CAVERN_EVENT_FIRST_STAGE);
         D_mine_cavern_8018EB50 = MINE_CAVERN_EVENT_FIRST_STAGE;
@@ -491,7 +491,7 @@ static void _mineCavernStartPendingEvent(Task* unusedTask)
 
     eventProgress = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS);
     // Compare against the armed latch: its stage-1 value is also wheel-open mode.
-    if ((eventProgress == MINE_CAVERN_EVENT_FIRST_STAGE) && (D_mine_cavern_8018EB50 == eventProgress) && (Gp_StateC08.mode != D_mine_cavern_8018EB50)) {
+    if ((eventProgress == MINE_CAVERN_EVENT_FIRST_STAGE) && (D_mine_cavern_8018EB50 == eventProgress) && (gAttachmentState.mode != D_mine_cavern_8018EB50)) {
         evsStartScriptWithSkip(D_mine_cavern_80188214, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mine_cavern_801887B4);
         D_mine_cavern_8018EB50 = MINE_CAVERN_EVENT_SECOND_STAGE;
     }
@@ -626,6 +626,6 @@ void mineCavernFadeOutMusic(void)
 
 void mineCavernLockAttachmentsAndCancelEffects(void)
 {
-    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+    gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
     roomEffectRequestCancelAll();
 }

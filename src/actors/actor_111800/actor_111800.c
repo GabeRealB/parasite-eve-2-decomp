@@ -86,7 +86,7 @@ extern AnimationSet* D_actor_111800_8013A448[8];
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 
-/// Main-executable globals with no module header yet: `Gp_StateC08.mode` is 1 while the attachment wheel is open and
+/// Main-executable globals with no module header yet: `gAttachmentState.mode` is 1 while the attachment wheel is open and
 /// `gDisplayState.pendingMode` is a pending display mode. `acropolisSquareStartSirenSequence` is
 /// the room overlay's handler the view-matrix test calls with `t[0]`.
 
@@ -500,7 +500,7 @@ static void _actor111800GrinningStrangerTask(Task* task)
     work  = task->work;
     switch (state) {
         case ACTOR_111800_TASK_INITIALIZE:
-            if ((Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
+            if ((gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 _actor111800InitBody(task);
                 task->state += 1;
                 break;

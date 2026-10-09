@@ -10,7 +10,6 @@
 #include "gameplay/actor.h"
 #include "gameplay/collision.h"
 #include "collision.h"
-#include "item_use.h"
 #include "player_actor.h"
 #include "world_collision.h"
 
@@ -209,24 +208,24 @@ enum {
 ///
 /// `sphereScratch` is a live `_WorldCollisionGridSphereScratch` pointer with face
 /// corners and normal initialized in one query frame. `edgePairIndex` selects
-/// `Gp_FaceEdgePairs`: 0..2 for triangles or 1..4 for quads. Edge XYZ deltas must
+/// `gWorldCollisionFaceEdges`: 0..2 for triangles or 1..4 for quads. Edge XYZ deltas must
 /// fit signed halfwords with squared length in 1..0x7FFFFFFF for normalization.
 /// Writes the Q12 unit edge direction and outward cross-product normal into
 /// geometry.edgeDirection/edgeWork; pad words are untouched. Clobbers GTE
 /// rotation and arithmetic state. Both arguments must be stable expressions,
 /// as they are evaluated repeatedly. Expands to multiple statements: invoke
 /// only within a braced block. No caller-local identifiers are captured.
-#define WORLD_COLLISION_BUILD_SPHERE_GRID_EDGE_PLANE(sphereScratch, edgePairIndex)                                                                                                         \
-    (sphereScratch)->geometry.edgeWork.vx =                                                                                                                                                \
-        (sphereScratch)->geometry.corners[Gp_FaceEdgePairs[(edgePairIndex)].endCornerIndex].vx - (sphereScratch)->geometry.corners[Gp_FaceEdgePairs[(edgePairIndex)].startCornerIndex].vx; \
-    (sphereScratch)->geometry.edgeWork.vy =                                                                                                                                                \
-        (sphereScratch)->geometry.corners[Gp_FaceEdgePairs[(edgePairIndex)].endCornerIndex].vy - (sphereScratch)->geometry.corners[Gp_FaceEdgePairs[(edgePairIndex)].startCornerIndex].vy; \
-    (sphereScratch)->geometry.edgeWork.vz =                                                                                                                                                \
-        (sphereScratch)->geometry.corners[Gp_FaceEdgePairs[(edgePairIndex)].endCornerIndex].vz - (sphereScratch)->geometry.corners[Gp_FaceEdgePairs[(edgePairIndex)].startCornerIndex].vz; \
-    VectorNormal(&(sphereScratch)->geometry.edgeWork, &(sphereScratch)->geometry.edgeDirection);                                                                                           \
-    gte_ldopv1(&(sphereScratch)->geometry.faceNormal);                                                                                                                                     \
-    gte_ldopv2(&(sphereScratch)->geometry.edgeDirection);                                                                                                                                  \
-    gte_op12();                                                                                                                                                                            \
+#define WORLD_COLLISION_BUILD_SPHERE_GRID_EDGE_PLANE(sphereScratch, edgePairIndex)                                                                                                                         \
+    (sphereScratch)->geometry.edgeWork.vx =                                                                                                                                                                \
+        (sphereScratch)->geometry.corners[gWorldCollisionFaceEdges[(edgePairIndex)].endCornerIndex].vx - (sphereScratch)->geometry.corners[gWorldCollisionFaceEdges[(edgePairIndex)].startCornerIndex].vx; \
+    (sphereScratch)->geometry.edgeWork.vy =                                                                                                                                                                \
+        (sphereScratch)->geometry.corners[gWorldCollisionFaceEdges[(edgePairIndex)].endCornerIndex].vy - (sphereScratch)->geometry.corners[gWorldCollisionFaceEdges[(edgePairIndex)].startCornerIndex].vy; \
+    (sphereScratch)->geometry.edgeWork.vz =                                                                                                                                                                \
+        (sphereScratch)->geometry.corners[gWorldCollisionFaceEdges[(edgePairIndex)].endCornerIndex].vz - (sphereScratch)->geometry.corners[gWorldCollisionFaceEdges[(edgePairIndex)].startCornerIndex].vz; \
+    VectorNormal(&(sphereScratch)->geometry.edgeWork, &(sphereScratch)->geometry.edgeDirection);                                                                                                           \
+    gte_ldopv1(&(sphereScratch)->geometry.faceNormal);                                                                                                                                                     \
+    gte_ldopv2(&(sphereScratch)->geometry.edgeDirection);                                                                                                                                                  \
+    gte_op12();                                                                                                                                                                                            \
     gte_stlvnl(&(sphereScratch)->geometry.edgeWork);
 
 /// Prepares the other sphere's centre and radius sum for a pair-contact writer.
@@ -333,7 +332,7 @@ WorldCollisionPairRule D_8010FA4C[4][4] = {
 
 /// Builds a grid-face edge's outward plane normal for a query-space half-space test.
 ///
-/// `edgePairIndex` selects `Gp_FaceEdgePairs` (0..2 for triangles, 1..4 for
+/// `edgePairIndex` selects `gWorldCollisionFaceEdges` (0..2 for triangles, 1..4 for
 /// quads). Both indexed corners must be initialized in game units, and
 /// `faceNormal` must be the face's normal in the same space, with 4096 per unit.
 /// The end-minus-start edge delta must fit signed halfwords and have squared
@@ -346,7 +345,7 @@ WorldCollisionPairRule D_8010FA4C[4][4] = {
 /// rotation-matrix registers and arithmetic state, and retains no pointers.
 static __inline__ void _worldCollisionBuildGridEdgePlaneNormal(_WorldCollisionGridRayScratch* scratch, s32 edgePairIndex)
 {
-    const WorldCollisionFaceEdge* edge = &Gp_FaceEdgePairs[edgePairIndex];
+    const WorldCollisionFaceEdge* edge = &gWorldCollisionFaceEdges[edgePairIndex];
 
     scratch->edgeWork.vx = scratch->corners[edge->endCornerIndex].vx - scratch->corners[edge->startCornerIndex].vx;
     scratch->edgeWork.vy = scratch->corners[edge->endCornerIndex].vy - scratch->corners[edge->startCornerIndex].vy;
@@ -365,35 +364,35 @@ void worldCollisionUpdateTask(Task* unusedTask)
     if (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER) != NULL) {
         // Movement supplies this frame's transforms before grid and body contacts.
         playerActorUpdateMove();
-        worldCollisionCollideBodyListGrid(Gp_ObjList0);
-        worldCollisionCollideBodyListGrid(Gp_ObjList1);
-        worldCollisionCollideBodyListGrid(Gp_ObjList2);
-        worldCollisionCollideBodyListGrid(Gp_ObjList3);
-        worldCollisionCollideBodyListGrid(Gp_ObjList4);
-        worldCollisionCollideBodyListGrid(Gp_ObjList7);
-        worldCollisionCollideBodyListGrid(Gp_ObjList8);
+        worldCollisionCollideBodyListGrid(gWorldCollisionPlayerBodyListHead);
+        worldCollisionCollideBodyListGrid(gWorldCollisionPlayerAttackListHead);
+        worldCollisionCollideBodyListGrid(gWorldCollisionEnemyBodyListHead);
+        worldCollisionCollideBodyListGrid(gWorldCollisionEnemyAttackListHead);
+        worldCollisionCollideBodyListGrid(gWorldCollisionPropListHead);
+        worldCollisionCollideBodyListGrid(gWorldCollisionGridOnlyListHead);
+        worldCollisionCollideBodyListGrid(gWorldCollisionBlastListHead);
         // Only the interaction routes below participate; list 6 has no grid pass.
-        worldCollisionCollideBodyLists(Gp_ObjList0, Gp_ObjList2);
-        worldCollisionCollideBodyLists(Gp_ObjList0, Gp_ObjList3);
-        worldCollisionCollideBodyLists(Gp_ObjList0, Gp_ObjList4);
-        worldCollisionCollideBodyLists(Gp_ObjList0, Gp_ObjList8);
-        _worldCollisionCollideListPairs(Gp_ObjList0);
-        worldCollisionCollideBodyLists(Gp_ObjList1, Gp_ObjList2);
-        worldCollisionCollideBodyLists(Gp_ObjList1, Gp_ObjList4);
-        worldCollisionCollideBodyLists(Gp_ObjList1, Gp_ObjList6);
-        worldCollisionCollideBodyLists(Gp_ObjList2, Gp_ObjList4);
-        worldCollisionCollideBodyLists(Gp_ObjList2, Gp_ObjList8);
-        _worldCollisionCollideListPairs(Gp_ObjList2);
-        worldCollisionCollideBodyLists(Gp_ObjList3, Gp_ObjList4);
-        worldCollisionCollideBodyLists(Gp_ObjList4, Gp_ObjList8);
+        worldCollisionCollideBodyLists(gWorldCollisionPlayerBodyListHead, gWorldCollisionEnemyBodyListHead);
+        worldCollisionCollideBodyLists(gWorldCollisionPlayerBodyListHead, gWorldCollisionEnemyAttackListHead);
+        worldCollisionCollideBodyLists(gWorldCollisionPlayerBodyListHead, gWorldCollisionPropListHead);
+        worldCollisionCollideBodyLists(gWorldCollisionPlayerBodyListHead, gWorldCollisionBlastListHead);
+        _worldCollisionCollideListPairs(gWorldCollisionPlayerBodyListHead);
+        worldCollisionCollideBodyLists(gWorldCollisionPlayerAttackListHead, gWorldCollisionEnemyBodyListHead);
+        worldCollisionCollideBodyLists(gWorldCollisionPlayerAttackListHead, gWorldCollisionPropListHead);
+        worldCollisionCollideBodyLists(gWorldCollisionPlayerAttackListHead, gWorldCollisionBodyList6Head);
+        worldCollisionCollideBodyLists(gWorldCollisionEnemyBodyListHead, gWorldCollisionPropListHead);
+        worldCollisionCollideBodyLists(gWorldCollisionEnemyBodyListHead, gWorldCollisionBlastListHead);
+        _worldCollisionCollideListPairs(gWorldCollisionEnemyBodyListHead);
+        worldCollisionCollideBodyLists(gWorldCollisionEnemyAttackListHead, gWorldCollisionPropListHead);
+        worldCollisionCollideBodyLists(gWorldCollisionPropListHead, gWorldCollisionBlastListHead);
         // Retire consumed action hits before collecting fresh action/view crossings.
         if (Gp_PendingObj4CFlag != 0) {
             worldCollisionClearActionHits();
         }
-        worldCollisionScanActionTriggers(Gp_ObjList0, WORLD_COLLISION_BODY_PAIR_ENABLED | WORLD_COLLISION_BODY_ROOM_TRIGGER_ENABLED | WORLD_COLLISION_BODY_KIND_MASK,
+        worldCollisionScanActionTriggers(gWorldCollisionPlayerBodyListHead, WORLD_COLLISION_BODY_PAIR_ENABLED | WORLD_COLLISION_BODY_ROOM_TRIGGER_ENABLED | WORLD_COLLISION_BODY_KIND_MASK,
                                          WORLD_COLLISION_BODY_PAIR_ENABLED | WORLD_COLLISION_BODY_ROOM_TRIGGER_ENABLED | WORLD_COLLISION_BODY_MOTION_SPHERE);
         if (gGameSession->suppressViewTriggers == 0) {
-            worldCollisionScanViewBoundaries(Gp_ObjList0, WORLD_COLLISION_BODY_PAIR_ENABLED | WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED | WORLD_COLLISION_BODY_KIND_MASK,
+            worldCollisionScanViewBoundaries(gWorldCollisionPlayerBodyListHead, WORLD_COLLISION_BODY_PAIR_ENABLED | WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED | WORLD_COLLISION_BODY_KIND_MASK,
                                              WORLD_COLLISION_BODY_PAIR_ENABLED | WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED | WORLD_COLLISION_BODY_MOTION_SPHERE);
         }
     }
@@ -726,30 +725,30 @@ void worldCollisionCollideSphereGrid(const WorldCollisionBody* body)
     worldCollisionGetBodyComposedPosition(body, &scratch->centre);
     worldCollisionViewToCell(&scratch->centre, &scratch->gridCell);
 
-    if ((u16)scratch->gridCell.vx < Gp_GridParams->cellCountX && (u16)scratch->gridCell.vz < Gp_GridParams->cellCountZ) {
-        faceIds = Gp_GridParams->cellFaceIds[scratch->gridCell.vx * Gp_GridParams->cellCountZ + scratch->gridCell.vz];
+    if ((u16)scratch->gridCell.vx < gWorldCollisionActiveGrid->cellCountX && (u16)scratch->gridCell.vz < gWorldCollisionActiveGrid->cellCountZ) {
+        faceIds = gWorldCollisionActiveGrid->cellFaceIds[scratch->gridCell.vx * gWorldCollisionActiveGrid->cellCountZ + scratch->gridCell.vz];
         if (faceIds != NULL) {
             for (;;) {
                 faceIndex = *faceIds;
                 if (faceIndex == WORLD_COLLISION_GRID_CELL_END) {
                     goto done;
                 }
-                face = &Gp_GridParams->faces[faceIndex];
+                face = &gWorldCollisionActiveGrid->faces[faceIndex];
                 if (face->vertexIndices[0] == 0 && face->vertexIndices[1] == 0) {
                     faceIds++;
                     continue;
                 }
 
                 // Transform this face into the sphere's query space.
-                gte_SetRotMatrix(&Gp_GridParams->viewCoord->workm);
-                gte_ldv0(&Gp_GridParams->vertices[face->vertexIndices[0]]);
+                gte_SetRotMatrix(&gWorldCollisionActiveGrid->viewCoord->workm);
+                gte_ldv0(&gWorldCollisionActiveGrid->vertices[face->vertexIndices[0]]);
                 gte_rtv0();
                 gte_stlvnl(&scratch->geometry.corners[0]);
-                scratch->geometry.corners[0].vx += Gp_GridParams->viewCoord->workm.t[0];
-                scratch->geometry.corners[0].vy += Gp_GridParams->viewCoord->workm.t[1];
-                scratch->geometry.corners[0].vz += Gp_GridParams->viewCoord->workm.t[2];
+                scratch->geometry.corners[0].vx += gWorldCollisionActiveGrid->viewCoord->workm.t[0];
+                scratch->geometry.corners[0].vy += gWorldCollisionActiveGrid->viewCoord->workm.t[1];
+                scratch->geometry.corners[0].vz += gWorldCollisionActiveGrid->viewCoord->workm.t[2];
 
-                gte_ldv0(&Gp_GridParams->normals[face->normalIndex]);
+                gte_ldv0(&gWorldCollisionActiveGrid->normals[face->normalIndex]);
                 gte_rtv0();
                 gte_stlvnl(&scratch->geometry.faceNormal);
 
@@ -776,18 +775,18 @@ void worldCollisionCollideSphereGrid(const WorldCollisionBody* body)
                 contact->point.vx           = 0;
                 contact->point.vy           = 0;
                 contact->point.vz           = 0;
-                contact->response.direction = Gp_GridParams->normals[face->normalIndex];
+                contact->response.direction = gWorldCollisionActiveGrid->normals[face->normalIndex];
                 goto next_face;
 
             edges:
                 cornerCount = (face->vertexIndices[ARRAY_SIZE(face->vertexIndices) - 1] != WORLD_COLLISION_GRID_FACE_NO_VERTEX) ? (s32)ARRAY_SIZE(face->vertexIndices) : WORLD_COLLISION_SPHERE_GRID_TRIANGLE_CORNERS;
                 for (geometryIndex = 1; geometryIndex < cornerCount; geometryIndex++) {
-                    gte_ldv0(&Gp_GridParams->vertices[face->vertexIndices[geometryIndex]]);
+                    gte_ldv0(&gWorldCollisionActiveGrid->vertices[face->vertexIndices[geometryIndex]]);
                     gte_rtv0();
                     gte_stlvnl(&scratch->geometry.corners[geometryIndex]);
-                    scratch->geometry.corners[geometryIndex].vx += Gp_GridParams->viewCoord->workm.t[0];
-                    scratch->geometry.corners[geometryIndex].vy += Gp_GridParams->viewCoord->workm.t[1];
-                    scratch->geometry.corners[geometryIndex].vz += Gp_GridParams->viewCoord->workm.t[2];
+                    scratch->geometry.corners[geometryIndex].vx += gWorldCollisionActiveGrid->viewCoord->workm.t[0];
+                    scratch->geometry.corners[geometryIndex].vy += gWorldCollisionActiveGrid->viewCoord->workm.t[1];
+                    scratch->geometry.corners[geometryIndex].vz += gWorldCollisionActiveGrid->viewCoord->workm.t[2];
                 }
 
                 isOutside = 0;
@@ -795,9 +794,9 @@ void worldCollisionCollideSphereGrid(const WorldCollisionBody* body)
                 for (geometryIndex = cornerCount - WORLD_COLLISION_SPHERE_GRID_TRIANGLE_CORNERS; geometryIndex < cornerCount * 2 - WORLD_COLLISION_SPHERE_GRID_TRIANGLE_CORNERS; geometryIndex++) {
                     WORLD_COLLISION_BUILD_SPHERE_GRID_EDGE_PLANE(scratch, geometryIndex);
 
-                    edgePlaneOffset = (scratch->geometry.edgeWork.vx * scratch->geometry.corners[Gp_FaceEdgePairs[geometryIndex].endCornerIndex].vx +
-                                       scratch->geometry.edgeWork.vy * scratch->geometry.corners[Gp_FaceEdgePairs[geometryIndex].endCornerIndex].vy +
-                                       scratch->geometry.edgeWork.vz * scratch->geometry.corners[Gp_FaceEdgePairs[geometryIndex].endCornerIndex].vz) >>
+                    edgePlaneOffset = (scratch->geometry.edgeWork.vx * scratch->geometry.corners[gWorldCollisionFaceEdges[geometryIndex].endCornerIndex].vx +
+                                       scratch->geometry.edgeWork.vy * scratch->geometry.corners[gWorldCollisionFaceEdges[geometryIndex].endCornerIndex].vy +
+                                       scratch->geometry.edgeWork.vz * scratch->geometry.corners[gWorldCollisionFaceEdges[geometryIndex].endCornerIndex].vz) >>
                                       12;
                     edgeDistance = (s16)(((scratch->geometry.edgeWork.vx * scratch->centre.vx + scratch->geometry.edgeWork.vy * scratch->centre.vy +
                                            scratch->geometry.edgeWork.vz * scratch->centre.vz) >>
@@ -871,34 +870,34 @@ static inline void _worldCollisionCollideMotionSphereCell(const WorldCollisionBo
     s32                           faceContactKey;
     u16                           contactFlags;
 
-    if ((u16)scratch->gridCell.vx < Gp_GridParams->cellCountX && (u16)scratch->gridCell.vz < Gp_GridParams->cellCountZ) {
-        faceIds = Gp_GridParams->cellFaceIds[scratch->gridCell.vx * Gp_GridParams->cellCountZ + scratch->gridCell.vz];
+    if ((u16)scratch->gridCell.vx < gWorldCollisionActiveGrid->cellCountX && (u16)scratch->gridCell.vz < gWorldCollisionActiveGrid->cellCountZ) {
+        faceIds = gWorldCollisionActiveGrid->cellFaceIds[scratch->gridCell.vx * gWorldCollisionActiveGrid->cellCountZ + scratch->gridCell.vz];
         if (faceIds != NULL) {
             for (;;) {
                 faceIndex = *faceIds;
                 if (faceIndex == WORLD_COLLISION_GRID_CELL_END) {
                     return;
                 }
-                face = &Gp_GridParams->faces[faceIndex];
+                face = &gWorldCollisionActiveGrid->faces[faceIndex];
                 if (face->vertexIndices[0] == 0 && face->vertexIndices[1] == 0) {
                     faceIds++;
                     continue;
                 }
-                if (Gp_GridParams->normals[face->normalIndex].vy < WORLD_COLLISION_MOTION_SPHERE_MIN_GRID_NORMAL_Y) {
+                if (gWorldCollisionActiveGrid->normals[face->normalIndex].vy < WORLD_COLLISION_MOTION_SPHERE_MIN_GRID_NORMAL_Y) {
                     faceIds++;
                     continue;
                 }
 
                 // Transform this face into the sphere's query space.
-                gte_SetRotMatrix(&Gp_GridParams->viewCoord->workm);
-                gte_ldv0(&Gp_GridParams->vertices[face->vertexIndices[0]]);
+                gte_SetRotMatrix(&gWorldCollisionActiveGrid->viewCoord->workm);
+                gte_ldv0(&gWorldCollisionActiveGrid->vertices[face->vertexIndices[0]]);
                 gte_rtv0();
                 gte_stlvnl(&scratch->geometry.corners[0]);
-                scratch->geometry.corners[0].vx += Gp_GridParams->viewCoord->workm.t[0];
-                scratch->geometry.corners[0].vy += Gp_GridParams->viewCoord->workm.t[1];
-                scratch->geometry.corners[0].vz += Gp_GridParams->viewCoord->workm.t[2];
+                scratch->geometry.corners[0].vx += gWorldCollisionActiveGrid->viewCoord->workm.t[0];
+                scratch->geometry.corners[0].vy += gWorldCollisionActiveGrid->viewCoord->workm.t[1];
+                scratch->geometry.corners[0].vz += gWorldCollisionActiveGrid->viewCoord->workm.t[2];
 
-                gte_ldv0(&Gp_GridParams->normals[face->normalIndex]);
+                gte_ldv0(&gWorldCollisionActiveGrid->normals[face->normalIndex]);
                 gte_rtv0();
                 gte_stlvnl(&scratch->geometry.faceNormal);
 
@@ -923,12 +922,12 @@ static inline void _worldCollisionCollideMotionSphereCell(const WorldCollisionBo
 
                 cornerCount = (face->vertexIndices[ARRAY_SIZE(face->vertexIndices) - 1] != WORLD_COLLISION_GRID_FACE_NO_VERTEX) ? (s32)ARRAY_SIZE(face->vertexIndices) : WORLD_COLLISION_SPHERE_GRID_TRIANGLE_CORNERS;
                 for (geometryIndex = 1; geometryIndex < cornerCount; geometryIndex++) {
-                    gte_ldv0(&Gp_GridParams->vertices[face->vertexIndices[geometryIndex]]);
+                    gte_ldv0(&gWorldCollisionActiveGrid->vertices[face->vertexIndices[geometryIndex]]);
                     gte_rtv0();
                     gte_stlvnl(&scratch->geometry.corners[geometryIndex]);
-                    scratch->geometry.corners[geometryIndex].vx += Gp_GridParams->viewCoord->workm.t[0];
-                    scratch->geometry.corners[geometryIndex].vy += Gp_GridParams->viewCoord->workm.t[1];
-                    scratch->geometry.corners[geometryIndex].vz += Gp_GridParams->viewCoord->workm.t[2];
+                    scratch->geometry.corners[geometryIndex].vx += gWorldCollisionActiveGrid->viewCoord->workm.t[0];
+                    scratch->geometry.corners[geometryIndex].vy += gWorldCollisionActiveGrid->viewCoord->workm.t[1];
+                    scratch->geometry.corners[geometryIndex].vz += gWorldCollisionActiveGrid->viewCoord->workm.t[2];
                 }
 
                 edgeContactFlag = 0;
@@ -937,9 +936,9 @@ static inline void _worldCollisionCollideMotionSphereCell(const WorldCollisionBo
                 for (geometryIndex = cornerCount - WORLD_COLLISION_SPHERE_GRID_TRIANGLE_CORNERS; geometryIndex < cornerCount * 2 - WORLD_COLLISION_SPHERE_GRID_TRIANGLE_CORNERS; geometryIndex++) {
                     WORLD_COLLISION_BUILD_SPHERE_GRID_EDGE_PLANE(scratch, geometryIndex);
 
-                    edgePlaneOffset = (scratch->geometry.edgeWork.vx * scratch->geometry.corners[Gp_FaceEdgePairs[geometryIndex].endCornerIndex].vx +
-                                       scratch->geometry.edgeWork.vy * scratch->geometry.corners[Gp_FaceEdgePairs[geometryIndex].endCornerIndex].vy +
-                                       scratch->geometry.edgeWork.vz * scratch->geometry.corners[Gp_FaceEdgePairs[geometryIndex].endCornerIndex].vz) >>
+                    edgePlaneOffset = (scratch->geometry.edgeWork.vx * scratch->geometry.corners[gWorldCollisionFaceEdges[geometryIndex].endCornerIndex].vx +
+                                       scratch->geometry.edgeWork.vy * scratch->geometry.corners[gWorldCollisionFaceEdges[geometryIndex].endCornerIndex].vy +
+                                       scratch->geometry.edgeWork.vz * scratch->geometry.corners[gWorldCollisionFaceEdges[geometryIndex].endCornerIndex].vz) >>
                                       12;
                     edgeDistance = (s16)(((scratch->geometry.edgeWork.vx * scratch->centre.vx + scratch->geometry.edgeWork.vy * scratch->centre.vy +
                                            scratch->geometry.edgeWork.vz * scratch->centre.vz) >>
@@ -964,9 +963,9 @@ static inline void _worldCollisionCollideMotionSphereCell(const WorldCollisionBo
                         contactFlags = contact->flags;
                         if (contactFlags & WORLD_COLLISION_CONTACT_OCCUPIED) {
                             if ((contact->key.value & WORLD_COLLISION_MOTION_SPHERE_CONTACT_CLASS_MASK) == (edgeContactFlag | WORLD_COLLISION_CONTACT_GRID)) {
-                                if (contact->response.direction.vx == Gp_GridParams->normals[face->normalIndex].vx &&
-                                    contact->response.direction.vy == Gp_GridParams->normals[face->normalIndex].vy &&
-                                    contact->response.direction.vz == Gp_GridParams->normals[face->normalIndex].vz) {
+                                if (contact->response.direction.vx == gWorldCollisionActiveGrid->normals[face->normalIndex].vx &&
+                                    contact->response.direction.vy == gWorldCollisionActiveGrid->normals[face->normalIndex].vy &&
+                                    contact->response.direction.vz == gWorldCollisionActiveGrid->normals[face->normalIndex].vz) {
                                     if (contact->distance < (s32)body->radius - (s16)planeDistanceBits) {
                                         contact->distance = body->radius - planeDistanceBits;
                                     }
@@ -981,7 +980,7 @@ static inline void _worldCollisionCollideMotionSphereCell(const WorldCollisionBo
                             contact->point.vx           = 0;
                             contact->point.vy           = 0;
                             contact->point.vz           = 0;
-                            contact->response.direction = Gp_GridParams->normals[face->normalIndex];
+                            contact->response.direction = gWorldCollisionActiveGrid->normals[face->normalIndex];
                             break;
                         }
                         if (contact->flags & WORLD_COLLISION_CONTACT_LAST) {
@@ -1034,19 +1033,19 @@ s32 worldCollisionIntersectGridFace(s32 faceIndex, const VECTOR endpoints[2], SV
 
     scratchEnd                 = SCRATCH_STACK_CURSOR(_WorldCollisionGridRayScratch);
     SCRATCH_STACK_CURSOR(void) = scratchEnd - 1;
-    face                       = &Gp_GridParams->faces[faceIndex];
+    face                       = &gWorldCollisionActiveGrid->faces[faceIndex];
     scratch                    = scratchEnd - 1;
 
     // Transform the face into the segment's query space.
-    gte_SetRotMatrix(&Gp_GridParams->viewCoord->workm);
-    gte_ldv0(&Gp_GridParams->vertices[face->vertexIndices[0]]);
+    gte_SetRotMatrix(&gWorldCollisionActiveGrid->viewCoord->workm);
+    gte_ldv0(&gWorldCollisionActiveGrid->vertices[face->vertexIndices[0]]);
     gte_rtv0();
     gte_stlvnl(&scratch->corners[0]);
-    scratch->corners[0].vx += Gp_GridParams->viewCoord->workm.t[0];
-    scratch->corners[0].vy += Gp_GridParams->viewCoord->workm.t[1];
-    scratch->corners[0].vz += Gp_GridParams->viewCoord->workm.t[2];
+    scratch->corners[0].vx += gWorldCollisionActiveGrid->viewCoord->workm.t[0];
+    scratch->corners[0].vy += gWorldCollisionActiveGrid->viewCoord->workm.t[1];
+    scratch->corners[0].vz += gWorldCollisionActiveGrid->viewCoord->workm.t[2];
 
-    gte_ldv0(&Gp_GridParams->normals[face->normalIndex]);
+    gte_ldv0(&gWorldCollisionActiveGrid->normals[face->normalIndex]);
     gte_rtv0();
     gte_stlvnl(&scratch->faceNormal);
 
@@ -1081,14 +1080,14 @@ s32 worldCollisionIntersectGridFace(s32 faceIndex, const VECTOR endpoints[2], SV
 
     cornerCount = (face->vertexIndices[WORLD_COLLISION_GRID_FACE_TRIANGLE_CORNERS] == WORLD_COLLISION_GRID_FACE_NO_VERTEX) ? WORLD_COLLISION_GRID_FACE_TRIANGLE_CORNERS : (s32)ARRAY_SIZE(scratch->corners);
 
-    gte_SetRotMatrix(&Gp_GridParams->viewCoord->workm);
+    gte_SetRotMatrix(&gWorldCollisionActiveGrid->viewCoord->workm);
     for (polygonIndex = 1; polygonIndex < cornerCount; polygonIndex++) {
-        gte_ldv0(&Gp_GridParams->vertices[face->vertexIndices[polygonIndex]]);
+        gte_ldv0(&gWorldCollisionActiveGrid->vertices[face->vertexIndices[polygonIndex]]);
         gte_rtv0();
         gte_stlvnl(&scratch->corners[polygonIndex]);
-        scratch->corners[polygonIndex].vx += Gp_GridParams->viewCoord->workm.t[0];
-        scratch->corners[polygonIndex].vy += Gp_GridParams->viewCoord->workm.t[1];
-        scratch->corners[polygonIndex].vz += Gp_GridParams->viewCoord->workm.t[2];
+        scratch->corners[polygonIndex].vx += gWorldCollisionActiveGrid->viewCoord->workm.t[0];
+        scratch->corners[polygonIndex].vy += gWorldCollisionActiveGrid->viewCoord->workm.t[1];
+        scratch->corners[polygonIndex].vz += gWorldCollisionActiveGrid->viewCoord->workm.t[2];
     }
 
     // Triangle and quad edge ranges share the corner-pair table.
@@ -1096,9 +1095,9 @@ s32 worldCollisionIntersectGridFace(s32 faceIndex, const VECTOR endpoints[2], SV
     for (polygonIndex = cornerCount - WORLD_COLLISION_GRID_FACE_TRIANGLE_CORNERS; polygonIndex < cornerCount * 2 - WORLD_COLLISION_GRID_FACE_TRIANGLE_CORNERS; polygonIndex++) {
         _worldCollisionBuildGridEdgePlaneNormal(scratch, polygonIndex);
 
-        edgePlaneOffset = (scratch->edgeWork.vx * scratch->corners[Gp_FaceEdgePairs[polygonIndex].endCornerIndex].vx +
-                           scratch->edgeWork.vy * scratch->corners[Gp_FaceEdgePairs[polygonIndex].endCornerIndex].vy +
-                           scratch->edgeWork.vz * scratch->corners[Gp_FaceEdgePairs[polygonIndex].endCornerIndex].vz) >>
+        edgePlaneOffset = (scratch->edgeWork.vx * scratch->corners[gWorldCollisionFaceEdges[polygonIndex].endCornerIndex].vx +
+                           scratch->edgeWork.vy * scratch->corners[gWorldCollisionFaceEdges[polygonIndex].endCornerIndex].vy +
+                           scratch->edgeWork.vz * scratch->corners[gWorldCollisionFaceEdges[polygonIndex].endCornerIndex].vz) >>
                           WORLD_COLLISION_GRID_FACE_FRACTION_BITS;
         edgeTolerance = WORLD_COLLISION_GRID_FACE_PROBE_EDGE_TOLERANCE;
         edgeDistance  = ((scratch->edgeWork.vx * directionAndHit[1].vx + scratch->edgeWork.vy * directionAndHit[1].vy + scratch->edgeWork.vz * directionAndHit[1].vz) >> WORLD_COLLISION_GRID_FACE_FRACTION_BITS) -

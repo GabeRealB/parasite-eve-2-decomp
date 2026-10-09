@@ -601,7 +601,7 @@ void shelterB6TrainingRoomReloadNursery(void)
 
 void shelterB6TrainingRoomStopBattlePresentation(void)
 {
-    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+    gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
     roomEffectRequestCancelAll();
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
 }

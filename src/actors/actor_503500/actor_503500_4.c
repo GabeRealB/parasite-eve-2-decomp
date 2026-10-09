@@ -5568,8 +5568,8 @@ static void _actor503500ArmApplyAttackContacts(Task* task, const WorldCollisionC
                 TASK_MESSAGE_DISPATCH_POINTER(playerTask, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_503500_801714E0[fallDirection], 0);
                 // The child copies this borrowed rotation on its first task update.
                 taskSpawnFromTable(&D_actor_503500_8017146C, 0, fallDirection, &work->knockbackRotation);
-                Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
-                audioPan           = (s8)worldCoordGetOriginAudioPan(playerCoord);
+                gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+                audioPan                = (s8)worldCoordGetOriginAudioPan(playerCoord);
                 sndEvtRequestScriptStart(SOUND_COMMON(ACTOR_503500_ARM_KNOCKBACK_SOUND), audioPan, (s8)(worldCoordGetOriginAudioDepth(playerCoord) / 2));
             }
         }

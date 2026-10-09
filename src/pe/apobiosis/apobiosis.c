@@ -174,7 +174,7 @@ void apobiosisCastTask(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if ((Gp_StateC08.effectPhase != ATTACHMENT_EFFECT_HELD) && (gRoomEffectState->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+    if ((gAttachmentState.effectPhase != ATTACHMENT_EFFECT_HELD) && (gRoomEffectState->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
         work->age = work->age + 1;
         switch (task->state) {
             case APOBIOSIS_CAST_STATE_INITIALIZE:
@@ -188,10 +188,10 @@ void apobiosisCastTask(Task* task)
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(coord);
                 pan = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(D_apobiosis_80130B74[(u16)(Gp_StateC08.attachId % APOBIOSIS_LEVEL_ID_RADIX) - 1], pan,
+                sndEvtRequestScriptStart(D_apobiosis_80130B74[(u16)(gAttachmentState.attachId % APOBIOSIS_LEVEL_ID_RADIX) - 1], pan,
                                          (s8)worldCoordGetOriginAudioDepth(coord));
                 task->state  = APOBIOSIS_CAST_STATE_RING;
-                work->index  = Gp_StateC08.attachId % APOBIOSIS_LEVEL_ID_RADIX - 1;
+                work->index  = gAttachmentState.attachId % APOBIOSIS_LEVEL_ID_RADIX - 1;
                 work->scale  = APOBIOSIS_CAST_INITIAL_RADIUS;
                 work->period = APOBIOSIS_CAST_UNUSED_PERIOD;
                 work->step   = APOBIOSIS_CAST_INITIAL_BRIGHTNESS;
@@ -204,7 +204,7 @@ void apobiosisCastTask(Task* task)
             case APOBIOSIS_CAST_STATE_RING:
                 actorRenderComposeCoord(coord);
                 if (work->age == APOBIOSIS_CAST_APPLY_STATS_AGE) {
-                    Gp_StateC08.flags |= ATTACHMENT_FLAG_APPLY_STATS;
+                    gAttachmentState.flags |= ATTACHMENT_FLAG_APPLY_STATS;
                 }
                 _apobiosisDrawScreenFlash(work->step);
                 rgb[0] = rgb[1] = work->step >> 2;
@@ -323,7 +323,7 @@ static void _apobiosisDrawScreenFlash(s16 brightness)
     quad           = gGpuPrimCursor;
     gGpuPrimCursor = quad + 1;
     setPolyF4(quad);
-    if ((u16)(Gp_StateC08.attachId % (u32)APOBIOSIS_LEVEL_ID_RADIX) - 1 == APOBIOSIS_LEVEL_THREE_ROW && (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & APOBIOSIS_ALT_COLOR_ROLL_MASK) == 0) {
+    if ((u16)(gAttachmentState.attachId % (u32)APOBIOSIS_LEVEL_ID_RADIX) - 1 == APOBIOSIS_LEVEL_THREE_ROW && (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & APOBIOSIS_ALT_COLOR_ROLL_MASK) == 0) {
         setRGB0(quad, brightness, brightness, brightness >> 1);
     } else {
         setRGB0(quad, brightness >> 1, brightness >> 1, brightness);
@@ -369,7 +369,7 @@ static inline void _apobiosisInitShardAppearance(EffectWork* work)
     work->pos.vz    = APOBIOSIS_SHARD_END_HALF_SPAN - ((gRandomLcgState >> 16) & (APOBIOSIS_SHARD_END_SPAN - 1));
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     work->angle     = (gRandomLcgState >> 16) & (APOBIOSIS_FULL_TURN - 1);
-    work->step      = Gp_StateC08.attachId % APOBIOSIS_LEVEL_ID_RADIX - 1;
+    work->step      = gAttachmentState.attachId % APOBIOSIS_LEVEL_ID_RADIX - 1;
 }
 
 void apobiosisShardTask(Task* task)
@@ -388,7 +388,7 @@ void apobiosisShardTask(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if ((Gp_StateC08.effectPhase != ATTACHMENT_EFFECT_HELD) && (gRoomEffectState->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+    if ((gAttachmentState.effectPhase != ATTACHMENT_EFFECT_HELD) && (gRoomEffectState->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
         work->age = work->age + 1;
         switch (task->state) {
             case APOBIOSIS_SHARD_INIT:
@@ -508,7 +508,7 @@ static void _apobiosisDrawShardSprite(const GfxCoord* coord, s16 textureFrame, s
         setSemiTrans(quad, 1);
         setShadeTex(quad, 1);
         quad->tpage = getTPage(0, GPU_BLEND_ADD, 640, 0);
-        if ((u16)(Gp_StateC08.attachId % APOBIOSIS_LEVEL_ID_RADIX) - 1 == APOBIOSIS_LEVEL_THREE_ROW) {
+        if ((u16)(gAttachmentState.attachId % APOBIOSIS_LEVEL_ID_RADIX) - 1 == APOBIOSIS_LEVEL_THREE_ROW) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if (((gRandomLcgState >> 16) & APOBIOSIS_ALT_COLOR_ROLL_MASK) == 0) {
                 quad->clut = getClut(144, 267);
@@ -606,7 +606,7 @@ static void _apobiosisDrawShardStrip(const GfxCoord* coord, const SVECTOR* endOf
             setSemiTrans(quad, 1);
             setShadeTex(quad, 1);
             quad->tpage = getTPage(0, GPU_BLEND_ADD, 512, 0);
-            if ((u16)(Gp_StateC08.attachId % (u32)APOBIOSIS_LEVEL_ID_RADIX) - 1 == APOBIOSIS_LEVEL_THREE_ROW &&
+            if ((u16)(gAttachmentState.attachId % (u32)APOBIOSIS_LEVEL_ID_RADIX) - 1 == APOBIOSIS_LEVEL_THREE_ROW &&
                 (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & APOBIOSIS_ALT_COLOR_ROLL_MASK) == 0) {
                 quad->clut = getClut(128, 267);
             } else {

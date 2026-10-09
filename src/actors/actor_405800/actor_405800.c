@@ -2416,7 +2416,7 @@ static void _actor405800TryStartPlayerHold(Task* task)
     work->shadowHeight = work->floorY;
     _stalkerZebraIvoryDisableCapsuleGrid(task);
     work->onCeiling                    = 0;
-    Gp_StateC08.flags                 |= ATTACHMENT_FLAG_EVENT_LOCK;
+    gAttachmentState.flags            |= ATTACHMENT_FLAG_EVENT_LOCK;
     work->holding                      = 1;
     work->leapY                        = work->floorY;
     holdAnimation.source.sets          = D_actor_405800_801513F8;

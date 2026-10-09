@@ -69,7 +69,7 @@ void worldCollisionCollideMotionSphereGrid(const WorldCollisionBody* body);
 
 /// Tests a directed segment against one active-grid triangle or quad.
 ///
-/// `faceIndex` is in [0, Gp_GridParams->faceCount); the grid, its valid mesh
+/// `faceIndex` is in [0, gWorldCollisionActiveGrid->faceCount); the grid, its valid mesh
 /// indices and its composed `viewCoord->workm` must be live. `endpoints` holds
 /// two query-space positions in game units. `directionAndHit[0]` is endpoint 0
 /// minus endpoint 1, normalized with 4096 per unit in the same frame. A hit
@@ -94,7 +94,13 @@ void worldCollisionCollideMotionSphereGrid(const WorldCollisionBody* body);
 /// and retains no pointers.
 s32 worldCollisionIntersectGridFace(s32 faceIndex, const VECTOR endpoints[2], SVECTOR directionAndHit[2], const WorldCollisionBody* bodyQuery);
 
-extern WorldCollisionTrigger* Gp_Obj4CList;
+/// First borrowed movement-qualified view-boundary trigger, or NULL.
+///
+/// Room/view setup links enabled quad records in insertion order. Scanning
+/// latches crossings from player bodies; consuming hits clears each latch and
+/// requests parameter1 only when parameter0 matches the current saved view.
+/// Owners keep records and their bound transforms alive until list teardown.
+extern WorldCollisionTrigger* gWorldCollisionViewBoundaryListHead;
 
 /// Records crossed floor faces in contact zero of a motion sphere.
 ///
@@ -202,26 +208,54 @@ void worldCollisionTestActionTriggerSphere(const WorldCollisionBody* body, World
 /// changes GTE state and retains no pointers.
 void worldCollisionTestViewBoundarySphere(const WorldCollisionBody* body, WorldCollisionTrigger* boundary, const VECTOR3* previousRootPosition);
 
-/// The nine list heads `Gp_ObjLists` points at. Each is a bare `WorldCollisionBody*`
-/// whose address is the first link. A node's `prev` points to the link that
-/// contains it, either this head or the preceding node's `next`.
-/// `worldCollisionUpdateTask` runs `worldCollisionCollideBodyListGrid` over lists
-/// 0..4, 7 and 8 and `worldCollisionCollideBodyLists` over the pairs that can interact.
-extern WorldCollisionBody* Gp_ObjList0;
+/// Borrowed player/companion body group, also scanned against room/view triggers.
+///
+/// Grid and intra-list tests run, plus pairs with enemy bodies, enemy attacks,
+/// props and blasts. NULL means empty. Owners retain every linked body until
+/// unlinking or area teardown; each prev link points at its head or prior next.
+extern WorldCollisionBody* gWorldCollisionPlayerBodyListHead;
 
-extern WorldCollisionBody* Gp_ObjList1;
+/// Borrowed player-attack group: grid tests and pairs with enemy bodies, props and slot 6.
+///
+/// Includes weapon attacks and PE projectiles. NULL means empty; body owners
+/// keep their records, transforms and contacts live until unlinking or teardown.
+extern WorldCollisionBody* gWorldCollisionPlayerAttackListHead;
 
-extern WorldCollisionBody* Gp_ObjList2;
+/// Borrowed enemy-body group, including shootable scenery and movement probes.
+///
+/// Grid and intra-list tests run, plus pairs with player bodies, player attacks,
+/// props and blasts. NULL means empty; records remain owned by their creators.
+extern WorldCollisionBody* gWorldCollisionEnemyBodyListHead;
 
-extern WorldCollisionBody* Gp_ObjList3;
+/// Borrowed enemy-attack group, including sight probes, tested against player bodies and props.
+///
+/// Grid tests also run. NULL means empty; each owner keeps its linked body,
+/// transform and contacts alive until unlinking or area teardown.
+extern WorldCollisionBody* gWorldCollisionEnemyAttackListHead;
 
-extern WorldCollisionBody* Gp_ObjList4;
+/// Borrowed prop-body group, with grid tests and pairs with bodies, attacks and blasts.
+///
+/// Both player and enemy groups participate. NULL means empty; records remain
+/// owned by their creators until unlinking or area teardown.
+extern WorldCollisionBody* gWorldCollisionPropListHead;
 
-extern WorldCollisionBody* Gp_ObjList6;
+/// Borrowed body-list slot 6, paired only with the player-attack group.
+///
+/// Has no grid pass or current insertion caller; its entity role is unproven.
+/// NULL means empty. Retained as a separate head for list-index selection.
+extern WorldCollisionBody* gWorldCollisionBodyList6Head;
 
-extern WorldCollisionBody* Gp_ObjList7;
+/// Borrowed grid-only group, receiving grid contacts without body-pair tests.
+///
+/// Used by projectile grid probes. NULL means empty; each owner keeps its body,
+/// transform and contacts live until unlinking or area teardown.
+extern WorldCollisionBody* gWorldCollisionGridOnlyListHead;
 
-extern WorldCollisionBody* Gp_ObjList8;
+/// Borrowed blast group, paired with player bodies, enemy bodies and props.
+///
+/// Grid tests also run. NULL means empty; records remain owned by their creators
+/// until unlinking or area teardown.
+extern WorldCollisionBody* gWorldCollisionBlastListHead;
 
 /// Drops all body, trigger and occluder list bindings and the active room grid.
 ///

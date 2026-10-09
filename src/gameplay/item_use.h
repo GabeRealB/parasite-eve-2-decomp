@@ -7,15 +7,9 @@
 #include "types.h"
 
 #include "gameplay/battle_reward.h"
-#include "collision.h"
-#include "gameplay/room.h"
 
 #include "main/mc_types.h"
 #include "main/task_types.h"
-
-/// Default ambient-light entry returned by `_worldCoordGetRoomAmbientEntry`
-/// when no view entry is available, and copied by `_worldCoordCopyDefaultRoomAmbient`.
-extern WorldCoordRoomAmbientEntry Gp_RoomBoundDefault;
 
 /// Default `MATRIX` installed at `TmdObject.lightMtx` by `_worldCoordInitPlayerLighting`.
 extern MATRIX Gp_DefaultMtx;
@@ -31,18 +25,6 @@ extern MATRIX D_80114ED8;
 
 extern MATRIX D_80114EF8;
 
-/// Flag set by `worldCoordSetAmbientColorOverride` when an override SVECTOR is stored at
-/// `Gp_OverrideVec`. Cleared when that function is called with NULL, and
-/// also by `_worldCoordInitPlayerLighting`.
-extern u8 Gp_OverrideVecFlag;
-
-/// Override SVECTOR copied by `worldCoordSetAmbientColorOverride` from its argument.
-extern SVECTOR Gp_OverrideVec;
-
-/// 8.8 fixed-point pair lerped toward projected screen coords by
-/// `worldTargetDrawOverlay`. Reset to `0xFFF00000` by `worldTargetResetAreaTracking`.
-extern s32 D_8010F9EC;
-
 extern s32 D_8010F9F0;
 
 /// Per-stage `InventoryBattleReward` lists selected by
@@ -56,10 +38,6 @@ extern InventoryBattleReward* D_8010F9F4[];
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode` is not 0 or 2. Indexed by
 /// `GameSession.location.loc.stage`.
 extern InventoryBattleReward* D_8010FA0C[];
-
-/// Face edge endpoint pairs walked by the grid collision helpers
-/// (`worldCollisionCollideSphereGrid` / `worldCollisionCollideMotionSphereGrid` / `worldCollisionIntersectGridFace` / `worldCollisionTestOccluderSegment`).
-extern WorldCollisionFaceEdge Gp_FaceEdgePairs[5];
 
 extern const char D_8009745C[];
 

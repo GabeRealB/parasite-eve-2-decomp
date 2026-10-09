@@ -203,7 +203,7 @@ STATIC_ASSERT_SIZEOF(_AcropolisSanctuaryFlameGrey, 3);
 
 /// `gPlayerStatus.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
-/// `gDisplayState.pendingMode` and `Gp_StateC08.mode` gate the cutscene task's setup (the latter is 1 while the attachment wheel is open) and `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` picks which of the two
+/// `gDisplayState.pendingMode` and `gAttachmentState.mode` gate the cutscene task's setup (the latter is 1 while the attachment wheel is open) and `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` picks which of the two
 /// weapon-id bases that record uses. `gDisplayState.spriteVariant` is set to 1 alongside the
 /// save writes when the task hands off to task 0x11, the same way the fountain
 /// and helicopter-pad rooms set it.
@@ -2127,7 +2127,7 @@ static void _acropolisSanctuaryCutsceneTask(Task* task)
 
     switch (task->state) {
         case ACROPOLIS_SANCTUARY_CUTSCENE_INITIAL:
-            if (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
+            if (gAttachmentState.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 allocatedWork = memCalloc(sizeof(*allocatedWork), 0);
                 task->work    = allocatedWork;
                 if (allocatedWork == NULL) {

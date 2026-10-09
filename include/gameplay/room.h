@@ -15,7 +15,7 @@ struct WorldCollisionTrigger;
 /// RGB levels use 16 units per 8-bit colour level, matching the GTE back colour.
 /// Lighting clamps the model colour matrix's ambient term to these minima.
 /// The room overlay owns the table, referenced by `WorldCoordRoomLighting.ambientTable`;
-/// a missing table or view beyond its count uses `Gp_RoomBoundDefault`.
+/// a missing table or view beyond its count uses `gWorldCoordDefaultRoomAmbientEntry`.
 typedef union {
     struct {
         s16 r;     // Minimum red ambient level.
@@ -55,7 +55,7 @@ STATIC_ASSERT_SIZEOF(WorldCoordRoomLights, 0x18);
 /// each containing table determines its own extent. Ambient lookups require a
 /// 1-based view: entry zero holds `viewCount`, followed by colours at entries
 /// 1..viewCount. A missing record/table or a view beyond that count uses
-/// `Gp_RoomBoundDefault`.
+/// `gWorldCoordDefaultRoomAmbientEntry`.
 ///
 /// The collection and ambient table are borrowed from the loaded room overlay.
 /// Room scripts may replace `lights`; its light arrays remain writable for
@@ -110,7 +110,7 @@ enum {
     /// Enables displacement calculation from this surface class's grid contacts.
     ///
     /// Stored in `WorldCollisionSurfaceProperties.suppressPushback` and cached
-    /// by surface class (0..7) in `Gp_RoomParams`. Ordinary, floor and edge
+    /// by surface class (0..7) in `gWorldCollisionSurfacePushbackSuppression`. Ordinary, floor and edge
     /// responses honor this zero value. Suppressed contacts still appear in
     /// surface masks and count as hits.
     WORLD_COLLISION_SURFACE_APPLY_PUSHBACK    = 0,
@@ -142,7 +142,7 @@ STATIC_ASSERT_SIZEOF(WorldCollisionFootstepSounds, 12);
 /// area - 1, then surface class (0..7). Grid faces and grid-contact keys carry
 /// that class; actors retain it for footstep cues. Records and their sound
 /// tables remain borrowed only while the room overlay is loaded.
-/// `suppressPushback` is also cached in `Gp_RoomParams` for collision response.
+/// `suppressPushback` is also cached in `gWorldCollisionSurfacePushbackSuppression` for collision response.
 typedef struct {
     u8                                  field_0;             // Stored as 0 or 1; no reader established, role unproven.
     u8                                  probePassThrough;    // Probe/projectile passage (0 blocks, 1 passes).

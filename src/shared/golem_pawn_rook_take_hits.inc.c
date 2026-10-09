@@ -329,7 +329,7 @@ static void _golemPawnRookTakeHits(Task* actor)
                 if (deepestPush < overlapDepth) {
                     deepestPush = overlapDepth;
                     VectorNormal(&scratch->delta.vector, &scratch->normal);
-                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, &scratch->pushDirection);
+                    ApplyTransposeMatrixLV(&gWorldCollisionActiveGrid->viewCoord->workm, &scratch->normal, &scratch->pushDirection);
                 }
                 break;
         }

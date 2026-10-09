@@ -1876,7 +1876,7 @@ void actor215100CheckGalleryExitInput(void)
                 D_actor_215100_8014D03C = 0;
             }
             // Rearm the interaction only after the attachment action has settled.
-            if ((u32)((u8)Gp_StateC08.mode - ATTACHMENT_MODE_ARMED) < 2U) {
+            if ((u32)((u8)gAttachmentState.mode - ATTACHMENT_MODE_ARMED) < 2U) {
                 D_actor_215100_8014D044 = ACTOR_215100_GALLERY_EXIT_INPUT_COOLDOWN_TICKS;
             }
             if (D_actor_215100_8014D044 != 0) {
@@ -1887,7 +1887,7 @@ void actor215100CheckGalleryExitInput(void)
                 (D_80115768 == 0) && (rootCoord->coord.t[0] < ACTOR_215100_GALLERY_EXIT_ZONE_MAX_X)) {
                 rootZ = rootCoord->coord.t[2];
                 if (rootZ < ACTOR_215100_GALLERY_EXIT_ZONE_END_Z) {
-                    if ((rootZ >= ACTOR_215100_GALLERY_EXIT_ZONE_MIN_Z) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
+                    if ((rootZ >= ACTOR_215100_GALLERY_EXIT_ZONE_MIN_Z) && (gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                         yaw = (u16)player->rotation.vy & ACTOR_215100_GALLERY_YAW_MASK;
                         if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_UP) != 0) {
                             if ((u32)(yaw - ACTOR_215100_GALLERY_EXIT_UP_YAW_START) < (u32)ACTOR_215100_GALLERY_EXIT_YAW_WINDOW) {
@@ -1939,7 +1939,7 @@ void actor215100GalleryExitDecisionTask(Task* task)
                 break;
             }
             if (D_actor_215100_8015E670 == ACTOR_215100_GALLERY_FIRST_FREE_MOVEMENT_COURSE) {
-                Gp_StateC08.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
+                gAttachmentState.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
             }
             D_actor_215100_8014D038 = 0;
             mistShootingGallerySetTrainingBarrierLowered(1);
@@ -2008,7 +2008,7 @@ void actor215100GalleryAbortDecisionTask(Task* task)
             player->movementInputDisabled = 0;
             D_actor_215100_8014D038       = 0;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-            Gp_StateC08.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
+            gAttachmentState.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
             if (gDisplayState.holdCount != 0) {
                 displayReleaseMenuHold();
             }
@@ -2028,7 +2028,7 @@ void actor215100FinishGalleryCourse(void)
         D_actor_215100_8014D03C = 1;
     }
     if (D_actor_215100_8015E670 < ACTOR_215100_GALLERY_FIRST_SWAP_COURSE) {
-        Gp_StateC08.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
+        gAttachmentState.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
     }
     sndEvtRequestMidiStop(0, ACTOR_215100_GALLERY_MUSIC_FADE_AUDIO_TICKS);
 }

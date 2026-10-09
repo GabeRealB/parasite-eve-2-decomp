@@ -81,7 +81,7 @@ static inline s32 _attachmentCurrentAttackKey(void)
     u16 attachmentId;
     s32 attackKey;
 
-    attachmentId = Gp_StateC08.attachId;
+    attachmentId = gAttachmentState.attachId;
     attackKey    = (attachmentId / 100U - 1) * 9;
     attackKey   += ((attachmentId % 100U) / 10U - 1) * 3;
     attackKey   += attachmentId % 10U;

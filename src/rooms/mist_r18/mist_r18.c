@@ -1219,7 +1219,7 @@ static void _mistR18AdvanceBriefingState(Task* unusedTask)
     s32 briefingStep;
 
     // Event completion and menu teardown must finish before another script starts.
-    if ((gGameSession->eventState == MIST_R18_EVENT_IDLE) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
+    if ((gGameSession->eventState == MIST_R18_EVENT_IDLE) && (gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
         briefingStep = D_mist_r18_80186E9C;
         if (briefingStep == MIST_R18_BRIEFING_PLACE_PROP) {
             _mistR18StartSkippableBriefingStep(D_mist_r18_80185EBC, D_mist_r18_80186564, MIST_R18_BRIEFING_FIRST_HELD_MODEL);

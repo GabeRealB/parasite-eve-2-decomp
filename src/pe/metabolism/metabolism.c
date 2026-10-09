@@ -147,7 +147,7 @@ void metabolismCastTask(Task* task)
 
     effect = task->spawnArg2.pointer;
     coord  = task->extra.coordBody->coord;
-    if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+    if ((gAttachmentState.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
         effectKillTask(effect, task);
         return;
     }
@@ -163,11 +163,11 @@ void metabolismCastTask(Task* task)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
             task->state   = METABOLISM_STATE_GROWING;
-            effect->index = (Gp_StateC08.attachId % 10) - 1;
+            effect->index = (gAttachmentState.attachId % 10) - 1;
             effect->angle = METABOLISM_INITIAL_RADIUS;
             METABOLISM_SEED_FAN_BEARINGS(effect->index, particleIndex);
-            Gp_StateC08.flags |= ATTACHMENT_FLAG_APPLY_STATS;
-            pan                = (s8)worldCoordGetOriginAudioPan(coord);
+            gAttachmentState.flags |= ATTACHMENT_FLAG_APPLY_STATS;
+            pan                     = (s8)worldCoordGetOriginAudioPan(coord);
             sndEvtRequestScriptStart(D_metabolism_8012FB6C[effect->index], pan,
                                      (s8)worldCoordGetOriginAudioDepth(coord));
             /* fallthrough */
@@ -282,7 +282,7 @@ void metabolismSparkleTask(Task* task)
             work->move.vz = 0;
             work->angle   = task->spawnArg1.value & METABOLISM_SPARKLE_SIZE_MASK;
             // Only PE level 3 can select the fading variant; lower levels skip that random draw.
-            peLevel = Gp_StateC08.attachId % 10U;
+            peLevel = gAttachmentState.attachId % 10U;
             if (peLevel - 1 < METABOLISM_SPARKLE_ALWAYS_SPIN_LEVELS ||
                 (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT,
                  variantRoll     = (gRandomLcgState >> 16) % (u32)METABOLISM_SPARKLE_FADING_ROLL_COUNT, variantRoll != 0)) {

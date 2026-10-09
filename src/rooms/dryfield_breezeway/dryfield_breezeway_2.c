@@ -584,7 +584,7 @@ static void _dryfieldBreezewayFirstEventTask(Task* task)
 
     switch (task->state) {
         case DRYFIELD_BREEZEWAY_FIRST_EVENT_TASK_WAIT_TO_START:
-            if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
+            if (gAttachmentState.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
             // Bind the actors before scripts can send their staging requests.

@@ -1494,7 +1494,7 @@ static inline void _roomEffectClearCancelledPeStatus(void)
 {
     AttachmentState* attachment;
 
-    attachment                  = &Gp_StateC08;
+    attachment                  = &gAttachmentState;
     attachment->antibodyTicks   = 0;
     attachment->antibodyCombo   = 0;
     attachment->energyShotTicks = 0;

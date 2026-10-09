@@ -626,7 +626,7 @@ static s32 _actor342100UpdateBlazeScene(Task* controller)
         case ACTOR_342100_BLAZE_SCENE_START:
             _actor342100CopyBlazeAnimationSets(controller);
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+            gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
             evsStartScript(D_actor_342100_801649C8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
             work->fadeTask   = taskSpawnFromTable(D_actor_342100_80164B78, ACTOR_342100_BLAZE_FADE_DESCRIPTOR, 0, controller);
@@ -692,12 +692,12 @@ static void _actor342100EncounterBlazeControllerTask(Task* task)
     PlayerStatus*          playerStatus;
 
     entryWork = task->work;
-    if (gGameSession->sceneUpdatesPaused != 0 || Gp_StateC08.menuOpen != ATTACHMENT_MENU_CLOSED || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING || D_80114CF8 != 0) {
+    if (gGameSession->sceneUpdatesPaused != 0 || gAttachmentState.menuOpen != ATTACHMENT_MENU_CLOSED || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING || D_80114CF8 != 0) {
         return;
     }
     switch (task->state) {
         case ACTOR_342100_CONTROLLER_INITIALIZE:
-            if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
+            if (gAttachmentState.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 break;
             }
             _actor342100InitializeBlazeController(task);

@@ -1307,7 +1307,7 @@ static void _actor207200CreepingStrangerScanContacts(Task* task)
                 scratch->delta.vector.vz = rootCoord->workm.t[2] - work->bodyContacts[contactIndex].point.vz;
                 // Rotate the normalized separation into the grid's room-axis frame.
                 VectorNormal(&scratch->delta.vector, &scratch->normal);
-                ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, &scratch->delta.vector);
+                ApplyTransposeMatrixLV(&gWorldCollisionActiveGrid->viewCoord->workm, &scratch->normal, &scratch->delta.vector);
                 if (work->animId == ACTOR_207200_ANIM_CRAWL) {
                     rootCoord->coord.t[0] += (contactMagnitude * scratch->delta.vector.vx) >> ACTOR_207200_CREEPING_STRANGER_BASIS_FRACTION_BITS;
                     contactValue           = contactMagnitude * scratch->delta.vector.vy;

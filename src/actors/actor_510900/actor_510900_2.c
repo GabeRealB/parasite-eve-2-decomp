@@ -487,27 +487,27 @@ STATIC_ASSERT_SIZEOF(_Actor510900LapStrip, 0x8);
 extern _Actor510900LapStrip D_actor_510900_80167BA4[4];
 
 /// The three face normals `actor510900RestoreGridFaces` copies into
-/// `Gp_GridParams->normals`, restoring the collision grid this actor edited.
+/// `gWorldCollisionActiveGrid->normals`, restoring the collision grid this actor edited.
 static SVECTOR _gActor510900Collision35DA4[3];
 
 /// The twelve face corners `actor510900RestoreGridFaces` copies into
-/// `Gp_GridParams->vertices`.
+/// `gWorldCollisionActiveGrid->vertices`.
 static SVECTOR _gActor510900Collision35DBC[12];
 
 /// The three `WorldCollisionGridFace` records `actor510900RestoreGridFaces` copies into
-/// `Gp_GridParams->faces`.
+/// `gWorldCollisionActiveGrid->faces`.
 static WorldCollisionGridFace _gActor510900Collision35E1C[3];
 
 /// The extra face normal `actor510900SetExtraGridFace` installs as
-/// `Gp_GridParams->normals[3]` while the actor's own face is in the grid.
+/// `gWorldCollisionActiveGrid->normals[3]` while the actor's own face is in the grid.
 extern SVECTOR D_actor_510900_80167C60[1];
 
 /// The four face corners that face uses, copied into
-/// `Gp_GridParams->vertices[12..15]`.
+/// `gWorldCollisionActiveGrid->vertices[12..15]`.
 extern SVECTOR D_actor_510900_80167C68[4];
 
 /// The `WorldCollisionGridFace` record for that face, copied into
-/// `Gp_GridParams->faces[3]`.
+/// `gWorldCollisionActiveGrid->faces[3]`.
 extern WorldCollisionGridFace D_actor_510900_80167C88[1];
 
 static s32  _actor510900TrySelectAttack(Task* task);
@@ -2545,8 +2545,8 @@ static void _actor510900TickDeath(Task* task)
         audioPan = (s8)worldCoordGetOriginAudioPan(bodyCoord);
         sndEvtRequestScriptStart(soundKey, audioPan, (s8)worldCoordGetOriginAudioDepth(bodyCoord));
     }
-    Gp_StateC08.flags &= ATTACHMENT_FLAG_EVENT_LOCK;
-    work->present      = 0;
+    gAttachmentState.flags &= ATTACHMENT_FLAG_EVENT_LOCK;
+    work->present           = 0;
 }
 
 /// Updates the player's lap side and the horizontal ranges used by combat.
@@ -2814,8 +2814,8 @@ static void _actor510900UpdateGridFaces(Task* task)
 
     scratch   = SCRATCH_STACK_RESERVE_BLOCK(_Actor510900GridFacesScratch);
     bodyCoord = task->extra.tmd->coords;
-    normals   = Gp_GridParams->normals;
-    vertices  = Gp_GridParams->vertices;
+    normals   = gWorldCollisionActiveGrid->normals;
+    vertices  = gWorldCollisionActiveGrid->vertices;
 
     scratch->origin.vx = ACTOR_510900_GRID_ORIGIN_OFFSET_X;
     scratch->origin.vy = 0;
@@ -2963,9 +2963,9 @@ static s32 _actor510900SetActivation(Task* task, s32 messageId, s32 command, s32
             enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
 
             // Restore the moving faces before clearing the additional face.
-            normals  = Gp_GridParams->normals;
-            vertices = Gp_GridParams->vertices;
-            faces    = Gp_GridParams->faces;
+            normals  = gWorldCollisionActiveGrid->normals;
+            vertices = gWorldCollisionActiveGrid->vertices;
+            faces    = gWorldCollisionActiveGrid->faces;
             for (vectorIndex = 0; vectorIndex < ARRAY_SIZE(_gActor510900Collision35DBC); vectorIndex++) {
                 vertices[vectorIndex] = _gActor510900Collision35DBC[vectorIndex];
             }
@@ -2975,9 +2975,9 @@ static s32 _actor510900SetActivation(Task* task, s32 messageId, s32 command, s32
             }
 
             do {
-                vector = Gp_GridParams->normals;
+                vector = gWorldCollisionActiveGrid->normals;
             } while (0);
-            extraVertices                                      = Gp_GridParams->vertices;
+            extraVertices                                      = gWorldCollisionActiveGrid->vertices;
             vector[ARRAY_SIZE(_gActor510900Collision35DA4)].vx = 0;
             vector[ARRAY_SIZE(_gActor510900Collision35DA4)].vy = 0;
             vector[ARRAY_SIZE(_gActor510900Collision35DA4)].vz = 0;
@@ -3964,9 +3964,9 @@ static void _actor510900BodyTask(Task* task)
 void actor510900SetExtraGridFace(s32 enabled)
 {
     s32                     vertexIndex;
-    SVECTOR*                normals  = Gp_GridParams->normals;
-    SVECTOR*                vertices = Gp_GridParams->vertices;
-    WorldCollisionGridFace* faces    = Gp_GridParams->faces;
+    SVECTOR*                normals  = gWorldCollisionActiveGrid->normals;
+    SVECTOR*                vertices = gWorldCollisionActiveGrid->vertices;
+    WorldCollisionGridFace* faces    = gWorldCollisionActiveGrid->faces;
 
     if (enabled == true) {
         for (vertexIndex = 0; vertexIndex < ARRAY_SIZE(D_actor_510900_80167C68); vertexIndex++) {
@@ -3989,9 +3989,9 @@ void actor510900SetExtraGridFace(s32 enabled)
 void actor510900RestoreGridFaces(Task* unusedTask)
 {
     s32                     elementIndex;
-    SVECTOR*                normals  = Gp_GridParams->normals;
-    SVECTOR*                vertices = Gp_GridParams->vertices;
-    WorldCollisionGridFace* faces    = Gp_GridParams->faces;
+    SVECTOR*                normals  = gWorldCollisionActiveGrid->normals;
+    SVECTOR*                vertices = gWorldCollisionActiveGrid->vertices;
+    WorldCollisionGridFace* faces    = gWorldCollisionActiveGrid->faces;
 
     for (elementIndex = 0; elementIndex < ARRAY_SIZE(_gActor510900Collision35DBC); elementIndex++) {
         vertices[elementIndex] = _gActor510900Collision35DBC[elementIndex];

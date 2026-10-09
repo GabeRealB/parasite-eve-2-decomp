@@ -917,7 +917,7 @@ static void _actor02500ResolveContacts(Task* actor)
     if (maxOverlap < overlap) {                                                                                                       \
         maxOverlap = overlap;                                                                                                         \
         VectorNormal(&scratch->delta.vector, separationNormal);                                                                       \
-        ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, separationNormal, &scratch->pushDirection);                          \
+        ApplyTransposeMatrixLV(&gWorldCollisionActiveGrid->viewCoord->workm, separationNormal, &scratch->pushDirection);              \
     }
 
     maxOverlap       = 0;

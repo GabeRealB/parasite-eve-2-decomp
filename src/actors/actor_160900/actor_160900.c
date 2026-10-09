@@ -2078,7 +2078,7 @@ static void _actor160900CutsceneTask(Task* task)
 
     switch (task->state) {
         case ACTOR_160900_CUTSCENE_INITIALIZE:
-            if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
+            if (gAttachmentState.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
             work       = memMalloc(sizeof(*work), false);

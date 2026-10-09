@@ -316,7 +316,7 @@ MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
 /// Main-executable globals with no module header yet. The death handler withholds
-/// message 0x13F4 while the attachment wheel is open (`Gp_StateC08.mode`) or
+/// message 0x13F4 while the attachment wheel is open (`gAttachmentState.mode`) or
 /// `gDisplayState.pendingMode` is live.
 
 /// The run of HP caps at 0x8014139C; `_actor105100ApplyPartnerHealing` reads the
@@ -1248,8 +1248,8 @@ static void _actor105100TakeHits(Task* task)
     // Occupied touch entries are consumed even when they do not start knockback.
     if (work->touchContacts[0].flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
         if ((work->touchContacts[0].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY && gPlayerStatus.hp > 0) {
-            work->knockbackActive = 1;
-            Gp_StateC08.flags    |= ATTACHMENT_FLAG_EVENT_LOCK;
+            work->knockbackActive   = 1;
+            gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
         }
         worldCollisionClearContacts(work->touchContacts);
     }
@@ -2033,7 +2033,7 @@ static void _actor105100Death(Enemy* enemy, Task* task)
             return;
         case ACTOR_105100_DEATH_ANIMATION:
             deathEventPending = work->deathEventPending;
-            if ((deathEventPending == 1) && (((GameActor*)playerTask->work)->mode != GAME_ACTOR_MODE_SCRIPTED) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) &&
+            if ((deathEventPending == 1) && (((GameActor*)playerTask->work)->mode != GAME_ACTOR_MODE_SCRIPTED) && (gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) &&
                 (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
                 work->deathEventPending = 0;

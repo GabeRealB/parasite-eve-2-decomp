@@ -153,7 +153,7 @@ extern EvsCommand D_actor_303600_80162AF0[];
 extern EvsCommand D_actor_303600_80162DD8[];
 
 /// Main-executable globals with no module header yet: the attachment wheel being open
-/// (`Gp_StateC08.mode`) or a live `gDisplayState.pendingMode` holds the scene, and `gDisplayState.spriteVariant` is the
+/// (`gAttachmentState.mode`) or a live `gDisplayState.pendingMode` holds the scene, and `gDisplayState.spriteVariant` is the
 /// latch state 2 below sets alongside `gMcSaveData`.
 
 static void _actor303600KillShaft(Task* task);
@@ -566,7 +566,7 @@ static void _actor303600CutsceneTask(Task* task)
 
     switch (task->state) {
         case ACTOR_303600_SCENE_INITIALIZE:
-            if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
+            if (gAttachmentState.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
             _actor303600InitializeCutscene(task);
@@ -771,7 +771,7 @@ static void _actor303600PostCutsceneCue(s16 cue)
 static void _actor303600LockCutsceneControls(void)
 {
     roomEffectRequestCancelPe();
-    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+    gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
 /// Stages the selected cutscene's deferred audio-start request.

@@ -224,7 +224,7 @@ static __inline__ s32 _actorContactFindAttack(SVECTOR* contactPointOut, const Wo
 /// view basis. Translation is ignored; basis scale is retained. Dropping the
 /// resulting Y component can make the horizontal push shorter than the depth.
 ///
-/// Requires live inputs, writable output XYZ and an active `Gp_GridParams` with
+/// Requires live inputs, writable output XYZ and an active `gWorldCollisionActiveGrid` with
 /// an initialized `viewCoord->workm`. Coordinate differences must fit the SDK's
 /// signed-halfword normalization inputs, and intermediate sums/products must fit
 /// signed 32 bits; no range checks are made. X/Z products are shifted right by
@@ -252,7 +252,7 @@ static __inline__ void _actorContactCalcHorizontalPushback(const SVECTOR* positi
     delta.vy = position->vy - contact->point.vy;
     delta.vz = position->vz - contact->point.vz;
     VectorNormal(&delta, &normalizedDirection);
-    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &normalizedDirection, &delta);
+    ApplyTransposeMatrixLV(&gWorldCollisionActiveGrid->viewCoord->workm, &normalizedDirection, &delta);
     pushDelta->vx = (penetrationDepth * delta.vx) >> ACTOR_CONTACT_DIRECTION_FRACTION_BITS;
     pushDelta->vy = 0;
     pushDelta->vz = (penetrationDepth * delta.vz) >> ACTOR_CONTACT_DIRECTION_FRACTION_BITS;

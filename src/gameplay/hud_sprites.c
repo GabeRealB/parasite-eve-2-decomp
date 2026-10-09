@@ -972,7 +972,7 @@ void hudReset(HudState* hud)
     displayedVitals->mp                   = player->mp;
     hud->radarRangeIcon                   = HUD_RADAR_RANGE_NONE;
     hud->radarRange                       = 0;
-    attachment                            = &Gp_StateC08;
+    attachment                            = &gAttachmentState;
     attachment->antibodyTicks             = 0;
     attachment->antibodyCombo             = 0;
     attachment->energyShotTicks           = 0;
@@ -1037,8 +1037,8 @@ void playClockStartDeathFade(Task* task)
         task->killCountdown = 0;
         // The expired delay becomes the completion latch used by later phases.
         playClockAdvanceDeathSound(&task->killCountdown);
-        session                 = gGameSession;
-        Gp_StateC08.effectPhase = ATTACHMENT_EFFECT_IDLE;
+        session                      = gGameSession;
+        gAttachmentState.effectPhase = ATTACHMENT_EFFECT_IDLE;
         if (session->restartMode != GAME_SESSION_RESTART_PRESERVE_DISPLAY) {
             _playClockQueueDeathFade(session);
         }
@@ -1303,8 +1303,8 @@ static s32 _attachmentIsBattleSoundLoadReady(void)
 
 void attachmentQueueIndex(s32 abilityIndex)
 {
-    if (!(Gp_StateC08.flags & ATTACHMENT_FLAG_EVENT_LOCK)) {
-        Gp_StateC08.queuedIndex = abilityIndex;
+    if (!(gAttachmentState.flags & ATTACHMENT_FLAG_EVENT_LOCK)) {
+        gAttachmentState.queuedIndex = abilityIndex;
     }
 }
 
@@ -1316,7 +1316,7 @@ void attachmentCancel(void)
 
     // Return CD positioning and actor updates to ordinary play before the next HUD tick.
     cdCmdEnqueueDisplayResource(0, 0, CD_COMMAND_DISPLAY_LOAD_SEEK_CURRENT_VIEW);
-    attachment = &Gp_StateC08;
+    attachment = &gAttachmentState;
     if (attachment->mode >= ATTACHMENT_MODE_ARMED) {
         attachment->effectPhase = ATTACHMENT_EFFECT_CANCELLED;
     }
@@ -1366,7 +1366,7 @@ static s32 _hudCanSwitchCategory(s32 ignoreSwapLock)
         }
     }
     if (ignoreSwapLock == 0) {
-        if (Gp_StateC08.flags & ATTACHMENT_FLAG_SWAP_LOCK) {
+        if (gAttachmentState.flags & ATTACHMENT_FLAG_SWAP_LOCK) {
             eligible = 0;
         }
     }

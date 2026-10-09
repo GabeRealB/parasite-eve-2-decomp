@@ -186,7 +186,7 @@ void pyrokinesisCastTask(Task* task)
     pointLight  = &lightSlot->light;
     switch (task->state) {
         case PYROKINESIS_STATE_INITIALIZE:
-            if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+            if ((gAttachmentState.effectPhase == ATTACHMENT_EFFECT_HELD) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                 effectKillTask(effect, task);
                 return;
             }
@@ -206,7 +206,7 @@ void pyrokinesisCastTask(Task* task)
             actorRenderComposeCoord(coord);
             effect->move.vx = 0;
             effect->move.vy = 0;
-            effect->move.vz = (Gp_StateC08.attachId % 10) * PYROKINESIS_SPEED_PER_LEVEL + PYROKINESIS_SPEED_BASE;
+            effect->move.vz = (gAttachmentState.attachId % 10) * PYROKINESIS_SPEED_PER_LEVEL + PYROKINESIS_SPEED_BASE;
             gte_SetRotMatrix(&playerCoord->coord);
             gte_ldv0(&effect->move);
             gte_rtv0();
@@ -219,7 +219,7 @@ void pyrokinesisCastTask(Task* task)
             effect->angle   = PYROKINESIS_LAUNCH_RADIUS;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             effect->period  = (gRandomLcgState >> 16) & PYROKINESIS_ANGLE_MASK;
-            effect->index   = (Gp_StateC08.attachId % 10) - 1;
+            effect->index   = (gAttachmentState.attachId % 10) - 1;
             pan             = (s8)worldCoordGetOriginAudioPan(coord);
             sndEvtRequestScriptStart(D_pyrokinesis_80131DD8[effect->index * 3 + task->spawnArg1.value], pan,
                                      (s8)worldCoordGetOriginAudioDepth(coord));
@@ -233,9 +233,9 @@ void pyrokinesisCastTask(Task* task)
             task->work                             = collision;
             collision->damageBody.coord            = coord;
             collision->damageBody.context.contacts = collision->contacts;
-            collision->damageBody.key              = ((u16)(Gp_StateC08.attachId / 100) - 1) * 9 +
-                                        ((u16)((u16)(Gp_StateC08.attachId % 100) / 10) - 1) * 3 +
-                                        (u16)(Gp_StateC08.attachId % 10) + PYROKINESIS_SPELL_DAMAGE_KEY_BASE;
+            collision->damageBody.key              = ((u16)(gAttachmentState.attachId / 100) - 1) * 9 +
+                                        ((u16)((u16)(gAttachmentState.attachId % 100) / 10) - 1) * 3 +
+                                        (u16)(gAttachmentState.attachId % 10) + PYROKINESIS_SPELL_DAMAGE_KEY_BASE;
             collision->damageBody.radius = effect->angle;
             collision->damageBody.flags  = WORLD_COLLISION_BODY_SPHERE;
             worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &collision->damageBody);
@@ -281,7 +281,7 @@ void pyrokinesisCastTask(Task* task)
             worldCollisionClearContacts(collision->contacts);
             return;
         case PYROKINESIS_STATE_TRAVELLING:
-            if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+            if ((gAttachmentState.effectPhase == ATTACHMENT_EFFECT_HELD) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                 worldCollisionUnlinkBody(&collision->damageBody);
                 worldCollisionUnlinkBody(&collision->gridBody);
                 effectKillTask(effect, task);
@@ -361,7 +361,7 @@ void pyrokinesisCastTask(Task* task)
             return;
         case PYROKINESIS_STATE_SHRINKING:
             // The grid probe is gone; the remaining damage sphere shrinks in place.
-            if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+            if ((gAttachmentState.effectPhase == ATTACHMENT_EFFECT_HELD) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                 worldCollisionUnlinkBody(&collision->damageBody);
                 effectKillTask(effect, task);
                 return;
@@ -405,7 +405,7 @@ void pyrokinesisCastTask(Task* task)
             worldCollisionClearContacts(collision->contacts);
             return;
         case PYROKINESIS_STATE_BURSTING:
-            if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+            if ((gAttachmentState.effectPhase == ATTACHMENT_EFFECT_HELD) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                 worldCollisionUnlinkBody(&collision->gridBody);
                 effectKillTask(effect, task);
                 return;
@@ -428,7 +428,7 @@ void pyrokinesisCastTask(Task* task)
             return;
         case PYROKINESIS_STATE_BURST_THEN_FADE:
             // Radius keeps expanding after its limit while this variant fades intensity.
-            if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+            if ((gAttachmentState.effectPhase == ATTACHMENT_EFFECT_HELD) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                 worldCollisionUnlinkBody(&collision->gridBody);
                 effectKillTask(effect, task);
                 return;
@@ -472,7 +472,7 @@ void pyrokinesisVolleyTask(Task* task)
 
     effect = task->spawnArg2.pointer;
     coord  = task->extra.coordBody->coord;
-    if (Gp_StateC08.effectPhase != ATTACHMENT_EFFECT_HELD) {
+    if (gAttachmentState.effectPhase != ATTACHMENT_EFFECT_HELD) {
         battleState = gRoomEffectState->battleState;
         if (battleState == ROOM_EFFECT_BATTLE_ENGAGED) {
             peEffectControl = gRoomEffectState->peEffectControl;
@@ -649,7 +649,7 @@ void pyrokinesisFlamePuffTask(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_StateC08.effectPhase != ATTACHMENT_EFFECT_HELD) {
+    if (gAttachmentState.effectPhase != ATTACHMENT_EFFECT_HELD) {
         peEffectControl = gRoomEffectState->peEffectControl;
         if (peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             if (peEffectControl != ROOM_EFFECT_CONTROL_RUNNING) {
@@ -705,7 +705,7 @@ void pyrokinesisFlameRingTask(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_StateC08.effectPhase != ATTACHMENT_EFFECT_HELD) {
+    if (gAttachmentState.effectPhase != ATTACHMENT_EFFECT_HELD) {
         peEffectControl = gRoomEffectState->peEffectControl;
         if (peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             if (peEffectControl != ROOM_EFFECT_CONTROL_RUNNING) {
@@ -756,7 +756,7 @@ void pyrokinesisLaunchConeTask(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (Gp_StateC08.effectPhase != ATTACHMENT_EFFECT_HELD) {
+    if (gAttachmentState.effectPhase != ATTACHMENT_EFFECT_HELD) {
         peEffectControl = gRoomEffectState->peEffectControl;
         if (peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             if (peEffectControl != ROOM_EFFECT_CONTROL_RUNNING) {

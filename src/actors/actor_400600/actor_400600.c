@@ -2841,7 +2841,7 @@ static void _actor400600StartGrabHold(Task* task)
     work->shadowHeight = work->floorY;
     _stalkerZebraIvoryDisableCapsuleGrid(task);
     work->onCeiling                      = 0;
-    Gp_StateC08.flags                   |= ATTACHMENT_FLAG_EVENT_LOCK;
+    gAttachmentState.flags              |= ATTACHMENT_FLAG_EVENT_LOCK;
     work->holding                        = 1;
     work->leapY                          = work->floorY;
     playerAnimation.source.sets          = D_actor_400600_80151A48;
@@ -6792,7 +6792,7 @@ static void _actorContactCalcHorizontalPushback(const SVECTOR* position, const W
     delta.vy         = position->vy - contact->point.vy;
     delta.vz         = position->vz - contact->point.vz;
     VectorNormal(&delta, &normalizedDirection);
-    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &normalizedDirection, &delta);
+    ApplyTransposeMatrixLV(&gWorldCollisionActiveGrid->viewCoord->workm, &normalizedDirection, &delta);
     pushDelta->vx = (penetrationDepth * delta.vx) >> ACTOR_CONTACT_DIRECTION_FRACTION_BITS;
     pushDelta->vy = 0;
     pushDelta->vz = (penetrationDepth * delta.vz) >> ACTOR_CONTACT_DIRECTION_FRACTION_BITS;

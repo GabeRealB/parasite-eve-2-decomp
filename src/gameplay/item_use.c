@@ -18,6 +18,8 @@
 #include "items.h"
 #include "gameplay/player_state.h"
 #include "gameplay/room.h"
+#include "world_coords.h"
+#include "world_targets.h"
 
 #include "main/display.h"
 #include "main/mc.h"
@@ -46,9 +48,9 @@ MATRIX D_80114ED8;
 
 MATRIX D_80114EF8;
 
-u8 Gp_OverrideVecFlag;
+s8 gWorldCoordAmbientColorOverrideEnabled;
 
-SVECTOR Gp_OverrideVec;
+SVECTOR gWorldCoordAmbientColorOverride;
 
 static const char D_80097440[];
 
@@ -91,9 +93,16 @@ static s32 _itemUseAttachedItem(InventoryItemRow* attachedRow);
 
 static s32 _itemIsAttachedItemUnusable(s32 itemId, const InventoryItemRow* attachedRow);
 
-WorldCoordRoomAmbientEntry Gp_RoomBoundDefault = { .color = { 16, 16, 16, 16 } };
+enum { WORLD_COORDINATE_DEFAULT_AMBIENT_LEVEL = 16 }; // One 8-bit colour level in ambient units.
 
-s32 D_8010F9EC = -0x10000;
+WorldCoordRoomAmbientEntry gWorldCoordDefaultRoomAmbientEntry = {
+    .color = { WORLD_COORDINATE_DEFAULT_AMBIENT_LEVEL, WORLD_COORDINATE_DEFAULT_AMBIENT_LEVEL,
+               WORLD_COORDINATE_DEFAULT_AMBIENT_LEVEL, WORLD_COORDINATE_DEFAULT_AMBIENT_LEVEL }
+};
+
+enum { WORLD_TARGET_CURSOR_INITIAL_X_FIXED8 = -0x10000 }; // -256 screen pixels.
+
+s32 gWorldTargetCursorXFixed8 = WORLD_TARGET_CURSOR_INITIAL_X_FIXED8;
 
 s32 D_8010F9F0 = -0x10000;
 
@@ -115,7 +124,7 @@ InventoryBattleReward* D_8010FA0C[6] = {
     D_map_neo_ark_8017CB0C,
 };
 
-WorldCollisionFaceEdge Gp_FaceEdgePairs[5] = {
+WorldCollisionFaceEdge gWorldCollisionFaceEdges[5] = {
     { 2, 1 },
     { 1, 0 },
     { 0, 2 },
@@ -325,11 +334,11 @@ static s32 _itemUseAttachedItem(InventoryItemRow* attachedRow)
                         break;
                     case INVENTORY_ITEM_STIM:
                         playerStateSetStatusEffects(1, (PLAYER_STATUS_SILENCE | PLAYER_STATUS_CONFUSION | PLAYER_STATUS_BERSERKER));
-                        applied = Gp_HealPending = Gp_StateC08.mindWard = 1;
+                        applied = Gp_HealPending = gAttachmentState.mindWard = 1;
                         break;
                     case INVENTORY_ITEM_PENICILLIN:
                         playerStateSetStatusEffects(1, (PLAYER_STATUS_DARKNESS | PLAYER_STATUS_PARALYSIS | PLAYER_STATUS_POISON));
-                        applied = Gp_HealPending = Gp_StateC08.bodyWard = 1;
+                        applied = Gp_HealPending = gAttachmentState.bodyWard = 1;
                         break;
                     case INVENTORY_ITEM_COLA:
                         if (player->mp < player->mpMax || player->hp < player->hpMax) {
@@ -444,12 +453,12 @@ static s32 _itemIsAttachedItemUnusable(s32 itemId, const InventoryItemRow* attac
                     }
                     break;
                 case INVENTORY_ITEM_STIM:
-                    if (Gp_StateC08.mindWard == 0) {
+                    if (gAttachmentState.mindWard == 0) {
                         unusable = 0;
                     }
                     break;
                 case INVENTORY_ITEM_PENICILLIN:
-                    if (Gp_StateC08.bodyWard == 0) {
+                    if (gAttachmentState.bodyWard == 0) {
                         unusable = 0;
                     }
                     break;

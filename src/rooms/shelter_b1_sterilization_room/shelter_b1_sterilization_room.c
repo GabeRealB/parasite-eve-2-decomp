@@ -1311,7 +1311,7 @@ static void _shelterB1SterilizationRoomTrapDamageTask(Task* task)
                             sndEvtRequestScriptStart(SOUND_SHELTER_B1_STERILIZATION_PLAYER_HURT, audioPan, (s8)worldCoordGetOriginAudioDepth(playerRoot));
                             task->killCountdown = 0;
                         }
-                        Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+                        gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
                     } else if (task->killCountdown == SHELTER_B1_STERILIZATION_ROOM_TRAP_RESUME_TICK) {
                         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                     }

@@ -3747,7 +3747,7 @@ static void _actor403600UpdatePlayerKnockback(Task* task)
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_403600_KNOCKBACK_VIEW_AT_A;
                 }
                 D_actor_403600_80160568.animationId = ACTOR_403600_PLAYER_ANIM_HEAVY_IMPACT;
-                Gp_StateC08.flags                  |= ATTACHMENT_FLAG_EVENT_LOCK;
+                gAttachmentState.flags             |= ATTACHMENT_FLAG_EVENT_LOCK;
                 TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
                 return;
             }
@@ -3797,7 +3797,7 @@ static void _actor403600UpdatePlayerKnockback(Task* task)
                                          (s8)worldCoordGetOriginAudioDepth(playerCoord));
             }
             if (work->knockbackFrame >= ACTOR_403600_KNOCKBACK_DIRECTION_END_FRAME) {
-                Gp_StateC08.flags                  |= ATTACHMENT_FLAG_EVENT_LOCK;
+                gAttachmentState.flags             |= ATTACHMENT_FLAG_EVENT_LOCK;
                 work->knockbackFrame                = 0;
                 D_actor_403600_80160568.animationId = ACTOR_403600_PLAYER_ANIM_BACKWARD_RECOVER;
                 TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
@@ -3823,7 +3823,7 @@ static void _actor403600UpdatePlayerKnockback(Task* task)
                                          (s8)worldCoordGetOriginAudioDepth(playerCoord));
             }
             if (work->knockbackFrame >= ACTOR_403600_KNOCKBACK_DIRECTION_END_FRAME) {
-                Gp_StateC08.flags                  |= ATTACHMENT_FLAG_EVENT_LOCK;
+                gAttachmentState.flags             |= ATTACHMENT_FLAG_EVENT_LOCK;
                 work->knockbackFrame                = 0;
                 D_actor_403600_80160568.animationId = ACTOR_403600_PLAYER_ANIM_FORWARD_RECOVER;
                 TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);

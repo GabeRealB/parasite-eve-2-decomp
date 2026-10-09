@@ -313,21 +313,21 @@ extern s32 D_80112C7C[];
 /// drawing function fixes the row and its caller picks the column.
 extern u16 D_80112964[5][2];
 
-/// Spawn-id words indexed by the 3-digit packing of `Gp_StateC08.attachId`
+/// Spawn-id words indexed by the 3-digit packing of `gAttachmentState.attachId`
 /// `(hundreds-1)*9 + (tens-1)*3 + ones - 1`. `_effectControlTask07State1` uses this
-/// when `Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_RELEASED`, and
-/// `D_80112A50` when `Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CHARGE`.
+/// when `gAttachmentState.effectPhase == ATTACHMENT_EFFECT_RELEASED`, and
+/// `D_80112A50` when `gAttachmentState.effectPhase == ATTACHMENT_EFFECT_CHARGE`.
 extern s32 D_80112978[];
 
 extern s32 D_80112A50[];
 
 /// Spawn-id words for `effectControlTaskAE`, indexed with the same 3-digit packing
-/// of `Gp_StateC08.attachId` as `D_80112978`; the value becomes the task's
+/// of `gAttachmentState.attachId` as `D_80112978`; the value becomes the task's
 /// `Task::spawnArg1` sound id.
 extern s32 D_80112B94[];
 
 /// `GfxCoord` index parallel to `D_80112978`. `_effectControlTask07State1` adds
-/// it onto `TmdObject.coords` when `Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_RELEASED`.
+/// it onto `TmdObject.coords` when `gAttachmentState.effectPhase == ATTACHMENT_EFFECT_RELEASED`.
 extern u16 D_80112B28[];
 
 /// 4 packed RGB-nibble colors. `effectPolyTaskC1` indexes with
@@ -2645,27 +2645,27 @@ static void _effectControlTask07State1(Task* unusedTask)
     if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         return;
     }
-    effectPhase = Gp_StateC08.effectPhase;
+    effectPhase = gAttachmentState.effectPhase;
     if (effectPhase == ATTACHMENT_EFFECT_CANCELLED) {
         return;
     }
-    if ((gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) && ((Gp_StateC08.attachId / 10U) != ATTACHMENT_ID_HEALING_FAMILY)) {
+    if ((gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) && ((gAttachmentState.attachId / 10U) != ATTACHMENT_ID_HEALING_FAMILY)) {
         return;
     }
     // Charge and release share the decimal family/level index, with different placement.
     if (effectPhase == ATTACHMENT_EFFECT_CHARGE) {
-        effectId = D_80112A50[((u16)(Gp_StateC08.attachId / 100U) - 1) * 9 +
-                              ((u16)((u16)(Gp_StateC08.attachId / 10U) % 10U) - 1) * 3 + effectPhase +
-                              (u16)(Gp_StateC08.attachId % 10U)];
+        effectId = D_80112A50[((u16)(gAttachmentState.attachId / 100U) - 1) * 9 +
+                              ((u16)((u16)(gAttachmentState.attachId / 10U) % 10U) - 1) * 3 + effectPhase +
+                              (u16)(gAttachmentState.attachId % 10U)];
         if (effectId == 0) {
             return;
         }
         effectSpawn(effectId, playerTask->extra.tmd->coords,
-                    (s32)(Gp_StateC08.duration), NULL);
+                    (s32)(gAttachmentState.duration), NULL);
     } else if (effectPhase == ATTACHMENT_EFFECT_RELEASED) {
-        effectIndex = ((u16)(Gp_StateC08.attachId / 100U) - 1) * 9 +
-                      ((u16)((u16)(Gp_StateC08.attachId / 10U) % 10U) - 1) * 3 - 1;
-        effectIndex += (u16)(Gp_StateC08.attachId % 10U);
+        effectIndex = ((u16)(gAttachmentState.attachId / 100U) - 1) * 9 +
+                      ((u16)((u16)(gAttachmentState.attachId / 10U) % 10U) - 1) * 3 - 1;
+        effectIndex += (u16)(gAttachmentState.attachId % 10U);
         effectId     = D_80112978[effectIndex];
         if (effectId == 0) {
             return;
@@ -2691,21 +2691,21 @@ void effectPeChargeTask(Task* task)
     coord = task->extra.coordBody->coord;
     // This callback leaves state unchanged, so new tasks refresh the sound each tick.
     if (task->state == EFFECT_DRAW_TASK_NEW) {
-        task->spawnArg1.value = D_80112B94[((u16)(Gp_StateC08.attachId / 100U) - 1) * EFFECT_PE_CHARGE_GROUP_STRIDE +
-                                           ((u16)((u16)(Gp_StateC08.attachId / 10U) % 10U) - 1) * ATTACHMENT_AREA_LEVEL_COUNT +
-                                           ((u16)(Gp_StateC08.attachId % 10U) - 1U)];
+        task->spawnArg1.value = D_80112B94[((u16)(gAttachmentState.attachId / 100U) - 1) * EFFECT_PE_CHARGE_GROUP_STRIDE +
+                                           ((u16)((u16)(gAttachmentState.attachId / 10U) % 10U) - 1) * ATTACHMENT_AREA_LEVEL_COUNT +
+                                           ((u16)(gAttachmentState.attachId % 10U) - 1U)];
     }
     actorRenderComposeCoord(coord);
-    if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN || Gp_StateC08.duration == 0 ||
-        Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED ||
-        (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED && (u16)(Gp_StateC08.attachId / 10U) != ATTACHMENT_ID_HEALING_FAMILY)) {
+    if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN || gAttachmentState.duration == 0 ||
+        gAttachmentState.effectPhase == ATTACHMENT_EFFECT_CANCELLED ||
+        (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED && (u16)(gAttachmentState.attachId / 10U) != ATTACHMENT_ID_HEALING_FAMILY)) {
         if (task->spawnArg1.value != 0) {
             sndEvtRequestScriptStop(task->spawnArg1.value, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         }
         effectKillTask(work, task);
         return;
     }
-    if (Gp_StateC08.duration >= EFFECT_PE_CHARGE_MIN_EMISSION_TICKS) {
+    if (gAttachmentState.duration >= EFFECT_PE_CHARGE_MIN_EMISSION_TICKS) {
         if (work->scale < EFFECT_PE_CHARGE_PARTICLE_LIMIT) {
             if (work->scale == 0) {
                 audioPan = (s8)worldCoordGetOriginAudioPan(coord);
@@ -2800,7 +2800,7 @@ void effectSpriteTask32(Task* task)
                 task->state = EFFECT_CHARGE_PARTICLE_STATE_RELEASE;
                 break;
             }
-            if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED) {
+            if (gAttachmentState.effectPhase == ATTACHMENT_EFFECT_CANCELLED) {
                 task->state = EFFECT_CHARGE_PARTICLE_STATE_RELEASE;
                 break;
             }
@@ -2808,11 +2808,11 @@ void effectSpriteTask32(Task* task)
         case EFFECT_CHARGE_PARTICLE_STATE_ORBIT:
             orbitAngle = ((s16)nextAge + work->scale) * EFFECT_CHARGE_PARTICLE_ANGLE_STEP;
             _effectPositionChargeParticle(coord, work, orbitAngle);
-            if ((gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) || (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED)) {
+            if ((gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) || (gAttachmentState.effectPhase == ATTACHMENT_EFFECT_CANCELLED)) {
                 task->state = EFFECT_CHARGE_PARTICLE_STATE_FALL;
                 break;
             }
-            if (Gp_StateC08.duration < EFFECT_CHARGE_PARTICLE_CONTRACT_DURATION) {
+            if (gAttachmentState.duration < EFFECT_CHARGE_PARTICLE_CONTRACT_DURATION) {
                 task->state = EFFECT_CHARGE_PARTICLE_STATE_CONTRACT;
             }
             break;
@@ -2830,7 +2830,7 @@ void effectSpriteTask32(Task* task)
                 task->state = EFFECT_CHARGE_PARTICLE_STATE_RELEASE;
                 break;
             }
-            if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED) {
+            if (gAttachmentState.effectPhase == ATTACHMENT_EFFECT_CANCELLED) {
                 task->state = EFFECT_CHARGE_PARTICLE_STATE_RELEASE;
                 break;
             }
@@ -2906,13 +2906,13 @@ void effectControlTaskAE(Task* task)
             work->scale = 0;
             work->angle = EFFECT_CHARGE_GLOW_INITIAL_RADIUS;
             work->step  = EFFECT_CHARGE_GLOW_BRIGHTNESS_SCALE / task->spawnArg1.value;
-            if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN || Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED ||
+            if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN || gAttachmentState.effectPhase == ATTACHMENT_EFFECT_CANCELLED ||
                 gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
                 break;
             }
-            task->spawnArg1.value = D_80112B94[((u16)(Gp_StateC08.attachId / 100U) - 1) * 9 +
-                                               ((u16)((u16)(Gp_StateC08.attachId / 10U) % 10U) - 1) * 3 +
-                                               ((u16)(Gp_StateC08.attachId % 10U) - 1U)];
+            task->spawnArg1.value = D_80112B94[((u16)(gAttachmentState.attachId / 100U) - 1) * 9 +
+                                               ((u16)((u16)(gAttachmentState.attachId / 10U) % 10U) - 1) * 3 +
+                                               ((u16)(gAttachmentState.attachId % 10U) - 1U)];
             audioPan              = (s8)worldCoordGetOriginAudioPan(coord);
             sndEvtRequestScriptStart(task->spawnArg1.value, audioPan, (s8)worldCoordGetOriginAudioDepth(coord));
             return;
@@ -2940,15 +2940,15 @@ void effectControlTaskAE(Task* task)
                 rgb[0] = work->period;
                 rgb[1] = work->period >> 1;
                 rgb[2] = work->period >> 2;
-                effectDrawOuterGlowBand(coord, ((u8)Gp_StateC08.duration << 24) >> 17, EFFECT_CHARGE_GLOW_BAND_WIDTH, rgb);
+                effectDrawOuterGlowBand(coord, ((u8)gAttachmentState.duration << 24) >> 17, EFFECT_CHARGE_GLOW_BAND_WIDTH, rgb);
             }
-            if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN || Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED ||
+            if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN || gAttachmentState.effectPhase == ATTACHMENT_EFFECT_CANCELLED ||
                 gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
                 sndEvtRequestScriptStop(task->spawnArg1.value, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 task->state = EFFECT_CHARGE_GLOW_STATE_FADE;
                 return;
             }
-            if (Gp_StateC08.duration != 0) {
+            if (gAttachmentState.duration != 0) {
                 return;
             }
             work->scale = EFFECT_CHARGE_GLOW_MAX_BRIGHTNESS;
@@ -2963,7 +2963,7 @@ void effectControlTaskAE(Task* task)
             EFFECT_CHARGE_GLOW_SET_COLOR();
             effectDrawGouraudDisc(coord, work->angle, rgb);
             effectDrawGouraudDisc(coord, (s16)(work->angle << 1), rgb);
-            if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN || Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED ||
+            if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN || gAttachmentState.effectPhase == ATTACHMENT_EFFECT_CANCELLED ||
                 gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
                 sndEvtRequestScriptStop(task->spawnArg1.value, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 task->state = EFFECT_CHARGE_GLOW_STATE_FADE;
@@ -3098,7 +3098,7 @@ void effectEnergyShotAuraTask(Task* task)
         playerCoords                 = playerTask->extra.tmd->coords;
         _effectInitEnergyShotAuraCoord(coord, playerCoords);
         task->state  = EFFECT_DRAW_TASK_ACTIVE;
-        work->index  = (Gp_StateC08.attachId % (u32)EFFECT_ENERGY_SHOT_LEVEL_RADIX) - 1;
+        work->index  = (gAttachmentState.attachId % (u32)EFFECT_ENERGY_SHOT_LEVEL_RADIX) - 1;
         work->angle  = 0x20; // Retained initialization; this controller never reads it.
         work->period = work->index * EFFECT_ENERGY_SHOT_RADIUS_PER_LEVEL + EFFECT_ENERGY_SHOT_BASE_RADIUS;
         work->step   = work->index * EFFECT_ENERGY_SHOT_SPARK_SIZE_PER_LEVEL + EFFECT_ENERGY_SHOT_BASE_SPARK_SIZE;
@@ -3116,7 +3116,7 @@ void effectEnergyShotAuraTask(Task* task)
         gRoomEffectState->burstRequest = false;
     }
 
-    if (Gp_StateC08.energyShotTicks == 0 || !(gRoomEffectState->peFxFlags & ROOM_EFFECT_PE_ENERGY_SHOT_AURA) ||
+    if (gAttachmentState.energyShotTicks == 0 || !(gRoomEffectState->peFxFlags & ROOM_EFFECT_PE_ENERGY_SHOT_AURA) ||
         gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
         effectKillTask(work, task);
         return;
@@ -3351,7 +3351,7 @@ void effectAntibodyAuraTask(Task* task)
         playerCoords                 = playerTask->extra.tmd->coords;
         _effectInitAntibodyAuraCoord(coord, playerCoords);
         task->state  = EFFECT_DRAW_TASK_ACTIVE;
-        work->index  = (Gp_StateC08.attachId % (u32)EFFECT_ANTIBODY_LEVEL_RADIX) - 1;
+        work->index  = (gAttachmentState.attachId % (u32)EFFECT_ANTIBODY_LEVEL_RADIX) - 1;
         work->angle  = EFFECT_ANTIBODY_BASE_BRIGHTNESS;
         work->period = ((work->index + 1) * EFFECT_ANTIBODY_RADIUS_MULTIPLIER) << EFFECT_ANTIBODY_RADIUS_SHIFT;
         work->step   = gPlayerStatus.hp;
@@ -3366,7 +3366,7 @@ void effectAntibodyAuraTask(Task* task)
     effectDrawGouraudDisc(coord, work->period, rgb);
     effectDrawGouraudDisc(coord, (s16)(work->period << 1), rgb);
 
-    if (Gp_StateC08.antibodyTicks == 0 || !(gRoomEffectState->peFxFlags & ROOM_EFFECT_PE_ANTIBODY_AURA) ||
+    if (gAttachmentState.antibodyTicks == 0 || !(gRoomEffectState->peFxFlags & ROOM_EFFECT_PE_ANTIBODY_AURA) ||
         gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
         sndEvtRequestScriptStop(SOUND_ANTIBODY_AURA_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         effectKillTask(work, task);
@@ -4059,7 +4059,7 @@ void effectSpawnHit(s32 effectKind, GfxCoord* coord, SVECTOR* localOffset, Effec
         case EFFECT_HIT_KIND_BLAST_WITH_SOUND:
             effectSpawn(EFFECT_HIT_BLAST, spawnRecord->coord, spawnRecord->spawnArgLo | (spawnRecord->spawnArgHi << EFFECT_HIT_ARGUMENT_HIGH_SHIFT), NULL);
             pan = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(D_80112C7C[(u16)(Gp_StateC08.attachId % 10U) - 1], pan,
+            sndEvtRequestScriptStart(D_80112C7C[(u16)(gAttachmentState.attachId % 10U) - 1], pan,
                                      (s8)worldCoordGetOriginAudioDepth(coord));
             break;
         case EFFECT_HIT_KIND_APOBIOSIS_SHARD:
@@ -7594,10 +7594,10 @@ static s32 _playerActorAwaitButtonPresses(Task* task, s32 unusedMessageId, const
     }
     _playerActorEnterScriptedMode(task);
     // Count input edges in state 6 while the attachment event lock holds.
-    actor->state       = PLAYER_ACTOR_SCRIPTED_PRESS_HOLD_STATE;
-    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
-    actor->stateTimer  = request->pressCount;
-    actor->actionValue = 0;
+    actor->state            = PLAYER_ACTOR_SCRIPTED_PRESS_HOLD_STATE;
+    gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+    actor->stateTimer       = request->pressCount;
+    actor->actionValue      = 0;
     return 0;
 }
 
@@ -8448,7 +8448,7 @@ static inline void _playerActorEnterParalysis(Task* task, const PlayerStatus* st
     actor->stateAux       = previousState;
     playerActorClearLockTarget(task);
     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    Gp_StateC08.flags                                    |= ATTACHMENT_FLAG_EVENT_LOCK;
+    gAttachmentState.flags                               |= ATTACHMENT_FLAG_EVENT_LOCK;
     playerActorResetWeaponAttack(task, status->weapon, 0);
     playerActorPlayChildSlotsWithBlend(task, PLAYER_ACTOR_PARALYSIS_SET, PLAYER_ACTOR_PARALYSIS_FIRST_SLOT, PLAYER_ACTOR_PARALYSIS_BLEND_FRAMES);
 }
@@ -9029,16 +9029,16 @@ static void _playerActorNormalState6(Task* task)
 
     actor               = task->work;
     actor->movementSign = 0;
-    if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED) {
+    if (gAttachmentState.effectPhase == ATTACHMENT_EFFECT_CANCELLED) {
         actor->statePhase = PLAYER_ACTOR_PE_PHASE_RESUME;
     }
     switch (actor->statePhase) {
         case PLAYER_ACTOR_PE_PHASE_RELEASE:
             // Start the attachment countdown while the release clip plays.
-            actor->animationState = PLAYER_ACTOR_PE_ANIMATION_ADVANCE_PHASE;
-            actor->statePhase    += 1;
-            Gp_StateC08.flags    |= ATTACHMENT_FLAG_RELEASE;
-            setIndex              = _playerActorSelectPeSet(actor, PLAYER_ACTOR_PE_RELEASE_SET_VARIANT0, PLAYER_ACTOR_PE_RELEASE_SET_VARIANT1, PLAYER_ACTOR_PE_RELEASE_SET_OTHER);
+            actor->animationState   = PLAYER_ACTOR_PE_ANIMATION_ADVANCE_PHASE;
+            actor->statePhase      += 1;
+            gAttachmentState.flags |= ATTACHMENT_FLAG_RELEASE;
+            setIndex                = _playerActorSelectPeSet(actor, PLAYER_ACTOR_PE_RELEASE_SET_VARIANT0, PLAYER_ACTOR_PE_RELEASE_SET_VARIANT1, PLAYER_ACTOR_PE_RELEASE_SET_OTHER);
             playerActorPlayChildSlotsWithBlend(task, setIndex, 0, PLAYER_ACTOR_PE_RELEASE_BLEND_FRAMES);
             sceneLatchActionSignal(SCENE_COMBAT_ACTION_SIGNAL_PE_ACTIVE);
             break;
@@ -9049,11 +9049,11 @@ static void _playerActorNormalState6(Task* task)
             playerActorResetChildSlots(task, setIndex);
             // Check the countdown on the same tick that starts the charge clip.
         case PLAYER_ACTOR_PE_PHASE_WAIT_CHARGE:
-            if (Gp_StateC08.duration == 0) {
+            if (gAttachmentState.duration == 0) {
                 actor->animationState = PLAYER_ACTOR_PE_ANIMATION_ADVANCE_PHASE;
                 actor->statePhase    += 1;
                 actionSignal          = SCENE_COMBAT_ACTION_SIGNAL_PE_CAST_300_TO_600;
-                if (Gp_StateC08.attachId < ATTACHMENT_ID_EARLY_SPELL_LIMIT || Gp_StateC08.attachId > ATTACHMENT_ID_LAST_SPELL) {
+                if (gAttachmentState.attachId < ATTACHMENT_ID_EARLY_SPELL_LIMIT || gAttachmentState.attachId > ATTACHMENT_ID_LAST_SPELL) {
                     actionSignal = SCENE_COMBAT_ACTION_SIGNAL_PE_CAST_OTHER;
                 }
                 sceneLatchActionSignal(actionSignal);
@@ -9896,8 +9896,8 @@ static inline void _playerActorChoosePeClipFamily(GameActor* actor)
     };
     s32 attachmentTensDigit;
 
-    attachmentTensDigit = Gp_StateC08.attachId % 100 / 10;
-    if (Gp_StateC08.attachId >= ATTACHMENT_ID_ITEM) {
+    attachmentTensDigit = gAttachmentState.attachId % 100 / 10;
+    if (gAttachmentState.attachId >= ATTACHMENT_ID_ITEM) {
         if (attachmentTensDigit == PLAYER_ACTOR_PE_ITEM_FAMILY0_TENS_DIGIT) {
             actor->actionArgument = PLAYER_ACTOR_PE_CLIP_FAMILY0;
         } else {
@@ -9905,7 +9905,7 @@ static inline void _playerActorChoosePeClipFamily(GameActor* actor)
         }
     } else if (attachmentTensDigit == PLAYER_ACTOR_PE_SPELL_FAMILY2_TENS_DIGIT) {
         actor->actionArgument = PLAYER_ACTOR_PE_CLIP_FAMILY2;
-    } else if (Gp_StateC08.attachId < ATTACHMENT_ID_EARLY_SPELL_LIMIT_U) {
+    } else if (gAttachmentState.attachId < ATTACHMENT_ID_EARLY_SPELL_LIMIT_U) {
         actor->actionArgument = PLAYER_ACTOR_PE_CLIP_FAMILY1;
     } else {
         actor->actionArgument = PLAYER_ACTOR_PE_CLIP_FAMILY0;
@@ -9972,7 +9972,7 @@ static void _playerActorStartParalysis(Task* task)
     // Release targeting and lock attachment events before restarting weapon effects.
     playerActorClearLockTarget(task);
     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    Gp_StateC08.flags                                    |= ATTACHMENT_FLAG_EVENT_LOCK;
+    gAttachmentState.flags                               |= ATTACHMENT_FLAG_EVENT_LOCK;
     playerActorResetWeaponAttack(task, gPlayerStatus.weapon, 0);
     playerActorPlayChildSlotsWithBlend(task, PLAYER_ACTOR_PARALYSIS_SET, PLAYER_ACTOR_PARALYSIS_FIRST_SLOT, PLAYER_ACTOR_PARALYSIS_BLEND_FRAMES);
 }
@@ -10417,7 +10417,7 @@ static s32 _playerActorTryEnterPeAction(Task* task)
     s32        entered;
 
     entered = 0;
-    if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) {
+    if (gAttachmentState.effectPhase == ATTACHMENT_EFFECT_HELD) {
         actor = task->work;
         // Save the interrupted normal state for the release/charge/cast return.
         previousState           = actor->state;
@@ -10430,8 +10430,8 @@ static s32 _playerActorTryEnterPeAction(Task* task)
         actor->movementSign     = 0;
         actor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
         actor->stateAux         = previousState;
-        attachmentTensDigit     = (u16)(Gp_StateC08.attachId % 100 / 10);
-        if (Gp_StateC08.attachId >= ATTACHMENT_ID_ITEM) {
+        attachmentTensDigit     = (u16)(gAttachmentState.attachId % 100 / 10);
+        if (gAttachmentState.attachId >= ATTACHMENT_ID_ITEM) {
             if (attachmentTensDigit == PLAYER_ACTOR_PE_ITEM_FAMILY0_TENS_DIGIT) {
                 actor->actionArgument = PLAYER_ACTOR_PE_CLIP_FAMILY0;
             } else {
@@ -10439,7 +10439,7 @@ static s32 _playerActorTryEnterPeAction(Task* task)
             }
         } else if (attachmentTensDigit == PLAYER_ACTOR_PE_SPELL_FAMILY2_TENS_DIGIT) {
             actor->actionArgument = PLAYER_ACTOR_PE_CLIP_FAMILY2;
-        } else if (Gp_StateC08.attachId < ATTACHMENT_ID_EARLY_SPELL_LIMIT_U) {
+        } else if (gAttachmentState.attachId < ATTACHMENT_ID_EARLY_SPELL_LIMIT_U) {
             actor->actionArgument = PLAYER_ACTOR_PE_CLIP_FAMILY1;
         } else {
             actor->actionArgument = PLAYER_ACTOR_PE_CLIP_FAMILY0;
@@ -10459,7 +10459,7 @@ static void _playerActorUpdateAimRequest(Task* task)
     GameActor* actor;
 
     actor = task->work;
-    if ((actor->padHeld & PAD_BUTTON_SQUARE) && (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_IDLE) && (gPlayerStatus.weapon != PLAYER_STATUS_EQUIPMENT_NONE) &&
+    if ((actor->padHeld & PAD_BUTTON_SQUARE) && (gAttachmentState.effectPhase == ATTACHMENT_EFFECT_IDLE) && (gPlayerStatus.weapon != PLAYER_STATUS_EQUIPMENT_NONE) &&
         (actor->restrictRunAndAim == 0)) {
         actor->aimControl = GAME_ACTOR_AIM_REQUEST_ENTER;
     } else {

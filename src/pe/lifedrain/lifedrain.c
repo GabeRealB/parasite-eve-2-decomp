@@ -162,7 +162,7 @@ void lifedrainCastTask(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+    if ((gAttachmentState.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
         // Collected motes count immediately; cancellation can still grant their banked HP.
         if ((task->state < LIFEDRAIN_CAST_STATE_GROWING) && (task->spawnArg1.value != 0)) {
             gPlayerStatus.hp = (u16)gPlayerStatus.hp + gSceneCombatState.lifeDrainHp;
@@ -189,7 +189,7 @@ void lifedrainCastTask(Task* task)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
             task->state  = LIFEDRAIN_CAST_STATE_COLLECTING;
-            work->index  = (Gp_StateC08.attachId % 10) - 1;
+            work->index  = (gAttachmentState.attachId % 10) - 1;
             work->scale  = D_lifedrain_80130AB4[work->index].brightness;
             work->angle  = LIFEDRAIN_CAST_INITIAL_RADIUS;
             work->period = D_lifedrain_80130AB4[work->index].brightness;
@@ -211,7 +211,7 @@ void lifedrainCastTask(Task* task)
                 }
                 bandAngle += LIFEDRAIN_CAST_BAND_YAW_STEP;
             } while (bandAngle < LIFEDRAIN_CAST_BAND_YAW_END);
-            Gp_StateC08.flags |= ATTACHMENT_FLAG_APPLY_STATS;
+            gAttachmentState.flags |= ATTACHMENT_FLAG_APPLY_STATS;
             return;
         }
         case LIFEDRAIN_CAST_STATE_COLLECTING:
@@ -376,7 +376,7 @@ void lifedrainMoteTask(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if ((Gp_StateC08.effectPhase != ATTACHMENT_EFFECT_HELD) && (gRoomEffectState->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+    if ((gAttachmentState.effectPhase != ATTACHMENT_EFFECT_HELD) && (gRoomEffectState->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
         work->age = work->age + 1;
         switch (task->state) {
             case LIFEDRAIN_MOTE_STATE_INITIALIZE:
@@ -390,7 +390,7 @@ void lifedrainMoteTask(Task* task)
                 work->move.vz                          = LIFEDRAIN_MOTE_HORIZONTAL_DRIFT_BASE - ((gRandomLcgState >> 16) & LIFEDRAIN_MOTE_HORIZONTAL_DRIFT_MASK);
                 task->state                            = LIFEDRAIN_MOTE_STATE_DRIFTING;
                 // Keep the binary's sizing selector: step stays at its cleared zero value.
-                work->scale  = (Gp_StateC08.attachId % 10) - 1;
+                work->scale  = (gAttachmentState.attachId % 10) - 1;
                 sparkRadius  = D_lifedrain_80130AB4[work->step].radiusLimit;
                 work->angle  = sparkRadius;
                 work->period = sparkRadius - LIFEDRAIN_MOTE_SIZE_SHORTFALL;
@@ -618,7 +618,7 @@ void lifedrainExpandingGlowBandTask(Task* task)
     if (task->state == LIFEDRAIN_BAND_STATE_INITIALIZE) {
         gfxRotMatrixZ(&coord->coord, task->spawnArg1.value & LIFEDRAIN_BAND_ROTATION_MASK, GRAPHICS_ROTATION_COMPOSE);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        levelIndex          = (Gp_StateC08.attachId % 10U) - 1;
+        levelIndex          = (gAttachmentState.attachId % 10U) - 1;
         work->index         = levelIndex;
         work->scale         = D_lifedrain_80130AB4[levelIndex].brightness;
         work->angle         = LIFEDRAIN_BAND_INITIAL_RADIUS;

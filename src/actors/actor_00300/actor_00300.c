@@ -1792,7 +1792,7 @@ static void _actor00300ResolveContacts(Task* task)
                 if (maxEnemyOverlap < penetration) {
                     maxEnemyOverlap = penetration;
                     VectorNormal(&scratch->delta.vector, &scratch->normal);
-                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, &scratch->push);
+                    ApplyTransposeMatrixLV(&gWorldCollisionActiveGrid->viewCoord->workm, &scratch->normal, &scratch->push);
                 }
                 break;
         }

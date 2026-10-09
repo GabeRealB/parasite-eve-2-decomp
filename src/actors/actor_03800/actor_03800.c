@@ -1032,13 +1032,13 @@ static void _actor03800ApplyReactions(Task* task)
 /// becomes the new `best`, and `frame->pushDirection` the direction to push
 /// out along - the offset in `frame->delta` normalised and carried into the
 /// collision grid's frame.
-#define _ACTOR03800_KEEP_DEEPEST(best, depth, frame)                                                             \
-    do {                                                                                                         \
-        if ((best) < (depth)) {                                                                                  \
-            (best) = (depth);                                                                                    \
-            VectorNormal(&(frame)->delta.vector, &(frame)->normal);                                              \
-            ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &(frame)->normal, &(frame)->pushDirection); \
-        }                                                                                                        \
+#define _ACTOR03800_KEEP_DEEPEST(best, depth, frame)                                                                         \
+    do {                                                                                                                     \
+        if ((best) < (depth)) {                                                                                              \
+            (best) = (depth);                                                                                                \
+            VectorNormal(&(frame)->delta.vector, &(frame)->normal);                                                          \
+            ApplyTransposeMatrixLV(&gWorldCollisionActiveGrid->viewCoord->workm, &(frame)->normal, &(frame)->pushDirection); \
+        }                                                                                                                    \
     } while (0)
 
 /// Consumes room, hit and attack contacts to correct position and choose reactions.

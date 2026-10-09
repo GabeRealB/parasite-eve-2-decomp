@@ -2686,7 +2686,7 @@ static void _dryfieldNightGasStationUpdateRoomTask(Task* task)
 
     if (gGameSession->eventState == 0) {
         progress = gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS);
-        if ((progress == DRYFIELD_NIGHT_GAS_STATION_PROGRESS_FOLLOWUP_PENDING) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL)) {
+        if ((progress == DRYFIELD_NIGHT_GAS_STATION_PROGRESS_FOLLOWUP_PENDING) && (gAttachmentState.mode != ATTACHMENT_MODE_WHEEL)) {
             gameFlagSetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS, DRYFIELD_NIGHT_GAS_STATION_PROGRESS_FOLLOWUP_STARTED);
             evsStartScriptWithSkip(D_dryfield_night_gas_station_80188BF4, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_night_gas_station_80189014);
         }
@@ -3283,7 +3283,7 @@ static void _dryfieldNightGasStationCompanionRedStreakTask(Task* task)
 /// update; this callback does not free effect tasks or their work directly.
 static void _dryfieldNightGasStationCancelCutsceneEffects(void)
 {
-    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+    gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
     roomEffectRequestCancelAll();
 }
 

@@ -255,9 +255,17 @@ STATIC_ASSERT_SIZEOF(_WorldCoordLightColorScaleOverride, 8);
 /* Define BSS before API headers to preserve first-declaration order. */
 WorldCoordTransientPointLight gWorldCoordTransientPointLights[WORLD_COORDINATE_TRANSIENT_LIGHT_COUNT];
 
-u8 Gp_OverrideVec2Flag;
+/// Enables the copied RGB coefficient scales at exactly 1; 0 disables them.
+///
+/// The setter and player-light initialization clear this signed-byte gate
+/// without clearing the retained scale value.
+static s8 _gWorldCoordLightColorScaleOverrideEnabled;
 
-_WorldCoordLightColorScaleOverride Gp_OverrideVec2;
+/// Copied unsigned Q12 RGB row scales retained until the next override input.
+///
+/// The full SVECTOR copy includes an unused final halfword. Zero suppresses a
+/// channel and 4096 is unity; the gate controls use, not the stored lifetime.
+static _WorldCoordLightColorScaleOverride _gWorldCoordLightColorScaleOverride;
 
 struct WorldTargetNode* D_80115260;
 
@@ -953,14 +961,14 @@ static inline void _worldCoordApplyModelLightColorScales(MATRIX* colorMtx, _Worl
     s16(*colorRows)[3];
     s32 channelIndex;
 
-    channelScale = Gp_OverrideVec2.channelScales;
+    channelScale = _gWorldCoordLightColorScaleOverride.channelScales;
     channelIndex = 0;
     colorRows    = colorMtx->m;
     do {
         _worldCoordScaleLightColorRow(colorRows[channelIndex], channelScale, &lightQuery->viewOffset);
         channelIndex++;
         channelScale++;
-    } while (channelIndex < (s32)ARRAY_SIZE(Gp_OverrideVec2.channelScales));
+    } while (channelIndex < (s32)ARRAY_SIZE(_gWorldCoordLightColorScaleOverride.channelScales));
 }
 
 void worldCoordSetModelLighting(const TmdObject* model, const void* worldPosition, s32 firstLightIndex, s32 lightCount)
@@ -1199,10 +1207,10 @@ void worldCoordSetModelLighting(const TmdObject* model, const void* worldPositio
     }
 
     // Apply the ambient override or the view's minimum RGB levels.
-    if ((s8)Gp_OverrideVecFlag == WORLD_COORDINATE_MODEL_LIGHT_OVERRIDE_ENABLED) {
-        colorMtx->t[0] = Gp_OverrideVec.vx;
-        colorMtx->t[1] = Gp_OverrideVec.vy;
-        colorMtx->t[2] = Gp_OverrideVec.vz;
+    if (gWorldCoordAmbientColorOverrideEnabled == WORLD_COORDINATE_MODEL_LIGHT_OVERRIDE_ENABLED) {
+        colorMtx->t[0] = gWorldCoordAmbientColorOverride.vx;
+        colorMtx->t[1] = gWorldCoordAmbientColorOverride.vy;
+        colorMtx->t[2] = gWorldCoordAmbientColorOverride.vz;
     } else {
         const WorldCoordRoomAmbientEntry* ambientEntry;
 
@@ -1218,7 +1226,7 @@ void worldCoordSetModelLighting(const TmdObject* model, const void* worldPositio
         }
     }
 
-    if ((s8)Gp_OverrideVec2Flag == WORLD_COORDINATE_MODEL_LIGHT_OVERRIDE_ENABLED) {
+    if (_gWorldCoordLightColorScaleOverrideEnabled == WORLD_COORDINATE_MODEL_LIGHT_OVERRIDE_ENABLED) {
         _worldCoordApplyModelLightColorScales(model->colorMtx, lightQuery);
     }
 
@@ -1344,11 +1352,11 @@ static void _worldCoordUpdatePlayerLighting(Task* unusedTask)
             D_80114F28 = WORLD_COORDINATE_ATTACHMENT_LIGHT_PULSE_NONE;
         } else if ((gDisplayState.animFrame % WORLD_COORDINATE_STATUS_TINT_PERIOD_FRAMES) == 0 && playerStatus->hp > 0 && gGameSession->eventState == 0) {
             // Cyan for both wards/metabolism, blue for mind ward, yellow for body ward.
-            if (Gp_StateC08.metabolismTicks > 0 || (Gp_StateC08.mindWard != 0 && Gp_StateC08.bodyWard != 0)) {
+            if (gAttachmentState.metabolismTicks > 0 || (gAttachmentState.mindWard != 0 && gAttachmentState.bodyWard != 0)) {
                 _worldCoordFillLightColorMatrix(model->colorMtx, WORLD_COORDINATE_STATUS_TINT_LOW, WORLD_COORDINATE_STATUS_TINT_HIGH, WORLD_COORDINATE_STATUS_TINT_HIGH);
-            } else if (Gp_StateC08.mindWard != 0) {
+            } else if (gAttachmentState.mindWard != 0) {
                 _worldCoordFillLightColorMatrix(model->colorMtx, WORLD_COORDINATE_STATUS_TINT_LOW, WORLD_COORDINATE_STATUS_TINT_LOW, WORLD_COORDINATE_STATUS_TINT_HIGH);
-            } else if (Gp_StateC08.bodyWard != 0) {
+            } else if (gAttachmentState.bodyWard != 0) {
                 _worldCoordFillLightColorMatrix(model->colorMtx, WORLD_COORDINATE_STATUS_TINT_HIGH, WORLD_COORDINATE_STATUS_TINT_HIGH, WORLD_COORDINATE_STATUS_TINT_LOW);
             }
             // Berserker red replaces any ward tint on these status-update frames.
@@ -1792,11 +1800,11 @@ void worldCoordSetAmbientColorOverride(const SVECTOR* ambientColor)
            WORLD_COORDINATE_AMBIENT_OVERRIDE_ENABLED  = 1 };
 
     if (ambientColor == NULL) {
-        Gp_OverrideVecFlag = WORLD_COORDINATE_AMBIENT_OVERRIDE_DISABLED;
+        gWorldCoordAmbientColorOverrideEnabled = WORLD_COORDINATE_AMBIENT_OVERRIDE_DISABLED;
         return;
     }
-    Gp_OverrideVecFlag = WORLD_COORDINATE_AMBIENT_OVERRIDE_ENABLED;
-    Gp_OverrideVec     = *ambientColor;
+    gWorldCoordAmbientColorOverrideEnabled = WORLD_COORDINATE_AMBIENT_OVERRIDE_ENABLED;
+    gWorldCoordAmbientColorOverride        = *ambientColor;
 }
 
 void worldCoordSetLightColorScaleOverride(const SVECTOR* colorScales)
@@ -1805,11 +1813,11 @@ void worldCoordSetLightColorScaleOverride(const SVECTOR* colorScales)
            WORLD_COORDINATE_LIGHT_COLOR_OVERRIDE_ENABLED  = 1 };
 
     if (colorScales == NULL) {
-        Gp_OverrideVec2Flag = WORLD_COORDINATE_LIGHT_COLOR_OVERRIDE_DISABLED;
+        _gWorldCoordLightColorScaleOverrideEnabled = WORLD_COORDINATE_LIGHT_COLOR_OVERRIDE_DISABLED;
         return;
     }
-    Gp_OverrideVec2Flag         = WORLD_COORDINATE_LIGHT_COLOR_OVERRIDE_ENABLED;
-    Gp_OverrideVec2.inputVector = *colorScales;
+    _gWorldCoordLightColorScaleOverrideEnabled      = WORLD_COORDINATE_LIGHT_COLOR_OVERRIDE_ENABLED;
+    _gWorldCoordLightColorScaleOverride.inputVector = *colorScales;
 }
 
 void worldCoordSetModelAmbientColor(const TmdObject* model, s16 r, s16 g, s16 b)
@@ -1837,7 +1845,7 @@ static const WorldCoordRoomAmbientEntry* _worldCoordGetRoomAmbientEntry(const Ga
     const WorldCoordRoomAmbientEntry* ambientTable;
 
     roomLighting = _worldCoordLookupRoomLighting(location);
-    ambientEntry = &Gp_RoomBoundDefault;
+    ambientEntry = &gWorldCoordDefaultRoomAmbientEntry;
     if (roomLighting != NULL) {
         ambientTable = roomLighting->ambientTable;
         if (ambientTable != NULL) {
@@ -2094,7 +2102,7 @@ void taskRunExitCallbackTask(Task* task)
 /// eight-byte value is copied, so the destination has no borrowed lifetime.
 static void _worldCoordCopyDefaultRoomAmbient(WorldCoordRoomAmbientEntry* ambientEntry)
 {
-    *ambientEntry = Gp_RoomBoundDefault;
+    *ambientEntry = gWorldCoordDefaultRoomAmbientEntry;
 }
 
 /// Binds the player's persistent light matrices and starts per-frame lighting.
@@ -2124,13 +2132,13 @@ static void _worldCoordInitPlayerLighting(Task* task)
             taskKill(task);
             return;
         }
-        task->spawnArg2.pointer = roomLights;
-        model->lightMtx         = &Gp_DefaultMtx;
-        model->colorMtx         = &Gp_DefaultMtx2;
-        playerActor             = playerTask->work;
-        Gp_OverrideVecFlag      = WORLD_COORDINATE_LIGHT_OVERRIDE_DISABLED;
-        Gp_OverrideVec2Flag     = WORLD_COORDINATE_LIGHT_OVERRIDE_DISABLED;
-        D_80114F28              = WORLD_COORDINATE_ATTACHMENT_LIGHT_PULSE_NONE;
+        task->spawnArg2.pointer                    = roomLights;
+        model->lightMtx                            = &Gp_DefaultMtx;
+        model->colorMtx                            = &Gp_DefaultMtx2;
+        playerActor                                = playerTask->work;
+        gWorldCoordAmbientColorOverrideEnabled     = WORLD_COORDINATE_LIGHT_OVERRIDE_DISABLED;
+        _gWorldCoordLightColorScaleOverrideEnabled = WORLD_COORDINATE_LIGHT_OVERRIDE_DISABLED;
+        D_80114F28                                 = WORLD_COORDINATE_ATTACHMENT_LIGHT_PULSE_NONE;
         do {
             model           = playerActor->attachmentTasks[attachmentIndex]->extra.tmd;
             model->lightMtx = &Gp_DefaultMtx;

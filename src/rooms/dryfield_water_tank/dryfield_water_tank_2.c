@@ -84,7 +84,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_DryfieldWaterTankEventWork, 0xC);
 
 /// Main-executable globals with no module header yet: the cutscene task
-/// refuses to start while `Gp_StateC08.mode` is 1 or `gDisplayState.pendingMode` is non-zero.
+/// refuses to start while `gAttachmentState.mode` is 1 or `gDisplayState.pendingMode` is non-zero.
 /// `gPlayerStatus.weapon` is the equipped-weapon index the slot-3 msg 0x3E8 animation
 /// record is keyed on, and `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` picks which of the two weapon-id bases
 /// that record uses.
@@ -1144,7 +1144,7 @@ static void _dryfieldWaterTankMovieEventTask(Task* task)
     switch (task->state) {
         case DRYFIELD_WATER_TANK_MOVIE_EVENT_INIT:
             // Defer presentation until the wheel and pending display transition are idle.
-            if ((Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
+            if ((gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 work       = memMalloc(sizeof(*work), false);
                 task->work = work;
                 if (work == NULL) {

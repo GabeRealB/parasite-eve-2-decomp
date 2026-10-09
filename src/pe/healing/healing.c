@@ -128,7 +128,7 @@ void healingAuraTask(Task* task)
     s32              randomState;
     s32              verticalProduct;
 
-    attachment = &Gp_StateC08;
+    attachment = &gAttachmentState;
     work       = task->spawnArg2.pointer;
     coord      = task->extra.coordBody->coord;
     if ((attachment->effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
@@ -150,7 +150,7 @@ void healingAuraTask(Task* task)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
             task->state        = HEALING_AURA_STATE_GROWING;
-            work->index        = (Gp_StateC08.attachId % 10) - 1;
+            work->index        = (gAttachmentState.attachId % 10) - 1;
             work->angle        = HEALING_AURA_INITIAL_RADIUS;
             attachment->flags |= ATTACHMENT_FLAG_APPLY_STATS;
             pan                = (s8)worldCoordGetOriginAudioPan(coord);
@@ -268,7 +268,7 @@ void healingSparkleTask(Task* task)
         work->move.vx = 0;
         work->move.vz = 0;
         task->state   = HEALING_SPARKLE_STATE_RISING;
-        levelIndex    = (Gp_StateC08.attachId % 10U) - 1;
+        levelIndex    = (gAttachmentState.attachId % 10U) - 1;
         work->step    = levelIndex;
         work->scale   = D_healing_8012FC1C[levelIndex].brightness;
         work->angle   = (u16)task->spawnArg1.value & HEALING_SPARKLE_SIZE_MASK;

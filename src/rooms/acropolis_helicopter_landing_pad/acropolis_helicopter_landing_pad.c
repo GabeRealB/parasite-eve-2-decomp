@@ -323,7 +323,7 @@ void acropolisHelicopterLandingPadUpdateEncounterPhase(Task* unusedTask)
     // Wait for the encounter actor and the presentation holds before starting the ending scripts.
     if (phase == ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_STARTED) {
         if (taskMessageDispatch(sceneFindPlacedActor(ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) {
-            if ((Gp_StateC08.mode != phase) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
+            if ((gAttachmentState.mode != phase) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 D_acropolis_helicopter_landing_pad_80184D9C = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_FINISHED;
                 evsStartScriptWithSkip(D_acropolis_helicopter_landing_pad_80184124, EVENT_SCRIPT_HUD_HIDE_RESTORE,
                                        D_acropolis_helicopter_landing_pad_801844B4);

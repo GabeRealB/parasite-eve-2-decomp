@@ -109,7 +109,7 @@ void loadingRestoreViewGraphicsTask(Task* task);
 /// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`.
 /// Each entry is an array of `WorldCollisionSurfaceProperties**`, indexed by area - 1.
 /// Each room has eight surface-class pointers; `worldCollisionLoadSurfacePushbackFlags` copies only
-/// their `suppressPushback` flags into `Gp_RoomParams`.
+/// their `suppressPushback` flags into `gWorldCollisionSurfacePushbackSuppression`.
 extern WorldCollisionSurfaceProperties*** Gp_RoomParamTables[];
 
 /// Five stage-map directories of per-area mapped-view sprite arrays.
@@ -144,7 +144,7 @@ void spriteLinkViewCachedPackets(void);
 /// Hidden batches are initialized too; depth remains in sources and is read when
 /// linking. The combined byte count must fit unsigned 32 bits.
 ///
-/// Publishes one allocation and its second half in `Gp_SprtLists`. A zero count
+/// Publishes one allocation and its second half in `_gSpriteViewCachedPacketBuffers`. A zero count
 /// or allocation failure sets only the first head to NULL; consumers use that
 /// head as the validity guard. Does not release the previous block. Call after
 /// its auxiliary storage has been reset or its previous allocation retired;

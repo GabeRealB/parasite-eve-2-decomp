@@ -104,7 +104,7 @@ enum {
 
 /// One floating damage or heal number drawn beside a tracked target.
 ///
-/// `Gp_LockSlots` holds 32 of these. The binding is NULL when the slot is
+/// `_gWorldTargetReadouts` holds 32 of these. The binding is NULL when the slot is
 /// empty, a `WorldTargetNode` while that target stays on the tracked list, or
 /// `WORLD_TARGET_READOUT_DEPARTED` once the target has left the list. A
 /// non-negative total and a negative total use separate slots for the same
@@ -130,7 +130,12 @@ STATIC_ASSERT(OFFSET_OF(WorldTargetReadout, framesLeft) == 6, WorldTargetReadout
 STATIC_ASSERT(OFFSET_OF(WorldTargetReadout, screen) == 8, WorldTargetReadout_screen);
 
 /* Define BSS before API headers to preserve first-declaration order. */
-WorldTargetReadout Gp_LockSlots[32];
+/// Floating damage/heal pool, with separate sign-class totals for each target.
+///
+/// Each addition rearms 20 draw passes. Departed targets keep their final
+/// projection until expiry; clearing releases bindings without clearing screen.
+/// The complete 32-entry pool lives with gameplay and retains no node ownership.
+static WorldTargetReadout _gWorldTargetReadouts[32];
 
 SceneCombatState gSceneCombatState;
 
@@ -336,35 +341,35 @@ void worldTargetDrawOverlay(void)
     /// The node and projection arguments must be side-effect-free live pointers;
     /// the projection holds screen pixels before shake compensation. `easingActive`
     /// is a distinct writable s32 local initialized to zero. Arguments repeat;
-    /// this macro captures and updates D_80115260, D_80115264, D_8010F9EC and
+    /// this macro captures and updates D_80115260, D_80115264, gWorldTargetCursorXFixed8 and
     /// D_8010F9F0, using the WORLD_TARGET_CURSOR_ easing constants above.
     /// Initial acquisition snaps. Changing targets halves displacement for at
     /// most five passes; convergence still draws small on its final easing pass.
     /// Expands multiple statements; use only standalone in a braced block.
-#define WORLD_TARGET_EASE_CURSOR(targetNode, projection, easingActive)                                    \
-    if (D_80115260 != (targetNode)) {                                                                     \
-        if (D_80115260 == NULL) {                                                                         \
-            D_80115264 = WORLD_TARGET_CURSOR_EASING_COMPLETE;                                             \
-        } else {                                                                                          \
-            D_80115264 = 0;                                                                               \
-        }                                                                                                 \
-        D_80115260 = (targetNode);                                                                        \
-    }                                                                                                     \
-    if (D_80115264 < WORLD_TARGET_CURSOR_EASING_PASSES) {                                                 \
-        D_8010F9EC += (((projection)->screen.vx << WORLD_TARGET_CURSOR_FRACTION_BITS) - D_8010F9EC) >> 1; \
-        D_8010F9F0 += (((projection)->screen.vy << WORLD_TARGET_CURSOR_FRACTION_BITS) - D_8010F9F0) >> 1; \
-        if ((projection)->screen.vx == (D_8010F9EC >> WORLD_TARGET_CURSOR_FRACTION_BITS) &&               \
-            (projection)->screen.vy == (D_8010F9F0 >> WORLD_TARGET_CURSOR_FRACTION_BITS)) {               \
-            D_80115264 = WORLD_TARGET_CURSOR_EASING_COMPLETE;                                             \
-        } else {                                                                                          \
-            D_80115264++;                                                                                 \
-        }                                                                                                 \
-        (easingActive)          = 1;                                                                      \
-        (projection)->screen.vx = D_8010F9EC >> WORLD_TARGET_CURSOR_FRACTION_BITS;                        \
-        (projection)->screen.vy = D_8010F9F0 >> WORLD_TARGET_CURSOR_FRACTION_BITS;                        \
-    } else {                                                                                              \
-        D_8010F9EC = (projection)->screen.vx << WORLD_TARGET_CURSOR_FRACTION_BITS;                        \
-        D_8010F9F0 = (projection)->screen.vy << WORLD_TARGET_CURSOR_FRACTION_BITS;                        \
+#define WORLD_TARGET_EASE_CURSOR(targetNode, projection, easingActive)                                                                  \
+    if (D_80115260 != (targetNode)) {                                                                                                   \
+        if (D_80115260 == NULL) {                                                                                                       \
+            D_80115264 = WORLD_TARGET_CURSOR_EASING_COMPLETE;                                                                           \
+        } else {                                                                                                                        \
+            D_80115264 = 0;                                                                                                             \
+        }                                                                                                                               \
+        D_80115260 = (targetNode);                                                                                                      \
+    }                                                                                                                                   \
+    if (D_80115264 < WORLD_TARGET_CURSOR_EASING_PASSES) {                                                                               \
+        gWorldTargetCursorXFixed8 += (((projection)->screen.vx << WORLD_TARGET_CURSOR_FRACTION_BITS) - gWorldTargetCursorXFixed8) >> 1; \
+        D_8010F9F0                += (((projection)->screen.vy << WORLD_TARGET_CURSOR_FRACTION_BITS) - D_8010F9F0) >> 1;                \
+        if ((projection)->screen.vx == (gWorldTargetCursorXFixed8 >> WORLD_TARGET_CURSOR_FRACTION_BITS) &&                              \
+            (projection)->screen.vy == (D_8010F9F0 >> WORLD_TARGET_CURSOR_FRACTION_BITS)) {                                             \
+            D_80115264 = WORLD_TARGET_CURSOR_EASING_COMPLETE;                                                                           \
+        } else {                                                                                                                        \
+            D_80115264++;                                                                                                               \
+        }                                                                                                                               \
+        (easingActive)          = 1;                                                                                                    \
+        (projection)->screen.vx = gWorldTargetCursorXFixed8 >> WORLD_TARGET_CURSOR_FRACTION_BITS;                                       \
+        (projection)->screen.vy = D_8010F9F0 >> WORLD_TARGET_CURSOR_FRACTION_BITS;                                                      \
+    } else {                                                                                                                            \
+        gWorldTargetCursorXFixed8 = (projection)->screen.vx << WORLD_TARGET_CURSOR_FRACTION_BITS;                                       \
+        D_8010F9F0                = (projection)->screen.vy << WORLD_TARGET_CURSOR_FRACTION_BITS;                                       \
     }
 
     targetNode = gWorldTargetListHead;
@@ -377,10 +382,10 @@ void worldTargetDrawOverlay(void)
     if (session->sceneUpdatesPaused == WORLD_TARGET_CURSOR_HIDDEN_PAUSE_STATE) {
         return;
     }
-    if (Gp_StateC08.mode == ATTACHMENT_MODE_ARMED || Gp_StateC08.mode == ATTACHMENT_MODE_CAST) {
+    if (gAttachmentState.mode == ATTACHMENT_MODE_ARMED || gAttachmentState.mode == ATTACHMENT_MODE_CAST) {
         return;
     }
-    if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL) {
+    if (gAttachmentState.mode == ATTACHMENT_MODE_WHEEL) {
         return;
     }
     if (session->eventState != 0) {
@@ -567,38 +572,38 @@ void worldTargetAddReadoutAmount(WorldTargetNode* node, s32 amount, s32 unusedAr
     WorldTargetReadout* readout;
 
     // Finds the existing sign-class total, writing found and advancing the scan locals.
-    // Reads Gp_LockSlots and captures node, amount, found, readoutIndex and readout.
+    // Reads _gWorldTargetReadouts and captures node, amount, found, readoutIndex and readout.
     // Inputs may be read repeatedly; each break exits only the search loop.
-#define WORLD_TARGET_FIND_READOUT()                                       \
-    {                                                                     \
-        found        = NULL;                                              \
-        readoutIndex = 0;                                                 \
-        readout      = Gp_LockSlots;                                      \
-        for (; readoutIndex < ARRAY_SIZE(Gp_LockSlots); readoutIndex++) { \
-            if (readout->binding.node == node) {                          \
-                if (amount >= 0) {                                        \
-                    if (readout->amount >= 0) {                           \
-                        found = readout;                                  \
-                        break;                                            \
-                    }                                                     \
-                    readout++;                                            \
-                } else if (readout->amount < 0) {                         \
-                    found = readout;                                      \
-                    break;                                                \
-                } else {                                                  \
-                    readout++;                                            \
-                }                                                         \
-            } else {                                                      \
-                readout++;                                                \
-            }                                                             \
-        }                                                                 \
+#define WORLD_TARGET_FIND_READOUT()                                                \
+    {                                                                              \
+        found        = NULL;                                                       \
+        readoutIndex = 0;                                                          \
+        readout      = _gWorldTargetReadouts;                                      \
+        for (; readoutIndex < ARRAY_SIZE(_gWorldTargetReadouts); readoutIndex++) { \
+            if (readout->binding.node == node) {                                   \
+                if (amount >= 0) {                                                 \
+                    if (readout->amount >= 0) {                                    \
+                        found = readout;                                           \
+                        break;                                                     \
+                    }                                                              \
+                    readout++;                                                     \
+                } else if (readout->amount < 0) {                                  \
+                    found = readout;                                               \
+                    break;                                                         \
+                } else {                                                           \
+                    readout++;                                                     \
+                }                                                                  \
+            } else {                                                               \
+                readout++;                                                         \
+            }                                                                      \
+        }                                                                          \
     }
 
     // Keep damage and healing in separate totals for the same target.
     WORLD_TARGET_FIND_READOUT();
 #undef WORLD_TARGET_FIND_READOUT
     if (found == NULL) {
-        for (readoutIndex = 0, readout = Gp_LockSlots; readoutIndex < ARRAY_SIZE(Gp_LockSlots); readoutIndex++, readout++) {
+        for (readoutIndex = 0, readout = _gWorldTargetReadouts; readoutIndex < ARRAY_SIZE(_gWorldTargetReadouts); readoutIndex++, readout++) {
             if (readout->binding.node == NULL) {
                 found                 = readout;
                 readout->binding.node = node;
@@ -702,7 +707,7 @@ static void _worldTargetDrawReadouts(void)
         (baselineY) = -((baselineY) & WORLD_TARGET_READOUT_EDGE_PHASE_MASK) + WORLD_TARGET_READOUT_TOP_BAND_Y;   \
     }
 
-    readout       = Gp_LockSlots;
+    readout       = _gWorldTargetReadouts;
     readoutIndex  = 0;
     numberText    = numberBuffer;
     numberRequest = &request;
@@ -785,7 +790,7 @@ static void _worldTargetDrawReadouts(void)
         }
         readoutIndex++;
         readout++;
-    } while (readoutIndex < ARRAY_SIZE(Gp_LockSlots));
+    } while (readoutIndex < ARRAY_SIZE(_gWorldTargetReadouts));
 }
 
 void worldTargetUnlinkNode(WorldTargetNode* node)
@@ -976,7 +981,7 @@ static void _worldTargetClearReadouts(void)
     s32                 readoutIndex;
     WorldTargetReadout* readout;
 
-    readout      = Gp_LockSlots;
+    readout      = _gWorldTargetReadouts;
     readoutIndex = 0;
     do {
         readoutIndex++;
@@ -984,7 +989,7 @@ static void _worldTargetClearReadouts(void)
         readout->amount       = 0;
         readout->framesLeft   = 0;
         readout++;
-    } while (readoutIndex < ARRAY_SIZE(Gp_LockSlots));
+    } while (readoutIndex < ARRAY_SIZE(_gWorldTargetReadouts));
 }
 
 void worldTargetResetAreaTracking(void)
@@ -993,8 +998,8 @@ void worldTargetResetAreaTracking(void)
 
     gWorldTargetListHead = NULL;
     _worldTargetClearReadouts();
-    D_8010F9F0 = WORLD_TARGET_CURSOR_RESET_FIXED8;
-    D_8010F9EC = WORLD_TARGET_CURSOR_RESET_FIXED8;
+    D_8010F9F0                = WORLD_TARGET_CURSOR_RESET_FIXED8;
+    gWorldTargetCursorXFixed8 = WORLD_TARGET_CURSOR_RESET_FIXED8;
 }
 
 /// Projects an enemy target's body point and returns its quarter-depth for ordering.

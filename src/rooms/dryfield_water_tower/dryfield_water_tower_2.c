@@ -2038,7 +2038,7 @@ static void _dryfieldWaterTowerFallingPropTask(Task* task)
         return;
     }
     model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    if (Gp_StateC08.menuOpen == ATTACHMENT_MENU_CLOSED) {
+    if (gAttachmentState.menuOpen == ATTACHMENT_MENU_CLOSED) {
         switch (task->state) {
             case DRYFIELD_WATER_TOWER_PROP_STATE_INITIALIZE: {
                 TmdObject* initialModel;
@@ -2242,7 +2242,7 @@ static void _dryfieldWaterTowerSlidingPropTask(Task* task)
         return;
     }
     entryModel->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    if ((s8)Gp_StateC08.menuOpen != ATTACHMENT_MENU_CLOSED) {
+    if ((s8)gAttachmentState.menuOpen != ATTACHMENT_MENU_CLOSED) {
         return;
     }
     switch (task->state) {
@@ -2493,7 +2493,7 @@ static u16 _dryfieldWaterTowerStepTimedRun(Task* task)
             // Count the first timed frame in the same call that starts the run.
             /* fallthrough */
         case DRYFIELD_WATER_TOWER_RUN_PHASE_TIMING:
-            if (worldCollisionReadActionHit(&actionId, &actionReason, &actionArg) != 0 && Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE &&
+            if (worldCollisionReadActionHit(&actionId, &actionReason, &actionArg) != 0 && gAttachmentState.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE &&
                 (actionId & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) == WORLD_COLLISION_TRIGGER_ACTION_ROOM && (completionReason = (s8)actionReason) == DRYFIELD_WATER_TOWER_ACTION_COMPLETE_RUN) {
                 worldCollisionUnlinkTrigger(0, &D_dryfield_water_tower_80186A84[DRYFIELD_WATER_TOWER_FIRST_ACTION_TRIGGER]);
                 work->nextView = viewFindLogicalIndex(DRYFIELD_WATER_TOWER_CLOSING_MAPPED_VIEW);
@@ -2577,7 +2577,7 @@ static inline u16 _dryfieldWaterTowerStepPropClosingScene(Task* task)
 
     switch (work->phase) {
         case DRYFIELD_WATER_TOWER_CLOSING_PHASE_START:
-            if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL) {
+            if (gAttachmentState.mode == ATTACHMENT_MODE_WHEEL) {
                 break;
             }
             if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
@@ -2620,7 +2620,7 @@ static void _dryfieldWaterTowerPropSceneTask(Task* task)
     WorldCollisionTrigger*            mechanismTrigger;
     WorldCollisionTrigger*            runActionTrigger;
 
-    if (gGameSession->sceneUpdatesPaused != 0 || Gp_StateC08.menuOpen != ATTACHMENT_MENU_CLOSED || gPlayerStatus.hp == 0) {
+    if (gGameSession->sceneUpdatesPaused != 0 || gAttachmentState.menuOpen != ATTACHMENT_MENU_CLOSED || gPlayerStatus.hp == 0) {
         return;
     }
 
@@ -2826,7 +2826,7 @@ static void _dryfieldWaterTowerRequestWeaponReequipOnce(void)
 static void _dryfieldWaterTowerLockAttachmentsForPropScene(void)
 {
     roomEffectRequestCancelAll();
-    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+    gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
 /// Posts a prop-scene request for the driver to consume on its next frame.
@@ -3052,14 +3052,14 @@ static void _dryfieldWaterTowerActorSceneTask(Task* task)
     if (gGameSession->sceneUpdatesPaused != 0) {
         return;
     }
-    if ((s8)Gp_StateC08.menuOpen != ATTACHMENT_MENU_CLOSED) {
+    if ((s8)gAttachmentState.menuOpen != ATTACHMENT_MENU_CLOSED) {
         return;
     }
 
     switch (task->state) {
         case DRYFIELD_WATER_TOWER_ACTOR_SCENE_STATE_INITIALIZE:
             // Prepare the player pose before publishing the script request work.
-            if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
+            if (gAttachmentState.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
             _dryfieldWaterTowerStartActorSceneWeaponPose();

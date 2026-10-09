@@ -123,7 +123,7 @@ void antibodyCastTask(Task* task)
     s32              wedgeIndex;
     u8               rgb[3];
 
-    attachmentState = &Gp_StateC08;
+    attachmentState = &gAttachmentState;
     work            = task->spawnArg2.pointer;
     coord           = task->extra.coordBody->coord;
     if ((attachmentState->effectPhase != ATTACHMENT_EFFECT_HELD) && (gRoomEffectState->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
@@ -142,7 +142,7 @@ void antibodyCastTask(Task* task)
                 gRoomEffectState->peFxFlags &= (u16)~ROOM_EFFECT_PE_ANTIBODY_AURA;
                 attachmentState->flags      |= ATTACHMENT_FLAG_APPLY_STATS;
                 task->state                  = ANTIBODY_CAST_STATE_GROWING;
-                work->index                  = (Gp_StateC08.attachId % ANTIBODY_CAST_LEVEL_ID_RADIX) - 1;
+                work->index                  = (gAttachmentState.attachId % ANTIBODY_CAST_LEVEL_ID_RADIX) - 1;
                 wedgeIndex                   = 0;
                 if (D_antibody_80130BD4[work->index].wedgeCount > 0) {
                     do {
@@ -355,7 +355,7 @@ void antibodyMoteTask(Task* task)
             task->state     = ANTIBODY_MOTE_CONVERGE;
             seedRng         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             gRandomLcgState = seedRng;
-            levelIndex      = Gp_StateC08.attachId % 10 - 1;
+            levelIndex      = gAttachmentState.attachId % 10 - 1;
             work->index     = levelIndex;
             work->scale     = D_antibody_80130BD4[levelIndex].moteSpawnSize;
             work->angle     = ((u32)seedRng >> 16) & ANTIBODY_MOTE_ANGLE_MASK;

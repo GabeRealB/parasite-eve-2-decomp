@@ -2844,8 +2844,8 @@ static void _actor444000EventPerformPlayerAction(Task* task)
 #define ACTOR_444000_EVENT_START_LOCKED_PLAYER_CLIP()                                                                  \
     {                                                                                                                  \
         roomEffectRequestCancelAll();                                                                                  \
-        Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;                                                               \
-        reloaded           = task->work;                                                                               \
+        gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;                                                          \
+        reloaded                = task->work;                                                                          \
         if (reloaded->player != NULL) {                                                                                \
             animationRequest.source.sets          = D_actor_444000_8014430C;                                           \
             animationRequest.animationId          = ACTOR_444000_EVENT_LOCK_CLIP;                                      \
@@ -3003,7 +3003,7 @@ static void _actor444000IncineratorEventTask(Task* task)
     if (gGameSession->sceneUpdatesPaused != 0) {
         return;
     }
-    if (Gp_StateC08.menuOpen != ATTACHMENT_MENU_CLOSED) {
+    if (gAttachmentState.menuOpen != ATTACHMENT_MENU_CLOSED) {
         return;
     }
     if (gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
@@ -3013,7 +3013,7 @@ static void _actor444000IncineratorEventTask(Task* task)
     eventState = task->state;
     switch (eventState) {
         case ACTOR_444000_EVENT_INITIALIZE:
-            if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL) {
+            if (gAttachmentState.mode == ATTACHMENT_MODE_WHEEL) {
                 return;
             }
             if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
@@ -3849,7 +3849,7 @@ static void _actor444000CollapseState(Task* task)
             } else if (shrinkTick == ACTOR_444000_FINAL_PART_SHRINK_TICKS) {
                 task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
 
-                wallVertices        = Gp_GridParams->vertices;
+                wallVertices        = gWorldCollisionActiveGrid->vertices;
                 wallVertices[24].vy = ACTOR_444000_COMBAT_WALL_TOP_Y;
                 wallVertices[25].vy = ACTOR_444000_COMBAT_WALL_TOP_Y;
                 wallVertices[26].vy = ACTOR_444000_COMBAT_WALL_BOTTOM_Y;
@@ -3886,9 +3886,9 @@ static void _actor444000BuildCornerWalls(Task* task, s32 distance, s16 faceIndex
         ACTOR_444000_CORNER_WALL_SURFACE_CLASS = 2,
     };
     SVECTOR                 forwardOffset;
-    SVECTOR*                normals    = Gp_GridParams->normals;
-    SVECTOR*                vertices   = Gp_GridParams->vertices;
-    WorldCollisionGridFace* faces      = Gp_GridParams->faces;
+    SVECTOR*                normals    = gWorldCollisionActiveGrid->normals;
+    SVECTOR*                vertices   = gWorldCollisionActiveGrid->vertices;
+    WorldCollisionGridFace* faces      = gWorldCollisionActiveGrid->faces;
     WorldCollisionGridFace  anchorWall = { { faceIndex * 4, faceIndex * 4 + 1, faceIndex * 4 + 2, faceIndex * 4 + 3 }, faceIndex, ACTOR_444000_CORNER_WALL_SURFACE_CLASS };
     WorldCollisionGridFace  returnWall = {
         { (faceIndex + 1) * 4, (faceIndex + 1) * 4 + 1, (faceIndex + 1) * 4 + 2, (faceIndex + 1) * 4 + 3 }, faceIndex + 1, ACTOR_444000_CORNER_WALL_SURFACE_CLASS
@@ -4235,7 +4235,7 @@ static s32 _actor444000ApplyCommand(Task* task, s32 messageId, const ActorComman
                 sndEvtRequestScriptStop(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, 7), SOUND_SCRIPT_STOP_KEEP_RELEASE);
 
                 // Complete the collapse floor pose when the presentation is skipped.
-                floorVertices        = Gp_GridParams->vertices;
+                floorVertices        = gWorldCollisionActiveGrid->vertices;
                 floorVertices[24].vy = ACTOR_444000_COLLAPSED_FLOOR_LOWER_Y;
                 floorVertices[25].vy = ACTOR_444000_COLLAPSED_FLOOR_LOWER_Y;
                 floorVertices[26].vy = ACTOR_444000_COLLAPSED_FLOOR_UPPER_Y;
@@ -5256,7 +5256,7 @@ static void _actor444000CatchPlayerState(Task* task)
     if (work->stateChanged != 0) {
         catchScratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor444000CatchScratch);
 
-        wallVertices        = Gp_GridParams->vertices;
+        wallVertices        = gWorldCollisionActiveGrid->vertices;
         wallVertices[24].vy = ACTOR_444000_COMBAT_WALL_TOP_Y;
         wallVertices[25].vy = ACTOR_444000_COMBAT_WALL_TOP_Y;
         wallVertices[26].vy = ACTOR_444000_COMBAT_WALL_BOTTOM_Y;
@@ -5309,7 +5309,7 @@ static void _actor444000CatchPlayerState(Task* task)
         _actor444000PlaceCaughtPlayer(task, work, player, catchScratch, playerStatus);
 
         D_actor_444000_80161868.playerAtHost = 0;
-        Gp_StateC08.flags                   |= ATTACHMENT_FLAG_EVENT_LOCK;
+        gAttachmentState.flags              |= ATTACHMENT_FLAG_EVENT_LOCK;
         roomEffectRequestCancelAll();
         worldTargetDisableNodeLockOn(&enemy->node);
         worldTargetDisableNodeLockOn(&work->escorts[3]->node);
@@ -6718,7 +6718,7 @@ static inline void _actor444000ResetWallHeights(void)
     };
     SVECTOR* vertices;
 
-    vertices        = Gp_GridParams->vertices;
+    vertices        = gWorldCollisionActiveGrid->vertices;
     vertices[24].vy = ACTOR_444000_RESET_WALL_TOP_Y;
     vertices[25].vy = ACTOR_444000_RESET_WALL_TOP_Y;
     vertices[26].vy = ACTOR_444000_RESET_WALL_BOTTOM_Y;

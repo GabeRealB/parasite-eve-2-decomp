@@ -147,7 +147,7 @@ void damageTryStartEnemyDamageOverTime(Enemy* enemy, s32 attackKey, s32 unused)
             enemy->damageOverTimeGrade = 0;
             return;
         }
-        enemy->damageOverTimeGrade = Gp_StateC08.attachId % 10U;
+        enemy->damageOverTimeGrade = gAttachmentState.attachId % 10U;
     }
 }
 
@@ -211,7 +211,7 @@ void damageStartEnemyBuildup(Enemy* enemy, s32 attackKey, s32 unused)
         enemy->buildupGrade = 0;
         return;
     }
-    enemy->buildupGrade = Gp_StateC08.attachId % 10U;
+    enemy->buildupGrade = gAttachmentState.attachId % 10U;
 }
 
 s32 damageTickEnemyBuildup(Enemy* enemy)

@@ -1222,7 +1222,7 @@ static void _acropolisCafeteriaBattleSceneTask(Task* task)
             }
             break;
         case ACROPOLIS_CAFETERIA_BATTLE_WAIT_ENEMY_DEFEAT:
-            if (taskMessageDispatch(sceneFindPlacedActor(ACROPOLIS_CAFETERIA_PLACED_STRANGER), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0 && gPlayerStatus.hp > 0 && Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL &&
+            if (taskMessageDispatch(sceneFindPlacedActor(ACROPOLIS_CAFETERIA_PLACED_STRANGER), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0 && gPlayerStatus.hp > 0 && gAttachmentState.mode != ATTACHMENT_MODE_WHEEL &&
                 gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 task->state += 1;
@@ -1580,7 +1580,7 @@ static void _acropolisCafeteriaCopyPostBattleVram(void)
 static void _acropolisCafeteriaPreparePostBattleScene(void)
 {
     roomEffectRequestCancelAll();
-    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+    gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
 /// Registers the cafeteria room task and restores its progress-dependent actors.

@@ -2153,7 +2153,7 @@ static void _actor01600ProcessContacts(Task* actor)
                 scratch->delta.vector.vy = rootCoord->workm.t[1] - work->bodySphere.contacts[contactIndex].point.vy;
                 scratch->delta.vector.vz = rootCoord->workm.t[2] - work->bodySphere.contacts[contactIndex].point.vz;
                 VectorNormal(&scratch->delta.vector, &scratch->normal);
-                ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, &scratch->delta.vector);
+                ApplyTransposeMatrixLV(&gWorldCollisionActiveGrid->viewCoord->workm, &scratch->normal, &scratch->delta.vector);
                 if (work->animRequest == ACTOR_01600_ANIMATION_ROAM_REPEAT || work->animRequest == ACTOR_01600_ANIMATION_ADVANCE || work->animRequest == ACTOR_01600_ANIMATION_ZIGZAG) {
                     rootCoord->coord.t[0] += (overlapDepth * scratch->delta.vector.vx) >> 12;
                     verticalPush           = overlapDepth * scratch->delta.vector.vy;
@@ -3751,7 +3751,7 @@ static void _actor01600StepDeath(Enemy* enemy, Task* actor)
             // The final survivor remains alive while the room takes over its event.
             if (gSceneCombatState.actor01600Wave >= ACTOR_01600_WAVE_FINAL) {
                 if (Actor01600_D12874 == 1) {
-                    attachment = &Gp_StateC08;
+                    attachment = &gAttachmentState;
                     if (attachment->mode == ATTACHMENT_MODE_WHEEL) {
                         break;
                     }

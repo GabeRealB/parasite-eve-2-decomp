@@ -541,8 +541,8 @@ static inline void _loadingBindInitialRoomCollisionResources(const GameLocationK
         occluders            = roomResources[location->room - 1].occluders;
         if (grid != NULL) {
             // Bind the room mesh to the current view before publishing it.
-            grid->viewCoord = &gGfxViewCoord;
-            Gp_GridParams   = grid;
+            grid->viewCoord           = &gGfxViewCoord;
+            gWorldCollisionActiveGrid = grid;
         }
         if (viewBoundaryTriggers != NULL) {
             for (resourceIndex = 0;; resourceIndex++) {

@@ -1362,7 +1362,7 @@ static void _shelterB2SepticTankMonitorEncounterIntro(Task* task)
 
     if (gGameSession->location.loc.view == SHELTER_B2_SEPTIC_TANK_INTRO_VIEW) {
         variant = gGameSession->location.loc.variant;
-        if (variant == SHELTER_B2_SEPTIC_TANK_INTRO_VARIANT && Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE && D_shelter_b2_septic_tank_80187045 == SHELTER_B2_SEPTIC_TANK_INTRO_STAGE_PENDING) {
+        if (variant == SHELTER_B2_SEPTIC_TANK_INTRO_VARIANT && gAttachmentState.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE && D_shelter_b2_septic_tank_80187045 == SHELTER_B2_SEPTIC_TANK_INTRO_STAGE_PENDING) {
             if (gameFlagGetNibble(GAME_FLAG_0EB) == SHELTER_B2_SEPTIC_TANK_ENCOUNTER_PHASE_PENDING) {
                 evsStartScript(D_shelter_b2_septic_tank_80183004, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             }

@@ -272,7 +272,7 @@ extern _Actor503500WorkStorage D_actor_503500_80176574;
 extern u16 D_actor_503500_80176D64[];
 /// Main-executable globals with no module header yet: `gDisplayState.pendingMode` gates the
 /// "everything is dead" message, `gPlayerStatus.hp` is the player's current HP and
-/// `Gp_StateC08.mode` is 1 while the attachment wheel is open.
+/// `gAttachmentState.mode` is 1 while the attachment wheel is open.
 /// Main-executable flag byte cleared when the boss enters `ACTOR_503500_STATE_PART_LOST`; also written
 /// by `mist_r18`, which has no module header for it either. Declared as an
 /// array: `_actor503500StepPhaseTransitionState` needs the in-struct store, which keeps
@@ -705,7 +705,7 @@ static s32 _actor503500CheckPartLossProgress(Task* task)
          (slotEnemies[ACTOR_503500_SLOT_ARM_1] == NULL) || ((slotEnemies[ACTOR_503500_SLOT_SMALL_ORB_EMITTER] == NULL) && (pinkEmitter == NULL)) ||
          ((slotEnemies[ACTOR_503500_PROGRESS_LARGE_ORB_0_SLOT]->hp == 0) && (slotEnemies[ACTOR_503500_PROGRESS_LARGE_ORB_1_SLOT]->hp == 0)))) {
         if ((((GameActor*)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work)->mode != GAME_ACTOR_MODE_SCRIPTED) &&
-            (gPlayerStatus.hp > 0) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL)) {
+            (gPlayerStatus.hp > 0) && (gAttachmentState.mode != ATTACHMENT_MODE_WHEEL)) {
             if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
                 work->progressFlags |= ACTOR_503500_PROGRESS_ROOM_EVENT_SENT;
@@ -1217,7 +1217,7 @@ static void _actor503500StepDefeatedState(Task* task)
         case ACTOR_503500_DEFEATED_STEP_WAIT_EVENT:
             if (++work->stateFrames >= ACTOR_503500_DEFEATED_EVENT_DELAY_FRAMES &&
                 ((GameActor*)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work)->mode != GAME_ACTOR_MODE_SCRIPTED &&
-                gPlayerStatus.hp > 0 && Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
+                gPlayerStatus.hp > 0 && gAttachmentState.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
                 sndEvtRequestScriptStop(SOUND_BRAHMAN_DEATH_LOOP, ACTOR_503500_DEFEATED_SOUND_FADE_FRAMES);
                 work->stateStep = work->stateStep + 1;

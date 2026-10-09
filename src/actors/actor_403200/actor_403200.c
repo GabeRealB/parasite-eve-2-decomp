@@ -4992,7 +4992,7 @@ static void _actor403200HoldPlayerState(Task* hostTask)
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
         work->wallDistanceTarget = 0x9C4;
         gGluttonSpinnersReleased = 0;
-        Gp_StateC08.flags       |= ATTACHMENT_FLAG_EVENT_LOCK;
+        gAttachmentState.flags  |= ATTACHMENT_FLAG_EVENT_LOCK;
         roomEffectRequestCancelAll();
         worldTargetDisableNodeLockOn(&enemy->node);
         worldTargetDisableNodeLockOn(&work->escorts[3]->node);
@@ -6552,9 +6552,9 @@ static void _actor403200BuildAngledWall(Task* host, s16 distance, s16 lowerEdgeD
     };
     SVECTOR                 halfWidthOffset;
     SVECTOR                 forwardOffset;
-    SVECTOR*                normals   = Gp_GridParams->normals;
-    SVECTOR*                vertices  = Gp_GridParams->vertices;
-    WorldCollisionGridFace* faces     = Gp_GridParams->faces;
+    SVECTOR*                normals   = gWorldCollisionActiveGrid->normals;
+    SVECTOR*                vertices  = gWorldCollisionActiveGrid->vertices;
+    WorldCollisionGridFace* faces     = gWorldCollisionActiveGrid->faces;
     WorldCollisionGridFace  rightFace = {
         { faceIndex * 4, faceIndex * 4 + 1, faceIndex * 4 + 2, faceIndex * 4 + 3 }, faceIndex, ACTOR_403200_ANGLED_WALL_SURFACE_CLASS
     };

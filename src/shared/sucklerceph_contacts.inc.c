@@ -133,7 +133,7 @@ static void _sucklercephContacts(Task* task)
                 scratch->delta.vector.vy = rootCoord->workm.t[1] - work->contacts[contactIndex].point.vy;
                 scratch->delta.vector.vz = rootCoord->workm.t[2] - work->contacts[contactIndex].point.vz;
                 VectorNormal(&scratch->delta.vector, &scratch->normal);
-                ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, &scratch->delta.vector);
+                ApplyTransposeMatrixLV(&gWorldCollisionActiveGrid->viewCoord->workm, &scratch->normal, &scratch->delta.vector);
                 if (work->animId == SUCKLERCEPH_ANIM_IDLE || work->animId == SUCKLERCEPH_ANIM_CRAWL) {
                     rootCoord->coord.t[0] += (rangeOrOverlap * scratch->delta.vector.vx) >> SUCKLERCEPH_CONTACT_NORMAL_FRACTION_BITS;
                     verticalPushQ12        = rangeOrOverlap * scratch->delta.vector.vy;

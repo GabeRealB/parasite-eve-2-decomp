@@ -17,7 +17,7 @@ u16 Gp_ReplayButtons;
 
 u16 Gp_ReplayFramesLeft;
 
-AttachmentState Gp_StateC08;
+AttachmentState gAttachmentState;
 
 InventoryItemRow Gp_ItemTable2[5];
 
@@ -103,7 +103,7 @@ u16 attachmentGetActiveLevelValue(s32 column)
     s32                 valueOffsetBytes;
 
     levelTableBytes = Gp_IdParamHi.bytes;
-    abilityIndex    = Gp_StateC08.activeIndex;
+    abilityIndex    = gAttachmentState.activeIndex;
     if (abilityIndex >= ATTACHMENT_SPELL_COUNT) {
         level = ATTACHMENT_ACTIVE_LEVEL_MIN;
     } else {
@@ -130,6 +130,6 @@ u16 attachmentGetActiveLevelValue(s32 column)
     }
     // Select one aligned halfword; column scaling precedes row scaling.
     valueOffsetBytes  = column * sizeof(u16);
-    valueOffsetBytes += (Gp_StateC08.activeIndex * ATTACHMENT_ACTIVE_LEVEL_MAX + level) * sizeof(AttachmentLevelRow);
+    valueOffsetBytes += (gAttachmentState.activeIndex * ATTACHMENT_ACTIVE_LEVEL_MAX + level) * sizeof(AttachmentLevelRow);
     return *(const u16*)(levelTableBytes + valueOffsetBytes);
 }

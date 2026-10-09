@@ -108,7 +108,7 @@ void plasmaCastTask(Task* task)
     u8               rgb[3];
     s16              haloRadius;
 
-    attachment = &Gp_StateC08;
+    attachment = &gAttachmentState;
     effect     = task->spawnArg2.pointer;
     coord      = task->extra.coordBody->coord;
     if ((attachment->effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
@@ -124,7 +124,7 @@ void plasmaCastTask(Task* task)
     switch (task->state) {
         case PLASMA_STATE_INITIALIZE:
             effect->scale = PLASMA_INITIAL_BRIGHTNESS;
-            effect->index = (Gp_StateC08.attachId % 10) - 1;
+            effect->index = (gAttachmentState.attachId % 10) - 1;
             _plasmaSeedBandPhases();
             nextState = PLASMA_STATE_LEVEL_THREE;
             if (effect->index < 2) {
@@ -132,7 +132,7 @@ void plasmaCastTask(Task* task)
             }
             task->state = nextState;
             pan         = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(D_plasma_8012FF48[(u16)(Gp_StateC08.attachId % 10) - 1], pan,
+            sndEvtRequestScriptStart(D_plasma_8012FF48[(u16)(gAttachmentState.attachId % 10) - 1], pan,
                                      (s8)worldCoordGetOriginAudioDepth(coord));
             padScriptSpawnVariableMotorRamp((s16)(effect->index * PLASMA_MOTOR_FRAMES_PER_LEVEL + PLASMA_MOTOR_BASE_FRAMES), PLASMA_MOTOR_START_INTENSITY, PLASMA_MOTOR_END_INTENSITY);
             return;

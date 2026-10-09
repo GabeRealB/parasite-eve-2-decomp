@@ -33,7 +33,7 @@ static s32 _playerDetectionSegmentOccluded(const SVECTOR* segmentStart, const SV
     s32                     occluded;
 
     occluded  = 0;
-    occluder  = D_80115550;
+    occluder  = gWorldCollisionOccluderListHead;
     direction = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
     // Normalize once; every enabled quad uses the same segment direction.
     _playerDetectionNormalizeSegment(segmentStart, segmentEnd, direction);

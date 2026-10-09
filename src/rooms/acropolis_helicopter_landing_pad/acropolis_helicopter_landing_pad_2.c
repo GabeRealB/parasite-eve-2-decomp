@@ -1734,7 +1734,7 @@ void acropolisHelicopterLandingPadReleaseEncounterBattle(void)
 void acropolisHelicopterLandingPadLockAttachmentsForEncounter(void)
 {
     roomEffectRequestCancelAll();
-    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+    gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
 void acropolisHelicopterLandingPadSetPlayerPitchPulseState(s32 pulseState)

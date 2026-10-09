@@ -63,16 +63,16 @@ void attachmentApplySelfEffect(s32 releaseEffects)
 
     // The packed id selects the release effect; previews never alter these timers.
     player = &gPlayerStatus;
-    switch (Gp_StateC08.attachId) {
+    switch (gAttachmentState.attachId) {
         case ATTACHMENT_ID_ANTIBODY_1:
         case ATTACHMENT_ID_ANTIBODY_2:
         case ATTACHMENT_ID_ANTIBODY_3: {
             const AttachmentComboParam* comboParam;
             s32                         level;
 
-            level      = Gp_StateC08.attachId % 10;
+            level      = gAttachmentState.attachId % 10;
             comboParam = &Gp_AttachParams[ATTACHMENT_INDEX_ANTIBODY][level - 1].combo;
-            _attachmentRefreshStackedCombo(&Gp_StateC08.antibodyCombo, &Gp_StateC08.antibodyTicks, comboParam, level);
+            _attachmentRefreshStackedCombo(&gAttachmentState.antibodyCombo, &gAttachmentState.antibodyTicks, comboParam, level);
             break;
         }
         case ATTACHMENT_ID_ENERGY_SHOT_1:
@@ -81,9 +81,9 @@ void attachmentApplySelfEffect(s32 releaseEffects)
             const AttachmentComboParam* comboParam;
             s32                         level;
 
-            level      = Gp_StateC08.attachId % 10;
+            level      = gAttachmentState.attachId % 10;
             comboParam = &Gp_AttachParams[ATTACHMENT_INDEX_ENERGY_SHOT][level - 1].combo;
-            _attachmentRefreshStackedCombo(&Gp_StateC08.energyShotCombo, &Gp_StateC08.energyShotTicks, comboParam, level);
+            _attachmentRefreshStackedCombo(&gAttachmentState.energyShotCombo, &gAttachmentState.energyShotTicks, comboParam, level);
             break;
         }
         case ATTACHMENT_ID_METABOLISM_1:
@@ -94,16 +94,16 @@ void attachmentApplySelfEffect(s32 releaseEffects)
             s32                         stackCount;
             s32                         durationFrames;
 
-            level                       = Gp_StateC08.attachId % 10;
-            comboParam                  = &Gp_AttachParams[ATTACHMENT_INDEX_METABOLISM][level - 1].combo;
-            stackCount                  = Gp_StateC08.metabolismCombo & ATTACHMENT_COMBO_STACK_MASK;
-            durationFrames              = comboParam->ticks;
-            Gp_StateC08.metabolismCombo = stackCount;
-            Gp_StateC08.metabolismTicks = durationFrames;
-            if (Gp_StateC08.metabolismCombo == 0) {
-                Gp_StateC08.metabolismCombo++;
+            level                            = gAttachmentState.attachId % 10;
+            comboParam                       = &Gp_AttachParams[ATTACHMENT_INDEX_METABOLISM][level - 1].combo;
+            stackCount                       = gAttachmentState.metabolismCombo & ATTACHMENT_COMBO_STACK_MASK;
+            durationFrames                   = comboParam->ticks;
+            gAttachmentState.metabolismCombo = stackCount;
+            gAttachmentState.metabolismTicks = durationFrames;
+            if (gAttachmentState.metabolismCombo == 0) {
+                gAttachmentState.metabolismCombo++;
             }
-            Gp_StateC08.metabolismCombo |= level << ATTACHMENT_COMBO_LEVEL_SHIFT;
+            gAttachmentState.metabolismCombo |= level << ATTACHMENT_COMBO_LEVEL_SHIFT;
             playerStateSetStatusEffects(ATTACHMENT_SELF_CLEAR_STATUSES, PLAYER_STATUS_ALL_EFFECTS);
             break;
         }
@@ -122,7 +122,7 @@ void attachmentApplySelfEffect(s32 releaseEffects)
                    ATTACHMENT_HEAL_BLEND_SHIFT = 8 };
 
             levelRows = Gp_IdParamHi.rows;
-            rowIndex  = ATTACHMENT_INDEX_HEALING * ATTACHMENT_AREA_LEVEL_COUNT + 1 + Gp_StateC08.attachId % ATTACHMENT_AREA_LEVEL_COUNT;
+            rowIndex  = ATTACHMENT_INDEX_HEALING * ATTACHMENT_AREA_LEVEL_COUNT + 1 + gAttachmentState.attachId % ATTACHMENT_AREA_LEVEL_COUNT;
             maximumHp = levelRows[rowIndex].column.outcome.healMax;
             minimumHp = levelRows[rowIndex].column.amount;
             if (minimumHp >= maximumHp || !isStateF0Active_()) {

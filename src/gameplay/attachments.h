@@ -75,7 +75,7 @@ enum { ATTACHMENT_TARGET_PREVIEW = 0,
 /// Previews or applies the active attachment's timed combo or Healing effect.
 ///
 /// Preview requests a player-light pulse without changing combos or HP.
-/// Release uses `Gp_StateC08.attachId`: Antibody/Energy Shot stack up to two,
+/// Release uses `gAttachmentState.attachId`: Antibody/Energy Shot stack up to two,
 /// Metabolism starts one stack and clears statuses, and Healing adds capped HP.
 /// Other ids do nothing on release. Timers count active frames; levels are 1..3.
 /// Healing outside battle uses the row minimum; battle rolls a 1/256 blend.
@@ -99,12 +99,12 @@ extern DamageReceivedScaleRow Gp_DmgRows[];
 /// Column index table for `Gp_DmgRows`, indexed by signed HP / 10.
 extern u16 D_80113F54[];
 
-/// Percent scale table used by `damageComputeReceived` when `Gp_StateC08.antibodyCombo`
+/// Percent scale table used by `damageComputeReceived` when `gAttachmentState.antibodyCombo`
 /// is non-zero. Indexed by `((antibodyCombo / 16) - 1) * 2 + (s8)(antibodyCombo % 16)`.
 extern u16 D_80113CFC[];
 
 /// Percent scale table used by `damageComputePlayerAttack` / `damageRollCriticalHit` when
-/// `Gp_StateC08.energyShotCombo` is non-zero. Indexed by
+/// `gAttachmentState.energyShotCombo` is non-zero. Indexed by
 /// `((energyShotCombo / 16) - 1) * 2 + (s8)(energyShotCombo % 16)`; `damageComputePlayerAttack` reads
 /// `field_0` and `damageRollCriticalHit` reads `field_2` of each 4-byte slot.
 extern u16 D_80113D0C[][2];

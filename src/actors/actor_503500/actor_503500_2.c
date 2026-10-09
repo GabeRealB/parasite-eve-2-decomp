@@ -1970,7 +1970,7 @@ static void _actor503500StaffCardSceneTask(Task* task)
 /// Attachment updates consume the lock; ordinary activation is blocked while set.
 static void _actor503500LockAttachmentsForEvent(void)
 {
-    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+    gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
 /// Requests deferred respawn of the saved view after the card-use scene begins.

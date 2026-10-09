@@ -10,8 +10,16 @@
 /// including visits that reuse `workm` without changing the low 31-bit rebuild stamp.
 enum { GRAPHICS_COORD_VISIT_PARITY_BIT = 0x80000000 };
 
-extern const CVECTOR gGpColorGrey;
+/// Neutral RGB material and grey reference for model-lighting colour blends.
+///
+/// Each 8-bit channel is 128, the texture-modulation unity level; code is zero.
+/// Copied before GTE material lighting and used as the blend's grey endpoint.
+extern const CVECTOR gModelLightingNeutralColor;
 
-extern const CVECTOR gGpColorWhite;
+/// Maximum-channel white material for lit environment and offset layers.
+///
+/// Each 8-bit channel is 255 and the command byte is zero. Consumers copy it
+/// before GTE lighting; this is distinct from modulation unity at 128.
+extern const CVECTOR gModelLightingWhiteColor;
 
 #endif // GAMEPLAY_PRIVATE_MODEL_OBJECTS_H

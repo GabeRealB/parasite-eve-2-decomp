@@ -1814,7 +1814,7 @@ static void _shelterB1UndergroundParkingCheckCaptionHandoff(Task* roomTask)
         (rootCoord->coord.t[0] < SHELTER_B1_UNDERGROUND_PARKING_HANDOFF_X_LIMIT)) {
         roomZ = rootCoord->coord.t[2];
         if (roomZ < SHELTER_B1_UNDERGROUND_PARKING_HANDOFF_Z_LIMIT) {
-            if ((roomZ >= SHELTER_B1_UNDERGROUND_PARKING_HANDOFF_Z_MIN) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
+            if ((roomZ >= SHELTER_B1_UNDERGROUND_PARKING_HANDOFF_Z_MIN) && (gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 yaw = (u16)player->rotation.vy & ACTOR_TRANSFORM_ANGLE_MASK;
                 if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_UP) != 0) {
                     if ((u32)(yaw - SHELTER_B1_UNDERGROUND_PARKING_HANDOFF_UP_YAW_FIRST) < SHELTER_B1_UNDERGROUND_PARKING_HANDOFF_YAW_COUNT) {

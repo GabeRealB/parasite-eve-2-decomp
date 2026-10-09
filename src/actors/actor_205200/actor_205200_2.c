@@ -556,8 +556,8 @@ static void _actor205200ScanContacts(Task* task)
     worldCollisionClearContacts(work->hitContacts);
     if (work->touchContacts[0].flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
         if ((work->touchContacts[0].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY && gPlayerStatus.hp > 0) {
-            work->knockbackActive = 1;
-            Gp_StateC08.flags    |= ATTACHMENT_FLAG_EVENT_LOCK;
+            work->knockbackActive   = 1;
+            gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
         }
         worldCollisionClearContacts(work->touchContacts);
     }

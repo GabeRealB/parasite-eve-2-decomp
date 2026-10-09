@@ -33,11 +33,27 @@ enum { WORLD_COLLISION_FLOOR_NORMAL_Y = -0xDDA };
 /// Contact storage and trigger latches are updated without taking ownership.
 void worldCollisionUpdateTask(struct Task* unusedTask);
 
-extern s32 Gp_RoomParams[8];
+/// Pushback suppression cached by surface class (0..7): 0 applies, nonzero suppresses.
+///
+/// Each s32 entry is widened from the surface property's byte. Area setup
+/// refreshes all entries; room overrides update affected entries alongside
+/// their source properties. Suppression leaves contact classification intact.
+extern s32 gWorldCollisionSurfacePushbackSuppression[8];
 
-extern WorldCollisionGrid* Gp_GridParams;
+/// Borrowed mutable collision grid bound to the current room and view, or NULL.
+///
+/// Room/view setup binds viewCoord before publishing the pointer. Clearing or
+/// rebinding a room retires it; the room overlay owns the mesh and cell lists
+/// and must remain loaded while they are used. Queries require composed view
+/// transforms, valid mesh/cell indices and no more than 256 active faces.
+extern WorldCollisionGrid* gWorldCollisionActiveGrid;
 
-extern WorldCollisionOccluder* D_80115550;
+/// First borrowed sight-occluder record in the active room list, or NULL.
+///
+/// Enabled records are tested in the current view space. Owners keep records
+/// and their room resources live while linked. Reset drops this binding without
+/// walking nodes or freeing them; room/view rebinding retires the old list.
+extern WorldCollisionOccluder* gWorldCollisionOccluderListHead;
 
 /// Probes from `start` toward `target` against blocking faces of the active room grid.
 ///

@@ -11,6 +11,14 @@
 /// scans walk from here through `next`.
 extern WorldTargetNode* gWorldTargetListHead;
 
+/// Lock-on reticle screen X before shake compensation, with eight fractional bits.
+///
+/// Signed s32 screen pixels relative to the centre, scaled by 256. Target
+/// changes halve the displacement for at most five draws; acquisition snaps.
+/// Initialized to -256 pixels and reset to -4096 pixels at area entry.
+/// Gameplay owns this value; target/easing state has a separate lifetime.
+extern s32 gWorldTargetCursorXFixed8;
+
 /// Draws and ages floating damage/heal readouts, then draws the lock-on reticle.
 ///
 /// The input HUD-hide flag suppresses the entire pass. Readouts still age when

@@ -304,13 +304,11 @@ PSYQ_HEADERS = [
 def candidate_headers(overlay: str) -> list[str]:
     """Header include lines to try for one overlay, in dependency order.
 
-    Deliberately NOT every header under `include/<family>/`. Those are
-    per-overlay views and they contradict each other on purpose:
-    `include/actors/actor_101600.h` declares `extern Actor01600StateC08
-    Gp_StateC08` while `include/gameplay/gameplay.h` declares the same symbol as
-    `GpStateC08`. Including both is a hard cc1 conflict, and including all 34
-    actor headers at once is 34 of them. A real source takes one -- see
-    src/actors/actor_01600/actor_101600_text.c -- so the context is per overlay too.
+    Deliberately NOT every header under `include/<family>/`: unrelated overlay
+    interfaces may give different meanings to the same load address, so the
+    context is per overlay. Shared gameplay objects instead use their canonical
+    declarations: `gAttachmentState` is `AttachmentState` from
+    `include/gameplay/attachments.h`, including for actor consumers.
 
     The overlay's own header precedes gameplay's so that, when the two disagree,
     the greedy filter drops gameplay and keeps the overlay's own view.
@@ -339,7 +337,7 @@ def _header_set_ok(headers: list[str], probe_asm: Path, workdir: Path) -> Option
               the whole run and silently downgrades every function using it;
       cc1  -- the candidate has to compile against these same headers, and two
               headers can each parse yet contradict each other ("previous
-              declaration of `Gp_StateC08'").
+              declaration of `gAttachmentState'").
     """
     tu = workdir / "ctx_tu.c"
     body = '#include "common.h"\n' + "".join(f'#include "{h}"\n' for h in headers)

@@ -1197,7 +1197,7 @@ static void _dryfieldMotelRoom1OpeningEventTask(Task* task)
 
     switch (task->state) {
         case DRYFIELD_MOTEL_ROOM_1_OPENING_START:
-            if ((Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
+            if ((gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 _dryfieldMotelRoom1InitializeOpeningEvent(task);
                 _dryfieldMotelRoom1PlayPlayerAnimation(DRYFIELD_MOTEL_ROOM_1_OPENING_PLAYER_CLIP, ANIMATION_BLEND_INTERPOLATE, DRYFIELD_MOTEL_ROOM_1_OPENING_BLEND_FRAMES);
                 evsStartScriptWithSkip(D_dryfield_motel_room_1_8017E160, EVENT_SCRIPT_HUD_HIDE_RESTORE,

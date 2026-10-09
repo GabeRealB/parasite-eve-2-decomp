@@ -8,6 +8,28 @@
 
 #include "gameplay/room.h"
 
+/// Fallback room-view RGB ambient minima, one 8-bit colour level above black.
+///
+/// RGB and stored luma are all 16, in units of 16 per 8-bit colour level.
+/// Used when the room lighting record or ambient table is absent, or the view
+/// exceeds its count; also copied as a complete eight-byte default entry.
+/// This value lives with gameplay and does not borrow a room overlay.
+extern WorldCoordRoomAmbientEntry gWorldCoordDefaultRoomAmbientEntry;
+
+/// Selects the stored ambient RGB replacement when exactly 1; 0 disables it.
+///
+/// The setter and player-light initialization disable the gate without clearing
+/// `gWorldCoordAmbientColorOverride`. Storage is a signed byte, matching the
+/// lighting query's exact signed-byte comparison.
+extern s8 gWorldCoordAmbientColorOverrideEnabled;
+
+/// Copied signed RGB replacement for a model's ambient colour-matrix translation.
+///
+/// vx/vy/vz use 16 units per 8-bit colour level. The complete SVECTOR is copied,
+/// including its unused pad halfword; no caller pointer is retained. The value
+/// persists while disabled and is consumed only when the override gate is 1.
+extern SVECTOR gWorldCoordAmbientColorOverride;
+
 /// Stage-to-area-to-room model-lighting lookup tables borrowed from loaded overlays.
 ///
 /// Index with `GameLocationKey.stage - 1` (stages 1..5: Akropolis, Dryfield day,
@@ -26,7 +48,7 @@ struct WorldTargetNode;
 /// drawing. Cleared when the walk finds no live target.
 extern struct WorldTargetNode* D_80115260;
 
-/// Lerp / settle counter for that reticle. `< 5` eases `D_8010F9EC` /
+/// Lerp / settle counter for that reticle. `< 5` eases `gWorldTargetCursorXFixed8` /
 /// `D_8010F9F0` toward the projected coords (small sprite); `0xFF` snaps.
 /// Reset to `0` on target change and when the list is empty.
 extern s32 D_80115264;

@@ -1217,7 +1217,7 @@ static void _actor01500ProcessContacts(Task* actor)
                 if (deepestOverlap < overlapDepth) {
                     deepestOverlap = overlapDepth;
                     VectorNormal(&scratch->delta.vector, separationNormal);
-                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, separationNormal, &scratch->pushDirection);
+                    ApplyTransposeMatrixLV(&gWorldCollisionActiveGrid->viewCoord->workm, separationNormal, &scratch->pushDirection);
                 }
                 break;
         }

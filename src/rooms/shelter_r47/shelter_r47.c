@@ -625,7 +625,7 @@ static void _shelterR47AdvanceTerminalTour(Task* unusedTask)
     };
     u8 variant = gGameSession->location.loc.variant;
 
-    if (variant != 1 || Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL) {
+    if (variant != 1 || gAttachmentState.mode == ATTACHMENT_MODE_WHEEL) {
         return;
     }
     switch (gameFlagGetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS)) {

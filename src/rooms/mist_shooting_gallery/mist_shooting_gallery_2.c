@@ -2355,7 +2355,7 @@ static void _mistShootingGalleryInitCourse(Task* controller)
 
     // The early courses restrict swapping; the first two also hold movement.
     if (work->course < MIST_SHOOTING_GALLERY_FIRST_SWAP_COURSE) {
-        Gp_StateC08.flags |= ATTACHMENT_FLAG_SWAP_LOCK;
+        gAttachmentState.flags |= ATTACHMENT_FLAG_SWAP_LOCK;
         if (work->course < MIST_SHOOTING_GALLERY_FIRST_MOVEMENT_COURSE) {
             player->movementInputDisabled = 1;
             displayAcquireMenuHold();
@@ -3109,10 +3109,10 @@ static void _mistShootingGalleryRunCourse3(Task* controller)
                 playerActorEndScripted(
                     gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0, PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET, 0);
                 work->phase++;
-                dismissButtons     = PAD_BUTTON_TRIANGLE;
-                Gp_StateC08.flags |= ATTACHMENT_FLAG_OPEN_WHEEL;
-                work->timer        = MIST_SHOOTING_GALLERY_COURSE_3_SWAP_DELAY_FRAMES;
-                work->captionStep  = MIST_SHOOTING_GALLERY_COURSE_3_SWAP_FIRST_KEY;
+                dismissButtons          = PAD_BUTTON_TRIANGLE;
+                gAttachmentState.flags |= ATTACHMENT_FLAG_OPEN_WHEEL;
+                work->timer             = MIST_SHOOTING_GALLERY_COURSE_3_SWAP_DELAY_FRAMES;
+                work->captionStep       = MIST_SHOOTING_GALLERY_COURSE_3_SWAP_FIRST_KEY;
                 if (buttonLayout == 2) {
                     dismissButtons = PAD_BUTTON_R2;
                 }
@@ -3122,12 +3122,12 @@ static void _mistShootingGalleryRunCourse3(Task* controller)
         case MIST_SHOOTING_GALLERY_COURSE_3_SWAP_INSTRUCTIONS:
             padInputChangeSuppression(PAD_INPUT_SUPPRESSION_SET_ALIAS, PAD_BUTTON_R1 | PAD_BUTTON_R2);
             if (work->timer <= 0) {
-                if ((u32)((u8)Gp_StateC08.mode - ATTACHMENT_MODE_ARMED) >= 2) {
+                if ((u32)((u8)gAttachmentState.mode - ATTACHMENT_MODE_ARMED) >= 2) {
                     _mistShootingGalleryShowCaption(MIST_SHOOTING_GALLERY_COURSE_3_CAPTION_COMMAND, work->captionStep, MIST_SHOOTING_GALLERY_CAPTION_DISMISS_BUTTONS);
                     if (work->captionStep == MIST_SHOOTING_GALLERY_COURSE_3_SWAP_LAST_KEY) {
                         work->phase++;
                         padInputChangeSuppression(PAD_INPUT_SUPPRESSION_CLEAR, PAD_BUTTON_R1 | PAD_BUTTON_R2);
-                        Gp_StateC08.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
+                        gAttachmentState.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
                     }
                     work->captionStep++;
                 }
@@ -3162,7 +3162,7 @@ static void _mistShootingGalleryRunCourse3(Task* controller)
     }
 
     if (work->interrupted == 0 && work->captionStep >= MIST_SHOOTING_GALLERY_COURSE_3_INTERRUPTION_FIRST_KEY) {
-        interruptRequest = Gp_StateC08.effectPhase;
+        interruptRequest = gAttachmentState.effectPhase;
         if (interruptRequest == 1) {
             resumePhase             = work->phase;
             work->interrupted       = interruptRequest;
@@ -3285,7 +3285,7 @@ static void _mistShootingGalleryRunCourse4(Task* controller)
                 work->phase++;
                 taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
                 sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_ROUND_START, 0, 0);
-                Gp_StateC08.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
+                gAttachmentState.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
                 sceneEngageBattle(1);
             }
             break;

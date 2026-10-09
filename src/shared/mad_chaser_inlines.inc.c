@@ -74,7 +74,7 @@ static __inline__ void _madChaserCalcContactPushback(const Task* task, const Gfx
     separation.vy = root->workm.t[1] - contact->point.vy;
     separation.vz = root->workm.t[2] - contact->point.vz;
     VectorNormal(&separation, &normalizedDirection);
-    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &normalizedDirection, &separation);
+    ApplyTransposeMatrixLV(&gWorldCollisionActiveGrid->viewCoord->workm, &normalizedDirection, &separation);
     pushDelta->vx = (penetrationDepth * separation.vx) >> MAD_CHASER_PUSH_DIRECTION_FRACTION_BITS;
     pushDelta->vy = 0;
     pushDelta->vz = (penetrationDepth * separation.vz) >> MAD_CHASER_PUSH_DIRECTION_FRACTION_BITS;

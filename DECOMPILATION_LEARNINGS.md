@@ -7127,21 +7127,21 @@ next call reuse it:
 ```
 jal   ApplyTransposeMatrixLV
  addiu a0, a0, 0x24
-lw    a2, %lo(Gp_GridParams)(s2)
+lw    a2, %lo(gWorldCollisionActiveGrid)(s2)
 lhu   v0, 0x10(s0)
 lw    v1, 0(a2)
 lhu   a0, 0x14(a2)
 ```
 
-A named `p = Gp_GridParams` without a pin lands in `$a3` instead. That
+A named `p = gWorldCollisionActiveGrid` without a pin lands in `$a3` instead. That
 shifts every subsequent field load and the second call's
 `lw a0, 0(p)` / `move a2, out`. Pin the pointer:
 
 ```c
 register WorldCollisionGrid* p asm("a2");
 
-ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->viewEndpoint, rotatedEndpoint);
-p = Gp_GridParams;
+ApplyTransposeMatrixLV(&gWorldCollisionActiveGrid->viewCoord->workm, &scratch->viewEndpoint, rotatedEndpoint);
+p = gWorldCollisionActiveGrid;
 ```
 
 Also pass `scratch->gridEndpoints` so the follow-up
@@ -8233,7 +8233,7 @@ if ((id & 0x3F) == 0x31) {
     p->field_5D = 0;
     return;
 }
-p->field_5D = Gp_StateC08.attachId % 10U;
+p->field_5D = gAttachmentState.attachId % 10U;
 ```
 
 `damageStartEnemyBuildup` is the example. The `&&` / else-zero form stuck at 87% with
@@ -25188,7 +25188,7 @@ The target stores b, g, then r as `%lo(symbol)(hi)`. Chained assignment
 evaluates right-to-left and matches:
 
 ```c
-D_80114BA4.r = D_80114BA4.g = D_80114BA4.b = layerIntensity;
+_gModelLightingEnvironmentLayerMaterial.r = _gModelLightingEnvironmentLayerMaterial.g = _gModelLightingEnvironmentLayerMaterial.b = layerIntensity;
 ```
 
 Chaining also collapses the *loads*, which matters when the destination is a
@@ -28093,7 +28093,7 @@ update:
 `worldTargetAddReadoutAmount` is the example. The follow-up `if (found != NULL)`
 form stuck at 75% with only that control-flow shape different. The
 first search also needs a goto-back loop (not `do`/`while`) so the
-first `lw 0(p)` is not peeled off `&Gp_LockSlots` — same anti-peel
+first `lw 0(p)` is not peeled off `&_gWorldTargetReadouts` — same anti-peel
 trick as `textSkipLines`.
 
 ## Pin the table to `$v0` inside the `if` so session `lui` takes `$v1`
@@ -28572,12 +28572,12 @@ stream.
 
 ```c
 case 4:
-    if (Gp_StateC08.mindWard == 0) {
+    if (gAttachmentState.mindWard == 0) {
         ret = 0;
     }
     break;
 case 8: /* body is next in the target, even though 5-7 come later */
-    if ((s8)Gp_StateC08.bodyWard == 0) {
+    if ((s8)gAttachmentState.bodyWard == 0) {
         ret = 0;
     }
     break;
@@ -31204,7 +31204,7 @@ for (i = 0; i < batch->spriteCount; ) {
 ```
 
 `_spriteSetViewRawTexture` is the example. Pin `packet` with `register … asm("a1")` so
-the `%hi(Gp_SprtLists)` reused for the later `Gp_SprtLists[0]` NULL check
+the `%hi(_gSpriteViewCachedPacketBuffers)` reused for the later `_gSpriteViewCachedPacketBuffers[0]` NULL check
 stays in `$a2`.
 
 ## `j = 0; if (j < n)` after `if (n > 0)` keeps both `blez` checks
@@ -34207,11 +34207,11 @@ is filled (not `nop`):
 
 ```c
 i = 0;
-asm volatile("lui %0, %%hi(Gp_GridParams)" : "=r"(hi) : "r"(i) : "memory");
+asm volatile("lui %0, %%hi(gWorldCollisionActiveGrid)" : "=r"(hi) : "r"(i) : "memory");
 out = scratch->gridEndpoints;
 off = 0x20;
 ...
-asm("lw %0, %%lo(Gp_GridParams)(%2)\n\tlw %1, 68(%3)"
+asm("lw %0, %%lo(gWorldCollisionActiveGrid)(%2)\n\tlw %1, 68(%3)"
     : "=r"(p), "=r"(t) : "r"(hi), "r"(scratch));
 ```
 
@@ -34886,7 +34886,7 @@ Clobber the field memory, then snapshot it into two block-scoped s32
 locals around the neighboring store:
 
 ```c
-work->index = (Gp_StateC08.attachId % 10U) - 1;
+work->index = (gAttachmentState.attachId % 10U) - 1;
 __asm__ volatile("" : "+m"(work->index));
 x             = work->index; /* lh */
 work->angle = 0x20;
@@ -34916,10 +34916,10 @@ tmp.vz = *(u16*)&arg0->coord.t[2];
 
 ## Repeat a global load so `%hi` stays in `$a1`; don't stash it in a local
 
-`u16 val = Gp_StateC08.attachId` then `val / 10U` / `val / 100U` reuses the
+`u16 val = gAttachmentState.attachId` then `val / 10U` / `val / 100U` reuses the
 `%hi` register as the load dest (`lhu a1, %lo(a1)`). The target keeps
-`$a1` as `%hi` for every `field_0` access (`lhu a2, %lo(Gp_StateC08)(a1)`).
-Write `Gp_StateC08.attachId` at each use so the CSE temp is `$a2`.
+`$a1` as `%hi` for every `field_0` access (`lhu a2, %lo(gAttachmentState)(a1)`).
+Write `gAttachmentState.attachId` at each use so the CSE temp is `$a2`.
 
 ## `x - 1 + y` reassociates onto `y`; a live `-1` variable or a split add does not
 
@@ -36016,7 +36016,7 @@ j      body
 pointer's `+r` barrier so the `%hi` temp is `$v1`:
 
 ```c
-p = &Gp_StateC08;
+p = &gAttachmentState;
 asm volatile("" : "+r"(p) : : "v0");
 ```
 
@@ -37667,7 +37667,7 @@ the narrower store forces a separate QImode quantity that cse cannot unify with
 the SImode one:
 
 ```c
-ret = Gp_HealPending = Gp_StateC08.mindWard = 1; /* sb then sw, each via `move v0,s5` */
+ret = Gp_HealPending = gAttachmentState.mindWard = 1; /* sb then sw, each via `move v0,s5` */
 ```
 
 `_itemUseAttachedItem` needed both spellings (cases 4/8 chained, case 0x3C reordered);
@@ -37755,11 +37755,11 @@ double cast never survives to RTL. Spell the sign-extension out as shifts on
 the zero-extended load instead:
 
 ```c
-effectDrawOuterGlowBand(coord, ((u8)Gp_StateC08.duration << 24) >> 17, 0x60, rgb);
+effectDrawOuterGlowBand(coord, ((u8)gAttachmentState.duration << 24) >> 17, 0x60, rgb);
 ```
 
 That emits `lbu; sll 24; sra 17` (i.e. `(s8)field << 7`) while a plain
-`Gp_StateC08.duration != 0` elsewhere in the same function still uses `lb`, which
+`gAttachmentState.duration != 0` elsewhere in the same function still uses `lb`, which
 is what the target does.
 
 ## `(s16)(u16)` on an `s16` field *does* survive, unlike the `s8` case
@@ -40897,10 +40897,10 @@ did not.
 
 ## Read a global directly instead of through a local when the pointer must die
 
-`p = Gp_GridParams; gte_ldv0(&p->vertices[...]);` gives every use of `p` one hard
+`p = gWorldCollisionActiveGrid; gte_ldv0(&p->vertices[...]);` gives every use of `p` one hard
 register, so a load whose value the target drops immediately (`lw $v1, %lo(...)`
 / `lw $v1, 8($v1)`) stays pinned in a callee-saved-ish temp. Writing
-`Gp_GridParams->vertices[...]` inline creates a short-lived pseudo that dies into
+`gWorldCollisionActiveGrid->vertices[...]` inline creates a short-lived pseudo that dies into
 `$v1`. In `worldCollisionCollideSphereGrid` every site had to be the direct form; introducing the
 local anywhere shifted `$a0`/`$a1` across the whole function.
 
@@ -40917,22 +40917,22 @@ the real outer-product word `0x4B78000C` (`gte_ldopv1` / `gte_ldopv2` /
 When every temp in a function is one register off the target (`$t2/$t1/$t0`
 where the target has `$t1/$t0/$a3`), the cause is usually a single pseudo that
 was still live — or already dead — at the *first* load, not a hundred bad
-allocations. In `worldCollisionIntersectGridFace` the culprit was `face = &Gp_GridParams->faces[faceIndex]`.
+allocations. In `worldCollisionIntersectGridFace` the culprit was `face = &gWorldCollisionActiveGrid->faces[faceIndex]`.
 Written directly after the scratch-head bookkeeping, the pre-reload scheduler
 hoisted the whole `faceIndex * 12` chain (`sll`/`addu`/`sll`) into the prologue's
-`sw` delay slots, so `$a0` was dead by the time `Gp_GridParams` was loaded and
+`sw` delay slots, so `$a0` was dead by the time `gWorldCollisionActiveGrid` was loaded and
 the global took `$a0` instead of `$a1`. That freed `$a1` for the face pointer,
 which then no longer needed a callee-saved register, and the shift cascaded
 through every `mflo` below.
 
 Moving the statement one line — between the store of the new head and the
 assignment of the scratch pointer — left `addu v0, v0, a0` after the
-`lw a1, %lo(Gp_GridParams)` and fixed all ~40 register diffs at once:
+`lw a1, %lo(gWorldCollisionActiveGrid)` and fixed all ~40 register diffs at once:
 
 ```c
     scratchEnd                = SCRATCH_STACK_CURSOR(_WorldCollisionGridRayScratch);
     SCRATCH_STACK_CURSOR(void) = scratchEnd - 1;
-    face                      = &Gp_GridParams->faces[faceIndex];   /* not before, not after */
+    face                      = &gWorldCollisionActiveGrid->faces[faceIndex];   /* not before, not after */
     scratch                   = scratchEnd - 1;
 ```
 
@@ -42092,7 +42092,7 @@ gameplay header it can include. The answer is not the unit header the type
 currently lives in.
 
 An actor overlay declares its own views of the gameplay globals it reads - a
-`Gp_StateC08`, a `gSceneCombatState`, a pair of named field widths - and its own
+`gAttachmentState`, a `gSceneCombatState`, a pair of named field widths - and its own
 prototypes for gameplay entry points whose signature it spells its own way. Any
 header that carries those declarations and is pulled into the overlay collides
 with the views the overlay wrote deliberately, and the collisions are type
@@ -50949,7 +50949,7 @@ parameters of one call end up with different widths.
 `_worldCollisionMarkCapsuleGridCandidates` is `_worldCollisionMarkMotionSphereGridCandidates` with the two source `SVECTOR`s read from
 `body->context.capsule->ends` instead of computed. The matched sibling reaches the target's
 loop with eight `register … asm("")` pins, a `TOUCH_REG` and a hand-written
-`lw %lo(Gp_GridParams)` asm. None of that is needed: the loop matches unpinned
+`lw %lo(gWorldCollisionActiveGrid)` asm. None of that is needed: the loop matches unpinned
 if every scratch access is written as an *indexed* element of the block (`scratch`),
 
 ```c
@@ -50960,9 +50960,9 @@ for (endpointIndex = 0; endpointIndex < (s32)ARRAY_SIZE(scratch->localEndpoints)
     gte_ldv0(&scratch->localEndpoints[endpointIndex]);
     gte_rtv0();
     gte_stlvnl(&scratch->gridEndpoints[endpointIndex]);
-    scratch->gridEndpoints[endpointIndex].vx = scratch->gridEndpoints[endpointIndex].vx + scratch->bodyToRoom.t[0] + Gp_GridParams->xBias;
+    scratch->gridEndpoints[endpointIndex].vx = scratch->gridEndpoints[endpointIndex].vx + scratch->bodyToRoom.t[0] + gWorldCollisionActiveGrid->xBias;
     scratch->gridEndpoints[endpointIndex].vy = 0;
-    scratch->gridEndpoints[endpointIndex].vz = scratch->gridEndpoints[endpointIndex].vz + scratch->bodyToRoom.t[2] + Gp_GridParams->zBias;
+    scratch->gridEndpoints[endpointIndex].vz = scratch->gridEndpoints[endpointIndex].vz + scratch->bodyToRoom.t[2] + gWorldCollisionActiveGrid->zBias;
 }
 ```
 
@@ -54028,7 +54028,7 @@ second bound:
 
 ```c
 if (rootZ < 0x1644) {
-    if ((rootZ >= 0x10CD) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
+    if ((rootZ >= 0x10CD) && (gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
 ```
 
 Every failing term still branches to the shared exit, so the topology is
@@ -62136,7 +62136,7 @@ reading two different compilations. Check the filenames before the codegen.
 just stored:
 
 ```c
-effect->index = Gp_StateC08.attachId % 10 - 1;
+effect->index = gAttachmentState.attachId % 10 - 1;
 effect->angle = (effect->index << 8) + 0x300;   /* sll 8 */
 ```
 
@@ -62533,12 +62533,12 @@ GCC keep two of them in `$s5` / `$s1` across the loop and spill only the
 
 ## A `&Global` pointer local pins the whole address; plain member access shares only the `%hi`
 
-`metabolismCastTask` touches `Gp_StateC08` three times: `effectPhase` in the
+`metabolismCastTask` touches `gAttachmentState` three times: `effectPhase` in the
 cancel test, `attachId` in `case 0`, and `flags` a few statements later.
 Copying its sibling `healingAuraTask` and opening with
 
 ```c
-AttachmentState* state = &Gp_StateC08;
+AttachmentState* state = &gAttachmentState;
 ```
 
 scored 95.2%. The pointer is one pseudo with a live range covering the whole
@@ -62546,9 +62546,9 @@ prologue-to-`case 0` span, so `global_alloc` parked the *complete* address
 (`lui` + `addiu`) in `$s2` and the bare `%hi` in `$s4`, and both stayed live
 across the LCG loop.
 
-Writing `Gp_StateC08.effectPhase` / `Gp_StateC08.flags` directly took it to
+Writing `gAttachmentState.effectPhase` / `gAttachmentState.flags` directly took it to
 98.0%. Each reference is then its own address rtx: CSE keeps only the shared
-`%hi` in `$s2` — which is what feeds the `lhu $a0, %lo(Gp_StateC08)($s2)` for
+`%hi` in `$s2` — which is what feeds the `lhu $a0, %lo(gAttachmentState)($s2)` for
 `attachId` — and rematerialises `lui` + `addiu` at the `flags` read, which is
 exactly the ROM's two "extra" instructions.
 
@@ -66030,7 +66030,7 @@ The minimally repaired m2c baseline scored 71.837% (branch=6, regs=101,
 reorder=9, insert=23, delete=20). Its `.lreg` kept the old scratch head live
 across four calls, while the separately tracked face offset and second loop
 index competed for saved registers. Keeping one typed 0x50-byte scratch block,
-using one `s32 faceIndex` in two ordinary `for` loops, and indexing `Gp_GridParams->faces[faceIndex]` lets
+using one `s32 faceIndex` in two ordinary `for` loops, and indexing `gWorldCollisionActiveGrid->faces[faceIndex]` lets
 GCC derive the 12-byte face stride and removes the old head's long lifetime.
 Two ordinary flag-update arms also reproduce the target's shared store without
 m2c's explicit goto and reused constant temporaries.
@@ -66690,7 +66690,7 @@ s5,a3; move s6,zero`), the seed zeroed it first. The seed copied every
 parameter into a local:
 
 ```c
-from = arg0; to = arg1; params = Gp_GridParams; out = arg2; extra = arg3;
+from = arg0; to = arg1; params = gWorldCollisionActiveGrid; out = arg2; extra = arg3;
 ret = 0;                       /* set again to 1 inside the loop */
 ```
 
@@ -66709,7 +66709,7 @@ Dropping the locals and using the parameters directly fixes it. The
 `a0..a3` copies into the parameter pseudos are emitted before
 `NOTE_INSN_FUNCTION_BEG`, which sched1 does not schedule, so they stay in
 argument order ahead of everything the block does schedule; `ret = 0` is then
-the only priority-1 insn and sits after the `Gp_GridParams` load, exactly where
+the only priority-1 insn and sits after the `gWorldCollisionActiveGrid` load, exactly where
 the target has `move s6,zero`. The saves still come out as `move s2,a0 ... move
 s5,a3` from reload, so nothing visible is lost.
 
@@ -72336,7 +72336,7 @@ addu  a1, a1, v0     /* index first, and the dest is the index register */
 sh    v1, 0x2(a1)
 ```
 
-The obvious C, `SVECTOR *verts = &Gp_GridParams->vertices[value * 4];`, always
+The obvious C, `SVECTOR *verts = &gWorldCollisionActiveGrid->vertices[value * 4];`, always
 emits `addu v0, v0, a1` instead - base first, dest tied to the base. No amount
 of reordering the source fixes it: `pointer_int_sum` (c-typeck.c) puts the
 pointer operand first unconditionally, so `i + ptr` and `ptr + i` build the same
@@ -72363,7 +72363,7 @@ So write the subscript at each use site and let CSE share the address:
 ```c
 SVECTOR* verts;
 
-verts = Gp_GridParams->vertices;
+verts = gWorldCollisionActiveGrid->vertices;
 verts[arg1 * 4].vy     = 500;
 verts[arg1 * 4 + 1].vy = 500;
 verts[arg1 * 4 + 2].vy = 800;
@@ -73294,7 +73294,7 @@ In `func_actor_444000_80132CB8` that is the whole difference between 97.48% and
 sw $s3,0x34($sp); move $s3,$a0
 sw $s4,0x38($sp); move $s4,$a1      <- parm copies stay at the top
 sw $s6,0x40($sp); move $s6,$a2
-lui $v0,%hi(Gp_GridParams)
+lui $v0,%hi(gWorldCollisionActiveGrid)
 ```
 
 and with `s16 scale, s16 drop` the `$s4`/`$s6` pairs move below the
@@ -83360,7 +83360,7 @@ Two further observations from the same trace:
   been scheduled — read the `.sched2` ready lists with that in mind, or the
   comparator log looks like it is describing the wrong end of the function.
 - Allocation quality and schedule order fight each other. Moving the three
-  `Gp_GridParams` field loads below the face init gave the best allocation seen
+  `gWorldCollisionActiveGrid` field loads below the face init gave the best allocation seen
   (`regs=4`, against `regs=6` for the best seed) and simultaneously blew
   `reorder` up to 20. Treat `regs` and `reorder` as a frontier, not as
   independent dials, before concluding that a candidate is "close".
@@ -86555,19 +86555,19 @@ search (bind mount, see [[pe2-windows-toolchain-gotchas]] 3e), confirmed by port
 
 ## An overlay import named by address must keep its `D_<vram>` form, not the struct field it denotes (_dryfieldNightMotelBalconyCheckFollowUpScene, 2026-09-15)
 
-A room or actor overlay touching `Gp_StateC08.mode` can write it two ways.
+A room or actor overlay touching `gAttachmentState.mode` can write it two ways.
 `extern s8 D_80114C12;` is the name splat generates and the one
 `configs/USA/sym/rooms.imports.txt` carries; `#include "gameplay/gameplay.h"`
-plus `Gp_StateC08.mode` is the same address spelled through its owner.
+plus `gAttachmentState.mode` is the same address spelled through its owner.
 `sym.gameplay.txt` names only the struct base (0x80114C08), so
 `gen_overlay_imports.py` has no entry for +0xA and keeps the address-derived
 `D_80114C12` in the family's imports file; both spellings reach the linker with
 symbol+addend summing to the same word, which is why the gameplay map's own
-`Gp_StateC08.mode` accesses link everywhere.
+`gAttachmentState.mode` accesses link everywhere.
 
 The scratch scorer compares disassembly *including the relocation expression*,
-so the struct spelling prints `lui v0,%hi(Gp_StateC08)` /
-`lb v0,%lo(Gp_StateC08+0xa)(v0)` against the target's `%hi/%lo(D_80114C12)` and
+so the struct spelling prints `lui v0,%hi(gAttachmentState)` /
+`lb v0,%lo(gAttachmentState+0xa)(v0)` against the target's `%hi/%lo(D_80114C12)` and
 reports 99.63% with `regs=2` on an object whose instruction words are identical
 (27/27 instructions, matching structure). The address form is 100%. Use it, and
 put the struct relationship in a comment: `extern s8 D_80114C12;` is already the
@@ -96601,8 +96601,8 @@ for `insn_cost` cycles before it can be picked (the `;; launching N before M`
 lines in a `-dS` dump). A preheader like
 
 ```c
-normals = Gp_GridParams->normals;
-verts   = Gp_GridParams->vertices;
+normals = gWorldCollisionActiveGrid->normals;
+verts   = gWorldCollisionActiveGrid->vertices;
 normals[3].vx = 0; normals[3].vy = 0; normals[3].vz = 0;
 for (k = 0; k < 4; k++) { verts[12 + k].vx = 0; ... }
 ```
@@ -96612,7 +96612,7 @@ therefore has a fixed order. The three stores win the equal-priority tie
 have one), so they take T-1..T-3 and release `normals` at T-3. The giv copy
 `giv = verts` goes at T-4 and releases `verts` one cycle later, so `verts` is
 launched last and lands *earlier* in the block - which makes `normals` the final
-use of the `Gp_GridParams` temp. Local-alloc then gives `normals` that temp's
+use of the `gWorldCollisionActiveGrid` temp. Local-alloc then gives `normals` that temp's
 `$v0` and `verts` `$v1`, and because the giv prefers its copy source, `giv` also
 takes `$v1` and the copy is deleted:
 
@@ -96624,7 +96624,7 @@ lw    v0, 4(v0)        ;             lw   v0, 8(v0)
 
 Swapping the two source statements changes nothing: the order is decided by
 which pointer feeds the stores and which feeds the loop, not by LUID. Wrapping
-the second `Gp_GridParams->normals` read in `do { ... } while (0)` cuts the
+the second `gWorldCollisionActiveGrid->normals` read in `do { ... } while (0)` cuts the
 basic block so it is scheduled on its own; `verts` then ends the temp's live
 range, takes `$v0`, and the giv - which conflicts with `$v0` through the loop
 body's scratch - is forced to `$v1`, restoring the `move`.
@@ -96645,7 +96645,7 @@ Two knock-on effects are worth knowing. `enemy->node.flags = 8;` carries a
 live_length`, so going from 3 to 4 references more than doubles an allocno's
 priority and can swap two argument registers (`$a3` vs `$t0`) far from the code
 being edited. And the sharing has to be written as a copy (`vec = rot;`) inside
-the arm: assigning `Gp_GridParams` straight into the scratch variable at the top
+the arm: assigning `gWorldCollisionActiveGrid` straight into the scratch variable at the top
 of the function merges the live ranges instead and scores worse.
 
 ## A symbol-based `array[i]` materialises its address *after* the index; a pointer local moves it before
@@ -121432,7 +121432,7 @@ not cosmetic: it moves the walk pointer into `$a1` and the session pointer into
 for (overrideIndex = 0; overrides[overrideIndex].properties != NULL; overrideIndex++) {    /* not  for (p = overrides; p->properties; p++) */
     surfaceProperties = Gp_RoomParamTables[location->stage - 1][location->area - 1];
     surfaceProperties[overrides[overrideIndex].surfaceClass] = overrides[overrideIndex].properties;
-    Gp_RoomParams[overrides[overrideIndex].surfaceClass] = surfaceProperties[overrides[overrideIndex].surfaceClass]->suppressPushback;
+    gWorldCollisionSurfacePushbackSuppression[overrides[overrideIndex].surfaceClass] = surfaceProperties[overrides[overrideIndex].surfaceClass]->suppressPushback;
 }
 ```
 
@@ -122875,15 +122875,15 @@ Two traps in doing the move by hand:
 
 ## A shared struct's `u8` field that the target reads with `lb`: cast `(s8)` at the use site (_dryfieldWaterTowerActorSceneTask, 2026-09-17)
 
-The target loads `Gp_StateC08.menuOpen` with `lb`. While the field was declared
+The target loads `gAttachmentState.menuOpen` with `lb`. While the field was declared
 `u8`, an uncast read emitted `lbu`. That single instruction was the entire
 `insert=1 delete=1` penalty and 98.41% against 100%.
 
 Casting at the use site flips the load with no edit to the shared header:
 
 ```c
-if ((s8)Gp_StateC08.menuOpen != ATTACHMENT_MENU_CLOSED) {   /* lb  */
-if (Gp_StateC08.menuOpen != ATTACHMENT_MENU_CLOSED) {       /* lbu, while the field was u8 */
+if ((s8)gAttachmentState.menuOpen != ATTACHMENT_MENU_CLOSED) {   /* lb  */
+if (gAttachmentState.menuOpen != ATTACHMENT_MENU_CLOSED) {       /* lbu, while the field was u8 */
 ```
 
 The field is `s8` now, so an uncast read is already `lb`. The `(s8)` casts that
@@ -122892,7 +122892,7 @@ until a rebuild shows the uncast form still matches. The struct is included by
 every overlay that uses it. Grep the field's name across `src/` first: a matched
 sibling usually settles the spelling, and here
 `src/actors/actor_444000/actor_444000.c` already writes exactly
-`(s8)Gp_StateC08.menuOpen`. When a match stalls one instruction short with
+`(s8)gAttachmentState.menuOpen`. When a match stalls one instruction short with
 `insert=1 delete=1`, diff the object dumps — `lb` vs `lbu` is a load *type*, not
 a register or scheduling leftover, so no penalty other than those two counts
 points at it.
@@ -134118,9 +134118,9 @@ Use an aggregate initializer when constructing the complete local record:
 
 ```c
 SVECTOR forwardOffset;
-SVECTOR* normals = Gp_GridParams->normals;
-SVECTOR* vertices = Gp_GridParams->vertices;
-WorldCollisionGridFace* faces = Gp_GridParams->faces;
+SVECTOR* normals = gWorldCollisionActiveGrid->normals;
+SVECTOR* vertices = gWorldCollisionActiveGrid->vertices;
+WorldCollisionGridFace* faces = gWorldCollisionActiveGrid->faces;
 WorldCollisionGridFace anchorWall = { { faceIndex * 4, faceIndex * 4 + 1, faceIndex * 4 + 2, faceIndex * 4 + 3 }, faceIndex, 2 };
 WorldCollisionGridFace returnWall = {
     { (faceIndex + 1) * 4, (faceIndex + 1) * 4 + 1, (faceIndex + 1) * 4 + 2, (faceIndex + 1) * 4 + 3 }, faceIndex + 1, 2
@@ -142543,7 +142543,7 @@ is also why a `* 0xC0` argument in the same function matched from the start.
 
 **Fix.** Write the scale as a multiply (`effect->age * 64`, `effect->index * 128 +
 0x100`); the code is identical apart from the load. The same function's
-`task` / `&Gp_StateC08` `$s` swap, pinned with two `USE_REG(task)`, was the
+`task` / `&gAttachmentState` `$s` swap, pinned with two `USE_REG(task)`, was the
 release path written once behind a `goto`: each state that releases calling
 `effectKillTask(effect, task)` itself adds the references that rank `task`
 first, and cross-jumping merges the calls back into one tail.
@@ -142988,7 +142988,7 @@ came out with its loads swapped.
   address local. CSE holds `0x1F8003FC` in `s1` for the early exits by
   itself and drops it once dead, so the late pops each build a fresh
   `lui/ori` and cross-jump to one shared `lw/addiu/sw`.
-- `&scratch->corners[i]` (entry [58]) and `Gp_FaceEdgePairs[i].endCornerIndex` indexed by
+- `&scratch->corners[i]` (entry [58]) and `gWorldCollisionFaceEdges[i].endCornerIndex` indexed by
   the loop counter, not a walked pointer. The table's giv is what keeps the
   member addresses in the loop body; the start comes out as `addiu t3,v0,4`
   off the symbol.
@@ -144094,7 +144094,7 @@ add into `ori` because the shifted index has no low bits set.
 **Two args swapped (`n` in `a1`, level in `a2`).** `n = field; ... helper(n)`
 maps the helper's parameter straight onto `n`, whose long live range loses the
 global-alloc priority race to the helper's short-lived level pseudo. Passing
-the field itself (`helper(Gp_StateC08.wheelIndex, 2)`, and the same field in the
+the field itself (`helper(gAttachmentState.wheelIndex, 2)`, and the same field in the
 item-id expression) gives the parameter its own pseudo and the ROM's
 allocation, with no local at all.
 
@@ -145344,7 +145344,7 @@ without them loop.c strength-reduced `vec4`'s field addresses into a second
 pointer and hoisted `&block[5]`/`&block[6]`/`&block[7]`. The target's
 pointers (`a0` over the corners, `t3` over the edge table, `off` added to the
 object) are loop.c's own reductions of `for (i = 1; i < N; i++)` loops over
-`&boundary->vertices[edgeIndex]`, `&scratch->corners[edgeIndex]` and `Gp_FaceEdgePairs[edgeIndex]`. Written that
+`&boundary->vertices[edgeIndex]`, `&scratch->corners[edgeIndex]` and `gWorldCollisionFaceEdges[edgeIndex]`. Written that
 way, and with the scratch block as a struct, the body matched outright. The
 preceding function in the unit ran the same quad test hack-free, and its body
 was the template: check neighbours for the same algorithm before steering loops.
@@ -148502,7 +148502,7 @@ the sprite counter, the byte count and the half are **one** `u32`:
 ```c
 spriteCount *= 56;
 ...
-Gp_SprtLists[0] = memCalloc(spriteCount, true);
+_gSpriteViewCachedPacketBuffers[0] = memCalloc(spriteCount, true);
 ...
 spriteCount >>= 1;                         /* srl s1,s1,1, in place */
 ```

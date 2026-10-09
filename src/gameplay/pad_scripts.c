@@ -95,9 +95,20 @@ STATIC_ASSERT_SIZEOF(_PadScriptWork, 0x18);
 
 u8 Gp_PadScriptHalt;
 
-u8 Gp_PadHoldHalt;
+enum { PAD_SCRIPT_MOTOR_RUNNING = 0,
+       PAD_SCRIPT_MOTOR_HALTED  = 1 };
 
-u8 Gp_PadLerpHalt;
+/// Stops existing binary-motor hold tasks on their next eligible update.
+///
+/// 0 continues, 1 requests teardown. Frozen scene control can defer the check;
+/// clearing the gate resumes only tasks that have not yet been killed.
+static u8 _gPadScriptBinaryMotorHalt;
+
+/// Stops existing variable-intensity motor ramps on their next eligible update.
+///
+/// 0 continues, 1 requests teardown. Frozen scene control can defer the check;
+/// clearing the gate resumes only tasks that have not yet been killed.
+static u8 _gPadScriptVariableMotorHalt;
 
 static const TaskFuncTable3 Gp_Script18States;
 
@@ -346,8 +357,8 @@ static void _padScriptSpawnDepthScaledVariableMotorRamp(s16 durationFrames, u8 s
 void padScriptHalt(void)
 {
     Gp_PadScriptHalt             = 1;
-    Gp_PadHoldHalt               = 1;
-    Gp_PadLerpHalt               = 1;
+    _gPadScriptBinaryMotorHalt   = PAD_SCRIPT_MOTOR_HALTED;
+    _gPadScriptVariableMotorHalt = PAD_SCRIPT_MOTOR_HALTED;
     gGameSession->padScriptFlags = 0;
     padClearVibrationRequests(0);
 }
@@ -403,9 +414,9 @@ static void _padScriptTickLanes(Task* task)
 
 void padScriptClearHalt(void)
 {
-    Gp_PadScriptHalt = 0;
-    Gp_PadHoldHalt   = 0;
-    Gp_PadLerpHalt   = 0;
+    Gp_PadScriptHalt             = 0;
+    _gPadScriptBinaryMotorHalt   = PAD_SCRIPT_MOTOR_RUNNING;
+    _gPadScriptVariableMotorHalt = PAD_SCRIPT_MOTOR_RUNNING;
 }
 
 Task* padScriptSpawnDepthScaled(const PadScriptCmd* commands, const PadScriptVibrationSegment* segments, s32 sourceDepth)
@@ -524,7 +535,7 @@ static void _padScriptVariableLaneJumpState(Task* task)
 void padScriptBinaryMotorHoldTask(Task* task)
 {
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING || (gGameSession->padScriptFlags & GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE)) {
-        if (task->spawnArg1.value != 0 && Gp_PadHoldHalt == 0) {
+        if (task->spawnArg1.value != 0 && _gPadScriptBinaryMotorHalt == PAD_SCRIPT_MOTOR_RUNNING) {
             task->spawnArg1.value--;
             padPostVibrationRequest(0, PAD_VIBRATION_MOTOR_BINARY, PAD_VIBRATION_BINARY_ON, PAD_SCRIPT_MOTOR_REFRESH_DURATION_UNITS);
             gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_HOLD_ACTIVE;
@@ -541,7 +552,7 @@ void padScriptVariableMotorRampTask(Task* task)
 
     ramp = task->work;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING || (gGameSession->padScriptFlags & GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE)) {
-        if (ramp->framesRemaining != 0 && Gp_PadLerpHalt == 0) {
+        if (ramp->framesRemaining != 0 && _gPadScriptVariableMotorHalt == PAD_SCRIPT_MOTOR_RUNNING) {
             // Post this frame's whole intensity to the variable motor, then advance the ramp.
             ramp->framesRemaining--;
             padPostVibrationRequest(0, PAD_VIBRATION_MOTOR_VARIABLE, ramp->intensity.bytes.whole, PAD_SCRIPT_MOTOR_REFRESH_DURATION_UNITS);

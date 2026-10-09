@@ -688,7 +688,7 @@ from an extracted source than hard-coded in C.
 **Not assets, so eligible for C:** program tables such as the item and balance
 tables (`Gp_ItemDescs`, `Gp_IdParamHi`), function-pointer dispatch tables
 (`Display_TaskStates`, `Mc_FileSelectStates`, `Gp_ItemMenuStates`), index
-tables such as `Gp_FaceEdgePairs`, constants, UI strings and zero-initialised
+tables such as `gWorldCollisionFaceEdges`, constants, UI strings and zero-initialised
 state. Declaring one in C means placing it in the unit that owns it, at the
 position and alignment the original had - the same care as a `rodata` cut
 (see "Generated overlay configs" above) - so move objects one at a time and

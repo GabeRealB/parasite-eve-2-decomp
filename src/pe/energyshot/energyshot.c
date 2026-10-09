@@ -122,7 +122,7 @@ void energyshotCastTask(Task* task)
     s32              segmentIndex;
     u8               rgb[3];
 
-    attachment = &Gp_StateC08;
+    attachment = &gAttachmentState;
     work       = task->spawnArg2.pointer;
     coord      = task->extra.coordBody->coord;
     if ((attachment->effectPhase != ATTACHMENT_EFFECT_HELD) && (gRoomEffectState->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
@@ -145,7 +145,7 @@ void energyshotCastTask(Task* task)
                 effectState->burstRequest = false;
                 effectState->peFxFlags   &= (u16)~ROOM_EFFECT_PE_ENERGY_SHOT_AURA;
                 task->state               = ENERGYSHOT_CAST_STATE_GROWING;
-                work->index               = (Gp_StateC08.attachId % 10) - 1;
+                work->index               = (gAttachmentState.attachId % 10) - 1;
                 // Replace the complete beam phase table, then seed the active wedge prefix.
                 segmentIndex = 0;
                 {

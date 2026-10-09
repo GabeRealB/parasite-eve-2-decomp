@@ -76,7 +76,7 @@ void pepperSprayEffectTask(Task* task)
     pointLight = &lightSlot->light;
     effectWork = task->spawnArg2.pointer;
     sprayCoord = task->extra.coordBody->coord;
-    if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING)) {
+    if ((gAttachmentState.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING)) {
         sndEvtRequestScriptStop(SOUND_PEPPER_SPRAY_USE, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         effectKillTask(effectWork, task);
         return;
@@ -109,8 +109,8 @@ void pepperSprayEffectTask(Task* task)
                 gRandomLcgState                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 D_pepper_spray_8012FB9C[coneIndex] = ((coneIndex & PEPPER_SPRAY_QUADRANT_MASK) << PEPPER_SPRAY_QUARTER_TURN_SHIFT) + ((gRandomLcgState >> 16) & (PEPPER_SPRAY_QUARTER_TURN - 1));
             }
-            Gp_StateC08.flags |= ATTACHMENT_FLAG_APPLY_STATS;
-            audioPan           = (s8)worldCoordGetOriginAudioPan(sprayCoord);
+            gAttachmentState.flags |= ATTACHMENT_FLAG_APPLY_STATS;
+            audioPan                = (s8)worldCoordGetOriginAudioPan(sprayCoord);
             sndEvtRequestScriptStart(SOUND_PEPPER_SPRAY_USE, audioPan, (s8)worldCoordGetOriginAudioDepth(sprayCoord));
             break;
         case PEPPER_SPRAY_STATE_FADE:

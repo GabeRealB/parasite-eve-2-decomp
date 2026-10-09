@@ -9,7 +9,6 @@
 #include "gameplay/collision.h"
 #include "collision.h"
 #include "gameplay/hud_sprites.h"
-#include "item_use.h"
 #include "gameplay/loading.h"
 #include "gameplay/room.h"
 
@@ -227,15 +226,26 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_WorldCollisionViewBoundarySphereScratch, 0xB0);
 
 /* Define BSS before API headers to preserve first-declaration order. */
-s32 Gp_RoomParams[8];
+s32 gWorldCollisionSurfacePushbackSuppression[8];
 
-WorldCollisionGrid* Gp_GridParams;
+WorldCollisionGrid* gWorldCollisionActiveGrid;
 
-u8 D_80115450[256];
+enum {
+    WORLD_COLLISION_GRID_FACE_CAPACITY      = 256,
+    WORLD_COLLISION_GRID_FACE_NOT_CANDIDATE = 0
+};
 
-WorldCollisionOccluder* D_80115550;
+/// Face-indexed candidate marks for one active-grid query (0 absent, 1 candidate).
+///
+/// Callers clear only [0, faceCount), cell scans accumulate marks and narrow
+/// tests consume them. Requires faceCount <= capacity and valid cell face IDs.
+/// Marks beyond the active face count are stale and never part of the query.
+/// This shared workspace makes candidate queries sequential, not reentrant.
+static u8 _gWorldCollisionGridFaceCandidates[WORLD_COLLISION_GRID_FACE_CAPACITY];
 
-WorldCollisionTrigger* Gp_Obj4CList;
+WorldCollisionOccluder* gWorldCollisionOccluderListHead;
+
+WorldCollisionTrigger* gWorldCollisionViewBoundaryListHead;
 
 #include "gameplay/world_collision.h"
 
@@ -264,9 +274,9 @@ static __inline__ void _worldCollisionPlaceBodyGridEndpoint(_WorldCollisionGridB
     gte_ldv0(&scratch->localEndpoints[endpointIndex]);
     gte_rtv0();
     gte_stlvnl(&scratch->gridEndpoints[endpointIndex]);
-    scratch->gridEndpoints[endpointIndex].vx = scratch->gridEndpoints[endpointIndex].vx + scratch->bodyToRoom.t[0] + Gp_GridParams->xBias;
+    scratch->gridEndpoints[endpointIndex].vx = scratch->gridEndpoints[endpointIndex].vx + scratch->bodyToRoom.t[0] + gWorldCollisionActiveGrid->xBias;
     scratch->gridEndpoints[endpointIndex].vy = 0;
-    scratch->gridEndpoints[endpointIndex].vz = scratch->gridEndpoints[endpointIndex].vz + scratch->bodyToRoom.t[2] + Gp_GridParams->zBias;
+    scratch->gridEndpoints[endpointIndex].vz = scratch->gridEndpoints[endpointIndex].vz + scratch->bodyToRoom.t[2] + gWorldCollisionActiveGrid->zBias;
 }
 
 static __inline__ void Gp_ObjWorldPosInline(const WorldCollisionBody* obj, VECTOR* pos)
@@ -306,16 +316,16 @@ static inline void _worldCollisionRecordMotionSphereFloorHit(const WorldCollisio
     contactFlags = floorContact->flags;
     if (contactFlags & WORLD_COLLISION_CONTACT_OCCUPIED) {
         // Overlapping floors retain the higher class using unsigned comparison.
-        if ((u32)(floorContact->key.value & WORLD_COLLISION_FLOOR_SURFACE_CLASS_MASK) < (u32)Gp_GridParams->faces[faceIndex].surfaceClass) {
-            floorContact->key.value = Gp_GridParams->faces[faceIndex].surfaceClass | WORLD_COLLISION_CONTACT_GRID_FLOOR;
+        if ((u32)(floorContact->key.value & WORLD_COLLISION_FLOOR_SURFACE_CLASS_MASK) < (u32)gWorldCollisionActiveGrid->faces[faceIndex].surfaceClass) {
+            floorContact->key.value = gWorldCollisionActiveGrid->faces[faceIndex].surfaceClass | WORLD_COLLISION_CONTACT_GRID_FLOOR;
         }
     } else {
         floorContact->flags     = contactFlags | WORLD_COLLISION_CONTACT_OCCUPIED;
-        floorContact->key.value = Gp_GridParams->faces[faceIndex].surfaceClass | WORLD_COLLISION_CONTACT_GRID_FLOOR;
+        floorContact->key.value = gWorldCollisionActiveGrid->faces[faceIndex].surfaceClass | WORLD_COLLISION_CONTACT_GRID_FLOOR;
     }
     // Keep the latest hit geometry, even when an earlier class wins.
     floorContact->point              = scratch->ray[1];
-    floorContact->response.direction = Gp_GridParams->normals[Gp_GridParams->faces[faceIndex].normalIndex];
+    floorContact->response.direction = gWorldCollisionActiveGrid->normals[gWorldCollisionActiveGrid->faces[faceIndex].normalIndex];
     scratch->hitOffset.vx            = scratch->placedEndpoint.vx - scratch->ray[1].vx;
     scratch->hitOffset.vy            = scratch->placedEndpoint.vy - scratch->ray[1].vy;
     scratch->hitOffset.vz            = scratch->placedEndpoint.vz - scratch->ray[1].vz;
@@ -333,8 +343,8 @@ void worldCollisionQueryMotionSphereFloor(const WorldCollisionBody* body)
 
     // Mark only faces reached by the motion sphere's projected XZ footprint.
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_WorldCollisionFloorQueryScratch);
-    for (faceIndex = 0; faceIndex < Gp_GridParams->faceCount; faceIndex++) {
-        D_80115450[faceIndex] = 0;
+    for (faceIndex = 0; faceIndex < gWorldCollisionActiveGrid->faceCount; faceIndex++) {
+        _gWorldCollisionGridFaceCandidates[faceIndex] = WORLD_COLLISION_GRID_FACE_NOT_CANDIDATE;
     }
     _worldCollisionMarkMotionSphereGridCandidates(body);
     // Preserve the placed start for distances while later hits shorten the segment.
@@ -342,9 +352,9 @@ void worldCollisionQueryMotionSphereFloor(const WorldCollisionBody* body)
     scratch->placedEndpoint.vx = scratch->endpoints[0].vx;
     scratch->placedEndpoint.vy = scratch->endpoints[0].vy;
     scratch->placedEndpoint.vz = scratch->endpoints[0].vz;
-    for (faceIndex = 0; faceIndex < Gp_GridParams->faceCount; faceIndex++) {
-        if (D_80115450[faceIndex] &&
-            Gp_GridParams->normals[Gp_GridParams->faces[faceIndex].normalIndex].vy < WORLD_COLLISION_FLOOR_NORMAL_Y &&
+    for (faceIndex = 0; faceIndex < gWorldCollisionActiveGrid->faceCount; faceIndex++) {
+        if (_gWorldCollisionGridFaceCandidates[faceIndex] &&
+            gWorldCollisionActiveGrid->normals[gWorldCollisionActiveGrid->faces[faceIndex].normalIndex].vy < WORLD_COLLISION_FLOOR_NORMAL_Y &&
             worldCollisionIntersectGridFace(faceIndex, scratch->endpoints, scratch->ray, body)) {
             _worldCollisionRecordMotionSphereFloorHit(body, scratch, faceIndex);
         }
@@ -359,7 +369,7 @@ void worldCollisionQueryMotionSphereFloor(const WorldCollisionBody* body)
 /// Positions and radius use game units; the motion direction uses 4096 per unit.
 /// The existing arithmetic adds its XZ components to the local body position
 /// before transforming; the intended frame relationship is unproven.
-/// The caller clears `D_80115450`; this query only sets marks and retains no pointers.
+/// The caller clears `_gWorldCollisionGridFaceCandidates`; this query only sets marks and retains no pointers.
 static void _worldCollisionMarkMotionSphereGridCandidates(const WorldCollisionBody* body)
 {
     s32                                  endpointIndex;
@@ -398,9 +408,9 @@ static __inline__ void _worldCollisionWriteCapsuleGridHit(WorldCollisionContact*
                                                           const _WorldCollisionCapsuleGridContactScratch* scratch,
                                                           s32                                             faceIndex)
 {
-    contact->key.value          = Gp_GridParams->faces[faceIndex].surfaceClass | WORLD_COLLISION_CONTACT_GRID;
+    contact->key.value          = gWorldCollisionActiveGrid->faces[faceIndex].surfaceClass | WORLD_COLLISION_CONTACT_GRID;
     contact->point              = scratch->ray[1];
-    contact->response.direction = Gp_GridParams->normals[Gp_GridParams->faces[faceIndex].normalIndex];
+    contact->response.direction = gWorldCollisionActiveGrid->normals[gWorldCollisionActiveGrid->faces[faceIndex].normalIndex];
 }
 
 void worldCollisionCollideCapsuleGrid(const WorldCollisionBody* body)
@@ -412,20 +422,20 @@ void worldCollisionCollideCapsuleGrid(const WorldCollisionBody* body)
 
     // Mark the capsule footprint before placing its segment in the cached frame.
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_WorldCollisionCapsuleGridContactScratch);
-    for (faceIndex = 0; faceIndex < Gp_GridParams->faceCount; faceIndex++) {
-        D_80115450[faceIndex] = 0;
+    for (faceIndex = 0; faceIndex < gWorldCollisionActiveGrid->faceCount; faceIndex++) {
+        _gWorldCollisionGridFaceCandidates[faceIndex] = WORLD_COLLISION_GRID_FACE_NOT_CANDIDATE;
     }
 
     _worldCollisionMarkCapsuleGridCandidates(body);
     worldCollisionPlaceCapsuleSegment(body, scratch->endpoints, scratch->ray, WORLD_COLLISION_CAPSULE_SEGMENT_GRID_SCAN);
 
-    for (faceIndex = 0; faceIndex < Gp_GridParams->faceCount; faceIndex++) {
-        if (D_80115450[faceIndex] != 0 && worldCollisionIntersectGridFace(faceIndex, scratch->endpoints, scratch->ray, body) != 0) {
+    for (faceIndex = 0; faceIndex < gWorldCollisionActiveGrid->faceCount; faceIndex++) {
+        if (_gWorldCollisionGridFaceCandidates[faceIndex] != 0 && worldCollisionIntersectGridFace(faceIndex, scratch->endpoints, scratch->ray, body) != 0) {
             contact = body->context.capsule->contacts;
             // Clipping bodies keep the nearest blocking hit in contact zero.
             if (body->flags & WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT) {
                 if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1]
-                                      [Gp_GridParams->faces[faceIndex].surfaceClass]
+                                      [gWorldCollisionActiveGrid->faces[faceIndex].surfaceClass]
                                           ->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
                     contact->distance = 0;
                     contact->flags   |= WORLD_COLLISION_CONTACT_OCCUPIED;
@@ -468,7 +478,7 @@ void worldCollisionCollideCapsuleGrid(const WorldCollisionBody* body)
 /// grid and an initialized scratch stack with 120 free bytes. Endpoint offsets
 /// plus the local body position are truncated to signed halfwords, in game units,
 /// before conversion to biased-grid XZ. Y is ignored. The caller clears
-/// `D_80115450`; this query only sets marks and retains no pointers.
+/// `_gWorldCollisionGridFaceCandidates`; this query only sets marks and retains no pointers.
 static void _worldCollisionMarkCapsuleGridCandidates(const WorldCollisionBody* body)
 {
     s32                                  endpointIndex;
@@ -499,9 +509,9 @@ static void _worldCollisionMarkCapsuleGridCandidates(const WorldCollisionBody* b
 /// `gridEndpoints` supplies two writable VECTORs in game units; only X/Z are
 /// read or changed. A nonzero normalized direction extends both ends by the
 /// approximate half-cell diagonal. A zero direction uses a point-radius test.
-/// The caller clears `D_80115450`; shared faces are simply marked again.
+/// The caller clears `_gWorldCollisionGridFaceCandidates`; shared faces are simply marked again.
 /// Cell lists must end in WORLD_COLLISION_GRID_CELL_END and contain indices in
-/// [0, faceCount), with faceCount at most ARRAY_SIZE(D_80115450). Cell centres
+/// [0, faceCount), with faceCount at most ARRAY_SIZE(_gWorldCollisionGridFaceCandidates). Cell centres
 /// and distance-test displacements narrow to signed halfwords. Nonzero segment
 /// deltas need signed-halfword components and squared length in 1..0x7FFFFFFF;
 /// a zero delta is allowed and selects the point test.
@@ -538,18 +548,18 @@ static void _worldCollisionMarkGridFaceCandidates(VECTOR gridEndpoints[2], s32 u
     /// `faceIndicesArg` must be a writable s16* local pointing to valid face
     /// indices followed by WORLD_COLLISION_GRID_CELL_END. It is evaluated
     /// repeatedly and advanced to the sentinel. Captures the signed-halfword
-    /// `faceIndex`, WORLD_COLLISION_GRID_FACE_CANDIDATE and `D_80115450`;
+    /// `faceIndex`, WORLD_COLLISION_GRID_FACE_CANDIDATE and `_gWorldCollisionGridFaceCandidates`;
     /// sets marks without clearing any or retaining pointers. The loop expands
     /// as a standalone statement within this query's two cell-scan branches.
-#define WORLD_COLLISION_MARK_CELL_FACE_CANDIDATES(faceIndicesArg)    \
-    while (*(faceIndicesArg) != WORLD_COLLISION_GRID_CELL_END) {     \
-        faceIndex             = *(faceIndicesArg);                   \
-        D_80115450[faceIndex] = WORLD_COLLISION_GRID_FACE_CANDIDATE; \
-        (faceIndicesArg)++;                                          \
+#define WORLD_COLLISION_MARK_CELL_FACE_CANDIDATES(faceIndicesArg)                            \
+    while (*(faceIndicesArg) != WORLD_COLLISION_GRID_CELL_END) {                             \
+        faceIndex                                     = *(faceIndicesArg);                   \
+        _gWorldCollisionGridFaceCandidates[faceIndex] = WORLD_COLLISION_GRID_FACE_CANDIDATE; \
+        (faceIndicesArg)++;                                                                  \
     }
 
     scratchCursor            = SCRATCH_STACK_CURSOR(u8);
-    cellSize                 = Gp_GridParams->cellSize;
+    cellSize                 = gWorldCollisionActiveGrid->cellSize;
     scratch                  = (_WorldCollisionGridCandidateScratch*)(SCRATCH_STACK_CURSOR(void) = scratchCursor - sizeof(*scratch));
     scratch->segmentDelta.vx = gridEndpoints[0].vx - gridEndpoints[1].vx;
     scratch->segmentDelta.vy = 0;
@@ -562,10 +572,10 @@ static void _worldCollisionMarkGridFaceCandidates(VECTOR gridEndpoints[2], s32 u
     VectorNormalS(&scratch->segmentDelta, &scratch->segmentDirection);
 
     if ((scratch->segmentDirection.vx == 0) && (scratch->segmentDirection.vz == 0)) {
-        for (cellX = 0; cellX < Gp_GridParams->cellCountX; cellX++) {
+        for (cellX = 0; cellX < gWorldCollisionActiveGrid->cellCountX; cellX++) {
             pointRadiusSquared = searchRadius * searchRadius;
-            for (cellZ = 0; cellZ < Gp_GridParams->cellCountZ; cellZ++) {
-                pointGrid                = Gp_GridParams;
+            for (cellZ = 0; cellZ < gWorldCollisionActiveGrid->cellCountZ; cellZ++) {
+                pointGrid                = gWorldCollisionActiveGrid;
                 scratch->cellCenter.vx   = cellX * pointGrid->cellSize + (pointGrid->cellSize >> 1);
                 scratch->cellCenter.vz   = cellZ * pointGrid->cellSize + (pointGrid->cellSize >> 1);
                 scratch->displacement.vx = (u16)scratch->cellCenter.vx - (u16)gridEndpoints[0].vx;
@@ -589,10 +599,10 @@ static void _worldCollisionMarkGridFaceCandidates(VECTOR gridEndpoints[2], s32 u
         gridEndpoints[0].vz     += scratch->displacement.vz;
         gridEndpoints[1].vx     -= scratch->displacement.vx;
         gridEndpoints[1].vz     -= scratch->displacement.vz;
-        for (cellX = 0; cellX < Gp_GridParams->cellCountX; cellX++) {
+        for (cellX = 0; cellX < gWorldCollisionActiveGrid->cellCountX; cellX++) {
             segmentRadiusSquared = searchRadius * searchRadius;
-            for (cellZ = 0; cellZ < Gp_GridParams->cellCountZ; cellZ++) {
-                segmentGrid            = Gp_GridParams;
+            for (cellZ = 0; cellZ < gWorldCollisionActiveGrid->cellCountZ; cellZ++) {
+                segmentGrid            = gWorldCollisionActiveGrid;
                 scratch->cellCenter.vx = cellX * segmentGrid->cellSize + (segmentGrid->cellSize >> 1);
                 scratch->cellCenter.vz = cellZ * segmentGrid->cellSize + (segmentGrid->cellSize >> 1);
                 targetSideQ12          = ((scratch->cellCenter.vx - gridEndpoints[0].vx) * scratch->segmentDirection.vx) +
@@ -632,7 +642,7 @@ s32 worldCollisionProbeGridSegment(const SVECTOR* target, const SVECTOR* start, 
     _WorldCollisionGridProbeScratch* scratch;
     s32                              faceIndex;
 
-    grid = Gp_GridParams;
+    grid = gWorldCollisionActiveGrid;
     hit  = 0;
     if (grid == NULL) {
         return hit;
@@ -643,9 +653,9 @@ s32 worldCollisionProbeGridSegment(const SVECTOR* target, const SVECTOR* start, 
     scratch   = SCRATCH_STACK_RESERVE_BLOCK(_WorldCollisionGridProbeScratch);
     if (hit < grid->faceCount) {
         do {
-            D_80115450[faceIndex] = 0;
+            _gWorldCollisionGridFaceCandidates[faceIndex] = WORLD_COLLISION_GRID_FACE_NOT_CANDIDATE;
             faceIndex++;
-        } while (faceIndex < Gp_GridParams->faceCount);
+        } while (faceIndex < gWorldCollisionActiveGrid->faceCount);
     }
     _worldCollisionMarkViewSegmentCandidates(target, start);
     // Keep the direction fixed as accepted intersections shorten the segment.
@@ -659,12 +669,12 @@ s32 worldCollisionProbeGridSegment(const SVECTOR* target, const SVECTOR* start, 
     scratch->delta.vy        = scratch->endpoints[0].vy - scratch->endpoints[1].vy;
     scratch->delta.vz        = scratch->endpoints[0].vz - scratch->endpoints[1].vz;
     VectorNormalS(&scratch->delta, &scratch->ray[0]);
-    for (faceIndex = 0; faceIndex < Gp_GridParams->faceCount; faceIndex++) {
-        if (D_80115450[faceIndex] == 0) {
+    for (faceIndex = 0; faceIndex < gWorldCollisionActiveGrid->faceCount; faceIndex++) {
+        if (_gWorldCollisionGridFaceCandidates[faceIndex] == WORLD_COLLISION_GRID_FACE_NOT_CANDIDATE) {
             continue;
         }
         if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1]
-                              [Gp_GridParams->faces[faceIndex].surfaceClass]
+                              [gWorldCollisionActiveGrid->faces[faceIndex].surfaceClass]
                                   ->probePassThrough != WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
             continue;
         }
@@ -677,9 +687,9 @@ s32 worldCollisionProbeGridSegment(const SVECTOR* target, const SVECTOR* start, 
             hitPoint->vz = scratch->ray[1].vz;
         }
         if (surfaceNormal != NULL) {
-            surfaceNormal->vx = Gp_GridParams->normals[Gp_GridParams->faces[faceIndex].normalIndex].vx;
-            surfaceNormal->vy = Gp_GridParams->normals[Gp_GridParams->faces[faceIndex].normalIndex].vy;
-            surfaceNormal->vz = Gp_GridParams->normals[Gp_GridParams->faces[faceIndex].normalIndex].vz;
+            surfaceNormal->vx = gWorldCollisionActiveGrid->normals[gWorldCollisionActiveGrid->faces[faceIndex].normalIndex].vx;
+            surfaceNormal->vy = gWorldCollisionActiveGrid->normals[gWorldCollisionActiveGrid->faces[faceIndex].normalIndex].vy;
+            surfaceNormal->vz = gWorldCollisionActiveGrid->normals[gWorldCollisionActiveGrid->faces[faceIndex].normalIndex].vz;
         }
         scratch->endpoints[0].vx = scratch->ray[1].vx;
         scratch->endpoints[0].vy = scratch->ray[1].vy;
@@ -693,7 +703,7 @@ s32 worldCollisionProbeGridSegment(const SVECTOR* target, const SVECTOR* start, 
 /// Accumulates grid-face candidates along a view-space segment's XZ projection.
 ///
 /// Endpoints use signed-halfword game coordinates. Requires an active grid
-/// bound to the composed view transform, a caller-cleared `D_80115450` and
+/// bound to the composed view transform, a caller-cleared `_gWorldCollisionGridFaceCandidates` and
 /// 104 free bytes on the initialized scratch stack. Conversion applies the
 /// inverse view rotation, grid bias and local view translation subtraction,
 /// then truncates X/Z to signed halfwords. Inputs are unchanged; temporary grid
@@ -708,12 +718,12 @@ static void _worldCollisionMarkViewSegmentCandidates(const SVECTOR* target, cons
     /// Uses the active grid's bound view transform and writes only grid XYZ,
     /// truncating X/Z to signed halfwords and setting Y to zero. Arguments must
     /// be side-effect-free scratch/vector identifiers and endpoint index 0 or 1;
-    /// they are evaluated repeatedly. Captures `Gp_GridParams`, changes GTE state,
+    /// they are evaluated repeatedly. Captures `gWorldCollisionActiveGrid`, changes GTE state,
     /// and expands to a statement sequence used only as a standalone phase here.
 #define WORLD_COLLISION_PLACE_VIEW_GRID_ENDPOINT(scratchArg, rotatedArg, endpointIndex)                                                      \
-    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &(scratchArg)->viewEndpoint, (rotatedArg));                                     \
+    ApplyTransposeMatrixLV(&gWorldCollisionActiveGrid->viewCoord->workm, &(scratchArg)->viewEndpoint, (rotatedArg));                         \
     {                                                                                                                                        \
-        WorldCollisionGrid* grid = Gp_GridParams;                                                                                            \
+        WorldCollisionGrid* grid = gWorldCollisionActiveGrid;                                                                                \
                                                                                                                                              \
         (scratchArg)->gridEndpoints[endpointIndex].vx = (s16)((scratchArg)->rotatedEndpoint.vx + grid->xBias - grid->viewCoord->coord.t[0]); \
         (scratchArg)->gridEndpoints[endpointIndex].vy = 0;                                                                                   \
@@ -963,8 +973,8 @@ void worldCollisionTestActionTriggerSphere(const WorldCollisionBody* body, World
     }                                                                                                                                                                                                                     \
                                                                                                                                                                                                                           \
     for (edgeIndex = 1; edgeIndex < (s32)ARRAY_SIZE((triggerArg)->vertices) + 1; edgeIndex++) {                                                                                                                           \
-        edgeEnd                                = &(scratchArg)->corners[(u16)Gp_FaceEdgePairs[edgeIndex].endCornerIndex];                                                                                                 \
-        edgeStart                              = &(scratchArg)->corners[(u16)Gp_FaceEdgePairs[edgeIndex].startCornerIndex];                                                                                               \
+        edgeEnd                                = &(scratchArg)->corners[(u16)gWorldCollisionFaceEdges[edgeIndex].endCornerIndex];                                                                                         \
+        edgeStart                              = &(scratchArg)->corners[(u16)gWorldCollisionFaceEdges[edgeIndex].startCornerIndex];                                                                                       \
         (scratchArg)->work.edgeDisplacement.vx = edgeEnd->vx - edgeStart->vx;                                                                                                                                             \
         (scratchArg)->work.edgeDisplacement.vy = edgeEnd->vy - edgeStart->vy;                                                                                                                                             \
         (scratchArg)->work.edgeDisplacement.vz = edgeEnd->vz - edgeStart->vz;                                                                                                                                             \
@@ -1074,8 +1084,8 @@ void worldCollisionTestViewBoundarySphere(const WorldCollisionBody* body, WorldC
     }                                                                                                                                                                                                                     \
                                                                                                                                                                                                                           \
     for (edgeIndex = 1; edgeIndex < (s32)ARRAY_SIZE((boundaryArg)->vertices) + 1; edgeIndex++) {                                                                                                                          \
-        edgeEnd                                = &(scratchArg)->corners[(u16)Gp_FaceEdgePairs[edgeIndex].endCornerIndex];                                                                                                 \
-        edgeStart                              = &(scratchArg)->corners[(u16)Gp_FaceEdgePairs[edgeIndex].startCornerIndex];                                                                                               \
+        edgeEnd                                = &(scratchArg)->corners[(u16)gWorldCollisionFaceEdges[edgeIndex].endCornerIndex];                                                                                         \
+        edgeStart                              = &(scratchArg)->corners[(u16)gWorldCollisionFaceEdges[edgeIndex].startCornerIndex];                                                                                       \
         (scratchArg)->work.edgeDisplacement.vx = edgeEnd->vx - edgeStart->vx;                                                                                                                                             \
         (scratchArg)->work.edgeDisplacement.vy = edgeEnd->vy - edgeStart->vy;                                                                                                                                             \
         (scratchArg)->work.edgeDisplacement.vz = edgeEnd->vz - edgeStart->vz;                                                                                                                                             \
@@ -1184,28 +1194,28 @@ s32 worldCollisionTestOccluderSegment(const WorldCollisionOccluder* occluder, co
     /// they are evaluated repeatedly. This statement sequence is used only as a
     /// standalone phase here. Rejection releases the enclosing query's scratch
     /// block and returns 0 from that function; edge equality is accepted.
-#define WORLD_COLLISION_REJECT_OUTSIDE_OCCLUDER_EDGES(occluderArg, scratchArg)                                               \
-    for (edgeIndex = 1; edgeIndex < (s32)ARRAY_SIZE((occluderArg)->vertices) + 1; edgeIndex++) {                             \
-        edgeEnd                           = &(scratchArg)->corners[(u16)Gp_FaceEdgePairs[edgeIndex].endCornerIndex];         \
-        edgeStart                         = &(scratchArg)->corners[(u16)Gp_FaceEdgePairs[edgeIndex].startCornerIndex];       \
-        (scratchArg)->edgeDisplacement.vx = edgeEnd->vx - edgeStart->vx;                                                     \
-        (scratchArg)->edgeDisplacement.vy = edgeEnd->vy - edgeStart->vy;                                                     \
-        (scratchArg)->edgeDisplacement.vz = edgeEnd->vz - edgeStart->vz;                                                     \
-        gte_ldopv1(&(scratchArg)->faceNormal);                                                                               \
-        gte_ldopv2(&(scratchArg)->edgeDisplacement);                                                                         \
-        gte_op12();                                                                                                          \
-        gte_stlvnl(&(scratchArg)->edgePlaneNormal);                                                                          \
-        edgePlaneOffset = ((scratchArg)->edgePlaneNormal.vx * edgeEnd->vx + (scratchArg)->edgePlaneNormal.vy * edgeEnd->vy + \
-                           (scratchArg)->edgePlaneNormal.vz * edgeEnd->vz) >>                                                \
-                          WORLD_COLLISION_DIRECTION_FRACTION_BITS;                                                           \
-        intersectionEdgeDot = ((scratchArg)->edgePlaneNormal.vx * (scratchArg)->position.intersection.vx +                   \
-                               (scratchArg)->edgePlaneNormal.vy * (scratchArg)->position.intersection.vy +                   \
-                               (scratchArg)->edgePlaneNormal.vz * (scratchArg)->position.intersection.vz) >>                 \
-                              WORLD_COLLISION_DIRECTION_FRACTION_BITS;                                                       \
-        if (intersectionEdgeDot - edgePlaneOffset > 0) {                                                                     \
-            SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionOccluderSegmentScratch);                                              \
-            return 0;                                                                                                        \
-        }                                                                                                                    \
+#define WORLD_COLLISION_REJECT_OUTSIDE_OCCLUDER_EDGES(occluderArg, scratchArg)                                                 \
+    for (edgeIndex = 1; edgeIndex < (s32)ARRAY_SIZE((occluderArg)->vertices) + 1; edgeIndex++) {                               \
+        edgeEnd                           = &(scratchArg)->corners[(u16)gWorldCollisionFaceEdges[edgeIndex].endCornerIndex];   \
+        edgeStart                         = &(scratchArg)->corners[(u16)gWorldCollisionFaceEdges[edgeIndex].startCornerIndex]; \
+        (scratchArg)->edgeDisplacement.vx = edgeEnd->vx - edgeStart->vx;                                                       \
+        (scratchArg)->edgeDisplacement.vy = edgeEnd->vy - edgeStart->vy;                                                       \
+        (scratchArg)->edgeDisplacement.vz = edgeEnd->vz - edgeStart->vz;                                                       \
+        gte_ldopv1(&(scratchArg)->faceNormal);                                                                                 \
+        gte_ldopv2(&(scratchArg)->edgeDisplacement);                                                                           \
+        gte_op12();                                                                                                            \
+        gte_stlvnl(&(scratchArg)->edgePlaneNormal);                                                                            \
+        edgePlaneOffset = ((scratchArg)->edgePlaneNormal.vx * edgeEnd->vx + (scratchArg)->edgePlaneNormal.vy * edgeEnd->vy +   \
+                           (scratchArg)->edgePlaneNormal.vz * edgeEnd->vz) >>                                                  \
+                          WORLD_COLLISION_DIRECTION_FRACTION_BITS;                                                             \
+        intersectionEdgeDot = ((scratchArg)->edgePlaneNormal.vx * (scratchArg)->position.intersection.vx +                     \
+                               (scratchArg)->edgePlaneNormal.vy * (scratchArg)->position.intersection.vy +                     \
+                               (scratchArg)->edgePlaneNormal.vz * (scratchArg)->position.intersection.vz) >>                   \
+                              WORLD_COLLISION_DIRECTION_FRACTION_BITS;                                                         \
+        if (intersectionEdgeDot - edgePlaneOffset > 0) {                                                                       \
+            SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionOccluderSegmentScratch);                                                \
+            return 0;                                                                                                          \
+        }                                                                                                                      \
     }
 
     WORLD_COLLISION_REJECT_OUTSIDE_OCCLUDER_EDGES(occluder, scratch);

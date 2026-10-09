@@ -28,12 +28,12 @@ enum { SPRITE_SOURCE_TEXTURE_PAGE_MASK = 0x9FF };
 /// GPU draw-mode command preceding each merged view sprite.
 enum { SPRITE_DRAW_MODE_COMMAND = 0xE1000000 };
 
-SpriteDrawModePacket* Gp_SprtCursor;
-
-/// Dual-buffer primitive list heads, indexed by `gDisplayState.drawBuffer`.
-/// Allocated by `spriteAllocateViewCachedPackets`; `Gp_SprtLists[1]` is the second half of
-/// the same block.
-extern SpriteDrawModePacket* Gp_SprtLists[];
+/// Next cached view-sprite packet in the currently selected draw-buffer half.
+///
+/// Linking resets it to that half's head, then advances across included batches,
+/// including hidden batches. Raw-texture updates leave it at the selected head.
+/// Valid only while buffer 0 is non-NULL and the auxiliary allocation remains live.
+static SpriteDrawModePacket* _gSpriteViewCachedPacketCursor;
 
 static void _spriteEmitBatch(const SpriteSource* sourceElements, const SpriteBatch* batch);
 
@@ -51,7 +51,13 @@ static void _spriteInitViewBackgroundTask(Task* task);
 
 static void _spriteLinkViewCachedPacketsTask(Task* task);
 
-SpriteDrawModePacket* Gp_SprtLists[2] = {
+/// Two draw-buffer heads into one auxiliary-heap cached view-packet allocation.
+///
+/// Index 0/1 selects equal halves, each sized for the total authored sprite
+/// count. Only included batches use packets. Head 0 alone controls validity;
+/// a zero count or failed allocation leaves head 1 stale. Both heads borrow
+/// the same block until the auxiliary heap is reset or repurposed.
+static SpriteDrawModePacket* _gSpriteViewCachedPacketBuffers[2] = {
     NULL,
     NULL,
 };
@@ -164,15 +170,15 @@ void spriteLinkViewCachedPackets(void)
     SpriteBatch*           batch;
     SpriteSource*          sources;
 
-    location        = &gGameSession->location.loc;
-    mappedViewIndex = viewGetMappedIndex();
-    packetBuffers   = Gp_SprtLists;
-    display         = &gDisplayState;
-    Gp_SprtCursor   = packetBuffers[display->drawBuffer];
-    spriteTable     = gSpriteAreaTables[location->stage - 1];
-    areaViews       = spriteTable->areaViews[location->area - 1];
-    batch           = areaViews[(u8)mappedViewIndex - 1].batches;
-    sources         = areaViews[(u8)mappedViewIndex - 1].sources.elements;
+    location                       = &gGameSession->location.loc;
+    mappedViewIndex                = viewGetMappedIndex();
+    packetBuffers                  = _gSpriteViewCachedPacketBuffers;
+    display                        = &gDisplayState;
+    _gSpriteViewCachedPacketCursor = packetBuffers[display->drawBuffer];
+    spriteTable                    = gSpriteAreaTables[location->stage - 1];
+    areaViews                      = spriteTable->areaViews[location->area - 1];
+    batch                          = areaViews[(u8)mappedViewIndex - 1].batches;
+    sources                        = areaViews[(u8)mappedViewIndex - 1].sources.elements;
     // A zero first count keeps image strips and skips the first batch before testing its end marker.
     if (batch->spriteCount == 0) {
         batch++;
@@ -257,17 +263,17 @@ static void _spriteSetViewRawTexture(s32 rawTexture)
     SpriteBatch*          batch;
     u32                   spriteIndex;
 
-    location        = &gGameSession->location.loc;
-    mappedViewIndex = viewGetMappedIndex();
-    Gp_SprtCursor   = Gp_SprtLists[gDisplayState.drawBuffer];
-    spriteTable     = gSpriteAreaTables[location->stage - 1];
-    areaViews       = spriteTable->areaViews[location->area - 1];
-    batch           = areaViews[(u8)mappedViewIndex - 1].batches;
-    packet          = Gp_SprtCursor;
+    location                       = &gGameSession->location.loc;
+    mappedViewIndex                = viewGetMappedIndex();
+    _gSpriteViewCachedPacketCursor = _gSpriteViewCachedPacketBuffers[gDisplayState.drawBuffer];
+    spriteTable                    = gSpriteAreaTables[location->stage - 1];
+    areaViews                      = spriteTable->areaViews[location->area - 1];
+    batch                          = areaViews[(u8)mappedViewIndex - 1].batches;
+    packet                         = _gSpriteViewCachedPacketCursor;
     if (batch->firstSprite != SPRITE_BATCH_END) {
         do {
             if (batch->skipCachedPackets == 0) {
-                if (Gp_SprtLists[0] != NULL) {
+                if (_gSpriteViewCachedPacketBuffers[0] != NULL) {
                     for (spriteIndex = 0; spriteIndex < batch->spriteCount; spriteIndex++) {
                         if (rawTexture != 0) {
                             packet->sprite.sprt.code |= SPRITE_SOURCE_RAW_TEXTURE;
@@ -333,11 +339,11 @@ void spriteAllocateViewCachedPackets(void)
     // Reserve both buffers, including unused capacity for excluded batches.
     allocationBytes = (spriteCount * SPRITE_CACHED_PACKET_WORDS) << SPRITE_CACHED_BYTES_PER_BUFFER_WORD_SHIFT;
     if (allocationBytes == 0) {
-        Gp_SprtLists[0] = NULL;
+        _gSpriteViewCachedPacketBuffers[0] = NULL;
         return;
     }
-    words           = memCalloc(allocationBytes, true);
-    Gp_SprtLists[0] = _spriteCachedPacketsAtWord(words);
+    words                              = memCalloc(allocationBytes, true);
+    _gSpriteViewCachedPacketBuffers[0] = _spriteCachedPacketsAtWord(words);
     if (words == NULL) {
         return;
     }
@@ -346,10 +352,10 @@ void spriteAllocateViewCachedPackets(void)
     {
         register SpriteDrawModePacket* secondBuffer asm("s1");
 
-        secondBuffer     = _spriteCachedPacketsAtWord(&words[allocationBytes >> SPRITE_CACHED_BYTES_PER_BUFFER_WORD_SHIFT]);
-        Gp_SprtLists[1]  = secondBuffer;
-        bufferCursors[0] = Gp_SprtLists[0];
-        bufferCursors[1] = secondBuffer;
+        secondBuffer                       = _spriteCachedPacketsAtWord(&words[allocationBytes >> SPRITE_CACHED_BYTES_PER_BUFFER_WORD_SHIFT]);
+        _gSpriteViewCachedPacketBuffers[1] = secondBuffer;
+        bufferCursors[0]                   = _gSpriteViewCachedPacketBuffers[0];
+        bufferCursors[1]                   = secondBuffer;
     }
     for (batch = areaViews[mappedViewIndex - 1].batches; batch->firstSprite != SPRITE_BATCH_END; batch++) {
         if (batch->skipCachedPackets != 0) {
@@ -399,7 +405,7 @@ static void _worldCollisionBindCurrentRoomResources(Task* unusedTask)
     location = &gGameSession->location.loc;
     // Retire borrowed list links before binding resources to the current camera.
     viewApplyCurrentCamera();
-    Gp_GridParams = NULL;
+    gWorldCollisionActiveGrid = NULL;
     worldCollisionClearTriggerList(WORLD_COLLISION_TRIGGER_LIST_VIEW_BOUNDARIES);
     worldCollisionClearTriggerList(WORLD_COLLISION_TRIGGER_LIST_ACTION);
     worldCollisionClearOccluderList(WORLD_COLLISION_OCCLUDER_LIST_ACTIVE);
@@ -411,8 +417,8 @@ static void _worldCollisionBindCurrentRoomResources(Task* unusedTask)
         occluders            = areaRooms[location->room - 1].occluders;
         if (grid != NULL) {
             // Bind the room mesh to the current view before publishing it.
-            grid->viewCoord = &gGfxViewCoord;
-            Gp_GridParams   = grid;
+            grid->viewCoord           = &gGfxViewCoord;
+            gWorldCollisionActiveGrid = grid;
         }
         if (viewBoundaryTriggers != NULL) {
             // The LAST record is part of each array and is linked before stopping.
@@ -587,10 +593,10 @@ static void _spriteLinkCachedBatch(const SpriteSource* sources, const SpriteBatc
     SpriteDrawModePacket* packet;
     const SpriteSource*   source;
 
-    if (Gp_SprtLists[0] == NULL) {
+    if (_gSpriteViewCachedPacketBuffers[0] == NULL) {
         return;
     }
-    packet = Gp_SprtCursor;
+    packet = _gSpriteViewCachedPacketCursor;
     source = sources + batch->firstSprite;
     // Hiding a batch preserves its packet positions for later batches.
     for (spriteIndex = 0; spriteIndex < batch->spriteCount; packet++, spriteIndex++, source++) {
@@ -598,7 +604,7 @@ static void _spriteLinkCachedBatch(const SpriteSource* sources, const SpriteBatc
             addPrim(&gGpuCurrentOt[((u32)source->depth << gDisplayState.otDepthShift) >> 4 & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK >> 2)], packet);
         }
     }
-    Gp_SprtCursor = packet;
+    _gSpriteViewCachedPacketCursor = packet;
 }
 
 void loadingRoomResourcesTask(Task* task)

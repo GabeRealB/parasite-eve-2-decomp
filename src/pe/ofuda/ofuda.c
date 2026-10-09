@@ -49,7 +49,7 @@ void ofudaEffectTask(Task* task)
     s8               soundDepth;
     u8               glowRgb[3];
 
-    attachment  = &Gp_StateC08;
+    attachment  = &gAttachmentState;
     work        = task->spawnArg2.pointer;
     effectCoord = task->extra.coordBody->coord;
     // A held attachment or any non-running PE control ends both sound and drawing.

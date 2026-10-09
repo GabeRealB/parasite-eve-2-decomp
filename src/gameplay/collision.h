@@ -10,13 +10,20 @@
 /// Indices address the polygon's transformed corners, not the grid's vertex
 /// pool. The edge vector is the end corner minus the start corner. Crossing
 /// the face normal with that vector gives the edge's separating-plane normal.
-/// `Gp_FaceEdgePairs` entries 0..2 form a triangle's edges (0..2 corners), and
+/// `gWorldCollisionFaceEdges` entries 0..2 form a triangle's edges (0..2 corners), and
 /// entries 1..4 form a quad's edges (0..3 corners). No index is a sentinel.
 typedef struct {
     s16 endCornerIndex;   // End index in the transformed corner array (0..2 triangle, 0..3 quad)
     s16 startCornerIndex; // Start index in the same array; subtracted from the end corner
 } WorldCollisionFaceEdge;
 STATIC_ASSERT_SIZEOF(WorldCollisionFaceEdge, 0x4);
+
+/// Ordered edges shared by collision triangles and quads.
+///
+/// Entries 0..2 trace triangle corners 0..2; entries 1..4 trace quad corners
+/// 0..3 in strip order. Each entry gives (end, start) for end minus start.
+/// The five-entry table has no sentinel and is retained in initialized data.
+extern WorldCollisionFaceEdge gWorldCollisionFaceEdges[5];
 
 /// Tests one ordered pair of collision bodies and records any contact.
 ///

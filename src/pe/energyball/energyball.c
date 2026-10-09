@@ -144,7 +144,7 @@ void energyballCastTask(Task* task)
     effect->age = effect->age + 1;
     switch (task->state) {
         case ENERGYBALL_CAST_INITIALIZE:
-            effect->index = Gp_StateC08.attachId % 10 - 1;
+            effect->index = gAttachmentState.attachId % 10 - 1;
             levelIndex    = effect->index;
             effect->angle = (levelIndex * ENERGYBALL_SPAWN_RADIUS_STEP) + ENERGYBALL_SPAWN_RADIUS_BASE;
             if (gEnergyBallInFlightCount < 0) {
@@ -271,7 +271,7 @@ void energyballProjectileTask(Task* task)
                 return;
             }
             task->work                = collision;
-            effect->index             = (Gp_StateC08.attachId % 10) - 1;
+            effect->index             = (gAttachmentState.attachId % 10) - 1;
             effect->move.vx           = 0;
             gRandomLcgState           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             effect->move.vy           = -D_energyball_80131194[effect->index].sizeStep;
@@ -293,9 +293,9 @@ void energyballProjectileTask(Task* task)
                 task->work                       = collision;
                 collision->body.context.contacts = collision->contacts;
                 collision->body.coord            = coord;
-                collision->body.key              = ((u16)(Gp_StateC08.attachId / 100) - 1) * 9 +
-                                      ((u16)((u16)(Gp_StateC08.attachId % 100) / 10) - 1) * 3 +
-                                      (u16)(Gp_StateC08.attachId % 10) + ENERGYBALL_SPELL_DAMAGE_KEY_BASE;
+                collision->body.key              = ((u16)(gAttachmentState.attachId / 100) - 1) * 9 +
+                                      ((u16)((u16)(gAttachmentState.attachId % 100) / 10) - 1) * 3 +
+                                      (u16)(gAttachmentState.attachId % 10) + ENERGYBALL_SPELL_DAMAGE_KEY_BASE;
                 collision->body.radius = effect->angle >> 1;
                 collision->body.flags  = WORLD_COLLISION_BODY_SPHERE;
                 worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &collision->body);
@@ -340,8 +340,8 @@ void energyballProjectileTask(Task* task)
             _energyballDrawChargeBand(coord, effect->angle,
                                       (D_energyball_80131194[effect->index].fullSize - effect->angle) / 5);
             coord->workm.t[1] -= D_energyball_80131194[effect->index].sizeStep * effect->age;
-            if ((u16)(Gp_StateC08.attachId / 10) != ATTACHMENT_ID_ENERGY_BALL_FAMILY) {
-                if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+            if ((u16)(gAttachmentState.attachId / 10) != ATTACHMENT_ID_ENERGY_BALL_FAMILY) {
+                if ((gAttachmentState.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                     if (gEnergyBallInFlightCount > 0) {
                         gEnergyBallInFlightCount -= 1;
                         if (gEnergyBallInFlightCount == 0) {
@@ -402,8 +402,8 @@ void energyballProjectileTask(Task* task)
                     _groundGlowDraw(&groundCoord, effect->angle);
                 }
             }
-            if ((u16)(Gp_StateC08.attachId / 10) != ATTACHMENT_ID_ENERGY_BALL_FAMILY) {
-                if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+            if ((u16)(gAttachmentState.attachId / 10) != ATTACHMENT_ID_ENERGY_BALL_FAMILY) {
+                if ((gAttachmentState.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                     if (gEnergyBallInFlightCount > 0) {
                         gEnergyBallInFlightCount -= 1;
                         if (gEnergyBallInFlightCount == 0) {
@@ -449,8 +449,8 @@ void energyballProjectileTask(Task* task)
             _energyballDrawGlowDisc(coord, effect->angle, effect->scale >> 2);
             _energyballDrawGlowDisc(coord, (u16)effect->angle * 2, effect->scale >> 2);
             effect->angle += D_energyball_80131194[effect->index].sizeStep;
-            if (((u16)(Gp_StateC08.attachId / 10) != ATTACHMENT_ID_ENERGY_BALL_FAMILY) &&
-                ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN))) {
+            if (((u16)(gAttachmentState.attachId / 10) != ATTACHMENT_ID_ENERGY_BALL_FAMILY) &&
+                ((gAttachmentState.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN))) {
                 if (gEnergyBallInFlightCount > 0) {
                     gEnergyBallInFlightCount -= 1;
                     if (gEnergyBallInFlightCount == 0) {
@@ -477,8 +477,8 @@ void energyballProjectileTask(Task* task)
             _energyballDrawGlowDisc(coord, effect->angle, effect->scale >> 2);
             _energyballDrawGlowDisc(coord, (u16)effect->angle * 2, effect->scale >> 2);
             effect->angle -= D_energyball_80131194[effect->index].sizeStep;
-            if (((u16)(Gp_StateC08.attachId / 10) != ATTACHMENT_ID_ENERGY_BALL_FAMILY) &&
-                ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN))) {
+            if (((u16)(gAttachmentState.attachId / 10) != ATTACHMENT_ID_ENERGY_BALL_FAMILY) &&
+                ((gAttachmentState.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN))) {
                 if (gEnergyBallInFlightCount > 0) {
                     gEnergyBallInFlightCount -= 1;
                     if (gEnergyBallInFlightCount == 0) {

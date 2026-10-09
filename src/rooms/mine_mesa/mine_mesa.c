@@ -2566,7 +2566,7 @@ static void _mineMesaUpdateRoomEventsState(Task* task)
     u8  variant;
     s32 companionSceneState;
 
-    if ((gGameSession->eventState == EVENT_IDLE) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (variant = gGameSession->location.loc.variant, variant == COMPANION_SCENE_VARIANT)) {
+    if ((gGameSession->eventState == EVENT_IDLE) && (gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) && (variant = gGameSession->location.loc.variant, variant == COMPANION_SCENE_VARIANT)) {
         if (gameFlagGetNibble(GAME_FLAG_MINE_MESA_ARRIVAL_SEEN) == ARRIVAL_UNSEEN) {
             if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
                 evsStartScriptWithSkip(D_mine_mesa_8018578C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mine_mesa_801861DC);
@@ -2740,7 +2740,7 @@ static s32 _mineMesaActorEventMsg(Task* task, s32 messageId, s32 slotIndex, s32 
     if (variant == COMPANION_SCENE_VARIANT) {
         if (gameFlagGetNibble(GAME_FLAG_MINE_MESA_0CD) == COMPANION_SCENE_UNSEEN) {
             if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
-                Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+                gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
                 roomEffectRequestCancelAll();
                 D_mine_mesa_80189B50 = variant;
                 gameFlagSetNibble(GAME_FLAG_MINE_MESA_0CD, COMPANION_SCENE_ARMED);
@@ -3369,7 +3369,7 @@ static void _mineMesaDismissCompanion(void)
 /// Cancellation is serviced by effect tasks on later ticks.
 static void _mineMesaLockAttachmentsAndCancelEffects(void)
 {
-    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+    gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
     roomEffectRequestCancelAll();
 }
 
@@ -3640,9 +3640,9 @@ void mineMesaBuildWalls(s32 height)
     WorldCollisionGridFace* faces;
     s16                     wallIndex;
 
-    normals  = Gp_GridParams->normals;
-    vertices = Gp_GridParams->vertices;
-    faces    = Gp_GridParams->faces;
+    normals  = gWorldCollisionActiveGrid->normals;
+    vertices = gWorldCollisionActiveGrid->vertices;
+    faces    = gWorldCollisionActiveGrid->faces;
     // Extend each base edge upward; preserve the grid's existing cell lists.
     for (wallIndex = 0; wallIndex < (s32)ARRAY_SIZE(D_mine_mesa_80189A9C); wallIndex++) {
         _mineMesaBuildWallFace(normals, vertices, faces, wallIndex, height);

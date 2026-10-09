@@ -1049,7 +1049,7 @@ static void _acropolisObservatoryScriptedBattleTask(Task* task)
     sceneWork = task->work;
     switch (task->state) {
         case ACROPOLIS_OBSERVATORY_SCENE_INITIALIZE:
-            if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
+            if (gAttachmentState.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
             // Capture the player once; teardown owns the eight-byte work allocation.

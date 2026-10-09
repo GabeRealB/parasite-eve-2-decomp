@@ -2291,7 +2291,7 @@ static void _actor521100AttackState(Task* task)
 
     switch (work->subState) {
         case ACTOR_521100_ATTACK_SELECT:
-            if (((u32)((u8)Gp_StateC08.mode - ATTACHMENT_MODE_ARMED) >= 2U) && (gGameSession->location.loc.view != 2)) {
+            if (((u32)((u8)gAttachmentState.mode - ATTACHMENT_MODE_ARMED) >= 2U) && (gGameSession->location.loc.view != 2)) {
                 if (work->playerDistance < 0x8FC) {
                     if (work->prevAttackChoice == work->attackChoice) {
                         nextAttack = D_actor_521100_8015F59C[work->attackChoice][((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1];

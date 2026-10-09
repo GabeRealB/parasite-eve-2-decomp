@@ -1548,7 +1548,7 @@ void actor146300RestoreHandoverPose(void)
 static void _actor146300BeginWaterTankEvent(void)
 {
     roomEffectRequestCancelAll();
-    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+    gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
 /// Applies the retained CAP choice at either cue of the handover conversation.

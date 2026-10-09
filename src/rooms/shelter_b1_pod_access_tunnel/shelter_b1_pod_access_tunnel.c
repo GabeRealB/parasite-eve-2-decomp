@@ -1406,7 +1406,7 @@ static void _shelterB1PodAccessTunnelPostGantryDialogueTask(Task* task)
     state = task->state;
     switch (state) {
         case DIALOGUE_START:
-            if (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
+            if (gAttachmentState.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 // The arrival script holds a weapon pose until normal control resumes.
                 weaponId                         = gPlayerStatus.weapon;
                 weaponSetIndex                   = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == DIALOGUE_PRIMARY_CHARACTER)

@@ -4107,7 +4107,7 @@ static void _actor403100StepFight(Task* task)
                     D_actor_403100_80155808->bufferReleaseDelay = ACTOR_403100_BUFFER_RELEASE_DISABLED;
                     D_actor_403100_80155808->sceneScale         = ACTOR_403100_FIGHT_SCALE_Q12;
                     gGameSession->suppressDeathChecks           = 0;
-                    Gp_StateC08.flags                           = (u8)(Gp_StateC08.flags | ATTACHMENT_FLAG_EVENT_LOCK);
+                    gAttachmentState.flags                      = (u8)(gAttachmentState.flags | ATTACHMENT_FLAG_EVENT_LOCK);
                     gGameSession->suppressViewTriggers          = 0;
                     D_actor_403100_8015580C->reactionFlags      = 0;
                     worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
@@ -4358,7 +4358,7 @@ static inline void _actor403100StartPlayerArmHitReaction(void)
            ACTOR_403100_PLAYER_LETHAL_HIT_STATE = 10 };
     Task* playerTask;
 
-    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+    gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
     _actor403100PlayPlayerAnimation(ACTOR_403100_PLAYER_ARM_HIT_CLIP, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
     D_actor_403100_80155808->playerReactionFrames = ACTOR_403100_PLAYER_HIT_HOLD_FRAMES;
     D_actor_403100_80155808->playerReactionStage  = ACTOR_403100_PLAYER_REACTION_HIT_HELD;
@@ -5078,7 +5078,7 @@ static void _actor403100StepGrabAndSqueezeReach(Task* task)
             if (work->handTouchedPlayer != 0) {
                 work->vulnerable                       = 1;
                 D_actor_403100_80155808->holdingPlayer = 1;
-                Gp_StateC08.flags                      = (u8)(Gp_StateC08.flags | ATTACHMENT_FLAG_EVENT_LOCK);
+                gAttachmentState.flags                 = (u8)(gAttachmentState.flags | ATTACHMENT_FLAG_EVENT_LOCK);
                 grabSoundId                            = (((u16)((Enemy*)playerTask->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_403100_PLAYER_GRABBED_SOUND;
                 audioPan                               = (s8)worldCoordGetOriginAudioPan(&playerTask->extra.tmd->coords[1]);
                 audioDepth                             = worldCoordGetOriginAudioDepth(&playerTask->extra.tmd->coords[1]);
@@ -5928,7 +5928,7 @@ static void _actor403100StepGrabAndDragReach(Task* task)
     if (D_actor_403100_80155808->handTouchedPlayer != 0 || D_actor_403100_80155808->forearmTouchedPlayer != 0) {
         D_actor_403100_80155808->vulnerable    = 1;
         D_actor_403100_80155808->holdingPlayer = 1;
-        Gp_StateC08.flags                     |= ATTACHMENT_FLAG_EVENT_LOCK;
+        gAttachmentState.flags                |= ATTACHMENT_FLAG_EVENT_LOCK;
         _actor403100PlayPlayerAnimation(ACTOR_403100_PLAYER_DRAG_CLIP, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
         _actor403100PlacePlayer(D_actor_403100_80155808->playerPosition.vx, D_actor_403100_80155808->playerPosition.vy, (s16)((u16)D_actor_403100_80155808->playerPosition.vz + 0xBB8), ACTOR_TRANSFORM_ANGLE_HALF_TURN);
         D_actor_403100_80155808->handTouchedPlayer = 0;
@@ -7494,7 +7494,7 @@ static void _actor403100BeginTimeoutEvent(Task* task)
     };
     D_actor_403100_80155808->bufferReleaseDelay = ACTOR_403100_BUFFER_RELEASE_IDLE;
     D_actor_403100_80155808->sceneScale         = ACTOR_403100_TIMEOUT_SCALE_Q12;
-    Gp_StateC08.flags                           = Gp_StateC08.flags | ATTACHMENT_FLAG_EVENT_LOCK;
+    gAttachmentState.flags                      = gAttachmentState.flags | ATTACHMENT_FLAG_EVENT_LOCK;
     gGameSession->suppressViewTriggers          = 0;
     D_actor_403100_8015580C->reactionFlags      = 0;
     worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);

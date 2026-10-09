@@ -1046,7 +1046,7 @@ static void _actor03700ProcessContacts(Task* task, TmdObject* unusedModel, s32 u
                 if (deepestOverlap < overlap) {
                     deepestOverlap = overlap;
                     VectorNormal(&scratch->delta.vector, &scratch->normal);
-                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, &scratch->pushDirection);
+                    ApplyTransposeMatrixLV(&gWorldCollisionActiveGrid->viewCoord->workm, &scratch->normal, &scratch->pushDirection);
                 }
                 break;
             case (WORLD_COLLISION_CONTACT_ATTACK >> 16):

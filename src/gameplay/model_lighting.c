@@ -158,10 +158,6 @@ enum {
     PLAY_CLOCK_MAX_MINUTES      = 59999
 };
 
-extern CVECTOR D_80114BA4;
-
-extern CVECTOR D_80114BA8;
-
 /// Unreferenced nonzero word before the stored BSS.
 extern u32 D_80114BAC;
 
@@ -169,8 +165,17 @@ void func_807150F8(s32 arg0);
 
 void func_80715198(void);
 
-CVECTOR D_80114BA4 = { 0, 0, 0, 0 };
-CVECTOR D_80114BA8 = { 0, 0, 0, 0 };
+/// RGB material lit for the environment layer of each paired primitive.
+///
+/// Shared by this TU's environment drawers until the next material update.
+/// The setter clamps all three channels to 0..255; the code byte stays zero.
+static CVECTOR _gModelLightingEnvironmentLayerMaterial = { 0, 0, 0, 0 };
+
+/// RGB material lit for the base of each environment-layer primitive pair.
+///
+/// The next material update sets all channels to 128 for a nonpositive layer
+/// input, otherwise (255 - clamped layer)/2. The code byte stays zero.
+static CVECTOR _gModelLightingEnvironmentBaseMaterial = { 0, 0, 0, 0 };
 /// Unreferenced nonzero word before the stored BSS.
 u32 D_80114BAC = 0x10FF2220;
 
@@ -945,7 +950,7 @@ u32* tmdXformStreamVertsEnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags,
     s32        secondPage;
     s32        textureComponent;
 
-    referenceColor = gGpColorGrey;
+    referenceColor = gModelLightingNeutralColor;
     elementCount   = workspace->elemCount;
     if (elementCount == 0) {
         return elements;
@@ -972,10 +977,10 @@ u32* tmdXformStreamVertsEnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags,
             gte_stsxy(workspace->preXformWrite + elementHalfwords[3] + 4);
             gte_stsxy(&workspace->texCoord);
             gte_ldv0((const u8*)workspace->normals + (elementHalfwords[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
-            gte_ldrgb(&D_80114BA4);
+            gte_ldrgb(&_gModelLightingEnvironmentLayerMaterial);
             gte_nccs();
             gte_strgb(workspace->preXformWrite + elementHalfwords[2]);
-            gte_ldrgb(&D_80114BA8);
+            gte_ldrgb(&_gModelLightingEnvironmentBaseMaterial);
             gte_nccs();
             gte_strgb(workspace->preXformWrite + elementHalfwords[3]);
             gte_rtv0();
@@ -1020,8 +1025,8 @@ u32* tmdXformStreamVertsOffsetLayer(TmdStreamWorkspace* workspace, s32 objectFla
     s32        layerIntensity;
     s32        baseIntensity;
 
-    layerMaterial   = gGpColorWhite;
-    baseMaterial    = gGpColorGrey;
+    layerMaterial   = gModelLightingWhiteColor;
+    baseMaterial    = gModelLightingNeutralColor;
     layerIntensity  = workspace->obj->shading.colorBlend >> TMD_OFFSET_LAYER_COLOR_SHIFT;
     baseIntensity   = (TMD_OBJECT_COLOR_BLEND_ONE >> TMD_OFFSET_LAYER_COLOR_SHIFT) - layerIntensity;
     layerMaterial.b = layerIntensity;
@@ -1086,7 +1091,7 @@ u32* tmdDrawStreamPrimGt3EnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags
     s32        payloadWordCount;
 
     packetPair       = (POLY_GT3*)workspace->primWrite;
-    referenceColor   = gGpColorGrey;
+    referenceColor   = gModelLightingNeutralColor;
     payloadWordCount = sizeof(*packetPair) / sizeof(u32) - 1;
     if (workspace->elemCount-- > 0) {
         do {
@@ -1105,10 +1110,10 @@ u32* tmdDrawStreamPrimGt3EnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags
                     gte_avsz3();
                     normalBytes = (const u8*)workspace->normals;
                     gte_ldv3(normalBytes + (elementHalfwords[3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (elementHalfwords[4] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (elementHalfwords[5] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
-                    gte_ldrgb(&D_80114BA4);
+                    gte_ldrgb(&_gModelLightingEnvironmentLayerMaterial);
                     gte_ncct();
                     gte_strgb3_gt3(&packetPair[0]);
-                    gte_ldrgb(&D_80114BA8);
+                    gte_ldrgb(&_gModelLightingEnvironmentBaseMaterial);
                     gte_ncct();
                     gte_strgb3_gt3(&packetPair[1]);
                     if (workspace->obj->shading.colorBlend < TMD_OBJECT_COLOR_BLEND_ONE) {
@@ -1200,8 +1205,8 @@ u32* tmdDrawStreamPrimGt3OffsetLayer(TmdStreamWorkspace* workspace, s32 objectFl
     s32                 baseIntensity;
 
     packetPair      = (POLY_GT3*)workspace->primWrite;
-    layerMaterial   = gGpColorGrey;
-    baseMaterial    = gGpColorGrey;
+    layerMaterial   = gModelLightingNeutralColor;
+    baseMaterial    = gModelLightingNeutralColor;
     layerIntensity  = workspace->obj->shading.colorBlend >> TMD_OFFSET_LAYER_COLOR_SHIFT;
     baseIntensity   = (TMD_OBJECT_COLOR_BLEND_ONE >> TMD_OFFSET_LAYER_COLOR_SHIFT) - layerIntensity;
     layerMaterial.b = layerIntensity;
@@ -1279,8 +1284,8 @@ u32* tmdDrawStreamPrimGt4OffsetLayer(TmdStreamWorkspace* workspace, s32 objectFl
     s32                 baseIntensity;
 
     packetPair      = (POLY_GT4*)workspace->primWrite;
-    layerMaterial   = gGpColorGrey;
-    baseMaterial    = gGpColorGrey;
+    layerMaterial   = gModelLightingNeutralColor;
+    baseMaterial    = gModelLightingNeutralColor;
     layerIntensity  = workspace->obj->shading.colorBlend >> TMD_OFFSET_LAYER_COLOR_SHIFT;
     baseIntensity   = (TMD_OBJECT_COLOR_BLEND_ONE >> TMD_OFFSET_LAYER_COLOR_SHIFT) - layerIntensity;
     layerMaterial.b = layerIntensity;
@@ -1377,7 +1382,7 @@ u32* tmdDrawStreamPrimGt4EnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags
     s32        payloadWordCount;
 
     packetPair     = (POLY_GT4*)workspace->primWrite;
-    referenceColor = gGpColorGrey;
+    referenceColor = gModelLightingNeutralColor;
     for (; workspace->elemCount-- > 0; packetPair += 2, elements += workspace->elemStride) {
         gteFlagDestination   = &workspace->gteFlag;
         gteResultDestination = &workspace->gteResult;
@@ -1417,10 +1422,10 @@ u32* tmdDrawStreamPrimGt4EnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags
                 gte_avsz4();
                 normalBytes = (const u8*)workspace->normals;
                 gte_ldv3(normalBytes + (elementHalfwords[4] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (elementHalfwords[5] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (elementHalfwords[6] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
-                gte_ldrgb(&D_80114BA4);
+                gte_ldrgb(&_gModelLightingEnvironmentLayerMaterial);
                 gte_ncct();
                 gte_strgb3_gt4(&packetPair[0]);
-                gte_ldrgb(&D_80114BA8);
+                gte_ldrgb(&_gModelLightingEnvironmentBaseMaterial);
                 gte_ncct();
                 gte_strgb3_gt4(&packetPair[1]);
                 // Map screen pixels minus scaled view-space normals into the environment texture.
@@ -1460,10 +1465,10 @@ u32* tmdDrawStreamPrimGt4EnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags
                 anySecondPage        |= secondPage;
                 corner3ScreenPosition = &packetPair[0].x3;
                 gte_ldv0((const u8*)workspace->normals + (elementHalfwords[7] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
-                gte_ldrgb(&D_80114BA4);
+                gte_ldrgb(&_gModelLightingEnvironmentLayerMaterial);
                 gte_nccs();
                 gte_strgb(&packetPair[0].r3);
-                gte_ldrgb(&D_80114BA8);
+                gte_ldrgb(&_gModelLightingEnvironmentBaseMaterial);
                 gte_nccs();
                 gte_strgb(&packetPair[1].r3);
                 gte_rtv0();
@@ -2149,8 +2154,8 @@ void modelLightingSetLayerMaterials(s32 layerIntensity)
         baseIntensity = (MODEL_LIGHTING_LAYER_INTENSITY_MAX - layerIntensity) >> 1;
     }
 
-    D_80114BA4.r = D_80114BA4.g = D_80114BA4.b = layerIntensity;
-    D_80114BA8.r = D_80114BA8.g = D_80114BA8.b = baseIntensity;
+    _gModelLightingEnvironmentLayerMaterial.r = _gModelLightingEnvironmentLayerMaterial.g = _gModelLightingEnvironmentLayerMaterial.b = layerIntensity;
+    _gModelLightingEnvironmentBaseMaterial.r = _gModelLightingEnvironmentBaseMaterial.g = _gModelLightingEnvironmentBaseMaterial.b = baseIntensity;
 }
 
 u32* tmdXformStreamVertsUnlit(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
@@ -2949,7 +2954,7 @@ static inline void _playClockAdvanceSavedTime(_PlayClockWork* work, s32 currentG
 /// does not wait for effects to release their tasks or resources.
 static inline void _playClockCancelDeathEffects(void)
 {
-    Gp_StateC08.effectPhase = ATTACHMENT_EFFECT_IDLE;
+    gAttachmentState.effectPhase = ATTACHMENT_EFFECT_IDLE;
     attachmentCancel();
     roomEffectRequestCancelPe();
 }

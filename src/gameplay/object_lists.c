@@ -167,30 +167,30 @@ enum {
 /* Define BSS before API headers to preserve first-declaration order. */
 WorldCollisionTrigger* Gp_PendingObj4C;
 
-WorldCollisionBody* Gp_ObjList0;
+WorldCollisionBody* gWorldCollisionPlayerBodyListHead;
 
-WorldCollisionBody* Gp_ObjList1;
+WorldCollisionBody* gWorldCollisionPlayerAttackListHead;
 
-WorldCollisionBody* Gp_ObjList2;
+WorldCollisionBody* gWorldCollisionEnemyBodyListHead;
 
-WorldCollisionBody* Gp_ObjList3;
+WorldCollisionBody* gWorldCollisionEnemyAttackListHead;
 
-WorldCollisionBody* Gp_ObjList4;
+WorldCollisionBody* gWorldCollisionPropListHead;
 
-WorldCollisionBody* Gp_ObjList5;
+/// Retained body-list slot 5, with no current insertion caller or collision pass.
+///
+/// Reset clears the head and the selector table preserves its slot/address.
+/// The intended entity role is unproven; no storage is owned through this head.
+static WorldCollisionBody* _gWorldCollisionBodyList5Head;
 
-WorldCollisionBody* Gp_ObjList6;
+WorldCollisionBody* gWorldCollisionBodyList6Head;
 
-WorldCollisionBody* Gp_ObjList7;
+WorldCollisionBody* gWorldCollisionGridOnlyListHead;
 
-WorldCollisionBody* Gp_ObjList8;
+WorldCollisionBody* gWorldCollisionBlastListHead;
 
 #include "world_collision.h"
 #include "attachments.h"
-
-/// Nine-entry table of `WorldCollisionBody` list heads (`Gp_ObjList0` .. `Gp_ObjList8`).
-/// `worldCollisionLinkBody` appends to `Gp_ObjLists[index]`; `worldCollisionUnlinkBody` unlinks.
-extern WorldCollisionBody** Gp_ObjLists[9];
 
 /// Two-entry table of `WorldCollisionTrigger` list heads. `worldCollisionLinkTrigger` appends to
 /// `Gp_Obj4ALists[index]`; `worldCollisionClearTriggerList` walks and clears that list.
@@ -218,41 +218,46 @@ extern WorldCollisionOccluder** Gp_Obj3ALists[1];
         }                                                                                                                             \
     }
 
-WorldCollisionBody** Gp_ObjLists[9] = {
-    &Gp_ObjList0,
-    &Gp_ObjList1,
-    &Gp_ObjList2,
-    &Gp_ObjList3,
-    &Gp_ObjList4,
-    &Gp_ObjList5,
-    &Gp_ObjList6,
-    &Gp_ObjList7,
-    &Gp_ObjList8,
+/// Selects the writable first-link address for each collision-body group, 0..8.
+///
+/// Entries are addresses of separate borrowed list heads, not body records.
+/// Linking appends through the selected link; each body's prev then names
+/// either that head or its predecessor's next link. No body storage is owned.
+static WorldCollisionBody** _gWorldCollisionBodyListHeads[] = {
+    &gWorldCollisionPlayerBodyListHead,
+    &gWorldCollisionPlayerAttackListHead,
+    &gWorldCollisionEnemyBodyListHead,
+    &gWorldCollisionEnemyAttackListHead,
+    &gWorldCollisionPropListHead,
+    &_gWorldCollisionBodyList5Head,
+    &gWorldCollisionBodyList6Head,
+    &gWorldCollisionGridOnlyListHead,
+    &gWorldCollisionBlastListHead,
 };
 WorldCollisionTrigger** Gp_Obj4ALists[2] = {
     &Gp_PendingObj4C,
-    &Gp_Obj4CList,
+    &gWorldCollisionViewBoundaryListHead,
 };
 WorldCollisionOccluder** Gp_Obj3ALists[1] = {
-    &D_80115550,
+    &gWorldCollisionOccluderListHead,
 };
 
 void worldCollisionResetListsAndGrid(void)
 {
-    Gp_ObjList0         = NULL;
-    Gp_ObjList1         = NULL;
-    Gp_ObjList2         = NULL;
-    Gp_ObjList3         = NULL;
-    Gp_ObjList4         = NULL;
-    Gp_ObjList5         = NULL;
-    Gp_ObjList6         = NULL;
-    Gp_ObjList7         = NULL;
-    Gp_ObjList8         = NULL;
-    Gp_GridParams       = NULL;
-    Gp_PendingObj4C     = NULL;
-    Gp_Obj4CList        = NULL;
-    D_80115550          = NULL;
-    Gp_PendingObj4CFlag = 0;
+    gWorldCollisionPlayerBodyListHead   = NULL;
+    gWorldCollisionPlayerAttackListHead = NULL;
+    gWorldCollisionEnemyBodyListHead    = NULL;
+    gWorldCollisionEnemyAttackListHead  = NULL;
+    gWorldCollisionPropListHead         = NULL;
+    _gWorldCollisionBodyList5Head       = NULL;
+    gWorldCollisionBodyList6Head        = NULL;
+    gWorldCollisionGridOnlyListHead     = NULL;
+    gWorldCollisionBlastListHead        = NULL;
+    gWorldCollisionActiveGrid           = NULL;
+    Gp_PendingObj4C                     = NULL;
+    gWorldCollisionViewBoundaryListHead = NULL;
+    gWorldCollisionOccluderListHead     = NULL;
+    Gp_PendingObj4CFlag                 = 0;
 }
 
 s32 worldCollisionSegmentOccluded(const SVECTOR* segmentStart, const SVECTOR* segmentEnd)
@@ -262,7 +267,7 @@ s32 worldCollisionSegmentOccluded(const SVECTOR* segmentStart, const SVECTOR* se
     s32                     occluded;
 
     occluded      = 0;
-    occluder      = D_80115550;
+    occluder      = gWorldCollisionOccluderListHead;
     direction     = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
     direction->vx = segmentEnd->vx - segmentStart->vx;
     direction->vy = segmentEnd->vy - segmentStart->vy;
@@ -336,7 +341,7 @@ void worldCollisionCollideBodyListGrid(const WorldCollisionBody* body)
 {
     u16 bodyFlags;
 
-    if (Gp_GridParams != 0) {
+    if (gWorldCollisionActiveGrid != 0) {
         for (; body != NULL; body = body->next) {
             bodyFlags = body->flags;
             if (bodyFlags & WORLD_COLLISION_BODY_GRID_ENABLED) {
@@ -389,7 +394,7 @@ void worldCollisionScanViewBoundaries(WorldCollisionBody* body, s32 flagsMask, s
     s32                    bodyFlagsMask;
     u16                    bodyFlagsMatch;
 
-    boundary       = Gp_Obj4CList;
+    boundary       = gWorldCollisionViewBoundaryListHead;
     playerSlot     = GAME_TASK_SLOT_PLAYER;
     bodyFlagsMask  = flagsMask;
     bodyFlagsMatch = flagsMatch;
@@ -418,15 +423,15 @@ void worldCollisionViewToCell(const VECTOR* viewPosition, SVECTOR* cellOut)
 
     roomPosition = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
     // Recover room XZ coordinates; the SDK reads XYZ despite its mutable input type.
-    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, (VECTOR*)viewPosition, roomPosition);
-    grid             = Gp_GridParams;
+    ApplyTransposeMatrixLV(&gWorldCollisionActiveGrid->viewCoord->workm, (VECTOR*)viewPosition, roomPosition);
+    grid             = gWorldCollisionActiveGrid;
     biasedCoordinate = roomPosition->vx + grid->xBias - grid->viewCoord->coord.t[0];
     if (biasedCoordinate >= 0) {
         cellOut->vx = biasedCoordinate / grid->cellSize;
     } else {
         cellOut->vx = WORLD_COLLISION_GRID_INVALID_CELL;
     }
-    grid             = Gp_GridParams;
+    grid             = gWorldCollisionActiveGrid;
     cellOut->vy      = 0;
     biasedCoordinate = roomPosition->vz + grid->zBias - grid->viewCoord->coord.t[2];
     if (biasedCoordinate >= 0) {
@@ -506,14 +511,14 @@ static void _worldCollisionRoomToCell(const VECTOR3* roomPosition, SVECTOR3* cel
     s32                       biasedAxis;
     const WorldCollisionGrid* grid;
 
-    grid       = Gp_GridParams;
+    grid       = gWorldCollisionActiveGrid;
     biasedAxis = roomPosition->vx + grid->xBias;
     if (biasedAxis >= 0) {
         cellOut->vx = biasedAxis / grid->cellSize;
     } else {
         cellOut->vx = WORLD_COLLISION_GRID_INVALID_CELL;
     }
-    grid        = Gp_GridParams;
+    grid        = gWorldCollisionActiveGrid;
     cellOut->vy = 0;
     biasedAxis  = roomPosition->vz + grid->zBias;
     if (biasedAxis >= 0) {
@@ -560,7 +565,7 @@ s32 worldCollisionResolvePushback(const WorldCollisionContact* contacts, WorldCo
             contact = &contacts[contactIndex];
             if ((contact->flags & WORLD_COLLISION_CONTACT_OCCUPIED) && (contact->key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) {
                 surfaceMask |= 1 << contact->key.value;
-                if (Gp_RoomParams[contact->key.value & WORLD_COLLISION_PUSHBACK_SURFACE_CLASS_MASK] == WORLD_COLLISION_SURFACE_APPLY_PUSHBACK) {
+                if (gWorldCollisionSurfacePushbackSuppression[contact->key.value & WORLD_COLLISION_PUSHBACK_SURFACE_CLASS_MASK] == WORLD_COLLISION_SURFACE_APPLY_PUSHBACK) {
                     if (contact->response.direction.vy >= WORLD_COLLISION_FLOOR_NORMAL_Y) {
                         scratch->nonFloorSum.vx         += contact->response.direction.vx * contact->distance;
                         scratch->nonFloorSum.vy         += contact->response.direction.vy * contact->distance;
@@ -639,7 +644,7 @@ s32 worldCollisionResolveResponsePushback(const WorldCollisionContact* contacts,
         contact = &contacts[contactIndex];
         if ((contact->flags & WORLD_COLLISION_CONTACT_OCCUPIED) && (contact->key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) {
             surfaceMask |= 1 << contact->key.value;
-            if (Gp_RoomParams[contact->key.value & WORLD_COLLISION_PUSHBACK_SURFACE_CLASS_MASK] == WORLD_COLLISION_SURFACE_APPLY_PUSHBACK) {
+            if (gWorldCollisionSurfacePushbackSuppression[contact->key.value & WORLD_COLLISION_PUSHBACK_SURFACE_CLASS_MASK] == WORLD_COLLISION_SURFACE_APPLY_PUSHBACK) {
                 switch ((u32)(contact->key.value & WORLD_COLLISION_PUSHBACK_RESPONSE_MASK) >> WORLD_COLLISION_PUSHBACK_RESPONSE_SHIFT) {
                     case WORLD_COLLISION_RESPONSE_PUSHBACK_OVERLAP:
                         scratch->corrections[WORLD_COLLISION_RESPONSE_PUSHBACK_OVERLAP].vx += contact->distance * contact->response.direction.vx;
@@ -810,7 +815,7 @@ void worldCollisionLinkBody(s32 listIndex, WorldCollisionBody* body)
     u16                  flags;
     WorldCollisionBody** head;
 
-    head  = Gp_ObjLists[listIndex];
+    head  = _gWorldCollisionBodyListHeads[listIndex];
     flags = body->flags;
     if (!(flags & WORLD_COLLISION_BODY_LINKED)) {
         if ((flags & WORLD_COLLISION_BODY_KIND_MASK) <= WORLD_COLLISION_BODY_MOTION_SPHERE) {
@@ -1064,14 +1069,14 @@ void worldCollisionLoadSurfacePushbackFlags(void)
     GameSession*                      session;
     WorldCollisionSurfaceProperties** surfaceProperties;
 
-    for (surfaceClass = ARRAY_SIZE(Gp_RoomParams) - 1; surfaceClass >= 0; surfaceClass--) {
-        Gp_RoomParams[surfaceClass] = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK;
+    for (surfaceClass = ARRAY_SIZE(gWorldCollisionSurfacePushbackSuppression) - 1; surfaceClass >= 0; surfaceClass--) {
+        gWorldCollisionSurfacePushbackSuppression[surfaceClass] = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK;
     }
 
     session           = gGameSession;
     surfaceProperties = Gp_RoomParamTables[session->location.loc.stage - 1][session->location.loc.area - 1];
-    for (surfaceClass = 0; surfaceClass < ARRAY_SIZE(Gp_RoomParams); surfaceClass++) {
-        Gp_RoomParams[surfaceClass] = surfaceProperties[surfaceClass]->suppressPushback;
+    for (surfaceClass = 0; surfaceClass < ARRAY_SIZE(gWorldCollisionSurfacePushbackSuppression); surfaceClass++) {
+        gWorldCollisionSurfacePushbackSuppression[surfaceClass] = surfaceProperties[surfaceClass]->suppressPushback;
     }
 }
 
@@ -1169,7 +1174,7 @@ void worldCollisionConsumeViewBoundaryHits(void)
 {
     WorldCollisionTrigger* boundary;
 
-    for (boundary = Gp_Obj4CList; boundary != NULL; boundary = boundary->next) {
+    for (boundary = gWorldCollisionViewBoundaryListHead; boundary != NULL; boundary = boundary->next) {
         if (boundary->hit != 0) {
             boundary->hit = 0;
             if (gGameSession->location.loc.view == boundary->parameter0) {

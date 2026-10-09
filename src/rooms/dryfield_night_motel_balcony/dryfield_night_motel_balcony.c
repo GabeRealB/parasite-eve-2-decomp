@@ -128,7 +128,7 @@ static void _dryfieldNightMotelBalconyInitRoom(Task* task)
 /// advancing the task, so subsequent ticks leave the scene alone.
 static void _dryfieldNightMotelBalconyCheckFollowUpScene(Task* unusedTask)
 {
-    if (gGameSession->eventState == 0 && Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCRIPT_STATE) == DRYFIELD_NIGHT_MOTEL_BALCONY_FOLLOW_UP_PENDING) {
+    if (gGameSession->eventState == 0 && gAttachmentState.mode != ATTACHMENT_MODE_WHEEL && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCRIPT_STATE) == DRYFIELD_NIGHT_MOTEL_BALCONY_FOLLOW_UP_PENDING) {
         evsStartScript(D_actor_335800_80165720, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCRIPT_STATE, DRYFIELD_NIGHT_MOTEL_BALCONY_FOLLOW_UP_STARTED);
     }

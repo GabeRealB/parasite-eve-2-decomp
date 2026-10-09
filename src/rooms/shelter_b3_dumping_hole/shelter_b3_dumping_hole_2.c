@@ -3316,7 +3316,7 @@ static void _shelterB3DumpingHoleDebrisEventTask(Task* directorTask)
             if (capIsBusy() != 0) {
                 break;
             }
-            if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE || gPlayerStatus.coordMtx->t[0] < SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_TRIGGER_X) {
+            if (gAttachmentState.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE || gPlayerStatus.coordMtx->t[0] < SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_TRIGGER_X) {
                 break;
             }
             animationWork  = directorTask->work;
@@ -3840,7 +3840,7 @@ static void _shelterB3DumpingHoleCollapseEventHandleCommand(Task* task)
     switch (work->command) {
         case SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_PREPARE:
             roomEffectRequestCancelAll();
-            Gp_StateC08.flags                     |= ATTACHMENT_FLAG_EVENT_LOCK;
+            gAttachmentState.flags                |= ATTACHMENT_FLAG_EVENT_LOCK;
             scratch.animation.source.index         = gPlayerStatus.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == SHELTER_B3_DUMPING_HOLE_PRIMARY_CHARACTER ? SHELTER_B3_DUMPING_HOLE_PRIMARY_ANIMATION_BANK_OFFSET : SHELTER_B3_DUMPING_HOLE_NONPRIMARY_ANIMATION_BANK_OFFSET);
             scratch.animation.animationId          = SHELTER_B3_DUMPING_HOLE_COLLAPSE_RESTORE_CLIP;
             scratch.animation.blend                = ANIMATION_BLEND_INTERPOLATE;
@@ -4111,7 +4111,7 @@ static void _shelterB3DumpingHoleCollapseEventTask(Task* task)
 
     switch (task->state) {
         case SHELTER_B3_DUMPING_HOLE_COLLAPSE_EVENT_SETUP:
-            if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
+            if (gAttachmentState.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
             model      = task->extra.tmd;

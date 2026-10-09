@@ -2203,7 +2203,7 @@ static void _actor120300BodyTask(Task* task)
     work  = task->work;
     switch (state) {
         case ACTOR_120300_BODY_STATE_INITIALIZE:
-            if ((Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
+            if ((gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 _actor120300InitBody(task);
                 work = task->work;
                 if (gameFlagGetNibble(GAME_FLAG_GARAGE_GARY_SCENE_SEEN) != 0) {

@@ -72,7 +72,7 @@ static void _golemPawnRookGrenadeBurstState(Task* actor)
     (aim)->playerDirection.vy = (playerPart)->workm.t[1] - (root)->workm.t[1];                 \
     (aim)->playerDirection.vz = (playerPart)->workm.t[2] - (root)->workm.t[2];                 \
     VectorNormal(&(aim)->playerDirection, &(aim)->normalizedAim);                              \
-    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &(aim)->normalizedAim, &(aim)->playerDirection);
+    ApplyTransposeMatrixLV(&gWorldCollisionActiveGrid->viewCoord->workm, &(aim)->normalizedAim, &(aim)->playerDirection);
 
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_GolemPawnRookBurstAimScratch);
     work    = actor->work;

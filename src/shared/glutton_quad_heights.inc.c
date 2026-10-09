@@ -13,7 +13,7 @@ static void _gluttonSetQuadPairHeights(s32 unused, s16 firstQuadIndex)
            GLUTTON_QUAD_PAIR_BOTTOM_Y = 800 };
     SVECTOR* vertices;
 
-    vertices                            = Gp_GridParams->vertices;
+    vertices                            = gWorldCollisionActiveGrid->vertices;
     vertices[firstQuadIndex * 4].vy     = GLUTTON_QUAD_PAIR_TOP_Y;
     vertices[firstQuadIndex * 4 + 1].vy = GLUTTON_QUAD_PAIR_TOP_Y;
     vertices[firstQuadIndex * 4 + 2].vy = GLUTTON_QUAD_PAIR_BOTTOM_Y;

@@ -2063,7 +2063,7 @@ static s32 _actor02100SegmentOccluded(const SVECTOR* segmentStart, const SVECTOR
     s32                     occluded;
 
     occluded  = 0;
-    occluder  = D_80115550;
+    occluder  = gWorldCollisionOccluderListHead;
     direction = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
     // Normalize once for the complete enabled-occluder scan.
     _actor02100NormalizeSightSegment(segmentStart, segmentEnd, direction);

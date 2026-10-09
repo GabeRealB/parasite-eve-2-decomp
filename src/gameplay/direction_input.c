@@ -173,7 +173,7 @@ void directionUpdateAction(void)
         D_80114D08 = DIRECTION_INTERACTION_REARM_UPDATES;
     }
     if (D_80114CF8 == 0) {
-        if (Gp_StateC08.mode == ATTACHMENT_MODE_IDLE) {
+        if (gAttachmentState.mode == ATTACHMENT_MODE_IDLE) {
             gGameSession->dirActionBusy = 0;
             if (D_80114D08 != 0) {
                 D_80114D08 = (u16)D_80114D08 - 1;

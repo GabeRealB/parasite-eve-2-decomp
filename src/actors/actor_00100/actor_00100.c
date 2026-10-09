@@ -2304,7 +2304,7 @@ static void _actor00100BurnAwayDeath(Task* task)
     if (work->stateTimer == ACTOR00100_BURN_UNLINK_TICK) {
         _actor00100UnlinkCollisionBodies(work, enemy);
     }
-    if (work->stateTimer >= ACTOR00100_BURN_RELEASE_TICK && work->playerHeld == 0 && Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
+    if (work->stateTimer >= ACTOR00100_BURN_RELEASE_TICK && work->playerHeld == 0 && gAttachmentState.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) {
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT, 0);
         }
@@ -2787,7 +2787,7 @@ static void _actor00100BurstDeath(Task* actor)
         worldCollisionUnlinkBody(&work->spheres[DESERT_CHASER_SPHERE_ROOT].body);
         enemy->recs = 0;
     }
-    if ((work->stateTimer >= ACTOR00100_BURST_RELEASE_FIRST_TICK) && (work->playerHeld == 0) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
+    if ((work->stateTimer >= ACTOR00100_BURST_RELEASE_FIRST_TICK) && (work->playerHeld == 0) && (gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_MESA, 0, 0)) {
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, (s32)(enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT), 0);
         }
@@ -2967,7 +2967,7 @@ static void _actor00100MesaFall(Task* task)
                 finishedModel         = task->extra.tmd;
                 finishedModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             }
-            if ((work->stateTimer >= ACTOR00100_MESA_FALL_RELEASE_TICK) && (work->playerHeld != 1) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
+            if ((work->stateTimer >= ACTOR00100_MESA_FALL_RELEASE_TICK) && (work->playerHeld != 1) && (gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, (s32)(enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT), 0);
                 work->deathPending = 1;
                 task->state++;
@@ -3212,7 +3212,7 @@ static void _actor00100FrameState(Enemy* enemy, Task* actor)
                         }
                     } else if (((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) && (work->playerMove.displacement.vx != 0) && (work->playerMove.displacement.vz != 0) && (work->playerAnimFrames < ACTOR00100_PLAYER_KNOCK_BACK_TICKS) && _actor00100IsInMesaDropRegion(player) && _actor00100MovesTowardMesaDrop(player, &work->playerMove.displacement)) {
                         work->playerMove.collisionRequests = (GAME_ACTOR_COLLISION_REQUEST_MASK << GAME_ACTOR_COLLISION_DISABLE_REQUEST_SHIFT);
-                        Gp_StateC08.flags                  = (u8)(Gp_StateC08.flags | ATTACHMENT_FLAG_EVENT_LOCK);
+                        gAttachmentState.flags             = (u8)(gAttachmentState.flags | ATTACHMENT_FLAG_EVENT_LOCK);
                         roomEffectRequestCancelAll();
                         frameVector->vx = (u16)work->playerMove.displacement.vx;
                         frameVector->vy = 0;

@@ -3493,7 +3493,7 @@ static void _actor01100Death(
     if (((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_B6_CORRIDOR, 0, 0)) && (work->roomNotified == 0)) {
         playerActor  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
         playerStatus = &gPlayerStatus;
-        if ((playerActor->mode != GAME_ACTOR_MODE_SCRIPTED) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE) && (playerStatus->hp > 0)) {
+        if ((playerActor->mode != GAME_ACTOR_MODE_SCRIPTED) && (gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE) && (playerStatus->hp > 0)) {
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
             work->roomNotified = 1;
         }

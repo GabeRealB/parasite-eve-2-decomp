@@ -2202,7 +2202,7 @@ static s16 _actor136100TryStartFollowUpScene(Task* task)
             }
         }
     }
-    if (interactionRequested == 0 || Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL) {
+    if (interactionRequested == 0 || gAttachmentState.mode == ATTACHMENT_MODE_WHEEL) {
         return 0;
     }
     if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
@@ -2468,7 +2468,7 @@ static void _actor136100SceneTask(Task* task)
         case ACTOR_136100_SCENE_WAIT_CUE:
             cue = _actor136100ReadOpeningSceneCue(&openingEventId, &openingEventKind, &openingEventSubId);
             if (cue == ACTOR_136100_OPENING_CUE_AFTER_BURNER && work->scene == ACTOR_136100_SCENE_AFTER_BURNER) {
-                if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL) {
+                if (gAttachmentState.mode == ATTACHMENT_MODE_WHEEL) {
                     return;
                 }
                 if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
@@ -2483,7 +2483,7 @@ static void _actor136100SceneTask(Task* task)
                 break;
             }
             if (_actor136100ReadOpeningSceneCue(&secondEventId, &secondEventKind, &secondEventSubId) == ACTOR_136100_OPENING_CUE_BEFORE_BURNER && work->scene == ACTOR_136100_SCENE_BEFORE_BURNER) {
-                if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL) {
+                if (gAttachmentState.mode == ATTACHMENT_MODE_WHEEL) {
                     return;
                 }
                 if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {

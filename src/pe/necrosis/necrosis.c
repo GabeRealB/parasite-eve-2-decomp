@@ -248,7 +248,7 @@ void necrosisCastTask(Task* task)
     effect->age = nextAge;
     switch (task->state) {
         case NECROSIS_CAST_INITIALIZE:
-            if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) {
+            if (gAttachmentState.effectPhase == ATTACHMENT_EFFECT_HELD) {
                 break;
             }
             peEffectControl = gRoomEffectState->peEffectControl;
@@ -277,12 +277,12 @@ void necrosisCastTask(Task* task)
             gte_rtv0();
             gte_stsv(&effect->move);
             contacts                               = collision->contacts;
-            effect->index                          = (Gp_StateC08.attachId % 10) - 1;
+            effect->index                          = (gAttachmentState.attachId % 10) - 1;
             task->work                             = collision;
             collision->damageBody.coord            = coord;
             collision->damageBody.context.contacts = contacts;
             collision->damageBody.key =
-                ((u16)(Gp_StateC08.attachId / 100) - 1) * 9 + ((u16)((u16)(Gp_StateC08.attachId % 100) / 10) - 1) * 3 + (u16)(Gp_StateC08.attachId % 10) + NECROSIS_SPELL_DAMAGE_KEY_BASE;
+                ((u16)(gAttachmentState.attachId / 100) - 1) * 9 + ((u16)((u16)(gAttachmentState.attachId % 100) / 10) - 1) * 3 + (u16)(gAttachmentState.attachId % 10) + NECROSIS_SPELL_DAMAGE_KEY_BASE;
             collision->damageBody.radius = D_necrosis_801306BC[effect->index].startRadius;
             collision->damageBody.flags  = WORLD_COLLISION_BODY_SPHERE;
             worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &collision->damageBody);
@@ -296,7 +296,7 @@ void necrosisCastTask(Task* task)
             worldCollisionLinkBody(WORLD_COLLISION_LIST_GRID_ONLY, &collision->gridBody);
             collision->gridBody.flags = (collision->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED)) | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
             pan                       = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(D_necrosis_801306C8[(u16)(Gp_StateC08.attachId % 10) - 1], pan,
+            sndEvtRequestScriptStart(D_necrosis_801306C8[(u16)(gAttachmentState.attachId % 10) - 1], pan,
                                      (s8)worldCoordGetOriginAudioDepth(coord));
             padScriptSpawnVariableMotorRamp(D_necrosis_801306BC[effect->index].travelFrames + NECROSIS_MOTOR_TAIL_FRAMES, NECROSIS_MOTOR_START_INTENSITY, NECROSIS_MOTOR_END_INTENSITY);
             task->state = NECROSIS_CAST_TRAVELLING;
@@ -319,7 +319,7 @@ void necrosisCastTask(Task* task)
             } else {
                 effect->age = effect->age - 1;
             }
-            if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+            if ((gAttachmentState.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                 worldCollisionUnlinkBody(&collision->damageBody);
                 worldCollisionUnlinkBody(&collision->gridBody);
                 break;
@@ -340,7 +340,7 @@ void necrosisCastTask(Task* task)
             return;
         case NECROSIS_CAST_WAIT_FOR_TRAIL:
             // Bodies are unlinked; the final wait continues aging even while PE is paused.
-            if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) {
+            if (gAttachmentState.effectPhase == ATTACHMENT_EFFECT_HELD) {
                 break;
             }
             if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -468,10 +468,10 @@ void necrosisMistPuffTask(Task* task)
             blendRoll       = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
             gRandomLcgState = blendRoll;
             // The spawner clears step; only selected puffs switch to additive blending.
-            if ((s32)(((u32)blendRoll >> 16) & NECROSIS_PUFF_BLEND_RANDOM_MASK) < ((u16)(Gp_StateC08.attachId % 10U) - 1)) {
+            if ((s32)(((u32)blendRoll >> 16) & NECROSIS_PUFF_BLEND_RANDOM_MASK) < ((u16)(gAttachmentState.attachId % 10U) - 1)) {
                 effect->step = NECROSIS_PUFF_BLEND_ADD_FLAG;
             }
-            if ((u16)(Gp_StateC08.attachId % 10U) - 1 < NECROSIS_PUFF_LARGE_MIN_LEVEL_INDEX) {
+            if ((u16)(gAttachmentState.attachId % 10U) - 1 < NECROSIS_PUFF_LARGE_MIN_LEVEL_INDEX) {
                 task->state = NECROSIS_PUFF_STATE_SMALL;
                 return;
             }

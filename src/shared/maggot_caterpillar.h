@@ -330,10 +330,10 @@ static inline void _maggotCaterpillarTickAnimInline(Task* task);
 
 /// Normalises `delta` into `unit` and expresses the direction in the frame of
 /// the collision grid, into `out`.
-#define MAGGOT_CATERPILLAR_GRID_DIRECTION(delta, unit, out)                      \
-    do {                                                                         \
-        VectorNormal(&(delta)->vector, (unit));                                  \
-        ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, (unit), (out)); \
+#define MAGGOT_CATERPILLAR_GRID_DIRECTION(delta, unit, out)                                  \
+    do {                                                                                     \
+        VectorNormal(&(delta)->vector, (unit));                                              \
+        ApplyTransposeMatrixLV(&gWorldCollisionActiveGrid->viewCoord->workm, (unit), (out)); \
     } while (0)
 
 /// Sets `work->blocked` when contact `rec` is a body, or a face of the

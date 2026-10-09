@@ -3301,7 +3301,7 @@ static void _actor403000DissolveState(Task* actorTask)
         work->stateFrame = 0;
         worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
     }
-    if (work->roomEventPending == 1 && Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
+    if (work->roomEventPending == 1 && gAttachmentState.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
         work->roomEventPending = 0;
     }

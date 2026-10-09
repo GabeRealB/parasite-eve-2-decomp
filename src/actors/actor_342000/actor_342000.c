@@ -838,7 +838,7 @@ static void _actor342000UpdatePlayerAction(Task* eventTask)
             break;
         case ACTOR_342000_PLAYER_ACTION_PLACE_AT_START:
             roomEffectRequestCancelAll();
-            Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+            gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
             TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_actor_342000_80164930, 0);
             break;
         case ACTOR_342000_PLAYER_ACTION_WALK_TO_MARK:
@@ -1256,7 +1256,7 @@ static void _actor342000IncineratorEventTask(Task* task)
     s16                    elapsedTicks;
 
     work = task->work;
-    if (D_shelter_b3_garbage_incinerator_801855DE != 0 || gGameSession->sceneUpdatesPaused != 0 || Gp_StateC08.menuOpen != ATTACHMENT_MENU_CLOSED || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
+    if (D_shelter_b3_garbage_incinerator_801855DE != 0 || gGameSession->sceneUpdatesPaused != 0 || gAttachmentState.menuOpen != ATTACHMENT_MENU_CLOSED || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
         return;
     }
     if (gGameSession->enemyCullZone != 0) {

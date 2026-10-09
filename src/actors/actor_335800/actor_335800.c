@@ -1304,7 +1304,7 @@ static void _actor335800SetPostSceneObjective(void)
 /// effect processing. Normal attachment/HUD updates later clear the lock.
 static void _actor335800LockAttachmentsAndCancelEffects(void)
 {
-    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+    gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
     roomEffectRequestCancelAll();
 }
 

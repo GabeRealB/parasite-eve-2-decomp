@@ -376,7 +376,7 @@ void actor215100GalleryTrainingMenuTask(Task* task)
             break;
         case ACTOR_215100_MENU_STAGE_TRAINING:
             D_actor_215100_8014D040++;
-            Gp_StateC08.flags |= ATTACHMENT_FLAG_SWAP_LOCK;
+            gAttachmentState.flags |= ATTACHMENT_FLAG_SWAP_LOCK;
             if (D_actor_215100_8015E670 < ACTOR_215100_MENU_FIRST_LOADOUT_LEVEL) {
                 evsStartScript(D_actor_215100_8014EFA0, EVENT_SCRIPT_HUD_KEEP);
             } else {

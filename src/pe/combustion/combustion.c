@@ -138,19 +138,19 @@ void combustionFlameEmitterTask(Task* task)
             _combustionPlaceEmitterCoord(coord, task);
             work->move.vz = COMBUSTION_EMITTER_INITIAL_REACH;
             pan           = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(D_combustion_80130998[(u16)(Gp_StateC08.attachId % 10) - 1], pan,
+            sndEvtRequestScriptStart(D_combustion_80130998[(u16)(gAttachmentState.attachId % 10) - 1], pan,
                                      (s8)worldCoordGetOriginAudioDepth(coord));
             rgb[0] = COMBUSTION_IGNITION_RED;
             rgb[1] = COMBUSTION_IGNITION_GREEN;
             rgb[2] = COMBUSTION_IGNITION_BLUE;
             effectDrawScreenTint(rgb, GPU_BLEND_ADD);
             task->state = COMBUSTION_EMITTER_STATE_EMITTING;
-            work->index = Gp_StateC08.attachId % 10 - 1;
+            work->index = gAttachmentState.attachId % 10 - 1;
             padScriptSpawnVariableMotorRamp(D_combustion_80130980[work->index].emitterFrames, COMBUSTION_EMITTER_MOTOR_START, COMBUSTION_EMITTER_MOTOR_END);
             /* fallthrough */
         case COMBUSTION_EMITTER_STATE_EMITTING:
             actorRenderComposeCoord(coord);
-            if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+            if ((gAttachmentState.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                 effectKillTask(work, task);
                 return;
             }
@@ -162,14 +162,14 @@ void combustionFlameEmitterTask(Task* task)
                 taskReparent(task, spawned->task);
             }
             if (D_combustion_80130980[work->index].narrowFlameFrames < work->age) {
-                Gp_StateC08.flags |= ATTACHMENT_FLAG_APPLY_STATS;
-                task->state        = COMBUSTION_EMITTER_STATE_UNWINDING;
+                gAttachmentState.flags |= ATTACHMENT_FLAG_APPLY_STATS;
+                task->state             = COMBUSTION_EMITTER_STATE_UNWINDING;
                 return;
             }
             return;
         case COMBUSTION_EMITTER_STATE_UNWINDING:
             actorRenderComposeCoord(coord);
-            if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) ||
+            if ((gAttachmentState.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) ||
                 (work->age > D_combustion_80130980[work->index].emitterFrames)) {
                 effectKillTask(work, task);
                 return;
@@ -246,7 +246,7 @@ void combustionFlameTask(Task* task)
             phaseRng          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->age         = ((u32)phaseRng >> 16) & COMBUSTION_FLAME_INITIAL_AGE_MASK;
             work->scale       = task->spawnArg1.value * COMBUSTION_FLAME_SIZE_STEP + COMBUSTION_FLAME_SIZE_BASE;
-            work->index       = Gp_StateC08.attachId % 10 - 1;
+            work->index       = gAttachmentState.attachId % 10 - 1;
             narrowFlameFrames = D_combustion_80130980[work->index].narrowFlameFrames;
             gRandomLcgState   = phaseRng;
             if (narrowFlameFrames < task->spawnArg1.value) {
@@ -262,7 +262,7 @@ void combustionFlameTask(Task* task)
             } else {
                 _combustionDrawLargeFlame(coord, work->age, work->scale);
             }
-            if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) || (work->age >= COMBUSTION_FLAME_END_AGE)) {
+            if ((gAttachmentState.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) || (work->age >= COMBUSTION_FLAME_END_AGE)) {
                 effectKillTask(work, task);
                 return;
             }
@@ -275,7 +275,7 @@ void combustionFlameTask(Task* task)
             } else {
                 _spriteQuadDrawFlicker(coord, work->age, work->scale * 4, 0);
             }
-            if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) || (work->age >= COMBUSTION_FLAME_END_AGE)) {
+            if ((gAttachmentState.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) || (work->age >= COMBUSTION_FLAME_END_AGE)) {
                 effectKillTask(work, task);
                 return;
             }
@@ -435,7 +435,7 @@ void combustionEmberTask(Task* task)
     switch (task->state) {
         case COMBUSTION_EMBER_STATE_INIT:
             // Retain the PE level, fixed orientation, rise speed and size for this ember.
-            levelIndex      = (Gp_StateC08.attachId % 10U) - 1;
+            levelIndex      = (gAttachmentState.attachId % 10U) - 1;
             riseRng         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             angleRng        = riseRng * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->scale     = ((u32)angleRng >> 16) & (PYRO_FLAME_FULL_TURN - 1);

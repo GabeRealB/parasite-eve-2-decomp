@@ -19,7 +19,13 @@ extern AttachmentLevelTable Gp_IdParamHi;
 
 extern u8 Gp_DebugAttachLevels[18];
 
-extern AttachmentState Gp_StateC08;
+/// Gameplay's shared attachment selection, casting and timed protection state.
+///
+/// The wheel, HUD, player and PE effects coordinate through this singleton.
+/// Packed spell family/level and cast phases describe the current use; combo
+/// bytes, immunity timers and wards persist independently across casts.
+/// Rooms and effects borrow this gameplay storage rather than owning copies.
+extern AttachmentState gAttachmentState;
 
 /// Flag byte cleared by `attachmentCancel` / `playerActorSpawn`.
 extern u8 D_80115768;

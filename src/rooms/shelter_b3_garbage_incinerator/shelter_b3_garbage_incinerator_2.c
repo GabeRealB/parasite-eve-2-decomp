@@ -771,7 +771,7 @@ static void _shelterB3GarbageIncineratorExitEncounterTask(Task* task)
 
     switch (task->state) {
         case SHELTER_B3_GARBAGE_INCINERATOR_EXIT_TASK_LOAD:
-            if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
+            if (gAttachmentState.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 break;
             }
             sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_SWITCH_PRESS, 0, 0);
@@ -978,7 +978,7 @@ static void _shelterB3GarbageIncineratorLiftTask(Task* task)
     s16                                   arrived;
     TmdObject*                            litModel;
 
-    if (gGameSession->sceneUpdatesPaused != 0 || (s8)Gp_StateC08.menuOpen != ATTACHMENT_MENU_CLOSED || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING || Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL) {
+    if (gGameSession->sceneUpdatesPaused != 0 || (s8)gAttachmentState.menuOpen != ATTACHMENT_MENU_CLOSED || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING || gAttachmentState.mode == ATTACHMENT_MODE_WHEEL) {
         return;
     }
     switch (task->state) {
@@ -1206,7 +1206,7 @@ static s16 _shelterB3GarbageIncineratorRunBlazeScene(Task* task)
         case SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_SCENE_START:
             _shelterB3GarbageIncineratorInstallBlazeClips(task);
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+            gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
             evsStartScript(D_shelter_b3_garbage_incinerator_80186FB8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
             work->fadeTask   = taskSpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_FADE_TASK, 0, task);
@@ -1245,12 +1245,12 @@ static void _shelterB3GarbageIncineratorBlazeControllerTask(Task* task)
     s32                                    shouldBurn;
     PlayerStatus*                          playerStatus;
 
-    if (session->sceneUpdatesPaused != 0 || (s8)Gp_StateC08.menuOpen != ATTACHMENT_MENU_CLOSED || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING || D_80114CF8 != 0) {
+    if (session->sceneUpdatesPaused != 0 || (s8)gAttachmentState.menuOpen != ATTACHMENT_MENU_CLOSED || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING || D_80114CF8 != 0) {
         return;
     }
     switch (task->state) {
         case SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_TASK_INIT:
-            if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
+            if (gAttachmentState.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
             work       = memMalloc(sizeof(*work), false);

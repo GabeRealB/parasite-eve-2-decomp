@@ -1216,9 +1216,9 @@ worldCollisionBindEnemySphere = 0x8010C980; // type:func
 
 // Gameplay naming pass 1 (TMD/coordBody, enemy, view, replay, strings)
 gGpStrNewDisp2dNull         = 0x80093804;
-gGpColorGrey                = 0x8009381C; // size:0x4
+gModelLightingNeutralColor                = 0x8009381C; // size:0x4
 Gp_ColorOrange              = 0x80093820; // size:0x4
-gGpColorWhite               = 0x80093824; // size:0x4
+gModelLightingWhiteColor               = 0x80093824; // size:0x4
 Gp_StrColon                 = 0x80093828;
 Gp_StrApostrophe            = 0x8009382C;
 Gp_StrBattleResult          = 0x80093848;
@@ -1242,12 +1242,12 @@ Gp_ReplayFramesLeft = 0x80114C04; // size:0x2 defined:True
 Gp_ReplayCursor = 0x80114C38; // size:0x4 defined:True
 
 // Gameplay naming pass 2 (SPRT/HUD, area, anim, flags/msg)
-Gp_SprtLists = 0x8010CAE8; // size:0x8 defined:True
+_gSpriteViewCachedPacketBuffers = 0x8010CAE8; // size:0x8 defined:True
 gSpriteAreaTables = 0x8010CB68; // size:0x14 defined:True
 Gp_RoomObjTables = 0x8010CB7C; // size:0x14 defined:True
 Gp_AreaTables = 0x8010CBCC; // size:0x18 defined:True
 Gp_Slot4MsgTable = 0x8010D208; // size:0x28 defined:True
-Gp_SprtCursor = 0x80114CC8; // size:0x4 defined:True
+_gSpriteViewCachedPacketCursor = 0x80114CC8; // size:0x4 defined:True
 
 // Gameplay naming pass 3 (link nodes, items, room coords, area flags)
 Gp_StrWeapon                = 0x80097454;
@@ -1256,7 +1256,7 @@ Gp_StrItemObtained          = 0x8010CA08; // defined:True
 Gp_StrBonusItem             = 0x8010CA18; // defined:True
 gWorldCoordRoomLightingTables = 0x8010CBA4; // size:0x14 defined:True
 Gp_PendingRelatedId = 0x8010F88C; // size:0x4 defined:True
-Gp_RoomBoundDefault         = 0x8010F9E4; // size:0x8 defined:True
+gWorldCoordDefaultRoomAmbientEntry         = 0x8010F9E4; // size:0x8 defined:True
 Gp_NewGameFlagsStg1 = 0x80114098; // size:0x28 defined:True
 Gp_NewGameFlagsStg2 = 0x801140C0; // size:0x38 defined:True
 Gp_NewGameFlagsStg4 = 0x801140F8; // size:0x5C defined:True
@@ -1294,12 +1294,12 @@ D_80114938                  = 0x80114938; // defined:True
 D_80114968                  = 0x80114968; // defined:True
 D_80114998                  = 0x80114998; // defined:True
 D_801149B8                  = 0x801149B8; // defined:True
-Gp_ObjLists = 0x8010FA8C; // size:0x24 defined:True
+_gWorldCollisionBodyListHeads = 0x8010FA8C; // size:0x24 defined:True
 Gp_Obj4ALists = 0x8010FAB0; // size:0x8 defined:True
 Gp_Obj3ALists = 0x8010FAB8; // size:0x4 defined:True
 Gp_CollectedIds = 0x80114AE0; // size:0x52 defined:True
 Gp_DebugAttachLevels = 0x80114BF0; // size:0x12 defined:True
-Gp_LockSlots = 0x80115270; // size:0x180 defined:True
+_gWorldTargetReadouts = 0x80115270; // size:0x180 defined:True
 
 // Gameplay naming pass 5 (item UI, load-wait, remaining getters)
 Gp_ConfigCdTable            = 0x800938CC; // size:0x5
@@ -1346,7 +1346,7 @@ Gp_WeaponMsgRec             = 0x8010FB38; // size:0x14 defined:True
 Gp_WeaponIdBase = 0x80112D68; // size:0x4 defined:True
 Gp_AllyIdBase = 0x80113360; // size:0x8 defined:True
 Gp_WarpLoc                  = 0x80114CE8; // size:0x8 defined:True
-Gp_RoomParams = 0x80115428; // size:0x20 defined:True
+gWorldCollisionSurfacePushbackSuppression = 0x80115428; // size:0x20 defined:True
 
 // Gameplay naming pass 8 (collected bits, item map, load CD, Obj4C)
 Gp_ItemMaps = 0x8010D2F8; // size:0x20 defined:True
@@ -1362,14 +1362,14 @@ Gp_ItemSortKey80 = 0x80114A98; // size:0x21 defined:True
 Gp_ItemSortKeyA0 = 0x80114ABC; // size:0x21 defined:True
 Gp_RelatedQty0 = 0x8010E238; // size:0x80 defined:True
 Gp_RelatedQty1 = 0x8010D278; // size:0x80 defined:True
-Gp_Obj4CList = 0x80115554; // size:0x4 defined:True
+gWorldCollisionViewBoundaryListHead = 0x80115554; // size:0x4 defined:True
 Gp_PendingObj4C = 0x8011556C; // size:0x4 defined:True
 Gp_PendingObj4CFlag = 0x80115424; // size:0x4 defined:True
-Gp_GridParams = 0x80115448; // size:0x4 defined:True
-Gp_OverrideVecFlag          = 0x80114F18; // size:0x1 defined:True
-Gp_OverrideVec              = 0x80114F20; // size:0x8 defined:True
-Gp_OverrideVec2Flag = 0x80115250; // size:0x1 defined:True
-Gp_OverrideVec2 = 0x80115258; // size:0x8 defined:True
+gWorldCollisionActiveGrid = 0x80115448; // size:0x4 defined:True
+gWorldCoordAmbientColorOverrideEnabled          = 0x80114F18; // size:0x1 defined:True
+gWorldCoordAmbientColorOverride              = 0x80114F20; // size:0x8 defined:True
+_gWorldCoordLightColorScaleOverrideEnabled = 0x80115250; // size:0x1 defined:True
+_gWorldCoordLightColorScaleOverride = 0x80115258; // size:0x8 defined:True
 Gp_DefaultMtx               = 0x80114E98; // size:0x20 defined:True
 Gp_DefaultMtx2              = 0x80114EB8; // size:0x20 defined:True
 
@@ -1581,7 +1581,7 @@ Gp_StrDetachArmorHelp = 0x8010F9A4; // size:0x19 defined:True
 
 // Gameplay naming pass 15 (StateF0, play clock, load-wait, lock)
 gSceneCombatState = 0x801153F0; // size:0x2C defined:True
-Gp_StateC08 = 0x80114C08; // size:0x18 defined:True
+gAttachmentState = 0x80114C08; // size:0x18 defined:True
 Gp_HpMpWork = 0x80114BE8; // size:0x8 defined:True
 gRoomEffectState                  = 0x80115740; // size:0x4 defined:True
 Gp_PreviewItems             = 0x8010E8F8; // size:0x14 defined:True
@@ -1596,8 +1596,8 @@ Gp_PlayerAnimBlkTbl = 0x80112D6C; // size:0x88 defined:True
 
 // Gameplay naming pass 18 (pad scripts, caret, State1C)
 Gp_PadScriptHalt            = 0x80115700; // size:0x1 defined:True
-Gp_PadHoldHalt              = 0x80115701; // size:0x1 defined:True
-Gp_PadLerpHalt              = 0x80115702; // size:0x1 defined:True
+_gPadScriptBinaryMotorHalt              = 0x80115701; // size:0x1 defined:True
+_gPadScriptVariableMotorHalt              = 0x80115702; // size:0x1 defined:True
 Gp_CapCaretX = 0x8011564C; // size:0x2 defined:True
 Gp_CapCaretY = 0x8011564E; // size:0x2 defined:True
 Gp_CapCaretDelay = 0x80115658; // size:0x1 defined:True
@@ -1626,7 +1626,7 @@ Gp_StrCancel2               = 0x8010F1D0; // defined:True
 // Globals naming pass 1
 Gp_ItemGrantCooldown        = 0x8010CA28; // defined:True
 Gp_ItemCmdFns               = 0x8010EA18; // defined:True
-Gp_FaceEdgePairs            = 0x8010FA24; // defined:True
+gWorldCollisionFaceEdges            = 0x8010FA24; // defined:True
 Gp_EffSprRecs = 0x80112934; // size:0x30 defined:True
 Gp_CdRecCur = 0x80114C6C; // size:0x4 defined:True
 Gp_DirFadeLevel             = 0x80114CF6; // size:0x2 defined:True
@@ -1645,15 +1645,15 @@ Gp_MenuLockHold = 0x80115714; // size:0x1 defined:True
 Gp_MenuLockDelay = 0x80115716; // size:0x2 defined:True
 
 // Globals naming pass 2
-Gp_ObjList0 = 0x80115570; // size:0x4 defined:True
-Gp_ObjList1 = 0x80115574; // size:0x4 defined:True
-Gp_ObjList2 = 0x80115578; // size:0x4 defined:True
-Gp_ObjList3 = 0x8011557C; // size:0x4 defined:True
-Gp_ObjList4 = 0x80115580; // size:0x4 defined:True
-Gp_ObjList5 = 0x80115584; // size:0x4 defined:True
-Gp_ObjList6 = 0x80115588; // size:0x4 defined:True
-Gp_ObjList7 = 0x8011558C; // size:0x4 defined:True
-Gp_ObjList8 = 0x80115590; // size:0x4 defined:True
+gWorldCollisionPlayerBodyListHead = 0x80115570; // size:0x4 defined:True
+gWorldCollisionPlayerAttackListHead = 0x80115574; // size:0x4 defined:True
+gWorldCollisionEnemyBodyListHead = 0x80115578; // size:0x4 defined:True
+gWorldCollisionEnemyAttackListHead = 0x8011557C; // size:0x4 defined:True
+gWorldCollisionPropListHead = 0x80115580; // size:0x4 defined:True
+_gWorldCollisionBodyList5Head = 0x80115584; // size:0x4 defined:True
+gWorldCollisionBodyList6Head = 0x80115588; // size:0x4 defined:True
+gWorldCollisionGridOnlyListHead = 0x8011558C; // size:0x4 defined:True
+gWorldCollisionBlastListHead = 0x80115590; // size:0x4 defined:True
 Gp_StrEmpty = 0x8010F8D0; // size:0x1 defined:True
 Gp_HealPending = 0x8010F888; // size:0x4 defined:True
 Gp_RelatedPending = 0x8010F890; // size:0x4 defined:True
@@ -2005,7 +2005,7 @@ D_80114D88 = 0x80114D88; // size:0x4 defined:True
 D_80114D98 = 0x80114D98; // size:0x8 defined:True
 D_80114D08 = 0x80114D08; // size:0x2 defined:True
 
-D_8010F9EC = 0x8010F9EC; // size:0x4 defined:True
+gWorldTargetCursorXFixed8 = 0x8010F9EC; // size:0x4 defined:True
 D_8010F9F0 = 0x8010F9F0; // size:0x4 defined:True
 D_8010F9F4 = 0x8010F9F4; // size:0x18 defined:True
 D_8010FA0C = 0x8010FA0C; // size:0x18 defined:True
@@ -2089,8 +2089,8 @@ D_80114F28 = 0x80114F28; // size:0x4 defined:True
 D_80115260 = 0x80115260; // size:0x4 defined:True
 D_80115264 = 0x80115264; // size:0x4 defined:True
 
-D_80115450 = 0x80115450; // size:0x100 defined:True
-D_80115550 = 0x80115550; // size:0x4 defined:True
+_gWorldCollisionGridFaceCandidates = 0x80115450; // size:0x100 defined:True
+gWorldCollisionOccluderListHead = 0x80115550; // size:0x4 defined:True
 
 D_80115598 = 0x80115598; // size:0x1 defined:True
 
@@ -2300,8 +2300,8 @@ D_80114B32 = 0x80114B32; // size:0x2 defined:True
 D_80114B34 = 0x80114B34; // size:0x48 defined:True
 D_80114B7C = 0x80114B7C; // size:0x4 defined:True
 
-D_80114BA4 = 0x80114BA4; // size:0x4 defined:True
-D_80114BA8 = 0x80114BA8; // size:0x4 defined:True
+_gModelLightingEnvironmentLayerMaterial = 0x80114BA4; // size:0x4 defined:True
+_gModelLightingEnvironmentBaseMaterial = 0x80114BA8; // size:0x4 defined:True
 D_80114BAC = 0x80114BAC; // size:0x4 defined:True
 
 D_80112ED4 = 0x80112ED4; // size:0x21 defined:True

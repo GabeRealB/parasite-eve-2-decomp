@@ -1322,9 +1322,9 @@ u32* tmdDrawStreamPrimGt4PreXformOffsetLayer(TmdStreamWorkspace* workspace, s32 
     return elements;
 }
 
-const CVECTOR gGpColorGrey   = { 0x80, 0x80, 0x80, 0 };
-const CVECTOR Gp_ColorOrange = { 0xFF, 0xA0, 0x60, 0 };
-const CVECTOR gGpColorWhite  = { 0xFF, 0xFF, 0xFF, 0 };
+const CVECTOR gModelLightingNeutralColor = { 0x80, 0x80, 0x80, 0 };
+const CVECTOR Gp_ColorOrange             = { 0xFF, 0xA0, 0x60, 0 };
+const CVECTOR gModelLightingWhiteColor   = { 0xFF, 0xFF, 0xFF, 0 };
 
 /// Projects and lights paired grey corners with reduced environment UVs on the layer.
 ///
@@ -1356,8 +1356,8 @@ static u32* _tmdXformStreamVertsGreyEnvLayerReduced(TmdStreamWorkspace* workspac
     CVECTOR                       layerMaterial;
     u8*                           packetDestination;
 
-    baseMaterial        = gGpColorGrey;
-    layerMaterial       = gGpColorGrey;
+    baseMaterial        = gModelLightingNeutralColor;
+    layerMaterial       = gModelLightingNeutralColor;
     initialElementCount = workspace->elemCount;
     if (initialElementCount == 0) {
         return elements;
@@ -1494,8 +1494,8 @@ static u32* _tmdXformStreamVertsEnvMapLit(TmdStreamWorkspace* workspace, s32 obj
     s32                         secondPage;
     s32                         textureComponent;
 
-    materialColor  = gGpColorWhite;
-    referenceColor = gGpColorGrey;
+    materialColor  = gModelLightingWhiteColor;
+    referenceColor = gModelLightingNeutralColor;
     gte_ldrgb(&materialColor);
     initialElementCount = workspace->elemCount;
     if (initialElementCount == 0) {

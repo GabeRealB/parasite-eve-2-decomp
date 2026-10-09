@@ -65,7 +65,7 @@ CONVENTIONS = {
     "normals": "4096 = 1.0",
     "angles": "4096 units per full turn. An actor's forward axis is column 2 of RotMatrixY(yaw): forward = (sin(yaw), 0, cos(yaw)), "
               "so yaw 0 faces +Z and yaw 1024 faces +X (checked per room against warp triggers, see checks.warpYawAgreesWithTrigger).",
-    "quads": "Trigger, occluder and grid quads are in STRIP order: the boundary loop is corners [1, 0, 2, 3] (Gp_FaceEdgePairs, src/gameplay/item_use.c). "
+    "quads": "Trigger, occluder and grid quads are in STRIP order: the boundary loop is corners [1, 0, 2, 3] (gWorldCollisionFaceEdges, src/gameplay/item_use.c). "
              "A grid face whose 4th index is 65535 is a triangle. Trigger/occluder `corners` are already origin + offset, in world space.",
     "grid": "cell(x, z) = ((worldX + xBias) / cellSize, (worldZ + zBias) / cellSize); cells[x * cellCountZ + z] lists face indices. "
             "origin = (-xBias, -zBias). A face is floor when its normal's Y < -3546. A face whose first two vertex indices are both 0 is skipped by the sphere passes.",

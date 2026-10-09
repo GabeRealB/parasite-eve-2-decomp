@@ -124,7 +124,7 @@ extern TaskMessageEntry D_actor_120500_80138408[2];
 /// Equipped-weapon id and the flag that selects which block of animation sets
 /// it indexes (`+1` when set to 1, `+0x22` otherwise).
 
-/// Flags the tick checks before bringing the actor up (`Gp_StateC08.mode` /
+/// Flags the tick checks before bringing the actor up (`gAttachmentState.mode` /
 /// `gDisplayState.pendingMode`), and the one it raises alongside the view tasks
 /// (`gDisplayState.control.flags.flipMode`).
 
@@ -695,7 +695,7 @@ static void _actor120500SceneTask(Task* task)
 
     switch (task->state) {
         case ACTOR_120500_SCENE_INITIALIZE:
-            if (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
+            if (gAttachmentState.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
 
                 _actor120500InitBody(task);
                 _actor120500BlendPlayerWeaponPose();

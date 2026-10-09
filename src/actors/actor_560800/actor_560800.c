@@ -5849,7 +5849,7 @@ static void _actor560800CutsceneTask(Task* task)
 
     switch (task->state) {
         case ACTOR_560800_SCENE_WAIT_PRESENTATION:
-            if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
+            if (gAttachmentState.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
             _actor560800InitializeCutscene(task);

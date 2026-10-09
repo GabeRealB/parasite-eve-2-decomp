@@ -716,7 +716,7 @@ static void _actor02400ResolveBodyContacts(Task* task)
                 if (deepestOverlap < overlap) {
                     deepestOverlap = overlap;
                     VectorNormal(&scratch->delta.vector, &scratch->normal);
-                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, &scratch->pushDirection);
+                    ApplyTransposeMatrixLV(&gWorldCollisionActiveGrid->viewCoord->workm, &scratch->normal, &scratch->pushDirection);
                 }
                 break;
         }

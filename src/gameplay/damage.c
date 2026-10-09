@@ -306,7 +306,7 @@ u32 damageComputePlayerAttack(u32 attackKey, u32 playerDistance, s32 scaledReact
         damage           = distanceDamageQ8 * reactionScaleQ8 >> (2 * DAMAGE_PLAYER_ATTACK_SCALE_FRACTION_BITS);
 
         if (applyPlayerWeaponModifiers != 0) {
-            energyShotCombo = Gp_StateC08.energyShotCombo;
+            energyShotCombo = gAttachmentState.energyShotCombo;
             if (energyShotCombo != 0) {
                 damage = damage * D_80113D0C[(energyShotCombo / (1 << ATTACHMENT_COMBO_LEVEL_SHIFT) - 1) * 2 + (s8)(energyShotCombo % (1 << ATTACHMENT_COMBO_LEVEL_SHIFT))][DAMAGE_ENERGY_SHOT_DAMAGE_PERCENT_COLUMN] / 100;
             }
@@ -373,7 +373,7 @@ s32 damageComputeReceived(s32 attackKey, s32 unused, s32* outReaction, s32 victi
         hp            = gPlayerStatus.hp;
         hpBand        = D_80113F54[hp / 10];
         scale         = Gp_DmgRows[gSceneCombatState.difficulty].playerPercent[hpBand] << DAMAGE_RECEIVED_SCALE_FRACTION_BITS;
-        antibodyCombo = Gp_StateC08.antibodyCombo;
+        antibodyCombo = gAttachmentState.antibodyCombo;
         if (antibodyCombo != 0) {
             scale = scale * D_80113CFC[(antibodyCombo / (1 << ATTACHMENT_COMBO_LEVEL_SHIFT) - 1) * 2 + (s8)(antibodyCombo % (1 << ATTACHMENT_COMBO_LEVEL_SHIFT))] / 100;
         }
@@ -446,7 +446,7 @@ s32 damageRollCriticalHit(const Enemy* enemy, u32 attackKey, s32 chanceMultiplie
         chance <<= 1;
     }
 
-    energyShotCombo = Gp_StateC08.energyShotCombo;
+    energyShotCombo = gAttachmentState.energyShotCombo;
     if (energyShotCombo != 0) {
         chance = chance * D_80113D0C[(energyShotCombo / (1 << ATTACHMENT_COMBO_LEVEL_SHIFT) - 1) * 2 + (s8)(energyShotCombo % (1 << ATTACHMENT_COMBO_LEVEL_SHIFT))][DAMAGE_ENERGY_SHOT_CRITICAL_PERCENT_COLUMN] / 100;
     }
@@ -492,7 +492,7 @@ static void _damageApplyEnemyReaction(Enemy* enemy, s32 attackKey)
                 enemy->buildupGrade = 0;
                 return;
             }
-            enemy->buildupGrade = Gp_StateC08.attachId % 10U;
+            enemy->buildupGrade = gAttachmentState.attachId % 10U;
             break;
         case DAMAGE_PLAYER_REACTION_POISON:
             poisonPercent   = enemy->param->damageOverTimeChance;
@@ -508,7 +508,7 @@ static void _damageApplyEnemyReaction(Enemy* enemy, s32 attackKey)
                     enemy->damageOverTimeGrade = 0;
                     return;
                 }
-                enemy->damageOverTimeGrade = Gp_StateC08.attachId % 10U;
+                enemy->damageOverTimeGrade = gAttachmentState.attachId % 10U;
             }
             break;
     }

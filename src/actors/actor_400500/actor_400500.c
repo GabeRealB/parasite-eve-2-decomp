@@ -4554,9 +4554,9 @@ static void _actor400500TickGrab(Task* task)
                 playerAnimation.blendFrames          = 0;
                 playerAnimation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
                 TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &playerAnimation, 0);
-                work->grabStep     = ACTOR_400500_GRAB_STEP_CAUGHT;
-                Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
-                work->playerCaught = 1;
+                work->grabStep          = ACTOR_400500_GRAB_STEP_CAUGHT;
+                gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+                work->playerCaught      = 1;
             }
         }
     }

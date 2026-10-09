@@ -809,7 +809,7 @@ static void _dryfieldGasStationArrivalCutsceneTask(Task* task)
 
     switch (task->state) {
         case DRYFIELD_GAS_STATION_ARRIVAL_CUTSCENE_INIT:
-            if ((Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
+            if ((gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 work       = memMalloc(sizeof(*work), false);
                 task->work = work;
                 if (work == NULL) {

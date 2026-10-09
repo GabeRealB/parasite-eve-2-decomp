@@ -352,7 +352,7 @@ void playerActorResolveBodyContacts(Task* task, const WorldCollisionContact* con
                         if (deepestOverlap < overlap) {
                             deepestOverlap = overlap;
                             VectorNormal(separation, &block->viewDirection);
-                            ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm,
+                            ApplyTransposeMatrixLV(&gWorldCollisionActiveGrid->viewCoord->workm,
                                                    &block->viewDirection, &block->roomDirection);
                         }
                     }
@@ -456,7 +456,7 @@ void playerStateTickStatusEffects(Task* task)
         }
         if (statusFlags & PLAYER_STATUS_BERSERKER) {
             // Active attachment modes keep Berserker's remaining duration intact.
-            if ((u32)((u8)Gp_StateC08.mode - ATTACHMENT_MODE_ARMED) >= 2U) {
+            if ((u32)((u8)gAttachmentState.mode - ATTACHMENT_MODE_ARMED) >= 2U) {
                 PLAYER_STATE_TICK_STATUS_DURATION(actor->berserkerTicks, statusFlags, PLAYER_STATUS_BERSERKER);
             }
         }
@@ -847,7 +847,7 @@ static void _playerActorEnterDamageReaction(Task* task)
     playerStatus = &gPlayerStatus;
     actor        = task->work;
     // Stop the weapon even when HP is already zero; only a living player reacts.
-    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+    gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
     playerActorResetWeaponAttack(task, playerStatus->weapon, 0);
     if (playerStatus->hp > 0) {
         _playerActorStopForDamageClip(actor);

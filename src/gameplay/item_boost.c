@@ -553,10 +553,10 @@ s32 equipmentHasEffect(s32 effectSelector)
         armorFeatures = armorStats->features;
     }
     // Metabolism and the two wards protect different groups of status effects.
-    if ((Gp_StateC08.metabolismTicks > 0) || (Gp_StateC08.bodyWard != 0)) {
+    if ((gAttachmentState.metabolismTicks > 0) || (gAttachmentState.bodyWard != 0)) {
         bodyProtected = 1;
     }
-    if ((Gp_StateC08.metabolismTicks > 0) || (Gp_StateC08.mindWard != 0)) {
+    if ((gAttachmentState.metabolismTicks > 0) || (gAttachmentState.mindWard != 0)) {
         mindProtected = 1;
     }
 
@@ -687,8 +687,8 @@ void inventoryInitializeShootingGalleryLoadout(void)
     }
     Gp_DebugAttachLevels[ATTACHMENT_INDEX_PYROKINESIS] = ATTACHMENT_TRAINING_INITIAL_LEVEL;
 
-    Gp_StateC08.activeIndex = ATTACHMENT_INDEX_PYROKINESIS;
-    Gp_StateC08.wheelIndex  = ATTACHMENT_INDEX_PYROKINESIS;
+    gAttachmentState.activeIndex = ATTACHMENT_INDEX_PYROKINESIS;
+    gAttachmentState.wheelIndex  = ATTACHMENT_INDEX_PYROKINESIS;
 }
 
 void inventoryRestoreCarriedLoadout(void)
@@ -720,10 +720,10 @@ void inventoryRestoreCarriedLoadout(void)
         }
     }
 
-    Gp_StateC08.wheelIndex  = ATTACHMENT_INDEX_PYROKINESIS;
-    Gp_StateC08.activeIndex = ATTACHMENT_INDEX_PYROKINESIS;
-    gPlayerStatus.hp        = gPlayerStatus.hpMax;
-    gPlayerStatus.mp        = gPlayerStatus.mpMax;
+    gAttachmentState.wheelIndex  = ATTACHMENT_INDEX_PYROKINESIS;
+    gAttachmentState.activeIndex = ATTACHMENT_INDEX_PYROKINESIS;
+    gPlayerStatus.hp             = gPlayerStatus.hpMax;
+    gPlayerStatus.mp             = gPlayerStatus.mpMax;
     equipmentInitializeWeaponSupplies();
 }
 

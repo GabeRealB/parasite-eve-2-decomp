@@ -21,9 +21,9 @@ static void _gluttonBuildWall(Task* task, s16 distance, s16 drop, s16 faceIndex)
     WorldCollisionGridFace* faces;
     SVECTOR*                halfWidthPointer;
 
-    wallNormal = &Gp_GridParams->normals[faceIndex];
-    vertices   = Gp_GridParams->vertices;
-    faces      = Gp_GridParams->faces;
+    wallNormal = &gWorldCollisionActiveGrid->normals[faceIndex];
+    vertices   = gWorldCollisionActiveGrid->vertices;
+    faces      = gWorldCollisionActiveGrid->faces;
 
     face.vertexIndices[0] = faceIndex * 4;
     face.vertexIndices[1] = faceIndex * 4 + 1;

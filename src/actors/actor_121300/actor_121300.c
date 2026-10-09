@@ -190,7 +190,7 @@ STATIC_ASSERT_SIZEOF(_Actor121300DebrisWork, 0x5C);
 /// Main-executable globals with no module header yet: `gPlayerStatus.weapon` is the
 /// equipped-weapon index the slot-3 message 0x3E8 record is keyed on,
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` picks which of the two weapon-id bases that record uses, and
-/// `gDisplayState.pendingMode` / `Gp_StateC08.mode` (1 while the attachment wheel is open) gate the actor's setup.
+/// `gDisplayState.pendingMode` / `gAttachmentState.mode` (1 while the attachment wheel is open) gate the actor's setup.
 
 /// Distortion amplitude of the screen wave, `frame * scale / span` of the
 /// running ramp, recomputed every frame.
@@ -1608,7 +1608,7 @@ static void _actor121300AyaDoubleSceneTask(Task* task)
         case ACTOR_121300_SCENE_INITIALIZE: {
             AnimationPlayRequest request;
 
-            if ((Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
+            if ((gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 weaponId                     = gPlayerStatus.weapon;
                 animationBank                = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_121300_SCENE_PRIMARY_CHARACTER) ? weaponId + ACTOR_121300_SCENE_PRIMARY_BANK_BASE : weaponId + ACTOR_121300_SCENE_ALTERNATE_BANK_BASE;
                 request.source.index         = animationBank;
