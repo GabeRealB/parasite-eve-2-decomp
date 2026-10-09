@@ -122,7 +122,7 @@ UNIT = {"u8": 1, "u16": 2, "u32": 4}
 
 
 def textured_faces(data: bytes, stream_off: int, vertex_count: int):
-    """(faces, texture of each face or None, the [page, CLUT] pairs named).
+    """(faces, texture of each face or None, the [page, CLUT] pairs named, the part of each face).
 
     A face's texture is the index of its pair and one (u, v) per corner, in
     the face's own corner order. `u0` and `u1` carry a corner each in their
@@ -133,7 +133,7 @@ def textured_faces(data: bytes, stream_off: int, vertex_count: int):
     import pkg_model
     import tmd_export
     walked = pkg_model.walk_stream(data, stream_off)
-    faces, textures, pairs = [], [], []
+    faces, textures, pairs, parts = [], [], [], []
     for packet in (walked[0] if walked else ()):
         op, count, stride = packet["op"], packet["count"], packet["stride"]
         if not count or not stride or op in tmd_export.TRANSFORM_OPS:
@@ -149,6 +149,7 @@ def textured_faces(data: bytes, stream_off: int, vertex_count: int):
             if not got:
                 continue
             faces.append(list(got[0]))
+            parts.append(packet["part"])
             if word is None or stride < word + 3:
                 textures.append(None)
                 continue
@@ -160,7 +161,7 @@ def textured_faces(data: bytes, stream_off: int, vertex_count: int):
             if pair not in pairs:
                 pairs.append(pair)
             textures.append([pairs.index(pair)] + [c for corner in corners for c in (corner & 0xFF, corner >> 8)])
-    return faces, textures, pairs
+    return faces, textures, pairs, parts
 
 
 def write_side_data(folder: Path, assets: dict, embedded: dict) -> dict:
@@ -190,7 +191,14 @@ def write_side_data(folder: Path, assets: dict, embedded: dict) -> dict:
                 if key is None or key in have["mesh"]:
                     continue
                 verts = tmd_export.pose_vertices(tmd_export.read_vertices(data, src["verts_offset"], src["vertex_count"]), src.get("skeleton"))
-                faces, textures, named = textured_faces(data, src["stream_offset"], src["vertex_count"])
+                faces, textures, named, parts = textured_faces(data, src["stream_offset"], src["vertex_count"])
+                # The rest skeleton: where each bone sits, and its parent.
+                bones = []
+                skeleton = src.get("skeleton")
+                if skeleton:
+                    import pkg_overlay
+                    world = pkg_overlay.compose_skeleton(skeleton)
+                    bones = [[round(tr[0]), round(tr[1]), round(tr[2]), skeleton["bones"][i]["parent"]] for i, (_rot, tr) in enumerate(world)]
             except Exception as exc:  # noqa: BLE001 - one model that does not decode must not stop the page
                 print(f"{package}+0x{offset:X}: no mesh ({exc})", file=sys.stderr)
                 continue
@@ -199,7 +207,7 @@ def write_side_data(folder: Path, assets: dict, embedded: dict) -> dict:
             flat = [round(c) for v in verts for c in v]
             target = folder / f"{key}.js"
             packed = lambda value: json.dumps(value, separators=(",", ":"))  # noqa: E731
-            target.write_text(f"MESH({json.dumps(key)},{packed(flat)},{packed(faces)},{packed(textures)},{packed(named)});\n", encoding="utf-8")
+            target.write_text(f"MESH({json.dumps(key)},{packed(flat)},{packed(faces)},{packed(textures)},{packed(named)},{packed(parts)},{packed(bones)});\n", encoding="utf-8")
             have["mesh"].append(key)
     raw = ROOT / "assets" / "USA" / "raw"
     for key, rec in embedded.items():

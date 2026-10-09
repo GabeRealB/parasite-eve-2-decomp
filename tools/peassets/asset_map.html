@@ -98,34 +98,57 @@ const need = asset => pix.has(asset) || !D.pixels ? Promise.resolve() : new Prom
 const needFiles = fs => Promise.all([...new Set(fs.flatMap(f => (D.fp[f] || []).map(r => r[0])))].map(need));
 // Meshes and sampled tracks come the same way, one script each.
 const side = new Map(), sideWaiting = new Map();
-window.MESH = (key, verts, faces, tex, pairs) => { side.set(key, { verts, faces, tex: tex || [], pairs: pairs || [] }); (sideWaiting.get(key) || []).forEach(f => f()); sideWaiting.delete(key); };
+window.MESH = (key, verts, faces, tex, pairs, parts, bones) => { side.set(key, { verts, faces, tex: tex || [], pairs: pairs || [], parts: parts || [], bones: bones || [] }); (sideWaiting.get(key) || []).forEach(f => f()); sideWaiting.delete(key); };
 window.TRACK = (key, unit, b64) => { const bin = atob(b64), n = Math.floor(bin.length / unit), v = new Array(n); for (let i = 0; i < n; i++) { let x = 0; for (let b = unit - 1; b >= 0; b--) x = x * 256 + bin.charCodeAt(i * unit + b); const top = 2 ** (unit * 8 - 1); v[i] = unit < 4 && x >= top ? x - 2 * top : x; } side.set(key, { values: v, unit }); (sideWaiting.get(key) || []).forEach(f => f()); sideWaiting.delete(key); };
 const needSide = key => side.has(key) || !D.side ? Promise.resolve() : new Promise(done => { if (sideWaiting.has(key)) return sideWaiting.get(key).push(done); sideWaiting.set(key, [done]); const tag = document.createElement("script"); tag.src = `${D.side}/${key}.js`; tag.onerror = () => { side.set(key, null); (sideWaiting.get(key) || []).forEach(f => f()); sideWaiting.delete(key); }; document.head.append(tag); });
-// A mesh in its rest pose, drawn back to front and turned by dragging. A face whose texture page is at hand is drawn
-// with it, each triangle mapped straight (no perspective, as the console draws it); the rest are shaded flat.
+// A mesh in its rest pose, drawn back to front and turned by dragging, in one of several views:
+//   textured  each face with its texture page, mapped straight per triangle (no perspective, as the console draws it)
+//   flat      shaded by how much a face turns toward the viewer
+//   wire      edges only
+//   parts     one colour per part; a part is the run of faces drawn with one bone
+//   normals   a face's direction as a colour (x, y, z to red, green, blue), from its corners, not from the stored normals
+//   bones     the rest skeleton over the edges: a line from each bone to its parent
 function renderMesh(key, pages) {
   const m = side.get(key); if (!m) return h("div", { class: "dim", text: "no mesh was decoded for this model" });
-  const N = 560, cv = h("canvas", { width: N, height: N, style: "cursor:grab;touch-action:none;image-rendering:auto" }), ctx = cv.getContext("2d"), n = m.verts.length / 3; let yaw = 0.6, pitch = 0.25, lo = [1e9, 1e9, 1e9], hi = [-1e9, -1e9, -1e9], textured = true;
+  const N = 560, cv = h("canvas", { width: N, height: N, style: "cursor:grab;touch-action:none;image-rendering:auto" }), ctx = cv.getContext("2d"), n = m.verts.length / 3; let yaw = 0.6, pitch = 0.25, lo = [1e9, 1e9, 1e9], hi = [-1e9, -1e9, -1e9];
   for (let i = 0; i < n; i++) for (let k = 0; k < 3; k++) { const v = m.verts[i * 3 + k]; if (v < lo[k]) lo[k] = v; if (v > hi[k]) hi[k] = v; }
-  const mid = lo.map((v, k) => (v + hi[k]) / 2), size = Math.max(1, Math.hypot(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2])), css = getComputedStyle(document.documentElement), ink = css.getPropertyValue("--ink") || "#000";
-  const img = m.pairs.map(([t, c]) => (pages || new Map()).get(t + "|" + c) || null), has = img.some(Boolean);
+  const mid = lo.map((v, k) => (v + hi[k]) / 2), size = Math.max(1, Math.hypot(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2])), css = getComputedStyle(document.documentElement), ink = css.getPropertyValue("--ink") || "#000", accent = css.getPropertyValue("--clash") || "#c00";
+  const img = m.pairs.map(([t, c]) => (pages || new Map()).get(t + "|" + c) || null), has = img.some(Boolean), nparts = new Set(m.parts).size;
+  const modes = [...(has ? ["textured"] : []), "flat", "wire", ...(nparts > 1 ? ["parts"] : []), "normals", ...(m.bones.length ? ["bones"] : [])], pick = h("select", { id: "meshview" }, modes.map(x => h("option", { text: x })));
+  // A face's direction in the model's own space, as a colour.
+  const facing = m.faces.map(f => { const a = f[0] * 3, b = f[1] * 3, c = f[2] * 3, V = m.verts, ux = V[b] - V[a], uy = V[b + 1] - V[a + 1], uz = V[b + 2] - V[a + 2], vx = V[c] - V[a], vy = V[c + 1] - V[a + 1], vz = V[c + 2] - V[a + 2];
+    let x = uy * vz - uz * vy, y = uz * vx - ux * vz, z = ux * vy - uy * vx; const l = Math.hypot(x, y, z) || 1; return `rgb(${Math.round((x / l * .5 + .5) * 255)},${Math.round((y / l * .5 + .5) * 255)},${Math.round((z / l * .5 + .5) * 255)})`; });
   const tri = (im, x0, y0, x1, y1, x2, y2, u0, v0, u1, v1, u2, v2) => { const det = (u1 - u0) * (v2 - v0) - (u2 - u0) * (v1 - v0); if (!det) return false;
     const a = ((x1 - x0) * (v2 - v0) - (x2 - x0) * (v1 - v0)) / det, b = ((y1 - y0) * (v2 - v0) - (y2 - y0) * (v1 - v0)) / det, c = ((x2 - x0) * (u1 - u0) - (x1 - x0) * (u2 - u0)) / det, d = ((y2 - y0) * (u1 - u0) - (y1 - y0) * (u2 - u0)) / det;
     ctx.save(); ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.lineTo(x2, y2); ctx.closePath(); ctx.clip(); ctx.setTransform(a, b, c, d, x0 - a * u0 - c * v0, y0 - b * u0 - d * v0); ctx.drawImage(im, 0, 0); ctx.restore(); return true; };
-  const draw = () => { const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch), P = new Float32Array(n * 3), sc = (N - 40) / size;
-    for (let i = 0; i < n; i++) { const x = m.verts[i * 3] - mid[0], y = m.verts[i * 3 + 1] - mid[1], z = m.verts[i * 3 + 2] - mid[2], x1 = x * cy + z * sy, z1 = -x * sy + z * cy, y1 = y * cp - z1 * sp, z2 = y * sp + z1 * cp; P[i * 3] = N / 2 + x1 * sc; P[i * 3 + 1] = N / 2 + y1 * sc; P[i * 3 + 2] = z2; }
+  const draw = () => { const mode = pick.value, cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch), sc = (N - 40) / size;
+    const turn = (x, y, z) => { x -= mid[0]; y -= mid[1]; z -= mid[2]; const x1 = x * cy + z * sy, z1 = -x * sy + z * cy; return [N / 2 + x1 * sc, N / 2 + (y * cp - z1 * sp) * sc, y * sp + z1 * cp]; };
+    const P = new Float32Array(n * 3); for (let i = 0; i < n; i++) { const p = turn(m.verts[i * 3], m.verts[i * 3 + 1], m.verts[i * 3 + 2]); P[i * 3] = p[0]; P[i * 3 + 1] = p[1]; P[i * 3 + 2] = p[2]; }
     const order = m.faces.map((f, i) => [i, f.reduce((a, v) => a + P[v * 3 + 2], 0) / f.length]).sort((a, b) => b[1] - a[1]);
-    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, N, N); ctx.imageSmoothingEnabled = false; ctx.lineWidth = 0.5; ctx.strokeStyle = ink;
-    for (const [i] of order) { const f = m.faces[i], t = m.tex[i], im = textured && t ? img[t[0]] : null, X = k => P[f[k] * 3], Y = k => P[f[k] * 3 + 1];
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, N, N); ctx.imageSmoothingEnabled = false; ctx.lineWidth = 0.5; ctx.strokeStyle = ink; ctx.globalAlpha = mode === "bones" ? 0.25 : 1;
+    for (const [i] of order) { const f = m.faces[i], t = m.tex[i], im = mode === "textured" && t ? img[t[0]] : null, X = k => P[f[k] * 3], Y = k => P[f[k] * 3 + 1];
       if (im) { let ok = tri(im, X(0), Y(0), X(1), Y(1), X(2), Y(2), t[1], t[2], t[3], t[4], t[5], t[6]); if (f.length === 4) ok = tri(im, X(0), Y(0), X(2), Y(2), X(3), Y(3), t[1], t[2], t[5], t[6], t[7], t[8]) && ok; if (ok) continue; }
-      const a = f[0] * 3, b = f[1] * 3, c = f[2] * 3, nz = Math.abs((P[b] - P[a]) * (P[c + 1] - P[a + 1]) - (P[b + 1] - P[a + 1]) * (P[c] - P[a])), area = Math.hypot(P[b] - P[a], P[b + 1] - P[a + 1]) * Math.hypot(P[c] - P[a], P[c + 1] - P[a + 1]) || 1, g = Math.round(90 + 150 * Math.min(1, nz / area));
-      ctx.beginPath(); f.forEach((v, k) => k ? ctx.lineTo(P[v * 3], P[v * 3 + 1]) : ctx.moveTo(P[v * 3], P[v * 3 + 1])); ctx.closePath(); ctx.fillStyle = `rgb(${g},${g},${Math.min(255, g + 12)})`; ctx.fill(); ctx.stroke(); } };
+      ctx.beginPath(); f.forEach((v, k) => k ? ctx.lineTo(P[v * 3], P[v * 3 + 1]) : ctx.moveTo(P[v * 3], P[v * 3 + 1])); ctx.closePath();
+      if (mode !== "wire" && mode !== "bones") { const a = f[0] * 3, b = f[1] * 3, c = f[2] * 3, nz = Math.abs((P[b] - P[a]) * (P[c + 1] - P[a + 1]) - (P[b + 1] - P[a + 1]) * (P[c] - P[a])), area = Math.hypot(P[b] - P[a], P[b + 1] - P[a + 1]) * Math.hypot(P[c] - P[a], P[c + 1] - P[a + 1]) || 1, lit = Math.min(1, nz / area), g = Math.round(90 + 150 * lit);
+        ctx.fillStyle = mode === "parts" ? `hsl(${(m.parts[i] * 47) % 360} 60% ${35 + 30 * lit}%)` : mode === "normals" ? facing[i] : `rgb(${g},${g},${Math.min(255, g + 12)})`; ctx.fill(); }
+      ctx.stroke(); }
+    ctx.globalAlpha = 1;
+    if (mode === "bones") { const B = m.bones.map(b => turn(b[0], b[1], b[2])); ctx.strokeStyle = accent; ctx.fillStyle = accent; ctx.lineWidth = 2;
+      m.bones.forEach((b, i) => { if (b[3] !== i && B[b[3]]) { ctx.beginPath(); ctx.moveTo(B[i][0], B[i][1]); ctx.lineTo(B[b[3]][0], B[b[3]][1]); ctx.stroke(); } });
+      B.forEach(p => { ctx.beginPath(); ctx.arc(p[0], p[1], 3, 0, 6.3); ctx.fill(); }); } };
   let from = null; cv.addEventListener("pointerdown", e => { from = [e.clientX, e.clientY]; cv.setPointerCapture && cv.setPointerCapture(e.pointerId); });
   cv.addEventListener("pointermove", e => { if (!from) return; yaw += (e.clientX - from[0]) * 0.01; pitch = Math.max(-1.5, Math.min(1.5, pitch + (e.clientY - from[1]) * 0.01)); from = [e.clientX, e.clientY]; draw(); });
-  cv.addEventListener("pointerup", () => { from = null; }); draw();
+  cv.addEventListener("pointerup", () => { from = null; }); pick.addEventListener("change", draw); draw();
   const untex = m.tex.filter((t, i) => !t || !img[t[0]]).length;
-  return h("div", { class: "shot" }, cv, h("div", { class: "dim", text: `${n} vertices, ${m.faces.length} faces, rest pose · drag to turn` + (has ? ` · ${m.faces.length - untex} faces textured` : " · no texture at hand, shaded flat") }),
-    has ? h("button", { text: "textured / flat", onclick: () => { textured = !textured; draw(); } }) : null);
+  return h("div", { class: "shot" }, cv, h("label", { for: "meshview", class: "row" }, "view", pick),
+    h("div", { class: "dim", text: `${n} vertices, ${m.faces.length} faces, ${nparts} part${nparts === 1 ? "" : "s"}, ${m.bones.length} bone${m.bones.length === 1 ? "" : "s"}, rest pose · drag to turn` + (has ? ` · ${m.faces.length - untex} faces textured` : " · no texture at hand") }));
+}
+// Where a model's faces sit on a texture page: the page, with each face's outline in texture coordinates.
+function renderUV(key, pairIndex, page) {
+  const m = side.get(key), cv = h("canvas", { width: 256, height: 256 }), ctx = cv.getContext("2d"), css = getComputedStyle(document.documentElement); let count = 0;
+  if (page) ctx.drawImage(page, 0, 0); ctx.strokeStyle = css.getPropertyValue("--clash") || "#c00"; ctx.lineWidth = 0.5;
+  m.tex.forEach((t, i) => { if (!t || t[0] !== pairIndex) return; count++; ctx.beginPath(); for (let k = 0; k < m.faces[i].length; k++) { const x = t[1 + k * 2] + .5, y = t[2 + k * 2] + .5; k ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.closePath(); ctx.stroke(); });
+  return { cv: zoom(cv), count };
 }
 // A sampled track as its numbers in file order. Samples usually come in rows of a few values (x, y, z, an angle):
 // choosing how many values make a row draws one line per column.
@@ -343,7 +366,9 @@ async function showAsset(key) {
     await needFiles(reqs.flatMap(([, r]) => r[4][0] === "own" ? r[4][1] : (r[4][2] || []).filter(Boolean).map(v => v[0]))); if (mine !== turn) return;
     await needSide(key); if (mine !== turn) return;
     const pages = new Map(); for (const [, [, t, c, , how]] of reqs) { const v = how[0] === "own" ? [how[1][0], 0, 0, 0] : how[0] === "none" ? null : (how[2] || []).filter(Boolean)[0]; if (!v || pages.has(t + "|" + c)) continue; const r = renderPage(compose([v]), t, c, null); if (!r.flags.includes("page not supplied")) pages.set(t + "|" + c, r.cv); }
-    sections.push(sec("Mesh", "", h("div", { class: "shots" }, renderMesh(key, pages))));
+    sections.push(sec("Mesh", "Views: textured, flat, wire, parts (one colour per bone's run of faces), normals (a face's direction as a colour) and bones (the rest skeleton).", h("div", { class: "shots" }, renderMesh(key, pages))));
+    const mesh = side.get(key); if (mesh && mesh.pairs.length) sections.push(sec(`Texture coordinates (${mesh.pairs.length})`, "Each page its faces name, with every face's outline where it reads the page.",
+      h("div", { class: "shots" }, mesh.pairs.map(([t, c], i) => { const g = geo(t, c), r = renderUV(key, i, pages.get(t + "|" + c)); return h("div", { class: "shot" }, r.cv, h("div", { text: `page (${g.tx}, ${g.ty}) ${g.bpp}-bit, palette (${g.cx}, ${g.cy})` }), h("div", { class: "dim", text: `${r.count} faces` + (pages.get(t + "|" + c) ? "" : " · page not at hand") })); }))));
     sections.push(sec(`Textures (${reqs.length})`, "The pages its faces name.", h("div", { class: "tiles" }, reqs.flatMap(([pkg, [, t, c, b, how]]) => how[0] === "own" ? how[1].map(f => tile(compose([[f, 0, 0, 0]]), t, c, b, `in ${pkg}`, `from ${D.files[f]}`))
       : how[0] === "none" ? [h("div", { class: "tile miss" }, h("div", { text: `in ${pkg}` }), h("div", { class: "flag", text: "supplied by nothing in its chain" }))]
       : (how[2].filter(Boolean).slice(0, 3)).map(v => tile(compose([v]), t, c, b, `in ${pkg}`, `from ${how[1]} · ${D.files[v[0]]}`))))));

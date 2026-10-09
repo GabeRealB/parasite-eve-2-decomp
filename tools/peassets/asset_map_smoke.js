@@ -11,7 +11,7 @@ function node(tag) {
     setAttribute(k, v) { this.attrs[k] = v; if (k === "value" && this.tag !== "option") this.value = v; }, getAttribute(k) { return this.attrs[k]; }, addEventListener(type, f) { (this.on = this.on || {})[type] = f; }, scrollTo() {},
     append(...c) { for (const x of c) { this.children.push(x); if (x && x.tag === "script" && x.src) { try { eval(fs.readFileSync(path.join(path.dirname(page), x.src), "utf8")); } catch (e) { x.onerror && x.onerror(); } } } },
     replaceChildren(...c) { this.children = c; }, querySelectorAll() { return []; }, remove() {},
-    getContext() { return { fillRect() {}, strokeRect() {}, clearRect() {}, save() {}, restore() {}, clip() {}, setTransform() {}, drawImage() {}, beginPath() {}, moveTo() {}, lineTo() {}, closePath() {}, fill() {}, stroke() {}, createImageData: (w, h) => ({ data: new Uint8ClampedArray(w * h * 4) }), getImageData: () => ({ data: [200, 0, 0, 255] }), putImageData() {} }; } };
+    getContext() { return { fillRect() {}, strokeRect() {}, clearRect() {}, save() {}, restore() {}, clip() {}, arc() {}, setTransform() {}, drawImage() {}, beginPath() {}, moveTo() {}, lineTo() {}, closePath() {}, fill() {}, stroke() {}, createImageData: (w, h) => ({ data: new Uint8ClampedArray(w * h * 4) }), getImageData: () => ({ data: [200, 0, 0, 255] }), putImageData() {} }; } };
   Object.defineProperty(n, "textContent", { get() { return this._text + this.children.map(c => typeof c === "string" ? c : c && c.textContent || "").join(""); }, set(v) { this._text = String(v); this.children = []; } });
   Object.defineProperty(n, "lastChild", { get() { return this.children[this.children.length - 1]; } });
   return n;
