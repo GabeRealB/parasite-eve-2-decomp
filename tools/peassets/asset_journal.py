@@ -184,7 +184,13 @@ class Manifest:
                         page = (asset_schema.TPAGE_MODE[bpp] << 7) | (abr << 5) | ((y & 0x100) >> 4) | ((x & 0x3FF) >> 6)
                         self.by_value["image.tpage"][page].add((key, f"column {n}" + (f", blend {abr}" if abr else "")))
             elif rec["type"] == "pe2clut":
-                self.by_value["clut.x"][rec["x"]].add((key, ""))
+                # Code spells a CLUT's x both in pixels and in the sixteens a
+                # CLUT value counts in, and may name one palette within the row.
+                for column in range(max(1, rec["w"] // asset_schema.CLUT_ENTRY_WIDTH)):
+                    x = rec["x"] + column * asset_schema.CLUT_ENTRY_WIDTH
+                    palette = f"palette {column}" if column else ""
+                    self.by_value["clut.x"][x].add((key, palette))
+                    self.by_value["clut.x"][x >> 4].add((key, (palette + ", " if palette else "") + "in sixteens"))
                 for row in range(rec["h"]):
                     self.by_value["clut.y"][rec["y"] + row].add((key, f"row {row}"))
                     for column in range(max(1, rec["w"] // asset_schema.CLUT_ENTRY_WIDTH)):
