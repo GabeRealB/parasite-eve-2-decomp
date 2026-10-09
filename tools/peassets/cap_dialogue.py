@@ -13,7 +13,9 @@ selects a view and may send a message to the player, the companion or a
 placed actor. Records also start room sounds and run flag or item actions.
 
 Text is not characters: each code is a glyph cell of the payload's own table,
-drawn from the room's glyph image, so a line is reported by its length.
+drawn from the room's glyph image, so a line is reported by its length. A text
+stream can also carry view codes, which change the view as the line is drawn;
+those are listed with the line.
 """
 from __future__ import annotations
 
@@ -33,19 +35,29 @@ def dialogues(data: bytes) -> list[tuple[dict, bytes]]:
     return [(s, data[s["offset"]:s["offset"] + s["length"]]) for s in cap_bundle.slots(data) if s["what"] == "dialogue"]
 
 
-def text_length(cap: bytes, offset: int) -> tuple[int, int]:
-    """(glyphs, control codes) of the code stream at an offset."""
+def text_length(cap: bytes, offset: int) -> tuple[int, int, list[tuple[int, bool, bool]]]:
+    """(glyphs, control codes, view codes) of the code stream at an offset.
+
+    A text stream can change the view itself: a code of the 0x8000 family under
+    mask 0x9F00 selects view `code & 0xFF` - a logical view, or with 0x2000 a
+    direct index - and with 0x4000 hides the player and companion
+    (src/gameplay/captions.c, `CAP_TEXT_CODE_VIEW`). Each view code is
+    (view, direct, hides actors).
+    """
     glyphs = controls = 0
+    views = []
     while offset + 2 <= len(cap):
         (code,) = struct.unpack_from("<H", cap, offset)
         if code == 0xFFFF:
             break
         if code >= 0x8000:
             controls += 1
+            if code & 0x9F00 == 0x8000:
+                views.append((code & 0xFF, bool(code & 0x2000), bool(code & 0x4000)))
         else:
             glyphs += 1
         offset += 2
-    return glyphs, controls
+    return glyphs, controls, views
 
 
 def commands(cap: bytes) -> list[dict]:
@@ -74,8 +86,8 @@ def commands(cap: bytes) -> list[dict]:
                 if flags & DELAYED_MESSAGE:
                     record.update(message=b2, delay=b3, recipient="player" if b4 == 0 else "companion" if b4 == 1 else f"placed actor {b4 - 2}")
             else:
-                glyphs, controls = text_length(cap, ref) if ref < len(cap) else (0, 0)
-                record.update(kind="text", title=b0, show=b2, pause=b3, sound=b4 >> 1, instant=bool(b4 & 1), glyphs=glyphs, controls=controls, minimum=minimum)
+                glyphs, controls, views = text_length(cap, ref) if ref < len(cap) else (0, 0, [])
+                record.update(kind="text", views=views, title=b0, show=b2, pause=b3, sound=b4 >> 1, instant=bool(b4 & 1), glyphs=glyphs, controls=controls, minimum=minimum)
             command["records"].append(record)
             at += 12
         out.append(command)
@@ -102,7 +114,8 @@ def describe(command: dict) -> list[str]:
         else:
             sound = f", room sound {record['sound']}" if record["sound"] else ""
             title = f", title {record['title'] - 1 + (256 if record['flags'] & TITLE_BANK else 0)}" if record["title"] else ""
-            lines.append(f"    key {record['key']}: text, {record['glyphs']} glyphs{title}{sound}{action}")
+            views = "".join(f", selects view {view}" + (" (direct)" if direct else "") + (", hiding the actors" if hide else "") for view, direct, hide in record["views"])
+            lines.append(f"    key {record['key']}: text, {record['glyphs']} glyphs{title}{sound}{action}{views}")
     return lines
 
 
