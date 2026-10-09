@@ -269,10 +269,71 @@ def file_references(path: Path, known: dict[str, int]) -> list[tuple[str, int, d
     return out
 
 
+# An actor's file is loaded with the page and row offsets of the placement that
+# asks for it (`AreaPlacement.texturePageOffset`, `.clutRowOffset`), and the
+# loader moves what the file uploads: an image at y >= 256 by whole 64-word
+# pages, an image or CLUT whose header is at rows 245..255 by rows. So a
+# constant stating where such an asset is at run time does not state its
+# header's position. The offsets in use are few; they are read from the
+# placement tables in the sources.
+PLACEMENT_TABLE = re.compile(r"\bAreaPlacement\s+\w+\s*\[[^\]]*\]\s*=\s*\{(.*?)\n\};", re.S)
+SHIFTED_ROWS = range(245, 256)
+
+
+RESOURCE_TABLE = re.compile(r"\bAreaResource\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{(.*?)\n\};", re.S)
+RESOURCE_ROW = re.compile(r"\{\s*([\w]+)\s*,[^{}]*\{[^{}]*\}\s*,\s*(\w+)\s*\}")
+VARIANT_TABLE = re.compile(r"\bAreaVariant\s+\w+\s*\[[^\]]*\]\s*=\s*\{(.*?)\n\};", re.S)
+PLACEMENT_NAMED = re.compile(r"\bAreaPlacement\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{(.*?)\n\};", re.S)
+OWNER = re.compile(r"D_([a-z0-9_]+?)_[0-9A-F]{8}$")
+
+
+def load_shifts(files: list[Path], packages: set[str]) -> dict[str, list[tuple[int, int]]]:
+    """package -> the (page, row) offsets its file is loaded with.
+
+    A room's `AreaVariant` pairs a placement table with the resource table its
+    entry ids are looked up in, and a resource names the actor by its task
+    table. Followed through, each placement says which package it loads and
+    with what offsets. A task table not named after its package is not
+    followed, and that actor gets no shifted candidates.
+    """
+    placements: dict[str, list[tuple[int, int, int]]] = {}
+    resources: dict[str, dict[int, str]] = {}
+    pairs: list[tuple[str, str]] = []
+    for path in files:
+        if path.suffix != ".c":
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        if "Area" not in text:
+            continue
+        for table in PLACEMENT_NAMED.finditer(text):
+            rows = []
+            for row in re.findall(r"\{([^{}]*)\}", table[2]):
+                cells = [evaluate(c, {}) for c in row.split(",")]
+                if len(cells) >= 11 and None not in (cells[0], cells[8], cells[9]):
+                    rows.append((cells[0], cells[8], cells[9]))
+            placements[table[1]] = rows
+        for table in RESOURCE_TABLE.finditer(text):
+            entries = {}
+            for row in RESOURCE_ROW.finditer(table[2]):
+                entry, owner = evaluate(row[1], {}), OWNER.match(row[2])
+                if entry is not None and owner and owner[1] in packages:
+                    entries[entry] = owner[1]
+            resources[table[1]] = entries
+        for table in VARIANT_TABLE.finditer(text):
+            pairs += re.findall(r"\{\s*(\w+)\s*,\s*(\w+)\s*\}", table[1])
+    out: dict[str, set[tuple[int, int]]] = defaultdict(set)
+    for placed, named in set(pairs):
+        for entry, page, rows in placements.get(placed, ()):
+            package = resources.get(named, {}).get(entry)
+            if package:
+                out[package].add((page, rows))
+    return {package: sorted(found) for package, found in out.items()}
+
+
 class Manifest:
     """What each attribute value can come from, and where assets are placed."""
 
-    def __init__(self) -> None:
+    def __init__(self, files: list[Path] = ()) -> None:
         self.assets, self.embedded = asset_schema.load()
         self.tree = asset_schema.load_tree()
         self.by_value: dict[str, dict[int, set[tuple[str, str]]]] = defaultdict(lambda: defaultdict(set))
@@ -347,6 +408,35 @@ class Manifest:
                 if self.assets.get(key, {}).get("type") == "pe2pkg":
                     self.near[key].update(members)
         self.packages = {k for k, r in self.assets.items() if r["type"] == "pe2pkg"}
+        # The shifted positions of what a placed package's file uploads.
+        self.shifts = load_shifts(list(files), self.packages)
+        shifted: dict[str, set[tuple[int, int]]] = defaultdict(set)
+        for stage, folder, _fkey, node in asset_schema.tree_files(self.tree):
+            members = list((node.get("chunks") or {}).values())
+            if stage == 0 and folder is None:
+                for package in members:
+                    for key in members:
+                        shifted[key].update(self.shifts.get(package, ()))
+        for key in sorted(shifted):
+            rec = self.assets.get(key, {})
+            for page, rows in sorted(shifted[key] - {(0, 0)}):
+                how = f"loaded at page {page:+d}, row {rows:+d}"
+                if rec.get("type") == "pe2clut" and rec["y"] in SHIFTED_ROWS and rows:
+                    moved = dict(rec, y=rec["y"] + rows)
+                    for row in range(rec["h"]):
+                        self.by_value["clut.y"][moved["y"] + row].add((key, f"row {row}, {how}"))
+                        for column in range(max(1, rec["w"] // asset_schema.CLUT_ENTRY_WIDTH)):
+                            value = asset_schema.clut_value(moved, row, column)
+                            self.by_value["clut.value"][value].add(
+                                (key, f"row {row}" + (f", palette {column}" if column else "") + f", {how}"))
+                elif rec.get("type") == "pe2img" and page:
+                    for n, (x, y, bpp) in enumerate(asset_schema.image_columns(rec)):
+                        if y < 256:
+                            continue
+                        x += page * asset_schema.IMAGE_COLUMN_WIDTH
+                        for abr in range(4):
+                            value = (asset_schema.TPAGE_MODE[bpp] << 7) | (abr << 5) | ((y & 0x100) >> 4) | ((x & 0x3FF) >> 6)
+                            self.by_value["image.tpage"][value].add((key, f"column {n}" + (f", blend {abr}" if abr else "") + f", {how}"))
 
     def package_of(self, rel: str) -> str:
         """The package a source file is built into, by its directory."""
@@ -358,12 +448,12 @@ class Manifest:
 
 
 def scan(db: sqlite3.Connection, by_value: bool) -> None:
-    man = Manifest()
+    files = sorted(p for base in ("src", "include") for p in (ROOT / base).rglob("*")
+                   if p.suffix in (".c", ".h") and "psyq" not in p.parts)
+    man = Manifest(files)
     seen_at = now()
     db.execute("UPDATE evidence SET present = 0")
     counts: dict[tuple[str, str], int] = defaultdict(int)
-    files = sorted(p for base in ("src", "include") for p in (ROOT / base).rglob("*")
-                   if p.suffix in (".c", ".h") and "psyq" not in p.parts)
     for path in files:
         rel = path.relative_to(ROOT).as_posix()
         package = man.package_of(rel)
@@ -510,6 +600,8 @@ def scan(db: sqlite3.Connection, by_value: bool) -> None:
                 db.execute("DELETE FROM candidates WHERE evidence = ?", (eid,))
                 db.executemany("INSERT OR IGNORE INTO candidates VALUES (?,?,?,?)", [(eid, a, d, int(a in near)) for a, d in found])
     db.commit()
+    print(f"{len(man.shifts)} packages are loaded by a placement, "
+          f"{sum(1 for v in man.shifts.values() if set(v) - {(0, 0)})} of them with an offset")
     gone = db.execute("SELECT COUNT(*) FROM evidence WHERE present = 0").fetchone()[0]
     print(f"{len(files)} files scanned; {sum(counts.values())} rows recorded" + (f", {gone} no longer in the code" if gone else ""))
     for attribute in sorted({a for a, _ in counts}):
