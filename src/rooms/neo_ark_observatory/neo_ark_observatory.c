@@ -1523,7 +1523,7 @@ WorldCollisionTrigger D_neo_ark_observatory_8018742C[14] = {
 };
 
 AreaResource D_neo_ark_observatory_80187854[2] = {
-    { 101, 502, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_450200_80137A60 },
+    { 101, 502, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, gActor450200SceneTaskDescs },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

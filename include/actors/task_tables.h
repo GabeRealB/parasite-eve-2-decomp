@@ -62,7 +62,13 @@ extern TaskDesc Actor04600_D05878;
 /// Slot export of `gActor02500Tasks` from actor_102500, with the same descriptor contract.
 extern TaskDesc gActor102500Tasks[2];
 
-extern TaskDesc D_actor_450200_80137A60[];
+/// Bodyless observatory scene tasks: 0 immediate stop, 1 companion puffs, 2 player head aim.
+///
+/// Loaded with the actor_450200 package through the observatory's area resources.
+/// Direct spawns use entries 1 and 2; entry 0 kills its task on first dispatch.
+/// The table has no terminator, and the task callbacks require the scene's actors
+/// and room resources to remain loaded while they run.
+extern TaskDesc gActor450200SceneTaskDescs[3];
 
 /// Slot export of `gActor03800BlackBeetleTaskDesc` from actor_103800, with the same descriptor contract.
 extern TaskDesc gActor103800BlackBeetleTaskDesc;
