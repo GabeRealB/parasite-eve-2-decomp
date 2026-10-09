@@ -3,6 +3,15 @@
 
 #include "main/task_types.h"
 
+/// Night water-hole scene spawn table: unused entry 0, scene controller at entry 1.
+///
+/// Both entries are bodyless, without a terminator. Entry 1 runs at priority 32
+/// with unused spawn arguments and selects the burner-dependent scene before
+/// reloading the night driveway. Keep actor_146000 and its room/CAP resources
+/// loaded through handoff. The empty room placement never spawns entry 0, whose
+/// priority-192 callback retains a two-argument enemy address; do not spawn it.
+extern TaskDesc gActor146000WaterHoleSceneTasks[2];
+
 /// Bone Suckler TMD descriptor shared by the three actor-slot builds.
 ///
 /// Priority 96 with automatic model buffers; spawn at index 0. Room imports

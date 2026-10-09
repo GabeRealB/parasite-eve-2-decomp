@@ -111,9 +111,6 @@ typedef struct {
 } _DryfieldNightWaterHoleSurfaceOverride;
 STATIC_ASSERT_SIZEOF(_DryfieldNightWaterHoleSurfaceOverride, 0x8);
 
-/// Resident task table the ending task is spawned from, descriptor 1.
-extern TaskDesc D_actor_146000_801351FC;
-
 /// Descriptor the room's event task is spawned from, index 0 of the table
 /// `_dryfieldNightWaterHoleCommandMessage` hands `taskSpawnFromTable`. Its
 /// callback is that same task, `roomEventDepartureTask`.
@@ -918,7 +915,7 @@ AreaResource D_dryfield_night_water_hole_801833D0[2] = {
 };
 
 AreaResource D_dryfield_night_water_hole_801833E8[2] = {
-    { 101, 460, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_146000_801351FC },
+    { 101, 460, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor146000WaterHoleSceneTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -1101,7 +1098,7 @@ static void _dryfieldNightWaterHoleInitializeRoom(Task* task)
     if (gGameSession->location.loc.variant == DRYFIELD_NIGHT_WATER_HOLE_ENDING_VARIANT && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0 && gameFlagGetNibble(GAME_FLAG_0CF) == 0) {
         gameFlagSetNibble(GAME_FLAG_0CF, DRYFIELD_NIGHT_WATER_HOLE_ENDING_STARTED);
         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, DRYFIELD_NIGHT_WATER_HOLE_ENDING_OBJECTIVE);
-        taskSpawnFromTable(&D_actor_146000_801351FC, DRYFIELD_NIGHT_WATER_HOLE_ENDING_TASK_INDEX, 0, 0);
+        taskSpawnFromTable(gActor146000WaterHoleSceneTasks, DRYFIELD_NIGHT_WATER_HOLE_ENDING_TASK_INDEX, 0, 0);
     }
     task->state = task->state + 1;
 }
