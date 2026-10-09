@@ -68,7 +68,7 @@ gActor102100WatcherTaskDesc = 0x80135C30; // absolute:True owner=actor_102100
 gActor100400Tasks = 0x80147E48; // absolute:True owner=actor_100400
 gActor201100Tasks = 0x8015F400; // absolute:True owner=actor_201100
 gActor202300RookGolemTasks = 0x8015FAB8; // absolute:True owner=actor_202300
-D_actor_205700_801611F8 = 0x801611F8; // absolute:True owner=actor_205700
+gActor05700RookGolemTasks = 0x801611F8; // absolute:True owner=actor_205700
 RoomFx_TrailOffsets = 0x801830BC; // size:0x10 defined:True
 _gShelterB2MainCorridorAnimation05620Bank1 = 0x801828F0; // size:0x18 defined:True
 _gShelterB2MainCorridorAnimation05620Bank4 = 0x80182908; // size:0xF8 defined:True

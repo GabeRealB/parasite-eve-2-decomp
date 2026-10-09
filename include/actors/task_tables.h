@@ -414,8 +414,6 @@ extern TaskDesc D_actor_200300_80160110[];
 /// Slot export of `gActor05600PawnGolemTasks` from actor_205600, with the same descriptor contract.
 extern TaskDesc gActor205600PawnGolemTasks[3];
 
-extern TaskDesc D_actor_205700_801611F8[];
-
 /// TMD host recipe for the garbage-incinerator Glutton, at execution priority 96.
 ///
 /// The room borrows this descriptor from the loaded actor_444000 overlay.
@@ -511,7 +509,14 @@ extern TaskDesc D_actor_301900_80179120[];
 
 extern TaskDesc D_actor_310600_801796A4[];
 
-extern TaskDesc gActor05700GolemPawnRookTasks[];
+/// Launcher Rook GOLEM spawn descriptors: 0 body, 1 launcher, 2 grenade, 3 shield.
+///
+/// All four recipes create TMD bodies at priority 96 with automatic model
+/// buffers. Indices address live entries; there is no terminator. Room
+/// placements spawn entry 0, whose work borrows this table for its children.
+/// Keep the actor package loaded while any spawned task, including a detached
+/// grenade, uses its callbacks or borrowed model geometry.
+extern TaskDesc gActor05700RookGolemTasks[4];
 
 extern TaskDesc gActor02600MaggotCaterpillarBodyTask;
 

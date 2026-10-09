@@ -66,7 +66,7 @@ gActor105600PawnGolemTasks = 0x801482C0; // absolute:True owner=actor_105600
 gActor400600ZebraStalkerTaskDesc = 0x80151B10; // absolute:True owner=actor_400600
 gActor402200GolemTaskDesc = 0x80154188; // absolute:True owner=actor_402200
 gActor201100Tasks = 0x8015F400; // absolute:True owner=actor_201100
-D_actor_205700_801611F8 = 0x801611F8; // absolute:True owner=actor_205700
+gActor05700RookGolemTasks = 0x801611F8; // absolute:True owner=actor_205700
 gRoomEventMsg = 0x80185D2C; // size:0x8 defined:True
 gRoomEventActive = 0x80185D34; // size:0x8 defined:True
 gRoomEventStagedMsg = 0x80185D3C; // size:0x8 defined:True

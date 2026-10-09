@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -52,8 +54,6 @@
 #include "main/tmd_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
-// Exported instance: rooms spawn from this package's table by name.
-#define GOLEM_PAWN_ROOK_TASK_DESCRIPTORS gActor05700GolemPawnRookTasks
 #include "../../shared/player_detection.h"
 #define GOLEM_PAWN_ROOK_TYPE   GOLEM_ROOK
 #define GOLEM_PAWN_ROOK_WEAPON GOLEM_GRENADE_LAUNCHER
@@ -1208,11 +1208,13 @@ s16 gGolemPawnRookBeamRibbonCorners[2][4] = {
     { 0, 1, 4, 5 },
 };
 
-TaskDesc GOLEM_PAWN_ROOK_TASK_DESCRIPTORS[4] = {
-    { { { TASK_BODY_TMD, 96 } }, _actor05700RookGolemTask, { .model = &_gActor05700RookGolemBody } },
-    { { { TASK_BODY_TMD, 96 } }, _actor05700GrenadeLauncherTask, { .model = &_gActor05700GolemGrenadeLauncher } },
-    { { { TASK_BODY_TMD, 96 } }, _actor05700GrenadeTask, { .model = &_gActor05700GolemGrenade } },
-    { { { TASK_BODY_TMD, 96 } }, _actor05700ShieldTask, { .model = &_gActor05700RookGolemShield } },
+enum { ACTOR_05700_TASK_PRIORITY = 96 };
+
+TaskDesc gActor05700RookGolemTasks[4] = {
+    { { { TASK_BODY_TMD, ACTOR_05700_TASK_PRIORITY } }, _actor05700RookGolemTask, { .model = &_gActor05700RookGolemBody } },
+    { { { TASK_BODY_TMD, ACTOR_05700_TASK_PRIORITY } }, _actor05700GrenadeLauncherTask, { .model = &_gActor05700GolemGrenadeLauncher } },
+    { { { TASK_BODY_TMD, ACTOR_05700_TASK_PRIORITY } }, _actor05700GrenadeTask, { .model = &_gActor05700GolemGrenade } },
+    { { { TASK_BODY_TMD, ACTOR_05700_TASK_PRIORITY } }, _actor05700ShieldTask, { .model = &_gActor05700RookGolemShield } },
 };
 
 AnimationSet* gGolemPawnRookAnimSets[31] = {
@@ -1278,11 +1280,6 @@ extern s32 gGolemPawnRookShotSound;
 /// Animation bank the work block's animation context is started on.
 extern AnimationSet* gGolemPawnRookAnimSets[31];
 
-/// The actor's spawn table: entry 3 is the model child re-skinned with the
-/// placement's texture page, entry 1 the effect child, and the whole table
-/// is kept in `taskTable` for later spawns.
-extern TaskDesc GOLEM_PAWN_ROOK_TASK_DESCRIPTORS[];
-
 /// Per-stage tables of per-area CD cue ids; a NULL stage has no cue.
 extern u16* gGolemPawnRookAreaParams[];
 
@@ -1334,7 +1331,15 @@ static const EnemyTaskFuncTable3 _gActor05700GrenadeLauncherStates = {
 
 #include "../../shared/golem_pawn_rook_silence_scream.inc.c"
 
+/// Selects the Rook GOLEM's launcher spawn table for the shared spawn code.
+///
+/// Binds a writable `TaskDesc[4]`: 0 body, 1 launcher, 2 grenade, 3 shield.
+/// The body borrows the array for later grenade spawns; keep the array,
+/// callbacks and geometry loaded until all spawned tasks, including detached
+/// grenades, have been released. Only the following fragment uses this binding.
+#define GOLEM_PAWN_ROOK_TASK_DESCRIPTORS gActor05700RookGolemTasks
 #include "../../shared/golem_pawn_rook_spawn.inc.c"
+#undef GOLEM_PAWN_ROOK_TASK_DESCRIPTORS
 
 #include "../../shared/golem_pawn_rook_inlines.inc.c"
 

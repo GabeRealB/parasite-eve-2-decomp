@@ -54,8 +54,6 @@
 #include "../../shared/player_detection.h"
 #define GOLEM_PAWN_ROOK_TYPE   GOLEM_PAWN
 #define GOLEM_PAWN_ROOK_WEAPON GOLEM_GRENADE_LAUNCHER
-// Exported descriptor storage selected by the included spawn implementation.
-#define GOLEM_PAWN_ROOK_TASK_DESCRIPTORS gActor05600PawnGolemTasks
 #include "../../shared/golem_pawn_rook.h"
 
 /// Character script bank used by this carrier's cue tables.
@@ -1243,7 +1241,15 @@ extern s16 gGolemPawnRookBeamRibbonCorners[][4];
 
 #include "../../shared/golem_pawn_rook_grenade_fly.inc.c"
 
+/// Selects the Pawn GOLEM's launcher spawn table for the shared spawn code.
+///
+/// Binds a writable `TaskDesc[3]`: 0 body, 1 launcher, 2 grenade. The body
+/// borrows the array for later grenade spawns; keep the array, callbacks and
+/// geometry loaded until all spawned tasks, including detached grenades,
+/// have been released. Only the following fragment uses this binding.
+#define GOLEM_PAWN_ROOK_TASK_DESCRIPTORS gActor05600PawnGolemTasks
 #include "../../shared/golem_pawn_rook_spawn.inc.c"
+#undef GOLEM_PAWN_ROOK_TASK_DESCRIPTORS
 
 #include "../../shared/golem_pawn_rook_inlines.inc.c"
 

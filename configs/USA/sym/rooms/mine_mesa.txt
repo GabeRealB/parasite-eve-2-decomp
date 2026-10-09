@@ -196,7 +196,7 @@ gActor101600ScavengerTaskDesc = 0x801445DC; // absolute:True owner=actor_101600
 gActor102000PawnGolemTasks = 0x80147DF0; // absolute:True owner=actor_102000
 gActor203700BatTaskDesc = 0x80151DAC; // absolute:True owner=actor_203700
 gActor01500MindSucklerTaskDesc = 0x80153E28; // absolute:True owner=actor_201500
-D_actor_205700_801611F8 = 0x801611F8; // absolute:True owner=actor_205700
+gActor05700RookGolemTasks = 0x801611F8; // absolute:True owner=actor_205700
 D_mine_mesa_801818F8 = 0x801818F8; // size:0xC defined:True
 D_mine_mesa_80181904 = 0x80181904; // size:0x30 defined:True
 D_mine_mesa_80181934 = 0x80181934; // size:0x2C defined:True
