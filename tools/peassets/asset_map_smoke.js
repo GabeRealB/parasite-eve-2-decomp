@@ -1,6 +1,6 @@
 // Runs the asset map's script without a browser, under a stub document:
 //   node tools/peassets/asset_map_smoke.js local/asset_map.html o.gameplay o.shelter_b3_dumping_hole a.pe2img_282
-// Each argument is a subject as the page's address names it: o.<overlay> or a.<asset>. It prints the subject's
+// Each argument is a subject as the page's address names it: o.<overlay>, a.<asset>, d.<stage>/<folder>, f.<file index> or n. (the proposed names). It prints the subject's
 // sections with their tiles and what is flagged. It catches a script that throws and lets the content be read as
 // text; it does not check layout.
 const fs = require("fs"), path = require("path");
@@ -23,7 +23,7 @@ eval(js + `
 ;(async () => {
   for (const subject of process.argv.slice(3)) {
     const [kind, ...rest] = subject.split("."), name = rest.join(".");
-    await (kind === "a" ? showAsset(name) : showOverlay(name));
+    await (kind === "a" ? showAsset(name) : kind === "f" || kind === "d" ? showFiles(name) : kind === "n" ? showNames() : showOverlay(name));
     const out = [];
     for (const s of document.getElementById("subject").children) { if (s.tag !== "section") continue; let tiles = 0, flagged = 0, rows = 0, shots = 0; const flags = [];
       walk(s, n => { if (/^tile( |$)/.test(n.className)) { tiles++; if (/miss/.test(n.className)) { flagged++; flags.push(n.textContent.slice(0, 150)); } } if (n.tag === "tr" || n.tag === "li") rows++; if (n.className === "shot") shots++; });
@@ -31,5 +31,6 @@ eval(js + `
     console.log(subject + "\\n" + out.join("\\n"));
   }
   navMode = "o"; drawNav(); let links = 0; walk(document.getElementById("list"), n => { if (n.tag === "a") links++; }); console.log("navigator: " + links + " overlay links");
+  navMode = "f"; drawNav(); links = 0; walk(document.getElementById("list"), n => { if (n.tag === "a") links++; }); console.log("navigator: " + links + " file links");
   navMode = "a"; drawNav(); links = 0; walk(document.getElementById("list"), n => { if (n.tag === "a") links++; }); console.log("navigator: " + links + " asset links");
 })().catch(e => { console.error("FAILED", e); process.exit(1); });`);

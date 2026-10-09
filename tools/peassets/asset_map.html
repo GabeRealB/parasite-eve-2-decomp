@@ -31,7 +31,7 @@ input, select { font: 13px var(--mono); color: var(--ink); background: var(--bg)
 .list a.cur { background: var(--accent-soft); }
 .list details > div { padding-left: 12px; border-left: 1px solid var(--grid); margin-left: 16px; }
 .list details > div a, .list details > div summary { padding-left: 6px; }
-.badge { color: var(--clash); font-weight: 500; } .note { margin-top: 6px; max-width: 80ch; } .dim { color: var(--muted); }
+.badge { color: var(--clash); font-weight: 500; } .note { margin-top: 6px; max-width: 80ch; } .rename { font: inherit; width: 26ch; max-width: 100%; padding: 1px 4px; color: var(--ink); background: transparent; border: 1px solid var(--muted); border-radius: 3px; } textarea.mono { width: 100%; max-width: 100ch; font-family: ui-monospace, monospace; color: var(--ink); background: transparent; } .dim { color: var(--muted); }
 main { overflow: auto; min-width: 0; }
 .subject { padding-inline: 20px; padding-block: 16px 48px; display: flex; flex-direction: column; gap: 22px; max-width: 1400px; }
 .subject > header h2 { font-size: 20px; font-weight: 600; margin: 0 0 4px; font-family: var(--mono); overflow-wrap: anywhere; }
@@ -69,7 +69,7 @@ audio { height: 28px; max-width: 100%; } iframe { width: 100%; height: 320px; bo
   <nav class="nav">
     <header>
       <h1>PE2 Asset Map</h1>
-      <span class="seg"><button id="nav-o" aria-pressed="true">Overlays</button><button id="nav-a" aria-pressed="false">Assets</button></span>
+      <span class="seg"><button id="nav-o" aria-pressed="true">Overlays</button><button id="nav-a" aria-pressed="false">Assets</button><button id="nav-f" aria-pressed="false">Files</button><button id="nav-n" aria-pressed="false">Names (0)</button></span>
       <label for="scale" class="row">Scale<select id="scale"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
       <input id="filter" placeholder="filter by name or what it is; ? = name in question" autocomplete="off" spellcheck="false" aria-label="Filter the list">
     </header>
@@ -327,7 +327,16 @@ let navMode = "o", current = "";
 function drawNav() {
   const box = $("list"), raw = $("filter").value.trim().toLowerCase(), only = raw.startsWith("?"), q = raw.replace(/^\?\s*/, ""); box.replaceChildren();
   const hit = window.__hit = k => (!only || asked(k)) && (!q || k.toLowerCase().includes(q) || (D.notes[k] && D.notes[k][0].toLowerCase().includes(q)));
-  $("nav-o").setAttribute("aria-pressed", navMode === "o"); $("nav-a").setAttribute("aria-pressed", navMode === "a");
+  $("nav-o").setAttribute("aria-pressed", navMode === "o"); $("nav-a").setAttribute("aria-pressed", navMode === "a"); $("nav-f").setAttribute("aria-pressed", navMode === "f");
+  if (navMode === "f") {
+    // The disc as the stage archives hold it: stage, folder, file. A folder or file opens its chunks.
+    const flink = (i, text) => h("a", { href: "#f." + i, class: current === "f." + i ? "cur" : "", title: (D.chunks[i] || []).map(c => c[1]).join(", ") }, text, proposed["file:" + D.files[i]] ? h("span", { class: "dim", text: " → " + proposed["file:" + D.files[i]] }) : null);
+    if (q) { const hits = D.files.map((n, i) => [n, i]).filter(([n, i]) => n.toLowerCase().includes(q) || (D.chunks[i] || []).some(c => c[1].toLowerCase().includes(q))); box.append(capped(hits, 400, part => h("div", {}, part.map(([n, i]) => flink(i, n))))); return; }
+    const stages = new Map(); D.files.forEach((n, i) => { const p = n.split("/"), st = stages.get(p[0]) || stages.set(p[0], new Map()).get(p[0]), dir = p.length > 2 ? p[1] : ""; (st.get(dir) || st.set(dir, []).get(dir)).push(i); });
+    for (const [st, dirs] of [...stages].sort((a, b) => a[0] - b[0])) { const total = [...dirs.values()].reduce((a, l) => a + l.length, 0), inner = h("div", {});
+      for (const [dir, list] of [...dirs].sort()) { list.sort(natural); if (!dir) inner.append(capped(list, 300, part => h("div", {}, part.map(i => flink(i, fileBase(i)))))); else inner.append(h("details", {}, h("summary", {}, h("a", { href: "#d." + st + "/" + dir, class: current === "d." + st + "/" + dir ? "cur" : "", onclick: e => { e.preventDefault(); location.hash = "d." + st + "/" + dir; } }, dir), h("span", { class: "dim", text: ` (${list.length})` })), h("div", {}, list.map(i => flink(i, fileBase(i)))))); }
+      box.append(h("details", st === "1" ? { open: "" } : {}, h("summary", { class: "dim", text: `stage ${st} (${total} files)` }), inner)); }
+    return; }
   if (navMode === "o") {
     const entry = (name, inSummary) => h("a", { href: "#o." + name, class: current === "o." + name ? "cur" : "", onclick: inSummary ? e => { e.preventDefault(); location.hash = "o." + name; } : () => {} }, name, D.swept[name] ? h("span", { class: "dim", text: "  ✓" }) : null, qmark(name), openFindings(name) ? h("span", { class: "badge", text: "  " + openFindings(name) }) : null);
     if (q || only) { Object.keys(D.overlays).filter(hit).sort().slice(0, 400).forEach(n => box.append(entry(n))); return; }
@@ -340,7 +349,7 @@ function drawNav() {
   } else {
     const byType = new Map(); for (const [key, [type]] of Object.entries(D.assets)) (byType.get(type) || byType.set(type, []).get(type)).push(key);
     for (const [type, keys] of [...byType].sort((a, b) => b[1].length - a[1].length)) { const hit = q || only ? keys.filter(k => window.__hit(k)) : keys; if (!hit.length) continue;
-      box.append(h("details", (q || only) && hit.length < 60 ? { open: "" } : {}, h("summary", { class: "dim", text: `${TYPE[type] || type.replace(/_/g, " ")} (${hit.length})` }), h("div", {}, capped(hit, 400, part => h("div", {}, part.map(k => h("a", { href: "#" + (type === "pe2pkg" ? "o." : "a.") + k, class: current === "a." + k ? "cur" : "", title: D.notes[k] ? D.notes[k][0] : "" }, k, qmark(k)))))))); }
+      box.append(h("details", (q || only) && hit.length < 60 ? { open: "" } : {}, h("summary", { class: "dim", text: `${TYPE[type] || type.replace(/_/g, " ")} (${hit.length})` }), h("div", {}, capped(hit, 400, part => h("div", {}, part.map(k => h("a", { href: "#" + (type === "pe2pkg" ? "o." : "a.") + k, class: current === "a." + k ? "cur" : "", title: D.notes[k] ? D.notes[k][0] : "" }, k, qmark(k), proposed[k] ? h("span", { class: "dim", text: " → " + proposed[k] }) : null))))))); }
   }
 }
 
@@ -354,6 +363,46 @@ function useTable(list, byAsset) {
 const usesByOverlay = new Map();
 for (const [asset, list] of Object.entries(D.usage)) for (const u of list) { const l = usesByOverlay.get(u[0]) || []; l.push(Object.assign([...u], { asset })); usesByOverlay.set(u[0], l); }
 
+// ---- proposed names: typed into the page, kept in this browser, exported as a list for a bulk rename ----
+// A key is an asset or overlay name, or "file:<path>" for a disc file. Nothing here renames anything: the export is
+// the input of a later rename.
+let proposed = {}; try { proposed = JSON.parse(localStorage.getItem("asset-map-names") || "{}") || {}; } catch (e) {}
+const namesTSV = () => Object.keys(proposed).sort().map(k => `${k}\t${proposed[k]}`).join("\n") + (Object.keys(proposed).length ? "\n" : "");
+const saveNames = () => { try { localStorage.setItem("asset-map-names", JSON.stringify(proposed)); } catch (e) {} const n = Object.keys(proposed).length, b = $("nav-n"); if (b) b.textContent = `Names (${n})`; };
+const nameProblem = (key, v) => !v || v === key ? "" : !/^[a-z][a-z0-9_]*$/.test(v) ? "lower-case letters, digits and underscores, starting with a letter" : !key.startsWith("file:") && (D.assets[v] || D.overlays[v]) ? "already the name of something else" : Object.entries(proposed).some(([k, n]) => k !== key && n === v && k.startsWith("file:") === key.startsWith("file:")) ? "already proposed for another" : "";
+function nameInput(key) {
+  const box = h("input", { class: "rename", placeholder: "new name", spellcheck: "false", autocomplete: "off", "aria-label": "new name for " + key.replace(/^file:/, "") }), warn = h("span", { class: "flag" }); box.value = proposed[key] || "";
+  const check = () => { const p = nameProblem(key, box.value.trim()); warn.textContent = p ? " " + p : ""; return p; };
+  box.addEventListener("input", check); box.addEventListener("change", () => { const v = box.value.trim(); if (!v || v === key.replace(/^file:.*\//, "")) delete proposed[key]; else if (!check()) proposed[key] = v; else return; saveNames(); });
+  check(); return h("span", { class: "renamebox" }, box, warn);
+}
+const fileBase = f => D.files[f].split("/").pop(), natural = (a, b) => D.files[a].localeCompare(D.files[b], undefined, { numeric: true });
+// The chunks of some disc files, one table per file, each chunk with what it is and a box for a new name.
+function chunkTables(fileIndexes) {
+  return fileIndexes.map(f => { const chunks = D.chunks[f] || [], by = [...new Set((loadersOf.get(f) || []).map(l => l[0]))];
+    return h("section", {}, h("h3", {}, D.files[f], " ", nameInput("file:" + D.files[f])), h("p", { class: "dim" }, by.length ? ["loaded by ", by.slice(0, 8).map((o, i) => [i ? ", " : "", link("o", o)]), by.length > 8 ? ` and ${by.length - 8} more` : ""] : "no load of it is in the graph"),
+      chunks.length ? h("div", { class: "scrollx" }, h("table", { class: "wide" }, h("tr", {}, ["#", "Chunk", "Kind", "What the uses show it is", "New name"].map(t => h("th", { text: t }))), chunks.map(([n, key]) => { const a = D.assets[key], pkg = a && a[0] === "pe2pkg"; return h("tr", {}, h("td", { text: n }), h("td", {}, a || D.overlays[key] ? link(pkg ? "o" : "a", key) : key, qmark(key)), h("td", { class: "dim", text: a ? (TYPE[a[0]] || a[0]).replace(/s$/, "") : "" }), h("td", { text: D.notes[key] ? D.notes[key][0] : "" }), h("td", {}, nameInput(key))); }))) : h("p", { class: "dim", text: "no chunk of it is catalogued" })); });
+}
+const filesUnder = path => D.files.map((n, i) => [n, i]).filter(([n]) => n === path || n.startsWith(path + "/")).map(([, i]) => i).sort(natural);
+function showFiles(path) {
+  const box = $("subject"), list = /^\d+$/.test(path) && D.files[+path] ? [+path] : filesUnder(path), title = list.length === 1 ? D.files[list[0]] : path, parts = title.split("/");
+  if (!list.length) { box.replaceChildren(h("p", { text: `No disc file under ${path}.` })); return; }
+  const head = h("header", {}, h("h2", { text: title }), h("div", { class: "crumbs" }, `stage ${parts[0]}`, parts.length > 2 || list.length > 1 && parts.length > 1 ? [" · folder ", D.overlays[parts[1]] ? link("o", parts[1]) : parts[1]] : "", ` · ${list.length} file${list.length === 1 ? "" : "s"}, ${list.reduce((a, f) => a + (D.chunks[f] || []).length, 0)} chunks`));
+  box.replaceChildren(head, h("p", { class: "dim", text: "The disc's files as the stage archives hold them, each with its chunks in stored order. A name typed here is kept in this browser and exported from Names; it renames nothing by itself." }), ...(list.length <= 60 ? chunkTables(list) : [capped(list, 60, part => h("div", {}, chunkTables(part)))]));
+}
+function showNames() {
+  const box = $("subject"), keys = Object.keys(proposed).sort(), out = h("textarea", { class: "mono", rows: 12, readonly: "", spellcheck: "false", "aria-label": "the proposed names, one per line" }), inp = h("textarea", { class: "mono", rows: 6, spellcheck: "false", placeholder: "paste lines of: current name <tab> new name", "aria-label": "names to import" }), said = h("span", { class: "dim" });
+  out.value = namesTSV(); const save = h("a", { class: "lnk", download: "asset_names.tsv", text: "save as asset_names.tsv" }); try { save.href = URL.createObjectURL(new Blob([out.value], { type: "text/tab-separated-values" })); } catch (e) { save.hidden = true; }
+  const copy = h("button", { text: "copy", onclick: () => { out.select && out.select(); (navigator.clipboard ? navigator.clipboard.writeText(out.value) : Promise.reject()).then(() => { said.textContent = " copied"; }, () => { said.textContent = " selected: copy it with the keyboard"; }); } });
+  const take = h("button", { text: "import", onclick: () => { let n = 0, bad = 0; for (const line of inp.value.split("\n")) { const [k, v] = line.split("\t").map(x => (x || "").trim()); if (!k || !v) continue; if (nameProblem(k, v)) { bad++; continue; } proposed[k] = v; n++; } saveNames(); showNames(); $("subject").append(h("p", { class: "dim", text: `${n} taken` + (bad ? `, ${bad} refused (not a valid name, or taken)` : "") })); } });
+  let armed = false; const clear = h("button", { text: "clear all", onclick: () => { if (!armed) { armed = true; clear.textContent = "really clear all?"; return; } proposed = {}; saveNames(); showNames(); } });
+  const where = k => k.startsWith("file:") ? h("span", { text: k.slice(5) }) : D.overlays[k] ? link("o", k) : link("a", k);
+  box.replaceChildren(h("header", {}, h("h2", { text: `Proposed names (${keys.length})` }), h("div", { class: "crumbs", text: "kept in this browser; nothing is renamed until the exported list is applied" })),
+    sec("Export", "One line per name: the current name, a tab, the new name. A disc file is \"file:\" and its path.", out, h("div", { class: "row" }, copy, save, said)),
+    sec("Import", "Adds to what is here; a line whose new name is invalid or taken is refused.", inp, h("div", { class: "row" }, take, clear)),
+    sec(`Names (${keys.length})`, "", keys.length ? capped(keys, 300, part => h("table", {}, h("tr", {}, ["Current", "What it is", "New name"].map(t => h("th", { text: t }))), part.map(k => h("tr", {}, h("td", {}, where(k)), h("td", { class: "dim", text: D.notes[k] ? D.notes[k][0] : "" }), h("td", {}, nameInput(k)))))) : h("p", { text: "None yet. Type a name on an asset's page, an overlay's page, or in the Files view." })));
+}
+
 // ---- an overlay ----
 const sec = (title, note, ...body) => h("section", {}, h("h3", {}, title), note ? h("p", { text: note }) : null, ...body);
 const fileLink = f => { const o = carriedBy.get(f); return h("span", {}, D.files[f], o ? [" (", link("o", o), ")"] : null); };
@@ -364,6 +413,7 @@ async function showOverlay(name) {
   const reqs = D.requests[name] || [], loads = D.loads[name] || [];
   const head = h("header", {}, h("h2", { text: name }), h("div", { class: "crumbs" }, o.family, o.addr ? ` · loads at 0x${o.addr.toString(16)}` : "", chain.length ? [" · under ", chain.map((c, i) => [i ? " › " : "", link("o", c)])] : ""));
   if (noteBox(name)) head.append(noteBox(name));
+  if (name !== "main") head.append(h("div", { class: "row" }, "rename to ", nameInput(name)));
   box.replaceChildren(head, h("p", { class: "dim", text: "reading pixels…" }));
   const ownFiles = o.own, borrowedFiles = reqs.filter(r => r[4][0] !== "own" && r[4][0] !== "none").flatMap(r => (r[4][2] || []).filter(Boolean).map(v => v[0]));
   await needFiles([...ownFiles.filter(() => !o.room), ...reqs.filter(r => r[4][0] === "own").flatMap(r => r[4][1]), ...borrowedFiles]); if (mine !== turn) return;
@@ -456,6 +506,7 @@ async function showAsset(key) {
   if (!files.length && attrs.source && placedIn.get(attrs.source)) files.push(...placedIn.get(attrs.source));   // inside a bundle that is a chunk
   const head = h("header", {}, h("h2", { text: key }), h("div", { class: "crumbs" }, (TYPE[type] || type.replace(/_/g, " ")).replace(/s$/, ""), attrs.source ? [" · inside ", D.overlays[attrs.source.replace(/\.pe2pkg$/, "")] ? link("o", attrs.source.replace(/\.pe2pkg$/, "")) : D.assets[attrs.source] ? link("a", attrs.source) : attrs.source] : ""));
   if (noteBox(key)) head.append(noteBox(key));
+  if (type !== "pe2pkg") head.append(h("div", { class: "row" }, "rename to ", nameInput(key)));
   if (type === "pe2img" || type === "image") { const pairs = D.pairs[key] || []; await Promise.all([need(key), ...pairs.filter(p => p[1]).map(p => need(p[1]))]); if (mine !== turn) return;
     const bpps = [].concat(attrs.bpp || 8);
     sections.push(sec(`As used (${pairs.length})`, pairs.length ? "Each way a model's faces read this image: a column of it, at a depth, through a palette row. The other columns are faded." : "No model's faces are known to read this image, so there is no palette to show it with.",
@@ -506,10 +557,10 @@ async function showAsset(key) {
 // ---- routing ----
 function route() {
   const hash = location.hash.slice(1), dot = hash.indexOf("."), kind = hash.slice(0, dot), name = hash.slice(dot + 1);
-  current = hash; if (kind === "a") { showAsset(name); } else { current = "o." + (D.overlays[name] ? name : "gameplay"); showOverlay(D.overlays[name] ? name : "gameplay"); }
+  current = hash; $("nav-n").setAttribute("aria-pressed", kind === "n"); if (kind === "a") { showAsset(name); } else if (kind === "f" || kind === "d") { turn++; showFiles(name); } else if (kind === "n") { turn++; showNames(); } else { current = "o." + (D.overlays[name] ? name : "gameplay"); showOverlay(D.overlays[name] ? name : "gameplay"); }
   markNav(); const m = document.querySelector("main"); if (m && m.scrollTo) m.scrollTo(0, 0);
 }
-$("nav-o").addEventListener("click", () => { navMode = "o"; drawNav(); }); $("nav-a").addEventListener("click", () => { navMode = "a"; drawNav(); });
+$("nav-o").addEventListener("click", () => { navMode = "o"; drawNav(); }); $("nav-a").addEventListener("click", () => { navMode = "a"; drawNav(); }); $("nav-f").addEventListener("click", () => { navMode = "f"; drawNav(); }); $("nav-n").addEventListener("click", () => { location.hash = "n."; }); saveNames();
 $("scale").value = String(S); document.documentElement.style.setProperty("--scale", S);
 $("scale").addEventListener("change", e => { S = +e.target.value || 2; try { localStorage.setItem("asset-map-scale", S); } catch (x) {} document.documentElement.style.setProperty("--scale", S); route(); });
 $("filter").addEventListener("input", drawNav); window.addEventListener("hashchange", route); drawNav(); route();
