@@ -71,7 +71,8 @@ class Supply:
                     f = self.files[path]
                     if f["stage"]:
                         out |= {p for p, g in self.files.items() if g["stage"] == f["stage"] and g["folder"] == f["folder"]}
-                    else:
+                    elif f["id"] >= 100000:
+                        # An actor entry's further files; below that the hundreds are a family of separate overlays.
                         out |= {p for i, p in self.zero.items() if i // 100 == f["id"] // 100}
                         out |= {p for i, p in self.zero.items() if 60 <= i // 10000 < 70 and (i % 100000) // 100 == (f["id"] % 100000) // 100}
             self._own[package] = sorted(out)

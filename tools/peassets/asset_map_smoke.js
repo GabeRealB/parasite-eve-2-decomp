@@ -26,7 +26,7 @@ eval(js + `
     await (kind === "a" ? showAsset(name) : showOverlay(name));
     const out = [];
     for (const s of document.getElementById("subject").children) { if (s.tag !== "section") continue; let tiles = 0, flagged = 0, rows = 0, shots = 0; const flags = [];
-      walk(s, n => { if (/^tile/.test(n.className)) { tiles++; if (/miss/.test(n.className)) { flagged++; flags.push(n.textContent.slice(0, 150)); } } if (n.tag === "tr" || n.tag === "li") rows++; if (n.className === "shot") shots++; });
+      walk(s, n => { if (/^tile( |$)/.test(n.className)) { tiles++; if (/miss/.test(n.className)) { flagged++; flags.push(n.textContent.slice(0, 150)); } } if (n.tag === "tr" || n.tag === "li") rows++; if (n.className === "shot") shots++; });
       out.push("  " + s.children[0].textContent + (tiles ? ": " + tiles + " tiles, " + flagged + " flagged" : "") + (shots ? ": " + shots + " shown" : "") + (rows ? ": " + rows + " rows" : "")); flags.slice(0, 3).forEach(f => out.push("      " + f)); }
     console.log(subject + "\\n" + out.join("\\n"));
   }

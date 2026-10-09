@@ -22,15 +22,8 @@ images and CLUTs upload to, moved by the edge's offsets.
     asset_residency.py show LOADER      a loader's groups and what each brings
     asset_residency.py at LOADER X Y    what can sit at a VRAM position while LOADER runs
     asset_residency.py dot LOADER       the loader's part of the graph, for graphviz
-    asset_residency.py html [--out F]   the whole graph as one page: load graph and VRAM sheet per overlay
 
-The page draws the decoded pictures of the local extraction, and - run with
-venv/bin/python3, for the image decoders - an "applied" view: video memory
-composed from what the selected groups load, each texture page read at the
-depth and through the palette a resident model's faces name. The raw words
-for that are written beside the page as `<page>_pix/<asset>.js`, since a page
-opened from disk cannot read a picture's pixels but can run a script. A page
-or palette nothing resident fills is flagged.
+The page that shows all this is tools/peassets/asset_map.py.
 
 Every edge records where it comes from (`evidence`): `carrier` (the file holds
 the overlay's own package), `viewmap` (a room's view map sends that view to
@@ -410,7 +403,6 @@ def build(db: sqlite3.Connection) -> None:
           + (f"; placements name {len(missing)} files the disc does not have, so nothing is loaded for them: {sorted(missing)}" if missing else ""))
 
 
-TEMPLATE = Path(__file__).with_name("residency_map.html")
 # The template is the page's content only, as an artifact host wraps it; a
 # local file needs the document around it.
 DOCUMENT = ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
@@ -494,103 +486,6 @@ def model_bounds(package: str, rec: dict) -> dict[tuple[int, int], list[int]]:
         return {pair: list(box) for pair, box in (pkg_model.stream_texture_bounds(data, rec["vram"] - load) or {}).items()}
     except Exception:  # noqa: BLE001 - bounds are a nicety
         return {}
-
-
-def page_data(db: sqlite3.Connection, pictures: str = "", pixels: str = "") -> str:
-    """The graph as the page reads it: files by index, footprints, groups per loader."""
-    import json
-    files = [r["path"] for r in db.execute("SELECT path FROM file ORDER BY path")]
-    index = {path: n for n, path in enumerate(files)}
-    members = defaultdict(list)
-    for r in db.execute("SELECT * FROM member"):
-        members[r["grp"]].append([index[r["file"]], r["page"], r["row"], brief(r["note"]), int("RELOCATE" in (r["mode"] or ""))])
-    spawns = defaultdict(list)
-    for r in db.execute("SELECT * FROM spawn"):
-        spawns[r["grp"]].append([r["package"], r["page"], r["row"]])
-    loaders = defaultdict(list)
-    for g in db.execute("SELECT * FROM grp ORDER BY loader, kind, id"):
-        loaders[g["loader"]].append([g["kind"][0], g["condition"], g["evidence"], members[g["id"]], spawns[g["id"]],
-                                     LAYERS.index(g["layer"]) if g["layer"] in LAYERS else 0])
-    used = {m[0] for groups in loaders.values() for g in groups for m in g[3]}
-    footprint = defaultdict(list)
-    for r in db.execute("SELECT * FROM footprint"):
-        if index[r["file"]] in used:
-            footprint[index[r["file"]]].append([r["asset"], r["kind"][0], r["part"], r["x"], r["y"], r["w"], r["h"], r["bpp"] or 0])
-    carried = {index[r["path"]]: r["package"] for r in db.execute("SELECT path, package FROM file WHERE package IS NOT NULL")}
-    # What each package's models ask for: the [page, CLUT] pairs of their faces.
-    assets, embedded = asset_schema.load()
-    models = defaultdict(list)
-    for key, rec in sorted(embedded.items()):
-        if rec.get("type") == "model" and assets.get(key, {}).get("textures"):
-            package = rec["source"].removesuffix(".pe2pkg")
-            bounds = model_bounds(package, rec)
-            models[package].append([key, [pair + bounds.get(tuple(pair), []) for pair in assets[key]["textures"]]])
-    # What the code's own constants ask for: a texture page and a CLUT value
-    # declared together in one function, from the asset journal when there is one.
-    constants = defaultdict(list)
-    journal = ROOT / "local" / "asset_journal.sqlite"
-    if journal.is_file():
-        scopes = defaultdict(lambda: {"image.tpage": [], "clut.value": []})
-        jdb = sqlite3.connect(journal)
-        for package, file, scope, symbol, attribute, value in jdb.execute(
-                "SELECT package, file, scope, symbol, attribute, value FROM evidence WHERE present = 1 AND status != 'rejected' "
-                "AND attribute IN ('image.tpage', 'clut.value') AND package != '' AND scope != '' AND kind != 'faces'"):
-            scopes[package, file, scope][attribute].append((symbol, value))
-        for (package, _file, scope), found in sorted(scopes.items()):
-            if 1 <= len(found["image.tpage"]) <= 2 and 1 <= len(found["clut.value"]) <= 3:
-                for page_name, page in found["image.tpage"]:
-                    for clut_name, clut in found["clut.value"]:
-                        constants[package].append([f"{scope}: {page_name} + {clut_name}", page, clut])
-    # Overlays sharing a load address cannot be in memory together.
-    import tomllib
-    sys.path.insert(0, str(ROOT / "tools"))
-    from gen_overlay_configs import slot_packages
-    address = {}
-    for _family, spec in tomllib.loads((ROOT / "configs/USA/overlays.toml").read_text(encoding="utf-8")).items():
-        if isinstance(spec, dict) and "overlays" in spec:
-            own = {int(k): int(v) for k, v in (spec.get("slots") or {}).items()}
-            for name, slot, _entry in slot_packages(spec):
-                address[name] = own.get(slot.get("slot"), int(spec["load_addr"]))
-    regions = [[r["kind"][0], r["name"], r["x"], r["y"], r["w"], r["h"]] for r in region_table()]
-    # An overlay's own files, for those that are not rooms: the one that
-    # carries it, the further files of its entry and its texture-only file.
-    # A model and its file are displaced together, so its faces can be read
-    # against one of these as stored, whatever else is in memory.
-    zero = {r["id"]: r["path"] for r in db.execute("SELECT path, id FROM file WHERE stage = 0 AND id IS NOT NULL")}
-    own = {}
-    for r in db.execute("SELECT path, id, package FROM file WHERE stage = 0 AND package IS NOT NULL"):
-        if r["package"] in models:
-            paths = {r["path"]} | {p for i, p in zero.items() if i // 100 == r["id"] // 100}
-            paths |= {p for i, p in zero.items() if 60 <= i // 10000 < 70 and (i % 100000) // 100 == (r["id"] % 100000) // 100}
-            own[r["package"]] = sorted(index[p] for p in paths)
-    maps = {r["id"] - 900000: index[r["path"]] for r in db.execute("SELECT path, id FROM file WHERE stage = 0 AND id BETWEEN 900001 AND 900005")}
-    return json.dumps({"files": files, "fp": footprint, "loaders": loaders, "pkg": carried, "pictures": pictures,
-                       "pixels": pixels, "models": models, "consts": constants, "stagemap": maps,
-                       "addr": address, "regions": regions, "layers": LAYERS, "own": own}, separators=(",", ":")).replace("</", "<\\/")
-
-
-def write_page(db: sqlite3.Connection, out: Path, bare: bool) -> None:
-    template = TEMPLATE.read_text(encoding="utf-8")
-    if template.count("/*DATA*/") != 1:
-        raise SystemExit(f"{TEMPLATE}: expected one /*DATA*/ marker")
-    # A local page shows the decoded images themselves, read from the
-    # extraction beside it; they are referenced, never copied into the page.
-    import os
-    out.parent.mkdir(parents=True, exist_ok=True)
-    extracted = ROOT / "assets" / "USA"
-    pictures = "" if bare or not (extracted / "pe2img").is_dir() else os.path.relpath(extracted.resolve(), out.parent.resolve())
-    pixels = ""
-    if pictures:
-        try:
-            folder = out.with_name(out.stem + "_pix")
-            n = write_pixels(db, folder)
-            pixels = folder.name
-            print(f"{n} pixel files written to {folder}" if n else f"pixel files in {folder} are current")
-        except ImportError as exc:
-            print(f"no applied view: {exc} (run with venv/bin/python3 for the image decoders)", file=sys.stderr)
-    page = template.replace("/*DATA*/", page_data(db, pictures, pixels))
-    out.write_text(page if bare else DOCUMENT % page, encoding="utf-8")
-    print(f"wrote {out}  ({out.stat().st_size // 1024} KB)")
 
 
 FAMILIES = {0: "boot and load screens", 1: "costume, weapon, ammunition", 2: "menus and previews", 3: "map pictures",
@@ -762,7 +657,7 @@ def chain_check(db: sqlite3.Connection, verbose: bool) -> int:
             f = files[path]
             if f["stage"]:
                 out |= {p for p, g in files.items() if g["stage"] == f["stage"] and g["folder"] == f["folder"]}
-            else:
+            elif f["id"] >= 100000:
                 out |= {p for i, p in zero.items() if i // 100 == f["id"] // 100}
                 out |= {p for i, p in zero.items() if 60 <= i // 10000 < 70 and (i % 100000) // 100 == (f["id"] % 100000) // 100}
         return out
@@ -851,9 +746,6 @@ def main() -> int:
     p.add_argument("--verbose", action="store_true")
     for name in ("show", "dot"):
         p = sub.add_parser(name); p.add_argument("loader")
-    p = sub.add_parser("html")
-    p.add_argument("--out", type=Path, default=ROOT / "local" / "residency_map.html")
-    p.add_argument("--bare", action="store_true", help="the page's content only, for a host that supplies the document")
     p = sub.add_parser("at"); p.add_argument("loader"); p.add_argument("x", type=lambda v: int(v, 0)); p.add_argument("y", type=lambda v: int(v, 0))
     args = ap.parse_args()
     args.db.parent.mkdir(parents=True, exist_ok=True)
@@ -862,8 +754,6 @@ def main() -> int:
 
     if args.command == "build":
         build(db)
-    elif args.command == "html":
-        write_page(db, args.out, args.bare)
     elif args.command == "regions":
         regions(db)
     elif args.command == "check":
