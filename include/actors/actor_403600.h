@@ -5,7 +5,15 @@
 #include "types.h"
 
 #include "main/coord.h"
+#include "main/task_types.h"
 #include "main/tmd_types.h"
+
+/// Enemy task descriptors for this package (0 boss, 1 translucent double, 2 scene figure).
+///
+/// The rooms load actor_403600 for resource 36 and borrow this table while the
+/// overlay is live. All three entries attach TMD models at priority 96; the
+/// boss and scene figure defer automatic primitive-buffer allocation.
+extern TaskDesc gActor403600TaskTable[3];
 
 /// Boss command that starts combat from its arena position.
 ///
@@ -62,7 +70,7 @@ void actor403600TickRipple(Actor403600Ripple* state);
 /// Requires this overlay loaded, a live ripple with head in 0..31, a live disc
 /// coordinate and initialized GTE/scratch/frame-packet state. Composes discCoord;
 /// sixteen radial samples form fifteen drawable bands in each of twelve sectors.
-/// Consumes 192 complete POLY_FT4-sized records from D_actor_403600_8016069C,
+/// Consumes 192 complete POLY_FT4-sized records from `gActor403600EffectPrimitiveCursor`,
 /// including each sector's terminal record. The caller supplies that writable
 /// capacity, a captured frame at VRAM (448,256), and a valid depth ordering table.
 /// Ring distances and lifts use game units; UV displacement uses screen pixels
@@ -71,7 +79,18 @@ void actor403600TickRipple(Actor403600Ripple* state);
 /// is retained. actor_361100 calls this export while actor_403600 remains loaded.
 void actor403600DrawRipple(const Actor403600Ripple* ripple, GfxCoord* discCoord);
 
-extern u8* D_actor_403600_8016069C;
+/// Next free byte of the writable packet arena shared by this package's effect drawers.
+///
+/// actor_403600 selects one of two 0xC000-byte halves each frame. actor_361100
+/// supplies its streaming buffer's free half before drawing a borrowed ripple.
+/// Drawers reserve complete mixed packet records without checking capacity:
+/// 300 40-byte distortion quads (plus a 16-byte tile at full strength),
+/// 40 bytes per projectile trail point, and 192 40-byte records per ripple.
+/// The selected range must be word aligned and large enough for every caller's
+/// reservations. Keep each arena live until GPU consumption; reuse its bytes
+/// only after their previous packets are no longer in use. Requires actor_403600
+/// loaded while accessing this exported cursor.
+extern u8* gActor403600EffectPrimitiveCursor;
 
 /// Projects, lights and draws GT3 packets with the package's bottom screen fade.
 ///

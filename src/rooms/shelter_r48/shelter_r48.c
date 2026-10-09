@@ -10,6 +10,7 @@
 #include "common.h"
 
 #include "actors/task_tables.h"
+#include "actors/actor_403600.h"
 #include "actors/actor_503500.h"
 
 #include "gameplay/display.h"
@@ -1686,7 +1687,7 @@ AreaResource D_shelter_r48_8018BB54[3] = {
 };
 
 AreaResource D_shelter_r48_8018BB78[2] = {
-    { 36, 36, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_403600_80160514 },
+    { 36, 36, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, gActor403600TaskTable },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

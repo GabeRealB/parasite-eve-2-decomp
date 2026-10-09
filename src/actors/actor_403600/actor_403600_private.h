@@ -297,7 +297,14 @@ extern AnimationSet gActor403600Animation2E6BC;
 
 extern TaskDesc D_actor_403600_801421A0[4];
 
-extern s32 D_actor_403600_80160698;
+/// Independent 32-bit random sequence used for the distortion grid's texel jitter.
+///
+/// Each advance wraps modulo 2^32. Running frames start from `rand()` and save
+/// that nonnegative seed in `Actor403600FxWork::gridSeed`; held frames restart
+/// from it to reproduce the same grid. Draws shift a signed view of the state
+/// right by 16, then mask to 12 chance bits or 3 jitter bits.
+/// This state is separate from the resident gameplay random sequence.
+extern u32 gActor403600DistortionRandomState;
 
 /// Currently selected ripple plane for clamping the model's streamed vertices.
 ///

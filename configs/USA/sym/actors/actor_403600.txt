@@ -7,7 +7,7 @@ D_actor_303600_8016AEF8 = 0x8016AEF8; // absolute:True size:0x3570 owner=actor_3
 D_actor_303600_8016E468 = 0x8016E468; // absolute:True owner=actor_303600
 gActor303600Model02DD0 = 0x801690A4; // absolute:True owner=actor_303600
 D_actor_403600_80142120 = 0x80142120; // size:0x80 defined:True
-D_actor_403600_80160700 = 0x80160700; // size:0x24 defined:True
+_gActor403600SceneFigureCamera = 0x80160700; // size:0x24 defined:True
 D_actor_403600_801421A0 = 0x801421A0; // size:0x30 defined:True
 _gActor403600EveBodySkeleton = 0x801421D0; // size:0x2D0 defined:True
 _gActor403600EveBodyPartVerts = 0x801424A0; // size:0x50 defined:True
@@ -160,7 +160,7 @@ _gActor403600Animation2E6BCBank4 = 0x8015FF7C; // size:0x1D8 defined:True
 _gActor403600Animation2E6BCRecords = 0x80160154; // size:0x360 defined:True
 _gActor403600Animation2E6BCIndices = 0x801604B4; // size:0x28 defined:True
 gActor403600Animation2E6BC = 0x801604DC; // size:0x28 defined:True
-D_actor_403600_801606E0 = 0x801606E0; // size:0x20 defined:True
+_gActor403600PlayerPlacement = 0x801606E0; // size:0x20 defined:True
 D_actor_403600_801420E8 = 0x801420E8; // size:0x8 defined:True
 D_actor_403600_801420F0 = 0x801420F0; // size:0x4 defined:True
 D_actor_403600_801420F4 = 0x801420F4; // size:0xC defined:True
@@ -169,34 +169,34 @@ gActor303600Animation075A0 = 0x801693C0; // absolute:True owner=actor_303600
 gActor303600Animation077F0 = 0x80169610; // absolute:True owner=actor_303600
 gActor303600Animation07C30 = 0x80169A50; // absolute:True owner=actor_303600
 gActor303600Animation07E5C = 0x80169C7C; // absolute:True owner=actor_303600
-D_actor_403600_80160504 = 0x80160504; // size:0x10 defined:True
-D_actor_403600_80160514 = 0x80160514; // size:0x24 defined:True
-D_actor_403600_80160538 = 0x80160538; // size:0x30 defined:True
-D_actor_403600_80160568 = 0x80160568; // size:0x14 defined:True
-D_actor_403600_8016057C = 0x8016057C; // size:0x58 defined:True
-D_actor_403600_801605D4 = 0x801605D4; // size:0x8 defined:True
-D_actor_403600_801605DC = 0x801605DC; // size:0x8 defined:True
-D_actor_403600_801605E4 = 0x801605E4; // size:0x8 defined:True
-D_actor_403600_801605EC = 0x801605EC; // size:0x8 defined:True
-D_actor_403600_801605F4 = 0x801605F4; // size:0x48 defined:True
-D_actor_403600_8016063C = 0x8016063C; // size:0x10 defined:True
-D_actor_403600_8016064C = 0x8016064C; // size:0x10 defined:True
-D_actor_403600_8016065C = 0x8016065C; // size:0x8 defined:True
-D_actor_403600_80160664 = 0x80160664; // size:0x8 defined:True
-D_actor_403600_8016066C = 0x8016066C; // size:0x28 defined:True
-D_actor_403600_80160694 = 0x80160694; // size:0x1 defined:True
-D_actor_403600_80160695 = 0x80160695; // size:0x1 defined:True
+_gActor403600SceneCommandMessages = 0x80160504; // size:0x10 defined:True
+gActor403600TaskTable = 0x80160514; // size:0x24 defined:True
+_gActor403600PlayerAnimationSets = 0x80160538; // size:0x30 defined:True
+_gActor403600PlayerAnimationRequest = 0x80160568; // size:0x14 defined:True
+_gActor403600BodyAnimationSets = 0x8016057C; // size:0x58 defined:True
+_gActor403600ArenaHighAnchor = 0x801605D4; // size:0x8 defined:True
+_gActor403600SlamTarget = 0x801605DC; // size:0x8 defined:True
+_gActor403600KnockbackAnchorA = 0x801605E4; // size:0x8 defined:True
+_gActor403600KnockbackAnchorB = 0x801605EC; // size:0x8 defined:True
+_gActor403600FlightPoints = 0x801605F4; // size:0x48 defined:True
+_gActor403600SwoopHighCorners = 0x8016063C; // size:0x10 defined:True
+_gActor403600SwoopLowCorners = 0x8016064C; // size:0x10 defined:True
+_gActor403600SceneFigureRotation = 0x8016065C; // size:0x8 defined:True
+_gActor403600BodyEffectOffset = 0x80160664; // size:0x8 defined:True
+_gActor403600RecoilTable = 0x8016066C; // size:0x28 defined:True
+_gActor403600ForcedAttackPick = 0x80160694; // size:0x1 defined:True
+_gActor403600ForceAttackPick = 0x80160695; // size:0x1 defined:True
 D_actor_403600_80160696 = 0x80160696; // size:0x2 defined:True
-D_actor_403600_80160698 = 0x80160698; // size:0x4 defined:True
-D_actor_403600_8016069C = 0x8016069C; // size:0x4 defined:True
+gActor403600DistortionRandomState = 0x80160698; // size:0x4 defined:True
+gActor403600EffectPrimitiveCursor = 0x8016069C; // size:0x4 defined:True
 gActor403600RipplePlaneCoord = 0x801606A0; // size:0x4 defined:True
-D_actor_403600_801606A4 = 0x801606A4; // size:0x4 defined:True
-D_actor_403600_801606A8 = 0x801606A8; // size:0x4 defined:True
-D_actor_403600_801606AC = 0x801606AC; // size:0x4 defined:True
-D_actor_403600_801606B0 = 0x801606B0; // size:0x4 defined:True
-D_actor_403600_801606B4 = 0x801606B4; // size:0x4 defined:True
-D_actor_403600_801606B8 = 0x801606B8; // size:0x4 defined:True
-D_actor_403600_801606BC = 0x801606BC; // size:0x24 defined:True
+_gActor403600PlayerDamage = 0x801606A4; // size:0x4 defined:True
+_gActor403600BossTask = 0x801606A8; // size:0x4 defined:True
+_gActor403600BossFxTask = 0x801606AC; // size:0x4 defined:True
+_gActor403600SceneShaftTask = 0x801606B0; // size:0x4 defined:True
+_gActor403600DeathCleanupTask = 0x801606B4; // size:0x4 defined:True
+_gActor403600RecentAttacks = 0x801606B8; // size:0x4 defined:True
+_gActor403600RecentAttackSlot = 0x801606BC; // size:0x24 defined:True
 D_actor_403600_801420D4 = 0x801420D4; // size:0x14 defined:True
 
 shelterB2PodBottomSpawnJointEnergySparks = 0x80181A48; // type:func absolute:True owner=shelter_b2_pod_bottom
@@ -283,3 +283,5 @@ _actor403600BossTask = 0x80141180; // type:func
 _actor403600DoubleTask = 0x80141be0; // type:func
 _actor403600SpawnSceneFigure = 0x80141d30; // type:func
 _actor403600SceneFigureTask = 0x80141cd4; // type:func
+_gActor403600DoubleStates = 0x801320a0;
+_gActor403600SceneFigureStates = 0x801320ec;

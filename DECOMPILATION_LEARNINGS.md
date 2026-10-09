@@ -127095,7 +127095,7 @@ RTL position) moved.
 ## `&sym + off` folds into `%lo`, a struct field does not - and it costs two instructions (ActorsShared80131e24Sub0, 2026-09-17)
 
 The companion to "Fused const, `lb` vs `lh`" for globals rather than locals.
-`M2C_FIELD(&D_actor_403600_801606B8, s16 *, 2) = 0;` declares `D_...` as an
+`M2C_FIELD(&_gActor403600RecentAttacks, s16 *, 2) = 0;` declares `D_...` as an
 untyped `extern` and takes its address, so GCC folds the offset into the
 symbol:
 

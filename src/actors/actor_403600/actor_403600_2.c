@@ -126,17 +126,6 @@ typedef struct {
 } _Actor403600RushPassScratch;
 STATIC_ASSERT_SIZEOF(_Actor403600RushPassScratch, 0x2C);
 
-extern SVECTOR D_actor_403600_8016063C[2];
-extern SVECTOR D_actor_403600_8016064C[2];
-extern u8      D_actor_403600_80160694;
-extern u8      D_actor_403600_80160695;
-
-extern SVECTOR  D_actor_403600_801605D4;
-extern SVECTOR  D_actor_403600_801605DC;
-extern SVECTOR  D_actor_403600_801605E4;
-extern SVECTOR  D_actor_403600_801605EC;
-extern TaskDesc D_actor_403600_80160514[];
-extern Task*    D_actor_403600_801606B0;
 /// Static storage for the placements the package gives the player.
 ///
 /// `placement` is the payload of `GAME_ACTOR_MESSAGE_PLACE`, lent to the player
@@ -156,14 +145,21 @@ typedef struct {
 } _Actor403600TransformStorage;
 STATIC_ASSERT_SIZEOF(_Actor403600TransformStorage, 32);
 
-extern _Actor403600TransformStorage D_actor_403600_801606E0;
+/// Reusable player-placement payload for knockback and scene presentation.
+///
+/// Dispatch borrows `placement` synchronously. Its yaw also persists between
+/// scene-figure ticks. Keep the complete storage extent until the unaccessed
+/// trailing bytes' object boundary is established.
+static _Actor403600TransformStorage _gActor403600PlayerPlacement;
 
 extern Actor303600RotSample D_actor_303600_8016A408[ACTOR_303600_ROT_SAMPLE_COUNT];
 extern Actor303600ViewKey   D_actor_303600_8016AEF8[ACTOR_303600_VIEW_KEY_COUNT];
-extern SVECTOR              D_actor_403600_8016065C;
-extern SVECTOR              D_actor_403600_80160664;
-
-extern ViewCamera D_actor_403600_80160700;
+/// Persistent camera driven by the scene figure's imported view keys.
+///
+/// Rotation is Q12, translation is the negated world-space camera origin,
+/// and screen distance is in pixels. Queued camera tasks borrow this record;
+/// it must remain live until they consume it.
+static ViewCamera _gActor403600SceneFigureCamera;
 
 static void _actor403600SpawnBoss(struct Enemy* enemy, Task* task);
 static void _actor403600UpdateBoss(Enemy* enemy, Task* task);
@@ -187,22 +183,7 @@ static void _actor403600UpdateSceneFigure(struct Enemy* enemy, Task* task);
 static void _actor403600ScaleSceneFigure(GfxCoord* coord, s32 uniformScale);
 
 extern TaskDesc D_actor_303600_80162E98[];
-/// Models effect 0x80005 spawns, set in `D_800626EC[5].data.model`.
-extern Task* D_actor_403600_801606B4;
-
-extern TaskDesc              D_actor_303600_8016E468[];
-extern AnimationPlayRequest  D_actor_403600_80160568;
-extern AnimationSet*         D_actor_403600_8016057C[22];
-extern SVECTOR               D_actor_403600_801605F4[];
-extern DamageAttack          D_actor_403600_801606A4;
-extern Task*                 D_actor_403600_801606A8;
-extern _Actor403600RecoilRow D_actor_403600_8016066C[];
-
-// Message-table callbacks use the argument views required by this TU.
-
-extern TaskMessageEntry D_actor_403600_80160504[2];
-extern u16              D_actor_403600_801606B8[2];
-extern Task*            D_actor_403600_801606AC;
+extern TaskDesc D_actor_303600_8016E468[];
 /// Static storage for the cursor of the boss's record of its last two
 /// attacks.
 ///
@@ -219,8 +200,6 @@ typedef struct {
     u8  unknown_4[32]; // Zero in the image; no access established and role unproven
 } _Actor403600RecentAttackSlotStorage;
 STATIC_ASSERT_SIZEOF(_Actor403600RecentAttackSlotStorage, 36);
-
-extern _Actor403600RecentAttackSlotStorage D_actor_403600_801606BC;
 
 static void _actor403600EnemyExit(Task* task);
 static void _actor403600ResetCombatState(Task* task);
@@ -253,18 +232,51 @@ static void _actor403600BossTask(Task* task);
 static void _actor403600DoubleTask(Task* task);
 static void _actor403600SceneFigureTask(Task* task);
 
-TaskMessageEntry D_actor_403600_80160504[2] = {
+/// Attack-choice domain shared by the forced selector and two-pick history.
+///
+/// The picks select actions; they are separate from `ACTOR_403600_ACTION_` values.
+enum {
+    ACTOR_403600_ATTACK_PICK_NONE   = 0,
+    ACTOR_403600_ATTACK_PICK_SLAM   = 1,
+    ACTOR_403600_ATTACK_PICK_VOLLEY = 2,
+    ACTOR_403600_ATTACK_PICK_SWOOP  = 3,
+    ACTOR_403600_ATTACK_PICK_RUSH   = 4,
+    ACTOR_403600_ATTACK_PICK_SUMMON = 5,
+    ACTOR_403600_ATTACK_PICK_DRAIN  = 6
+};
+
+/// Player-animation requests during the boss's scripted knockback.
+enum {
+    ACTOR_403600_PLAYER_ANIM_NONE            = 0,
+    ACTOR_403600_PLAYER_ANIM_HEAVY_KNOCKBACK = 1,
+    ACTOR_403600_PLAYER_ANIM_BACKWARD        = 3,
+    ACTOR_403600_PLAYER_ANIM_FORWARD         = 4
+};
+
+enum { ACTOR_403600_ENEMY_TASK_PRIORITY = 96,
+       ACTOR_403600_SCENE_FIGURE_TASK   = 2 };
+
+/// Commands accepted by both the boss and scene figure, followed by the terminator.
+///
+/// The handler consumes an `ActorCommand` during synchronous dispatch.
+static TaskMessageEntry _gActor403600SceneCommandMessages[2] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor403600ApplySceneCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_403600_80160514[3] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor403600BossTask, { .model = &gActor403600EveBody } },
-    { { { TASK_BODY_TMD, 96 } }, _actor403600DoubleTask, { .model = &gActor403600Model199B8 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor403600SceneFigureTask, { .model = &gActor303600Model02DD0 } },
+TaskDesc gActor403600TaskTable[3] = {
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_403600_ENEMY_TASK_PRIORITY } }, _actor403600BossTask, { .model = &gActor403600EveBody } },
+    { { { TASK_BODY_TMD, ACTOR_403600_ENEMY_TASK_PRIORITY } }, _actor403600DoubleTask, { .model = &gActor403600Model199B8 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_403600_ENEMY_TASK_PRIORITY } }, _actor403600SceneFigureTask, { .model = &gActor303600Model02DD0 } },
 };
 
-AnimationSet* D_actor_403600_80160538[12] = {
+/// Borrowed clips installed on the player for boss knockback and scene poses.
+///
+/// Slot 0 is NULL and denotes no active boss script. Slots 1..6 are heavy
+/// knockback, impact, backward/forward knockback and their recoveries; 7/8
+/// alias 4/6. Slots 9..11 are the scene pose, paired scene and figure fade.
+/// The player retains this table and its clips while scripted playback runs.
+static AnimationSet* _gActor403600PlayerAnimationSets[12] = {
     NULL,
     &gActor403600Animation2C0C4,
     &gActor403600Animation2BF8C,
@@ -279,9 +291,19 @@ AnimationSet* D_actor_403600_80160538[12] = {
     &gActor303600Animation07E5C,
 };
 
-AnimationPlayRequest D_actor_403600_80160568 = { { .sets = D_actor_403600_80160538 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Reusable request that installs the boss's player clips and starts one of them.
+///
+/// `animationId` also tracks knockback progress; 0 means no active sequence and
+/// is never dispatched. Installation resets playback and enables room-grid
+/// collision. The request is consumed synchronously; its table remains borrowed.
+static AnimationPlayRequest _gActor403600PlayerAnimationRequest = { { .sets = _gActor403600PlayerAnimationSets }, ACTOR_403600_PLAYER_ANIM_HEAVY_KNOCKBACK, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationSet* D_actor_403600_8016057C[22] = {
+/// Borrowed animation bank shared by the boss and its translucent double.
+///
+/// `ACTOR_403600_ANIM_` values index slots 1..21; slot 0 is NULL and leaves
+/// playback unchanged. Driven model parts use tracks 1..19. The table and
+/// imported paired-scene clip must remain loaded while either rig uses them.
+static AnimationSet* _gActor403600BodyAnimationSets[22] = {
     NULL,
     &gActor403600Animation1FEB0,
     &gActor403600Animation208EC,
@@ -306,15 +328,28 @@ AnimationSet* D_actor_403600_8016057C[22] = {
     &gActor303600Animation075A0,
 };
 
-SVECTOR D_actor_403600_801605D4 = { 8256, -0x61A8, 6883, 0 };
+/// High arena anchor in world units for slam/volley ascent and the rush's X/Z centre.
+static SVECTOR _gActor403600ArenaHighAnchor = { 8256, -25000, 6883, 0 };
 
-SVECTOR D_actor_403600_801605DC = { 8000, -4000, 6600, 0 };
+/// World-space aim point of the slam's descending pass; Y also gates its impact.
+static SVECTOR _gActor403600SlamTarget = { 8000, -4000, 6600, 0 };
 
-SVECTOR D_actor_403600_801605E4 = { 2029, -5000, 0x332F, 0 };
+/// First horizontal knockback anchor, used for player facing and opposite-end placement.
+///
+/// Only X/Z are consumed, in world units; placement retains the player's Y.
+static SVECTOR _gActor403600KnockbackAnchorA = { 2029, -5000, 13103, 0 };
 
-SVECTOR D_actor_403600_801605EC = { 0x36CD, -5000, 954, 0 };
+/// Second horizontal knockback anchor, used for player facing and opposite-end placement.
+///
+/// Only X/Z are consumed, in world units; placement retains the player's Y.
+static SVECTOR _gActor403600KnockbackAnchorB = { 14029, -5000, 954, 0 };
 
-SVECTOR D_actor_403600_801605F4[9] = {
+/// Seven horizontal flight destinations followed by two rush-selection reference points.
+///
+/// Ordinary selection chooses the nearest row 0..6. Rush compares distances
+/// to rows 7/8, but selects destination 1 when distance8 >= distance7, else 0.
+/// X/Z use world units; Y is unused and the destination follows player height.
+static SVECTOR _gActor403600FlightPoints[9] = {
     { 4740, 0, 3740, 0 },
     { 4220, 0, 7030, 0 },
     { 8100, 0, 3060, 0 },
@@ -326,21 +361,35 @@ SVECTOR D_actor_403600_801605F4[9] = {
     { 0x2740, 0, 8736, 0 },
 };
 
-SVECTOR D_actor_403600_8016063C[2] = {
+/// High world-space corner pair used to set up the swoop's cross-arena flight.
+///
+/// Bit 0 of `swoopCorners` identifies the nearer corner; the centre-zone
+/// approach starts at the opposite corner before targeting the nearer one.
+static SVECTOR _gActor403600SwoopHighCorners[2] = {
     { 1376, -9000, 0x3540, 0 },
     { 0x3860, -9000, 480, 0 },
 };
 
-SVECTOR D_actor_403600_8016064C[2] = {
+/// Low world-space corner pair targeted by a swoop against a player outside the centre.
+///
+/// Bit 1 of `swoopCorners` selects the nearer low corner (clear 0, set 1).
+static SVECTOR _gActor403600SwoopLowCorners[2] = {
     { 2400, -1000, 1370, 0 },
     { 0x3520, -1000, 0x3138, 0 },
 };
 
-SVECTOR D_actor_403600_8016065C = { 1024, 0, 0, 0 };
+/// Scene figure Euler angles, 4096 units per turn, with a fixed quarter-turn pitch.
+///
+/// Imported per-frame samples overwrite yaw and roll before rebuilding the rotation.
+static SVECTOR _gActor403600SceneFigureRotation = { ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0, 0 };
 
-SVECTOR D_actor_403600_80160664 = { 0, 1200, 0, 0 };
+/// Local offset in world units for the body joint's dive rings and slam arc flash.
+static SVECTOR _gActor403600BodyEffectOffset = { 0, 1200, 0, 0 };
 
-_Actor403600RecoilRow D_actor_403600_8016066C[5] = {
+/// Damage thresholds for the boss's recoil speed and hold time during combat.
+///
+/// The last reached threshold wins; damage below 40 leaves existing recoil intact.
+static _Actor403600RecoilRow _gActor403600RecoilTable[5] = {
     { 40, 10, 5, 0 },
     { 60, 20, 10, 0 },
     { 80, 30, 15, 0 },
@@ -348,37 +397,61 @@ _Actor403600RecoilRow D_actor_403600_8016066C[5] = {
     { 120, 50, 15, 0 },
 };
 
-u8 D_actor_403600_80160694 = 0;
+/// Attack pick used when forcing is enabled.
+///
+/// Values are 0 none, 1 slam, 2 volley, 3 swoop, 4 rush, 5 summon, 6 drain.
+/// No recovered code writes this override.
+static u8 _gActor403600ForcedAttackPick = ACTOR_403600_ATTACK_PICK_NONE;
 
-u8 D_actor_403600_80160695 = 0;
+/// Nonzero selects the forced pick, bypassing combat gates and history updates.
+///
+/// Initialized disabled; no recovered code changes it.
+static u8 _gActor403600ForceAttackPick = 0;
 
+/// Unreferenced halfword initialized to 0x2FBC; its role is unproven.
 u16 D_actor_403600_80160696 = 0x2FBC;
 
-s32 D_actor_403600_80160698 = 0;
+u32 gActor403600DistortionRandomState = 0;
 
-u8* D_actor_403600_8016069C = NULL;
+u8* gActor403600EffectPrimitiveCursor = NULL;
 
 GfxCoord* gActor403600RipplePlaneCoord = NULL;
 
-DamageAttack D_actor_403600_801606A4 = { 0, 0 };
+/// Mutable attack payload for slam, rush confusion and delayed player impact.
+///
+/// Damage packing consumes it immediately; only the low 12 power and 4 reaction bits travel.
+static DamageAttack _gActor403600PlayerDamage = { 0, GAME_ACTOR_REACTION_ORDINARY };
 
-Task* D_actor_403600_801606A8 = NULL;
+/// Borrowed singleton boss task used to distinguish it from doubles and share its work.
+///
+/// Set on spawn; all consumers require the boss alive. Teardown does not clear it.
+static Task* _gActor403600BossTask = NULL;
 
-Task* D_actor_403600_801606AC = NULL;
+/// Last boss display task returned by spawn, or NULL when that spawn failed.
+///
+/// This snapshot is written at boss creation and has no recovered reader.
+static Task* _gActor403600BossFxTask = NULL;
 
-Task* D_actor_403600_801606B0 = NULL;
+/// Borrowed scrolling-shaft controller created for the scene figure presentation.
+///
+/// It must remain alive through the figure's forward and reverse scroll commands.
+static Task* _gActor403600SceneShaftTask = NULL;
 
-Task* D_actor_403600_801606B4 = NULL;
+/// Optional task exited before the boss's loaded successor is spawned.
+///
+/// Initialized NULL with no recovered assignment; its task kind and lifetime are unproven.
+static Task* _gActor403600DeathCleanupTask = NULL;
 
-/// The boss's last two attack picks, as the chooser numbers them. An attack
-/// that fills both elements is not picked a third time running.
-u16 D_actor_403600_801606B8[2] = { 0, 0 };
+/// The boss's last two accepted, unforced attack picks.
+///
+/// Values use `ACTOR_403600_ATTACK_PICK_`, with 0 for none. A pick present in
+/// both elements is rejected until a different pick enters the record.
+static u16 _gActor403600RecentAttacks[2] = { ACTOR_403600_ATTACK_PICK_NONE, ACTOR_403600_ATTACK_PICK_NONE };
 
-_Actor403600RecentAttackSlotStorage D_actor_403600_801606BC = { 0, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
-
-_Actor403600TransformStorage D_actor_403600_801606E0;
-
-ViewCamera D_actor_403600_80160700;
+/// Next entry of the two-pick history to overwrite (0 or 1), plus unaccessed storage.
+///
+/// Reset at boss spawn and flipped after each accepted, unforced choice.
+static _Actor403600RecentAttackSlotStorage _gActor403600RecentAttackSlot = { 0, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
 
 enum {
     ACTOR_403600_DEFAULT_BLEND_FRAMES = 8,
@@ -448,14 +521,6 @@ enum {
     ACTOR_403600_PLAYER_ZONE_CENTRE  = 1,
     ACTOR_403600_PLAYER_ZONE_FLOOR   = 2,
     ACTOR_403600_PLAYER_ZONE_OUTSIDE = 3
-};
-
-/// Player-animation requests during the boss's scripted knockback.
-enum {
-    ACTOR_403600_PLAYER_ANIM_NONE            = 0,
-    ACTOR_403600_PLAYER_ANIM_HEAVY_KNOCKBACK = 1,
-    ACTOR_403600_PLAYER_ANIM_BACKWARD        = 3,
-    ACTOR_403600_PLAYER_ANIM_FORWARD         = 4
 };
 
 /// Additional animation and player-script slots used by the mode and double handlers.
@@ -638,7 +703,7 @@ static inline void _actor403600InitBossAnimationRig(Actor403600Work* work, TmdOb
     s32 slotIndex;
 
     slotIndex = 1;
-    animationInitContext(&work->rig.anim, D_actor_403600_8016057C, object, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, _gActor403600BodyAnimationSets, object, work->rig.poses, work->rig.slots);
     do {
         animationResetSlot(&work->rig.anim, slotIndex, ACTOR_403600_ANIM_IDLE);
         slotIndex += 1;
@@ -771,26 +836,26 @@ static void _actor403600SpawnBoss(Enemy* enemy, Task* task)
     RotMatrix(&headingAngles, &work->worldCoord.coord);
     work->yaw               = initialYaw;
     displayTask             = taskSpawnFromTable(D_actor_403600_801421A0, 0, 0, 0);
-    D_actor_403600_801606AC = displayTask;
+    _gActor403600BossFxTask = displayTask;
     if (displayTask != 0) {
         taskReparent(task, displayTask);
     }
-    work->childEnemy        = 0;
-    D_actor_403600_801606A8 = task;
-    work->weakPhase         = ACTOR_403600_WEAK_PHASE_NONE;
-    work->recoilSpeed       = 0;
-    work->recoilHold        = 0;
-    work->exposed           = 0;
+    work->childEnemy      = 0;
+    _gActor403600BossTask = task;
+    work->weakPhase       = ACTOR_403600_WEAK_PHASE_NONE;
+    work->recoilSpeed     = 0;
+    work->recoilHold      = 0;
+    work->exposed         = 0;
     _actor403600ResetCombatState(task);
-    D_actor_403600_80160568.animationId = 0;
-    D_actor_403600_801606B8[1]          = 0;
-    D_actor_403600_801606B8[0]          = 0;
-    task->msgTable                      = D_actor_403600_80160504;
-    task->exitCallback                  = _actor403600EnemyExit;
-    work->mode                          = ACTOR_403600_MODE_PARKED;
-    previousTaskState                   = task->state;
-    D_actor_403600_801606BC.nextSlot    = 0;
-    task->state                         = previousTaskState + 1;
+    _gActor403600PlayerAnimationRequest.animationId = ACTOR_403600_PLAYER_ANIM_NONE;
+    _gActor403600RecentAttacks[1]                   = ACTOR_403600_ATTACK_PICK_NONE;
+    _gActor403600RecentAttacks[0]                   = ACTOR_403600_ATTACK_PICK_NONE;
+    task->msgTable                                  = _gActor403600SceneCommandMessages;
+    task->exitCallback                              = _actor403600EnemyExit;
+    work->mode                                      = ACTOR_403600_MODE_PARKED;
+    previousTaskState                               = task->state;
+    _gActor403600RecentAttackSlot.nextSlot          = 0;
+    task->state                                     = previousTaskState + 1;
 }
 
 /// Advances boss control, combat movement, animation and presentation once.
@@ -1365,8 +1430,8 @@ static void _actor403600UpdateMode(Task* task)
                     break;
                 case ACTOR_403600_DEATH_STEP_SPAWN_SUCCESSOR:
                     if (cdCmdIsIdle() & 0xFFFF) {
-                        if (D_actor_403600_801606B4 != 0) {
-                            taskCallExit(D_actor_403600_801606B4);
+                        if (_gActor403600DeathCleanupTask != 0) {
+                            taskCallExit(_gActor403600DeathCleanupTask);
                         }
                         taskSpawnFromTable(D_actor_303600_80162E98, 0, 0, 0);
                         padInputChangeSuppression(PAD_INPUT_SUPPRESSION_CLEAR, PAD_INPUT_SUPPRESS_GAMEPLAY);
@@ -1637,9 +1702,9 @@ static void _actor403600UpdateFightAction(Task* task)
                     work->animId        = (u32)ACTOR_403600_ANIM_DIVE_WINDUP;
                     work->forwardSpeed  = 0x14U;
                     work->verticalSpeed = 0;
-                    work->targetPos.vx  = (s32)D_actor_403600_801605D4.vx;
-                    work->targetPos.vy  = (s32)D_actor_403600_801605D4.vy;
-                    work->targetPos.vz  = (s32)D_actor_403600_801605D4.vz;
+                    work->targetPos.vx  = _gActor403600ArenaHighAnchor.vx;
+                    work->targetPos.vy  = _gActor403600ArenaHighAnchor.vy;
+                    work->targetPos.vz  = _gActor403600ArenaHighAnchor.vz;
                     work->turnRate      = 0x40;
                     work->aimMode       = ACTOR_403600_AIM_TARGET;
                     _actor403600TurnToAim(task);
@@ -1659,13 +1724,13 @@ static void _actor403600UpdateFightAction(Task* task)
                     work->forwardSpeed  = 0x4B0U;
                     work->verticalSpeed = 0;
                     _actor403600TurnToAim(task);
-                    if (work->worldCoord.coord.t[1] < D_actor_403600_801605D4.vy) {
-                        work->worldCoord.coord.t[0] = (s32)D_actor_403600_801605D4.vx;
-                        work->worldCoord.coord.t[1] = (s32)D_actor_403600_801605D4.vy;
-                        work->worldCoord.coord.t[2] = (s32)D_actor_403600_801605D4.vz;
-                        work->targetPos.vx          = (s32)D_actor_403600_801605DC.vx;
-                        work->targetPos.vy          = (s32)D_actor_403600_801605DC.vy;
-                        work->targetPos.vz          = (s32)D_actor_403600_801605DC.vz;
+                    if (work->worldCoord.coord.t[1] < _gActor403600ArenaHighAnchor.vy) {
+                        work->worldCoord.coord.t[0] = _gActor403600ArenaHighAnchor.vx;
+                        work->worldCoord.coord.t[1] = _gActor403600ArenaHighAnchor.vy;
+                        work->worldCoord.coord.t[2] = _gActor403600ArenaHighAnchor.vz;
+                        work->targetPos.vx          = _gActor403600SlamTarget.vx;
+                        work->targetPos.vy          = _gActor403600SlamTarget.vy;
+                        work->targetPos.vz          = _gActor403600SlamTarget.vz;
                         work->aimMode               = ACTOR_403600_AIM_TARGET_SNAP;
                         _actor403600TurnToAim(task);
                         work->ignorePushOut = 1;
@@ -1683,7 +1748,7 @@ static void _actor403600UpdateFightAction(Task* task)
                         return;
                     }
                     if (!((u16)work->phaseFrame & 1)) {
-                        effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_SHOCK_RING, &task->extra.tmd->coords[1], 0, &D_actor_403600_80160664);
+                        effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_SHOCK_RING, &task->extra.tmd->coords[1], 0, &_gActor403600BodyEffectOffset);
                         effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_SHOCK_RING, &task->extra.tmd->coords[15], 0x800, NULL);
                         effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_SHOCK_RING, &task->extra.tmd->coords[19], 0x800, NULL);
                     }
@@ -1691,63 +1756,63 @@ static void _actor403600UpdateFightAction(Task* task)
                     work->forwardSpeed  = 0x320U;
                     work->verticalSpeed = 0;
                     _actor403600AdvanceRoll(task, 0x14);
-                    if (((D_actor_403600_801605DC.vy - 0x1388) < work->worldCoord.coord.t[1]) && (work->actionParam == 0)) {
+                    if (((_gActor403600SlamTarget.vy - 0x1388) < work->worldCoord.coord.t[1]) && (work->actionParam == 0)) {
                         work->actionParam  = 1;
                         slamDiveSoundCoord = &work->worldCoord;
                         ACTOR_403600_PLAY_FIGHT_SOUND(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, 5), slamDiveSoundCoord, slamDivePan, slamDiveDepth);
                     }
-                    if ((D_actor_403600_801605DC.vy - 0x3E8) < work->worldCoord.coord.t[1]) {
+                    if ((_gActor403600SlamTarget.vy - 0x3E8) < work->worldCoord.coord.t[1]) {
                         padScriptSpawnVariableMotorRamp(0xA, 0xFF, 0x50);
                         slamHitResponse = ACTOR_403600_SLAM_RESPONSE_NONE;
                         if (gPlayerStatus.coordMtx->t[1] < -0xF3B) {
-                            slamCoord                     = &work->worldCoord;
-                            D_actor_403600_801606A4.power = (u16)D_actor_403600_80150EA4;
+                            slamCoord                       = &work->worldCoord;
+                            _gActor403600PlayerDamage.power = D_actor_403600_80150EA4;
                             _actor403600MeasurePlayerRangeBearing(slamCoord, &playerRange, &playerBearing);
                             if ((u32)(playerRange - 0xFA0) < 0x7D1U) {
-                                playerActor                      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
-                                D_actor_403600_801606A4.reaction = 0;
-                                D_actor_403600_801606A4.power    = (u16)((u16)D_actor_403600_801606A4.power >> 2);
-                                playerActor->hitRegion           = 2;
-                                playerActor->pendingDamage       = (u16)D_actor_403600_801606A4.power;
-                                playerActor->damageReaction      = GAME_ACTOR_REACTION_ORDINARY;
+                                playerActor                        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
+                                _gActor403600PlayerDamage.reaction = GAME_ACTOR_REACTION_ORDINARY;
+                                _gActor403600PlayerDamage.power    = _gActor403600PlayerDamage.power >> 2;
+                                playerActor->hitRegion             = 2;
+                                playerActor->pendingDamage         = _gActor403600PlayerDamage.power;
+                                playerActor->damageReaction        = GAME_ACTOR_REACTION_ORDINARY;
                             } else {
                                 if ((u32)(playerRange - 0x9C4) < 0x5DCU) {
-                                    D_actor_403600_801606A4.reaction = 0;
-                                    D_actor_403600_801606A4.power    = (u16)((u16)D_actor_403600_801606A4.power >> 1);
-                                    slamFacingMagnitude              = _actor403600BearingFromPlayer(slamCoord);
+                                    _gActor403600PlayerDamage.reaction = GAME_ACTOR_REACTION_ORDINARY;
+                                    _gActor403600PlayerDamage.power    = _gActor403600PlayerDamage.power >> 1;
+                                    slamFacingMagnitude                = _actor403600BearingFromPlayer(slamCoord);
                                     if (slamFacingMagnitude < 0) {
                                         slamFacingMagnitude = -slamFacingMagnitude;
                                     }
                                     if (slamFacingMagnitude >= 0x401) {
-                                        D_actor_403600_80160568.animationId = ACTOR_403600_PLAYER_ANIM_FORWARD;
+                                        _gActor403600PlayerAnimationRequest.animationId = ACTOR_403600_PLAYER_ANIM_FORWARD;
                                         _actor403600PlacePlayerForKnockback(task, 0);
                                         work->knockbackSpeed = 0x64;
                                     } else {
-                                        D_actor_403600_80160568.animationId = ACTOR_403600_PLAYER_ANIM_BACKWARD;
+                                        _gActor403600PlayerAnimationRequest.animationId = ACTOR_403600_PLAYER_ANIM_BACKWARD;
                                         _actor403600PlacePlayerForKnockback(task, 1);
                                         work->knockbackSpeed = -0x64;
                                     }
-                                    TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
+                                    TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &_gActor403600PlayerAnimationRequest, 0);
                                     slamHitResponse      = ACTOR_403600_SLAM_RESPONSE_SHORT_KNOCKBACK;
                                     work->knockbackFrame = 0;
                                 } else if (playerRange < 0x9C4U) {
-                                    D_actor_403600_801606A4.reaction    = 0;
-                                    D_actor_403600_80160568.animationId = ACTOR_403600_PLAYER_ANIM_HEAVY_KNOCKBACK;
+                                    _gActor403600PlayerDamage.reaction              = GAME_ACTOR_REACTION_ORDINARY;
+                                    _gActor403600PlayerAnimationRequest.animationId = ACTOR_403600_PLAYER_ANIM_HEAVY_KNOCKBACK;
                                     _actor403600PlacePlayerForKnockback(task, 1);
                                     work->knockbackSpeed = -0x190;
-                                    TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
+                                    TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &_gActor403600PlayerAnimationRequest, 0);
                                     slamHitResponse      = ACTOR_403600_SLAM_RESPONSE_HEAVY_KNOCKBACK;
                                     work->knockbackFrame = 0;
                                 }
                             }
                             if (slamHitResponse != ACTOR_403600_SLAM_RESPONSE_NONE) {
                                 ACTOR_403600_PLAY_FIGHT_SOUND(6, playerCoord, slamPlayerHitPan, slamPlayerHitDepth);
-                                taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(&D_actor_403600_801606A4, 0), 0);
+                                taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(&_gActor403600PlayerDamage, 0), 0);
                             }
                         }
                         slamImpactSoundCoord = &work->worldCoord;
                         ACTOR_403600_PLAY_FIGHT_SOUND(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, 6), slamImpactSoundCoord, slamImpactPan, slamImpactDepth);
-                        effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_ARC_FLASH, &task->extra.tmd->coords[1], 0, &D_actor_403600_80160664);
+                        effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_ARC_FLASH, &task->extra.tmd->coords[1], 0, &_gActor403600BodyEffectOffset);
                         work->shakeFrames     = 0x32;
                         work->shakeFadeFrames = 0x10;
                         work->phaseFrame      = 0;
@@ -1801,9 +1866,9 @@ static void _actor403600UpdateFightAction(Task* task)
                     work->animId        = (u32)ACTOR_403600_ANIM_DIVE_WINDUP;
                     work->forwardSpeed  = 0x14U;
                     work->verticalSpeed = 0;
-                    work->targetPos.vx  = (s32)D_actor_403600_801605D4.vx;
-                    work->targetPos.vy  = (s32)D_actor_403600_801605D4.vy;
-                    work->targetPos.vz  = (s32)D_actor_403600_801605D4.vz;
+                    work->targetPos.vx  = _gActor403600ArenaHighAnchor.vx;
+                    work->targetPos.vy  = _gActor403600ArenaHighAnchor.vy;
+                    work->targetPos.vz  = _gActor403600ArenaHighAnchor.vz;
                     work->turnRate      = 0x40;
                     work->aimMode       = ACTOR_403600_AIM_TARGET;
                     _actor403600TurnToAim(task);
@@ -1911,17 +1976,17 @@ static void _actor403600UpdateFightAction(Task* task)
                         work->verticalSpeed = 0;
                         work->phaseFrame    = 0;
                         if (work->playerZone == ACTOR_403600_PLAYER_ZONE_CENTRE) {
-                            work->targetPos.vx = D_actor_403600_8016063C[(s16)work->swoopCorners].vx;
-                            work->targetPos.vy = D_actor_403600_8016063C[(s16)work->swoopCorners].vy + 0xFA0;
-                            work->targetPos.vz = D_actor_403600_8016063C[(s16)work->swoopCorners].vz;
+                            work->targetPos.vx = _gActor403600SwoopHighCorners[(s16)work->swoopCorners].vx;
+                            work->targetPos.vy = _gActor403600SwoopHighCorners[(s16)work->swoopCorners].vy + 0xFA0;
+                            work->targetPos.vz = _gActor403600SwoopHighCorners[(s16)work->swoopCorners].vz;
                         } else if ((u16)work->swoopCorners & 2) {
-                            work->targetPos.vx = D_actor_403600_8016064C[1].vx;
-                            work->targetPos.vy = D_actor_403600_8016064C[1].vy;
-                            work->targetPos.vz = D_actor_403600_8016064C[1].vz;
+                            work->targetPos.vx = _gActor403600SwoopLowCorners[1].vx;
+                            work->targetPos.vy = _gActor403600SwoopLowCorners[1].vy;
+                            work->targetPos.vz = _gActor403600SwoopLowCorners[1].vz;
                         } else {
-                            work->targetPos.vx = D_actor_403600_8016064C[0].vx;
-                            work->targetPos.vy = D_actor_403600_8016064C[0].vy;
-                            work->targetPos.vz = D_actor_403600_8016064C[0].vz;
+                            work->targetPos.vx = _gActor403600SwoopLowCorners[0].vx;
+                            work->targetPos.vy = _gActor403600SwoopLowCorners[0].vy;
+                            work->targetPos.vz = _gActor403600SwoopLowCorners[0].vz;
                         }
                         work->step = (s16)((u16)work->step + 1);
                         return;
@@ -1976,7 +2041,7 @@ static void _actor403600UpdateFightAction(Task* task)
                     work->verticalSpeed = 0;
                     work->turnRate      = 0xA0;
                     if (!((u16)work->phaseFrame & 1)) {
-                        effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_SHOCK_RING, &task->extra.tmd->coords[1], 0, &D_actor_403600_80160664);
+                        effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_SHOCK_RING, &task->extra.tmd->coords[1], 0, &_gActor403600BodyEffectOffset);
                         effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_SHOCK_RING, &task->extra.tmd->coords[15], 0x800, NULL);
                         effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_SHOCK_RING, &task->extra.tmd->coords[19], 0x800, NULL);
                     }
@@ -1990,7 +2055,7 @@ static void _actor403600UpdateFightAction(Task* task)
                     swoopPlayerRange   = SquareRoot0(swoopDeltaXSquared + swoopDeltaYSquared + (swoopDeltaZ * swoopDeltaZ));
                     playerRange        = swoopPlayerRange;
                     if (swoopPlayerRange < 0x76DU) {
-                        swoopPlayerAnimation = &D_actor_403600_80160568;
+                        swoopPlayerAnimation = &_gActor403600PlayerAnimationRequest;
                         if (swoopPlayerAnimation->animationId == ACTOR_403600_PLAYER_ANIM_NONE) {
                             padScriptSpawnVariableMotorRamp(0x14, 0xFF, 0x50);
                             work->knockbackFrame = 0;
@@ -2118,7 +2183,7 @@ static void _actor403600UpdateFightAction(Task* task)
                 case ACTOR_403600_RUSH_STEP_FLIGHT:
                     if (!((u16)work->phaseFrame & 1)) {
                         if (work->actionParam != ACTOR_403600_RUSH_FINAL_PASS) {
-                            effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_SHOCK_RING, &task->extra.tmd->coords[1], 0, &D_actor_403600_80160664);
+                            effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_SHOCK_RING, &task->extra.tmd->coords[1], 0, &_gActor403600BodyEffectOffset);
                             effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_SHOCK_RING, &task->extra.tmd->coords[15], 0x800, NULL);
                             effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_SHOCK_RING, &task->extra.tmd->coords[19], 0x800, NULL);
                         }
@@ -2129,19 +2194,19 @@ static void _actor403600UpdateFightAction(Task* task)
                     rushCoord = &work->worldCoord;
                     _actor403600MeasurePlayerRangeBearing(rushCoord, &playerRange, &playerBearing);
                     if (playerRange < 0x5DDU) {
-                        rushPlayerAnimation = &D_actor_403600_80160568;
+                        rushPlayerAnimation = &_gActor403600PlayerAnimationRequest;
                         if (rushPlayerAnimation->animationId == ACTOR_403600_PLAYER_ANIM_NONE) {
                             if (work->actionParam == ACTOR_403600_RUSH_FINAL_PASS) {
                                 padScriptSpawnVariableMotorRamp(0xA, 0xFF, 0x50);
-                                D_actor_403600_801606A4.reaction = 0xA;
-                                rushPlayerAnimation->animationId = ACTOR_403600_PLAYER_ANIM_HEAVY_KNOCKBACK;
-                                D_actor_403600_801606A4.power    = (u16)D_actor_403600_80150EAC;
+                                _gActor403600PlayerDamage.reaction = GAME_ACTOR_REACTION_CONFUSION;
+                                rushPlayerAnimation->animationId   = ACTOR_403600_PLAYER_ANIM_HEAVY_KNOCKBACK;
+                                _gActor403600PlayerDamage.power    = D_actor_403600_80150EAC;
                                 _actor403600PlacePlayerForKnockback(task, 1);
                                 work->knockbackSpeed = -0x190;
                                 TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, rushPlayerAnimation, 0);
                                 work->knockbackFrame = 0;
                                 ACTOR_403600_PLAY_FIGHT_SOUND(6, playerCoord, rushFinalHitPan, rushFinalHitDepth);
-                                taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(&D_actor_403600_801606A4, 0), 0);
+                                taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(&_gActor403600PlayerDamage, 0), 0);
                             } else {
                                 padScriptSpawnVariableMotorRamp(0x14, 0xB0, 0x50);
                                 work->knockbackFrame = 0;
@@ -2283,7 +2348,7 @@ static void _actor403600UpdateFightAction(Task* task)
                     break;
                 case ACTOR_403600_ANIM_SUMMON:
                     if ((work->phaseFrame == 1) && (work->childEnemy == 0)) {
-                        work->childEnemy = enemySpawnFromTable(D_actor_403600_80160514, ACTOR_403600_DOUBLE_TASK, worldTargetGetActorLockMask(&enemy->node), 0);
+                        work->childEnemy = enemySpawnFromTable(gActor403600TaskTable, ACTOR_403600_DOUBLE_TASK, worldTargetGetActorLockMask(&enemy->node), 0);
                     }
                     if (work->phaseFrame >= 0x1E) {
                         work->forwardSpeed  = -0xAU;
@@ -2359,8 +2424,8 @@ static void _actor403600UpdateFightAction(Task* task)
                         work->screenDistortion = (u32)ONE;
                         ACTOR_403600_PLAY_FIGHT_SOUND(6, playerCoord, drainPlayerHitPan, drainPlayerHitDepth);
                         taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(&D_actor_403600_80150E9C, ACTOR_403600_ATTACK_DRAIN), 0);
-                        D_actor_403600_80160568.animationId = ACTOR_403600_PLAYER_ANIM_FORWARD;
-                        TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
+                        _gActor403600PlayerAnimationRequest.animationId = ACTOR_403600_PLAYER_ANIM_FORWARD;
+                        TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &_gActor403600PlayerAnimationRequest, 0);
                         remainingMp      = playerStatus->mp - ACTOR_403600_DRAIN_MP_LOSS;
                         playerStatus->mp = remainingMp;
                         if ((remainingMp << 0x10) <= 0) {
@@ -2503,7 +2568,7 @@ static inline void _actor403600InitRushArm(_Actor403600RushPassScratch* scratch)
 {
     scratch->offset.vx = 0;
     scratch->offset.vy = 0;
-    scratch->offset.vz = ACTOR_403600_RUSH_CIRCLE_Z_EDGE - D_actor_403600_801605D4.vz;
+    scratch->offset.vz = ACTOR_403600_RUSH_CIRCLE_Z_EDGE - _gActor403600ArenaHighAnchor.vz;
     gfxSetRotIdentity(&scratch->rotation);
 }
 
@@ -2519,9 +2584,9 @@ static inline void _actor403600PlaceOnRushCircle(Actor403600Work* work, _Actor40
     gte_ldv0(&scratch->offset);
     gte_rtv0();
     gte_stsv(&scratch->offset);
-    work->worldCoord.coord.t[0] = scratch->offset.vx + D_actor_403600_801605D4.vx;
+    work->worldCoord.coord.t[0] = scratch->offset.vx + _gActor403600ArenaHighAnchor.vx;
     work->worldCoord.coord.t[1] = gPlayerStatus.coordMtx->t[1] - ACTOR_403600_RUSH_PLAYER_HEIGHT_OFFSET;
-    work->worldCoord.coord.t[2] = scratch->offset.vz + D_actor_403600_801605D4.vz;
+    work->worldCoord.coord.t[2] = scratch->offset.vz + _gActor403600ArenaHighAnchor.vz;
 }
 
 /// Places the boss for its next rush pass or the final central dive.
@@ -2541,19 +2606,19 @@ static void _actor403600PlaceRushPass(Task* task)
     work = task->work;
     // The final dive uses fixed heights rather than the player-height circle.
     if (work->actionParam == work->rushPasses) {
-        work->worldCoord.coord.t[0] = D_actor_403600_801605D4.vx;
+        work->worldCoord.coord.t[0] = _gActor403600ArenaHighAnchor.vx;
         work->worldCoord.coord.t[1] = ACTOR_403600_RUSH_FINAL_START_Y;
-        work->worldCoord.coord.t[2] = D_actor_403600_801605D4.vz;
-        work->targetPos.vx          = D_actor_403600_801605D4.vx;
+        work->worldCoord.coord.t[2] = _gActor403600ArenaHighAnchor.vz;
+        work->targetPos.vx          = _gActor403600ArenaHighAnchor.vx;
         work->targetPos.vy          = ACTOR_403600_RUSH_FINAL_TARGET_Y;
-        work->targetPos.vz          = D_actor_403600_801605D4.vz;
+        work->targetPos.vz          = _gActor403600ArenaHighAnchor.vz;
         work->actionParam           = ACTOR_403600_RUSH_FINAL_PASS;
         return;
     }
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor403600RushPassScratch);
     if (!(work->actionParam & 1)) {
-        scratch->offset.vx = gPlayerStatus.coordMtx->t[0] - (u16)D_actor_403600_801605D4.vx;
-        scratch->offset.vz = gPlayerStatus.coordMtx->t[2] - (u16)D_actor_403600_801605D4.vz;
+        scratch->offset.vx = gPlayerStatus.coordMtx->t[0] - (u16)_gActor403600ArenaHighAnchor.vx;
+        scratch->offset.vz = gPlayerStatus.coordMtx->t[2] - (u16)_gActor403600ArenaHighAnchor.vz;
         scratch->bearing   = ratan2(scratch->offset.vx, scratch->offset.vz);
         if (ABS(scratch->bearing) > ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
             scratch->bearing = (scratch->bearing > 0) ? scratch->bearing - ACTOR_TRANSFORM_ANGLE_TURN : ACTOR_TRANSFORM_ANGLE_TURN - scratch->bearing;
@@ -2571,9 +2636,9 @@ static void _actor403600PlaceRushPass(Task* task)
             work->targetPos.vy = gPlayerStatus.coordMtx->t[1] - ACTOR_403600_RUSH_PLAYER_HEIGHT_OFFSET;
             work->targetPos.vz = gPlayerStatus.coordMtx->t[2];
         } else {
-            work->targetPos.vx = D_actor_403600_801605D4.vx;
+            work->targetPos.vx = _gActor403600ArenaHighAnchor.vx;
             work->targetPos.vy = gPlayerStatus.coordMtx->t[1] - ACTOR_403600_RUSH_PLAYER_HEIGHT_OFFSET;
-            work->targetPos.vz = D_actor_403600_801605D4.vz;
+            work->targetPos.vz = _gActor403600ArenaHighAnchor.vz;
         }
         work->rushAngle = scratch->bearing + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
         // Keep the original fold: a negative input below -2048 becomes 4096-input.
@@ -2603,8 +2668,8 @@ static inline s32 _actor403600MeasureFlightPoint(_Actor403600NearestPointScratch
     s32 deltaX;
     s32 deltaZ;
 
-    scratch->deltaX = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[pointIndex].vx;
-    deltaZ          = gPlayerStatus.coordMtx->t[2] - D_actor_403600_801605F4[pointIndex].vz;
+    scratch->deltaX = gPlayerStatus.coordMtx->t[0] - _gActor403600FlightPoints[pointIndex].vx;
+    deltaZ          = gPlayerStatus.coordMtx->t[2] - _gActor403600FlightPoints[pointIndex].vz;
     scratch->deltaZ = deltaZ;
     deltaX          = scratch->deltaX;
     return SquareRoot0((deltaX * deltaX) + (deltaZ * deltaZ));
@@ -2658,7 +2723,7 @@ static void _actor403600ChooseFlightTarget(Task* task, s32 useRushReferences)
         scratch->distances[1] = referenceDistanceB;
         destinationIndex      = referenceDistanceB >= scratch->distances[0];
     }
-    points             = D_actor_403600_801605F4;
+    points             = _gActor403600FlightPoints;
     destination        = (destinationIndex & 0xFF) + points;
     work->targetPos.vx = destination->vx;
     work->targetPos.vy = gPlayerStatus.coordMtx->t[1] - ACTOR_403600_FLIGHT_PLAYER_HEIGHT_OFFSET;
@@ -2694,7 +2759,7 @@ static inline void _actor403600StartWeakenMode(Actor403600Work* work, Enemy* ene
 /// integrated here. Borrows the work and scratch blocks and composes no cache.
 static inline void _actor403600ApplyGridCorrection(Task* task, Actor403600Work* work, const ActorContactDeltaWideScratch* scratch)
 {
-    if ((task == D_actor_403600_801606A8) && (work->ignorePushOut == 0)) {
+    if ((task == _gActor403600BossTask) && (work->ignorePushOut == 0)) {
         work->worldCoord.coord.t[0] += scratch->delta.fixed.vx.halves.integer;
         work->worldCoord.coord.t[1] += scratch->delta.fixed.vy.halves.integer;
         work->worldCoord.coord.t[2] += scratch->delta.fixed.vz.halves.integer;
@@ -2863,7 +2928,7 @@ static void _actor403600ProcessContacts(Task* task)
                 }
             }
         }
-        if (task != D_actor_403600_801606A8) {
+        if (task != _gActor403600BossTask) {
             damageAccumulateLifeDrainHp(enemy, work->hitContacts[contactIndex].key.value, damage, 0);
             // This tests row-index bit 3; the intended attack grouping is unproven.
             if (work->hitContacts[contactIndex].key.value & 8) {
@@ -2880,16 +2945,16 @@ static void _actor403600ProcessContacts(Task* task)
             damageAccumulateLifeDrainHp(enemy, work->hitContacts[contactIndex].key.value, damage, 0);
             _actor403600ApplyDamage(task, damage);
             if (work->mode == ACTOR_403600_MODE_FIGHT) {
-                for (recoilRow = 0; recoilRow < ARRAY_SIZE(D_actor_403600_8016066C); recoilRow++) {
-                    if (damage >= D_actor_403600_8016066C[recoilRow].minDamage) {
-                        work->recoilSpeed = D_actor_403600_8016066C[recoilRow].recoilSpeed;
-                        work->recoilHold  = D_actor_403600_8016066C[recoilRow].recoilHold;
+                for (recoilRow = 0; recoilRow < ARRAY_SIZE(_gActor403600RecoilTable); recoilRow++) {
+                    if (damage >= _gActor403600RecoilTable[recoilRow].minDamage) {
+                        work->recoilSpeed = _gActor403600RecoilTable[recoilRow].recoilSpeed;
+                        work->recoilHold  = _gActor403600RecoilTable[recoilRow].recoilHold;
                     }
                 }
             }
         }
         work->damageTaken += damage;
-        if ((enemy->hp > 0) && (task == D_actor_403600_801606A8)) {
+        if ((enemy->hp > 0) && (task == _gActor403600BossTask)) {
             effectSpawnHit(damageGetPlayerAttackEffectId(work->hitContacts[contactIndex].key.value), &work->worldCoord, &work->hitEffectOffset, &work->hitEffectArg);
         }
         hitCooldown = damageGetPlayerAttackHitCooldown(work->hitContacts[contactIndex].key.value);
@@ -3040,8 +3105,8 @@ static void _actor403600ApplyDamage(Task* task, s32 damage)
         }
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         roomEffectRequestCancelPe();
-        gGameSession->eventState            = ACTOR_403600_DEFEAT_SCENE_HOLD;
-        D_actor_403600_80160568.animationId = ACTOR_403600_PLAYER_ANIMATION_IDLE;
+        gGameSession->eventState                        = ACTOR_403600_DEFEAT_SCENE_HOLD;
+        _gActor403600PlayerAnimationRequest.animationId = ACTOR_403600_PLAYER_ANIMATION_IDLE;
         taskMessageDispatch(*gPlayerActorTasks, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
         _actor403600ResetForDeath(task);
         _actor403600SetWeakTextures(0);
@@ -3403,8 +3468,8 @@ static s32 _actor403600PlacePlayerForKnockback(Task* unusedTask, u16 placementFl
 
     playerTask  = *gPlayerActorTasks;
     playerCoord = playerTask->extra.tmd->coords;
-    deltaX      = D_actor_403600_801605E4.vx - playerCoord->coord.t[0];
-    deltaZ      = D_actor_403600_801605E4.vz - playerCoord->coord.t[2];
+    deltaX      = _gActor403600KnockbackAnchorA.vx - playerCoord->coord.t[0];
+    deltaZ      = _gActor403600KnockbackAnchorA.vz - playerCoord->coord.t[2];
     placedAtA   = 0;
     distanceA   = SquareRoot0((deltaX * deltaX) + (deltaZ * deltaZ));
     bearingA    = ratan2(deltaX, deltaZ);
@@ -3413,8 +3478,8 @@ static s32 _actor403600PlacePlayerForKnockback(Task* unusedTask, u16 placementFl
     } else if (bearingA < -ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
         bearingA += ACTOR_TRANSFORM_ANGLE_TURN;
     }
-    deltaX    = D_actor_403600_801605EC.vx - playerCoord->coord.t[0];
-    deltaZ    = D_actor_403600_801605EC.vz - playerCoord->coord.t[2];
+    deltaX    = _gActor403600KnockbackAnchorB.vx - playerCoord->coord.t[0];
+    deltaZ    = _gActor403600KnockbackAnchorB.vz - playerCoord->coord.t[2];
     distanceB = SquareRoot0((deltaX * deltaX) + (deltaZ * deltaZ));
     bearingB  = ratan2(deltaX, deltaZ);
     if (bearingB >= ACTOR_TRANSFORM_ANGLE_HALF_TURN + 1) {
@@ -3423,30 +3488,30 @@ static s32 _actor403600PlacePlayerForKnockback(Task* unusedTask, u16 placementFl
         bearingB += ACTOR_TRANSFORM_ANGLE_TURN;
     }
     if ((placementFlags & ACTOR_403600_KNOCKBACK_FACE_FAR_ANCHOR) ? (distanceB < distanceA) : (distanceA < distanceB)) {
-        D_actor_403600_801606E0.placement.rot.vy = bearingA;
+        _gActor403600PlayerPlacement.placement.rot.vy = bearingA;
     } else {
-        D_actor_403600_801606E0.placement.rot.vy = bearingB;
+        _gActor403600PlayerPlacement.placement.rot.vy = bearingB;
     }
-    playerCoord->composeStamp                = GRAPHICS_COORD_DIRTY;
-    D_actor_403600_801606E0.placement.rot.vx = 0;
-    D_actor_403600_801606E0.placement.rot.vz = 0;
+    playerCoord->composeStamp                     = GRAPHICS_COORD_DIRTY;
+    _gActor403600PlayerPlacement.placement.rot.vx = 0;
+    _gActor403600PlayerPlacement.placement.rot.vz = 0;
     if (placementFlags & ACTOR_403600_KNOCKBACK_RELOCATE) {
-        D_actor_403600_801606E0.placement.pos.vy = playerCoord->coord.t[1];
-        if (D_actor_403600_801606E0.placement.rot.vy == bearingA) {
-            D_actor_403600_801606E0.placement.pos.vx = D_actor_403600_801605EC.vx;
-            D_actor_403600_801606E0.placement.pos.vz = D_actor_403600_801605EC.vz;
-            placedAtA                                = 0;
+        _gActor403600PlayerPlacement.placement.pos.vy = playerCoord->coord.t[1];
+        if (_gActor403600PlayerPlacement.placement.rot.vy == bearingA) {
+            _gActor403600PlayerPlacement.placement.pos.vx = _gActor403600KnockbackAnchorB.vx;
+            _gActor403600PlayerPlacement.placement.pos.vz = _gActor403600KnockbackAnchorB.vz;
+            placedAtA                                     = 0;
         } else {
-            D_actor_403600_801606E0.placement.pos.vx = D_actor_403600_801605E4.vx;
-            D_actor_403600_801606E0.placement.pos.vz = D_actor_403600_801605E4.vz;
-            placedAtA                                = 1;
+            _gActor403600PlayerPlacement.placement.pos.vx = _gActor403600KnockbackAnchorA.vx;
+            _gActor403600PlayerPlacement.placement.pos.vz = _gActor403600KnockbackAnchorA.vz;
+            placedAtA                                     = 1;
         }
     } else {
-        D_actor_403600_801606E0.placement.pos.vx = playerCoord->coord.t[0];
-        D_actor_403600_801606E0.placement.pos.vy = playerCoord->coord.t[1];
-        D_actor_403600_801606E0.placement.pos.vz = playerCoord->coord.t[2];
+        _gActor403600PlayerPlacement.placement.pos.vx = playerCoord->coord.t[0];
+        _gActor403600PlayerPlacement.placement.pos.vy = playerCoord->coord.t[1];
+        _gActor403600PlayerPlacement.placement.pos.vz = playerCoord->coord.t[2];
     }
-    TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_403600_801606E0.placement, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_PLACE, &_gActor403600PlayerPlacement.placement, 0);
     return placedAtA;
 }
 
@@ -3466,13 +3531,6 @@ static void _actor403600ChooseAttack(Task* task)
         ACTOR_403600_PLAYER_CENTRE_X      = 4000,
         ACTOR_403600_PLAYER_CENTRE_Z      = 3000,
         ACTOR_403600_PLAYER_CENTRE_SPAN   = 8001,
-        ACTOR_403600_ATTACK_PICK_NONE     = 0,
-        ACTOR_403600_ATTACK_PICK_SLAM     = 1,
-        ACTOR_403600_ATTACK_PICK_VOLLEY   = 2,
-        ACTOR_403600_ATTACK_PICK_SWOOP    = 3,
-        ACTOR_403600_ATTACK_PICK_RUSH     = 4,
-        ACTOR_403600_ATTACK_PICK_SUMMON   = 5,
-        ACTOR_403600_ATTACK_PICK_DRAIN    = 6,
         ACTOR_403600_SUMMON_LIMIT         = 10,
         ACTOR_403600_DRAIN_CHARGE_FRAMES  = 210,
         ACTOR_403600_DRAIN_FIRST_MP_DELAY = 20,
@@ -3575,19 +3633,19 @@ static void _actor403600ChooseAttack(Task* task)
         }
     }
     // Forced picks bypass both combat gates and the two-pick repetition history.
-    if (D_actor_403600_80160695 != 0) {
-        attackPick = D_actor_403600_80160694;
+    if (_gActor403600ForceAttackPick != 0) {
+        attackPick = _gActor403600ForcedAttackPick;
     } else {
         if (!((((u32)(attackPick - ACTOR_403600_ATTACK_PICK_VOLLEY) >= 2U) || (enemy->hp <= work->hpAt60Percent)) &&
               ((attackPick != ACTOR_403600_ATTACK_PICK_SUMMON) ||
                ((enemy->hp <= work->hpAt35Percent) && (work->summonCount < ACTOR_403600_SUMMON_LIMIT))) &&
-              ((D_actor_403600_801606B8[0] != attackPick) ||
-               (D_actor_403600_801606B8[1] != attackPick)))) {
+              ((_gActor403600RecentAttacks[0] != attackPick) ||
+               (_gActor403600RecentAttacks[1] != attackPick)))) {
             return;
         }
-        recentAttackSlot                          = D_actor_403600_801606BC.nextSlot;
-        D_actor_403600_801606B8[recentAttackSlot] = (u16)attackPick;
-        D_actor_403600_801606BC.nextSlot          = recentAttackSlot ^ 1;
+        recentAttackSlot                             = _gActor403600RecentAttackSlot.nextSlot;
+        _gActor403600RecentAttacks[recentAttackSlot] = (u16)attackPick;
+        _gActor403600RecentAttackSlot.nextSlot       = recentAttackSlot ^ 1;
     }
     // Pick numbers 1..6 map to action initialization; the action values are separate.
     attackCase = attackPick - ACTOR_403600_ATTACK_PICK_SLAM;
@@ -3605,45 +3663,45 @@ static void _actor403600ChooseAttack(Task* task)
             work->action      = ACTOR_403600_ACTION_VOLLEY;
             return;
         case ACTOR_403600_ATTACK_PICK_SWOOP - ACTOR_403600_ATTACK_PICK_SLAM:
-            cornerDelta         = gPlayerStatus.coordMtx->t[0] - D_actor_403600_8016063C[0].vx;
+            cornerDelta         = gPlayerStatus.coordMtx->t[0] - _gActor403600SwoopHighCorners[0].vx;
             highCornerAXSquared = cornerDelta * cornerDelta;
-            cornerDelta         = gPlayerStatus.coordMtx->t[2] - D_actor_403600_8016063C[0].vz;
+            cornerDelta         = gPlayerStatus.coordMtx->t[2] - _gActor403600SwoopHighCorners[0].vz;
             highCornerARange    = SquareRoot0(highCornerAXSquared + (cornerDelta * cornerDelta));
-            cornerDelta         = gPlayerStatus.coordMtx->t[0] - D_actor_403600_8016063C[1].vx;
+            cornerDelta         = gPlayerStatus.coordMtx->t[0] - _gActor403600SwoopHighCorners[1].vx;
             highCornerBXSquared = cornerDelta * cornerDelta;
-            cornerDelta         = gPlayerStatus.coordMtx->t[2] - D_actor_403600_8016063C[1].vz;
+            cornerDelta         = gPlayerStatus.coordMtx->t[2] - _gActor403600SwoopHighCorners[1].vz;
             highCornerBRange    = SquareRoot0(highCornerBXSquared + (cornerDelta * cornerDelta));
             if (work->playerZone == ACTOR_403600_PLAYER_ZONE_CENTRE) {
                 if (highCornerARange < highCornerBRange) {
                     work->swoopCorners = 0U;
-                    work->targetPos.vx = D_actor_403600_8016063C[1].vx;
-                    work->targetPos.vy = D_actor_403600_8016063C[1].vy;
-                    work->targetPos.vz = D_actor_403600_8016063C[1].vz;
+                    work->targetPos.vx = _gActor403600SwoopHighCorners[1].vx;
+                    work->targetPos.vy = _gActor403600SwoopHighCorners[1].vy;
+                    work->targetPos.vz = _gActor403600SwoopHighCorners[1].vz;
                 } else {
                     work->swoopCorners = 1U;
-                    work->targetPos.vx = D_actor_403600_8016063C[0].vx;
-                    work->targetPos.vy = D_actor_403600_8016063C[0].vy;
-                    work->targetPos.vz = D_actor_403600_8016063C[0].vz;
+                    work->targetPos.vx = _gActor403600SwoopHighCorners[0].vx;
+                    work->targetPos.vy = _gActor403600SwoopHighCorners[0].vy;
+                    work->targetPos.vz = _gActor403600SwoopHighCorners[0].vz;
                 }
             } else {
                 if (highCornerARange < highCornerBRange) {
                     work->swoopCorners = 0U;
-                    work->targetPos.vx = D_actor_403600_8016063C[0].vx;
-                    work->targetPos.vy = D_actor_403600_8016063C[0].vy;
-                    work->targetPos.vz = D_actor_403600_8016063C[0].vz;
+                    work->targetPos.vx = _gActor403600SwoopHighCorners[0].vx;
+                    work->targetPos.vy = _gActor403600SwoopHighCorners[0].vy;
+                    work->targetPos.vz = _gActor403600SwoopHighCorners[0].vz;
                 } else {
                     work->swoopCorners = 1U;
-                    work->targetPos.vx = D_actor_403600_8016063C[1].vx;
-                    work->targetPos.vy = D_actor_403600_8016063C[1].vy;
-                    work->targetPos.vz = D_actor_403600_8016063C[1].vz;
+                    work->targetPos.vx = _gActor403600SwoopHighCorners[1].vx;
+                    work->targetPos.vy = _gActor403600SwoopHighCorners[1].vy;
+                    work->targetPos.vz = _gActor403600SwoopHighCorners[1].vz;
                 }
-                cornerDelta        = gPlayerStatus.coordMtx->t[0] - D_actor_403600_8016064C[0].vx;
+                cornerDelta        = gPlayerStatus.coordMtx->t[0] - _gActor403600SwoopLowCorners[0].vx;
                 lowCornerAXSquared = cornerDelta * cornerDelta;
-                cornerDelta        = gPlayerStatus.coordMtx->t[2] - D_actor_403600_8016064C[0].vz;
+                cornerDelta        = gPlayerStatus.coordMtx->t[2] - _gActor403600SwoopLowCorners[0].vz;
                 lowCornerARange    = SquareRoot0(lowCornerAXSquared + (cornerDelta * cornerDelta));
-                cornerDelta        = gPlayerStatus.coordMtx->t[0] - D_actor_403600_8016064C[1].vx;
+                cornerDelta        = gPlayerStatus.coordMtx->t[0] - _gActor403600SwoopLowCorners[1].vx;
                 lowCornerBXSquared = cornerDelta * cornerDelta;
-                cornerDelta        = gPlayerStatus.coordMtx->t[2] - D_actor_403600_8016064C[1].vz;
+                cornerDelta        = gPlayerStatus.coordMtx->t[2] - _gActor403600SwoopLowCorners[1].vz;
                 if (SquareRoot0(lowCornerBXSquared + (cornerDelta * cornerDelta)) < lowCornerARange) {
                     work->swoopCorners = (u16)(work->swoopCorners | 2);
                 }
@@ -3734,7 +3792,7 @@ static void _actor403600UpdatePlayerKnockback(Task* task)
 
     playerCoord = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
     work        = task->work;
-    switch (D_actor_403600_80160568.animationId) {
+    switch (_gActor403600PlayerAnimationRequest.animationId) {
         case ACTOR_403600_PLAYER_ANIM_HEAVY_KNOCKBACK:
             // Finish the heavy flight at one of the two scripted landing viewpoints.
             work->knockbackFrame++;
@@ -3746,9 +3804,9 @@ static void _actor403600UpdatePlayerKnockback(Task* task)
                 } else {
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_403600_KNOCKBACK_VIEW_AT_A;
                 }
-                D_actor_403600_80160568.animationId = ACTOR_403600_PLAYER_ANIM_HEAVY_IMPACT;
-                gAttachmentState.flags             |= ATTACHMENT_FLAG_EVENT_LOCK;
-                TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
+                _gActor403600PlayerAnimationRequest.animationId = ACTOR_403600_PLAYER_ANIM_HEAVY_IMPACT;
+                gAttachmentState.flags                         |= ATTACHMENT_FLAG_EVENT_LOCK;
+                TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &_gActor403600PlayerAnimationRequest, 0);
                 return;
             }
             break;
@@ -3758,10 +3816,10 @@ static void _actor403600UpdatePlayerKnockback(Task* task)
             work->knockbackFrame = impactFrame;
             if ((s16)impactFrame == ACTOR_403600_KNOCKBACK_IMPACT_FRAME) {
                 padScriptSpawnVariableMotorRamp(0xA, 0xFF, 0xFF);
-                D_actor_403600_801606A4.power    = ACTOR_403600_KNOCKBACK_IMPACT_POWER;
-                D_actor_403600_801606A4.reaction = 0;
-                soundKey                         = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_403600_SOUND_HEAVY_PLAYER_HIT;
-                heavyHitPan                      = (s8)worldCoordGetOriginAudioPan(playerCoord);
+                _gActor403600PlayerDamage.power    = ACTOR_403600_KNOCKBACK_IMPACT_POWER;
+                _gActor403600PlayerDamage.reaction = GAME_ACTOR_REACTION_ORDINARY;
+                soundKey                           = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_403600_SOUND_HEAVY_PLAYER_HIT;
+                heavyHitPan                        = (s8)worldCoordGetOriginAudioPan(playerCoord);
                 sndEvtRequestScriptStart(soundKey, heavyHitPan,
                                          (s8)worldCoordGetOriginAudioDepth(playerCoord));
                 soundKey =
@@ -3770,11 +3828,11 @@ static void _actor403600UpdatePlayerKnockback(Task* task)
                 sndEvtRequestScriptStart(soundKey, impactPan,
                                          (s8)worldCoordGetOriginAudioDepth(playerCoord));
                 taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_APPLY_DAMAGE,
-                                    damagePackAttackKey(&D_actor_403600_801606A4, 0), 0);
+                                    damagePackAttackKey(&_gActor403600PlayerDamage, 0), 0);
             }
             if (work->knockbackFrame >= ACTOR_403600_KNOCKBACK_HEAVY_END_FRAME) {
-                work->knockbackFrame                = 0;
-                D_actor_403600_80160568.animationId = ACTOR_403600_PLAYER_ANIM_NONE;
+                work->knockbackFrame                            = 0;
+                _gActor403600PlayerAnimationRequest.animationId = ACTOR_403600_PLAYER_ANIM_NONE;
                 taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
             }
             break;
@@ -3797,10 +3855,10 @@ static void _actor403600UpdatePlayerKnockback(Task* task)
                                          (s8)worldCoordGetOriginAudioDepth(playerCoord));
             }
             if (work->knockbackFrame >= ACTOR_403600_KNOCKBACK_DIRECTION_END_FRAME) {
-                gAttachmentState.flags             |= ATTACHMENT_FLAG_EVENT_LOCK;
-                work->knockbackFrame                = 0;
-                D_actor_403600_80160568.animationId = ACTOR_403600_PLAYER_ANIM_BACKWARD_RECOVER;
-                TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
+                gAttachmentState.flags                         |= ATTACHMENT_FLAG_EVENT_LOCK;
+                work->knockbackFrame                            = 0;
+                _gActor403600PlayerAnimationRequest.animationId = ACTOR_403600_PLAYER_ANIM_BACKWARD_RECOVER;
+                TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &_gActor403600PlayerAnimationRequest, 0);
                 return;
             }
             break;
@@ -3823,10 +3881,10 @@ static void _actor403600UpdatePlayerKnockback(Task* task)
                                          (s8)worldCoordGetOriginAudioDepth(playerCoord));
             }
             if (work->knockbackFrame >= ACTOR_403600_KNOCKBACK_DIRECTION_END_FRAME) {
-                gAttachmentState.flags             |= ATTACHMENT_FLAG_EVENT_LOCK;
-                work->knockbackFrame                = 0;
-                D_actor_403600_80160568.animationId = ACTOR_403600_PLAYER_ANIM_FORWARD_RECOVER;
-                TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
+                gAttachmentState.flags                         |= ATTACHMENT_FLAG_EVENT_LOCK;
+                work->knockbackFrame                            = 0;
+                _gActor403600PlayerAnimationRequest.animationId = ACTOR_403600_PLAYER_ANIM_FORWARD_RECOVER;
+                TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &_gActor403600PlayerAnimationRequest, 0);
                 return;
             }
             break;
@@ -3836,8 +3894,8 @@ static void _actor403600UpdatePlayerKnockback(Task* task)
             recoveryFrame        = work->knockbackFrame + 1;
             work->knockbackFrame = recoveryFrame;
             if ((s16)recoveryFrame >= ACTOR_403600_KNOCKBACK_RECOVERY_FRAMES) {
-                work->knockbackFrame                = 0;
-                D_actor_403600_80160568.animationId = ACTOR_403600_PLAYER_ANIM_NONE;
+                work->knockbackFrame                            = 0;
+                _gActor403600PlayerAnimationRequest.animationId = ACTOR_403600_PLAYER_ANIM_NONE;
                 taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
             }
             break;
@@ -3918,7 +3976,7 @@ static __inline__ void _actor403600UpdateAnimation(Task* task, u8 partCount)
     s32              partIndex;
 
     work = task->work;
-    if (D_actor_403600_8016057C[work->animId] != 0) {
+    if (_gActor403600BodyAnimationSets[work->animId] != 0) {
         if (work->animId != work->appliedAnimId) {
             work->appliedAnimId = work->animId;
             work->phaseFrame    = 0;
@@ -3964,7 +4022,7 @@ static void _actor403600SpawnDouble(Enemy* enemy, Task* task)
 
     model      = task->extra.tmd;
     modelCoord = model->coords;
-    ownerWork  = D_actor_403600_801606A8->work;
+    ownerWork  = _gActor403600BossTask->work;
     work       = memCalloc(sizeof(Actor403600Work), false);
     bodyCoord  = &modelCoord[1];
     if (work == NULL) {
@@ -4002,10 +4060,10 @@ static void _actor403600SpawnDouble(Enemy* enemy, Task* task)
     enemy->param                  = &D_actor_403600_80150ED8;
     enemy->recs                   = work->hitContacts;
     enemy->hp                     = D_actor_403600_80150ED8.hpMax;
-    animationInitContext(&work->rig.anim, D_actor_403600_8016057C, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, _gActor403600BodyAnimationSets, model, work->rig.poses, work->rig.slots);
     partIndex = 1;
     do {
-        animationResetSlot(&work->rig.anim, partIndex, 1);
+        animationResetSlot(&work->rig.anim, partIndex, ACTOR_403600_ANIM_IDLE);
         partIndex += 1;
     } while (partIndex < ARRAY_SIZE(work->rig.slots));
     (sceneAcquireBattleRef)(0);
@@ -4205,10 +4263,11 @@ static void _actor403600UpdateDouble(Enemy* enemy, Task* task)
     }
 }
 
-/// Handlers for states 0-2 of the task `_actor403600DoubleTask` dispatches,
-/// indexed by `Task::state`. The state-0 handler sets the task up and
-/// advances it.
-static const EnemyTaskFuncTable3 D_actor_403600_801320A0 = { {
+/// Double lifecycle handlers in task-state order (0 spawn, 1 combat, 2 fade/release).
+///
+/// Dispatch copies this complete value and indexes it with `Task::state` in
+/// 0..2. Each callback borrows the live enemy and task and owns its transitions.
+static const EnemyTaskFuncTable3 _gActor403600DoubleStates = { {
     _actor403600SpawnDouble,
     _actor403600UpdateDouble,
     _actor403600FadeDouble,
@@ -4388,7 +4447,7 @@ static inline void _actor403600ReleaseFadedDouble(Task* task)
     worldTargetUnlinkNode(&enemy->node);
     worldCollisionUnlinkBody(&work->hitBody);
     worldCollisionUnlinkBody(&work->attackBody);
-    if (task == D_actor_403600_801606A8) {
+    if (task == _gActor403600BossTask) {
         worldCollisionUnlinkBody(&work->gridBody);
     }
     enemyTaskExit(task);
@@ -4411,7 +4470,7 @@ static void _actor403600FadeDouble(Enemy* enemy, Task* task)
 
     object   = task->extra.tmd;
     work     = task->work;
-    bossWork = D_actor_403600_801606A8->work;
+    bossWork = _gActor403600BossTask->work;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
             if (bossWork->defeated != 1) {
@@ -4479,21 +4538,21 @@ static s32 _actor403600ApplySceneCommand(Task* task, s32 unusedMessageId, const 
             angles.vy                   = 0x200;
             angles.vz                   = 0;
             RotMatrix(&angles, &work->worldCoord.coord);
-            D_actor_403600_801606E0.placement.rot.vx = 0;
-            D_actor_403600_801606E0.placement.rot.vy = -0x600;
-            D_actor_403600_801606E0.placement.rot.vz = 0;
-            D_actor_403600_801606E0.placement.pos.vx = 0x1E8D;
-            D_actor_403600_801606E0.placement.pos.vy = -0xF9F;
-            D_actor_403600_801606E0.placement.pos.vz = 0x1AC6;
-            TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_PLACE, &D_actor_403600_801606E0.placement, 0);
-            D_actor_403600_80160568.animationId = ACTOR_403600_PLAYER_ANIM_SCENE_POSE;
-            TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
+            _gActor403600PlayerPlacement.placement.rot.vx = 0;
+            _gActor403600PlayerPlacement.placement.rot.vy = -0x600;
+            _gActor403600PlayerPlacement.placement.rot.vz = 0;
+            _gActor403600PlayerPlacement.placement.pos.vx = 0x1E8D;
+            _gActor403600PlayerPlacement.placement.pos.vy = -0xF9F;
+            _gActor403600PlayerPlacement.placement.pos.vz = 0x1AC6;
+            TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_PLACE, &_gActor403600PlayerPlacement.placement, 0);
+            _gActor403600PlayerAnimationRequest.animationId = ACTOR_403600_PLAYER_ANIM_SCENE_POSE;
+            TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &_gActor403600PlayerAnimationRequest, 0);
             break;
         case ACTOR_403600_COMMAND_PLAY_SCENE_ANIMATIONS:
-            work->animId                        = ACTOR_403600_ANIM_SCENE_PAIRED;
-            work->appliedAnimId                 = 0;
-            D_actor_403600_80160568.animationId = ACTOR_403600_PLAYER_ANIM_SCENE_PAIRED;
-            TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
+            work->animId                                    = ACTOR_403600_ANIM_SCENE_PAIRED;
+            work->appliedAnimId                             = 0;
+            _gActor403600PlayerAnimationRequest.animationId = ACTOR_403600_PLAYER_ANIM_SCENE_PAIRED;
+            TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &_gActor403600PlayerAnimationRequest, 0);
             break;
         case ACTOR_403600_COMMAND_BRIGHTEN_BOSS:
             work->ambientBoost = 0x3E8;
@@ -4501,22 +4560,22 @@ static s32 _actor403600ApplySceneCommand(Task* task, s32 unusedMessageId, const 
             break;
         case ACTOR_403600_COMMAND_SPAWN_SCENE_FIGURE:
             // The figure and shaft controller take over presentation from both actors.
-            D_actor_403600_801606B0 = taskSpawnFromTable(D_actor_303600_8016E468, 0, 0, 0);
+            _gActor403600SceneShaftTask = taskSpawnFromTable(D_actor_303600_8016E468, 0, 0, 0);
             taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
             task->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             task->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            work->childEnemy        = enemySpawnFromTable(D_actor_403600_80160514, 2, 0, 0);
+            work->childEnemy        = enemySpawnFromTable(gActor403600TaskTable, ACTOR_403600_SCENE_FIGURE_TASK, 0, 0);
             break;
         case ACTOR_403600_COMMAND_FADE_SCENE_FIGURE:
-            D_actor_403600_801606E0.placement.rot.vx = 0;
-            D_actor_403600_801606E0.placement.rot.vy = 0;
-            D_actor_403600_801606E0.placement.rot.vz = 0;
-            D_actor_403600_801606E0.placement.pos.vx = 0;
-            D_actor_403600_801606E0.placement.pos.vy = 0;
-            D_actor_403600_801606E0.placement.pos.vz = 0;
-            TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_PLACE, &D_actor_403600_801606E0.placement, 0);
-            D_actor_403600_80160568.animationId = ACTOR_403600_PLAYER_ANIM_FIGURE_FADE;
-            TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
+            _gActor403600PlayerPlacement.placement.rot.vx = 0;
+            _gActor403600PlayerPlacement.placement.rot.vy = 0;
+            _gActor403600PlayerPlacement.placement.rot.vz = 0;
+            _gActor403600PlayerPlacement.placement.pos.vx = 0;
+            _gActor403600PlayerPlacement.placement.pos.vy = 0;
+            _gActor403600PlayerPlacement.placement.pos.vz = 0;
+            TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_PLACE, &_gActor403600PlayerPlacement.placement, 0);
+            _gActor403600PlayerAnimationRequest.animationId = ACTOR_403600_PLAYER_ANIM_FIGURE_FADE;
+            TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &_gActor403600PlayerAnimationRequest, 0);
             childWork                               = work->childEnemy->task->work;
             childObject                             = work->childEnemy->task->extra.tmd;
             childWork->mode                         = ACTOR_403600_MODE_SCENE_FADE;
@@ -4650,9 +4709,9 @@ static void _actor403600UpdateSceneFigure(Enemy* enemy, Task* task)
     viewSpace.coord.t[1] = 0;
     viewSpace.coord.t[2] = 0;
     // The rotation track holds its last sample; the shorter camera track clamps separately.
-    D_actor_403600_8016065C.vz = D_actor_303600_8016A408[work->sceneFrame].z;
-    D_actor_403600_8016065C.vy = D_actor_303600_8016A408[work->sceneFrame].y;
-    RotMatrix(&D_actor_403600_8016065C, &work->worldCoord.coord);
+    _gActor403600SceneFigureRotation.vz = D_actor_303600_8016A408[work->sceneFrame].z;
+    _gActor403600SceneFigureRotation.vy = D_actor_303600_8016A408[work->sceneFrame].y;
+    RotMatrix(&_gActor403600SceneFigureRotation, &work->worldCoord.coord);
     model->otOffset = ACTOR_403600_SCENE_MODEL_OT_OFFSET;
     if (work->sceneFrame >= ACTOR_303600_VIEW_KEY_COUNT - 1) {
         key = &D_actor_303600_8016AEF8[ACTOR_303600_VIEW_KEY_COUNT - 1];
@@ -4661,13 +4720,13 @@ static void _actor403600UpdateSceneFigure(Enemy* enemy, Task* task)
     }
     // The compact key stores all nine rotation coefficients in row-major order.
     for (coefficientIndex = 0; coefficientIndex < (s32)ARRAY_SIZE(key->rotation); coefficientIndex++) {
-        ((s16(*)[9])D_actor_403600_80160700.transform.m)[0][coefficientIndex] = key->rotation[coefficientIndex];
+        ((s16(*)[9])_gActor403600SceneFigureCamera.transform.m)[0][coefficientIndex] = key->rotation[coefficientIndex];
     }
     for (coefficientIndex = 0; coefficientIndex < (s32)ARRAY_SIZE(key->translation); coefficientIndex++) {
-        D_actor_403600_80160700.transform.t[coefficientIndex] = key->translation[coefficientIndex];
+        _gActor403600SceneFigureCamera.transform.t[coefficientIndex] = key->translation[coefficientIndex];
     }
-    D_actor_403600_80160700.screenDistance = ACTOR_403600_SCENE_SCREEN_DISTANCE;
-    viewQueueCamera(&D_actor_403600_80160700);
+    _gActor403600SceneFigureCamera.screenDistance = ACTOR_403600_SCENE_SCREEN_DISTANCE;
+    viewQueueCamera(&_gActor403600SceneFigureCamera);
     _actor403600ScaleSceneFigure(&work->worldCoord, work->hitCooldown);
     work->sceneFrame++;
     if (work->sceneFrame >= ACTOR_303600_ROT_SAMPLE_COUNT) {
@@ -4679,7 +4738,7 @@ static void _actor403600UpdateSceneFigure(Enemy* enemy, Task* task)
             forwardCommand.context.loc.stage = GAME_STAGE_MINE_SHELTER;
             forwardCommand.context.loc.area  = GAME_AREA_SHELTER_B2_POD_BOTTOM;
             forwardCommand.command           = ACTOR_303600_SHAFT_COMMAND_SCROLL_FORWARD;
-            TASK_MESSAGE_DISPATCH_POINTER(D_actor_403600_801606B0, ACTOR_COMMAND_MESSAGE_APPLY, &forwardCommand, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(_gActor403600SceneShaftTask, ACTOR_COMMAND_MESSAGE_APPLY, &forwardCommand, 0);
             gDisplayState.screenDistance = ACTOR_403600_SCENE_SCREEN_DISTANCE;
             gte_SetGeomScreen(gDisplayState.screenDistance);
             gte_SetGeomOffset(0, 0);
@@ -4698,7 +4757,7 @@ static void _actor403600UpdateSceneFigure(Enemy* enemy, Task* task)
             reverseCommand.context.loc.stage = GAME_STAGE_MINE_SHELTER;
             reverseCommand.context.loc.area  = GAME_AREA_SHELTER_B2_POD_BOTTOM;
             reverseCommand.command           = ACTOR_303600_SHAFT_COMMAND_REVERSE_SCROLL;
-            TASK_MESSAGE_DISPATCH_POINTER(D_actor_403600_801606B0, ACTOR_COMMAND_MESSAGE_APPLY, &reverseCommand, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(_gActor403600SceneShaftTask, ACTOR_COMMAND_MESSAGE_APPLY, &reverseCommand, 0);
         }
     } else {
         if (work->phaseFrame >= ACTOR_403600_SCENE_FADE_START_FRAME) {
@@ -4724,13 +4783,13 @@ static void _actor403600UpdateSceneFigure(Enemy* enemy, Task* task)
         if (work->phaseFrame >= ACTOR_403600_SCENE_SHOW_PLAYER_FRAME && work->phaseFrame < ACTOR_403600_SCENE_EFFECT_END_FRAME && (work->phaseFrame & 3) == 3) {
             effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_RISING_SPRITE, &work->worldCoord, (ACTOR_403600_SCENE_REVERSE_SPRITE_Y | ACTOR_403600_SCENE_RISING_SPRITE_SIZE), NULL);
         }
-        D_actor_403600_801606E0.placement.rot.vx  = 0;
-        D_actor_403600_801606E0.placement.rot.vz  = 0;
-        D_actor_403600_801606E0.placement.pos.vx  = -0x1F4;
-        D_actor_403600_801606E0.placement.pos.vy  = 0x3E8;
-        D_actor_403600_801606E0.placement.pos.vz  = -0x1F4;
-        D_actor_403600_801606E0.placement.rot.vy += ACTOR_403600_SCENE_PLAYER_TURN_STEP;
-        TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_PLACE, &D_actor_403600_801606E0.placement, 0);
+        _gActor403600PlayerPlacement.placement.rot.vx  = 0;
+        _gActor403600PlayerPlacement.placement.rot.vz  = 0;
+        _gActor403600PlayerPlacement.placement.pos.vx  = -0x1F4;
+        _gActor403600PlayerPlacement.placement.pos.vy  = 0x3E8;
+        _gActor403600PlayerPlacement.placement.pos.vz  = -0x1F4;
+        _gActor403600PlayerPlacement.placement.rot.vy += ACTOR_403600_SCENE_PLAYER_TURN_STEP;
+        TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_PLACE, &_gActor403600PlayerPlacement.placement, 0);
         if (work->phaseFrame >= ACTOR_403600_SCENE_LAST_BEAM_FRAME && work->phaseFrame < ACTOR_403600_SCENE_EFFECT_END_FRAME) {
             ACTOR_403600_SPAWN_SCENE_BEAM(ACTOR_403600_SCENE_BEAM_HEIGHT, -ACTOR_403600_SCENE_BEAM_SPEED);
         }
@@ -4879,7 +4938,7 @@ static void _actor403600EnemyExit(Task* task)
     worldTargetUnlinkNode(&enemy->node);
     worldCollisionUnlinkBody(&work->hitBody);
     worldCollisionUnlinkBody(&work->attackBody);
-    if (task == D_actor_403600_801606A8) {
+    if (task == _gActor403600BossTask) {
         worldCollisionUnlinkBody(&work->gridBody);
     }
     enemyTaskExit(task);
@@ -5191,7 +5250,7 @@ static void _actor403600DoubleTask(Task* task)
 {
     EnemyTaskFuncTable3 handlers;
 
-    handlers = D_actor_403600_801320A0;
+    handlers = _gActor403600DoubleStates;
     handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
@@ -5233,10 +5292,11 @@ static void _actor403600ApplyDoubleDamage(Task* task, s32 damage)
     }
 }
 
-/// Handlers for states 0-2 of the task `_actor403600SceneFigureTask` dispatches,
-/// indexed by `Task::state`. The state-0 handler sets the task up and
-/// advances it.
-static const EnemyTaskFuncTable3 D_actor_403600_801320EC = { {
+/// Scene figure handlers in task-state order (0 spawn, 1 delay, 2 presentation).
+///
+/// Dispatch copies this complete value and indexes it with `Task::state` in
+/// 0..2. Each callback borrows the live enemy and task and owns its transitions.
+static const EnemyTaskFuncTable3 _gActor403600SceneFigureStates = { {
     _actor403600SpawnSceneFigure,
     _actor403600WaitSceneFigure,
     _actor403600UpdateSceneFigure,
@@ -5250,7 +5310,7 @@ static void _actor403600SceneFigureTask(Task* task)
 {
     EnemyTaskFuncTable3 handlers;
 
-    handlers = D_actor_403600_801320EC;
+    handlers = _gActor403600SceneFigureStates;
     handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
@@ -5295,7 +5355,7 @@ static void _actor403600SpawnSceneFigure(Enemy* enemy, Task* task)
     work->worldCoord.coord.t[1] = 0;
     work->worldCoord.coord.t[2] = 0;
     work->mode                  = ACTOR_403600_MODE_PARKED;
-    task->msgTable              = D_actor_403600_80160504;
+    task->msgTable              = _gActor403600SceneCommandMessages;
     task->exitCallback          = _actor403600SceneFigureExit;
     work->ambientBoost          = ACTOR_403600_SCENE_INITIAL_AMBIENT;
     work->hitCooldown           = 0;

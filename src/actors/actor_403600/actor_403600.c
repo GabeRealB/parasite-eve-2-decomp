@@ -1178,9 +1178,9 @@ static void _actor403600PlaceDistortionVertex(_Actor403600GridQuad* quad, s32 co
     s32                     screenY;
     s32                     jitterLeft;
     s32                     jitterTop;
-    s32                     chanceState;
-    s32                     xState;
-    s32                     yState;
+    u32                     chanceState;
+    u32                     xState;
+    u32                     yState;
     u8*                     pageShift;
 
     switch (corner) {
@@ -1205,17 +1205,17 @@ static void _actor403600PlaceDistortionVertex(_Actor403600GridQuad* quad, s32 co
     localY  = vertex->y;
     screenX = localX + ACTOR_403600_DISTORTION_SCREEN_CENTER_X;
     screenY = localY + ACTOR_403600_DISTORTION_SCREEN_CENTER_Y;
-    // Advance modulo 2^32, retaining signed snapshots for the masked draws.
-    chanceState             = (u32)D_actor_403600_80160698 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    D_actor_403600_80160698 = chanceState;
-    if (((chanceState >> 16) & ACTOR_403600_DISTORTION_RANDOM_MASK) < distortion + ACTOR_403600_DISTORTION_BASE_CHANCE) {
-        jitterLeft              = localX + ACTOR_403600_DISTORTION_SCREEN_CENTER_X - ACTOR_403600_DISTORTION_JITTER_RADIUS;
-        xState                  = (u32)chanceState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        screenX                 = jitterLeft + ((xState >> 16) & ACTOR_403600_DISTORTION_JITTER_MASK);
-        yState                  = (u32)xState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        D_actor_403600_80160698 = yState;
-        jitterTop               = localY + ACTOR_403600_DISTORTION_SCREEN_CENTER_Y - ACTOR_403600_DISTORTION_JITTER_RADIUS;
-        screenY                 = jitterTop + ((yState >> 16) & ACTOR_403600_DISTORTION_JITTER_MASK);
+    // Advance modulo 2^32; draws use a signed high-halfword view before masking.
+    chanceState                       = gActor403600DistortionRandomState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    gActor403600DistortionRandomState = chanceState;
+    if ((((s32)chanceState >> 16) & ACTOR_403600_DISTORTION_RANDOM_MASK) < distortion + ACTOR_403600_DISTORTION_BASE_CHANCE) {
+        jitterLeft                        = localX + ACTOR_403600_DISTORTION_SCREEN_CENTER_X - ACTOR_403600_DISTORTION_JITTER_RADIUS;
+        xState                            = chanceState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        screenX                           = jitterLeft + (((s32)xState >> 16) & ACTOR_403600_DISTORTION_JITTER_MASK);
+        yState                            = xState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gActor403600DistortionRandomState = yState;
+        jitterTop                         = localY + ACTOR_403600_DISTORTION_SCREEN_CENTER_Y - ACTOR_403600_DISTORTION_JITTER_RADIUS;
+        screenY                           = jitterTop + (((s32)yState >> 16) & ACTOR_403600_DISTORTION_JITTER_MASK);
     }
     /// Clamps the grid geometry and selects page/UV under the displaced pixel.
     ///
@@ -1308,11 +1308,11 @@ static void _actor403600DrawScreenDistortion(Task* unusedFxTask, const Actor4036
     scratch                  = (_Actor403600ScreenDistortionScratch*)scratchHead;
     // Redraw the same jitter while gameplay is held.
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        frameSeed               = rand();
-        D_actor_403600_80160698 = frameSeed;
-        fx->gridSeed            = frameSeed;
+        frameSeed                         = rand();
+        gActor403600DistortionRandomState = frameSeed;
+        fx->gridSeed                      = frameSeed;
     } else {
-        D_actor_403600_80160698 = fx->gridSeed;
+        gActor403600DistortionRandomState = fx->gridSeed;
     }
     scratch->field_14.vx = 0;
     scratch->field_14.vy = 0;
@@ -1320,8 +1320,8 @@ static void _actor403600DrawScreenDistortion(Task* unusedFxTask, const Actor4036
     distortion           = work->screenDistortion;
     for (cellY = -ACTOR_403600_DISTORTION_HALF_HEIGHT; cellY < ACTOR_403600_DISTORTION_HALF_HEIGHT; cellY += ACTOR_403600_DISTORTION_CELL_PIXELS) {
         for (cellX = -ACTOR_403600_DISTORTION_HALF_WIDTH; cellX < ACTOR_403600_DISTORTION_HALF_WIDTH; cellX += ACTOR_403600_DISTORTION_CELL_PIXELS) {
-            quad                    = (_Actor403600GridQuad*)D_actor_403600_8016069C;
-            D_actor_403600_8016069C = (u8*)(quad + 1);
+            quad                              = (_Actor403600GridQuad*)gActor403600EffectPrimitiveCursor;
+            gActor403600EffectPrimitiveCursor = (u8*)(quad + 1);
 
             // Vertices shared with the quad to the left or aboveQuad are copied
             // from it; only the grid's outer edge is placed afresh.
@@ -1369,12 +1369,12 @@ static void _actor403600DrawScreenDistortion(Task* unusedFxTask, const Actor4036
         }
     }
     if (distortion == ONE) {
-        backdrop                = (TILE*)D_actor_403600_8016069C;
-        D_actor_403600_8016069C = (u8*)(backdrop + 1);
-        backdrop->x0            = -ACTOR_403600_DISTORTION_HALF_WIDTH;
-        backdrop->y0            = -ACTOR_403600_DISTORTION_HALF_HEIGHT;
-        backdrop->w             = 2 * ACTOR_403600_DISTORTION_HALF_WIDTH;
-        backdrop->h             = 2 * ACTOR_403600_DISTORTION_HALF_HEIGHT;
+        backdrop                          = (TILE*)gActor403600EffectPrimitiveCursor;
+        gActor403600EffectPrimitiveCursor = (u8*)(backdrop + 1);
+        backdrop->x0                      = -ACTOR_403600_DISTORTION_HALF_WIDTH;
+        backdrop->y0                      = -ACTOR_403600_DISTORTION_HALF_HEIGHT;
+        backdrop->w                       = 2 * ACTOR_403600_DISTORTION_HALF_WIDTH;
+        backdrop->h                       = 2 * ACTOR_403600_DISTORTION_HALF_HEIGHT;
         setlen(backdrop, ACTOR_403600_DISTORTION_BACKDROP_WORDS);
         GPU_PRIMITIVE_COLOR_WORD(backdrop, 0) = GPU_PACK_COLOR_WORD(0xC0, 0x60, 0x20, 0);
         backdrop->code                        = ACTOR_403600_DISTORTION_BACKDROP_CODE;
@@ -1639,8 +1639,8 @@ static void _actor403600FxTask(Task* task)
         gActor403600RipplePlaneCoord = NULL;
         task->state++;
     }
-    fx                      = task->work;
-    D_actor_403600_8016069C = (u8*)Fs_ActorLoadBase2 + (gDisplayState.otBuffer * ACTOR_403600_EFFECT_ARENA_HALF_BYTES);
+    fx                                = task->work;
+    gActor403600EffectPrimitiveCursor = (u8*)Fs_ActorLoadBase2 + (gDisplayState.otBuffer * ACTOR_403600_EFFECT_ARENA_HALF_BYTES);
     if (bossWork->defeated != 1 && bossWork->screenDistortion > 0) {
         _actor403600DrawScreenDistortion(task, bossWork, fx);
     }
@@ -2040,9 +2040,9 @@ static void _actor403600ProjectileTask(Task* task)
          * which the `2` the three status tests compare with is still moved
          * out of it; one more temporary in the body changes the allocation. */
         do {
-            phaseStorage            = D_actor_403600_8016069C;
-            D_actor_403600_8016069C = (u8*)phaseStorage + sizeof(POLY_FT4);
-            point                   = &work->trail[componentOrTrailIndex];
+            phaseStorage                       = gActor403600EffectPrimitiveCursor;
+            gActor403600EffectPrimitiveCursor += sizeof(POLY_FT4);
+            point                              = &work->trail[componentOrTrailIndex];
             gte_ldv0(point);
             gte_rtps();
             projectedScreen = &scratch->sxy;
@@ -2319,13 +2319,13 @@ void actor403600DrawRipple(const Actor403600Ripple* ripple, GfxCoord* discCoord)
             s32 screenW = 320;
             s32 screenH = 240;
 
-            sampleIndex             %= ACTOR_403600_RIPPLE_SAMPLE_COUNT;
-            quad                     = (_Actor403600GridQuad*)D_actor_403600_8016069C;
-            D_actor_403600_8016069C += sizeof(_Actor403600GridQuad);
-            texelDirection           = -rcos(ripple->phase[sampleIndex]) >> ACTOR_403600_RIPPLE_TEXEL_DIRECTION_SHIFT;
-            scratch->texelOffset.vx  = rsin(texelDirection);
-            scratch->texelOffset.vy  = rcos(texelDirection);
-            scratch->texelOffset.vz  = 0;
+            sampleIndex                       %= ACTOR_403600_RIPPLE_SAMPLE_COUNT;
+            quad                               = (_Actor403600GridQuad*)gActor403600EffectPrimitiveCursor;
+            gActor403600EffectPrimitiveCursor += sizeof(_Actor403600GridQuad);
+            texelDirection                     = -rcos(ripple->phase[sampleIndex]) >> ACTOR_403600_RIPPLE_TEXEL_DIRECTION_SHIFT;
+            scratch->texelOffset.vx            = rsin(texelDirection);
+            scratch->texelOffset.vy            = rcos(texelDirection);
+            scratch->texelOffset.vz            = 0;
             gte_ldv0(texelOffset);
             gte_rtv0();
             scratch->localVertex.vx = ringDistance;

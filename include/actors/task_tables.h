@@ -338,8 +338,6 @@ extern TaskDesc D_actor_200300_80160110[];
 /// Slot export of `gActor05600PawnGolemTasks` from actor_205600, with the same descriptor contract.
 extern TaskDesc gActor205600PawnGolemTasks[3];
 
-extern TaskDesc D_actor_403600_80160514[];
-
 extern TaskDesc D_actor_205700_801611F8[];
 
 /// TMD host recipe for the garbage-incinerator Glutton, at execution priority 96.

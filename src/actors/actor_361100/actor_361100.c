@@ -1022,7 +1022,7 @@ static void _actor361100StreamWaterTask(Task* task)
             return;
         } else if (viewId == ACTOR_361100_STREAM_VIEW_RIPPLE) {
             // Borrow the current buffer's half of the free streaming tail.
-            D_actor_403600_8016069C = streamWrite + (gDisplayState.otBuffer * ((s32)(freeBytes + (freeBytes >> 0x1F)) >> 1));
+            gActor403600EffectPrimitiveCursor = streamWrite + (gDisplayState.otBuffer * ((s32)(freeBytes + (freeBytes >> 0x1F)) >> 1));
             actor403600TickRipple(ripple);
             actor403600DrawRipple(ripple, discCoord);
             return;
