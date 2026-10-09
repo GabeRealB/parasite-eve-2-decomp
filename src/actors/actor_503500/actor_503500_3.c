@@ -472,7 +472,7 @@ static void _actor503500InitBoss(Task* task)
     enemy->bodyPos.vy              = gActor503500BossTargetOffset.vy;
     enemy->bodyPos.vz              = gActor503500BossTargetOffset.vz;
     contacts                       = work->contacts;
-    enemy->param                   = &D_actor_503500_8016E7EC[task->spawnArg1.value];
+    enemy->param                   = &gActor503500EnemyParams[task->spawnArg1.value];
     enemy->recs                    = contacts;
     enemy->hp                      = enemy->param->hpMax;
 
@@ -493,7 +493,7 @@ static void _actor503500InitBoss(Task* task)
 
     // Attach the starting targets and inherit the boss placement's textures.
     for (slotIndex = ACTOR_503500_SLOT_PINK_FLASH_EMITTER; slotIndex < ACTOR_503500_SLOT_YELLOW_FLASH_EMITTER; slotIndex++) {
-        slotEnemy = enemySpawnFromTable(D_actor_503500_8016E924, slotIndex, slotIndex, enemy);
+        slotEnemy = enemySpawnFromTable(gActor503500EnemyTaskDescs, slotIndex, slotIndex, enemy);
         if (slotEnemy != NULL) {
             _actor503500InheritBossSlotTextures(task, slotEnemy);
             work->enemies[slotIndex] = slotEnemy;
@@ -1232,14 +1232,14 @@ static void _actor503500StepDefeatedState(Task* task)
 /// counts updating ticks. Captures task, flashTask and flashCoord; leaves NULL
 /// in flashTask on failure. The coordinate borrows its parent without joining
 /// the boss's task tree. Expands to multiple statements; use in a braced block.
-#define ACTOR_503500_SPAWN_ATTACHED_ORANGE_FLASH(chargeFrames)                                                     \
-    flashTask = taskSpawnFromTable(D_actor_503500_8016E9F0, ACTOR_503500_ORANGE_FLASH_TASK, (chargeFrames), task); \
-    if (flashTask != NULL) {                                                                                       \
-        flashCoord             = flashTask->extra.coordBody->coord;                                                \
-        flashCoord->parent     = &task->extra.tmd->coords[ACTOR_503500_ORANGE_FLASH_PARENT_PART];                  \
-        flashCoord->coord.t[0] = gActor503500BossTargetOffset.vx;                                                  \
-        flashCoord->coord.t[1] = gActor503500BossTargetOffset.vy;                                                  \
-        flashCoord->coord.t[2] = gActor503500BossTargetOffset.vz;                                                  \
+#define ACTOR_503500_SPAWN_ATTACHED_ORANGE_FLASH(chargeFrames)                                                         \
+    flashTask = taskSpawnFromTable(gActor503500AttackTaskDescs, ACTOR_503500_ORANGE_FLASH_TASK, (chargeFrames), task); \
+    if (flashTask != NULL) {                                                                                           \
+        flashCoord             = flashTask->extra.coordBody->coord;                                                    \
+        flashCoord->parent     = &task->extra.tmd->coords[ACTOR_503500_ORANGE_FLASH_PARENT_PART];                      \
+        flashCoord->coord.t[0] = gActor503500BossTargetOffset.vx;                                                      \
+        flashCoord->coord.t[1] = gActor503500BossTargetOffset.vy;                                                      \
+        flashCoord->coord.t[2] = gActor503500BossTargetOffset.vz;                                                      \
     }
 
 /// Runs the boss's phase-transition spray, held flash and return to combat.
@@ -2045,14 +2045,6 @@ static inline void _actor503500EnterBossState(Task* task, s16 state)
 
 s32 actor503500HandleBossCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg)
 {
-    enum {
-        ACTOR_503500_BOSS_COMMAND_RESUME                 = 0,
-        ACTOR_503500_BOSS_COMMAND_HOLD                   = 1,
-        ACTOR_503500_BOSS_COMMAND_COLLAPSE               = 2,
-        ACTOR_503500_BOSS_COMMAND_EXIT                   = 3,
-        ACTOR_503500_BOSS_COMMAND_BEGIN_PHASE_TRANSITION = 4,
-        ACTOR_503500_BOSS_COMMAND_RESTORE_ROOT           = 5,
-    };
     Actor503500Work* work;
     GfxCoord*        rootCoord;
 
@@ -2109,7 +2101,7 @@ Enemy* actor503500SpawnSlotEnemy(Task* task, s32 slot)
     // Keep the boss slot storage live across spawning and placement lookup.
     Actor503500Work* bossWork = &D_actor_503500_80176574.work;
 
-    slotEnemy = enemySpawnFromTable(D_actor_503500_8016E924, slot, slot, task->spawnArg2.pointer);
+    slotEnemy = enemySpawnFromTable(gActor503500EnemyTaskDescs, slot, slot, task->spawnArg2.pointer);
     if (slotEnemy != NULL) {
         sessionLocation = &gGameSession->location.loc;
         parentEnemy     = task->spawnArg2.pointer;
@@ -3049,7 +3041,7 @@ static void _actor503500PinkFlashEmitterInit(Task* task)
     enemy->bodyPos.vy             = gActor503500PinkFlashEmitterTargetOffset.vy;
     enemy->bodyPos.vz             = gActor503500PinkFlashEmitterTargetOffset.vz;
     contacts                      = D_actor_503500_80176D88.contacts;
-    enemy->param                  = &D_actor_503500_8016E7EC[task->spawnArg1.value];
+    enemy->param                  = &gActor503500EnemyParams[task->spawnArg1.value];
     enemy->recs                   = contacts;
     enemy->hp                     = enemy->param->hpMax;
 
@@ -3112,7 +3104,7 @@ static void _actor503500PinkFlashEmitterStepAttack(Task* task)
             if (++work->stateFrames > 0) {
                 // Each side owns its capsule; side zero also owns the shared charge effect.
                 for (side = 0; side < ACTOR_503500_PINK_FLASH_SIDE_COUNT; side++) {
-                    attackTask = taskSpawnFromTable(D_actor_503500_8016E9F0, ACTOR_503500_PINK_FLASH_TASK, side, 0);
+                    attackTask = taskSpawnFromTable(gActor503500AttackTaskDescs, ACTOR_503500_PINK_FLASH_TASK, side, 0);
                     if (attackTask != NULL) {
                         attackCoord             = attackTask->extra.coordBody->coord;
                         attackCoord->parent     = task->extra.tmd->coords;
@@ -3687,7 +3679,7 @@ static void _actor503500LargeChainInit(Task* task)
     enemy->bodyPos.vy             = gActor503500LargeChainTipTargetOffset.vy;
     enemy->bodyPos.vz             = gActor503500LargeChainTipTargetOffset.vz;
     contacts                      = work->contacts;
-    enemy->param                  = &D_actor_503500_8016E7EC[task->spawnArg1.value];
+    enemy->param                  = &gActor503500EnemyParams[task->spawnArg1.value];
     enemy->recs                   = contacts;
     enemy->hp                     = enemy->param->hpMax;
 
@@ -3809,7 +3801,7 @@ static void _actor503500LargeChainStepIdle(Task* task)
     }
     enemy  = task->spawnArg2.pointer;
     health = enemy->hp;
-    if (health < (D_actor_503500_8016E7EC[task->spawnArg1.value].hpMax >> 1) && health > 0) {
+    if (health < (gActor503500EnemyParams[task->spawnArg1.value].hpMax >> 1) && health > 0) {
         _actor503500LargeChainEnterState(task, ACTOR_503500_LARGE_CHAIN_STATE_SPLITTING);
         return;
     }
@@ -3939,7 +3931,7 @@ static void _actor503500LargeChainStepShoot(Task* task)
                 position.vz    = gPlayerStatus.coordMtx->t[2] - work->linkPoints[ACTOR_503500_LARGE_CHAIN_TIP_PART].vz;
                 playerDistance = SquareRoot0(position.vx * position.vx + position.vz * position.vz);
                 if (playerDistance < ACTOR_503500_CHAIN_SHOOT_RANGE) {
-                    shotTask = taskSpawnFromTable(D_actor_503500_8016E9F0, ACTOR_503500_CHAIN_SHOOT_BALLISTIC_TASK, 0, playerDistance * ACTOR_503500_CHAIN_SHOOT_SPEED_PER_DISTANCE);
+                    shotTask = taskSpawnFromTable(gActor503500AttackTaskDescs, ACTOR_503500_CHAIN_SHOOT_BALLISTIC_TASK, 0, playerDistance * ACTOR_503500_CHAIN_SHOOT_SPEED_PER_DISTANCE);
                     if (shotTask != NULL) {
                         ACTOR_503500_LARGE_CHAIN_PLACE_SHOT();
                     }

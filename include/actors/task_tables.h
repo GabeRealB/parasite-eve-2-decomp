@@ -515,8 +515,6 @@ extern TaskDesc D_actor_317000_8016CF44;
 /// Slot export of `gActor04000BloodSucklerTaskDesc` from actor_304000, with the same descriptor contract.
 extern TaskDesc gActor304000BloodSucklerTaskDesc;
 
-extern TaskDesc D_actor_503500_8016E924[];
-
 /// Gary Douglas's body, attached head-and-hat and gun spawn recipes (indices 0..2).
 ///
 /// The night motel balcony resource selects body 0. Body initialization spawns

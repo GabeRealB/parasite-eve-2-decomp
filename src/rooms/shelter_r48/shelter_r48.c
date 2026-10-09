@@ -81,7 +81,6 @@ s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
 extern TaskDesc   D_actor_503500_8014B958;
-extern TaskDesc   D_actor_503500_8014B964[];
 extern EvsCommand D_actor_503500_8014BD48[];
 extern EvsCommand D_actor_503500_8014C288[];
 extern EvsCommand D_actor_503500_8014C540[];
@@ -1675,13 +1674,13 @@ WorldCollisionTrigger D_shelter_r48_8018B670[16] = {
 };
 
 AreaResource D_shelter_r48_8018BB30[3] = {
-    { 35, 35, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, D_actor_503500_8016E924 },
+    { 35, 35, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, gActor503500EnemyTaskDescs },
     { 45, 45, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &gActor503500TentacleTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_r48_8018BB54[3] = {
-    { 35, 35, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, D_actor_503500_8016E924 },
+    { 35, 35, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, gActor503500EnemyTaskDescs },
     { 45, 45, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &gActor503500TentacleTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -2289,10 +2288,9 @@ static s32 _shelterR48RoomActionMsg(Task* unusedTask, s32 unusedMessageId, const
 static s32 _shelterR48AdvanceBossSceneMsg(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
     enum {
-        SHELTER_R48_SCENE_BATTLE              = 1,
-        SHELTER_R48_SCENE_INTERRUPTED         = 2,
-        SHELTER_R48_SCENE_DEFEATED            = 3,
-        SHELTER_R48_DEFEAT_DRIFT_EMITTER_TASK = 0
+        SHELTER_R48_SCENE_BATTLE      = 1,
+        SHELTER_R48_SCENE_INTERRUPTED = 2,
+        SHELTER_R48_SCENE_DEFEATED    = 3
     };
     if (gameFlagGetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE) == SHELTER_R48_SCENE_BATTLE) {
         evsStartScript(D_actor_503500_8014D158, EVENT_SCRIPT_HUD_HIDE_RESTORE);
@@ -2300,9 +2298,9 @@ static s32 _shelterR48AdvanceBossSceneMsg(Task* unusedTask, s32 unusedMessageId,
     } else {
         // Queue the scene before the drift emitters at its three fixed positions.
         evsStartScriptWithSkip(D_actor_503500_8014C540, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_503500_8014CAF8);
-        taskSpawnFromTable(D_actor_503500_8014B964, SHELTER_R48_DEFEAT_DRIFT_EMITTER_TASK, 0, 0);
-        taskSpawnFromTable(D_actor_503500_8014B964, SHELTER_R48_DEFEAT_DRIFT_EMITTER_TASK, 1, 0);
-        taskSpawnFromTable(D_actor_503500_8014B964, SHELTER_R48_DEFEAT_DRIFT_EMITTER_TASK, 3, 0);
+        taskSpawnFromTable(gActor503500SceneEffectTaskDescs, ACTOR_503500_SCENE_TASK_DRIFT_EMITTER, 0, 0);
+        taskSpawnFromTable(gActor503500SceneEffectTaskDescs, ACTOR_503500_SCENE_TASK_DRIFT_EMITTER, 1, 0);
+        taskSpawnFromTable(gActor503500SceneEffectTaskDescs, ACTOR_503500_SCENE_TASK_DRIFT_EMITTER, 3, 0);
         gameFlagSetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE, SHELTER_R48_SCENE_DEFEATED);
     }
     return 0;

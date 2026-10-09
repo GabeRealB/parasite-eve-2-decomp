@@ -69036,7 +69036,7 @@ cannot disambiguate, and it does not disambiguate two MEMs whose base is a
 register loaded from memory, even at different constant offsets. So
 
 ```c
-enemy->param = &D_actor_503500_8016E7EC[task->spawnArg1.value];
+enemy->param = &gActor503500EnemyParams[task->spawnArg1.value];
 enemy->recs = contacts;
 enemy->hp = enemy->param->hpMax;
 ```
@@ -69099,7 +69099,7 @@ reads it straight back to seed `hp`. The target spends an extra
 instruction on it:
 
 ```
-sw    v1,0x50(s1)      ; enemy->param = &D_actor_503500_8016E7EC[i]
+sw    v1,0x50(s1)      ; enemy->param = &gActor503500EnemyParams[i]
 sw    s2,0x54(s1)      ; (scheduled up from below)
 move  v0,v1
 lhu   v0,4(v0)         ; enemy->hp = enemy->param->hpMax
@@ -69118,7 +69118,7 @@ Written with the neighbouring field first,
 
 ```c
 enemy->recs = (s32)rec;
-enemy->param = &D_actor_503500_8016E7EC[arg0->spawnArg1];
+enemy->param = &gActor503500EnemyParams[arg0->spawnArg1];
 enemy->hp = enemy->param->hpMax;   /* adjacent to its store */
 ```
 
@@ -69129,7 +69129,7 @@ elsewhere in the function (94.44%, `regs=8 reorder=4 insert=1 delete=2`).
 Swapping the two stores,
 
 ```c
-enemy->param = &D_actor_503500_8016E7EC[arg0->spawnArg1];
+enemy->param = &gActor503500EnemyParams[arg0->spawnArg1];
 enemy->recs = (s32)rec;                   /* invalidates the MEM record */
 enemy->hp = enemy->param->hpMax;
 ```
@@ -69248,7 +69248,7 @@ call site. Note the local's declaration order also fixes the load order —
 read-back of the first of them:
 
 ```c
-enemy->param = &D_actor_503500_8016E7EC[arg0->spawnArg1];
+enemy->param = &gActor503500EnemyParams[arg0->spawnArg1];
 enemy->recs = (s32)rec;
 enemy->hp = enemy->param->hpMax;
 ```
@@ -69382,11 +69382,11 @@ concatenates their dependence chains.
 Same function, earlier iteration. The corpus already records that a *store* to
 a fixed scalar global moves across in-struct references
 (`fixed_scalar_and_varying_struct_p`); the load direction bites the same way and
-looks quite different in the diff. `damagePackAttackKey(D_actor_503500_8016E7D4, 0)`
+looks quite different in the diff. `damagePackAttackKey(gActor503500FlashAttacks, 0)`
 with
 
 ```c
-extern DamageAttack* D_actor_503500_8016E7D4;
+extern DamageAttack* gActor503500FlashAttacks;
 ```
 
 put `lui`/`lw` of that pointer at the very top of the block — far from its call,
@@ -69396,7 +69396,7 @@ two instructions before the `jal`, with an unfilled `nop` in the load delay: the
 original could not hoist it. Declaring it as an array,
 
 ```c
-extern DamageAttack* D_actor_503500_8016E7D4[];   /* used as [0] */
+extern DamageAttack* gActor503500FlashAttacks[];   /* used as [0] */
 ```
 
 sets `MEM_IN_STRUCT_P` on the read, restores the dependence and moved the score
@@ -70056,7 +70056,7 @@ matched outright:
 
 ```c
 launchSpeed = (D_actor_503500_8016F2E0[shotIndex] << 12) + (-gPlayerStatus.coordMtx->t[1] << 24) / 1000;
-shotTask = taskSpawnFromTable(D_actor_503500_8016E9F0, 0, 1, launchSpeed);
+shotTask = taskSpawnFromTable(gActor503500AttackTaskDescs, 0, 1, launchSpeed);
 ```
 
 The rest of the argument setup (`move a1,zero`, `li a2,1`) did not move.
@@ -70092,7 +70092,7 @@ linked bytes are identical and the full build checksums.
 Same function, two more order-only fixes: `func(index, N)` written in each
 `switch` case (cross-jumping merges the `jal`, leaving `move a0,fp` and the
 mode constant in each predecessor and a `nop` in the shared call's delay
-slot), and `enemy->param = &D_actor_503500_8016E7EC[task->spawnArg1.value]` before
+slot), and `enemy->param = &gActor503500EnemyParams[task->spawnArg1.value]` before
 `enemy->recs = targetContacts` (the `spawnArg1` reload may alias the enemy stores, so
 source order fixes the `sw 0x54` position).
 

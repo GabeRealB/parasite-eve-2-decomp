@@ -841,7 +841,7 @@ static void _actor503500LargeOrbEmitterInit(Task* task)
     enemy->bodyPos.vy              = gActor503500LargeOrbEmitterTargetOffsets[side].vy;
     enemy->bodyPos.vz              = gActor503500LargeOrbEmitterTargetOffsets[side].vz;
     contacts                       = work->contacts;
-    enemy->param                   = &D_actor_503500_8016E7EC[task->spawnArg1.value];
+    enemy->param                   = &gActor503500EnemyParams[task->spawnArg1.value];
     enemy->recs                    = contacts;
     enemy->hp                      = enemy->param->hpMax;
 
@@ -1114,7 +1114,7 @@ static void _actor503500LargeOrbEmitterLaunchOrb(Task* emitterTask, s32 side, s3
     s16        launchYaw;
 
     emitterCoord = emitterTask->extra.coordBody->coord;
-    shotTask     = taskSpawnFromTable(D_actor_503500_8016E9F0, ACTOR_503500_LARGE_ORB_LINGERING_TASK, ACTOR_503500_LARGE_ORB_KIND, ACTOR_503500_LARGE_ORB_LAUNCH_SPEED);
+    shotTask     = taskSpawnFromTable(gActor503500AttackTaskDescs, ACTOR_503500_LARGE_ORB_LINGERING_TASK, ACTOR_503500_LARGE_ORB_KIND, ACTOR_503500_LARGE_ORB_LAUNCH_SPEED);
     if (shotTask != NULL) {
         // Place the shot in world space; side 1 mirrors its local launch point.
         gfxComposeNodeWorldTransform(emitterCoord, &rotationMatrix, &poseVector);
@@ -1439,7 +1439,7 @@ static void _actor503500RearPartInit(Task* task)
     enemy->bodyPos.vy             = gActor503500RearPartTargetOffset.vy;
     enemy->bodyPos.vz             = gActor503500RearPartTargetOffset.vz;
     contacts                      = D_actor_503500_801776A0.contacts;
-    enemy->param                  = &D_actor_503500_8016E7EC[task->spawnArg1.value];
+    enemy->param                  = &gActor503500EnemyParams[task->spawnArg1.value];
     enemy->recs                   = contacts;
     enemy->hp                     = enemy->param->hpMax;
 
@@ -1869,7 +1869,7 @@ static void _actor503500ChainBaseInit(Task* task)
     enemy->bodyPos.vy             = bodyOffset->vy;
     enemy->bodyPos.vz             = bodyOffset->vz;
     contacts                      = work->contacts;
-    enemy->param                  = &D_actor_503500_8016E7EC[task->spawnArg1.value];
+    enemy->param                  = &gActor503500EnemyParams[task->spawnArg1.value];
     enemy->recs                   = contacts;
     enemy->hp                     = enemy->param->hpMax;
 
@@ -2105,7 +2105,7 @@ static void _actor503500ChainBaseStepAttack(Task* emitterTask)
             if (++work->stateFrames < ACTOR_503500_CHAIN_BASE_ATTACK_LAUNCH_FRAME) {
                 break;
             }
-            shotTask = taskSpawnFromTable(D_actor_503500_8016E9F0, ACTOR_503500_CHAIN_BASE_LINGERING_TASK, ACTOR_503500_CHAIN_BASE_PROJECTILE_KIND, ACTOR_503500_CHAIN_BASE_LAUNCH_SPEED);
+            shotTask = taskSpawnFromTable(gActor503500AttackTaskDescs, ACTOR_503500_CHAIN_BASE_LINGERING_TASK, ACTOR_503500_CHAIN_BASE_PROJECTILE_KIND, ACTOR_503500_CHAIN_BASE_LAUNCH_SPEED);
             if (shotTask != NULL) {
                 // Place the shot in world space before composing its mirrored aim.
                 gfxComposeNodeWorldTransform(baseCoord, &rotationMatrix, &poseVector);
@@ -2518,7 +2518,7 @@ static void _actor503500SmallOrbEmitterInit(Task* task)
     enemy->bodyPos.vy             = gActor503500SmallOrbEmitterTargetOffset.vy;
     enemy->bodyPos.vz             = gActor503500SmallOrbEmitterTargetOffset.vz;
     contacts                      = D_actor_503500_8017797C.contacts;
-    enemy->param                  = &D_actor_503500_8016E7EC[task->spawnArg1.value];
+    enemy->param                  = &gActor503500EnemyParams[task->spawnArg1.value];
     enemy->recs                   = contacts;
     enemy->hp                     = enemy->param->hpMax;
 
@@ -2756,7 +2756,7 @@ static void _actor503500SmallOrbEmitterStepAttack(Task* emitterTask)
             // The live delay step falls through and indexes the six-shot volley.
             shotIndex   = work->stateFrames - ACTOR_503500_SMALL_ORB_EMITTER_ATTACK_LAUNCH_FRAME;
             launchSpeed = (D_actor_503500_8016F2E0[shotIndex] << ACTOR_503500_SMALL_ORB_SPEED_TABLE_SHIFT) + (-gPlayerStatus.coordMtx->t[1] << ACTOR_503500_SMALL_ORB_HEIGHT_SPEED_SHIFT) / ACTOR_503500_SMALL_ORB_HEIGHT_SPEED_DIVISOR;
-            shotTask    = taskSpawnFromTable(D_actor_503500_8016E9F0, ACTOR_503500_SMALL_ORB_BALLISTIC_TASK, ACTOR_503500_SMALL_ORB_KIND, launchSpeed);
+            shotTask    = taskSpawnFromTable(gActor503500AttackTaskDescs, ACTOR_503500_SMALL_ORB_BALLISTIC_TASK, ACTOR_503500_SMALL_ORB_KIND, launchSpeed);
             if (shotTask != NULL) {
                 gfxComposeNodeWorldTransform(emitterCoord, &rotationMatrix, &worldPosition);
                 shotCoord       = shotTask->extra.coordBody->coord;
@@ -3061,7 +3061,7 @@ static void _actor503500YellowFlashEmitterInit(Task* task)
     enemy->bodyPos.vy              = gActor503500YellowFlashEmitterTargetOffset.vy;
     enemy->bodyPos.vz              = gActor503500YellowFlashEmitterTargetOffset.vz;
     contacts                       = D_actor_503500_80177A6C.contacts;
-    enemy->param                   = &D_actor_503500_8016E7EC[task->spawnArg1.value];
+    enemy->param                   = &gActor503500EnemyParams[task->spawnArg1.value];
     enemy->recs                    = contacts;
     enemy->hp                      = enemy->param->hpMax;
 
@@ -3262,7 +3262,7 @@ static void _actor503500YellowFlashEmitterStepAttack(Task* emitterTask)
                 work->stateFrames = 0;
                 work->stateStep++;
             } else if (work->stateFrames == ACTOR_503500_YELLOW_FLASH_EMITTER_ATTACK_LAUNCH_FRAME) {
-                attackTask = taskSpawnFromTable(D_actor_503500_8016E9F0, ACTOR_503500_YELLOW_FLASH_ATTACK_TASK, 0, 0);
+                attackTask = taskSpawnFromTable(gActor503500AttackTaskDescs, ACTOR_503500_YELLOW_FLASH_ATTACK_TASK, 0, 0);
                 if (attackTask != NULL) {
                     // The attack borrows this emitter's coordinate frame.
                     attackCoord             = attackTask->extra.coordBody->coord;
@@ -3610,7 +3610,7 @@ static void _actor503500LungingChainInit(Task* task)
     enemy->bodyPos.vy             = gActor503500LungingChainTipTargetOffset.vy;
     enemy->bodyPos.vz             = gActor503500LungingChainTipTargetOffset.vz;
     targetContacts                = work->contacts;
-    enemy->param                  = &D_actor_503500_8016E7EC[task->spawnArg1.value];
+    enemy->param                  = &gActor503500EnemyParams[task->spawnArg1.value];
     enemy->recs                   = targetContacts;
 
     work->body.coord            = tipCoord;
@@ -3663,7 +3663,7 @@ static void _actor503500LungingChainInit(Task* task)
             break;
         default:
             worldTargetLinkNode(&enemy->node);
-            enemy->hp         = D_actor_503500_8016E7EC[task->spawnArg1.value].hpMax;
+            enemy->hp         = gActor503500EnemyParams[task->spawnArg1.value].hpMax;
             work->blendWeight = ONE;
             work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             _actor503500LungingChainEnterState(task, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
@@ -4904,7 +4904,7 @@ static void _actor503500ArmInit(Task* task)
     enemy->bodyPos.vy             = bodyOffset->vy;
     enemy->bodyPos.vz             = bodyOffset->vz;
     contacts                      = work->contacts;
-    enemy->param                  = &D_actor_503500_8016E7EC[task->spawnArg1.value];
+    enemy->param                  = &gActor503500EnemyParams[task->spawnArg1.value];
     enemy->recs                   = contacts;
     enemy->hp                     = enemy->param->hpMax;
 
@@ -5483,7 +5483,7 @@ static void _actor503500ArmApplyHits(Task* task, WorldCollisionBody* unusedBody,
         _actor503500ArmHandleHit(task, work, enemy, coord, contacts, contactIndex);
     }
     if (--work->recoveryFrames == 0) {
-        enemy->hp = D_actor_503500_8016E7EC[task->spawnArg1.value].hpMax / ACTOR_503500_ARM_RECOVERY_HP_DIVISOR;
+        enemy->hp = gActor503500EnemyParams[task->spawnArg1.value].hpMax / ACTOR_503500_ARM_RECOVERY_HP_DIVISOR;
     } else if (work->recoveryFrames < 0) {
         work->recoveryFrames = 0;
     }

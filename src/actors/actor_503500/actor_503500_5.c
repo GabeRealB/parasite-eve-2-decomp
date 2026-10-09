@@ -1256,7 +1256,7 @@ static inline void _actor503500PinkFlashAttackLinkCapsule(_Actor503500PinkFlashA
     work->body.pos.vx          = D_actor_503500_801715C4.vx;
     work->body.pos.vy          = D_actor_503500_801715C4.vy;
     work->body.pos.vz          = D_actor_503500_801715C4.vz;
-    work->body.key             = damagePackAttackKey(D_actor_503500_8016E7D4[0], 0);
+    work->body.key             = damagePackAttackKey(gActor503500FlashAttacks[ACTOR_503500_FLASH_ATTACK_PINK], 0);
     work->body.flags           = WORLD_COLLISION_BODY_CAPSULE;
     work->body.radius          = 0;
 
@@ -1530,7 +1530,7 @@ static inline void _actor503500YellowFlashAttackLinkSphere(_Actor503500YellowFla
     work->body.pos.vx           = D_actor_503500_801715D4.vx;
     work->body.pos.vy           = D_actor_503500_801715D4.vy;
     work->body.pos.vz           = D_actor_503500_801715D4.vz;
-    work->body.key              = damagePackAttackKey(D_actor_503500_8016E7D4[1], 0);
+    work->body.key              = damagePackAttackKey(gActor503500FlashAttacks[ACTOR_503500_FLASH_ATTACK_YELLOW], 0);
     work->body.radius           = ACTOR_503500_YELLOW_FLASH_ATTACK_RADIUS;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->body);
@@ -2250,7 +2250,6 @@ static s32 _actor503500ApplyTentacleCommand(Task* task, s32 msgId, const ActorCo
         ACTOR_503500_TENTACLE_COMMAND_STOP     = 0,
         ACTOR_503500_TENTACLE_COMMAND_MOVE     = 1,
         ACTOR_503500_TENTACLE_COMMAND_COLLAPSE = 2,
-        ACTOR_503500_TENTACLE_COMMAND_EXIT     = 3,
         ACTOR_503500_TENTACLE_TRANSLATION_ONE  = 0x10000,
         ACTOR_503500_TENTACLE_MOVE_FRAMES      = 23,
         // Fixed Q16 rates: 175/9 on X and 105/9 on Y, truncated toward zero.

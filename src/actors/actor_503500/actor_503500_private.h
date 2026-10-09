@@ -8,6 +8,7 @@
 #include "common.h"
 
 #include "actors/actor.h"
+#include "actors/actor_503500.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/animation.h"
@@ -34,6 +35,19 @@ enum {
     ACTOR_503500_SLIDER_COMMAND_PATH_SECOND = 2,
     ACTOR_503500_SLIDER_COMMAND_SHAKE       = 3,
 };
+
+/// Boss scene actions; the receiver ignores the command record's context tags.
+enum {
+    ACTOR_503500_BOSS_COMMAND_RESUME                 = 0,
+    ACTOR_503500_BOSS_COMMAND_HOLD                   = 1,
+    ACTOR_503500_BOSS_COMMAND_COLLAPSE               = 2,
+    ACTOR_503500_BOSS_COMMAND_EXIT                   = 3,
+    ACTOR_503500_BOSS_COMMAND_BEGIN_PHASE_TRANSITION = 4,
+    ACTOR_503500_BOSS_COMMAND_RESTORE_ROOT           = 5,
+};
+
+/// Tentacle scene action that invokes immediate teardown.
+enum { ACTOR_503500_TENTACLE_COMMAND_EXIT = 3 };
 
 struct Actor503500Work;
 
@@ -86,16 +100,15 @@ typedef union {
 } Actor503500FixedVector;
 STATIC_ASSERT_SIZEOF(Actor503500FixedVector, 0x10);
 
-enum {
-    ACTOR_503500_SLOT_COUNT = 17, // Slots of the boss: its own and those of the enemies riding on it
-};
-
 /// Descriptor indices of the boss and the attached enemies these attacks command.
 enum {
     ACTOR_503500_SLOT_BODY                 = 0,
     ACTOR_503500_SLOT_PINK_FLASH_EMITTER   = 1,
     ACTOR_503500_SLOT_LARGE_CHAIN_0        = 2,
     ACTOR_503500_SLOT_LARGE_CHAIN_1        = 3,
+    ACTOR_503500_SLOT_LARGE_ORB_EMITTER_0  = 4,
+    ACTOR_503500_SLOT_LARGE_ORB_EMITTER_1  = 5,
+    ACTOR_503500_SLOT_REAR_PART            = 6,
     ACTOR_503500_SLOT_CHAIN_BASE_0         = 7,
     ACTOR_503500_SLOT_CHAIN_BASE_1         = 8,
     ACTOR_503500_SLOT_SMALL_ORB_EMITTER    = 9,
@@ -281,17 +294,33 @@ extern DamageAttack* D_actor_503500_8016E7CC[1];
 
 extern DamageAttack* D_actor_503500_8016E7D0[1];
 
-extern DamageAttack* D_actor_503500_8016E7D4[2];
+/// Flash damage-table indices: pink capsule and player-centred yellow sphere.
+enum {
+    ACTOR_503500_FLASH_ATTACK_PINK   = 0,
+    ACTOR_503500_FLASH_ATTACK_YELLOW = 1,
+    ACTOR_503500_FLASH_ATTACK_COUNT  = 2,
+};
+
+/// Single-row damage tables borrowed by the pink and yellow flash attacks.
+///
+/// Indices 0/1 select pink/yellow; each receiver packs row 0 while linking its body.
+/// Keep this overlay loaded for the table and rows' lifetimes.
+extern DamageAttack* gActor503500FlashAttacks[ACTOR_503500_FLASH_ATTACK_COUNT];
 
 extern DamageAttack* D_actor_503500_8016E7DC[1];
 
-extern EnemyParams D_actor_503500_8016E7EC[17];
+/// Shared enemy tuning indexed by the boss or attached part's spawn slot (0..16).
+///
+/// Aligned with `gActor503500EnemyTaskDescs`. Initialization borrows the record
+/// and seeds health from hpMax; arms also read it when restoring health. Attack
+/// rows are borrowed. Rewards use the resident result units; critical and damage-
+/// over-time chances are percentages and reaction durations are base step counts.
+/// Keep the overlay loaded while any enemy retains its parameter pointer.
+extern EnemyParams gActor503500EnemyParams[ACTOR_503500_SLOT_COUNT];
 
 extern s8 D_actor_503500_8016E8FC[20];
 
 extern u8 D_actor_503500_8016E910[20];
-
-extern TaskDesc D_actor_503500_8016E924[17];
 
 extern Task* D_actor_503500_80176558;
 
@@ -492,7 +521,25 @@ extern SVECTOR D_actor_503500_801715B4;
 
 extern s32 D_actor_503500_801715BC[2];
 
-extern TaskDesc D_actor_503500_8016E9F0[5];
+/// Spawn-recipe indices of the independent shot and flash attack tasks.
+enum {
+    ACTOR_503500_ATTACK_TASK_BALLISTIC_SHOT = 0,
+    ACTOR_503500_ATTACK_TASK_LINGERING_SHOT = 1,
+    ACTOR_503500_ATTACK_TASK_PINK_FLASH     = 2,
+    ACTOR_503500_ATTACK_TASK_YELLOW_FLASH   = 3,
+    ACTOR_503500_ATTACK_TASK_ORANGE_FLASH   = 4,
+    ACTOR_503500_ATTACK_TASK_COUNT          = 5,
+};
+
+/// Coordinate-body attack recipes, all dispatched at priority 192.
+///
+/// Shot argument 1 selects kind 0/1 and argument 2 is signed 16.16 launch speed.
+/// Ballistic kinds are chain shot/small orb; lingering kinds are large orb/chain-
+/// base projectile. Pink argument 1 selects side 0/1 and argument 2 is unused;
+/// yellow ignores both. Orange argument 1 is its charge-effect tick countdown
+/// and argument 2 borrows the live boss task. Spawn reads descriptors synchronously;
+/// callbacks and attack resources require this overlay to remain loaded.
+extern TaskDesc gActor503500AttackTaskDescs[ACTOR_503500_ATTACK_TASK_COUNT];
 
 extern TaskMessageEntry D_actor_503500_8016EA2C[];
 
