@@ -549,6 +549,14 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
                             f"PIX({json.dumps(name)},{json.dumps([[slot['x'], slot['y'], slot['w'], slot['h'], base64.b64encode(cap_bundle.palette_words(data, slot)).decode()]])});\n", encoding="utf-8")
                 else:
                     catalogue[name] = [slot["what"], {"source": key, "size": slot["length"], "vram": slot["dest"], "notes": f"slot {slot['slot']} of the bundle {room} loads"}]
+    # A room's collision grid is an asset too: the overlay manifest declares where it sits in the package.
+    import tomllib as _toml
+    from gen_overlay_configs import declared_collisions
+    for grid in declared_collisions(_toml.loads((ROOT / "configs/USA/overlays.toml").read_text(encoding="utf-8"))):
+        catalogue[f"{grid['package']}_collision_{grid['grid']:05X}"] = ["collision", {
+            "source": grid["package"] + ".pe2pkg", "vram": grid["load"] + grid["grid"],
+            "notes": "the room's collision grid: normals, vertices, faces and per-cell face lists; its header follows at "
+                     f"0x{grid['load'] + grid['source']:08X}"}]
     scripts = {key: [found["bank"], [[list(n) for n in notes] if notes is not None else None for notes in found["entries"]]] for key, found in spk_scripts.all_banks().items()}
     # Movies and streamed audio are not chunks of the stage files; the extraction lists them.
     streams = {}
