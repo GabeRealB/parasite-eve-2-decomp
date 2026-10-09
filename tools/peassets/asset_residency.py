@@ -366,11 +366,17 @@ def build(db: sqlite3.Connection) -> None:
             # file comes in addition, with that placement's own offsets.
             for entry, (base, table) in entries.items():
                 textures = 600000 <= base < 700000
-                if textures and entry not in used:
-                    continue
-                for low, page, row in used.get(entry) or [(0, 0, 0)]:
-                    for fid in sorted({base, base + low} - ({base} if textures and low else set())):
-                        loads[(fid, page, row)] = f"entry {entry}" + ("" if entry in used else ", not placed")
+                # Pass 1: the base file, once, with the offsets of the first
+                # placement that names the entry without a further file.
+                first = next(((page, row) for low, page, row in used.get(entry, ()) if low == 0), None)
+                if first is not None:
+                    loads[(base,) + first] = f"entry {entry}"
+                elif not textures:
+                    loads[(base, 0, 0)] = f"entry {entry}, " + ("placed only with a further file" if entry in used else "not placed")
+                # Pass 2: each placement's further file, with its own offsets.
+                for low, page, row in used.get(entry, ()):
+                    if low:
+                        loads[(base + low, page, row)] = f"entry {entry}, file {low}"
             members = []
             for (fid, page, row), note in sorted(loads.items()):
                 if fid in common:
@@ -561,6 +567,80 @@ def write_page(db: sqlite3.Connection, out: Path, bare: bool) -> None:
     print(f"wrote {out}  ({out.stat().st_size // 1024} KB)")
 
 
+FAMILIES = {0: "boot and load screens", 1: "costume, weapon, ammunition", 2: "menus and previews", 3: "map pictures",
+            4: "music", 5: "spells", 80: "companions", 90: "stage map"}
+
+
+def family_of(path: str, stage, file_id) -> str:
+    """The kind of file, by where it sits on the disc."""
+    if path.startswith("code:"):
+        return "uploads by code"
+    if stage:
+        return "room base file" if not file_id else "room view file"
+    group = (file_id or 0) // 10000
+    if group in FAMILIES:
+        return FAMILIES[group]
+    if group // 10 in (8, 9):
+        return FAMILIES[group // 10 * 10]
+    return "actor textures only" if group >= 60 else "actors"
+
+
+def regions(db: sqlite3.Connection) -> None:
+    """Per family of files: where their uploads land, over every load in the graph.
+
+    This is the question of whether video memory is carved up by purpose. A
+    landing is counted once per (file, offsets) the graph loads it with.
+    """
+    kinds = {r["path"]: family_of(r["path"], r["stage"], r["id"]) for r in db.execute("SELECT * FROM file")}
+    images: dict[str, dict[tuple, int]] = defaultdict(lambda: defaultdict(int))
+    cluts: dict[str, dict[tuple, int]] = defaultdict(lambda: defaultdict(int))
+    seen = set()
+    for m in db.execute("SELECT DISTINCT file, page, row, mode FROM member"):
+        for f in db.execute("SELECT * FROM footprint WHERE file = ?", (m["file"],)):
+            x, y = moved(tuple(f)[1:], m["page"], m["row"], m["mode"])
+            key = (m["file"], f["asset"], f["part"], x, y)
+            if key in seen:
+                continue
+            seen.add(key)
+            if f["kind"] == "clut":
+                for row in range(f["h"]):
+                    cluts[kinds[m["file"]]][y + row, f["w"]] += 1
+            else:
+                images[kinds[m["file"]]][x // 64 * 64, y // 64 * 64, f["bpp"]] += 1
+    for family in sorted(set(images) | set(cluts)):
+        print(family)
+        by_band: dict[tuple, list] = defaultdict(list)
+        for (x, y, bpp), n in sorted(images[family].items()):
+            by_band[y, bpp].append((x, n))
+        for (y, bpp), pages in sorted(by_band.items()):
+            print(f"  images at row {y:>3}, {bpp}-bit: " + ", ".join(f"x {x} ({n})" for x, n in pages))
+        rows: dict[int, int] = defaultdict(int)
+        for (row, _w), n in cluts[family].items():
+            rows[row] += n
+        if rows:
+            print("  CLUT rows: " + ", ".join(f"{row} ({n})" for row, n in sorted(rows.items())))
+
+
+def slots(db: sqlite3.Connection) -> None:
+    """Which overlays share a load address, so cannot be in memory together."""
+    import tomllib
+    sys.path.insert(0, str(ROOT / "tools"))
+    from gen_overlay_configs import slot_packages
+    manifest = tomllib.loads((ROOT / "configs/USA/overlays.toml").read_text(encoding="utf-8"))
+    at: dict[int, list[str]] = defaultdict(list)
+    families: dict[int, set[str]] = defaultdict(set)
+    for family, spec in manifest.items():
+        if not isinstance(spec, dict) or "overlays" not in spec:
+            continue
+        own = {int(k): int(v) for k, v in (spec.get("slots") or {}).items()}
+        for name, slot, _entry in slot_packages(spec):
+            address = own.get(slot.get("slot"), int(spec["load_addr"]))
+            at[address].append(name)
+            families[address].add(family)
+    for address in sorted(at):
+        print(f"  {address:#010x}  {len(at[address]):>3} overlays  {', '.join(sorted(families[address]))}")
+
+
 def resident(db: sqlite3.Connection, loader: str):
     """(group row, member row, footprint row, x, y) for everything LOADER can bring in."""
     for g in db.execute("SELECT * FROM grp WHERE loader = ? ORDER BY kind, id", (loader,)):
@@ -576,6 +656,8 @@ def main() -> int:
     sub = ap.add_subparsers(dest="command", required=True)
     sub.add_parser("build")
     sub.add_parser("stats")
+    sub.add_parser("regions", help="where each family of files lands in video memory")
+    sub.add_parser("slots", help="the load addresses overlays compete for")
     for name in ("show", "dot"):
         p = sub.add_parser(name); p.add_argument("loader")
     p = sub.add_parser("html")
@@ -591,6 +673,10 @@ def main() -> int:
         build(db)
     elif args.command == "html":
         write_page(db, args.out, args.bare)
+    elif args.command == "regions":
+        regions(db)
+    elif args.command == "slots":
+        slots(db)
     elif args.command == "stats":
         for row in db.execute("SELECT kind, evidence, COUNT(*), COUNT(DISTINCT loader) FROM grp GROUP BY 1, 2"):
             print(f"  {row[0]:<9} {row[1]:<10} {row[2]:>5} groups, {row[3]:>4} loaders")
