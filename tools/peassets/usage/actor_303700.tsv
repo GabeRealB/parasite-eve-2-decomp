@@ -1,0 +1,6 @@
+# asset	part	user	how	when	evidence	status	note
+spk_108	whole bank		no use found		configs/USA/overlays.toml:3358-3364 (actor_303700: packageId only, 4-byte package); searched src/rooms and src/mapui for an AreaResource naming file 37 with group base 30: every { 37, 37, ... } entry is LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR (D_actor_103700_80139DAC) or AREA_RESOURCE_FILE_GROUP_BASE_20 (D_actor_203700_80151DAC)	open	File 303700 carries the same three chunks as 103700/203700 (same keys, deduplicated) and a package with no code, model or animation. Nothing would spawn from it: a resource entry needs a TaskDesc address inside the package. Rooms whose resource tables are still INCLUDE_ASM were not ruled out.
+pe2clut_217	whole		no use found		as the line above	open	Same chunk as in files 103700 and 203700; its uses there are in actor_103700.tsv / actor_203700.tsv.
+pe2img_223	whole		no use found		as the line above	open	Same chunk as in files 103700 and 203700.
+# actor_303700 is not a sibling build of src/actors/actor_03700: its package is 4 bytes (the id 207), so it was swept on its own. The checklist correctly lists no model and no animation.
+# `asset_residency.py show actor_303700` prints `carrier - [carrier] 0/file303700 (2 uploads)` although no load of that file was found.
