@@ -209,17 +209,17 @@ D_shelter_b1_underground_parking_80189778 = 0x80189778; // absolute:True owner=s
 D_shelter_b1_underground_parking_8018AB9C = 0x8018AB9C; // absolute:True owner=shelter_b1_underground_parking
 D_shelter_b1_underground_parking_8018D724 = 0x8018D724; // absolute:True owner=shelter_b1_underground_parking
 shelterB1GolemFreezer1RoomTask = 0x8017D6EC; // type:func absolute:True owner=shelter_b1_golem_freezer_1
-D_shelter_b1_golem_freezer_1_8017E790 = 0x8017E790; // absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
-D_shelter_b1_golem_freezer_1_8017E794 = 0x8017E794; // absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
+gShelterB1GolemFreezer1ViewMaps = 0x8017E790; // absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
+gShelterB1GolemFreezer1ViewCounts = 0x8017E794; // absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
 D_shelter_b1_golem_freezer_1_8017E798 = 0x8017E798; // absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
-D_shelter_b1_golem_freezer_1_8017E9C0 = 0x8017E9C0; // absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
-D_shelter_b1_golem_freezer_1_8017E9E4 = 0x8017E9E4; // absolute:True owner=shelter_b1_golem_freezer_1
-D_shelter_b1_golem_freezer_1_8017EDB0 = 0x8017EDB0; // absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
-D_shelter_b1_golem_freezer_1_8017EE64 = 0x8017EE64; // absolute:True owner=shelter_b1_golem_freezer_1
-D_shelter_b1_golem_freezer_1_8017EE7C = 0x8017EE7C; // absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
-D_shelter_b1_golem_freezer_1_8017EFAC = 0x8017EFAC; // absolute:True owner=shelter_b1_golem_freezer_1
-D_shelter_b1_golem_freezer_1_8017F234 = 0x8017F234; // absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
-D_shelter_b1_golem_freezer_1_8017F290 = 0x8017F290; // absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
+gShelterB1GolemFreezer1RoomCollision = 0x8017E9C0; // absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
+gShelterB1GolemFreezer1ViewCameras = 0x8017E9E4; // absolute:True owner=shelter_b1_golem_freezer_1
+gShelterB1GolemFreezer1SpriteViews = 0x8017EDB0; // absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
+gShelterB1GolemFreezer1RoomLights = 0x8017EE64; // absolute:True owner=shelter_b1_golem_freezer_1
+gShelterB1GolemFreezer1ViewBoundaryTriggers = 0x8017EE7C; // absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
+gShelterB1GolemFreezer1ActionTriggers = 0x8017EFAC; // absolute:True owner=shelter_b1_golem_freezer_1
+gShelterB1GolemFreezer1AmbientByView = 0x8017F234; // absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
+gShelterB1GolemFreezer1SurfacePropertiesByClass = 0x8017F290; // absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
 shelterB2PodBottomRoomTask = 0x8017D708; // type:func absolute:True owner=shelter_b2_pod_bottom shared=rooms
 D_shelter_b2_pod_bottom_80181D14 = 0x80181D14; // absolute:True owner=shelter_b2_pod_bottom shared=rooms
 D_shelter_b2_pod_bottom_80181D24 = 0x80181D24; // absolute:True owner=shelter_b2_pod_bottom shared=rooms

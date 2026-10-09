@@ -28,6 +28,7 @@
 #include "gameplay/view.h"
 
 #include "main/coord.h"
+#include "main/areas.h"
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/random.h"
@@ -35,6 +36,7 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
@@ -143,42 +145,60 @@ SVECTOR D_shelter_b1_golem_freezer_1_8017E740[10] = {
     { 6500, 0, 2500, 0 },
 };
 
-u8* D_shelter_b1_golem_freezer_1_8017E790[1] = {
+u8* gShelterB1GolemFreezer1ViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_b1_golem_freezer_1_8017E794[2] = { 7, 0 };
+ViewCount gShelterB1GolemFreezer1ViewCounts[2] = { ARRAY_SIZE(gShelterB1GolemFreezer1ViewCameras), 0 };
 
 DirectionWarpEntry D_shelter_b1_golem_freezer_1_8017E798[1] = {
     { { { .word = 3072 }, 6763, -80, 1000 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 6763, -80, 1000 }, { 0, 0, 0, 0 }, 0x54150002, 0x54150001, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, 433 },
 };
 
-static SVECTOR _gShelterB1GolemFreezer1Collision01400Normals[9] = {
+/// Room collision normals in Q12; the meeting obstacle replaces entry zero.
+static SVECTOR _gShelterB1GolemFreezer1RoomCollisionNormals[9] = {
 #include "assets/shelter_b1_golem_freezer_1_collision_01400_normals.inc"
 };
 
-static SVECTOR _gShelterB1GolemFreezer1Collision01400Verts[28] = {
+/// Room collision vertices in game units; the meeting obstacle replaces the first four.
+static SVECTOR _gShelterB1GolemFreezer1RoomCollisionVerts[28] = {
 #include "assets/shelter_b1_golem_freezer_1_collision_01400_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB1GolemFreezer1Collision01400Faces[12] = {
+/// Indexed room walls and floor following four initially empty face records.
+static WorldCollisionGridFace _gShelterB1GolemFreezer1RoomCollisionFaces[12] = {
 #include "assets/shelter_b1_golem_freezer_1_collision_01400_faces.inc"
 };
 
-static s16 _gShelterB1GolemFreezer1Collision01400Cells[24] = {
+/// Two twelve-halfword face-index lists, each terminated by WORLD_COLLISION_GRID_CELL_END.
+static s16 _gShelterB1GolemFreezer1RoomCollisionCells[24] = {
 #include "assets/shelter_b1_golem_freezer_1_collision_01400_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB1GolemFreezer1Collision01400Cells[i])
-static s16* _gShelterB1GolemFreezer1Collision01400Table[2] = {
+// The generated cell table supplies halfword offsets into the two contiguous lists.
+#define GRID_CELL(i) (&_gShelterB1GolemFreezer1RoomCollisionCells[i])
+/// X-major cell directory for the room's two-by-one collision grid.
+static s16* _gShelterB1GolemFreezer1RoomCollisionTable[2] = {
 #include "assets/shelter_b1_golem_freezer_1_collision_01400_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b1_golem_freezer_1_8017E9C0 = { NULL, _gShelterB1GolemFreezer1Collision01400Normals, _gShelterB1GolemFreezer1Collision01400Verts, _gShelterB1GolemFreezer1Collision01400Faces, _gShelterB1GolemFreezer1Collision01400Table, -470, -280, 2, 1, 4000, 12 };
+WorldCollisionGrid gShelterB1GolemFreezer1RoomCollision = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB1GolemFreezer1RoomCollisionNormals,
+    .vertices    = _gShelterB1GolemFreezer1RoomCollisionVerts,
+    .faces       = _gShelterB1GolemFreezer1RoomCollisionFaces,
+    .cellFaceIds = _gShelterB1GolemFreezer1RoomCollisionTable,
+    .xBias       = -470,
+    .zBias       = -280,
+    .cellCountX  = ARRAY_SIZE(_gShelterB1GolemFreezer1RoomCollisionTable),
+    .cellCountZ  = 1,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gShelterB1GolemFreezer1RoomCollisionFaces),
+};
 
-ViewCamera D_shelter_b1_golem_freezer_1_8017E9E4[7] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -3740, 0x61A8, -960 } }, 853 },
+ViewCamera gShelterB1GolemFreezer1ViewCameras[7] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -3740, 0x61A8, -960 } }, 853 },
     { { { { 586, 0, -4053 }, { -114, 4094, -16 }, { 4052, 115, 586 } }, { -420, 1500, -330 } }, 257 },
     { { { { 531, 0, 4061 }, { 103, 4094, -13 }, { -4060, 104, 531 } }, { -6710, 1500, -330 } }, 257 },
     { { { { 3120, 0, 2652 }, { -153, 4089, 180 }, { -2648, -236, 3115 } }, { -6050, 1500, 3100 } }, 289 },
@@ -187,152 +207,194 @@ ViewCamera D_shelter_b1_golem_freezer_1_8017E9E4[7] = {
     { { { { 2473, 0, -3264 }, { -442, 4058, -335 }, { 3234, 555, 2450 } }, { 880, 1490, 900 } }, 447 },
 };
 
-SpriteBatch D_shelter_b1_golem_freezer_1_8017EAE0[2] = {
+/// View 1's empty sprite list; its first zero count enables decoded image strips.
+static SpriteBatch _gShelterB1GolemFreezer1View1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b1_golem_freezer_1_8017EAF0[30] = {
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -128, -120, 875, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -128, -80, 875, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -128, -40, 899, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -128, 8, 1000, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -128, 48, 1075, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -96, -120, 1075, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -96, -88, 1075, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -96, -56, 1075, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -96, -24, 1125, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -96, 8, 1125, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -96, 40, 1125, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -96, 64, 1125, { .fields = { 48, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -72, -120, 950, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -72, -96, 958, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -72, -72, 999, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -72, -48, 1133, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -72, -24, 1150, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -72, -8, 1200, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -56, -8, 1250, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -72, 8, 1200, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -72, 32, 1200, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -72, 56, 1200, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -56, 32, 1267, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -48, -120, 866, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -48, -96, 956, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -48, -72, 1226, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -48, -48, 1143, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, -112, 1203, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, -96, 1108, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, -80, 1156, { .fields = { 56, 16 } }, 128, 128, 128, 0 },
+/// GPU addresses and neutral modulation shared by view 2's 8-bit background tiles.
+enum {
+    SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE = getTPage(1, GPU_BLEND_AVERAGE, 960, 0),
+    SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT  = getClut(0, 255),
+    SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB  = 128,
 };
 
-SpriteBatch D_shelter_b1_golem_freezer_1_8017ED48[3] = {
+/// View 2's thirty background tiles, positioned in screen pixels with independent sorting depths.
+///
+/// The batch selects the complete array; there is no source sentinel.
+/// Texture coordinates use texels. Cached packets borrow depth from these records.
+static SpriteSource _gShelterB1GolemFreezer1View2SpriteSources[] = {
+    { SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE, SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT, { .fields = { 32, 40 } }, -128, -120, 875, { .fields = { 96, 88 } }, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE, SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT, { .fields = { 32, 40 } }, -128, -80, 875, { .fields = { 96, 128 } }, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE, SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT, { .fields = { 32, 48 } }, -128, -40, 899, { .fields = { 96, 0 } }, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE, SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT, { .fields = { 32, 40 } }, -128, 8, 1000, { .fields = { 96, 48 } }, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE, SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT, { .fields = { 32, 32 } }, -128, 48, 1075, { .fields = { 72, 200 } }, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE, SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT, { .fields = { 24, 32 } }, -96, -120, 1075, { .fields = { 72, 0 } }, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE, SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT, { .fields = { 24, 32 } }, -96, -88, 1075, { .fields = { 72, 32 } }, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE, SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT, { .fields = { 24, 32 } }, -96, -56, 1075, { .fields = { 104, 168 } }, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE, SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT, { .fields = { 24, 32 } }, -96, -24, 1125, { .fields = { 104, 200 } }, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE, SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT, { .fields = { 24, 32 } }, -96, 8, 1125, { .fields = { 80, 168 } }, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE, SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT, { .fields = { 24, 24 } }, -96, 40, 1125, { .fields = { 56, 112 } }, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE, SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT, { .fields = { 24, 16 } }, -96, 64, 1125, { .fields = { 48, 216 } }, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE, SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT, { .fields = { 24, 24 } }, -72, -120, 950, { .fields = { 56, 136 } }, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE, SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT, { .fields = { 24, 24 } }, -72, -96, 958, { .fields = { 56, 64 } }, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE, SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT, { .fields = { 24, 24 } }, -72, -72, 999, { .fields = { 56, 88 } }, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE, SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT, { .fields = { 24, 24 } }, -72, -48, 1133, { .fields = { 56, 160 } }, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE, SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT, { .fields = { 16, 16 } }, -72, -24, 1150, { .fields = { 56, 48 } }, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE, SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT, { .fields = { 16, 16 } }, -72, -8, 1200, { .fields = { 56, 200 } }, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE, SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT, { .fields = { 8, 16 } }, -56, -8, 1250, { .fields = { 64, 32 } }, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE, SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT, { .fields = { 16, 24 } }, -72, 8, 1200, { .fields = { 88, 232 } }, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE, SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT, { .fields = { 16, 24 } }, -72, 32, 1200, { .fields = { 80, 64 } }, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE, SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT, { .fields = { 16, 24 } }, -72, 56, 1200, { .fields = { 112, 232 } }, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE, SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT, { .fields = { 8, 24 } }, -56, 32, 1267, { .fields = { 104, 232 } }, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE, SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT, { .fields = { 16, 24 } }, -48, -120, 866, { .fields = { 80, 136 } }, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE, SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT, { .fields = { 16, 24 } }, -48, -96, 956, { .fields = { 72, 232 } }, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE, SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT, { .fields = { 16, 24 } }, -48, -72, 1226, { .fields = { 80, 88 } }, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE, SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT, { .fields = { 16, 24 } }, -48, -48, 1143, { .fields = { 80, 112 } }, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE, SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT, { .fields = { 16, 16 } }, -32, -112, 1203, { .fields = { 64, 184 } }, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE, SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT, { .fields = { 16, 16 } }, -32, -96, 1108, { .fields = { 56, 0 } }, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_TPAGE, SHELTER_B1_GOLEM_FREEZER_1_VIEW_2_SPRITE_CLUT, { .fields = { 16, 16 } }, -32, -80, 1156, { .fields = { 56, 16 } }, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, SHELTER_B1_GOLEM_FREEZER_1_SPRITE_NEUTRAL_RGB, 0 },
+};
+
+/// View 2's image-strip selector, full thirty-sprite range and terminal record.
+static SpriteBatch _gShelterB1GolemFreezer1View2SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 30, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB1GolemFreezer1View2SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_golem_freezer_1_8017ED60[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-SpriteBatch D_shelter_b1_golem_freezer_1_8017ED70[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-SpriteBatch D_shelter_b1_golem_freezer_1_8017ED80[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-SpriteBatch D_shelter_b1_golem_freezer_1_8017ED90[2] = {
+/// View 3's empty sprite list; its first zero count enables decoded image strips.
+static SpriteBatch _gShelterB1GolemFreezer1View3SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_golem_freezer_1_8017EDA0[2] = {
+/// View 4's empty sprite list; its first zero count enables decoded image strips.
+static SpriteBatch _gShelterB1GolemFreezer1View4SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_shelter_b1_golem_freezer_1_8017EDB0[7] = {
-    { { .empty = D_shelter_b1_golem_freezer_1_8017EAE0 }, D_shelter_b1_golem_freezer_1_8017EAE0, NULL },
-    { { .elements = D_shelter_b1_golem_freezer_1_8017EAF0 }, D_shelter_b1_golem_freezer_1_8017ED48, NULL },
-    { { .empty = D_shelter_b1_golem_freezer_1_8017ED60 }, D_shelter_b1_golem_freezer_1_8017ED60, NULL },
-    { { .empty = D_shelter_b1_golem_freezer_1_8017ED70 }, D_shelter_b1_golem_freezer_1_8017ED70, NULL },
-    { { .empty = D_shelter_b1_golem_freezer_1_8017ED80 }, D_shelter_b1_golem_freezer_1_8017ED80, NULL },
-    { { .empty = D_shelter_b1_golem_freezer_1_8017ED90 }, D_shelter_b1_golem_freezer_1_8017ED90, NULL },
-    { { .empty = D_shelter_b1_golem_freezer_1_8017EDA0 }, D_shelter_b1_golem_freezer_1_8017EDA0, NULL },
+/// View 5's empty sprite list; its first zero count enables decoded image strips.
+static SpriteBatch _gShelterB1GolemFreezer1View5SpriteBatches[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-WorldCoordPointLight D_shelter_b1_golem_freezer_1_8017EE04[1] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2916, -3502, -3635 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1474, 2048, 1865 }, { 0, 0 } }, 6500, 8500 },
+/// View 6's empty sprite list; its first zero count enables decoded image strips.
+static SpriteBatch _gShelterB1GolemFreezer1View6SpriteBatches[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-WorldCoordRoomLights D_shelter_b1_golem_freezer_1_8017EE64 = { 0, NULL, ARRAY_SIZE(D_shelter_b1_golem_freezer_1_8017EE04), D_shelter_b1_golem_freezer_1_8017EE04, 0, NULL };
+/// View 7's empty sprite list; its first zero count enables decoded image strips.
+static SpriteBatch _gShelterB1GolemFreezer1View7SpriteBatches[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+};
 
-WorldCollisionTrigger D_shelter_b1_golem_freezer_1_8017EE7C[4] = {
+SpriteView gShelterB1GolemFreezer1SpriteViews[7] = {
+    { { .empty = _gShelterB1GolemFreezer1View1SpriteBatches }, _gShelterB1GolemFreezer1View1SpriteBatches, NULL },
+    { { .elements = _gShelterB1GolemFreezer1View2SpriteSources }, _gShelterB1GolemFreezer1View2SpriteBatches, NULL },
+    { { .empty = _gShelterB1GolemFreezer1View3SpriteBatches }, _gShelterB1GolemFreezer1View3SpriteBatches, NULL },
+    { { .empty = _gShelterB1GolemFreezer1View4SpriteBatches }, _gShelterB1GolemFreezer1View4SpriteBatches, NULL },
+    { { .empty = _gShelterB1GolemFreezer1View5SpriteBatches }, _gShelterB1GolemFreezer1View5SpriteBatches, NULL },
+    { { .empty = _gShelterB1GolemFreezer1View6SpriteBatches }, _gShelterB1GolemFreezer1View6SpriteBatches, NULL },
+    { { .empty = _gShelterB1GolemFreezer1View7SpriteBatches }, _gShelterB1GolemFreezer1View7SpriteBatches, NULL },
+};
+
+/// All-view point light at (2916, -3502, -3635), with full strength through 6500 game units.
+///
+/// Intensity uses Q12 and fades to zero at 8500 units; view parenting,
+/// composition and attenuation update this room-owned record in place.
+static WorldCoordPointLight _gShelterB1GolemFreezer1PointLights[1] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2916, -3502, -3635 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1474, 2048, 1865 }, { 0, 0 } }, 6500, 8500 },
+};
+
+WorldCoordRoomLights gShelterB1GolemFreezer1RoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gShelterB1GolemFreezer1PointLights),
+    .pointLights           = _gShelterB1GolemFreezer1PointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
+};
+
+WorldCollisionTrigger gShelterB1GolemFreezer1ViewBoundaryTriggers[4] = {
     { NULL, NULL, NULL, { 3643, -1712, 668, 0 }, { { -50, -2576, -1587, 0 }, { 50, -2576, 1588, 0 }, { -50, 2576, -1587, 0 }, { 50, 2576, 1588, 0 } }, { 4098, 0, -130, 0 }, { 0, 0, 4096, 0 }, 3018, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 3786, -1680, 763, 0 }, { { 43, -2544, 1293, 0 }, { -43, -2544, -1293, 0 }, { 43, 2544, 1293, 0 }, { -43, 2544, -1293, 0 } }, { -4103, 0, 135, 0 }, { 0, 0, 4096, 0 }, 2850, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 5695, -1664, 544, 0 }, { { 413, -2576, -1534, 0 }, { -413, -2576, 1534, 0 }, { 413, 2576, -1534, 0 }, { -413, 2576, 1534, 0 } }, { 3959, 0, 1065, 0 }, { 0, 0, 4096, 0 }, 3018, 0, 5, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 5855, -1664, 640, 0 }, { { -413, -2576, 1534, 0 }, { 413, -2576, -1534, 0 }, { -413, 2576, 1534, 0 }, { 413, 2576, -1534, 0 } }, { -3961, 0, -1067, 0 }, { 0, 0, 4096, 0 }, 3018, 0, 2, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_shelter_b1_golem_freezer_1_8017EFAC[5] = {
-    { NULL, NULL, NULL, { 6736, -144, 1152, 0 }, { { -400, 0, -960, 0 }, { 400, 0, -960, 0 }, { -400, 0, 960, 0 }, { 400, 0, 960, 0 } }, { 0, 4100, 0, 0 }, { -4096, 0, 0, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_WARP, 19, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+/// Interaction identifiers: warp descriptor slots and the room's meeting talk action.
+///
+/// Warp slots pack departure in the high nibble and arrival in the low nibble.
+enum {
+    SHELTER_B1_GOLEM_FREEZER_1_WARP_DEPARTURE_SLOT = 1,
+    SHELTER_B1_GOLEM_FREEZER_1_WARP_ARRIVAL_SLOT   = 2,
+    SHELTER_B1_GOLEM_FREEZER_1_TALK_TRIGGER_ACTION = 1,
+};
+
+WorldCollisionTrigger gShelterB1GolemFreezer1ActionTriggers[5] = {
+    { NULL, NULL, NULL, { 6736, -144, 1152, 0 }, { { -400, 0, -960, 0 }, { 400, 0, -960, 0 }, { -400, 0, 960, 0 }, { 400, 0, 960, 0 } }, { 0, 4100, 0, 0 }, { -ONE, 0, 0, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, (SHELTER_B1_GOLEM_FREEZER_1_WARP_DEPARTURE_SLOT << 4) | SHELTER_B1_GOLEM_FREEZER_1_WARP_ARRIVAL_SLOT, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 784, -141, 784, 0 }, { { -320, 0, -496, 0 }, { 320, 0, -496, 0 }, { -320, 0, 496, 0 }, { 320, 0, 496, 0 } }, { 0, 4113, 0, 0 }, { 4096, 0, 0, 0 }, 590, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 3296, -142, 1040, 0 }, { { -2240, 0, -256, 0 }, { 2240, 0, -256, 0 }, { -2240, 0, 256, 0 }, { 2240, 0, 256, 0 } }, { 0, 4110, 0, 0 }, { -201, 0, -4091, 0 }, 2246, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 992, -143, 1008, 0 }, { { -144, 0, -592, 0 }, { 1680, 0, -592, 0 }, { -144, 0, 528, 0 }, { 1680, 0, 528, 0 } }, { 0, 4096, 0, 0 }, { -4096, 0, 0, 0 }, 1778, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 1, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 992, -143, 1008, 0 }, { { -144, 0, -592, 0 }, { 1680, 0, -592, 0 }, { -144, 0, 528, 0 }, { 1680, 0, 528, 0 } }, { 0, ONE, 0, 0 }, { -ONE, 0, 0, 0 }, 1778, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_B1_GOLEM_FREEZER_1_TALK_TRIGGER_ACTION, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 4064, -64, 416, 0 }, { { -3040, 0, -256, 0 }, { 3040, 0, -256, 0 }, { -3040, 0, 256, 0 }, { 3040, 0, 256, 0 } }, { 0, 4095, 0, 0 }, { 201, 0, 4091, 0 }, 3050, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_shelter_b1_golem_freezer_1_8017F128[1] = {
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Empty, sentinel-terminated resource list for the default placement variant.
+static AreaResource _gShelterB1GolemFreezer1DefaultResources[1] = {
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_shelter_b1_golem_freezer_1_8017F134[2] = {
-    { 143, 607, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_160700_TASK_PIERCE, { 0, 0 }, gActor160700PierceCarradineTasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Resource entry shared by Pierce's meeting placement and actor spawn recipe.
+enum { SHELTER_B1_GOLEM_FREEZER_1_PIERCE_RESOURCE_ENTRY = 143 };
+
+/// Pierce Carradine's meeting resource, ending with AREA_PLACEMENT_END.
+///
+/// File number 607 at group base 10 selects packed global-library file 160700.
+/// The actor descriptor and loaded actor resources must outlive the meeting task.
+static AreaResource _gShelterB1GolemFreezer1MeetingResources[2] = {
+    {
+        .entryId        = SHELTER_B1_GOLEM_FREEZER_1_PIERCE_RESOURCE_ENTRY,
+        .fileNumber     = 607,
+        .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR,
+        .taskIndex      = ACTOR_160700_TASK_PIERCE,
+        .taskTable      = gActor160700PierceCarradineTasks,
+    },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b1_golem_freezer_1_8017F14C[1] = {
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Empty, sentinel-terminated actor placement list for the default variant.
+static AreaPlacement _gShelterB1GolemFreezer1DefaultPlacements[1] = {
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b1_golem_freezer_1_8017F15C[2] = {
-    { 143, 0, 0, 1140, 0, 1060, 1251, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Placement zero is Pierce at (1140, 0, 1060) game units in meeting variant 21.
+///
+/// Yaw is 1251/4096 of a turn and the CLUT shifts down two rows. Actor
+/// variant/mode are zero; AREA_PLACEMENT_END follows the actor.
+static AreaPlacement _gShelterB1GolemFreezer1MeetingPlacements[2] = {
+    {
+        .entryId       = SHELTER_B1_GOLEM_FREEZER_1_PIERCE_RESOURCE_ENTRY,
+        .x             = 1140,
+        .z             = 1060,
+        .yaw           = 1251,
+        .clutRowOffset = 2,
+    },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_shelter_b1_golem_freezer_1_8017F17C[23] = {
-    { NULL, NULL },
-    { D_shelter_b1_golem_freezer_1_8017F14C, D_shelter_b1_golem_freezer_1_8017F128 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_shelter_b1_golem_freezer_1_8017F15C, D_shelter_b1_golem_freezer_1_8017F134 },
-    { NULL, NULL },
+AreaVariant gShelterB1GolemFreezer1AreaVariants[23] = {
+    [AREA_DEFAULT_VARIANT]                       = { _gShelterB1GolemFreezer1DefaultPlacements, _gShelterB1GolemFreezer1DefaultResources },
+    [SHELTER_B1_GOLEM_FREEZER_1_MEETING_VARIANT] = { _gShelterB1GolemFreezer1MeetingPlacements, _gShelterB1GolemFreezer1MeetingResources },
 };
 
-WorldCoordRoomAmbientEntry D_shelter_b1_golem_freezer_1_8017F234[8] = {
-    { .viewCount = ARRAY_SIZE(D_shelter_b1_golem_freezer_1_8017F234) - 1 },
+WorldCoordRoomAmbientEntry gShelterB1GolemFreezer1AmbientByView[8] = {
+    { .viewCount = ARRAY_SIZE(gShelterB1GolemFreezer1AmbientByView) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 486, 554, 538, 526 } },
     { .color = { 458, 559, 500, 513 } },
@@ -342,29 +404,49 @@ WorldCoordRoomAmbientEntry D_shelter_b1_golem_freezer_1_8017F234[8] = {
     { .color = { 797, 1115, 1678, 1066 } },
 };
 
-WorldCollisionFootstepSounds D_shelter_b1_golem_freezer_1_8017F274 = {
-    0x10000059,
-    0x1000005B,
-    0x10000059,
+/// Cue-2 bases in the loaded type-1 sound bank; cue 1 selects the following entry.
+enum {
+    SHELTER_B1_GOLEM_FREEZER_1_FOOTSTEP_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x59,
+    SHELTER_B1_GOLEM_FREEZER_1_FOOTSTEP_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5B,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b1_golem_freezer_1_8017F280[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Class-1 floor footstep pairs: walking and scripted jumps share cues; running uses a second pair.
+///
+/// Cue 1 adds one, and companion playback adds 100 to the nonzero base.
+/// Surface records borrow these requests while the room's type-1 bank is loaded.
+static WorldCollisionFootstepSounds _gShelterB1GolemFreezer1FloorFootstepSounds = {
+    .walk         = SHELTER_B1_GOLEM_FREEZER_1_FOOTSTEP_WALK_CUE_BASE,
+    .run          = SHELTER_B1_GOLEM_FREEZER_1_FOOTSTEP_RUN_CUE_BASE,
+    .scriptedJump = SHELTER_B1_GOLEM_FREEZER_1_FOOTSTEP_WALK_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b1_golem_freezer_1_8017F288[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b1_golem_freezer_1_8017F274 },
+/// Collision policy without footstep cues, shared by surface classes 0 and 2..7.
+static WorldCollisionSurfaceProperties _gShelterB1GolemFreezer1DefaultSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_b1_golem_freezer_1_8017F290[8] = {
-    D_shelter_b1_golem_freezer_1_8017F280,
-    D_shelter_b1_golem_freezer_1_8017F288,
-    D_shelter_b1_golem_freezer_1_8017F280,
-    D_shelter_b1_golem_freezer_1_8017F280,
-    D_shelter_b1_golem_freezer_1_8017F280,
-    D_shelter_b1_golem_freezer_1_8017F280,
-    D_shelter_b1_golem_freezer_1_8017F280,
-    D_shelter_b1_golem_freezer_1_8017F280,
+/// Class-1 floor policy with footstep cues; probes block, weapon impacts and pushback apply.
+static WorldCollisionSurfaceProperties _gShelterB1GolemFreezer1FloorSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB1GolemFreezer1FloorFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gShelterB1GolemFreezer1SurfacePropertiesByClass[8] = {
+    &_gShelterB1GolemFreezer1DefaultSurface,
+    &_gShelterB1GolemFreezer1FloorSurface,
+    &_gShelterB1GolemFreezer1DefaultSurface,
+    &_gShelterB1GolemFreezer1DefaultSurface,
+    &_gShelterB1GolemFreezer1DefaultSurface,
+    &_gShelterB1GolemFreezer1DefaultSurface,
+    &_gShelterB1GolemFreezer1DefaultSurface,
+    &_gShelterB1GolemFreezer1DefaultSurface,
 };
 
 /// Rejects every key-item use request in this room with a zero reply.
@@ -498,7 +580,7 @@ static void _shelterB1GolemFreezer1RebuildMeetingObstacle(const GfxCoord* modelR
     s32                       elementIndex;
     SVECTOR*                  destinationVector;
     SVECTOR*                  sourceVector;
-    WorldCollisionGrid*       roomGrid       = &D_shelter_b1_golem_freezer_1_8017E9C0;
+    WorldCollisionGrid*       roomGrid       = &gShelterB1GolemFreezer1RoomCollision;
     const WorldCollisionGrid* obstacleSource = &D_shelter_b1_golem_freezer_1_8017E714;
 
     /// Restores the meeting quad's complete face and XYZ components, preserving pads.
