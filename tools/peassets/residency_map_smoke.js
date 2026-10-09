@@ -9,7 +9,7 @@ function node(tag) {
   const n = { tag, children: [], attrs: {}, style: {}, classList: { toggle() {}, add() {}, remove() {} }, hidden: false, value: "", textContent: "", className: "", checked: true,
     setAttribute(k, v) { this.attrs[k] = v; }, getAttribute(k) { return this.attrs[k]; }, addEventListener() {}, append(...c) { this.children.push(...c); for (const x of c) if (x && x.tag === "script" && x.src) { try { eval(fs.readFileSync(path.join(path.dirname(page), x.src), "utf8")); } catch (e) { x.onerror && x.onerror(); } } },
     replaceChildren(...c) { this.children = c; }, querySelectorAll() { return []; }, remove() {},
-    getContext() { return { fillRect() {}, createImageData: (w, h) => ({ data: new Uint8ClampedArray(w * h * 4) }), getImageData: () => ({ data: [200, 0, 0, 255] }), putImageData() {} }; } };
+    getContext() { return { fillRect() {}, strokeRect() {}, createImageData: (w, h) => ({ data: new Uint8ClampedArray(w * h * 4) }), getImageData: () => ({ data: [200, 0, 0, 255] }), putImageData() {} }; } };
   Object.defineProperty(n, "innerHTML", { set(v) { this.children = (String(v).match(/<(tr|div)\b/g) || []).map(() => node("row")); const m = [...String(v).matchAll(/<option(?: value="[^"]*")?>([^<]*)/g)]; this.options = m.map(x => x[1]); }, get() { return ""; } });
   Object.defineProperty(n, "childNodes", { get() { return this.children; } });
   return n;

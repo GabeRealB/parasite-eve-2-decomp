@@ -73,7 +73,7 @@ RELOCATED_FROM = 256                 # images at or below this row move by whole
 
 VARIANT_TABLE = re.compile(r"\bAreaVariant\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{(.*?)\n\};", re.S)
 RESOURCE_TABLE = re.compile(r"\bAreaResource\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{(.*?)\n\};", re.S)
-RESOURCE_ROW = re.compile(r"\{\s*([\w]+)\s*,\s*([-\w]+)\s*,\s*(\w+)\s*,[^{}]*\{[^{}]*\}\s*,\s*(&?\w+)\s*\}")
+RESOURCE_ROW = re.compile(r"\{\s*([\w]+)\s*,\s*([-\w]+)\s*,\s*(\w+)\s*,[^{}]*\{[^{}]*\}\s*,\s*(&?[\w.]+)\s*\}")
 OWNER = re.compile(r"D_([a-z0-9_]+?)_[0-9A-F]{8}$")
 PLACEMENT_TABLE = re.compile(r"\bAreaPlacement\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{(.*?)\n\};", re.S)
 
@@ -210,6 +210,8 @@ def traced_loads(common: dict[int, str], folders: dict[tuple[int, int], dict[int
 
 BYTE_TABLE = re.compile(r"\bu8\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{([^{}]*)\}\s*;")
 VIEW_DIRECTORY = re.compile(r"\bu8\s*\*\s*(\w+)\s*\[[^\]]*\]\s*=\s*\{([^{}]*)\}\s*;\s*(?:/\*.*?\*/\s*|//[^\n]*\n\s*)*ViewCount\s+\w+\s*\[[^\]]*\]\s*=\s*\{([^{}]*)\}", re.S)
+VIEW_COUNTS = re.compile(r"\bViewCount\s+\w+\s*\[[^\]]*\]\s*=\s*\{([^{}]*)\}")
+POINTER_TABLE = re.compile(r"\bu8\s*\*\s*(\w+)\s*\[[^\]]*\]\s*=\s*\{([^{}]*)\}\s*;")
 IDENTITY_MAP = "gViewIdentityMap"
 
 
@@ -244,6 +246,22 @@ def view_maps(files: list[Path], packages: set[str]) -> dict[str, list[list[int]
                     break
             if room and maps:
                 out[room] = maps
+        if room and room not in out:
+            # The directory and the counts are not always declared together:
+            # then it is the pointer table whose entries are all byte maps,
+            # as long as the view counts.
+            counted = [[asset_journal.evaluate(c, {}) or 0 for c in m[1].split(",") if c.strip()] for m in VIEW_COUNTS.finditer(text)]
+            for directory in POINTER_TABLE.finditer(text):
+                names = [c.strip() for c in directory[2].split(",") if c.strip()]
+                if not names or any(n != IDENTITY_MAP and n not in tables for n in names):
+                    continue
+                counts = next((c for c in counted if len(c) == len(names)), None)
+                if counts is None:
+                    continue
+                maps = [list(range(1, count + 1)) if name == IDENTITY_MAP else tables[name][:count] for name, count in zip(names, counts)]
+                if all(None not in m for m in maps):
+                    out[room] = maps
+                    break
     return out
 
 
@@ -302,6 +320,22 @@ def build(db: sqlite3.Connection) -> None:
                     group(room, "optional", f"file {node['id']}", "folder", f"{stage}/{folder}",
                           [(f"{stage}/{folder}/{fkey}", 0, 0, "", "no view maps to it")])
 
+    # Gameplay loads the room the player is in: its base file, which carries
+    # the room's overlay (loadingEnqueueAreaAndCompanionResourcesTask).
+    for room, where in sorted(rooms.items()):
+        for path in carriers[room]:
+            group("gameplay", "optional", f"room: {room}", "rule", "src/gameplay/load_screen.c", [(path, 0, 0, "", "")])
+    # What an overlay uploads itself, from an image or CLUT embedded in it,
+    # where its upload record fixes the position.
+    for key, rec in sorted(_embedded.items()):
+        package = rec.get("source", "").removesuffix(".pe2pkg")
+        if rec.get("type") in ("image", "clut") and "x" in rec and carriers.get(package):
+            path = carriers[package][0]
+            db.execute("INSERT INTO footprint VALUES (?,?,?,?,?,?,?,?,?)",
+                       (f"code:{key}", key, rec["type"], "", rec["x"], rec["y"], rec["w"], rec["h"], rec.get("bpp")))
+            db.execute("INSERT OR IGNORE INTO file VALUES (?,?,?,?,?)", (f"code:{key}", None, None, None, None))
+            group(package, "optional", f"upload: {key}", "embedded", path, [(f"code:{key}", 0, 0, "", "uploaded by the overlay's own code")])
+
     # A room's variants: each pairs placements with the resources they name.
     values: dict[str, set[int]] = defaultdict(set)
     for path in files:
@@ -350,7 +384,7 @@ def build(db: sqlite3.Connection) -> None:
                 # which need not be the offsets its package's file came with.
                 spawned = set()
                 for entry, lows in used.items():
-                    owner = OWNER.match(entries.get(entry, (0, ""))[1].lstrip("&"))
+                    owner = OWNER.match(entries.get(entry, (0, ""))[1].lstrip("&").split(".")[0])
                     if owner and owner[1] in man_packages:
                         spawned.update((owner[1], page, row, entry) for _low, page, row in lows)
                 db.executemany("INSERT INTO spawn VALUES (?,?,?,?,?)", [(gid,) + sp for sp in sorted(spawned)])
@@ -365,7 +399,7 @@ def build(db: sqlite3.Connection) -> None:
           f"{db.execute('SELECT COUNT(*) FROM footprint').fetchone()[0]} uploaded rectangles, "
           f"{db.execute('SELECT COUNT(*) FROM grp').fetchone()[0]} groups"
           + (f"; {unmapped} room files no view maps to" if unmapped else "")
-          + (f"; placements name {len(missing)} files the disc does not have: {sorted(missing)}" if missing else ""))
+          + (f"; placements name {len(missing)} files the disc does not have, so nothing is loaded for them: {sorted(missing)}" if missing else ""))
 
 
 TEMPLATE = Path(__file__).with_name("residency_map.html")
@@ -409,13 +443,16 @@ def write_pixels(db: sqlite3.Connection, folder: Path) -> int:
     raw = ROOT / "assets" / "USA" / "raw"
     folder.mkdir(parents=True, exist_ok=True)
     written = 0
-    for asset, kind in db.execute("SELECT DISTINCT asset, kind FROM footprint"):
+    for asset, kind, code, x, y, w, h in db.execute("SELECT DISTINCT asset, kind, file LIKE 'code:%', x, y, w, h FROM footprint"):
         source = raw / ("pe2clut" if kind == "clut" else "pe2img") / f"{asset}.{'pe2clut' if kind == 'clut' else 'pe2img'}"
+        if code:
+            source = raw / ("clut" if kind == "clut" else "img") / f"{asset}.{'clut' if kind == 'clut' else 'img'}"
         target = folder / f"{asset}.js"
         if not source.is_file() or (target.is_file() and target.stat().st_mtime >= source.stat().st_mtime):
             continue
         try:
-            columns = raw_columns(kind, source.read_bytes())
+            # An embedded upload is bare words, the size its record gives.
+            columns = [(x, y, w, h, source.read_bytes()[: w * h * 2].ljust(w * h * 2, b"\0"))] if code else raw_columns(kind, source.read_bytes())
         except Exception as exc:  # noqa: BLE001 - one undecodable asset must not stop the page
             print(f"{asset}: {exc}", file=sys.stderr)
             continue
@@ -429,6 +466,26 @@ def brief(note: str) -> str:
     """A traced load's note runs to a paragraph; the page has room for its first clause."""
     note = (note or "").split(". ")[0]
     return note if len(note) <= 72 else note[:71].rstrip() + "…"
+
+
+_LOADS: dict[str, tuple[int, bytes]] = {}
+
+
+def model_bounds(package: str, rec: dict) -> dict[tuple[int, int], list[int]]:
+    """(page, CLUT) -> [u0, v0, u1, v1]: the part of the page a model's faces cover."""
+    import pkg_model
+    if not _LOADS:
+        for name, (load, _sources) in pkg_model.declared_records(ROOT).items():
+            path = ROOT / "assets" / "USA" / "pe2pkg" / f"{name}.pe2pkg"
+            if path.is_file():
+                _LOADS[name] = (load, path.read_bytes())
+    if package not in _LOADS:
+        return {}
+    load, data = _LOADS[package]
+    try:
+        return {pair: list(box) for pair, box in (pkg_model.stream_texture_bounds(data, rec["vram"] - load) or {}).items()}
+    except Exception:  # noqa: BLE001 - bounds are a nicety
+        return {}
 
 
 def page_data(db: sqlite3.Connection, pictures: str = "", pixels: str = "") -> str:
@@ -456,7 +513,9 @@ def page_data(db: sqlite3.Connection, pictures: str = "", pixels: str = "") -> s
     models = defaultdict(list)
     for key, rec in sorted(embedded.items()):
         if rec.get("type") == "model" and assets.get(key, {}).get("textures"):
-            models[rec["source"].removesuffix(".pe2pkg")].append([key, assets[key]["textures"]])
+            package = rec["source"].removesuffix(".pe2pkg")
+            bounds = model_bounds(package, rec)
+            models[package].append([key, [pair + bounds.get(tuple(pair), []) for pair in assets[key]["textures"]]])
     # What the code's own constants ask for: a texture page and a CLUT value
     # declared together in one function, from the asset journal when there is one.
     constants = defaultdict(list)
@@ -473,8 +532,9 @@ def page_data(db: sqlite3.Connection, pictures: str = "", pixels: str = "") -> s
                 for page_name, page in found["image.tpage"]:
                     for clut_name, clut in found["clut.value"]:
                         constants[package].append([f"{scope}: {page_name} + {clut_name}", page, clut])
+    maps = {r["id"] - 900000: index[r["path"]] for r in db.execute("SELECT path, id FROM file WHERE stage = 0 AND id BETWEEN 900001 AND 900005")}
     return json.dumps({"files": files, "fp": footprint, "loaders": loaders, "pkg": carried, "pictures": pictures,
-                       "pixels": pixels, "models": models, "consts": constants}, separators=(",", ":")).replace("</", "<\\/")
+                       "pixels": pixels, "models": models, "consts": constants, "stagemap": maps}, separators=(",", ":")).replace("</", "<\\/")
 
 
 def write_page(db: sqlite3.Connection, out: Path, bare: bool) -> None:

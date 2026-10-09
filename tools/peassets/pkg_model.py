@@ -135,6 +135,33 @@ def stream_textures(data: bytes, off: int = 0) -> list[tuple[int, int]] | None:
     return sorted(found)
 
 
+def stream_texture_bounds(data: bytes, off: int = 0) -> dict[tuple[int, int], tuple[int, int, int, int]] | None:
+    """(page, CLUT) -> (u min, v min, u max, v max) over the faces naming that pair.
+
+    Three texture words: `u0` and `u1` carry a corner each in their low half,
+    the third a corner in its low half and, for a quad, a fourth in its high.
+    """
+    walked = walk_stream(data, off)
+    if walked is None:
+        return None
+    boxes: dict[tuple[int, int], list[int]] = {}
+    for packet in walked[0]:
+        word = TEXTURE_WORD.get(packet["op"])
+        if word is None or packet["stride"] < word + 3:
+            continue
+        quad = bool(packet["op"] & 0x40)
+        at = packet["offset"] + HEADER_WORDS * 4 + word * 4
+        for _ in range(packet["count"]):
+            u0, u1, u2 = struct.unpack_from("<3I", data, at)
+            corners = [u0 & 0xFFFF, u1 & 0xFFFF, u2 & 0xFFFF] + ([u2 >> 16] if quad else [])
+            box = boxes.setdefault((u1 >> 16, u0 >> 16), [255, 255, 0, 0])
+            for corner in corners:
+                u, v = corner & 0xFF, corner >> 8
+                box[0], box[1], box[2], box[3] = min(box[0], u), min(box[1], v), max(box[2], u), max(box[3], v)
+            at += packet["stride"] * 4
+    return {pair: tuple(box) for pair, box in boxes.items()}
+
+
 TMD_SOURCE_SIZE = 0x24
 SRC_PARTS = 0x0C      # part (bone) count
 SRC_PARTVERTS = 0x10  # partCount x u32: vertices owned by each part
