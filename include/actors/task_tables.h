@@ -193,9 +193,17 @@ extern TaskDesc D_actor_111800_8013A468;
 
 extern TaskDesc D_actor_135400_8013A4AC[];
 
-extern TaskDesc gMaggotCaterpillarBodyTask;
+/// Caterpillar body and puff spawn descriptors: indices 0 and 1, no terminator.
+///
+/// Both run at priority 96; the body allocates an eight-part TMD with
+/// automatic model buffers, and the puff has one coordinate. Spawn through
+/// the enemy API with a live owning `Enemy` in `Task::spawnArg2.pointer`.
+/// The body retains the table for child spawns. Keep the package callbacks
+/// and borrowed geometry loaded while either task lives.
+extern TaskDesc gActor05500MaggotCaterpillarTasks[2];
 
-extern TaskDesc D_actor_105500_8013A8DC[];
+/// Slot-1 export of `gActor05500MaggotCaterpillarTasks` from actor_105500.
+extern TaskDesc gActor105500MaggotCaterpillarTasks[2];
 
 extern TaskDesc D_actor_113000_8013ABB4;
 
@@ -315,7 +323,16 @@ extern TaskDesc gActor105600PawnGolemTasks[3];
 /// while its tasks live. Area resources select this descriptor at task index 0.
 extern TaskDesc gActor110600TaskDesc;
 
-extern TaskDesc D_actor_101900_80149120[];
+/// Grinning Stranger TMD spawn descriptor shared by actor_101900 and actor_301900.
+///
+/// Spawn at index 0 with a live owning `Enemy` in `Task::spawnArg2.pointer`.
+/// Priority 96 attaches the nineteen-part body and automatic model buffers.
+/// Placement entry 19 selects it; keep the package callbacks and borrowed
+/// model geometry loaded through enemy teardown.
+extern TaskDesc gActor01900GrinningStrangerTaskDesc;
+
+/// Slot-1 export of `gActor01900GrinningStrangerTaskDesc` from actor_101900.
+extern TaskDesc gActor101900GrinningStrangerTaskDesc;
 
 /// Launcher Pawn GOLEM spawn descriptors: 0 body, 1 launcher, 2 grenade; all are TMD bodies.
 ///
@@ -390,7 +407,8 @@ extern TaskDesc D_actor_213100_801521A8[];
 /// with the same body descriptor contract.
 extern TaskDesc gActor202600MaggotCaterpillarBodyTask;
 
-extern TaskDesc D_actor_205500_801528DC[];
+/// Slot-2 export of `gActor05500MaggotCaterpillarTasks` from actor_205500.
+extern TaskDesc gActor205500MaggotCaterpillarTasks[2];
 
 /// Gray Stalker body-task spawn recipe exported to Dryfield underpass resources.
 ///
@@ -515,15 +533,19 @@ extern TaskDesc D_actor_350500_80168EA4;
 
 extern TaskDesc D_actor_311500_80169338;
 
-extern TaskDesc D_actor_300700_801693AC;
+/// Rat TMD spawn descriptor exported by actor_300700; priority 96.
+///
+/// Spawn at index 0 with a live `Enemy` in `Task::spawnArg2.pointer`.
+/// Automatic model buffers attach the seven-part rat; placement entry 7
+/// selects it through file-group base 30. Keep the package callbacks and
+/// borrowed geometry loaded until enemy teardown.
+extern TaskDesc gActor300700RatTaskDesc;
 
 extern TaskDesc D_actor_350700_80169D10;
 
 extern TaskDesc D_actor_312200_80169F7C;
 
 extern TaskDesc D_actor_521100_8016A388[];
-
-extern TaskDesc gMaggotCaterpillarBodyTask;
 
 extern TaskDesc D_actor_317000_8016CF44;
 
@@ -602,7 +624,8 @@ extern TaskDesc gActor301100Tasks[3];
 /// Slot export of `gActor02000PawnGolemTasks` from actor_302000, with the same descriptor contract.
 extern TaskDesc gActor302000PawnGolemTasks[2];
 
-extern TaskDesc D_actor_301900_80179120[];
+/// Slot-3 export of `gActor01900GrinningStrangerTaskDesc` from actor_301900.
+extern TaskDesc gActor301900GrinningStrangerTaskDesc;
 
 extern TaskDesc D_actor_310600_801796A4[];
 

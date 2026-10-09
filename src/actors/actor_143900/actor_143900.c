@@ -78,8 +78,6 @@ static _Actor143900Work* _gScriptedWalkWork;
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 
-extern TaskMessageEntry D_actor_143900_801413BC[];
-
 static ScriptedWalkAttachmentsWork* _gScriptedWalkSecondWork;
 
 static Task* _gActor143900SecondScriptedWalkerTask;
@@ -674,7 +672,12 @@ static AnimationSet _gActor143900Animation0F570 = {
 /// keeps the playback timer nonnegative. The range is not checked.
 static s16 _gScriptedWalkBlendFrames = SCRIPTED_WALK_DEFAULT_BLEND_FRAMES;
 
-TaskMessageEntry D_actor_143900_801413BC[6] = {
+/// Terminated message table for the first twenty-part scripted walker.
+///
+/// Dispatches animation, drawing, placement, command and walk-to messages.
+/// The task borrows the table until teardown; callbacks use its initialized
+/// work and the carrier's published singleton walker state.
+static TaskMessageEntry _gActor143900ScriptedWalkerMessages[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor143900PlayScriptedWalkerAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor143900SetScriptedWalkerModelDraw },
     { ACTOR_MESSAGE_PLACE, SCRIPTED_WALK_PLACE },
@@ -1206,7 +1209,7 @@ static void _actor143900SpawnScriptedWalker(Enemy* enemy, Task* task)
     _gScriptedWalkWork->st.state   = ACTOR_ENEMY_ANIM_RESET;
     _gScriptedWalkWork->st.travel  = 0;
     _gScriptedWalkWork->turnFrames = 0;
-    task->msgTable                 = D_actor_143900_801413BC;
+    task->msgTable                 = _gActor143900ScriptedWalkerMessages;
     SCRIPTED_WALK_UPDATE(task);
     task->state += 1;
 }

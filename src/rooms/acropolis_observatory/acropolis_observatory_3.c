@@ -204,7 +204,7 @@ WorldCollisionTrigger D_acropolis_observatory_80180D6C[9] = {
 };
 
 AreaResource D_acropolis_observatory_80181018[2] = {
-    { 19, 19, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_actor_301900_80179120 },
+    { 19, 19, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor301900GrinningStrangerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -290,7 +290,7 @@ AreaPlacement D_acropolis_observatory_8018120C[2] = {
 };
 
 AreaResource D_acropolis_observatory_8018122C[2] = {
-    { 19, 19, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_101900_80149120 },
+    { 19, 19, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101900GrinningStrangerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

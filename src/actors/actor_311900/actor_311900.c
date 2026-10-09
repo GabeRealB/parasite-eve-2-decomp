@@ -94,9 +94,6 @@ extern u8 D_actor_311900_8016EBE8[];
 /// The animation data the second setup path builds its clip context from.
 extern u8 D_actor_311900_8016EBF4[];
 
-/// The palette rows `_actor311900TickPaletteGreying` reads back, greys and uploads.
-extern u16 D_actor_311900_8016EC18[][0x100];
-
 static void _actor311900InitRupert(Enemy* enemy, Task* task);
 static void _actor311900UpdateRupert(Enemy* enemy, Task* task);
 static void _actor311900InitSwat(Enemy* enemy, Task* task);
@@ -254,13 +251,19 @@ TaskDesc D_actor_311900_8016EC00 = { { { TASK_BODY_TMD, 96 } }, _actor311900Swat
 
 TaskDesc D_actor_311900_8016EC0C = { { { TASK_BODY_TMD, 96 } }, _actor311900RupertTask, { .model = &_gActor311900RupertBroderickBody1 } };
 
-u16 D_actor_311900_8016EC18[4][256];
+/// Palette read-back and greying workspace shared by this package's two figures.
+///
+/// Rows 0/1 belong to Rupert and 2/3 to the SWAT figure; each contains
+/// 256 RGB555/STP entries. Keep each pair intact across the three-tick
+/// read, convert and upload sequence and until its GPU transfer completes.
+/// SDK word-pointer casts pack two palette halfwords per transfer word.
+static u16 _gActor311900GreyPaletteRows[4][256];
 
 /// Greys a figure's two adjacent texture palettes over three calls.
 ///
 /// `task->work` must hold a live `_Actor311900Work`. `clutRowOffset` selects
 /// VRAM rows 245 + offset and 246 + offset, each 256 RGB555 entries at X = 0.
-/// `firstPaletteRow` selects two rows of `D_actor_311900_8016EC18`: 0 for
+/// `firstPaletteRow` selects two rows of `_gActor311900GreyPaletteRows`: 0 for
 /// Rupert (offset 2), or 2 for the SWAT figure (offset 4). Keep that pair
 /// unchanged through read-back, conversion and upload; later calls do nothing.
 /// Conversion raises all channels to their maximum and forces the STP bit on.
@@ -313,35 +316,35 @@ static void _actor311900TickPaletteGreying(Task* task, s32 clutRowOffset, s16 fi
     if (work->clutGreyStep == ACTOR_311900_CLUT_GREY_READ) {
         rect.x = 0;
         rect.y = clutRowOffset + ACTOR_311900_CLUT_BASE_Y;
-        rect.w = ARRAY_SIZE(D_actor_311900_8016EC18[0]);
+        rect.w = ARRAY_SIZE(_gActor311900GreyPaletteRows[0]);
         rect.h = 1;
-        StoreImage2(&rect, (u_long*)D_actor_311900_8016EC18[firstPaletteRow]);
+        StoreImage2(&rect, (u_long*)_gActor311900GreyPaletteRows[firstPaletteRow]);
         rect.x = 0;
         rect.y = clutRowOffset + ACTOR_311900_CLUT_BASE_Y + 1;
-        rect.w = ARRAY_SIZE(D_actor_311900_8016EC18[0]);
+        rect.w = ARRAY_SIZE(_gActor311900GreyPaletteRows[0]);
         rect.h = 1;
-        StoreImage2(&rect, (u_long*)D_actor_311900_8016EC18[firstPaletteRow + 1]);
+        StoreImage2(&rect, (u_long*)_gActor311900GreyPaletteRows[firstPaletteRow + 1]);
         work->clutGreyStep = ACTOR_311900_CLUT_GREY_CONVERT;
     } else if (work->clutGreyStep == ACTOR_311900_CLUT_GREY_CONVERT) {
-        for (entryIndex = 0; entryIndex < ARRAY_SIZE(D_actor_311900_8016EC18[0]); entryIndex++) {
-            ACTOR_311900_GREY_CLUT_ENTRY(D_actor_311900_8016EC18[firstPaletteRow][entryIndex]);
+        for (entryIndex = 0; entryIndex < ARRAY_SIZE(_gActor311900GreyPaletteRows[0]); entryIndex++) {
+            ACTOR_311900_GREY_CLUT_ENTRY(_gActor311900GreyPaletteRows[firstPaletteRow][entryIndex]);
         }
-        for (entryIndex = 0; entryIndex < ARRAY_SIZE(D_actor_311900_8016EC18[0]); entryIndex++) {
-            ACTOR_311900_GREY_CLUT_ENTRY(D_actor_311900_8016EC18[firstPaletteRow + 1][entryIndex]);
+        for (entryIndex = 0; entryIndex < ARRAY_SIZE(_gActor311900GreyPaletteRows[0]); entryIndex++) {
+            ACTOR_311900_GREY_CLUT_ENTRY(_gActor311900GreyPaletteRows[firstPaletteRow + 1][entryIndex]);
         }
 #undef ACTOR_311900_GREY_CLUT_ENTRY
         work->clutGreyStep = ACTOR_311900_CLUT_GREY_UPLOAD;
     } else if (work->clutGreyStep == ACTOR_311900_CLUT_GREY_UPLOAD) {
         rect.x = 0;
         rect.y = clutRowOffset + ACTOR_311900_CLUT_BASE_Y;
-        rect.w = ARRAY_SIZE(D_actor_311900_8016EC18[0]);
+        rect.w = ARRAY_SIZE(_gActor311900GreyPaletteRows[0]);
         rect.h = 1;
-        LoadImage2(&rect, (u_long*)D_actor_311900_8016EC18[firstPaletteRow]);
+        LoadImage2(&rect, (u_long*)_gActor311900GreyPaletteRows[firstPaletteRow]);
         rect.x = 0;
         rect.y = clutRowOffset + ACTOR_311900_CLUT_BASE_Y + 1;
-        rect.w = ARRAY_SIZE(D_actor_311900_8016EC18[0]);
+        rect.w = ARRAY_SIZE(_gActor311900GreyPaletteRows[0]);
         rect.h = 1;
-        LoadImage2(&rect, (u_long*)D_actor_311900_8016EC18[firstPaletteRow + 1]);
+        LoadImage2(&rect, (u_long*)_gActor311900GreyPaletteRows[firstPaletteRow + 1]);
         work->clutGreyStep = ACTOR_311900_CLUT_GREY_DONE;
     }
 }

@@ -1,6 +1,6 @@
 // Overlay-local symbols for actor_350500.
 D_actor_350500_80168EA4 = 0x80168EA4; // size:0xC defined:True
-gReverseWalkMessages = 0x80168EB0; // size:0x30 defined:True
+_gReverseWalkMessages = 0x80168EB0; // size:0x30 defined:True
 _gActor350500EveBreaMaskedBodySkeleton = 0x80162AF8; // size:0x2AC defined:True
 _gActor350500EveBreaMaskedBodyPartVerts = 0x80162DA4; // size:0x4C defined:True
 _gActor350500EveBreaMaskedBodyVerts = 0x80162DF0; // size:0x9C0 defined:True

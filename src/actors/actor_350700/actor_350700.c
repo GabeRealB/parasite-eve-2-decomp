@@ -42,8 +42,6 @@ extern AnimationSet** gActorMotionAnimBanks[1];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 
-extern TaskMessageEntry gReverseWalkMessages[];
-
 /// The `TaskDesc`s `_actor350700KyleMadiganWalkerInitialize` spawns its child tasks from,
 /// and the message table it points the parent's `Task::msgTable` at: ids
 /// 0x7D3/0x7D4/0x7D5/0x7DD/0x7DB against the handlers starting
@@ -268,7 +266,12 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
 
 TaskDesc D_actor_350700_80169D10 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor350700ReverseWalkTask, { .model = &_gActor350700EveBreaMaskedBody } };
 
-TaskMessageEntry gReverseWalkMessages[6] = {
+/// Terminated message table of this carrier's nineteen-part reversing walker.
+///
+/// Animation, placement, drawing and walk-to use shared handlers; the
+/// direction command is package-specific. The initialized task borrows
+/// this table and its callbacks until teardown.
+static TaskMessageEntry _gReverseWalkMessages[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim19 },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _reverseWalkSetDrawModeMsg },

@@ -35,8 +35,6 @@ extern AnimationSet** gActorMotionAnimBanks19[1];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 
-extern TaskMessageEntry gReverseWalkMessages[];
-
 /// Spawn, tick and exit handlers, dispatched by `_actor350500ReverseWalkTask`.
 static const TaskFuncTable3 D_actor_350500_80161E24 = { {
     _reverseWalkSpawn,
@@ -204,7 +202,12 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
 
 TaskDesc D_actor_350500_80168EA4 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor350500ReverseWalkTask, { .model = &_gActor350500EveBreaMaskedBody } };
 
-TaskMessageEntry gReverseWalkMessages[6] = {
+/// Terminated message table of this carrier's nineteen-part reversing walker.
+///
+/// Animation, placement, drawing and walk-to use shared handlers; the
+/// direction command is package-specific. The initialized task borrows
+/// this table and its callbacks until teardown.
+static TaskMessageEntry _gReverseWalkMessages[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim19 },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _reverseWalkSetDrawModeMsg },

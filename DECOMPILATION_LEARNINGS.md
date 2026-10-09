@@ -128136,7 +128136,7 @@ The index chain wins `$v0` and dies at the load; the table pair is pushed to
 `global.c` marks `$v1` as a hard conflict and drops it to `$a1` -- a register
 choice three steps downstream of the source.
 
-Writing the index as the stored field instead -- `D_actor_113000_8013ABB0[work->bank]`,
+Writing the index as the stored field instead -- `_gActor113000AnimationBanks[work->bank]`,
 with the bank store written before the `-1` store, as the previous entry
 requires -- is the whole fix (100.000%). `cse` forwards the store into the
 index, so the value still lives in one register, and *because the store and the

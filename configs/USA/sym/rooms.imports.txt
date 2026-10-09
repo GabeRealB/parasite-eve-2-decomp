@@ -546,7 +546,7 @@ D_actor_450200_80138694 = 0x80138694; // absolute:True owner=actor_450200
 D_actor_450800_80139964 = 0x80139964; // absolute:True owner=actor_450800
 D_actor_450800_8013A33C = 0x8013A33C; // absolute:True owner=actor_450800
 D_actor_450800_8013A84C = 0x8013A84C; // absolute:True owner=actor_450800
-D_actor_105500_8013A8DC = 0x8013A8DC; // absolute:True owner=actor_105500 shared=actors
+gActor105500MaggotCaterpillarTasks = 0x8013A8DC; // absolute:True owner=actor_105500 shared=actors
 D_actor_450800_8013AF8C = 0x8013AF8C; // absolute:True owner=actor_450800
 gActor136300TaskTable = 0x8013B11C; // absolute:True owner=actor_136300
 gActor136300CompanionGaragePlacement = 0x8013B570; // absolute:True owner=actor_136300

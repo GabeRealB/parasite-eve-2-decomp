@@ -3773,12 +3773,12 @@ objects = [
 
 [actors.overlays.actor_01900]
 slots = [
-  { slot = 1, package = "actor_101900", id = 137 },
-  { slot = 3, package = "actor_301900", id = 202 },
+  { slot = 1, package = "actor_101900", id = 137, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor01900GrinningStrangerTaskDesc = "gActor101900GrinningStrangerTaskDesc" } },
+  { slot = 3, package = "actor_301900", id = 202, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor01900GrinningStrangerTaskDesc = "gActor301900GrinningStrangerTaskDesc" } },
 ]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_01900/actor_01900", rodata = "0x4", text = "0x260", data = "0xAC4C" },
+  { unit = "actor_01900", variant = true, rodata = "0x4", text = "0x260", data = "0xAC4C" },
   { kind = "model", at = "0xAC88", in_c = true },
   { kind = "modelSource", at = "0x102C8", in_c = true },
   { kind = "model", at = "0x102EC", in_c = true },
@@ -4206,12 +4206,12 @@ objects = [
 
 [actors.overlays.actor_05500]
 slots = [
-  { slot = 1, package = "actor_105500", id = 87 },
-  { slot = 2, package = "actor_205500", id = 186 },
+  { slot = 1, package = "actor_105500", id = 87, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor05500MaggotCaterpillarTasks = "gActor105500MaggotCaterpillarTasks" } },
+  { slot = 2, package = "actor_205500", id = 186, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor05500MaggotCaterpillarTasks = "gActor205500MaggotCaterpillarTasks" } },
 ]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_05500/actor_05500", rodata = "0x4", text = "0x6C", data = "0x3FE4" },
+  { unit = "actor_05500", variant = true, rodata = "0x4", text = "0x6C", data = "0x3FE4" },
   { kind = "model", at = "0x3FE4", in_c = true },
   { kind = "modelSource", at = "0x5774", in_c = true },
   { kind = "model", at = "0x5798", in_c = true },

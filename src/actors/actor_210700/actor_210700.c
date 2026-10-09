@@ -29,8 +29,6 @@
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 
-extern GpuImageUpload D_actor_210700_8015858C[2];
-
 /// `_Actor210700Work::blinkStep`: the eye image the blink posts next.
 ///
 /// A blink request posts the half-open eyes itself, so the three steps that
@@ -77,11 +75,6 @@ typedef struct {
     s16            freeCountdown;     // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
 } _Actor210700Work;
 STATIC_ASSERT_SIZEOF(_Actor210700Work, 0x540);
-
-/// Animation banks the play-animation handler binds, indexed by its request's
-/// `source.index`.
-extern AnimationSet*  D_actor_210700_801585AC[7];
-extern AnimationSet** D_actor_210700_801585C8[1];
 
 /// The actor's message table, parked in `Task::msgTable`: 0x7D3
 /// `_actor210700PlayAnimation`, 0x7D4 `_actor210700Place`, 0x7D5
@@ -466,8 +459,20 @@ static u_long _gActor210700OpenEyesPixels[192] = {
 #include "assets/actor_210700_image_0DE2C.inc"
 };
 
-GpuImageUpload D_actor_210700_80157F4C[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 24, 16 }, _gActor210700OpenEyesPixels },
+/// Model-relative eye-texture location: Y/height count rows, width counts VRAM words.
+enum {
+    ACTOR_210700_EYE_TEXTURE_Y_ROWS      = 40,
+    ACTOR_210700_EYE_TEXTURE_WIDTH_WORDS = 24,
+    ACTOR_210700_EYE_TEXTURE_HEIGHT_ROWS = 16,
+};
+
+/// Writable COPY/END list for the open-eye texture band.
+///
+/// One copy covers 24 VRAM halfwords by 16 rows. Actor uploads rewrite
+/// its destination relative to the model texture; pixel storage is borrowed
+/// until the queued GPU transfer completes. The list lives with the package.
+static GpuImageUpload _gActor210700OpenEyesUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_210700_EYE_TEXTURE_WIDTH_WORDS, ACTOR_210700_EYE_TEXTURE_HEIGHT_ROWS }, _gActor210700OpenEyesPixels },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
@@ -479,8 +484,13 @@ static u_long _gActor210700HalfOpenEyesPixels[192] = {
 #include "assets/actor_210700_image_0E14C.inc"
 };
 
-GpuImageUpload D_actor_210700_8015826C[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 24, 16 }, _gActor210700HalfOpenEyesPixels },
+/// Writable COPY/END list for the half-open-eye texture band.
+///
+/// One copy covers 24 VRAM halfwords by 16 rows. Actor uploads rewrite
+/// its destination relative to the model texture; pixel storage is borrowed
+/// until the queued GPU transfer completes. The list lives with the package.
+static GpuImageUpload _gActor210700HalfOpenEyesUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_210700_EYE_TEXTURE_WIDTH_WORDS, ACTOR_210700_EYE_TEXTURE_HEIGHT_ROWS }, _gActor210700HalfOpenEyesPixels },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
@@ -492,12 +502,21 @@ static u_long _gActor210700ClosedEyesPixels[192] = {
 #include "assets/actor_210700_image_0E46C.inc"
 };
 
-GpuImageUpload D_actor_210700_8015858C[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 24, 16 }, _gActor210700ClosedEyesPixels },
+/// Writable COPY/END list for the closed-eye texture band.
+///
+/// One copy covers 24 VRAM halfwords by 16 rows. Actor uploads rewrite
+/// its destination relative to the model texture; pixel storage is borrowed
+/// until the queued GPU transfer completes. The list lives with the package.
+static GpuImageUpload _gActor210700ClosedEyesUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_210700_EYE_TEXTURE_WIDTH_WORDS, ACTOR_210700_EYE_TEXTURE_HEIGHT_ROWS }, _gActor210700ClosedEyesPixels },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-AnimationSet* D_actor_210700_801585AC[7] = {
+/// Loaded animation sets for bank 0: clip IDs 1..6, with NULL at 0.
+///
+/// Playback borrows this table and the package's clip descriptors; requests
+/// must select a loaded clip and keep the package live until teardown.
+static AnimationSet* _gActor210700AnimationSets[7] = {
     NULL,
     &_gActor210700Animation0CC20,
     &_gActor210700Animation0CFE0,
@@ -507,8 +526,12 @@ AnimationSet* D_actor_210700_801585AC[7] = {
     &_gActor210700Animation0DE04,
 };
 
-AnimationSet** D_actor_210700_801585C8[1] = {
-    D_actor_210700_801585AC,
+/// Indexed animation banks; `AnimationPlayRequest.source.index` must be 0.
+///
+/// A bank change binds its borrowed clip table into the live animation rig.
+/// The table and clips remain loaded for the duration of playback.
+static AnimationSet** _gActor210700AnimationBanks[1] = {
+    _gActor210700AnimationSets,
 };
 
 TaskDesc D_actor_210700_801585CC = { { { TASK_BODY_TMD, 192 } }, _actor210700Task, { .model = &_gActor210700RupertBroderickBody1 } };
@@ -519,13 +542,6 @@ TaskMessageEntry D_actor_210700_801585D8[5] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor210700SetModelDraw },
     { ACTOR_210700_MESSAGE_SET_EYES, _actor210700SetEyes },
     { TASK_MESSAGE_TABLE_END, NULL },
-};
-
-/// Model-relative eye-texture location: Y/height count rows, width counts VRAM words.
-enum {
-    ACTOR_210700_EYE_TEXTURE_Y_ROWS      = 40,
-    ACTOR_210700_EYE_TEXTURE_WIDTH_WORDS = 24,
-    ACTOR_210700_EYE_TEXTURE_HEIGHT_ROWS = 16,
 };
 
 /// Fills the model-relative rectangle replaced by an eye-texture upload.
@@ -590,7 +606,7 @@ static void _actor210700UpdateBlink(Task* task)
         case ACTOR_210700_BLINK_CLOSED:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                actorRenderUploadTexture(task, &D_actor_210700_8015858C[0], &eyeRect);
+                actorRenderUploadTexture(task, &_gActor210700ClosedEyesUploads[0], &eyeRect);
                 work->blinkCountdown = work->blinkFrameDelay;
                 work->blinkStep      = work->blinkStep + 1;
             }
@@ -598,7 +614,7 @@ static void _actor210700UpdateBlink(Task* task)
         case ACTOR_210700_BLINK_HALF:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                actorRenderUploadTexture(task, &D_actor_210700_8015826C[0], &eyeRect);
+                actorRenderUploadTexture(task, &_gActor210700HalfOpenEyesUploads[0], &eyeRect);
                 work->blinkCountdown = work->blinkFrameDelay;
                 work->blinkStep      = work->blinkStep + 1;
             }
@@ -606,7 +622,7 @@ static void _actor210700UpdateBlink(Task* task)
         case ACTOR_210700_BLINK_OPEN:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                actorRenderUploadTexture(task, &D_actor_210700_80157F4C[0], &eyeRect);
+                actorRenderUploadTexture(task, &_gActor210700OpenEyesUploads[0], &eyeRect);
                 work->blinkStep = ACTOR_210700_BLINK_NONE;
             }
             break;
@@ -757,7 +773,7 @@ static s32 _actor210700PlayAnimation(Task* task, s32 messageId, const AnimationP
     if (request->source.index != work->bank) {
         work->bank   = request->source.index;
         work->animId = ACTOR_MODEL_STATE_NONE;
-        animationInitContext(&work->rig.anim, D_actor_210700_801585C8[work->bank], model, work->rig.poses,
+        animationInitContext(&work->rig.anim, _gActor210700AnimationBanks[work->bank], model, work->rig.poses,
                              work->rig.slots);
     }
     if (request->animationId != work->animId) {
@@ -885,16 +901,16 @@ static s32 _actor210700SetEyes(Task* task, s32 messageId, s32 eyeMode, s32 unuse
 
     switch (eyeMode) {
         case ACTOR_210700_EYES_CLOSED:
-            uploadList = &D_actor_210700_8015858C[0];
+            uploadList = &_gActor210700ClosedEyesUploads[0];
             break;
         case ACTOR_210700_EYES_OPEN:
         case ACTOR_210700_EYES_OPEN_ALTERNATE:
-            uploadList = &D_actor_210700_80157F4C[0];
+            uploadList = &_gActor210700OpenEyesUploads[0];
             break;
         case ACTOR_210700_EYES_BLINK:
             ((_Actor210700Work*)task->work)->blinkStep       = ACTOR_210700_BLINK_CLOSED;
             ((_Actor210700Work*)task->work)->blinkFrameDelay = ACTOR_210700_BLINK_FRAME_DELAY;
-            uploadList                                       = &D_actor_210700_8015826C[0];
+            uploadList                                       = &_gActor210700HalfOpenEyesUploads[0];
             break;
         default:
             uploadList = NULL;

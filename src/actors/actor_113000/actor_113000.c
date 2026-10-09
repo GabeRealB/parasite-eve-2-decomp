@@ -28,13 +28,6 @@
 #include "main/tmd_types.h"
 #include "../../shared/actor_messages.h"
 
-extern GpuImageUpload D_actor_113000_8013AB6C[2];
-
-/// Animation source table `_actor113000PlayAnimation` indexes by the preset's
-/// bank index and hands `animationInitContext` as its data argument.
-extern AnimationSet*  D_actor_113000_8013AB8C[9];
-extern AnimationSet** D_actor_113000_8013ABB0[1];
-
 /// Eye-band destination within the actor texture: width in VRAM words, Y/height in rows.
 enum {
     ACTOR_113000_EYES_Y_ROWS      = 40,
@@ -331,30 +324,57 @@ static u_long _gActor113000OpenEyesPixels[256] = {
 #include "assets/actor_113000_image_0810C.inc"
 };
 
-GpuImageUpload D_actor_113000_8013A32C[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 32, 16 }, _gActor113000OpenEyesPixels },
+/// Writable COPY/END list for the open-eye texture band.
+///
+/// One copy covers 32 VRAM halfwords by 16 rows. Actor uploads rewrite
+/// its destination relative to the model texture; pixel storage is borrowed
+/// until the queued GPU transfer completes. The list lives with the package.
+static GpuImageUpload _gActor113000OpenEyesUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_113000_EYES_WIDTH_WORDS, ACTOR_113000_EYES_HEIGHT_ROWS }, _gActor113000OpenEyesPixels },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-u_long D_actor_113000_8013A34C[256] = {
+/// Packed half-open-eye pixels for the actor's face texture band.
+///
+/// 32 VRAM halfwords by 16 rows fill all 256 packed words.
+/// This word-aligned package storage stays live through GPU transfer.
+static u_long _gActor113000HalfOpenEyesPixels[256] = {
 #include "assets/actor_113000_image_0852C.inc"
 };
 
-GpuImageUpload D_actor_113000_8013A74C[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 32, 16 }, D_actor_113000_8013A34C },
+/// Writable COPY/END list for the half-open-eye texture band.
+///
+/// One copy covers 32 VRAM halfwords by 16 rows. Actor uploads rewrite
+/// its destination relative to the model texture; pixel storage is borrowed
+/// until the queued GPU transfer completes. The list lives with the package.
+static GpuImageUpload _gActor113000HalfOpenEyesUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_113000_EYES_WIDTH_WORDS, ACTOR_113000_EYES_HEIGHT_ROWS }, _gActor113000HalfOpenEyesPixels },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-u_long D_actor_113000_8013A76C[256] = {
+/// Packed closed-eye pixels for the actor's face texture band.
+///
+/// 32 VRAM halfwords by 16 rows fill all 256 packed words.
+/// This word-aligned package storage stays live through GPU transfer.
+static u_long _gActor113000ClosedEyesPixels[256] = {
 #include "assets/actor_113000_image_0894C.inc"
 };
 
-GpuImageUpload D_actor_113000_8013AB6C[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 32, 16 }, D_actor_113000_8013A76C },
+/// Writable COPY/END list for the closed-eye texture band.
+///
+/// One copy covers 32 VRAM halfwords by 16 rows. Actor uploads rewrite
+/// its destination relative to the model texture; pixel storage is borrowed
+/// until the queued GPU transfer completes. The list lives with the package.
+static GpuImageUpload _gActor113000ClosedEyesUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_113000_EYES_WIDTH_WORDS, ACTOR_113000_EYES_HEIGHT_ROWS }, _gActor113000ClosedEyesPixels },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-AnimationSet* D_actor_113000_8013AB8C[9] = {
+/// Loaded animation sets for bank 0: clip IDs 1..8, with NULL at 0.
+///
+/// Playback borrows this table and the package's clip descriptors; requests
+/// must select a loaded clip and keep the package live until teardown.
+static AnimationSet* _gActor113000AnimationSets[9] = {
     NULL,
     &_gActor113000Animation05D94,
     &_gActor113000Animation061F4,
@@ -366,8 +386,12 @@ AnimationSet* D_actor_113000_8013AB8C[9] = {
     &_gActor113000Animation080E4,
 };
 
-AnimationSet** D_actor_113000_8013ABB0[1] = {
-    D_actor_113000_8013AB8C,
+/// Indexed animation banks; `AnimationPlayRequest.source.index` must be 0.
+///
+/// A bank change binds its borrowed clip table into the live animation rig.
+/// The table and clips remain loaded for the duration of playback.
+static AnimationSet** _gActor113000AnimationBanks[1] = {
+    _gActor113000AnimationSets,
 };
 
 TaskDesc D_actor_113000_8013ABB4 = { { { TASK_BODY_TMD, 192 } }, _actor113000Task, { .model = &_gActor113000RupertBroderickHurtBody } };
@@ -424,19 +448,19 @@ static void _actor113000TickBlink(Task* task)
         case ACTOR_113000_BLINK_CLOSED:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                _actor113000AdvanceBlinkImage(task, work, &D_actor_113000_8013AB6C[0], &eyeRect);
+                _actor113000AdvanceBlinkImage(task, work, &_gActor113000ClosedEyesUploads[0], &eyeRect);
             }
             break;
         case ACTOR_113000_BLINK_HALF:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                _actor113000AdvanceBlinkImage(task, work, &D_actor_113000_8013A74C[0], &eyeRect);
+                _actor113000AdvanceBlinkImage(task, work, &_gActor113000HalfOpenEyesUploads[0], &eyeRect);
             }
             break;
         case ACTOR_113000_BLINK_OPEN:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                actorRenderUploadTexture(task, &D_actor_113000_8013A32C[0], &eyeRect);
+                actorRenderUploadTexture(task, &_gActor113000OpenEyesUploads[0], &eyeRect);
                 work->blinkStep = ACTOR_113000_BLINK_NONE;
             }
             break;
@@ -587,7 +611,7 @@ static s32 _actor113000PlayAnimation(Task* task, s32 messageId, const AnimationP
         // Bind the bank before selecting a clip, including the first request.
         work->bank   = request->source.index;
         work->animId = ACTOR_MODEL_STATE_NONE;
-        animationInitContext(&work->rig.anim, D_actor_113000_8013ABB0[work->bank], model, work->rig.poses,
+        animationInitContext(&work->rig.anim, _gActor113000AnimationBanks[work->bank], model, work->rig.poses,
                              work->rig.slots);
     }
     work->animId = request->animationId;
@@ -684,11 +708,11 @@ static s32 _actor113000SetEyes(Task* task, s32 messageId, s32 eyeMode, s32 unuse
 
     switch (eyeMode) {
         case ACTOR_113000_EYES_CLOSED:
-            uploadList = &D_actor_113000_8013AB6C[0];
+            uploadList = &_gActor113000ClosedEyesUploads[0];
             break;
         case ACTOR_113000_EYES_OPEN:
         case ACTOR_113000_EYES_OPEN_ALTERNATE:
-            uploadList = &D_actor_113000_8013A32C[0];
+            uploadList = &_gActor113000OpenEyesUploads[0];
             break;
         case ACTOR_113000_EYES_BLINK: {
             _Actor113000Work* stepWork;
@@ -698,7 +722,7 @@ static s32 _actor113000SetEyes(Task* task, s32 messageId, s32 eyeMode, s32 unuse
             stepWork->blinkStep        = ACTOR_113000_BLINK_CLOSED;
             delayWork                  = task->work;
             delayWork->blinkFrameDelay = ACTOR_113000_BLINK_FRAME_DELAY;
-            uploadList                 = &D_actor_113000_8013A74C[0];
+            uploadList                 = &_gActor113000HalfOpenEyesUploads[0];
             break;
         }
         default:

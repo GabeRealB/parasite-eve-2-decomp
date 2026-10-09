@@ -1,10 +1,10 @@
 // Overlay-local symbols for actor_105100.
 D_actor_105100_801413A8 = 0x801413A8; // size:0x20 defined:True
 D_actor_105100_801413C8 = 0x801413C8; // size:0x20 defined:True
-D_actor_105100_801413E8 = 0x801413E8; // size:0x30 defined:True
+_gActor105100BeamStartOffsets = 0x801413E8; // size:0x30 defined:True
 _gActor105100BeamWaypoints = 0x80141418; // size:0x30 defined:True
-D_actor_105100_80141448 = 0x80141448; // size:0x8 defined:True
-D_actor_105100_80141450 = 0x80141450; // size:0x14 defined:True
+_gActor105100BeamLifeTicks = 0x80141448; // size:0x8 defined:True
+_gActor105100BeamRoutes = 0x80141450; // size:0x14 defined:True
 D_actor_105100_80141464 = 0x80141464; // size:0x24 defined:True
 D_actor_105100_80141488 = 0x80141488; // size:0x2C defined:True
 _gActor105100PlayerAnimationSets = 0x801414B4; // size:0x14 defined:True
@@ -129,3 +129,4 @@ _actor105100TickActions = 0x80133134; // type:func
 _actor105100Tick = 0x80132aa0; // type:func
 _actor105100Death = 0x80134284; // type:func
 _actor105100FireballTick = 0x80134b00; // type:func
+_gActor105100BeamStates = 0x80131eb0;

@@ -74,9 +74,9 @@ _gActor135400Animation0DA60Bank4 = 0x8013F1C8; // size:0x278 defined:True
 _gActor135400Animation0DA60Records = 0x8013F440; // size:0x418 defined:True
 _gActor135400Animation0DA60Indices = 0x8013F858; // size:0x28 defined:True
 _gActor135400Animation0DA60 = 0x8013F880; // size:0x28 defined:True
-D_actor_135400_8013F8A8 = 0x8013F8A8; // size:0x1C defined:True
+_gActor135400FlintAnimationSets = 0x8013F8A8; // size:0x1C defined:True
 D_actor_135400_8013F8C4 = 0x8013F8C4; // size:0x10 defined:True
-D_actor_135400_8013F8D4 = 0x8013F8D4; // size:0x4 defined:True
+_gActor135400FlintAnimationBanks = 0x8013F8D4; // size:0x4 defined:True
 
 dryfieldNightGaragePlaceLowCollisionBox = 0x80180414; // type:func absolute:True owner=dryfield_night_garage
 _actorMotionPlayAnim = 0x80132650; // type:func

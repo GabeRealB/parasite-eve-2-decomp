@@ -136,11 +136,6 @@ extern AnimationPlayRequest D_actor_323300_801725B4;
 extern AnimationPlayRequest D_actor_323300_801725C8;
 extern AnimationPlayRequest D_actor_323300_801725DC;
 
-/// Animation source table `_actor323300StrangerPlayAnimation` indexes by
-/// `_Actor323300StrangerWork::bank`. `_actor323300StrangerSpawn`
-/// applies the preset `D_actor_323300_80174A74` through it and places the
-/// actor at `D_actor_323300_80174AB0`.
-extern AnimationSet*        D_actor_323300_80174A60[4];
 extern AnimationSet**       D_actor_323300_80174A70[1];
 extern AnimationPlayRequest D_actor_323300_80174A74;
 extern ActorTransform       D_actor_323300_80174AB0;
@@ -189,8 +184,6 @@ static void      _actor323300StrangerTask(Task* task);
 static AnimationSet _gActor323300Animation11FC4;
 static AnimationSet _gActor323300Animation123E0;
 static AnimationSet _gActor323300Animation12C18;
-
-extern AnimationSet* D_actor_323300_80174A60[4];
 
 static TmdBone _gActor323300AnmcWoman1BodySkeleton[19] = {
 #include "assets/anmc_woman_1_body_skeleton.inc"
@@ -425,7 +418,11 @@ static AnimationSet _gActor323300Animation12C18 = {
     { NULL, _gActor323300Animation12C18Bank1, NULL, NULL, _gActor323300Animation12C18Bank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_actor_323300_80174A60[4] = {
+/// Lesser Stranger animation sets in bank 0: loaded clips 1..3, NULL at 0.
+///
+/// The transformation starts with clip 1; clips 2/3 are stored but have no established caller.
+/// The animation bank borrows these descriptors for the model's lifetime.
+static AnimationSet* _gActor323300StrangerAnimationSets[4] = {
     NULL,
     &_gActor323300Animation11FC4,
     &_gActor323300Animation123E0,
@@ -433,7 +430,7 @@ AnimationSet* D_actor_323300_80174A60[4] = {
 };
 
 AnimationSet** D_actor_323300_80174A70[1] = {
-    D_actor_323300_80174A60,
+    _gActor323300StrangerAnimationSets,
 };
 
 AnimationPlayRequest D_actor_323300_80174A74 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };

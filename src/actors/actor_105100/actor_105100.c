@@ -337,10 +337,6 @@ extern EnemyParams D_actor_105100_80141398;
 /// from; the spawn hands it over whole, so it is only ever a byte address here.
 extern u8 D_actor_105100_80141488[];
 
-extern SVECTOR D_actor_105100_801413E8[];
-extern s16     D_actor_105100_80141448[];
-extern s16     D_actor_105100_80141450[];
-
 /// Where each spawned projectile starts relative to the parent's coordinate,
 /// indexed by `_Actor105100Work::childCount`.
 extern SVECTOR D_actor_105100_801414E0[];
@@ -756,7 +752,11 @@ u16 D_actor_105100_801413C8[16] = {
     2,
 };
 
-SVECTOR D_actor_105100_801413E8[6] = {
+/// Beam start displacements from the parent root, in parent-coordinate units.
+///
+/// Routes 0..5 select complete XYZ halfwords; these offsets are added directly
+/// to the parent translation without rotating them by its orientation.
+static SVECTOR _gActor105100BeamStartOffsets[6] = {
     { -1000, -100, -1200, 0 },
     { 1000, -100, -1200, 0 },
     { 0, -100, -1200, 0 },
@@ -778,23 +778,32 @@ static SVECTOR _gActor105100BeamWaypoints[6] = {
     { 2500, 0, 0, 0 },
 };
 
-s16 D_actor_105100_80141448[4] = {
-    60,
-    60,
-    120,
+/// Summon and beam lifetimes indexed by `ACTOR_105100_BEAMS_*`, in ticks.
+///
+/// Valid patterns 0..2 live for 60, 60 and 120 running ticks. The fourth
+/// stored halfword is zero and is not selected by the summon or spawn paths.
+static s16 _gActor105100BeamLifeTicks[4] = {
+    [ACTOR_105100_BEAMS_PAIR]   = 60,
+    [ACTOR_105100_BEAMS_TRIPLE] = 60,
+    [ACTOR_105100_BEAMS_SEEKER] = 120,
     0,
 };
 
-s16 D_actor_105100_80141450[10] = {
+/// Beam route IDs indexed by pattern * three + child index.
+///
+/// Patterns 0..2 and child indices 0..2 select the first nine halfwords.
+/// `ACTOR_105100_BEAM_NO_ROUTE` rejects a child before allocation. The tenth
+/// stored zero is retained; valid spawns do not index it.
+static s16 _gActor105100BeamRoutes[10] = {
     0,
     1,
-    -1,
+    ACTOR_105100_BEAM_NO_ROUTE,
     2,
     3,
     4,
     5,
-    -1,
-    -1,
+    ACTOR_105100_BEAM_NO_ROUTE,
+    ACTOR_105100_BEAM_NO_ROUTE,
     0,
 };
 
@@ -1562,7 +1571,7 @@ static void _actor105100SummonBeams(Task* task, Enemy* unusedEnemy)
                                             task->spawnArg2.pointer);
                         break;
                 }
-                work->timer      = D_actor_105100_80141448[work->beamPattern];
+                work->timer      = _gActor105100BeamLifeTicks[work->beamPattern];
                 work->actionStep = ACTOR_105100_BEAM_CAST_WAIT;
                 work->beamSound  = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_105100_BEAM_LOOP_SOUND;
                 beamAudioPan     = (s8)worldCoordGetOriginAudioPan(coord);
@@ -2432,7 +2441,7 @@ static void _actor105100BeamSpawn(Enemy* enemy, Task* task)
     parentCoord = parent->extra.tmd->coords;
 
     // Missing routes reject the child before it changes the live beam count.
-    if (D_actor_105100_80141450[parentWork->beamPattern * ACTOR_105100_BEAM_ROUTES_PER_PATTERN + parentWork->childCount] == ACTOR_105100_BEAM_NO_ROUTE) {
+    if (_gActor105100BeamRoutes[parentWork->beamPattern * ACTOR_105100_BEAM_ROUTES_PER_PATTERN + parentWork->childCount] == ACTOR_105100_BEAM_NO_ROUTE) {
         enemyDestroy(enemy, task);
         return;
     }
@@ -2447,14 +2456,14 @@ static void _actor105100BeamSpawn(Enemy* enemy, Task* task)
     beam->pattern = parentWork->beamPattern;
     beam->index   = parentWork->childCount;
     parentWork->childCount++;
-    beam->route                 = D_actor_105100_80141450[parentWork->beamPattern * ACTOR_105100_BEAM_ROUTES_PER_PATTERN + beam->index];
-    beam->lifeTicks             = D_actor_105100_80141448[beam->pattern];
+    beam->route                 = _gActor105100BeamRoutes[parentWork->beamPattern * ACTOR_105100_BEAM_ROUTES_PER_PATTERN + beam->index];
+    beam->lifeTicks             = _gActor105100BeamLifeTicks[beam->pattern];
     beam->colorIndex            = ACTOR_105100_BEAM_COLOR_BRIGHT;
     coord->parent               = &gGfxViewCoord;
     coord->coord                = parentCoord->coord;
-    coord->coord.t[0]           = parentCoord->coord.t[0] + D_actor_105100_801413E8[beam->route].vx;
-    coord->coord.t[1]           = parentCoord->coord.t[1] + D_actor_105100_801413E8[beam->route].vy;
-    coord->coord.t[2]           = parentCoord->coord.t[2] + D_actor_105100_801413E8[beam->route].vz;
+    coord->coord.t[0]           = parentCoord->coord.t[0] + _gActor105100BeamStartOffsets[beam->route].vx;
+    coord->coord.t[1]           = parentCoord->coord.t[1] + _gActor105100BeamStartOffsets[beam->route].vy;
+    coord->coord.t[2]           = parentCoord->coord.t[2] + _gActor105100BeamStartOffsets[beam->route].vz;
     coord->composeStamp         = GRAPHICS_COORD_DIRTY;
     beam->body.coord            = task->extra.coordBody->coord;
     beam->body.context.contacts = beam->contacts;
@@ -3051,9 +3060,11 @@ static void _actor105100RefreshColor(Task* task)
     _actor105100UpdateColor(task);
 }
 
-/// The child collision task's state handlers, indexed by `Task::state`:
-/// setup, per-frame reaction and teardown.
-static const EnemyTaskFuncTable3 D_actor_105100_80131EB0 = {
+/// Beam enemy callbacks indexed by task state: 0 spawn, 1 update, 2 teardown.
+///
+/// The dispatcher copies all three typed callbacks before calling one with
+/// the task's live owning enemy and task. A callback may destroy both.
+static const EnemyTaskFuncTable3 _gActor105100BeamStates = {
     {
         _actor105100BeamSpawn,
         _actor105100BeamTick,
@@ -3120,7 +3131,7 @@ static void _actor105100BeamTask(Task* task)
 {
     EnemyTaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_actor_105100_80131EB0;
+    stateHandlers = _gActor105100BeamStates;
     stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 

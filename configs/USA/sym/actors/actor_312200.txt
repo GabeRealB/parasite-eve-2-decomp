@@ -1,5 +1,5 @@
 // Overlay-local symbols for actor_312200.
-D_actor_312200_80169F28 = 0x80169F28; // size:0x19 defined:True
+_gActor312200AnimationBlendFrames = 0x80169F28; // size:0x19 defined:True
 D_actor_312200_80169F44 = 0x80169F44; // size:0x18 defined:True
 D_actor_312200_80169F5C = 0x80169F5C; // size:0x20 defined:True
 D_actor_312200_80169F7C = 0x80169F7C; // size:0xC defined:True

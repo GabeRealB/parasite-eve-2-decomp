@@ -162,11 +162,17 @@ static s32 _actor123200ApplyCommand(Task* task, s32 messageId, const ActorComman
 
 #include "../../shared/actor_contacts.h"
 
-DamageAttack D_actor_123200_80134204[1] = {
-    { 24, 7 },
+enum { ACTOR_123200_ATTACK_REACTION_SPARK_AND_PUFFS = 7 };
+
+/// Bone Suckler attack row 0: base damage 24 with spark and puff effects.
+///
+/// The enemy parameters borrow this single row for packed contact keys.
+/// This player hit reaction applies no status effect.
+static DamageAttack _gActor123200Attacks[1] = {
+    { 24, ACTOR_123200_ATTACK_REACTION_SPARK_AND_PUFFS },
 };
 
-EnemyParams D_actor_123200_80134208 = { D_actor_123200_80134204, 1, 6, 20, 3, 100, 0, 100, 0 };
+EnemyParams D_actor_123200_80134208 = { _gActor123200Attacks, 1, 6, 20, 3, 100, 0, 100, 0 };
 
 static TmdBone _gActor123200BoneSucklerBodySkeleton[6] = {
 #include "assets/bone_suckler_body_skeleton.inc"

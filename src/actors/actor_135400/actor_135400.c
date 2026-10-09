@@ -146,13 +146,8 @@ extern TaskMessageEntry D_actor_135400_8013F8E4[4];
 /// neither ever expires.
 extern s16 D_actor_135400_8013F8C4[];
 
-/// Animation banks the two 0x7D3 handlers re-seed their slots from, indexed by
-/// the request's `field_0`: `gActorMotionAnimBanks` for the main task,
-/// `D_actor_135400_8013F8D4` for the second task.
 extern AnimationSet*  D_actor_135400_8013A494[5];
 extern AnimationSet** gActorMotionAnimBanks[1];
-extern AnimationSet*  D_actor_135400_8013F8A8[7];
-extern AnimationSet** D_actor_135400_8013F8D4[1];
 
 /// Psy-Q `RotMatrixY`: the angle is a `long`, so a negated angle is passed
 /// without re-truncation to 16 bits.
@@ -567,7 +562,11 @@ static AnimationSet _gActor135400Animation0DA60 = {
     { NULL, _gActor135400Animation0DA60Bank1, NULL, NULL, _gActor135400Animation0DA60Bank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_actor_135400_8013F8A8[7] = {
+/// Flint's bank-0 animation sets: clips 1..6, with NULL at index 0.
+///
+/// Clips 3 and 5 borrow the same set. The autonomous cycle and message
+/// requests select these IDs; playback borrows package data until teardown.
+static AnimationSet* _gActor135400FlintAnimationSets[7] = {
     NULL,
     &_gActor135400Animation0C6BC,
     &_gActor135400Animation0D320,
@@ -588,8 +587,12 @@ s16 D_actor_135400_8013F8C4[8] = {
     0,
 };
 
-AnimationSet** D_actor_135400_8013F8D4[1] = {
-    D_actor_135400_8013F8A8,
+/// Flint's indexed animation banks for the nineteen-part model.
+///
+/// `AnimationPlayRequest.source.index` must be 0. Playback binds the
+/// borrowed clip table and keeps it live while the rig uses its data.
+static AnimationSet** _gActor135400FlintAnimationBanks[1] = {
+    _gActor135400FlintAnimationSets,
 };
 
 TaskDesc D_actor_135400_8013F8D8 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor135400FlintTask, { .model = &_gActor135400FlintBody } };
@@ -1144,7 +1147,7 @@ static inline void _actor135400FlintApplyAnimationRequest(_Actor135400FlintWork*
     // Rebind borrowed playback storage only when the requested bank changes.
     if (request->source.index != work->model.bank) {
         work->model.bank = request->source.index;
-        animationInitContext(&work->rig.anim, D_actor_135400_8013F8D4[work->model.bank], model, work->rig.poses, work->rig.slots);
+        animationInitContext(&work->rig.anim, _gActor135400FlintAnimationBanks[work->model.bank], model, work->rig.poses, work->rig.slots);
     }
     work->model.animId = request->animationId;
     if (request->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {

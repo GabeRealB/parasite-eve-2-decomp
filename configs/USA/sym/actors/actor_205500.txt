@@ -5,8 +5,8 @@
 
 Actor05500_D00000 = 0x80149E20;
 Actor05500_Jt00004 = 0x80149E24;
-gMaggotCaterpillarPuffStates = 0x80149E4C;
-gMaggotCaterpillarStates = 0x80149E58;
+_gMaggotCaterpillarPuffStates = 0x80149E4C;
+_gMaggotCaterpillarStates = 0x80149E58;
 _maggotCaterpillarResolveContacts = 0x80149E8C;
 Actor05500_L004A8 = 0x8014A2C8; // type:label
 Actor05500_L004C0 = 0x8014A2E0; // type:label
@@ -146,11 +146,10 @@ _gActor05500Actor105500Animation08930Records = 0x80152650; // size:0xF0 defined:
 _gActor05500Actor105500Animation08930Indices = 0x80152740; // size:0x10 defined:True
 _gActor05500Actor105500Animation08930 = 0x80152750; // size:0x28 defined:True
 gMaggotCaterpillarAttacks = 0x80152778; // size:0x18 defined:True
-Actor05500_D08A24 = 0x80152844; // size:0x14 defined:True
+_gMaggotCaterpillarAnimBlendTail = 0x80152844; // size:0x14 defined:True
 gMaggotCaterpillarPounceStride = 0x80152858; // size:0x24 defined:True
 gMaggotCaterpillarReboundStride = 0x8015287C; // size:0x24 defined:True
 gMaggotCaterpillarPuffCells = 0x801528A0; // size:0x20 defined:True
 gMaggotCaterpillarPuffRadius = 0x801528C0; // size:0x1C defined:True
-gMaggotCaterpillarBodyTask = 0x801528DC; // size:0xC defined:True
-Actor05500_D08AC8 = 0x801528E8; // size:0xC defined:True
+gActor05500MaggotCaterpillarTasks = 0x801528DC; // size:0x18 defined:True
 gMaggotCaterpillarAnimSets = 0x801528F4; // size:0x3C defined:True

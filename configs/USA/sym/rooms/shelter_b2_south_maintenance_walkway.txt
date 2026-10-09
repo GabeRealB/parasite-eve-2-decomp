@@ -48,7 +48,7 @@ gActor04400MadChaserTaskDescs = 0x80142604; // absolute:True owner=actor_104400
 gActor101100Tasks = 0x80147400; // absolute:True owner=actor_101100
 gActor202400Tasks = 0x8014E47C; // absolute:True owner=actor_202400
 gActor207200SkullStalkerTaskDesc = 0x8014E7A4; // absolute:True owner=actor_207200
-D_actor_205500_801528DC = 0x801528DC; // absolute:True owner=actor_205500
+gActor205500MaggotCaterpillarTasks = 0x801528DC; // absolute:True owner=actor_205500
 gActor207200CreepingStrangerTaskDesc = 0x80153EC8; // absolute:True owner=actor_207200
 gActor202300RookGolemTasks = 0x8015FAB8; // absolute:True owner=actor_202300
 _gRoomVisualEffectsTwinTrailEndpointOffsets = 0x80182620; // size:0x10 defined:True

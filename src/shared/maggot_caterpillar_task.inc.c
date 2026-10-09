@@ -9,6 +9,6 @@ static void _maggotCaterpillarTask(Task* actor)
 {
     EnemyTaskFuncTable3 states;
 
-    states = gMaggotCaterpillarStates;
+    states = _gMaggotCaterpillarStates;
     states.funcs[actor->state](actor->spawnArg2.pointer, actor);
 }

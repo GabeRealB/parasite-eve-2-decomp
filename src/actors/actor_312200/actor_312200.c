@@ -140,12 +140,6 @@ typedef struct {
 } _Actor312200Work;
 STATIC_ASSERT_SIZEOF(_Actor312200Work, 0x984);
 
-/// Step table the seeding body `_actor312200DriveAnimation` walks: one 5-byte
-/// row per animation in `_Actor312200Work::appliedAnim`, addressed by the
-/// requested animation in `_Actor312200Work::animId`. The byte it reads is
-/// handed to `animationSeekSlotWithBlend` as the request's fifth argument.
-extern s8 D_actor_312200_80169F28[][5];
-
 static void _actor312200Hide(Task* task);
 static void _actor312200PlayAnimation(Task* task);
 
@@ -275,7 +269,12 @@ static AnimationSet _gActor312200Animation080E0 = {
     { NULL, _gActor312200Animation080E0Bank1, NULL, NULL, _gActor312200Animation080E0Bank4, NULL, NULL, NULL },
 };
 
-s8 D_actor_312200_80169F28[5][5] = { 0 };
+/// Whole-frame blend durations indexed by previous and requested animation.
+///
+/// Previous IDs are 0..4 (0 before any clip), requested IDs 1..4.
+/// Every transition seeks with zero blend time; signed bytes promote
+/// to the playback API's frame count. The five-by-five storage is retained.
+static s8 _gActor312200AnimationBlendFrames[5][5] = { 0 };
 
 u8 D_actor_312200_80169F44[24] = {
     0,
@@ -374,7 +373,7 @@ static void _actor312200DriveAnimation(Task* task)
         for (seekSlot = 1; seekSlot < ARRAY_SIZE(seekWork->rig.slots); seekSlot++) {
             seekWork->rig.slots[seekSlot].rate = seekWork->animRate;
             animationSeekSlotWithBlend(&seekWork->rig.anim, seekSlot, seekWork->animId, 0,
-                                       D_actor_312200_80169F28[seekWork->appliedAnim][seekWork->animId]);
+                                       _gActor312200AnimationBlendFrames[seekWork->appliedAnim][seekWork->animId]);
         }
         seekWork->appliedAnim = seekWork->animId;
         work->animRequest     = ACTOR_312200_ANIM_REQUEST_PLAYING;

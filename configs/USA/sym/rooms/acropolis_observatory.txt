@@ -49,11 +49,11 @@ gActor101200BoneSucklerTaskDesc = 0x80138E98; // absolute:True owner=actor_10120
 gActor103700BatTaskDesc = 0x80139DAC; // absolute:True owner=actor_103700
 gActor04000BloodSucklerTaskDesc = 0x8013E500; // absolute:True owner=actor_104000
 gActor101100Tasks = 0x80147400; // absolute:True owner=actor_101100
-D_actor_101900_80149120 = 0x80149120; // absolute:True owner=actor_101900
+gActor101900GrinningStrangerTaskDesc = 0x80149120; // absolute:True owner=actor_101900
 gActor401000StrangerTaskDesc = 0x80155004; // absolute:True owner=actor_401000
 gActor401800OddStrangerTaskDesc = 0x80155AC4; // absolute:True owner=actor_401800
 gActor401300HornedStrangerTaskDesc = 0x80158A18; // absolute:True owner=actor_401300
-D_actor_301900_80179120 = 0x80179120; // absolute:True owner=actor_301900
+gActor301900GrinningStrangerTaskDesc = 0x80179120; // absolute:True owner=actor_301900
 D_map_akropolis_8017B6DC = 0x8017B6DC; // absolute:True owner=map_akropolis
 D_map_akropolis_8017B70C = 0x8017B70C; // absolute:True owner=map_akropolis
 D_map_akropolis_8017B73C = 0x8017B73C; // absolute:True owner=map_akropolis

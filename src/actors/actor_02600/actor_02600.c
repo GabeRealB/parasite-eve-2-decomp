@@ -649,9 +649,11 @@ AnimationSet* gMaggotCaterpillarAnimSets[15] = {
 
 #include "../../shared/maggot_caterpillar_resolve_contacts.inc.c"
 
-/// State handlers of the projectile task `_maggotCaterpillarPuffTask` dispatches,
-/// indexed by `Task::state`: setup, per-frame tick and `enemyDestroy`.
-static const EnemyTaskFuncTable3 gMaggotCaterpillarPuffStates = {
+/// Puff enemy callbacks indexed by task state: 0 setup, 1 flight, 2 destroy.
+///
+/// The dispatcher copies the typed callbacks before passing the live
+/// enemy and task; destruction releases their owned resources.
+static const EnemyTaskFuncTable3 _gMaggotCaterpillarPuffStates = {
     {
         _maggotCaterpillarPuffSetup,
         _maggotCaterpillarPuffTick,
@@ -659,9 +661,11 @@ static const EnemyTaskFuncTable3 gMaggotCaterpillarPuffStates = {
     },
 };
 
-/// State handlers of the actor task `_maggotCaterpillarTask` dispatches, indexed
-/// by `Task::state`: spawn, per-frame tick and the dying sequence.
-static const EnemyTaskFuncTable3 gMaggotCaterpillarStates = {
+/// Body enemy callbacks indexed by task state: 0 spawn, 1 active, 2 dying.
+///
+/// The dispatcher copies the typed callbacks before passing the live
+/// enemy and task. The dying callback completes the enemy's lifetime.
+static const EnemyTaskFuncTable3 _gMaggotCaterpillarStates = {
     {
         _maggotCaterpillarSpawn,
         _maggotCaterpillarTick,

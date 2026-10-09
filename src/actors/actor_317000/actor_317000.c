@@ -110,9 +110,13 @@ static const TaskFuncTable4 D_actor_317000_80161E30 = { {
     _actor317000FacePlayerAfterLeap,
 } };
 
-/// The constant local-space offset `_actor317000LaunchLeap` rotates
-/// through the root coordinate into `_Actor317000Work::walk.velocity`.
-static const VECTOR D_actor_317000_80161E40 = { 0, 0xFF800000, 0x400000, 0 };
+enum { ACTOR_317000_VELOCITY_ONE = 0x10000 };
+
+/// Leap launch velocity in local model axes, in signed 16.16 units per tick.
+///
+/// Y is -128 (up) and Z is +64 (forward); the root rotation transforms it
+/// into parent-coordinate velocity before gravity starts. The fourth word is unused.
+static const VECTOR _gActor317000LeapLaunchVelocity = { 0, -(128 * ACTOR_317000_VELOCITY_ONE), 64 * ACTOR_317000_VELOCITY_ONE, 0 };
 
 static TmdSource _gActor317000GrinningStrangerBody;
 static s32       _actor317000BeginLeap(Task* task, s32 messageId, const ActorTransform* launchPlacement, const ActorMotionWalkAnim* animationRequest);
@@ -806,7 +810,7 @@ static void _actor317000LaunchLeap(Task* task)
     rootCoord = task->extra.tmd->coords;
     work      = task->work;
 
-    launchVelocity = D_actor_317000_80161E40;
+    launchVelocity = _gActor317000LeapLaunchVelocity;
     ApplyMatrixLV(&rootCoord->coord, &launchVelocity, &work->walk.velocity);
     work->airborne = 1;
     work->walk.motionStep++;

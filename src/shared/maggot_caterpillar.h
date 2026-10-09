@@ -20,7 +20,7 @@
  *
  * Carriers of the spawn fragment define MAGGOT_CATERPILLAR_BODY_TASK to their
  * declared body TaskDesc lvalue: gActor02600MaggotCaterpillarBodyTask for
- * actor_02600, gMaggotCaterpillarBodyTask for actor_05500. The spawn caches its
+ * actor_02600, gActor05500MaggotCaterpillarTasks[0] for actor_05500. The spawn caches its
  * address for child spawns; keep the binding through that fragment and undefine
  * it afterwards. This binding does not change the descriptor's C linkage.
  */

@@ -399,7 +399,9 @@ static s16 _gRatAttackRepeatChance[RAT_PLACEMENT_ROW_COUNT] = {
     16,
 };
 
-TaskDesc D_actor_300700_801693AC = { { { TASK_BODY_TMD, 96 } }, _ratTask, { .model = &gActor300700RatBody } };
+enum { ACTOR_300700_RAT_TASK_PRIORITY = 96 };
+
+TaskDesc gActor300700RatTaskDesc = { { { TASK_BODY_TMD, ACTOR_300700_RAT_TASK_PRIORITY } }, _ratTask, { .model = &gActor300700RatBody } };
 
 AnimationSet* gRatAnimSets[RAT_ANIM_SET_COUNT] = {
     NULL,

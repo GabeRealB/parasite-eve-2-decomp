@@ -51,8 +51,9 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
-#define MAGGOT_CATERPILLAR_KIND      CATERPILLAR
-#define MAGGOT_CATERPILLAR_BODY_TASK gMaggotCaterpillarBodyTask
+#define MAGGOT_CATERPILLAR_KIND CATERPILLAR
+/// Body descriptor lvalue whose address seeds the shared body/puff table.
+#define MAGGOT_CATERPILLAR_BODY_TASK gActor05500MaggotCaterpillarTasks[0]
 #include "../../shared/maggot_caterpillar.h"
 
 extern TmdSource     gMaggotCaterpillarHuskModel;
@@ -75,7 +76,6 @@ extern s16           gMaggotCaterpillarPounceStride[][2];
 extern s16           gMaggotCaterpillarReboundStride[][2];
 extern ActorSpriteUv gMaggotCaterpillarPuffCells[];
 extern s16           gMaggotCaterpillarPuffRadius[];
-extern TaskDesc      gMaggotCaterpillarBodyTask;
 extern AnimationSet* gMaggotCaterpillarAnimSets[15];
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
@@ -549,12 +549,22 @@ s16 gMaggotCaterpillarSprayTail = 8;
 
 s16 gMaggotCaterpillarPounceLead = 8;
 
-s32 Actor05500_D08A24[5] = {
+/// Trailing stored halfwords of the animation blend-duration run.
+///
+/// Clip indices 6..14 use whole-frame durations; clip 14 blends for four
+/// frames. The last zero halfword is stored but has no established request.
+/// The indexed base remains a separately declared, undersized table.
+static s16 _gMaggotCaterpillarAnimBlendTail[10] = {
+    0,
+    0,
+    0,
+    0,
     0,
     0,
     0,
     0,
     4,
+    0,
 };
 
 s16 gMaggotCaterpillarPounceStride[9][2] = {
@@ -609,9 +619,12 @@ s16 gMaggotCaterpillarPuffRadius[14] = {
     0,
 };
 
-TaskDesc gMaggotCaterpillarBodyTask = { { { TASK_BODY_TMD, 96 } }, _maggotCaterpillarTask, { .model = &_gActor05500CaterpillarMaggotBody } };
+enum { ACTOR_05500_TASK_PRIORITY = 96 };
 
-TaskDesc Actor05500_D08AC8 = { { { TASK_BODY_COORD, 96 } }, _maggotCaterpillarPuffTask, { .value = 0 } };
+TaskDesc gActor05500MaggotCaterpillarTasks[2] = {
+    { { { TASK_BODY_TMD, ACTOR_05500_TASK_PRIORITY } }, _maggotCaterpillarTask, { .model = &_gActor05500CaterpillarMaggotBody } },
+    { { { TASK_BODY_COORD, ACTOR_05500_TASK_PRIORITY } }, _maggotCaterpillarPuffTask, { .value = 0 } },
+};
 
 AnimationSet* gMaggotCaterpillarAnimSets[15] = {
     NULL,
@@ -633,10 +646,11 @@ AnimationSet* gMaggotCaterpillarAnimSets[15] = {
 
 #include "../../shared/maggot_caterpillar_resolve_contacts.inc.c"
 
-/// State handlers of the task `_maggotCaterpillarPuffTask` dispatches, indexed by the
-/// task's state: `_maggotCaterpillarPuffSetup` sets up its collision object,
-/// `_maggotCaterpillarPuffTick` runs it, and `enemyDestroy` tears it down.
-static const EnemyTaskFuncTable3 gMaggotCaterpillarPuffStates = {
+/// Puff enemy callbacks indexed by task state: 0 setup, 1 flight, 2 destroy.
+///
+/// The dispatcher copies the typed callbacks before passing the live
+/// enemy and task; destruction releases their owned resources.
+static const EnemyTaskFuncTable3 _gMaggotCaterpillarPuffStates = {
     {
         _maggotCaterpillarPuffSetup,
         _maggotCaterpillarPuffTick,
@@ -644,11 +658,11 @@ static const EnemyTaskFuncTable3 gMaggotCaterpillarPuffStates = {
     },
 };
 
-/// State handlers of the task `_maggotCaterpillarTask` dispatches, indexed by the
-/// task's state: `_maggotCaterpillarSpawn` allocates and sets up the work block,
-/// `_maggotCaterpillarTick` runs the actor, and `_maggotCaterpillarDyingState` handles its
-/// last state.
-static const EnemyTaskFuncTable3 gMaggotCaterpillarStates = {
+/// Body enemy callbacks indexed by task state: 0 spawn, 1 active, 2 dying.
+///
+/// The dispatcher copies the typed callbacks before passing the live
+/// enemy and task. The dying callback completes the enemy's lifetime.
+static const EnemyTaskFuncTable3 _gMaggotCaterpillarStates = {
     {
         _maggotCaterpillarSpawn,
         _maggotCaterpillarTick,
@@ -716,3 +730,7 @@ static const EnemyTaskFuncTable3 gMaggotCaterpillarStates = {
 #include "../../shared/maggot_caterpillar_puff_setup.inc.c"
 
 #include "../../shared/maggot_caterpillar_task.inc.c"
+
+#ifdef PACKAGE_ALIASES
+PACKAGE_ALIASES
+#endif

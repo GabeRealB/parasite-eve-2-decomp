@@ -3,8 +3,8 @@
 // file offset. Local labels are named only when something outside the
 // shared body reaches them.
 
-gMaggotCaterpillarPuffStates = 0x80131E4C;
-gMaggotCaterpillarStates = 0x80131E58;
+_gMaggotCaterpillarPuffStates = 0x80131E4C;
+_gMaggotCaterpillarStates = 0x80131E58;
 _maggotCaterpillarResolveContacts = 0x80131E8C;
 _maggotCaterpillarWaitState = 0x80132574;
 _maggotCaterpillarAimState = 0x80132734;

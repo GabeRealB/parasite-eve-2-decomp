@@ -30,7 +30,7 @@ static void _reverseWalkSpawn(Task* task)
 
     _reverseWalkBindLighting(task);
 
-    task->msgTable     = gReverseWalkMessages;
+    task->msgTable     = _gReverseWalkMessages;
     task->exitCallback = _reverseWalkExit;
     task->state       += 1;
 }

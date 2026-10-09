@@ -775,7 +775,9 @@ ActorHeightClamp Actor01900_D172CC[3] = {
 
 s16 Actor01900_D172FC = 0;
 
-TaskDesc Actor01900_D17300 = { { { TASK_BODY_TMD, 96 } }, _actor01900Task, { .model = &_gActor01900GrinningStrangerBody } };
+enum { ACTOR_01900_TASK_PRIORITY = 96 };
+
+TaskDesc gActor01900GrinningStrangerTaskDesc = { { { TASK_BODY_TMD, ACTOR_01900_TASK_PRIORITY } }, _actor01900Task, { .model = &_gActor01900GrinningStrangerBody } };
 
 static SVECTOR ActorContact_ScratchPosition = { 0 };
 
@@ -4263,3 +4265,7 @@ static void _actor01900Task(Task* task)
     states = Actor01900_D0023C;
     states.funcs[task->state](task->spawnArg2.pointer, task);
 }
+
+#ifdef PACKAGE_ALIASES
+PACKAGE_ALIASES
+#endif
