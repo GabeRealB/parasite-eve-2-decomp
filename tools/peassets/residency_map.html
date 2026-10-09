@@ -47,6 +47,11 @@ input:focus-visible, select:focus-visible, button:focus-visible, .g:focus-visibl
 #vram .clut { fill: var(--clut); fill-opacity: .55; stroke: var(--clut); vector-effect: non-scaling-stroke; }
 #vram .clash { fill: var(--clash); fill-opacity: .4; stroke: var(--clash); }
 #vram .hot { fill-opacity: .75; }
+#vram image { image-rendering: pixelated; pointer-events: none; }
+#vram.pics .img, #vram.pics .clut { fill-opacity: 0; } #vram.pics .hot { fill-opacity: .25; } #vram.pics .clash { fill-opacity: .25; }
+.check { flex-direction: row; align-items: center; gap: 6px; text-transform: none; letter-spacing: 0; font-size: 12px; }
+#shot { padding: 0 12px 12px; display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; font: 12px var(--mono); color: var(--muted); }
+#shot img { image-rendering: pixelated; border: 1px solid var(--line); background: var(--bg); max-width: 100%; }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12px; color: var(--muted); padding: 8px 0 0; }
 .sw { display: inline-block; width: 12px; height: 12px; vertical-align: -2px; margin-right: 5px; border: 1px solid; }
 .sw.i { background: var(--accent-soft); border-color: var(--accent); } .sw.c { background: var(--clut); border-color: var(--clut); } .sw.x { background: var(--clash); border-color: var(--clash); }
@@ -100,8 +105,9 @@ tr.hot td { background: var(--accent-soft); } tr.clash td:first-child { color: v
       <h2><span>Video memory, 1024 × 512</span><span id="hover">hover a rectangle</span></h2>
       <div class="sheet">
         <svg id="vram" viewBox="-22 -12 1050 530" xmlns="http://www.w3.org/2000/svg"></svg>
-        <div class="legend"><span><i class="sw i"></i>image</span><span><i class="sw c"></i>palette (CLUT)</span><span><i class="sw x"></i>two resident files claim the same area</span><span>grid: 64-wide texture pages, split at row 256</span></div>
+        <div class="legend"><span><i class="sw i"></i>image</span><span><i class="sw c"></i>palette (CLUT)</span><span><i class="sw x"></i>two resident files claim the same area</span><span>grid: 64-wide texture pages, split at row 256</span><label class="check" for="pics" id="picslabel"><input type="checkbox" id="pics" checked>draw the images</label></div>
       </div>
+      <div id="shot" hidden></div>
       <div class="scroll" style="max-height:300px"><table><thead><tr><th>Asset</th><th>At</th><th>Size</th><th>Depth</th><th>Loaded by</th><th>File</th></tr></thead><tbody id="rows"></tbody></table></div>
     </section>
   </div>
@@ -159,11 +165,30 @@ function drawVram(list) {
   const svg = $("vram"); svg.replaceChildren();
   for (let x = 0; x <= 1024; x += 64) { svg.append(el("line", { class: "grid", x1: x, y1: 0, x2: x, y2: 512 })); if (x < 1024) svg.append(el("text", { class: "lab", x: x + 2, y: -3 }, x)); }
   for (const yy of [0, 256, 512]) { svg.append(el("line", { class: "half", x1: 0, y1: yy, x2: 1024, y2: yy })); svg.append(el("text", { class: "lab", x: -20, y: yy + (yy ? 3 : 8) }, yy)); }
+  const pics = D.pictures && $("pics").checked; svg.classList.toggle("pics", !!pics);
+  if (pics) {                             // one picture per asset, stretched over the words it covers
+    const whole = new Map();
+    for (const a of list) { const k = a.asset + "|" + a.file, w = whole.get(k) || { ...a, x2: a.x + a.w }; w.x = Math.min(w.x, a.x); w.x2 = Math.max(w.x2, a.x + a.w); whole.set(k, w); }
+    for (const w of whole.values()) {
+      const im = el("image", { href: src(w), x: w.x, y: w.y, width: w.x2 - w.x, height: Math.max(w.h, 1), preserveAspectRatio: "none" });
+      im.addEventListener("error", () => im.remove()); svg.append(im);
+    }
+  }
   list.forEach((a, i) => {
     const r = el("rect", { class: (a.kind === "c" ? "clut" : "img") + (a.clash ? " clash" : "") + (hot === i ? " hot" : ""), x: a.x, y: a.y, width: a.w, height: Math.max(a.h, a.kind === "c" ? 2 : 1) });
     r.addEventListener("mouseenter", () => { hot = i; mark(list); }); r.addEventListener("mouseleave", () => { hot = null; mark(list); });
+    r.addEventListener("click", () => shot(a));
     r.append(el("title", {}, `${a.asset} ${a.part} (${a.x},${a.y}) ${a.w}×${a.h} — ${a.file}`)); svg.append(r);
   });
+}
+const src = a => `${D.pictures}/${a.kind === "c" ? "pe2clut" : "pe2img"}/${a.asset}.png`;
+function shot(a) {                        // the asset itself, at its own size
+  const box = $("shot"); if (!D.pictures) return;
+  box.hidden = false; box.replaceChildren();
+  const im = document.createElement("img"); im.alt = a.asset; im.src = src(a);
+  im.addEventListener("error", () => { box.textContent = `${a.asset}: no decoded picture in the local extraction`; });
+  const text = document.createElement("div"); text.textContent = `${a.asset} · ${a.kind === "c" ? "palette" : a.bpp + "-bit image"} · from ${a.file}`;
+  box.append(im, text);
 }
 function mark(list) {
   [...$("vram").querySelectorAll("rect")].forEach((r, i) => r.classList.toggle("hot", i === hot));
@@ -173,7 +198,7 @@ function mark(list) {
 function render() {
   const list = resident(); drawGraph(); drawVram(list);
   $("rows").innerHTML = list.map(a => `<tr class="${a.clash ? "clash" : ""}"><td>${a.asset} ${a.part}</td><td>${a.x}, ${a.y}</td><td>${a.w} × ${a.h}</td><td>${a.kind === "c" ? "palette" : a.bpp + "-bit"}</td><td>${a.by}</td><td>${a.file}</td></tr>`).join("") || `<tr><td colspan="6">Nothing resident uploads to video memory.</td></tr>`;
-  [...$("rows").children].forEach((r, i) => { r.addEventListener("mouseenter", () => { hot = i; mark(list); }); r.addEventListener("mouseleave", () => { hot = null; mark(list); }); });
+  [...$("rows").children].forEach((r, i) => { r.addEventListener("mouseenter", () => { hot = i; mark(list); }); r.addEventListener("mouseleave", () => { hot = null; mark(list); }); r.addEventListener("click", () => shot(list[i])); });
   const n = cur.groups.length, files = cur.groups.reduce((s, g) => s + g[3].length, 0);
   $("facts").textContent = `${n} groups · ${files} file loads · ${list.length} rectangles resident · ${list.filter(a => a.clash).length} in conflict`;
 }
@@ -233,6 +258,7 @@ $("tab-all").addEventListener("click", () => tab("all")); $("tab-one").addEventL
 $("loader").addEventListener("change", e => pick(e.target.value.trim()));
 $("loader").addEventListener("input", e => { if (D.loaders[e.target.value]) pick(e.target.value); });
 $("view").addEventListener("change", render); $("variant").addEventListener("change", render);
+$("pics").addEventListener("change", render); $("picslabel").hidden = !D.pictures;
 const start = location.hash.slice(1);
 pick(D.loaders[start] ? start : "shelter_b3_dumping_hole");
 if (!start || start === "all") tab("all");

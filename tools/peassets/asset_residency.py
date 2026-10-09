@@ -26,7 +26,8 @@ images and CLUTs upload to, moved by the edge's offsets.
 
 Every edge records where it comes from (`evidence`): `carrier` (the file holds
 the overlay's own package), `placement` (an `AreaVariant`'s placement and
-resource tables), or `folder` - a file in a room's folder taken to be the view
+resource tables), `traced` (a load decided by code, read out of the sources
+into `residency_loads.tsv` beside this tool), or `folder` - a file in a room's folder taken to be the view
 of its number, which holds for rooms using the identity view map and is an
 assumption for the rest until their maps are read.
 """
@@ -122,6 +123,55 @@ def area_tables(files: list[Path], known: dict[str, int]):
     return placements, resources, variants
 
 
+# Loads decided by code, read out of the sources and kept as a table beside
+# this tool: loader, kind, condition, files, page, row, mode, evidence, note.
+# `files` is one stage-zero id, a comma list (loaded together), a range
+# `A..B by <what>` (one of them at a time), or `stage/folder-id/index`.
+TRACED = Path(__file__).with_name("residency_loads.tsv")
+
+
+def traced_loads(common: dict[int, str], folders: dict[tuple[int, int], dict[int, str]]):
+    """(loader, kind, condition, evidence, [(file, page, row, note)]) per traced group."""
+    if not TRACED.is_file():
+        return
+    together: dict[tuple, list] = defaultdict(list)
+    number = lambda text: asset_journal.evaluate(text, {}) or 0  # noqa: E731
+    for n, line in enumerate(TRACED.read_text(encoding="utf-8").splitlines(), 1):
+        if not line.strip() or line.startswith("#"):
+            continue
+        cells = [c.strip() for c in (line.split("\t") + [""] * 9)[:9]]
+        loader, kind, condition, spec, page, row, mode, evidence, note = cells
+        if kind not in ("always", "optional"):
+            print(f"{TRACED.name}:{n}: kind is {kind!r}", file=sys.stderr)
+            continue
+        offsets = (number(page), number(row))
+        ranged = re.match(r"(\d+)\s*\.\.\s*(\d+)(?:\s+by\s+(.*))?$", spec)
+        placed = re.match(r"(\d)/(\d+)/(\d+|\*)$", spec)
+        if ranged:
+            # One of a family at a time: a group of its own for each file.
+            for fid in sorted(i for i in common if int(ranged[1]) <= i <= int(ranged[2])):
+                name = common[fid].split("/", 1)[1]
+                yield loader, "optional", f"{condition}: {name}" if condition else name, evidence, [(common[fid],) + offsets + (note,)]
+        elif placed:
+            files = folders.get((int(placed[1]), int(placed[2])), {})
+            for index, path in sorted(files.items()):
+                if placed[3] in ("*", str(index)):
+                    together[loader, kind, condition, evidence].append((path,) + offsets + (note,))
+        else:
+            for fid in (int(i) for i in re.findall(r"\d+", spec)):
+                if fid in common:
+                    together[loader, kind, condition, evidence].append((common[fid],) + offsets + (note,))
+                else:
+                    print(f"{TRACED.name}:{n}: no stage-zero file {fid}", file=sys.stderr)
+    merged: dict[tuple, list] = defaultdict(list)
+    evidence_of: dict[tuple, str] = {}
+    for (loader, kind, condition, evidence), members in together.items():
+        merged[loader, kind, condition] += members
+        evidence_of.setdefault((loader, kind, condition), evidence)
+    for (loader, kind, condition), members in merged.items():
+        yield loader, kind, condition, evidence_of[loader, kind, condition], members
+
+
 def build(db: sqlite3.Connection) -> None:
     db.executescript(DDL)
     assets, _embedded = asset_schema.load()
@@ -198,6 +248,12 @@ def build(db: sqlite3.Connection) -> None:
                     missing += 1
             if members:
                 group(room, "optional", f"variant {index}", "placement", f"{rel}:{name}", members)
+    folders: dict[tuple[int, int], dict[int, str]] = {}
+    for stage, body in tree.items():
+        for folder, fnode in (body.get("folders") or {}).items():
+            folders[stage, int(fnode["id"])] = {int(n["id"]): f"{stage}/{folder}/{k}" for k, n in fnode["files"].items()}
+    for loader, kind, condition, evidence, members in traced_loads(common, folders):
+        group(loader, kind, condition, "traced", evidence, members)
     db.commit()
     print(f"{db.execute('SELECT COUNT(*) FROM file').fetchone()[0]} files, "
           f"{db.execute('SELECT COUNT(*) FROM footprint').fetchone()[0]} uploaded rectangles, "
@@ -213,7 +269,7 @@ DOCUMENT = ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n
             '<style>body{margin:0}[hidden]{display:none!important}</style>\n</head>\n<body>\n%s\n</body>\n</html>\n')
 
 
-def page_data(db: sqlite3.Connection) -> str:
+def page_data(db: sqlite3.Connection, pictures: str = "") -> str:
     """The graph as the page reads it: files by index, footprints, groups per loader."""
     import json
     files = [r["path"] for r in db.execute("SELECT path FROM file ORDER BY path")]
@@ -230,15 +286,20 @@ def page_data(db: sqlite3.Connection) -> str:
         if index[r["file"]] in used:
             footprint[index[r["file"]]].append([r["asset"], r["kind"][0], r["part"], r["x"], r["y"], r["w"], r["h"], r["bpp"] or 0])
     carried = {index[r["path"]]: r["package"] for r in db.execute("SELECT path, package FROM file WHERE package IS NOT NULL")}
-    return json.dumps({"files": files, "fp": footprint, "loaders": loaders, "pkg": carried}, separators=(",", ":")).replace("</", "<\\/")
+    return json.dumps({"files": files, "fp": footprint, "loaders": loaders, "pkg": carried, "pictures": pictures}, separators=(",", ":")).replace("</", "<\\/")
 
 
 def write_page(db: sqlite3.Connection, out: Path, bare: bool) -> None:
     template = TEMPLATE.read_text(encoding="utf-8")
     if template.count("/*DATA*/") != 1:
         raise SystemExit(f"{TEMPLATE}: expected one /*DATA*/ marker")
-    page = template.replace("/*DATA*/", page_data(db))
+    # A local page shows the decoded images themselves, read from the
+    # extraction beside it; they are referenced, never copied into the page.
+    import os
     out.parent.mkdir(parents=True, exist_ok=True)
+    extracted = ROOT / "assets" / "USA"
+    pictures = "" if bare or not (extracted / "pe2img").is_dir() else os.path.relpath(extracted.resolve(), out.parent.resolve())
+    page = template.replace("/*DATA*/", page_data(db, pictures))
     out.write_text(page if bare else DOCUMENT % page, encoding="utf-8")
     print(f"wrote {out}  ({out.stat().st_size // 1024} KB)")
 
