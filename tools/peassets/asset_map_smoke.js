@@ -7,17 +7,17 @@ const fs = require("fs"), path = require("path");
 const page = process.argv[2], html = fs.readFileSync(page, "utf8"), js = html.slice(html.indexOf("<script>") + 8, html.lastIndexOf("</script>"));
 const els = new Map();
 function node(tag) {
-  const n = { tag, children: [], attrs: {}, style: {}, classList: { toggle() {}, add() {}, remove() {} }, hidden: false, value: "", className: "", checked: true, _text: "",
+  const n = { tag, children: [], attrs: {}, style: { setProperty() {} }, classList: { toggle() {}, add() {}, remove() {} }, hidden: false, value: "", className: "", checked: true, _text: "",
     setAttribute(k, v) { this.attrs[k] = v; if (k === "value" && this.tag !== "option") this.value = v; }, getAttribute(k) { return this.attrs[k]; }, addEventListener(type, f) { (this.on = this.on || {})[type] = f; }, scrollTo() {},
     append(...c) { for (const x of c) { this.children.push(x); if (x && x.tag === "script" && x.src) { try { eval(fs.readFileSync(path.join(path.dirname(page), x.src), "utf8")); } catch (e) { x.onerror && x.onerror(); } } } },
     replaceChildren(...c) { this.children = c; }, querySelectorAll() { return []; }, remove() {},
-    getContext() { return { fillRect() {}, strokeRect() {}, clearRect() {}, beginPath() {}, moveTo() {}, lineTo() {}, closePath() {}, fill() {}, stroke() {}, createImageData: (w, h) => ({ data: new Uint8ClampedArray(w * h * 4) }), getImageData: () => ({ data: [200, 0, 0, 255] }), putImageData() {} }; } };
+    getContext() { return { fillRect() {}, strokeRect() {}, clearRect() {}, save() {}, restore() {}, clip() {}, setTransform() {}, drawImage() {}, beginPath() {}, moveTo() {}, lineTo() {}, closePath() {}, fill() {}, stroke() {}, createImageData: (w, h) => ({ data: new Uint8ClampedArray(w * h * 4) }), getImageData: () => ({ data: [200, 0, 0, 255] }), putImageData() {} }; } };
   Object.defineProperty(n, "textContent", { get() { return this._text + this.children.map(c => typeof c === "string" ? c : c && c.textContent || "").join(""); }, set(v) { this._text = String(v); this.children = []; } });
   Object.defineProperty(n, "lastChild", { get() { return this.children[this.children.length - 1]; } });
   return n;
 }
 global.document = { getElementById: id => els.get(id) || (els.set(id, node("#" + id)), els.get(id)), createElementNS: (_, t) => node(t), createElement: t => node(t), head: node("head"), documentElement: node("html"), querySelector: () => node("main") };
-global.window = global; global.location = { hash: "" }; global.addEventListener = () => {}; global.getComputedStyle = () => ({ getPropertyValue: () => "#f00" }); global.atob = s => Buffer.from(s, "base64").toString("binary");
+global.localStorage = { getItem: () => null, setItem() {} }; global.window = global; global.location = { hash: "" }; global.addEventListener = () => {}; global.getComputedStyle = () => ({ getPropertyValue: () => "#f00" }); global.atob = s => Buffer.from(s, "base64").toString("binary");
 const walk = (n, f) => { if (!n || typeof n === "string") return; f(n); (n.children || []).forEach(c => walk(c, f)); };
 eval(js + `
 ;(async () => {

@@ -39,10 +39,12 @@ main { overflow: auto; min-width: 0; }
 a.lnk { color: var(--accent); text-decoration: none; cursor: pointer; } a.lnk:hover { text-decoration: underline; }
 section > h3 { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 500; margin: 0 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--line); display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
 section > p { color: var(--muted); font-size: 12px; margin: 0 0 8px; max-width: 80ch; }
-.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, calc(256px * var(--scale, 2))), 1fr)); gap: 14px; }
+label.row { flex-direction: row; align-items: center; gap: 8px; }
 .tile { display: flex; flex-direction: column; gap: 4px; min-width: 0; font: 11px var(--mono); }
 .tile canvas, .shot canvas, .shot img { image-rendering: pixelated; border: 1px solid var(--line); max-width: 100%; background: repeating-conic-gradient(var(--grid) 0 25%, var(--bg) 0 50%) 0 0 / 16px 16px; }
-.tile canvas { width: 100%; aspect-ratio: 1; }
+.tile canvas { max-width: none; } .tile { overflow-x: auto; }
+.shot { overflow-x: auto; } .shot canvas, .shot img { max-width: none; }
 .tile.miss canvas { border-color: var(--clash); border-width: 2px; }
 .tile div { overflow-wrap: anywhere; } .tile .what { color: var(--muted); } .flag { color: var(--clash); font-weight: 500; }
 .shots { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; } .shot { display: flex; flex-direction: column; gap: 4px; font: 11px var(--mono); min-width: 0; max-width: 100%; }
@@ -57,7 +59,7 @@ ul.plain { margin: 0; padding-left: 18px; font: 12px var(--mono); } ul.plain li 
 .bar { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: end; margin-bottom: 10px; }
 label { display: flex; flex-direction: column; gap: 3px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 .sheet { position: relative; border: 1px solid var(--line); background: var(--bg); }
-.sheet canvas { display: block; width: 100%; height: auto; image-rendering: pixelated; }
+.sheet canvas { display: block; image-rendering: pixelated; } .sheetbox { overflow-x: auto; } .sheet { width: max-content; }
 .sheet svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .sheet .reg { fill: none; stroke: var(--muted); stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; } .sheet text { font: 9px var(--sans); fill: var(--muted); }
 audio { height: 28px; max-width: 100%; } iframe { width: 100%; height: 320px; border: 1px solid var(--line); background: var(--panel); }
@@ -67,6 +69,7 @@ audio { height: 28px; max-width: 100%; } iframe { width: 100%; height: 320px; bo
     <header>
       <h1>PE2 Asset Map</h1>
       <span class="seg"><button id="nav-o" aria-pressed="true">Overlays</button><button id="nav-a" aria-pressed="false">Assets</button></span>
+      <label for="scale" class="row">Scale<select id="scale"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
       <input id="filter" placeholder="filter by name" autocomplete="off" spellcheck="false" aria-label="Filter the list">
     </header>
     <div class="list" id="list"></div>
@@ -78,6 +81,9 @@ const D = /*DATA*/;
 const $ = id => document.getElementById(id);
 const h = (tag, props, ...kids) => { const e = document.createElement(tag); for (const k in (props || {})) { if (k === "class") e.className = props[k]; else if (k.startsWith("on")) e.addEventListener(k.slice(2), props[k]); else if (k === "text") e.textContent = props[k]; else e.setAttribute(k, props[k]); } for (const kid of kids.flat()) if (kid != null && kid !== false) e.append(kid); return e; };
 const link = (kind, name, text) => h("a", { class: "lnk", href: "#" + kind + "." + name, text: text || name });
+// Pixels are shown at a whole multiple of their size, never smoothed.
+let S = 2; try { S = +localStorage.getItem("asset-map-scale") || 2; } catch (e) {}
+const zoom = (node, k) => { const w = node.width || node.naturalWidth, hh = node.height || node.naturalHeight; if (w) { node.style.width = w * (k || S) + "px"; node.style.height = hh * (k || S) + "px"; } return node; };
 const sign = (p, r) => `${p >= 0 ? "+" : ""}${p}/${r >= 0 ? "+" : ""}${r}`;
 const TYPE = { movie: "movies", stream: "streamed audio", pe2pkg: "overlays", pe2img: "images", pe2clut: "palettes", model: "models", animation: "animation banks", bs: "backgrounds", spk: "sound banks", txt: "text", pe2cap2: "captions", image: "embedded images", clut: "embedded palettes" };
 
@@ -92,33 +98,47 @@ const need = asset => pix.has(asset) || !D.pixels ? Promise.resolve() : new Prom
 const needFiles = fs => Promise.all([...new Set(fs.flatMap(f => (D.fp[f] || []).map(r => r[0])))].map(need));
 // Meshes and sampled tracks come the same way, one script each.
 const side = new Map(), sideWaiting = new Map();
-window.MESH = (key, verts, faces) => { side.set(key, { verts, faces }); (sideWaiting.get(key) || []).forEach(f => f()); sideWaiting.delete(key); };
+window.MESH = (key, verts, faces, tex, pairs) => { side.set(key, { verts, faces, tex: tex || [], pairs: pairs || [] }); (sideWaiting.get(key) || []).forEach(f => f()); sideWaiting.delete(key); };
 window.TRACK = (key, unit, b64) => { const bin = atob(b64), n = Math.floor(bin.length / unit), v = new Array(n); for (let i = 0; i < n; i++) { let x = 0; for (let b = unit - 1; b >= 0; b--) x = x * 256 + bin.charCodeAt(i * unit + b); const top = 2 ** (unit * 8 - 1); v[i] = unit < 4 && x >= top ? x - 2 * top : x; } side.set(key, { values: v, unit }); (sideWaiting.get(key) || []).forEach(f => f()); sideWaiting.delete(key); };
 const needSide = key => side.has(key) || !D.side ? Promise.resolve() : new Promise(done => { if (sideWaiting.has(key)) return sideWaiting.get(key).push(done); sideWaiting.set(key, [done]); const tag = document.createElement("script"); tag.src = `${D.side}/${key}.js`; tag.onerror = () => { side.set(key, null); (sideWaiting.get(key) || []).forEach(f => f()); sideWaiting.delete(key); }; document.head.append(tag); });
-// A mesh in its rest pose: flat-shaded, drawn back to front, turned by dragging.
-function renderMesh(key) {
+// A mesh in its rest pose, drawn back to front and turned by dragging. A face whose texture page is at hand is drawn
+// with it, each triangle mapped straight (no perspective, as the console draws it); the rest are shaded flat.
+function renderMesh(key, pages) {
   const m = side.get(key); if (!m) return h("div", { class: "dim", text: "no mesh was decoded for this model" });
-  const cv = h("canvas", { width: 440, height: 440, style: "cursor:grab;touch-action:none" }), ctx = cv.getContext("2d"), n = m.verts.length / 3; let yaw = 0.6, pitch = 0.25, lo = [1e9, 1e9, 1e9], hi = [-1e9, -1e9, -1e9];
+  const N = 560, cv = h("canvas", { width: N, height: N, style: "cursor:grab;touch-action:none;image-rendering:auto" }), ctx = cv.getContext("2d"), n = m.verts.length / 3; let yaw = 0.6, pitch = 0.25, lo = [1e9, 1e9, 1e9], hi = [-1e9, -1e9, -1e9], textured = true;
   for (let i = 0; i < n; i++) for (let k = 0; k < 3; k++) { const v = m.verts[i * 3 + k]; if (v < lo[k]) lo[k] = v; if (v > hi[k]) hi[k] = v; }
   const mid = lo.map((v, k) => (v + hi[k]) / 2), size = Math.max(1, Math.hypot(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2])), css = getComputedStyle(document.documentElement), ink = css.getPropertyValue("--ink") || "#000";
-  const draw = () => { const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch), P = new Float32Array(n * 3), sc = 400 / size;
-    for (let i = 0; i < n; i++) { const x = m.verts[i * 3] - mid[0], y = m.verts[i * 3 + 1] - mid[1], z = m.verts[i * 3 + 2] - mid[2], x1 = x * cy + z * sy, z1 = -x * sy + z * cy, y1 = y * cp - z1 * sp, z2 = y * sp + z1 * cp; P[i * 3] = 220 + x1 * sc; P[i * 3 + 1] = 220 + y1 * sc; P[i * 3 + 2] = z2; }
+  const img = m.pairs.map(([t, c]) => (pages || new Map()).get(t + "|" + c) || null), has = img.some(Boolean);
+  const tri = (im, x0, y0, x1, y1, x2, y2, u0, v0, u1, v1, u2, v2) => { const det = (u1 - u0) * (v2 - v0) - (u2 - u0) * (v1 - v0); if (!det) return false;
+    const a = ((x1 - x0) * (v2 - v0) - (x2 - x0) * (v1 - v0)) / det, b = ((y1 - y0) * (v2 - v0) - (y2 - y0) * (v1 - v0)) / det, c = ((x2 - x0) * (u1 - u0) - (x1 - x0) * (u2 - u0)) / det, d = ((y2 - y0) * (u1 - u0) - (y1 - y0) * (u2 - u0)) / det;
+    ctx.save(); ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.lineTo(x2, y2); ctx.closePath(); ctx.clip(); ctx.setTransform(a, b, c, d, x0 - a * u0 - c * v0, y0 - b * u0 - d * v0); ctx.drawImage(im, 0, 0); ctx.restore(); return true; };
+  const draw = () => { const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch), P = new Float32Array(n * 3), sc = (N - 40) / size;
+    for (let i = 0; i < n; i++) { const x = m.verts[i * 3] - mid[0], y = m.verts[i * 3 + 1] - mid[1], z = m.verts[i * 3 + 2] - mid[2], x1 = x * cy + z * sy, z1 = -x * sy + z * cy, y1 = y * cp - z1 * sp, z2 = y * sp + z1 * cp; P[i * 3] = N / 2 + x1 * sc; P[i * 3 + 1] = N / 2 + y1 * sc; P[i * 3 + 2] = z2; }
     const order = m.faces.map((f, i) => [i, f.reduce((a, v) => a + P[v * 3 + 2], 0) / f.length]).sort((a, b) => b[1] - a[1]);
-    ctx.clearRect(0, 0, 440, 440); ctx.lineWidth = 0.5; ctx.strokeStyle = ink;
-    for (const [i] of order) { const f = m.faces[i], a = f[0] * 3, b = f[1] * 3, c = f[2] * 3, nz = Math.abs((P[b] - P[a]) * (P[c + 1] - P[a + 1]) - (P[b + 1] - P[a + 1]) * (P[c] - P[a])), area = Math.hypot(P[b] - P[a], P[b + 1] - P[a + 1]) * Math.hypot(P[c] - P[a], P[c + 1] - P[a + 1]) || 1, g = Math.round(90 + 150 * Math.min(1, nz / area));
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, N, N); ctx.imageSmoothingEnabled = false; ctx.lineWidth = 0.5; ctx.strokeStyle = ink;
+    for (const [i] of order) { const f = m.faces[i], t = m.tex[i], im = textured && t ? img[t[0]] : null, X = k => P[f[k] * 3], Y = k => P[f[k] * 3 + 1];
+      if (im) { let ok = tri(im, X(0), Y(0), X(1), Y(1), X(2), Y(2), t[1], t[2], t[3], t[4], t[5], t[6]); if (f.length === 4) ok = tri(im, X(0), Y(0), X(2), Y(2), X(3), Y(3), t[1], t[2], t[5], t[6], t[7], t[8]) && ok; if (ok) continue; }
+      const a = f[0] * 3, b = f[1] * 3, c = f[2] * 3, nz = Math.abs((P[b] - P[a]) * (P[c + 1] - P[a + 1]) - (P[b + 1] - P[a + 1]) * (P[c] - P[a])), area = Math.hypot(P[b] - P[a], P[b + 1] - P[a + 1]) * Math.hypot(P[c] - P[a], P[c + 1] - P[a + 1]) || 1, g = Math.round(90 + 150 * Math.min(1, nz / area));
       ctx.beginPath(); f.forEach((v, k) => k ? ctx.lineTo(P[v * 3], P[v * 3 + 1]) : ctx.moveTo(P[v * 3], P[v * 3 + 1])); ctx.closePath(); ctx.fillStyle = `rgb(${g},${g},${Math.min(255, g + 12)})`; ctx.fill(); ctx.stroke(); } };
   let from = null; cv.addEventListener("pointerdown", e => { from = [e.clientX, e.clientY]; cv.setPointerCapture && cv.setPointerCapture(e.pointerId); });
   cv.addEventListener("pointermove", e => { if (!from) return; yaw += (e.clientX - from[0]) * 0.01; pitch = Math.max(-1.5, Math.min(1.5, pitch + (e.clientY - from[1]) * 0.01)); from = [e.clientX, e.clientY]; draw(); });
   cv.addEventListener("pointerup", () => { from = null; }); draw();
-  return h("div", { class: "shot" }, cv, h("div", { class: "dim", text: `${n} vertices, ${m.faces.length} faces, rest pose · drag to turn` }));
+  const untex = m.tex.filter((t, i) => !t || !img[t[0]]).length;
+  return h("div", { class: "shot" }, cv, h("div", { class: "dim", text: `${n} vertices, ${m.faces.length} faces, rest pose · drag to turn` + (has ? ` · ${m.faces.length - untex} faces textured` : " · no texture at hand, shaded flat") }),
+    has ? h("button", { text: "textured / flat", onclick: () => { textured = !textured; draw(); } }) : null);
 }
-// A sampled track as its numbers over time, one line per column when the samples come in rows of a fixed width.
+// A sampled track as its numbers in file order. Samples usually come in rows of a few values (x, y, z, an angle):
+// choosing how many values make a row draws one line per column.
 function renderTrack(key) {
   const t = side.get(key); if (!t) return h("div", { class: "dim", text: "no raw data in the local extraction" });
-  const v = t.values, W = 900, H = 220, cv = h("canvas", { width: W, height: H }), ctx = cv.getContext("2d"), css = getComputedStyle(document.documentElement);
-  let lo = Infinity, hi = -Infinity; for (const x of v) { if (x < lo) lo = x; if (x > hi) hi = x; } if (hi === lo) hi = lo + 1;
-  ctx.strokeStyle = css.getPropertyValue("--accent") || "#066"; ctx.lineWidth = 1; ctx.beginPath(); v.forEach((x, i) => { const px = i / Math.max(1, v.length - 1) * (W - 2) + 1, py = H - 1 - (x - lo) / (hi - lo) * (H - 2); i ? ctx.lineTo(px, py) : ctx.moveTo(px, py); }); ctx.stroke();
-  return h("div", { class: "shot" }, cv, h("div", { class: "dim", text: `${v.length} values of ${t.unit * 8} bits, from ${lo} to ${hi}, in file order. What each stands for is not decoded here.` }));
+  const v = t.values, W = 900, H = 260, cv = h("canvas", { width: W, height: H, style: "image-rendering:auto" }), ctx = cv.getContext("2d"), css = getComputedStyle(document.documentElement), hues = ["--accent", "--clash", "--clut", "--ink", "--muted"].map(n => css.getPropertyValue(n) || "#066");
+  const pick = h("select", { id: "rowwidth" }, [1, 2, 3, 4, 6, 8, 12, 16].map(n => h("option", { text: n }))), note = h("div", { class: "dim" });
+  const draw = () => { const k = +pick.value || 1, rows = Math.floor(v.length / k); ctx.clearRect(0, 0, W, H); ctx.lineWidth = 1;
+    for (let c = 0; c < k; c++) { let lo = Infinity, hi = -Infinity; for (let r = 0; r < rows; r++) { const x = v[r * k + c]; if (x < lo) lo = x; if (x > hi) hi = x; } if (hi === lo) hi = lo + 1;
+      ctx.strokeStyle = hues[c % hues.length]; ctx.globalAlpha = c < hues.length ? 1 : 0.5; ctx.beginPath(); for (let r = 0; r < rows; r++) { const px = r / Math.max(1, rows - 1) * (W - 2) + 1, py = H - 1 - (v[r * k + c] - lo) / (hi - lo) * (H - 2); r ? ctx.lineTo(px, py) : ctx.moveTo(px, py); } ctx.stroke(); }
+    ctx.globalAlpha = 1; note.textContent = `${v.length} values of ${t.unit * 8} bits, as ${rows} rows of ${k}; each column is scaled to its own range. What a column stands for is not decoded here.`; };
+  pick.addEventListener("change", draw); draw();
+  return h("div", { class: "shot" }, cv, h("label", { for: "rowwidth", class: "row" }, "values per row", pick), note);
 }
 // A list that may be long: the first rows, and a button for the rest.
 function capped(rows, limit, wrap) { if (rows.length <= limit) return wrap(rows); const box = h("div", {}), more = h("button", { text: `show all ${rows.length}`, onclick: () => box.replaceChildren(wrap(rows)) }); box.append(wrap(rows.slice(0, limit)), more); return box; }
@@ -153,7 +173,7 @@ function renderPage(mem, t, c, box) {
       if (cy > 511 || !owner[pa]) { if (inside) lacking++; d[k] = bad[0]; d[k + 1] = bad[1]; d[k + 2] = bad[2]; d[k + 3] = alpha; continue; } col = vram[pa]; }
     if (col) put(d, k, col, alpha);
   }
-  ctx.putImageData(im, 0, 0);
+  ctx.putImageData(im, 0, 0); zoom(cv);
   const flags = []; if (!filled) flags.push("page not supplied"); if (bpp < 16 && !palFilled) flags.push("palette not supplied"); else if (bpp < 16 && palFilled < n) flags.push(`palette ${palFilled} of ${n} entries supplied`); if (lacking && palFilled) flags.push("texels use entries that are not supplied");
   return { cv, flags, from: [...from], pal: [...pal], bpp, tx, ty, cx, cy };
 }
@@ -176,12 +196,12 @@ function renderImage(asset, bpp, clut, row, pal, only) {
     const idx = bpp === 4 ? (w >> (s * 4)) & 15 : (w >> (s * 8)) & 255;
     if (cl) { const colr = cl.u[row * cl.w + pal * 16 + idx]; if (colr) put(d, k, colr, alpha); }
     else { const g = idx * 255 / (n - 1); d[k] = d[k + 1] = d[k + 2] = g; d[k + 3] = alpha; } } } });
-  ctx.putImageData(im, 0, 0); return cv;
+  ctx.putImageData(im, 0, 0); return zoom(cv);
 }
 function renderClut(asset) {
   const c = (pix.get(asset) || [])[0]; if (!c) return h("div", { class: "dim", text: "no pixels in the local extraction" });
-  const s = 6, cv = h("canvas", { width: c.w, height: c.h, style: `width:${Math.min(c.w * s, 1024)}px;height:${c.h * s * Math.min(1, 1024 / (c.w * s))}px` }), ctx = cv.getContext("2d"), im = ctx.createImageData(c.w, c.h);
-  for (let i = 0; i < c.w * c.h; i++) if (c.u[i]) put(im.data, i * 4, c.u[i], 255); ctx.putImageData(im, 0, 0); return cv;
+  const cv = h("canvas", { width: c.w, height: c.h }), ctx = cv.getContext("2d"), im = ctx.createImageData(c.w, c.h);
+  for (let i = 0; i < c.w * c.h; i++) if (c.u[i]) put(im.data, i * 4, c.u[i], 255); ctx.putImageData(im, 0, 0); return zoom(cv, Math.max(S * 2, c.w <= 64 ? 12 : 4));
 }
 
 // ---- who loads what ----
@@ -286,7 +306,7 @@ async function memorySection(name, o, reqs, alive) {
     for (let i = 0; i < 1024 * 512; i++) { if (!mem.owner[i]) continue; const w = mem.vram[i], k = i * 4, dd = depth.get(i);
       if (!dd) { if (w) put(d, k, w, 255); continue; } const [bpp, pa] = dd;
       if (bpp === 16) { if (w) put(d, k, w, 255); } else { const idx = bpp === 4 ? w & 15 : w & 255; if (pa >= 0) { const col = mem.vram[pa + idx]; if (col) put(d, k, col, 255); } else { const g = idx * 255 / (bpp === 4 ? 15 : 255); d[k] = d[k + 1] = d[k + 2] = g; d[k + 3] = 255; } } }
-    ctx.putImageData(im, 0, 0);
+    ctx.putImageData(im, 0, 0); zoom(cv, Math.min(S, 2));
     const NS = "http://www.w3.org/2000/svg", svg = document.createElementNS(NS, "svg"); svg.setAttribute("viewBox", "0 0 1024 512"); svg.setAttribute("preserveAspectRatio", "none");
     for (const [kind, rname, x, y, w, hh] of D.regions) { if (kind !== "i") continue; const r = document.createElementNS(NS, "rect"); r.setAttribute("class", "reg"); for (const [k, val] of [["x", x], ["y", y], ["width", w], ["height", hh]]) r.setAttribute(k, val); const t = document.createElementNS(NS, "text"); t.setAttribute("x", x + 3); t.setAttribute("y", y + 10); t.textContent = rname; svg.append(r, t); }
     // What depends on the state: the room's own models, displaced by an actor that binds them if that is what resolves.
@@ -296,7 +316,7 @@ async function memorySection(name, o, reqs, alive) {
       const tt = (t + pick[0]) & 0x19F, cc = c + (pick[1] << 6), k = tt + "|" + cc, eItem = seen.get(k) || { t: tt, c: cc, who: new Set(), b }; eItem.who.add(model + (pick[0] || pick[1] ? ` (displaced ${sign(pick[0], pick[1])} with an actor of this enemy set)` : "")); seen.set(k, eItem); }
     for (const [label, t, c] of (D.consts[name] || [])) { const k = t + "|" + c, eItem = seen.get(k) || { t, c, who: new Set(), b: null }; eItem.who.add(label); seen.set(k, eItem); }
     const residents = [...new Map(ups.map(u => [u[0] + "|" + u[1] + "|" + u[2], u])).values()];
-    out.replaceChildren(h("div", { class: "sheet" }, cv, svg),
+    out.replaceChildren(h("div", { class: "sheetbox" }, h("div", { class: "sheet" }, cv, svg)),
       h("p", { class: "dim", text: "Images are drawn through the palette their own pairing names when it is in memory, otherwise in grey. Dashed outlines are the regions of residency_regions.tsv; palettes are the thin rows from y 240 to 271 at the left." }),
       seen.size ? h("div", { class: "tiles" }, [...seen.values()].map(s => tile(mem, s.t, s.c, s.b, [...s.who].join(", "), "from what is in memory"))) : null,
       h("div", { class: "scrollx" }, h("table", {}, h("tr", {}, ["In memory", "Brought by", "Offset"].map(t => h("th", { text: t }))), residents.map(u => h("tr", {}, h("td", {}, fileLink(u[0])), h("td", { text: u[4] }), h("td", { text: u[1] || u[2] ? sign(u[1], u[2]) : "" }))))));
@@ -322,16 +342,17 @@ async function showAsset(key) {
   } else if (type === "model") { const reqs = Object.entries(D.requests).flatMap(([pkg, list]) => list.filter(r => r[0] === key).map(r => [pkg, r]));
     await needFiles(reqs.flatMap(([, r]) => r[4][0] === "own" ? r[4][1] : (r[4][2] || []).filter(Boolean).map(v => v[0]))); if (mine !== turn) return;
     await needSide(key); if (mine !== turn) return;
-    sections.push(sec("Mesh", "", h("div", { class: "shots" }, renderMesh(key))));
+    const pages = new Map(); for (const [, [, t, c, , how]] of reqs) { const v = how[0] === "own" ? [how[1][0], 0, 0, 0] : how[0] === "none" ? null : (how[2] || []).filter(Boolean)[0]; if (!v || pages.has(t + "|" + c)) continue; const r = renderPage(compose([v]), t, c, null); if (!r.flags.includes("page not supplied")) pages.set(t + "|" + c, r.cv); }
+    sections.push(sec("Mesh", "", h("div", { class: "shots" }, renderMesh(key, pages))));
     sections.push(sec(`Textures (${reqs.length})`, "The pages its faces name.", h("div", { class: "tiles" }, reqs.flatMap(([pkg, [, t, c, b, how]]) => how[0] === "own" ? how[1].map(f => tile(compose([[f, 0, 0, 0]]), t, c, b, `in ${pkg}`, `from ${D.files[f]}`))
       : how[0] === "none" ? [h("div", { class: "tile miss" }, h("div", { text: `in ${pkg}` }), h("div", { class: "flag", text: "supplied by nothing in its chain" }))]
       : (how[2].filter(Boolean).slice(0, 3)).map(v => tile(compose([v]), t, c, b, `in ${pkg}`, `from ${how[1]} · ${D.files[v[0]]}`))))));
-  } else if (type === "bs" && D.pictures) sections.push(sec("Picture", "", h("div", { class: "shots" }, h("div", { class: "shot" }, h("img", { src: `${D.pictures}/bs/${key}.png`, alt: key })))));
+  } else if (type === "bs" && D.pictures) sections.push(sec("Picture", "", h("div", { class: "shots" }, h("div", { class: "shot" }, h("img", { src: `${D.pictures}/bs/${key}.png`, alt: key, onload: e => zoom(e.target) })))));
   else if (type === "spk" && D.pictures) sections.push(sec(`Sounds (${D.sounds[key] || 0})`, "", h("div", { class: "shots" }, Array.from({ length: D.sounds[key] || 0 }, (_, i) => h("div", { class: "shot" }, h("audio", { controls: "", preload: "none", src: `${D.pictures}/spk/${key}/sample_${String(i).padStart(2, "0")}.wav` }), h("div", { text: `sample ${i}` }))))));
   else if (type === "txt" && D.pictures) sections.push(sec("Text", "", h("iframe", { src: `${D.pictures}/txt/${key}.txt`, title: key })));
   else if (type === "movie" && D.pictures) sections.push(sec("Movie", "As the extraction encoded it. If the browser cannot play that encoding, open the file in a player.", h("div", { class: "shots" }, h("div", { class: "shot" }, h("video", { controls: "", preload: "none", width: 640, src: `${D.pictures}/${D.streams[key]}` }), h("div", { text: D.streams[key] })))));
   else if (type === "stream" && D.pictures) sections.push(sec("Audio", "", h("div", { class: "shots" }, h("div", { class: "shot" }, h("audio", { controls: "", preload: "none", src: `${D.pictures}/${D.streams[key]}` }), h("div", { text: D.streams[key] })))));
-  else if (type === "mcsave" && D.pictures) sections.push(sec("Decoded", "The save header's palette and icon frames.", h("div", { class: "shots" }, D.saves.map(f => h("div", { class: "shot" }, h("img", { src: `${D.pictures}/mcsave/mc_save_header/${f}`, alt: f, style: "width:96px" }), h("div", { text: f }))))));
+  else if (type === "mcsave" && D.pictures) sections.push(sec("Decoded", "The save header's palette and icon frames.", h("div", { class: "shots" }, D.saves.map(f => h("div", { class: "shot" }, h("img", { src: `${D.pictures}/mcsave/mc_save_header/${f}`, alt: f, onload: e => zoom(e.target, S * 3) }), h("div", { text: f }))))));
   else if (type === "animation" && D.banks[key]) { const b = D.banks[key];
     sections.push(sec(`Clips (${b.sets.length})`, "Each set in the bank, in address order. Playback is not decoded; this is the bank's structure.", capped(b.sets.map((x, i) => [i, ...x]), 60, part => h("table", {}, h("tr", {}, ["Set", "Records", "Tracks"].map(t => h("th", { text: t }))), part.map(r => h("tr", {}, r.map(v => h("td", { text: v }))))))));
     sections.push(sec(`Played through (${b.tables.length})`, "The package's tables of set pointers that index this bank: a clip constant is an index into one of these. A dash is an empty slot; \"other\" is a set of another bank.", b.tables.map(([tname, entries]) => h("p", {}, h("b", { text: tname + ": " }), entries.map((e, i) => `${i}→${e === -1 ? "–" : e === -2 ? "other" : "set " + e}`).join("  ")))));
@@ -353,5 +374,7 @@ function route() {
   markNav(); const m = document.querySelector("main"); if (m && m.scrollTo) m.scrollTo(0, 0);
 }
 $("nav-o").addEventListener("click", () => { navMode = "o"; drawNav(); }); $("nav-a").addEventListener("click", () => { navMode = "a"; drawNav(); });
+$("scale").value = String(S); document.documentElement.style.setProperty("--scale", S);
+$("scale").addEventListener("change", e => { S = +e.target.value || 2; try { localStorage.setItem("asset-map-scale", S); } catch (x) {} document.documentElement.style.setProperty("--scale", S); route(); });
 $("filter").addEventListener("input", drawNav); window.addEventListener("hashchange", route); drawNav(); route();
 </script>

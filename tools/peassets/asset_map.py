@@ -121,6 +121,48 @@ RAW_DIR = {"motion_curve": ("motion", ".motion"), "sprite_schedule": ("motion", 
 UNIT = {"u8": 1, "u16": 2, "u32": 4}
 
 
+def textured_faces(data: bytes, stream_off: int, vertex_count: int):
+    """(faces, texture of each face or None, the [page, CLUT] pairs named).
+
+    A face's texture is the index of its pair and one (u, v) per corner, in
+    the face's own corner order. `u0` and `u1` carry a corner each in their
+    low half, the third word one in its low half and, for a quad, a fourth
+    in its high; a quad's corners are stored in Z order and drawn 0 1 3 2.
+    """
+    import struct
+    import pkg_model
+    import tmd_export
+    walked = pkg_model.walk_stream(data, stream_off)
+    faces, textures, pairs = [], [], []
+    for packet in (walked[0] if walked else ()):
+        op, count, stride = packet["op"], packet["count"], packet["stride"]
+        if not count or not stride or op in tmd_export.TRANSFORM_OPS:
+            continue
+        word = pkg_model.TEXTURE_WORD.get(op)
+        body = packet["offset"] + pkg_model.HEADER_WORDS * 4
+        for e in range(count):
+            at = body + e * stride * 4
+            if at + stride * 4 > len(data):
+                break
+            words = struct.unpack_from(f"<{stride}I", data, at)
+            got = tmd_export.element_geometry(op, words, vertex_count)
+            if not got:
+                continue
+            faces.append(list(got[0]))
+            if word is None or stride < word + 3:
+                textures.append(None)
+                continue
+            u0, u1, u2 = words[word:word + 3]
+            corners = [u0 & 0xFFFF, u1 & 0xFFFF, u2 & 0xFFFF]
+            if len(got[0]) == 4:
+                corners = [corners[0], corners[1], u2 >> 16, corners[2]]
+            pair = [(u1 >> 16) & ~0x60, u0 >> 16]
+            if pair not in pairs:
+                pairs.append(pair)
+            textures.append([pairs.index(pair)] + [c for corner in corners for c in (corner & 0xFF, corner >> 8)])
+    return faces, textures, pairs
+
+
 def write_side_data(folder: Path, assets: dict, embedded: dict) -> dict:
     """Meshes and sampled tracks, one script each beside the page, like the pixels; returns what was found.
 
@@ -148,7 +190,7 @@ def write_side_data(folder: Path, assets: dict, embedded: dict) -> dict:
                 if key is None or key in have["mesh"]:
                     continue
                 verts = tmd_export.pose_vertices(tmd_export.read_vertices(data, src["verts_offset"], src["vertex_count"]), src.get("skeleton"))
-                faces, _skipped = tmd_export.decode_stream(data, src["stream_offset"], src["vertex_count"])
+                faces, textures, named = textured_faces(data, src["stream_offset"], src["vertex_count"])
             except Exception as exc:  # noqa: BLE001 - one model that does not decode must not stop the page
                 print(f"{package}+0x{offset:X}: no mesh ({exc})", file=sys.stderr)
                 continue
@@ -156,7 +198,8 @@ def write_side_data(folder: Path, assets: dict, embedded: dict) -> dict:
                 continue
             flat = [round(c) for v in verts for c in v]
             target = folder / f"{key}.js"
-            target.write_text(f"MESH({json.dumps(key)},{json.dumps(flat, separators=(',', ':'))},{json.dumps([list(f) for f in faces], separators=(',', ':'))});\n", encoding="utf-8")
+            packed = lambda value: json.dumps(value, separators=(",", ":"))  # noqa: E731
+            target.write_text(f"MESH({json.dumps(key)},{packed(flat)},{packed(faces)},{packed(textures)},{packed(named)});\n", encoding="utf-8")
             have["mesh"].append(key)
     raw = ROOT / "assets" / "USA" / "raw"
     for key, rec in embedded.items():
@@ -264,6 +307,17 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
                 "SELECT package, file, scope, symbol, attribute, value FROM evidence WHERE present = 1 AND status != 'rejected' "
                 "AND attribute IN ('image.tpage', 'clut.value') AND package != '' AND scope != '' AND kind != 'faces'"):
             scopes[package, file, scope][attribute].append((symbol, value))
+        # At file scope, a page and a palette belong together when they are named alike.
+        import re
+        alike = re.compile(r"_(CLUT|PALETTE|TPAGE|TEXTURE_PAGE|TEX_PAGE)(_ID|_VALUE)?$")
+        named = defaultdict(lambda: {"image.tpage": [], "clut.value": []})
+        for package, file, symbol, attribute, value in sqlite3.connect(journal).execute(
+                "SELECT package, file, symbol, attribute, value FROM evidence WHERE present = 1 AND status != 'rejected' "
+                "AND attribute IN ('image.tpage', 'clut.value') AND package != '' AND scope = '' AND kind != 'faces'"):
+            named[package, file, alike.sub("", symbol)][attribute].append((symbol, value))
+        for (package, file, stem), found in named.items():
+            if found["image.tpage"] and found["clut.value"]:
+                scopes[package, file, stem] = found
         for (package, _file, scope), found in sorted(scopes.items()):
             if 1 <= len(found["image.tpage"]) <= 2 and 1 <= len(found["clut.value"]) <= 3:
                 for page_name, page in found["image.tpage"]:
