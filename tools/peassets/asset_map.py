@@ -115,6 +115,91 @@ class Supply:
         return None
 
 
+RAW_DIR = {"motion_curve": ("motion", ".motion"), "sprite_schedule": ("motion", ".motion"), "camera_path": ("path", ".path"),
+           "movie_path": ("path", ".path"), "morph_deltas": ("morph", ".morph"), "morph_normals": ("morph", ".morph"),
+           "fontglyph": ("fontglyph", ".fontglyph")}
+UNIT = {"u8": 1, "u16": 2, "u32": 4}
+
+
+def write_side_data(folder: Path, assets: dict, embedded: dict) -> dict:
+    """Meshes and sampled tracks, one script each beside the page, like the pixels; returns what was found.
+
+    A mesh is its vertices in the rest pose and its faces. A track is the raw
+    numbers of an embedded curve or path, in the unit the build includes it
+    with: enough to plot, not a decoding of what each number means.
+    """
+    import base64
+    import hashlib
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import pkg_model
+    import tmd_export
+    folder.mkdir(parents=True, exist_ok=True)
+    by_sha = {rec["sha1"]: key for key, rec in assets.items() if rec.get("type") == "model"}
+    have = {"mesh": [], "track": {}}
+    for package, (load, sources) in sorted(pkg_model.declared_records(ROOT).items()):
+        path = ROOT / "assets" / "USA" / "pe2pkg" / f"{package}.pe2pkg"
+        if not path.is_file():
+            continue
+        data = path.read_bytes()
+        for offset in sorted(sources):
+            try:
+                src = pkg_model.read_source(data, load, offset)
+                key = by_sha.get(hashlib.sha1(data[src["stream_offset"]:src["end"]]).hexdigest())
+                if key is None or key in have["mesh"]:
+                    continue
+                verts = tmd_export.pose_vertices(tmd_export.read_vertices(data, src["verts_offset"], src["vertex_count"]), src.get("skeleton"))
+                faces, _skipped = tmd_export.decode_stream(data, src["stream_offset"], src["vertex_count"])
+            except Exception as exc:  # noqa: BLE001 - one model that does not decode must not stop the page
+                print(f"{package}+0x{offset:X}: no mesh ({exc})", file=sys.stderr)
+                continue
+            if not faces:
+                continue
+            flat = [round(c) for v in verts for c in v]
+            target = folder / f"{key}.js"
+            target.write_text(f"MESH({json.dumps(key)},{json.dumps(flat, separators=(',', ':'))},{json.dumps([list(f) for f in faces], separators=(',', ':'))});\n", encoding="utf-8")
+            have["mesh"].append(key)
+    raw = ROOT / "assets" / "USA" / "raw"
+    for key, rec in embedded.items():
+        where = RAW_DIR.get(rec.get("type"))
+        source = raw / where[0] / f"{key}{where[1]}" if where else None
+        if source is None or not source.is_file():
+            continue
+        unit = UNIT.get(rec.get("include") if isinstance(rec.get("include"), str) else "", 2)
+        (folder / f"{key}.js").write_text(f"TRACK({json.dumps(key)},{unit},{json.dumps(base64.b64encode(source.read_bytes()).decode())});\n", encoding="utf-8")
+        have["track"][key] = unit
+    return have
+
+
+def animation_tables(embedded: dict) -> dict:
+    """Per animation bank: each set's record and track counts, and the tables of the package that index it."""
+    import tomllib
+    import asset_journal
+    import pkg_anim
+    sys.path.insert(0, str(ROOT / "tools"))
+    from gen_overlay_configs import declared_animations
+    banks = {(rec["source"], rec["vram"]): key for key, rec in embedded.items() if rec.get("type") == "animation"}
+    tables = asset_journal.set_tables(embedded)
+    out = {}
+    blobs: dict[str, bytes] = {}
+    for row in declared_animations(tomllib.loads((ROOT / "configs/USA/overlays.toml").read_text(encoding="utf-8"))):
+        key = banks.get((row["package"] + ".pe2pkg", row["load"] + row["offset"]))
+        path = ROOT / "assets" / "USA" / "pe2pkg" / f"{row['package']}.pe2pkg"
+        if key is None or not path.is_file():
+            continue
+        data = blobs.setdefault(row["package"], path.read_bytes())
+        sets = []
+        for offset in row["sets"]:
+            try:
+                one = pkg_anim.read_set(data, row["load"], offset)
+                sets.append([one["record_count"], one["track_count"]])
+            except ValueError:
+                sets.append([0, 0])
+        played = [[name, [e[1] if e and e[0] == key else (-2 if e else -1) for e in entries]] for name, entries in tables.get(row["package"], ())
+                  if any(e and e[0] == key for e in entries)]
+        out[key] = {"sets": sets, "tables": played}
+    return out
+
+
 def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
     assets, embedded = asset_schema.load()
     tree = asset_schema.load_tree()
@@ -183,7 +268,28 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
             if 1 <= len(found["image.tpage"]) <= 2 and 1 <= len(found["clut.value"]) <= 3:
                 for page_name, page in found["image.tpage"]:
                     for clut_name, clut in found["clut.value"]:
-                        constants[package].append([f"{scope}: {page_name} + {clut_name}", page & ~0x60, clut])
+                        page &= ~0x60
+                        label = f"{scope}: {page_name} + {clut_name}"
+                        # A constant states where something is in memory, so it is held against files as loaded.
+                        via = None
+                        for holder in [package] + asset_schema.ancestors_of(package, assets, tree):
+                            for path in supply.own(holder) if holder in supply.carrier or holder == asset_schema.ROOT_OVERLAY else ():
+                                for at in sorted(supply.offsets.get(path) or {(0, 0, "")}):
+                                    hit = supply.covers(supply.rects(path, at), page, clut)
+                                    if hit and via is None:
+                                        via = (holder, path, at, hit)
+                        bpp, tx, ty, cx, cy = supply.geometry(page, clut)
+                        if via is None:
+                            if package in supply.carrier and not supply.is_room(package):
+                                findings[package].append(f"{label}: page ({tx}, {ty}) {bpp}-bit with palette ({cx}, {cy}) is supplied by nothing in its chain")
+                            how = ["none"]
+                        else:
+                            holder, path, at, (image, palette) = via
+                            how = ["own" if holder == package else "ancestor", holder, [index[path], at[0], at[1], int("RELOCATE" in at[2])]]
+                            column = max(0, (tx - image[1]) // 64)
+                            pairs[image[5]][bpp, palette[5] if palette else "", (cy - palette[2]) if palette else 0,
+                                            ((cx - palette[1]) // 16) if palette else 0, column].add(f"{page_name} + {clut_name}")
+                        constants[package].append([label, page, clut, how])
     else:
         print(f"no journal at {journal}: constants are left out", file=sys.stderr)
 
@@ -224,6 +330,12 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
             "carrier": [index[p] for p in supply.carrier[package]]}
 
     extracted = ROOT / "assets" / "USA"
+    side = write_side_data(out.with_name(out.stem + "_data"), assets, embedded) if pixels else {"mesh": [], "track": {}}
+    try:
+        banks = animation_tables(embedded)
+    except Exception as exc:  # noqa: BLE001
+        print(f"no animation tables: {exc}", file=sys.stderr)
+        banks = {}
     sounds = {}
     if (extracted / "spk").is_dir():
         for folder in (extracted / "spk").iterdir():
@@ -237,7 +349,23 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
             catalogue[key] = [rec["type"], {k: rec[k] for k in SHOWN if k in rec}]
         else:
             catalogue[key][1].update({k: rec[k] for k in ("source", "vram", "size") if k in rec})
+    # Movies and streamed audio are not chunks of the stage files; the extraction lists them.
+    streams = {}
+    movies = extracted / "movie" / "movies.json"
+    if movies.is_file():
+        for m in json.loads(movies.read_text(encoding="utf-8")):
+            catalogue[m["stem"]] = ["movie", {"w": m.get("width"), "h": m.get("height"), "frames": m.get("frame_count"), "fps": m.get("fps"),
+                                              "seconds": m.get("audio_duration_sec"), "container": m.get("container"), "disk": m.get("disk")}]
+            streams[m["stem"]] = m.get("mp4", "")
+    if (extracted / "audio").is_dir():
+        for meta in sorted((extracted / "audio").glob("*.json")):
+            info = json.loads(meta.read_text(encoding="utf-8"))
+            if meta.with_suffix(".wav").is_file():
+                catalogue[meta.stem] = ["stream", {"seconds": info.get("duration_sec"), "rate": info.get("sample_rate"), "channels": info.get("channels")}]
+                streams[meta.stem] = f"audio/{meta.stem}.wav"
+    saves = sorted(p.name for p in (extracted / "mcsave" / "mc_save_header").glob("*.png")) if (extracted / "mcsave" / "mc_save_header").is_dir() else []
     return {
+        "mesh": side["mesh"], "track": side["track"], "banks": banks, "streams": streams, "saves": saves, "side": out.stem + "_data" if pixels else "",
         "files": files, "chunks": chunks, "fp": footprint, "loads": loads, "overlays": overlays, "requests": requests,
         "consts": constants, "findings": findings, "assets": catalogue, "sounds": sounds,
         "pairs": {image: [[bpp, clut, row, pal, column, sorted(users)[:8]] for (bpp, clut, row, pal, column), users in sorted(found.items(), key=str)] for image, found in pairs.items()},

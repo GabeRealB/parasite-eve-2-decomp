@@ -8,7 +8,7 @@ const page = process.argv[2], html = fs.readFileSync(page, "utf8"), js = html.sl
 const els = new Map();
 function node(tag) {
   const n = { tag, children: [], attrs: {}, style: {}, classList: { toggle() {}, add() {}, remove() {} }, hidden: false, value: "", className: "", checked: true, _text: "",
-    setAttribute(k, v) { this.attrs[k] = v; if (k === "value" && this.tag !== "option") this.value = v; }, getAttribute(k) { return this.attrs[k]; }, addEventListener() {}, scrollTo() {},
+    setAttribute(k, v) { this.attrs[k] = v; if (k === "value" && this.tag !== "option") this.value = v; }, getAttribute(k) { return this.attrs[k]; }, addEventListener(type, f) { (this.on = this.on || {})[type] = f; }, scrollTo() {},
     append(...c) { for (const x of c) { this.children.push(x); if (x && x.tag === "script" && x.src) { try { eval(fs.readFileSync(path.join(path.dirname(page), x.src), "utf8")); } catch (e) { x.onerror && x.onerror(); } } } },
     replaceChildren(...c) { this.children = c; }, querySelectorAll() { return []; }, remove() {},
     getContext() { return { fillRect() {}, strokeRect() {}, createImageData: (w, h) => ({ data: new Uint8ClampedArray(w * h * 4) }), getImageData: () => ({ data: [200, 0, 0, 255] }), putImageData() {} }; } };
