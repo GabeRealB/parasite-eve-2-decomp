@@ -280,7 +280,7 @@ async function drawApplied() {
     for (const [label, tp, cl] of (D.consts[pkg] || [])) asks.push({ who: label, tp: tp & ~0x60, cl, cands: [[0, 0]], fixed: true }); };
   for (const g of groups) for (const [pkg, page, row] of (g[4] || [])) { offsets.set(sign(page, row), [page, row]); spawned.add(pkg); ask(pkg, [[page, row], [0, 0]]); }
   for (const g of groups) for (const [f, page, row, , rel] of g[3]) { uploads.push({ f, page, row, rel }); const pkg = D.pkg[f];
-    if (pkg && pkg !== cur.name && !spawned.has(pkg)) { spawned.add(pkg); ask(pkg, page || row ? [[page, row], [0, 0]] : [[0, 0]]); } }
+    if (pkg && !spawned.has(pkg)) { spawned.add(pkg);          // including this overlay itself, brought in by its context ask(pkg, page || row ? [[page, row], [0, 0]] : [[0, 0]]); } }
   if (!spawned.has(cur.name)) { const own = [[0, 0], ...offsets.values()]; ask(cur.name, own); }   // a room's own models may be bound by an actor it places
   for (const a of (cur.ancestors || [])) if (!spawned.has(a)) { spawned.add(a); ask(a, [[0, 0], ...offsets.values()]); }
   if (!asks.length) { box.innerHTML = `<div class="empty">No model or constant of this overlay, or of an overlay the selected groups load, names a texture.</div>`; return; }
