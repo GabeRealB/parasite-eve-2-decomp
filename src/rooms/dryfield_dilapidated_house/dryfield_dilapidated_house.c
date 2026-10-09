@@ -275,9 +275,14 @@ TaskDesc D_dryfield_dilapidated_house_80183E64[2] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-RECT gScreenNegativeFrameRect = { 0, 0, 320, 240 };
+/// Fixed VRAM rectangle read as one contiguous RGB555 frame in negative debug mode.
+static RECT _gScreenNegativeFrameRect = { 0, 0, FILE_SYSTEM_IMAGE_WIDTH, FILE_SYSTEM_IMAGE_HEIGHT };
 
-RECT gScreenNegativeStripRect = { 0, 0, 16, 240 };
+/// Mutable VRAM read rectangle for one displayed RGB555 frame strip.
+///
+/// Capture selects the displayed buffer's Y origin and advances X by strip
+/// width. The capture task owns these coordinates through the transfer.
+static RECT _gScreenNegativeStripRect = { 0, 0, FILE_SYSTEM_IMAGE_STRIP_WIDTH, FILE_SYSTEM_IMAGE_HEIGHT };
 
 enum { DRYFIELD_DILAPIDATED_HOUSE_MESSAGE_USE_KEY_ITEM = 5105 };
 

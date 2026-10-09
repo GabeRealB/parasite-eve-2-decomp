@@ -10,6 +10,7 @@
 
 #include "shelter_1f_tent_private.h"
 
+#include "actors/actor_460200.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/area.h"
@@ -496,9 +497,9 @@ WorldCollisionTrigger D_shelter_1f_tent_80183CF4[17] = {
 };
 
 AreaResource D_shelter_1f_tent_80184200[4] = {
-    { 113, 602, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_460200_8015152C },
+    { 113, 602, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor460200SoldierCTaskDesc },
     { 116, 602, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, gActor460200StrideWalkTasks },
-    { 117, 603, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &D_actor_460200_8013FC80 },
+    { 117, 603, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &gActor460200SoldierATaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

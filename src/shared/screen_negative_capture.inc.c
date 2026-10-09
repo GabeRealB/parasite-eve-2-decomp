@@ -32,18 +32,18 @@ static inline void _screenNegativeCaptureTask(Task* task)
                 args->done          = 0;
                 task->killCountdown = args->duration;
                 if (gDisplayState.drawBuffer != 0) {
-                    gScreenNegativeStripRect.y = 0;
+                    _gScreenNegativeStripRect.y = 0;
                 } else {
-                    gScreenNegativeStripRect.y = SCREEN_NEGATIVE_SECOND_BUFFER_Y;
+                    _gScreenNegativeStripRect.y = SCREEN_NEGATIVE_SECOND_BUFFER_Y;
                 }
                 if (gDisplayState.debugMode < 0) {
-                    StoreImage(&gScreenNegativeFrameRect, Fs_ImgBuffers->strips[0]);
+                    StoreImage(&_gScreenNegativeFrameRect, Fs_ImgBuffers->strips[0]);
                 } else {
                     // Traverse complete strip arrays within the resident frame.
                     strip = Fs_ImgBuffers->strips;
                     for (stripIndex = 0; stripIndex < FILE_SYSTEM_IMAGE_STRIP_COUNT; stripIndex++) {
-                        gScreenNegativeStripRect.x = stripIndex * FILE_SYSTEM_IMAGE_STRIP_WIDTH;
-                        StoreImage(&gScreenNegativeStripRect, *strip);
+                        _gScreenNegativeStripRect.x = stripIndex * FILE_SYSTEM_IMAGE_STRIP_WIDTH;
+                        StoreImage(&_gScreenNegativeStripRect, *strip);
                         strip++;
                     }
                 }

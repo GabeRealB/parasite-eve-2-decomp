@@ -146,7 +146,6 @@ extern TaskDesc D_actor_451100_8013F734;
 
 extern TaskDesc D_actor_135400_8013F8D8;
 
-extern TaskDesc D_actor_460200_8013FC80;
 
 extern TaskDesc D_actor_136100_80140744[];
 
@@ -234,8 +233,6 @@ extern TaskDesc D_actor_421600_80151254;
 extern TaskDesc Actor00700_D075A8;
 
 extern TaskDesc D_actor_405800_801514CC;
-
-extern TaskDesc D_actor_460200_8015152C;
 
 extern TaskDesc D_actor_400600_80151B10;
 

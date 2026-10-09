@@ -11,8 +11,8 @@
  * captures the frame, filters it and holds it. The task is spawned from each
  * package's own table, so the package keeps its name for it and calls the
  * inline body, and spawns it with the address of a ScreenNegativeCaptureArgs
- * block it owns. Its two rectangles are the package's data, defined at their
- * own positions under the names declared here.
+ * block it owns. Each carrier defines its private `_gScreenNegativeFrameRect`
+ * and `_gScreenNegativeStripRect` before including the capture fragment.
  */
 
 #ifndef SRC_SHARED_SCREEN_NEGATIVE_H
@@ -52,7 +52,4 @@ STATIC_ASSERT_SIZEOF(ScreenNegativeCaptureArgs, 0x4);
 
 static void SCREEN_NEGATIVE_FILTER(void);
 
-extern RECT gScreenNegativeFrameRect; /* the whole 320x240 frame */
-extern RECT gScreenNegativeStripRect; /* one 16x240 strip of the shown buffer */
-
-#endif                                /* SRC_SHARED_SCREEN_NEGATIVE_H */
+#endif /* SRC_SHARED_SCREEN_NEGATIVE_H */

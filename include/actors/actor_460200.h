@@ -1,6 +1,22 @@
 #ifndef ACTORS_ACTOR_460200_H
 #define ACTORS_ACTOR_460200_H
 
+#include "main/task_types.h"
+
+/// Spawn recipe for Soldier A, placed as actor 2 in the Shelter 1F tent.
+///
+/// A single priority-96 TMD entry selected at index 0. The callback borrows a
+/// live Enemy through spawnArg2; this package's model and animation data must
+/// stay loaded until the spawned task is torn down.
+extern TaskDesc gActor460200SoldierATaskDesc;
+
+/// Spawn recipe for Soldier C, placed as actor 0 in the Shelter 1F tent.
+///
+/// A single priority-96 TMD entry selected at index 0. The callback borrows a
+/// live Enemy through spawnArg2; this package's model and animation data must
+/// stay loaded until the spawned task is torn down.
+extern TaskDesc gActor460200SoldierCTaskDesc;
+
 /// Restores the soldiers' idle arrangement in the Shelter 1F tent.
 ///
 /// Requires the live scene manager and this actor package loaded. Places
