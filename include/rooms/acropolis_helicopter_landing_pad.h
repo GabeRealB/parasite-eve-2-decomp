@@ -4,6 +4,7 @@
 #include "types.h"
 
 #include "gameplay/area.h"
+#include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/room.h"
@@ -27,13 +28,53 @@ extern TmdSource gAcropolisHelicopterLandingPadModel0A8E8;
 // acropolis_helicopter_landing_pad
 extern WorldCollisionRoomResources D_acropolis_helicopter_landing_pad_80184F10[];
 
-extern u8* D_acropolis_helicopter_landing_pad_80184F3C[];
+/// Logical-view map directory for the landing pad's single room in area 16.
+///
+/// Entry `room - 1` borrows the room's identity map: logical views 1..27 select
+/// the same camera/image/sprite indices. Keep the room overlay loaded while
+/// the Acropolis map or view lookups borrow this directory and its map.
+extern u8* gAcropolisHelicopterLandingPadViewMaps[1];
 
-extern ViewCount D_acropolis_helicopter_landing_pad_80184F40[];
+/// Reverse-view-search limits for the landing pad's single room in area 16.
+///
+/// Entry `room - 1` counts 27 logical map entries. It is an element count,
+/// independent of the map's extra stored byte, and has no terminator.
+extern ViewCount gAcropolisHelicopterLandingPadViewCounts[1];
 
-extern WorldCoordRoomLighting D_acropolis_helicopter_landing_pad_80184F44[];
+/// Lighting descriptors for the landing pad's single room in area 16.
+///
+/// Entry `room - 1` borrows its mutable authored lights and uses the default
+/// ambient minima for every view. The descriptor and light collection belong
+/// to the loaded room overlay; borrowed pointers must not survive unloading it.
+extern WorldCoordRoomLighting gAcropolisHelicopterLandingPadRoomLightingTable[1];
 
-extern DirectionWarpEntry D_acropolis_helicopter_landing_pad_80184F4C[];
+/// Three arrival endpoints for Acropolis area 16, indexed by `warp - 1`.
+///
+/// Warps 1 and 3 start in view 2 at the fire escape; warp 3 starts the player
+/// in scripted mode. Warp 2 starts in view 11 by the lift. Player and companion
+/// placements use whole room coordinates and 4096 angle units per turn. No
+/// endpoint posts transition sounds or updates a map marker. The Acropolis map
+/// borrows these complete records while the room overlay remains loaded.
+extern DirectionWarpEntry gAcropolisHelicopterLandingPadWarps[3];
+
+/// Grid-local Q12 normals, with four leading entries reserved for the encounter actor.
+///
+/// The No. 9 actor writes these through the active collision grid. The fifteen
+/// entries remain writable and loaded while either room or actor uses them.
+extern SVECTOR gAcropolisHelicopterLandingPadCollisionGridNormals[15];
+
+/// Grid-local signed game-coordinate vertices, including sixteen encounter vertices.
+///
+/// The No. 9 actor rewrites the first sixteen of ninety-two entries through the
+/// active grid. Keep the complete mutable pool loaded through collision use.
+extern SVECTOR gAcropolisHelicopterLandingPadCollisionGridVerts[92];
+
+/// Thirty-seven indexed room faces with four reserved leading encounter faces.
+///
+/// The No. 9 actor replaces the first four entries through the active grid.
+/// Vertex and normal indices select this room's corresponding mutable pools;
+/// the room's cell lists keep referring to these same face slots.
+extern WorldCollisionGridFace gAcropolisHelicopterLandingPadCollisionGridFaces[37];
 
 extern SpriteView D_acropolis_helicopter_landing_pad_80187824[];
 

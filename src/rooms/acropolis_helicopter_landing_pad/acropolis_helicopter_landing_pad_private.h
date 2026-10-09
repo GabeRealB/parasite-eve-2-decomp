@@ -19,17 +19,29 @@
 /// `_acropolisHelicopterLandingPadMovieTask`.
 extern TaskDesc D_acropolis_helicopter_landing_pad_80184E68[];
 
-/// Progress of the helicopter sequence. The msg 0x3EF handler moves it from 0
-/// to 1, the phase tick from 1 to 2, the cap-slot task to 3 and the room
-/// state-machine task to 4. Phase 0 permits ordinary departure to fire-escape area 15; phase 2
-/// makes the warp start cap slot 9 and lets
-/// `acropolisHelicopterLandingPadHandleCommand` spawn task entry 4.
-extern s32 D_acropolis_helicopter_landing_pad_80184D9C;
+/// Encounter/departure phases consulted by the room's departure callbacks.
+enum {
+    ACROPOLIS_HELICOPTER_LANDING_PAD_PHASE_WAITING            = 0,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_PHASE_ENCOUNTER_FINISHED = 2,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_PHASE_DEPARTURE_ACCEPTED = 3,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_PHASE_DEPARTURE_READY    = 4,
+};
 
-/// Raised by the phase tick once the session reaches camera view 5 and
-/// cleared when the script task starts; the msg 0x3EF handler only starts
-/// phase 1 while it is set.
-extern s32 D_acropolis_helicopter_landing_pad_80184E0C;
+/// Progress of the encounter and subsequent helicopter departure.
+///
+/// Stored as a signed word: 0 waiting, 1 encounter started, 2 encounter finished,
+/// 3 departure accepted, 4 departure placements ready. Phase 0 permits the
+/// ordinary fire-escape exit; phase 2 starts its departure dialogue. First-time
+/// departure prepares variant 2 and advances to 4; revisits remain at 3.
+/// The initial value belongs to the loaded overlay and is not reset by room setup.
+extern s32 gAcropolisHelicopterLandingPadEncounterPhase;
+
+/// Latched permission to start the encounter after entering logical view 5.
+///
+/// Room setup clears this signed word to 0; visiting view 5 sets it to 1.
+/// It stays set after leaving that view and after the encounter starts.
+/// Room action 0 requires this gate and encounter phase 0.
+extern s32 gAcropolisHelicopterLandingPadEncounterReady;
 
 /// Latched by kind 1 of msg 0x3EF and cleared when the script task starts or
 /// `gGameSession->eventState` is 0; while set, a handler forwards msg 0x3E9
@@ -56,7 +68,22 @@ extern TaskMessageEntry D_acropolis_helicopter_landing_pad_80183710[5];
 
 extern ActorTransform D_acropolis_helicopter_landing_pad_801837B0;
 
-extern s32 D_acropolis_helicopter_landing_pad_801837E0[18];
+/// Leading movement destination with preserved, uninterpreted trailing storage.
+///
+/// Only XYZ is consumed by the scripted player approach. The remaining fifteen
+/// signed words have no established consumer or interpretation; their extent
+/// preserves the authored storage without asserting additional transforms.
+typedef struct {
+    VECTOR3 destination;    // Signed XYZ in the player's parent-coordinate frame
+    s32     unknown_0C[15]; // Uninterpreted stored words; role unproven
+} AcropolisHelicopterLandingPadSceneMarkStorage;
+STATIC_ASSERT_SIZEOF(AcropolisHelicopterLandingPadSceneMarkStorage, 0x48);
+
+/// Destination (-3496, -2871, -1283) for the player's departure-scene approach.
+///
+/// Dispatch borrows `destination` synchronously and retains its XYZ values.
+/// The trailing words are preserved but have no established use.
+extern AcropolisHelicopterLandingPadSceneMarkStorage gAcropolisHelicopterLandingPadSceneMarkStorage;
 
 extern EvsCommand D_acropolis_helicopter_landing_pad_80183A04[2];
 
@@ -72,13 +99,36 @@ extern EvsCommand D_acropolis_helicopter_landing_pad_8018467C[69];
 
 extern EvsCommand D_acropolis_helicopter_landing_pad_80184CF4[7];
 
-extern TaskDesc D_acropolis_helicopter_landing_pad_80184DA0[9];
+/// Script-task indices in `gAcropolisHelicopterLandingPadScriptTasks`.
+enum {
+    ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_PREPARE_DEPARTURE = 0,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_MOVE_PLAYER       = 1,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_SCREEN_SHAKE      = 2,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_SHAKE_TIMELINE    = 3,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_CONFIRM_DEPARTURE = 4,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_RETURN_TO_MIST    = 5,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_TURN_PLAYER       = 6,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_PLAYER_PITCH      = 7,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_COUNT             = 8,
+};
+
+/// Eight bodyless room-control tasks followed by the descriptor terminator.
+///
+/// Indexed spawns accept TASK_* slots 0..7; entry 8 is never spawned. The pitch
+/// task runs at priority 97, after the seven priority-32 script tasks. Callbacks
+/// and any borrowed room resources must remain loaded through task teardown.
+extern TaskDesc gAcropolisHelicopterLandingPadScriptTasks[ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_COUNT + 1];
 
 extern AnimationPlayRequest D_acropolis_helicopter_landing_pad_80184E28;
 
 extern AnimationPlayRequest D_acropolis_helicopter_landing_pad_80184E3C;
 
-extern ActorTransform D_acropolis_helicopter_landing_pad_80184E50;
+/// Player placement applied after the encounter when room action 1 is latched.
+///
+/// Position (-6801, 0, -1998) uses the player's parent-coordinate units; yaw
+/// 1024 is a quarter turn. All other Euler components are zero. Dispatch copies
+/// the values synchronously and retains no pointer.
+extern ActorTransform gAcropolisHelicopterLandingPadPostEncounterPlayerPlacement;
 
 /// Advances encounter completion once the actor and presentation holds have cleared.
 ///

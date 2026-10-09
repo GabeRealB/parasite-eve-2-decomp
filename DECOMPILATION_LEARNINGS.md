@@ -48340,7 +48340,7 @@ back over them. Nothing else survives: a `static __inline__` helper
 or `#include` (such as `gte.h`), a `typedef` used only by that unit (`_AcropolisWestElevatorHallDoorLeafWork`) have no
 symbol for splat to emit, so they simply vanish and the next build fails on an
 undefined reference or an unknown type. Carry them back with the functions, and
-take each declaration from *its own* unit: `D_acropolis_helicopter_landing_pad_80184DA0`
+take each declaration from *its own* unit: `gAcropolisHelicopterLandingPadScriptTasks`
 was `extern TaskDesc x;` in one unit and `extern TaskDesc x[];` in another, and
 merging the two files' preambles silently gave one of them the wrong form.
 

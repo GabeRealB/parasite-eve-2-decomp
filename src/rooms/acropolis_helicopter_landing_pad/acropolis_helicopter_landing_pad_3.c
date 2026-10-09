@@ -91,11 +91,6 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
     (line)->endpoints[endpointIndex].vy += (coord)->workm.t[1];                               \
     (line)->endpoints[endpointIndex].vz += (coord)->workm.t[2]
 
-extern AnimationSet* D_acropolis_helicopter_landing_pad_801838F4[3];
-
-extern SVECTOR D_acropolis_helicopter_landing_pad_80184E80[12];
-extern s32     D_acropolis_helicopter_landing_pad_80184EE0[12];
-
 // The two sprite tasks use signed Q12 trig results and the same texture page.
 enum {
     ACROPOLIS_HELICOPTER_LANDING_PAD_SPRITE_TEXTURE_PAGE       = 0x2B,
@@ -120,9 +115,8 @@ static void _acropolisHelicopterLandingPadDrawUpperSparkLine(GfxCoord* coord);
 static void _acropolisHelicopterLandingPadMovieTask(Task* task);
 static void _acropolisHelicopterLandingPadStartMovieTask(Task* task);
 
-extern WorldCollisionGrid D_acropolis_helicopter_landing_pad_80185998[1];
-
-extern WorldCollisionTrigger D_acropolis_helicopter_landing_pad_801859BC[16];
+static WorldCollisionGrid    _gAcropolisHelicopterLandingPadCollisionGrid;
+static WorldCollisionTrigger _gAcropolisHelicopterLandingPadViewBoundaryTriggers[16];
 
 TaskMessageEntry D_acropolis_helicopter_landing_pad_80183710[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, acropolisHelicopterLandingPadResolveDeparture },
@@ -132,58 +126,98 @@ TaskMessageEntry D_acropolis_helicopter_landing_pad_80183710[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-PadScriptCmd D_acropolis_helicopter_landing_pad_80183738[4] = {
+/// Intro-cue vibration program: one four-frame full-intensity variable-motor pulse.
+///
+/// Both lanes start at step 0. The binary lane stops immediately; the variable
+/// lane plays segment 1 and stops at step 1. Later stored steps are unreachable.
+/// The interpreter borrows the program and segments through task completion.
+static PadScriptCmd _gAcropolisHelicopterLandingPadEncounterVibrationCommands[4] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 3), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 4), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-PadScriptVibrationSegment D_acropolis_helicopter_landing_pad_80183748[2] = {
-    { 0, 0, 1, 0 },
-    { 255, 255, 4, 1 },
+/// Vibration records for the intro cue; only full-intensity segment 1 is played.
+///
+/// Intensities are bytes, durations are script frames, and `field_3` is unread.
+/// Segment 0 and both uninterpreted final bytes retain their authored values.
+static PadScriptVibrationSegment _gAcropolisHelicopterLandingPadEncounterVibrationSegments[2] = {
+    { .startIntensity = 0, .endIntensity = 0, .durationFrames = 1, .field_3 = 0 },
+    { .startIntensity = 255, .endIntensity = 255, .durationFrames = 4, .field_3 = 1 },
 };
 
-ActorTransform D_acropolis_helicopter_landing_pad_80183750 = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
+/// Zero position and Euler rotation for scene actors and the departure companion.
+///
+/// Used in each receiver's parent frame; placement copies the values during dispatch.
+static ActorTransform _gAcropolisHelicopterLandingPadSceneOriginPlacement = { .pos = { 0, 0, 0, 0 }, .rot = { 0, 0, 0, 0 } };
 
-ActorTransform D_acropolis_helicopter_landing_pad_80183768 = { { 3000, 0, -6692, 0 }, { 0, -1024, 0, 0 } };
+/// Player's encounter placement, also applied when the introduction is skipped.
+///
+/// Position (3000, 0, -6692) is in the player's parent frame; yaw -1024 uses
+/// 4096 units per turn. Dispatch copies both vectors and retains no pointer.
+static ActorTransform _gAcropolisHelicopterLandingPadEncounterPlayerPlacement = { .pos = { 3000, 0, -6692, 0 }, .rot = { 0, -1024, 0, 0 } };
 
-ActorTransform D_acropolis_helicopter_landing_pad_80183780 = { { 3000, 0, -6692, 0 }, { 0, -1204, 0, 0 } };
+/// Alternate player facing at the encounter mark during the introduction.
+///
+/// Keeps position (3000, 0, -6692) in the player's parent frame and uses yaw
+/// -1204, in 4096 units per turn. Dispatch copies the placement synchronously.
+static ActorTransform _gAcropolisHelicopterLandingPadEncounterPlayerTurnPlacement = { .pos = { 3000, 0, -6692, 0 }, .rot = { 0, -1204, 0, 0 } };
 
 ActorTransform D_acropolis_helicopter_landing_pad_80183798 = { { 3000, 0, -6692, 0 }, { 0, -1024, 0, 0 } };
 
 ActorTransform D_acropolis_helicopter_landing_pad_801837B0 = { { 0, 0, 0, 0 }, { 0, 1024, 0, 0 } };
 
-ActorTransform D_acropolis_helicopter_landing_pad_801837C8 = { { -3975, -2871, -1454, 0 }, { 0, 808, 0, 0 } };
+/// Player's starting placement for the departure-scene approach.
+///
+/// Applied after attaching to `gGfxViewCoord`: position is in that coordinate's
+/// local frame and yaw 808 uses 4096 units per turn. Dispatch copies the values.
+static ActorTransform _gAcropolisHelicopterLandingPadDeparturePlayerPlacement = { .pos = { -3975, -2871, -1454, 0 }, .rot = { 0, 808, 0, 0 } };
 
-s32 D_acropolis_helicopter_landing_pad_801837E0[18] = {
-    -3496,
-    -2871,
-    -1283,
-    0,
-    0x3280000,
-    0,
-    -360,
-    -120,
-    480,
-    0,
-    0,
-    0,
-    -3188,
-    -2871,
-    -694,
-    0,
-    0x9C40000,
-    0,
+AcropolisHelicopterLandingPadSceneMarkStorage gAcropolisHelicopterLandingPadSceneMarkStorage = {
+    .destination = { -3496, -2871, -1283 },
+    .unknown_0C  = { 0, 0x3280000, 0, -360, -120, 480, 0, 0, 0, -3188, -2871, -694, 0, 0x9C40000, 0 },
 };
 
-ActorTransform D_acropolis_helicopter_landing_pad_80183828 = { { -2176, 0, -6845, 0 }, { 0, 1024, 0, 0 } };
+/// Encounter actor 0's placement for the first ending-scene cue.
+///
+/// Position (-2176, 0, -6845) is in its parent frame; yaw 1024 uses 4096 units
+/// per turn. The following cue restores the scene-origin placement.
+static ActorTransform _gAcropolisHelicopterLandingPadEncounterEndingActorPlacement = { .pos = { -2176, 0, -6845, 0 }, .rot = { 0, 1024, 0, 0 } };
 
-AnimationPlayRequest D_acropolis_helicopter_landing_pad_80183840 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Starts encounter actor 0's event clip 1, its body animation set 28.
+///
+/// Resets playback; this actor ignores the stored bank, duration and collision choice.
+static AnimationPlayRequest _gAcropolisHelicopterLandingPadEncounterActorClip1Request = {
+    .source               = { .index = 0 },
+    .animationId          = 1,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 1,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_acropolis_helicopter_landing_pad_80183854 = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Starts encounter actor 0's event clip 2, its body animation set 29.
+///
+/// Resets playback; this actor ignores the stored bank, duration and collision choice.
+static AnimationPlayRequest _gAcropolisHelicopterLandingPadEncounterActorClip2Request = {
+    .source               = { .index = 0 },
+    .animationId          = 2,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 1,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_acropolis_helicopter_landing_pad_80183868 = { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Starts encounter actor 0's event clip 3, its body animation set 30.
+///
+/// Resets playback before the introduction's 360-frame wait. This actor ignores
+/// the stored bank, duration and collision choice.
+static AnimationPlayRequest _gAcropolisHelicopterLandingPadEncounterActorClip3Request = {
+    .source               = { .index = 0 },
+    .animationId          = 3,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 1,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_acropolis_helicopter_landing_pad_8018387C = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -197,13 +231,17 @@ AnimationPlayRequest D_acropolis_helicopter_landing_pad_801838CC = { { .index = 
 
 AnimationPlayRequest D_acropolis_helicopter_landing_pad_801838E0 = { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationSet* D_acropolis_helicopter_landing_pad_801838F4[3] = {
+/// Three words copied into the equipped-weapon bank's departure-scene extension.
+///
+/// Extension slot 47 is NULL; slots 48 and 49 borrow the two player sets from
+/// actor_511000. That resource package must remain loaded through playback.
+static AnimationSet* _gAcropolisHelicopterLandingPadDeparturePlayerAnimationSets[3] = {
     NULL,
     &gActor511000Animation04CC8,
     &gActor511000Animation07ADC,
 };
 
-AnimationBankCopyRequest D_acropolis_helicopter_landing_pad_80183900 = { { .sets = D_acropolis_helicopter_landing_pad_801838F4 }, ARRAY_SIZE(D_acropolis_helicopter_landing_pad_801838F4) };
+AnimationBankCopyRequest D_acropolis_helicopter_landing_pad_80183900 = { { .sets = _gAcropolisHelicopterLandingPadDeparturePlayerAnimationSets }, ARRAY_SIZE(_gAcropolisHelicopterLandingPadDeparturePlayerAnimationSets) };
 
 AnimationPlayRequest D_acropolis_helicopter_landing_pad_80183908 = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -211,9 +249,29 @@ AnimationPlayRequest D_acropolis_helicopter_landing_pad_8018391C = { { .index = 
 
 AnimationPlayRequest D_acropolis_helicopter_landing_pad_80183930 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_acropolis_helicopter_landing_pad_80183944 = { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 7, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Requests player clip 1 with a seven-frame blend and world collision disabled.
+///
+/// Event-script dispatch copies the request and replaces its bank selector with
+/// the equipped weapon's bank. Used by the encounter intro and both ending paths.
+static AnimationPlayRequest _gAcropolisHelicopterLandingPadPlayerClip1Request = {
+    .source               = { .index = 1 },
+    .animationId          = 1,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 7,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_acropolis_helicopter_landing_pad_80183958 = { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Requests player clip 9 with a six-frame blend and world collision disabled.
+///
+/// Event-script dispatch copies the request and replaces its bank selector with
+/// the equipped weapon's bank. Used for encounter and departure player placements.
+static AnimationPlayRequest _gAcropolisHelicopterLandingPadPlayerClip9Request = {
+    .source               = { .index = 1 },
+    .animationId          = 9,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 6,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_acropolis_helicopter_landing_pad_8018396C = { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -251,15 +309,15 @@ EvsCommand D_acropolis_helicopter_landing_pad_80183A34[58] = {
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_acropolis_helicopter_landing_pad_80183980 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_helicopter_landing_pad_80183750 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_helicopter_landing_pad_80183840 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisHelicopterLandingPadSceneOriginPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisHelicopterLandingPadEncounterActorClip1Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = D_acropolis_helicopter_landing_pad_80183738 }, { .vibrationSegments = D_acropolis_helicopter_landing_pad_80183748 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = _gAcropolisHelicopterLandingPadEncounterVibrationCommands }, { .vibrationSegments = _gAcropolisHelicopterLandingPadEncounterVibrationSegments }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x51100006 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_helicopter_landing_pad_80183944 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisHelicopterLandingPadPlayerClip1Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_helicopter_landing_pad_80183958 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisHelicopterLandingPadPlayerClip9Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = acropolisHelicopterLandingPadStartPlayerYawTurn }, { .value = 3072 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -268,9 +326,9 @@ EvsCommand D_acropolis_helicopter_landing_pad_80183A34[58] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 43 }, { .value = 43 }, { .value = 45 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_helicopter_landing_pad_80183854 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_helicopter_landing_pad_80183780 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_helicopter_landing_pad_80183958 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisHelicopterLandingPadEncounterActorClip2Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisHelicopterLandingPadEncounterPlayerTurnPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisHelicopterLandingPadPlayerClip9Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
@@ -278,7 +336,7 @@ EvsCommand D_acropolis_helicopter_landing_pad_80183A34[58] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_helicopter_landing_pad_80183868 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisHelicopterLandingPadEncounterActorClip3Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 360 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_helicopter_landing_pad_8018387C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -288,7 +346,7 @@ EvsCommand D_acropolis_helicopter_landing_pad_80183A34[58] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_helicopter_landing_pad_80183890 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_helicopter_landing_pad_80183768 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisHelicopterLandingPadEncounterPlayerPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -311,8 +369,8 @@ EvsCommand D_acropolis_helicopter_landing_pad_80183FA4[16] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_helicopter_landing_pad_80183768 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_helicopter_landing_pad_80183958 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisHelicopterLandingPadEncounterPlayerPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisHelicopterLandingPadPlayerClip9Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -323,7 +381,7 @@ EvsCommand D_acropolis_helicopter_landing_pad_80183FA4[16] = {
 };
 
 EvsCommand D_acropolis_helicopter_landing_pad_80184124[38] = {
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_helicopter_landing_pad_80183944 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisHelicopterLandingPadPlayerClip1Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SAVE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
@@ -331,12 +389,12 @@ EvsCommand D_acropolis_helicopter_landing_pad_80184124[38] = {
     { EVENT_SCRIPT_OPCODE_START_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_helicopter_landing_pad_80183828 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisHelicopterLandingPadEncounterEndingActorPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = acropolisHelicopterLandingPadLockAttachmentsForEncounter }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_helicopter_landing_pad_80183750 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisHelicopterLandingPadSceneOriginPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_helicopter_landing_pad_801838A4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = acropolisHelicopterLandingPadPlacePlayerAfterEncounter }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -369,7 +427,7 @@ EvsCommand D_acropolis_helicopter_landing_pad_801844B4[19] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_MUSIC_LOAD, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_helicopter_landing_pad_80183944 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisHelicopterLandingPadPlayerClip1Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD }, { .value = 40 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_helicopter_landing_pad_801839F0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = acropolisHelicopterLandingPadPlacePlayerAfterEncounter }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -392,11 +450,11 @@ EvsCommand D_acropolis_helicopter_landing_pad_8018467C[69] = {
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_acropolis_helicopter_landing_pad_80183990 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_helicopter_landing_pad_80183958 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisHelicopterLandingPadPlayerClip9Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1013 }, { .message = { .pointer = &gGfxViewCoord } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_helicopter_landing_pad_801837C8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisHelicopterLandingPadDeparturePlayerPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = acropolisHelicopterLandingPadStartPlayerMoveToSceneMark }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_helicopter_landing_pad_80183750 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisHelicopterLandingPadSceneOriginPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_helicopter_landing_pad_80183998 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -421,11 +479,11 @@ EvsCommand D_acropolis_helicopter_landing_pad_8018467C[69] = {
     { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_helicopter_landing_pad_80183750 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 1 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_helicopter_landing_pad_80183750 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisHelicopterLandingPadSceneOriginPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 1 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisHelicopterLandingPadSceneOriginPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_helicopter_landing_pad_8018391C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_helicopter_landing_pad_801839D8 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_helicopter_landing_pad_80183750 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisHelicopterLandingPadSceneOriginPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_helicopter_landing_pad_801838CC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 300 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -467,21 +525,26 @@ EvsCommand D_acropolis_helicopter_landing_pad_80184CF4[7] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-s32 D_acropolis_helicopter_landing_pad_80184D9C = 0;
+s32 gAcropolisHelicopterLandingPadEncounterPhase = ACROPOLIS_HELICOPTER_LANDING_PAD_PHASE_WAITING;
 
-TaskDesc D_acropolis_helicopter_landing_pad_80184DA0[9] = {
-    { { { TASK_BODY_NONE, 32 } }, acropolisHelicopterLandingPadPrepareDepartureTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, acropolisHelicopterLandingPadMovePlayerToSceneMarkTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, acropolisHelicopterLandingPadScreenShakeTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, acropolisHelicopterLandingPadDepartureShakeTimelineTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, acropolisHelicopterLandingPadConfirmDepartureTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, acropolisHelicopterLandingPadReturnToMistTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, acropolisHelicopterLandingPadTurnPlayerYawTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 97 } }, acropolisHelicopterLandingPadPlayerPitchPulseTask, { .value = 0 } },
+enum {
+    ACROPOLIS_HELICOPTER_LANDING_PAD_SCRIPT_TASK_PRIORITY = 32,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_PITCH_TASK_PRIORITY  = 97,
+};
+
+TaskDesc gAcropolisHelicopterLandingPadScriptTasks[ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_COUNT + 1] = {
+    { { { TASK_BODY_NONE, ACROPOLIS_HELICOPTER_LANDING_PAD_SCRIPT_TASK_PRIORITY } }, acropolisHelicopterLandingPadPrepareDepartureTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACROPOLIS_HELICOPTER_LANDING_PAD_SCRIPT_TASK_PRIORITY } }, acropolisHelicopterLandingPadMovePlayerToSceneMarkTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACROPOLIS_HELICOPTER_LANDING_PAD_SCRIPT_TASK_PRIORITY } }, acropolisHelicopterLandingPadScreenShakeTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACROPOLIS_HELICOPTER_LANDING_PAD_SCRIPT_TASK_PRIORITY } }, acropolisHelicopterLandingPadDepartureShakeTimelineTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACROPOLIS_HELICOPTER_LANDING_PAD_SCRIPT_TASK_PRIORITY } }, acropolisHelicopterLandingPadConfirmDepartureTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACROPOLIS_HELICOPTER_LANDING_PAD_SCRIPT_TASK_PRIORITY } }, acropolisHelicopterLandingPadReturnToMistTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACROPOLIS_HELICOPTER_LANDING_PAD_SCRIPT_TASK_PRIORITY } }, acropolisHelicopterLandingPadTurnPlayerYawTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACROPOLIS_HELICOPTER_LANDING_PAD_PITCH_TASK_PRIORITY } }, acropolisHelicopterLandingPadPlayerPitchPulseTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-s32 D_acropolis_helicopter_landing_pad_80184E0C = 0;
+s32 gAcropolisHelicopterLandingPadEncounterReady = 0;
 
 s32 D_acropolis_helicopter_landing_pad_80184E10[6] = {
     0,
@@ -496,14 +559,18 @@ AnimationPlayRequest D_acropolis_helicopter_landing_pad_80184E28 = { 0 };
 
 AnimationPlayRequest D_acropolis_helicopter_landing_pad_80184E3C = { { .index = 1 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-ActorTransform D_acropolis_helicopter_landing_pad_80184E50 = { { -6801, 0, -1998, 0 }, { 0, 1024, 0, 0 } };
+ActorTransform gAcropolisHelicopterLandingPadPostEncounterPlayerPlacement = { .pos = { -6801, 0, -1998, 0 }, .rot = { 0, 1024, 0, 0 } };
 
 TaskDesc D_acropolis_helicopter_landing_pad_80184E68[2] = {
     { { { TASK_BODY_NONE, 192 } }, _acropolisHelicopterLandingPadStartMovieTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _acropolisHelicopterLandingPadMovieTask, { .value = 0 } },
 };
 
-SVECTOR D_acropolis_helicopter_landing_pad_80184E80[12] = {
+/// World-space positions of the twelve pulsing red lights around the pad.
+///
+/// Signed halfword game coordinates, indexed by light 0..11. The matching view
+/// mask at each index controls both glow drawing and transient-light updates.
+static SVECTOR _gAcropolisHelicopterLandingPadPerimeterLightPositions[12] = {
     { -7050, -2800, -7030, 0 },
     { -2800, -3000, -7760, 0 },
     { 2800, -3000, -7760, 0 },
@@ -518,7 +585,11 @@ SVECTOR D_acropolis_helicopter_landing_pad_80184E80[12] = {
     { -7760, -3000, -2900, 0 },
 };
 
-s32 D_acropolis_helicopter_landing_pad_80184EE0[12] = {
+/// Per-light visibility in mapped camera views 1..27, parallel to the positions.
+///
+/// Bit `mappedView - 1` admits that light. All masks fit in 27 bits; lookups
+/// require a nonzero mapped view, and all callers supply light indices 0..11.
+static u32 _gAcropolisHelicopterLandingPadPerimeterLightViewMasks[ARRAY_SIZE(_gAcropolisHelicopterLandingPadPerimeterLightPositions)] = {
     0x4014404,
     0x4014000,
     8,
@@ -534,10 +605,16 @@ s32 D_acropolis_helicopter_landing_pad_80184EE0[12] = {
 };
 
 WorldCollisionRoomResources D_acropolis_helicopter_landing_pad_80184F10[1] = {
-    { D_acropolis_helicopter_landing_pad_80185998, D_acropolis_helicopter_landing_pad_801859BC, D_acropolis_helicopter_landing_pad_80185E7C, D_acropolis_helicopter_landing_pad_80186128 },
+    { &_gAcropolisHelicopterLandingPadCollisionGrid, _gAcropolisHelicopterLandingPadViewBoundaryTriggers, D_acropolis_helicopter_landing_pad_80185E7C, D_acropolis_helicopter_landing_pad_80186128 },
 };
 
-u8 D_acropolis_helicopter_landing_pad_80184F20[28] = {
+enum { ACROPOLIS_HELICOPTER_LANDING_PAD_LOGICAL_VIEW_COUNT = 27 };
+
+/// Identity camera/image/sprite mapping for logical views 1..27 of room 1.
+///
+/// Indexed by logical view minus one. The extra stored zero is outside the
+/// reverse-search count and is not a map terminator. Borrowed while loaded.
+static u8 _gAcropolisHelicopterLandingPadViewMap[ACROPOLIS_HELICOPTER_LANDING_PAD_LOGICAL_VIEW_COUNT + 1] = {
     1,
     2,
     3,
@@ -568,49 +645,113 @@ u8 D_acropolis_helicopter_landing_pad_80184F20[28] = {
     0,
 };
 
-u8* D_acropolis_helicopter_landing_pad_80184F3C[1] = {
-    D_acropolis_helicopter_landing_pad_80184F20,
+u8* gAcropolisHelicopterLandingPadViewMaps[1] = {
+    _gAcropolisHelicopterLandingPadViewMap,
 };
 
-ViewCount D_acropolis_helicopter_landing_pad_80184F40[1] = { 27 };
+ViewCount gAcropolisHelicopterLandingPadViewCounts[1] = { ACROPOLIS_HELICOPTER_LANDING_PAD_LOGICAL_VIEW_COUNT };
 
-WorldCoordRoomLighting D_acropolis_helicopter_landing_pad_80184F44[1] = {
-    { &gAcropolisHelicopterLandingPadRoomLights, NULL },
+WorldCoordRoomLighting gAcropolisHelicopterLandingPadRoomLightingTable[1] = {
+    { .lights = &gAcropolisHelicopterLandingPadRoomLights, .ambientTable = NULL },
 };
 
-DirectionWarpEntry D_acropolis_helicopter_landing_pad_80184F4C[3] = {
-    { { { .word = 2048 }, -6387, 1, -6306 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -6387, 1, -6306 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 1024 }, -5340, -3001, -1921 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -5340, -3001, -1921 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 11, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 2048 }, -6400, 600, -5280 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -6387, 451, -5400 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_SCRIPTED_PLAYER, DIRECTION_WARP_MAP_FLAG_NONE },
+DirectionWarpEntry gAcropolisHelicopterLandingPadWarps[3] = {
+    {
+        .player         = { { .word = 2048 }, -6387, 1, -6306 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 2048 }, -6387, 1, -6306 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { { .word = 1024 }, -5340, -3001, -1921 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 1024 }, -5340, -3001, -1921 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 11,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { { .word = 2048 }, -6400, 600, -5280 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 2048 }, -6387, 451, -5400 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_SCRIPTED_PLAYER,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
-static SVECTOR _gAcropolisHelicopterLandingPadCollision083D8Normals[15] = {
+SVECTOR gAcropolisHelicopterLandingPadCollisionGridNormals[15] = {
 #include "assets/acropolis_helicopter_landing_pad_collision_083D8_normals.inc"
 };
 
-static SVECTOR _gAcropolisHelicopterLandingPadCollision083D8Verts[92] = {
+SVECTOR gAcropolisHelicopterLandingPadCollisionGridVerts[92] = {
 #include "assets/acropolis_helicopter_landing_pad_collision_083D8_verts.inc"
 };
 
-static WorldCollisionGridFace _gAcropolisHelicopterLandingPadCollision083D8Faces[37] = {
+WorldCollisionGridFace gAcropolisHelicopterLandingPadCollisionGridFaces[37] = {
 #include "assets/acropolis_helicopter_landing_pad_collision_083D8_faces.inc"
 };
 
-static s16 _gAcropolisHelicopterLandingPadCollision083D8Cells[512] = {
+/// Signed face-index lists, each ended by WORLD_COLLISION_GRID_CELL_END.
+///
+/// Contains 512 stored halfwords; cell pointers select the thirty-six lists.
+static s16 _gAcropolisHelicopterLandingPadCollisionGridCells[512] = {
 #include "assets/acropolis_helicopter_landing_pad_collision_083D8_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gAcropolisHelicopterLandingPadCollision083D8Cells[i])
-static s16* _gAcropolisHelicopterLandingPadCollision083D8Table[36] = {
+enum {
+    ACROPOLIS_HELICOPTER_LANDING_PAD_COLLISION_CELL_COUNT_X = 6,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_COLLISION_CELL_COUNT_Z = 6,
+};
+
+// The generated table supplies side-effect-free halfword offsets into the cell lists.
+#define GRID_CELL(i) (&_gAcropolisHelicopterLandingPadCollisionGridCells[i])
+/// X-major 6-by-6 directory of borrowed, terminated face-index lists.
+static s16* _gAcropolisHelicopterLandingPadCollisionGridTable[ACROPOLIS_HELICOPTER_LANDING_PAD_COLLISION_CELL_COUNT_X * ACROPOLIS_HELICOPTER_LANDING_PAD_COLLISION_CELL_COUNT_Z] = {
 #include "assets/acropolis_helicopter_landing_pad_collision_083D8_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_acropolis_helicopter_landing_pad_80185998[1] = {
-    { NULL, _gAcropolisHelicopterLandingPadCollision083D8Normals, _gAcropolisHelicopterLandingPadCollision083D8Verts, _gAcropolisHelicopterLandingPadCollision083D8Faces, _gAcropolisHelicopterLandingPadCollision083D8Table, 0x2710, 0x2710, 6, 6, 4000, 37 },
+/// Room collision mesh and XZ cell index for the helipad, lower floor and exit stairs.
+///
+/// Cell origin is (-10000, -10000), with 4000-unit square cells. Activation binds
+/// the view coordinate; the encounter actor updates the first four normals/faces
+/// and first sixteen vertices through the active grid. All storage stays mutable
+/// and must remain loaded while the room collision resources borrow it.
+static WorldCollisionGrid _gAcropolisHelicopterLandingPadCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = gAcropolisHelicopterLandingPadCollisionGridNormals,
+    .vertices    = gAcropolisHelicopterLandingPadCollisionGridVerts,
+    .faces       = gAcropolisHelicopterLandingPadCollisionGridFaces,
+    .cellFaceIds = _gAcropolisHelicopterLandingPadCollisionGridTable,
+    .xBias       = 10000,
+    .zBias       = 10000,
+    .cellCountX  = ACROPOLIS_HELICOPTER_LANDING_PAD_COLLISION_CELL_COUNT_X,
+    .cellCountZ  = ACROPOLIS_HELICOPTER_LANDING_PAD_COLLISION_CELL_COUNT_Z,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(gAcropolisHelicopterLandingPadCollisionGridFaces),
 };
 
-WorldCollisionTrigger D_acropolis_helicopter_landing_pad_801859BC[16] = {
+/// Sixteen directed view boundaries joining the helipad's camera ring 2 through 10.
+///
+/// Each neighboring pair has one quad per direction. The final record carries
+/// LAST and is included during binding. Setup mutates coordinates, links and
+/// enabled flags, so the room retains writable storage until all records unlink.
+static WorldCollisionTrigger _gAcropolisHelicopterLandingPadViewBoundaryTriggers[16] = {
     { NULL, NULL, NULL, { -5505, 0, -5857, 0 }, { { -473, 6080, -1561, 0 }, { 474, 6080, 1562, 0 }, { -473, -6080, -1561, 0 }, { 474, -6080, 1562, 0 } }, { -3931, 0, 1191, 0 }, { 0, 0, 4096, 0 }, 6291, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { -6016, 0, -5888, 0 }, { { 395, 6080, 1582, 0 }, { -397, 6080, -1584, 0 }, { 395, -6080, 1582, 0 }, { -397, -6080, -1584, 0 } }, { 3984, 0, -998, 0 }, { 0, 0, 4096, 0 }, 6291, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { -1985, 0, -5921, 0 }, { { 155, 6080, 1619, 0 }, { -165, 6080, -1627, 0 }, { 155, -6080, 1619, 0 }, { -165, -6080, -1627, 0 } }, { 4085, 0, -403, 0 }, { 0, 0, 4096, 0 }, 6291, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -900,7 +1041,7 @@ static void _acropolisHelicopterLandingPadDrawPerimeterLight(const SVECTOR* worl
             lightSlot->framesLeft = WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE;
         }
     } else {
-        visibleViewBit = D_acropolis_helicopter_landing_pad_80184EE0[lightIndex] & (1 << ((viewGetMappedIndex() & 0xFF) - 1));
+        visibleViewBit = _gAcropolisHelicopterLandingPadPerimeterLightViewMasks[lightIndex] & (1 << ((viewGetMappedIndex() & 0xFF) - 1));
         if (visibleViewBit == 0) {
             return;
         }
@@ -1596,8 +1737,8 @@ void acropolisHelicopterLandingPadPerimeterLightsTask(Task* task)
     work->scale = halfBrightness * 2;
 
     lightIndex = 0;
-    worldPoint = D_acropolis_helicopter_landing_pad_80184E80;
-    for (; lightIndex < ARRAY_SIZE(D_acropolis_helicopter_landing_pad_80184E80); lightIndex++) {
+    worldPoint = _gAcropolisHelicopterLandingPadPerimeterLightPositions;
+    for (; lightIndex < ARRAY_SIZE(_gAcropolisHelicopterLandingPadPerimeterLightPositions); lightIndex++) {
         _acropolisHelicopterLandingPadDrawPerimeterLight(worldPoint++, lightIndex, work->scale);
     }
 }
