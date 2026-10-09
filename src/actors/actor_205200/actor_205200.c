@@ -8,6 +8,8 @@
 
 #include "common.h"
 
+#include "actors/task_tables.h"
+
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/damage.h"
@@ -163,18 +165,6 @@ STATIC_ASSERT_SIZEOF(_Actor205200Part, 0x7C);
 
 extern s32 gScreenWaveRamp;
 
-extern u16      D_actor_205200_8014C9CC[];
-extern s16      D_actor_205200_8014CA1C[];
-extern TaskDesc D_actor_205200_8014CA60[];
-// Message-table callbacks use the argument views required by this TU.
-
-extern TaskMessageEntry D_actor_205200_8014CA78[2];
-extern TaskDesc         D_actor_205200_8014CA44[];
-
-extern EnemyParams D_actor_205200_8014C9BC;
-extern SVECTOR*    D_actor_205200_8014CA24[];
-extern u16*        D_actor_205200_8014CA34[];
-
 static void _actor205200TickPulse(Task* task);
 static void _actor205200MeasureNearestPart(Task* task);
 static s32  _actor205200GetDistanceAttenuation(s32 distance);
@@ -200,82 +190,131 @@ enum {
     ACTOR_205200_AUDIO_DISTANCE_SHIFT = 8, // One attenuation unit per 256 game-coordinate units
 };
 
-EnemyParams D_actor_205200_8014C9BC = { NULL, 200, 150, 0, 0, 100, 0, 0, 0 };
+/// Percent base of the critical-hit roll against a destructible part.
+enum { ACTOR_205200_PART_CRITICAL_CHANCE_PERCENT = 100 };
 
-u16 D_actor_205200_8014C9CC[4] = {
+/// Enemy parameters shared by the controller's destructible parts.
+///
+/// Parts start with 200 HP, award 150 EXP and no BP/MP, and have a 100-percent
+/// critical-roll base. They have no attack table; reaction chances and counts are zero.
+static EnemyParams _gActor205200PartParams = {
+    .attacks              = NULL,
+    .hpMax                = 200,
+    .exp                  = 150,
+    .bp                   = 0,
+    .mp                   = 0,
+    .critChance           = ACTOR_205200_PART_CRITICAL_CHANCE_PERCENT,
+    .buildupSteps         = 0,
+    .damageOverTimeChance = 0,
+    .damageOverTimeTicks  = 0,
+};
+
+/// Waiting ticks between pulses, indexed by live part count 0..3.
+///
+/// Counts 1, 2 and 3 wait 60, 40 and 20 ticks. Zero is retained because the
+/// controller checks for its last part after the final pulse tick.
+static u16 _gActor205200PulseIntervals[4] = {
     0,
     60,
     40,
     20,
 };
 
-SVECTOR D_actor_205200_8014C9D4[2] = {
+/// Eve access tunnel part origins in signed room-coordinate units, by slot 0..1.
+static SVECTOR _gActor205200EveAccessTunnelPartPositions[2] = {
     { -4550, -1100, 1030, 0 },
     { -1260, -1100, 7420, 0 },
 };
 
-u16 D_actor_205200_8014C9E4[2] = {
-    1024,
-    2048,
+/// Eve access tunnel part Y headings, by slot 0..1; 4096 units per turn.
+static u16 _gActor205200EveAccessTunnelPartHeadings[2] = {
+    ACTOR_TRANSFORM_ANGLE_TURN / 4,
+    ACTOR_TRANSFORM_ANGLE_HALF_TURN,
 };
 
-SVECTOR D_actor_205200_8014C9E8[3] = {
+/// Shelter B6 corridor part origins in signed room-coordinate units, by slot 0..2.
+static SVECTOR _gActor205200B6CorridorPartPositions[3] = {
     { 3000, -1500, 1600, 0 },
     { 5000, -1500, -1600, 0 },
     { 7000, -1500, 1600, 0 },
 };
 
-u16 D_actor_205200_8014CA00[4] = {
+/// Shelter B6 corridor part Y headings; 4096 units per turn.
+///
+/// Slots 0..2 select the three parts. The fourth stored entry is never selected.
+static u16 _gActor205200B6CorridorPartHeadings[4] = {
     0,
-    2048,
-    2048,
+    ACTOR_TRANSFORM_ANGLE_HALF_TURN,
+    ACTOR_TRANSFORM_ANGLE_HALF_TURN,
     0,
 };
 
-SVECTOR D_actor_205200_8014CA08[2] = {
+/// Shelter B6 training-room part origins in signed room-coordinate units, by slot 0..1.
+static SVECTOR _gActor205200B6TrainingRoomPartPositions[2] = {
     { -150, -1200, 4000, 0 },
     { 5150, -1200, 4000, 0 },
 };
 
-u16 D_actor_205200_8014CA18[2] = {
-    3072,
-    1024,
+/// Shelter B6 training-room part Y headings, by slot 0..1; 4096 units per turn.
+static u16 _gActor205200B6TrainingRoomPartHeadings[2] = {
+    3 * (ACTOR_TRANSFORM_ANGLE_TURN / 4),
+    ACTOR_TRANSFORM_ANGLE_TURN / 4,
 };
 
-s16 D_actor_205200_8014CA1C[4] = {
-    0,
-    2,
-    3,
-    2,
+/// Initial part counts indexed by `ACTOR_205200_SITE_*` (1..3).
+///
+/// Each count is the full authored position-array length; invalid site zero stores zero.
+static s16 _gActor205200SitePartCounts[4] = {
+    [0]                                   = 0,
+    [ACTOR_205200_SITE_EVE_ACCESS_TUNNEL] = ARRAY_SIZE(_gActor205200EveAccessTunnelPartPositions),
+    [ACTOR_205200_SITE_B6_CORRIDOR]       = ARRAY_SIZE(_gActor205200B6CorridorPartPositions),
+    [ACTOR_205200_SITE_B6_TRAINING_ROOM]  = ARRAY_SIZE(_gActor205200B6TrainingRoomPartPositions),
 };
 
-SVECTOR* D_actor_205200_8014CA24[4] = {
-    NULL,
-    D_actor_205200_8014C9D4,
-    D_actor_205200_8014C9E8,
-    D_actor_205200_8014CA08,
+/// Authored part-position arrays indexed by controller site 1..3.
+///
+/// Site zero is NULL. Each borrowed array has `_gActor205200SitePartCounts[site]` entries
+/// in signed room-coordinate units, indexed by the part's slot.
+static const SVECTOR* _gActor205200SitePartPositions[4] = {
+    [0]                                   = NULL,
+    [ACTOR_205200_SITE_EVE_ACCESS_TUNNEL] = _gActor205200EveAccessTunnelPartPositions,
+    [ACTOR_205200_SITE_B6_CORRIDOR]       = _gActor205200B6CorridorPartPositions,
+    [ACTOR_205200_SITE_B6_TRAINING_ROOM]  = _gActor205200B6TrainingRoomPartPositions,
 };
 
-u16* D_actor_205200_8014CA34[4] = {
-    NULL,
-    D_actor_205200_8014C9E4,
-    D_actor_205200_8014CA00,
-    D_actor_205200_8014CA18,
+/// Authored part Y-heading arrays indexed by controller site 1..3.
+///
+/// Site zero is NULL. Select slots below the site's part count; one turn is 4096 units.
+static const u16* _gActor205200SitePartHeadings[4] = {
+    [0]                                   = NULL,
+    [ACTOR_205200_SITE_EVE_ACCESS_TUNNEL] = _gActor205200EveAccessTunnelPartHeadings,
+    [ACTOR_205200_SITE_B6_CORRIDOR]       = _gActor205200B6CorridorPartHeadings,
+    [ACTOR_205200_SITE_B6_TRAINING_ROOM]  = _gActor205200B6TrainingRoomPartHeadings,
 };
 
-TaskDesc D_actor_205200_8014CA44[2] = {
-    { { { TASK_BODY_NONE, 192 } }, _screenWaveGridTask, { .value = 0 } },
+/// Execution priority of the controller's screen-wave grid task.
+enum { ACTOR_205200_SCREEN_WAVE_TASK_PRIORITY = 192 };
+
+/// Bodyless screen-wave task recipe at priority 192, followed by an end marker.
+///
+/// Spawn only entry zero with the persistent ramp context in spawn argument 2.
+/// The wave borrows that context through its final draw.
+static TaskDesc _gActor205200ScreenWaveTasks[2] = {
+    { { { TASK_BODY_NONE, ACTOR_205200_SCREEN_WAVE_TASK_PRIORITY } }, _screenWaveGridTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 s32 gScreenWaveRamp = 256;
 
-TaskDesc D_actor_205200_8014CA60[2] = {
-    { { { TASK_BODY_COORD, 96 } }, _actor205200ControllerTask, { .value = 0 } },
-    { { { TASK_BODY_COORD, 96 } }, _actor205200PartTask, { .value = 0 } },
+TaskDesc gActor205200ControllerPartTasks[2] = {
+    { { { TASK_BODY_COORD, ACTOR_205200_ENEMY_TASK_PRIORITY } }, _actor205200ControllerTask, { .value = 0 } },
+    { { { TASK_BODY_COORD, ACTOR_205200_ENEMY_TASK_PRIORITY } }, _actor205200PartTask, { .value = 0 } },
 };
 
-TaskMessageEntry D_actor_205200_8014CA78[2] = {
+/// Controller messages for latching a stop from a nonzero actor command.
+///
+/// The command record is borrowed for dispatch; unsupported IDs return zero.
+static TaskMessageEntry _gActor205200ControllerMessages[2] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor205200RequestControllerStopMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -349,14 +388,14 @@ static void _actor205200SpawnController(Enemy* enemy, Task* task)
         enemyDestroy(enemy, task);
         return;
     }
-    task->work                    = work;
-    work->site                    = site;
-    D_actor_205200_8015B458.state = SCREEN_WAVE_RAMP_FINISHED;
+    task->work                           = work;
+    work->site                           = site;
+    gActor205200ScreenWaveSpawnCtx.state = SCREEN_WAVE_RAMP_FINISHED;
     // Each child's setup takes the next slot while partCount grows from zero.
-    for (partIndex = 0; partIndex < D_actor_205200_8014CA1C[work->site]; partIndex++) {
-        enemySpawnFromTable(D_actor_205200_8014CA60, ACTOR_205200_PART_DESCRIPTOR_INDEX, 0, enemy);
+    for (partIndex = 0; partIndex < _gActor205200SitePartCounts[work->site]; partIndex++) {
+        enemySpawnFromTable(gActor205200ControllerPartTasks, ACTOR_205200_PART_DESCRIPTOR_INDEX, 0, enemy);
     }
-    initialPulseFrames = D_actor_205200_8014C9CC[D_actor_205200_8014CA1C[work->site]];
+    initialPulseFrames = _gActor205200PulseIntervals[_gActor205200SitePartCounts[work->site]];
     work->startDelay   = ACTOR_205200_START_DELAY;
     work->pulseTimer   = initialPulseFrames;
     // Retain the zero-site arm: it controls the original switch decision tree.
@@ -383,7 +422,7 @@ static void _actor205200SpawnController(Enemy* enemy, Task* task)
         case 0:
             break;
     }
-    task->msgTable = D_actor_205200_8014CA78;
+    task->msgTable = _gActor205200ControllerMessages;
     task->state    = ACTOR_205200_CONTROLLER_TASK_RUNNING;
 }
 
@@ -408,8 +447,8 @@ static void _actor205200TickController(Enemy* enemy, Task* task)
     if (gGameSession->eventState != 0 || work->stopRequested != 0) {
         wavePhase = work->pendingWavePhase;
         if (wavePhase == SCREEN_WAVE_RAMP_FALLING) {
-            D_actor_205200_8015B458.state = wavePhase;
-            work->pendingWavePhase        = 0;
+            gActor205200ScreenWaveSpawnCtx.state = wavePhase;
+            work->pendingWavePhase               = 0;
         }
         if (work->stopRequested != 0) {
             work->state = ACTOR_205200_CTRL_STOPPED;
@@ -453,8 +492,8 @@ static void _actor205200TickController(Enemy* enemy, Task* task)
             case ACTOR_205200_CTRL_STOPPING:
                 wavePhase = work->pendingWavePhase;
                 if (wavePhase == SCREEN_WAVE_RAMP_FALLING) {
-                    D_actor_205200_8015B458.state = wavePhase;
-                    work->pendingWavePhase        = 0;
+                    gActor205200ScreenWaveSpawnCtx.state = wavePhase;
+                    work->pendingWavePhase               = 0;
                 }
                 sndEvtRequestScriptStop(work->sustainedSoundId, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 work->state = ACTOR_205200_CTRL_STOPPED;
@@ -491,10 +530,10 @@ static void _actor205200TickPulse(Task* task)
     switch (pulseState) {
         case ACTOR_205200_PULSE_WAITING:
             if (--work->pulseTimer <= 0) {
-                if (D_actor_205200_8015B458.state == SCREEN_WAVE_RAMP_FINISHED) {
-                    D_actor_205200_8015B458.span  = ACTOR_205200_PULSE_WAVE_FRAMES;
-                    D_actor_205200_8015B458.scale = ACTOR_205200_PULSE_WAVE_SCALE;
-                    taskSpawnFromTable(D_actor_205200_8014CA44, 0, 0, &D_actor_205200_8015B458);
+                if (gActor205200ScreenWaveSpawnCtx.state == SCREEN_WAVE_RAMP_FINISHED) {
+                    gActor205200ScreenWaveSpawnCtx.span  = ACTOR_205200_PULSE_WAVE_FRAMES;
+                    gActor205200ScreenWaveSpawnCtx.scale = ACTOR_205200_PULSE_WAVE_SCALE;
+                    taskSpawnFromTable(_gActor205200ScreenWaveTasks, 0, 0, &gActor205200ScreenWaveSpawnCtx);
                     sceneEngageBattle(1);
                     work->pendingWavePhase = SCREEN_WAVE_RAMP_FALLING;
                     enemy                  = task->spawnArg2.pointer;
@@ -507,9 +546,9 @@ static void _actor205200TickPulse(Task* task)
         case ACTOR_205200_PULSE_RAISED:
             if (--work->pulseTimer <= 0) {
                 // `pulseState` is 1 here, which is also SCREEN_WAVE_RAMP_FALLING.
-                D_actor_205200_8015B458.state = pulseState;
-                work->pulseTimer              = D_actor_205200_8014C9CC[work->partCount];
-                work->pulseState              = ACTOR_205200_PULSE_WAITING;
+                gActor205200ScreenWaveSpawnCtx.state = pulseState;
+                work->pulseTimer                     = _gActor205200PulseIntervals[work->partCount];
+                work->pulseState                     = ACTOR_205200_PULSE_WAITING;
                 playerStateSpendMp(1);
                 work->pendingWavePhase = 0;
             }
@@ -585,13 +624,13 @@ static void _actor205200SpawnPart(Enemy* enemy, Task* task)
     controllerWork->partCount++;
     controllerWork->partCoords[part->slot] = coord;
     controllerWork->partLive[part->slot]   = true;
-    headings                               = D_actor_205200_8014CA34[controllerWork->site];
+    headings                               = _gActor205200SitePartHeadings[controllerWork->site];
     rotation.vx                            = 0;
     localMatrix                            = &coord->coord;
     rotation.vy                            = headings[part->slot];
     rotation.vz                            = 0;
     RotMatrix(&rotation, localMatrix);
-    positions           = D_actor_205200_8014CA24[controllerWork->site];
+    positions           = _gActor205200SitePartPositions[controllerWork->site];
     coord->coord.t[0]   = positions[part->slot].vx;
     coord->coord.t[1]   = positions[part->slot].vy;
     coord->coord.t[2]   = positions[part->slot].vz;
@@ -604,9 +643,9 @@ static void _actor205200SpawnPart(Enemy* enemy, Task* task)
     enemy->bodyPos.vx = 0;
     enemy->bodyPos.vy = 0;
     enemy->bodyPos.vz = 0;
-    enemy->param      = &D_actor_205200_8014C9BC;
+    enemy->param      = &_gActor205200PartParams;
     enemy->recs       = part->contacts;
-    enemy->hp         = D_actor_205200_8014C9BC.hpMax;
+    enemy->hp         = _gActor205200PartParams.hpMax;
     sceneAcquireBattleRef(0);
     part->effectArg.spawnArgLo  = ACTOR_205200_PART_HIT_EFFECT_SCALE;
     part->effectArg.spawnArgHi  = ACTOR_205200_PART_HIT_EFFECT_DURATION_FACTOR;
@@ -896,12 +935,15 @@ static s32 _actor205200RequestControllerStopMsg(Task* task, s32 messageId, const
     return 0;
 }
 
-/// State handlers of a part task - spawn, per-frame tick and teardown - that
-/// `_actor205200PartTask` dispatches through by state.
-static const EnemyTaskFuncTable3 D_actor_205200_80149E24 = {
-    _actor205200SpawnPart,
-    _actor205200TickLivePart,
-    _actor205200TickDownPart,
+/// Part task handlers indexed by `ACTOR_205200_PART_TASK_*` (0..2).
+///
+/// Spawn, live and down handlers are copied as one dispatch value; no terminator.
+static const EnemyTaskFuncTable3 _gActor205200PartTaskStates = {
+    {
+        [ACTOR_205200_PART_TASK_SPAWNING] = _actor205200SpawnPart,
+        [ACTOR_205200_PART_TASK_LIVE]     = _actor205200TickLivePart,
+        [ACTOR_205200_PART_TASK_DOWN]     = _actor205200TickDownPart,
+    },
 };
 
 /// Dispatches a destructible part's spawn, live or down handler.
@@ -913,7 +955,7 @@ static void _actor205200PartTask(Task* task)
 {
     EnemyTaskFuncTable3 handlers;
 
-    handlers = D_actor_205200_80149E24;
+    handlers = _gActor205200PartTaskStates;
     handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 

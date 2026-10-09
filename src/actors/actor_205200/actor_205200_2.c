@@ -7,6 +7,7 @@
 #include "common.h"
 
 #include "actors/actor.h"
+#include "actors/task_tables.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
@@ -141,16 +142,6 @@ typedef struct {
 } _Actor205200Work;
 STATIC_ASSERT_SIZEOF(_Actor205200Work, 0x598);
 
-/// Animation block the attack body hands the player with message 0x3F4.
-extern AnimationSet* D_actor_205200_80156800[5];
-extern AnimationSet* D_actor_205200_801567E8[6];
-extern s16           D_actor_205200_801567B0[];
-// One collision centre for each of the two placement modes.
-extern SVECTOR D_actor_205200_801567B4[2];
-// Message-table callbacks use the argument views required by this TU.
-
-extern TaskMessageEntry D_actor_205200_801567D0[3];
-
 static void _actor205200SpawnBody(Enemy* enemy, Task* task);
 static void _actor205200ScanContacts(Task* task);
 static void _actor205200TickIdle(Task* task);
@@ -163,12 +154,15 @@ static void _actor205200UpdateLighting(Task* task);
 static void _actor205200DrawShadow(Task* task);
 static void _actor205200DestroyBody(Enemy* enemy, Task* task);
 
-/// The actor's own state handlers - spawn, per-frame tick and teardown - that
-/// `_actor205200BodyTask` dispatches through by state.
-static const EnemyTaskFuncTable3 D_actor_205200_80149E30 = {
-    _actor205200SpawnBody,
-    _actor205200BodyLiveState,
-    _actor205200DestroyBody,
+/// Stationary-body handlers indexed by `ACTOR_205200_BODY_TASK_*` (0..2).
+///
+/// Spawn, live and destroy handlers are copied as one dispatch value; no terminator.
+static const EnemyTaskFuncTable3 _gActor205200BodyTaskStates = {
+    {
+        [ACTOR_205200_BODY_TASK_SPAWN]   = _actor205200SpawnBody,
+        [ACTOR_205200_BODY_TASK_LIVE]    = _actor205200BodyLiveState,
+        [ACTOR_205200_BODY_TASK_DESTROY] = _actor205200DestroyBody,
+    },
 };
 
 static AnimationSet _gActor205200Animation08B50;
@@ -360,39 +354,53 @@ static AnimationSet _gActor205200Animation0C968 = {
     { NULL, _gActor205200Animation0C968Bank1, NULL, NULL, _gActor205200Animation0C968Bank4, NULL, NULL, NULL },
 };
 
-s16 D_actor_205200_801567B0[2] = {
+/// Touch-sphere radii by `ACTOR_205200_ROOM_*` (0..1), in game-coordinate units.
+static s16 _gActor205200BodyTouchRadii[2] = {
     4000,
     700,
 };
 
-SVECTOR D_actor_205200_801567B4[2] = {
+/// Touch-sphere centers by `ACTOR_205200_ROOM_*` (0..1), in model-root local units.
+static SVECTOR _gActor205200BodyTouchCenters[2] = {
     { 0, -700, -3500, 0 },
     { 0, -700, 0, 0 },
 };
 
-TaskDesc D_actor_205200_801567C4 = { { { TASK_BODY_TMD, 96 } }, _actor205200BodyTask, { .model = &gActor205200EveBreaMaskedBody } };
+TaskDesc gActor205200BodyTaskDesc = { { { TASK_BODY_TMD, ACTOR_205200_ENEMY_TASK_PRIORITY } }, _actor205200BodyTask, { .model = &gActor205200EveBreaMaskedBody } };
 
-TaskMessageEntry D_actor_205200_801567D0[3] = {
+/// Stationary-body messages for model drawing and command-triggered teardown.
+///
+/// Drawing takes an integer enable; commands borrow an `ActorCommand` record.
+/// Both handlers and unsupported IDs return zero.
+static TaskMessageEntry _gActor205200BodyMessages[3] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor205200SetModelDrawMsg },
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor205200ApplyCommandMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-AnimationSet* D_actor_205200_801567E8[6] = {
-    NULL,
-    &_gActor205200Animation09C1C,
-    &_gActor205200Animation08B50,
-    &_gActor205200Animation0943C,
-    NULL,
-    &_gActor205200Animation0A964,
+/// Body clips indexed by `ACTOR_205200_ANIM_*`: idle, heal, hit reaction and fidget.
+///
+/// The nineteen-part rig borrows this table and drives tracks 1..18. Slots zero
+/// and four are NULL and must never be requested for a track reset or seek.
+static AnimationSet* _gActor205200BodyAnimationSets[6] = {
+    [0]                              = NULL,
+    [ACTOR_205200_ANIM_IDLE]         = &_gActor205200Animation09C1C,
+    [ACTOR_205200_ANIM_HEAL]         = &_gActor205200Animation08B50,
+    [ACTOR_205200_ANIM_HIT_REACTION] = &_gActor205200Animation0943C,
+    [4]                              = NULL,
+    [ACTOR_205200_ANIM_FIDGET]       = &_gActor205200Animation0A964,
 };
 
-AnimationSet* D_actor_205200_80156800[5] = {
+/// Player knockback clips: 1/2 initial front/behind, 3/4 recovery front/behind.
+///
+/// Slot zero is NULL. The player retains this table through scripted playback;
+/// keep this actor package loaded until knockback recovery finishes.
+static AnimationSet* _gActor205200PlayerKnockbackAnimationSets[5] = {
     NULL,
-    &_gActor205200Animation0B1AC,
-    &_gActor205200Animation0B948,
-    &_gActor205200Animation0C154,
-    &_gActor205200Animation0C968,
+    &_gActor205200Animation0B1AC, // 1: initial front
+    &_gActor205200Animation0B948, // 2: initial behind
+    &_gActor205200Animation0C154, // 3: recovery front
+    &_gActor205200Animation0C968, // 4: recovery behind
 };
 
 ScreenWaveCtx* gScreenWaveCtx = NULL;
@@ -403,7 +411,7 @@ ScreenWaveGridOscillator gScreenWaveRows[30];
 
 POLY_FT4 gScreenWaveGrid[2][30][8];
 
-ScreenWaveCtx D_actor_205200_8015B458;
+ScreenWaveCtx gActor205200ScreenWaveSpawnCtx;
 
 /// Links the stationary body's hit sphere and room-specific touch sphere.
 ///
@@ -431,11 +439,11 @@ static inline void _actor205200LinkBodySpheres(_Actor205200Work* work, GfxCoord*
     work->hitBody.flags             |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     work->touchBody.coord            = rootCoord;
     work->touchBody.context.contacts = work->touchContacts;
-    work->touchBody.pos.vx           = D_actor_205200_801567B4[work->room].vx;
-    work->touchBody.pos.vy           = D_actor_205200_801567B4[work->room].vy;
-    work->touchBody.pos.vz           = D_actor_205200_801567B4[work->room].vz;
+    work->touchBody.pos.vx           = _gActor205200BodyTouchCenters[work->room].vx;
+    work->touchBody.pos.vy           = _gActor205200BodyTouchCenters[work->room].vy;
+    work->touchBody.pos.vz           = _gActor205200BodyTouchCenters[work->room].vz;
     work->touchBody.key              = 0;
-    work->touchBody.radius           = D_actor_205200_801567B0[work->room];
+    work->touchBody.radius           = _gActor205200BodyTouchRadii[work->room];
     work->touchBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->touchBody);
     worldCollisionInitContacts(work->touchContacts, ARRAY_SIZE(work->touchContacts), 0);
@@ -487,7 +495,7 @@ static void _actor205200SpawnBody(Enemy* enemy, Task* task)
     work->hitEffectArg.spawnArgLo = ACTOR_205200_HIT_EFFECT_ARGUMENT;
     work->hitEffectArg.spawnArgHi = ACTOR_205200_HIT_EFFECT_COUNT;
     // The root is not an animation slot; initialize the eighteen child parts.
-    animationInitContext(&work->rig.anim, D_actor_205200_801567E8, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, _gActor205200BodyAnimationSets, model, work->rig.poses, work->rig.slots);
     slotIndex = 1;
     do {
         animationResetSlot(&work->rig.anim, slotIndex, ACTOR_205200_ANIM_IDLE);
@@ -495,7 +503,7 @@ static void _actor205200SpawnBody(Enemy* enemy, Task* task)
     } while (slotIndex < ARRAY_SIZE(work->rig.slots));
     work->room = enemy->place->mode;
     _actor205200LinkBodySpheres(work, rootCoord);
-    task->msgTable = D_actor_205200_801567D0;
+    task->msgTable = _gActor205200BodyMessages;
     task->state    = ACTOR_205200_BODY_TASK_LIVE;
 }
 
@@ -665,7 +673,7 @@ static void _actor205200TickPlayerKnockback(Task* task)
     /// must outlive playback. The macro captures the package's player-set table.
 #define ACTOR_205200_PLAY_PLAYER_KNOCKBACK_CLIP(playerTask, scratchBlock, clipId)                                        \
     {                                                                                                                    \
-        (scratchBlock)->playerAnim.source.sets          = D_actor_205200_80156800;                                       \
+        (scratchBlock)->playerAnim.source.sets          = _gActor205200PlayerKnockbackAnimationSets;                     \
         (scratchBlock)->playerAnim.animationId          = (clipId);                                                      \
         (scratchBlock)->playerAnim.blend                = ANIMATION_BLEND_RESET;                                         \
         (scratchBlock)->playerAnim.blendFrames          = 0;                                                             \
@@ -787,7 +795,7 @@ static void _actor205200BodyTask(Task* task)
 {
     EnemyTaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_actor_205200_80149E30;
+    stateHandlers = _gActor205200BodyTaskStates;
     stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 

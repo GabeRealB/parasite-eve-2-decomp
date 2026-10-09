@@ -83049,7 +83049,7 @@ with every instruction matching but one: the payload load reads
 the *middle*, not leading. The function is a 0x7DB message handler sitting in
 the same overlay as the already-matched
 `_actor205200ApplyCommandMsg(Task*, s32 messageId, const ActorCommand*, s32 unusedSecondArg)`, and
-the message table `D_actor_205200_8014CA78` lists it under the same opcode with
+the message table `_gActor205200ControllerMessages` lists it under the same opcode with
 the same payload. Borrowing the sibling's signature is the entire fix; the
 unused `value` then shifts the payload from `$a1` to `$a2` and the function is
 100%.

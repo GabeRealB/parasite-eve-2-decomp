@@ -344,7 +344,13 @@ extern TaskDesc D_actor_143900_80149664[];
 
 extern TaskDesc D_actor_450800_8014AC88[];
 
-extern TaskDesc D_actor_205200_8014CA60[];
+/// Coordinate-body recipes: 0 destructible-part controller, 1 child part.
+///
+/// Both execute at priority 96; the two live entries have no end marker. Enemy
+/// spawns supply a live `Enemy` in spawn argument 2. Controller placement modes
+/// 1..3 select the tunnel, corridor or training room. The parent controller and
+/// its work must outlive each child task. Keep actor_205200 and room resources loaded.
+extern TaskDesc gActor205200ControllerPartTasks[2];
 
 /// Slot export of `gActor02100WatcherTaskDesc` from actor_202100, with the same descriptor contract.
 extern TaskDesc gActor202100WatcherTaskDesc;
@@ -453,7 +459,12 @@ extern TaskDesc gActor401800OddStrangerTaskDesc;
 /// Slot export of `gActor04000BloodSucklerTaskDesc` from actor_204000, with the same descriptor contract.
 extern TaskDesc gActor204000BloodSucklerTaskDesc;
 
-extern TaskDesc D_actor_205200_801567C4;
+/// Stationary masked Eve TMD recipe at priority 96 with automatic model buffers.
+///
+/// Spawn at index zero with a live `Enemy` in spawn argument 2. Placement mode
+/// 0 selects the Shelter B6 corridor, 1 the training room. Keep actor_205200,
+/// its borrowed model geometry and the selected room resources loaded while live.
+extern TaskDesc gActor205200BodyTaskDesc;
 
 extern TaskDesc D_actor_202900_80156E24[];
 
