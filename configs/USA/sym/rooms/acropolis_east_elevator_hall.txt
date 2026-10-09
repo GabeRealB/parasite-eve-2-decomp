@@ -1,6 +1,6 @@
 // Overlay-local symbols for acropolis_east_elevator_hall.
 D_acropolis_east_elevator_hall_8017D5E0 = 0x8017D5E0; // force_not_migration:True string with a non-zero byte after its terminator, read from C
-Reflection_Data_8017FC8C = 0x8017FC8C; // size:0x4 defined:True
+_gPlanarReflectionAttachmentParts = 0x8017FC8C; // size:0x4 defined:True
 D_acropolis_east_elevator_hall_8017FC90 = 0x8017FC90; // size:0x18 defined:True
 _gAcropolisEastElevatorHallAnimation02EB8Bank1 = 0x8017FCA8; // size:0x30 defined:True
 _gAcropolisEastElevatorHallAnimation02EB8Bank4 = 0x8017FCD8; // size:0x360 defined:True

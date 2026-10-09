@@ -44,6 +44,7 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd.h"
@@ -82,27 +83,6 @@ extern EvsCommand       D_acropolis_west_elevator_hall_80184890[];
 extern s32              D_acropolis_west_elevator_hall_801849C8;
 extern TaskMessageEntry D_acropolis_west_elevator_hall_801849CC[];
 extern TaskMessageEntry D_acropolis_west_elevator_hall_801849F4[];
-
-/// Index of the mirror model's coordinate part each held-object reflection is
-/// parented to, by the reflection's `spawnArg1`.
-static u8 Reflection_Data_8017FC8C[];
-
-/// The mirror's task table: entry 0 runs the mirror itself, entry 1 a
-/// held-object reflection.
-static TaskDesc D_acropolis_west_elevator_hall_801802A8[];
-
-/// The lift bay's two 256-entry RGB555 CLUTs and the blend destination:
-/// `D_acropolis_west_elevator_hall_80184A04` is the unlit base palette,
-/// `D_acropolis_west_elevator_hall_80184C04` the lit one and
-/// `D_acropolis_west_elevator_hall_80184E04` the blended result.
-///
-/// The blend result is written only as colours.
-/// `D_acropolis_west_elevator_hall_80185004` borrows it as packed words
-/// because that is the form the GPU upload takes.
-extern u16            D_acropolis_west_elevator_hall_80184A04[];
-extern u16            D_acropolis_west_elevator_hall_80184C04[];
-extern u16            D_acropolis_west_elevator_hall_80184E04[256];
-extern GpuImageUpload D_acropolis_west_elevator_hall_80185004[];
 
 /// The hall's two elevator-car tasks, spawned by the room task.
 extern Task* D_acropolis_west_elevator_hall_80186AE4[];
@@ -178,16 +158,23 @@ static TmdSource    _gAcropolisWestElevatorHallModel02DE8;
 static TmdSource    _gAcropolisWestElevatorHallModel03058;
 static void         _acropolisWestElevatorHallDoorLeafTask(Task* task);
 
-extern WorldCollisionGrid    D_acropolis_west_elevator_hall_801852FC[1];
-extern WorldCollisionTrigger D_acropolis_west_elevator_hall_80185320[4];
-extern WorldCollisionTrigger D_acropolis_west_elevator_hall_80185450[5];
-extern WorldCoordRoomLights  D_acropolis_west_elevator_hall_801869E4[1];
+static WorldCollisionGrid    _gAcropolisWestElevatorHallCollisionGrid;
+static WorldCollisionTrigger _gAcropolisWestElevatorHallViewBoundaryTriggers[4];
+static WorldCollisionTrigger _gAcropolisWestElevatorHallActionTriggers[5];
+static WorldCoordRoomLights  _gAcropolisWestElevatorHallRoomLights;
 
 #include "../../shared/planar_reflection_data.inc.c"
 
-static TaskDesc D_acropolis_west_elevator_hall_801802A8[2] = {
-    { { { TASK_BODY_NONE, 112 } }, acropolisWestElevatorHallPlayerReflectionTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 112 } }, _planarReflectionAttachmentTask, { .value = 0 } },
+/// Execution priority shared by the hall's reflected player and held models.
+enum { ACROPOLIS_WEST_ELEVATOR_HALL_REFLECTION_PRIORITY = 112 };
+
+/// Spawn recipes for the hall's player reflection and its attachment reflections.
+///
+/// Slots 0 and 1 start bodyless at priority 112; their callbacks own model clones.
+/// There is no terminator. Borrowed descriptors remain valid while this room is loaded.
+static TaskDesc _gAcropolisWestElevatorHallReflectionTaskTable[2] = {
+    { { { TASK_BODY_NONE, ACROPOLIS_WEST_ELEVATOR_HALL_REFLECTION_PRIORITY } }, acropolisWestElevatorHallPlayerReflectionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACROPOLIS_WEST_ELEVATOR_HALL_REFLECTION_PRIORITY } }, _planarReflectionAttachmentTask, { .value = 0 } },
 };
 
 /// Borrows this overlay's two reflection task descriptors.
@@ -197,7 +184,7 @@ static TaskDesc D_acropolis_west_elevator_hall_801802A8[2] = {
 /// while the overlay is loaded; the caller neither owns nor copies the table.
 static inline TaskDesc* _planarReflectionGetTaskTable(void)
 {
-    return D_acropolis_west_elevator_hall_801802A8;
+    return _gAcropolisWestElevatorHallReflectionTaskTable;
 }
 
 static TmdBone _gAcropolisWestElevatorHallModel02DE8Skeleton[1] = {
@@ -363,31 +350,44 @@ TaskMessageEntry D_acropolis_west_elevator_hall_801849F4[2] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-u16 D_acropolis_west_elevator_hall_80184A04[256] = { 0 };
+/// Black RGB555 palette used while the elevator bay is unlit.
+static u16 _gAcropolisWestElevatorHallBayUnlitClut[256] = { 0 };
 
-u16 D_acropolis_west_elevator_hall_80184C04[256] = {
+/// Authored 256-colour RGB555 palette for the illuminated elevator bay.
+static u16 _gAcropolisWestElevatorHallBayLitClut[256] = {
 #include "assets/acropolis_west_elevator_hall_clut_07644.inc"
 };
 
-u16 D_acropolis_west_elevator_hall_80184E04[256] = { 0 };
+/// Complete RGB555 bay palette interpolated between black and the lit colours.
+///
+/// Written in sixteen-colour rows. The GPU borrows all 512 bytes as packed
+/// words on upload; keep this room loaded and the colours intact through completion.
+static u16 _gAcropolisWestElevatorHallBayBlendedClut[256] = { 0 };
 
-GpuImageUpload D_acropolis_west_elevator_hall_80185004[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 270, 256, 1 }, (u_long*)D_acropolis_west_elevator_hall_80184E04 },
+/// VRAM row of the elevator bay's 256-colour lookup table.
+enum { ACROPOLIS_WEST_ELEVATOR_HALL_BAY_CLUT_Y = 270 };
+
+/// Uploads the full blended bay CLUT to VRAM, followed by the list terminator.
+///
+/// The word pointer is the GPU transfer view of the 16-bit colour array.
+/// Queuing copies the rectangle but borrows the colour storage until completion.
+static GpuImageUpload _gAcropolisWestElevatorHallBayClutUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, ACROPOLIS_WEST_ELEVATOR_HALL_BAY_CLUT_Y, ARRAY_SIZE(_gAcropolisWestElevatorHallBayBlendedClut), 1 }, (u_long*)_gAcropolisWestElevatorHallBayBlendedClut },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 WorldCollisionRoomResources D_acropolis_west_elevator_hall_80185024[1] = {
-    { D_acropolis_west_elevator_hall_801852FC, D_acropolis_west_elevator_hall_80185320, D_acropolis_west_elevator_hall_80185450, NULL },
+    { &_gAcropolisWestElevatorHallCollisionGrid, _gAcropolisWestElevatorHallViewBoundaryTriggers, _gAcropolisWestElevatorHallActionTriggers, NULL },
 };
 
-u8* D_acropolis_west_elevator_hall_80185034[1] = {
+u8* gAcropolisWestElevatorHallViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_acropolis_west_elevator_hall_80185038[1] = { 5 };
+ViewCount gAcropolisWestElevatorHallViewCounts[1] = { ARRAY_SIZE(gAcropolisWestElevatorHallSpriteViews) };
 
-WorldCoordRoomLighting D_acropolis_west_elevator_hall_8018503C[1] = {
-    { D_acropolis_west_elevator_hall_801869E4, NULL },
+WorldCoordRoomLighting gAcropolisWestElevatorHallRoomLightingTable[1] = {
+    { &_gAcropolisWestElevatorHallRoomLights, NULL },
 };
 
 DirectionWarpEntry D_acropolis_west_elevator_hall_80185044[2] = {
@@ -395,53 +395,94 @@ DirectionWarpEntry D_acropolis_west_elevator_hall_80185044[2] = {
     { { { .word = 3072 }, 5384, -30, 1039 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 5384, -30, 1039 }, { 0, 0, 0, 0 }, 0x51110002, 0x51110001, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, 503 },
 };
 
-static SVECTOR _gAcropolisWestElevatorHallCollision07D3CNormals[7] = {
+/// Grid-local plane normals, with 4096 representing unit length.
+static SVECTOR _gAcropolisWestElevatorHallCollisionGridNormals[7] = {
 #include "assets/acropolis_west_elevator_hall_collision_07D3C_normals.inc"
 };
 
-static SVECTOR _gAcropolisWestElevatorHallCollision07D3CVerts[29] = {
+/// Collision-grid vertices in signed game-coordinate units.
+static SVECTOR _gAcropolisWestElevatorHallCollisionGridVerts[29] = {
 #include "assets/acropolis_west_elevator_hall_collision_07D3C_verts.inc"
 };
 
-static WorldCollisionGridFace _gAcropolisWestElevatorHallCollision07D3CFaces[14] = {
+/// Indexed grid faces using room surface classes 0 and 3.
+static WorldCollisionGridFace _gAcropolisWestElevatorHallCollisionGridFaces[14] = {
 #include "assets/acropolis_west_elevator_hall_collision_07D3C_faces.inc"
 };
 
-static s16 _gAcropolisWestElevatorHallCollision07D3CCells[52] = {
+/// Serialized signed face-index lists, terminated by WORLD_COLLISION_GRID_CELL_END.
+///
+/// The 52 halfwords retain the full asset extent, including words outside live lists.
+static s16 _gAcropolisWestElevatorHallCollisionGridCells[52] = {
 #include "assets/acropolis_west_elevator_hall_collision_07D3C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gAcropolisWestElevatorHallCollision07D3CCells[i])
-static s16* _gAcropolisWestElevatorHallCollision07D3CTable[6] = {
+#define GRID_CELL(i) (&_gAcropolisWestElevatorHallCollisionGridCells[i])
+/// X-major cell directory: three X cells by two Z cells, pointing into the lists.
+static s16* _gAcropolisWestElevatorHallCollisionGridTable[6] = {
 #include "assets/acropolis_west_elevator_hall_collision_07D3C_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_acropolis_west_elevator_hall_801852FC[1] = {
-    { NULL, _gAcropolisWestElevatorHallCollision07D3CNormals, _gAcropolisWestElevatorHallCollision07D3CVerts, _gAcropolisWestElevatorHallCollision07D3CFaces, _gAcropolisWestElevatorHallCollision07D3CTable, 5480, 2000, 3, 2, 4000, 14 },
+/// Room collision mesh covering a 3-by-2 XZ grid of 4000-unit cells.
+///
+/// Cell coordinates add 5480 to room X and 2000 to room Z before division.
+/// Room setup binds the view coordinate; the record and pools remain writable
+/// and borrowed while this overlay's grid is active.
+static WorldCollisionGrid _gAcropolisWestElevatorHallCollisionGrid = {
+    NULL,
+    _gAcropolisWestElevatorHallCollisionGridNormals,
+    _gAcropolisWestElevatorHallCollisionGridVerts,
+    _gAcropolisWestElevatorHallCollisionGridFaces,
+    _gAcropolisWestElevatorHallCollisionGridTable,
+    5480,
+    2000,
+    3,
+    2,
+    4000,
+    ARRAY_SIZE(_gAcropolisWestElevatorHallCollisionGridFaces),
 };
 
-WorldCollisionTrigger D_acropolis_west_elevator_hall_80185320[4] = {
+/// Directed view boundaries for 2 to 3, 3 to 2, 4 to 3 and 3 to 4.
+///
+/// The fourth record carries LAST and remains active. Room setup binds the
+/// view coordinate and links these writable nodes until room teardown.
+static WorldCollisionTrigger _gAcropolisWestElevatorHallViewBoundaryTriggers[4] = {
     { NULL, NULL, NULL, { -994, -1504, 95, 0 }, { { -616, -1504, -2431, 0 }, { -616, 1504, -2431, 0 }, { 617, -1504, 2432, 0 }, { 617, 1504, 2432, 0 } }, { -3972, 0, 1006, 0 }, { 0, 0, 0, 0 }, 2918, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { -1281, -1536, 111, 0 }, { { -605, 1504, -2321, 0 }, { -605, -1504, -2321, 0 }, { 606, 1504, 2322, 0 }, { 606, -1504, 2322, 0 } }, { 3966, 0, -1036, 0 }, { 0, 0, 0, 0 }, 2827, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 2943, -1504, 511, 0 }, { { -2, 1504, -2612, 0 }, { -2, -1504, -2612, 0 }, { -3, 1504, 2603, 0 }, { -3, -1504, 2603, 0 } }, { 4101, 0, 0, 0 }, { 0, 0, 0, 0 }, 3007, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 3135, -1440, 479, 0 }, { { 0, 1504, 2608, 0 }, { 0, -1504, 2608, 0 }, { 0, 1504, -2608, 0 }, { 0, -1504, -2608, 0 } }, { -4105, 0, 0, 0 }, { 0, 0, 0, 0 }, 3007, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_acropolis_west_elevator_hall_80185450[5] = {
-    { NULL, NULL, NULL, { 5184, -48, 1152, 0 }, { { -416, 0, -1024, 0 }, { 416, 0, -1024, 0 }, { -416, 0, 1024, 0 }, { 416, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_WARP, 1, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+/// Packed warp slots for the square exit: departure 2 in the high nibble, arrival 1 in the low.
+enum { ACROPOLIS_WEST_ELEVATOR_HALL_SQUARE_WARP_SLOTS = (2 << 4) | 1 };
+
+/// Facing-gated interaction quads: the square exit and room CAP commands 3, 1, 2, 4.
+///
+/// The warp packs departure slot 2 and arrival slot 1. The fifth quad carries
+/// LAST and remains active. Room setup binds and links the writable nodes;
+/// their coordinate positions, corner offsets and radii use game units.
+static WorldCollisionTrigger _gAcropolisWestElevatorHallActionTriggers[5] = {
+    { NULL, NULL, NULL, { 5184, -48, 1152, 0 }, { { -416, 0, -1024, 0 }, { 416, 0, -1024, 0 }, { -416, 0, 1024, 0 }, { 416, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -ONE, 0, 0, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_SQUARE, ACROPOLIS_WEST_ELEVATOR_HALL_SQUARE_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -3936, -48, 1839, 0 }, { { 864, 0, -480, 0 }, { 864, 0, 481, 0 }, { -864, 0, -480, 0 }, { -864, 0, 481, 0 } }, { 0, 4097, 0, 0 }, { 201, 0, -4091, 0 }, 987, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -976, -76, 1840, 0 }, { { -1152, 0, -496, 0 }, { 1152, 0, -496, 0 }, { -1152, 0, 496, 0 }, { 1152, 0, 496, 0 } }, { 0, 4095, 0, 0 }, { 601, 0, -4052, 0 }, 1254, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 2976, -71, 2688, 0 }, { { -1056, 0, -480, 0 }, { 1056, 0, -480, 0 }, { -1056, 0, 480, 0 }, { 1056, 0, 480, 0 } }, { 0, 4097, 0, 0 }, { -402, 0, -4077, 0 }, 1159, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -5248, -64, -80, 0 }, { { -416, 0, -1392, 0 }, { 416, 0, -1392, 0 }, { -416, 0, 1392, 0 }, { 416, 0, 1392, 0 } }, { 0, 4120, 0, 0 }, { 4096, 0, 0, 0 }, 1448, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+    { NULL, NULL, NULL, { -5248, -64, -80, 0 }, { { -416, 0, -1392, 0 }, { 416, 0, -1392, 0 }, { -416, 0, 1392, 0 }, { 416, 0, 1392, 0 } }, { 0, 4120, 0, 0 }, { ONE, 0, 0, 0 }, 1448, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-SpriteBatch D_acropolis_west_elevator_hall_801855CC[2] = {
+/// Empty view-1 sprite list retaining decoded-background presentation.
+///
+/// The zero-count first range selects background strips; the second record ends the list.
+static SpriteBatch _gAcropolisWestElevatorHallView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_west_elevator_hall_801855DC[26] = {
+/// View-2 foreground sprite rectangles, sampled texture regions and sorting depths.
+///
+/// The ranges cover all 26 sources. Positions are view-centred pixels;
+/// depths are unscaled ordering values. The records remain writable while loaded.
+static SpriteSource _gAcropolisWestElevatorHallView2SpriteSources[26] = {
     { 143, 0x3FC0, { .fields = { 32, 72 } }, -160, 24, 1125, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 64 } }, -128, 24, 1200, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 48 } }, -104, 32, 1200, { .fields = { 104, 136 } }, 128, 128, 128, 0 },
@@ -470,14 +511,19 @@ SpriteSource D_acropolis_west_elevator_hall_801855DC[26] = {
     { 143, 0x4000, { .fields = { 16, 24 } }, -96, -24, 1858, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_west_elevator_hall_801857E4[4] = {
+/// View-2 background selection and source ranges [0, 3) and [3, 26), then END.
+static SpriteBatch _gAcropolisWestElevatorHallView2SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 3, 0, 0, { 1, 0 } },
-    { 3, 23, 0, 0, { 0, 0 } },
+    { 3, ARRAY_SIZE(_gAcropolisWestElevatorHallView2SpriteSources) - 3, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_west_elevator_hall_80185804[63] = {
+/// View-3 foreground sprite rectangles, sampled texture regions and sorting depths.
+///
+/// The ranges cover all 63 sources. Positions are view-centred pixels;
+/// depths are unscaled ordering values. The records remain writable while loaded.
+static SpriteSource _gAcropolisWestElevatorHallView3SpriteSources[63] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 144, 96, 495, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 32 } }, -88, 8, 1500, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 112, 64, 637, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
@@ -543,15 +589,20 @@ SpriteSource D_acropolis_west_elevator_hall_80185804[63] = {
     { 143, 0x4000, { .fields = { 16, 8 } }, -16, -40, 2452, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_west_elevator_hall_80185CF0[5] = {
+/// View-3 background selection and ranges [0, 11), [11, 49), [49, 63), then END.
+static SpriteBatch _gAcropolisWestElevatorHallView3SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 11, 0, 0, { 1, 0 } },
     { 11, 38, 0, 0, { 2, 0 } },
-    { 49, 14, 0, 0, { 0, 0 } },
+    { 49, ARRAY_SIZE(_gAcropolisWestElevatorHallView3SpriteSources) - 49, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_west_elevator_hall_80185D18[60] = {
+/// View-4 foreground sprite rectangles, sampled texture regions and sorting depths.
+///
+/// The ranges cover all 60 sources. Positions are view-centred pixels;
+/// depths are unscaled ordering values. The records remain writable while loaded.
+static SpriteSource _gAcropolisWestElevatorHallView4SpriteSources[60] = {
     { 143, 0x3FC0, { .fields = { 16, 56 } }, 144, -112, 678, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 24 } }, 120, -104, 841, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 32 } }, 104, -88, 1107, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
@@ -614,14 +665,19 @@ SpriteSource D_acropolis_west_elevator_hall_80185D18[60] = {
     { 143, 0x3FC0, { .fields = { 24, 40 } }, 64, -40, 1289, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_west_elevator_hall_801861C8[4] = {
+/// View-4 background selection and source ranges [0, 26) and [26, 60), then END.
+static SpriteBatch _gAcropolisWestElevatorHallView4SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 26, 0, 0, { 1, 0 } },
-    { 26, 34, 0, 0, { 0, 0 } },
+    { 26, ARRAY_SIZE(_gAcropolisWestElevatorHallView4SpriteSources) - 26, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_west_elevator_hall_801861E8[26] = {
+/// View-5 foreground sprite rectangles, sampled texture regions and sorting depths.
+///
+/// One range selects all 26 elements. Positions are view-centred pixels;
+/// depths are unscaled ordering values. The records remain writable while loaded.
+static SpriteSource _gAcropolisWestElevatorHallView5SpriteSources[26] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 152, 40, 1003, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 152, 48, 955, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 152, 56, 943, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
@@ -650,18 +706,19 @@ SpriteSource D_acropolis_west_elevator_hall_801861E8[26] = {
     { 143, 0x3FC0, { .fields = { 40, 8 } }, 48, 64, 775, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_west_elevator_hall_801863F0[3] = {
+/// View-5 background selection and one full-source range, then END.
+static SpriteBatch _gAcropolisWestElevatorHallView5SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 26, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gAcropolisWestElevatorHallView5SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_acropolis_west_elevator_hall_80186408[5] = {
-    { { .empty = D_acropolis_west_elevator_hall_801855CC }, D_acropolis_west_elevator_hall_801855CC, NULL },
-    { { .elements = D_acropolis_west_elevator_hall_801855DC }, D_acropolis_west_elevator_hall_801857E4, NULL },
-    { { .elements = D_acropolis_west_elevator_hall_80185804 }, D_acropolis_west_elevator_hall_80185CF0, NULL },
-    { { .elements = D_acropolis_west_elevator_hall_80185D18 }, D_acropolis_west_elevator_hall_801861C8, NULL },
-    { { .elements = D_acropolis_west_elevator_hall_801861E8 }, D_acropolis_west_elevator_hall_801863F0, NULL },
+SpriteView gAcropolisWestElevatorHallSpriteViews[5] = {
+    { { .empty = _gAcropolisWestElevatorHallView1SpriteBatches }, _gAcropolisWestElevatorHallView1SpriteBatches, NULL },
+    { { .elements = _gAcropolisWestElevatorHallView2SpriteSources }, _gAcropolisWestElevatorHallView2SpriteBatches, NULL },
+    { { .elements = _gAcropolisWestElevatorHallView3SpriteSources }, _gAcropolisWestElevatorHallView3SpriteBatches, NULL },
+    { { .elements = _gAcropolisWestElevatorHallView4SpriteSources }, _gAcropolisWestElevatorHallView4SpriteBatches, NULL },
+    { { .elements = _gAcropolisWestElevatorHallView5SpriteSources }, _gAcropolisWestElevatorHallView5SpriteBatches, NULL },
 };
 
 /// Authored point lights for model shading in every west elevator hall view.
@@ -928,37 +985,63 @@ static WorldCoordPointLight _gAcropolisWestElevatorHallPointLights[] = {
     },
 };
 
-WorldCoordRoomLights D_acropolis_west_elevator_hall_801869E4[1] = {
-    { 0, NULL, ARRAY_SIZE(_gAcropolisWestElevatorHallPointLights), _gAcropolisWestElevatorHallPointLights, 0, NULL },
+/// The hall's point-light collection, shared by all five views.
+///
+/// No directional or cone lights are supplied. Coordinate and shading updates
+/// borrow the writable point-light array while the room remains loaded.
+static WorldCoordRoomLights _gAcropolisWestElevatorHallRoomLights = {
+    0,
+    NULL,
+    ARRAY_SIZE(_gAcropolisWestElevatorHallPointLights),
+    _gAcropolisWestElevatorHallPointLights,
+    0,
+    NULL,
 };
 
-ViewCamera D_acropolis_west_elevator_hall_801869FC[5] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -100, 0x7530, -500 } }, 617 },
+ViewCamera gAcropolisWestElevatorHallViewCameras[5] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -100, 0x7530, -500 } }, 617 },
     { { { { -27, 0, 4095 }, { -657, 4042, -4 }, { -4042, -657, -27 } }, { -1918, 620, -769 } }, 257 },
     { { { { 792, 0, -4018 }, { -689, 4035, -135 }, { 3959, 702, 780 } }, { 3941, 2050, 660 } }, 230 },
     { { { { 1311, 0, -3880 }, { -766, 4015, -259 }, { 3803, 809, 1285 } }, { -338, 2340, 430 } }, 230 },
     { { { { 4095, 0, 0 }, { 0, 3401, -2281 }, { 0, 2281, 3401 } }, { 1000, 2820, 268 } }, 257 },
 };
 
-WorldCollisionFootstepSounds D_acropolis_west_elevator_hall_80186AB0 = {
-    0x10000011,
-    0x10000013,
-    0x10000011,
+/// Base sound-script entries for the hall's paired walking and running cues.
+enum {
+    ACROPOLIS_WEST_ELEVATOR_HALL_FOOTSTEP_WALK = SOUND_SCRIPT_REQUEST_TYPE_1 | 17,
+    ACROPOLIS_WEST_ELEVATOR_HALL_FOOTSTEP_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 19,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_west_elevator_hall_80186ABC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_west_elevator_hall_80186AB0 },
+/// Footstep cue bases for every hall surface; scripted jumps reuse the walking pair.
+///
+/// Cue 1 uses base + 1; cue 2 uses the base. Companion playback adds 100.
+/// Surface records borrow this room-owned data while the overlay is loaded.
+static WorldCollisionFootstepSounds _gAcropolisWestElevatorHallFootstepSounds = {
+    ACROPOLIS_WEST_ELEVATOR_HALL_FOOTSTEP_WALK,
+    ACROPOLIS_WEST_ELEVATOR_HALL_FOOTSTEP_RUN,
+    ACROPOLIS_WEST_ELEVATOR_HALL_FOOTSTEP_WALK,
 };
 
-WorldCollisionSurfaceProperties* D_acropolis_west_elevator_hall_80186AC4[8] = {
-    D_acropolis_west_elevator_hall_80186ABC,
-    D_acropolis_west_elevator_hall_80186ABC,
-    D_acropolis_west_elevator_hall_80186ABC,
-    D_acropolis_west_elevator_hall_80186ABC,
-    D_acropolis_west_elevator_hall_80186ABC,
-    D_acropolis_west_elevator_hall_80186ABC,
-    D_acropolis_west_elevator_hall_80186ABC,
-    D_acropolis_west_elevator_hall_80186ABC,
+/// Shared policy for all hall surfaces: block probes, allow impacts and apply pushback.
+///
+/// Every surface class uses the same footstep cues. The first byte's role is unproven.
+static WorldCollisionSurfaceProperties _gAcropolisWestElevatorHallSurfaceProperties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    &_gAcropolisWestElevatorHallFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gAcropolisWestElevatorHallSurfacePropertiesByClass[8] = {
+    &_gAcropolisWestElevatorHallSurfaceProperties,
+    &_gAcropolisWestElevatorHallSurfaceProperties,
+    &_gAcropolisWestElevatorHallSurfaceProperties,
+    &_gAcropolisWestElevatorHallSurfaceProperties,
+    &_gAcropolisWestElevatorHallSurfaceProperties,
+    &_gAcropolisWestElevatorHallSurfaceProperties,
+    &_gAcropolisWestElevatorHallSurfaceProperties,
+    &_gAcropolisWestElevatorHallSurfaceProperties,
 };
 
 Task* D_acropolis_west_elevator_hall_80186AE4[2] = { 0 };
@@ -1288,13 +1371,13 @@ void acropolisWestElevatorHallBayLightingTask(Task* task)
     /// whose address and value have no side effects; it exits at ARRAY_SIZE.
     /// Expands to a loop and an upload: invoke only inside an explicit compound
     /// statement. Neither argument may alter control flow.
-#define ACROPOLIS_WEST_ELEVATOR_HALL_UPLOAD_BAY_PALETTE(litWeightQ12, colorIndex)                                                                 \
-    for ((colorIndex) = 0; (colorIndex) < (s32)ARRAY_SIZE(D_acropolis_west_elevator_hall_80184E04); (colorIndex) += GPU_RGB555_CLUT_ROW_COLORS) { \
-        gpuBlendRgb555ClutRow(&D_acropolis_west_elevator_hall_80184C04[(colorIndex)],                                                             \
-                              &D_acropolis_west_elevator_hall_80184A04[(colorIndex)], (litWeightQ12),                                             \
-                              &D_acropolis_west_elevator_hall_80184E04[(colorIndex)]);                                                            \
-    }                                                                                                                                             \
-    gpuUploadImages(D_acropolis_west_elevator_hall_80185004)
+#define ACROPOLIS_WEST_ELEVATOR_HALL_UPLOAD_BAY_PALETTE(litWeightQ12, colorIndex)                                                                   \
+    for ((colorIndex) = 0; (colorIndex) < (s32)ARRAY_SIZE(_gAcropolisWestElevatorHallBayBlendedClut); (colorIndex) += GPU_RGB555_CLUT_ROW_COLORS) { \
+        gpuBlendRgb555ClutRow(&_gAcropolisWestElevatorHallBayLitClut[(colorIndex)],                                                                 \
+                              &_gAcropolisWestElevatorHallBayUnlitClut[(colorIndex)], (litWeightQ12),                                               \
+                              &_gAcropolisWestElevatorHallBayBlendedClut[(colorIndex)]);                                                            \
+    }                                                                                                                                               \
+    gpuUploadImages(_gAcropolisWestElevatorHallBayClutUploads)
 
     work           = task->spawnArg2.pointer;
     paletteChanged = 0;

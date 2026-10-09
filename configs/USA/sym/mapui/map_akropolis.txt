@@ -167,13 +167,13 @@ gAcropolisHelicopterLandingPadSurfacePropertiesByClass = 0x80187DC8; // absolute
 gAcropolisHelicopterLandingPadModel0A8E8 = 0x80187F50; // absolute:True owner=acropolis_helicopter_landing_pad
 acropolisWestElevatorHallRoomTask = 0x8017F5F4; // type:func absolute:True owner=acropolis_west_elevator_hall
 D_acropolis_west_elevator_hall_80185024 = 0x80185024; // absolute:True owner=acropolis_west_elevator_hall shared=rooms
-D_acropolis_west_elevator_hall_80185034 = 0x80185034; // absolute:True owner=acropolis_west_elevator_hall shared=rooms
-D_acropolis_west_elevator_hall_80185038 = 0x80185038; // absolute:True owner=acropolis_west_elevator_hall shared=rooms
-D_acropolis_west_elevator_hall_8018503C = 0x8018503C; // absolute:True owner=acropolis_west_elevator_hall shared=rooms
+gAcropolisWestElevatorHallViewMaps = 0x80185034; // absolute:True owner=acropolis_west_elevator_hall shared=rooms
+gAcropolisWestElevatorHallViewCounts = 0x80185038; // absolute:True owner=acropolis_west_elevator_hall shared=rooms
+gAcropolisWestElevatorHallRoomLightingTable = 0x8018503C; // absolute:True owner=acropolis_west_elevator_hall shared=rooms
 D_acropolis_west_elevator_hall_80185044 = 0x80185044; // absolute:True owner=acropolis_west_elevator_hall
-D_acropolis_west_elevator_hall_80186408 = 0x80186408; // absolute:True owner=acropolis_west_elevator_hall
-D_acropolis_west_elevator_hall_801869FC = 0x801869FC; // absolute:True owner=acropolis_west_elevator_hall
-D_acropolis_west_elevator_hall_80186AC4 = 0x80186AC4; // absolute:True owner=acropolis_west_elevator_hall
+gAcropolisWestElevatorHallSpriteViews = 0x80186408; // absolute:True owner=acropolis_west_elevator_hall
+gAcropolisWestElevatorHallViewCameras = 0x801869FC; // absolute:True owner=acropolis_west_elevator_hall
+gAcropolisWestElevatorHallSurfacePropertiesByClass = 0x80186AC4; // absolute:True owner=acropolis_west_elevator_hall
 mistR18BriefingTask = 0x8017ED64; // type:func absolute:True owner=mist_r18
 D_mist_r18_8018660C = 0x8018660C; // absolute:True owner=mist_r18 shared=rooms
 D_mist_r18_8018661C = 0x8018661C; // absolute:True owner=mist_r18

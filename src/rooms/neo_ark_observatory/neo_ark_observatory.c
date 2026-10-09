@@ -74,10 +74,6 @@ extern EvsCommand D_actor_450200_8013CAEC[];
 extern EvsCommand D_actor_450200_8013FC58[];
 extern EvsCommand D_actor_450200_80140078[];
 
-/// Index of the mirrored player's coordinate part each held-object reflection
-/// is parented to, by `Task::spawnArg1`.
-static u8 Reflection_Data_8017FC8C[];
-
 /// The departure task's descriptor.
 extern TaskDesc D_neo_ark_observatory_80180DD4;
 

@@ -53400,10 +53400,10 @@ calls and `global_alloc` gives it a callee-saved one - exactly the `lw $a0` +
 ```c
 /* one read: no move, function is one insn short */
 playerReflectionModel = playerReflection->extra.tmd;
-reflectedPart = &playerReflectionModel->coords[Reflection_Data_8017FC8C[reflectionTask->spawnArg1.value]];
+reflectedPart = &playerReflectionModel->coords[_gPlanarReflectionAttachmentParts[reflectionTask->spawnArg1.value]];
 
 /* two reads: CSE emits the copy */
-reflectedPart = &playerReflection->extra.tmd->coords[Reflection_Data_8017FC8C[reflectionTask->spawnArg1.value]];
+reflectedPart = &playerReflection->extra.tmd->coords[_gPlanarReflectionAttachmentParts[reflectionTask->spawnArg1.value]];
 playerReflectionModel = playerReflection->extra.tmd;
 ```
 

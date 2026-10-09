@@ -891,7 +891,7 @@ static void _planarReflectionAttachmentTask(Task* reflectionTask)
         taskCallExit(reflectionTask);
     }
     playerReflection      = reflectionTask->spawnArg2.pointer;
-    reflectedPart         = &playerReflection->extra.tmd->coords[Reflection_Data_8017FC8C[reflectionTask->spawnArg1.value]];
+    reflectedPart         = &playerReflection->extra.tmd->coords[_gPlanarReflectionAttachmentParts[reflectionTask->spawnArg1.value]];
     mirrorWork            = playerReflection->work;
     playerReflectionModel = playerReflection->extra.tmd;
     if (reflectionTask->state == PLANAR_REFLECTION_ATTACHMENT_STATE_INIT) {

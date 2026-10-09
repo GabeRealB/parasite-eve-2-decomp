@@ -60,10 +60,6 @@
 extern void func_807245E4(void*);
 extern void func_80724608(void*, s32, s32, void*);
 
-/// Part of the mirrored player model each held-object reflection hangs off,
-/// indexed by `Task::spawnArg1`.
-static u8 Reflection_Data_8017FC8C[];
-
 extern AnimationPlayRequest D_acropolis_east_elevator_hall_80185C8C;
 extern EvsCommand           D_acropolis_east_elevator_hall_80185D54[];
 extern EvsCommand           D_acropolis_east_elevator_hall_801860B4[];

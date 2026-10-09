@@ -78,10 +78,6 @@ static void _roomCutsceneSoundTask(Task* task);
 
 extern UiObjectDesc D_800611E4;
 
-/// Index of the mirrored player's coordinate part each held-object reflection
-/// is parented to, by `Task::spawnArg1`.
-static u8 Reflection_Data_8017FC8C[];
-
 /// Task descriptor of the held-object reflections the mirror spawns.
 static TaskDesc D_acropolis_square_80183468[];
 

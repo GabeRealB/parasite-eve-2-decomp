@@ -13,19 +13,42 @@
 // acropolis_west_elevator_hall
 extern WorldCollisionRoomResources D_acropolis_west_elevator_hall_80185024[];
 
-extern u8* D_acropolis_west_elevator_hall_80185034[];
+/// Logical-view map directory for the hall's single room.
+///
+/// Room 1 borrows `gViewIdentityMap`: logical views 1..5 map to resources 1..5.
+/// The map overlay borrows this directory while the room overlay is loaded.
+extern u8* gAcropolisWestElevatorHallViewMaps[1];
 
-extern ViewCount D_acropolis_west_elevator_hall_80185038[];
+/// Number of logical views in room 1: five, matching the sprite and camera arrays.
+extern ViewCount gAcropolisWestElevatorHallViewCounts[1];
 
-extern WorldCoordRoomLighting D_acropolis_west_elevator_hall_8018503C[];
+/// Room-1 model lighting, with the hall's point lights and default ambient minima.
+///
+/// The stage map borrows the record and its mutable light collection while this
+/// room overlay is loaded. Indexed by the 1-based room minus one.
+extern WorldCoordRoomLighting gAcropolisWestElevatorHallRoomLightingTable[1];
 
 extern DirectionWarpEntry D_acropolis_west_elevator_hall_80185044[];
 
-extern SpriteView D_acropolis_west_elevator_hall_80186408[];
+/// Foreground sprite resources for mapped views 1..5, indexed by view minus one.
+///
+/// View 1 has no source sprites. All views retain decoded background strips and
+/// use no draw-area overrides. Lists and source records remain borrowed and
+/// writable while this room overlay is loaded.
+extern SpriteView gAcropolisWestElevatorHallSpriteViews[5];
 
-extern ViewCamera D_acropolis_west_elevator_hall_801869FC[];
+/// Cameras for mapped hall views 1..5, indexed by view minus one.
+///
+/// Rotation coefficients use Q12; translations are negated camera origins in
+/// game units, and projection distances are pixels. Keep the overlay loaded
+/// until a queued camera-application task has copied its selected record.
+extern ViewCamera gAcropolisWestElevatorHallViewCameras[5];
 
-extern WorldCollisionSurfaceProperties* D_acropolis_west_elevator_hall_80186AC4[];
+/// Hall collision policies and footstep cues indexed by surface class 0..7.
+///
+/// All eight entries borrow one shared record. The grid uses classes 0 and 3;
+/// collision setup reads every entry. Keep this room overlay loaded while used.
+extern WorldCollisionSurfaceProperties* gAcropolisWestElevatorHallSurfacePropertiesByClass[8];
 
 /// Draws one frame of a pulsing additive red diamond, then ends the counted effect.
 ///

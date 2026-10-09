@@ -135,10 +135,6 @@ static UiObjectDesc Telephone_Data_80181CC8;
 /// The telephone menu panel's list.
 static UiList Telephone_Data_80181CF4;
 
-/// Index of the mirrored player's coordinate part each held-object reflection
-/// is parented to, by `Task::spawnArg1`.
-static u8 Reflection_Data_8017FC8C[];
-
 /// Task table of the room's cutscene: entry 0 is the cutscene task
 /// `_roomCutsceneTask`, entry 1 the sound task
 /// `_roomCutsceneSoundTask` it runs alongside the scene.
