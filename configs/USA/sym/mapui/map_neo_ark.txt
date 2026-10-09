@@ -207,17 +207,17 @@ D_shelter_b6_nursery_8018750C = 0x8018750C; // absolute:True owner=shelter_b6_nu
 D_shelter_b6_nursery_8018789C = 0x8018789C; // absolute:True owner=shelter_b6_nursery
 D_shelter_b6_nursery_80187958 = 0x80187958; // absolute:True owner=shelter_b6_nursery
 shelterB6GrowthRoomTask = 0x8017D7D4; // type:func absolute:True owner=shelter_b6_growth_room shared=rooms
-D_shelter_b6_growth_room_8017F378 = 0x8017F378; // absolute:True owner=shelter_b6_growth_room shared=rooms
-D_shelter_b6_growth_room_8017F37C = 0x8017F37C; // absolute:True owner=shelter_b6_growth_room
+gShelterB6GrowthRoomViewMaps = 0x8017F378; // absolute:True owner=shelter_b6_growth_room shared=rooms
+gShelterB6GrowthRoomViewCounts = 0x8017F37C; // absolute:True owner=shelter_b6_growth_room
 D_shelter_b6_growth_room_8017F380 = 0x8017F380; // absolute:True owner=shelter_b6_growth_room shared=rooms
-D_shelter_b6_growth_room_8017FAF0 = 0x8017FAF0; // absolute:True owner=shelter_b6_growth_room
-D_shelter_b6_growth_room_8017FB14 = 0x8017FB14; // absolute:True owner=shelter_b6_growth_room
-D_shelter_b6_growth_room_8017FEB8 = 0x8017FEB8; // absolute:True owner=shelter_b6_growth_room shared=rooms
-D_shelter_b6_growth_room_8017FF78 = 0x8017FF78; // absolute:True owner=shelter_b6_growth_room shared=rooms
-D_shelter_b6_growth_room_8017FF90 = 0x8017FF90; // absolute:True owner=shelter_b6_growth_room shared=rooms
-D_shelter_b6_growth_room_801803A0 = 0x801803A0; // absolute:True owner=shelter_b6_growth_room shared=rooms
-D_shelter_b6_growth_room_80180730 = 0x80180730; // absolute:True owner=shelter_b6_growth_room shared=rooms
-D_shelter_b6_growth_room_801807A8 = 0x801807A8; // absolute:True owner=shelter_b6_growth_room shared=rooms
+gShelterB6GrowthRoomCollisionGrid = 0x8017FAF0; // absolute:True owner=shelter_b6_growth_room
+gShelterB6GrowthRoomViewCameras = 0x8017FB14; // absolute:True owner=shelter_b6_growth_room
+gShelterB6GrowthRoomSpriteViews = 0x8017FEB8; // absolute:True owner=shelter_b6_growth_room shared=rooms
+gShelterB6GrowthRoomLights = 0x8017FF78; // absolute:True owner=shelter_b6_growth_room shared=rooms
+gShelterB6GrowthRoomViewBoundaryTriggers = 0x8017FF90; // absolute:True owner=shelter_b6_growth_room shared=rooms
+gShelterB6GrowthRoomActionTriggers = 0x801803A0; // absolute:True owner=shelter_b6_growth_room shared=rooms
+gShelterB6GrowthRoomAmbientByView = 0x80180730; // absolute:True owner=shelter_b6_growth_room shared=rooms
+gShelterB6GrowthRoomSurfaceProperties = 0x801807A8; // absolute:True owner=shelter_b6_growth_room shared=rooms
 shelterB6CorridorRoomTask = 0x8017E144; // type:func absolute:True owner=shelter_b6_corridor
 D_shelter_b6_corridor_8017F8B4 = 0x8017F8B4; // absolute:True owner=shelter_b6_corridor
 D_shelter_b6_corridor_8017F8B8 = 0x8017F8B8; // absolute:True owner=shelter_b6_corridor

@@ -14,28 +14,84 @@
 
 extern AreaVariant D_shelter_b6_growth_room_80180338[13];
 
-// shelter_b6_growth_room
-extern u8* D_shelter_b6_growth_room_8017F378[];
+/// Number of mapped camera and sprite views in the growth room.
+enum { SHELTER_B6_GROWTH_ROOM_VIEW_COUNT = 8 };
 
-extern ViewCount D_shelter_b6_growth_room_8017F37C[];
+/// Logical-view map for the growth room's single room slot.
+///
+/// Room 1 borrows `gViewIdentityMap`: logical views 1..8 select the same
+/// 1-based camera, image and sprite indices. The shared map has its own larger
+/// capacity; this directory remains valid while the room overlay is loaded.
+extern u8* gShelterB6GrowthRoomViewMaps[1];
+
+/// Reverse-search length for room 1's logical-view map, in byte entries.
+///
+/// The single signed count covers views 1..8 and has no terminator. It limits
+/// logical-view searches independently of the shared identity map's capacity.
+extern ViewCount gShelterB6GrowthRoomViewCounts[1];
 
 extern DirectionWarpEntry D_shelter_b6_growth_room_8017F380[];
 
-extern WorldCollisionGrid D_shelter_b6_growth_room_8017FAF0;
+/// Live growth-room collision mesh with a reserved movable box.
+///
+/// The 54 faces use 14 normals and 80 vertices in room coordinates, indexed by
+/// a 2-by-4 XZ grid with 4000-unit cells. Room setup binds the view coordinate.
+/// `shelterB6GrowthRoomResetCollisionBox` restores the leading four faces and
+/// normals and eight vertices; later geometry and cell lists remain intact.
+/// The descriptor and writable pools must stay loaded while collision uses them.
+extern WorldCollisionGrid gShelterB6GrowthRoomCollisionGrid;
 
-extern ViewCamera D_shelter_b6_growth_room_8017FB14[];
+/// Growth-room cameras, indexed by the mapped 1-based view minus one.
+///
+/// Rotation coefficients use `ONE` per unit; translations are negated world
+/// camera origins and projection distances are pixels. Keep the room overlay
+/// loaded until a queued camera application has copied its selected record.
+extern ViewCamera gShelterB6GrowthRoomViewCameras[SHELTER_B6_GROWTH_ROOM_VIEW_COUNT];
 
-extern SpriteView D_shelter_b6_growth_room_8017FEB8[];
+/// Background and depth-sorted sprite lists for the growth room's eight views.
+///
+/// Indexed by mapped view minus one. Views 2 and 3 have six and nineteen source
+/// rectangles; the other views retain empty batch lists. Every view keeps the
+/// decoded background strips and has no draw-area list. Descriptors and their
+/// mutable sources/batches borrow the loaded room overlay's lifetime.
+extern SpriteView gShelterB6GrowthRoomSpriteViews[SHELTER_B6_GROWTH_ROOM_VIEW_COUNT];
 
-extern WorldCoordRoomLights D_shelter_b6_growth_room_8017FF78;
+/// Growth-room model lighting: one white point light shared by every view.
+///
+/// No directional or cone lights. Room lighting parents and composes the mutable
+/// point-light coordinate and updates its attenuation; keep this overlay loaded
+/// while its descriptor or light is in use.
+extern WorldCoordRoomLights gShelterB6GrowthRoomLights;
 
-extern WorldCollisionTrigger D_shelter_b6_growth_room_8017FF90[];
+/// Twelve directional view boundaries connecting growth-room views 2 through 6.
+///
+/// Source and destination bytes are 1-based logical views. The final boundary
+/// is active and carries `WORLD_COLLISION_TRIGGER_LAST`. Setup links and enables
+/// all records; storage must remain loaded until the runtime list is unlinked.
+extern WorldCollisionTrigger gShelterB6GrowthRoomViewBoundaryTriggers[12];
 
-extern WorldCollisionTrigger D_shelter_b6_growth_room_801803A0[];
+/// Growth-room interaction quads for companion scenes, departure and CAP events.
+///
+/// Twelve active records, ending with `WORLD_COLLISION_TRIGGER_LAST` on the
+/// final quad. Room actions request conversation or departure; CAP records
+/// request dialogue directly or send the room's companion command. Setup links
+/// and enables the mutable records, which must stay loaded until unlinked.
+extern WorldCollisionTrigger gShelterB6GrowthRoomActionTriggers[12];
 
-extern WorldCoordRoomAmbientEntry D_shelter_b6_growth_room_80180730[];
+/// Minimum model ambient colours for each growth-room view.
+///
+/// Entry zero is the eight-view count; entries 1..8 are RGB minima in units of
+/// 1/16 of an 8-bit colour level, plus stored luma. View 2 has brighter minima;
+/// the remaining views use one colour level. Borrowed while the room is loaded.
+extern WorldCoordRoomAmbientEntry gShelterB6GrowthRoomAmbientByView[SHELTER_B6_GROWTH_ROOM_VIEW_COUNT + 1];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b6_growth_room_801807A8[];
+/// Collision policies and footstep cues indexed by growth-room surface class 0..7.
+///
+/// Every class blocks probes, allows weapon impacts and applies pushback.
+/// Classes 1 and 2 select distinct sound-script pairs; classes 0 and 3..7 share
+/// the silent record. The directory and its records remain room-owned and must
+/// stay loaded for collision queries and player/companion footsteps.
+extern WorldCollisionSurfaceProperties* gShelterB6GrowthRoomSurfaceProperties[8];
 
 /// Runs growth-room entry setup, message service and teardown.
 ///

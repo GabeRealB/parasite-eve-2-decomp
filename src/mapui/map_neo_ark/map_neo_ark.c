@@ -536,7 +536,7 @@ static WorldCoordRoomLighting D_map_neo_ark_8017A9B4[1] = {
 };
 
 static WorldCoordRoomLighting D_map_neo_ark_8017A9BC[1] = {
-    { &D_shelter_b6_growth_room_8017FF78, D_shelter_b6_growth_room_80180730 },
+    { &gShelterB6GrowthRoomLights, gShelterB6GrowthRoomAmbientByView },
 };
 
 static WorldCoordRoomLighting D_map_neo_ark_8017A9C4[1] = {
@@ -662,7 +662,7 @@ static ViewCount* D_map_neo_ark_8017AB04[33] = {
     D_neo_ark_altar_8017F0F8,
     D_neo_ark_shrine_80182808,
     D_shelter_b6_nursery_80185308,
-    D_shelter_b6_growth_room_8017F37C,
+    gShelterB6GrowthRoomViewCounts,
     D_shelter_b6_corridor_8017F8B8,
     D_shelter_b6_training_room_8018441C,
     D_neo_ark_r26_8017E0E8,
@@ -682,7 +682,7 @@ static WorldCollisionRoomResources D_map_neo_ark_8017AB8C[1] = {
 };
 
 static WorldCollisionRoomResources D_map_neo_ark_8017AB9C[1] = {
-    { &D_shelter_b6_growth_room_8017FAF0, D_shelter_b6_growth_room_8017FF90, D_shelter_b6_growth_room_801803A0, NULL },
+    { &gShelterB6GrowthRoomCollisionGrid, gShelterB6GrowthRoomViewBoundaryTriggers, gShelterB6GrowthRoomActionTriggers, NULL },
 };
 
 static WorldCollisionRoomResources D_map_neo_ark_8017ABAC[1] = {
@@ -774,7 +774,7 @@ static ViewCamera* D_map_neo_ark_8017ACA4[33] = {
     D_neo_ark_altar_8017F5A0,
     D_neo_ark_shrine_801836BC,
     D_shelter_b6_nursery_801858C4,
-    D_shelter_b6_growth_room_8017FB14,
+    gShelterB6GrowthRoomViewCameras,
     D_shelter_b6_corridor_8017FAB4,
     D_shelter_b6_training_room_80184758,
     D_neo_ark_r26_8017E1C0,
@@ -812,7 +812,7 @@ static u8** D_map_neo_ark_8017AD2C[33] = {
     D_neo_ark_altar_8017F0EC,
     D_neo_ark_shrine_801827F0,
     D_shelter_b6_nursery_80185304,
-    D_shelter_b6_growth_room_8017F378,
+    gShelterB6GrowthRoomViewMaps,
     D_shelter_b6_corridor_8017F8B4,
     D_shelter_b6_training_room_80184418,
     D_neo_ark_r26_8017E0E4,
@@ -850,7 +850,7 @@ static SpriteView* D_map_neo_ark_8017ADB4[33] = {
     D_neo_ark_altar_8017FE38,
     D_neo_ark_shrine_80185280,
     D_shelter_b6_nursery_80186FD0,
-    D_shelter_b6_growth_room_8017FEB8,
+    gShelterB6GrowthRoomSpriteViews,
     D_shelter_b6_corridor_8018004C,
     D_shelter_b6_training_room_80184D78,
     D_neo_ark_r26_8017E898,
@@ -888,7 +888,7 @@ WorldCollisionSurfaceProperties** D_map_neo_ark_8017AE3C[33] = {
     D_neo_ark_altar_8018005C,
     D_neo_ark_shrine_80186844,
     D_shelter_b6_nursery_80187958,
-    D_shelter_b6_growth_room_801807A8,
+    gShelterB6GrowthRoomSurfaceProperties,
     D_shelter_b6_corridor_80180548,
     D_shelter_b6_training_room_80185C38,
     D_neo_ark_r26_8017EA30,

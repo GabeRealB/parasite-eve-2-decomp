@@ -31,6 +31,7 @@
 #include "main/random.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
+#include "main/sound_types.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
@@ -136,42 +137,60 @@ SVECTOR D_shelter_b6_growth_room_8017F258[36] = {
     { 3750, 0, 2000, 0 },
 };
 
-u8* D_shelter_b6_growth_room_8017F378[1] = {
+u8* gShelterB6GrowthRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_b6_growth_room_8017F37C[1] = { 8 };
+ViewCount gShelterB6GrowthRoomViewCounts[1] = { ARRAY_SIZE(gShelterB6GrowthRoomViewCameras) };
 
 DirectionWarpEntry D_shelter_b6_growth_room_8017F380[1] = {
     { { { .word = 0 }, 4030, 0, -2950 }, { 0, 0, 0, 0 }, { { .word = 0 }, 4030, 0, -2950 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, 437 },
 };
 
-static SVECTOR _gShelterB6GrowthRoomCollision02530Normals[14] = {
+/// Room-space Q12 normal pool, including the four reserved box normals.
+static SVECTOR _gShelterB6GrowthRoomCollisionGridNormals[14] = {
 #include "assets/shelter_b6_growth_room_collision_02530_normals.inc"
 };
 
-static SVECTOR _gShelterB6GrowthRoomCollision02530Verts[80] = {
+/// Room-space vertex pool, including the eight reserved box vertices.
+static SVECTOR _gShelterB6GrowthRoomCollisionGridVerts[80] = {
 #include "assets/shelter_b6_growth_room_collision_02530_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB6GrowthRoomCollision02530Faces[54] = {
+/// Indexed room faces; the leading four receive the movable box at entry.
+static WorldCollisionGridFace _gShelterB6GrowthRoomCollisionGridFaces[54] = {
 #include "assets/shelter_b6_growth_room_collision_02530_faces.inc"
 };
 
-static s16 _gShelterB6GrowthRoomCollision02530Cells[208] = {
+/// Packed signed face-index lists, each ending at `WORLD_COLLISION_GRID_CELL_END`.
+static s16 _gShelterB6GrowthRoomCollisionGridCells[208] = {
 #include "assets/shelter_b6_growth_room_collision_02530_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB6GrowthRoomCollision02530Cells[i])
-static s16* _gShelterB6GrowthRoomCollision02530Table[8] = {
+// The generated table supplies element offsets into this room's cell-list pool.
+#define GRID_CELL(i) (&_gShelterB6GrowthRoomCollisionGridCells[i])
+/// Eight X-major cell-list pointers, four Z cells per X column.
+static s16* _gShelterB6GrowthRoomCollisionGridTable[8] = {
 #include "assets/shelter_b6_growth_room_collision_02530_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b6_growth_room_8017FAF0 = { NULL, _gShelterB6GrowthRoomCollision02530Normals, _gShelterB6GrowthRoomCollision02530Verts, _gShelterB6GrowthRoomCollision02530Faces, _gShelterB6GrowthRoomCollision02530Table, 500, 4000, 2, 4, 4000, 54 };
+WorldCollisionGrid gShelterB6GrowthRoomCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB6GrowthRoomCollisionGridNormals,
+    .vertices    = _gShelterB6GrowthRoomCollisionGridVerts,
+    .faces       = _gShelterB6GrowthRoomCollisionGridFaces,
+    .cellFaceIds = _gShelterB6GrowthRoomCollisionGridTable,
+    .xBias       = 500,
+    .zBias       = 4000,
+    .cellCountX  = 2,
+    .cellCountZ  = 4,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gShelterB6GrowthRoomCollisionGridFaces),
+};
 
-ViewCamera D_shelter_b6_growth_room_8017FB14[8] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -2500, 0x61A8, -3500 } }, 289 },
+ViewCamera gShelterB6GrowthRoomViewCameras[SHELTER_B6_GROWTH_ROOM_VIEW_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -2500, 25000, -3500 } }, 289 },
     { { { { -4032, 0, 718 }, { 2, 4095, 13 }, { -718, 13, -4032 } }, { -3570, 1470, -8390 } }, 230 },
     { { { { 4076, 0, 402 }, { 2, 4095, -23 }, { -402, 23, 4076 } }, { -3490, 1430, -2020 } }, 230 },
     { { { { -4066, 0, 489 }, { 331, 3011, 2756 }, { -359, 2776, -2990 } }, { -4350, 3350, 360 } }, 257 },
@@ -181,97 +200,126 @@ ViewCamera D_shelter_b6_growth_room_8017FB14[8] = {
     { { { { 798, 0, -4017 }, { -97, 4094, -19 }, { 4016, 99, 798 } }, { -4250, 1470, -5010 } }, 329 },
 };
 
-SpriteBatch D_shelter_b6_growth_room_8017FC34[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// View 1's empty sprite list; a zero first count retains decoded background strips.
+static SpriteBatch _gShelterB6GrowthRoomView1SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_shelter_b6_growth_room_8017FC44[6] = {
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, 40, 1110, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 88, 40, 1124, { .fields = { 112, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 88, 24, 1129, { .fields = { 120, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 88, 64, 1156, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, 64, 1150, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 96, 56, 1139, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
+/// Texture encoding and neutral opaque modulation of the two populated sprite views.
+enum {
+    SHELTER_B6_GROWTH_ROOM_SPRITE_TPAGE            = 0x8F,   // 8-bit texture page at VRAM (960, 0), blend mode 0
+    SHELTER_B6_GROWTH_ROOM_SPRITE_CLUT             = 0x3FC0, // Palette at VRAM (0, 255)
+    SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR    = 128,
+    SHELTER_B6_GROWTH_ROOM_SPRITE_OPAQUE_MODULATED = 0,
 };
 
-SpriteBatch D_shelter_b6_growth_room_8017FCBC[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 6, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Six depth-sorted rectangles for view 2, in screen pixels and texture texels.
+static SpriteSource _gShelterB6GrowthRoomView2SpriteSources[6] = {
+    { SHELTER_B6_GROWTH_ROOM_SPRITE_TPAGE, SHELTER_B6_GROWTH_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 104, 40, 1110, { .fields = { 112, 0 } }, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B6_GROWTH_ROOM_SPRITE_TPAGE, SHELTER_B6_GROWTH_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 88, 40, 1124, { .fields = { 112, 16 } }, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B6_GROWTH_ROOM_SPRITE_TPAGE, SHELTER_B6_GROWTH_ROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, 88, 24, 1129, { .fields = { 120, 32 } }, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B6_GROWTH_ROOM_SPRITE_TPAGE, SHELTER_B6_GROWTH_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 88, 64, 1156, { .fields = { 112, 48 } }, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B6_GROWTH_ROOM_SPRITE_TPAGE, SHELTER_B6_GROWTH_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 104, 64, 1150, { .fields = { 112, 64 } }, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B6_GROWTH_ROOM_SPRITE_TPAGE, SHELTER_B6_GROWTH_ROOM_SPRITE_CLUT, { .fields = { 16, 8 } }, 96, 56, 1139, { .fields = { 112, 80 } }, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_OPAQUE_MODULATED },
 };
 
-SpriteSource D_shelter_b6_growth_room_8017FCD4[19] = {
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -160, 16, 1203, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -160, 40, 1154, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -144, 16, 1164, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -144, 40, 1175, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -144, 56, 1178, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -144, 8, 1210, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -128, 8, 1210, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -128, 24, 1221, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -128, 40, 1206, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -128, 56, 1205, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -96, 16, 1243, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -96, 32, 1243, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -96, 56, 1236, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -104, 16, 1237, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -104, 32, 1245, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -104, 48, 1300, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -112, 16, 1178, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -112, 32, 1244, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -112, 48, 1290, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
+/// View 2's background selector, complete source range and terminal record.
+static SpriteBatch _gShelterB6GrowthRoomView2SpriteBatches[3] = {
+    { .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gShelterB6GrowthRoomView2SpriteSources) },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b6_growth_room_8017FE50[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 19, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Nineteen depth-sorted rectangles for view 3, in screen pixels and texture texels.
+static SpriteSource _gShelterB6GrowthRoomView3SpriteSources[19] = {
+    { SHELTER_B6_GROWTH_ROOM_SPRITE_TPAGE, SHELTER_B6_GROWTH_ROOM_SPRITE_CLUT, { .fields = { 16, 24 } }, -160, 16, 1203, { .fields = { 112, 32 } }, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B6_GROWTH_ROOM_SPRITE_TPAGE, SHELTER_B6_GROWTH_ROOM_SPRITE_CLUT, { .fields = { 16, 32 } }, -160, 40, 1154, { .fields = { 112, 0 } }, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B6_GROWTH_ROOM_SPRITE_TPAGE, SHELTER_B6_GROWTH_ROOM_SPRITE_CLUT, { .fields = { 16, 24 } }, -144, 16, 1164, { .fields = { 112, 56 } }, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B6_GROWTH_ROOM_SPRITE_TPAGE, SHELTER_B6_GROWTH_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, -144, 40, 1175, { .fields = { 112, 144 } }, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B6_GROWTH_ROOM_SPRITE_TPAGE, SHELTER_B6_GROWTH_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, -144, 56, 1178, { .fields = { 112, 160 } }, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B6_GROWTH_ROOM_SPRITE_TPAGE, SHELTER_B6_GROWTH_ROOM_SPRITE_CLUT, { .fields = { 16, 8 } }, -144, 8, 1210, { .fields = { 104, 240 } }, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B6_GROWTH_ROOM_SPRITE_TPAGE, SHELTER_B6_GROWTH_ROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, -128, 8, 1210, { .fields = { 120, 224 } }, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B6_GROWTH_ROOM_SPRITE_TPAGE, SHELTER_B6_GROWTH_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, -128, 24, 1221, { .fields = { 112, 128 } }, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B6_GROWTH_ROOM_SPRITE_TPAGE, SHELTER_B6_GROWTH_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, -128, 40, 1206, { .fields = { 112, 176 } }, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B6_GROWTH_ROOM_SPRITE_TPAGE, SHELTER_B6_GROWTH_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, -128, 56, 1205, { .fields = { 112, 208 } }, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B6_GROWTH_ROOM_SPRITE_TPAGE, SHELTER_B6_GROWTH_ROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, -96, 16, 1243, { .fields = { 120, 192 } }, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B6_GROWTH_ROOM_SPRITE_TPAGE, SHELTER_B6_GROWTH_ROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, -96, 32, 1243, { .fields = { 112, 80 } }, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B6_GROWTH_ROOM_SPRITE_TPAGE, SHELTER_B6_GROWTH_ROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, -96, 56, 1236, { .fields = { 120, 240 } }, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B6_GROWTH_ROOM_SPRITE_TPAGE, SHELTER_B6_GROWTH_ROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, -104, 16, 1237, { .fields = { 112, 96 } }, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B6_GROWTH_ROOM_SPRITE_TPAGE, SHELTER_B6_GROWTH_ROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, -104, 32, 1245, { .fields = { 112, 112 } }, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B6_GROWTH_ROOM_SPRITE_TPAGE, SHELTER_B6_GROWTH_ROOM_SPRITE_CLUT, { .fields = { 8, 24 } }, -104, 48, 1300, { .fields = { 120, 104 } }, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B6_GROWTH_ROOM_SPRITE_TPAGE, SHELTER_B6_GROWTH_ROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, -112, 16, 1178, { .fields = { 112, 192 } }, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B6_GROWTH_ROOM_SPRITE_TPAGE, SHELTER_B6_GROWTH_ROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, -112, 32, 1244, { .fields = { 112, 224 } }, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_OPAQUE_MODULATED },
+    { SHELTER_B6_GROWTH_ROOM_SPRITE_TPAGE, SHELTER_B6_GROWTH_ROOM_SPRITE_CLUT, { .fields = { 8, 24 } }, -112, 48, 1290, { .fields = { 120, 80 } }, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_GROWTH_ROOM_SPRITE_OPAQUE_MODULATED },
 };
 
-SpriteBatch D_shelter_b6_growth_room_8017FE68[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// View 3's background selector, complete source range and terminal record.
+static SpriteBatch _gShelterB6GrowthRoomView3SpriteBatches[3] = {
+    { .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gShelterB6GrowthRoomView3SpriteSources) },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b6_growth_room_8017FE78[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// View 4's empty sprite list, retaining decoded background strips.
+static SpriteBatch _gShelterB6GrowthRoomView4SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b6_growth_room_8017FE88[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// View 5's empty sprite list, retaining decoded background strips.
+static SpriteBatch _gShelterB6GrowthRoomView5SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b6_growth_room_8017FE98[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// View 6's empty sprite list, retaining decoded background strips.
+static SpriteBatch _gShelterB6GrowthRoomView6SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b6_growth_room_8017FEA8[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// View 7's empty sprite list, retaining decoded background strips.
+static SpriteBatch _gShelterB6GrowthRoomView7SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteView D_shelter_b6_growth_room_8017FEB8[8] = {
-    { { .empty = D_shelter_b6_growth_room_8017FC34 }, D_shelter_b6_growth_room_8017FC34, NULL },
-    { { .elements = D_shelter_b6_growth_room_8017FC44 }, D_shelter_b6_growth_room_8017FCBC, NULL },
-    { { .elements = D_shelter_b6_growth_room_8017FCD4 }, D_shelter_b6_growth_room_8017FE50, NULL },
-    { { .empty = D_shelter_b6_growth_room_8017FE68 }, D_shelter_b6_growth_room_8017FE68, NULL },
-    { { .empty = D_shelter_b6_growth_room_8017FE78 }, D_shelter_b6_growth_room_8017FE78, NULL },
-    { { .empty = D_shelter_b6_growth_room_8017FE88 }, D_shelter_b6_growth_room_8017FE88, NULL },
-    { { .empty = D_shelter_b6_growth_room_8017FE98 }, D_shelter_b6_growth_room_8017FE98, NULL },
-    { { .empty = D_shelter_b6_growth_room_8017FEA8 }, D_shelter_b6_growth_room_8017FEA8, NULL },
+/// View 8's empty sprite list, retaining decoded background strips.
+static SpriteBatch _gShelterB6GrowthRoomView8SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-WorldCoordPointLight D_shelter_b6_growth_room_8017FF18[1] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2400, -2850, 4050 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 5000, 0x2710 },
+SpriteView gShelterB6GrowthRoomSpriteViews[SHELTER_B6_GROWTH_ROOM_VIEW_COUNT] = {
+    { { .empty = _gShelterB6GrowthRoomView1SpriteBatches }, _gShelterB6GrowthRoomView1SpriteBatches, NULL },
+    { { .elements = _gShelterB6GrowthRoomView2SpriteSources }, _gShelterB6GrowthRoomView2SpriteBatches, NULL },
+    { { .elements = _gShelterB6GrowthRoomView3SpriteSources }, _gShelterB6GrowthRoomView3SpriteBatches, NULL },
+    { { .empty = _gShelterB6GrowthRoomView4SpriteBatches }, _gShelterB6GrowthRoomView4SpriteBatches, NULL },
+    { { .empty = _gShelterB6GrowthRoomView5SpriteBatches }, _gShelterB6GrowthRoomView5SpriteBatches, NULL },
+    { { .empty = _gShelterB6GrowthRoomView6SpriteBatches }, _gShelterB6GrowthRoomView6SpriteBatches, NULL },
+    { { .empty = _gShelterB6GrowthRoomView7SpriteBatches }, _gShelterB6GrowthRoomView7SpriteBatches, NULL },
+    { { .empty = _gShelterB6GrowthRoomView8SpriteBatches }, _gShelterB6GrowthRoomView8SpriteBatches, NULL },
 };
 
-WorldCoordRoomLights D_shelter_b6_growth_room_8017FF78 = { 0, NULL, ARRAY_SIZE(D_shelter_b6_growth_room_8017FF18), D_shelter_b6_growth_room_8017FF18, 0, NULL };
+/// White room point light at (2400, -2850, 4050), active in every logical view.
+///
+/// Full strength within 5000 world units, fading to zero at 10000. Room setup
+/// and shading update the coordinate cache, parent and attenuation in place.
+static WorldCoordPointLight _gShelterB6GrowthRoomPointLights[1] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2400, -2850, 4050 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 5000, 10000 },
+};
 
-WorldCollisionTrigger D_shelter_b6_growth_room_8017FF90[12] = {
+WorldCoordRoomLights gShelterB6GrowthRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gShelterB6GrowthRoomPointLights),
+    .pointLights           = _gShelterB6GrowthRoomPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
+};
+
+WorldCollisionTrigger gShelterB6GrowthRoomViewBoundaryTriggers[12] = {
     { NULL, NULL, NULL, { 2769, -2144, 5184, 0 }, { { 3833, -2544, -381, 0 }, { -3841, -2544, 375, 0 }, { 3833, 2544, -381, 0 }, { -3841, 2544, 375, 0 } }, { 402, 0, 4087, 0 }, { 0, 0, 4096, 0 }, 4608, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 2608, -2145, 5312, 0 }, { { -3808, -2544, 372, 0 }, { 3803, -2544, -378, 0 }, { -3808, 2544, 372, 0 }, { 3803, 2544, -378, 0 } }, { -402, 0, -4078, 0 }, { 0, 0, 4096, 0 }, 4579, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 4064, -1985, -1967, 0 }, { { 1952, -2448, 16, 0 }, { -1952, -2448, -16, 0 }, { 1952, 2448, 16, 0 }, { -1952, 2448, -16, 0 } }, { -35, 0, 4096, 0 }, { 0, 0, 4096, 0 }, 3124, 0, 6, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -286,14 +334,18 @@ WorldCollisionTrigger D_shelter_b6_growth_room_8017FF90[12] = {
     { NULL, NULL, NULL, { 4351, -1760, 1278, 0 }, { { 2404, -2544, -675, 0 }, { -2404, -2544, 676, 0 }, { 2404, 2544, -675, 0 }, { -2404, 2544, 676, 0 } }, { 1110, 0, 3952, 0 }, { 0, 0, 4096, 0 }, 3556, 0, 2, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_shelter_b6_growth_room_80180320[2] = {
-    { 101, 509, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, gActor450900Tasks },
+/// Loads actor package 450900 for the companion scene in area variant 1.
+///
+/// The paired placement list is empty: the room starts these tasks and scripts
+/// explicitly. Entry 101 remains the resource key; the second record terminates.
+static AreaResource _gShelterB6GrowthRoomSceneResources[2] = {
+    { 101, 509, AREA_RESOURCE_FILE_GROUP_BASE_40, ACTOR_450900_TASK_EXIT, { 0, 0 }, gActor450900Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaVariant D_shelter_b6_growth_room_80180338[13] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017C0E0, D_shelter_b6_growth_room_80180320 },
+    { D_map_neo_ark_8017C0E0, _gShelterB6GrowthRoomSceneResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -307,23 +359,40 @@ AreaVariant D_shelter_b6_growth_room_80180338[13] = {
     { NULL, NULL },
 };
 
-WorldCollisionTrigger D_shelter_b6_growth_room_801803A0[12] = {
-    { NULL, NULL, NULL, { 4263, -64, 6519, 0 }, { { -462, 0, -603, 0 }, { 451, 0, -620, 0 }, { -442, 0, 604, 0 }, { 455, 0, 621, 0 } }, { 0, 4114, 0, 0 }, { 4075, 0, 402, 0 }, 768, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5152, -64, 6768, 0 }, { { -1024, 0, -1360, 0 }, { 1024, 0, -1360, 0 }, { -1024, 0, 1360, 0 }, { 1024, 0, 1360, 0 } }, { 0, 4111, 0, 0 }, { -4097, 0, 0, 0 }, 1698, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4032, -64, -3520, 0 }, { { -1024, 0, -608, 0 }, { 1024, 0, -608, 0 }, { -1024, 0, 608, 0 }, { 1024, 0, 608, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, 4096, 0 }, 1187, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3496, -64, 6403, 0 }, { { 87, 0, -378, 0 }, { 1021, 0, -621, 0 }, { 77, 0, 599, 0 }, { 961, 0, 880, 0 } }, { 0, 4100, 0, 0 }, { 4090, 0, -201, 0 }, 1299, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 1, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 736, -64, 5584, 0 }, { { -1262, 0, -2763, 0 }, { 1251, 0, -2780, 0 }, { -1242, 0, 2764, 0 }, { 1255, 0, 2781, 0 } }, { 0, 4101, 0, 0 }, { 4075, 0, 402, 0 }, 3050, WORLD_COLLISION_TRIGGER_ACTION_CAP, 15, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 368, -64, 1072, 0 }, { { -574, 0, -1499, 0 }, { 563, 0, -1516, 0 }, { -554, 0, 1500, 0 }, { 567, 0, 1517, 0 } }, { 0, 4095, 0, 0 }, { 4075, 0, 402, 0 }, 1619, WORLD_COLLISION_TRIGGER_ACTION_CAP, 13, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0, -64, 9600, 0 }, { { -574, 0, -1147, 0 }, { 563, 0, -1164, 0 }, { -554, 0, 1148, 0 }, { 567, 0, 1165, 0 } }, { 0, 4096, 0, 0 }, { 4094, 0, 1, 0 }, 1292, WORLD_COLLISION_TRIGGER_ACTION_CAP, 18, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1312, -64, 0x28D0, 0 }, { { -1886, 0, -587, 0 }, { 1875, 0, -604, 0 }, { -1866, 0, 588, 0 }, { 1879, 0, 605, 0 } }, { 0, 4122, 0, 0 }, { 201, 0, -4091, 0 }, 1974, WORLD_COLLISION_TRIGGER_ACTION_CAP, 14, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5152, -64, 8816, 0 }, { { -1024, 0, -656, 0 }, { 1024, 0, -656, 0 }, { -1024, 0, 656, 0 }, { 1024, 0, 656, 0 } }, { 0, 4096, 0, 0 }, { -4097, 0, 0, 0 }, 1214, WORLD_COLLISION_TRIGGER_ACTION_CAP, 16, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5152, -64, 2720, 0 }, { { -1024, 0, -2704, 0 }, { 1024, 0, -2704, 0 }, { -1024, 0, 2704, 0 }, { 1024, 0, 2704, 0 } }, { 0, 4106, 0, 0 }, { -4097, 0, 0, 0 }, 2884, WORLD_COLLISION_TRIGGER_ACTION_CAP, 16, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4064, -64, 0x2F20, 0 }, { { -1086, 0, -475, 0 }, { 1075, 0, -492, 0 }, { -1066, 0, 476, 0 }, { 1079, 0, 493, 0 } }, { 0, 4096, 0, 0 }, { 402, 0, -4075, 0 }, 1180, WORLD_COLLISION_TRIGGER_ACTION_CAP, 19, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1312, -64, -1120, 0 }, { { -1086, 0, -475, 0 }, { 1075, 0, -492, 0 }, { -1066, 0, 476, 0 }, { 1079, 0, 493, 0 } }, { 0, 4096, 0, 0 }, { -1, 0, 4094, 0 }, 1180, WORLD_COLLISION_TRIGGER_ACTION_CAP, 19, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Room action and dialogue identifiers carried by the interaction records.
+///
+/// CAP command 1 and command 16 are sent as room commands; the remaining CAP
+/// identifiers select the loaded dialogue directly. These values are authored
+/// request IDs, independent of the trigger indices.
+enum {
+    SHELTER_B6_GROWTH_ROOM_ACTION_CONVERSATION      = 1,
+    SHELTER_B6_GROWTH_ROOM_ACTION_DEPARTURE         = 2,
+    SHELTER_B6_GROWTH_ROOM_COMMAND_COMPANION_CHOICE = 1,
+    SHELTER_B6_GROWTH_ROOM_COMMAND_IDLE_EVENT       = 16,
+    SHELTER_B6_GROWTH_ROOM_CAP_EXAMINE_13           = 13,
+    SHELTER_B6_GROWTH_ROOM_CAP_EXAMINE_14           = 14,
+    SHELTER_B6_GROWTH_ROOM_CAP_EXAMINE_15           = 15,
+    SHELTER_B6_GROWTH_ROOM_CAP_EXAMINE_18           = 18,
+    SHELTER_B6_GROWTH_ROOM_CAP_EXAMINE_19           = 19,
 };
 
-WorldCoordRoomAmbientEntry D_shelter_b6_growth_room_80180730[9] = {
-    { .viewCount = ARRAY_SIZE(D_shelter_b6_growth_room_80180730) - 1 },
+WorldCollisionTrigger gShelterB6GrowthRoomActionTriggers[12] = {
+    { NULL, NULL, NULL, { 4263, -64, 6519, 0 }, { { -462, 0, -603, 0 }, { 451, 0, -620, 0 }, { -442, 0, 604, 0 }, { 455, 0, 621, 0 } }, { 0, 4114, 0, 0 }, { 4075, 0, 402, 0 }, 768, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_B6_GROWTH_ROOM_ACTION_CONVERSATION, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5152, -64, 6768, 0 }, { { -1024, 0, -1360, 0 }, { 1024, 0, -1360, 0 }, { -1024, 0, 1360, 0 }, { 1024, 0, 1360, 0 } }, { 0, 4111, 0, 0 }, { -4097, 0, 0, 0 }, 1698, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B6_GROWTH_ROOM_COMMAND_COMPANION_CHOICE, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4032, -64, -3520, 0 }, { { -1024, 0, -608, 0 }, { 1024, 0, -608, 0 }, { -1024, 0, 608, 0 }, { 1024, 0, 608, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, 4096, 0 }, 1187, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_B6_GROWTH_ROOM_ACTION_DEPARTURE, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3496, -64, 6403, 0 }, { { 87, 0, -378, 0 }, { 1021, 0, -621, 0 }, { 77, 0, 599, 0 }, { 961, 0, 880, 0 } }, { 0, 4100, 0, 0 }, { 4090, 0, -201, 0 }, 1299, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_B6_GROWTH_ROOM_ACTION_CONVERSATION, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 736, -64, 5584, 0 }, { { -1262, 0, -2763, 0 }, { 1251, 0, -2780, 0 }, { -1242, 0, 2764, 0 }, { 1255, 0, 2781, 0 } }, { 0, 4101, 0, 0 }, { 4075, 0, 402, 0 }, 3050, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B6_GROWTH_ROOM_CAP_EXAMINE_15, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 368, -64, 1072, 0 }, { { -574, 0, -1499, 0 }, { 563, 0, -1516, 0 }, { -554, 0, 1500, 0 }, { 567, 0, 1517, 0 } }, { 0, 4095, 0, 0 }, { 4075, 0, 402, 0 }, 1619, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B6_GROWTH_ROOM_CAP_EXAMINE_13, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0, -64, 9600, 0 }, { { -574, 0, -1147, 0 }, { 563, 0, -1164, 0 }, { -554, 0, 1148, 0 }, { 567, 0, 1165, 0 } }, { 0, 4096, 0, 0 }, { 4094, 0, 1, 0 }, 1292, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B6_GROWTH_ROOM_CAP_EXAMINE_18, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1312, -64, 0x28D0, 0 }, { { -1886, 0, -587, 0 }, { 1875, 0, -604, 0 }, { -1866, 0, 588, 0 }, { 1879, 0, 605, 0 } }, { 0, 4122, 0, 0 }, { 201, 0, -4091, 0 }, 1974, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B6_GROWTH_ROOM_CAP_EXAMINE_14, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5152, -64, 8816, 0 }, { { -1024, 0, -656, 0 }, { 1024, 0, -656, 0 }, { -1024, 0, 656, 0 }, { 1024, 0, 656, 0 } }, { 0, 4096, 0, 0 }, { -4097, 0, 0, 0 }, 1214, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B6_GROWTH_ROOM_COMMAND_IDLE_EVENT, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5152, -64, 2720, 0 }, { { -1024, 0, -2704, 0 }, { 1024, 0, -2704, 0 }, { -1024, 0, 2704, 0 }, { 1024, 0, 2704, 0 } }, { 0, 4106, 0, 0 }, { -4097, 0, 0, 0 }, 2884, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B6_GROWTH_ROOM_COMMAND_IDLE_EVENT, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4064, -64, 0x2F20, 0 }, { { -1086, 0, -475, 0 }, { 1075, 0, -492, 0 }, { -1066, 0, 476, 0 }, { 1079, 0, 493, 0 } }, { 0, 4096, 0, 0 }, { 402, 0, -4075, 0 }, 1180, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B6_GROWTH_ROOM_CAP_EXAMINE_19, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1312, -64, -1120, 0 }, { { -1086, 0, -475, 0 }, { 1075, 0, -492, 0 }, { -1066, 0, 476, 0 }, { 1079, 0, 493, 0 } }, { 0, 4096, 0, 0 }, { -1, 0, 4094, 0 }, 1180, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B6_GROWTH_ROOM_CAP_EXAMINE_19, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+};
+
+WorldCoordRoomAmbientEntry gShelterB6GrowthRoomAmbientByView[SHELTER_B6_GROWTH_ROOM_VIEW_COUNT + 1] = {
+    { .viewCount = ARRAY_SIZE(gShelterB6GrowthRoomAmbientByView) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 539, 477, 477, 500 } },
     { .color = { 16, 16, 16, 16 } },
@@ -334,39 +403,59 @@ WorldCoordRoomAmbientEntry D_shelter_b6_growth_room_80180730[9] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-WorldCollisionFootstepSounds D_shelter_b6_growth_room_80180778 = {
-    0x10000059,
-    0x1000005B,
-    0x10000059,
+/// Type-1 footstep cue bases for growth-room surface class 1.
+///
+/// Walk and scripted jump use entries 89/90, run uses 91/92; the second entry
+/// is animation cue 1. Companion playback adds 100 to these entry numbers.
+static WorldCollisionFootstepSounds _gShelterB6GrowthRoomSurface1FootstepSounds = {
+    .walk         = SOUND_SCRIPT_REQUEST_TYPE_1 | 89,
+    .run          = SOUND_SCRIPT_REQUEST_TYPE_1 | 91,
+    .scriptedJump = SOUND_SCRIPT_REQUEST_TYPE_1 | 89,
 };
 
-WorldCollisionFootstepSounds D_shelter_b6_growth_room_80180784 = {
-    0x1000005D,
-    0x1000005F,
-    0x1000005D,
+/// Type-1 footstep cue bases for growth-room surface class 2.
+///
+/// Walk and scripted jump use entries 93/94, run uses 95/96; the second entry
+/// is animation cue 1. Companion playback adds 100 to these entry numbers.
+static WorldCollisionFootstepSounds _gShelterB6GrowthRoomSurface2FootstepSounds = {
+    .walk         = SOUND_SCRIPT_REQUEST_TYPE_1 | 93,
+    .run          = SOUND_SCRIPT_REQUEST_TYPE_1 | 95,
+    .scriptedJump = SOUND_SCRIPT_REQUEST_TYPE_1 | 93,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b6_growth_room_80180790[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Blocking, impact-enabled surface with pushback and no footstep cues (classes 0, 3..7).
+static WorldCollisionSurfaceProperties _gShelterB6GrowthRoomSilentSurface = {
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b6_growth_room_80180798[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b6_growth_room_80180778 },
+/// Surface class 1's blocking, weapon-impact, pushback and footstep policies.
+static WorldCollisionSurfaceProperties _gShelterB6GrowthRoomSurface1 = {
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB6GrowthRoomSurface1FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b6_growth_room_801807A0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b6_growth_room_80180784 },
+/// Surface class 2's blocking, weapon-impact, pushback and footstep policies.
+static WorldCollisionSurfaceProperties _gShelterB6GrowthRoomSurface2 = {
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB6GrowthRoomSurface2FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_b6_growth_room_801807A8[8] = {
-    D_shelter_b6_growth_room_80180790,
-    D_shelter_b6_growth_room_80180798,
-    D_shelter_b6_growth_room_801807A0,
-    D_shelter_b6_growth_room_80180790,
-    D_shelter_b6_growth_room_80180790,
-    D_shelter_b6_growth_room_80180790,
-    D_shelter_b6_growth_room_80180790,
-    D_shelter_b6_growth_room_80180790,
+WorldCollisionSurfaceProperties* gShelterB6GrowthRoomSurfaceProperties[8] = {
+    &_gShelterB6GrowthRoomSilentSurface,
+    &_gShelterB6GrowthRoomSurface1,
+    &_gShelterB6GrowthRoomSurface2,
+    &_gShelterB6GrowthRoomSilentSurface,
+    &_gShelterB6GrowthRoomSilentSurface,
+    &_gShelterB6GrowthRoomSilentSurface,
+    &_gShelterB6GrowthRoomSilentSurface,
+    &_gShelterB6GrowthRoomSilentSurface,
 };
 
 AreaApplyRec D_shelter_b6_growth_room_801807C8[58] = {
@@ -457,7 +546,7 @@ void shelterB6GrowthRoomResetCollisionBox(s32 useYOffset)
         }                                                                                                   \
     }
 
-    liveGrid    = &D_shelter_b6_growth_room_8017FAF0;
+    liveGrid    = &gShelterB6GrowthRoomCollisionGrid;
     boxTemplate = &D_shelter_b6_growth_room_8017F234;
 
     SHELTER_B6_GROWTH_ROOM_COPY_COLLISION_BOX();
