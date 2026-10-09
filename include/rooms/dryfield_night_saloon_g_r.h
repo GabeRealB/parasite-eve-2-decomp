@@ -13,12 +13,20 @@
 
 extern AreaVariant D_dryfield_night_saloon_g_r_80188EE4[13];
 
-// dryfield_night_saloon_g_r
-extern WorldCoordRoomLighting D_dryfield_night_saloon_g_r_80185180[];
+/// Lighting for night-saloon rooms 1 and 2, sharing one mutable point-light collection.
+///
+/// Indexed by room - 1. Both entries use the default ambient minima; the map
+/// directory borrows this array only while the saloon overlay is loaded.
+extern WorldCoordRoomLighting gDryfieldNightSaloonGRRoomLighting[2];
 
 extern WorldCollisionRoomResources D_dryfield_night_saloon_g_r_80185190[];
 
-extern u8* D_dryfield_night_saloon_g_r_801851B0[];
+/// Logical-view maps for night-saloon rooms 1 and 2.
+///
+/// Indexed by room - 1. Both borrow gameplay's identity mapping for views 1..13;
+/// each byte maps view - 1 to a 1-based camera/image/sprite index. The directory
+/// lives with the saloon overlay; the mapping lives with gameplay.
+extern u8* gDryfieldNightSaloonGRViewMaps[2];
 
 extern ViewCount D_dryfield_night_saloon_g_r_801851B8[];
 
@@ -28,7 +36,13 @@ extern ViewCamera D_dryfield_night_saloon_g_r_80185B74[];
 
 extern SpriteView D_dryfield_night_saloon_g_r_80187FC8[];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_night_saloon_g_r_80188F84[];
+/// Night-saloon collision and footstep policies indexed by surface class 0..7.
+///
+/// Class 1 has its own footsteps; classes 2 and 3 share a pair. Class 3 passes
+/// probes and disables weapon impacts. All classes apply pushback; classes 0
+/// and 4..7 have no surface footstep cues. Records are borrowed while this
+/// overlay is loaded.
+extern WorldCollisionSurfaceProperties* gDryfieldNightSaloonGRSurfacePropertiesByClass[8];
 
 /// Draws the night saloon's view-gated flares and light beams each frame.
 ///
