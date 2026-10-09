@@ -396,8 +396,6 @@ extern TaskDesc gActor403900GolemTaskDesc;
 /// argument borrows the live Enemy through spawn, living frames and corpse frames.
 extern TaskDesc gActor402200GolemTaskDesc;
 
-extern TaskDesc D_actor_260400_80154C18[];
-
 /// Odd Stranger spawn recipe exported by actor_401000 to room resources.
 ///
 /// Uses a TMD body at priority 96 and defers primitive-buffer allocation

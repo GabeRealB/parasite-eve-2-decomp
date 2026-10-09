@@ -532,7 +532,7 @@ AreaResource D_shelter_1f_heliport_80182BAC[3] = {
 
 AreaResource D_shelter_1f_heliport_80182BD0[3] = {
     { 116, 615, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor161500SoldierBTasks },
-    { 144, 604, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_actor_260400_80154C18 },
+    { 144, 604, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor260400RupertBroderickTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

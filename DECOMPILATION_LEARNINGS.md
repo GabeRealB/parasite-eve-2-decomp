@@ -97871,7 +97871,7 @@ not define the name, after the manifest has already been touched.
 `_actor461800ScriptedWalkerAttachmentTask` / `_actor260400MongooseTask` are the worked case:
 byte-equal bodies modulo the link address whose only difference is *which*
 overlay's task global they read (`D_actor_461800_80143898` against
-`D_actor_260400_80154C74`). Two distinct variables, so one shared object cannot
+`_gActor260400ScriptedWalkerTask`). Two distinct variables, so one shared object cannot
 serve both — matching each copy separately is the correct call, not a pairing.
 Check `build/USA/dup_index.json`'s per-function `refs` before trusting a promote
 run to have refused.
