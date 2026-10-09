@@ -9,7 +9,9 @@ command by index; the command's opcode picks a variant key - always 0, a
 counter, a game flag, a tally of object states, or it hands the choice to the
 room - and playback then walks the command's records whose key matches. A
 record is a line of text, or, with the view-control flag, a scene step: it
-selects a view and may send a message to the player, the companion or a
+selects a view - by its view-file number, which the room's view map turns
+into the logical view, unless a script has switched scene steps to logical
+ids (opcode 41, `SET_CAP_DIRECT_VIEW_IDS`) - and may send a message to the player, the companion or a
 placed actor. Records also start room sounds and run flag or item actions.
 
 Text is not characters: each code is a glyph cell of the payload's own table,
@@ -39,10 +41,11 @@ def text_length(cap: bytes, offset: int) -> tuple[int, int, list[tuple[int, bool
     """(glyphs, control codes, view codes) of the code stream at an offset.
 
     A text stream can change the view itself: a code of the 0x8000 family under
-    mask 0x9F00 selects view `code & 0xFF` - a logical view, or with 0x2000 a
-    direct index - and with 0x4000 hides the player and companion
-    (src/gameplay/captions.c, `CAP_TEXT_CODE_VIEW`). Each view code is
-    (view, direct, hides actors).
+    mask 0x9F00 selects view `code & 0xFF`. With 0x2000 the value is the
+    logical view; without it the value is a view-file number, turned into the
+    logical view by the room's view map (`viewFindLogicalIndex`). 0x4000 hides
+    the player and companion (src/gameplay/captions.c, `CAP_TEXT_CODE_VIEW`).
+    Each view code is (value, logical, hides actors).
     """
     glyphs = controls = 0
     views = []
@@ -110,11 +113,14 @@ def describe(command: dict) -> list[str]:
         action = "" if not record["action"] else f", action {record['action']}" if record["action"] <= 100 else f", message to scene child {record['action'] - 100}"
         if record["kind"] == "scene":
             sent = f", sends {record['message']} to the {record['recipient']} after {record['delay']} frames" if "message" in record else ""
-            lines.append(f"    key {record['key']}: scene step, view {record['view']}{sent}{action}")
+            # A scene step names a view FILE, which the room's view map turns into the logical view; it names the
+            # logical view itself only while a script has set direct view ids (event-script opcode 41).
+            view = f"view file {record['view']}" if record["view"] else "keeps the view"
+            lines.append(f"    key {record['key']}: scene step, {view}{sent}{action}")
         else:
             sound = f", room sound {record['sound']}" if record["sound"] else ""
             title = f", title {record['title'] - 1 + (256 if record['flags'] & TITLE_BANK else 0)}" if record["title"] else ""
-            views = "".join(f", selects view {view}" + (" (direct)" if direct else "") + (", hiding the actors" if hide else "") for view, direct, hide in record["views"])
+            views = "".join(f", selects {'logical view' if direct else 'view file'} {view}" + (", hiding the actors" if hide else "") for view, direct, hide in record["views"])
             lines.append(f"    key {record['key']}: text, {record['glyphs']} glyphs{title}{sound}{action}{views}")
     return lines
 
