@@ -279,8 +279,9 @@ async function drawApplied() {
   const ask = (pkg, cands) => { if (gone.has(pkg)) return; for (const [model, pairs] of (D.models[pkg] || [])) for (const [tp, cl, u0, v0, u1, v1] of pairs) asks.push({ who: model, tp: tp & ~0x60, cl, cands, box: u0 === undefined ? null : [u0, v0, u1, v1] });
     for (const [label, tp, cl] of (D.consts[pkg] || [])) asks.push({ who: label, tp: tp & ~0x60, cl, cands: [[0, 0]], fixed: true }); };
   for (const g of groups) for (const [pkg, page, row] of (g[4] || [])) { offsets.set(sign(page, row), [page, row]); spawned.add(pkg); ask(pkg, [[page, row], [0, 0]]); }
+  // Every package a resident file carries asks, this overlay itself included when its context brought it in.
   for (const g of groups) for (const [f, page, row, , rel] of g[3]) { uploads.push({ f, page, row, rel }); const pkg = D.pkg[f];
-    if (pkg && !spawned.has(pkg)) { spawned.add(pkg);          // including this overlay itself, brought in by its context ask(pkg, page || row ? [[page, row], [0, 0]] : [[0, 0]]); } }
+    if (pkg && !spawned.has(pkg)) { spawned.add(pkg); ask(pkg, page || row ? [[page, row], [0, 0]] : [[0, 0]]); } }
   if (!spawned.has(cur.name)) { const own = [[0, 0], ...offsets.values()]; ask(cur.name, own); }   // a room's own models may be bound by an actor it places
   for (const a of (cur.ancestors || [])) if (!spawned.has(a)) { spawned.add(a); ask(a, [[0, 0], ...offsets.values()]); }
   if (!asks.length) { box.innerHTML = `<div class="empty">No model or constant of this overlay, or of an overlay the selected groups load, names a texture.</div>`; return; }
