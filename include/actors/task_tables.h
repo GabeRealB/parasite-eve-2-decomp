@@ -158,11 +158,36 @@ extern TaskDesc gActor103700BatTaskDesc;
 /// Slot export of `gActor07000SucklercephTaskDescs` from actor_107000, with the same descriptor contract.
 extern TaskDesc gActor107000SucklercephTaskDescs[2];
 
-extern TaskDesc gActor110800ViewFigureTasks[];
+/// Descriptor indices shared by the camera-parented figure packages.
+enum {
+    VIEW_FIGURE_TASK_BODY   = 0,
+    VIEW_FIGURE_TASK_HELPER = 1,
+    VIEW_FIGURE_TASK_COUNT  = 2
+};
+
+/// Camera-parented SWAT figure spawn descriptors for actor_110800.
+///
+/// Slots are `VIEW_FIGURE_TASK_BODY` and `VIEW_FIGURE_TASK_HELPER`, with no
+/// terminator. Both allocate TMD bodies with automatic primitive buffers and
+/// run at priority 192. Spawn the body through the enemy spawner so its second
+/// spawn argument is the task's live `Enemy`; initialization spawns the helper.
+/// The helper borrows body part 8, with a -50-unit local X offset, until body
+/// teardown kills it. Keep this package's callbacks and geometry loaded while
+/// either task lives; the message and animation helpers support one live figure.
+extern TaskDesc gActor110800ViewFigureTasks[VIEW_FIGURE_TASK_COUNT];
 
 extern TaskDesc D_actor_461800_80139F8C[];
 
-extern TaskDesc gActor110300ViewFigureTasks[];
+/// Camera-parented SWAT figure spawn descriptors for actor_110300.
+///
+/// Slots are `VIEW_FIGURE_TASK_BODY` and `VIEW_FIGURE_TASK_HELPER`, with no
+/// terminator. Both allocate TMD bodies with automatic primitive buffers and
+/// run at priority 192. Spawn the body through the enemy spawner so its second
+/// spawn argument is the task's live `Enemy`; initialization spawns the helper.
+/// The helper borrows body part 8 until body teardown kills it. Keep this
+/// package's callbacks and geometry loaded while either task lives; the message
+/// and animation helpers support one live figure.
+extern TaskDesc gActor110300ViewFigureTasks[VIEW_FIGURE_TASK_COUNT];
 
 extern TaskDesc D_actor_111800_8013A468;
 

@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
@@ -21,8 +23,6 @@
 #include "main/tmd_types.h"
 #define ACTOR_MESSAGE_BODY_TASK _gActor110800BodyTask
 #include "../../shared/actor_messages.h"
-// Exported instance: a room spawns from this package's table by name.
-#define gViewFigureTasks gActor110800ViewFigureTasks
 #include "../../shared/view_figure.h"
 
 static s32 _viewFigurePlayMessage(Task* unusedTask, s32 unusedMessageId, const AnimationPlayRequest* request, s32 unusedSecondArg);
@@ -45,9 +45,6 @@ static Task* _gActor110800BodyTask;
 /// visibility handler drives its model alongside the actor's, and the exit
 /// callback kills it.
 extern Task* gActorHelperTask;
-
-/// Spawn descriptor table the step-0 handler spawns the helper task from.
-extern TaskDesc gViewFigureTasks[];
 
 /// Animation-set table bound to the work block's context by `animationInitContext`.
 extern u8 gViewFigureAnimSets[];
@@ -244,9 +241,9 @@ TaskMessageEntry gViewFigureMessages[3] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc gViewFigureTasks[2] = {
-    { { { TASK_BODY_TMD, 192 } }, _actor110800ViewFigureTask, { .model = &_gActor110800SwatMember2Body } },
-    { { { TASK_BODY_TMD, 192 } }, _actor110800AttachModelTask, { .model = &_gActor110800Model060A0 } },
+TaskDesc gActor110800ViewFigureTasks[VIEW_FIGURE_TASK_COUNT] = {
+    { { { TASK_BODY_TMD, VIEW_FIGURE_TASK_PRIORITY } }, _actor110800ViewFigureTask, { .model = &_gActor110800SwatMember2Body } },
+    { { { TASK_BODY_TMD, VIEW_FIGURE_TASK_PRIORITY } }, _actor110800AttachModelTask, { .model = &_gActor110800Model060A0 } },
 };
 
 u8 gViewFigureAnimSets[28] = {
@@ -286,7 +283,13 @@ Task* gActorHelperTask;
 
 static void _actor110800UpdateViewFigure(Enemy* unusedEnemy, Task* task);
 
+/// Selects this package's public TaskDesc array for the shared spawn state.
+///
+/// Requires a live two-entry array with the body at VIEW_FIGURE_TASK_BODY and
+/// its attached model at VIEW_FIGURE_TASK_HELPER. Only this inclusion uses it.
+#define VIEW_FIGURE_TASK_DESCS gActor110800ViewFigureTasks
 #include "../../shared/view_figure_spawn.inc.c"
+#undef VIEW_FIGURE_TASK_DESCS
 
 /// Emits a loaded area sound at one track record and updates the shared cue latch.
 ///

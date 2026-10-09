@@ -399,7 +399,7 @@ WorldCollisionTrigger D_acropolis_east_elevator_hall_80186A24[7] = {
 };
 
 AreaResource D_acropolis_east_elevator_hall_80186C38[2] = {
-    { 110, 103, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor110300ViewFigureTasks },
+    { 110, 103, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, VIEW_FIGURE_TASK_BODY, { 0, 0 }, gActor110300ViewFigureTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

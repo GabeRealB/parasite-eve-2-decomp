@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
@@ -20,8 +22,6 @@
 #include "main/tmd_types.h"
 #define ACTOR_MESSAGE_BODY_TASK _gActor110300BodyTask
 #include "../../shared/actor_messages.h"
-// Exported instance: a room spawns from this package's table by name.
-#define gViewFigureTasks gActor110300ViewFigureTasks
 #include "../../shared/view_figure.h"
 
 static s32 _viewFigurePlayMessage(Task* unusedTask, s32 unusedMessageId, const AnimationPlayRequest* request, s32 unusedSecondArg);
@@ -44,10 +44,6 @@ static Task* _gActor110300BodyTask;
 /// visibility handler drives its model alongside the actor's, and the exit
 /// callback kills it.
 extern Task* gActorHelperTask;
-
-/// Spawn descriptor table the step-0 handler spawns the helper task from:
-/// index 0 is the actor's own dispatcher, index 1 the helper.
-extern TaskDesc gViewFigureTasks[];
 
 /// Animation-set table bound to the work block's context by `animationInitContext`.
 extern u8 gViewFigureAnimSets[];
@@ -246,9 +242,9 @@ TaskMessageEntry gViewFigureMessages[3] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc gViewFigureTasks[2] = {
-    { { { TASK_BODY_TMD, 192 } }, _actor110300ViewFigureTask, { .model = &_gActor110300SwatMember2Body } },
-    { { { TASK_BODY_TMD, 192 } }, _actor110300AttachModelTask, { .model = &_gActor110300Model05E6C } },
+TaskDesc gActor110300ViewFigureTasks[VIEW_FIGURE_TASK_COUNT] = {
+    { { { TASK_BODY_TMD, VIEW_FIGURE_TASK_PRIORITY } }, _actor110300ViewFigureTask, { .model = &_gActor110300SwatMember2Body } },
+    { { { TASK_BODY_TMD, VIEW_FIGURE_TASK_PRIORITY } }, _actor110300AttachModelTask, { .model = &_gActor110300Model05E6C } },
 };
 
 u8 gViewFigureAnimSets[28] = {
@@ -286,7 +282,13 @@ ViewFigureWork* gViewFigureWork;
 
 Task* gActorHelperTask;
 
+/// Selects this package's public TaskDesc array for the shared spawn state.
+///
+/// Requires a live two-entry array with the body at VIEW_FIGURE_TASK_BODY and
+/// its attached model at VIEW_FIGURE_TASK_HELPER. Only this inclusion uses it.
+#define VIEW_FIGURE_TASK_DESCS gActor110300ViewFigureTasks
 #include "../../shared/view_figure_spawn.inc.c"
+#undef VIEW_FIGURE_TASK_DESCS
 
 /// Dispatches spawn or animation/lighting updates for the view-parented figure.
 ///
