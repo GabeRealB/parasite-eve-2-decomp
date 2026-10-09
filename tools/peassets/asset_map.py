@@ -192,12 +192,14 @@ class Supply:
         that fits is returned and the question is left open.
         """
         mine = [(path, *hit) for path in self.own(package) if (hit := self.covers(self.rects(path, None), page, clut))]
-        settled = len(mine) <= 1
+        # Files holding the very same image and palette are no alternatives at all.
+        same = lambda found: len({(f[1][5], f[2][5] if f[2] else "") for f in found}) == 1  # noqa: E731
+        settled = len(mine) <= 1 or same(mine)
         if bound and len(mine) > 1:
             # The entry's base file, or the further file its placements ask for.
             chosen = [found for found in mine if self.files[found[0]]["id"] in bound]
             if chosen:
-                mine, settled = chosen + [found for found in mine if found not in chosen], len(chosen) == 1
+                mine, settled = chosen + [found for found in mine if found not in chosen], len(chosen) == 1 or same(chosen)
         if mine and not self.is_room(package):
             return ("own", mine, settled)
         for holder in ([package] if self.is_room(package) else []) + asset_schema.ancestors_of(package, self.assets, self.tree):
