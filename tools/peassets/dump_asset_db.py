@@ -551,6 +551,17 @@ def main(argv: list[str] | None = None) -> int:
     assets.update(models)
     embedded = {**embedded, **placements}
     tree = collect_tree(assets_root, old_tree)
+    # Dependencies and variants are written by hand or by a review and name
+    # other assets by key, so a renamed or vanished key has to stop here
+    # rather than be written back out.
+    import asset_schema
+
+    problems = asset_schema.validate(assets, embedded)
+    if problems:
+        for line in problems[:40]:
+            print(line, file=sys.stderr)
+        print(f"{len(problems)} problem(s) against tools/peassets/asset_schema.py; nothing written", file=sys.stderr)
+        return 1
     text = emit_module(assets, tree, embedded)
     args.out.write_text(text, encoding="utf-8")
     n_chunks = 0

@@ -165,6 +165,12 @@ if [[ $ninja_failed -eq 0 ]]; then
             echo "BUILD HAS FAILED. C function names are missing from their symbol maps - add them before committing."
             exit 1
         fi
+        # The asset manifest names assets by key in its dependencies and variants,
+        # and nothing else reads those: a renamed key would go unnoticed.
+        if ! "$PYTHON" tools/peassets/asset_schema.py --check; then
+            echo "BUILD HAS FAILED. tools/peassets/asset_data.py breaks tools/peassets/asset_schema.py."
+            exit 1
+        fi
         # Area constants name the extractor's room folders; a renamed folder leaves
         # the generated header behind without anything failing.
         if ! "$PYTHON" tools/gen_area_ids.py --check; then
