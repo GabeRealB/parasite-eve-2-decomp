@@ -826,7 +826,7 @@ WorldCollisionSurfaceProperties** D_map_dryfield_8017AC9C[38] = {
     D_dryfield_water_tower_80187608,
     D_dryfield_water_tank_80188CFC,
     D_dryfield_breezeway_8018437C,
-    D_dryfield_factory_8018A37C,
+    gDryfieldFactorySurfaceClasses,
     D_dryfield_garage_801801E4,
     D_dryfield_driveway_80180660,
     D_dryfield_junk_yard_80181C28,

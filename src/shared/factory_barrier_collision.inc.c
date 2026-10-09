@@ -23,7 +23,7 @@ void factoryBarrierCollision(Task* task)
     }
 
     if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
-        roomGrid = &gFactoryDayGrid;
+        roomGrid = &gDryfieldFactoryCollisionGrid;
     } else {
         roomGrid = &gFactoryNightGrid;
     }

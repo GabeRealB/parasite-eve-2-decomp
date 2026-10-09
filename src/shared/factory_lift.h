@@ -238,7 +238,6 @@ extern TaskDesc                  gFactoryDaySpawnTable[];
 extern TaskDesc                  gFactoryNightSpawnTable[];
 extern TaskDesc                  gFactoryDayPanelDesc[];
 extern TaskDesc                  gFactoryNightPanelDesc[];
-extern WorldCollisionGrid        gFactoryDayGrid;
 extern WorldCollisionGrid        gFactoryNightGrid;
 extern PadScriptCmd              gFactoryDayJoltCmds[3];
 extern PadScriptCmd              gFactoryNightJoltCmds[3];

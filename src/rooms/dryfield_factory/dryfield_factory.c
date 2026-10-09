@@ -85,31 +85,55 @@ extern RoomEventMsg gRoomEventMsg;
 extern u8           gRoomEventActive;
 extern RoomEventReq gRoomEventReq;
 
-static s16* _gDryfieldFactoryCollision0A638Table[8];
+enum {
+    DRYFIELD_FACTORY_COLLISION_CELL_COUNT_X = 2,
+    DRYFIELD_FACTORY_COLLISION_CELL_COUNT_Z = 4,
+};
 
-static SVECTOR _gDryfieldFactoryCollision0A638Normals[28] = {
+/// Room-space normals; the barrier owns entries 0..1 and the lift owns 2..5.
+static SVECTOR _gDryfieldFactoryCollisionGridNormals[28] = {
 #include "assets/dryfield_factory_collision_0A638_normals.inc"
 };
 
-static SVECTOR _gDryfieldFactoryCollision0A638Verts[170] = {
+/// Room-space vertices; the barrier owns entries 0..7 and the lift owns 8..15.
+static SVECTOR _gDryfieldFactoryCollisionGridVerts[170] = {
 #include "assets/dryfield_factory_collision_0A638_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldFactoryCollision0A638Faces[72] = {
+/// Live room faces, with entries 0..5 reserved for the barrier and lift.
+static WorldCollisionGridFace _gDryfieldFactoryCollisionGridFaces[72] = {
 #include "assets/dryfield_factory_collision_0A638_faces.inc"
 };
 
-static s16 _gDryfieldFactoryCollision0A638Cells[288] = {
+/// Face-index lists for the eight cells, each ended by WORLD_COLLISION_GRID_CELL_END.
+static s16 _gDryfieldFactoryCollisionGridCells[288] = {
 #include "assets/dryfield_factory_collision_0A638_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldFactoryCollision0A638Cells[i])
-static s16* _gDryfieldFactoryCollision0A638Table[8] = {
+/// Binds generated halfword offsets to the live grid's face-index storage.
+///
+/// The generated table supplies constant offsets within the 288-element pool;
+/// the argument is evaluated once. This binding ends after the table include.
+#define GRID_CELL(i) (&_gDryfieldFactoryCollisionGridCells[i])
+/// X-major cell pointers, indexed by x * cellCountZ + z.
+static s16* _gDryfieldFactoryCollisionGridTable[DRYFIELD_FACTORY_COLLISION_CELL_COUNT_X * DRYFIELD_FACTORY_COLLISION_CELL_COUNT_Z] = {
 #include "assets/dryfield_factory_collision_0A638_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid gFactoryDayGrid = { NULL, _gDryfieldFactoryCollision0A638Normals, _gDryfieldFactoryCollision0A638Verts, _gDryfieldFactoryCollision0A638Faces, _gDryfieldFactoryCollision0A638Table, 444, 222, 2, 4, 4000, 72 };
+WorldCollisionGrid gDryfieldFactoryCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldFactoryCollisionGridNormals,
+    .vertices    = _gDryfieldFactoryCollisionGridVerts,
+    .faces       = _gDryfieldFactoryCollisionGridFaces,
+    .cellFaceIds = _gDryfieldFactoryCollisionGridTable,
+    .xBias       = 444,
+    .zBias       = 222,
+    .cellCountX  = DRYFIELD_FACTORY_COLLISION_CELL_COUNT_X,
+    .cellCountZ  = DRYFIELD_FACTORY_COLLISION_CELL_COUNT_Z,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldFactoryCollisionGridFaces),
+};
 
 ViewCamera D_dryfield_factory_80187C1C[19] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -3057, 0x44F4, -6028 } }, 240 },
@@ -133,129 +157,147 @@ ViewCamera D_dryfield_factory_80187C1C[19] = {
     { { { { -3738, 0, -1672 }, { -680, 3741, 1520 }, { 1528, 1665, -3415 } }, { -2135, 3083, -0x2DB6 } }, 263 },
 };
 
-SpriteBatch D_dryfield_factory_80187EC8[2] = {
+enum { DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION = 128 };
+
+/// Empty sprite list for mapped view 1; keeps the decoded background image.
+static SpriteBatch _gDryfieldFactoryView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_factory_80187ED8[13] = {
-    { 142, 0x3FC0, { .fields = { 48, 80 } }, 104, 40, 250, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, 88, 40, 700, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 48 } }, -48, -32, 0x3847, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -48, 16, 1058, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, -32, 16, 1058, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -32, 32, 0x3318, { .fields = { 0, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 56 } }, -8, 16, 0x2749, { .fields = { 32, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, -24, 8, 1150, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -40, 8, 1140, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 200 } }, -160, -120, 1037, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 200 } }, -136, -120, 1125, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 200 } }, -112, -120, 1200, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 200 } }, -88, -120, 0x37CF, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped view 2, in batch-index order.
+static SpriteSource _gDryfieldFactoryView2SpriteSources[13] = {
+    { 142, 0x3FC0, { .fields = { 48, 80 } }, 104, 40, 250, { .fields = { 104, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 80 } }, 88, 40, 700, { .fields = { 8, 80 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 80, 48 } }, -48, -32, 0x3847, { .fields = { 80, 200 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, -48, 16, 1058, { .fields = { 72, 200 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, -32, 16, 1058, { .fields = { 112, 80 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, -32, 32, 0x3318, { .fields = { 0, 160 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 56 } }, -8, 16, 0x2749, { .fields = { 32, 200 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 56 } }, -24, 8, 1150, { .fields = { 104, 200 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, -40, 8, 1140, { .fields = { 88, 200 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 200 } }, -160, -120, 1037, { .fields = { 56, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 200 } }, -136, -120, 1125, { .fields = { 80, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 200 } }, -112, -120, 1200, { .fields = { 104, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 200 } }, -88, -120, 0x37CF, { .fields = { 24, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_dryfield_factory_80187FDC[6] = {
+/// Sprite ranges for mapped view 2, after an image-preserving header and before the end marker.
+static SpriteBatch _gDryfieldFactoryView2SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 2, 0, 0, { 3, 0 } },
     { 2, 5, 0, 0, { 0, 0 } },
     { 7, 2, 0, 0, { 2, 0 } },
-    { 9, 4, 0, 0, { 1, 0 } },
+    { 9, ARRAY_SIZE(_gDryfieldFactoryView2SpriteSources) - 9, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_factory_8018800C[10] = {
-    { 143, 0x3FC0, { .fields = { 72, 240 } }, -160, -120, 0, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 88 } }, 72, 32, 0, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 200 } }, 64, -120, 2000, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 72 } }, 88, -120, 2000, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 128 } }, 120, -48, 974, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 88, -48, 1153, { .fields = { 88, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 88, -24, 1161, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 88, 0, 1162, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 88, 24, 1162, { .fields = { 88, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 88, 48, 1150, { .fields = { 24, 216 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped view 3, in batch-index order.
+static SpriteSource _gDryfieldFactoryView3SpriteSources[10] = {
+    { 143, 0x3FC0, { .fields = { 72, 240 } }, -160, -120, 0, { .fields = { 56, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 88, 88 } }, 72, 32, 0, { .fields = { 72, 128 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 200 } }, 64, -120, 2000, { .fields = { 32, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 72, 72 } }, 88, -120, 2000, { .fields = { 48, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 128 } }, 120, -48, 974, { .fields = { 120, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, 88, -48, 1153, { .fields = { 88, 72 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, 88, -24, 1161, { .fields = { 120, 216 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, 88, 0, 1162, { .fields = { 88, 96 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, 88, 24, 1162, { .fields = { 88, 216 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, 88, 48, 1150, { .fields = { 24, 216 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_dryfield_factory_801880D4[5] = {
+/// Sprite ranges for mapped view 3, after an image-preserving header and before the end marker.
+static SpriteBatch _gDryfieldFactoryView3SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 1, 0 } },
     { 1, 1, 0, 0, { 2, 0 } },
-    { 2, 8, 0, 0, { 0, 0 } },
+    { 2, ARRAY_SIZE(_gDryfieldFactoryView3SpriteSources) - 2, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_factory_801880FC[2] = {
+/// Empty sprite list for mapped view 4; keeps the decoded background image.
+static SpriteBatch _gDryfieldFactoryView4SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_factory_8018810C[2] = {
+/// Empty sprite list for mapped view 5; keeps the decoded background image.
+static SpriteBatch _gDryfieldFactoryView5SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_factory_8018811C[4] = {
-    { 143, 0x3FC0, { .fields = { 56, 24 } }, -64, 96, 425, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 56 } }, -160, 64, 425, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -72, 96, 0, { .fields = { 120, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 32 } }, -72, 64, 0, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped view 6, in batch-index order.
+static SpriteSource _gDryfieldFactoryView6SpriteSources[4] = {
+    { 143, 0x3FC0, { .fields = { 56, 24 } }, -64, 96, 425, { .fields = { 72, 112 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 88, 56 } }, -160, 64, 425, { .fields = { 40, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -72, 96, 0, { .fields = { 120, 88 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 32 } }, -72, 64, 0, { .fields = { 64, 56 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_dryfield_factory_8018816C[3] = {
+/// Sprite ranges for mapped view 6, after an image-preserving header and before the end marker.
+static SpriteBatch _gDryfieldFactoryView6SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 4, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldFactoryView6SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_factory_80188184[2] = {
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 56, 96, 500, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 40, 72 } }, -160, 40, 1200, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped view 7, in batch-index order.
+static SpriteSource _gDryfieldFactoryView7SpriteSources[2] = {
+    { 143, 0x3FC0, { .fields = { 32, 24 } }, 56, 96, 500, { .fields = { 96, 72 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x4000, { .fields = { 40, 72 } }, -160, 40, 1200, { .fields = { 88, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_dryfield_factory_801881AC[4] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 1, 0, 0, { 1, 0 } },
-    { 1, 1, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-SpriteSource D_dryfield_factory_801881CC[12] = {
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -128, -120, 125, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -120, -72, 125, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -120, -64, 125, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -112, -24, 125, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -112, -8, 125, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -112, 0, 125, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -104, 24, 125, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -96, 56, 125, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -88, 88, 125, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -144, 64, 125, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 16 } }, -160, 80, 125, { .fields = { 64, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -136, 96, 125, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-};
-
-SpriteBatch D_dryfield_factory_801882BC[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 12, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-SpriteSource D_dryfield_factory_801882D4[5] = {
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, -80, -48, 1312, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, 72, 16, 1062, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, 56, 16, 1062, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, 40, 16, 1062, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 32, 16, 1062, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
-};
-
-SpriteBatch D_dryfield_factory_80188338[4] = {
+/// Sprite ranges for mapped view 7, after an image-preserving header and before the end marker.
+static SpriteBatch _gDryfieldFactoryView7SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 1, 0 } },
-    { 1, 4, 0, 0, { 0, 0 } },
+    { 1, ARRAY_SIZE(_gDryfieldFactoryView7SpriteSources) - 1, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_factory_80188358[2] = {
+/// Texture rectangles and sorting depths for mapped view 8, in batch-index order.
+static SpriteSource _gDryfieldFactoryView8SpriteSources[12] = {
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, -128, -120, 125, { .fields = { 96, 56 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -120, -72, 125, { .fields = { 104, 248 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 40 } }, -120, -64, 125, { .fields = { 96, 104 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -112, -24, 125, { .fields = { 96, 32 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -112, -8, 125, { .fields = { 104, 48 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -112, 0, 125, { .fields = { 104, 224 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -104, 24, 125, { .fields = { 112, 144 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, -96, 56, 125, { .fields = { 120, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -88, 88, 125, { .fields = { 120, 200 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -144, 64, 125, { .fields = { 88, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 16 } }, -160, 80, 125, { .fields = { 64, 16 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 24 } }, -136, 96, 125, { .fields = { 96, 176 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+};
+
+/// Sprite ranges for mapped view 8, after an image-preserving header and before the end marker.
+static SpriteBatch _gDryfieldFactoryView8SpriteBatches[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldFactoryView8SpriteSources), 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+};
+
+/// Texture rectangles and sorting depths for mapped view 9, in batch-index order.
+static SpriteSource _gDryfieldFactoryView9SpriteSources[5] = {
+    { 143, 0x3FC0, { .fields = { 40, 32 } }, -80, -48, 1312, { .fields = { 80, 128 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, 72, 16, 1062, { .fields = { 112, 192 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, 56, 16, 1062, { .fields = { 112, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, 40, 16, 1062, { .fields = { 112, 64 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, 32, 16, 1062, { .fields = { 120, 128 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+};
+
+/// Sprite ranges for mapped view 9, after an image-preserving header and before the end marker.
+static SpriteBatch _gDryfieldFactoryView9SpriteBatches[4] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 1, 0, 0, { 1, 0 } },
+    { 1, ARRAY_SIZE(_gDryfieldFactoryView9SpriteSources) - 1, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+};
+
+/// Empty sprite list for mapped view 10; keeps the decoded background image.
+static SpriteBatch _gDryfieldFactoryView10SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
@@ -576,16 +618,16 @@ SpriteBatch D_dryfield_factory_80189580[6] = {
 };
 
 SpriteView D_dryfield_factory_801895B0[19] = {
-    { { .empty = D_dryfield_factory_80187EC8 }, D_dryfield_factory_80187EC8, NULL },
-    { { .elements = D_dryfield_factory_80187ED8 }, D_dryfield_factory_80187FDC, NULL },
-    { { .elements = D_dryfield_factory_8018800C }, D_dryfield_factory_801880D4, NULL },
-    { { .empty = D_dryfield_factory_801880FC }, D_dryfield_factory_801880FC, NULL },
-    { { .empty = D_dryfield_factory_8018810C }, D_dryfield_factory_8018810C, NULL },
-    { { .elements = D_dryfield_factory_8018811C }, D_dryfield_factory_8018816C, NULL },
-    { { .elements = D_dryfield_factory_80188184 }, D_dryfield_factory_801881AC, NULL },
-    { { .elements = D_dryfield_factory_801881CC }, D_dryfield_factory_801882BC, NULL },
-    { { .elements = D_dryfield_factory_801882D4 }, D_dryfield_factory_80188338, NULL },
-    { { .empty = D_dryfield_factory_80188358 }, D_dryfield_factory_80188358, NULL },
+    { { .empty = _gDryfieldFactoryView1SpriteBatches }, _gDryfieldFactoryView1SpriteBatches, NULL },
+    { { .elements = _gDryfieldFactoryView2SpriteSources }, _gDryfieldFactoryView2SpriteBatches, NULL },
+    { { .elements = _gDryfieldFactoryView3SpriteSources }, _gDryfieldFactoryView3SpriteBatches, NULL },
+    { { .empty = _gDryfieldFactoryView4SpriteBatches }, _gDryfieldFactoryView4SpriteBatches, NULL },
+    { { .empty = _gDryfieldFactoryView5SpriteBatches }, _gDryfieldFactoryView5SpriteBatches, NULL },
+    { { .elements = _gDryfieldFactoryView6SpriteSources }, _gDryfieldFactoryView6SpriteBatches, NULL },
+    { { .elements = _gDryfieldFactoryView7SpriteSources }, _gDryfieldFactoryView7SpriteBatches, NULL },
+    { { .elements = _gDryfieldFactoryView8SpriteSources }, _gDryfieldFactoryView8SpriteBatches, NULL },
+    { { .elements = _gDryfieldFactoryView9SpriteSources }, _gDryfieldFactoryView9SpriteBatches, NULL },
+    { { .empty = _gDryfieldFactoryView10SpriteBatches }, _gDryfieldFactoryView10SpriteBatches, NULL },
     { { .elements = D_dryfield_factory_80188368 }, D_dryfield_factory_8018837C, NULL },
     { { .empty = D_dryfield_factory_80188394 }, D_dryfield_factory_80188394, NULL },
     { { .elements = D_dryfield_factory_801883A4 }, D_dryfield_factory_801884A8, NULL },
@@ -637,20 +679,29 @@ WorldCollisionTrigger D_dryfield_factory_80189ABC[20] = {
     { NULL, NULL, NULL, { 5728, -64, 9824, 0 }, { { -672, 0, -384, 0 }, { 672, 0, -384, 0 }, { -672, 0, 384, 0 }, { 672, 0, 384, 0 } }, { 0, 4095, 0, 0 }, { -3857, 0, 1380, 0 }, 773, WORLD_COLLISION_TRIGGER_ACTION_CAP, 21, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCoordPointLight D_dryfield_factory_8018A0AC[5] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2620, -1827, 2739 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3935, 3894, 3850 }, { 0, 0 } }, 936, 2214 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1447, -1740, 9089 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3903, 3866, 3901 }, { 0, 0 } }, 979, 1281 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6134, -1422, 5354 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1764, 1727, 1701 }, { 0, 0 } }, 0, 6724 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3603, -1838, 8945 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3464, 3400, 3377 }, { 0, 0 } }, 1021, 1477 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3061, -1123, 6690 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2387, 2318, 2252 }, { 0, 0 } }, 1439, 4621 },
+/// Five authored point lights shared by both daytime room variants.
+///
+/// Positions and falloff radii use room coordinates; intensity has 12 fractional
+/// bits. All views admit every light. Composition and attenuation stay mutable.
+static WorldCoordPointLight _gDryfieldFactoryPointLights[5] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2620, -1827, 2739 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3935, 3894, 3850 }, { 0, 0 } }, 936, 2214 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1447, -1740, 9089 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3903, 3866, 3901 }, { 0, 0 } }, 979, 1281 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6134, -1422, 5354 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1764, 1727, 1701 }, { 0, 0 } }, 0, 6724 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3603, -1838, 8945 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3464, 3400, 3377 }, { 0, 0 } }, 1021, 1477 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3061, -1123, 6690 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2387, 2318, 2252 }, { 0, 0 } }, 1439, 4621 },
 };
 
-WorldCoordRoomLights D_dryfield_factory_8018A28C[1] = {
-    { 0, NULL, ARRAY_SIZE(D_dryfield_factory_8018A0AC), D_dryfield_factory_8018A0AC, 0, NULL },
+WorldCoordRoomLights gDryfieldFactoryRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gDryfieldFactoryPointLights),
+    .pointLights           = _gDryfieldFactoryPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
-WorldCoordRoomAmbientEntry D_dryfield_factory_8018A2A4[20] = {
-    { .viewCount = ARRAY_SIZE(D_dryfield_factory_8018A2A4) - 1 },
+WorldCoordRoomAmbientEntry gDryfieldFactoryViewAmbientMinima[20] = {
+    { .viewCount = ARRAY_SIZE(gDryfieldFactoryViewAmbientMinima) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 919, 888, 865, 896 } },
     { .color = { 1062, 1050, 1035, 1052 } },
@@ -672,43 +723,74 @@ WorldCoordRoomAmbientEntry D_dryfield_factory_8018A2A4[20] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-WorldCollisionFootstepSounds D_dryfield_factory_8018A344 = {
-    0x10000051,
-    0x10000053,
-    0x10000051,
+/// Type-1 bank requests for cue 2; cue 1 uses the following entry.
+enum {
+    DRYFIELD_FACTORY_CLASS2_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x51,
+    DRYFIELD_FACTORY_CLASS2_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x53,
+    DRYFIELD_FACTORY_CLASS3_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x15,
+    DRYFIELD_FACTORY_CLASS3_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x17,
+    DRYFIELD_FACTORY_CLASS3_JUMP_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x19,
 };
 
-WorldCollisionFootstepSounds D_dryfield_factory_8018A350 = {
-    0x10000015,
-    0x10000017,
-    0x10000019,
+/// Footstep cue bases for surface class 2; scripted jumping retains the walk pair.
+static WorldCollisionFootstepSounds _gDryfieldFactoryClass2FootstepSounds = {
+    .walk         = DRYFIELD_FACTORY_CLASS2_WALK_SOUND,
+    .run          = DRYFIELD_FACTORY_CLASS2_RUN_SOUND,
+    .scriptedJump = DRYFIELD_FACTORY_CLASS2_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_factory_8018A35C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Footstep cue bases for surface class 3, with distinct walk, run and jump requests.
+static WorldCollisionFootstepSounds _gDryfieldFactoryClass3FootstepSounds = {
+    .walk         = DRYFIELD_FACTORY_CLASS3_WALK_SOUND,
+    .run          = DRYFIELD_FACTORY_CLASS3_RUN_SOUND,
+    .scriptedJump = DRYFIELD_FACTORY_CLASS3_JUMP_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_factory_8018A364[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Blocks probes and permits weapon impacts and pushback; has no footstep cues.
+static WorldCollisionSurfaceProperties _gDryfieldFactorySolidSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_factory_8018A36C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_factory_8018A344 },
+/// Passes probes and suppresses weapon impacts while retaining physical pushback.
+static WorldCollisionSurfaceProperties _gDryfieldFactoryProbePassSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_factory_8018A374[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_factory_8018A350 },
+/// Solid surface class 2, with its walk/run footstep cue bases.
+static WorldCollisionSurfaceProperties _gDryfieldFactoryClass2Surface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldFactoryClass2FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_factory_8018A37C[8] = {
-    D_dryfield_factory_8018A35C,
-    D_dryfield_factory_8018A364,
-    D_dryfield_factory_8018A36C,
-    D_dryfield_factory_8018A374,
-    D_dryfield_factory_8018A35C,
-    D_dryfield_factory_8018A35C,
-    D_dryfield_factory_8018A35C,
-    D_dryfield_factory_8018A35C,
+/// Solid surface class 3, with its walk/run/jump footstep cue bases.
+static WorldCollisionSurfaceProperties _gDryfieldFactoryClass3Surface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldFactoryClass3FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gDryfieldFactorySurfaceClasses[8] = {
+    &_gDryfieldFactorySolidSurface,
+    &_gDryfieldFactoryProbePassSurface,
+    &_gDryfieldFactoryClass2Surface,
+    &_gDryfieldFactoryClass3Surface,
+    &_gDryfieldFactorySolidSurface,
+    &_gDryfieldFactorySolidSurface,
+    &_gDryfieldFactorySolidSurface,
+    &_gDryfieldFactorySolidSurface,
 };
 
 PadScriptCmd gFactoryDayJoltCmds[3] = { { 0x201, 1 }, { 0, 0x101 }, { 0, 0 } };

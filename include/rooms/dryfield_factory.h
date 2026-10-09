@@ -27,7 +27,24 @@ extern ViewCamera D_dryfield_factory_80187C1C[];
 
 extern SpriteView D_dryfield_factory_801895B0[];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_factory_8018A37C[];
+/// Collision policies and footstep cues indexed by the daytime factory's surface class (0..7).
+///
+/// Classes 0 and 4..7 share a solid, silent policy. Class 1 passes probes and
+/// disables weapon impacts, while retaining pushback. Classes 2 and 3 are solid
+/// and select different footstep cue bases. The map overlay borrows this table;
+/// its records remain valid only while the daytime factory overlay is loaded.
+extern WorldCollisionSurfaceProperties* gDryfieldFactorySurfaceClasses[8];
+
+/// Live collision mesh shared by the daytime factory's two room variants.
+///
+/// The 2-by-4 XZ grid uses 4000-unit cells and biases (444, 222) in room
+/// coordinates. It owns 72 faces indexing 28 normals and 170 vertices; the
+/// eight cell lists borrow a 288-halfword pool and end with
+/// `WORLD_COLLISION_GRID_CELL_END`. Activation binds the view coordinate.
+/// The barrier rewrites normals/faces 0..1 and vertices 0..7; the lift rewrites
+/// normals/faces 2..5 and vertices 8..15. The overlay owns all storage, which
+/// must remain loaded while the grid is active or a factory task edits it.
+extern WorldCollisionGrid gDryfieldFactoryCollisionGrid;
 
 /// Sets the power-controlled sprite visibility in the daytime factory's mapped view 9.
 ///

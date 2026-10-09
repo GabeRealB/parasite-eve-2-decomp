@@ -17,9 +17,18 @@ extern WorldCollisionTrigger D_dryfield_factory_80189694[14];
 
 extern WorldCollisionTrigger D_dryfield_factory_80189ABC[20];
 
-extern WorldCoordRoomLights D_dryfield_factory_8018A28C[1];
+/// The daytime factory's shared collection of five mutable point lights, with no directional or cone lights.
+///
+/// Both room variants borrow this single record and its light array while the
+/// overlay is loaded. Coordinate composition and light queries update the lights.
+extern WorldCoordRoomLights gDryfieldFactoryRoomLights;
 
-extern WorldCoordRoomAmbientEntry D_dryfield_factory_8018A2A4[20];
+/// Minimum ambient RGB and stored luma for the daytime factory's logical views 1..19.
+///
+/// Entry zero gives the following view count. Levels use 16 units per 8-bit
+/// colour level; lighting reads this table without applying the sprite view map.
+/// Both room variants borrow the same table for the loaded overlay's lifetime.
+extern WorldCoordRoomAmbientEntry gDryfieldFactoryViewAmbientMinima[20];
 
 extern TaskDesc gRoomEventTaskDesc;
 
