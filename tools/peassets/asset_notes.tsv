@@ -1,0 +1,7 @@
+# key	what the uses show it is	name question (empty when the name agrees)
+ofuda	Battle item effect package: its code and models are the Flare's.	Named 'ofuda' but the item it serves is the Flare; the three battle-item packages are each one off.
+flare	Battle item effect package: its code and models are the Pepper Spray's.	Named 'flare' but the item it serves is the Pepper Spray.
+pepper_spray	Battle item effect package: its code and models are the Combat Light's.	Named 'pepper_spray' but the item it serves is the Combat Light.
+aya_20900	The Game Over screen's package.	Filed in the 'aya' family, but it is the Game Over screen, not a costume.
+replay_bonus	The staff credits and the end-of-game award screens.	Named 'replay_bonus'; the code shows credits and awards.
+actor_142600	Clip data for the incinerator cutscene, always resident in the incinerator control room.	Filed as an actor; it holds no actor code, only cutscene clip data.

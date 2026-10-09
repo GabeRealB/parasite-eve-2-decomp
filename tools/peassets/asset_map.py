@@ -578,10 +578,25 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
     # How the code uses each asset, as read out of the sources (tools/peassets/usage/).
     usage = defaultdict(list)
     by_overlay = defaultdict(lambda: [0, 0])
+    remarks = defaultdict(list)
+    # What the uses show each asset or package to be, in a sentence, and whether its name is in question
+    # (tools/peassets/asset_notes.tsv: key, summary, name question).
+    notes = {}
+    notes_path = Path(__file__).with_name("asset_notes.tsv")
+    if notes_path.is_file():
+        for line in notes_path.read_text(encoding="utf-8").splitlines():
+            cells = line.split("\t")
+            if not line.startswith("#") and len(cells) >= 2:
+                notes[cells[0]] = [cells[1], cells[2] if len(cells) > 2 else ""]
     for path in sorted((Path(__file__).with_name("usage")).glob("*.tsv")):
         for line in path.read_text(encoding="utf-8").splitlines():
             cells = line.split("\t")
-            if line.startswith("#") or len(cells) < 8:
+            if line.startswith("#"):
+                # An overlay-level remark of the sweep: what no single asset line carries.
+                if not line.startswith("# asset\t") and line.strip("# "):
+                    remarks[path.stem].append(line.lstrip("# ").replace("\t", " | "))
+                continue
+            if len(cells) < 8:
                 continue
             key = cells[0].split()[0] if cells[0].split() and cells[0].split()[0] in catalogue else cells[0]
             usage[key].append([path.stem] + cells[1:8])
@@ -602,7 +617,7 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
                 streams[meta.stem] = f"audio/{meta.stem}.wav"
     saves = sorted(p.name for p in (extracted / "mcsave" / "mc_save_header").glob("*.png")) if (extracted / "mcsave" / "mc_save_header").is_dir() else []
     return {
-        "holds": side["holds"], "viewpal": viewpal, "scripts": scripts, "usage": usage, "swept": by_overlay, "dialogue": dialogue,
+        "holds": side["holds"], "viewpal": viewpal, "scripts": scripts, "usage": usage, "swept": by_overlay, "remarks": remarks, "notes": notes, "dialogue": dialogue,
         "mesh": side["mesh"], "track": side["track"], "banks": banks, "streams": streams, "saves": saves, "side": out.stem + "_data" if pixels else "",
         "files": files, "chunks": chunks, "fp": footprint, "loads": loads, "overlays": overlays, "requests": requests,
         "consts": constants, "findings": findings, "assets": catalogue, "sounds": sounds,

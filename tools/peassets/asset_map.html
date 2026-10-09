@@ -31,7 +31,7 @@ input, select { font: 13px var(--mono); color: var(--ink); background: var(--bg)
 .list a.cur { background: var(--accent-soft); }
 .list details > div { padding-left: 12px; border-left: 1px solid var(--grid); margin-left: 16px; }
 .list details > div a, .list details > div summary { padding-left: 6px; }
-.badge { color: var(--clash); font-weight: 500; } .dim { color: var(--muted); }
+.badge { color: var(--clash); font-weight: 500; } .note { margin-top: 6px; max-width: 80ch; } .dim { color: var(--muted); }
 main { overflow: auto; min-width: 0; }
 .subject { padding-inline: 20px; padding-block: 16px 48px; display: flex; flex-direction: column; gap: 22px; max-width: 1400px; }
 .subject > header h2 { font-size: 20px; font-weight: 600; margin: 0 0 4px; font-family: var(--mono); overflow-wrap: anywhere; }
@@ -71,7 +71,7 @@ audio { height: 28px; max-width: 100%; } iframe { width: 100%; height: 320px; bo
       <h1>PE2 Asset Map</h1>
       <span class="seg"><button id="nav-o" aria-pressed="true">Overlays</button><button id="nav-a" aria-pressed="false">Assets</button></span>
       <label for="scale" class="row">Scale<select id="scale"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
-      <input id="filter" placeholder="filter by name" autocomplete="off" spellcheck="false" aria-label="Filter the list">
+      <input id="filter" placeholder="filter by name or what it is; ? = name in question" autocomplete="off" spellcheck="false" aria-label="Filter the list">
     </header>
     <div class="list" id="list"></div>
   </nav>
@@ -243,14 +243,20 @@ for (const [name, o] of Object.entries(D.overlays)) for (const p of o.parents) {
 const usersOf = new Map();               // image or palette -> overlays whose requests it supplies (from the pairings)
 const openFindings = name => (D.findings[name] || []).length;
 
+// What the uses show a thing to be, and a question about its name where there is one (D.notes: key -> [summary, question]).
+const noteOf = k => D.notes[k] || null, asked = k => !!(D.notes[k] && D.notes[k][1]);
+const noteBox = k => { const n = noteOf(k); return n ? h("div", { class: "note" }, h("div", { text: n[0] }), n[1] ? h("div", { class: "flag", text: "Name in question: " + n[1] }) : null) : null; };
+const qmark = k => asked(k) ? h("span", { class: "badge", title: D.notes[k][1], text: "  ?" }) : null;
+
 // ---- navigator ----
 let navMode = "o", current = "";
 function drawNav() {
-  const box = $("list"), q = $("filter").value.trim().toLowerCase(); box.replaceChildren();
+  const box = $("list"), raw = $("filter").value.trim().toLowerCase(), only = raw.startsWith("?"), q = raw.replace(/^\?\s*/, ""); box.replaceChildren();
+  const hit = window.__hit = k => (!only || asked(k)) && (!q || k.toLowerCase().includes(q) || (D.notes[k] && D.notes[k][0].toLowerCase().includes(q)));
   $("nav-o").setAttribute("aria-pressed", navMode === "o"); $("nav-a").setAttribute("aria-pressed", navMode === "a");
   if (navMode === "o") {
-    const entry = (name, inSummary) => h("a", { href: "#o." + name, class: current === "o." + name ? "cur" : "", onclick: inSummary ? e => { e.preventDefault(); location.hash = "o." + name; } : () => {} }, name, D.swept[name] ? h("span", { class: "dim", text: "  ✓" }) : null, openFindings(name) ? h("span", { class: "badge", text: "  " + openFindings(name) }) : null);
-    if (q) { Object.keys(D.overlays).filter(n => n.includes(q)).sort().slice(0, 400).forEach(n => box.append(entry(n))); return; }
+    const entry = (name, inSummary) => h("a", { href: "#o." + name, class: current === "o." + name ? "cur" : "", onclick: inSummary ? e => { e.preventDefault(); location.hash = "o." + name; } : () => {} }, name, D.swept[name] ? h("span", { class: "dim", text: "  ✓" }) : null, qmark(name), openFindings(name) ? h("span", { class: "badge", text: "  " + openFindings(name) }) : null);
+    if (q || only) { Object.keys(D.overlays).filter(hit).sort().slice(0, 400).forEach(n => box.append(entry(n))); return; }
     const node = (name, depth) => { const kids = (children.get(name) || []).sort(); if (!kids.length) return entry(name);
       const groups = new Map(); for (const k of kids) { const fam = D.overlays[k].family; (groups.get(fam) || groups.set(fam, []).get(fam)).push(k); }
       const inner = h("div", {}); for (const [fam, list] of [...groups].sort()) { if (list.length > 6 && groups.size > 1 || list.length > 12) inner.append(h("details", {}, h("summary", { class: "dim", text: `${fam} (${list.length})` }), h("div", {}, list.map(k => node(k, depth + 1)))));
@@ -259,8 +265,8 @@ function drawNav() {
     box.append(node("main", 0));
   } else {
     const byType = new Map(); for (const [key, [type]] of Object.entries(D.assets)) (byType.get(type) || byType.set(type, []).get(type)).push(key);
-    for (const [type, keys] of [...byType].sort((a, b) => b[1].length - a[1].length)) { const hit = q ? keys.filter(k => k.toLowerCase().includes(q)) : keys; if (!hit.length) continue;
-      box.append(h("details", q && hit.length < 60 ? { open: "" } : {}, h("summary", { class: "dim", text: `${TYPE[type] || type.replace(/_/g, " ")} (${hit.length})` }), h("div", {}, capped(hit, 400, part => h("div", {}, part.map(k => h("a", { href: "#" + (type === "pe2pkg" ? "o." : "a.") + k, class: current === "a." + k ? "cur" : "", text: k }))))))); }
+    for (const [type, keys] of [...byType].sort((a, b) => b[1].length - a[1].length)) { const hit = q || only ? keys.filter(k => window.__hit(k)) : keys; if (!hit.length) continue;
+      box.append(h("details", (q || only) && hit.length < 60 ? { open: "" } : {}, h("summary", { class: "dim", text: `${TYPE[type] || type.replace(/_/g, " ")} (${hit.length})` }), h("div", {}, capped(hit, 400, part => h("div", {}, part.map(k => h("a", { href: "#" + (type === "pe2pkg" ? "o." : "a.") + k, class: current === "a." + k ? "cur" : "", title: D.notes[k] ? D.notes[k][0] : "" }, k, qmark(k)))))))); }
   }
 }
 
@@ -283,6 +289,7 @@ async function showOverlay(name) {
   const chain = []; (function up(n) { for (const p of (D.overlays[n] || { parents: [] }).parents) if (!chain.includes(p)) { chain.push(p); up(p); } })(name);
   const reqs = D.requests[name] || [], loads = D.loads[name] || [];
   const head = h("header", {}, h("h2", { text: name }), h("div", { class: "crumbs" }, o.family, o.addr ? ` · loads at 0x${o.addr.toString(16)}` : "", chain.length ? [" · under ", chain.map((c, i) => [i ? " › " : "", link("o", c)])] : ""));
+  if (noteBox(name)) head.append(noteBox(name));
   box.replaceChildren(head, h("p", { class: "dim", text: "reading pixels…" }));
   const ownFiles = o.own, borrowedFiles = reqs.filter(r => r[4][0] !== "own" && r[4][0] !== "none").flatMap(r => (r[4][2] || []).filter(Boolean).map(v => v[0]));
   await needFiles([...ownFiles.filter(() => !o.room), ...reqs.filter(r => r[4][0] === "own").flatMap(r => r[4][1]), ...borrowedFiles]); if (mine !== turn) return;
@@ -310,6 +317,8 @@ async function showOverlay(name) {
   if (swept.length) { const open = swept.filter(u => u[6] === "open");
     sections.push(sec(`Uses (${swept.length}, ${open.length} open)`, "How this overlay's code uses its assets and its ancestors', read out of the sources. Open lines first.", useTable([...open, ...swept.filter(u => u[6] !== "open")], false))); }
   else sections.push(sec("Uses", "This overlay has not been swept yet: how its code uses its assets is not recorded."));
+  const said = D.remarks[name] || [];
+  if (said.length) sections.push(sec(`Remarks (${said.length})`, "What the sweep recorded about this overlay as a whole: things no single asset line carries, such as what was searched and not found.", h("ul", { class: "plain" }, said.map(t => h("li", { text: t })))));
   const finds = D.findings[name] || [];
   sections.push(sec(`Findings (${finds.length})`, finds.length ? "What the model of the overlays and of video memory does not explain. Each is a wrong parent, a model in the wrong package, a load that is missing, or a wrong line in the region table." : "Nothing unexplained.", finds.length ? h("ul", { class: "plain" }, finds.map(f => h("li", { text: f }))) : null));
   const by = [...new Set((o.carrier || []).flatMap(f => (loadersOf.get(f) || []).map(l => `${l[0]}\t${D.layers[l[1]]}\t${l[2] || "always"}\t${sign(l[3], l[4])}`)))].map(s => s.split("\t"));
@@ -370,6 +379,7 @@ async function showAsset(key) {
   const [type, attrs] = a, files = placedIn.get(key) || [], sections = [];
   if (!files.length && attrs.source && placedIn.get(attrs.source)) files.push(...placedIn.get(attrs.source));   // inside a bundle that is a chunk
   const head = h("header", {}, h("h2", { text: key }), h("div", { class: "crumbs" }, (TYPE[type] || type.replace(/_/g, " ")).replace(/s$/, ""), attrs.source ? [" · inside ", D.overlays[attrs.source.replace(/\.pe2pkg$/, "")] ? link("o", attrs.source.replace(/\.pe2pkg$/, "")) : D.assets[attrs.source] ? link("a", attrs.source) : attrs.source] : ""));
+  if (noteBox(key)) head.append(noteBox(key));
   if (type === "pe2img" || type === "image") { const pairs = D.pairs[key] || []; await Promise.all([need(key), ...pairs.filter(p => p[1]).map(p => need(p[1]))]); if (mine !== turn) return;
     const bpps = [].concat(attrs.bpp || 8);
     sections.push(sec(`As used (${pairs.length})`, pairs.length ? "Each way a model's faces read this image: a column of it, at a depth, through a palette row. The other columns are faded." : "No model's faces are known to read this image, so there is no palette to show it with.",
