@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
@@ -48,8 +50,11 @@
 #include "rooms/neo_ark_power_plant_2.h"
 #include "../../shared/model_placement.h"
 #define GENERATOR_KIND GENERATOR_PROTO
-// Exported instance: a room spawns from this package's table by name.
-#define gGeneratorTasks gActor105400GeneratorTasks
+/// Binds the shared generator implementation to this package's spawn table.
+///
+/// Names a `TaskDesc[GENERATOR_TASK_DESC_COUNT]` array; keep the binding defined
+/// through `generator.h` and all included generator fragments.
+#define GENERATOR_TASK_TABLE gActor105400GeneratorTasks
 #include "../../shared/generator.h"
 
 static void _generatorDeathState(Enemy* enemy, Task* task);
@@ -81,7 +86,6 @@ extern SVECTOR       gGeneratorSpawnOffsets[2];
 extern EnemyParams   gGeneratorParams;
 extern u32           gGeneratorSpawnSound;
 extern AnimationSet* gGeneratorAnimSets[];
-extern TaskDesc      gGeneratorTasks[2];
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
@@ -261,9 +265,9 @@ GeneratorPulseFrame gGeneratorHitPulse[4] = {
     { 1, 4224 },
 };
 
-TaskDesc gGeneratorTasks[2] = {
-    { { { TASK_BODY_TMD, 96 } }, _generatorTask, { .model = &_gActor105400ProtoGeneratorBody } },
-    { { { TASK_BODY_COORD, 96 } }, _generatorLifeSupportTask, { .value = 0 } },
+TaskDesc GENERATOR_TASK_TABLE[GENERATOR_TASK_DESC_COUNT] = {
+    [GENERATOR_BODY_TASK_INDEX]         = { { { TASK_BODY_TMD, GENERATOR_TASK_PRIORITY } }, _generatorTask, { .model = &_gActor105400ProtoGeneratorBody } },
+    [GENERATOR_LIFE_SUPPORT_TASK_INDEX] = { { { TASK_BODY_COORD, GENERATOR_TASK_PRIORITY } }, _generatorLifeSupportTask, { .value = 0 } },
 };
 
 AnimationSet* gGeneratorAnimSets[4] = {

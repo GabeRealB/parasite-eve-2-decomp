@@ -12,11 +12,10 @@
 static void _generatorSpawn(Enemy* enemy, Task* task)
 {
     enum {
-        GENERATOR_BODY_RADIUS             = 1500,
-        GENERATOR_TARGET_RADIUS           = 300,
-        GENERATOR_LIFE_SUPPORT_TASK_INDEX = 1,
-        GENERATOR_HIT_EFFECT_MAGNITUDE    = 1280,
-        GENERATOR_BODY_HIT_EFFECT_COUNT   = 3
+        GENERATOR_BODY_RADIUS           = 1500,
+        GENERATOR_TARGET_RADIUS         = 300,
+        GENERATOR_HIT_EFFECT_MAGNITUDE  = 1280,
+        GENERATOR_BODY_HIT_EFFECT_COUNT = 3
     };
     GeneratorWork*        work;
     TmdObject*            bodyModel;
@@ -90,7 +89,7 @@ static void _generatorSpawn(Enemy* enemy, Task* task)
     work->targetBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->targetBody);
     work->targetBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    lifeSupportEnemy        = enemySpawnFromTable(gGeneratorTasks, GENERATOR_LIFE_SUPPORT_TASK_INDEX, 0, enemy);
+    lifeSupportEnemy        = enemySpawnFromTable(GENERATOR_TASK_TABLE, GENERATOR_LIFE_SUPPORT_TASK_INDEX, 0, enemy);
     // Keep the original TMD texture/buffer operations on the coordinate-only child.
     // These offsets address bytes in ownedCoord; their purpose is unproven.
     lifeSupportBody      = lifeSupportEnemy->task->extra.coordBody;

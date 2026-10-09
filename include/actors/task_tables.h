@@ -132,13 +132,36 @@ extern TaskDesc D_actor_110700_8013BF94;
 
 extern TaskDesc D_actor_150400_8013C8F4[];
 
-extern TaskDesc gActor105400GeneratorTasks[];
+/// Descriptor indices shared by the Beta and Proto Generator spawn tables.
+///
+/// Both tables contain exactly two recipes and have no terminator.
+enum {
+    GENERATOR_BODY_TASK_INDEX         = 0,
+    GENERATOR_LIFE_SUPPORT_TASK_INDEX = 1,
+    GENERATOR_TASK_DESC_COUNT         = 2
+};
+
+/// Proto Generator body and Life Support spawn recipes exported by actor_105400.
+///
+/// Entry `GENERATOR_BODY_TASK_INDEX` creates the TMD body; entry
+/// `GENERATOR_LIFE_SUPPORT_TASK_INDEX` creates its coordinate-only child.
+/// Both execute at priority 96 and receive a live `Enemy` in spawn argument 2
+/// through `enemySpawnFromTable`. The child requires its body task as parent.
+/// The actor overlay and the body's borrowed model data must remain loaded.
+extern TaskDesc gActor105400GeneratorTasks[GENERATOR_TASK_DESC_COUNT];
 
 extern TaskDesc D_actor_151000_8013D2E0;
 
 extern TaskDesc D_actor_121300_8013D390[];
 
-extern TaskDesc gActor105300GeneratorTasks[];
+/// Beta Generator body and Life Support spawn recipes exported by actor_105300.
+///
+/// Entry `GENERATOR_BODY_TASK_INDEX` creates the TMD body; entry
+/// `GENERATOR_LIFE_SUPPORT_TASK_INDEX` creates its coordinate-only child.
+/// Both execute at priority 96 and receive a live `Enemy` in spawn argument 2
+/// through `enemySpawnFromTable`. The child requires its body task as parent.
+/// The actor overlay and the body's borrowed model data must remain loaded.
+extern TaskDesc gActor105300GeneratorTasks[GENERATOR_TASK_DESC_COUNT];
 
 extern TaskDesc D_actor_141000_8013D77C;
 

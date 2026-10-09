@@ -28,9 +28,15 @@
 #ifndef GENERATOR_KIND
 #error "define GENERATOR_KIND (GENERATOR_BETA or GENERATOR_PROTO) before including generator.h"
 #endif
+#ifndef GENERATOR_TASK_TABLE
+#error "define GENERATOR_TASK_TABLE to the package's two-entry TaskDesc array before including generator.h"
+#endif
 #define GENERATOR_COLLISION_KEY (0x30035 + GENERATOR_KIND)
 
 extern TaskMessageEntry gGeneratorMessages[];
+
+/// Execution-list priority shared by the generator body and Life Support part.
+enum { GENERATOR_TASK_PRIORITY = 96 };
 
 /// State indices of the body and Life Support task dispatchers.
 enum {
