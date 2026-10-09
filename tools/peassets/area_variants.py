@@ -11,6 +11,11 @@ each record names a stage, an area and the variant to store, and a policy
 byte whose high nibble says which save modes accept it. A variant no list
 stores is either the room's default or set some other way.
 
+Dryfield by day and by night share saved area state: where both stages have a
+room with one area id, both address the same slot (include/main/gameflag_types.h,
+`GameFlagDryfieldBank`). A record naming either stage is therefore listed under
+both rooms, marked "(shared slot)" on the one the record does not name.
+
 This reads the C text: a list still in assembly, and a variant written by
 code rather than a list, are not shown. It lists the records, not when the
 list is applied - read the code that names the list for that.
@@ -65,7 +70,11 @@ def records():
                 s, a, v = number(stage, STAGES), number(area, areas), number(variant, {})
                 if s is None or s == 255 or stage == "AREA_APPLY_END":
                     continue
-                yield path.parent.name, path.relative_to(ROOT), n, current, known.get((s, a), (s, a)), v if v is not None else variant, policy
+                value = v if v is not None else variant
+                yield path.parent.name, path.relative_to(ROOT), n, current, known.get((s, a), (s, a)), value, policy
+                twin = known.get(({2: 3, 3: 2}.get(s), a))
+                if twin:
+                    yield path.parent.name, path.relative_to(ROOT), n, current, twin, value, policy + " (shared slot)"
             if line.rstrip().endswith("};"):
                 current = None
 
