@@ -62,7 +62,7 @@ enum {
     MIST_R18_BRIEFING_DEPARTING          = 5,
 };
 
-extern WorldCoordRoomLights D_mist_r18_80186E44[1];
+static WorldCoordRoomLights _gMistR18RoomLights;
 
 static void _modelPlacementAttachPartTask(Task* childTask);
 static void _mistR18AdvanceBriefingState(Task* unusedTask);
@@ -75,10 +75,8 @@ static void _mistR18SetTexturePage(s16 blendMode, s16 vramX, s16 vramY, s32 orde
 static void _mistR18WaitForCrossfadeViewState(Task* task);
 static void _mistR18InitBriefingState(Task* task);
 
-/// The room's task-spawn table; its entries are started by index from the
-/// room's callbacks.
-extern TaskDesc D_mist_r18_80184F04[];
-/// Spawn descriptor handed to entry 5 of `D_mist_r18_80184F04`.
+static TaskDesc _gMistR18TaskDescs[8];
+/// Spawn descriptor handed to entry 5 of `_gMistR18TaskDescs`.
 extern TextStream D_mist_r18_80184EE4;
 extern EvsCommand D_mist_r18_8018522C[];
 extern EvsCommand D_mist_r18_8018576C[];
@@ -101,10 +99,12 @@ extern s32 D_mist_r18_80186E9C;
 /// Set by `_mistR18AdvanceBriefingState` when the alternate cutscene branch ran.
 extern s32 D_mist_r18_80186EA0;
 
-/// State handlers of the attached-model task `_mistR18AttachedModelTask`
-/// dispatches: attach to the parent's part, an empty idle state, then
-/// `taskKill`.
-static const TaskFuncTable3 D_mist_r18_8017D5C4 = {
+/// Attachment, idle and teardown callbacks for the room's two held models.
+///
+/// Indexed by task state (0 attach to the parent part, 1 retain attachment,
+/// 2 kill), without a terminator or bounds check. Dispatch copies all three
+/// pointers by value; the callback code must remain loaded through the call.
+static const TaskFuncTable3 _gMistR18AttachedModelStates = {
     { _modelPlacementAttachPartTask, _mistR18AttachedModelIdleState, taskKill },
 };
 
@@ -114,16 +114,18 @@ static const TaskFuncTable3 D_mist_r18_8017D5D0 = {
     { _mistR18InitBriefingState, _mistR18AdvanceBriefingState, taskKill },
 };
 
-/// State handlers of the backdrop task `_mistR18CrossfadeTask` dispatches:
-/// capture the framebuffer as the backdrop, wait for the new view, crossfade, then
-/// `taskKill`.
-static const TaskFuncTable4 D_mist_r18_8017D5DC = {
+/// Capture, view-wait, crossfade and teardown callbacks for the frozen backdrop.
+///
+/// Indexed by task state (0 capture, 1 wait for the replacement view,
+/// 2 crossfade to the live frame, 3 kill). Dispatch copies all four pointers
+/// by value and performs no bounds check; keep their code loaded through use.
+static const TaskFuncTable4 _gMistR18CrossfadeStates = {
     { _mistR18CaptureBackdropState, _mistR18WaitForCrossfadeViewState, _crossfadeOutState, taskKill },
 };
 
 extern AreaResource D_mist_r18_80186BD8[3];
 
-extern WorldCollisionGrid D_mist_r18_801866F8[1];
+static WorldCollisionGrid _gMistR18FloorCollisionGrid;
 
 extern AnimationSet* D_mist_r18_80184F64[11];
 /// Attached-model selectors passed by the briefing scripts and their parent part.
@@ -512,15 +514,26 @@ u8 D_mist_r18_80184EA8[60] = {
 
 TextStream D_mist_r18_80184EE4 = { -150, -90, 704, 48, 16, 260, 1, 0, D_mist_r18_80184EA8, gTextCaptionGlyphCells, 13, 45, 216, 29 };
 
-TaskDesc D_mist_r18_80184F04[8] = {
-    { { { TASK_BODY_TMD, 192 } }, _mistR18AttachedModelTask, { .model = &_gMistR18Actor213000Model072AC } },
-    { { { TASK_BODY_TMD, 192 } }, _mistR18AttachedModelTask, { .model = &_gMistR18Actor213000Prop } },
-    { { { TASK_BODY_COORD, 192 } }, _mistR18TextureFadeTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _mistR18CrossfadeTask, { .value = 0 } },
-    { { { TASK_BODY_TMD, 192 } }, _mistR18PlacePropTask, { .model = &_gMistR18Actor213000Prop } },
-    { { { TASK_BODY_NONE, 192 } }, _mistR18CaptionTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _mistR18FadeTileTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _mistR18ReleaseScriptPauseTask, { .value = 0 } },
+/// Execution priority shared by the briefing's directly spawned child tasks.
+enum { MIST_R18_BRIEFING_TASK_PRIORITY = 192 };
+
+/// Spawn recipes for the briefing's held models, prop and presentation tasks.
+///
+/// Direct spawns use indices 0..7; there is no terminator. Slots 0/1 attach
+/// models, 2 fades textured rectangles, 3 crossfades the backdrop, 4 places the
+/// prop, 5 reveals the caption, 6 draws a fade tile and 7 monitors script pause.
+/// Slots 2 and 6 have no room-local spawner or event-command reference.
+/// Descriptors are read synchronously; callbacks and borrowed model sources
+/// remain live with this overlay until their spawned tasks are torn down.
+static TaskDesc _gMistR18TaskDescs[8] = {
+    { { { TASK_BODY_TMD, MIST_R18_BRIEFING_TASK_PRIORITY } }, _mistR18AttachedModelTask, { .model = &_gMistR18Actor213000Model072AC } },
+    { { { TASK_BODY_TMD, MIST_R18_BRIEFING_TASK_PRIORITY } }, _mistR18AttachedModelTask, { .model = &_gMistR18Actor213000Prop } },
+    { { { TASK_BODY_COORD, MIST_R18_BRIEFING_TASK_PRIORITY } }, _mistR18TextureFadeTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, MIST_R18_BRIEFING_TASK_PRIORITY } }, _mistR18CrossfadeTask, { .value = 0 } },
+    { { { TASK_BODY_TMD, MIST_R18_BRIEFING_TASK_PRIORITY } }, _mistR18PlacePropTask, { .model = &_gMistR18Actor213000Prop } },
+    { { { TASK_BODY_NONE, MIST_R18_BRIEFING_TASK_PRIORITY } }, _mistR18CaptionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, MIST_R18_BRIEFING_TASK_PRIORITY } }, _mistR18FadeTileTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, MIST_R18_BRIEFING_TASK_PRIORITY } }, _mistR18ReleaseScriptPauseTask, { .value = 0 } },
 };
 
 AnimationSet* D_mist_r18_80184F64[11] = {
@@ -601,7 +614,12 @@ AnimationPlayRequest D_mist_r18_801851DC = { { .sets = NULL }, 7, ANIMATION_BLEN
 
 AnimationPlayRequest D_mist_r18_801851F0 = { { .sets = NULL }, 8, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-ActorTransform D_mist_r18_80185204 = { { 0, 128, 0, 0 }, { 0, 0, 0, 0 } };
+/// Player placement restored between briefing scenes: (0, 128, 0), facing zero.
+///
+/// Position uses whole world-coordinate units; Euler angles use 4096 units per
+/// turn. Placement messages borrow both vectors until dispatch and copy them
+/// into the player; this overlay must remain loaded through those messages.
+static ActorTransform _gMistR18BriefingPlayerPlacement = { { 0, 128, 0, 0 }, { 0, 0, 0, 0 } };
 
 ActorCommand D_mist_r18_8018521C = { 0 };
 
@@ -635,7 +653,7 @@ EvsCommand D_mist_r18_8018522C[56] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mist_r18_80185204 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistR18BriefingPlayerPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
@@ -673,7 +691,7 @@ EvsCommand D_mist_r18_8018522C[56] = {
 EvsCommand D_mist_r18_8018576C[37] = {
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistR18SpawnAttachedModel }, { .value = MIST_R18_ATTACHMENT_MODEL_FIRST }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mist_r18_80185204 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistR18BriefingPlayerPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mist_r18_80184F90 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
@@ -714,7 +732,7 @@ EvsCommand D_mist_r18_80185AE4[41] = {
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistR18SpawnAttachedModel }, { .value = MIST_R18_ATTACHMENT_MODEL_SECOND }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mist_r18_80185204 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistR18BriefingPlayerPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mist_r18_80184F90 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_80185024 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
@@ -755,7 +773,7 @@ EvsCommand D_mist_r18_80185AE4[41] = {
 };
 
 EvsCommand D_mist_r18_80185EBC[16] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mist_r18_80185204 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistR18BriefingPlayerPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mist_r18_80184F90 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_80184F98 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
@@ -776,7 +794,7 @@ EvsCommand D_mist_r18_80185EBC[16] = {
 EvsCommand D_mist_r18_8018603C[16] = {
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mist_r18_80184F90 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mist_r18_80185204 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistR18BriefingPlayerPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
@@ -795,7 +813,7 @@ EvsCommand D_mist_r18_8018603C[16] = {
 EvsCommand D_mist_r18_801861BC[20] = {
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mist_r18_80184F90 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mist_r18_80185204 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistR18BriefingPlayerPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
@@ -854,51 +872,68 @@ EvsCommand D_mist_r18_80186564[7] = {
 };
 
 WorldCollisionRoomResources D_mist_r18_8018660C[1] = {
-    { D_mist_r18_801866F8, NULL, NULL, NULL },
+    { &_gMistR18FloorCollisionGrid, NULL, NULL, NULL },
 };
 
-u8* D_mist_r18_8018661C[1] = {
+u8* gMistR18ViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_mist_r18_80186620[2] = { 10, 0 };
+ViewCount gMistR18ViewCounts[2] = { ARRAY_SIZE(gMistR18ViewCameras), 0 };
 
-WorldCoordRoomLighting D_mist_r18_80186624[1] = {
-    { D_mist_r18_80186E44, NULL },
+WorldCoordRoomLighting gMistR18RoomLightingTable[1] = {
+    { &_gMistR18RoomLights, NULL },
 };
 
 DirectionWarpEntry D_mist_r18_8018662C[1] = {
     { { { .word = 2048 }, -6000, 0, 3218 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -6000, 0, 3218 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gMistR18Collision09138Normals[1] = {
+static SVECTOR _gMistR18FloorCollisionGridNormals[1] = {
 #include "assets/mist_r18_collision_09138_normals.inc"
 };
 
-static SVECTOR _gMistR18Collision09138Verts[4] = {
+static SVECTOR _gMistR18FloorCollisionGridVerts[4] = {
 #include "assets/mist_r18_collision_09138_verts.inc"
 };
 
-static WorldCollisionGridFace _gMistR18Collision09138Faces[1] = {
+static WorldCollisionGridFace _gMistR18FloorCollisionGridFaces[1] = {
 #include "assets/mist_r18_collision_09138_faces.inc"
 };
 
-static s16 _gMistR18Collision09138Cells[24] = {
+static s16 _gMistR18FloorCollisionGridCells[24] = {
 #include "assets/mist_r18_collision_09138_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gMistR18Collision09138Cells[i])
-static s16* _gMistR18Collision09138Table[12] = {
+#define GRID_CELL(i) (&_gMistR18FloorCollisionGridCells[i])
+static s16* _gMistR18FloorCollisionGridTable[12] = {
 #include "assets/mist_r18_collision_09138_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_mist_r18_801866F8[1] = {
-    { NULL, _gMistR18Collision09138Normals, _gMistR18Collision09138Verts, _gMistR18Collision09138Faces, _gMistR18Collision09138Table, 7000, 5000, 4, 3, 4000, 1 },
+/// The briefing room's class-1 floor and its X-major collision-cell index.
+///
+/// One quad at Y=0 spans X=-7000..7000 and Z=-5000..6000 in game units.
+/// The 4-by-3 table has 4000-unit cells; every cell selects face 0 and ends
+/// with WORLD_COLLISION_GRID_CELL_END. Activation binds the writable descriptor
+/// to the current view; the descriptor and its five asset arrays stay live
+/// with this room overlay while collision queries use them.
+static WorldCollisionGrid _gMistR18FloorCollisionGrid = {
+    NULL,
+    _gMistR18FloorCollisionGridNormals,
+    _gMistR18FloorCollisionGridVerts,
+    _gMistR18FloorCollisionGridFaces,
+    _gMistR18FloorCollisionGridTable,
+    7000,
+    5000,
+    4,
+    3,
+    4000,
+    ARRAY_SIZE(_gMistR18FloorCollisionGridFaces),
 };
 
-ViewCamera D_mist_r18_8018671C[10] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x6978, -500 } }, 447 },
+ViewCamera gMistR18ViewCameras[10] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 0, 0x6978, -500 } }, 447 },
     { { { { 1821, 0, 3668 }, { 23, 4095, -11 }, { -3668, 25, 1821 } }, { -1440, 1500, -620 } }, 230 },
     { { { { 1698, 0, 3727 }, { 836, 3991, -381 }, { -3632, 919, 1655 } }, { 1290, 1500, -3770 } }, 257 },
     { { { { -1337, 0, 3871 }, { 8, 4095, 3 }, { -3871, 9, -1337 } }, { 1970, 1440, -4180 } }, 329 },
@@ -910,104 +945,134 @@ ViewCamera D_mist_r18_8018671C[10] = {
     { { { { 2471, 0, -3266 }, { 87, 4094, 66 }, { 3264, -110, 2470 } }, { 5490, 1190, -3000 } }, 257 },
 };
 
-SpriteBatch D_mist_r18_80186884[2] = {
+/// Background-only ranges for mapped view 1; the zero first count keeps image strips.
+static SpriteBatch _gMistR18View1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mist_r18_80186894[4] = {
+/// Background-only ranges for mapped view 2, including two further empty ranges.
+///
+/// The zero first count keeps image strips. The second record's serialized
+/// byte pair {1, 0} has no established role; all counts and the end marker stay intact.
+static SpriteBatch _gMistR18View2SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 0, 0, 0, { 1, 0 } },
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mist_r18_801868B4[2] = {
+/// Background-only ranges for mapped view 3; the zero first count keeps image strips.
+static SpriteBatch _gMistR18View3SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mist_r18_801868C4[10] = {
-    { 143, 0x3FC0, { .fields = { 64, 40 } }, -56, 80, 750, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 40 } }, 8, 80, 750, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 72, 80, 750, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -56, 56, 825, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -8, 56, 825, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 64, 56, 825, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 24 } }, 8, 56, 825, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 80, 56, 825, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 88, 56, 825, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 96, 64, 825, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
+/// Encoded 8-bit sprite texture page at (960, 0), with its CLUT at (0, 255).
+enum {
+    MIST_R18_SPRITE_TEXTURE_DEPTH_8BIT = 1,
+    MIST_R18_SPRITE_TEXTURE_PAGE       = getTPage(MIST_R18_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0),
+    MIST_R18_SPRITE_CLUT               = getClut(0, 255),
 };
 
-SpriteBatch D_mist_r18_8018698C[3] = {
+/// Ten depth-sorted foreground rectangles over mapped view 4's decoded background.
+///
+/// XY and dimensions are pixels relative to the drawing origin, UV is in page
+/// texels, and depths are unscaled OT sorting values. The batch list selects
+/// every element; source geometry remains writable while the room is loaded.
+static SpriteSource _gMistR18View4SpriteSources[10] = {
+    { MIST_R18_SPRITE_TEXTURE_PAGE, MIST_R18_SPRITE_CLUT, { .fields = { 64, 40 } }, -56, 80, 750, { .fields = { 64, 0 } }, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, 0 },
+    { MIST_R18_SPRITE_TEXTURE_PAGE, MIST_R18_SPRITE_CLUT, { .fields = { 64, 40 } }, 8, 80, 750, { .fields = { 64, 40 } }, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, 0 },
+    { MIST_R18_SPRITE_TEXTURE_PAGE, MIST_R18_SPRITE_CLUT, { .fields = { 40, 40 } }, 72, 80, 750, { .fields = { 88, 80 } }, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, 0 },
+    { MIST_R18_SPRITE_TEXTURE_PAGE, MIST_R18_SPRITE_CLUT, { .fields = { 48, 24 } }, -56, 56, 825, { .fields = { 80, 120 } }, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, 0 },
+    { MIST_R18_SPRITE_TEXTURE_PAGE, MIST_R18_SPRITE_CLUT, { .fields = { 16, 24 } }, -8, 56, 825, { .fields = { 112, 144 } }, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, 0 },
+    { MIST_R18_SPRITE_TEXTURE_PAGE, MIST_R18_SPRITE_CLUT, { .fields = { 16, 24 } }, 64, 56, 825, { .fields = { 112, 168 } }, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, 0 },
+    { MIST_R18_SPRITE_TEXTURE_PAGE, MIST_R18_SPRITE_CLUT, { .fields = { 56, 24 } }, 8, 56, 825, { .fields = { 72, 192 } }, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, 0 },
+    { MIST_R18_SPRITE_TEXTURE_PAGE, MIST_R18_SPRITE_CLUT, { .fields = { 8, 24 } }, 80, 56, 825, { .fields = { 120, 216 } }, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, 0 },
+    { MIST_R18_SPRITE_TEXTURE_PAGE, MIST_R18_SPRITE_CLUT, { .fields = { 8, 24 } }, 88, 56, 825, { .fields = { 112, 216 } }, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, 0 },
+    { MIST_R18_SPRITE_TEXTURE_PAGE, MIST_R18_SPRITE_CLUT, { .fields = { 16, 16 } }, 96, 64, 825, { .fields = { 112, 240 } }, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, 0 },
+};
+
+/// Mapped view 4's decoded background followed by its complete foreground range.
+static SpriteBatch _gMistR18View4SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 10, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gMistR18View4SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mist_r18_801869A4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-SpriteSource D_mist_r18_801869B4[17] = {
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -96, 88, 288, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -96, 72, 323, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -64, 80, 298, { .fields = { 88, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -64, 64, 352, { .fields = { 32, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, -24, 72, 310, { .fields = { 88, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -24, 56, 350, { .fields = { 32, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 56 } }, 16, 64, 318, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 56 } }, 56, 64, 283, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 56 } }, 104, 64, 318, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 16, 48, 350, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 48, 40, 362, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 64, 40, 362, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 88, 32, 362, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 120, 40, 375, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 136, 48, 375, { .fields = { 48, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -152, 88, 307, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -136, 80, 302, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-};
-
-SpriteBatch D_mist_r18_80186B08[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 17, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-SpriteBatch D_mist_r18_80186B20[2] = {
+/// Background-only ranges for mapped view 5; the zero first count keeps image strips.
+static SpriteBatch _gMistR18View5SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mist_r18_80186B30[2] = {
+/// Seventeen depth-sorted foreground rectangles over mapped view 6's decoded background.
+///
+/// XY and dimensions are drawing-origin pixels, UV is in texture-page texels,
+/// and depths are unscaled OT sorting values. The batch list selects every
+/// element; source geometry remains writable while the room is loaded.
+static SpriteSource _gMistR18View6SpriteSources[17] = {
+    { MIST_R18_SPRITE_TEXTURE_PAGE, MIST_R18_SPRITE_CLUT, { .fields = { 32, 32 } }, -96, 88, 288, { .fields = { 56, 168 } }, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, 0 },
+    { MIST_R18_SPRITE_TEXTURE_PAGE, MIST_R18_SPRITE_CLUT, { .fields = { 32, 16 } }, -96, 72, 323, { .fields = { 32, 56 } }, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, 0 },
+    { MIST_R18_SPRITE_TEXTURE_PAGE, MIST_R18_SPRITE_CLUT, { .fields = { 40, 40 } }, -64, 80, 298, { .fields = { 88, 216 } }, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, 0 },
+    { MIST_R18_SPRITE_TEXTURE_PAGE, MIST_R18_SPRITE_CLUT, { .fields = { 40, 16 } }, -64, 64, 352, { .fields = { 32, 136 } }, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, 0 },
+    { MIST_R18_SPRITE_TEXTURE_PAGE, MIST_R18_SPRITE_CLUT, { .fields = { 40, 48 } }, -24, 72, 310, { .fields = { 88, 168 } }, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, 0 },
+    { MIST_R18_SPRITE_TEXTURE_PAGE, MIST_R18_SPRITE_CLUT, { .fields = { 40, 16 } }, -24, 56, 350, { .fields = { 32, 120 } }, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, 0 },
+    { MIST_R18_SPRITE_TEXTURE_PAGE, MIST_R18_SPRITE_CLUT, { .fields = { 40, 56 } }, 16, 64, 318, { .fields = { 88, 0 } }, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, 0 },
+    { MIST_R18_SPRITE_TEXTURE_PAGE, MIST_R18_SPRITE_CLUT, { .fields = { 48, 56 } }, 56, 64, 283, { .fields = { 80, 56 } }, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, 0 },
+    { MIST_R18_SPRITE_TEXTURE_PAGE, MIST_R18_SPRITE_CLUT, { .fields = { 56, 56 } }, 104, 64, 318, { .fields = { 72, 112 } }, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, 0 },
+    { MIST_R18_SPRITE_TEXTURE_PAGE, MIST_R18_SPRITE_CLUT, { .fields = { 32, 16 } }, 16, 48, 350, { .fields = { 32, 40 } }, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, 0 },
+    { MIST_R18_SPRITE_TEXTURE_PAGE, MIST_R18_SPRITE_CLUT, { .fields = { 16, 24 } }, 48, 40, 362, { .fields = { 56, 96 } }, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, 0 },
+    { MIST_R18_SPRITE_TEXTURE_PAGE, MIST_R18_SPRITE_CLUT, { .fields = { 24, 24 } }, 64, 40, 362, { .fields = { 64, 232 } }, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, 0 },
+    { MIST_R18_SPRITE_TEXTURE_PAGE, MIST_R18_SPRITE_CLUT, { .fields = { 32, 32 } }, 88, 32, 362, { .fields = { 56, 200 } }, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, 0 },
+    { MIST_R18_SPRITE_TEXTURE_PAGE, MIST_R18_SPRITE_CLUT, { .fields = { 16, 24 } }, 120, 40, 375, { .fields = { 64, 72 } }, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, 0 },
+    { MIST_R18_SPRITE_TEXTURE_PAGE, MIST_R18_SPRITE_CLUT, { .fields = { 24, 16 } }, 136, 48, 375, { .fields = { 48, 152 } }, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, 0 },
+    { MIST_R18_SPRITE_TEXTURE_PAGE, MIST_R18_SPRITE_CLUT, { .fields = { 16, 32 } }, -152, 88, 307, { .fields = { 64, 40 } }, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, 0 },
+    { MIST_R18_SPRITE_TEXTURE_PAGE, MIST_R18_SPRITE_CLUT, { .fields = { 40, 40 } }, -136, 80, 302, { .fields = { 48, 0 } }, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, MIST_R18_TEXTURE_SHADE_UNITY, 0 },
+};
+
+/// Mapped view 6's decoded background followed by its complete foreground range.
+static SpriteBatch _gMistR18View6SpriteBatches[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gMistR18View6SpriteSources), 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+};
+
+/// Background-only ranges for mapped view 7; the zero first count keeps image strips.
+static SpriteBatch _gMistR18View7SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mist_r18_80186B40[2] = {
+/// Background-only ranges for mapped view 8; the zero first count keeps image strips.
+static SpriteBatch _gMistR18View8SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mist_r18_80186B50[2] = {
+/// Background-only ranges for mapped view 9; the zero first count keeps image strips.
+static SpriteBatch _gMistR18View9SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_mist_r18_80186B60[10] = {
-    { { .empty = D_mist_r18_80186884 }, D_mist_r18_80186884, NULL },
-    { { .empty = D_mist_r18_80186894 }, D_mist_r18_80186894, NULL },
-    { { .empty = D_mist_r18_801868B4 }, D_mist_r18_801868B4, NULL },
-    { { .elements = D_mist_r18_801868C4 }, D_mist_r18_8018698C, NULL },
-    { { .empty = D_mist_r18_801869A4 }, D_mist_r18_801869A4, NULL },
-    { { .elements = D_mist_r18_801869B4 }, D_mist_r18_80186B08, NULL },
-    { { .empty = D_mist_r18_80186B20 }, D_mist_r18_80186B20, NULL },
-    { { .empty = D_mist_r18_80186B30 }, D_mist_r18_80186B30, NULL },
-    { { .empty = D_mist_r18_80186B40 }, D_mist_r18_80186B40, NULL },
-    { { .empty = D_mist_r18_80186B50 }, D_mist_r18_80186B50, NULL },
+/// Background-only ranges for mapped view 10; the zero first count keeps image strips.
+static SpriteBatch _gMistR18View10SpriteBatches[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+};
+
+SpriteView gMistR18SpriteViews[10] = {
+    { { .empty = _gMistR18View1SpriteBatches }, _gMistR18View1SpriteBatches, NULL },
+    { { .empty = _gMistR18View2SpriteBatches }, _gMistR18View2SpriteBatches, NULL },
+    { { .empty = _gMistR18View3SpriteBatches }, _gMistR18View3SpriteBatches, NULL },
+    { { .elements = _gMistR18View4SpriteSources }, _gMistR18View4SpriteBatches, NULL },
+    { { .empty = _gMistR18View5SpriteBatches }, _gMistR18View5SpriteBatches, NULL },
+    { { .elements = _gMistR18View6SpriteSources }, _gMistR18View6SpriteBatches, NULL },
+    { { .empty = _gMistR18View7SpriteBatches }, _gMistR18View7SpriteBatches, NULL },
+    { { .empty = _gMistR18View8SpriteBatches }, _gMistR18View8SpriteBatches, NULL },
+    { { .empty = _gMistR18View9SpriteBatches }, _gMistR18View9SpriteBatches, NULL },
+    { { .empty = _gMistR18View10SpriteBatches }, _gMistR18View10SpriteBatches, NULL },
 };
 
 AreaResource D_mist_r18_80186BD8[3] = {
@@ -1032,37 +1097,68 @@ AreaVariant D_mist_r18_80186BFC[13] = {
     { NULL, NULL },
 };
 
-WorldCoordPointLight D_mist_r18_80186C64[5] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5700, -2300, 2050 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 2000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5700, -2300, 4800 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 2000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3800, -2300, 4800 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 2000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3800, -2300, 2050 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 2000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5450, -1200, 4000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 800, 1200 },
+/// Five authored point lights contributing in every briefing view.
+///
+/// Positions and inner/outer falloff distances use whole world-coordinate units;
+/// RGB 2867 uses the 4096-unit intensity scale. The first four lights fade over
+/// distances 2000..3000 and the fifth over 800..1200. Setup and shading mutate
+/// transform caches and attenuation, so these records stay writable and loaded.
+static WorldCoordPointLight _gMistR18PointLights[5] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -5700, -2300, 2050 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 2000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -5700, -2300, 4800 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 2000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -3800, -2300, 4800 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 2000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -3800, -2300, 2050 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 2000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -5450, -1200, 4000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 800, 1200 },
 };
 
-WorldCoordRoomLights D_mist_r18_80186E44[1] = {
-    { 0, NULL, ARRAY_SIZE(D_mist_r18_80186C64), D_mist_r18_80186C64, 0, NULL },
+/// Room light collection selecting all five point lights and no directional or cone lights.
+///
+/// Borrows the mutable point-light array for the lifetime of this room overlay.
+static WorldCoordRoomLights _gMistR18RoomLights = {
+    0,
+    NULL,
+    ARRAY_SIZE(_gMistR18PointLights),
+    _gMistR18PointLights,
+    0,
+    NULL,
 };
 
-WorldCollisionFootstepSounds D_mist_r18_80186E5C = {
-    0x1000002D,
-    0x1000002F,
-    0x1000002D,
+/// Type-1 script request bases for the room's paired walking and running cues.
+enum {
+    MIST_R18_FOOTSTEP_WALK = SOUND_SCRIPT_REQUEST_TYPE_1 | 45,
+    MIST_R18_FOOTSTEP_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 47,
 };
 
-WorldCollisionSurfaceProperties D_mist_r18_80186E68[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_mist_r18_80186E5C },
+/// Configured footstep cue bases for every surface; scripted jumps reuse walking cues.
+///
+/// Cue 2 requests the base, cue 1 adds one, and companion playback adds 100.
+/// The surface policy borrows this room-owned record while the overlay is loaded.
+static WorldCollisionFootstepSounds _gMistR18FootstepSounds = {
+    MIST_R18_FOOTSTEP_WALK,
+    MIST_R18_FOOTSTEP_RUN,
+    MIST_R18_FOOTSTEP_WALK,
 };
 
-WorldCollisionSurfaceProperties* D_mist_r18_80186E70[8] = {
-    D_mist_r18_80186E68,
-    D_mist_r18_80186E68,
-    D_mist_r18_80186E68,
-    D_mist_r18_80186E68,
-    D_mist_r18_80186E68,
-    D_mist_r18_80186E68,
-    D_mist_r18_80186E68,
-    D_mist_r18_80186E68,
+/// Common surface policy: block probes, allow weapon impacts and apply pushback.
+///
+/// All classes borrow the same footstep requests. The leading byte's role is unproven.
+static WorldCollisionSurfaceProperties _gMistR18SurfaceProperties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    &_gMistR18FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gMistR18SurfacePropertiesByClass[8] = {
+    &_gMistR18SurfaceProperties,
+    &_gMistR18SurfaceProperties,
+    &_gMistR18SurfaceProperties,
+    &_gMistR18SurfaceProperties,
+    &_gMistR18SurfaceProperties,
+    &_gMistR18SurfaceProperties,
+    &_gMistR18SurfaceProperties,
+    &_gMistR18SurfaceProperties,
 };
 
 Task* D_mist_r18_80186E90;
@@ -1479,7 +1575,7 @@ static void _mistR18AttachedModelTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_mist_r18_8017D5C4;
+    states = _gMistR18AttachedModelStates;
     states.funcs[task->state](task);
 }
 
@@ -1633,7 +1729,7 @@ static void _mistR18SpawnAttachedModel(s32 modelIndex)
     }
 
     if ((modelTaskSlot != NULL) && (*modelTaskSlot == NULL)) {
-        modelTask      = taskSpawnFromTable(D_mist_r18_80184F04, modelIndex, MIST_R18_ATTACHMENT_PLAYER_PART, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER));
+        modelTask      = taskSpawnFromTable(_gMistR18TaskDescs, modelIndex, MIST_R18_ATTACHMENT_PLAYER_PART, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER));
         *modelTaskSlot = modelTask;
         if (modelTask != NULL) {
             modelTask->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -1672,7 +1768,7 @@ static void _mistR18SpawnBriefingCaption(void)
 {
     enum { MIST_R18_BRIEFING_CAPTION_TASK_INDEX = 5 };
 
-    taskSpawnFromTable(D_mist_r18_80184F04, MIST_R18_BRIEFING_CAPTION_TASK_INDEX, 0, &D_mist_r18_80184EE4);
+    taskSpawnFromTable(_gMistR18TaskDescs, MIST_R18_BRIEFING_CAPTION_TASK_INDEX, 0, &D_mist_r18_80184EE4);
 }
 
 /// Starts the briefing's captured-backdrop transition to the next view.
@@ -1685,7 +1781,7 @@ static void _mistR18StartBackdropCrossfade(void)
 {
     enum { MIST_R18_BACKDROP_CROSSFADE_TASK_INDEX = 3 };
 
-    taskSpawnFromTable(D_mist_r18_80184F04, MIST_R18_BACKDROP_CROSSFADE_TASK_INDEX, 0, NULL);
+    taskSpawnFromTable(_gMistR18TaskDescs, MIST_R18_BACKDROP_CROSSFADE_TASK_INDEX, 0, NULL);
 }
 
 /// Dispatches the room's captured-backdrop crossfade.
@@ -1698,7 +1794,7 @@ static void _mistR18CrossfadeTask(Task* task)
 {
     TaskFuncTable4 states;
 
-    states = D_mist_r18_8017D5DC;
+    states = _gMistR18CrossfadeStates;
     states.funcs[task->state](task);
 }
 
@@ -1740,7 +1836,7 @@ static void _mistR18SpawnPlacedProp(void)
 {
     enum { MIST_R18_PLACED_PROP_TASK_INDEX = 4 };
 
-    D_mist_r18_80186E98 = taskSpawnFromTable(D_mist_r18_80184F04, MIST_R18_PLACED_PROP_TASK_INDEX, 0, 0);
+    D_mist_r18_80186E98 = taskSpawnFromTable(_gMistR18TaskDescs, MIST_R18_PLACED_PROP_TASK_INDEX, 0, 0);
 }
 
 /// Kills the room's separately placed prop task and clears its saved handle.
@@ -1835,7 +1931,7 @@ static void _mistR18StartSceneScriptPause(void)
 {
     enum { MIST_R18_SCENE_SCRIPT_PAUSE_TASK_INDEX = 7 };
 
-    if (taskSpawnFromTable(D_mist_r18_80184F04, MIST_R18_SCENE_SCRIPT_PAUSE_TASK_INDEX, 0, NULL) != NULL) {
+    if (taskSpawnFromTable(_gMistR18TaskDescs, MIST_R18_SCENE_SCRIPT_PAUSE_TASK_INDEX, 0, NULL) != NULL) {
         D_801156F9 = 1;
     }
 }

@@ -176,13 +176,13 @@ gAcropolisWestElevatorHallViewCameras = 0x801869FC; // absolute:True owner=acrop
 gAcropolisWestElevatorHallSurfacePropertiesByClass = 0x80186AC4; // absolute:True owner=acropolis_west_elevator_hall
 mistR18BriefingTask = 0x8017ED64; // type:func absolute:True owner=mist_r18
 D_mist_r18_8018660C = 0x8018660C; // absolute:True owner=mist_r18 shared=rooms
-D_mist_r18_8018661C = 0x8018661C; // absolute:True owner=mist_r18
-D_mist_r18_80186620 = 0x80186620; // absolute:True owner=mist_r18
-D_mist_r18_80186624 = 0x80186624; // absolute:True owner=mist_r18
+gMistR18ViewMaps = 0x8018661C; // absolute:True owner=mist_r18
+gMistR18ViewCounts = 0x80186620; // absolute:True owner=mist_r18
+gMistR18RoomLightingTable = 0x80186624; // absolute:True owner=mist_r18
 D_mist_r18_8018662C = 0x8018662C; // absolute:True owner=mist_r18 shared=rooms
-D_mist_r18_8018671C = 0x8018671C; // absolute:True owner=mist_r18 shared=rooms
-D_mist_r18_80186B60 = 0x80186B60; // absolute:True owner=mist_r18
-D_mist_r18_80186E70 = 0x80186E70; // absolute:True owner=mist_r18 shared=rooms
+gMistR18ViewCameras = 0x8018671C; // absolute:True owner=mist_r18 shared=rooms
+gMistR18SpriteViews = 0x80186B60; // absolute:True owner=mist_r18
+gMistR18SurfacePropertiesByClass = 0x80186E70; // absolute:True owner=mist_r18 shared=rooms
 mistParkingRoomTask = 0x80182898; // type:func absolute:True owner=mist_parking
 D_mist_parking_8019155C = 0x8019155C; // absolute:True owner=mist_parking
 D_mist_parking_801915B0 = 0x801915B0; // absolute:True owner=mist_parking
