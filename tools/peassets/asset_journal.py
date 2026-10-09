@@ -330,6 +330,65 @@ def load_shifts(files: list[Path], packages: set[str]) -> dict[str, list[tuple[i
     return {package: sorted(found) for package, found in out.items()}
 
 
+SYMBOL = re.compile(r"^(\w+)\s*=\s*0x([0-9A-Fa-f]+)\s*;", re.M)
+
+
+def set_tables(embedded: dict) -> dict[str, list[tuple[str, list[tuple[str, int] | None]]]]:
+    """package -> its tables of animation-set pointers, as (name, entries).
+
+    A clip constant is an index into one of these, not into the bank: a table
+    lists the sets a rig can play, and may skip, repeat or order them as it
+    likes. They are found in the package's own bytes - a run of words each
+    naming a declared set, or null - and cut where the package's symbols
+    start, since tables for several rigs sit back to back. An entry is the
+    bank and the set's position in it, or None for a null slot.
+    """
+    import struct
+    import tomllib
+    sys.path.insert(0, str(ROOT / "tools"))
+    from gen_overlay_configs import declared_animations
+
+    banks = {(rec["source"], rec["vram"]): key for key, rec in embedded.items() if rec.get("type") == "animation"}
+    by_package: dict[str, list[dict]] = defaultdict(list)
+    for row in declared_animations(tomllib.loads((ROOT / "configs/USA/overlays.toml").read_text(encoding="utf-8"))):
+        by_package[row["package"]].append(row)
+    out = {}
+    for package, rows in by_package.items():
+        path = ROOT / "assets/USA/pe2pkg" / f"{package}.pe2pkg"
+        if not path.is_file():
+            continue
+        data, load = path.read_bytes(), rows[0]["load"]
+        sets = {}
+        for row in rows:
+            bank = banks.get((package + ".pe2pkg", load + row["offset"]))
+            for n, offset in enumerate(row["sets"]):
+                sets[load + offset] = (bank, n)
+        names = {}
+        for sym in (ROOT / "configs/USA/sym").glob(f"*/{package}.txt"):
+            names = {int(m[2], 16): m[1] for m in SYMBOL.finditer(sym.read_text(encoding="utf-8"))}
+        words = struct.unpack_from(f"<{len(data) // 4}I", data)
+        tables, i = [], 0
+        while i < len(words):
+            if words[i] not in sets:
+                i += 1
+                continue
+            start = i - 1 if i and words[i - 1] == 0 else i      # slot 0 is unused
+            end = i
+            while end < len(words) and (words[end] in sets or words[end] == 0):
+                end += 1
+            while words[end - 1] == 0:
+                end -= 1
+            cuts = [start] + [w for w in range(start + 1, end) if load + w * 4 in names] + [end]
+            # A symbol on the word before the run owns the null slot too.
+            for a, b in zip(cuts, cuts[1:]):
+                entries = [sets.get(w) for w in words[a:b]]
+                if any(entries):
+                    tables.append((names.get(load + a * 4, f"{package}+0x{a * 4:X}"), entries))
+            i = end
+        out[package] = tables
+    return out
+
+
 class Manifest:
     """What each attribute value can come from, and where assets are placed."""
 
@@ -383,10 +442,7 @@ class Manifest:
         # sets. So the number only says the bank is long enough, and the row
         # records the index; which set that is takes the table to say. Only
         # the bank of the constant's own package means anything.
-        for key, rec in self.embedded.items():
-            if rec["type"] == "animation":
-                for clip in range(rec["clips"] + 1):
-                    self.by_value["animation.clip"][clip].add((key, f"table index {clip}"))
+        self.set_tables = set_tables(self.embedded)
         # A package's own embedded assets are as near to its code as anything.
         for key, rec in self.embedded.items():
             self.near[rec.get("source", "").removesuffix(".pe2pkg")].add(key)
@@ -472,8 +528,17 @@ def scan(db: sqlite3.Connection, by_value: bool) -> None:
                 named = True
             if attribute is None or (attribute != "file.id" and not stated and NOT_A_PROPERTY.search(symbol)):
                 continue
-            found = sorted(man.by_value[attribute].get(value, ()))
-            local = [c for c in found if c[0] in near]
+            if attribute == "animation.clip":
+                # Every table of the package that has this slot filled.
+                hits = defaultdict(list)
+                for name, entries in man.set_tables.get(package, ()):
+                    if 0 <= value < len(entries) and entries[value]:
+                        hits[entries[value]].append(name)
+                found = sorted((bank, f"set {n} (index {value} of {', '.join(names)})") for (bank, n), names in hits.items())
+                local = found
+            else:
+                found = sorted(man.by_value[attribute].get(value, ()))
+                local = [c for c in found if c[0] in near]
             if not found:
                 match, chosen = "none", None
             elif len({c[0] for c in found}) == 1:
@@ -482,8 +547,13 @@ def scan(db: sqlite3.Connection, by_value: bool) -> None:
                 match, chosen = "local", local[0]
             else:
                 match, chosen = "ambiguous", None
-            if attribute == "animation.clip" and match == "unique" and chosen[0] not in near:
-                match, chosen = "ambiguous", None
+            if attribute == "animation.clip" and found:
+                # One bank is an answer even when the rigs' tables name
+                # different sets of it; the detail then lists each.
+                if len({c[0] for c in found}) == 1:
+                    match, chosen = "local", (found[0][0], "; ".join(c[1] for c in found))
+                else:
+                    match, chosen = "ambiguous", None
             if loose and match == "none":
                 continue
             if not named:
