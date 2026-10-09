@@ -274,6 +274,7 @@ const homeOf = n => { const g = D.loaders[n].find(g => g[0] === "c"); return g ?
 async function drawApplied() {
   const mine = ++turn, box = $("applied"); box.replaceChildren();
   const groups = active(), uploads = [], asks = [], offsets = new Map(), spawned = new Set(), gone = occupancy(groups);
+  let ownAt = null;                        // the offsets this overlay's own file was brought in with
   const sign = (p, r) => `${p >= 0 ? "+" : ""}${p}/${r >= 0 ? "+" : ""}${r}`;
   // What asks: a package's models, displaced as the placement that spawns them says; failing that, as its file was loaded.
   const ask = (pkg, cands) => { if (gone.has(pkg)) return; for (const [model, pairs] of (D.models[pkg] || [])) for (const [tp, cl, u0, v0, u1, v1] of pairs) asks.push({ who: model, tp: tp & ~0x60, cl, cands, box: u0 === undefined ? null : [u0, v0, u1, v1] });
@@ -281,8 +282,9 @@ async function drawApplied() {
   for (const g of groups) for (const [pkg, page, row] of (g[4] || [])) { offsets.set(sign(page, row), [page, row]); spawned.add(pkg); ask(pkg, [[page, row], [0, 0]]); }
   // Every package a resident file carries asks, this overlay itself included when its context brought it in.
   for (const g of groups) for (const [f, page, row, , rel] of g[3]) { uploads.push({ f, page, row, rel }); const pkg = D.pkg[f];
-    if (pkg && !spawned.has(pkg) && !(cur.ancestors || []).includes(pkg)) { spawned.add(pkg); ask(pkg, page || row ? [[page, row], [0, 0]] : [[0, 0]]); } }
-  if (!spawned.has(cur.name)) { const own = [[0, 0], ...offsets.values()]; ask(cur.name, own); }   // a room's own models may be bound by an actor it places
+    if (pkg === cur.name && !ownAt) ownAt = [page, row];
+    if (pkg && pkg !== cur.name && !spawned.has(pkg) && !(cur.ancestors || []).includes(pkg)) { spawned.add(pkg); ask(pkg, page || row ? [[page, row], [0, 0]] : [[0, 0]]); } }
+  if (!spawned.has(cur.name)) { const own = [...(ownAt && (ownAt[0] || ownAt[1]) ? [ownAt] : []), [0, 0], ...offsets.values()]; ask(cur.name, own); }   // a room's own models may be bound by an actor it places
   for (const a of (cur.ancestors || [])) if (!spawned.has(a)) { spawned.add(a); ask(a, [[0, 0], ...offsets.values()]); }
   if (!asks.length) { box.innerHTML = `<div class="empty">No model or constant of this overlay, or of an overlay the selected groups load, names a texture.</div>`; return; }
   const kinds = new Map(); uploads.forEach(u => (D.fp[u.f] || []).forEach(r => kinds.set(r[0], r[1])));
