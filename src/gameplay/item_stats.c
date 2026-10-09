@@ -743,7 +743,7 @@ void itemMenuUseKeyItemTask(Task* task)
             textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrUsed, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
             itemName  = itemGetText(task->spawnArg1.value, ITEM_TEXT_NAME, 0);
             textRight = textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0x1E, itemName, 0x37A78, drawMode, TEXT_ALIGNMENT_LEFT);
-            textDrawUiLine(object, textRight, object->panel.contentTop.signedValue + 0x1E, (const u8*)Gp_StrDot, ITEM_MENU_PANEL_TEXT_COLOR, drawMode, TEXT_ALIGNMENT_LEFT);
+            textDrawUiLine(object, textRight, object->panel.contentTop.signedValue + 0x1E, gItemMenuPeriodText, ITEM_MENU_PANEL_TEXT_COLOR, drawMode, TEXT_ALIGNMENT_LEFT);
         }
         task->killCountdown = task->killCountdown - gDisplayState.frameTicks;
         if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
@@ -865,14 +865,14 @@ void itemMenuDrawCollectedItemRow(UiList* list, UiObject* object)
     /// plus the live preview cache/loader; leaves cache slots three/four intact.
     /// Use as a standalone compound statement; undefined after this callback.
 #define ITEM_MENU_SET_COLLECTED_ROW_PREVIEW()                                              \
-    if (itemId != Gp_PreviewItems[0]) {                                                    \
+    if (itemId != gItemMenuPreviewItemIds[0]) {                                            \
         profileIndex   = 0;                                                                \
         emptyPreviewId = ITEM_MENU_COLLECTED_PREVIEW_EMPTY;                                \
         for (; profileIndex < ITEM_MENU_COLLECTED_PREVIEW_PROFILE_COUNT; profileIndex++) { \
             if (profileIndex == 0) {                                                       \
-                Gp_PreviewItems[0] = itemId;                                               \
+                gItemMenuPreviewItemIds[0] = itemId;                                       \
             } else {                                                                       \
-                Gp_PreviewItems[profileIndex] = emptyPreviewId;                            \
+                gItemMenuPreviewItemIds[profileIndex] = emptyPreviewId;                    \
             }                                                                              \
         }                                                                                  \
         itemMenuEnqueuePreviewLoad(itemId, 0);                                             \

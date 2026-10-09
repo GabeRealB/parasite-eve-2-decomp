@@ -1112,7 +1112,18 @@ extern u8** D_80114D80;
 
 extern u16 Gp_ItemCountShow;
 
-extern s32 D_80114D88;
+/// Values written by menu flow to its room/view restoration latch.
+enum {
+    ITEM_MENU_ROOM_RESTORE_CLEAR   = 0,
+    ITEM_MENU_ROOM_RESTORE_PENDING = 1
+};
+
+/// Room/view resources must be restored on menu exit exactly when this word is 1.
+///
+/// Menu entry clears it to 0; opening the map or replacing room resources with
+/// a nonzero preview load profile sets 1. Accessors preserve arbitrary s32 values
+/// without normalizing or consuming them, so other nonzero values do not restore.
+extern s32 gItemMenuRoomRestorePending;
 
 extern s32 Gp_ItemOrderMode;
 
@@ -1152,13 +1163,17 @@ extern char Gp_StrExchange[];
 
 extern char Gp_StrRemoveArmor[];
 
-extern char Gp_StrYes[];
+/// NUL-terminated byte text for the item-menu dialog's Yes answer.
+extern u8 gItemMenuYesText[4];
 
-extern char Gp_StrNo[];
+/// NUL-terminated byte text for the item-menu dialog's No answer.
+extern u8 gItemMenuNoText[3];
 
-extern char Gp_StrOk[];
+/// NUL-terminated byte text for the item-menu dialog's OK acknowledgement.
+extern u8 gItemMenuOkText[3];
 
-extern char Gp_StrCancel[];
+/// NUL-terminated byte text for the item-menu dialog's Cancel answer.
+extern u8 gItemMenuCancelText[7];
 
 extern char Gp_StrPickupAsk[];
 
@@ -1170,7 +1185,8 @@ extern char Gp_StrSort[];
 
 extern char Gp_StrAmmoCaps[];
 
-extern char Gp_StrDot[];
+/// NUL-terminated period appended after an item name in menu action notices.
+extern u8 gItemMenuPeriodText[2];
 
 extern UiList D_8010E820;
 
@@ -1182,7 +1198,21 @@ extern UiList D_8010E8AC;
 
 extern UiList D_8010E8D4;
 
-extern s32 Gp_PreviewItems[5];
+/// Empty requested-preview id and total backing-slot count, including reset-only slots.
+enum {
+    ITEM_MENU_PREVIEW_EMPTY      = -1,
+    ITEM_MENU_PREVIEW_SLOT_COUNT = 5
+};
+
+/// Requested item ids for the menu's display-resource preview slots.
+///
+/// Slots 0/1/2 select menu/preview/relocated-preview load profiles. A selection
+/// is published before loading, with the other two ids set to -1, even when the
+/// loader declines the request. These ids do not establish resource readiness.
+/// Menu entry and pickup setup reset all five words to -1; slots 3/4 have only
+/// reset accesses and their purpose is unproven. Storage lives with gameplay;
+/// clearing ids neither cancels CD requests nor releases loaded resources.
+extern s32 gItemMenuPreviewItemIds[ITEM_MENU_PREVIEW_SLOT_COUNT];
 
 extern UiList D_8010E938;
 
@@ -1204,15 +1234,38 @@ extern UiListRowCallback Gp_ItemCmdFns[6];
 
 extern UiList D_8010EA30;
 
-extern UiListRowCallback Gp_DialogCmdFns[2];
+/// Mutable row drawers for the shared item-menu choice dialog.
+///
+/// Setup selects entry 0 for OK/Cancel, or both entries in Yes/No order. The
+/// list borrows this table for the overlay's lifetime; only one dialog using
+/// this shared table and list may be active at a time. Both entries start as OK.
+extern UiListRowCallback gItemMenuDialogRowCallbacks[2];
 
-extern UiList D_8010EA74;
+/// Shared mutable list state for the item-menu OK, Cancel and Yes/No dialogs.
+///
+/// Starts with one visible row, clamped navigation and 15-pixel row spacing.
+/// Dialog setup supplies the row count, initial selection and cursor-sound
+/// policy, then fits the panel to the list. Its table and state live with the
+/// overlay and are reused by successive dialogs; concurrent users would share
+/// selection, scrolling and results.
+extern UiList gItemMenuDialogList;
 
-extern UiObjectDesc D_8010EA98;
+/// Panel/task descriptor for an item-menu choice dialog.
+///
+/// Seeds a 48-by-32-pixel panel at (0, 0), ordering-table base 4 and a bodyless
+/// priority-192 task. The content callback fits it to the selected choice list;
+/// the spawner anchors the task-owned child to its parent's content corner.
+extern UiObjectDesc gItemMenuDialogDesc;
 
-/// CLUT ids for the ten item-category icons drawn by `itemMenuDrawItemIcon`,
-/// indexed by the icon index that function derives from the item id.
-extern const u16 D_80096F88[12];
+/// Packed GPU CLUT selectors for the item menu's ordinary icon palettes.
+///
+/// Palette indices are independent of icon-shape categories: 1 medicine/key
+/// items, 2 fallback, 3 9mm, 4 .44 Magnum, 5 12-gauge, 6 5.56mm, 7 40mm,
+/// 8 battery-powered weapons, 9 armor/other items. These CLUTs lie on VRAM row
+/// 242. Index 0 repeats index 1; indices 10/11 are zero. No current drawer
+/// selects those three entries and their purpose is unproven. P.E. icons
+/// bypass this table and supply a CLUT directly.
+extern const u16 gItemMenuIconPaletteCluts[12];
 
 extern const char Gp_StrAddHp[];
 

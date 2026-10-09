@@ -748,7 +748,7 @@ static s32 _cdCmdEnqueueSavedRequest(const CdCmdEntry* entry)
 
 s32 itemMenuGetPrimaryPreviewItem(void)
 {
-    return Gp_PreviewItems[0];
+    return gItemMenuPreviewItemIds[0];
 }
 
 void itemMenuDrawDescriptionRow(UiList* list, UiObject* object)
@@ -941,7 +941,7 @@ void itemMenuDrawEquippedNotice(const UiObject* object, s32 itemId)
     drawMode     = TEXT_DRAW_OUTLINED;
     textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + ITEM_MENU_EQUIPPED_FIRST_LINE_Y_PIXELS, (const u8*)Gp_StrEquipped, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
     textEndX = textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + ITEM_MENU_EQUIPPED_SECOND_LINE_Y_PIXELS, itemName, ITEM_MENU_EQUIPPED_ITEM_COLOR_RGB, drawMode, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(object, textEndX, object->panel.contentTop.signedValue + ITEM_MENU_EQUIPPED_SECOND_LINE_Y_PIXELS, (const u8*)Gp_StrDot, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, textEndX, object->panel.contentTop.signedValue + ITEM_MENU_EQUIPPED_SECOND_LINE_Y_PIXELS, gItemMenuPeriodText, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
 }
 
 void itemMenuDrawUseRow(UiList* list, UiObject* object)
@@ -1033,7 +1033,7 @@ void itemMenuApplyParasiteEnergyItem(UiObject* object, Task* task)
 
 void itemMenuDrawOkRow(UiList* list, UiObject* object)
 {
-    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, (const u8*)Gp_StrOk, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, gItemMenuOkText, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
@@ -1045,7 +1045,7 @@ void itemMenuDrawOkRow(UiList* list, UiObject* object)
 
 void itemMenuDrawCancelRow(UiList* list, UiObject* object)
 {
-    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, (const u8*)Gp_StrCancel, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, gItemMenuCancelText, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
@@ -1059,7 +1059,7 @@ void itemMenuDrawYesRow(UiList* list, UiObject* object)
 {
     s32 inputEnabled;
 
-    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, (const u8*)Gp_StrYes, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, gItemMenuYesText, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     inputEnabled = list->rowInputEnabled;
     if (inputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
@@ -1076,7 +1076,7 @@ void itemMenuDrawYesRow(UiList* list, UiObject* object)
 
 void itemMenuDrawNoRow(UiList* list, UiObject* object)
 {
-    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, (const u8*)Gp_StrNo, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, gItemMenuNoText, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);

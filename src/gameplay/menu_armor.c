@@ -514,7 +514,7 @@ void itemMenuEnqueuePreviewLoad(s32 itemId, s32 loadProfile)
     }
 
     if (loadProfile & 0xFF) {
-        D_80114D88 = 1;
+        gItemMenuRoomRestorePending = ITEM_MENU_ROOM_RESTORE_PENDING;
     }
 
     savedRequestState[CD_COMMAND_DISPLAY_LOAD_RELOCATED_PREVIEW] = ITEM_MENU_PREVIEW_REQUEST_ABSENT;

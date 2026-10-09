@@ -196,7 +196,7 @@ void itemMenuDispatchCommand(UiObject* object, Task* task)
             uiSpawnObject(D_8010EAB4 + object->resultValue, 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_COMMAND_OPEN_DELAY_TICKS, object);
             break;
         case ITEM_MENU_COMMAND_MAP:
-            D_80114D88 = 1;
+            gItemMenuRoomRestorePending = ITEM_MENU_ROOM_RESTORE_PENDING;
             uiSpawnObject(&D_8010F140, 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_COMMAND_OPEN_DELAY_TICKS, object);
             break;
         case ITEM_MENU_COMMAND_RETURN_FROM_MAP:
@@ -424,7 +424,7 @@ void itemMenuDrawItemIcon(const UiObject* object, s32 x, s32 y, s32 itemId, s32 
         setUVWH(iconQuad, textureU + 1, textureV + 1, 0xE, 0xE);
     }
     if (paletteIndex >= 0) {
-        iconQuad->clut = D_80096F88[paletteIndex];
+        iconQuad->clut = gItemMenuIconPaletteCluts[paletteIndex];
     } else {
         iconQuad->clut = paletteClut;
     }

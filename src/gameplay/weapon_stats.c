@@ -92,9 +92,9 @@ static inline const u16* _itemMenuGetConsumablePower(s32 consumableItemId)
 /// drawn while `obj->panel.state` is `USER_INTERFACE_PANEL_HIDDEN`.
 static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32 item, s32 mode);
 
-/// Makes `item` the preview in slot `slot` of `Gp_PreviewItems`, setting the
-/// other two slots to -1, and queues its load. Nothing happens when the slot
-/// already shows `item`.
+/// Publishes `item` in slot `slot` of `gItemMenuPreviewItemIds`, marking the
+/// other load-profile slots empty before requesting resources. An unchanged id
+/// does nothing; the requested id does not establish resource readiness.
 static inline void _gpSetPreviewItem(s32 item, u8 slot);
 
 static inline void _itemMenuRequestSelectionPreview(s32 itemId, u8 loadProfile);
@@ -377,19 +377,19 @@ void itemMenuDrawEquipmentStats(const UiObject* object, s32 itemId, s32 displayM
     }
 }
 
-/// Makes `item` the preview in slot `slot` of `Gp_PreviewItems`, setting the
-/// other two slots to -1, and queues its load. Nothing happens when the slot
-/// already shows `item`.
+/// Publishes `item` in slot `slot` of `gItemMenuPreviewItemIds`, marking the
+/// other load-profile slots empty before requesting resources. An unchanged id
+/// does nothing; the requested id does not establish resource readiness.
 static inline void _gpSetPreviewItem(s32 item, u8 slot)
 {
     s32 i;
 
-    if (item != Gp_PreviewItems[slot]) {
+    if (item != gItemMenuPreviewItemIds[slot]) {
         for (i = 0; i < 3; i++) {
             if (i == slot) {
-                Gp_PreviewItems[i] = item;
+                gItemMenuPreviewItemIds[i] = item;
             } else {
-                Gp_PreviewItems[i] = -1;
+                gItemMenuPreviewItemIds[i] = ITEM_MENU_PREVIEW_EMPTY;
             }
         }
         itemMenuEnqueuePreviewLoad(item, slot);
@@ -406,13 +406,12 @@ static inline void _gpSetPreviewItem(s32 item, u8 slot)
 static inline void _itemMenuRequestSelectionPreview(s32 itemId, u8 loadProfile)
 {
     enum {
-        ITEM_MENU_PREVIEW_PROFILE_COUNT = CD_COMMAND_DISPLAY_LOAD_RELOCATED_PREVIEW + 1,
-        ITEM_MENU_PREVIEW_EMPTY         = -1
+        ITEM_MENU_PREVIEW_PROFILE_COUNT = CD_COMMAND_DISPLAY_LOAD_RELOCATED_PREVIEW + 1
     };
     s32  profileIndex;
     s32* previewItemIds;
 
-    previewItemIds = Gp_PreviewItems;
+    previewItemIds = gItemMenuPreviewItemIds;
     if (itemId != previewItemIds[loadProfile]) {
         for (profileIndex = 0; profileIndex < ITEM_MENU_PREVIEW_PROFILE_COUNT; profileIndex++) {
             if (profileIndex == loadProfile) {

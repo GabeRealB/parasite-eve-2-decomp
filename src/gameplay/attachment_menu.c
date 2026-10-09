@@ -67,13 +67,13 @@ static inline s32 _itemIsArmorItem(u8 itemId)
         s32* _p;                                    \
         s32  _i;                                    \
                                                     \
-        _p = Gp_PreviewItems;                       \
+        _p = gItemMenuPreviewItemIds;               \
         if ((item) != _p[slot]) {                   \
             for (_i = 0; _i < 3; _i++, _p++) {      \
                 if (_i == (slot)) {                 \
                     *_p = (item);                   \
                 } else {                            \
-                    *_p = -1;                       \
+                    *_p = ITEM_MENU_PREVIEW_EMPTY;  \
                 }                                   \
             }                                       \
             itemMenuEnqueuePreviewLoad(item, slot); \
@@ -702,7 +702,7 @@ void itemMenuReloadNoticeTask(Task* task)
         drawMode     = TEXT_DRAW_OUTLINED;
         textEndX     = textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, itemText, ITEM_MENU_NOTICE_ITEM_COLOR_RGB, drawMode, TEXT_ALIGNMENT_LEFT);
         textColorRgb = ITEM_MENU_NOTICE_TEXT_COLOR_RGB;
-        textDrawUiLine(obj, textEndX, obj->panel.contentTop.signedValue + 0x1E, (const u8*)Gp_StrDot, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(obj, textEndX, obj->panel.contentTop.signedValue + 0x1E, gItemMenuPeriodText, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
     } else {
         textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrRemovedAmmo, ITEM_MENU_NOTICE_TEXT_COLOR_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     }
@@ -740,7 +740,7 @@ void itemMenuAttachNoticeTask(Task* task)
     textColorRgb = ITEM_MENU_NOTICE_TEXT_COLOR_RGB;
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 6, 0, (const u8*)Gp_StrEquipped, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     textEndX = textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 6, 0xE, itemText, ITEM_MENU_NOTICE_ITEM_COLOR_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, textEndX, 0xE, (const u8*)Gp_StrDot, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, textEndX, 0xE, gItemMenuPeriodText, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     _itemMenuUpdateNoticeResult(obj, task);
 }
 
@@ -792,7 +792,7 @@ void itemMenuEquipNoticeTask(Task* task)
     textColorRgb = ITEM_MENU_NOTICE_TEXT_COLOR_RGB;
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrEquipped, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     textEndX = textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, itemText, ITEM_MENU_NOTICE_ITEM_COLOR_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, textEndX, obj->panel.contentTop.signedValue + 0x1E, (const u8*)Gp_StrDot, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, textEndX, obj->panel.contentTop.signedValue + 0x1E, gItemMenuPeriodText, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     _itemMenuUpdateNoticeResult(obj, task);
 }
 

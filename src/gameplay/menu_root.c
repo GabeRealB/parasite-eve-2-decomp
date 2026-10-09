@@ -38,7 +38,7 @@ u8** D_80114D80;
 
 u16 Gp_ItemCountShow;
 
-s32 D_80114D88;
+s32 gItemMenuRoomRestorePending;
 
 s32 Gp_ItemOrderMode;
 
@@ -50,53 +50,13 @@ s32 Gp_AttachListIds[6];
 
 static char D_8010E548[];
 
-extern u8 D_8010E5A0[];
-
 extern u8 Gp_StrResSilence[];
 
 extern u8 Gp_StrResParalysis[];
 
 extern u8 Gp_StrResPoison[];
 
-extern u8 Gp_StrResConfusion[];
-
 extern u8 Gp_StrResImpact[];
-
-extern u8 Gp_StrMotionDet[];
-
-extern u8 Gp_StrMpGen[];
-
-extern u8 Gp_StrHpRecov[];
-
-extern u8 Gp_StrQuickFire[];
-
-extern u8 Gp_StrMedInspect[];
-
-extern u8 Gp_StrMpRecov[];
-
-extern u8 Gp_StrCal9mm[];
-
-extern u8 Gp_StrCal40Mag[];
-
-extern u8 Gp_StrCal44Mag[];
-
-extern u8 Gp_StrCal40mm[];
-
-extern u8 Gp_StrGauge12[];
-
-extern u8 Gp_StrCal556[];
-
-extern u8 Gp_StrPoison[];
-
-extern u8 Gp_StrIncendiary[];
-
-extern u8 Gp_StrPiercing[];
-
-extern u8 Gp_StrBurst[];
-
-extern u8 Gp_StrFlash[];
-
-extern u8 Gp_StrExplosion[];
 
 extern TaskDesc D_8010E7E8;
 
@@ -112,8 +72,6 @@ extern UiListRowCallback D_8010E8A8[1];
 
 extern UiListRowCallback D_8010E8D0[1];
 
-extern UiListRowCallback D_8010E90C[1];
-
 extern UiListRowCallback D_8010E934[1];
 
 extern UiListRowCallback D_8010E95C[1];
@@ -128,106 +86,126 @@ static s32 D_8010EA54[];
 
 static void _itemMenuUpdatePromptTask(UiObject* object, Task* task);
 
-char        Gp_StrUsedDot[]      = "used.";
-char        Gp_StrCreatedDot[]   = "created.";
-char        Gp_StrNoUseNow[]     = "No use for this now.";
-char        Gp_StrUsed[]         = "Used";
-char        Gp_StrSelectDest[]   = "Select destination.";
-char        Gp_StrEquipped[]     = "Equipped";
-char        Gp_StrObtained[]     = "Obtained";
-char        Gp_StrLoaded[]       = "Loaded";
-char        Gp_StrRemoved[]      = "Removed";
-char        Gp_StrRemovedAmmo[]  = "Removed ammunition.";
-char        Gp_StrInvoked[]      = "Invoked";
-char        Gp_StrAmmoNone[]     = "Ammunition: None";
-char        Gp_StrAttachNone[]   = "Attachments: None";
-char        Gp_StrUse[]          = "Use";
-char        Gp_StrMove[]         = "Move";
-char        Gp_StrRemoveAmmo[]   = "Remove ammunition";
-char        Gp_StrLoad[]         = "Load";
-char        Gp_StrExchange[]     = "Exchange";
-char        Gp_StrRemoveArmor[]  = "Remove from armor";
-static char D_8010E548[]         = "Equip";
-char        Gp_StrYes[]          = "Yes";
-char        Gp_StrNo[]           = "No";
-char        Gp_StrOk[]           = "OK";
-char        Gp_StrCancel[]       = "Cancel";
-char        Gp_StrPickupAsk[]    = "Pick up this item?";
-char        Gp_StrInvFull[]      = "Inventory full.";
-char        D_8010E588[]         = "";
-char        Gp_StrSort[]         = "Sort";
-char        Gp_StrAmmoCaps[]     = "AMMO";
-char        Gp_StrDot[]          = ".";
-u8          D_8010E5A0[]         = "";
-u8          Gp_StrResSilence[]   = "RESIST \\CoSILENCE";
-u8          Gp_StrResParalysis[] = "RESIST \\CoPARALYSIS";
-u8          Gp_StrResPoison[]    = "RESIST \\CoPOISON";
-u8          Gp_StrResConfusion[] = "RESIST \\CoCONFUSION";
-u8          Gp_StrResImpact[]    = "RESIST \\CoIMPACT";
-u8          Gp_StrMotionDet[]    = "MOTION DETECTOR";
-u8          Gp_StrMpGen[]        = "MP GENERATION";
-u8          Gp_StrHpRecov[]      = "HP RECOVERY";
-u8          Gp_StrQuickFire[]    = "QUICK FIRE";
-u8          Gp_StrMedInspect[]   = "MEDICAL INSPECTION";
-u8          Gp_StrMpRecov[]      = "MP RECOVERY";
-u8*         Gp_FeatNameTbl[]     = {
-    Gp_StrMotionDet,
+char        Gp_StrUsedDot[]        = "used.";
+char        Gp_StrCreatedDot[]     = "created.";
+char        Gp_StrNoUseNow[]       = "No use for this now.";
+char        Gp_StrUsed[]           = "Used";
+char        Gp_StrSelectDest[]     = "Select destination.";
+char        Gp_StrEquipped[]       = "Equipped";
+char        Gp_StrObtained[]       = "Obtained";
+char        Gp_StrLoaded[]         = "Loaded";
+char        Gp_StrRemoved[]        = "Removed";
+char        Gp_StrRemovedAmmo[]    = "Removed ammunition.";
+char        Gp_StrInvoked[]        = "Invoked";
+char        Gp_StrAmmoNone[]       = "Ammunition: None";
+char        Gp_StrAttachNone[]     = "Attachments: None";
+char        Gp_StrUse[]            = "Use";
+char        Gp_StrMove[]           = "Move";
+char        Gp_StrRemoveAmmo[]     = "Remove ammunition";
+char        Gp_StrLoad[]           = "Load";
+char        Gp_StrExchange[]       = "Exchange";
+char        Gp_StrRemoveArmor[]    = "Remove from armor";
+static char D_8010E548[]           = "Equip";
+u8          gItemMenuYesText[4]    = "Yes";
+u8          gItemMenuNoText[3]     = "No";
+u8          gItemMenuOkText[3]     = "OK";
+u8          gItemMenuCancelText[7] = "Cancel";
+char        Gp_StrPickupAsk[]      = "Pick up this item?";
+char        Gp_StrInvFull[]        = "Inventory full.";
+char        D_8010E588[]           = "";
+char        Gp_StrSort[]           = "Sort";
+char        Gp_StrAmmoCaps[]       = "AMMO";
+u8          gItemMenuPeriodText[2] = ".";
+/// NUL-only text for properties with no displayed label in the specifications panel.
+static u8 _gItemMenuEmptyPropertyText[] = "";
+u8        Gp_StrResSilence[]            = "RESIST \\CoSILENCE";
+u8        Gp_StrResParalysis[]          = "RESIST \\CoPARALYSIS";
+u8        Gp_StrResPoison[]             = "RESIST \\CoPOISON";
+/// Armor-feature label with the status name colored orange by an inline text command.
+static u8 _gItemMenuResistConfusionText[] = "RESIST \\CoCONFUSION";
+u8        Gp_StrResImpact[]               = "RESIST \\CoIMPACT";
+/// NUL-terminated specifications label for the armor's motion-detector feature.
+static u8 _gItemMenuMotionDetectorText[] = "MOTION DETECTOR";
+/// NUL-terminated specifications label for the armor's MP-generation feature.
+static u8 _gItemMenuMpGenerationText[] = "MP GENERATION";
+/// NUL-terminated specifications label for the armor's HP-recovery feature.
+static u8 _gItemMenuHpRecoveryText[] = "HP RECOVERY";
+/// NUL-terminated specifications label for the armor's quick-fire feature.
+static u8 _gItemMenuQuickFireText[] = "QUICK FIRE";
+/// NUL-terminated specifications label for the armor's medical-inspection feature.
+static u8 _gItemMenuMedicalInspectionText[] = "MEDICAL INSPECTION";
+/// NUL-terminated specifications label for the armor's MP-recovery feature.
+static u8 _gItemMenuMpRecoveryText[] = "MP RECOVERY";
+u8*       Gp_FeatNameTbl[]           = {
+    _gItemMenuMotionDetectorText,
     Gp_StrResPoison,
-    Gp_StrMpGen,
-    Gp_StrQuickFire,
+    _gItemMenuMpGenerationText,
+    _gItemMenuQuickFireText,
     Gp_StrResImpact,
     Gp_StrResSilence,
-    Gp_StrMedInspect,
-    Gp_StrMpRecov,
-    Gp_StrHpRecov,
-    Gp_StrResConfusion,
-    D_8010E5A0,
-    D_8010E5A0,
+    _gItemMenuMedicalInspectionText,
+    _gItemMenuMpRecoveryText,
+    _gItemMenuHpRecoveryText,
+    _gItemMenuResistConfusionText,
+    _gItemMenuEmptyPropertyText,
+    _gItemMenuEmptyPropertyText,
     Gp_StrResParalysis,
 };
 
-u8  Gp_StrCal9mm[]      = "CALIBER \\B9\\Sm\\D2\\W0 9mm";
-u8  Gp_StrCal40Mag[]    = "CALIBER \\B9\\Sm\\D2\\W0 .40Mag.";
-u8  Gp_StrCal44Mag[]    = "CALIBER \\B9\\Sm\\D2\\W0 .44Mag.";
-u8  Gp_StrCal40mm[]     = "CALIBER \\B9\\Sm\\D2\\W0 40mm";
-u8  Gp_StrGauge12[]     = "GAUGE \\B9\\Sm\\D2\\W0 12ga.";
-u8  Gp_StrCal556[]      = "CALIBER \\B9\\Sm\\D2\\W0 5.56mm";
-u8* Gp_CaliberNameTbl[] = {
-    D_8010E5A0,
-    Gp_StrCal9mm,
-    Gp_StrCal40Mag,
-    Gp_StrCal44Mag,
-    Gp_StrCal40mm,
-    Gp_StrGauge12,
-    Gp_StrCal556,
-    D_8010E5A0,
-    D_8010E5A0,
-    D_8010E5A0,
-    D_8010E5A0,
-    D_8010E5A0,
-    D_8010E5A0,
-    D_8010E5A0,
-    D_8010E5A0,
-    D_8010E5A0,
+/// 9mm specifications caption with inline column, font, Y-offset and outline commands.
+static u8 _gItemMenuCaliber9mmText[] = "CALIBER \\B9\\Sm\\D2\\W0 9mm";
+/// .40 Magnum specifications caption with inline column, font, Y-offset and outline commands.
+static u8 _gItemMenuCaliber40MagnumText[] = "CALIBER \\B9\\Sm\\D2\\W0 .40Mag.";
+/// .44 Magnum specifications caption with inline column, font, Y-offset and outline commands.
+static u8 _gItemMenuCaliber44MagnumText[] = "CALIBER \\B9\\Sm\\D2\\W0 .44Mag.";
+/// 40mm specifications caption with inline column, font, Y-offset and outline commands.
+static u8 _gItemMenuCaliber40mmText[] = "CALIBER \\B9\\Sm\\D2\\W0 40mm";
+/// 12-gauge specifications caption with inline column, font, Y-offset and outline commands.
+static u8 _gItemMenuGauge12Text[] = "GAUGE \\B9\\Sm\\D2\\W0 12ga.";
+/// 5.56mm specifications caption with inline column, font, Y-offset and outline commands.
+static u8 _gItemMenuCaliber556mmText[] = "CALIBER \\B9\\Sm\\D2\\W0 5.56mm";
+u8*       Gp_CaliberNameTbl[]          = {
+    _gItemMenuEmptyPropertyText,
+    _gItemMenuCaliber9mmText,
+    _gItemMenuCaliber40MagnumText,
+    _gItemMenuCaliber44MagnumText,
+    _gItemMenuCaliber40mmText,
+    _gItemMenuGauge12Text,
+    _gItemMenuCaliber556mmText,
+    _gItemMenuEmptyPropertyText,
+    _gItemMenuEmptyPropertyText,
+    _gItemMenuEmptyPropertyText,
+    _gItemMenuEmptyPropertyText,
+    _gItemMenuEmptyPropertyText,
+    _gItemMenuEmptyPropertyText,
+    _gItemMenuEmptyPropertyText,
+    _gItemMenuEmptyPropertyText,
+    _gItemMenuEmptyPropertyText,
 };
 
-u8  Gp_StrPoison[]     = "POISON";
-u8  Gp_StrIncendiary[] = "INCENDIARY";
-u8  Gp_StrPiercing[]   = "PIERCING";
-u8  Gp_StrBurst[]      = "BURST";
-u8  Gp_StrFlash[]      = "FLASH";
-u8  Gp_StrExplosion[]  = "EXPLOSION";
-u8* D_8010E7C0[]       = {
-    D_8010E5A0,
-    D_8010E5A0,
-    D_8010E5A0,
-    Gp_StrPoison,
-    Gp_StrBurst,
-    Gp_StrPiercing,
-    Gp_StrExplosion,
-    Gp_StrIncendiary,
-    D_8010E5A0,
-    Gp_StrFlash,
+/// NUL-terminated ammunition specifications label for the poison special attribute.
+static u8 _gItemMenuPoisonText[] = "POISON";
+/// NUL-terminated ammunition specifications label for the incendiary special attribute.
+static u8 _gItemMenuIncendiaryText[] = "INCENDIARY";
+/// NUL-terminated ammunition specifications label for the piercing special attribute.
+static u8 _gItemMenuPiercingText[] = "PIERCING";
+/// NUL-terminated ammunition specifications label for the burst special attribute.
+static u8 _gItemMenuBurstText[] = "BURST";
+/// NUL-terminated ammunition specifications label for the flash special attribute.
+static u8 _gItemMenuFlashText[] = "FLASH";
+/// NUL-terminated ammunition specifications label for the explosion special attribute.
+static u8 _gItemMenuExplosionText[] = "EXPLOSION";
+u8*       D_8010E7C0[]              = {
+    _gItemMenuEmptyPropertyText,
+    _gItemMenuEmptyPropertyText,
+    _gItemMenuEmptyPropertyText,
+    _gItemMenuPoisonText,
+    _gItemMenuBurstText,
+    _gItemMenuPiercingText,
+    _gItemMenuExplosionText,
+    _gItemMenuIncendiaryText,
+    _gItemMenuEmptyPropertyText,
+    _gItemMenuFlashText,
 };
 
 TaskDesc D_8010E7E8 = { { { TASK_BODY_NONE, 32 } }, menuApplyPendingItemUseTask, { NULL } };
@@ -261,17 +239,21 @@ UiListRowCallback D_8010E8D0[1] = { itemMenuDrawAttachmentCandidateRow };
 
 UiList D_8010E8D4 = { D_8010E8D0, 1, { 1 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
-s32 Gp_PreviewItems[5] = {
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
+s32 gItemMenuPreviewItemIds[ITEM_MENU_PREVIEW_SLOT_COUNT] = {
+    ITEM_MENU_PREVIEW_EMPTY,
+    ITEM_MENU_PREVIEW_EMPTY,
+    ITEM_MENU_PREVIEW_EMPTY,
+    ITEM_MENU_PREVIEW_EMPTY,
+    ITEM_MENU_PREVIEW_EMPTY,
 };
 
-UiListRowCallback D_8010E90C[1] = { itemMenuDrawDescriptionRow };
+/// Shared row drawer for every line of the scrolling item-description list.
+///
+/// The list borrows this single entry for the gameplay overlay's lifetime;
+/// description setup enables `USER_INTERFACE_LIST_SHARED_ROW_CALLBACK`.
+static UiListRowCallback _gItemMenuDescriptionRowCallbacks[1] = { itemMenuDrawDescriptionRow };
 
-UiList D_8010E910 = { D_8010E90C, 1, { 1 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
+UiList D_8010E910 = { _gItemMenuDescriptionRowCallbacks, 1, { 1 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
 UiListRowCallback D_8010E934[1] = { itemMenuDrawKeyItemUseRow };
 
@@ -322,14 +304,27 @@ UiList D_8010EA30 = { Gp_ItemCmdFns, 3, { 3 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0
 
 static s32 D_8010EA54[] = { 30, 60, 50, 100, 100, 200 };
 
-UiListRowCallback Gp_DialogCmdFns[2] = {
+UiListRowCallback gItemMenuDialogRowCallbacks[2] = {
     itemMenuDrawOkRow,
     itemMenuDrawOkRow,
 };
 
-UiList D_8010EA74 = { Gp_DialogCmdFns, 1, { 1 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
+UiList gItemMenuDialogList = {
+    .rowCallbacks    = gItemMenuDialogRowCallbacks,
+    .itemCount       = 1,
+    .visibleRowCount = { .unsignedValue = 1 },
+    .wrapNavigation  = 0,
+    .rowHeight       = 15,
+};
 
-UiObjectDesc D_8010EA98 = { 0, { 0, 0, 48, 32 }, 4, 0, TASK_BODY_NONE, 192, itemMenuDialogTask, 0 };
+UiObjectDesc gItemMenuDialogDesc = {
+    .style           = 0,
+    .bounds          = { 0, 0, 48, 32 },
+    .otIndexSeed     = 4,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = 192,
+    .contentCallback = itemMenuDialogTask,
+};
 
 /// Indexed by menu command ID; empty rows reserve unused commands.
 UiObjectDesc D_8010EAB4[50] = {
@@ -443,7 +438,7 @@ void menuRootTask(Task* task)
             PlayerStatus* player;
 
             displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
-            D_80114D88 = 0;
+            gItemMenuRoomRestorePending = ITEM_MENU_ROOM_RESTORE_CLEAR;
             sndEvtRequestScriptDuckAcquire();
             itemMenuClearPreviewItems();
             D_80067634 = NULL;
@@ -577,7 +572,7 @@ void menuRootTask(Task* task)
             if (sceneIsBattleActive() == 0) {
                 attachmentEnqueueHealingSoundLoad();
             }
-            if (D_80114D88 == 1) {
+            if (gItemMenuRoomRestorePending == ITEM_MENU_ROOM_RESTORE_PENDING) {
                 loadingRestoreViewImageAndEnqueueResources(1);
             }
             secondaryItemId = ITEM_MENU_ROOT_SECONDARY_ITEM_ABSENT;
@@ -739,19 +734,17 @@ static void _itemMenuUpdatePromptTask(UiObject* object, Task* task)
 /// Three-entry dispatcher table indexed by `Task::state` (`itemMenuCaptionTask`).
 const UiObjectTaskFuncTable3 Gp_ItemMenuStates = { { itemMenuInitializeCaptionTask, _itemMenuUpdatePromptTask, itemMenuDispatchCommand } };
 
-/// CLUT ids for the ten item-category icons drawn by `itemMenuDrawItemIcon`,
-/// indexed by the icon index that function derives from the item id.
-const u16 D_80096F88[12] = {
-    0x3C8F,
-    0x3C8F,
-    0x3C8E,
-    0x3C8D,
-    0x3C8C,
-    0x3C8B,
-    0x3C8A,
-    0x3C89,
-    0x3C80,
-    0x3C83,
-    0x0000,
-    0x0000,
+const u16 gItemMenuIconPaletteCluts[12] = {
+    getClut(240, 242), // No current selector; role unproven.
+    getClut(240, 242), // Medicine and key items.
+    getClut(224, 242), // Unidentified items and ammunition fallback.
+    getClut(208, 242), // 9mm ammunition and compatible equipment.
+    getClut(192, 242), // .44 Magnum ammunition and compatible weapons.
+    getClut(176, 242), // 12-gauge ammunition and compatible weapons.
+    getClut(160, 242), // 5.56mm ammunition and compatible equipment.
+    getClut(144, 242), // 40mm ammunition and compatible weapons.
+    getClut(0, 242),   // Battery-powered weapons.
+    getClut(48, 242),  // Armor and other ordinary items.
+    0,                 // No current selector; role unproven.
+    0,                 // No current selector; role unproven.
 };

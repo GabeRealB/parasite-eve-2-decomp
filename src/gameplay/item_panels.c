@@ -1057,7 +1057,7 @@ void itemMenuInvokeParasiteEnergyItem(UiObject* object, Task* task, s32 itemId)
     uiDrawPanelLabel(&(object)->panel, Gp_StrInvoke);
     textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrInvoked, ITEM_MENU_PANEL_TEXT_COLOR, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     nameEndX = textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0x1E, itemName, ITEM_MENU_RESULT_ITEM_COLOR, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(object, nameEndX, object->panel.contentTop.signedValue + 0x1E, (const u8*)Gp_StrDot, ITEM_MENU_PANEL_TEXT_COLOR, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, nameEndX, object->panel.contentTop.signedValue + 0x1E, gItemMenuPeriodText, ITEM_MENU_PANEL_TEXT_COLOR, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     // Invocation notices advance their timeout even while the panel is inactive.
     task->killCountdown--;
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
@@ -1115,28 +1115,28 @@ void itemMenuDialogTask(Task* task)
     s32       actionResult;
 
     object         = task->spawnArg2.pointer;
-    dialogList     = &D_8010EA74;
+    dialogList     = &gItemMenuDialogList;
     object->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == ITEM_MENU_DIALOG_STATE_INIT) {
         commandMode = task->spawnArg1.value & ITEM_MENU_DIALOG_LAYOUT_MASK;
         switch (commandMode) {
             case ITEM_MENU_DIALOG_OK:
-                Gp_DialogCmdFns[0]    = itemMenuDrawOkRow;
-                dialogList->itemCount = commandMode;
+                gItemMenuDialogRowCallbacks[0] = itemMenuDrawOkRow;
+                dialogList->itemCount          = commandMode;
                 break;
             case ITEM_MENU_DIALOG_CANCEL:
-                Gp_DialogCmdFns[0]    = itemMenuDrawCancelRow;
-                dialogList->itemCount = 1;
+                gItemMenuDialogRowCallbacks[0] = itemMenuDrawCancelRow;
+                dialogList->itemCount          = 1;
                 break;
             case ITEM_MENU_DIALOG_NO_SELECTED:
-                Gp_DialogCmdFns[0]    = itemMenuDrawYesRow;
-                Gp_DialogCmdFns[1]    = itemMenuDrawNoRow;
-                dialogList->itemCount = ARRAY_SIZE(Gp_DialogCmdFns);
+                gItemMenuDialogRowCallbacks[0] = itemMenuDrawYesRow;
+                gItemMenuDialogRowCallbacks[1] = itemMenuDrawNoRow;
+                dialogList->itemCount          = ARRAY_SIZE(gItemMenuDialogRowCallbacks);
                 break;
             default:
-                Gp_DialogCmdFns[0]    = itemMenuDrawYesRow;
-                Gp_DialogCmdFns[1]    = itemMenuDrawNoRow;
-                dialogList->itemCount = ARRAY_SIZE(Gp_DialogCmdFns);
+                gItemMenuDialogRowCallbacks[0] = itemMenuDrawYesRow;
+                gItemMenuDialogRowCallbacks[1] = itemMenuDrawNoRow;
+                dialogList->itemCount          = ARRAY_SIZE(gItemMenuDialogRowCallbacks);
                 break;
         }
         dialogList->visibleRowCount.unsignedValue = dialogList->itemCount;
@@ -1412,25 +1412,24 @@ void itemPickupPanelTask(Task* task)
 static inline void _itemPickupRequestPreview(s32 itemId)
 {
     enum {
-        ITEM_PICKUP_PREVIEW_EMPTY         = -1,
         ITEM_PICKUP_PREVIEW_PROFILE_COUNT = CD_COMMAND_DISPLAY_LOAD_RELOCATED_PREVIEW + 1
     };
     s32* previewItemIds;
     s32  profileIndex;
 
-    previewItemIds    = Gp_PreviewItems;
-    previewItemIds[2] = ITEM_PICKUP_PREVIEW_EMPTY;
-    previewItemIds[1] = ITEM_PICKUP_PREVIEW_EMPTY;
-    previewItemIds[0] = ITEM_PICKUP_PREVIEW_EMPTY;
-    previewItemIds[3] = ITEM_PICKUP_PREVIEW_EMPTY;
-    previewItemIds[4] = ITEM_PICKUP_PREVIEW_EMPTY;
-    if (itemId != ITEM_PICKUP_PREVIEW_EMPTY) {
+    previewItemIds    = gItemMenuPreviewItemIds;
+    previewItemIds[2] = ITEM_MENU_PREVIEW_EMPTY;
+    previewItemIds[1] = ITEM_MENU_PREVIEW_EMPTY;
+    previewItemIds[0] = ITEM_MENU_PREVIEW_EMPTY;
+    previewItemIds[3] = ITEM_MENU_PREVIEW_EMPTY;
+    previewItemIds[4] = ITEM_MENU_PREVIEW_EMPTY;
+    if (itemId != ITEM_MENU_PREVIEW_EMPTY) {
         // Republish all load-profile slots after the full reset.
         for (profileIndex = 0; profileIndex < ITEM_PICKUP_PREVIEW_PROFILE_COUNT; profileIndex++, previewItemIds++) {
             if (profileIndex == CD_COMMAND_DISPLAY_LOAD_MENU) {
-                Gp_PreviewItems[CD_COMMAND_DISPLAY_LOAD_MENU] = itemId;
+                gItemMenuPreviewItemIds[CD_COMMAND_DISPLAY_LOAD_MENU] = itemId;
             } else {
-                *previewItemIds = ITEM_PICKUP_PREVIEW_EMPTY;
+                *previewItemIds = ITEM_MENU_PREVIEW_EMPTY;
             }
         }
         itemMenuEnqueuePreviewLoad(itemId, CD_COMMAND_DISPLAY_LOAD_MENU);
@@ -1564,7 +1563,7 @@ static inline UiObject* _itemMenuSpawnDialog(UiObject* parent, s32 dialogOptions
 {
     UiObject* dialog;
 
-    dialog = uiSpawnObject(&D_8010EA98, dialogOptions, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_DIALOG_OPEN_DELAY_TICKS, parent);
+    dialog = uiSpawnObject(&gItemMenuDialogDesc, dialogOptions, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_DIALOG_OPEN_DELAY_TICKS, parent);
     if (dialog != NULL) {
         dialog->panel.bounds.unsignedRect.x = (parent->panel.contentOriginX.unsignedValue + parent->panel.contentRight.unsignedValue + 0xA) - dialog->panel.bounds.unsignedRect.w;
         dialog->panel.bounds.unsignedRect.y = parent->panel.contentOriginY.unsignedValue + parent->panel.contentBottom.unsignedValue;
@@ -1719,7 +1718,7 @@ static void _itemPickupObtainedNoticeTask(Task* task)
     textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrObtained, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
     itemName = itemGetText(itemId, ITEM_TEXT_NAME, 0);
     nameEndX = textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0x1E, itemName, ITEM_PICKUP_OBTAINED_ITEM_COLOR, drawMode, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(object, nameEndX, object->panel.contentTop.signedValue + 0x1E, (const u8*)Gp_StrDot, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, nameEndX, object->panel.contentTop.signedValue + 0x1E, gItemMenuPeriodText, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
     task->killCountdown--;
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if ((task->killCountdown <= 0) ||
@@ -1842,18 +1841,17 @@ void itemMenuDrawUnloadedConsumableQuantity(const UiObject* object, s32 x, s32 y
 static inline void _itemMenuSetPreviewItem(s32 itemId, u8 loadProfile)
 {
     enum {
-        ITEM_MENU_PREVIEW_PROFILE_COUNT = 3,
-        ITEM_MENU_PREVIEW_EMPTY         = -1
+        ITEM_MENU_PREVIEW_PROFILE_COUNT = 3
     };
     s32 profileIndex;
 
-    if (itemId != Gp_PreviewItems[loadProfile]) {
+    if (itemId != gItemMenuPreviewItemIds[loadProfile]) {
         // Publish the selection before requesting resources, even if no load is queued.
         for (profileIndex = 0; profileIndex < ITEM_MENU_PREVIEW_PROFILE_COUNT; profileIndex++) {
             if (profileIndex == loadProfile) {
-                Gp_PreviewItems[profileIndex] = itemId;
+                gItemMenuPreviewItemIds[profileIndex] = itemId;
             } else {
-                Gp_PreviewItems[profileIndex] = ITEM_MENU_PREVIEW_EMPTY;
+                gItemMenuPreviewItemIds[profileIndex] = ITEM_MENU_PREVIEW_EMPTY;
             }
         }
         itemMenuEnqueuePreviewLoad(itemId, loadProfile);
@@ -1885,11 +1883,10 @@ void itemMenuSetPreviewItem(s32 itemId, s32 loadProfile)
 
 void itemMenuClearPreviewItems(void)
 {
-    enum { ITEM_MENU_PREVIEW_EMPTY = -1 };
     s32* previewItemIds;
     s32  emptyItemId;
 
-    previewItemIds    = Gp_PreviewItems;
+    previewItemIds    = gItemMenuPreviewItemIds;
     emptyItemId       = ITEM_MENU_PREVIEW_EMPTY;
     previewItemIds[2] = emptyItemId;
     previewItemIds[1] = emptyItemId;

@@ -24036,7 +24036,7 @@ jr    ra
 A pointer temporary plus assignments in that store order is what matches:
 
 ```c
-previewItemIds    = Gp_PreviewItems;
+previewItemIds    = gItemMenuPreviewItemIds;
 emptyItemId       = ITEM_MENU_PREVIEW_EMPTY;
 previewItemIds[2] = emptyItemId;
 previewItemIds[1] = emptyItemId;
@@ -27338,7 +27338,7 @@ if (arg2 != 0) {
         value = arg2; /* kill $a2 before the table load */
         tmp   = arg3;
         asm volatile("" : "+r"(tmp)); /* move a1, a3 in the beq delay */
-        table = Gp_PreviewItems;           /* addiu a2, %lo */
+        table = gItemMenuPreviewItemIds;           /* addiu a2, %lo */
         ...
     }
 }
@@ -31871,15 +31871,15 @@ temp (`$s2`), not a fresh `1`, so the `bne` reuses that register.
 
 ## Index the slot table in the loop so `lui` stays in `$a0`
 
-Filling `Gp_PreviewItems[0] = item` / `[1] = [2] = -1` by taking the
+Filling `gItemMenuPreviewItemIds[0] = item` / `[1] = [2] = -1` by taking the
 address first:
 
 ```c
-p = Gp_PreviewItems;
+p = gItemMenuPreviewItemIds;
 if (item != p[0]) {
     for (; i < 3; i++, p++) {
         if (i == 0) {
-            Gp_PreviewItems[0] = item;
+            gItemMenuPreviewItemIds[0] = item;
         } else {
             *p = minusOne;
         }
@@ -31893,28 +31893,28 @@ the global first (`lui a0` / `lw %lo(a0)`), keeps `i = 0` in that
 delay slot, then copies hi and materializes the pointer:
 
 ```
-lui    a0, %hi(Gp_PreviewItems)
-lw     v0, %lo(Gp_PreviewItems)(a0)
+lui    a0, %hi(gItemMenuPreviewItemIds)
+lw     v0, %lo(gItemMenuPreviewItemIds)(a0)
 beq    s0, v0, skip
  move  v1, zero
 li     a2, -1
 move   a1, a0
-addiu  a0, a1, %lo(Gp_PreviewItems)
+addiu  a0, a1, %lo(gItemMenuPreviewItemIds)
 ```
 
-Write the else-stores as `Gp_PreviewItems[i]` and let GCC strength-reduce.
+Write the else-stores as `gItemMenuPreviewItemIds[i]` and let GCC strength-reduce.
 The comparison then owns `$a0` for the `lui`, and the copy/`addiu`
 appear after the branch:
 
 ```c
-if (itemId != Gp_PreviewItems[0]) {
+if (itemId != gItemMenuPreviewItemIds[0]) {
     profileIndex   = 0;
     emptyPreviewId = ITEM_MENU_COLLECTED_PREVIEW_EMPTY;
     for (; profileIndex < ITEM_MENU_COLLECTED_PREVIEW_PROFILE_COUNT; profileIndex++) {
         if (profileIndex == 0) {
-            Gp_PreviewItems[0] = itemId;
+            gItemMenuPreviewItemIds[0] = itemId;
         } else {
-            Gp_PreviewItems[profileIndex] = emptyPreviewId;
+            gItemMenuPreviewItemIds[profileIndex] = emptyPreviewId;
         }
     }
 }
@@ -34709,7 +34709,7 @@ restores `lbu v0` / `addiu s2, v0, 0x7F`. Same for `field_23 + 0x5F`.
 ## Color a 3-store loop so the table pointer is `$a2` with split `la`
 
 `i` in `$a0`, compare-index in `$a1`, `minusOne` in `$t0` leaves `$a2` for
-`table = Gp_PreviewItems` as `lui v0, %hi` / `addiu a2, v0, %lo` / `lw v0, 0(a2)`.
+`table = gItemMenuPreviewItemIds` as `lui v0, %hi` / `addiu a2, v0, %lo` / `lw v0, 0(a2)`.
 Without those pins the table absorbs `$v1` (or `$a0`) and the `%lo` load
 folds. Keep `table` and `p = table` distinct with `asm volatile("" :
 "+r"(table), "+r"(p))` so the loop walks `$v1` (`move v1, a2` / `p++`).
@@ -39307,7 +39307,7 @@ The linker script emits one contiguous `<file>.c.o(.rodata)` chunk per TU, so a
 new jump table always appends directly onto that TU's existing `.rodata` slice.
 `itemMenuDrawItemIcon` (gameplay `3688`) has two jtbls at 0x37A0/0x37C0, but the TU's
 `.rodata` ended at 0x377C and the splat blob `rodata_3688` (`Gp_ItemMenuStates`,
-`D_80096F88`, then the jtbls, then strings) filled the gap. Splitting the yaml
+`gItemMenuIconPaletteCluts`, then the jtbls, then strings) filled the gap. Splitting the yaml
 into two `.rodata, 3688` cuts does not work — the same object may appear only
 once.
 
@@ -39316,7 +39316,7 @@ The fix is the reverse of "give the function its own C file": move the
 `.rodata` and not `.data`, positioned in the source between the function that
 owns the earlier jtbl and the new one. GCC 2.8.1 assembles file-scope
 definitions in source order, so `.rodata` comes out
-`jtbl(menuRootTask) | Gp_ItemMenuStates | D_80096F88 | jtbl(itemMenuDrawItemIcon)`.
+`jtbl(menuRootTask) | Gp_ItemMenuStates | gItemMenuIconPaletteCluts | jtbl(itemMenuDrawItemIcon)`.
 Then trim the leading entries out of `asm/.../rodata_3688.rodata.s` and bump
 that segment's yaml address to the first surviving symbol. Existing `extern`
 declarations must gain `const` too; assigning a `const` struct to a plain local
@@ -65650,10 +65650,10 @@ sizeof(TmdObject)` and still matches. Always check the permuter's base score.
 
 ## _itemPickupPreviewTask: reuse the clearing pointer for the preview loop
 
-After clearing `Gp_PreviewItems` through a local pointer, keep that same
+After clearing `gItemMenuPreviewItemIds` through a local pointer, keep that same
 pointer as the loop's walking pointer. Write the fixed first-slot arm as
-`Gp_PreviewItems[CD_COMMAND_DISPLAY_LOAD_MENU] = itemId`, and the other arm as
-`*previewItemIds = ITEM_PICKUP_PREVIEW_EMPTY`.
+`gItemMenuPreviewItemIds[CD_COMMAND_DISPLAY_LOAD_MENU] = itemId`, and the other arm as
+`*previewItemIds = ITEM_MENU_PREVIEW_EMPTY`.
 Using `previewItemIds[0] = itemId` while walking a separate `p` kept the full table
 address live across the loop (99.068%). Naming the global first slot fixed
 the `%lo` store but retained an extra `move a1,v1` for `p = previewItemIds`

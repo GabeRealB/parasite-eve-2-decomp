@@ -192,13 +192,13 @@ void menuApplyPendingItemUseTask(Task* task)
 /// resources set 1. Only the value 1 requests restoration on menu exit.
 static void _itemMenuSetRoomRestorePending(s32 pending)
 {
-    D_80114D88 = pending;
+    gItemMenuRoomRestorePending = pending;
 }
 
 /// Returns the menu-exit room/view restoration latch without consuming it.
 static s32 _itemMenuGetRoomRestorePending(void)
 {
-    return D_80114D88;
+    return gItemMenuRoomRestorePending;
 }
 
 void itemMenuInitializeCaptionTask(UiObject* object, Task* task)
