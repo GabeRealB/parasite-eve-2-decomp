@@ -52,11 +52,10 @@
 #include "../../shared/room_cutscene.h"
 #include "../../shared/action_prompt.h"
 
-static TaskDesc             D_shelter_r47_8018760C;
-static SVECTOR              D_shelter_r47_80187624[10];
-static WorldCoordPointLight D_shelter_r47_80189E90[9];
-static void                 _shelterR47MapTerminalTask(Task* task);
-static void                 _shelterR47MapTerminalPromptTask(Task* task);
+static TaskDesc D_shelter_r47_8018760C;
+static SVECTOR  D_shelter_r47_80187624[10];
+static void     _shelterR47MapTerminalTask(Task* task);
+static void     _shelterR47MapTerminalPromptTask(Task* task);
 
 static void _shelterR47MapTerminalInitTask(Task* task);
 static void _shelterR47MapTerminalSelectHotspotTask(Task* task);
@@ -108,6 +107,30 @@ enum {
     SHELTER_R47_GLOW_DISC_RADIUS_SCALE_EXTRA_LARGE = 0x300,
 };
 
+/// GPU addresses and colour state of the room-view sprite sources.
+///
+/// Both pages contain 8-bit textures at VRAM Y 0; their palette is at (0,255).
+enum {
+    SHELTER_R47_VIEW_SPRITE_PAGE_896      = getTPage(1, GPU_BLEND_AVERAGE, 896, 0),
+    SHELTER_R47_VIEW_SPRITE_PAGE_960      = getTPage(1, GPU_BLEND_AVERAGE, 960, 0),
+    SHELTER_R47_VIEW_SPRITE_CLUT          = getClut(0, 255),
+    SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR = 128,
+    SHELTER_R47_VIEW_SPRITE_OPAQUE        = 0,
+};
+
+/// Cue-2 bases in the current room's type-1 sound bank.
+///
+/// Cue 1 adds one; companion playback adds 100 to a base before requesting it.
+enum {
+    SHELTER_R47_SURFACE_CLASS_1_WALK_SOUND = 0x10000041,
+    SHELTER_R47_SURFACE_CLASS_1_RUN_SOUND  = 0x10000043,
+    SHELTER_R47_SURFACE_CLASS_2_WALK_SOUND = 0x10000059,
+    SHELTER_R47_SURFACE_CLASS_2_RUN_SOUND  = 0x1000005B,
+    SHELTER_R47_SURFACE_CLASS_3_WALK_SOUND = 0x10000015,
+    SHELTER_R47_SURFACE_CLASS_3_RUN_SOUND  = 0x10000017,
+    SHELTER_R47_SURFACE_CLASS_3_JUMP_SOUND = 0x10000019,
+};
+
 /// State handlers of the room's map terminal, run by
 /// `_shelterR47MapTerminalTask`.
 static const TaskFuncTable11 D_shelter_r47_8017D7DC = {
@@ -143,7 +166,7 @@ static SVECTOR D_shelter_r47_80187624[10] = {
     { 0x4240, -2420, 6930, 0 },
 };
 
-u8* D_shelter_r47_80187674[1] = {
+u8* gShelterR47ViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -214,29 +237,44 @@ AreaVariant D_shelter_r47_80187CB8[12] = {
     { NULL, NULL },
 };
 
-static SVECTOR _gShelterR47Collision0ACCCNormals[13] = {
+SVECTOR gShelterR47CollisionGridNormals[13] = {
 #include "assets/shelter_r47_collision_0ACCC_normals.inc"
 };
 
-static SVECTOR _gShelterR47Collision0ACCCVerts[66] = {
+SVECTOR gShelterR47CollisionGridVerts[66] = {
 #include "assets/shelter_r47_collision_0ACCC_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterR47Collision0ACCCFaces[30] = {
+WorldCollisionGridFace gShelterR47CollisionGridFaces[30] = {
 #include "assets/shelter_r47_collision_0ACCC_faces.inc"
 };
 
-static s16 _gShelterR47Collision0ACCCCells[172] = {
+/// Concatenated cell face-index lists; each nonempty list ends with -1.
+static s16 _gShelterR47CollisionGridCells[172] = {
 #include "assets/shelter_r47_collision_0ACCC_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterR47Collision0ACCCCells[i])
-static s16* _gShelterR47Collision0ACCCTable[15] = {
+// Asset-table offsets count signed-halfword entries, including list terminators.
+#define GRID_CELL(i) (&_gShelterR47CollisionGridCells[i])
+/// X-major pointers for the grid's 5-by-3 cells; NULL entries are empty.
+static s16* _gShelterR47CollisionGridTable[15] = {
 #include "assets/shelter_r47_collision_0ACCC_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_r47_8018828C = { NULL, _gShelterR47Collision0ACCCNormals, _gShelterR47Collision0ACCCVerts, _gShelterR47Collision0ACCCFaces, _gShelterR47Collision0ACCCTable, 1003, -1010, 5, 3, 4000, 30 };
+WorldCollisionGrid gShelterR47CollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = gShelterR47CollisionGridNormals,
+    .vertices    = gShelterR47CollisionGridVerts,
+    .faces       = gShelterR47CollisionGridFaces,
+    .cellFaceIds = _gShelterR47CollisionGridTable,
+    .xBias       = 1003,
+    .zBias       = -1010,
+    .cellCountX  = 5,
+    .cellCountZ  = 3,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(gShelterR47CollisionGridFaces),
+};
 
 ViewCamera D_shelter_r47_801882B0[46] = {
     { { { { 1403, 0, 3848 }, { 2757, 2857, -1005 }, { -2684, 2934, 978 } }, { -0x2DC3, 4293, -2180 } }, 207 },
@@ -287,227 +325,289 @@ ViewCamera D_shelter_r47_801882B0[46] = {
     { { { { 1676, 0, -3737 }, { -1100, 3914, -493 }, { 3571, 1205, 1601 } }, { -7948, 590, -2568 } }, 329 },
 };
 
-SpriteSource D_shelter_r47_80188928[23] = {
-    { 143, 0x3FC0, { .fields = { 32, 72 } }, 128, 48, 386, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 64 } }, 104, 56, 386, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, 88, 64, 381, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 64, 72, 376, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 48, 80, 391, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 24, 88, 386, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 0, 96, 380, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -16, 104, 376, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -72, 40, 1250, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -56, 40, 1250, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -48, 56, 1250, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -40, 72, 1250, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -32, 96, 1250, { .fields = { 72, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 16, 32, 1250, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 16 } }, -40, 56, 1250, { .fields = { 8, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 16, 56, 1250, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -32, 72, 1250, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 16, 72, 1250, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -24, 96, 1250, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 48, 8, 1250, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 56, 32, 1250, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, 56, 56, 1250, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 32 } }, -48, 24, 1250, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
+/// 23 texture rectangles and sorting depths for mapped room view 1.
+///
+/// Positions are display-centred pixels; depths are unscaled OT sorting values.
+/// The view's batches select source ranges in elements, without a sentinel.
+/// Sources and textures remain borrowed while the room overlay is loaded.
+static SpriteSource _gShelterR47View1SpriteSources[23] = {
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 72 } }, 128, 48, 386, { .fields = { 96, 72 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 24, 64 } }, 104, 56, 386, { .fields = { 96, 0 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 56 } }, 88, 64, 381, { .fields = { 104, 144 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 24, 48 } }, 64, 72, 376, { .fields = { 80, 144 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 48, 80, 391, { .fields = { 88, 192 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 24, 32 } }, 24, 88, 386, { .fields = { 72, 32 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 24, 24 } }, 0, 96, 380, { .fields = { 48, 32 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 16 } }, -16, 104, 376, { .fields = { 72, 216 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, -72, 40, 1250, { .fields = { 112, 208 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 8, 72 } }, -56, 40, 1250, { .fields = { 120, 0 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 8, 64 } }, -48, 56, 1250, { .fields = { 120, 144 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 8, 48 } }, -40, 72, 1250, { .fields = { 104, 200 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, -32, 96, 1250, { .fields = { 72, 168 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 40, 24 } }, 16, 32, 1250, { .fields = { 32, 168 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 56, 16 } }, -40, 56, 1250, { .fields = { 8, 232 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 40, 16 } }, 16, 56, 1250, { .fields = { 32, 216 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 24 } }, -32, 72, 1250, { .fields = { 48, 96 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 40, 24 } }, 16, 72, 1250, { .fields = { 64, 232 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 24 } }, -24, 96, 1250, { .fields = { 48, 120 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 24 } }, 48, 8, 1250, { .fields = { 48, 144 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 24 } }, 56, 32, 1250, { .fields = { 56, 192 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 40, 32 } }, 56, 56, 1250, { .fields = { 56, 0 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 64, 32 } }, -48, 24, 1250, { .fields = { 32, 64 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_shelter_r47_80188AF4[4] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 8, 0, 0, { 1, 0 } },
-    { 8, 15, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Source ranges for mapped room view 1, ending with `SPRITE_BATCH_END`.
+///
+/// The zero-count first record selects decoded image strips. Subsequent ranges
+/// cover every source once. The two `field_6` bytes retain unproven metadata.
+static SpriteBatch _gShelterR47View1SpriteBatches[4] = {
+    { .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 8, .field_6 = { 1, 0 } },
+    { .firstSprite = 8, .spriteCount = ARRAY_SIZE(_gShelterR47View1SpriteSources) - 8, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_shelter_r47_80188B14[8] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 0, 1300, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -104, 0, 1237, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -104, -48, 1237, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -104, -96, 1237, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -56, -48, 1300, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -56, -96, 1300, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 32 } }, -40, -96, 1350, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -56, 0, 1300, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
+/// 8 texture rectangles and sorting depths for mapped room view 2.
+///
+/// Positions are display-centred pixels; depths are unscaled OT sorting values.
+/// The view's batches select source ranges in elements, without a sentinel.
+/// Sources and textures remain borrowed while the room overlay is loaded.
+static SpriteSource _gShelterR47View2SpriteSources[8] = {
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, -48, 0, 1300, { .fields = { 120, 240 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 48 } }, -104, 0, 1237, { .fields = { 80, 0 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 48 } }, -104, -48, 1237, { .fields = { 80, 48 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 48 } }, -104, -96, 1237, { .fields = { 80, 96 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, -56, -48, 1300, { .fields = { 112, 144 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, -56, -96, 1300, { .fields = { 112, 192 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 32 } }, -40, -96, 1350, { .fields = { 64, 192 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 8, 48 } }, -56, 0, 1300, { .fields = { 104, 144 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_shelter_r47_80188BB4[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 8, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Source ranges for mapped room view 2, ending with `SPRITE_BATCH_END`.
+///
+/// The zero-count first record selects decoded image strips. Subsequent ranges
+/// cover every source once. The two `field_6` bytes retain unproven metadata.
+static SpriteBatch _gShelterR47View2SpriteBatches[3] = {
+    { .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gShelterR47View2SpriteSources), .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_shelter_r47_80188BCC[12] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 0, 2300, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 72, -40, 2025, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, -56, 2300, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 48, -56, 2125, { .fields = { 88, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, -56, 2015, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 32, -40, 2300, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 72, 737, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 80, 72, 737, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 24, 737, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 96, 24, 737, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 88, 0, 737, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 112, 8, 737, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
+/// 12 texture rectangles and sorting depths for mapped room view 3.
+///
+/// Positions are display-centred pixels; depths are unscaled OT sorting values.
+/// The view's batches select source ranges in elements, without a sentinel.
+/// Sources and textures remain borrowed while the room overlay is loaded.
+static SpriteSource _gShelterR47View3SpriteSources[12] = {
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 32, 0, 2300, { .fields = { 104, 88 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 72, -40, 2025, { .fields = { 112, 0 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 16 } }, 32, -56, 2300, { .fields = { 96, 192 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 24, 16 } }, 48, -56, 2125, { .fields = { 88, 72 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 16 } }, 72, -56, 2015, { .fields = { 96, 56 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 32, -40, 2300, { .fields = { 112, 192 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 48 } }, 112, 72, 737, { .fields = { 80, 144 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 40 } }, 80, 72, 737, { .fields = { 80, 0 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 48 } }, 112, 24, 737, { .fields = { 80, 96 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 96, 24, 737, { .fields = { 112, 48 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 24, 24 } }, 88, 0, 737, { .fields = { 104, 232 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 16 } }, 112, 8, 737, { .fields = { 96, 40 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_shelter_r47_80188CBC[4] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 6, 0, 0, { 1, 0 } },
-    { 6, 6, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Source ranges for mapped room view 3, ending with `SPRITE_BATCH_END`.
+///
+/// The zero-count first record selects decoded image strips. Subsequent ranges
+/// cover every source once. The two `field_6` bytes retain unproven metadata.
+static SpriteBatch _gShelterR47View3SpriteBatches[4] = {
+    { .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 6, .field_6 = { 1, 0 } },
+    { .firstSprite = 6, .spriteCount = ARRAY_SIZE(_gShelterR47View3SpriteSources) - 6, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteDrawArea D_shelter_r47_80188CDC[2] = {
-    { { 195, 0, 125, 239 }, 2500 },
-    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
+/// View 3's right-side clip, restored to full-screen drawing at sorting depth 2500.
+///
+/// The rectangle uses draw-buffer pixels; the renderer adds the active buffer's
+/// VRAM Y origin. The terminal record emits no clip or restore commands.
+static SpriteDrawArea _gShelterR47View3DrawAreas[2] = {
+    { .clipRect = { 195, 0, 125, 239 }, .restoreDepth = 2500 },
+    { .restoreDepth = SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_shelter_r47_80188CF0[82] = {
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -88, 80, 1075, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -112, 88, 1050, { .fields = { 16, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -80, 88, 1050, { .fields = { 0, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -16, 88, 1056, { .fields = { 0, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 16, 88, 1056, { .fields = { 16, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 48, 88, 1062, { .fields = { 16, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 80, 88, 1081, { .fields = { 16, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 32 } }, 112, 88, 1081, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 144, 88, 1081, { .fields = { 0, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -80, 72, 1045, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -48, 72, 1050, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, -40, 64, 1075, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -16, 72, 1056, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 16, 64, 1057, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 32 } }, 48, 56, 1087, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 80, 56, 1112, { .fields = { 48, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 24 } }, 72, 32, 1187, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 80, 32, 1187, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 112, 56, 1112, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 144, 64, 1112, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 112, 48, 1237, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -48, 88, 1056, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -48, 8, 1050, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -80, 24, 1037, { .fields = { 40, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, -112, 40, 1000, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, -112, 64, 1000, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -112, 88, 1000, { .fields = { 56, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -120, 64, 962, { .fields = { 48, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -120, 88, 962, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -128, 40, 962, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -160, 32, 950, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, -136, 32, 962, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, -80, 40, 1037, { .fields = { 48, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -80, 64, 1037, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -48, 40, 1050, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -48, 64, 1050, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -80, -8, 975, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -64, 8, 962, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, -48, 0, 937, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 64, 64, 1450, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -80, 1450, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -32, 1450, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 32 } }, 112, 16, 1450, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, -80, 1450, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, -32, 1450, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, 16, 1450, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 32, -72, 1445, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 32, -32, 1445, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 32, 16, 1445, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 48, 64, 1445, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 24, 56, 1075, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 80, 56, 1175, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 32, 80, 1175, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 8, 88, 1175, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -16, 72, 1050, { .fields = { 88, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 8, 64, 1062, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 32, 56, 1081, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 56, 56, 1081, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 56, 48, 1081, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 40, 48, 1345, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 16, 56, 1317, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -8, 64, 1295, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -24, 72, 1292, { .fields = { 104, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 0, 64, 1305, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 24, 56, 1330, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 48, 48, 1375, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 32, 48, 1367, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 40, 48, 1387, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 8, 56, 1330, { .fields = { 104, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -16, 64, 1305, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -32, 72, 1300, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -8, 64, 1320, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 16, 56, 1362, { .fields = { 80, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 40, 56, 1375, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 24, 48, 1425, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 32, 48, 1431, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 0, 56, 1382, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -24, 64, 1362, { .fields = { 112, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -40, 72, 1357, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -16, 64, 1375, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 8, 56, 1412, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, 56, 1436, { .fields = { 32, 32 } }, 128, 128, 128, 0 },
+/// 82 texture rectangles and sorting depths for mapped room view 4.
+///
+/// Positions are display-centred pixels; depths are unscaled OT sorting values.
+/// The view's batches select source ranges in elements, without a sentinel.
+/// Sources and textures remain borrowed while the room overlay is loaded.
+static SpriteSource _gShelterR47View4SpriteSources[82] = {
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, -88, 80, 1075, { .fields = { 72, 64 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 32 } }, -112, 88, 1050, { .fields = { 16, 224 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 32 } }, -80, 88, 1050, { .fields = { 0, 32 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 32 } }, -16, 88, 1056, { .fields = { 0, 64 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 32 } }, 16, 88, 1056, { .fields = { 16, 128 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 32 } }, 48, 88, 1062, { .fields = { 16, 160 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 32 } }, 80, 88, 1081, { .fields = { 16, 192 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 32 } }, 112, 88, 1081, { .fields = { 112, 160 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 32 } }, 144, 88, 1081, { .fields = { 0, 128 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 16 } }, -80, 72, 1045, { .fields = { 48, 48 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 16 } }, -48, 72, 1050, { .fields = { 112, 240 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 8 } }, -40, 64, 1075, { .fields = { 56, 136 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 16 } }, -16, 72, 1056, { .fields = { 80, 240 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 24 } }, 16, 64, 1057, { .fields = { 56, 96 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 32 } }, 48, 56, 1087, { .fields = { 112, 96 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 32 } }, 80, 56, 1112, { .fields = { 48, 168 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 72, 32, 1187, { .fields = { 88, 176 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 24 } }, 80, 32, 1187, { .fields = { 56, 168 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 32 } }, 112, 56, 1112, { .fields = { 48, 136 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 24 } }, 144, 64, 1112, { .fields = { 72, 120 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 8 } }, 112, 48, 1237, { .fields = { 56, 128 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 32 } }, -48, 88, 1056, { .fields = { 48, 200 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 32 } }, -48, 8, 1050, { .fields = { 16, 96 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 16 } }, -80, 24, 1037, { .fields = { 40, 64 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 24 } }, -112, 40, 1000, { .fields = { 56, 144 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 24 } }, -112, 64, 1000, { .fields = { 72, 72 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, -112, 88, 1000, { .fields = { 56, 232 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, -120, 64, 962, { .fields = { 48, 232 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 8, 16 } }, -120, 88, 962, { .fields = { 96, 240 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 24 } }, -128, 40, 962, { .fields = { 88, 120 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 24, 16 } }, -160, 32, 950, { .fields = { 104, 240 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 24, 8 } }, -136, 32, 962, { .fields = { 48, 120 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 24 } }, -80, 40, 1037, { .fields = { 48, 24 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 16 } }, -80, 64, 1037, { .fields = { 48, 240 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 24 } }, -48, 40, 1050, { .fields = { 72, 192 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 24 } }, -48, 64, 1050, { .fields = { 72, 216 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, -80, -8, 975, { .fields = { 112, 96 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 24 } }, -64, 8, 962, { .fields = { 64, 232 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 24 } }, -48, 0, 937, { .fields = { 112, 216 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 64, 64, 1450, { .fields = { 88, 208 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 48 } }, 112, -80, 1450, { .fields = { 80, 144 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 48 } }, 112, -32, 1450, { .fields = { 80, 0 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 32 } }, 112, 16, 1450, { .fields = { 0, 0 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 48 } }, 64, -80, 1450, { .fields = { 80, 48 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 48 } }, 64, -32, 1450, { .fields = { 80, 192 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 48 } }, 64, 16, 1450, { .fields = { 32, 48 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 40 } }, 32, -72, 1445, { .fields = { 48, 96 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 48 } }, 32, -32, 1445, { .fields = { 80, 96 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 48 } }, 32, 16, 1445, { .fields = { 48, 0 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 8 } }, 48, 64, 1445, { .fields = { 56, 80 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 24, 56, 1075, { .fields = { 64, 216 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 80, 56, 1175, { .fields = { 64, 224 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 32, 80, 1175, { .fields = { 64, 200 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 8, 88, 1175, { .fields = { 64, 208 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 24, 24 } }, -16, 72, 1050, { .fields = { 88, 216 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 24, 24 } }, 8, 64, 1062, { .fields = { 88, 152 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 24, 24 } }, 32, 56, 1081, { .fields = { 80, 0 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 24, 24 } }, 56, 56, 1081, { .fields = { 80, 48 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 8 } }, 56, 48, 1081, { .fields = { 56, 88 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 40, 48, 1345, { .fields = { 64, 192 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 16, 56, 1317, { .fields = { 88, 200 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, -8, 64, 1295, { .fields = { 120, 152 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 24, 24 } }, -24, 72, 1292, { .fields = { 104, 24 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 24, 24 } }, 0, 64, 1305, { .fields = { 104, 72 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 24, 24 } }, 24, 56, 1330, { .fields = { 96, 192 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 24, 24 } }, 48, 48, 1375, { .fields = { 104, 128 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 32, 48, 1367, { .fields = { 96, 184 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 40, 48, 1387, { .fields = { 88, 144 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 8, 56, 1330, { .fields = { 104, 176 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, -16, 64, 1305, { .fields = { 104, 184 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 24, 24 } }, -32, 72, 1300, { .fields = { 104, 48 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 24, 24 } }, -8, 64, 1320, { .fields = { 88, 96 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 24, 24 } }, 16, 56, 1362, { .fields = { 80, 24 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 16 } }, 40, 56, 1375, { .fields = { 80, 240 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 24, 48, 1425, { .fields = { 104, 120 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 32, 48, 1431, { .fields = { 96, 144 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 0, 56, 1382, { .fields = { 96, 176 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, -24, 64, 1362, { .fields = { 112, 152 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 24, 24 } }, -40, 72, 1357, { .fields = { 104, 0 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 24, 24 } }, -16, 64, 1375, { .fields = { 120, 192 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_896, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 24, 24 } }, 8, 56, 1412, { .fields = { 56, 0 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 16 } }, 32, 56, 1436, { .fields = { 32, 32 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_shelter_r47_80189358[10] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 22, 0, 0, { 6, 0 } },
-    { 22, 14, 0, 0, { 1, 0 } },
-    { 36, 3, 0, 0, { 4, 0 } },
-    { 39, 11, 0, 0, { 0, 0 } },
-    { 50, 9, 0, 0, { 5, 0 } },
-    { 59, 7, 0, 0, { 3, 0 } },
-    { 66, 8, 0, 0, { 7, 0 } },
-    { 74, 8, 0, 0, { 2, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Source ranges for mapped room view 4, ending with `SPRITE_BATCH_END`.
+///
+/// The zero-count first record selects decoded image strips. Subsequent ranges
+/// cover every source once. The two `field_6` bytes retain unproven metadata.
+static SpriteBatch _gShelterR47View4SpriteBatches[10] = {
+    { .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 22, .field_6 = { 6, 0 } },
+    { .firstSprite = 22, .spriteCount = 14, .field_6 = { 1, 0 } },
+    { .firstSprite = 36, .spriteCount = 3, .field_6 = { 4, 0 } },
+    { .firstSprite = 39, .spriteCount = 11, .field_6 = { 0, 0 } },
+    { .firstSprite = 50, .spriteCount = 9, .field_6 = { 5, 0 } },
+    { .firstSprite = 59, .spriteCount = 7, .field_6 = { 3, 0 } },
+    { .firstSprite = 66, .spriteCount = 8, .field_6 = { 7, 0 } },
+    { .firstSprite = 74, .spriteCount = ARRAY_SIZE(_gShelterR47View4SpriteSources) - 74, .field_6 = { 2, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_shelter_r47_801893A8[15] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 32, 925, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, 104, 700, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -96, 72, 750, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -80, 40, 875, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -64, 32, 925, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, 112, 32, 1000, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 16 } }, 56, 32, 1000, { .fields = { 56, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 24, 32, 1000, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -56, 32, 1000, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -40, 48, 1000, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -40, 72, 1000, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -16, 48, 1000, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 16, 48, 1000, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -16, 72, 1000, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 16, 72, 1000, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
+/// 15 texture rectangles and sorting depths for mapped room view 5.
+///
+/// Positions are display-centred pixels; depths are unscaled OT sorting values.
+/// The view's batches select source ranges in elements, without a sentinel.
+/// Sources and textures remain borrowed while the room overlay is loaded.
+static SpriteSource _gShelterR47View5SpriteSources[15] = {
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, -48, 32, 925, { .fields = { 120, 248 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 16 } }, -112, 104, 700, { .fields = { 112, 232 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, -96, 72, 750, { .fields = { 112, 0 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, -80, 40, 875, { .fields = { 112, 48 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 24 } }, -64, 32, 925, { .fields = { 112, 160 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 16 } }, 112, 32, 1000, { .fields = { 64, 32 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 56, 16 } }, 56, 32, 1000, { .fields = { 56, 16 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 16 } }, 24, 32, 1000, { .fields = { 80, 0 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 40, 16 } }, -56, 32, 1000, { .fields = { 72, 80 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 24, 24 } }, -40, 48, 1000, { .fields = { 104, 208 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 24, 32 } }, -40, 72, 1000, { .fields = { 104, 128 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 16 } }, -16, 48, 1000, { .fields = { 80, 64 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 24 } }, 16, 48, 1000, { .fields = { 112, 184 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 16 } }, -16, 72, 1000, { .fields = { 80, 48 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 32 } }, 16, 72, 1000, { .fields = { 112, 96 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_shelter_r47_801894D4[4] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 5, 0, 0, { 1, 0 } },
-    { 5, 10, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Source ranges for mapped room view 5, ending with `SPRITE_BATCH_END`.
+///
+/// The zero-count first record selects decoded image strips. Subsequent ranges
+/// cover every source once. The two `field_6` bytes retain unproven metadata.
+static SpriteBatch _gShelterR47View5SpriteBatches[4] = {
+    { .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 5, .field_6 = { 1, 0 } },
+    { .firstSprite = 5, .spriteCount = ARRAY_SIZE(_gShelterR47View5SpriteSources) - 5, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_801894F4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Empty sprite-batch list for mapped room view 6.
+///
+/// The zero-count first record selects decoded image strips; the final record
+/// ends the list. The source slot retains this list's address without sprites.
+static SpriteBatch _gShelterR47View6SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_80189504[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Empty sprite-batch list for mapped room view 7.
+///
+/// The zero-count first record selects decoded image strips; the final record
+/// ends the list. The source slot retains this list's address without sprites.
+static SpriteBatch _gShelterR47View7SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_shelter_r47_80189514[10] = {
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -152, -56, 1950, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -112, -56, 1950, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -72, -56, 1900, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -32, -48, 1800, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 0, -48, 1800, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 32, -56, 1900, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 72, -56, 1950, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 112, -56, 1950, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -24, -16, 1800, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 8, -16, 1800, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
+/// 10 texture rectangles and sorting depths for mapped room view 8.
+///
+/// Positions are display-centred pixels; depths are unscaled OT sorting values.
+/// The view's batches select source ranges in elements, without a sentinel.
+/// Sources and textures remain borrowed while the room overlay is loaded.
+static SpriteSource _gShelterR47View8SpriteSources[10] = {
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 40, 40 } }, -152, -56, 1950, { .fields = { 88, 120 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 40, 40 } }, -112, -56, 1950, { .fields = { 88, 160 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 40, 40 } }, -72, -56, 1900, { .fields = { 88, 200 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 32 } }, -32, -48, 1800, { .fields = { 56, 0 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 32 } }, 0, -48, 1800, { .fields = { 56, 32 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 40, 40 } }, 32, -56, 1900, { .fields = { 88, 80 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 40, 40 } }, 72, -56, 1950, { .fields = { 88, 40 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 40, 40 } }, 112, -56, 1950, { .fields = { 88, 0 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 16 } }, -24, -16, 1800, { .fields = { 96, 240 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 16 } }, 8, -16, 1800, { .fields = { 112, 240 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
 };
 
 SpriteBatch D_shelter_r47_801895DC[3] = {
@@ -776,14 +876,14 @@ SpriteBatch D_shelter_r47_80189C58[2] = {
 };
 
 SpriteView D_shelter_r47_80189C68[46] = {
-    { { .elements = D_shelter_r47_80188928 }, D_shelter_r47_80188AF4, NULL },
-    { { .elements = D_shelter_r47_80188B14 }, D_shelter_r47_80188BB4, NULL },
-    { { .elements = D_shelter_r47_80188BCC }, D_shelter_r47_80188CBC, D_shelter_r47_80188CDC },
-    { { .elements = D_shelter_r47_80188CF0 }, D_shelter_r47_80189358, NULL },
-    { { .elements = D_shelter_r47_801893A8 }, D_shelter_r47_801894D4, NULL },
-    { { .empty = D_shelter_r47_801894F4 }, D_shelter_r47_801894F4, NULL },
-    { { .empty = D_shelter_r47_80189504 }, D_shelter_r47_80189504, NULL },
-    { { .elements = D_shelter_r47_80189514 }, D_shelter_r47_801895DC, NULL },
+    { { .elements = _gShelterR47View1SpriteSources }, _gShelterR47View1SpriteBatches, NULL },
+    { { .elements = _gShelterR47View2SpriteSources }, _gShelterR47View2SpriteBatches, NULL },
+    { { .elements = _gShelterR47View3SpriteSources }, _gShelterR47View3SpriteBatches, _gShelterR47View3DrawAreas },
+    { { .elements = _gShelterR47View4SpriteSources }, _gShelterR47View4SpriteBatches, NULL },
+    { { .elements = _gShelterR47View5SpriteSources }, _gShelterR47View5SpriteBatches, NULL },
+    { { .empty = _gShelterR47View6SpriteBatches }, _gShelterR47View6SpriteBatches, NULL },
+    { { .empty = _gShelterR47View7SpriteBatches }, _gShelterR47View7SpriteBatches, NULL },
+    { { .elements = _gShelterR47View8SpriteSources }, D_shelter_r47_801895DC, NULL },
     { { .elements = D_shelter_r47_801895F4 }, D_shelter_r47_801897D4, NULL },
     { { .empty = D_shelter_r47_8018980C }, D_shelter_r47_8018980C, NULL },
     { { .elements = D_shelter_r47_8018981C }, D_shelter_r47_80189844, NULL },
@@ -824,22 +924,31 @@ SpriteView D_shelter_r47_80189C68[46] = {
     { { .empty = D_shelter_r47_80189C58 }, D_shelter_r47_80189C58, NULL },
 };
 
-static WorldCoordPointLight D_shelter_r47_80189E90[9] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x310C, -2576, 7191 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1756, 3216, 2480 }, { 0, 0 } }, 100, 200 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x309F, -2482, 7439 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1019, 3392, 1019 }, { 0, 0 } }, 100, 461 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x38B7, -3643, 7891 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2170, 2209, 2195 }, { 0, 0 } }, 1878, 3562 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4133, -2789, 3232 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2983, 2975, 2968 }, { 0, 0 } }, 1970, 6109 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8491, -3002, 3193 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2615, 2612, 2602 }, { 0, 0 } }, 3836, 6579 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x33FB, -2300, 0x2736 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2435, 3392, 2909 }, { 0, 0 } }, 300, 800 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x4074, -2305, 6109 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2059, 4119, 2889 }, { 0, 0 } }, 401, 855 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x41F1, -1881, 7349 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1756, 3216, 2480 }, { 0, 0 } }, 100, 200 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x35EA, -1128, 2778 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1944, 1895, 1866 }, { 0, 0 } }, 5201, 9559 },
+/// Nine room-owned point lights, composed and attenuated by gameplay in place.
+///
+/// Positions and falloff radii use game-coordinate units; RGB uses ONE for 1.0.
+/// Each view filter admits every view. Storage stays live with the room overlay.
+static WorldCoordPointLight _gShelterR47PointLights[9] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x310C, -2576, 7191 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1756, 3216, 2480 }, { 0, 0 } }, 100, 200 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x309F, -2482, 7439 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1019, 3392, 1019 }, { 0, 0 } }, 100, 461 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x38B7, -3643, 7891 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2170, 2209, 2195 }, { 0, 0 } }, 1878, 3562 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4133, -2789, 3232 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2983, 2975, 2968 }, { 0, 0 } }, 1970, 6109 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8491, -3002, 3193 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2615, 2612, 2602 }, { 0, 0 } }, 3836, 6579 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x33FB, -2300, 0x2736 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2435, 3392, 2909 }, { 0, 0 } }, 300, 800 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x4074, -2305, 6109 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2059, 4119, 2889 }, { 0, 0 } }, 401, 855 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x41F1, -1881, 7349 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1756, 3216, 2480 }, { 0, 0 } }, 100, 200 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x35EA, -1128, 2778 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1944, 1895, 1866 }, { 0, 0 } }, 5201, 9559 },
 };
 
-ShelterB1PodServiceGantrySpotLightStorage D_shelter_r47_8018A1F0 = {
+/// Two live cone lights followed by 756 bytes whose purpose is unproven.
+///
+/// Only `coneLights` is exposed to room lighting. Gameplay mutates the live
+/// transforms and attenuation; the following bytes have no established reader
+/// or original object boundaries and remain in their byte representation.
+static ShelterB1PodServiceGantrySpotLightStorage _gShelterR47SpotLightStorage = {
     .coneLights = {
-        { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { -4003, -2, 873 }, { 869, 266, 4000 }, { -59, 4087, -261 } }, { 3412, -0x5063, 9454 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2764, 2764, 2425 }, { 0, 0 } }, { 872, 3993, -260, 0 }, 0x4E20, 0x7530, 0x2C71 },
-        { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { -4092, 0, -222 }, { 215, -909, -3996 }, { -50, -3996, 908 } }, { 8054, 5038, 1813 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 226, 226, 198 }, { 0, 0 } }, { -221, -3988, 907, 0 }, 10, 0x4E20, 0x2C71 },
+        { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { -4003, -2, 873 }, { 869, 266, 4000 }, { -59, 4087, -261 } }, { 3412, -0x5063, 9454 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2764, 2764, 2425 }, { 0, 0 } }, { 872, 3993, -260, 0 }, 0x4E20, 0x7530, 0x2C71 },
+        { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { -4092, 0, -222 }, { 215, -909, -3996 }, { -50, -3996, 908 } }, { 8054, 5038, 1813 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 226, 226, 198 }, { 0, 0 } }, { -221, -3988, 907, 0 }, 10, 0x4E20, 0x2C71 },
     },
     .unknown_D8 = {
         0x00,
@@ -1601,51 +1710,81 @@ ShelterB1PodServiceGantrySpotLightStorage D_shelter_r47_8018A1F0 = {
     },
 };
 
-WorldCoordRoomLights D_shelter_r47_8018A5BC = { 0, NULL, ARRAY_SIZE(D_shelter_r47_80189E90), D_shelter_r47_80189E90, ARRAY_SIZE(D_shelter_r47_8018A1F0.coneLights), D_shelter_r47_8018A1F0.coneLights };
-
-WorldCollisionFootstepSounds D_shelter_r47_8018A5D4 = {
-    0x10000059,
-    0x1000005B,
-    0x10000059,
+WorldCoordRoomLights gShelterR47RoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gShelterR47PointLights),
+    .pointLights           = _gShelterR47PointLights,
+    .coneLightCount        = ARRAY_SIZE(_gShelterR47SpotLightStorage.coneLights),
+    .coneLights            = _gShelterR47SpotLightStorage.coneLights,
 };
 
-WorldCollisionFootstepSounds D_shelter_r47_8018A5E0 = {
-    0x10000015,
-    0x10000017,
-    0x10000019,
+/// Surface-class 2 cue bases; scripted jumps reuse the walking pair.
+static WorldCollisionFootstepSounds _gShelterR47SurfaceClass2Footsteps = {
+    .walk         = SHELTER_R47_SURFACE_CLASS_2_WALK_SOUND,
+    .run          = SHELTER_R47_SURFACE_CLASS_2_RUN_SOUND,
+    .scriptedJump = SHELTER_R47_SURFACE_CLASS_2_WALK_SOUND,
 };
 
-WorldCollisionFootstepSounds D_shelter_r47_8018A5EC = {
-    0x10000041,
-    0x10000043,
-    0x10000041,
+/// Surface-class 3 walk, run and separate scripted-jump cue bases.
+static WorldCollisionFootstepSounds _gShelterR47SurfaceClass3Footsteps = {
+    .walk         = SHELTER_R47_SURFACE_CLASS_3_WALK_SOUND,
+    .run          = SHELTER_R47_SURFACE_CLASS_3_RUN_SOUND,
+    .scriptedJump = SHELTER_R47_SURFACE_CLASS_3_JUMP_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_shelter_r47_8018A5F8[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Surface-class 1 cue bases; scripted jumps reuse the walking pair.
+static WorldCollisionFootstepSounds _gShelterR47SurfaceClass1Footsteps = {
+    .walk         = SHELTER_R47_SURFACE_CLASS_1_WALK_SOUND,
+    .run          = SHELTER_R47_SURFACE_CLASS_1_RUN_SOUND,
+    .scriptedJump = SHELTER_R47_SURFACE_CLASS_1_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_shelter_r47_8018A600[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_r47_8018A5EC },
+/// Blocking collision properties without footstep cues, shared by classes 0 and 4..7.
+static WorldCollisionSurfaceProperties _gShelterR47SilentSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_shelter_r47_8018A608[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_r47_8018A5D4 },
+/// Blocking collision properties and footstep cues for surface class 1.
+static WorldCollisionSurfaceProperties _gShelterR47SurfaceClass1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterR47SurfaceClass1Footsteps,
 };
 
-WorldCollisionSurfaceProperties D_shelter_r47_8018A610[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_r47_8018A5E0 },
+/// Blocking collision properties and footstep cues for surface class 2.
+static WorldCollisionSurfaceProperties _gShelterR47SurfaceClass2Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterR47SurfaceClass2Footsteps,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_r47_8018A618[8] = {
-    D_shelter_r47_8018A5F8,
-    D_shelter_r47_8018A600,
-    D_shelter_r47_8018A608,
-    D_shelter_r47_8018A610,
-    D_shelter_r47_8018A5F8,
-    D_shelter_r47_8018A5F8,
-    D_shelter_r47_8018A5F8,
-    D_shelter_r47_8018A5F8,
+/// Blocking collision properties and footstep cues for surface class 3.
+static WorldCollisionSurfaceProperties _gShelterR47SurfaceClass3Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterR47SurfaceClass3Footsteps,
+};
+
+WorldCollisionSurfaceProperties* gShelterR47SurfaceProperties[8] = {
+    &_gShelterR47SilentSurfaceProperties,
+    &_gShelterR47SurfaceClass1Properties,
+    &_gShelterR47SurfaceClass2Properties,
+    &_gShelterR47SurfaceClass3Properties,
+    &_gShelterR47SilentSurfaceProperties,
+    &_gShelterR47SilentSurfaceProperties,
+    &_gShelterR47SilentSurfaceProperties,
+    &_gShelterR47SilentSurfaceProperties,
 };
 
 AreaApplyRec D_shelter_r47_8018A638[21] = {

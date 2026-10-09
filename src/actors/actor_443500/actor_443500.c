@@ -3081,7 +3081,7 @@ static void _actor443500InstallPierceCollision(s32 shiftY)
     SVECTOR                   displacement;
     s32                       elementIndex;
 
-    roomGrid  = &D_shelter_r47_8018828C;
+    roomGrid  = &gShelterR47CollisionGrid;
     actorGrid = &_gActor443500PierceCollision;
 
     // The room reserves its leading geometry entries for this actor's faces.

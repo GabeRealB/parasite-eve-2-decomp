@@ -15,14 +15,31 @@
 
 extern TaskDesc D_shelter_r47_80187618;
 
-extern WorldCollisionGrid D_shelter_r47_8018828C;
+/// Room 47's writable collision mesh and 5-by-3 XZ cell index.
+///
+/// Cells are 4000 game-coordinate units wide, with X/Z biases 1003/-1010.
+/// The first two normals/faces and six vertices are reserved for Pierce's
+/// collision replacement. Keep this overlay loaded while the grid is active.
+extern WorldCollisionGrid gShelterR47CollisionGrid;
+
+/// Room-space normals, including two entries replaced by Pierce's actor overlay.
+extern SVECTOR gShelterR47CollisionGridNormals[13];
+
+/// Room-space vertices, including six entries replaced by Pierce's actor overlay.
+extern SVECTOR gShelterR47CollisionGridVerts[66];
+
+/// Indexed collision faces, including two entries replaced by Pierce's actor overlay.
+extern WorldCollisionGridFace gShelterR47CollisionGridFaces[30];
 
 extern AreaApplyRec D_shelter_r47_8018A638[21];
 
 extern AreaVariant D_shelter_r47_80187CB8[12];
 
-// shelter_r47
-extern u8* D_shelter_r47_80187674[];
+/// The sole room's logical-view map, borrowing gameplay's identity mapping.
+///
+/// Room index 1 selects this pointer; logical views 1..46 use the same camera,
+/// image and sprite indices. Both this overlay and gameplay must stay loaded.
+extern u8* gShelterR47ViewMaps[1];
 
 extern ViewCount D_shelter_r47_80187678[];
 
@@ -34,9 +51,18 @@ extern ViewCamera D_shelter_r47_801882B0[];
 
 extern SpriteView D_shelter_r47_80189C68[];
 
-extern WorldCoordRoomLights D_shelter_r47_8018A5BC;
+/// Room 47's nine point lights and two cone lights, with no directional lights.
+///
+/// All lights contribute in every view. Gameplay updates their transforms and
+/// attenuation in place; their storage remains owned by the loaded room overlay.
+extern WorldCoordRoomLights gShelterR47RoomLights;
 
-extern WorldCollisionSurfaceProperties* D_shelter_r47_8018A618[];
+/// Collision and footstep records indexed by room-local surface class 0..7.
+///
+/// All classes block probes, allow weapon impacts and apply pushback. Classes
+/// 1..3 have paired walk/run/scripted-jump cues; 0 and 4..7 are silent.
+/// The pointed-to records are borrowed while this room overlay is loaded.
+extern WorldCollisionSurfaceProperties* gShelterR47SurfaceProperties[8];
 
 extern WorldCollisionTrigger D_shelter_r47_8018787C[13];
 

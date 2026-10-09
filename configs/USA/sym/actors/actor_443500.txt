@@ -456,7 +456,7 @@ D_actor_443500_80140E78 = 0x80140E78; // size:0x14 defined:True
 
 D_shelter_r47_80187618 = 0x80187618; // absolute:True owner=shelter_r47 shared=rooms
 
-D_shelter_r47_8018828C = 0x8018828C; // absolute:True owner=shelter_r47
+gShelterR47CollisionGrid = 0x8018828C; // absolute:True owner=shelter_r47
 
 D_shelter_r47_8018A638 = 0x8018A638; // absolute:True owner=shelter_r47
 _modelPlacementAttachChild = 0x80132594; // type:func
