@@ -68,7 +68,13 @@ extern s32 gRoomEffectOrangeBurst2Id;
 /// Flash of a golem's silence scream (actor_02300, actor_05700).
 extern s32 gRoomEffectFlashId;
 
-extern TaskDesc D_8010FC2C[];
+/// Gameplay task bank 6: resident effects and loaded-overlay entry points.
+///
+/// Slots 0x000..0x29A select body flags, priority, callback and model data.
+/// The callback and any borrowed model source must belong to the loaded image
+/// and remain live through task teardown. This mutable bank is shared with
+/// resident task spawning; unused slots and their original payloads are retained.
+extern TaskDesc gEffectTaskDescriptors[667];
 
 /// Projects a composed coordinate's view-space position onto room geometry along world +Y.
 ///

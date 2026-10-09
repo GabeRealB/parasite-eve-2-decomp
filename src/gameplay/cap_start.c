@@ -10,7 +10,7 @@
 #include "main/mc.h"
 #include "main/task.h"
 
-CapSequenceRecord* Gp_CapTable;
+CapSequenceRecord* gCapSelectedSequence;
 
 s16 D_801155AC;
 
@@ -72,11 +72,11 @@ static inline void _capInitializeSequencePlayback(CapSequenceRecord* sequence, s
     };
 
     // Select the borrowed sequence before its first keyed record is scanned.
-    Gp_CapEventKey = variantKey;
-    Gp_CapTable    = sequence;
-    D_801155AC     = CAP_RECORD_INITIAL_PHASE;
-    D_801155AE     = CAP_FIRST_PLAYBACK_RECORD_INDEX;
-    D_801155B0     = 0;
+    Gp_CapEventKey       = variantKey;
+    gCapSelectedSequence = sequence;
+    D_801155AC           = CAP_RECORD_INITIAL_PHASE;
+    D_801155AE           = CAP_FIRST_PLAYBACK_RECORD_INDEX;
+    D_801155B0           = 0;
     // The initial X preset is overwritten before any text is drawn.
     D_801155B2 = CAP_TEXT_INITIAL_LEFT_X;
     D_801155B4 = CAP_TEXT_INITIAL_BASELINE_Y;
@@ -134,14 +134,14 @@ s32 capStartSequence(CapSequenceRecord* sequence, s16 playbackMode, s16 variantK
 
     // Slot zero is the command header; find the first record for this key.
     D_801155AE = capFindVariantRecord((s16)D_801155AE);
-    if (Gp_CapTable[(s16)D_801155AE].textRef.offset == CAP_TEXT_REF_END) {
-        Gp_CapTable = NULL;
+    if (gCapSelectedSequence[(s16)D_801155AE].textRef.offset == CAP_TEXT_REF_END) {
+        gCapSelectedSequence = NULL;
         return 0;
     }
 
     capApplyRecordPlaybackSettings();
-    D_801155B4 = capGetTextFirstBaselineY(Gp_CapTable[(s16)D_801155AE].textRef.text);
-    D_801155B6 = capGetTextBlockHeight(Gp_CapTable[(s16)D_801155AE].textRef.text);
+    D_801155B4 = capGetTextFirstBaselineY(gCapSelectedSequence[(s16)D_801155AE].textRef.text);
+    D_801155B6 = capGetTextBlockHeight(gCapSelectedSequence[(s16)D_801155AE].textRef.text);
     D_80115666 = playbackMode;
     D_80115660 = NULL;
     // Queued playback borrows the selection before its task begins running.

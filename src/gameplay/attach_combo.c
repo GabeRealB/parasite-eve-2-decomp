@@ -11,7 +11,7 @@
 
 #include "main/wipsys.h"
 
-s32 D_80114F28;
+s32 gAttachmentPlayerLightPulsePending;
 
 /// Inline copy of `sceneIsBattleActive`.
 static __inline__ s32 isStateF0Active_(void);
@@ -57,7 +57,7 @@ void attachmentApplySelfEffect(s32 releaseEffects)
     PlayerStatus* player;
 
     if (releaseEffects == ATTACHMENT_TARGET_PREVIEW) {
-        D_80114F28 = ATTACHMENT_SELF_LIGHT_PULSE_REQUESTED;
+        gAttachmentPlayerLightPulsePending = ATTACHMENT_SELF_LIGHT_PULSE_REQUESTED;
         return;
     }
 
@@ -121,7 +121,7 @@ void attachmentApplySelfEffect(s32 releaseEffects)
                    ATTACHMENT_HEAL_RANDOM_MASK = 255,
                    ATTACHMENT_HEAL_BLEND_SHIFT = 8 };
 
-            levelRows = Gp_IdParamHi.rows;
+            levelRows = gAttachmentLevelTable.rows;
             rowIndex  = ATTACHMENT_INDEX_HEALING * ATTACHMENT_AREA_LEVEL_COUNT + 1 + gAttachmentState.attachId % ATTACHMENT_AREA_LEVEL_COUNT;
             maximumHp = levelRows[rowIndex].column.outcome.healMax;
             minimumHp = levelRows[rowIndex].column.amount;

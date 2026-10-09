@@ -1786,7 +1786,7 @@ static void _shelterR47MapTerminalSelectHotspotTask(Task* task)
         SHELTER_R47_MAP_CANCEL_BUTTON           = 1,
         SHELTER_R47_MAP_CANCEL_REFUSED_CAP_SLOT = 0x25,
     };
-    ActionPrompt*              prompt  = D_80114D28;
+    ActionPrompt*              prompt  = gActionPromptSlots;
     ShelterR47MapTerminalWork* work    = task->work;
     ActionPromptHotspot*       hotspot = work->hotspots;
 
@@ -1876,7 +1876,7 @@ static void _shelterR47MapTerminalHandleHotspotTask(Task* task)
         SHELTER_R47_MAP_NEXT_FIRST_USE_CAP_SLOT     = 0x34,
         SHELTER_R47_MAP_PREVIOUS_FIRST_USE_CAP_SLOT = 0x35,
     };
-    ActionPrompt*              prompt = D_80114D28;
+    ActionPrompt*              prompt = gActionPromptSlots;
     ShelterR47MapTerminalWork* work   = task->work;
 
     _shelterR47MapTerminalUpdateAndDraw(task);
@@ -2098,7 +2098,7 @@ static void _shelterR47MapTerminalOpenTask(Task* task)
 {
     enum { SHELTER_R47_MAP_TOUR_START_CAP_SLOT = 0x12 };
     ShelterR47MapTerminalWork* work;
-    ActionPrompt*              prompt = D_80114D28;
+    ActionPrompt*              prompt = gActionPromptSlots;
     u8                         fadeLevel;
 
     work = task->work;
@@ -2142,7 +2142,7 @@ static void _shelterR47MapTerminalOpenCommandsTask(Task* task)
 {
     enum { SHELTER_R47_MAP_COMMAND_EXAMINE = 0 };
     ShelterR47MapTerminalWork* work;
-    ActionPrompt*              prompt = D_80114D28;
+    ActionPrompt*              prompt = gActionPromptSlots;
 
     work = task->work;
     _shelterR47MapTerminalUpdateAndDraw(task);
@@ -2251,7 +2251,7 @@ static void _shelterR47MapTerminalReopenPageTask(Task* task)
 static void _shelterR47MapTerminalTimedViewTask(Task* task)
 {
     ShelterR47MapTerminalWork* work;
-    ActionPrompt*              prompt = D_80114D28;
+    ActionPrompt*              prompt = gActionPromptSlots;
     u8                         fadeLevel;
 
     work = task->work;

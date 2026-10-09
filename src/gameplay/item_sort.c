@@ -247,10 +247,10 @@ static inline InventoryItemRow* _inventoryGetRangeTable(const InventoryItemRange
 
     switch (range->tableId) {
         case INVENTORY_ITEM_TABLE_AREA_GRANTS:
-            table = Gp_ItemTable2;
+            table = gInventoryBattleRewardRows;
             break;
         case INVENTORY_ITEM_TABLE_INDIRECT:
-            table = Gp_ItemTable1;
+            table = gInventoryIndirectRows;
             break;
         default:
             table = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;

@@ -133,7 +133,7 @@ code stream; the containing file must stay loaded during playback. Text codes
 are u16 elements, with 0xFFFF ending the stream. The separate table-end sentinel
 `CAP_TEXT_REF_END` (`-1`) is never relocated or dereferenced.
 
-`capFindVariantRecord(start)` scans forward from `start` through `Gp_CapTable` and
+`capFindVariantRecord(start)` scans forward from `start` through `gCapSelectedSequence` and
 stops at the first record whose `textRef.offset == CAP_TEXT_REF_END` **or** whose `key` equals
 the current `Gp_CapEventKey`, returning the index. So an event slot is a run of
 records terminated by `-1`, and the key selects a variant within the run.
@@ -291,7 +291,7 @@ index 6 is zero, and the other entries are file-relative offsets `0xB34`,
 Each sequence starts with a **command header in slot zero**, followed by
 `CapSequenceRecord` playback records from slot one. `capRunCommand` reads the
 header as `CapCommand`; `capStartSequence` stores the same base pointer as
-`Gp_CapTable` but initializes its record index to one. The command and playback
+`gCapSelectedSequence` but initializes its record index to one. The command and playback
 records have different meanings. Relocation starts at `sequences + 0x10`
 (`records`), after the first command, and its extra step after a terminator
 skips the next sequence's command.

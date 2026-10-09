@@ -533,8 +533,7 @@ static void _gpuSetPrimitiveBlendModeFixedDepth(void* primitive, s32 blendMode, 
 /// its owner, behavior and spawn-argument contract are unproven.
 extern void func_8011D1E0(Task* task);
 
-/// Task bank 6: effects and loaded-overlay task entry points.
-TaskDesc D_8010FC2C[667] = {
+TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { NULL } },                                                                // 0x000
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { NULL } },                                                                // 0x001
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { NULL } },                                                                // 0x002
@@ -590,7 +589,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask34, { NULL } },                                                     // 0x034
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask35, { NULL } },                                                     // 0x035
     { { { TASK_BODY_TMD, 0x70 } }, effectThrownModelTask, { &gEffectBulletCasingModel } },                               // 0x036
-    { { { TASK_BODY_TMD, 0x70 } }, effectBurstModelPartTask, { &D_8011231C } },                                          // 0x037
+    { { { TASK_BODY_TMD, 0x70 } }, effectBurstModelPartTask, { &gEffectShotgunShellCasingModel } },                      // 0x037
     { { { TASK_BODY_COORD, 0x70 } }, neoArkSubstationDrawLightGlowsTask, { NULL } },                                     // 0x038
     { { { TASK_BODY_COORD, 0x70 } }, mistParkingDrawGlowsTask, { NULL } },                                               // 0x039
     { { { TASK_BODY_COORD, 0x70 } }, tonfaBatonSwingTrailTask, { NULL } },                                               // 0x03A
@@ -637,9 +636,9 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_NONE, 0x70 } }, taskKill, { NULL } },                                                                // 0x063
     { { { TASK_BODY_TMD, 0x70 } }, acropolisCafeteriaModelWanderTask, { &gAcropolisCafeteriaModel077D8 } },              // 0x064
     { { { TASK_BODY_COORD, 0x70 } }, actor510900DebrisStreakTask, { NULL } },                                            // 0x065
-    { { { TASK_BODY_TMD, 0x70 } }, effectThrownModelTask, { &D_80112200 } },                                             // 0x066
-    { { { TASK_BODY_TMD, 0x70 } }, effectThrownModelTask, { &D_801120E4 } },                                             // 0x067
-    { { { TASK_BODY_TMD, 0x70 } }, effectThrownModelTask, { &D_8011231C } },                                             // 0x068
+    { { { TASK_BODY_TMD, 0x70 } }, effectThrownModelTask, { &gEffectP229CasingModel } },                                 // 0x066
+    { { { TASK_BODY_TMD, 0x70 } }, effectThrownModelTask, { &gEffectRifleCasingModel } },                                // 0x067
+    { { { TASK_BODY_TMD, 0x70 } }, effectThrownModelTask, { &gEffectShotgunShellCasingModel } },                         // 0x068
     { { { TASK_BODY_COORD, 0x70 } }, pyrokinesisFlamePuffTask, { NULL } },                                               // 0x069
     { { { TASK_BODY_COORD, 0x70 } }, effectControlTask6A, { NULL } },                                                    // 0x06A
     { { { TASK_BODY_COORD, 0x70 } }, effectControlTask6B, { NULL } },                                                    // 0x06B
@@ -680,7 +679,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, effectHitSparkBurstTask, { NULL } },                                                // 0x08E
     { { { TASK_BODY_COORD, 0x70 } }, acropolisPatioFountainMistTask, { NULL } },                                         // 0x08F
     { { { TASK_BODY_COORD, 0x70 } }, acropolisRoofGardenFlareTask, { NULL } },                                           // 0x090
-    { { { TASK_BODY_TMD, 0x70 } }, effectThrownModelTask, { &D_801124B8 } },                                             // 0x091
+    { { { TASK_BODY_TMD, 0x70 } }, effectThrownModelTask, { &gEffectThrownModel91 } },                                   // 0x091
     { { { TASK_BODY_COORD, 0x70 } }, effectLineTask92, { NULL } },                                                       // 0x092
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelBalconyFallingParticleTask, { NULL } },                           // 0x093
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelBalconyLampBurstTask, { NULL } },                                 // 0x094

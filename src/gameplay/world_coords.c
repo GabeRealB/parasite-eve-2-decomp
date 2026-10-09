@@ -267,11 +267,12 @@ static s8 _gWorldCoordLightColorScaleOverrideEnabled;
 /// channel and 4096 is unity; the gate controls use, not the stored lifetime.
 static _WorldCoordLightColorScaleOverride _gWorldCoordLightColorScaleOverride;
 
-struct WorldTargetNode* D_80115260;
+struct WorldTargetNode* gWorldTargetCursorNode;
 
-s32 D_80115264;
+s32 gWorldTargetCursorEasingPass;
 
 #include "world_coords.h"
+#include "world_targets.h"
 
 /// Absolute import: pointer to the light-probe capture block.
 extern _WorldCoordLightProbeCapture* D_80760618;
@@ -1336,20 +1337,20 @@ static void _worldCoordUpdatePlayerLighting(Task* unusedTask)
             probeMarker.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             probeMarker.alignment  = TEXT_ALIGNMENT_CENTER;
             probeMarker.drawMode   = TEXT_DRAW_FILL_ONLY;
-            textDrawString(&probeMarker, (const u8*)D_8009745C);
+            textDrawString(&probeMarker, gWorldCoordLightProbeMarkerText);
         }
         SCRATCH_STACK_RELEASE_BLOCK(WorldCoordProjectionScratch);
     } else {
         worldCoordSetModelLighting(model, &samplePosition, 0, WORLD_COORDINATE_PLAYER_LIGHT_COUNT);
         // A pending attachment update takes precedence over the periodic status tints.
-        if (D_80114F28 != WORLD_COORDINATE_ATTACHMENT_LIGHT_PULSE_NONE) {
+        if (gAttachmentPlayerLightPulsePending != WORLD_COORDINATE_ATTACHMENT_LIGHT_PULSE_NONE) {
             colorMtx   = model->colorMtx;
             pulseGreen = rsin(gDisplayState.loopCount << WORLD_COORDINATE_ATTACHMENT_PULSE_ANGLE_SHIFT) + WORLD_COORDINATE_ATTACHMENT_PULSE_BASE;
             if ((gDisplayState.loopCount & 1) == 0) {
                 pulseGreen >>= 1;
             }
             _worldCoordFillLightColorMatrix(colorMtx, WORLD_COORDINATE_ATTACHMENT_PULSE_LOW, pulseGreen, WORLD_COORDINATE_ATTACHMENT_PULSE_LOW);
-            D_80114F28 = WORLD_COORDINATE_ATTACHMENT_LIGHT_PULSE_NONE;
+            gAttachmentPlayerLightPulsePending = WORLD_COORDINATE_ATTACHMENT_LIGHT_PULSE_NONE;
         } else if ((gDisplayState.animFrame % WORLD_COORDINATE_STATUS_TINT_PERIOD_FRAMES) == 0 && playerStatus->hp > 0 && gGameSession->eventState == 0) {
             // Cyan for both wards/metabolism, blue for mind ward, yellow for body ward.
             if (gAttachmentState.metabolismTicks > 0 || (gAttachmentState.mindWard != 0 && gAttachmentState.bodyWard != 0)) {
@@ -1375,16 +1376,16 @@ static void _worldCoordUpdatePlayerLighting(Task* unusedTask)
             childTask = playerActor->attachmentTasks[childIndex];
             if (childTask != NULL) {
                 model           = childTask->extra.tmd;
-                model->lightMtx = &Gp_DefaultMtx;
-                model->colorMtx = &Gp_DefaultMtx2;
+                model->lightMtx = &gWorldCoordPlayerLightMatrix;
+                model->colorMtx = &gWorldCoordPlayerColorMatrix;
             }
         }
         for (childIndex = 0; childIndex < (s32)ARRAY_SIZE(playerActor->equipmentTasks); childIndex++) {
             childTask = playerActor->equipmentTasks[childIndex];
             if (childTask != NULL) {
                 model           = childTask->extra.tmd;
-                model->lightMtx = &Gp_DefaultMtx;
-                model->colorMtx = &Gp_DefaultMtx2;
+                model->lightMtx = &gWorldCoordPlayerLightMatrix;
+                model->colorMtx = &gWorldCoordPlayerColorMatrix;
             }
         }
     }
@@ -1398,8 +1399,8 @@ static void _worldCoordUpdatePlayerLighting(Task* unusedTask)
         companionActor  = companionTask->work;
         coord           = &companionModel->coords[1];
         model           = companionModel;
-        model->colorMtx = &D_80114EF8;
-        model->lightMtx = &D_80114ED8;
+        model->colorMtx = &gWorldCoordCompanionColorMatrix;
+        model->lightMtx = &gWorldCoordCompanionLightMatrix;
         actorRenderComposeCoord(coord);
         samplePosition.vx = coord->workm.t[0];
         samplePosition.vy = coord->workm.t[1] - WORLD_COORDINATE_PLAYER_LIGHT_SAMPLE_Y_OFFSET;
@@ -1412,16 +1413,16 @@ static void _worldCoordUpdatePlayerLighting(Task* unusedTask)
                 childTask = companionActor->attachmentTasks[childIndex];
                 if (childTask != NULL) {
                     model           = childTask->extra.tmd;
-                    model->lightMtx = &D_80114ED8;
-                    model->colorMtx = &D_80114EF8;
+                    model->lightMtx = &gWorldCoordCompanionLightMatrix;
+                    model->colorMtx = &gWorldCoordCompanionColorMatrix;
                 }
             }
             for (childIndex = 0; childIndex < (s32)ARRAY_SIZE(companionActor->equipmentTasks); childIndex++) {
                 childTask = companionActor->equipmentTasks[childIndex];
                 if (childTask != NULL) {
                     model           = childTask->extra.tmd;
-                    model->lightMtx = &D_80114ED8;
-                    model->colorMtx = &D_80114EF8;
+                    model->lightMtx = &gWorldCoordCompanionLightMatrix;
+                    model->colorMtx = &gWorldCoordCompanionColorMatrix;
                 }
             }
         }
@@ -2133,16 +2134,16 @@ static void _worldCoordInitPlayerLighting(Task* task)
             return;
         }
         task->spawnArg2.pointer                    = roomLights;
-        model->lightMtx                            = &Gp_DefaultMtx;
-        model->colorMtx                            = &Gp_DefaultMtx2;
+        model->lightMtx                            = &gWorldCoordPlayerLightMatrix;
+        model->colorMtx                            = &gWorldCoordPlayerColorMatrix;
         playerActor                                = playerTask->work;
         gWorldCoordAmbientColorOverrideEnabled     = WORLD_COORDINATE_LIGHT_OVERRIDE_DISABLED;
         _gWorldCoordLightColorScaleOverrideEnabled = WORLD_COORDINATE_LIGHT_OVERRIDE_DISABLED;
-        D_80114F28                                 = WORLD_COORDINATE_ATTACHMENT_LIGHT_PULSE_NONE;
+        gAttachmentPlayerLightPulsePending         = WORLD_COORDINATE_ATTACHMENT_LIGHT_PULSE_NONE;
         do {
             model           = playerActor->attachmentTasks[attachmentIndex]->extra.tmd;
-            model->lightMtx = &Gp_DefaultMtx;
-            model->colorMtx = &Gp_DefaultMtx2;
+            model->lightMtx = &gWorldCoordPlayerLightMatrix;
+            model->colorMtx = &gWorldCoordPlayerColorMatrix;
             attachmentIndex++;
         } while (attachmentIndex < (s32)ARRAY_SIZE(playerActor->attachmentTasks));
         task->state++;
@@ -2194,5 +2195,5 @@ static inline u16 _objectFieldGetAttackHitReaction(s32 attackId)
     if ((attackId & OBJECT_FIELD_ATTACK_ATTACHMENT_FLAG) == 0) {
         return Gp_IdParamLo[attackId & OBJECT_FIELD_ATTACK_ROW_MASK].hitReaction;
     }
-    return Gp_IdParamHi.rows[attackId & OBJECT_FIELD_ATTACK_ROW_MASK].column.outcome.hitReaction;
+    return gAttachmentLevelTable.rows[attackId & OBJECT_FIELD_ATTACK_ROW_MASK].column.outcome.hitReaction;
 }

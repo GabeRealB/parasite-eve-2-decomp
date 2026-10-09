@@ -139,4 +139,11 @@ typedef struct {
 } ActionPrompt;
 STATIC_ASSERT_SIZEOF(ActionPrompt, 0x24);
 
+/// Persistent gameplay action prompts, indexed by controller port 0 or 1.
+///
+/// Cursor tasks and room/actor puzzles borrow these writable records while
+/// gameplay is loaded. Reset prepares both ports but retains published pixel
+/// positions and button classifications until the next motion update.
+extern ActionPrompt gActionPromptSlots[2];
+
 #endif // GAMEPLAY_ACTION_PROMPT_H

@@ -8,6 +8,38 @@
 
 #include "gameplay/room.h"
 
+/// Persistent player directional-light coefficients, with 12 fractional bits.
+///
+/// The player lighting pass fills this MATRIX; the player and its attachment
+/// and equipment models borrow the same storage while gameplay is loaded.
+extern MATRIX gWorldCoordPlayerLightMatrix;
+
+/// Persistent player RGB light-colour matrix and ambient translation.
+///
+/// The 3x3 coefficients have 12 fractional bits; ambient RGB uses 16 units
+/// per 8-bit colour level. Lighting fills it and attachment/status pulses
+/// replace directional coefficients. Player and child models borrow it.
+extern MATRIX gWorldCoordPlayerColorMatrix;
+
+/// Persistent companion directional-light coefficients, with 12 fractional bits.
+///
+/// Lighting fills this separate pair before companion child models borrow it.
+/// The MATRIX remains live while gameplay is loaded.
+extern MATRIX gWorldCoordCompanionLightMatrix;
+
+/// Persistent companion RGB light-colour matrix and ambient translation.
+///
+/// The 3x3 coefficients have 12 fractional bits; ambient RGB uses 16 units
+/// per 8-bit colour level. Companion and child models borrow this storage
+/// while gameplay is loaded, independently of the player pair.
+extern MATRIX gWorldCoordCompanionColorMatrix;
+
+/// NUL-terminated question mark marking the projected diagnostic light sample.
+///
+/// The last two stored bytes follow the terminator and are not drawn; their
+/// purpose is unproven. The text is owned by the gameplay image.
+extern const u8 gWorldCoordLightProbeMarkerText[4];
+
 /// Fallback room-view RGB ambient minima, one 8-bit colour level above black.
 ///
 /// RGB and stored luma are all 16, in units of 16 per 8-bit colour level.
@@ -41,17 +73,6 @@ extern SVECTOR gWorldCoordAmbientColorOverride;
 /// for its tables/local descriptors; room-light records and arrays require the
 /// corresponding room overlay and must not survive its unload.
 extern WorldCoordRoomLighting** gWorldCoordRoomLightingTables[5];
-
-struct WorldTargetNode;
-
-/// Current `gWorldTargetListHead` node whose lock-on reticle `worldTargetDrawOverlay` is
-/// drawing. Cleared when the walk finds no live target.
-extern struct WorldTargetNode* D_80115260;
-
-/// Lerp / settle counter for that reticle. `< 5` eases `gWorldTargetCursorXFixed8` /
-/// `D_8010F9F0` toward the projected coords (small sprite); `0xFF` snaps.
-/// Reset to `0` on target change and when the list is empty.
-extern s32 D_80115264;
 
 /// Copies RGB multipliers for the model light-colour matrix, or disables the override.
 ///

@@ -121,7 +121,7 @@ viewCommitIndexTask = 0x800A9980; // type:func absolute:True
 loadingRestoreViewGraphicsTask = 0x800A99E0; // type:func absolute:True
 titleScreenTask = 0x8009472C; // type:func absolute:True owner=title
 titleExitTask = 0x800947A8; // type:func absolute:True owner=title
-D_8010FC2C = 0x8010FC2C; // absolute:True
+gEffectTaskDescriptors = 0x8010FC2C; // absolute:True
 menuRootTask = 0x800BF9FC; // type:func absolute:True
 effectBurstModelPartTask = 0x800F6D18; // type:func absolute:True
 enemyTeardownDelayTask = 0x800B058C; // type:func absolute:True
@@ -304,7 +304,7 @@ D_80149E20 = 0x80149E20; // absolute:True shared=actors
 D_80161E20 = 0x80161E20; // absolute:True shared=actors
 D_80400000 = 0x80400000; // absolute:True
 
-D_80114B34 = 0x80114B34; // absolute:True size:0x48
+gEffectBurstTaskDescriptors = 0x80114B34; // absolute:True size:0x48
 
 mapDryfieldSetupMovieBuffers = 0x80179954; // type:func absolute:True owner=map_dryfield shared=mapui
 

@@ -447,7 +447,7 @@ static void _actor143000HandleKeypadInput(Task* task)
     gGameSession->eventState       = 1;
     hotspot                        = D_actor_143000_80134580;
     gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_HIDDEN;
-    prompt                         = D_80114D28;
+    prompt                         = gActionPromptSlots;
     if (capIsBusy() != 0) {
         prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
@@ -855,7 +855,7 @@ static void _actor143000KeypadTask(Task* task)
 /// fixed-point position. Requires the initialized first action-prompt slot.
 static void _actor143000ArmKeypadCursor(Task* task)
 {
-    ActionPrompt* prompt = D_80114D28;
+    ActionPrompt* prompt = gActionPromptSlots;
 
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     prompt->mode        = ACTION_PROMPT_MODE_IDLE;
@@ -870,7 +870,7 @@ static void _actor143000ArmKeypadCursor(Task* task)
 /// Hides and stops the cursor, then advances to command-result handling.
 static void _actor143000OpenKeypadCommands(Task* task)
 {
-    ActionPrompt*           prompt = D_80114D28;
+    ActionPrompt*           prompt = gActionPromptSlots;
     _Actor143000KeypadWork* work   = task->work;
 
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
@@ -897,7 +897,7 @@ static void _actor143000HandleKeypadCommand(Task* task)
     };
 
     _Actor143000KeypadWork* work   = task->work;
-    ActionPrompt*           prompt = D_80114D28;
+    ActionPrompt*           prompt = gActionPromptSlots;
 
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;

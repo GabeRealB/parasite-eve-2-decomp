@@ -86,7 +86,7 @@ static void ACTION_PROMPT_MOVE_CURSORS_TASK(Task* task)
     }
 
     for (port = firstPort; port < endPort; port++) {
-        prompt      = &D_80114D28[port];
+        prompt      = &gActionPromptSlots[port];
         pad         = &gPadStates[port];
         inputFormat = pad->inputFormat;
         // Integrate the stick response in subpixels, preserving signed rounding.

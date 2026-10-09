@@ -10,8 +10,8 @@ static void _factoryPanelPrompt(Task* task)
 {
     FactoryPanelWork* work = task->work;
 
-    D_80114D28[0].mode        = ACTION_PROMPT_MODE_HIDDEN;
-    D_80114D28[0].cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
+    gActionPromptSlots[0].mode        = ACTION_PROMPT_MODE_HIDDEN;
+    gActionPromptSlots[0].cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (itemMenuIsHotspotActionConfirmed() != 0) {
         _factoryPanelApplyChoice(task, work->choice);
     } else {

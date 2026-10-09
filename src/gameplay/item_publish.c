@@ -1,4 +1,4 @@
-#include "items.h"
+#include "types.h"
 
 #include <psyq/sys/types.h>
 
@@ -14,9 +14,10 @@
 #include "main/mc.h"
 #include "main/task_types.h"
 
+/* Define BSS before private APIs to preserve first-declaration order. */
 u16 Gp_PubItemReady;
 
-u32 D_80114DCC;
+u32 gPlanarReflectionLocationKey;
 
 u16 Gp_PubItemQty;
 
@@ -35,6 +36,9 @@ s32 D_80114DE4;
 s32 D_80114DE8;
 
 u16 Gp_PubItemId;
+
+#include "items.h"
+#include "planar_reflection.h"
 
 EquipmentWeaponLoadOptionsTable Gp_RelatedQty0      = { { { 32, { 160, 161, 162 } }, { 20, { 160, 161, 162 } }, { 100, { 160, 161, 162 } }, { 7, { 160, 161, 162 } }, { 12, { 160, 161, 162 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 6, { 166, 167, 168 } }, { 0, { 0, 0, 0 } }, { 1, { 169, 170, 171 } }, { 12, { 169, 170, 171 } }, { 3, { 172, 173, 174 } }, { 7, { 172, 173, 174 } }, { 20, { 172, 173, 174 } }, { 30, { 175, 176, 177 } }, { 200, { 175, 176, 177 } }, { 0, { 0, 0, 0 } }, { 1, { 0, 0, 0 } }, { 60, { 175, 176, 177 } }, { 90, { 175, 176, 177 } }, { 100, { 181, 185, 187 } }, { 12, { 172, 173, 174 } }, { 0, { 0, 0, 0 } }, { 30, { 175, 176, 177 } }, { 30, { 175, 176, 177 } }, { 30, { 175, 176, 177 } }, { 30, { 175, 176, 177 } }, { 30, { 175, 176, 177 } }, { 30, { 160, 161, 162 } }, { 60, { 160, 161, 162 } }, { 90, { 160, 161, 162 } } } };
 ArmorStats                      Gp_ModStatAttrs[32] = {

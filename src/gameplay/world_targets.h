@@ -19,6 +19,28 @@ extern WorldTargetNode* gWorldTargetListHead;
 /// Gameplay owns this value; target/easing state has a separate lifetime.
 extern s32 gWorldTargetCursorXFixed8;
 
+/// Lock-on reticle screen Y before vertical shake compensation, with eight fractional bits.
+///
+/// Signed screen pixels relative to the centre, scaled by 256. Target changes
+/// halve displacement for at most five draws; acquisition snaps. Initialized
+/// to -256 pixels and reset to -4096 at area entry. Gameplay owns the value;
+/// cursor target/easing state has a separate lifetime.
+extern s32 gWorldTargetCursorYFixed8;
+
+/// Previously drawn reticle target, borrowed from the live tracked enemy list.
+///
+/// Identity changes restart easing; a NULL previous target makes acquisition
+/// snap. An ungated scan without an eligible target clears it. Suppression
+/// gates and area-tracking reset retain the pointer, without owning the node.
+extern WorldTargetNode* gWorldTargetCursorNode;
+
+/// Signed reticle easing-pass state: 0..4 ease, 5 or 255 snap.
+///
+/// Changed targets start at zero. Initial acquisition and convergence store
+/// 255; convergence still draws small for that pass. An ungated scan without
+/// a target clears it. Suppression gates and area-tracking reset retain it.
+extern s32 gWorldTargetCursorEasingPass;
+
 /// Draws and ages floating damage/heal readouts, then draws the lock-on reticle.
 ///
 /// The input HUD-hide flag suppresses the entire pass. Readouts still age when

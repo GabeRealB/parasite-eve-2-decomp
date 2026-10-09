@@ -26,6 +26,7 @@
 #include "menu_map.h"
 #include "gameplay/map.h"
 #include "gameplay/planar_reflection.h"
+#include "planar_reflection.h"
 
 #include "main/areas.h"
 #include "main/display.h"
@@ -134,19 +135,7 @@ typedef struct {
 } _MenuMapCentreScratch;
 STATIC_ASSERT_SIZEOF(_MenuMapCentreScratch, 0x1C);
 
-ActionPrompt D_80114D28[2];
-
-extern char D_8010F8F0[];
-
-extern char Gp_StrReturnGame[];
-
-extern char D_8010F91C[];
-
-extern char Gp_StrUseAttachHelp[];
-
-extern char Gp_StrUseKeyHelp[];
-
-extern char Gp_StrCheckMap[];
+ActionPrompt gActionPromptSlots[2];
 
 /// Exploration-word boundary and map-picture variants used by the map passes.
 enum {
@@ -272,12 +261,18 @@ static inline s32 _inventoryIsRowUnattachedAndUnequipped(const InventoryItemRow*
     return isUnattachedAndUnequipped;
 }
 
-char D_8010F8F0[]          = "Check game settings.";
-char Gp_StrReturnGame[]    = "Return to the game.";
-char D_8010F91C[]          = "Secret Debug menu";
-char Gp_StrUseAttachHelp[] = "Use and attach items.";
-char Gp_StrUseKeyHelp[]    = "Use key items.";
-char Gp_StrCheckMap[]      = "Check the map.";
+/// Retained settings-command help text; no current code consumer.
+static u8 _gItemMenuSettingsHelpText[] = "Check game settings.";
+/// NUL-terminated help text borrowed while the Exit command is selected.
+static u8 _gItemMenuExitHelpText[] = "Return to the game.";
+/// Retained debug-menu help text; no current code consumer.
+static u8 _gItemMenuDebugHelpText[] = "Secret Debug menu";
+/// NUL-terminated help text borrowed while the Use/Attach command is selected.
+static u8 _gItemMenuUseAttachHelpText[] = "Use and attach items.";
+/// NUL-terminated help text borrowed while the Key Items command is selected.
+static u8 _gItemMenuKeyItemHelpText[] = "Use key items.";
+/// NUL-terminated help text borrowed while the Map command is selected.
+static u8 _gItemMenuMapHelpText[] = "Check the map.";
 
 // "EXP"
 // "MP"
@@ -381,7 +376,7 @@ void itemMenuDrawExitCommandRow(UiList* list, UiObject* object)
 
     if (((panelControl >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (panelControl == USER_INTERFACE_PANEL_ACTIVE)) {
         if (list->selectedItemIndex == list->currentItemIndex) {
-            uiSetPromptText((const u8*)Gp_StrReturnGame, 0, 0);
+            uiSetPromptText(_gItemMenuExitHelpText, 0, 0);
         }
     }
 
@@ -1092,9 +1087,9 @@ void planarReflectionDispatchPlayerTask(Task* reflectionTask)
 
     // Latch the room before its callback creates and reparents the reflection.
     if (reflectionTask->state == PLANAR_REFLECTION_DISPATCH_STATE_INIT) {
-        D_80114DCC = GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK;
+        gPlanarReflectionLocationKey = GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK;
     }
-    switch (D_80114DCC) {
+    switch (gPlanarReflectionLocationKey) {
         case GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SQUARE, 0, 0):
             acropolisSquarePlayerReflectionTask(reflectionTask);
             break;
@@ -2895,7 +2890,7 @@ void itemMenuPeUpgradeTask(Task* task)
     elementIndex = ((abilityId + 1) & ATTACHMENT_MENU_ELEMENT_MASK) >> ATTACHMENT_MENU_ELEMENT_SHIFT;
     energyIndex  = ((abilityId + 1) & ATTACHMENT_MENU_ENERGY_MASK) >> ATTACHMENT_MENU_ENERGY_SHIFT;
     nextLevel    = (abilityId + 1) & ATTACHMENT_MENU_LEVEL_MASK;
-    displayCost  = Gp_IdParamHi.rows[(elementIndex * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + energyIndex) * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + nextLevel].column.expCost;
+    displayCost  = gAttachmentLevelTable.rows[(elementIndex * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + energyIndex) * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + nextLevel].column.expCost;
     ITEM_MENU_DISCOUNT_PE_UPGRADE_COST(displayCost);
     textDrawUiLine(object, labelX + 0x30, lineY, textItoaSigned(numberText, displayCost & 0xFFFF), ITEM_MENU_TEXT_COLOR_RGB, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
@@ -2923,7 +2918,7 @@ void itemMenuPeUpgradeTask(Task* task)
     bonusElementIndex = ((abilityId + 1) & ATTACHMENT_MENU_ELEMENT_MASK) >> ATTACHMENT_MENU_ELEMENT_SHIFT;
     bonusEnergyIndex  = ((abilityId + 1) & ATTACHMENT_MENU_ENERGY_MASK) >> ATTACHMENT_MENU_ENERGY_SHIFT;
     bonusLevel        = (abilityId + 1) & ATTACHMENT_MENU_LEVEL_MASK;
-    textDrawUiLine(object, labelX + 0x30, lineY, textItoaSigned(numberText, Gp_IdParamHi.rows[(bonusElementIndex * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + bonusEnergyIndex) * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + bonusLevel].value[bonusColumn]),
+    textDrawUiLine(object, labelX + 0x30, lineY, textItoaSigned(numberText, gAttachmentLevelTable.rows[(bonusElementIndex * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + bonusEnergyIndex) * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + bonusLevel].value[bonusColumn]),
                    ITEM_MENU_TEXT_COLOR_RGB, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     // Recheck affordability on Yes, then purchase the level and restore the new MP maximum.
@@ -2938,13 +2933,13 @@ void itemMenuPeUpgradeTask(Task* task)
             if (childObject->result == USER_INTERFACE_RESULT_CONFIRM) {
                 if (childObject->resultValue == USER_INTERFACE_LIST_COMMAND_YES) {
                     player       = &gPlayerStatus;
-                    purchaseCost = Gp_IdParamHi.rows[(purchaseElementIndex * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + purchaseEnergyIndex) * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + purchaseLevel].column.expCost;
+                    purchaseCost = gAttachmentLevelTable.rows[(purchaseElementIndex * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + purchaseEnergyIndex) * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + purchaseLevel].column.expCost;
                     ITEM_MENU_DISCOUNT_PE_UPGRADE_COST(purchaseCost);
                     if (player->exp < (purchaseCost & 0xFFFF)) {
                         uiSpawnObject(&D_8010F788, ITEM_MENU_NOTICE_INSUFFICIENT_EXP, USER_INTERFACE_PANEL_ACTIVE, 1, object);
                         uiStartTreeClosing(childObject, childObject->owner);
                     } else {
-                        purchaseCost = Gp_IdParamHi.rows[(purchaseElementIndex * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + purchaseEnergyIndex) * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + purchaseLevel].column.expCost;
+                        purchaseCost = gAttachmentLevelTable.rows[(purchaseElementIndex * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + purchaseEnergyIndex) * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + purchaseLevel].column.expCost;
                         ITEM_MENU_DISCOUNT_PE_UPGRADE_COST(purchaseCost);
                         player->exp                                                                                                                                                                                                                                            -= purchaseCost & 0xFFFF;
                         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels[((abilityId & ATTACHMENT_MENU_ENERGY_MASK) >> ATTACHMENT_MENU_ENERGY_SHIFT) + ((abilityId & ATTACHMENT_MENU_ELEMENT_MASK) >> ATTACHMENT_MENU_ELEMENT_SHIFT) * ITEM_MENU_PE_ABILITIES_PER_ELEMENT] = (abilityId & ATTACHMENT_MENU_LEVEL_MASK) + 1;
@@ -3033,7 +3028,7 @@ static void _itemMenuDrawAbilityParameterBar(UiObject* object, s32 abilityId, s3
         elementIndex = (abilityId & ATTACHMENT_MENU_ELEMENT_MASK) >> ATTACHMENT_MENU_ELEMENT_SHIFT;
         energyIndex  = (abilityId & ATTACHMENT_MENU_ENERGY_MASK) >> ATTACHMENT_MENU_ENERGY_SHIFT;
         level        = abilityId & ATTACHMENT_MENU_LEVEL_MASK;
-        rawValue     = Gp_IdParamHi.rows[(((elementIndex * 3) + energyIndex) * 3) + level].value[column];
+        rawValue     = gAttachmentLevelTable.rows[(((elementIndex * 3) + energyIndex) * 3) + level].value[column];
     }
     if (column == ATTACHMENT_LEVEL_EXP_COST) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode > 0) {
@@ -3074,7 +3069,7 @@ static void _itemMenuDrawAbilityParameterBar(UiObject* object, s32 abilityId, s3
             previousElementIndex = (previousAbilityId & ATTACHMENT_MENU_ELEMENT_MASK) >> ATTACHMENT_MENU_ELEMENT_SHIFT;
             previousEnergyIndex  = (previousAbilityId & ATTACHMENT_MENU_ENERGY_MASK) >> ATTACHMENT_MENU_ENERGY_SHIFT;
             previousLevel        = previousAbilityId & ATTACHMENT_MENU_LEVEL_MASK;
-            rawPreviousValue     = Gp_IdParamHi.rows[(((previousElementIndex * 3) + previousEnergyIndex) * 3) + previousLevel].value[column];
+            rawPreviousValue     = gAttachmentLevelTable.rows[(((previousElementIndex * 3) + previousEnergyIndex) * 3) + previousLevel].value[column];
         }
         if (column == ATTACHMENT_LEVEL_EXP_COST) {
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode > 0) {
@@ -3665,7 +3660,7 @@ void itemMenuDrawUseAttachCommandRow(UiList* list, UiObject* object)
     activeMode   = USER_INTERFACE_PANEL_ACTIVE;
     if (((panelControl >> 16) == activeMode) || (panelControl == activeMode)) {
         if (list->selectedItemIndex == list->currentItemIndex) {
-            uiSetPromptText((const u8*)Gp_StrUseAttachHelp, 0, 0);
+            uiSetPromptText(_gItemMenuUseAttachHelpText, 0, 0);
         }
     }
 
@@ -3697,7 +3692,7 @@ void itemMenuDrawKeyItemCommandRow(UiList* list, UiObject* object)
     activeMode   = USER_INTERFACE_PANEL_ACTIVE;
     if (((panelControl >> 16) == activeMode) || (panelControl == activeMode)) {
         if (list->selectedItemIndex == list->currentItemIndex) {
-            uiSetPromptText((const u8*)Gp_StrUseKeyHelp, 0, 0);
+            uiSetPromptText(_gItemMenuKeyItemHelpText, 0, 0);
         }
     }
 
@@ -3720,7 +3715,7 @@ s32 attachmentGetPackedLevelValue(s32 abilityId, s32 column)
     elementIndex = (abilityId & ATTACHMENT_MENU_ELEMENT_MASK) >> ATTACHMENT_MENU_ELEMENT_SHIFT;
     energyIndex  = (abilityId & ATTACHMENT_MENU_ENERGY_MASK) >> ATTACHMENT_MENU_ENERGY_SHIFT;
     level        = abilityId & ATTACHMENT_MENU_LEVEL_MASK;
-    value        = Gp_IdParamHi.rows[(elementIndex * 3 + energyIndex) * 3 + level].value[column];
+    value        = gAttachmentLevelTable.rows[(elementIndex * 3 + energyIndex) * 3 + level].value[column];
     if (column == ATTACHMENT_LEVEL_EXP_COST) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode > 0) {
             value = (value * 4) / 5;
@@ -3764,7 +3759,7 @@ void itemMenuDrawMapCommandRow(UiList* list, UiObject* object)
 
     if (((panelControl >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (panelControl == USER_INTERFACE_PANEL_ACTIVE)) {
         if (list->selectedItemIndex == list->currentItemIndex) {
-            uiSetPromptText((const u8*)Gp_StrCheckMap, 0, 0);
+            uiSetPromptText(_gItemMenuMapHelpText, 0, 0);
         }
     }
 

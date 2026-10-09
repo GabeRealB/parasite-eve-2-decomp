@@ -272,8 +272,8 @@ void capUpdatePlaybackTask(Task* task)
     }
     recordIndex = capFindVariantRecord((s32)(s16)D_801155AE);
     D_801155AE  = (u16)recordIndex;
-    D_801155B2  = _capGetTextBlockLeftX(Gp_CapTable[recordIndex].textRef.text);
-    recordFlags = Gp_CapTable[(s16)D_801155AE].control.text.flags;
+    D_801155B2  = _capGetTextBlockLeftX(gCapSelectedSequence[recordIndex].textRef.text);
+    recordFlags = gCapSelectedSequence[(s16)D_801155AE].control.text.flags;
     if (D_8011567A > 0) {
         D_8011567A = (u16)D_8011567A - 1;
         return;
@@ -329,23 +329,23 @@ void capUpdatePlaybackTask(Task* task)
             D_801156A4 = controlFlags & (CAP_PLAYBACK_BYTE_MASK ^ CAP_EVENT_SCRIPT_WAITING_FOR_CUE);
         }
         if (D_8011569C == 0) {
-            recordViewIndex = Gp_CapTable[(s16)D_801155AE].control.scene.view;
+            recordViewIndex = gCapSelectedSequence[(s16)D_801155AE].control.scene.view;
             logicalViewId   = recordViewIndex & CAP_PLAYBACK_BYTE_MASK;
             if (logicalViewId != 0) {
                 recordViewIndex = viewFindLogicalIndex(logicalViewId);
             }
         } else {
-            recordViewIndex = Gp_CapTable[(s16)D_801155AE].control.scene.view;
+            recordViewIndex = gCapSelectedSequence[(s16)D_801155AE].control.scene.view;
         }
         if (recordFlags & CAP_SEQUENCE_DELAYED_MESSAGE) {
-            taskSpawnFromTable(D_8010FB4C, CAP_TEXTURE_MESSAGE_TASK_SLOT, Gp_CapTable[(s16)D_801155AE].control.scene.messageValue | (Gp_CapTable[(s16)D_801155AE].control.scene.messageDelayFrames << CAP_TEXTURE_MESSAGE_DELAY_SHIFT) | (Gp_CapTable[(s16)D_801155AE].trigger.messageRecipient << CAP_TEXTURE_MESSAGE_RECIPIENT_SHIFT), 0);
+            taskSpawnFromTable(D_8010FB4C, CAP_TEXTURE_MESSAGE_TASK_SLOT, gCapSelectedSequence[(s16)D_801155AE].control.scene.messageValue | (gCapSelectedSequence[(s16)D_801155AE].control.scene.messageDelayFrames << CAP_TEXTURE_MESSAGE_DELAY_SHIFT) | (gCapSelectedSequence[(s16)D_801155AE].trigger.messageRecipient << CAP_TEXTURE_MESSAGE_RECIPIENT_SHIFT), 0);
         }
         _capAdvanceRecord();
-        nextViewText = Gp_CapTable[(s16)D_801155AE].textRef;
+        nextViewText = gCapSelectedSequence[(s16)D_801155AE].textRef;
         if (nextViewText.offset != CAP_TEXT_REF_END) {
             D_801155B4 = capGetTextFirstBaselineY(nextViewText.text);
-            D_801155B2 = _capGetTextBlockLeftX(Gp_CapTable[(s16)D_801155AE].textRef.text);
-            D_801155B6 = capGetTextBlockHeight(Gp_CapTable[(s16)D_801155AE].textRef.text);
+            D_801155B2 = _capGetTextBlockLeftX(gCapSelectedSequence[(s16)D_801155AE].textRef.text);
+            D_801155B6 = capGetTextBlockHeight(gCapSelectedSequence[(s16)D_801155AE].textRef.text);
             nextViewId = recordViewIndex & CAP_PLAYBACK_BYTE_MASK;
             D_801155BB = CAP_VIEW_CHANGE_NONE;
             if ((nextViewId != 0) && (nextViewId != gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view)) {
@@ -382,16 +382,16 @@ void capUpdatePlaybackTask(Task* task)
         }
     } else {
         if (D_80115648 == 0) {
-            if (Gp_CapTable[(s16)D_801155AE].trigger.soundAndTextFlags & CAP_SEQUENCE_SOUND_ID_MASK) {
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_SOUND, (Gp_CapTable[(s16)D_801155AE].trigger.soundAndTextFlags >> 1), 0);
+            if (gCapSelectedSequence[(s16)D_801155AE].trigger.soundAndTextFlags & CAP_SEQUENCE_SOUND_ID_MASK) {
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_SOUND, (gCapSelectedSequence[(s16)D_801155AE].trigger.soundAndTextFlags >> 1), 0);
                 D_80115648 = 1;
             }
         }
 
         // Keep the singleton request live until its prompt or scene child finishes.
-        if (Gp_CapTable[(s16)D_801155AE].actionId != 0) {
+        if (gCapSelectedSequence[(s16)D_801155AE].actionId != 0) {
             if (D_801155AC == CAP_RECORD_BEGIN) {
-                D_801155A0.actionId = Gp_CapTable[(s16)D_801155AE].actionId;
+                D_801155A0.actionId = gCapSelectedSequence[(s16)D_801155AE].actionId;
                 if (D_801155A0.actionId < (CAP_SEQUENCE_CHILD_ACTION_BASE + 1U)) {
                     if (areaGetCurrentObjectState(D_801155A0.actionId) == CAP_PLACED_ACTION_ALREADY_COMPLETE) {
                         D_801155AC          = CAP_RECORD_WAIT;
@@ -433,39 +433,39 @@ void capUpdatePlaybackTask(Task* task)
                 }
                 D_801155AC = CAP_RECORD_BEGIN;
                 if (D_801155A0.accepted == 0) {
-                    if (Gp_CapTable[(s16)D_801155AE].control.action.fallbackKey != 0) {
-                        Gp_CapEventKey = Gp_CapTable[(s16)D_801155AE].control.action.fallbackKey;
+                    if (gCapSelectedSequence[(s16)D_801155AE].control.action.fallbackKey != 0) {
+                        Gp_CapEventKey = gCapSelectedSequence[(s16)D_801155AE].control.action.fallbackKey;
                     }
                 }
                 _capAdvanceRecord();
                 D_801155AC     = CAP_RECORD_BEGIN;
                 D_801155B0     = 0;
                 D_801155C0     = 0;
-                nextActionText = Gp_CapTable[(s16)D_801155AE].textRef;
+                nextActionText = gCapSelectedSequence[(s16)D_801155AE].textRef;
                 if (nextActionText.offset == CAP_TEXT_REF_END) {
                     task->state += 1;
                     return;
                 }
                 D_801155B4 = capGetTextFirstBaselineY(nextActionText.text);
-                D_801155B6 = capGetTextBlockHeight(Gp_CapTable[(s16)D_801155AE].textRef.text);
+                D_801155B6 = capGetTextBlockHeight(gCapSelectedSequence[(s16)D_801155AE].textRef.text);
                 return;
             }
         } else if (D_801155AC == CAP_RECORD_WAIT) {
             // Completed text either observes frame waits or accepts a choice/continue.
-            if (Gp_CapTable[(s16)D_801155AE].control.packed & CAP_SEQUENCE_TIMING_MASK) {
+            if (gCapSelectedSequence[(s16)D_801155AE].control.packed & CAP_SEQUENCE_TIMING_MASK) {
                 if (D_80115698 != 0) {
-                    _capDrawTextStream(Gp_CapTable[(s16)D_801155AE].textRef.text, CAP_PLAYBACK_UNUSED_TEXT_DRAW_ARG, 1, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << CAP_TEXT_TITLE_FLAGS_SHIFT));
+                    _capDrawTextStream(gCapSelectedSequence[(s16)D_801155AE].textRef.text, CAP_PLAYBACK_UNUSED_TEXT_DRAW_ARG, 1, gCapSelectedSequence[(s16)D_801155AE].control.text.title | ((gCapSelectedSequence[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << CAP_TEXT_TITLE_FLAGS_SHIFT));
                     D_80115698 = (u16)D_80115698 - 1;
                     return;
                 }
                 if (D_8011569A == 0) {
                     _capAdvanceRecord();
-                    nextTimedText = Gp_CapTable[(s16)D_801155AE].textRef;
+                    nextTimedText = gCapSelectedSequence[(s16)D_801155AE].textRef;
                     if (nextTimedText.offset == CAP_TEXT_REF_END) {
                         task->state += 1;
                     } else {
                         D_801155B4 = capGetTextFirstBaselineY(nextTimedText.text);
-                        D_801155B6 = capGetTextBlockHeight(Gp_CapTable[(s16)D_801155AE].textRef.text);
+                        D_801155B6 = capGetTextBlockHeight(gCapSelectedSequence[(s16)D_801155AE].textRef.text);
                     }
                     D_801155AC = CAP_RECORD_BEGIN;
                     D_801155B0 = 0;
@@ -477,9 +477,9 @@ void capUpdatePlaybackTask(Task* task)
                     return;
                 }
             } else {
-                _capDrawTextStream(Gp_CapTable[(s16)D_801155AE].textRef.text, CAP_PLAYBACK_UNUSED_TEXT_DRAW_ARG, 1, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << CAP_TEXT_TITLE_FLAGS_SHIFT));
+                _capDrawTextStream(gCapSelectedSequence[(s16)D_801155AE].textRef.text, CAP_PLAYBACK_UNUSED_TEXT_DRAW_ARG, 1, gCapSelectedSequence[(s16)D_801155AE].control.text.title | ((gCapSelectedSequence[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << CAP_TEXT_TITLE_FLAGS_SHIFT));
                 nextRecordForChoice = capFindVariantRecord((s16)D_801155AE + 1);
-                if (((Gp_CapTable[nextRecordForChoice].textRef.offset != CAP_TEXT_REF_END) && (Gp_CapTable[nextRecordForChoice].actionId == 0) && ((Gp_CapTable[nextRecordForChoice].control.text.displayFrames != 0) || (Gp_CapTable[nextRecordForChoice].control.text.pauseFrames == 0)) && (D_801155BE == 0) && !(Gp_CapTable[nextRecordForChoice].control.text.flags & CAP_SEQUENCE_VIEW_CONTROL)) || (Gp_CapTable[(s16)D_801155AE].control.text.flags & CAP_SEQUENCE_FORCE_CARET)) {
+                if (((gCapSelectedSequence[nextRecordForChoice].textRef.offset != CAP_TEXT_REF_END) && (gCapSelectedSequence[nextRecordForChoice].actionId == 0) && ((gCapSelectedSequence[nextRecordForChoice].control.text.displayFrames != 0) || (gCapSelectedSequence[nextRecordForChoice].control.text.pauseFrames == 0)) && (D_801155BE == 0) && !(gCapSelectedSequence[nextRecordForChoice].control.text.flags & CAP_SEQUENCE_VIEW_CONTROL)) || (gCapSelectedSequence[(s16)D_801155AE].control.text.flags & CAP_SEQUENCE_FORCE_CARET)) {
                     _capDrawContinueCaret(CAP_PLAYBACK_UNUSED_CARET_X, CAP_PLAYBACK_UNUSED_CARET_Y);
                 } else {
                     D_80115664 = 0;
@@ -509,12 +509,12 @@ void capUpdatePlaybackTask(Task* task)
                     }
                     D_8011567A = (s16)(u16)D_80115678;
                     _capAdvanceRecord();
-                    nextConfirmedText = Gp_CapTable[(s16)D_801155AE].textRef;
+                    nextConfirmedText = gCapSelectedSequence[(s16)D_801155AE].textRef;
                     if (nextConfirmedText.offset == CAP_TEXT_REF_END) {
                         task->state += 1;
                     } else {
                         D_801155B4 = capGetTextFirstBaselineY(nextConfirmedText.text);
-                        D_801155B6 = capGetTextBlockHeight(Gp_CapTable[(s16)D_801155AE].textRef.text);
+                        D_801155B6 = capGetTextBlockHeight(gCapSelectedSequence[(s16)D_801155AE].textRef.text);
                     }
                     D_801155AC = CAP_RECORD_BEGIN;
                     D_801155B0 = 0;
@@ -522,8 +522,8 @@ void capUpdatePlaybackTask(Task* task)
                     return;
                 }
             }
-        } else if ((Gp_CapTable[(s16)D_801155AE].control.text.displayFrames != 0) && !(D_80115670 & CAP_SEQUENCE_INSTANT_TEXT)) {
-            D_801155AC = _capDrawTextStream(Gp_CapTable[(s16)D_801155AE].textRef.text, CAP_PLAYBACK_UNUSED_TEXT_DRAW_ARG, 0, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << CAP_TEXT_TITLE_FLAGS_SHIFT));
+        } else if ((gCapSelectedSequence[(s16)D_801155AE].control.text.displayFrames != 0) && !(D_80115670 & CAP_SEQUENCE_INSTANT_TEXT)) {
+            D_801155AC = _capDrawTextStream(gCapSelectedSequence[(s16)D_801155AE].textRef.text, CAP_PLAYBACK_UNUSED_TEXT_DRAW_ARG, 0, gCapSelectedSequence[(s16)D_801155AE].control.text.title | ((gCapSelectedSequence[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << CAP_TEXT_TITLE_FLAGS_SHIFT));
             if ((s8)D_801155B8 > D_801155B9) {
                 D_801155B9 = (u8)D_801155B9 + 1;
             } else {
@@ -531,25 +531,25 @@ void capUpdatePlaybackTask(Task* task)
                 D_801155B0 = (u16)D_801155B0 + 1;
             }
             if (D_80115660 != 0) {
-                D_80115660(D_80115650, D_80115652, Gp_CapTable[(s16)D_801155AE].textRef.text, D_801155B0, D_801155B9 == 0);
+                D_80115660(D_80115650, D_80115652, gCapSelectedSequence[(s16)D_801155AE].textRef.text, D_801155B0, D_801155B9 == 0);
             }
             if (D_801155AC != 0) {
-                D_8011569A = Gp_CapTable[(s16)D_801155AE].control.text.pauseFrames;
-                D_80115698 = Gp_CapTable[(s16)D_801155AE].control.text.displayFrames;
+                D_8011569A = gCapSelectedSequence[(s16)D_801155AE].control.text.pauseFrames;
+                D_80115698 = gCapSelectedSequence[(s16)D_801155AE].control.text.displayFrames;
                 D_80115664 = 0;
                 return;
             }
         } else {
-            if (Gp_CapTable[(s16)D_801155AE].control.packed & CAP_SEQUENCE_TIMING_MASK) {
-                if (Gp_CapTable[(s16)D_801155AE].control.text.displayFrames != 0) {
-                    _capDrawTextStream(Gp_CapTable[(s16)D_801155AE].textRef.text, CAP_PLAYBACK_UNUSED_TEXT_DRAW_ARG, 1, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << CAP_TEXT_TITLE_FLAGS_SHIFT));
+            if (gCapSelectedSequence[(s16)D_801155AE].control.packed & CAP_SEQUENCE_TIMING_MASK) {
+                if (gCapSelectedSequence[(s16)D_801155AE].control.text.displayFrames != 0) {
+                    _capDrawTextStream(gCapSelectedSequence[(s16)D_801155AE].textRef.text, CAP_PLAYBACK_UNUSED_TEXT_DRAW_ARG, 1, gCapSelectedSequence[(s16)D_801155AE].control.text.title | ((gCapSelectedSequence[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << CAP_TEXT_TITLE_FLAGS_SHIFT));
                 }
                 D_80115664 = 0;
                 D_801155AC = CAP_RECORD_WAIT;
 
-                recordPauseFrames = Gp_CapTable[(s16)D_801155AE].control.text.pauseFrames;
+                recordPauseFrames = gCapSelectedSequence[(s16)D_801155AE].control.text.pauseFrames;
                 D_8011569A        = recordPauseFrames;
-                D_80115698        = Gp_CapTable[(s16)D_801155AE].control.text.displayFrames;
+                D_80115698        = gCapSelectedSequence[(s16)D_801155AE].control.text.displayFrames;
                 if (recordPauseFrames < D_8011566A) {
                     D_8011569A  = 0;
                     D_80115698 -= D_8011566A;
@@ -563,9 +563,9 @@ void capUpdatePlaybackTask(Task* task)
                 return;
             }
             if ((padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0) || (D_80115670 & CAP_SEQUENCE_INSTANT_TEXT)) {
-                D_801155AC          = _capDrawTextStream(Gp_CapTable[(s16)D_801155AE].textRef.text, CAP_PLAYBACK_UNUSED_TEXT_DRAW_ARG, 1, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << CAP_TEXT_TITLE_FLAGS_SHIFT));
+                D_801155AC          = _capDrawTextStream(gCapSelectedSequence[(s16)D_801155AE].textRef.text, CAP_PLAYBACK_UNUSED_TEXT_DRAW_ARG, 1, gCapSelectedSequence[(s16)D_801155AE].control.text.title | ((gCapSelectedSequence[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << CAP_TEXT_TITLE_FLAGS_SHIFT));
                 nextRecordForReveal = capFindVariantRecord((s16)D_801155AE + 1);
-                if (((Gp_CapTable[nextRecordForReveal].textRef.offset != CAP_TEXT_REF_END) && (Gp_CapTable[nextRecordForReveal].actionId == 0) && ((Gp_CapTable[nextRecordForReveal].control.text.displayFrames != 0) || (Gp_CapTable[nextRecordForReveal].control.text.pauseFrames == 0))) || (Gp_CapTable[(s16)D_801155AE].control.text.flags & CAP_SEQUENCE_FORCE_CARET)) {
+                if (((gCapSelectedSequence[nextRecordForReveal].textRef.offset != CAP_TEXT_REF_END) && (gCapSelectedSequence[nextRecordForReveal].actionId == 0) && ((gCapSelectedSequence[nextRecordForReveal].control.text.displayFrames != 0) || (gCapSelectedSequence[nextRecordForReveal].control.text.pauseFrames == 0))) || (gCapSelectedSequence[(s16)D_801155AE].control.text.flags & CAP_SEQUENCE_FORCE_CARET)) {
                     _capDrawContinueCaret(CAP_PLAYBACK_UNUSED_CARET_X, CAP_PLAYBACK_UNUSED_CARET_Y);
                     return;
                 }
@@ -573,7 +573,7 @@ void capUpdatePlaybackTask(Task* task)
                 return;
             }
 
-            D_801155AC = _capDrawTextStream(Gp_CapTable[(s16)D_801155AE].textRef.text, CAP_PLAYBACK_UNUSED_TEXT_DRAW_ARG, 0, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << CAP_TEXT_TITLE_FLAGS_SHIFT));
+            D_801155AC = _capDrawTextStream(gCapSelectedSequence[(s16)D_801155AE].textRef.text, CAP_PLAYBACK_UNUSED_TEXT_DRAW_ARG, 0, gCapSelectedSequence[(s16)D_801155AE].control.text.title | ((gCapSelectedSequence[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << CAP_TEXT_TITLE_FLAGS_SHIFT));
             if ((s8)D_801155B8 > D_801155B9) {
                 D_801155B9 = (u8)D_801155B9 + 1;
                 return;
@@ -1065,9 +1065,9 @@ static void _capFinishPlayback(Task* task)
             D_801156F4.sceneKey->subId);
         func_807244CC(sceneFilename);
     }
-    Gp_CapTable = NULL;
-    D_8011565A  = CAP_PLAYBACK_INACTIVE;
-    D_801156A4  = CAP_CONTROL_FLAGS_NONE;
+    gCapSelectedSequence = NULL;
+    D_8011565A           = CAP_PLAYBACK_INACTIVE;
+    D_801156A4           = CAP_CONTROL_FLAGS_NONE;
     taskKill(task);
 }
 
@@ -1292,7 +1292,7 @@ s16 capStartSequenceSlot(s16 commandIndex, s16 playbackMode, s16 variantKey)
     enum { CAP_SEQUENCE_SLOT_MISSING = 1 };
     CapSequenceRecord* sequence;
 
-    if (Gp_CapTable != NULL) {
+    if (gCapSelectedSequence != NULL) {
         return 0;
     }
 
@@ -1305,7 +1305,7 @@ s16 capStartSequenceSlot(s16 commandIndex, s16 playbackMode, s16 variantKey)
 
 s32 capIsBusy(void)
 {
-    return Gp_CapTable != 0;
+    return gCapSelectedSequence != 0;
 }
 
 s32 capAbortPlayback(void)
@@ -1313,7 +1313,7 @@ s32 capAbortPlayback(void)
     enum { CAP_ABORT_SUCCESS     = 0,
            CAP_ABORT_UNAVAILABLE = -1 };
 
-    if (Gp_CapTable != NULL) {
+    if (gCapSelectedSequence != NULL) {
         if (Gp_CapTask != NULL) {
             _capFinishPlayback(Gp_CapTask);
             return CAP_ABORT_SUCCESS;
@@ -1364,9 +1364,9 @@ void capReset(void)
     };
 
     // Release the selection before restoring the bundle's default CAP resource.
-    Gp_CapTable = NULL;
-    D_801156A8  = 0;
-    D_8011565A  = 0;
+    gCapSelectedSequence = NULL;
+    D_801156A8           = 0;
+    D_8011565A           = 0;
     capSetTexturePage(CAP_DEFAULT_TEXTURE_VRAM_X, CAP_DEFAULT_TEXTURE_VRAM_Y);
     Gp_CapFile = NULL;
     capSelectLoadedFile(CAP_DEFAULT_FILE_ORDINAL);
@@ -1383,7 +1383,7 @@ void capApplyRecordPlaybackSettings(void)
     CapSequenceRecord* record;
     u8                 soundAndTextFlags;
 
-    record            = _capSequenceRecordAt(Gp_CapTable, (s16)D_801155AE);
+    record            = _capSequenceRecordAt(gCapSelectedSequence, (s16)D_801155AE);
     soundAndTextFlags = record->trigger.soundAndTextFlags;
     D_80115670        = soundAndTextFlags;
     // A minimum playback interval disables instant reveal.
@@ -1398,7 +1398,7 @@ s32 capFindVariantRecord(s32 recordIndex)
     CapSequenceRecord* record;
 
     for (;;) {
-        record = _capSequenceRecordAt(Gp_CapTable, recordIndex);
+        record = _capSequenceRecordAt(gCapSelectedSequence, recordIndex);
         if (record->textRef.offset != CAP_TEXT_REF_END && record->key != Gp_CapEventKey) {
             recordIndex++;
         } else {
@@ -1414,8 +1414,8 @@ void capClearUnstartedSequenceTask(Task* task)
 
     // Give queued playback one dispatch to begin before clearing its selection.
     if (task->state > CAP_UNSTARTED_SEQUENCE_GRACE_STATE) {
-        if (Gp_CapTable != 0 && D_8011565A == 0) {
-            Gp_CapTable = 0;
+        if (gCapSelectedSequence != 0 && D_8011565A == 0) {
+            gCapSelectedSequence = 0;
         }
         taskKill(task);
     }

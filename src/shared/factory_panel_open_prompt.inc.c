@@ -7,7 +7,7 @@
 /// screen-pixel position, and advances to the prompt state.
 static void _factoryPanelOpenPrompt(Task* task)
 {
-    ActionPrompt*     prompt = D_80114D28;
+    ActionPrompt*     prompt = gActionPromptSlots;
     FactoryPanelWork* work   = task->work;
 
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;

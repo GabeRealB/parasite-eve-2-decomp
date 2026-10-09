@@ -341,35 +341,35 @@ void worldTargetDrawOverlay(void)
     /// The node and projection arguments must be side-effect-free live pointers;
     /// the projection holds screen pixels before shake compensation. `easingActive`
     /// is a distinct writable s32 local initialized to zero. Arguments repeat;
-    /// this macro captures and updates D_80115260, D_80115264, gWorldTargetCursorXFixed8 and
-    /// D_8010F9F0, using the WORLD_TARGET_CURSOR_ easing constants above.
+    /// this macro captures and updates gWorldTargetCursorNode, gWorldTargetCursorEasingPass, gWorldTargetCursorXFixed8 and
+    /// gWorldTargetCursorYFixed8, using the WORLD_TARGET_CURSOR_ easing constants above.
     /// Initial acquisition snaps. Changing targets halves displacement for at
     /// most five passes; convergence still draws small on its final easing pass.
     /// Expands multiple statements; use only standalone in a braced block.
 #define WORLD_TARGET_EASE_CURSOR(targetNode, projection, easingActive)                                                                  \
-    if (D_80115260 != (targetNode)) {                                                                                                   \
-        if (D_80115260 == NULL) {                                                                                                       \
-            D_80115264 = WORLD_TARGET_CURSOR_EASING_COMPLETE;                                                                           \
+    if (gWorldTargetCursorNode != (targetNode)) {                                                                                       \
+        if (gWorldTargetCursorNode == NULL) {                                                                                           \
+            gWorldTargetCursorEasingPass = WORLD_TARGET_CURSOR_EASING_COMPLETE;                                                         \
         } else {                                                                                                                        \
-            D_80115264 = 0;                                                                                                             \
+            gWorldTargetCursorEasingPass = 0;                                                                                           \
         }                                                                                                                               \
-        D_80115260 = (targetNode);                                                                                                      \
+        gWorldTargetCursorNode = (targetNode);                                                                                          \
     }                                                                                                                                   \
-    if (D_80115264 < WORLD_TARGET_CURSOR_EASING_PASSES) {                                                                               \
+    if (gWorldTargetCursorEasingPass < WORLD_TARGET_CURSOR_EASING_PASSES) {                                                             \
         gWorldTargetCursorXFixed8 += (((projection)->screen.vx << WORLD_TARGET_CURSOR_FRACTION_BITS) - gWorldTargetCursorXFixed8) >> 1; \
-        D_8010F9F0                += (((projection)->screen.vy << WORLD_TARGET_CURSOR_FRACTION_BITS) - D_8010F9F0) >> 1;                \
+        gWorldTargetCursorYFixed8 += (((projection)->screen.vy << WORLD_TARGET_CURSOR_FRACTION_BITS) - gWorldTargetCursorYFixed8) >> 1; \
         if ((projection)->screen.vx == (gWorldTargetCursorXFixed8 >> WORLD_TARGET_CURSOR_FRACTION_BITS) &&                              \
-            (projection)->screen.vy == (D_8010F9F0 >> WORLD_TARGET_CURSOR_FRACTION_BITS)) {                                             \
-            D_80115264 = WORLD_TARGET_CURSOR_EASING_COMPLETE;                                                                           \
+            (projection)->screen.vy == (gWorldTargetCursorYFixed8 >> WORLD_TARGET_CURSOR_FRACTION_BITS)) {                              \
+            gWorldTargetCursorEasingPass = WORLD_TARGET_CURSOR_EASING_COMPLETE;                                                         \
         } else {                                                                                                                        \
-            D_80115264++;                                                                                                               \
+            gWorldTargetCursorEasingPass++;                                                                                             \
         }                                                                                                                               \
         (easingActive)          = 1;                                                                                                    \
         (projection)->screen.vx = gWorldTargetCursorXFixed8 >> WORLD_TARGET_CURSOR_FRACTION_BITS;                                       \
-        (projection)->screen.vy = D_8010F9F0 >> WORLD_TARGET_CURSOR_FRACTION_BITS;                                                      \
+        (projection)->screen.vy = gWorldTargetCursorYFixed8 >> WORLD_TARGET_CURSOR_FRACTION_BITS;                                       \
     } else {                                                                                                                            \
         gWorldTargetCursorXFixed8 = (projection)->screen.vx << WORLD_TARGET_CURSOR_FRACTION_BITS;                                       \
-        D_8010F9F0                = (projection)->screen.vy << WORLD_TARGET_CURSOR_FRACTION_BITS;                                       \
+        gWorldTargetCursorYFixed8 = (projection)->screen.vy << WORLD_TARGET_CURSOR_FRACTION_BITS;                                       \
     }
 
     targetNode = gWorldTargetListHead;
@@ -443,8 +443,8 @@ void worldTargetDrawOverlay(void)
         }
     }
     if (targetNode == NULL) {
-        D_80115260 = NULL;
-        D_80115264 = 0;
+        gWorldTargetCursorNode       = NULL;
+        gWorldTargetCursorEasingPass = 0;
     }
 }
 
@@ -998,7 +998,7 @@ void worldTargetResetAreaTracking(void)
 
     gWorldTargetListHead = NULL;
     _worldTargetClearReadouts();
-    D_8010F9F0                = WORLD_TARGET_CURSOR_RESET_FIXED8;
+    gWorldTargetCursorYFixed8 = WORLD_TARGET_CURSOR_RESET_FIXED8;
     gWorldTargetCursorXFixed8 = WORLD_TARGET_CURSOR_RESET_FIXED8;
 }
 

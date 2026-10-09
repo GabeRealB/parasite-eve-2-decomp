@@ -3,8 +3,6 @@
 
 #include "types.h"
 
-#include "gameplay/action_prompt.h"
-
 #include "main/task_types.h"
 #include "main/ui_types.h"
 
@@ -199,8 +197,6 @@ enum {
 /// Requires loaded preview textures and writable GPU primitive/OT storage unless
 /// HIDDEN is set, which still requires storage for the frame.
 void itemMenuDrawPreview(const UiObject* object, s32 left, s32 top, s32 flags);
-
-extern ActionPrompt D_80114D28[2];
 
 /// Sets the shared prompt to an item's first description, or Empty for item id 0.
 ///

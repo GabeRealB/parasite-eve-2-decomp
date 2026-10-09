@@ -483,7 +483,7 @@ void neoArkShrinePuzzleIdle(Task* task)
            NEO_ARK_SHRINE_PUZZLE_CANCEL_SLOT  = 1 };
 
     ActionPromptHotspot*    hotspot = D_neo_ark_shrine_80182430;
-    ActionPrompt*           prompt  = D_80114D28;
+    ActionPrompt*           prompt  = gActionPromptSlots;
     NeoArkShrinePuzzleWork* work    = task->work;
 
     neoArkShrineDrawPuzzleFrame(task);

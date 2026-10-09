@@ -19,7 +19,7 @@ u16 Gp_ReplayFramesLeft;
 
 AttachmentState gAttachmentState;
 
-InventoryItemRow Gp_ItemTable2[5];
+InventoryItemRow gInventoryBattleRewardRows[5];
 
 s32 D_80114C34;
 
@@ -28,64 +28,70 @@ u16* Gp_ReplayCursor;
 #include "attachments.h"
 
 #include "gameplay/attachments.h"
+#include "gameplay/damage.h"
+#include "gameplay/room_effects.h"
 
-AttachmentLevelTable Gp_IdParamHi = { .rows = {
-                                          { { 0, 0, 0, 0, 0, 0, 0, 0 } },
-                                          { { 0, 0, 8, 22, 70, 7, 3, 2 } },
-                                          { { 1250, 1, 7, 22, 100, 7, 3, 2 } },
-                                          { { 3000, 2, 6, 22, 45, 7, 3, 2 } },
-                                          { { 750, 1, 14, 38, 120, 7, 3, 0 } },
-                                          { { 1750, 1, 14, 30, 140, 7, 3, 0 } },
-                                          { { 4000, 2, 14, 22, 170, 7, 3, 0 } },
-                                          { { 3000, 1, 30, 50, 200, 7, 11, 0 } },
-                                          { { 4000, 2, 30, 40, 250, 7, 11, 0 } },
-                                          { { 5000, 4, 30, 28, 300, 7, 11, 0 } },
-                                          { { 500, 1, 7, 38, 15, 3, 2, 12 } },
-                                          { { 1250, 1, 7, 30, 20, 3, 2, 12 } },
-                                          { { 3000, 2, 7, 22, 30, 3, 2, 12 } },
-                                          { { 750, 1, 6, 18, 25, 1, 7, 0 } },
-                                          { { 1750, 1, 5, 18, 30, 1, 7, 0 } },
-                                          { { 4000, 2, 4, 18, 40, 1, 7, 0 } },
-                                          { { 3000, 1, 18, 38, 60, 2, 12, 0 } },
-                                          { { 4000, 2, 18, 38, 80, 2, 12, 0 } },
-                                          { { 5000, 4, 18, 38, 100, 2, 12, 0 } },
-                                          { { 500, 1, 7, 36, 0, 0, 0, 0 } },
-                                          { { 1250, 1, 5, 28, 0, 0, 0, 0 } },
-                                          { { 3000, 1, 3, 18, 0, 0, 0, 0 } },
-                                          { { 750, 1, 12, 42, 30, 60, 0, 0 } },
-                                          { { 1750, 1, 12, 30, 40, 70, 0, 0 } },
-                                          { { 4000, 1, 12, 18, 50, 90, 0, 0 } },
-                                          { { 3000, 1, 20, 44, 200, 0, 13, 0 } },
-                                          { { 4000, 1, 18, 36, 250, 0, 13, 0 } },
-                                          { { 5000, 2, 16, 28, 300, 0, 13, 0 } },
-                                          { { 500, 2, 6, 36, 0, 0, 0, 0 } },
-                                          { { 1250, 2, 5, 28, 0, 0, 0, 0 } },
-                                          { { 3000, 4, 4, 18, 0, 0, 0, 0 } },
-                                          { { 750, 2, 10, 36, 0, 0, 0, 0 } },
-                                          { { 1750, 2, 9, 28, 0, 0, 0, 0 } },
-                                          { { 4000, 4, 8, 18, 0, 0, 0, 0 } },
-                                          { { 3000, 2, 15, 36, 200, 1, 14, 0 } },
-                                          { { 4000, 4, 15, 28, 200, 1, 14, 0 } },
-                                          { { 5000, 9, 15, 18, 200, 1, 14, 0 } },
-                                          { { 0, 5, 5, 30, 0, 0, 0, 0 } },
-                                          { { 0, 4, 10, 30, 0, 0, 0, 0 } },
-                                          { { 0, 3, 20, 30, 0, 0, 0, 0 } },
-                                          { { 0, 0, 0, 0, 0, 0, 0, 0 } },
-                                          { { 0, 0, 0, 0, 0, 0, 0, 0 } },
-                                          { { 0, 0, 0, 0, 0, 0, 0, 0 } },
-                                          { { 0, 0, 0, 0, 0, 0, 0, 0 } },
-                                          { { 0, 0, 0, 0, 0, 0, 0, 0 } },
-                                          { { 0, 0, 0, 0, 0, 0, 0, 0 } },
-                                          { { 0, 0, 0, 0, 50, 9, 0, 0 } },
-                                          { { 0, 0, 0, 0, 0, 0, 0, 0 } },
-                                          { { 0, 0, 0, 0, 0, 0, 0, 0 } },
-                                          { { 0, 0, 0, 12, 5, 2, 0, 0 } },
-                                          { { 0, 0, 0, 0, 0, 0, 0, 0 } },
-                                          { { 0, 0, 0, 0, 0, 0, 0, 0 } },
-                                          { { 0, 0, 0, 18, 0, 8, 0, 0 } },
-                                          { { 0, 0, 0, 0, 0, 0, 0, 0 } },
-                                          { { 0, 0, 0, 0, 0, 0, 0, 0 } },
-                                      } };
+/// Unhandled hit-effect kinds retained by this catalogue; both currently spawn nothing.
+enum { ATTACHMENT_LEVEL_NO_HIT_EFFECT          = 0,
+       ATTACHMENT_LEVEL_ENERGY_BALL_HIT_EFFECT = 14 };
+
+AttachmentLevelTable gAttachmentLevelTable = { .rows = {
+                                                   { .column = { 0, 0, 0, 0, 0, { .hitReaction = DAMAGE_PLAYER_REACTION_NONE }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                                   { .column = { 0, 0, 8, 22, 70, { .hitReaction = DAMAGE_PLAYER_REACTION_INCENDIARY }, EFFECT_HIT_KIND_BLAST, 2 } },
+                                                   { .column = { 1250, 1, 7, 22, 100, { .hitReaction = DAMAGE_PLAYER_REACTION_INCENDIARY }, EFFECT_HIT_KIND_BLAST, 2 } },
+                                                   { .column = { 3000, 2, 6, 22, 45, { .hitReaction = DAMAGE_PLAYER_REACTION_INCENDIARY }, EFFECT_HIT_KIND_BLAST, 2 } },
+                                                   { .column = { 750, 1, 14, 38, 120, { .hitReaction = DAMAGE_PLAYER_REACTION_INCENDIARY }, EFFECT_HIT_KIND_BLAST, 0 } },
+                                                   { .column = { 1750, 1, 14, 30, 140, { .hitReaction = DAMAGE_PLAYER_REACTION_INCENDIARY }, EFFECT_HIT_KIND_BLAST, 0 } },
+                                                   { .column = { 4000, 2, 14, 22, 170, { .hitReaction = DAMAGE_PLAYER_REACTION_INCENDIARY }, EFFECT_HIT_KIND_BLAST, 0 } },
+                                                   { .column = { 3000, 1, 30, 50, 200, { .hitReaction = DAMAGE_PLAYER_REACTION_INCENDIARY }, EFFECT_HIT_KIND_BLAST_WITH_SOUND, 0 } },
+                                                   { .column = { 4000, 2, 30, 40, 250, { .hitReaction = DAMAGE_PLAYER_REACTION_INCENDIARY }, EFFECT_HIT_KIND_BLAST_WITH_SOUND, 0 } },
+                                                   { .column = { 5000, 4, 30, 28, 300, { .hitReaction = DAMAGE_PLAYER_REACTION_INCENDIARY }, EFFECT_HIT_KIND_BLAST_WITH_SOUND, 0 } },
+                                                   { .column = { 500, 1, 7, 38, 15, { .hitReaction = DAMAGE_PLAYER_REACTION_POISON }, EFFECT_HIT_KIND_TINTED_PUFF, 12 } },
+                                                   { .column = { 1250, 1, 7, 30, 20, { .hitReaction = DAMAGE_PLAYER_REACTION_POISON }, EFFECT_HIT_KIND_TINTED_PUFF, 12 } },
+                                                   { .column = { 3000, 2, 7, 22, 30, { .hitReaction = DAMAGE_PLAYER_REACTION_POISON }, EFFECT_HIT_KIND_TINTED_PUFF, 12 } },
+                                                   { .column = { 750, 1, 6, 18, 25, { .hitReaction = DAMAGE_PLAYER_REACTION_STAGGER }, EFFECT_HIT_KIND_SPARK_BURST, 0 } },
+                                                   { .column = { 1750, 1, 5, 18, 30, { .hitReaction = DAMAGE_PLAYER_REACTION_STAGGER }, EFFECT_HIT_KIND_SPARK_BURST, 0 } },
+                                                   { .column = { 4000, 2, 4, 18, 40, { .hitReaction = DAMAGE_PLAYER_REACTION_STAGGER }, EFFECT_HIT_KIND_SPARK_BURST, 0 } },
+                                                   { .column = { 3000, 1, 18, 38, 60, { .hitReaction = DAMAGE_PLAYER_REACTION_BUILDUP }, EFFECT_HIT_KIND_APOBIOSIS_SHARD, 0 } },
+                                                   { .column = { 4000, 2, 18, 38, 80, { .hitReaction = DAMAGE_PLAYER_REACTION_BUILDUP }, EFFECT_HIT_KIND_APOBIOSIS_SHARD, 0 } },
+                                                   { .column = { 5000, 4, 18, 38, 100, { .hitReaction = DAMAGE_PLAYER_REACTION_BUILDUP }, EFFECT_HIT_KIND_APOBIOSIS_SHARD, 0 } },
+                                                   { .column = { 500, 1, 7, 36, 0, { .hitReaction = DAMAGE_PLAYER_REACTION_NONE }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                                   { .column = { 1250, 1, 5, 28, 0, { .hitReaction = DAMAGE_PLAYER_REACTION_NONE }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                                   { .column = { 3000, 1, 3, 18, 0, { .hitReaction = DAMAGE_PLAYER_REACTION_NONE }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                                   { .column = { 750, 1, 12, 42, 30, { .healMax = 60 }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                                   { .column = { 1750, 1, 12, 30, 40, { .healMax = 70 }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                                   { .column = { 4000, 1, 12, 18, 50, { .healMax = 90 }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                                   { .column = { 3000, 1, 20, 44, 200, { .hitReaction = DAMAGE_PLAYER_REACTION_NONE }, EFFECT_HIT_KIND_LIFE_DRAIN_MOTES, 0 } },
+                                                   { .column = { 4000, 1, 18, 36, 250, { .hitReaction = DAMAGE_PLAYER_REACTION_NONE }, EFFECT_HIT_KIND_LIFE_DRAIN_MOTES, 0 } },
+                                                   { .column = { 5000, 2, 16, 28, 300, { .hitReaction = DAMAGE_PLAYER_REACTION_NONE }, EFFECT_HIT_KIND_LIFE_DRAIN_MOTES, 0 } },
+                                                   { .column = { 500, 2, 6, 36, 0, { .hitReaction = DAMAGE_PLAYER_REACTION_NONE }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                                   { .column = { 1250, 2, 5, 28, 0, { .hitReaction = DAMAGE_PLAYER_REACTION_NONE }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                                   { .column = { 3000, 4, 4, 18, 0, { .hitReaction = DAMAGE_PLAYER_REACTION_NONE }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                                   { .column = { 750, 2, 10, 36, 0, { .hitReaction = DAMAGE_PLAYER_REACTION_NONE }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                                   { .column = { 1750, 2, 9, 28, 0, { .hitReaction = DAMAGE_PLAYER_REACTION_NONE }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                                   { .column = { 4000, 4, 8, 18, 0, { .hitReaction = DAMAGE_PLAYER_REACTION_NONE }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                                   { .column = { 3000, 2, 15, 36, 200, { .hitReaction = DAMAGE_PLAYER_REACTION_STAGGER }, ATTACHMENT_LEVEL_ENERGY_BALL_HIT_EFFECT, 0 } },
+                                                   { .column = { 4000, 4, 15, 28, 200, { .hitReaction = DAMAGE_PLAYER_REACTION_STAGGER }, ATTACHMENT_LEVEL_ENERGY_BALL_HIT_EFFECT, 0 } },
+                                                   { .column = { 5000, 9, 15, 18, 200, { .hitReaction = DAMAGE_PLAYER_REACTION_STAGGER }, ATTACHMENT_LEVEL_ENERGY_BALL_HIT_EFFECT, 0 } },
+                                                   { .column = { 0, 5, 5, 30, 0, { .hitReaction = DAMAGE_PLAYER_REACTION_NONE }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                                   { .column = { 0, 4, 10, 30, 0, { .hitReaction = DAMAGE_PLAYER_REACTION_NONE }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                                   { .column = { 0, 3, 20, 30, 0, { .hitReaction = DAMAGE_PLAYER_REACTION_NONE }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                                   { .column = { 0, 0, 0, 0, 0, { .hitReaction = DAMAGE_PLAYER_REACTION_NONE }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                                   { .column = { 0, 0, 0, 0, 0, { .hitReaction = DAMAGE_PLAYER_REACTION_NONE }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                                   { .column = { 0, 0, 0, 0, 0, { .hitReaction = DAMAGE_PLAYER_REACTION_NONE }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                                   { .column = { 0, 0, 0, 0, 0, { .hitReaction = DAMAGE_PLAYER_REACTION_NONE }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                                   { .column = { 0, 0, 0, 0, 0, { .hitReaction = DAMAGE_PLAYER_REACTION_NONE }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                                   { .column = { 0, 0, 0, 0, 0, { .hitReaction = DAMAGE_PLAYER_REACTION_NONE }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                                   { .column = { 0, 0, 0, 0, 50, { .hitReaction = 9 }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                                   { .column = { 0, 0, 0, 0, 0, { .hitReaction = DAMAGE_PLAYER_REACTION_NONE }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                                   { .column = { 0, 0, 0, 0, 0, { .hitReaction = DAMAGE_PLAYER_REACTION_NONE }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                                   { .column = { 0, 0, 0, 12, 5, { .hitReaction = DAMAGE_PLAYER_REACTION_BUILDUP }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                                   { .column = { 0, 0, 0, 0, 0, { .hitReaction = DAMAGE_PLAYER_REACTION_NONE }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                                   { .column = { 0, 0, 0, 0, 0, { .hitReaction = DAMAGE_PLAYER_REACTION_NONE }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                                   { .column = { 0, 0, 0, 18, 0, { .hitReaction = 8 }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                                   { .column = { 0, 0, 0, 0, 0, { .hitReaction = DAMAGE_PLAYER_REACTION_NONE }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                                   { .column = { 0, 0, 0, 0, 0, { .hitReaction = DAMAGE_PLAYER_REACTION_NONE }, ATTACHMENT_LEVEL_NO_HIT_EFFECT, 0 } },
+                                               } };
 
 u16 attachmentGetActiveLevelValue(s32 column)
 {
@@ -102,7 +108,7 @@ u16 attachmentGetActiveLevelValue(s32 column)
     const u8*           levelTableBytes;
     s32                 valueOffsetBytes;
 
-    levelTableBytes = Gp_IdParamHi.bytes;
+    levelTableBytes = gAttachmentLevelTable.bytes;
     abilityIndex    = gAttachmentState.activeIndex;
     if (abilityIndex >= ATTACHMENT_SPELL_COUNT) {
         level = ATTACHMENT_ACTIVE_LEVEL_MIN;

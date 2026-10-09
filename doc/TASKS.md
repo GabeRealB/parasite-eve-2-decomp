@@ -15,7 +15,7 @@ Naming: [`NAMING.md`](../NAMING.md) (`task` functions / `TaskDesc`).
 | Extra lists / OT spawn | `src/main/otutil.c` (`displaySpawnTaskFromTable`, `displaySpawnTask`, `taskSpawnFromTableOnDefaultList`, `taskSpawnOnDefaultList`) |
 | Frame tick | `src/main/gamemain.c` (`_gameMainRunLoop` → `taskExecDefaultList`) |
 | Bank tables | `asm/USA/main/data/task.data.s` (`gTaskDescBanks`), plus `52E8C` / `578D0` / `57EA8` / `57F34` / `58028` / `59184.data.s` |
-| Gameplay banks 6, 10 | `asm/USA/gameplay/data/data.data.s` (`D_8010FC2C`, `0x80114B34`) |
+| Gameplay banks 6, 10 | `asm/USA/gameplay/data/data.data.s` (`gEffectTaskDescriptors`, `gEffectBurstTaskDescriptors`) |
 | Title extras | `src/title/title.c`, `Title_TaskDescs` |
 | Enemies | `src/gameplay/scene_runtime.c` (`_enemySpawn`, `enemySpawnFromTable`) |
 | UI stack descs | `src/main/ui.c` (`uiSpawnObject`) |
@@ -278,11 +278,11 @@ NULL.
 | 3 | `gTaskBank3Descs` | 8 | Four `taskKill` stubs + four `0x807xxxxx` |
 | 4 | `gTaskBank4Descs` | 9 | Stubs + TMD / overlay |
 | 5 | `gTaskBank5Descs` | 5 | Stubs + `taskDebugLaunchCallback` + one overlay |
-| 6 | `D_8010FC2C` | **667** | Room-overlay actor catalog (gameplay data → `0x8017xxxx`) |
+| 6 | `gEffectTaskDescriptors` | **667** | Resident effects and loaded-overlay task callbacks |
 | 7 | `D_800678F4` | 164 | Equipped TMD attaches (`modelObjectChildTask` + per-item `data.model`) |
 | 8 | `gTaskBank8Descs` | 6 | Stubs + shared `effectBurstModelPartTask` |
 | 9 | `gTaskBank9Descs` | 19 | FX / wait: shake, volume fade, sound fade, end-wait |
-| 10 | `D_80114B34` | 6 | Stubs + `effectBurstModelPartTask`; actors set the last descriptor's model |
+| 10 | `gEffectBurstTaskDescriptors` | 6 | Stubs + `effectBurstModelPartTask`; actors set the last descriptor's model |
 | 14 | `D_80068B7C` | 5 | Stubs + one `0x807xxxxx` |
 
 Callback addresses fall in four windows:
@@ -409,16 +409,15 @@ attached; buffer users, including the GPU, must finish before state 1 runs.
 `Enemy` allocation in `spawnArg2.pointer` (`_enemyAllocateWork`). `enemyTaskExit`
 releases that allocation before default task teardown.
 
-### Bank 6 — 667 room actors
+### Bank 6 — 667 effect and overlay-task descriptors
 
-Gameplay-resident table at `D_8010FC2C`. Almost every non-stub callback is in
-**room overlay RAM** (`0x8017D5C0` and following — see [`OVERLAYS.md`](OVERLAYS.md)
-§2). Named screen-effect entries include `_effectStatusScreenTintTaskF` (0xF)
-and `_effectDarknessScreenDimTaskE8` (0xE8). A handful of `func_800Exxxx` /
-`func_800Fxxxx` sit in the gameplay overlay; they are not named.
-
-This is the large “what’s in the room” catalog. Describing a row means
-decompiling the overlay it points at.
+The gameplay-resident `gEffectTaskDescriptors` bank combines resident effect
+callbacks with room, actor, weapon and PE overlay entry points. Each slot selects
+the task body, priority, callback and optional model source. Named resident
+screen-effect entries include `_effectStatusScreenTintTaskF` (0xF) and
+`_effectDarknessScreenDimTaskE8` (0xE8). Overlay callbacks require their owning
+package to remain loaded for the task and its borrowed resources; a callback's
+load address alone does not establish which package owns it.
 
 ### Bank 7 — equipped TMD attaches
 

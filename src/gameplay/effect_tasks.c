@@ -3471,6 +3471,10 @@ void effectSpriteTask53(Task* task)
     }
 }
 
+// Embedded thrown-model sources start unresolved and use only directly transformed packets.
+enum { EFFECT_MODEL_HANDLERS_UNRESOLVED = 0,
+       EFFECT_MODEL_PRETRANSFORM_BYTES  = 0 };
+
 /// Initial one-part identity transform for the bullet casing model.
 static const TmdBone _gEffectBulletCasingModelRestPose[1] __attribute__((section(".data"))) = {
 #include "assets/gameplay_effect_80111fc8_rest_pose.inc"
@@ -3512,7 +3516,17 @@ static SVECTOR _gEffectRifleCasingModelNormals[4] = {
 static u32 _gEffectRifleCasingModelPackets[32] = {
 #include "assets/gameplay_effect_801120e4_packets.inc"
 };
-TmdSource D_801120E4 = { 0, 196, 0, 1, _gEffectRifleCasingModelPartVertexCounts, _gEffectRifleCasingModelVertices, _gEffectRifleCasingModelNormals, _gEffectRifleCasingModelRestPose, _gEffectRifleCasingModelPackets };
+TmdSource gEffectRifleCasingModel = {
+    .handlersResolved    = EFFECT_MODEL_HANDLERS_UNRESOLVED,
+    .bufferHalfBytes     = sizeof(POLY_GT3) + 3 * sizeof(POLY_GT4),
+    .preXformRegionBytes = EFFECT_MODEL_PRETRANSFORM_BYTES,
+    .partCount           = ARRAY_SIZE(_gEffectRifleCasingModelRestPose),
+    .partVertexCounts    = _gEffectRifleCasingModelPartVertexCounts,
+    .verts               = _gEffectRifleCasingModelVertices,
+    .normals             = _gEffectRifleCasingModelNormals,
+    .skeleton            = _gEffectRifleCasingModelRestPose,
+    .stream              = _gEffectRifleCasingModelPackets,
+};
 /// Initial one-part identity transform for the P229 casing model.
 static const TmdBone _gEffectP229CasingModelRestPose[1] __attribute__((section(".data"))) = {
 #include "assets/gameplay_effect_80111fc8_rest_pose.inc"
@@ -3533,7 +3547,17 @@ static SVECTOR _gEffectP229CasingModelNormals[4] = {
 static u32 _gEffectP229CasingModelPackets[32] = {
 #include "assets/gameplay_effect_80112200_packets.inc"
 };
-TmdSource D_80112200 = { 0, 196, 0, 1, _gEffectP229CasingModelPartVertexCounts, _gEffectP229CasingModelVertices, _gEffectP229CasingModelNormals, _gEffectP229CasingModelRestPose, _gEffectP229CasingModelPackets };
+TmdSource gEffectP229CasingModel = {
+    .handlersResolved    = EFFECT_MODEL_HANDLERS_UNRESOLVED,
+    .bufferHalfBytes     = sizeof(POLY_GT3) + 3 * sizeof(POLY_GT4),
+    .preXformRegionBytes = EFFECT_MODEL_PRETRANSFORM_BYTES,
+    .partCount           = ARRAY_SIZE(_gEffectP229CasingModelRestPose),
+    .partVertexCounts    = _gEffectP229CasingModelPartVertexCounts,
+    .verts               = _gEffectP229CasingModelVertices,
+    .normals             = _gEffectP229CasingModelNormals,
+    .skeleton            = _gEffectP229CasingModelRestPose,
+    .stream              = _gEffectP229CasingModelPackets,
+};
 /// Initial one-part identity transform for the shotgun shell casing model.
 static const TmdBone _gEffectShotgunShellCasingModelRestPose[1] __attribute__((section(".data"))) = {
 #include "assets/gameplay_effect_80111fc8_rest_pose.inc"
@@ -3554,7 +3578,17 @@ static SVECTOR _gEffectShotgunShellCasingModelNormals[4] = {
 static u32 _gEffectShotgunShellCasingModelPackets[32] = {
 #include "assets/gameplay_effect_8011231c_packets.inc"
 };
-TmdSource D_8011231C = { 0, 196, 0, 1, _gEffectShotgunShellCasingModelPartVertexCounts, _gEffectShotgunShellCasingModelVertices, _gEffectShotgunShellCasingModelNormals, _gEffectShotgunShellCasingModelRestPose, _gEffectShotgunShellCasingModelPackets };
+TmdSource gEffectShotgunShellCasingModel = {
+    .handlersResolved    = EFFECT_MODEL_HANDLERS_UNRESOLVED,
+    .bufferHalfBytes     = sizeof(POLY_GT3) + 3 * sizeof(POLY_GT4),
+    .preXformRegionBytes = EFFECT_MODEL_PRETRANSFORM_BYTES,
+    .partCount           = ARRAY_SIZE(_gEffectShotgunShellCasingModelRestPose),
+    .partVertexCounts    = _gEffectShotgunShellCasingModelPartVertexCounts,
+    .verts               = _gEffectShotgunShellCasingModelVertices,
+    .normals             = _gEffectShotgunShellCasingModelNormals,
+    .skeleton            = _gEffectShotgunShellCasingModelRestPose,
+    .stream              = _gEffectShotgunShellCasingModelPackets,
+};
 /// Initial one-part identity transform for the slot-0x91 thrown model.
 static const TmdBone _gEffectThrownModel91RestPose[1] __attribute__((section(".data"))) = {
 #include "assets/gameplay_effect_80111fc8_rest_pose.inc"
@@ -3575,8 +3609,18 @@ static SVECTOR _gEffectThrownModel91Normals[10] = {
 static u32 _gEffectThrownModel91Packets[48] = {
 #include "assets/gameplay_effect_801124b8_packets.inc"
 };
-TmdSource D_801124B8     = { 0, 312, 0, 1, _gEffectThrownModel91PartVertexCounts, _gEffectThrownModel91Vertices, _gEffectThrownModel91Normals, _gEffectThrownModel91RestPose, _gEffectThrownModel91Packets };
-SVECTOR   D_801124DC[34] = {
+TmdSource gEffectThrownModel91 = {
+    .handlersResolved    = EFFECT_MODEL_HANDLERS_UNRESOLVED,
+    .bufferHalfBytes     = 6 * sizeof(POLY_GT4),
+    .preXformRegionBytes = EFFECT_MODEL_PRETRANSFORM_BYTES,
+    .partCount           = ARRAY_SIZE(_gEffectThrownModel91RestPose),
+    .partVertexCounts    = _gEffectThrownModel91PartVertexCounts,
+    .verts               = _gEffectThrownModel91Vertices,
+    .normals             = _gEffectThrownModel91Normals,
+    .skeleton            = _gEffectThrownModel91RestPose,
+    .stream              = _gEffectThrownModel91Packets,
+};
+SVECTOR D_801124DC[34] = {
     { 0, 0, 0, 0 },
     { 0, 384, 96, 0 },
     { 0, 448, 96, 0 },

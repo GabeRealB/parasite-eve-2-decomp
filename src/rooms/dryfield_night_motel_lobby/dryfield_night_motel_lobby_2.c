@@ -1050,7 +1050,7 @@ static void _dryfieldNightMotelLobbyCashRegisterInitialize(Task* task)
 /// Fixed-point motion and press timers retain the values set by the child.
 static void _dryfieldNightMotelLobbyCashRegisterArmCursor(Task* task)
 {
-    ActionPrompt* prompt = D_80114D28;
+    ActionPrompt* prompt = gActionPromptSlots;
 
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     prompt->mode        = ACTION_PROMPT_MODE_IDLE;
@@ -1068,7 +1068,7 @@ static void _dryfieldNightMotelLobbyCashRegisterArmCursor(Task* task)
 static void _dryfieldNightMotelLobbyCashRegisterOpenPrompt(Task* task)
 {
     enum { DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_PROMPT_ANSWER = 4 };
-    ActionPrompt*                            prompt = D_80114D28;
+    ActionPrompt*                            prompt = gActionPromptSlots;
     DryfieldNightMotelLobbyCashRegisterWork* work   = task->work;
 
     dryfieldNightMotelLobbyDrawCashRegisterDisplay(task);
@@ -1087,7 +1087,7 @@ static void _dryfieldNightMotelLobbyCashRegisterAnswerPrompt(Task* task)
 {
     enum { CASH_REGISTER_SCAN_STATE = 2,
            EXAMINED_CAP_SLOT        = 9 };
-    ActionPrompt*                            prompt = D_80114D28;
+    ActionPrompt*                            prompt = gActionPromptSlots;
     DryfieldNightMotelLobbyCashRegisterWork* work   = task->work;
 
     dryfieldNightMotelLobbyDrawCashRegisterDisplay(task);

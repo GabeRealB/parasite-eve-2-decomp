@@ -111,7 +111,7 @@ s32 damageGetPlayerAttackReaction(s32 attackKey)
     if ((attackKey & DAMAGE_PLAYER_ATTACK_ATTACHMENT) == 0) {
         reaction = Gp_IdParamLo[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].hitReaction;
     } else {
-        reaction = Gp_IdParamHi.rows[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].column.outcome.hitReaction;
+        reaction = gAttachmentLevelTable.rows[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].column.outcome.hitReaction;
     }
     return reaction;
 }
@@ -123,7 +123,7 @@ u16 damageGetPlayerAttackEffectId(s32 attackKey)
     if ((attackKey & DAMAGE_PLAYER_ATTACK_ATTACHMENT) == 0) {
         effectId = Gp_IdParamLo[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].effectId;
     } else {
-        effectId = Gp_IdParamHi.rows[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].column.effectId;
+        effectId = gAttachmentLevelTable.rows[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].column.effectId;
     }
     return effectId;
 }
@@ -257,7 +257,7 @@ s32 damageGetPlayerAttackHitCooldown(s32 attackKey)
     if ((attackKey & DAMAGE_PLAYER_ATTACK_ATTACHMENT) == 0) {
         cooldownFrames = Gp_IdParamLo[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].hitCooldown;
     } else {
-        cooldownFrames = Gp_IdParamHi.rows[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].column.hitCooldown;
+        cooldownFrames = gAttachmentLevelTable.rows[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].column.hitCooldown;
     }
     return cooldownFrames;
 }

@@ -95,7 +95,7 @@ static inline u16 _damageGetPlayerAttackReaction(s32 attackKey)
     if ((attackKey & DAMAGE_PLAYER_ATTACK_ATTACHMENT) == 0) {
         return Gp_IdParamLo[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].hitReaction;
     }
-    return Gp_IdParamHi.rows[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].column.outcome.hitReaction;
+    return gAttachmentLevelTable.rows[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].column.outcome.hitReaction;
 }
 
 /// Packs one attack entry into a category-4 collision key for its victim.
@@ -326,7 +326,7 @@ u32 damageComputePlayerAttack(u32 attackKey, u32 playerDistance, s32 scaledReact
         s32 pePercent;
 
         // Life Drain shares one base amount among the cast's recorded targets.
-        damage = Gp_IdParamHi.rows[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].column.amount;
+        damage = gAttachmentLevelTable.rows[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].column.amount;
         if ((attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK) >= DAMAGE_LIFE_DRAIN_FIRST_ROW &&
             (attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK) < DAMAGE_LIFE_DRAIN_FIRST_ROW + DAMAGE_LIFE_DRAIN_LEVEL_COUNT) {
             if (gSceneCombatState.peTargetCount != 0) {

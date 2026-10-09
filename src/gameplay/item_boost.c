@@ -86,10 +86,10 @@ static inline InventoryItemRow* _gpScanTable(const InventoryItemRange* scan)
 
     switch (scan->tableId) {
         case INVENTORY_ITEM_TABLE_AREA_GRANTS:
-            table = Gp_ItemTable2;
+            table = gInventoryBattleRewardRows;
             break;
         case INVENTORY_ITEM_TABLE_INDIRECT:
-            table = Gp_ItemTable1;
+            table = gInventoryIndirectRows;
             break;
         default:
             table = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
@@ -261,10 +261,10 @@ static __inline__ s32 _inventoryHasAttachedItem(s32 itemId)
     hasAttachedItem = 0;
     switch (range->tableId) {
         case INVENTORY_ITEM_TABLE_AREA_GRANTS:
-            row = Gp_ItemTable2;
+            row = gInventoryBattleRewardRows;
             break;
         case INVENTORY_ITEM_TABLE_INDIRECT:
-            row = Gp_ItemTable1;
+            row = gInventoryIndirectRows;
             break;
         default:
             row = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
@@ -1089,9 +1089,9 @@ InventoryItemRow* inventoryGetRangeTable(const InventoryItemRange* range)
 {
     switch (range->tableId) {
         case INVENTORY_ITEM_TABLE_AREA_GRANTS:
-            return Gp_ItemTable2;
+            return gInventoryBattleRewardRows;
         case INVENTORY_ITEM_TABLE_INDIRECT:
-            return Gp_ItemTable1;
+            return gInventoryIndirectRows;
         default:
             return gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
     }

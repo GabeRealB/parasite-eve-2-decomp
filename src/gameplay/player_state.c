@@ -121,7 +121,7 @@ enum {
 
 extern u16 D_80113F9C[70];
 
-extern const TaskFuncTable4 D_80097AB0;
+static const TaskFuncTable4 _gModelObjectChildTaskStates;
 
 static inline void _playerActorResumeAfterHit(Task* task);
 
@@ -1387,7 +1387,7 @@ void modelObjectChildTask(Task* task)
 {
     TaskFuncTable4 handlers;
 
-    handlers = D_80097AB0;
+    handlers = _gModelObjectChildTaskStates;
     handlers.funcs[task->state](task);
 }
 
@@ -2145,7 +2145,10 @@ void worldCollisionBindEnemySphere(GfxCoord* coord, WorldCollisionBody* body, Wo
     worldCollisionInitContacts(body->context.contacts, (s16)contactCount, 0);
 }
 
-const TaskFuncTable4 D_80097AB0 = { {
+/// Attached child-model states: initialize, update, defer removal, then kill.
+///
+/// `Task::state` must be 0..3; each callback borrows the live child task.
+static const TaskFuncTable4 _gModelObjectChildTaskStates = { {
     _modelObjectInitChildTask,
     _modelObjectUpdateChildTask,
     _modelObjectDeferChildTaskRemoval,

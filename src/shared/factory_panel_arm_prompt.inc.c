@@ -6,7 +6,7 @@
 /// Enables aiming and advances from ARM_PROMPT to IDLE without changing work.
 static void _factoryPanelArmPrompt(Task* task)
 {
-    ActionPrompt* prompt = D_80114D28;
+    ActionPrompt* prompt = gActionPromptSlots;
 
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     prompt->mode        = ACTION_PROMPT_MODE_IDLE;

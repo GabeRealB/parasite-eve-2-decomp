@@ -45,10 +45,10 @@ static inline void _actionPromptResetPort(ActionPrompt* prompt)
 /// move the selected port(s) in state 1. No task work is required or allocated.
 static void ACTION_PROMPT_RESET_TASK(Task* task)
 {
-    ActionPrompt* prompt = D_80114D28;
+    ActionPrompt* prompt = gActionPromptSlots;
     s32           port;
 
-    for (port = 0; port < ARRAY_SIZE(D_80114D28); port++, prompt++) {
+    for (port = 0; port < ARRAY_SIZE(gActionPromptSlots); port++, prompt++) {
         _actionPromptResetPort(prompt);
     }
     task->state = task->state + 1;

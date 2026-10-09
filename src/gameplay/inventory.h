@@ -6,6 +6,21 @@
 #include "main/mc.h"
 #include "main/mc_types.h"
 
+/// Inventory rows selected by `INVENTORY_ITEM_TABLE_INDIRECT`.
+///
+/// The backing allocation, extent and lifetime are unproven. A range using
+/// this selector requires a live writable table fitting firstRow/rowCount;
+/// initial range descriptors do not establish an allocation or its capacity.
+extern InventoryItemRow* gInventoryIndirectRows;
+
+/// Five gameplay-owned rows staging the item rewards of a won battle.
+///
+/// The battle-results task clears and grants into the whole table before the
+/// transfer menu consumes it. Inventory table selector 2 addresses these rows;
+/// every range selecting it must fit the five-row extent. Storage persists
+/// while gameplay is loaded, but clearing, grants and transfers replace rows.
+extern InventoryItemRow gInventoryBattleRewardRows[5];
+
 /// Special features granted while an armor row is equipped.
 ///
 /// Each bit is independent. The specifications panel walks bits 0 through 12

@@ -15,7 +15,14 @@
 /// Returns 0 everywhere else and does not change session or player state.
 s32 attachmentIsTrainingMode(void);
 
-extern AttachmentLevelTable Gp_IdParamHi;
+/// Read-only parameters for eighteen attachment abilities at levels 1..3.
+///
+/// Row zero is empty; ability slot 0..17 at level 1..3 selects slot * 3 + level
+/// in the 55-row table. Attachment attack keys select the same valid row with
+/// their low seven bits. Rows supply EXP/MP costs, cast timing and hit/healing
+/// parameters; the byte view addresses the same unsigned halfword columns.
+/// The catalogue remains live with gameplay and owns no overlay pointers.
+extern AttachmentLevelTable gAttachmentLevelTable;
 
 extern u8 Gp_DebugAttachLevels[18];
 

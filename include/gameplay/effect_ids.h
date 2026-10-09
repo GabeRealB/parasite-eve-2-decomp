@@ -4,12 +4,12 @@
 /// Effect ids for `effectSpawn` and the room effect slots.
 ///
 /// An id packs the `taskSpawn` bank in bits 16..30 and the task type in the
-/// low 16 bits. Bank 6 is the gameplay effect table `D_8010FC2C`, whose slot is
+/// low 16 bits. Bank 6 is the gameplay effect table `gEffectTaskDescriptors`, whose slot is
 /// the effect's own identifier; many slots hold one room's private handler.
 /// `EFFECT_<HHH>` is a placeholder for an effect whose look is not yet known.
 #define EFFECT_ID(bank, type) (((bank) << 16) | (type))
 
-/// Bank of the gameplay effect table `D_8010FC2C`.
+/// Bank of the gameplay effect table `gEffectTaskDescriptors`.
 #define EFFECT_TASK_BANK 6
 
 /// Set on an id to spawn it even when the ordinary effect limit is reached.
@@ -294,14 +294,13 @@ enum {
     /// last and current position is drawn as a fading LINE_F2; six are spawned with an
     /// 0x6003B spark and 0x600A4 tiles by actor_510900's burst effect (0x60044).
     EFFECT_NO9_GOLEM_DEBRIS_STREAK = EFFECT_ID(EFFECT_TASK_BANK, 0x065),
-    /// Ejected shell-casing model (TmdSource D_80112200) thrown from the muzzle by the
-    /// muzzle-flash controller for weapon id 5 (P229) and NPC gunfire (0x21).
+    /// Ejected cartridge casing using `gEffectP229CasingModel`, thrown from the
+    /// ejection offset by the P229 and NPC-pistol firing controller.
     EFFECT_P229_SHELL_CASING = EFFECT_ID(EFFECT_TASK_BANK, 0x066),
-    /// Muzzle-flash model piece (effectThrownModelTask with TmdSource D_801120E4) placed at
-    /// the weapon's muzzle offset; spawned by the rifle muzzle-flash controller 0x6006B
-    /// (M4A1 family, M249).
+    /// Ejected rifle cartridge casing using `gEffectRifleCasingModel`, thrown from
+    /// the ejection offset by the M4A1-family/M249 firing controller.
     EFFECT_RIFLE_MUZZLE_FLASH_MODEL = EFFECT_ID(EFFECT_TASK_BANK, 0x067),
-    /// Ejected shotgun shell: a small TMD model (D_8011231C) thrown by effectThrownModelTask;
+    /// Ejected shotgun shell: a small TMD model (gEffectShotgunShellCasingModel) thrown by effectThrownModelTask;
     /// spawned by the shotgun firing controller 0x600A1 (AS12, PA3, gunblade).
     EFFECT_SHOTGUN_SHELL_CASING = EFFECT_ID(EFFECT_TASK_BANK, 0x068),
     /// A rising 8-frame flame sprite (`_pyroFlameDrawSprite`) with random spin, spawned
@@ -425,10 +424,8 @@ enum {
     /// by the room task (acropolisRoofGardenAmbientEffectsTask) for particular camera
     /// views.
     EFFECT_ACROPOLIS_ROOF_GARDEN_FLARE = EFFECT_ID(EFFECT_TASK_BANK, 0x090),
-    /// Unidentified. effectThrownModelTask instance of the small procedural model D_801124B8
-    /// placed at the D_8011280C/D_801125EC muzzle offsets; spawned once by the grenade-
-    /// fire controller 0x6006C and every frame for ~12 frames by the post-reload
-    /// controller 0x6006E.
+    /// Thrown box model `gEffectThrownModel91`; its physical identity is unproven.
+    /// Grenade-fire and post-reload controllers emit it at their weapon offsets.
     EFFECT_091 = EFFECT_ID(EFFECT_TASK_BANK, 0x091),
     /// Fading one-pixel line streaking away from its origin in a random direction,
     /// orange or blue by spawn argument; spawned in fans by gunblade impacts and
@@ -2201,7 +2198,7 @@ enum {
     /// gTaskBank8Descs[TASK_BANK8_BURST_MODEL_PART_SLOT].data.model first.
     EFFECT_BURST_BODY_PART_BANK8 = EFFECT_ID(8, 0x005),
     /// Bank-10 model effect: a body-part model (TmdSource the actor stores in
-    /// D_80114B34[5]) flung off when an enemy bursts apart, e.g. the Desert Chaser's
+    /// gEffectBurstTaskDescriptors[5]) flung off when an enemy bursts apart, e.g. the Desert Chaser's
     /// legs, torso and head.
     EFFECT_BURST_BODY_PART_BANK10 = EFFECT_ID(10, 0x005),
 };

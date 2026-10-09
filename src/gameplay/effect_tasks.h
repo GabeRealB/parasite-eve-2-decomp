@@ -81,13 +81,37 @@ extern const u16 gEffectStatusScreenTints[8];
 /// stream in place. Keep the gameplay image loaded until all instances retire.
 extern TmdSource gEffectBulletCasingModel;
 
-extern TmdSource D_801120E4;
+/// Rifle cartridge-casing model shared by M4A1-family and M249 ejection.
+///
+/// Six part-local vertices, four Q12 normals and four textured faces.
+/// Objects borrow the mutable source, geometry and command stream; creation
+/// copies its one-part rest pose and resolves stream handlers in place. Keep
+/// gameplay loaded until every referring model is released.
+extern TmdSource gEffectRifleCasingModel;
 
-extern TmdSource D_80112200;
+/// Cartridge-casing model shared by P229 and NPC-pistol ejection.
+///
+/// Six part-local vertices, four Q12 normals and four textured faces.
+/// Objects borrow the mutable source, geometry and command stream; creation
+/// copies its one-part rest pose and resolves stream handlers in place. Keep
+/// gameplay loaded until every referring model is released.
+extern TmdSource gEffectP229CasingModel;
 
-extern TmdSource D_8011231C;
+/// Shotgun shell-casing model used by ejection and burst-part effects.
+///
+/// Six part-local vertices, four Q12 normals and four textured faces.
+/// Objects borrow the mutable source, geometry and command stream; creation
+/// copies its one-part rest pose and resolves stream handlers in place. Keep
+/// gameplay loaded until every referring model is released.
+extern TmdSource gEffectShotgunShellCasingModel;
 
-extern TmdSource D_801124B8;
+/// One-part thrown box model for effect slot 0x091; physical identity unproven.
+///
+/// Eight part-local vertices, ten Q12 normals and six textured quads.
+/// Objects borrow the mutable source, geometry and command stream; creation
+/// copies its one-part rest pose and resolves stream handlers in place. Keep
+/// gameplay loaded until every referring model is released.
+extern TmdSource gEffectThrownModel91;
 
 /// Expands and fades the critical-hit ring, with optional randomized radial spikes.
 ///

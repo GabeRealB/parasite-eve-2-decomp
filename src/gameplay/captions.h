@@ -146,7 +146,14 @@ extern TextGlyphCell* Gp_CapGlyphs;
 /// while its published tables or text are used.
 bool capRelocateFile(CapFile* file);
 
-extern CapSequenceRecord* Gp_CapTable;
+/// Borrowed command-header base of the selected relocated CAP sequence, or NULL.
+///
+/// Slot zero is the command header; playback records start at slot one with
+/// CapSequenceRecord stride and a signed-halfword index. Selection precedes
+/// queued playback, so non-NULL does not prove a running playback task. The
+/// containing CAP file must stay loaded until selection is released by finish,
+/// reset, terminal selection or the unstarted guard. No storage is owned here.
+extern CapSequenceRecord* gCapSelectedSequence;
 
 extern s16 D_801155AC;
 

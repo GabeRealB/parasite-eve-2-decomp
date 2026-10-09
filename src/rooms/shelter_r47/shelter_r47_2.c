@@ -331,7 +331,7 @@ static void _shelterR47ConsoleHandleCommandTask(Task* task)
     ActionPrompt*          prompt;
     u32                    hotspotKind;
 
-    prompt = D_80114D28;
+    prompt = gActionPromptSlots;
     work   = task->work;
     shelterR47ConsoleUpdateAndDraw(task, SHELTER_R47_CONSOLE_LAYOUT_CURRENT);
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
@@ -890,7 +890,7 @@ s32 shelterR47ConsoleHitTestHotspots(Task* task, ActionPromptHotspot* hotspots, 
 /// state 2 without allocating or releasing either task.
 static void _shelterR47ConsoleResetPromptTask(Task* task)
 {
-    ActionPrompt* prompt = D_80114D28;
+    ActionPrompt* prompt = gActionPromptSlots;
 
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
@@ -984,7 +984,7 @@ static void _shelterR47ConsoleOpenCommandsTask(Task* task)
         SHELTER_R47_CONSOLE_STATE_HANDLE_COMMAND  = 5,
     };
     ShelterR47ConsoleWork* work;
-    ActionPrompt*          prompt = D_80114D28;
+    ActionPrompt*          prompt = gActionPromptSlots;
 
     work = task->work;
     shelterR47ConsoleUpdateAndDraw(task, SHELTER_R47_CONSOLE_LAYOUT_CURRENT);

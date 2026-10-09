@@ -117,7 +117,13 @@ void effectDrawGroundShadow(const VECTOR3* centre, s32 halfSize, s16 shade);
 /// call and must already be composed; this drawer does not check effectControl.
 void effectDrawGroundGlow(const GfxCoord* coord, s32 halfSize, u32 brightness);
 
-extern TaskDesc D_80114B34[6];
+/// Mutable bank-10 descriptors for detached actor-model parts.
+///
+/// Slots 0..3 kill their tasks; slot 4 has no callback and must not dispatch.
+/// Before spawning slot 5, the actor supplies data.model. Spawned TMD objects
+/// borrow that selected source, geometry and stream until released; replacing
+/// the slot changes future spawns. The six-entry bank lives with gameplay.
+extern TaskDesc gEffectBurstTaskDescriptors[6];
 
 /// Flings a detached model part with spin and gravity, then dims or collapses it.
 ///

@@ -24269,10 +24269,10 @@ temp) goes back to `beq == 2; j default` (~74%). `if` / `else if` inlines the
 ```c
 switch (arg0->field_2) {
 case 2:
-    table = Gp_ItemTable2;
+    table = gInventoryBattleRewardRows;
     break;
 case 1:
-    table = Gp_ItemTable1;
+    table = gInventoryIndirectRows;
     break;
 default:
     table = D_80072314;
@@ -27519,7 +27519,7 @@ Declare the record as `u16 field[8]` and write the natural 2D access so
 GCC treats the symbol as the array base:
 
 ```c
-value = Gp_IdParamHi.rows[(elementIndex * 3 + energyIndex) * 3 + level].value[column];
+value = gAttachmentLevelTable.rows[(elementIndex * 3 + energyIndex) * 3 + level].value[column];
 ```
 
 `attachmentGetPackedLevelValue` is the example. `(&rec[idx].field_0)[value]` matched in a
@@ -28755,10 +28755,10 @@ local. GCC keeps it live across the table select and plants it in the
 item = 0x81;
 switch (scan->tableId) {
     case 2:
-        tmp = Gp_ItemTable2;
+        tmp = gInventoryBattleRewardRows;
         break;
     case 1:
-        tmp = Gp_ItemTable1;
+        tmp = gInventoryIndirectRows;
         break;
     default:
         tmp = gMcSaveData.itemRows;
@@ -28985,10 +28985,10 @@ A regular label *inside* the switch, between those cases, is the hole:
 ```c
 switch (scan->tableId) {
     case 2:
-        tmp = Gp_ItemTable2;
+        tmp = gInventoryBattleRewardRows;
         break;
     case 1:
-        tmp = Gp_ItemTable1;
+        tmp = gInventoryIndirectRows;
         break;
     found:
         qty = rec->qty;
@@ -31615,15 +31615,15 @@ available to fill that delay. `inventoryGetNthWeaponForConsumable` is the exampl
 
 ## Do not pin the switch result to `$a0` if the `la` must split through `$v0`
 
-The item-table switch (`Gp_ItemTable2` / `Gp_ItemTable1` / `gMcSaveData.itemRows`)
+The item-table switch (`gInventoryBattleRewardRows` / `gInventoryIndirectRows` / `gMcSaveData.itemRows`)
 wants the default hi in the `bne` delay slot and a split `la`:
 
 ```
 bne   field, 2, default
  lui  v0, %hi(gMcSaveData)
-lui   v0, %hi(Gp_ItemTable2)
+lui   v0, %hi(gInventoryBattleRewardRows)
 j     join
- addiu a0, v0, %lo(Gp_ItemTable2)
+ addiu a0, v0, %lo(gInventoryBattleRewardRows)
 default:
 addiu a0, v0, %lo(gMcSaveData+0x1AC)
 ```
@@ -32927,8 +32927,8 @@ pinned to `$a3` (or naturally lives there), GCC coalesces the two and writes
 each case straight into `$a3`:
 
 ```
-addiu a3, v0, %lo(Gp_ItemTable2)
-lw    a3, %lo(Gp_ItemTable1)(v0)
+addiu a3, v0, %lo(gInventoryBattleRewardRows)
+lw    a3, %lo(gInventoryIndirectRows)(v0)
 ```
 
 The target keeps every case in `$v0` and copies once at the join
@@ -32940,10 +32940,10 @@ register InventoryItemRow* rows asm("a3");
 
 switch (range->tableId) {
 case 2:
-    tmp = Gp_ItemTable2;
+    tmp = gInventoryBattleRewardRows;
     break;
 case 1:
-    tmp = Gp_ItemTable1;
+    tmp = gInventoryIndirectRows;
     break;
 default:
     tmp = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
@@ -34641,7 +34641,7 @@ if ((id & 0x8000) == 0) {
     asm volatile("" : "+r"(raw));
     kind = raw;
 } else {
-    raw = Gp_IdParamHi[id & 0x7F].field[5];
+    raw = gAttachmentLevelTable.rows[id & 0x7F].column.outcome.hitReaction;
     asm volatile("" : "+r"(raw));
     kind = raw;
 }
@@ -35075,10 +35075,10 @@ moves default out of the `bne` delay. Write the second copy as:
 if (scan->tableId != 1) {
     table = gMcSaveData.itemRows;
     if (scan->tableId == 2) {
-        table = Gp_ItemTable2;
+        table = gInventoryBattleRewardRows;
     }
 } else {
-    table = Gp_ItemTable1;
+    table = gInventoryIndirectRows;
 }
 ```
 
@@ -40084,7 +40084,7 @@ do {
     row3     = ((id + 1) & 0x30) >> 4;   /* fresh locals */
     col3     = ((id + 1) & 0xC) >> 2;
     lvl3     = (id + 1) & 3;
-    if (childObj->result == 6) { ... Gp_IdParamHi[(row3 * 3 + col3) * 3 + lvl3] ... }
+    if (childObj->result == 6) { ... gAttachmentLevelTable.rows[(row3 * 3 + col3) * 3 + lvl3] ... }
 ```
 
 `loop.c` hoists those three single-set invariants into the preheader, then cse2
@@ -40095,7 +40095,7 @@ Two placement rules matter:
   (they are then used from more than one basic block on a path that is not
   always executed), so you get neither the copies nor the recomputation.
 - Only the assignments themselves are hoisted, not the address chain built from
-  them. That is what keeps `sll/addu … lui %hi(Gp_IdParamHi)` *inside* the loop,
+  them. That is what keeps `sll/addu … lui %hi(gAttachmentLevelTable)` *inside* the loop,
   once per branch, instead of being hoisted and CSE'd with a pre-loop copy.
 
 ## Branch-picked loop constants that appear as preheader `move`s want a second local
@@ -40152,23 +40152,23 @@ The target reads the second table column as
 ```
 sll   v0, v0, 0x4
 addu  v0, v0, s2          # s2 == 2, the alignment constant
-lui   t0, %hi(Gp_IdParamHi)
-addiu t0, t0, %lo(Gp_IdParamHi)
+lui   t0, %hi(gAttachmentLevelTable)
+addiu t0, t0, %lo(gAttachmentLevelTable)
 addu  v0, v0, t0
 lhu   a1, 0(v0)
 ```
 
-Plain `Gp_IdParamHi[i].field[1]` cannot produce that: `get_inner_reference`
+Plain `gAttachmentLevelTable.rows[i].value[1]` cannot produce that: `get_inner_reference`
 returns a constant `bitpos`, so expand emits `base + i*16` and folds the `+ 2`
 into the MEM, giving `lhu a1, 2(v0)`. Writing the flat form
-`Gp_IdParamHi->field[i * 8 + 1]` is worse — `fold` proves the low bits are free
+`((const u16*)gAttachmentLevelTable.bytes)[i * 8 + 1]` is worse — `fold` proves the low bits are free
 and turns the `+ 2` into `or v0, v0, s2`.
 
 Use a variable field index instead:
 
 ```c
 bonusIdx = 1;
-... Gp_IdParamHi.rows[(row * 3 + col) * 3 + lvl].value[bonusIdx]
+... gAttachmentLevelTable.rows[(row * 3 + col) * 3 + lvl].value[bonusIdx]
 ```
 
 The offset stays variable, so expand builds `i*16 + bonusIdx*2` as its own add
@@ -48408,8 +48408,8 @@ call, in a call-clobbered register:
 ```
 jal    callee
  nop
-lui    v0,%hi(D_80114D28)
-addiu  v0,v0,%lo(D_80114D28)
+lui    v0,%hi(gActionPromptSlots)
+addiu  v0,v0,%lo(gActionPromptSlots)
 lh     a0,8(v0)
 ```
 
@@ -48418,20 +48418,20 @@ across the call in a callee-saved register, splitting `lui`/`addiu` around the
 other setup and dropping `addiu` into the `jal` delay slot:
 
 ```
-lui    s0,%hi(D_80114D28)
+lui    s0,%hi(gActionPromptSlots)
 lw     s1,0x1c(s2)
 jal    callee
- addiu s0,s0,%lo(D_80114D28)
+ addiu s0,s0,%lo(gActionPromptSlots)
 lh     a0,8(s0)
 ```
 
-Direct `D_80114D28[0].field` references never do this - the address pseudo is
+Direct `gActionPromptSlots[0].field` references never do this - the address pseudo is
 born at the first reference, so its live range starts after the call. Bind it
 to a local pointer declared *before* the call and the pseudo is live across
 the call, so regalloc must give it a saved register:
 
 ```c
-ActionPrompt*                         prompt = D_80114D28;
+ActionPrompt*                         prompt = gActionPromptSlots;
 _ShelterB1UndergroundParkingPanelWork* work   = task->work;
 
 _shelterB1UndergroundParkingDrawPanelIndicators();
@@ -54757,7 +54757,7 @@ uses. `_acropolisSquareResolveRoomTransition` is the example; the permuter found
 
 **Problem.** `_acropolisBridgeKeypadCheckCode` matched at 99.2% with every
 penalty but `regs` at zero: the target keeps the incoming `Task*` in `$s1` and
-the `&D_80114D28` pointer in `$s2`, and the build had them swapped. The other
+the `&gActionPromptSlots` pointer in `$s2`, and the build had them swapped. The other
 two saved registers (`$s0` for the work block, `$s3` for the hotspot table)
 were already right.
 
@@ -78273,10 +78273,10 @@ field's reloc:
 
 ```
 target                              m2c seed
-lui   v0,%hi(D_80114D28)            lui   v0,%hi(D_80114D28)
-addiu v0,v0,%lo(D_80114D28)         li    v1,0x80
-li    v1,0x80                       sh    v1,%lo(D_80114D28+0xc)(v0)
-sh    v1,0xc(v0)                    addiu v0,v0,%lo(D_80114D28+0xc)
+lui   v0,%hi(gActionPromptSlots)            lui   v0,%hi(gActionPromptSlots)
+addiu v0,v0,%lo(gActionPromptSlots)         li    v1,0x80
+li    v1,0x80                       sh    v1,%lo(gActionPromptSlots+0xc)(v0)
+sh    v1,0xc(v0)                    addiu v0,v0,%lo(gActionPromptSlots+0xc)
 li    v1,1                          li    v1,1
 sb    v1,0x10(v0)                   sb    v1,4(v0)
 sh    zero,8(v0)                    sh    zero,-0x4(v0)
@@ -78292,8 +78292,8 @@ address the way the original source's member access let it.
 the seed — the extra `addiu` is the whole miss:
 
 ```c
-/* m2c */  M2C_FIELD(&D_80114D28, s16 *, 0xC) = 0x80;
-/* ours */ ActionPrompt* prompt = &D_80114D28;
+/* m2c */  M2C_FIELD(&gActionPromptSlots, s16 *, 0xC) = 0x80;
+/* ours */ ActionPrompt* prompt = gActionPromptSlots;
            prompt->cursorSpeed = 0x80;
 ```
 
@@ -78315,7 +78315,7 @@ register work, and both are visible in the object dump rather than in a dump
 pass.
 
 What CSE does with the seed is pick the *first* field's address as the common
-base, which is why the seed's reloc reads `%lo(D_80114D28+0xc)` and the later
+base, which is why the seed's reloc reads `%lo(gActionPromptSlots+0xc)` and the later
 displacements are `4`, `-0x4` and `-0x2` — offsets relative to `0xc`. A first
 field at offset 0 hides the whole thing, because then the seed's base *is* the
 symbol; the trap only shows on a global whose lowest-written field is not at
@@ -87000,23 +87000,23 @@ A member access leaves the symbol bare and puts the field offset in the memory
 operand:
 
 ```
-(insn 13 (set (reg:SI 83) (high:SI (symbol_ref:SI ("D_80114D28")))))
-(insn 14 (set (reg:SI 82) (lo_sum:SI (reg:SI 83) (symbol_ref:SI ("D_80114D28"))))
-         (expr_list:REG_EQUAL (symbol_ref:SI ("D_80114D28"))))
+(insn 13 (set (reg:SI 83) (high:SI (symbol_ref:SI ("gActionPromptSlots")))))
+(insn 14 (set (reg:SI 82) (lo_sum:SI (reg:SI 83) (symbol_ref:SI ("gActionPromptSlots"))))
+         (expr_list:REG_EQUAL (symbol_ref:SI ("gActionPromptSlots"))))
 (insn 16 (set (mem/s:QI (plus:SI (reg:SI 82) (const_int 16))) (const_int 0)))
 ```
 
-`M2C_FIELD(&D_80114D28, s8 *, 0x10)` folds the offset *into the symbol constant*
+`M2C_FIELD(&gActionPromptSlots, s8 *, 0x10)` folds the offset *into the symbol constant*
 instead, so the memory operand is the reloc itself and carries no displacement:
 
 ```
 (insn 13 (set (reg:SI 83)
-          (high:SI (const:SI (plus:SI (symbol_ref:SI ("D_80114D28"))
+          (high:SI (const:SI (plus:SI (symbol_ref:SI ("gActionPromptSlots"))
                           (const_int 16))))))
 (insn 14 (set (reg:SI 82) (lo_sum:SI (reg:SI 83)
-                          (const:SI (plus:SI (symbol_ref:SI ("D_80114D28"))
+                          (const:SI (plus:SI (symbol_ref:SI ("gActionPromptSlots"))
                                   (const_int 16)))))
-         (expr_list:REG_EQUAL (const:SI (plus:SI (symbol_ref:SI ("D_80114D28"))
+         (expr_list:REG_EQUAL (const:SI (plus:SI (symbol_ref:SI ("gActionPromptSlots"))
                      (const_int 16))) (nil)))
 (insn 16 (set (mem/s:QI (reg:SI 82)) (const_int 0)))
 ```
@@ -87026,7 +87026,7 @@ for a field access and *inside* it for address-taken pointer arithmetic - and no
 something CSE decides; CSE only inherits whichever base the front end handed it.
 `func_dryfield_night_factory_801819BC` is the second instance, and matches the
 first exactly: 89.615% (`regs=2 reorder=1 insert=1 delete=1`) with
-`sb %lo(D_80114D28+0x10)(v0)` / `sh -0x4(v0)`, 100.000% and all-zero on the
+`sb %lo(gActionPromptSlots+0x10)(v0)` / `sh -0x4(v0)`, 100.000% and all-zero on the
 struct-member spelling. A controlled variant that kept m2c's `void *index` and its
 `M2C_FIELD` task and work accesses and changed *only* those two stores matched
 too, which is what makes the address spelling, and nothing else, the cause.
@@ -87828,7 +87828,7 @@ only form that lets one TU call a symbol both ways.
 **The argument is not cosmetic - it also repairs the schedule.** The m2c seed
 (73.667%, `regs=18 reorder=0 insert=2 delete=5`) only needed the *pointer* half
 of the source rebuilt first: writing the prompt as a local
-`ActionPrompt* prompt = &D_80114D28;` (see "Hold a global's address in a
+`ActionPrompt* prompt = gActionPromptSlots;` (see "Hold a global's address in a
 local pointer" - its two stores sit after the first `jal`, and local-alloc still
 puts the address in `$s0` because the scheduler hoisted the `lui`/`addiu` into
 the prologue) took it to 94.667% with `regs=0` and left exactly two leftovers:
@@ -88654,7 +88654,7 @@ difference - `task` and `work` swap `$s1` and `$s2`:
 addu $s1, $a0, $zero        # task -> $s1
 lw   $s2, 0x1C($s1)         # work = task->work
 jal  dryfieldNightMotelLobbyDrawCashRegisterDisplay
- addiu $s0, $s0, %lo(D_80114D28)
+ addiu $s0, $s0, %lo(gActionPromptSlots)
 sw   $v0, 0x30($s1)         # task->state = 4
 ```
 
@@ -88718,8 +88718,8 @@ directly, exactly as m2c renders it:
 ```c
     temp_s1 = arg0->work;
     dryfieldNightMotelLobbyDrawCashRegisterDisplay(arg0);
-    D_80114D28.mode     = 0;
-    D_80114D28.cursorSpeed = 0;
+    gActionPromptSlots[0].mode     = 0;
+    gActionPromptSlots[0].cursorSpeed = 0;
 ```
 
 It scored 79.3% (`regs=16 insert=2 delete=3`). The object recomputes the
@@ -88729,9 +88729,9 @@ where the target has work:
 
 ```asm
 jal  dryfieldNightMotelLobbyDrawCashRegisterDisplay
- nop                        # target: addiu $s0, $s0, %lo(D_80114D28)
-lui   $v0, %hi(D_80114D28)  # target: lui $s0, ... before the jal
-addiu $v0, $v0, %lo(D_80114D28)
+ nop                        # target: addiu $s0, $s0, %lo(gActionPromptSlots)
+lui   $v0, %hi(gActionPromptSlots)  # target: lui $s0, ... before the jal
+addiu $v0, $v0, %lo(gActionPromptSlots)
 sb    $zero, 0x10($v0)
 jal   itemMenuIsHotspotActionConfirmed
  sh   $zero, 0xC($v0)
@@ -88741,7 +88741,7 @@ Writing the same stores through a **local pointer declared before the call**
 takes it to 100.0% with every penalty zero:
 
 ```c
-    ActionPrompt*                            prompt = &D_80114D28;
+    ActionPrompt*                            prompt = gActionPromptSlots;
     DryfieldNightMotelLobbyCashRegisterWork* work   = task->work;
 
     dryfieldNightMotelLobbyDrawCashRegisterDisplay(task);
@@ -88756,7 +88756,7 @@ inside one block, and only prints `crosses N calls` when it does not:
 
 | form | `.lreg` header for the address | home |
 |---|---|---|
-| `D_80114D28.mode = 0` | `used 3 times across 6 insns in block 0` | `$v0` |
+| `gActionPromptSlots[0].mode = 0` | `used 3 times across 6 insns in block 0` | `$v0` |
 | `prompt->mode = 0` | `used 3 times across 10 insns in block 0; crosses 1 call` | `$sN` |
 
 With the global written directly, `expand` builds the `high`/`lo_sum` pair where
@@ -88772,7 +88772,7 @@ slot is a symptom, not the thing to fix.
 This is not a coincidence of this function: the already-matched
 `_dryfieldNightMotelLobbyCashRegisterOpenPrompt` - the same room, the same prompt -
 has the identical `$s0` shape, and it is written in the pointer form. When a
-room's state bodies touch the shared `D_80114D28` prompt, adopt the file's
+room's state bodies touch the shared `gActionPromptSlots` prompt, adopt the file's
 existing form (declare the pointer locally, store through it) before treating
 `lui`/`addiu`/saved-register differences as an allocation tie to fight with
 pins.
@@ -89830,7 +89830,7 @@ seed keeps `task->work` in `$s0` and rematerialises the prompt address from
 `lui`/`addiu` *after* the call, so `$s2` is never used and the frame loses its
 save - 74.630% on `regs=17 insert=2 delete=4` alone, with the control flow
 already matching. Restoring the argument gives the target's three-way split
-(`$s1` task, `$s2` work, `$s0` `&D_80114D28`, `lui` hoisted above the `jal` and
+(`$s1` task, `$s2` work, `$s0` `&gActionPromptSlots`, `lui` hoisted above the `jal` and
 its `addiu` in the delay slot) and 100.000% on the first build after the edit.
 
 The tell is a call whose first argument register is never written between the
@@ -90427,7 +90427,7 @@ already matched as `(Task* task, s32 msgId, s32 arg2, s32 arg3)`.
 
 The payload type follows the *id*, not the parameter's shape. A room table is
 indexed by global message ids whose payloads are unrelated to each other:
-`0x13F2` is dispatched as `(Gp_CapTable[...].trigger.soundAndTextFlags >> 1)`, a plain
+`0x13F2` is dispatched as `(gCapSelectedSequence[...].trigger.soundAndTextFlags >> 1)`, a plain
 integer, which is why `Room_Snd01` reads `arg2` as an `s32` and never
 dereferences it. Grepping the immediate finds the id's one producer - here
 `addiu $a1, $zero, 0x13EF` occurs exactly once in `asm/USA/`, in `_directionDispatchRoomAction`
@@ -101541,7 +101541,7 @@ is not a `_StageMusicSelection`: the spawn state `memCalloc`s it (0x4CC here) in
 `Task::work`, exactly as in `actor_141000` / `actor_317000` / `actor_350500` /
 `actor_350700`, and this function republishes `&work->light` / `&work->color`
 onto `TmdObject::lightMtx` / `colorMtx` - the pair `_worldCoordInitPlayerLighting` otherwise
-points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`. `_actor317000BindLighting` and
+points at `gWorldCoordPlayerLightMatrix` / `gWorldCoordPlayerColorMatrix`. `_actor317000BindLighting` and
 `func_actor_350700_801624B4` are the same republish in their own overlays.
 `_actor311900InitSwatLighting`, the very next unmatched function in this unit, is
 this body with a different light matrix: `m[0][0]` is `-0x1000` and the two
@@ -139533,7 +139533,7 @@ This is the reverse of entry [63], where reusing a variable is what breaks the
 match. Use it only when the target shows the same register at both sites.
 
 **Fix.** One `s32 anchorOffsetY` for both sums. With it, the entry block matched exactly
-(99.634% -> 99.890%, together with setting the `&D_80114D28` pointer before
+(99.634% -> 99.890%, together with setting the `&gActionPromptSlots` pointer before
 the first call).
 
 ### `s16` parameter copies sink below the scratch prologue; a volatile asm there stops them (func_dryfield_dilapidated_house_801832A8, 2026-09-23)
@@ -142653,7 +142653,7 @@ still emits a single state store - the first is dead and deleted.
 
 ## `addiu idx16,4; addu base; lhu 0` is a column subscript that reached the access as an inline parameter (_attachmentIsCastBlocked, 2026-09-26)
 
-Reading `Gp_IdParamHi.rows[row].value[2]` (16-byte rows) with a literal `2` folds the
+Reading `gAttachmentLevelTable.rows[row].value[2]` (16-byte rows) with a literal `2` folds the
 column into the load, `sll 4; addu base; lhu 4(v0)`. The target instead adds the
 column to the scaled row before the base - `sll 4; addiu 4; addu base; lhu 0(v0)` -
 which the tree had rebuilt by hand as `off = row * 16; TOUCH_REG(off); off += 4;
@@ -142664,7 +142664,7 @@ substitutes the constant, too late to join the displacement.
 ```c
 static __inline__ u16 _attachmentGetLevelValue(s32 abilityIndex, s32 level, s32 column)
 {
-    return Gp_IdParamHi.rows[abilityIndex * ATTACHMENT_AREA_LEVEL_COUNT + level].value[column];
+    return gAttachmentLevelTable.rows[abilityIndex * ATTACHMENT_AREA_LEVEL_COUNT + level].value[column];
 }
 ```
 
@@ -142893,8 +142893,8 @@ with `TOUCH_REG` and pinned `$a0`/`$v0` locals inside the cases.
 that local-alloc put in `$a0` is a hard-register conflict for every global pseudo
 live beside it. In the target, one case loads its table base (`lui/addiu a0`)
 *before* the `% 3` of the switch value, while the value is still live: the
-case wrote `params = Gp_IdParamHi;` as its first statement, then indexed
-`params[row]`. Written as `Gp_IdParamHi[row]`, the base is formed after the
+case wrote `params = gAttachmentLevelTable.rows;` as its first statement, then indexed
+`params[row]`. Written as `gAttachmentLevelTable.rows[row]`, the base is formed after the
 value dies and the value takes `$a0`. Two companions from the same function:
 case bodies that each declare their own `count`/`time` locals (a block per
 case) get the separate per-case registers the target shows, where
@@ -144083,7 +144083,7 @@ and jump2 cross-jumps the identical tails into the join the target shows.
 
 ## Three pins in one draw routine that were an inline parameter, an argument expression and an early constant (_attachmentUpdateAndDrawWheel, 2026-09-26)
 
-**`addiu 4` before the base add, not `lhu 4(v0)`.** `Gp_IdParamHi.rows[row].value[ATTACHMENT_LEVEL_CAST_COST]`
+**`addiu 4` before the base add, not `lhu 4(v0)`.** `gAttachmentLevelTable.rows[row].value[ATTACHMENT_LEVEL_CAST_COST]`
 folds the member into the load displacement; the hand-built
 `off = row * 16; TOUCH_REG(off); off += 4; off += base` was forcing
 `(row*16 + 4) + base`. That shape is `field[k]` with `k` an *inline helper

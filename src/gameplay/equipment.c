@@ -15,7 +15,7 @@
 #include "main/mc.h"
 #include "main/wipsys.h"
 
-InventoryItemRow* Gp_ItemTable1;
+InventoryItemRow* gInventoryIndirectRows;
 
 extern u8 D_8010D318[8];
 
@@ -503,7 +503,7 @@ void equipmentRecalculateMaxMp(void)
     for (spellIndex = 0; spellIndex < ATTACHMENT_SPELL_COUNT; spellIndex++) {
         if (*spellLevels > 0) {
             for (levelIndex = 0; levelIndex < *spellLevels; levelIndex++) {
-                maximumMp += Gp_IdParamHi.rows[spellIndex * ATTACHMENT_AREA_LEVEL_COUNT + levelIndex + 1].column.mpBonus;
+                maximumMp += gAttachmentLevelTable.rows[spellIndex * ATTACHMENT_AREA_LEVEL_COUNT + levelIndex + 1].column.mpBonus;
             }
         }
         spellLevels++;
@@ -566,10 +566,10 @@ void equipmentEquipCarriedArmor(s32 armorItemId)
                     equipmentRecalculateMaxMp();
                     switch (carriedRange->tableId) {
                         case INVENTORY_ITEM_TABLE_AREA_GRANTS:
-                            inventoryRows = Gp_ItemTable2;
+                            inventoryRows = gInventoryBattleRewardRows;
                             break;
                         case INVENTORY_ITEM_TABLE_INDIRECT:
-                            inventoryRows = Gp_ItemTable1;
+                            inventoryRows = gInventoryIndirectRows;
                             break;
                         default:
                             inventoryRows = save->state.itemRows;

@@ -11,7 +11,7 @@ static void _factoryPanelIdle(Task* task)
 {
     enum { FACTORY_PANEL_EVENT_ACTIVE = 1 };
 
-    ActionPrompt*        prompt  = D_80114D28;
+    ActionPrompt*        prompt  = gActionPromptSlots;
     ActionPromptHotspot* hotspot = gFactoryPanelHotspots;
     FactoryPanelWork*    work    = task->work;
 

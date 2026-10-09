@@ -996,32 +996,32 @@ gameplay_effect_80111fc8_rest_pose	Single identity bone that is the rest pose of
 gameplay_effect_80111fc8_vertices	Vertex array of gameplay's ejected pistol/SMG cartridge case model gEffectBulletCasingModel.	
 gameplay_effect_801120e4	Triangular-prism model (22 wide, 110 long) of the ejected rifle cartridge case (effect 0x67), thrown once per round by the M4A1 family, the M249 and the companion's rifle.	
 gameplay_effect_801120e4_*	All parts of the one-part model bound as the body of effect slot 0x067 in gameplay's task bank 6, which the other rows show is the ejected rifle case.	
-gameplay_effect_801120e4_normals	Normal array of gameplay's ejected rifle cartridge case model D_801120E4.	
+gameplay_effect_801120e4_normals	Normal array of gameplay's ejected rifle cartridge case model gEffectRifleCasingModel.	
 gameplay_effect_801120e4_packets	Face stream (a prism 22 wide and 110 long) of gameplay's ejected rifle cartridge case model, thrown, spun, bounced and blinked out by the thrown-model effect task.	
 gameplay_effect_801120e4_part_vertices	One-word vertex count (6) of the rifle case model's single part; separate storage whose bytes equal the 80111fc8 count the source actually includes.	
 gameplay_effect_801120e4_rest_pose	Single identity bone of the rifle case model; separate storage with the same bytes as the 80111fc8 rest pose the source includes in its place.	
-gameplay_effect_801120e4_vertices	Vertex array of gameplay's ejected rifle cartridge case model D_801120E4.	
+gameplay_effect_801120e4_vertices	Vertex array of gameplay's ejected rifle cartridge case model gEffectRifleCasingModel.	
 gameplay_effect_80112200	Triangular-prism model (24 wide, 72 long) of the shell casing ejected by the P229 and by NPC pistols (effect 0x66), thrown once per handgun flash with profile 5 or 33.	
 gameplay_effect_80112200_*	All parts of the one-part ejected shell casing model bound as the body of effect slot 0x066 (P229 shell casing) in gameplay's task bank 6.	
-gameplay_effect_80112200_normals	Normal array of gameplay's P229/NPC pistol shell casing model D_80112200.	
+gameplay_effect_80112200_normals	Normal array of gameplay's P229/NPC pistol shell casing model gEffectP229CasingModel.	
 gameplay_effect_80112200_packets	Face stream (a prism 24 wide and 72 long) of the ejected case of the P229 and NPC pistols, drawn by the thrown-model effect task.	
 gameplay_effect_80112200_part_vertices	One-word vertex count (6) of the P229 casing model's single part; separate storage whose bytes equal the 80111fc8 count the source actually includes.	
 gameplay_effect_80112200_rest_pose	Single identity bone of the P229 casing model; separate storage with the same bytes as the 80111fc8 rest pose the source includes in its place.	
-gameplay_effect_80112200_vertices	Vertex array of gameplay's P229/NPC pistol shell casing model D_80112200.	
+gameplay_effect_80112200_vertices	Vertex array of gameplay's P229/NPC pistol shell casing model gEffectP229CasingModel.	
 gameplay_effect_8011231c	Triangular-prism model (52 wide, 165 long) of the ejected shotgun shell (effect 0x68), thrown per shotgun flash by PA3, SP12, AS12, the gunblade and Douglas; a second burst-part binding has no spawner.	
 gameplay_effect_8011231c_*	All parts of the one-part shotgun shell model bound as the body of effect slots 0x068 (shotgun shell casing) and 0x037 (burst model part) in gameplay's task bank 6.	
-gameplay_effect_8011231c_normals	Normal array of gameplay's ejected shotgun shell model D_8011231C.	
+gameplay_effect_8011231c_normals	Normal array of gameplay's ejected shotgun shell model gEffectShotgunShellCasingModel.	
 gameplay_effect_8011231c_packets	Face stream (a prism 52 wide and 165 long) of the ejected shotgun shell, drawn by the thrown-model effect task and also used by the burst-part task entry.	
 gameplay_effect_8011231c_part_vertices	One-word vertex count (6) of the shotgun shell model's single part; separate storage whose bytes equal the 80111fc8 count the source actually includes.	
 gameplay_effect_8011231c_rest_pose	Single identity bone of the shotgun shell model; separate storage with the same bytes as the 80111fc8 rest pose the source includes in its place.	
-gameplay_effect_8011231c_vertices	Vertex array of gameplay's ejected shotgun shell model D_8011231C.	
-gameplay_effect_801124b8	Box model (42x42x50) of the spent grenade case (effect 0x91), ejected by the grenade pistol and M4A1 launcher on firing and by MM1 reloads, including the Golem pawns' and the companion's.	
-gameplay_effect_801124b8_*	All parts of the one-part box model bound as the body of effect slot 0x091 in gameplay's task bank 6, a small piece thrown at the grenade muzzle offsets.	
-gameplay_effect_801124b8_normals	Normal array of gameplay's spent grenade case model D_801124B8.	
-gameplay_effect_801124b8_packets	Face stream (six quads, a box 42x42x50) of the spent grenade shell, drawn by the thrown-model effect task when a grenade weapon ejects its case.	
-gameplay_effect_801124b8_part_vertices	One-word per-part vertex count (8) of gameplay's spent grenade case box model.	
-gameplay_effect_801124b8_rest_pose	Single identity bone of the grenade case model; separate storage with the same bytes as the 80111fc8 rest pose the source includes in its place.	
-gameplay_effect_801124b8_vertices	Vertex array of gameplay's spent grenade case model D_801124B8.	
+gameplay_effect_8011231c_vertices	Vertex array of gameplay's ejected shotgun shell model gEffectShotgunShellCasingModel.	
+gameplay_effect_801124b8	One-part thrown box model (42x42x50) for effect slot 0x091. Grenade-fire and post-reload controllers emit it; its physical identity is unproven.	
+gameplay_effect_801124b8_*	All parts of gEffectThrownModel91, bound to effectThrownModelTask at gameplay bank-6 slot 0x091. Its physical identity is unproven.	
+gameplay_effect_801124b8_normals	Ten Q12 normals of gEffectThrownModel91, the slot-0x091 thrown box; its physical identity is unproven.	
+gameplay_effect_801124b8_packets	Writable TMD command stream for the six textured quads of gEffectThrownModel91, a box 42x42x50 whose physical identity is unproven.	
+gameplay_effect_801124b8_part_vertices	One-word vertex count (8) of the sole part of gEffectThrownModel91.	
+gameplay_effect_801124b8_rest_pose	Single identity bone of gEffectThrownModel91; separate storage with the same bytes as the 80111fc8 rest pose the source includes in its place.	
+gameplay_effect_801124b8_vertices	Eight part-local integer vertices of gEffectThrownModel91, the slot-0x091 box; its physical identity is unproven.	
 gary_douglas_body	20-part body of Gary Douglas, spawned as a placed actor by five packages in the day garage, night garage, night main street, night motel balcony and the trailer coach (day and night).	
 gary_douglas_head_hat	One-part head-with-hat model hung under part 4 of Gary Douglas's body in every package that spawns him, mirroring the body's lighting and draw flags.	
 gary_douglas_shotgun	One-part shotgun model hung under part 8 of Gary Douglas's body by actor_420700 in the trailer coach, spawned once with the body.	

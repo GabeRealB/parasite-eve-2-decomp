@@ -18,8 +18,6 @@ extern EquipmentWeaponLoadOptionsTable Gp_RelatedQty1;
 
 extern EquipmentWeaponSupply Gp_ItemMaps[];
 
-extern InventoryItemRow* Gp_ItemTable1;
-
 extern const char Gp_StrNotice2[8];
 
 /// Loads or checks a consumable in a selected load of a carried weapon.
@@ -340,8 +338,6 @@ extern ArmorStats Gp_ModStatAttrs[];
 
 // Shared item-publication work.
 extern u16 Gp_PubItemReady;
-
-extern u32 D_80114DCC;
 
 extern u16 Gp_PubItemQty;
 

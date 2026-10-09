@@ -1410,7 +1410,7 @@ void shelterR47ConsoleSelectHotspotTask(Task* task)
     ActionPrompt*          prompt;
 
     hotspot = D_shelter_r47_80186FB4;
-    prompt  = D_80114D28;
+    prompt  = gActionPromptSlots;
     work    = task->work;
     shelterR47ConsoleUpdateAndDraw(task, SHELTER_R47_CONSOLE_LAYOUT_CURRENT);
     gGameSession->hideHud    = 1;

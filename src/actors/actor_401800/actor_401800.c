@@ -2120,25 +2120,25 @@ static void _actor401800BurstDeath(Task* task)
     work->stateTimer = elapsedTicks;
     // Publish each model immediately before its independent effect is spawned.
     if ((s16)elapsedTicks == ACTOR_401800_BURST_FIRST_TICK) {
-        D_80114B34[ACTOR_401800_BURST_MODEL_SLOT].data.model = &_gOddStrangerBurstPart9Model;
-        burstOffset.vz                                       = ACTOR_401800_BURST_LOCAL_OFFSET;
-        burstOffset.vy                                       = 0;
-        burstOffset.vx                                       = 0;
+        gEffectBurstTaskDescriptors[ACTOR_401800_BURST_MODEL_SLOT].data.model = &_gOddStrangerBurstPart9Model;
+        burstOffset.vz                                                        = ACTOR_401800_BURST_LOCAL_OFFSET;
+        burstOffset.vy                                                        = 0;
+        burstOffset.vx                                                        = 0;
         _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + ACTOR_401800_BURST_FIRST_PART, ACTOR_401800_BURST_MODEL_ARGUMENT, &burstOffset), enemy);
     }
     if (work->stateTimer == ACTOR_401800_BURST_SECOND_TICK) {
-        D_80114B34[ACTOR_401800_BURST_MODEL_SLOT].data.model = &_gActor401800Model12280;
+        gEffectBurstTaskDescriptors[ACTOR_401800_BURST_MODEL_SLOT].data.model = &_gActor401800Model12280;
         // The binary leaves this invocation's Z offset uninitialized.
         burstOffset.vy = 0;
         burstOffset.vx = 0;
         _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + ACTOR_401800_BURST_SECOND_PART, ACTOR_401800_BURST_MODEL_ARGUMENT, &burstOffset), enemy);
     }
     if (work->stateTimer == ACTOR_401800_BURST_THIRD_TICK) {
-        D_80114B34[ACTOR_401800_BURST_MODEL_SLOT].data.model = &_gOddStrangerBurstPart9Model;
+        gEffectBurstTaskDescriptors[ACTOR_401800_BURST_MODEL_SLOT].data.model = &_gOddStrangerBurstPart9Model;
         _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + ACTOR_401800_BURST_PARTICLE_PART, ACTOR_401800_BURST_MODEL_ARGUMENT, NULL), enemy);
     }
     if (work->stateTimer == ACTOR_401800_BURST_LAST_TICK) {
-        D_80114B34[ACTOR_401800_BURST_MODEL_SLOT].data.model = &_gOddStrangerBurstPart3Model;
+        gEffectBurstTaskDescriptors[ACTOR_401800_BURST_MODEL_SLOT].data.model = &_gOddStrangerBurstPart3Model;
         _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + ACTOR_401800_BURST_LAST_PART, ACTOR_401800_BURST_MODEL_ARGUMENT, NULL), enemy);
     }
     if (work->stateTimer >= ACTOR_401800_BURST_HIDE_TICK) {

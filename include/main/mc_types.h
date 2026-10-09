@@ -67,8 +67,8 @@ STATIC_ASSERT_SIZEOF(EquipmentWeaponLoad, 0x8);
 /// Row storage selectors for `InventoryItemRange::tableId`.
 enum {
     INVENTORY_ITEM_TABLE_SAVED       = 0, // `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows`
-    INVENTORY_ITEM_TABLE_INDIRECT    = 1, // Rows addressed by `Gp_ItemTable1`; backing and lifetime unproven
-    INVENTORY_ITEM_TABLE_AREA_GRANTS = 2, // `Gp_ItemTable2`, holding items granted on area entry
+    INVENTORY_ITEM_TABLE_INDIRECT    = 1, // Rows addressed by `gInventoryIndirectRows`; backing and lifetime unproven
+    INVENTORY_ITEM_TABLE_AREA_GRANTS = 2, // `gInventoryBattleRewardRows`, staging won-battle item rewards
 };
 
 /// Largest row count an `InventoryItemRange` can represent; a literal count, not a sentinel.

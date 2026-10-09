@@ -1063,7 +1063,7 @@ static void _actor548100InitPanel(Task* task)
 /// Cancel enters panel exit. Captions hide and stop the cursor without scanning.
 static void _actor548100ScanHotspots(Task* task)
 {
-    ActionPrompt*        prompt  = D_80114D28;
+    ActionPrompt*        prompt  = gActionPromptSlots;
     ActionPromptHotspot* hotspot = D_actor_548100_801357E8;
     _Actor548100Work*    work    = task->work;
 
@@ -1155,8 +1155,8 @@ static void _actor548100HandleHotspotChoice(Task* task)
     };
     _Actor548100Work* work = task->work;
 
-    D_80114D28[0].mode        = ACTION_PROMPT_MODE_HIDDEN;
-    D_80114D28[0].cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
+    gActionPromptSlots[0].mode        = ACTION_PROMPT_MODE_HIDDEN;
+    gActionPromptSlots[0].cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (itemMenuIsHotspotActionConfirmed() != 0) {
         switch (work->choice) {
             case ACTOR_548100_CHOICE_SOCKET_1:
@@ -2314,7 +2314,7 @@ static s32 _actor548100MeasureLeg(s32 routeId, u8 stopNode)
 /// screen-pixel position and advances the panel task to state 2.
 static void _actor548100ArmCursor(Task* task)
 {
-    ActionPrompt* prompt = D_80114D28;
+    ActionPrompt* prompt = gActionPromptSlots;
 
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     prompt->mode        = ACTION_PROMPT_MODE_IDLE;
@@ -2332,7 +2332,7 @@ static void _actor548100OpenHotspotCommands(Task* task)
 {
     enum { ACTOR_548100_STATE_HANDLE_CHOICE = 4 };
 
-    ActionPrompt*     prompt = D_80114D28;
+    ActionPrompt*     prompt = gActionPromptSlots;
     _Actor548100Work* work   = task->work;
 
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;

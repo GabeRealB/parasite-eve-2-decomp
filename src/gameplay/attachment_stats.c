@@ -642,7 +642,7 @@ static __inline__ s32 _sceneIsBattleActive(void)
 /// level zero reads the preceding row directly. No table pointer is retained.
 static __inline__ u16 _attachmentGetLevelValue(s32 abilityIndex, s32 level, s32 column)
 {
-    return Gp_IdParamHi.rows[abilityIndex * ATTACHMENT_AREA_LEVEL_COUNT + level].value[column];
+    return gAttachmentLevelTable.rows[abilityIndex * ATTACHMENT_AREA_LEVEL_COUNT + level].value[column];
 }
 
 /// Returns one when the selected spell or item attachment cannot be cast.

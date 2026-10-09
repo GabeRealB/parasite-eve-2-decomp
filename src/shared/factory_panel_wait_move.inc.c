@@ -11,7 +11,7 @@ static void _factoryPanelWaitMove(Task* task)
     ActionPrompt*     prompt;
     FactoryPanelWork* work;
 
-    prompt              = D_80114D28;
+    prompt              = gActionPromptSlots;
     work                = task->work;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;

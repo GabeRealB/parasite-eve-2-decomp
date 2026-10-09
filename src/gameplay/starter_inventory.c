@@ -138,10 +138,10 @@ void inventoryInitializeStarterLoadout(void)
     playerStatus                                                                                              = &gPlayerStatus;
     switch (carriedRange->tableId) {
         case INVENTORY_ITEM_TABLE_AREA_GRANTS:
-            itemTable = Gp_ItemTable2;
+            itemTable = gInventoryBattleRewardRows;
             break;
         case INVENTORY_ITEM_TABLE_INDIRECT:
-            itemTable = Gp_ItemTable1;
+            itemTable = gInventoryIndirectRows;
             break;
         default:
             itemTable = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;

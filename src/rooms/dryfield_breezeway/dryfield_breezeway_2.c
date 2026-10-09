@@ -783,7 +783,7 @@ static void _dryfieldBreezewayScanKeyItemHotspot(Task* task)
     coord   = task->extra.tmd->coords;
     work    = task->work;
     hotspot = D_dryfield_breezeway_80182E00;
-    prompt  = D_80114D28;
+    prompt  = gActionPromptSlots;
 
     // Upload the line artwork once per entry into this state.
     if (task->killCountdown == 0) {
@@ -839,7 +839,7 @@ static void _dryfieldBreezewayLeadKeyItemLine(Task* task)
         DRYFIELD_BREEZEWAY_KEY_ITEM_SWAY_PHASE_STEP = 16,
         DRYFIELD_BREEZEWAY_CAP_LINE_TARGET_REACHED  = 3,
     };
-    ActionPrompt*                       prompt  = D_80114D28;
+    ActionPrompt*                       prompt  = gActionPromptSlots;
     GfxCoord*                           coord   = task->extra.tmd->coords;
     _DryfieldBreezewayKeyItemEventWork* work    = task->work;
     ActionPromptHotspot*                hotspot = D_dryfield_breezeway_80182DDC;
@@ -935,7 +935,7 @@ static void _dryfieldBreezewayUpdateKeyItemLine(Task* task, s16 leadX, s16 leadY
     lineX          = leadX;
     requestedY     = leadY;
     work           = task->work;
-    prompt         = D_80114D28;
+    prompt         = gActionPromptSlots;
     anchorOffsetY  = requestedY - DRYFIELD_BREEZEWAY_LINE_ANCHOR_Y;
     leadDistance   = SquareRoot0(lineX * lineX + anchorOffsetY * anchorOffsetY);
     endX           = work->lineEndX;
@@ -1236,7 +1236,7 @@ static void _dryfieldBreezewayKeyItemEventTask(Task* task)
 /// the hotspot commands.
 static void _dryfieldBreezewayArmKeyItemPrompt(Task* task)
 {
-    ActionPrompt* prompt = D_80114D28;
+    ActionPrompt* prompt = gActionPromptSlots;
 
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     prompt->mode        = ACTION_PROMPT_MODE_IDLE;
@@ -1253,7 +1253,7 @@ static void _dryfieldBreezewayArmKeyItemPrompt(Task* task)
 /// initialized event work and a live action-prompt slot; selects the item-wait state.
 static void _dryfieldBreezewayOpenKeyItemCommands(Task* task)
 {
-    ActionPrompt*                       prompt = D_80114D28;
+    ActionPrompt*                       prompt = gActionPromptSlots;
     _DryfieldBreezewayKeyItemEventWork* work   = task->work;
 
     _dryfieldBreezewayUpdateKeyItemLine(task, 0, DRYFIELD_BREEZEWAY_LINE_REST_Y);
@@ -1273,7 +1273,7 @@ static void _dryfieldBreezewayFinishKeyItemCommand(Task* task)
     enum {
         DRYFIELD_BREEZEWAY_CAP_EXAMINE_KEY_ITEM = 7,
     };
-    ActionPrompt*                       prompt = D_80114D28;
+    ActionPrompt*                       prompt = gActionPromptSlots;
     _DryfieldBreezewayKeyItemEventWork* work   = task->work;
 
     _dryfieldBreezewayUpdateKeyItemLine(task, 0, DRYFIELD_BREEZEWAY_LINE_REST_Y);

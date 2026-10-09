@@ -103,18 +103,18 @@ static void _oddStrangerWalkingDeath(Task* task)
             }
             _actorContactApplyGridPushback(task->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
             if ((s16)work->stateTimer == ODD_STRANGER_WALK_DEATH_FIRST_DEBRIS_FRAME) {
-                D_80114B34[ODD_STRANGER_WALK_DEATH_DEBRIS_TASK].data.model = &_gOddStrangerBurstPart9Model;
-                ODD_STRANGER_FX_OFFSET.vz                                  = ODD_STRANGER_WALK_DEATH_EFFECT_OFFSET;
-                ODD_STRANGER_FX_OFFSET.vy                                  = 0;
-                ODD_STRANGER_FX_OFFSET.vx                                  = 0;
+                gEffectBurstTaskDescriptors[ODD_STRANGER_WALK_DEATH_DEBRIS_TASK].data.model = &_gOddStrangerBurstPart9Model;
+                ODD_STRANGER_FX_OFFSET.vz                                                   = ODD_STRANGER_WALK_DEATH_EFFECT_OFFSET;
+                ODD_STRANGER_FX_OFFSET.vy                                                   = 0;
+                ODD_STRANGER_FX_OFFSET.vx                                                   = 0;
                 _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + 9, ODD_STRANGER_WALK_DEATH_DEBRIS_SIZE, &ODD_STRANGER_FX_OFFSET), enemy);
             }
             if ((s16)work->stateTimer == ODD_STRANGER_WALK_DEATH_SECOND_DEBRIS_FRAME) {
-                D_80114B34[ODD_STRANGER_WALK_DEATH_DEBRIS_TASK].data.model = ODD_STRANGER_BURST_MODEL_5;
+                gEffectBurstTaskDescriptors[ODD_STRANGER_WALK_DEATH_DEBRIS_TASK].data.model = ODD_STRANGER_BURST_MODEL_5;
                 _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + 1, ODD_STRANGER_WALK_DEATH_DEBRIS_SIZE, NULL), enemy);
             }
             if ((s16)work->stateTimer == ODD_STRANGER_WALK_DEATH_THIRD_DEBRIS_FRAME) {
-                D_80114B34[ODD_STRANGER_WALK_DEATH_DEBRIS_TASK].data.model = &_gOddStrangerBurstPart3Model;
+                gEffectBurstTaskDescriptors[ODD_STRANGER_WALK_DEATH_DEBRIS_TASK].data.model = &_gOddStrangerBurstPart3Model;
                 _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + 3, ODD_STRANGER_WALK_DEATH_DEBRIS_SIZE, NULL), enemy);
             }
             break;

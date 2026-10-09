@@ -341,18 +341,17 @@ extern _CdCmdSceneSoundBankBit Gp_SndMaskTable[];
 /// Printed when an enemy's work block cannot be allocated.
 static const char Gp_StrNewEnemyNull[];
 
-/// Three-entry dispatcher table: `_enemyStartTeardownDelay`, `_enemyWaitTick`, `enemyDestroy`.
-static const EnemyTaskFuncTable3 Gp_EnemyWaitFuncs;
+static const EnemyTaskFuncTable3 _gEnemyTeardownDelayStates;
 
 static const TaskFuncTable3 Gp_StageLoadStates;
 
 static const VECTOR D_80093A28;
 
-static const TaskFuncTable3 D_80093A38;
+static const TaskFuncTable3 _gFadePulseStates;
 
 static const char _gAnimationUnsupportedPoseDiagnostic[24];
 
-static const TaskFuncTable3 D_80093A5C;
+static const TaskFuncTable3 _gDisplayPreviousFrameBlendStates;
 
 /// Pixel extent of the fixed gameplay screen effects.
 enum { DISPLAY_EFFECT_WIDTH  = 320,
@@ -404,7 +403,7 @@ enum {
     SCENE_PLACED_ACTOR_BANK = ENEMY_WORK_PLAIN >> SCENE_ACTOR_BANK_SHIFT,
 };
 
-extern TaskMessageEntry Gp_Slot4MsgTable[5];
+static TaskMessageEntry _gSceneManagerMessages[5];
 
 static s32 _sceneFindPlacedActor(Task* scene, s32 messageId, s32 placeKey, Task** reply);
 
@@ -491,12 +490,8 @@ TaskDesc D_8010D1FC = { { { TASK_BODY_NONE, 192 } }, _loadingRestartPresentation
 
 static const TaskFuncTable3 Gp_StageLoadStates;
 static const VECTOR         D_80093A28;
-static const TaskFuncTable3 D_80093A38;
-static const TaskFuncTable3 D_80093A5C;
 
 static const char Gp_StrNewEnemyNull[];
-
-static const EnemyTaskFuncTable3 Gp_EnemyWaitFuncs;
 
 /// Blends Euler pitch/yaw and clamps them without pulling an existing pose inward.
 ///
@@ -1269,7 +1264,7 @@ void enemyTeardownDelayTask(Task* task)
 {
     EnemyTaskFuncTable3 stateHandlers;
 
-    stateHandlers = Gp_EnemyWaitFuncs;
+    stateHandlers = _gEnemyTeardownDelayStates;
     stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
@@ -2264,7 +2259,7 @@ static void _fadeStartPulse(Task* task)
 
 void fadePulseTask(Task* task)
 {
-    const TaskFuncTable3 stateHandlers = D_80093A38;
+    const TaskFuncTable3 stateHandlers = _gFadePulseStates;
 
     stateHandlers.funcs[task->state](task);
 }
@@ -4392,7 +4387,7 @@ static void _displayStartPreviousFrameRedraw(Task* task)
 
 void displayBlendPreviousFrameTask(Task* task)
 {
-    const TaskFuncTable3 stateHandlers = D_80093A5C;
+    const TaskFuncTable3 stateHandlers = _gDisplayPreviousFrameBlendStates;
 
     stateHandlers.funcs[task->state](task);
 }
@@ -4582,8 +4577,10 @@ static inline s16 _gpScanHeldQty(InventoryItemRow* table, InventoryItemRange* sc
 /// Printed when an enemy's work block cannot be allocated.
 static const char Gp_StrNewEnemyNull[] = "new_enemy ---> NULL\n";
 
-/// Three-entry dispatcher table: `_enemyStartTeardownDelay`, `_enemyWaitTick`, `enemyDestroy`.
-static const EnemyTaskFuncTable3 Gp_EnemyWaitFuncs = { {
+/// Bodyless-enemy teardown states: initialize the 120-frame delay, count down, destroy.
+///
+/// `Task::state` must be 0..2; each callback borrows the live enemy and task.
+static const EnemyTaskFuncTable3 _gEnemyTeardownDelayStates = { {
     _enemyStartTeardownDelay,
     _enemyWaitTick,
     enemyDestroy,
@@ -4597,7 +4594,10 @@ static const TaskFuncTable3 Gp_StageLoadStates = { {
 
 static const VECTOR D_80093A28 = { 0, -100, 0, 0 };
 
-static const TaskFuncTable3 D_80093A38 = { {
+/// Full-screen pulse states: initialize, draw the pulse, then exit.
+///
+/// `Task::state` must be 0..2. The table remains live with gameplay.
+static const TaskFuncTable3 _gFadePulseStates = { {
     _fadeStartPulse,
     _fadeTickPulse,
     taskCallExit,
@@ -4609,14 +4609,24 @@ static const TaskFuncTable3 D_80093A38 = { {
 /// preserve the original read-only data and are not part of the printed text.
 static const char _gAnimationUnsupportedPoseDiagnostic[24] = "ERROR: ex_pdriver_2\n\0\xB7\xB0\x34";
 
-static const TaskFuncTable3 D_80093A5C = { {
+/// Previous-frame blend states: initialize the optional fade, redraw, then exit.
+///
+/// `Task::state` must be 0..2. The table remains live with gameplay.
+static const TaskFuncTable3 _gDisplayPreviousFrameBlendStates = { {
     _displayStartPreviousFrameRedraw,
     _displayRedrawPreviousFrame,
     taskCallExit,
 } };
 
-/// Message table the scene task installs while it is the scene manager.
-TaskMessageEntry Gp_Slot4MsgTable[5] = {
+/// Synchronous scene-manager routes for actor lookup, exit and broadcast.
+///
+/// Find messages take a placement key or other-child byte ID and a writable
+/// `Task**` reply; they return 0 on a match or -1 with a NULL reply. Exit
+/// ignores payloads and returns 0. Broadcast forwards its first payload and
+/// second-word child message ID to placed actors, discarding their results.
+/// The final `TASK_MESSAGE_TABLE_END` makes other IDs return 0. The scene
+/// borrows this read-only table while gameplay remains loaded.
+static TaskMessageEntry _gSceneManagerMessages[5] = {
     { SCENE_MESSAGE_FIND_PLACED_ACTOR, _sceneFindPlacedActor },
     { SCENE_MESSAGE_FIND_OTHER_CHILD, _sceneFindOtherChild },
     { SCENE_MESSAGE_EXIT_PLACED_ACTORS, _sceneExitPlacedActors },
@@ -4634,7 +4644,7 @@ AreaObjectStage Gp_Bit2Banks[6] = { { NULL, NULL }, { D_map_akropolis_8017A7FC, 
 static void _sceneInitializeManager(Task* sceneTask)
 {
     gameSetTaskSlot(sceneTask, GAME_TASK_SLOT_SCENE);
-    sceneTask->msgTable = Gp_Slot4MsgTable;
+    sceneTask->msgTable = _gSceneManagerMessages;
     sceneTask->state++;
 }
 

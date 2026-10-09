@@ -104,7 +104,7 @@ enum {
 /// not name either local. Invoke inside a braced statement context.
 #define NEO_ARK_SHRINE_BEGIN_LAYOUT(task, active)                                                              \
     {                                                                                                          \
-        ActionPrompt*           prompt = D_80114D28;                                                           \
+        ActionPrompt*           prompt = gActionPromptSlots;                                                   \
         NeoArkShrinePuzzleWork* work   = (task)->work;                                                         \
                                                                                                                \
         padScriptSpawnVariableMotorRamp(NEO_ARK_SHRINE_LAYOUT_RUMBLE_FRAMES,                                   \
@@ -128,7 +128,7 @@ enum {
 /// not name either local. Invoke inside a braced statement context.
 #define NEO_ARK_SHRINE_WAIT_LAYOUT(task, beforeRevealLayout, afterRevealLayout)                    \
     {                                                                                              \
-        ActionPrompt*           prompt = D_80114D28;                                               \
+        ActionPrompt*           prompt = gActionPromptSlots;                                       \
         NeoArkShrinePuzzleWork* work   = (task)->work;                                             \
                                                                                                    \
         prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;                                           \
@@ -1212,7 +1212,7 @@ static void _neoArkShrineInitializePuzzle(Task* task)
 /// The cursor task has already reset both ports and needs no puzzle work here.
 static void _neoArkShrinePreparePuzzleCursor(Task* task)
 {
-    ActionPrompt* prompt = D_80114D28;
+    ActionPrompt* prompt = gActionPromptSlots;
 
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     prompt->mode        = ACTION_PROMPT_MODE_IDLE;
@@ -1228,7 +1228,7 @@ static void _neoArkShrinePreparePuzzleCursor(Task* task)
 /// opens at that cursor's display-centred pixel position.
 static void _neoArkShrineOpenPuzzleCommands(Task* task)
 {
-    ActionPrompt*           prompt = D_80114D28;
+    ActionPrompt*           prompt = gActionPromptSlots;
     NeoArkShrinePuzzleWork* work   = task->work;
 
     neoArkShrineDrawPuzzleFrame(task);
@@ -1249,7 +1249,7 @@ static void _neoArkShrineResolvePuzzleExamine(Task* task)
     enum { NEO_ARK_SHRINE_EXAMINE_BOARD_SEQUENCE     = 1,
            NEO_ARK_SHRINE_EXAMINE_OFF_BOARD_SEQUENCE = 2 };
 
-    ActionPrompt*           prompt = D_80114D28;
+    ActionPrompt*           prompt = gActionPromptSlots;
     NeoArkShrinePuzzleWork* work   = task->work;
 
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;

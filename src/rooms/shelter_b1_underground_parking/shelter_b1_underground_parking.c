@@ -2635,7 +2635,7 @@ static void _shelterB1UndergroundParkingPanelInitialize(Task* task)
 /// when set, in the current loaded CAP table, then advances to hotspot scanning.
 static void _shelterB1UndergroundParkingPanelOpen(Task* task)
 {
-    ActionPrompt* prompt = D_80114D28;
+    ActionPrompt* prompt = gActionPromptSlots;
 
     _shelterB1UndergroundParkingDrawPanelIndicators();
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
@@ -2674,7 +2674,7 @@ static void _shelterB1UndergroundParkingPanelScanHotspots(Task* task)
         SHELTER_B1_UNDERGROUND_PARKING_PANEL_BUTTON_CONFIRM = 0,
         SHELTER_B1_UNDERGROUND_PARKING_PANEL_BUTTON_CANCEL  = 1,
     };
-    ActionPrompt*                          prompt  = D_80114D28;
+    ActionPrompt*                          prompt  = gActionPromptSlots;
     ActionPromptHotspot*                   hotspot = D_shelter_b1_underground_parking_8018767C;
     _ShelterB1UndergroundParkingPanelWork* work    = task->work;
 
@@ -2710,7 +2710,7 @@ static void _shelterB1UndergroundParkingPanelScanHotspots(Task* task)
 /// the port-0 cursor's screen-pixel position; the cursor stays hidden and stopped.
 static void _shelterB1UndergroundParkingPanelOpenCommands(Task* task)
 {
-    ActionPrompt*                          prompt = D_80114D28;
+    ActionPrompt*                          prompt = gActionPromptSlots;
     _ShelterB1UndergroundParkingPanelWork* work   = task->work;
 
     _shelterB1UndergroundParkingDrawPanelIndicators();
@@ -2730,7 +2730,7 @@ static void _shelterB1UndergroundParkingPanelOpenCommands(Task* task)
 static void _shelterB1UndergroundParkingPanelHandleCommand(Task* task)
 {
     enum { SHELTER_B1_UNDERGROUND_PARKING_PANEL_INITIAL_ROOM = 1 };
-    ActionPrompt*                          prompt = D_80114D28;
+    ActionPrompt*                          prompt = gActionPromptSlots;
     _ShelterB1UndergroundParkingPanelWork* work   = task->work;
 
     _shelterB1UndergroundParkingDrawPanelIndicators();

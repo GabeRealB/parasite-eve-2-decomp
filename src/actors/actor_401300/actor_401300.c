@@ -310,7 +310,7 @@ enum {
 /// each spawn in `_actor401300StateDeathBurst`.
 
 /// The records closing three of the overlay's model streams, which
-/// `_actor401300StateDeathBurst` points `D_80114B34[5].data.model` at before spawning.
+/// `_actor401300StateDeathBurst` points `gEffectBurstTaskDescriptors[5].data.model` at before spawning.
 static TmdSource _gActor401300HornedStrangerEffect1;
 static TmdSource _gActor401300HornedStrangerBurstHead;
 static TmdSource _gActor401300HornedStrangerEffect2;
@@ -5024,24 +5024,24 @@ static void _actor401300StateDeathBurst(Task* actor)
     nextTick         = work->stateTimer + 1;
     work->stateTimer = nextTick;
     if ((s16)nextTick == ACTOR_401300_BURST_FIRST_TICK) {
-        D_80114B34[ACTOR_401300_BURST_MODEL_SLOT].data.model = &_gActor401300HornedStrangerEffect1;
-        effectOffset.vz                                      = ACTOR_401300_BURST_OFFSET;
-        effectOffset.vy                                      = 0;
-        effectOffset.vx                                      = 0;
+        gEffectBurstTaskDescriptors[ACTOR_401300_BURST_MODEL_SLOT].data.model = &_gActor401300HornedStrangerEffect1;
+        effectOffset.vz                                                       = ACTOR_401300_BURST_OFFSET;
+        effectOffset.vy                                                       = 0;
+        effectOffset.vx                                                       = 0;
         _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, actor->extra.tmd->coords + 9, ACTOR_401300_BURST_PART_SIZE, &effectOffset), enemy);
     }
     if (work->stateTimer == ACTOR_401300_BURST_SECOND_TICK) {
-        D_80114B34[ACTOR_401300_BURST_MODEL_SLOT].data.model = &_gActor401300HornedStrangerEffect1;
-        effectOffset.vy                                      = 0;
-        effectOffset.vx                                      = 0;
+        gEffectBurstTaskDescriptors[ACTOR_401300_BURST_MODEL_SLOT].data.model = &_gActor401300HornedStrangerEffect1;
+        effectOffset.vy                                                       = 0;
+        effectOffset.vx                                                       = 0;
         _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, actor->extra.tmd->coords + 12, ACTOR_401300_BURST_PART_SIZE, &effectOffset), enemy);
     }
     if (work->stateTimer == ACTOR_401300_BURST_BODY_TICK) {
-        D_80114B34[ACTOR_401300_BURST_MODEL_SLOT].data.model = &_gActor401300HornedStrangerEffect2;
+        gEffectBurstTaskDescriptors[ACTOR_401300_BURST_MODEL_SLOT].data.model = &_gActor401300HornedStrangerEffect2;
         _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, actor->extra.tmd->coords + 1, ACTOR_401300_BURST_PART_SIZE, NULL), enemy);
     }
     if (work->stateTimer == ACTOR_401300_BURST_HEAD_TICK) {
-        D_80114B34[ACTOR_401300_BURST_MODEL_SLOT].data.model = &_gActor401300HornedStrangerBurstHead;
+        gEffectBurstTaskDescriptors[ACTOR_401300_BURST_MODEL_SLOT].data.model = &_gActor401300HornedStrangerBurstHead;
         _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, actor->extra.tmd->coords + 3, ACTOR_401300_BURST_PART_SIZE, NULL), enemy);
     }
     if (work->stateTimer >= ACTOR_401300_BURST_DEAD_TICK && work->playerHeld == 0) {
@@ -5137,14 +5137,14 @@ static void _actor401300StateDeathBurstWalk(Task* actor)
             }
             _actorContactApplyGridPushback(actor->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
             if (work->stateTimer == ACTOR_401300_BURST_WALK_FIRST_TICK) {
-                D_80114B34[ACTOR_401300_BURST_WALK_MODEL_SLOT].data.model = &_gActor401300HornedStrangerBurstHead;
-                effectPosition.vz                                         = ACTOR_401300_BURST_WALK_OFFSET;
-                effectPosition.vy                                         = 0;
-                effectPosition.vx                                         = 0;
+                gEffectBurstTaskDescriptors[ACTOR_401300_BURST_WALK_MODEL_SLOT].data.model = &_gActor401300HornedStrangerBurstHead;
+                effectPosition.vz                                                          = ACTOR_401300_BURST_WALK_OFFSET;
+                effectPosition.vy                                                          = 0;
+                effectPosition.vx                                                          = 0;
                 _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, actor->extra.tmd->coords + 9, ACTOR_401300_BURST_WALK_PART_SIZE, &effectPosition), enemy);
             }
             if (work->stateTimer == ACTOR_401300_BURST_WALK_SECOND_TICK) {
-                D_80114B34[ACTOR_401300_BURST_WALK_MODEL_SLOT].data.model = &_gActor401300HornedStrangerEffect2;
+                gEffectBurstTaskDescriptors[ACTOR_401300_BURST_WALK_MODEL_SLOT].data.model = &_gActor401300HornedStrangerEffect2;
                 _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, actor->extra.tmd->coords + 1, ACTOR_401300_BURST_WALK_PART_SIZE, NULL), enemy);
             }
             break;

@@ -22,8 +22,7 @@
 /// Unreferenced nonzero tail; its original purpose is unknown.
 extern u32 D_80114B7C;
 
-/// Task bank 10; actors supply the last descriptor's model before spawning.
-TaskDesc D_80114B34[6] = {
+TaskDesc gEffectBurstTaskDescriptors[6] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { .value = 0 } },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { .value = 0 } },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { .value = 0 } },

@@ -38,8 +38,6 @@ void attachmentAddTargetContact(const struct Enemy* enemy, s32 attackKey);
 /// Returns the low 16 bits in s32 and does not change saved or table state.
 s32 attachmentGetPackedLevelValue(s32 abilityId, s32 column);
 
-extern InventoryItemRow Gp_ItemTable2[];
-
 // Shared HUD/replay work.
 extern HudHpMp Gp_HpMpWork;
 
@@ -64,9 +62,12 @@ extern u16* Gp_ReplayCursor;
 /// Learned levels must be 0..3; no bounds checks or table writes occur.
 u16 attachmentGetActiveLevelValue(s32 column);
 
-/// Word cleared by `_worldCoordInitPlayerLighting`. Also written by `attachmentApplySelfEffect` and
-/// read/cleared by `_worldCoordUpdatePlayerLighting`.
-extern s32 D_80114F28;
+/// Pending attachment-preview pulse in the player's directional light colours.
+///
+/// Zero means no request; nonzero requests one green pulse on the next normal
+/// player-lighting update, which consumes it. Initialization clears it; light-
+/// probe updates retain it. This signed word owns no model or matrix storage.
+extern s32 gAttachmentPlayerLightPulsePending;
 
 /// Preview/release selector shared by the attachment area and self-effect dispatchers.
 enum { ATTACHMENT_TARGET_PREVIEW = 0,

@@ -11,22 +11,6 @@
 #include "main/mc_types.h"
 #include "main/task_types.h"
 
-/// Default `MATRIX` installed at `TmdObject.lightMtx` by `_worldCoordInitPlayerLighting`.
-extern MATRIX Gp_DefaultMtx;
-
-/// Default `MATRIX` installed at `TmdObject.colorMtx` by `_worldCoordInitPlayerLighting`.
-extern MATRIX Gp_DefaultMtx2;
-
-/// Light/color `MATRIX` pair `_worldCoordUpdatePlayerLighting` installs at
-/// `TmdObject.lightMtx` / `colorMtx` for the `gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION]` actor and
-/// its `GameActor::attachmentTasks` / `equipmentTasks` child models (the second actor uses its own
-/// pair instead of `Gp_DefaultMtx` / `Gp_DefaultMtx2`).
-extern MATRIX D_80114ED8;
-
-extern MATRIX D_80114EF8;
-
-extern s32 D_8010F9F0;
-
 /// Per-stage `InventoryBattleReward` lists selected by
 /// `inventoryGrantBattleRewards` when
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode` is 0 or 2. Indexed by
@@ -38,8 +22,6 @@ extern InventoryBattleReward* D_8010F9F4[];
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode` is not 0 or 2. Indexed by
 /// `GameSession.location.loc.stage`.
 extern InventoryBattleReward* D_8010FA0C[];
-
-extern const char D_8009745C[];
 
 extern const char Gp_StrGetLockPosNull[];
 

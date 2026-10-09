@@ -378,7 +378,7 @@ void dryfieldNightMotelLobbyCashRegisterScanTask(Task* task)
            CASH_REGISTER_CANCEL_SLOT       = 1 };
     DryfieldNightMotelLobbyCashRegisterWork* work    = task->work;
     ActionPromptHotspot*                     hotspot = D_dryfield_night_motel_lobby_80182820;
-    ActionPrompt*                            prompt  = D_80114D28;
+    ActionPrompt*                            prompt  = gActionPromptSlots;
 
     // A key clear belongs to one drawn frame; reset its latch before scanning.
     work->entryCleared       = 0;

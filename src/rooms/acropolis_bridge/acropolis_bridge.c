@@ -3125,7 +3125,7 @@ static void _acropolisBridgeKeypadEnterCode(Task* task)
     };
     _AcropolisBridgeKeypadWork* work    = task->work;
     ActionPromptHotspot*        hotspot = D_acropolis_bridge_8018983C;
-    ActionPrompt*               prompt  = D_80114D28;
+    ActionPrompt*               prompt  = gActionPromptSlots;
 
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
@@ -3214,7 +3214,7 @@ static inline void _acropolisBridgeKeypadStepResultBlink(_AcropolisBridgeKeypadW
 /// state on its first update. Cursor hotspot feedback remains active.
 static void _acropolisBridgeKeypadBlinkAcceptedCode(Task* task)
 {
-    ActionPrompt*               prompt   = D_80114D28;
+    ActionPrompt*               prompt   = gActionPromptSlots;
     ActionPromptHotspot*        hotspots = D_acropolis_bridge_8018983C;
     _AcropolisBridgeKeypadWork* work     = task->work;
     GameLocationKey*            location = &gGameSession->location.loc;
@@ -3248,7 +3248,7 @@ static void _acropolisBridgeKeypadBlinkAcceptedCode(Task* task)
 /// feedback remains active throughout.
 static void _acropolisBridgeKeypadBlinkError(Task* task)
 {
-    ActionPrompt*               prompt   = D_80114D28;
+    ActionPrompt*               prompt   = gActionPromptSlots;
     ActionPromptHotspot*        hotspots = D_acropolis_bridge_8018983C;
     _AcropolisBridgeKeypadWork* work     = task->work;
     u8                          rejectedCount;
@@ -3529,7 +3529,7 @@ static void _acropolisBridgeSelectArrivalSpriteFrame(s32 frame)
 /// idle cursor sprite and blanks the keypad display; button state is retained.
 static void _acropolisBridgeKeypadArmCursor(Task* task)
 {
-    ActionPrompt* prompt = D_80114D28;
+    ActionPrompt* prompt = gActionPromptSlots;
 
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     prompt->mode        = ACTION_PROMPT_MODE_IDLE;
@@ -3546,7 +3546,7 @@ static void _acropolisBridgeKeypadArmCursor(Task* task)
 /// visible while cursor movement and rendering are stopped.
 static void _acropolisBridgeKeypadOpenExaminePrompt(Task* task)
 {
-    ActionPrompt*               prompt = D_80114D28;
+    ActionPrompt*               prompt = gActionPromptSlots;
     _AcropolisBridgeKeypadWork* work   = task->work;
 
     _acropolisBridgeShowKeypadCode(work->code, 0);
@@ -3567,7 +3567,7 @@ static void _acropolisBridgeKeypadCollectExamineAnswer(Task* task)
     enum { EXAMINE_CAP_SLOT            = 9,
            CAP_PLAY_IN_CURRENT_DISPLAY = 0,
            EXAMINE_VARIANT             = 0 };
-    ActionPrompt*               prompt = D_80114D28;
+    ActionPrompt*               prompt = gActionPromptSlots;
     _AcropolisBridgeKeypadWork* work   = task->work;
 
     _acropolisBridgeShowKeypadCode(work->code, 0);
@@ -3590,7 +3590,7 @@ static void _acropolisBridgeKeypadCollectExamineAnswer(Task* task)
 /// cursor feedback.
 static void _acropolisBridgeKeypadCheckCode(Task* task)
 {
-    ActionPrompt*               prompt   = D_80114D28;
+    ActionPrompt*               prompt   = gActionPromptSlots;
     _AcropolisBridgeKeypadWork* work     = task->work;
     ActionPromptHotspot*        hotspots = D_acropolis_bridge_8018983C;
 

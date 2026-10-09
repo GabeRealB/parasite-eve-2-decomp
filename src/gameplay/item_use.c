@@ -40,13 +40,13 @@
 
 #include "mapui/map_shelter.h"
 
-MATRIX Gp_DefaultMtx;
+MATRIX gWorldCoordPlayerLightMatrix;
 
-MATRIX Gp_DefaultMtx2;
+MATRIX gWorldCoordPlayerColorMatrix;
 
-MATRIX D_80114ED8;
+MATRIX gWorldCoordCompanionLightMatrix;
 
-MATRIX D_80114EF8;
+MATRIX gWorldCoordCompanionColorMatrix;
 
 s8 gWorldCoordAmbientColorOverrideEnabled;
 
@@ -104,7 +104,9 @@ enum { WORLD_TARGET_CURSOR_INITIAL_X_FIXED8 = -0x10000 }; // -256 screen pixels.
 
 s32 gWorldTargetCursorXFixed8 = WORLD_TARGET_CURSOR_INITIAL_X_FIXED8;
 
-s32 D_8010F9F0 = -0x10000;
+enum { WORLD_TARGET_CURSOR_INITIAL_Y_FIXED8 = -0x10000 }; // -256 screen pixels.
+
+s32 gWorldTargetCursorYFixed8 = WORLD_TARGET_CURSOR_INITIAL_Y_FIXED8;
 
 InventoryBattleReward* D_8010F9F4[6] = {
     NULL,
@@ -790,7 +792,7 @@ void itemMenuAttachmentUseWeaponPanelTask(Task* panelTask)
     uiDrawPanelLabel(panel, Gp_StrWeapon);
 }
 
-const char D_8009745C[] = {
+const u8 gWorldCoordLightProbeMarkerText[4] = {
     '?',
     '\0',
     0x00,

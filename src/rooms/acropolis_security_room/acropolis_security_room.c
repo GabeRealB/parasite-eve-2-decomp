@@ -1426,7 +1426,7 @@ static void _acropolisSecurityRoomMonitorScanHotspots(Task* task)
     ActionPrompt*                      prompt;
 
     hotspot = D_acropolis_security_room_80182648;
-    prompt  = D_80114D28;
+    prompt  = gActionPromptSlots;
     work    = task->work;
     _acropolisSecurityRoomDrawMonitorWash(work->screenLevel - ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_BIAS);
     _acropolisSecurityRoomDrawMonitorSweep(task);
@@ -1484,9 +1484,9 @@ static void _acropolisSecurityRoomMonitorHandlePrompt(Task* task)
     s16                                confirmedId;
     u16                                confirmedBits;
 
-    work                      = task->work;
-    D_80114D28[0].mode        = ACTION_PROMPT_MODE_HIDDEN;
-    D_80114D28[0].cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
+    work                              = task->work;
+    gActionPromptSlots[0].mode        = ACTION_PROMPT_MODE_HIDDEN;
+    gActionPromptSlots[0].cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (itemMenuIsHotspotActionConfirmed() != 0) {
         confirmedId = work->hotspotId;
         if (confirmedId >= 0) {
@@ -1722,7 +1722,7 @@ static void _acropolisSecurityRoomMonitorCursorTask(Task* task)
 /// when a hotspot is confirmed.
 static void _acropolisSecurityRoomMonitorArmCursor(Task* task)
 {
-    ActionPrompt* prompt = D_80114D28;
+    ActionPrompt* prompt = gActionPromptSlots;
 
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     prompt->mode        = ACTION_PROMPT_MODE_IDLE;
@@ -1738,7 +1738,7 @@ static void _acropolisSecurityRoomMonitorArmCursor(Task* task)
 static void _acropolisSecurityRoomMonitorOpenPrompt(Task* task)
 {
     enum { ACROPOLIS_SECURITY_ROOM_MONITOR_STATE_HANDLE_PROMPT = 4 };
-    ActionPrompt*                      prompt = D_80114D28;
+    ActionPrompt*                      prompt = gActionPromptSlots;
     _AcropolisSecurityRoomMonitorWork* work   = task->work;
 
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
@@ -1798,7 +1798,7 @@ static void _acropolisSecurityRoomMonitorClose(Task* task)
 static void _acropolisSecurityRoomMonitorScanRestrictedHotspots(Task* task)
 {
     enum { ACROPOLIS_SECURITY_ROOM_MONITOR_RESTRICTED_CAP_COMMAND = 14 };
-    ActionPrompt*        prompt  = D_80114D28;
+    ActionPrompt*        prompt  = gActionPromptSlots;
     ActionPromptHotspot* hotspot = D_acropolis_security_room_80182648;
 
     gGameSession->hideHud    = 1;
@@ -1868,7 +1868,7 @@ void acropolisSecurityRoomMonitorTask(Task* task)
 /// opens its commands; a miss clears the pending key and cancel selects cleanup.
 static void _acropolisSecurityRoomPowerSupplyScanHotspots(Task* task)
 {
-    ActionPrompt*                          prompt  = D_80114D28;
+    ActionPrompt*                          prompt  = gActionPromptSlots;
     ActionPromptHotspot*                   hotspot = D_acropolis_security_room_801826DC;
     _AcropolisSecurityRoomPowerSupplyWork* work    = task->work;
 
@@ -2101,7 +2101,7 @@ static void _acropolisSecurityRoomPowerSupplyInit(Task* task)
 /// when a lock is confirmed.
 static void _acropolisSecurityRoomPowerSupplyArmCursor(Task* task)
 {
-    ActionPrompt* prompt = D_80114D28;
+    ActionPrompt* prompt = gActionPromptSlots;
 
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     prompt->mode        = ACTION_PROMPT_MODE_IDLE;
@@ -2117,7 +2117,7 @@ static void _acropolisSecurityRoomPowerSupplyArmCursor(Task* task)
 static void _acropolisSecurityRoomPowerSupplyOpenPrompt(Task* task)
 {
     enum { ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_STATE_HANDLE_PROMPT = 4 };
-    ActionPrompt*                          prompt = D_80114D28;
+    ActionPrompt*                          prompt = gActionPromptSlots;
     _AcropolisSecurityRoomPowerSupplyWork* work   = task->work;
 
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
@@ -2134,7 +2134,7 @@ static void _acropolisSecurityRoomPowerSupplyOpenPrompt(Task* task)
 /// handler returns. A cancelled prompt resumes scanning.
 static void _acropolisSecurityRoomPowerSupplyHandlePrompt(Task* task)
 {
-    ActionPrompt*                          prompt = D_80114D28;
+    ActionPrompt*                          prompt = gActionPromptSlots;
     _AcropolisSecurityRoomPowerSupplyWork* work   = task->work;
 
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
