@@ -114747,7 +114747,7 @@ reload and keeps the code in the block that already holds it:
 ```c
 case 2:
     work->animId         = 0x23;
-    D_actor_110600_80148598 = &D_8015BD7C;
+    _gActor110600AnimationSets[ACTOR_110600_ANIM_SCRIPTED_SLOT1] = &gActor210600Animation11F5C;
     goto state_11;
 ...
 case 9:
@@ -115311,12 +115311,12 @@ and one consequence the scalar example does not show.
 
 `_bossStrangerPlanToward` prints `"s->root_cnt == 0xff about \n"`, and
 `migrate_rodata_to_functions` had folded that string into the function's own
-`.s` as `D_actor_110600_80131E24` - text and rodata shared one file. Matching
+`.s` as `_gBossStrangerNoPlanPairMessage` - text and rodata shared one file. Matching
 the body retires that `.s`, so the link fails exactly as the scalar case does:
 
 ```
 build/USA/src/actors/actor_110600/actor_110600.i:(.text+0xa40):
-    undefined reference to `D_actor_110600_80131E24'
+    undefined reference to `_gBossStrangerNoPlanPairMessage'
 ```
 
 Writing the call as `printf("s->root_cnt == 0xff about \n")` builds and lands -
@@ -115326,7 +115326,7 @@ the linker script. But scratch reports **99.944%, `regs=2`**, whose only
 difference is the usual
 
 ```
--lui    a0,%hi(D_actor_110600_80131E24)
+-lui    a0,%hi(_gBossStrangerNoPlanPairMessage)
 +lui    a0,%hi(.rodata)
 ```
 
@@ -115338,9 +115338,9 @@ can reach. It does not hold when the object is one the C can name: declaring it
 as its splat symbol
 
 ```c
-const char D_actor_110600_80131E24[] = "s->root_cnt == 0xff about \n";
+const char _gBossStrangerNoPlanPairMessage[] = "s->root_cnt == 0xff about \n";
 ...
-        printf(D_actor_110600_80131E24);
+        printf(_gBossStrangerNoPlanPairMessage);
 ```
 
 scores **100.000%, all penalties zero**, and links the same bytes - the

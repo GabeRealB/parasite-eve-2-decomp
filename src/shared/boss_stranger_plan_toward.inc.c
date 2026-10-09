@@ -101,7 +101,7 @@ static void _bossStrangerPlanToward(BossStrangerWalker* walker, s16 playerId)
     _bossStrangerSelectClosestPlanSlots(walker, plan);
 
     if (plan->bestGap == BOSS_STRANGER_PLAN_GAP_NONE) {
-        printf(_gPatrolNoPairMsg);
+        printf(_gBossStrangerNoPlanPairMessage);
     }
     walker->cursor += (u8)walker->orderStep;
     SCRATCH_STACK_RELEASE_BLOCK(BossStrangerPlanTowardScratch);

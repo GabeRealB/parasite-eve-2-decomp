@@ -870,14 +870,14 @@ WorldCollisionOccluder D_acropolis_cafeteria_80189C94[2] = {
 };
 
 AreaResource D_acropolis_cafeteria_80189D0C[4] = {
-    { 10, 106, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_110600_80148670 },
+    { 10, 106, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor110600TaskDesc },
     { 29, 29, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_actor_202900_80156E24 },
     { 102, 106, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_actor_310600_801796A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_acropolis_cafeteria_80189D3C[4] = {
-    { 10, 106, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_110600_80148670 },
+    { 10, 106, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor110600TaskDesc },
     { 19, 106, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &D_actor_210600_8015A4EC },
     { 102, 106, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_actor_310600_801796A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },

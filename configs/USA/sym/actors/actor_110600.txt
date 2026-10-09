@@ -1,9 +1,9 @@
 // Overlay-local symbols for actor_110600.
 
-// Referenced in another actor load slot, resident beside this one.
-D_actor_110600_801485C4 = 0x801485C4; // size:0x60 defined:True
-D_actor_110600_80148624 = 0x80148624; // size:0x38 defined:True
-D_actor_110600_8014865C = 0x8014865C; // size:0x2 defined:True
+// Animation imports are supplied by the paired resident actor overlay.
+_gActor110600HitAnchors = 0x801485C4; // size:0x60 defined:True
+_gActor110600Messages = 0x80148624; // size:0x38 defined:True
+_gActor110600FootstepShakePhase = 0x8014865C; // size:0x2 defined:True
 gActor210600Animation11F5C = 0x8015BD7C; // absolute:True owner=actor_210600
 gActor210600Animation12244 = 0x8015C064; // absolute:True owner=actor_210600
 gActor210600Animation12B30 = 0x8015C950; // absolute:True owner=actor_210600
@@ -115,24 +115,19 @@ _gActor110600Animation15ED8Bank4 = 0x801465DC; // size:0x990 defined:True
 _gActor110600Animation15ED8Records = 0x80146F6C; // size:0xD64 defined:True
 _gActor110600Animation15ED8Indices = 0x80147CD0; // size:0x28 defined:True
 _gActor110600Animation15ED8 = 0x80147CF8; // size:0x28 defined:True
-D_actor_110600_80147D20 = 0x80147D20; // size:0x7E9 defined:True
-D_actor_110600_8014850C = 0x8014850C; // size:0x88 defined:True
-D_actor_110600_80148594 = 0x80148594; // size:0x4 defined:True
-D_actor_110600_80148598 = 0x80148598; // size:0x4 defined:True
-D_actor_110600_8014859C = 0x8014859C; // size:0x4 defined:True
-D_actor_110600_801485A0 = 0x801485A0; // size:0x4 defined:True
-D_actor_110600_801485A4 = 0x801485A4; // size:0x20 defined:True
-D_actor_110600_80138F04 = 0x80138F04; // size:0x8 defined:True
-D_actor_110600_80138F0C = 0x80138F0C; // size:0x8 defined:True
-D_actor_110600_80138F14 = 0x80138F14; // size:0x10 defined:True
-D_actor_110600_80138F24 = 0x80138F24; // size:0x10 defined:True
+_gActor110600AnimBlendFrames = 0x80147D20; // size:0x7E9 defined:True
+_gActor110600AnimationSets = 0x8014850C; // size:0xB8 defined:True
+_gActor110600Attacks = 0x80138F04; // size:0x8 defined:True
+_gActor110600UnusedAttacks = 0x80138F0C; // size:0x8 defined:True
+_gActor110600EnemyParams = 0x80138F14; // size:0x10 defined:True
+_gActor110600UnusedEnemyParams = 0x80138F24; // size:0x10 defined:True
 D_actor_110600_80138F34 = 0x80138F34; // size:0x24 defined:True
 D_actor_110600_80148660 = 0x80148660; // size:0x10 defined:True
-D_actor_110600_80148670 = 0x80148670; // size:0xC defined:True
-D_actor_110600_8014867C = 0x8014867C; // size:0xC defined:True
-D_actor_110600_80148688 = 0x80148688; // size:0x8 defined:True
+gActor110600TaskDesc = 0x80148670; // size:0xC defined:True
+_gActor110600UnusedTaskDesc = 0x8014867C; // size:0xC defined:True
+_gActor110600ShudderStep = 0x80148688; // size:0x2 defined:True
 ActorContact_ScratchPosition = 0x80148690; // size:0x8 defined:True
-D_actor_110600_80148698 = 0x80148698; // size:0x8 defined:True
+_gActor110600HitEffectArgs = 0x80148698; // size:0x8 defined:True
 _actorRenderSetYawScale = 0x80138568; // type:func
 _playerDetectionOutOfReach = 0x801341A4; // type:func
 _actorRenderYawJointInWorld = 0x80131FC0; // type:func
@@ -186,3 +181,6 @@ _actor110600DeathBurstState = 0x80136ecc; // type:func
 _actor110600ScriptedState = 0x801372cc; // type:func
 _actor110600Update = 0x80137f2c; // type:func
 _actor110600StepFootstepShake = 0x80138900; // type:func
+_gActor110600ScriptedHitOffset = 0x80131f1c;
+_gActor110600StateHandlers = 0x80131f3c;
+_gActor110600TaskHandlers = 0x80131fa0;

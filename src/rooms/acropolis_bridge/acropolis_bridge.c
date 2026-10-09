@@ -4745,9 +4745,10 @@ static void _effectSpriteDrawBillboard(const GfxCoord* coord, u16 frame, s16 siz
     SCRATCH_POP_BYTES_AT(scratchSlot, sizeof(_AcropolisBridgeBillboardScratch));
 }
 
-/// Debug message the walker's route search prints when no candidate beat its
-/// initial best of 0xFF.
-static const char _gPatrolNoPairMsg[] = "s->root_cnt == 0xff about \n";
+/// Diagnostic when the Boss Stranger's node-order plan finds no candidate slot pair.
+///
+/// Printed when `bestGap` remains `BOSS_STRANGER_PLAN_GAP_NONE` after the slot search.
+static const char _gBossStrangerNoPlanPairMessage[] = "s->root_cnt == 0xff about \n";
 
 /// The bridge enemy's three state handlers: setup, per-frame tick and teardown.
 static const EnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8 = {

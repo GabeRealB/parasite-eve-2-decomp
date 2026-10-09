@@ -9,6 +9,7 @@
 #include "gte.h"
 
 #include "actors/actor.h"
+#include "actors/task_tables.h"
 
 #include "actors/actor_210600.h"
 
@@ -120,7 +121,7 @@ enum {
 
 /// Scripted clip slots in this actor's animation-set table.
 ///
-/// Slots 34..37 are the four adjacent writable animation-set pointers; the
+/// Slots 34..37 are writable entries of `_gActor110600AnimationSets`; the
 /// commands below select their bindings. Slot 40 is play-request selector 4.
 enum {
     ACTOR_110600_ANIM_SCRIPTED_SLOT0    = 0x22,
@@ -282,21 +283,22 @@ typedef struct {
 } _Actor110600StateTable;
 STATIC_ASSERT_SIZEOF(_Actor110600StateTable, ACTOR_110600_STATE_COUNT * sizeof(TaskFunc));
 
-static const _Actor110600StateTable D_actor_110600_80131F3C;
+static const _Actor110600StateTable _gActor110600StateHandlers;
 
-// Animation sets supplied by the paired actor overlay.
-
-/// Twelve `SVECTOR` hit positions `_actor110600SpawnHitEffect` picks from by
-/// relative hit yaw. The fourth halfword (`pad`, unused by the effect) is the
-/// model part index the spawned effect anchors to.
-extern SVECTOR D_actor_110600_801485C4[12];
-
-/// The actor's four display slots, which the 0x401 events repoint at one of the
-/// objects above; `D_actor_110600_80148598` is the one events 2 and 6 swap.
-extern AnimationSet* D_actor_110600_80148594;
-extern AnimationSet* D_actor_110600_80148598;
-extern AnimationSet* D_actor_110600_8014859C;
-extern AnimationSet* D_actor_110600_801485A0;
+/// A part-local hit-effect position and the model part it belongs to.
+///
+/// The effect API reads XYZ through the SDK vector view and ignores its fourth
+/// halfword. The actor reads that halfword as the coordinate index instead.
+typedef union {
+    SVECTOR position;  // SDK XYZ view; the fourth halfword carries the part selector
+    struct {
+        s16 x;         // Local X in model-coordinate units
+        s16 y;         // Local Y in model-coordinate units
+        s16 z;         // Local Z in model-coordinate units
+        s16 partIndex; // Coordinate index in the nineteen-part model (2, 7 or 9)
+    } anchor;
+} _Actor110600HitAnchor;
+STATIC_ASSERT_SIZEOF(_Actor110600HitAnchor, sizeof(SVECTOR));
 
 static s32 _actor110600ApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 secondArg);
 
@@ -330,32 +332,7 @@ static void _actor110600StatusHoldState(Task* task);
 
 static s32 _actor110600Place(Task* task, s32 messageId, const ActorTransform* placement, s32 secondArg);
 
-/// Five-frame shake counter. Incremented each call, wraps at 5, and drives
-/// `displaySetShakeY` with the low bit (0 or 1). Returns 1 on wrap.
-extern s16 D_actor_110600_8014865C;
 static s32 _actor110600StepFootstepShake(void);
-
-/// Allocation holding the step counter of `ACTOR_110600_STATE_SHUDDER`.
-///
-/// Six zero bytes separate the counter from the contact scratch position that
-/// follows it in the image. No access to them is recovered, so whether they
-/// are alignment, trailing fields of this object or a separate unreferenced
-/// variable is unproven; they stay in this allocation only to keep the data
-/// after it at its address.
-typedef struct {
-    s16 step;         // Jolts made so far: cleared as the state is entered, 0 to 4 pick the sideways push of the tick, 5 hands over to `ACTOR_110600_STATE_CHASE`
-    u8  unknown_2[6]; // Zero in the image; no access established and role unproven
-} _Actor110600ShudderStepStorage;
-STATIC_ASSERT_SIZEOF(_Actor110600ShudderStepStorage, 8);
-
-/// Step counter of the `ACTOR_110600_STATE_SHUDDER` handler, in its static
-/// allocation.
-extern _Actor110600ShudderStepStorage D_actor_110600_80148688;
-
-/// Argument record `_actor110600SpawnHitEffect` passes to `effectSpawnHit`:
-/// model part 1's coordinate, low spawn argument 0x100 and high argument 3.
-/// The selected effect kind determines whether the high argument is a count.
-extern EffectSpawnArg D_actor_110600_80148698;
 
 static void _actor110600Exit(Task* task);
 
@@ -363,10 +340,10 @@ MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
 /// Applies a rotation of `angle` about Y to `matrix` (main executable).
 
-/// The complaint the route re-plan prints when the two node lists share no
-/// slot at all. The string is spelled out rather than left a literal so the
-/// re-plan reaches it by name, the way the original object does.
-static const char _gPatrolNoPairMsg[] = "s->root_cnt == 0xff about \n";
+/// Diagnostic when the Boss Stranger's node-order plan finds no candidate slot pair.
+///
+/// Printed when `bestGap` remains `BOSS_STRANGER_PLAN_GAP_NONE` after the slot search.
+static const char _gBossStrangerNoPlanPairMessage[] = "s->root_cnt == 0xff about \n";
 
 static s32  _actor110600SetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 secondArg);
 static s32  _actor110600IsPresent(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
@@ -375,21 +352,54 @@ static void _actor110600IgnoreMessage2015(Task* task, s32 messageId, s32 firstAr
 static TmdSource _gActor110600StrangerBody;
 static void      _actor110600Task(Task* task);
 
-DamageAttack D_actor_110600_80138F04[2] = {
-    { 18, 7 },
-    { 15, 7 },
+/// Player hit-presentation selector packed into this actor's swing contacts.
+enum {
+    ACTOR_110600_ATTACK_REACTION_NORMAL = 0,
+    ACTOR_110600_ATTACK_REACTION        = 7,
 };
 
-DamageAttack D_actor_110600_80138F0C[2] = {
-    { 18, 7 },
-    { 18, 0 },
+/// Swing attacks, indexed 0 for the enraged swing and 1 for the ordinary swing.
+static DamageAttack _gActor110600Attacks[2] = {
+    { 18, ACTOR_110600_ATTACK_REACTION },
+    { 15, ACTOR_110600_ATTACK_REACTION },
 };
 
-EnemyParams D_actor_110600_80138F14 = { D_actor_110600_80138F04, 350, 300, 200, 30, 100, 4, 100, 0 };
+/// Attacks of the unused 30-HP parameter preset; no live attack selects these rows.
+static DamageAttack _gActor110600UnusedAttacks[2] = {
+    { 18, ACTOR_110600_ATTACK_REACTION },
+    { 18, ACTOR_110600_ATTACK_REACTION_NORMAL },
+};
 
-EnemyParams D_actor_110600_80138F24 = { D_actor_110600_80138F0C, 30, 42, 82, 4, 250, 0, 100, 0 };
+/// Combat and reward parameters shared by the actor's live Enemy instances.
+///
+/// Each instance starts with 350 HP and enters ENRAGE below half that value.
+static EnemyParams _gActor110600EnemyParams = {
+    .attacks              = _gActor110600Attacks,
+    .hpMax                = 350,
+    .exp                  = 300,
+    .bp                   = 200,
+    .mp                   = 30,
+    .critChance           = 100,
+    .buildupSteps         = 4,
+    .damageOverTimeChance = 100,
+    .damageOverTimeTicks  = 0,
+};
 
-u16 D_actor_110600_80138F34[18] = {
+/// Unused combat/reward preset with 30 HP; no recovered spawn installs it.
+static EnemyParams _gActor110600UnusedEnemyParams = {
+    .attacks              = _gActor110600UnusedAttacks,
+    .hpMax                = 30,
+    .exp                  = 42,
+    .bp                   = 82,
+    .mp                   = 4,
+    .critChance           = 250,
+    .buildupSteps         = 0,
+    .damageOverTimeChance = 100,
+    .damageOverTimeTicks  = 0,
+};
+
+/// Unreferenced halfwords; their role and record boundaries are unproven.
+static u16 D_actor_110600_80138F34[18] = {
     20,
     900,
     12,
@@ -882,7 +892,11 @@ static AnimationSet _gActor110600Animation15ED8 = {
     { NULL, _gActor110600Animation15ED8Bank1, NULL, NULL, _gActor110600Animation15ED8Bank4, NULL, NULL, NULL },
 };
 
-s8 D_actor_110600_80147D20[45][45] = {
+/// Signed blend durations in normal-rate frames, indexed [applied clip][requested clip].
+///
+/// Both IDs must be 0..44. Cafeteria command 3 changes the slot-36 to clip-30
+/// transition to six frames; the modified duration persists while the overlay is loaded.
+static s8 _gActor110600AnimBlendFrames[45][45] = {
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 0, 0, 0, 4, 4, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 3, 8, 0, 0, 0, 0, 15, 5, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -930,7 +944,13 @@ s8 D_actor_110600_80147D20[45][45] = {
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AnimationSet* D_actor_110600_8014850C[34] = {
+/// Animation-set bank borrowed by both nineteen-part rigs for the overlay's lifetime.
+///
+/// Only loaded non-NULL entries may be played. Blend requests also require
+/// IDs in 0..44. Slots 34..37 are writable cafeteria-command bindings; their
+/// clips borrow actor_210600, which must remain loaded through playback.
+/// Storage retains all 46 recovered pointer words; the final NULL has no known use.
+static AnimationSet* _gActor110600AnimationSets[] = {
     NULL,
     NULL,
     &_gActor110600Animation15ED8,
@@ -965,17 +985,10 @@ AnimationSet* D_actor_110600_8014850C[34] = {
     &_gActor110600Animation142A4,
     &_gActor110600Animation14500,
     NULL,
-};
-
-AnimationSet* D_actor_110600_80148594 = &gActor210600Animation11F5C;
-
-AnimationSet* D_actor_110600_80148598 = &gActor210600Animation12244;
-
-AnimationSet* D_actor_110600_8014859C = &gActor210600Animation12B30;
-
-AnimationSet* D_actor_110600_801485A0 = &gActor210600Animation1310C;
-
-AnimationSet* D_actor_110600_801485A4[8] = {
+    &gActor210600Animation11F5C,
+    &gActor210600Animation12244,
+    &gActor210600Animation12B30,
+    &gActor210600Animation1310C,
     &_gActor110600Animation14054,
     &_gActor110600Animation12994,
     &gActor210600Animation134C8,
@@ -986,22 +999,33 @@ AnimationSet* D_actor_110600_801485A4[8] = {
     NULL,
 };
 
-SVECTOR D_actor_110600_801485C4[12] = {
-    { 60, -12, 30, 2 },
-    { -50, -130, 29, 2 },
-    { 20, -70, 25, 2 },
-    { -30, -65, 25, 2 },
-    { 60, -120, 30, 2 },
-    { 20, -20, -5, 2 },
-    { -15, -50, 0, 2 },
-    { 2, 10, -15, 2 },
-    { 14, 0, 0, 7 },
-    { 25, 0, 0, 2 },
-    { -14, 0, 0, 9 },
-    { -25, 0, 0, 2 },
+/// Hit-effect anchors grouped by yaw: front 0..4, rear 5..7, sides 8..11.
+///
+/// Front selection's default row 4 and rear row 6 are unreachable under the
+/// retained random masks. Each eight-byte record is copied intact to scratch.
+static _Actor110600HitAnchor _gActor110600HitAnchors[12] = {
+    { .anchor = { 60, -12, 30, 2 } },
+    { .anchor = { -50, -130, 29, 2 } },
+    { .anchor = { 20, -70, 25, 2 } },
+    { .anchor = { -30, -65, 25, 2 } },
+    { .anchor = { 60, -120, 30, 2 } },
+    { .anchor = { 20, -20, -5, 2 } },
+    { .anchor = { -15, -50, 0, 2 } },
+    { .anchor = { 2, 10, -15, 2 } },
+    { .anchor = { 14, 0, 0, 7 } },
+    { .anchor = { 25, 0, 0, 2 } },
+    { .anchor = { -14, 0, 0, 9 } },
+    { .anchor = { -25, 0, 0, 2 } },
 };
 
-TaskMessageEntry D_actor_110600_80148624[7] = {
+/// Messages accepted by the live actor: 2015, 2003, 2005, 2006, 2004, 2011 and 2007.
+///
+/// There is no end marker: every sender must select one of these seven IDs.
+/// 2003 borrows an AnimationPlayRequest, 2004 an ActorTransform and 2011 an
+/// ActorCommand; 2005 takes an integer draw mode. Other payloads are ignored.
+/// The 2015 callback returns void, so its dispatch result must be ignored.
+/// The task borrows this table and its callbacks until teardown.
+static TaskMessageEntry _gActor110600Messages[7] = {
     { ACTOR_110600_MESSAGE_IGNORE, _actor110600IgnoreMessage2015 },
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor110600PlayScriptedAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor110600SetModelDraw },
@@ -1011,9 +1035,14 @@ TaskMessageEntry D_actor_110600_80148624[7] = {
     { ACTOR_110600_MESSAGE_ALERT, _actor110600Alert },
 };
 
-s16 D_actor_110600_8014865C = 0;
+/// Overlay-wide footstep-shake phase, cycling 1..4 then 0 once per shake tick.
+///
+/// Zero is the initial phase and marks completion. Its low bit selects the
+/// vertical display shake; all actor instances share this signed-halfword counter.
+static s16 _gActor110600FootstepShakePhase = 0;
 
-u16 D_actor_110600_80148660[8] = {
+/// Unreferenced halfwords matching two cafeteria VRAM rectangles; their use is unproven.
+static u16 D_actor_110600_80148660[8] = {
     704,
     0,
     64,
@@ -1024,13 +1053,16 @@ u16 D_actor_110600_80148660[8] = {
     1,
 };
 
-TaskDesc D_actor_110600_80148670 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor110600Task, { .model = &_gActor110600StrangerBody } };
+enum { ACTOR_110600_TASK_PRIORITY = 96 };
+TaskDesc gActor110600TaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_110600_TASK_PRIORITY } }, _actor110600Task, { .model = &_gActor110600StrangerBody } };
 
-TaskDesc D_actor_110600_8014867C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor110600Task, { .model = &_gActor110600StrangerBody } };
+/// Unreferenced copy of the actor's task recipe; no recovered resource selects it.
+static TaskDesc _gActor110600UnusedTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_110600_TASK_PRIORITY } }, _actor110600Task, { .model = &_gActor110600StrangerBody } };
 
-_Actor110600ShudderStepStorage D_actor_110600_80148688 = { 0, { 0 } };
+/// Overlay-wide shudder step: reset on entry, 0..4 jolt the root, 5 resumes CHASE.
+static s16 _gActor110600ShudderStep;
 
-SVECTOR ActorContact_ScratchPosition = { 0, 0, 0, 0 };
+SVECTOR ActorContact_ScratchPosition;
 
 /// Returns this carrier's persistent last contact-push correction.
 ///
@@ -1044,22 +1076,15 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
     return &ActorContact_ScratchPosition;
 }
 
-EffectSpawnArg D_actor_110600_80148698 = { NULL, 0, 0 };
+/// Reusable hit-effect arguments; each spawn path overwrites all three members.
+///
+/// Ordinary hits borrow model part 1; scripted hits borrow the root. Both set
+/// low argument 0x100 and high argument 3, whose interpretation belongs to the
+/// selected effect. The record owns no coordinate and lives with the overlay.
+static EffectSpawnArg _gActor110600HitEffectArgs;
 
 /// Whole-unit step `_actorContactApplyGridPushback` last applied to its coordinate.
 extern SVECTOR ActorContact_ScratchPosition;
-
-/// Reset argument `animationSeekSlotWithBlend` is handed for the clip `animId` of the
-/// `appliedAnim` stage: the `0x2D`-byte row of the animation table this overlay's
-/// data carries at `D_actor_110600_80147D20`, indexed by the clip id. The row
-/// stride is the row's own length, so the load is a signed byte.
-extern s8 D_actor_110600_80147D20[][0x2D];
-
-extern EnemyParams D_actor_110600_80138F14;
-
-extern AnimationSet* D_actor_110600_8014850C[];
-
-extern TaskMessageEntry D_actor_110600_80148624[7];
 
 static void _actor110600ApplyDamage(Task* task);
 
@@ -1238,25 +1263,25 @@ static s32 _actor110600ApplyCommand(Task* task, s32 messageId, const ActorComman
                 work->prevState = ACTOR_110600_PREV_STATE_NONE;
                 return 1;
             case ACTOR_110600_CAFETERIA_COMMAND_PLAY_SLOT1:
-                work->animId            = ACTOR_110600_ANIM_SCRIPTED_SLOT1;
-                D_actor_110600_80148598 = &gActor210600Animation11F5C;
+                work->animId                                                 = ACTOR_110600_ANIM_SCRIPTED_SLOT1;
+                _gActor110600AnimationSets[ACTOR_110600_ANIM_SCRIPTED_SLOT1] = &gActor210600Animation11F5C;
                 break;
             case ACTOR_110600_CAFETERIA_COMMAND_PLAY_SLOT2:
-                work->animId            = ACTOR_110600_ANIM_SCRIPTED_SLOT2;
-                D_actor_110600_8014859C = &gActor210600Animation11F5C;
+                work->animId                                                 = ACTOR_110600_ANIM_SCRIPTED_SLOT2;
+                _gActor110600AnimationSets[ACTOR_110600_ANIM_SCRIPTED_SLOT2] = &gActor210600Animation11F5C;
                 break;
             case ACTOR_110600_CAFETERIA_COMMAND_PLAY_SLOT0:
-                work->animId            = ACTOR_110600_ANIM_SCRIPTED_SLOT0;
-                D_actor_110600_80148594 = &gActor210600Animation12B30;
+                work->animId                                                 = ACTOR_110600_ANIM_SCRIPTED_SLOT0;
+                _gActor110600AnimationSets[ACTOR_110600_ANIM_SCRIPTED_SLOT0] = &gActor210600Animation12B30;
                 break;
             case ACTOR_110600_CAFETERIA_COMMAND_PLAY_SLOT1_ALT:
-                work->animId            = ACTOR_110600_ANIM_SCRIPTED_SLOT1;
-                D_actor_110600_80148598 = &gActor210600Animation134C8;
+                work->animId                                                 = ACTOR_110600_ANIM_SCRIPTED_SLOT1;
+                _gActor110600AnimationSets[ACTOR_110600_ANIM_SCRIPTED_SLOT1] = &gActor210600Animation134C8;
                 break;
             case ACTOR_110600_CAFETERIA_COMMAND_PLAY_SLOT3:
             case ACTOR_110600_CAFETERIA_COMMAND_PLAY_SLOT3_ALIAS:
-                work->animId            = ACTOR_110600_ANIM_SCRIPTED_SLOT3;
-                D_actor_110600_801485A0 = &gActor210600Animation12244;
+                work->animId                                                 = ACTOR_110600_ANIM_SCRIPTED_SLOT3;
+                _gActor110600AnimationSets[ACTOR_110600_ANIM_SCRIPTED_SLOT3] = &gActor210600Animation12244;
                 break;
             case ACTOR_110600_CAFETERIA_COMMAND_DEATH_BURN:
                 work->state     = ACTOR_110600_STATE_DEATH_BURN;
@@ -1462,7 +1487,7 @@ static __inline__ void _actor110600SeekRequestedAnimation(_Actor110600Work* work
     do {
         work->rig.slots[seekSlotIndex].rate = seekWork->animRate;
         requestedAnimId                     = seekWork->animId;
-        animationSeekSlotWithBlend(&seekWork->rig.anim, seekSlotIndex, requestedAnimId, 0, D_actor_110600_80147D20[seekWork->appliedAnim][requestedAnimId]);
+        animationSeekSlotWithBlend(&seekWork->rig.anim, seekSlotIndex, requestedAnimId, 0, _gActor110600AnimBlendFrames[seekWork->appliedAnim][requestedAnimId]);
         seekSlotIndex += 1;
     } while (seekSlotIndex < ARRAY_SIZE(work->rig.slots));
     seekWork->appliedAnim = seekWork->animId;
@@ -1803,12 +1828,12 @@ static void _actor110600Spawn(Enemy* enemy, Task* task)
     worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->reactionFlags          = 0;
-    enemy->param                  = &D_actor_110600_80138F14;
-    enemy->hpMax = enemy->hp = D_actor_110600_80138F14.hpMax;
+    enemy->param                  = &_gActor110600EnemyParams;
+    enemy->hpMax = enemy->hp = _gActor110600EnemyParams.hpMax;
     hitContacts              = work->hitContacts;
     enemy->recs              = hitContacts;
-    animationInitContext(&work->rig.anim, D_actor_110600_8014850C, model, work->rig.poses, work->rig.slots);
-    animationInitContext(&work->blendRig.anim, D_actor_110600_8014850C, model, work->blendRig.poses, work->blendRig.slots);
+    animationInitContext(&work->rig.anim, _gActor110600AnimationSets, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->blendRig.anim, _gActor110600AnimationSets, model, work->blendRig.poses, work->blendRig.slots);
     work->animRequest   = ACTOR_110600_ANIM_REQUEST_RESET;
     work->blendActive   = 0;
     work->animId        = ACTOR_110600_INITIAL_WALK_CLIP;
@@ -1853,7 +1878,7 @@ static void _actor110600Spawn(Enemy* enemy, Task* task)
     attackLocalPosition.vz = 0;
     _actor110600LinkAttackBody(attackBody, task->extra.tmd->coords + ACTOR_110600_ATTACK_PART, work->attackContacts, &attackLocalPosition, sphereKind);
     worldCollisionInitContacts(attackBody->context.contacts, ARRAY_SIZE(work->attackContacts), 0);
-    task->msgTable          = D_actor_110600_80148624;
+    task->msgTable          = _gActor110600Messages;
     work->childTask0        = 0;
     work->childTask1        = 0;
     work->field_8B0         = 0;
@@ -2040,14 +2065,14 @@ static __inline__ s32 _actor110600TickFootstepShake(void)
 {
     enum { ACTOR_110600_FOOTSTEP_SHAKE_TICKS = 5 };
 
-    D_actor_110600_8014865C++;
-    if (D_actor_110600_8014865C == ACTOR_110600_FOOTSTEP_SHAKE_TICKS)
-        D_actor_110600_8014865C = 0;
-    if (!(D_actor_110600_8014865C & 1))
+    _gActor110600FootstepShakePhase++;
+    if (_gActor110600FootstepShakePhase == ACTOR_110600_FOOTSTEP_SHAKE_TICKS)
+        _gActor110600FootstepShakePhase = 0;
+    if (!(_gActor110600FootstepShakePhase & 1))
         displaySetShakeY(0);
     else
         displaySetShakeY(1);
-    if (D_actor_110600_8014865C == 0) {
+    if (_gActor110600FootstepShakePhase == 0) {
         displaySetShakeY(0);
         return 1;
     }
@@ -2329,7 +2354,7 @@ static void _actor110600AttackState(Task* task)
 /// use different random position groups; side hits use the yaw's sign. The
 /// position record's fourth halfword selects model part 2, 7 or 9. Requires a
 /// live model and loaded effect resources. Reuses the overlay's effect argument
-/// record and releases its scratch SVECTOR after spawning. Placement copies
+/// record and releases its scratch anchor after spawning. Placement copies
 /// XYZ during the call; the effect's retained offset pointer has no later C reader.
 static void _actor110600SpawnHitEffect(Task* task, s16 hitYaw, s32 attackKey)
 {
@@ -2340,64 +2365,64 @@ static void _actor110600SpawnHitEffect(Task* task, s16 hitYaw, s32 attackKey)
         ACTOR_110600_HIT_EFFECT_ARGUMENT_HIGH = 3,
     };
 
-    SVECTOR* hitPosition;
-    s32      absoluteHitYaw;
+    _Actor110600HitAnchor* hitAnchor;
+    s32                    absoluteHitYaw;
 
-    hitPosition = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
+    hitAnchor = SCRATCH_STACK_RESERVE_BLOCK(_Actor110600HitAnchor);
     // Use yaw sectors to choose the effect position; the rear mask keeps only bit 1.
     absoluteHitYaw = (hitYaw >= 0) ? hitYaw : -hitYaw;
     if (absoluteHitYaw < ACTOR_110600_HIT_FRONT_YAW_LIMIT) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         switch ((s32)(gRandomLcgState >> 16) & 3) {
             case 0:
-                *hitPosition = D_actor_110600_801485C4[0];
+                *hitAnchor = _gActor110600HitAnchors[0];
                 break;
             case 1:
-                *hitPosition = D_actor_110600_801485C4[1];
+                *hitAnchor = _gActor110600HitAnchors[1];
                 break;
             case 2:
-                *hitPosition = D_actor_110600_801485C4[2];
+                *hitAnchor = _gActor110600HitAnchors[2];
                 break;
             case 3:
-                *hitPosition = D_actor_110600_801485C4[3];
+                *hitAnchor = _gActor110600HitAnchors[3];
                 break;
             default:
-                *hitPosition = D_actor_110600_801485C4[4];
+                *hitAnchor = _gActor110600HitAnchors[4];
                 break;
         }
     } else if (absoluteHitYaw > ACTOR_110600_HIT_REAR_YAW_LIMIT) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         switch ((s32)(gRandomLcgState >> 16) & 2) {
             case 0:
-                *hitPosition = D_actor_110600_801485C4[5];
+                *hitAnchor = _gActor110600HitAnchors[5];
                 break;
             case 1:
-                *hitPosition = D_actor_110600_801485C4[6];
+                *hitAnchor = _gActor110600HitAnchors[6];
                 break;
             default:
-                *hitPosition = D_actor_110600_801485C4[7];
+                *hitAnchor = _gActor110600HitAnchors[7];
                 break;
         }
     } else if (hitYaw > 0) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if ((gRandomLcgState >> 16) & 1) {
-            *hitPosition = D_actor_110600_801485C4[8];
+            *hitAnchor = _gActor110600HitAnchors[8];
         } else {
-            *hitPosition = D_actor_110600_801485C4[9];
+            *hitAnchor = _gActor110600HitAnchors[9];
         }
     } else {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if ((gRandomLcgState >> 16) & 1) {
-            *hitPosition = D_actor_110600_801485C4[10];
+            *hitAnchor = _gActor110600HitAnchors[10];
         } else {
-            *hitPosition = D_actor_110600_801485C4[11];
+            *hitAnchor = _gActor110600HitAnchors[11];
         }
     }
-    D_actor_110600_80148698.coord      = &task->extra.tmd->coords[1];
-    D_actor_110600_80148698.spawnArgLo = ACTOR_110600_HIT_EFFECT_ARGUMENT_LOW;
-    D_actor_110600_80148698.spawnArgHi = ACTOR_110600_HIT_EFFECT_ARGUMENT_HIGH;
-    effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), &task->extra.tmd->coords[hitPosition->pad], hitPosition, &D_actor_110600_80148698);
-    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
+    _gActor110600HitEffectArgs.coord      = &task->extra.tmd->coords[1];
+    _gActor110600HitEffectArgs.spawnArgLo = ACTOR_110600_HIT_EFFECT_ARGUMENT_LOW;
+    _gActor110600HitEffectArgs.spawnArgHi = ACTOR_110600_HIT_EFFECT_ARGUMENT_HIGH;
+    effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), &task->extra.tmd->coords[hitAnchor->anchor.partIndex], &hitAnchor->position, &_gActor110600HitEffectArgs);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor110600HitAnchor);
 }
 
 /// Returns the first attack contact key and copies its world-space XYZ.
@@ -2532,7 +2557,7 @@ static void _actor110600ApplyDamage(Task* task)
         _actor110600SpawnHitEffect(task, scratch->hitYaw, scratch->hitKey);
         work->lookYaw       = 0;
         work->lookYawTarget = 0;
-        if ((work->enraged == 0) && (enemy->hp < (s32)((u16)D_actor_110600_80138F14.hpMax >> 1))) {
+        if ((work->enraged == 0) && (enemy->hp < (_gActor110600EnemyParams.hpMax >> 1))) {
             work->state   = ACTOR_110600_STATE_ENRAGE;
             work->enraged = 1;
         }
@@ -2889,10 +2914,8 @@ static void _actor110600DeathBurstState(Task* task)
     }
 }
 
-/// Offset, 100 units along Z, that `_actor110600ScriptedState` hands
-/// `effectSpawnHit` with the model's seventh coordinate when it spawns its
-/// three effects.
-static const SVECTOR D_actor_110600_80131F1C = { 0, 0, 100, 0 };
+/// Part-local offset for the scripted triple hit: 100 model units along part 6's Z axis.
+static const SVECTOR _gActor110600ScriptedHitOffset = { 0, 0, 100, 0 };
 
 /// Plays the script-selected clip and its cafeteria-command hit effects.
 ///
@@ -2938,16 +2961,16 @@ static void _actor110600ScriptedState(Task* task)
             randomValue     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             gRandomLcgState = randomValue;
             if ((randomValue >> 16) & 1) {
-                localHitOffset.vx                  = -0xE;
-                localHitOffset.vy                  = 0;
-                localHitOffset.vz                  = 0;
-                firstRootCoord                     = task->extra.tmd->coords;
-                D_actor_110600_80148698.spawnArgLo = ACTOR_110600_SCRIPTED_EFFECT_ARGUMENT;
-                D_actor_110600_80148698.spawnArgHi = ACTOR_110600_SCRIPTED_EFFECT_REPEATS;
-                D_actor_110600_80148698.coord      = firstRootCoord;
-                effectSpawnHit(damageGetPlayerAttackEffectId(ACTOR_110600_SCRIPTED_HIT_ATTACK_KEY), &task->extra.tmd->coords[9], &localHitOffset, &D_actor_110600_80148698);
+                localHitOffset.vx                     = -0xE;
+                localHitOffset.vy                     = 0;
+                localHitOffset.vz                     = 0;
+                firstRootCoord                        = task->extra.tmd->coords;
+                _gActor110600HitEffectArgs.spawnArgLo = ACTOR_110600_SCRIPTED_EFFECT_ARGUMENT;
+                _gActor110600HitEffectArgs.spawnArgHi = ACTOR_110600_SCRIPTED_EFFECT_REPEATS;
+                _gActor110600HitEffectArgs.coord      = firstRootCoord;
+                effectSpawnHit(damageGetPlayerAttackEffectId(ACTOR_110600_SCRIPTED_HIT_ATTACK_KEY), &task->extra.tmd->coords[9], &localHitOffset, &_gActor110600HitEffectArgs);
             } else {
-                alternateEffect             = &D_actor_110600_80148698;
+                alternateEffect             = &_gActor110600HitEffectArgs;
                 localHitOffset.vx           = -0x19;
                 localHitOffset.vy           = 0;
                 localHitOffset.vz           = 0;
@@ -2955,7 +2978,7 @@ static void _actor110600ScriptedState(Task* task)
                 alternateEffect->spawnArgLo = ACTOR_110600_SCRIPTED_EFFECT_ARGUMENT;
                 alternateEffect->spawnArgHi = ACTOR_110600_SCRIPTED_EFFECT_REPEATS;
                 alternateEffect->coord      = alternateRootCoord;
-                effectSpawnHit(damageGetPlayerAttackEffectId(ACTOR_110600_SCRIPTED_HIT_ATTACK_KEY), &task->extra.tmd->coords[2], &localHitOffset, &D_actor_110600_80148698);
+                effectSpawnHit(damageGetPlayerAttackEffectId(ACTOR_110600_SCRIPTED_HIT_ATTACK_KEY), &task->extra.tmd->coords[2], &localHitOffset, &_gActor110600HitEffectArgs);
             }
         }
     }
@@ -2967,21 +2990,21 @@ static void _actor110600ScriptedState(Task* task)
 
     if ((work->lastCommand.stage == GAME_STAGE_ACROPOLIS) && (work->lastCommand.area == GAME_AREA_ACROPOLIS_CAFETERIA) && (work->lastCommand.command == ACTOR_110600_SCRIPTED_COMMAND_TRIPLE_HIT) && (work->animId != ACTOR_110600_ANIM_FALL_BACK_END)) {
         if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == ACTOR_110600_SCRIPTED_TRANSITION_CUE) {
-            D_actor_110600_80147D20[ACTOR_110600_ANIM_SCRIPTED_SLOT2][ACTOR_110600_ANIM_FALL_BACK_END] = ACTOR_110600_SCRIPTED_TRANSITION_BLEND_FRAMES;
-            work->animId                                                                               = ACTOR_110600_ANIM_FALL_BACK_END;
-            work->animRequest                                                                          = ACTOR_110600_ANIM_REQUEST_BLEND;
+            _gActor110600AnimBlendFrames[ACTOR_110600_ANIM_SCRIPTED_SLOT2][ACTOR_110600_ANIM_FALL_BACK_END] = ACTOR_110600_SCRIPTED_TRANSITION_BLEND_FRAMES;
+            work->animId                                                                                    = ACTOR_110600_ANIM_FALL_BACK_END;
+            work->animRequest                                                                               = ACTOR_110600_ANIM_REQUEST_BLEND;
         }
         if (work->animId != ACTOR_110600_ANIM_FALL_BACK_END) {
             if (((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == ACTOR_110600_SCRIPTED_TRIPLE_HIT_CUE) && (work->lastCueIndex != (work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK))) {
-                localHitOffset         = D_actor_110600_80131F1C;
-                tailEffect             = &D_actor_110600_80148698;
+                localHitOffset         = _gActor110600ScriptedHitOffset;
+                tailEffect             = &_gActor110600HitEffectArgs;
                 tripleRootCoord        = task->extra.tmd->coords;
                 tailEffect->spawnArgLo = ACTOR_110600_SCRIPTED_EFFECT_ARGUMENT;
                 tailEffect->spawnArgHi = ACTOR_110600_SCRIPTED_EFFECT_REPEATS;
                 tailEffect->coord      = tripleRootCoord;
-                effectSpawnHit(damageGetPlayerAttackEffectId(ACTOR_110600_SCRIPTED_HIT_ATTACK_KEY), &task->extra.tmd->coords[6], &localHitOffset, &D_actor_110600_80148698);
-                effectSpawnHit(damageGetPlayerAttackEffectId(ACTOR_110600_SCRIPTED_HIT_ATTACK_KEY), &task->extra.tmd->coords[6], &localHitOffset, &D_actor_110600_80148698);
-                effectSpawnHit(damageGetPlayerAttackEffectId(ACTOR_110600_SCRIPTED_HIT_ATTACK_KEY), &task->extra.tmd->coords[6], &localHitOffset, &D_actor_110600_80148698);
+                effectSpawnHit(damageGetPlayerAttackEffectId(ACTOR_110600_SCRIPTED_HIT_ATTACK_KEY), &task->extra.tmd->coords[6], &localHitOffset, &_gActor110600HitEffectArgs);
+                effectSpawnHit(damageGetPlayerAttackEffectId(ACTOR_110600_SCRIPTED_HIT_ATTACK_KEY), &task->extra.tmd->coords[6], &localHitOffset, &_gActor110600HitEffectArgs);
+                effectSpawnHit(damageGetPlayerAttackEffectId(ACTOR_110600_SCRIPTED_HIT_ATTACK_KEY), &task->extra.tmd->coords[6], &localHitOffset, &_gActor110600HitEffectArgs);
             }
         }
     }
@@ -3171,7 +3194,7 @@ static void _actor110600ShudderState(Task* task)
         work->attackBody.flags        = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->gridBody.flags          = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
-        D_actor_110600_80148688.step  = 0;
+        _gActor110600ShudderStep      = 0;
     }
     // Normalize the root's side axis so displacement is in parent-coordinate units.
     gfxReadMatrixXAxis(&task->extra.tmd->coords->coord, &sideStep);
@@ -3186,7 +3209,7 @@ static void _actor110600ShudderState(Task* task)
     gte_ldsv(direction);                                     \
     gte_gpf12();                                             \
     gte_stsv(direction)
-    switch (D_actor_110600_80148688.step) {
+    switch (_gActor110600ShudderStep) {
         case 0:
             ACTOR_110600_SCALE_SHUDDER_STEP(&sideStep, ACTOR_110600_SHUDDER_PUSH0);
             break;
@@ -3210,7 +3233,7 @@ static void _actor110600ShudderState(Task* task)
     task->extra.tmd->coords->coord.t[0] += sideStep.vx;
     task->extra.tmd->coords->coord.t[2] += sideStep.vz;
     rootCoord                            = task->extra.tmd->coords;
-    D_actor_110600_80148688.step++;
+    _gActor110600ShudderStep++;
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
@@ -3293,11 +3316,11 @@ static void _actor110600EnrageState(Task* task)
     }
 }
 
-/// The actor's state handlers, indexed by `_Actor110600Work::state`. splat
-/// migrates the table into the `.s` of the function that reads it, so it is
-/// written out here to keep the block in the unit's `.rodata` now that
-/// `_actor110600Update` is decompiled.
-static const _Actor110600StateTable D_actor_110600_80131F3C = { {
+/// State handlers indexed by `_Actor110600Work::state`, copied before each dispatch.
+///
+/// Dispatch requires a non-NULL entry. State 1 is a restored-spawn handoff;
+/// states 15, 16 and 18 are never selected locally and also have no handler.
+static const _Actor110600StateTable _gActor110600StateHandlers = { {
     _actor110600HiddenState,
     NULL,
     _actor110600PatrolState,
@@ -3359,7 +3382,7 @@ static void _actor110600Update(Enemy* enemy, Task* task)
     _Actor110600Work*      work;
 
     work   = task->work;
-    states = D_actor_110600_80131F3C;
+    states = _gActor110600StateHandlers;
 
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(task->extra.tmd->coords);
@@ -3443,9 +3466,11 @@ static void _actor110600IgnoreMessage2015(Task* task, s32 messageId, s32 firstAr
 {
 }
 
-/// The enemy task's three state handlers - spawn, per-frame tick and teardown -
-/// that `_actor110600Task` dispatches through by `Task::state`.
-static const EnemyTaskFuncTable3 D_actor_110600_80131FA0 = {
+/// Enemy-task callbacks for states 0 spawn, 1 update and 2 destroy.
+///
+/// Copied before dispatch; all three entries require live Enemy and Task
+/// objects, and the destroy entry may release both. There is no end marker.
+static const EnemyTaskFuncTable3 _gActor110600TaskHandlers = {
     _actor110600Spawn,
     _actor110600Update,
     enemyDestroy,
@@ -3942,6 +3967,6 @@ static void _actor110600Task(Task* task)
 {
     EnemyTaskFuncTable3 handlers;
 
-    handlers = D_actor_110600_80131FA0;
+    handlers = _gActor110600TaskHandlers;
     handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }

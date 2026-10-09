@@ -225,7 +225,11 @@ extern TaskDesc gActor460200StrideWalkTasks[];
 /// Slot export of `gActor05600PawnGolemTasks` from actor_105600, with the same descriptor contract.
 extern TaskDesc gActor105600PawnGolemTasks[3];
 
-extern TaskDesc D_actor_110600_80148670;
+/// Boss Stranger task recipe: nineteen-part TMD body, priority 96 and actor-managed buffers.
+///
+/// The callback and model data belong to actor_110600 and must stay loaded
+/// while its tasks live. Area resources select this descriptor at task index 0.
+extern TaskDesc gActor110600TaskDesc;
 
 extern TaskDesc D_actor_101900_80149120[];
 
