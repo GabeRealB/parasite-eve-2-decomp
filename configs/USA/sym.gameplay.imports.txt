@@ -1475,7 +1475,7 @@ D_dryfield_night_main_street_80188A08 = 0x80188A08; // absolute:True owner=dryfi
 
 D_dryfield_night_motel_balcony_8018EA94 = 0x8018EA94; // absolute:True owner=dryfield_night_motel_balcony
 
-D_dryfield_night_motel_lobby_801843C4 = 0x801843C4; // absolute:True owner=dryfield_night_motel_lobby shared=rooms
+gDryfieldNightMotelLobbyAreaVariants = 0x801843C4; // absolute:True owner=dryfield_night_motel_lobby shared=rooms
 
 D_dryfield_night_motel_loft_80180888 = 0x80180888; // absolute:True owner=dryfield_night_motel_loft shared=rooms
 
