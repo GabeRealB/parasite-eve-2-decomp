@@ -12,10 +12,10 @@ static inline void _groundGlowBuildCorners(EffectGroundQuadScratch* quadScratch,
 {
     s32 cornerIndex;
     gte_SetTransMatrix(&GsWSMATRIX);
-    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(D_80111E38); cornerIndex++) {
-        quadScratch->vertices[cornerIndex].vx = (u16)D_80111E38[cornerIndex].axis0Sign * halfExtent;
+    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(gEffectUnitQuadCorners); cornerIndex++) {
+        quadScratch->vertices[cornerIndex].vx = (u16)gEffectUnitQuadCorners[cornerIndex].axis0Sign * halfExtent;
         quadScratch->vertices[cornerIndex].vy = 0;
-        quadScratch->vertices[cornerIndex].vz = (u16)D_80111E38[cornerIndex].axis1Sign * halfExtent;
+        quadScratch->vertices[cornerIndex].vz = (u16)gEffectUnitQuadCorners[cornerIndex].axis1Sign * halfExtent;
         gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_ldv0(&quadScratch->vertices[cornerIndex]);
         gte_rtv0();

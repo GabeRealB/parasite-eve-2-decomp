@@ -92,8 +92,13 @@ enum {
 /// the table does not wrap them.
 extern const EffectSpriteTextureFrame gEffectSpriteAtlasFrames[12];
 
-/// Unit quad corners `(-1, 1)`, `(1, 1)`, `(-1, -1)`, `(1, -1)`.
-extern EffectUnitQuadCorner D_80111E38[4];
+/// Dimensionless corner signs for a centred effect square, in GPU quad order.
+///
+/// Entries 0..3 are `(-1, 1)`, `(1, 1)`, `(-1, -1)`, `(1, -1)`.
+/// The drawer chooses the local axes and scales each sign by its half-extent
+/// before narrowing to signed 16-bit coordinates. Borrow this read-only table
+/// while the gameplay image is loaded; corner indices must be in 0..3.
+extern const EffectUnitQuadCorner gEffectUnitQuadCorners[4];
 
 /// Draws a subtractive textured ground shadow centred at a world position.
 ///

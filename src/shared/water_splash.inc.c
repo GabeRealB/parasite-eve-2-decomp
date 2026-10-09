@@ -59,8 +59,8 @@ static void _waterDrawSplash(const GfxCoord* coord, s32 halfSize, s32 brightness
     quadScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     // Transform the local square into the composed coordinate space.
-    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(D_80111E38); cornerIndex++) {
-        unitCorner       = &D_80111E38[cornerIndex];
+    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(gEffectUnitQuadCorners); cornerIndex++) {
+        unitCorner       = &gEffectUnitQuadCorners[cornerIndex];
         cornerVertex     = &quadScratch->vertices[cornerIndex];
         scaledX          = (u16)unitCorner->axis0Sign * halfSize;
         cornerVertex->vy = 0;

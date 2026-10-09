@@ -50,18 +50,36 @@ void effectPeChargeTask(Task* task);
 /// retain copied placement and live independently of this emitter.
 void effectHitSparkBurstTask(Task* task);
 
-/// Six CLUT X coordinates (0x20, 0x30, 0xC0, 0xD0, 0xE0, 0xF0) selected by
-/// bits 12..15 of `effectDrawSpinningBillboard`'s packed angle/palette argument and paired with CLUT
-/// Y 0x10B.
-extern u16 Gp_QuadClutX[];
+/// Palette X origins for the spinning effect billboard, in unencoded VRAM words.
+///
+/// Pair with VRAM row 267. Bits 12..15 of the packed angle/palette argument
+/// select entries 0..5; higher selectors are invalid and are not clamped.
+/// Entries are read-only for the lifetime of the gameplay image.
+extern const u16 gEffectBillboardClutX[6];
 
-extern u16 D_80111EB4[];
+/// Palette X origins for the modulated effect billboard, in unencoded VRAM words.
+///
+/// Pair with VRAM row 267. Bits 12..15 of the packed brightness/palette argument
+/// select entries 0..5; higher selectors are invalid and are not clamped.
+/// Entries are read-only for the lifetime of the gameplay image.
+extern const u16 gEffectModulatedBillboardClutX[6];
 
-/// 8 packed RGB-nibble colors. Index is `cln(spawnArg1 << 12) / 2839 & 7`.
-/// High nibble is the `effectDrawScreenTint` blend; low three nibbles are R, G, B.
-extern u16 Gp_FadeQuadColors[];
+/// Packed blend modes and RGB weights for the eight player-status screen tints.
+///
+/// Selector bits 0..7 map to Darkness, Paralysis, Poison, reaction 4, Silence,
+/// the timed 0x20 status (identity unproven), Confusion and Berserker. A zero
+/// selector draws nothing. Bits 15..12 hold a GPU_BLEND_* mode; the remaining
+/// nibbles hold red, green and blue weights, each scaled by the pulse amplitude
+/// and divided by eight. Entries are read-only while gameplay is loaded.
+extern const u16 gEffectStatusScreenTints[8];
 
-extern TmdSource D_80111FC8;
+/// Shared cartridge-case model for the handgun/SMG ejection and revolver reload.
+///
+/// One part carries six integer vertices, four Q12 lighting normals and four
+/// textured faces. Objects borrow the source and geometry for their lifetime;
+/// creation copies the initial pose, and handler resolution mutates the command
+/// stream in place. Keep the gameplay image loaded until all instances retire.
+extern TmdSource gEffectBulletCasingModel;
 
 extern TmdSource D_801120E4;
 

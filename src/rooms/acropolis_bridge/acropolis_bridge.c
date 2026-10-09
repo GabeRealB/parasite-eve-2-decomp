@@ -4529,14 +4529,14 @@ static void _acropolisBridgeDrawWaterRipple(const GfxCoord* coord, s32 halfSize,
 
     quadScratch = SCRATCH_STACK_RESERVE_BLOCK(OverlayFlaggedQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
-    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(D_80111E38); cornerIndex++) {
-        quadScratch->corners[cornerIndex].vx = (u16)D_80111E38[cornerIndex].axis0Sign * halfSize;
+    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(gEffectUnitQuadCorners); cornerIndex++) {
+        quadScratch->corners[cornerIndex].vx = (u16)((EffectUnitQuadCorner*)gEffectUnitQuadCorners)[cornerIndex].axis0Sign * halfSize;
         /* Spelled as an offset rather than `&quadScratch->corners[cornerIndex]`, which is the same
            address: the member form lets CSE share one register with the GTE
            macros' `&quadScratch->corners[cornerIndex]`, and the original keeps two. */
         corner     = (SVECTOR*)((u8*)quadScratch + cornerIndex * sizeof(SVECTOR) + OFFSET_OF(OverlayFlaggedQuadScratch, corners));
         corner->vy = 0;
-        corner->vz = (u16)D_80111E38[cornerIndex].axis1Sign * halfSize;
+        corner->vz = (u16)((EffectUnitQuadCorner*)gEffectUnitQuadCorners)[cornerIndex].axis1Sign * halfSize;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&quadScratch->corners[cornerIndex]);
         gte_rtv0();

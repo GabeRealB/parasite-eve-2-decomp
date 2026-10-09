@@ -109,7 +109,7 @@ typedef struct {
 } _HypervelocityDischargeConeScratch;
 STATIC_ASSERT_SIZEOF(_HypervelocityDischargeConeScratch, 0x58);
 // The drawer stages one mouth and one collar vertex per unit-quad corner.
-STATIC_ASSERT(ARRAY_SIZE(D_80111E38) == HYPERVELOCITY_DISCHARGE_CONE_SQUARE_VERTEX_COUNT, hypervelocity_discharge_cone_square_vertex_count);
+STATIC_ASSERT(ARRAY_SIZE(gEffectUnitQuadCorners) == HYPERVELOCITY_DISCHARGE_CONE_SQUARE_VERTEX_COUNT, hypervelocity_discharge_cone_square_vertex_count);
 
 /// Packed collision key of the round in flight.
 ///
@@ -660,7 +660,7 @@ static void _hypervelocityDrawDischargeCone(const GfxCoord* coord, s16 ageFrames
     gte_SetTransMatrix(&GsWSMATRIX);
     cornerIndex   = 0;
     worldRotation = &coord->workm;
-    unitCorners   = D_80111E38;
+    unitCorners   = gEffectUnitQuadCorners;
     // Build and rotate both squares; corner products and translations keep only
     // their low 16 bits when stored as signed world-space vertices.
     do {
@@ -680,7 +680,7 @@ static void _hypervelocityDrawDischargeCone(const GfxCoord* coord, s16 ageFrames
         cornerIndex++;
         collarVertex->vy += (u16)coord->workm.t[1];
         collarVertex->vz += (u16)coord->workm.t[2];
-    } while (cornerIndex < ARRAY_SIZE(D_80111E38));
+    } while (cornerIndex < ARRAY_SIZE(gEffectUnitQuadCorners));
 
     // Project one wall at a time from the corners sharing a local X sign.
     gte_SetRotMatrix(&GsWSMATRIX);

@@ -989,11 +989,11 @@ eve_brea_masked_body	19-part masked Eve body: a stationary battle body (actor_20
 flint_body	19-part body of Flint the dog: the companion's body spawned by gameplay (actor_800200) and a placed actor in the night garage and night motel balcony scenes.	
 gameplay_effect_80111fc8	Small triangular-prism model of the ejected pistol/SMG cartridge case (effect 0x36), thrown, spun and bounced per round by P08, M93R, M950 and MP5A5, and dropped six at once on revolver reloads.	
 gameplay_effect_80111fc8_*	All parts of the one-part ejected cartridge case model bound as the body of effect slot 0x036 in gameplay's task bank 6.	
-gameplay_effect_80111fc8_normals	Normal array of gameplay's ejected pistol/SMG cartridge case model D_80111FC8.	
+gameplay_effect_80111fc8_normals	Normal array of gameplay's ejected pistol/SMG cartridge case model gEffectBulletCasingModel.	
 gameplay_effect_80111fc8_packets	Face stream (one triangle and three quads, a prism 22 wide and 47 long) of gameplay's ejected pistol/SMG cartridge case model, drawn by the thrown-model effect task.	
 gameplay_effect_80111fc8_part_vertices	One-word per-part vertex count (6) of the cartridge case model, which the source includes for all four prism casing models.	
 gameplay_effect_80111fc8_rest_pose	Single identity bone that is the rest pose of the cartridge case model, included by the source for all five thrown effect models.	
-gameplay_effect_80111fc8_vertices	Vertex array of gameplay's ejected pistol/SMG cartridge case model D_80111FC8.	
+gameplay_effect_80111fc8_vertices	Vertex array of gameplay's ejected pistol/SMG cartridge case model gEffectBulletCasingModel.	
 gameplay_effect_801120e4	Triangular-prism model (22 wide, 110 long) of the ejected rifle cartridge case (effect 0x67), thrown once per round by the M4A1 family, the M249 and the companion's rifle.	
 gameplay_effect_801120e4_*	All parts of the one-part model bound as the body of effect slot 0x067 in gameplay's task bank 6, which the other rows show is the ejected rifle case.	
 gameplay_effect_801120e4_normals	Normal array of gameplay's ejected rifle cartridge case model D_801120E4.	

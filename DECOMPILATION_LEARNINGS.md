@@ -39453,7 +39453,7 @@ u0 = arg1 << 5;             /* too early */
 u1 = u0 + 0x1F;
 ...
 prim->tpage = 0x2A;
-setClut(prim, Gp_QuadClutX[clutIdx], 0x10B);
+setClut(prim, gEffectBillboardClutX[clutIdx], 0x10B);
 setUV4(prim, u0, 0x18, u1, 0x18, u0, 0x37, u1, 0x37);
 ```
 
@@ -39467,7 +39467,7 @@ stays after the tpage store, and it reuses `$v0` exactly as the target does
 
 ```c
 prim->tpage = 0x2A;
-setClut(prim, Gp_QuadClutX[clutIdx], 0x10B);
+setClut(prim, gEffectBillboardClutX[clutIdx], 0x10B);
 u0 = arg1 << 5;             /* first use is the next line */
 u1 = u0 + 0x1F;
 setUV4(prim, u0, 0x18, u1, 0x18, u0, 0x37, u1, 0x37);
@@ -54317,7 +54317,7 @@ the compare's `lh` before the branch.
 ## An explicit `p++` is ordered *ahead* of a loop-generated giv increment
 
 `func_acropolis_roof_garden_8017F560` fills a four-corner scratch quad from the
-unit table `D_80111E38`, and its matched gameplay sibling `_effectDrawAnimatedGroundQuad`
+unit table `gEffectUnitQuadCorners`, and its matched gameplay sibling `_effectDrawAnimatedGroundQuad`
 writes the table read as a walking pointer:
 
 ```c
@@ -56859,7 +56859,7 @@ same single `RTPS`, same `POLY_FT4` — and `overlay_dup_index.py find` reported
 nothing, because the index compares disassembly text across *overlays* and
 cannot see a body living in the main `gameplay` unit. It would not have matched
 regardless: the overlay copy takes `s16` args and inlines a constant CLUT where
-the gameplay copy takes `u16` and indexes `Gp_QuadClutX`. Different text, same
+the gameplay copy takes `u16` and indexes `gEffectBillboardClutX`. Different text, same
 shape. What found it was one grep:
 
 ```
@@ -63598,7 +63598,7 @@ constants, its `setcode`, or by a single extra statement (here `quadScratch->dep
 is not a duplicate by its measure even though it is the same routine.
 
 When the target reads a named global that only a family of routines touches —
-`D_80111E38`, the unit quad, is the example — grep `src/` for that symbol
+`gEffectUnitQuadCorners`, the unit quad, is the example — grep `src/` for that symbol
 first. Every hit is a matched instance of the same shape, and the closest one
 is a finished seed. `_pyrokinesisDrawGroundGlow` matched 100% on the first
 attempt as `effectDrawGroundGlow`'s body with the tpage, `setcode` and UVs of the
@@ -145720,7 +145720,7 @@ no dependence at all. When a hack steers a primitive-building body, look for
 another function in the file that emits the same primitive with the same
 arithmetic; the shared part is likely a helper both called.
 
-## The `D_80111E38` ground-quad loop is an indexed `for` over `SCRATCH_STACK_RESERVE_BLOCK`, not a pointer walk (_pyrokinesisDrawGroundGlow, 2026-09-26)
+## The `gEffectUnitQuadCorners` ground-quad loop is an indexed `for` over `SCRATCH_STACK_RESERVE_BLOCK`, not a pointer walk (_pyrokinesisDrawGroundGlow, 2026-09-26)
 
 Target: `addiu v1,v1,-0x38; move t1,v1; sw v1,0(v0)`, then `move a2,t1` as the
 loop's vector pointer with `sh zero,2(a2)` / `sh t2,0(a2)` - no strength-reduced
@@ -145728,7 +145728,7 @@ loop's vector pointer with `sh zero,2(a2)` / `sh t2,0(a2)` - no strength-reduced
 * s; ...; v++; corners++; } while (++i < 4)` needed `asm("v1")`/`asm("a2")` pins
 (or a `TOUCH_REG`) to get both the head copy and the plain walker. Written the
 way gameplay's `effectDrawGroundGlow` is - `quadScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
-for (i = 0; i < 4; i++) { quadScratch->vertices[i].vx = (u16)D_80111E38[i].axis0Sign * s; ... }` with
+for (i = 0; i < 4; i++) { quadScratch->vertices[i].vx = (u16)gEffectUnitQuadCorners[i].axis0Sign * s; ... }` with
 `+=` on the translation - loop strength reduction produces exactly that walker
 and copy with no hack. The same body sits in energyball, hypervelocity and
 m4a1_pyke with pins or barriers.

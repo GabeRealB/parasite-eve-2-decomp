@@ -559,10 +559,10 @@ static void _pyrokinesisDrawGroundGlow(const GfxCoord* groundCoord, s32 halfSize
     quadScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     // Rotate the ground-plane offsets, then centre them on the composed hit.
-    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(D_80111E38); cornerIndex++) {
-        quadScratch->vertices[cornerIndex].vx = (u16)D_80111E38[cornerIndex].axis0Sign * halfSize;
+    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(gEffectUnitQuadCorners); cornerIndex++) {
+        quadScratch->vertices[cornerIndex].vx = (u16)((EffectUnitQuadCorner*)gEffectUnitQuadCorners)[cornerIndex].axis0Sign * halfSize;
         quadScratch->vertices[cornerIndex].vy = 0;
-        quadScratch->vertices[cornerIndex].vz = (u16)D_80111E38[cornerIndex].axis1Sign * halfSize;
+        quadScratch->vertices[cornerIndex].vz = (u16)((EffectUnitQuadCorner*)gEffectUnitQuadCorners)[cornerIndex].axis1Sign * halfSize;
         gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_ldv0(&quadScratch->vertices[cornerIndex]);
         gte_rtv0();

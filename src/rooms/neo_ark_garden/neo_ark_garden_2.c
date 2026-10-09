@@ -607,10 +607,10 @@ static void _neoArkGardenDrawRotatingSquare(const SVECTOR* centre)
     quadScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
 
     // Rotate the square in its world YZ plane, then place it at the centre.
-    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(D_80111E38); cornerIndex++) {
+    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(gEffectUnitQuadCorners); cornerIndex++) {
         quadScratch->vertices[cornerIndex].vx = 0;
-        quadScratch->vertices[cornerIndex].vy = D_80111E38[cornerIndex].axis0Sign * NEO_ARK_GARDEN_ROTATING_SQUARE_HALF_EXTENT;
-        quadScratch->vertices[cornerIndex].vz = D_80111E38[cornerIndex].axis1Sign * NEO_ARK_GARDEN_ROTATING_SQUARE_HALF_EXTENT;
+        quadScratch->vertices[cornerIndex].vy = ((EffectUnitQuadCorner*)gEffectUnitQuadCorners)[cornerIndex].axis0Sign * NEO_ARK_GARDEN_ROTATING_SQUARE_HALF_EXTENT;
+        quadScratch->vertices[cornerIndex].vz = ((EffectUnitQuadCorner*)gEffectUnitQuadCorners)[cornerIndex].axis1Sign * NEO_ARK_GARDEN_ROTATING_SQUARE_HALF_EXTENT;
         gte_SetRotMatrix(&rotation);
         gte_ldv0(&quadScratch->vertices[cornerIndex]);
         gte_rtv0();

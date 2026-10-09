@@ -589,7 +589,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, acropolisWestElevatorHallBayLightingTask, { NULL } },                               // 0x033
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask34, { NULL } },                                                     // 0x034
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask35, { NULL } },                                                     // 0x035
-    { { { TASK_BODY_TMD, 0x70 } }, effectThrownModelTask, { &D_80111FC8 } },                                             // 0x036
+    { { { TASK_BODY_TMD, 0x70 } }, effectThrownModelTask, { &gEffectBulletCasingModel } },                               // 0x036
     { { { TASK_BODY_TMD, 0x70 } }, effectBurstModelPartTask, { &D_8011231C } },                                          // 0x037
     { { { TASK_BODY_COORD, 0x70 } }, neoArkSubstationDrawLightGlowsTask, { NULL } },                                     // 0x038
     { { { TASK_BODY_COORD, 0x70 } }, mistParkingDrawGlowsTask, { NULL } },                                               // 0x039
@@ -2020,7 +2020,7 @@ void effectDrawSpinningBillboard(const GfxCoord* coord, u16 frame, s16 size, u16
         setSemiTrans(quad, true);
         setShadeTex(quad, true);
         quad->tpage = getTPage(GPU_EFFECT_TEXTURE_DEPTH_4BIT, GPU_BLEND_ADD, GPU_EFFECT_TEXTURE_PAGE_X, 0);
-        setClut(quad, Gp_QuadClutX[paletteIndex], EFFECT_BILLBOARD_CLUT_Y);
+        setClut(quad, ((u16*)gEffectBillboardClutX)[paletteIndex], EFFECT_BILLBOARD_CLUT_Y);
         leftU  = frame << EFFECT_BILLBOARD_CELL_SHIFT;
         rightU = leftU + EFFECT_BILLBOARD_UV_SPAN;
         setUV4(quad, leftU, EFFECT_BILLBOARD_TOP_V, rightU, EFFECT_BILLBOARD_TOP_V, leftU, EFFECT_BILLBOARD_BOTTOM_V, rightU, EFFECT_BILLBOARD_BOTTOM_V);
@@ -2108,7 +2108,7 @@ void effectDrawModulatedBillboard(const GfxCoord* coord, u16 frame, u16 packedSi
         setSemiTrans(quad, true);
         quad->tpage = getTPage(GPU_EFFECT_TEXTURE_DEPTH_4BIT, GPU_BLEND_ADD, GPU_EFFECT_TEXTURE_PAGE_X, 0);
         setRGB0(quad, packedBrightnessPalette, packedBrightnessPalette, packedBrightnessPalette);
-        setClut(quad, D_80111EB4[paletteIndex], EFFECT_MODULATED_BILLBOARD_CLUT_Y);
+        setClut(quad, ((u16*)gEffectModulatedBillboardClutX)[paletteIndex], EFFECT_MODULATED_BILLBOARD_CLUT_Y);
         leftU  = textureBank * EFFECT_MODULATED_BILLBOARD_BANK_U_STRIDE + (frame & (EFFECT_MODULATED_BILLBOARD_FRAME_COUNT - 1)) * EFFECT_MODULATED_BILLBOARD_CELL_SIZE;
         rightU = leftU + EFFECT_MODULATED_BILLBOARD_UV_SPAN;
         setUV4(quad, leftU, 0, rightU, 0, leftU, EFFECT_MODULATED_BILLBOARD_UV_SPAN, rightU, EFFECT_MODULATED_BILLBOARD_UV_SPAN);
@@ -2431,7 +2431,7 @@ static void _effectStatusScreenTintTaskF(Task* task)
     work->angle  = rsin(work->scale) >> EFFECT_STATUS_TINT_AMPLITUDE_SHIFT;
     if (task->spawnArg1.value != 0) {
         // Convert the byte selector through the SDK's Q12 logarithm to a table index.
-        packedTint = Gp_FadeQuadColors[(cln(task->spawnArg1.value << EFFECT_STATUS_TINT_LOG_FRACTION_BITS) / EFFECT_STATUS_TINT_LOG_TWO) & EFFECT_STATUS_TINT_COLOR_INDEX_MASK];
+        packedTint = gEffectStatusScreenTints[(cln(task->spawnArg1.value << EFFECT_STATUS_TINT_LOG_FRACTION_BITS) / EFFECT_STATUS_TINT_LOG_TWO) & EFFECT_STATUS_TINT_COLOR_INDEX_MASK];
         // Packed nibbles are blend mode, red, green and blue; scale RGB by the pulse.
         rgb[0] = (work->angle * ((packedTint >> (2 * EFFECT_STATUS_TINT_COLOR_NIBBLE_BITS)) & EFFECT_STATUS_TINT_COLOR_NIBBLE_MASK)) >> EFFECT_STATUS_TINT_COLOR_SCALE_SHIFT;
         rgb[1] = (work->angle * ((packedTint >> EFFECT_STATUS_TINT_COLOR_NIBBLE_BITS) & EFFECT_STATUS_TINT_COLOR_NIBBLE_MASK)) >> EFFECT_STATUS_TINT_COLOR_SCALE_SHIFT;

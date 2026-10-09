@@ -157,49 +157,9 @@ typedef struct {
 } _EffectPixelSparkScratch;
 STATIC_ASSERT_SIZEOF(_EffectPixelSparkScratch, 0x14);
 
-extern _EffectCriticalHitStyle D_8011291C[];
+static const _EffectCriticalHitStyle _gEffectCriticalHitStyles[6];
 
-extern _EffectImpactFlashFrame Gp_EffSprRecs[];
-
-extern u32 D_80111EF4[1];
-
-extern SVECTOR D_80111EF8[6];
-
-extern SVECTOR D_80111F28[4];
-
-extern u32 D_80111F48[32];
-
-extern u32 D_80112010[1];
-
-extern SVECTOR D_80112014[6];
-
-extern SVECTOR D_80112044[4];
-
-extern u32 D_80112064[32];
-
-extern u32 D_8011212C[1];
-
-extern SVECTOR D_80112130[6];
-
-extern SVECTOR D_80112160[4];
-
-extern u32 D_80112180[32];
-
-extern u32 D_80112248[1];
-
-extern SVECTOR D_8011224C[6];
-
-extern SVECTOR D_8011227C[4];
-
-extern u32 D_8011229C[32];
-
-extern u32 D_80112364[1];
-
-extern SVECTOR D_80112368[8];
-
-extern SVECTOR D_801123A8[10];
-
-extern u32 D_801123F8[48];
+static const _EffectImpactFlashFrame _gEffectImpactFlashFrames[4];
 
 extern SVECTOR D_801124DC[34];
 
@@ -507,7 +467,8 @@ static __inline__ void _effectInitializeHandgunLight(const GfxCoord* spawnCoord,
     (ejectionCoord)->coord.t[2]  += (work)->pos.vz;                      \
     (ejectionCoord)->composeStamp = GRAPHICS_COORD_DIRTY;
 
-EffectUnitQuadCorner D_80111E38[4] = {
+// Preserve the initialized-data placement of the read-only metadata tables.
+const EffectUnitQuadCorner gEffectUnitQuadCorners[4] __attribute__((section(".data"))) = {
     { -1, 1 },
     { 1, 1 },
     { -1, -1 },
@@ -528,7 +489,7 @@ const EffectSpriteTextureFrame gEffectSpriteAtlasFrames[12] __attribute__((secti
     { 4 * EFFECT_SPRITE_ATLAS_CELL_SIZE, 0, EFFECT_SPRITE_ATLAS_CELL_SIZE, 0, 272, 265 },
     { 5 * EFFECT_SPRITE_ATLAS_CELL_SIZE, 0, EFFECT_SPRITE_ATLAS_CELL_SIZE, 0, 288, 265 },
 };
-u16 Gp_QuadClutX[6] = {
+const u16 gEffectBillboardClutX[6] __attribute__((section(".data"))) = {
     32,
     48,
     192,
@@ -536,7 +497,7 @@ u16 Gp_QuadClutX[6] = {
     224,
     240,
 };
-u16 D_80111EB4[6] = {
+const u16 gEffectModulatedBillboardClutX[6] __attribute__((section(".data"))) = {
     80,
     176,
     256,
@@ -544,15 +505,16 @@ u16 D_80111EB4[6] = {
     288,
     304,
 };
-u16 Gp_FadeQuadColors[8] = {
-    0x2CCC,
-    4924,
-    9155,
-    9068,
-    0x2C63,
-    7267,
-    9020,
-    7222,
+enum { EFFECT_STATUS_SCREEN_TINT_BLEND_SHIFT = 12 };
+const u16 gEffectStatusScreenTints[8] __attribute__((section(".data"))) = {
+    (GPU_BLEND_SUBTRACT << EFFECT_STATUS_SCREEN_TINT_BLEND_SHIFT) | 0xCCC, // Darkness
+    (GPU_BLEND_ADD << EFFECT_STATUS_SCREEN_TINT_BLEND_SHIFT) | 0x33C,      // Paralysis
+    (GPU_BLEND_SUBTRACT << EFFECT_STATUS_SCREEN_TINT_BLEND_SHIFT) | 0x3C3, // Poison
+    (GPU_BLEND_SUBTRACT << EFFECT_STATUS_SCREEN_TINT_BLEND_SHIFT) | 0x36C, // Reaction 4
+    (GPU_BLEND_SUBTRACT << EFFECT_STATUS_SCREEN_TINT_BLEND_SHIFT) | 0xC63, // Silence
+    (GPU_BLEND_ADD << EFFECT_STATUS_SCREEN_TINT_BLEND_SHIFT) | 0xC63,      // Timed status 0x20; identity unproven
+    (GPU_BLEND_SUBTRACT << EFFECT_STATUS_SCREEN_TINT_BLEND_SHIFT) | 0x33C, // Confusion
+    (GPU_BLEND_ADD << EFFECT_STATUS_SCREEN_TINT_BLEND_SHIFT) | 0xC36,      // Berserker
 };
 
 void effectControlTask2B(Task* task)
@@ -2493,7 +2455,6 @@ void effectSpriteTask76(Task* task)
 {
     enum {
         EFFECT_IMPACT_FLASH_DEFAULT_SIZE = 512,
-        EFFECT_IMPACT_FLASH_FRAME_COUNT  = 4,
         EFFECT_IMPACT_FLASH_PACKET_FLAGS = 3, // Raw texture and semitransparency
     };
     EffectShapeScratch* scratch;
@@ -2520,7 +2481,7 @@ void effectSpriteTask76(Task* task)
         gGpuPrimCursor = quad + 1;
         setlen(quad, EFFECT_DRAW_TEXTURED_QUAD_PACKET_WORDS);
         setcode(quad, EFFECT_DRAW_RAW_ADDITIVE_TEXTURED_QUAD & ~EFFECT_IMPACT_FLASH_PACKET_FLAGS);
-        uvSpan = Gp_EffSprRecs[work->age].uvSpan;
+        uvSpan = _gEffectImpactFlashFrames[work->age].uvSpan;
         // Initialize size and rotation only after an accepted projection.
         if (task->state == EFFECT_DRAW_TASK_NEW) {
             if (task->spawnArg1.value & EFFECT_DRAW_SIZE_MASK) {
@@ -2535,16 +2496,16 @@ void effectSpriteTask76(Task* task)
             task->state     = EFFECT_DRAW_TASK_ACTIVE;
         }
         quad->code |= EFFECT_IMPACT_FLASH_PACKET_FLAGS;
-        quad->tpage = getTPage(0, GPU_BLEND_ADD, Gp_EffSprRecs[work->age].tpageX, 0);
-        quad->clut  = getClut(Gp_EffSprRecs[work->age].clutX, Gp_EffSprRecs[work->age].clutY);
-        quad->u0    = Gp_EffSprRecs[work->age].u;
-        quad->v0    = Gp_EffSprRecs[work->age].v;
-        quad->u1    = Gp_EffSprRecs[work->age].u + uvSpan;
-        quad->v1    = Gp_EffSprRecs[work->age].v;
-        quad->u2    = Gp_EffSprRecs[work->age].u;
-        quad->v2    = Gp_EffSprRecs[work->age].v + uvSpan;
-        quad->u3    = Gp_EffSprRecs[work->age].u + uvSpan;
-        quad->v3    = Gp_EffSprRecs[work->age].v + uvSpan;
+        quad->tpage = getTPage(0, GPU_BLEND_ADD, _gEffectImpactFlashFrames[work->age].tpageX, 0);
+        quad->clut  = getClut(_gEffectImpactFlashFrames[work->age].clutX, _gEffectImpactFlashFrames[work->age].clutY);
+        quad->u0    = _gEffectImpactFlashFrames[work->age].u;
+        quad->v0    = _gEffectImpactFlashFrames[work->age].v;
+        quad->u1    = _gEffectImpactFlashFrames[work->age].u + uvSpan;
+        quad->v1    = _gEffectImpactFlashFrames[work->age].v;
+        quad->u2    = _gEffectImpactFlashFrames[work->age].u;
+        quad->v2    = _gEffectImpactFlashFrames[work->age].v + uvSpan;
+        quad->u3    = _gEffectImpactFlashFrames[work->age].u + uvSpan;
+        quad->v3    = _gEffectImpactFlashFrames[work->age].v + uvSpan;
         EFFECT_SET_ROTATED_SPRITE_CORNERS(quad, scratch, work, uvSpan);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 quad);
@@ -2552,7 +2513,7 @@ void effectSpriteTask76(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
     // Offscreen frames still expire, independently of ordinary effect control.
     work->age++;
-    if (work->age >= EFFECT_IMPACT_FLASH_FRAME_COUNT) {
+    if (work->age >= (s32)ARRAY_SIZE(_gEffectImpactFlashFrames)) {
         effectKillTask(work, task);
     }
 }
@@ -3044,8 +3005,8 @@ void effectPolyTask9C(Task* task)
             if (task->state == EFFECT_DRAW_TASK_NEW) {
                 work->scale  = EFFECT_CRITICAL_HIT_INITIAL_BRIGHTNESS;
                 work->angle  = EFFECT_CRITICAL_HIT_INITIAL_RADIUS;
-                work->period = D_8011291C[task->spawnArg1.value].color;
-                work->step   = D_8011291C[task->spawnArg1.value].radiusStep;
+                work->period = _gEffectCriticalHitStyles[task->spawnArg1.value].color;
+                work->step   = _gEffectCriticalHitStyles[task->spawnArg1.value].radiusStep;
                 task->state++;
             }
             actorRenderComposeCoord(coord);
@@ -3195,10 +3156,10 @@ void effectSpriteTask9E(Task* task)
 
     // Build the square in the effect coordinate's horizontal plane.
     quadScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
-    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(D_80111E38); cornerIndex++) {
-        quadScratch->vertices[cornerIndex].vx = (u16)D_80111E38[cornerIndex].axis0Sign * (u16)work->scale;
+    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(gEffectUnitQuadCorners); cornerIndex++) {
+        quadScratch->vertices[cornerIndex].vx = (u16)((EffectUnitQuadCorner*)gEffectUnitQuadCorners)[cornerIndex].axis0Sign * (u16)work->scale;
         quadScratch->vertices[cornerIndex].vy = 0;
-        quadScratch->vertices[cornerIndex].vz = (u16)D_80111E38[cornerIndex].axis1Sign * (u16)work->scale;
+        quadScratch->vertices[cornerIndex].vz = (u16)((EffectUnitQuadCorner*)gEffectUnitQuadCorners)[cornerIndex].axis1Sign * (u16)work->scale;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&quadScratch->vertices[cornerIndex]);
         gte_rtv0();
@@ -3364,10 +3325,10 @@ void effectDrawGroundGlow(const GfxCoord* coord, s32 halfSize, u32 brightness)
 
     quadScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
-    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(D_80111E38); cornerIndex++) {
-        quadScratch->vertices[cornerIndex].vx = (u16)D_80111E38[cornerIndex].axis0Sign * halfSize;
+    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(gEffectUnitQuadCorners); cornerIndex++) {
+        quadScratch->vertices[cornerIndex].vx = (u16)((EffectUnitQuadCorner*)gEffectUnitQuadCorners)[cornerIndex].axis0Sign * halfSize;
         quadScratch->vertices[cornerIndex].vy = 0;
-        quadScratch->vertices[cornerIndex].vz = (u16)D_80111E38[cornerIndex].axis1Sign * halfSize;
+        quadScratch->vertices[cornerIndex].vz = (u16)((EffectUnitQuadCorner*)gEffectUnitQuadCorners)[cornerIndex].axis1Sign * halfSize;
         gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_ldv0(&quadScratch->vertices[cornerIndex]);
         gte_rtv0();
@@ -3429,10 +3390,10 @@ void effectDrawGroundShadow(const VECTOR3* centre, s32 halfSize, s16 shade)
     if (shade >= 0 && gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         quadScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
         gte_SetTransMatrix(&GsWSMATRIX);
-        for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(D_80111E38); cornerIndex++) {
-            quadScratch->vertices[cornerIndex].vx = (u16)D_80111E38[cornerIndex].axis0Sign * halfSize;
+        for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(gEffectUnitQuadCorners); cornerIndex++) {
+            quadScratch->vertices[cornerIndex].vx = (u16)((EffectUnitQuadCorner*)gEffectUnitQuadCorners)[cornerIndex].axis0Sign * halfSize;
             quadScratch->vertices[cornerIndex].vy = 0;
-            quadScratch->vertices[cornerIndex].vz = (u16)D_80111E38[cornerIndex].axis1Sign * halfSize;
+            quadScratch->vertices[cornerIndex].vz = (u16)((EffectUnitQuadCorner*)gEffectUnitQuadCorners)[cornerIndex].axis1Sign * halfSize;
             gte_SetRotMatrix(&gGfxViewCoord.workm);
             gte_ldv0(&quadScratch->vertices[cornerIndex]);
             gte_rtv0();
@@ -3510,86 +3471,111 @@ void effectSpriteTask53(Task* task)
     }
 }
 
-TmdBone D_80111ED0[1] = {
+/// Initial one-part identity transform for the bullet casing model.
+static const TmdBone _gEffectBulletCasingModelRestPose[1] __attribute__((section(".data"))) = {
 #include "assets/gameplay_effect_80111fc8_rest_pose.inc"
 };
-u32 D_80111EF4[1] = {
+/// Vertex count of the bullet casing model's sole part.
+static const u32 _gEffectBulletCasingModelPartVertexCounts[1] __attribute__((section(".data"))) = {
 #include "assets/gameplay_effect_80111fc8_part_vertices.inc"
 };
-SVECTOR D_80111EF8[6] = {
+/// Part-local signed integer vertices of the bullet casing model.
+static SVECTOR _gEffectBulletCasingModelVertices[6] = {
 #include "assets/gameplay_effect_80111fc8_vertices.inc"
 };
-SVECTOR D_80111F28[4] = {
+/// Q12 lighting normals of the bullet casing model.
+static SVECTOR _gEffectBulletCasingModelNormals[4] = {
 #include "assets/gameplay_effect_80111fc8_normals.inc"
 };
-u32 D_80111F48[32] = {
+/// Bullet casing TMD command words, with writable draw-handler slots.
+static u32 _gEffectBulletCasingModelPackets[32] = {
 #include "assets/gameplay_effect_80111fc8_packets.inc"
 };
-TmdSource D_80111FC8    = { 0, 196, 0, 1, D_80111EF4, D_80111EF8, D_80111F28, D_80111ED0, D_80111F48 };
-TmdBone   D_80111FEC[1] = {
+TmdSource gEffectBulletCasingModel = { 0, sizeof(POLY_GT3) + 3 * sizeof(POLY_GT4), 0, ARRAY_SIZE(_gEffectBulletCasingModelRestPose), _gEffectBulletCasingModelPartVertexCounts, _gEffectBulletCasingModelVertices, _gEffectBulletCasingModelNormals, _gEffectBulletCasingModelRestPose, _gEffectBulletCasingModelPackets };
+/// Initial one-part identity transform for the rifle casing model.
+static const TmdBone _gEffectRifleCasingModelRestPose[1] __attribute__((section(".data"))) = {
 #include "assets/gameplay_effect_80111fc8_rest_pose.inc"
 };
-u32 D_80112010[1] = {
+/// Vertex count of the rifle casing model's sole part.
+static const u32 _gEffectRifleCasingModelPartVertexCounts[1] __attribute__((section(".data"))) = {
 #include "assets/gameplay_effect_80111fc8_part_vertices.inc"
 };
-SVECTOR D_80112014[6] = {
+/// Part-local signed integer vertices of the rifle casing model.
+static SVECTOR _gEffectRifleCasingModelVertices[6] = {
 #include "assets/gameplay_effect_801120e4_vertices.inc"
 };
-SVECTOR D_80112044[4] = {
+/// Q12 lighting normals of the rifle casing model.
+static SVECTOR _gEffectRifleCasingModelNormals[4] = {
 #include "assets/gameplay_effect_801120e4_normals.inc"
 };
-u32 D_80112064[32] = {
+/// Rifle casing TMD command words, with writable draw-handler slots.
+static u32 _gEffectRifleCasingModelPackets[32] = {
 #include "assets/gameplay_effect_801120e4_packets.inc"
 };
-TmdSource D_801120E4    = { 0, 196, 0, 1, D_80112010, D_80112014, D_80112044, D_80111FEC, D_80112064 };
-TmdBone   D_80112108[1] = {
+TmdSource D_801120E4 = { 0, 196, 0, 1, _gEffectRifleCasingModelPartVertexCounts, _gEffectRifleCasingModelVertices, _gEffectRifleCasingModelNormals, _gEffectRifleCasingModelRestPose, _gEffectRifleCasingModelPackets };
+/// Initial one-part identity transform for the P229 casing model.
+static const TmdBone _gEffectP229CasingModelRestPose[1] __attribute__((section(".data"))) = {
 #include "assets/gameplay_effect_80111fc8_rest_pose.inc"
 };
-u32 D_8011212C[1] = {
+/// Vertex count of the P229 casing model's sole part.
+static const u32 _gEffectP229CasingModelPartVertexCounts[1] __attribute__((section(".data"))) = {
 #include "assets/gameplay_effect_80111fc8_part_vertices.inc"
 };
-SVECTOR D_80112130[6] = {
+/// Part-local signed integer vertices of the P229 casing model.
+static SVECTOR _gEffectP229CasingModelVertices[6] = {
 #include "assets/gameplay_effect_80112200_vertices.inc"
 };
-SVECTOR D_80112160[4] = {
+/// Q12 lighting normals of the P229 casing model.
+static SVECTOR _gEffectP229CasingModelNormals[4] = {
 #include "assets/gameplay_effect_80112200_normals.inc"
 };
-u32 D_80112180[32] = {
+/// P229 casing TMD command words, with writable draw-handler slots.
+static u32 _gEffectP229CasingModelPackets[32] = {
 #include "assets/gameplay_effect_80112200_packets.inc"
 };
-TmdSource D_80112200    = { 0, 196, 0, 1, D_8011212C, D_80112130, D_80112160, D_80112108, D_80112180 };
-TmdBone   D_80112224[1] = {
+TmdSource D_80112200 = { 0, 196, 0, 1, _gEffectP229CasingModelPartVertexCounts, _gEffectP229CasingModelVertices, _gEffectP229CasingModelNormals, _gEffectP229CasingModelRestPose, _gEffectP229CasingModelPackets };
+/// Initial one-part identity transform for the shotgun shell casing model.
+static const TmdBone _gEffectShotgunShellCasingModelRestPose[1] __attribute__((section(".data"))) = {
 #include "assets/gameplay_effect_80111fc8_rest_pose.inc"
 };
-u32 D_80112248[1] = {
+/// Vertex count of the shotgun shell casing model's sole part.
+static const u32 _gEffectShotgunShellCasingModelPartVertexCounts[1] __attribute__((section(".data"))) = {
 #include "assets/gameplay_effect_80111fc8_part_vertices.inc"
 };
-SVECTOR D_8011224C[6] = {
+/// Part-local signed integer vertices of the shotgun shell casing model.
+static SVECTOR _gEffectShotgunShellCasingModelVertices[6] = {
 #include "assets/gameplay_effect_8011231c_vertices.inc"
 };
-SVECTOR D_8011227C[4] = {
+/// Q12 lighting normals of the shotgun shell casing model.
+static SVECTOR _gEffectShotgunShellCasingModelNormals[4] = {
 #include "assets/gameplay_effect_8011231c_normals.inc"
 };
-u32 D_8011229C[32] = {
+/// Shotgun shell casing TMD command words, with writable draw-handler slots.
+static u32 _gEffectShotgunShellCasingModelPackets[32] = {
 #include "assets/gameplay_effect_8011231c_packets.inc"
 };
-TmdSource D_8011231C    = { 0, 196, 0, 1, D_80112248, D_8011224C, D_8011227C, D_80112224, D_8011229C };
-TmdBone   D_80112340[1] = {
+TmdSource D_8011231C = { 0, 196, 0, 1, _gEffectShotgunShellCasingModelPartVertexCounts, _gEffectShotgunShellCasingModelVertices, _gEffectShotgunShellCasingModelNormals, _gEffectShotgunShellCasingModelRestPose, _gEffectShotgunShellCasingModelPackets };
+/// Initial one-part identity transform for the slot-0x91 thrown model.
+static const TmdBone _gEffectThrownModel91RestPose[1] __attribute__((section(".data"))) = {
 #include "assets/gameplay_effect_80111fc8_rest_pose.inc"
 };
-u32 D_80112364[1] = {
+/// Vertex count of the slot-0x91 thrown model's sole part.
+static const u32 _gEffectThrownModel91PartVertexCounts[1] __attribute__((section(".data"))) = {
 #include "assets/gameplay_effect_801124b8_part_vertices.inc"
 };
-SVECTOR D_80112368[8] = {
+/// Part-local integer vertices of the slot-0x91 box; physical identity unproven.
+static SVECTOR _gEffectThrownModel91Vertices[8] = {
 #include "assets/gameplay_effect_801124b8_vertices.inc"
 };
-SVECTOR D_801123A8[10] = {
+/// Q12 lighting normals of the slot-0x91 box, including its two cap normals.
+static SVECTOR _gEffectThrownModel91Normals[10] = {
 #include "assets/gameplay_effect_801124b8_normals.inc"
 };
-u32 D_801123F8[48] = {
+/// Six-quad TMD command words for slot 0x91, with writable draw-handler slots.
+static u32 _gEffectThrownModel91Packets[48] = {
 #include "assets/gameplay_effect_801124b8_packets.inc"
 };
-TmdSource D_801124B8     = { 0, 312, 0, 1, D_80112364, D_80112368, D_801123A8, D_80112340, D_801123F8 };
+TmdSource D_801124B8     = { 0, 312, 0, 1, _gEffectThrownModel91PartVertexCounts, _gEffectThrownModel91Vertices, _gEffectThrownModel91Normals, _gEffectThrownModel91RestPose, _gEffectThrownModel91Packets };
 SVECTOR   D_801124DC[34] = {
     { 0, 0, 0, 0 },
     { 0, 384, 96, 0 },
@@ -3734,15 +3720,23 @@ SVECTOR D_8011280C[34] = {
     { 0, 0, 384, 0 },
     { 0, 448, 128, 0 },
 };
-_EffectCriticalHitStyle D_8011291C[6] = {
-    { EFFECT_CRITICAL_HIT_STYLE_SPIKES | EFFECT_CRITICAL_HIT_STYLE_COLOR(15, 15, 7), 24 },
-    { EFFECT_CRITICAL_HIT_STYLE_COLOR(15, 7, 7), 32 },
-    { EFFECT_CRITICAL_HIT_STYLE_SPIKES | EFFECT_CRITICAL_HIT_STYLE_COLOR(7, 15, 15), 24 },
-    { EFFECT_CRITICAL_HIT_STYLE_SPIKES | EFFECT_CRITICAL_HIT_STYLE_COLOR(7, 15, 7), 24 },
-    { EFFECT_CRITICAL_HIT_STYLE_SPIKES | EFFECT_CRITICAL_HIT_STYLE_COLOR(15, 7, 15), 24 },
-    { EFFECT_CRITICAL_HIT_STYLE_COLOR(7, 7, 15), 24 },
+/// Colour, spikes and radius growth for critical-hit style selectors 0..5.
+///
+/// The selector is unchecked. Radius growth is per tick, with the outer screen
+/// radius given by radius * 256 / depth pixels.
+static const _EffectCriticalHitStyle _gEffectCriticalHitStyles[6] __attribute__((section(".data"))) = {
+    { EFFECT_CRITICAL_HIT_STYLE_SPIKES | EFFECT_CRITICAL_HIT_STYLE_COLOR(15, 15, 7), 24 }, // 0 yellow, spiked
+    { EFFECT_CRITICAL_HIT_STYLE_COLOR(15, 7, 7), 32 },                                     // 1 light red, plain, faster growth
+    { EFFECT_CRITICAL_HIT_STYLE_SPIKES | EFFECT_CRITICAL_HIT_STYLE_COLOR(7, 15, 15), 24 }, // 2 cyan, spiked
+    { EFFECT_CRITICAL_HIT_STYLE_SPIKES | EFFECT_CRITICAL_HIT_STYLE_COLOR(7, 15, 7), 24 },  // 3 green, spiked
+    { EFFECT_CRITICAL_HIT_STYLE_SPIKES | EFFECT_CRITICAL_HIT_STYLE_COLOR(15, 7, 15), 24 }, // 4 magenta, spiked
+    { EFFECT_CRITICAL_HIT_STYLE_COLOR(7, 7, 15), 24 },                                     // 5 blue, plain
 };
-_EffectImpactFlashFrame Gp_EffSprRecs[4] = {
+/// Texture cells, pages and palettes of the four-tick additive impact flash.
+///
+/// One entry is drawn per age 0..3. Spans 55/31 cover inclusive 56/32-texel
+/// square cells and also scale the billboard.
+static const _EffectImpactFlashFrame _gEffectImpactFlashFrames[4] __attribute__((section(".data"))) = {
     { 55, 112, 200, 176, 266, 576 },
     { 31, 192, 56, 192, 266, 512 },
     { 55, 168, 200, 192, 266, 576 },

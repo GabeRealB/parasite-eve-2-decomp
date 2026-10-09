@@ -130,19 +130,19 @@ static void _roomVisualEffectsDrawFlyingBurstGlow(const GfxCoord* coord, s16 hal
 /// suppresses drawing. The texture alternates between two 32-texel cells.
 static void _roomVisualEffectsDrawFlyingBurstGroundQuad(const GfxCoord* coord, s32 halfExtent)
 {
-    EffectQuadScratch*    quadScratch;
-    SVECTOR*              vertex;
-    s32                   cornerIndex;
-    EffectUnitQuadCorner* corner;
-    POLY_FT4*             quad;
-    s32                   scaledX;
-    s32                   textureU;
+    EffectQuadScratch*          quadScratch;
+    SVECTOR*                    vertex;
+    s32                         cornerIndex;
+    const EffectUnitQuadCorner* corner;
+    POLY_FT4*                   quad;
+    s32                         scaledX;
+    s32                         textureU;
 
     quadScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
-    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(D_80111E38); cornerIndex++) {
+    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(gEffectUnitQuadCorners); cornerIndex++) {
         vertex     = &quadScratch->vertices[cornerIndex];
-        corner     = &D_80111E38[cornerIndex];
+        corner     = &gEffectUnitQuadCorners[cornerIndex];
         scaledX    = (u16)corner->axis0Sign * halfExtent;
         vertex->vy = 0;
         vertex->vx = scaledX;

@@ -150,7 +150,7 @@ enum {
     /// sprayed by the gun muzzle-flash controllers (pistols/SMG 0x2B, grenade launcher
     /// 0x6C, 0x6A, 0x6E, 0xA1).
     EFFECT_MUZZLE_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x035),
-    /// Ejected cartridge case: a small TMD model (D_80111FC8) thrown with spin and
+    /// Ejected cartridge case: a small TMD model (`gEffectBulletCasingModel`) thrown with spin and
     /// gravity by effectThrownModelTask; spawned by the handgun/SMG firing controller 0x6002B
     /// and six at once by the reload effect 0x6006D.
     EFFECT_BULLET_CASING = EFFECT_ID(EFFECT_TASK_BANK, 0x036),
@@ -356,7 +356,7 @@ enum {
     /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
     /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_DRYFIELD_MOTEL_BALCONY_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x074),
-    /// Four-frame additive flash sprite from Gp_EffSprRecs at a point, released after
+    /// Four-frame additive flash sprite at a point, released after
     /// four ticks; first effect of RoomFx spark bursts and gunblade/effectControlTask71
     /// impacts.
     EFFECT_IMPACT_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x076),

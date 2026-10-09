@@ -20,20 +20,20 @@ static void _pykeFlameDrawSplash(const VECTOR3* worldPosition, s32 halfSize)
            UV_SPAN       = 31,
            TEXTURE_SHADE = 0x40 }; // Half-intensity modulation (0x80 is neutral).
 
-    EffectGroundQuadScratch* scratchHead;
-    EffectGroundQuadScratch* scratch;
-    POLY_FT4*                quad;
-    EffectUnitQuadCorner*    unitCorners;
-    s32                      cornerIndex;
-    s32                      projectionFlags;
-    s32                      orderingDepth;
+    EffectGroundQuadScratch*    scratchHead;
+    EffectGroundQuadScratch*    scratch;
+    POLY_FT4*                   quad;
+    const EffectUnitQuadCorner* unitCorners;
+    s32                         cornerIndex;
+    s32                         projectionFlags;
+    s32                         orderingDepth;
 
     scratchHead                                   = SCRATCH_STACK_CURSOR(EffectGroundQuadScratch) - 1;
     SCRATCH_STACK_CURSOR(EffectGroundQuadScratch) = scratchHead;
     scratch                                       = scratchHead;
     gte_SetTransMatrix(&GsWSMATRIX);
     cornerIndex = 0;
-    unitCorners = D_80111E38;
+    unitCorners = gEffectUnitQuadCorners;
     do {
         scratch->vertices[cornerIndex].vx = (u16)unitCorners[cornerIndex].axis0Sign * halfSize;
         scratch->vertices[cornerIndex].vy = 0;
@@ -46,7 +46,7 @@ static void _pykeFlameDrawSplash(const VECTOR3* worldPosition, s32 halfSize)
         (u16) scratch->vertices[cornerIndex].vy = (u16)scratch->vertices[cornerIndex].vy + (u16)worldPosition->vy;
         (u16) scratch->vertices[cornerIndex].vz = (u16)scratch->vertices[cornerIndex].vz + (u16)worldPosition->vz;
         cornerIndex++;
-    } while (cornerIndex < ARRAY_SIZE(D_80111E38));
+    } while (cornerIndex < ARRAY_SIZE(gEffectUnitQuadCorners));
 
     // Project the first corner separately, then the remaining three together.
     gte_SetRotMatrix(&GsWSMATRIX);

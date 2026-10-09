@@ -14,9 +14,9 @@
 /// for this call, with no allocation or retention.
 static inline void _leafTransformCorner(EffectQuadScratch* quadScratch, s32 cornerIndex, s32 halfSize, const GfxCoord* coord)
 {
-    quadScratch->vertices[cornerIndex].vx = (u16)D_80111E38[cornerIndex].axis0Sign * halfSize;
+    quadScratch->vertices[cornerIndex].vx = (u16)gEffectUnitQuadCorners[cornerIndex].axis0Sign * halfSize;
     quadScratch->vertices[cornerIndex].vy = 0;
-    quadScratch->vertices[cornerIndex].vz = (u16)D_80111E38[cornerIndex].axis1Sign * halfSize;
+    quadScratch->vertices[cornerIndex].vz = (u16)gEffectUnitQuadCorners[cornerIndex].axis1Sign * halfSize;
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(&quadScratch->vertices[cornerIndex]);
     gte_rtv0();
@@ -49,7 +49,7 @@ static void _leafDraw(const GfxCoord* coord, s32 halfSize, s16 brightness)
 
     // Build the square in the leaf's frame, retaining 16-bit corner arithmetic.
     quadScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
-    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(D_80111E38); cornerIndex++) {
+    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(gEffectUnitQuadCorners); cornerIndex++) {
         _leafTransformCorner(quadScratch, cornerIndex, halfSize, coord);
     }
 
