@@ -372,7 +372,16 @@ def set_tables(embedded: dict) -> dict[str, list[tuple[str, list[tuple[str, int]
             if words[i] not in sets:
                 i += 1
                 continue
-            start = i - 1 if i and words[i - 1] == 0 else i      # slot 0 is unused
+            # Slot 0 is unused, and some tables open with more than one null.
+            # The table starts at its symbol, so take the nulls back to one;
+            # with no symbol in reach, a single null slot is assumed.
+            start = i - 1 if i and words[i - 1] == 0 else i
+            for back in range(i, max(i - 5, -1), -1):
+                if back < i and words[back] != 0:
+                    break
+                if load + back * 4 in names:
+                    start = back
+                    break
             end = i
             while end < len(words) and (words[end] in sets or words[end] == 0):
                 end += 1
