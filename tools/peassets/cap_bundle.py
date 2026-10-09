@@ -12,6 +12,12 @@ all are a 256 x 6 palette for (0, 255), the palette of one view's sprites:
 slot N is the palette of the view mapped to file N + 1
 (src/gameplay/view_image.c). A kind-3 payload is a `CAP2` dialogue file, or in a
 few bundles credits (`STF1`) or a bitstream.
+
+Three chunks of this type are not captions at all: the attract demos (stage-zero
+files 801000, 801100, 801200) each carry one kind-3 entry loaded to 0x80161E20,
+a serialized game state followed by recorded pad input
+(`titleRestoreAttractDemoState`, src/title/title.c). Those are listed as `demo`
+with the room the demo starts in.
 """
 from __future__ import annotations
 
@@ -22,6 +28,19 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 RAW = ROOT / "assets" / "USA" / "raw" / "pe2cap2"
 SLOTS, FIRST = 50, 0x7F0
+# Where an attract demo's state is streamed (`Fs_ActorLoadBase2`), and the size of the serialized state before the
+# input replay: the live save, the player status record, the five stage banks and the flag nibble bank.
+DEMO_DEST, DEMO_STATE = 0x80161E20, 0xD4C
+
+
+def demo(data: bytes, slot: dict) -> dict:
+    """An attract demo's start location and the length of its input replay."""
+    state = data[slot["offset"]:slot["offset"] + slot["length"]]
+    view, room, area, stage, warp, variant = state[4:10]         # GameLoc at +4 of the save record
+    replay = state[DEMO_STATE:]
+    pairs = [struct.unpack_from("<2H", replay, n) for n in range(0, len(replay) - 3, 4)]
+    return {"stage": stage, "area": area, "room": room, "view": view, "warp": warp, "variant": variant,
+            "pairs": len(pairs), "ticks": sum(duration for _, duration in pairs)}
 
 
 def slots(data: bytes) -> list[dict]:
@@ -42,6 +61,8 @@ def slots(data: bytes) -> list[dict]:
             s["what"] = "palette" if s["h"] <= 16 else "image"
         else:
             s["what"] = {b"CAP2": "dialogue", b"STF1": "credits"}.get(head[:4], "data")
+            if s["dest"] == DEMO_DEST and len(found) == 1 and s["length"] > DEMO_STATE:
+                s["what"] = "demo"
     return found
 
 
@@ -67,6 +88,10 @@ def main() -> int:
         for s in slots(path.read_bytes()):
             place = f" for ({s['x']}, {s['y']}), {s['w']} x {s['h']}" if s["kind"] == 2 else ""
             print(f"  slot {s['slot']:>2}: {s['what']}{place}, {s['length']} bytes at file {s['offset']:#x}, loaded to {s['dest']:#010x}")
+            if s["what"] == "demo":
+                d = demo(path.read_bytes(), s)
+                print(f"           attract demo: starts in stage {d['stage']} area {d['area']} (room index {d['room']}, view {d['view']}, variant {d['variant']}); "
+                      f"{d['pairs']} input records, {d['ticks']} ticks")
     return 0
 
 
