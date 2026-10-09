@@ -1,35 +1,37 @@
-#include <psyq/sys/types.h>
+#include "mappic/mappic.h"
 
-#include "types.h"
+#include <psyq/libgpu.h>
 
-#include "main/tmd_types.h"
+#include "common.h"
 
-static TmdBone _gMappicS200MappicS202Model00C4800070MappicS200Skeleton[1] = {
+/// Identity transform and self-parented root for the Motel room 6 shape.
+static TmdBone _gMappicS200MotelRoom6ShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00C48_00070_mappic_s2_00_skeleton.inc"
 };
 
-static u32 _gMappicS200MappicS202Model00C4800070MappicS200PartVerts[1] = {
+/// Vertex count of the Motel room 6 shape's sole part (four vertices).
+static u32 _gMappicS200MotelRoom6ShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00070_mappic_s2_00_partVerts.inc"
 };
 
-static SVECTOR _gMappicS200MappicS202Model00C4800070MappicS200Verts[4] = {
+/// Motel room 6's map outline in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS200MotelRoom6ShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00070_mappic_s2_00_verts.inc"
 };
 
-static u32 _gMappicS200MappicS202Model00C4800070MappicS200Stream[9] = {
+/// One unlit quad's packed vertex offsets and colour, followed by two group ends and the stream end.
+static u32 _gMappicS200MotelRoom6ShapeStream[] = {
 #include "assets/mappic_s2_02_model_00C48_00070_mappic_s2_00_stream.inc"
 };
 
-TmdSource D_mappic_s2_00_8012EFA0 = {
-    0,
-    24,
-    0,
-    1,
-    _gMappicS200MappicS202Model00C4800070MappicS200PartVerts,
-    _gMappicS200MappicS202Model00C4800070MappicS200Verts,
-    &_gMappicS200MappicS202Model00C4800070MappicS200Verts[4],
-    _gMappicS200MappicS202Model00C4800070MappicS200Skeleton,
-    _gMappicS200MappicS202Model00C4800070MappicS200Stream,
+TmdSource gMappicS200MotelRoom6Shape = {
+    .bufferHalfBytes  = sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS200MotelRoom6ShapeSkeleton),
+    .partVertexCounts = _gMappicS200MotelRoom6ShapePartVerts,
+    .verts            = _gMappicS200MotelRoom6ShapeVerts,
+    .normals          = &_gMappicS200MotelRoom6ShapeVerts[ARRAY_SIZE(_gMappicS200MotelRoom6ShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS200MotelRoom6ShapeSkeleton,
+    .stream           = _gMappicS200MotelRoom6ShapeStream,
 };
 
 static TmdBone _gMappicS200Model0011CSkeleton[1] = {

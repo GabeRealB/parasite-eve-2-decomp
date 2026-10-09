@@ -300,7 +300,7 @@ D_dryfield_underpass_8017EC10 = 0x8017EC10; // absolute:True owner=dryfield_unde
 D_dryfield_underpass_8017F4A8 = 0x8017F4A8; // absolute:True owner=dryfield_underpass shared=rooms
 D_dryfield_underpass_80180250 = 0x80180250; // absolute:True owner=dryfield_underpass
 D_dryfield_underpass_80181164 = 0x80181164; // absolute:True owner=dryfield_underpass
-D_mappic_s2_00_8012EFA0 = 0x8012EFA0; // absolute:True owner=mappic_s2_00 shared=mappic
+gMappicS200MotelRoom6Shape = 0x8012EFA0; // absolute:True owner=mappic_s2_00 shared=mappic
 D_mappic_s2_00_8012F0B8 = 0x8012F0B8; // absolute:True owner=mappic_s2_00 shared=mappic
 D_mappic_s2_00_8012F148 = 0x8012F148; // absolute:True owner=mappic_s2_00
 D_mappic_s2_00_8012F1D8 = 0x8012F1D8; // absolute:True owner=mappic_s2_00

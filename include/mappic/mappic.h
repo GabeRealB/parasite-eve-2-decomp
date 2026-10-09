@@ -38,7 +38,12 @@ extern TmdSource D_mappic_s1_00_8012FAFC;
 extern TmdSource D_mappic_s1_02_8012EFA0;
 
 // mappic_s2_00
-extern TmdSource D_mappic_s2_00_8012EFA0;
+/// Motel room 6's area-fill quad on page 1 of the daytime Dryfield map.
+///
+/// Lies in the model X/Z plane; the map applies its 1495/4096 page scale.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep the mappic_s2_00 package loaded while these are used.
+extern TmdSource gMappicS200MotelRoom6Shape;
 
 extern TmdSource D_mappic_s2_00_8012F0B8;
 
@@ -168,7 +173,12 @@ extern TmdSource D_mappic_s3_00_8012F084;
 
 extern TmdSource D_mappic_s3_00_8012F19C;
 
-extern TmdSource D_mappic_s3_00_8012F22C;
+/// Motel room 6's area-fill quad on page 1 of the nighttime Dryfield map.
+///
+/// Lies in the model X/Z plane; the map applies its 1495/4096 page scale.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep the mappic_s3_00 package loaded while these are used.
+extern TmdSource gMappicS300MotelRoom6Shape;
 
 extern TmdSource D_mappic_s3_00_8012F2BC;
 
