@@ -15,26 +15,59 @@
 
 #include "main/task_types.h"
 
-extern ModelMorph D_dryfield_toilet_801865D0;
+/// Room-owned Lesser Stranger deformation for the toilet transformation event.
+///
+/// Covers all 325 vertices and 1604 normals of the actor's body, starting at
+/// vertex zero. The actor snapshots its rest XYZ into this record's shared
+/// buffers before blending; only one live rest snapshot is supported. The
+/// room overlay, record and buffers must stay loaded throughout the actor's
+/// transformation. The visual identity of the full-morph shape is unproven.
+extern ModelMorph gDryfieldToiletLesserStrangerMorph;
 
 extern AreaVariant D_dryfield_toilet_80182918[13];
 
 // dryfield_toilet
 extern WorldCollisionRoomResources D_dryfield_toilet_8018112C[];
 
-extern u8* D_dryfield_toilet_8018113C[];
+/// Logical-view map for the toilet's single room, indexed by room - 1.
+///
+/// Borrows gameplay's identity map: logical views 1..11 select the same
+/// 1-based camera, image and sprite indices. Keep the room directory and
+/// gameplay map loaded while using the stage map's borrowed pointer.
+extern u8* gDryfieldToiletRoomViewMaps[1];
 
 extern ViewCount D_dryfield_toilet_80181140[];
 
-extern WorldCoordRoomLighting D_dryfield_toilet_80181144[];
+/// Lighting for the toilet's single room, indexed by room - 1.
+///
+/// Uses four point lights and the default per-view ambient minima. The room
+/// owns the collection and mutable light coordinates for its loaded lifetime.
+extern WorldCoordRoomLighting gDryfieldToiletRoomLighting[1];
 
 extern DirectionWarpEntry D_dryfield_toilet_8018114C[];
 
-extern ViewCamera D_dryfield_toilet_80181428[];
+/// Cameras for the toilet's mapped views 1..11, stored at index minus one.
+///
+/// Rotations use Q12 coefficients, translations world-coordinate units and
+/// projection distances pixels. A queued camera application borrows its
+/// selected record until dispatch; keep this room overlay loaded until then.
+extern ViewCamera gDryfieldToiletViewCameras[11];
 
-extern SpriteView D_dryfield_toilet_801821F8[];
+/// Sprite and clipping descriptors for the toilet's mapped views 1..11.
+///
+/// Indexed by mapped view minus one. Views 2..5 have depth-sorted source
+/// sprites; view 5 also clips the scene before its restore depth. Other views
+/// keep decoded image strips and select no source sprites. The descriptors
+/// borrow mutable room-owned lists that stay valid while this overlay is loaded.
+extern SpriteView gDryfieldToiletSpriteViews[11];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_toilet_8018660C[];
+/// Collision policies and footstep cues for the toilet's surface classes 0..7.
+///
+/// Class 1 blocks probes and permits weapon impacts; class 2 passes probes
+/// and suppresses weapon impacts. Both supply footstep cues. Other classes
+/// block probes and permit impacts without cues. Every class applies pushback.
+/// These borrowed room-owned records stay valid only while the overlay is loaded.
+extern WorldCollisionSurfaceProperties* gDryfieldToiletSurfaceClasses[8];
 
 /// Draws a randomly rotated six-frame puff, then advances its optional falling motion.
 ///

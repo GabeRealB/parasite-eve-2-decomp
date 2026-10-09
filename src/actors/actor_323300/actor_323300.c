@@ -973,7 +973,7 @@ static void _actor323300StrangerSpawn(Task* task)
     _actorMsgPlaceEuler(task, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_80174AB0, 0);
 
     // The room owns the shared rest snapshot for this transformation.
-    _modelMorphSaveRestShape(task, &D_dryfield_toilet_801865D0);
+    _modelMorphSaveRestShape(task, &gDryfieldToiletLesserStrangerMorph);
 
     _actor323300StrangerInitLighting(task);
     // Save the first clip's part translations before the transformation shortens parts 4 and 5.
@@ -1024,7 +1024,7 @@ static void _actor323300StrangerUpdate(Task* task)
         morphRamp = 0;
     }
 
-    _modelMorphBlend(task, &D_dryfield_toilet_801865D0, morphRamp);
+    _modelMorphBlend(task, &gDryfieldToiletLesserStrangerMorph, morphRamp);
     model->shading.colorBlend = morphRamp;
 
     if (work->transformCountdown < ACTOR_323300_TRANSFORM_TURN) {

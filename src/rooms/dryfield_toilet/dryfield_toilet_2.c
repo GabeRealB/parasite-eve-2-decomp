@@ -39,6 +39,7 @@
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
@@ -51,7 +52,7 @@
 extern WorldCollisionOccluder D_dryfield_toilet_801826F0[1];
 extern WorldCollisionTrigger  D_dryfield_toilet_8018227C[6];
 extern WorldCollisionTrigger  D_dryfield_toilet_80182444[9];
-extern WorldCoordRoomLights   D_dryfield_toilet_801828AC[1];
+static WorldCoordRoomLights   _gDryfieldToiletRoomLights;
 
 static WorldCollisionGridFace _gDryfieldToiletCollision03E44Faces[17];
 static SVECTOR                _gDryfieldToiletCollision03E44Normals[7];
@@ -62,8 +63,11 @@ extern AreaResource D_dryfield_toilet_801828C4[3];
 extern AreaResource D_dryfield_toilet_801828E8[2];
 extern AreaResource D_dryfield_toilet_80182900[2];
 
-extern SVECTOR D_dryfield_toilet_8018662C[326];
-extern SVECTOR D_dryfield_toilet_8018705C[1604];
+/// Number of model normals blended, excluding the unconsumed serialized vector.
+enum { DRYFIELD_TOILET_LESSER_STRANGER_MORPH_NORMAL_COUNT = 1604 };
+
+static SVECTOR _gDryfieldToiletLesserStrangerMorphSavedVertices[326];
+static SVECTOR _gDryfieldToiletLesserStrangerMorphSavedNormals[DRYFIELD_TOILET_LESSER_STRANGER_MORPH_NORMAL_COUNT];
 
 /// Player clips for extended ids 47-49; NULL at id 47, which nothing plays.
 ///
@@ -174,14 +178,14 @@ WorldCollisionRoomResources D_dryfield_toilet_8018112C[1] = {
     { &D_dryfield_toilet_80181404, D_dryfield_toilet_8018227C, D_dryfield_toilet_80182444, D_dryfield_toilet_801826F0 },
 };
 
-u8* D_dryfield_toilet_8018113C[1] = {
+u8* gDryfieldToiletRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
 ViewCount D_dryfield_toilet_80181140[1] = { 11 };
 
-WorldCoordRoomLighting D_dryfield_toilet_80181144[1] = {
-    { D_dryfield_toilet_801828AC, NULL },
+WorldCoordRoomLighting gDryfieldToiletRoomLighting[1] = {
+    { &_gDryfieldToiletRoomLights, NULL },
 };
 
 DirectionWarpEntry D_dryfield_toilet_8018114C[1] = {
@@ -212,8 +216,8 @@ static s16* _gDryfieldToiletCollision03E44Table[2] = {
 
 WorldCollisionGrid D_dryfield_toilet_80181404 = { NULL, _gDryfieldToiletCollision03E44Normals, _gDryfieldToiletCollision03E44Verts, _gDryfieldToiletCollision03E44Faces, _gDryfieldToiletCollision03E44Table, 2970, 2300, 1, 2, 4000, 17 };
 
-ViewCamera D_dryfield_toilet_80181428[11] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x7530, 0 } }, 1524 },
+ViewCamera gDryfieldToiletViewCameras[11] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 0, 0x7530, 0 } }, 1524 },
     { { { { 4000, 0, -880 }, { -628, 2868, -2855 }, { 616, 2924, 2801 } }, { 2049, 2467, 57 } }, 230 },
     { { { { -3969, 0, -1008 }, { -446, 3672, 1757 }, { 904, 1813, -3559 } }, { 2094, 1926, -1868 } }, 230 },
     { { { { -4005, 0, 858 }, { 107, 4063, 502 }, { -851, 513, -3973 } }, { -515, 1179, -1469 } }, 207 },
@@ -226,12 +230,14 @@ ViewCamera D_dryfield_toilet_80181428[11] = {
     { { { { -3984, 0, 947 }, { 393, 3725, 1656 }, { -862, 1702, -3624 } }, { 1635, 1684, 31 } }, 338 },
 };
 
-SpriteBatch D_dryfield_toilet_801815B4[2] = {
+/// Empty batch list for mapped view 1, retaining decoded image strips.
+static SpriteBatch _gDryfieldToiletView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_toilet_801815C4[45] = {
+/// Depth-sorted room sprites for mapped view 2; rectangles use drawing-origin pixels.
+static SpriteSource _gDryfieldToiletView2SpriteSources[45] = {
     { 142, 0x3FC0, { .fields = { 24, 8 } }, -40, 64, 325, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 40 } }, -16, 80, 392, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 56, 24 } }, -88, 96, 350, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
@@ -279,14 +285,16 @@ SpriteSource D_dryfield_toilet_801815C4[45] = {
     { 143, 0x3FC0, { .fields = { 8, 64 } }, 80, -72, 472, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_toilet_80181948[4] = {
+/// Draw batches for mapped view 2, ending at SPRITE_BATCH_END.
+static SpriteBatch _gDryfieldToiletView2SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 5, 0, 0, { 1, 0 } },
-    { 5, 40, 0, 0, { 0, 0 } },
+    { 5, ARRAY_SIZE(_gDryfieldToiletView2SpriteSources) - 5, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_toilet_80181968[47] = {
+/// Depth-sorted room sprites for mapped view 3; rectangles use drawing-origin pixels.
+static SpriteSource _gDryfieldToiletView3SpriteSources[47] = {
     { 142, 0x3FC0, { .fields = { 56, 16 } }, 40, 0, 525, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 104 } }, 24, 16, 400, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 32 } }, -8, 56, 650, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
@@ -336,13 +344,15 @@ SpriteSource D_dryfield_toilet_80181968[47] = {
     { 143, 0x3FC0, { .fields = { 8, 32 } }, -112, 88, 432, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_toilet_80181D14[3] = {
+/// Draw batches for mapped view 3, ending at SPRITE_BATCH_END.
+static SpriteBatch _gDryfieldToiletView3SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 47, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldToiletView3SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_toilet_80181D2C[13] = {
+/// Depth-sorted room sprites for mapped view 4; rectangles use drawing-origin pixels.
+static SpriteSource _gDryfieldToiletView4SpriteSources[13] = {
     { 143, 0x3FC0, { .fields = { 8, 104 } }, 56, -32, 575, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 184 } }, 64, -104, 513, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 192 } }, 72, -104, 495, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
@@ -358,13 +368,15 @@ SpriteSource D_dryfield_toilet_80181D2C[13] = {
     { 143, 0x3FC0, { .fields = { 8, 200 } }, 152, -120, 250, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_toilet_80181E30[3] = {
+/// Draw batches for mapped view 4, ending at SPRITE_BATCH_END.
+static SpriteBatch _gDryfieldToiletView4SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 13, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldToiletView4SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_toilet_80181E48[39] = {
+/// Depth-sorted room sprites for mapped view 5; rectangles use drawing-origin pixels.
+static SpriteSource _gDryfieldToiletView5SpriteSources[39] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -128, 112, 402, { .fields = { 40, 64 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 56 } }, -40, 48, 765, { .fields = { 32, 200 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 64 } }, -64, 40, 600, { .fields = { 24, 136 } }, 128, 128, 128, 0 },
@@ -406,62 +418,70 @@ SpriteSource D_dryfield_toilet_80181E48[39] = {
     { 142, 0x3FC0, { .fields = { 8, 24 } }, -16, 0, 8400, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_toilet_80182154[6] = {
+/// Draw batches for mapped view 5, ending at SPRITE_BATCH_END.
+static SpriteBatch _gDryfieldToiletView5SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 0, 0, 0, { 3, 0 } },
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 27, 0, 0, { 2, 0 } },
-    { 27, 12, 0, 0, { 1, 0 } },
+    { 27, ARRAY_SIZE(_gDryfieldToiletView5SpriteSources) - 27, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteDrawArea D_dryfield_toilet_80182184[2] = {
+/// Mapped view 5 clipping rectangle in draw-buffer pixels, restored at depth 875.
+static SpriteDrawArea _gDryfieldToiletView5DrawAreas[2] = {
     { { 150, 0, 168, 239 }, 875 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteBatch D_dryfield_toilet_80182198[2] = {
+/// Empty batch list for mapped view 6, retaining decoded image strips.
+static SpriteBatch _gDryfieldToiletView6SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_toilet_801821A8[2] = {
+/// Empty batch list for mapped view 7, retaining decoded image strips.
+static SpriteBatch _gDryfieldToiletView7SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_toilet_801821B8[2] = {
+/// Empty batch list for mapped view 8, retaining decoded image strips.
+static SpriteBatch _gDryfieldToiletView8SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_toilet_801821C8[2] = {
+/// Empty batch list for mapped view 9, retaining decoded image strips.
+static SpriteBatch _gDryfieldToiletView9SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_toilet_801821D8[2] = {
+/// Empty batch list for mapped view 10, retaining decoded image strips.
+static SpriteBatch _gDryfieldToiletView10SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_toilet_801821E8[2] = {
+/// Empty batch list for mapped view 11, retaining decoded image strips.
+static SpriteBatch _gDryfieldToiletView11SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_dryfield_toilet_801821F8[11] = {
-    { { .empty = D_dryfield_toilet_801815B4 }, D_dryfield_toilet_801815B4, NULL },
-    { { .elements = D_dryfield_toilet_801815C4 }, D_dryfield_toilet_80181948, NULL },
-    { { .elements = D_dryfield_toilet_80181968 }, D_dryfield_toilet_80181D14, NULL },
-    { { .elements = D_dryfield_toilet_80181D2C }, D_dryfield_toilet_80181E30, NULL },
-    { { .elements = D_dryfield_toilet_80181E48 }, D_dryfield_toilet_80182154, D_dryfield_toilet_80182184 },
-    { { .empty = D_dryfield_toilet_80182198 }, D_dryfield_toilet_80182198, NULL },
-    { { .empty = D_dryfield_toilet_801821A8 }, D_dryfield_toilet_801821A8, NULL },
-    { { .empty = D_dryfield_toilet_801821B8 }, D_dryfield_toilet_801821B8, NULL },
-    { { .empty = D_dryfield_toilet_801821C8 }, D_dryfield_toilet_801821C8, NULL },
-    { { .empty = D_dryfield_toilet_801821D8 }, D_dryfield_toilet_801821D8, NULL },
-    { { .empty = D_dryfield_toilet_801821E8 }, D_dryfield_toilet_801821E8, NULL },
+SpriteView gDryfieldToiletSpriteViews[11] = {
+    { { .empty = _gDryfieldToiletView1SpriteBatches }, _gDryfieldToiletView1SpriteBatches, NULL },
+    { { .elements = _gDryfieldToiletView2SpriteSources }, _gDryfieldToiletView2SpriteBatches, NULL },
+    { { .elements = _gDryfieldToiletView3SpriteSources }, _gDryfieldToiletView3SpriteBatches, NULL },
+    { { .elements = _gDryfieldToiletView4SpriteSources }, _gDryfieldToiletView4SpriteBatches, NULL },
+    { { .elements = _gDryfieldToiletView5SpriteSources }, _gDryfieldToiletView5SpriteBatches, _gDryfieldToiletView5DrawAreas },
+    { { .empty = _gDryfieldToiletView6SpriteBatches }, _gDryfieldToiletView6SpriteBatches, NULL },
+    { { .empty = _gDryfieldToiletView7SpriteBatches }, _gDryfieldToiletView7SpriteBatches, NULL },
+    { { .empty = _gDryfieldToiletView8SpriteBatches }, _gDryfieldToiletView8SpriteBatches, NULL },
+    { { .empty = _gDryfieldToiletView9SpriteBatches }, _gDryfieldToiletView9SpriteBatches, NULL },
+    { { .empty = _gDryfieldToiletView10SpriteBatches }, _gDryfieldToiletView10SpriteBatches, NULL },
+    { { .empty = _gDryfieldToiletView11SpriteBatches }, _gDryfieldToiletView11SpriteBatches, NULL },
 };
 
 WorldCollisionTrigger D_dryfield_toilet_8018227C[6] = {
@@ -489,15 +509,22 @@ WorldCollisionOccluder D_dryfield_toilet_801826F0[1] = {
     { NULL, NULL, { -864, -1488, 624, 0 }, { { 0, 1904, -1520, 0 }, { 0, -1904, -1520, 0 }, { 0, 1904, 1520, 0 }, { 0, -1904, 1520, 0 } }, { 4109, 0, 0, 0 }, 2428, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCoordPointLight D_dryfield_toilet_8018272C[4] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -810, -1260, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 0x186A0, 0x186A0 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2290, -1470, -510 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -310, -1470, -1790 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 110, -1470, 1770 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 1000, 2000 },
+/// Four all-view point lights, with world-unit positions/radii and Q12 RGB intensities.
+static WorldCoordPointLight _gDryfieldToiletPointLights[4] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -810, -1260, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 0x186A0, 0x186A0 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -2290, -1470, -510 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -310, -1470, -1790 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 110, -1470, 1770 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 1000, 2000 },
 };
 
-WorldCoordRoomLights D_dryfield_toilet_801828AC[1] = {
-    { 0, NULL, ARRAY_SIZE(D_dryfield_toilet_8018272C), D_dryfield_toilet_8018272C, 0, NULL },
+/// Single room light collection, with point sources only.
+static WorldCoordRoomLights _gDryfieldToiletRoomLights = {
+    0,
+    NULL,
+    ARRAY_SIZE(_gDryfieldToiletPointLights),
+    _gDryfieldToiletPointLights,
+    0,
+    NULL,
 };
 
 AreaResource D_dryfield_toilet_801828C4[3] = {
@@ -532,48 +559,89 @@ AreaVariant D_dryfield_toilet_80182918[13] = {
     { NULL, NULL },
 };
 
-SVECTOR D_dryfield_toilet_80182980[325] = {
+/// Full-ramp XYZ displacement of each Lesser Stranger vertex in model-local units.
+static SVECTOR _gDryfieldToiletLesserStrangerMorphVertexDeltas[325] = {
 #include "assets/dryfield_toilet_morph_053C0.inc"
 };
 
-SVECTOR D_dryfield_toilet_801833A8[1605] = {
+/// Full-ramp Lesser Stranger normal targets, with Q12 XYZ components.
+///
+/// Only the first 1604 serialized vectors are blended. The final
+/// (0, 0, 0, 1604) record is retained; its purpose is unproven.
+static SVECTOR _gDryfieldToiletLesserStrangerMorphTargetNormals[1605] = {
 #include "assets/dryfield_toilet_morph_05DE8.inc"
 };
 
-ModelMorph D_dryfield_toilet_801865D0 = { D_dryfield_toilet_80182980, D_dryfield_toilet_801833A8, D_dryfield_toilet_8018662C, D_dryfield_toilet_8018705C, 325, 1604, 0, 325 };
-
-WorldCollisionFootstepSounds D_dryfield_toilet_801865E8 = {
-    0x10000001,
-    0x10000003,
-    0x10000001,
+ModelMorph gDryfieldToiletLesserStrangerMorph = {
+    .vertexDeltas     = _gDryfieldToiletLesserStrangerMorphVertexDeltas,
+    .targetNormals    = _gDryfieldToiletLesserStrangerMorphTargetNormals,
+    .savedVertices    = _gDryfieldToiletLesserStrangerMorphSavedVertices,
+    .savedNormals     = _gDryfieldToiletLesserStrangerMorphSavedNormals,
+    .savedVertexCount = ARRAY_SIZE(_gDryfieldToiletLesserStrangerMorphVertexDeltas),
+    .normalCount      = DRYFIELD_TOILET_LESSER_STRANGER_MORPH_NORMAL_COUNT,
+    .firstVertex      = 0,
+    .deltaCount       = ARRAY_SIZE(_gDryfieldToiletLesserStrangerMorphVertexDeltas),
 };
 
-WorldCollisionSurfaceProperties D_dryfield_toilet_801865F4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Cue-2 script entries in the loaded type-1 bank; cue 1 uses the next entry.
+enum {
+    DRYFIELD_TOILET_FOOTSTEP_WALK_ENTRY = 1,
+    DRYFIELD_TOILET_FOOTSTEP_RUN_ENTRY  = 3,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_toilet_801865FC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_toilet_801865E8 },
+/// Paired walk and run cue bases, with scripted jumps using the walk pair.
+static WorldCollisionFootstepSounds _gDryfieldToiletFootstepSounds = {
+    .walk         = SOUND_SCRIPT_REQUEST_TYPE_1 | DRYFIELD_TOILET_FOOTSTEP_WALK_ENTRY,
+    .run          = SOUND_SCRIPT_REQUEST_TYPE_1 | DRYFIELD_TOILET_FOOTSTEP_RUN_ENTRY,
+    .scriptedJump = SOUND_SCRIPT_REQUEST_TYPE_1 | DRYFIELD_TOILET_FOOTSTEP_WALK_ENTRY,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_toilet_80186604[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_toilet_801865E8 },
+/// Blocking, weapon-impact surface for classes 0 and 3..7, without footstep cues.
+static WorldCollisionSurfaceProperties _gDryfieldToiletSilentBlockingSurface = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    NULL,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_toilet_8018660C[8] = {
-    D_dryfield_toilet_801865F4,
-    D_dryfield_toilet_801865FC,
-    D_dryfield_toilet_80186604,
-    D_dryfield_toilet_801865F4,
-    D_dryfield_toilet_801865F4,
-    D_dryfield_toilet_801865F4,
-    D_dryfield_toilet_801865F4,
-    D_dryfield_toilet_801865F4,
+/// Class-1 blocking, weapon-impact surface with the room's footstep cues.
+static WorldCollisionSurfaceProperties _gDryfieldToiletFootstepBlockingSurface = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    &_gDryfieldToiletFootstepSounds,
 };
 
-SVECTOR D_dryfield_toilet_8018662C[326] = { 0 };
+/// Class-2 probe-pass surface with footstep cues, pushback and no weapon impacts.
+static WorldCollisionSurfaceProperties _gDryfieldToiletFootstepPassThroughSurface = {
+    0,
+    WORLD_COLLISION_SURFACE_PASS_PROBES,
+    WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    &_gDryfieldToiletFootstepSounds,
+};
 
-SVECTOR D_dryfield_toilet_8018705C[1604] = { 0 };
+WorldCollisionSurfaceProperties* gDryfieldToiletSurfaceClasses[8] = {
+    &_gDryfieldToiletSilentBlockingSurface,
+    &_gDryfieldToiletFootstepBlockingSurface,
+    &_gDryfieldToiletFootstepPassThroughSurface,
+    &_gDryfieldToiletSilentBlockingSurface,
+    &_gDryfieldToiletSilentBlockingSurface,
+    &_gDryfieldToiletSilentBlockingSurface,
+    &_gDryfieldToiletSilentBlockingSurface,
+    &_gDryfieldToiletSilentBlockingSurface,
+};
+
+/// Rest-vertex XYZ snapshot shared by the transformation actor.
+///
+/// Only entries 0..324 are written or blended. The final stored vector's role
+/// is unproven; it is retained without treating it as a model vertex.
+static SVECTOR _gDryfieldToiletLesserStrangerMorphSavedVertices[326] = { 0 };
+
+/// Rest-normal XYZ snapshot, initialized before blending and shared by the actor.
+static SVECTOR _gDryfieldToiletLesserStrangerMorphSavedNormals[DRYFIELD_TOILET_LESSER_STRANGER_MORPH_NORMAL_COUNT] = { 0 };
 
 /// Normalizes a spray offset to Q12, choosing a random direction for a zero offset.
 ///

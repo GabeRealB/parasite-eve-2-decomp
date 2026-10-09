@@ -61,7 +61,7 @@ D_shelter_1f_guardroom_8017DCE0 = 0x8017DCE0; // absolute:True owner=shelter_1f_
 D_shelter_1f_guardroom_8017DFF4 = 0x8017DFF4; // absolute:True owner=shelter_1f_guardroom shared=rooms
 neoArkObservatoryRoomTask = 0x8017FDDC; // type:func absolute:True owner=neo_ark_observatory shared=rooms
 D_neo_ark_observatory_80181594 = 0x80181594; // absolute:True owner=neo_ark_observatory
-D_neo_ark_observatory_801815B4 = 0x801815B4; // absolute:True owner=neo_ark_observatory shared=rooms
+D_neo_ark_observatory_801815B4 = 0x801815B4; // absolute:True owner=neo_ark_observatory
 D_neo_ark_observatory_801815DC = 0x801815DC; // absolute:True owner=neo_ark_observatory shared=rooms
 D_neo_ark_observatory_801815E4 = 0x801815E4; // absolute:True owner=neo_ark_observatory
 D_neo_ark_observatory_801815E8 = 0x801815E8; // absolute:True owner=neo_ark_observatory shared=rooms
