@@ -80,12 +80,12 @@ static void _capCaptionRunSchedule(Task* task)
         case CAP_CAPTION_SCHEDULE_RUNNING:
             commandIndex = CAP_CAPTION_SCHEDULE_NO_COMMAND;
             // A containing window supplies both values before selection.
-            for (windowIndex = 0; CapCaption_Data_80154514[windowIndex].upper != CAP_CAPTION_SCHEDULE_END; windowIndex++) {
+            for (windowIndex = 0; _gCapCaptionSceneClockSchedule[windowIndex].upper != CAP_CAPTION_SCHEDULE_END; windowIndex++) {
                 sceneFrames = gGameSession->sceneClock;
-                if ((CapCaption_Data_80154514[windowIndex].upper * CAP_CAPTION_SCHEDULE_FRAMES_PER_UNIT >= sceneFrames) &&
-                    (CapCaption_Data_80154514[windowIndex].lower * CAP_CAPTION_SCHEDULE_FRAMES_PER_UNIT < sceneFrames)) {
-                    commandIndex = CapCaption_Data_80154514[windowIndex].commandIndex;
-                    key          = CapCaption_Data_80154514[windowIndex].key;
+                if ((_gCapCaptionSceneClockSchedule[windowIndex].upper * CAP_CAPTION_SCHEDULE_FRAMES_PER_UNIT >= sceneFrames) &&
+                    (_gCapCaptionSceneClockSchedule[windowIndex].lower * CAP_CAPTION_SCHEDULE_FRAMES_PER_UNIT < sceneFrames)) {
+                    commandIndex = _gCapCaptionSceneClockSchedule[windowIndex].commandIndex;
+                    key          = _gCapCaptionSceneClockSchedule[windowIndex].key;
                     break;
                 }
             }
@@ -802,5 +802,5 @@ static inline void _capCaptionShowTimed(s16 commandIndex, s16 key, s16 durationT
 {
     CAP_CAPTION_SELECT_RECORD(commandIndex, key, CAP_CAPTION_DEFAULT_BOTTOM_BASELINE_Y);
     // Widen to the signed word member of the transparent spawn-argument union.
-    taskSpawnFromTable(&CapCaption_Data_801544FC, 0, (s32)durationTicks, 0);
+    taskSpawnFromTable(&_gCapCaptionTimedTaskDesc, 0, (s32)durationTicks, 0);
 }

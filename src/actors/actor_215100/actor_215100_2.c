@@ -104,21 +104,18 @@ static void _actor215100ShowTimedCaption(s16 commandIndex, s16 key, s16 duration
 static void _capCaptionRunSchedule(Task* task);
 #include "../../shared/walker.h"
 
-extern TaskDesc   D_actor_215100_8014E13C[];
 extern EvsCommand D_actor_215100_8014E370[];
 extern EvsCommand D_actor_215100_8014E8F8[];
 extern EvsCommand D_actor_215100_8014EA90[];
 extern EvsCommand D_actor_215100_8014EB08[];
 
-static TaskDesc CapCaption_Data_801544FC;
+static TaskDesc _gCapCaptionTimedTaskDesc;
 static TaskDesc CapCaption_Data_80154508;
 extern Task*    D_actor_215100_8015E64C;
 
-extern EvsCommand    D_actor_215100_80153ED4[];
-extern EvsCommand    D_actor_215100_80153FDC[];
-extern EvsCommand    D_actor_215100_801543E4[];
-extern TaskDesc      D_actor_215100_8015E5D0[];
-extern AnimationSet* D_actor_215100_8015E5E8[25];
+extern EvsCommand D_actor_215100_80153ED4[];
+extern EvsCommand D_actor_215100_80153FDC[];
+extern EvsCommand D_actor_215100_801543E4[];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 
@@ -126,24 +123,22 @@ extern TaskMessageEntry     D_actor_215100_8015E5A0[];
 static const TextGlyphCell* _gCapCaptionGlyphCells;
 
 /// Caption script table.
-static const CapCommandRef* _gCapCaptionCommandRefs;
-static CapSequenceRecord*   _gCapCaptionSequence;
-static s16                  _gCapCaptionBlockLeftX;
-static s16                  _gCapCaptionFirstBaselineY;
-static s16                  _gCapCaptionBottomBaselineY;
-static s16                  _gCapCaptionRecordIndex;
-static s16                  _gCapCaptionBlockHeight;
-static s16                  _gCapCaptionSelectedKey;
-static s32                  _gCapCaptionCaretPulseLevel;
-static s32                  _gCapCaptionCaretPulseFalling;
-static u16                  _gCapCaptionCaretLeftX;
-static u16                  _gCapCaptionCaretTipY;
-static s16                  _gCapCaptionTexturePageX;
-static s16                  _gCapCaptionTexturePageY;
-extern RoomEventMsg         D_actor_215100_8015E678;
-/// Caption schedule `_capCaptionRunSchedule` scans, terminated by an
-/// `upper` of `CAP_CAPTION_SCHEDULE_END`.
-static CapCaptionScheduleWindow CapCaption_Data_80154514[];
+static const CapCommandRef*     _gCapCaptionCommandRefs;
+static CapSequenceRecord*       _gCapCaptionSequence;
+static s16                      _gCapCaptionBlockLeftX;
+static s16                      _gCapCaptionFirstBaselineY;
+static s16                      _gCapCaptionBottomBaselineY;
+static s16                      _gCapCaptionRecordIndex;
+static s16                      _gCapCaptionBlockHeight;
+static s16                      _gCapCaptionSelectedKey;
+static s32                      _gCapCaptionCaretPulseLevel;
+static s32                      _gCapCaptionCaretPulseFalling;
+static u16                      _gCapCaptionCaretLeftX;
+static u16                      _gCapCaptionCaretTipY;
+static s16                      _gCapCaptionTexturePageX;
+static s16                      _gCapCaptionTexturePageY;
+extern RoomEventMsg             D_actor_215100_8015E678;
+static CapCaptionScheduleWindow _gCapCaptionSceneClockSchedule[];
 
 static TmdSource _gActor215100PierceCarradineBody;
 static TmdSource _gActor215100Actor113100Model07960;
@@ -185,38 +180,81 @@ static void _actor215100SetGalleryRedFlashLoop(s32 enabled);
 static void _actor215100SelectGalleryRoomLights(s16 useAlternate);
 static void _actor215100SetViewRespawnPending(s16 pending);
 
-TaskDesc D_actor_215100_8014E13C[3] = {
-    { { { TASK_BODY_NONE, 32 } }, _actor215100GalleryIntroTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, actor215100GalleryTrainingMenuTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, _actor215100GalleryRedFlashLoopTask, { .value = 0 } },
+enum {
+    ACTOR_215100_GALLERY_TASK_PRIORITY          = 32,
+    ACTOR_215100_PIERCE_BODY_TASK_PRIORITY      = 96,
+    ACTOR_215100_PIERCE_PAIR_TASK_PRIORITY      = 192,
+    ACTOR_215100_CONVERSATION_BLEND_FRAMES      = 10,
+    ACTOR_215100_CONVERSATION_IDLE_BLEND_FRAMES = 8,
 };
 
-/// Player clips for extended ids 47-57, added by the shooting gallery's session
-/// scenes; NULL at the four ids (53-56) nothing requests, and no script sends
-/// the request for 57.
+TaskDesc gActor215100GalleryTaskDescs[ACTOR_215100_GALLERY_TASK_COUNT] = {
+    { { { TASK_BODY_NONE, ACTOR_215100_GALLERY_TASK_PRIORITY } }, _actor215100GalleryIntroTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACTOR_215100_GALLERY_TASK_PRIORITY } }, actor215100GalleryTrainingMenuTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACTOR_215100_GALLERY_TASK_PRIORITY } }, _actor215100GalleryRedFlashLoopTask, { .value = 0 } },
+};
+
+/// Player animation extension for the gallery's introduction and course menus.
 ///
-/// The event scripts of the gallery's introduction and session set-up send the
-/// player its copy request before they play one of these clips; only the
-/// introduction's second script plays one without sending the request itself.
-/// `D_actor_215100_8014E2B8` copies `ANIMATION_BANK_EXTENSION_CAPACITY` (32)
-/// words starting here into the player's bank, which is 21 words past the end
-/// of this array: the read runs on through `D_actor_215100_8014E18C`,
-/// `D_actor_215100_8014E1A0`, `D_actor_215100_8014E1B4`,
-/// `D_actor_215100_8014E1C8` and the first word of `D_actor_215100_8014E1DC`.
-/// That overrun is the original's and is kept as it is: the request carries the
-/// bank's fixed capacity, while the table was stored with only its own entries.
-/// The player's requests select ids 47-52 only, so none of the words installed
-/// after the table is played as a clip.
-AnimationSet* D_actor_215100_8014E160[11] = { &gActor215100Animation034E4, &gActor215100Animation03754, &gActor215100Animation039AC, &gActor215100Animation03B48, &gActor215100Animation03D98, &gActor215100Animation03FF0, NULL, NULL, NULL, NULL, &gActor215100Animation042F4 };
+/// Entries map to player clip IDs 47..57; 53..56 are NULL and 57 is retained
+/// without a live request. Scripts play only 47..52. The native pointer table
+/// occupies eleven words; the bank-copy request reads a larger raw image span.
+/// Keep these borrowed clips loaded while the equipped weapon bank uses them.
+static AnimationSet* _gActor215100GalleryPlayerAnimationSets[11] = {
+    &gActor215100Animation034E4, // Player clip 47.
+    &gActor215100Animation03754, // Player clip 48.
+    &gActor215100Animation039AC, // Player clip 49.
+    &gActor215100Animation03B48, // Player clip 50.
+    &gActor215100Animation03D98, // Player clip 51.
+    &gActor215100Animation03FF0, // Player clip 52.
+    NULL,                        // Player clip 53.
+    NULL,                        // Player clip 54.
+    NULL,                        // Player clip 55.
+    NULL,                        // Player clip 56.
+    &gActor215100Animation042F4, // Player clip 57.
+};
 
 // The run of requests the scripts send to this package's own actor, the scene's second placed actor, starts here. This one is not referenced.
 AnimationPlayRequest D_actor_215100_8014E18C = { { .index = 1 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_215100_8014E1A0 = { { .index = 1 }, 18, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Gallery reset request for Pierce's body clip 18.
+///
+/// The placed-actor handler reseeds tracks 1..19 without moving the root.
+/// It ignores the stored bank selector and collision choice; the actor
+/// overlay and its clip data must remain loaded during playback.
+static AnimationPlayRequest _gActor215100PierceClip18Request = {
+    .source               = { .index = 1 },
+    .animationId          = 18,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_215100_8014E1B4 = { { .index = 1 }, 19, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Gallery reset request for Pierce's body clip 19.
+///
+/// The placed-actor handler reseeds tracks 1..19 without moving the root.
+/// It ignores the stored bank selector and collision choice; the actor
+/// overlay and its clip data must remain loaded during playback.
+static AnimationPlayRequest _gActor215100PierceClip19Request = {
+    .source               = { .index = 1 },
+    .animationId          = 19,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_215100_8014E1C8 = { { .index = 1 }, 20, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Gallery reset request for Pierce's body clip 20.
+///
+/// The placed-actor handler reseeds tracks 1..19 without moving the root.
+/// It ignores the stored bank selector and collision choice; the actor
+/// overlay and its clip data must remain loaded during playback.
+static AnimationPlayRequest _gActor215100PierceClip20Request = {
+    .source               = { .index = 1 },
+    .animationId          = 20,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_actor_215100_8014E1DC = { { .index = 1 }, 21, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -230,7 +268,19 @@ AnimationPlayRequest D_actor_215100_8014E204[3] = {
 
 AnimationPlayRequest D_actor_215100_8014E240 = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_215100_8014E254 = { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Gallery player clip 48 request with a reset.
+///
+/// The event interpreter copies this record and resolves the current weapon
+/// bank before dispatch. Playback takes scripted control and disables world
+/// collision. Keep the weapon bank and any copied clip data loaded.
+/// Requires the extension installed by `_gActor215100GalleryPlayerBankCopyRequest`.
+static AnimationPlayRequest _gActor215100GalleryPlayerClip48Request = {
+    .source               = { .index = 1 },
+    .animationId          = 48,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_actor_215100_8014E268 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -238,39 +288,105 @@ AnimationPlayRequest D_actor_215100_8014E27C = { { .index = 1 }, 50, ANIMATION_B
 
 AnimationPlayRequest D_actor_215100_8014E290 = { { .index = 1 }, 51, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_215100_8014E2A4 = { { .index = 1 }, 52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Gallery player clip 52 request with a reset.
+///
+/// The event interpreter copies this record and resolves the current weapon
+/// bank before dispatch. Playback takes scripted control and disables world
+/// collision. Keep the weapon bank and any copied clip data loaded.
+/// Requires the extension installed by `_gActor215100GalleryPlayerBankCopyRequest`.
+static AnimationPlayRequest _gActor215100GalleryPlayerClip52Request = {
+    .source               = { .index = 1 },
+    .animationId          = 52,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationBankCopyRequest D_actor_215100_8014E2B8 = { { .sets = D_actor_215100_8014E160 }, ANIMATION_BANK_EXTENSION_CAPACITY };
+/// Installs the gallery's player clips and retained adjacent words into the weapon bank.
+///
+/// Copies 32 raw words to bank indices 47..78, without starting playback.
+/// The first eleven are the clip table; the next 21 cover four complete
+/// five-word Pierce requests and the first word of the next request.
+/// Their native order and contents are part of this transfer. Those trailing
+/// words are not playable clips. The source overlay must stay loaded through
+/// dispatch and through playback of the copied pointers.
+static AnimationBankCopyRequest _gActor215100GalleryPlayerBankCopyRequest = {
+    .source    = { .words = (const s32*)_gActor215100GalleryPlayerAnimationSets },
+    .wordCount = ANIMATION_BANK_EXTENSION_CAPACITY,
+};
 
 AnimationPlayRequest D_actor_215100_8014E2C0 = { { .index = 1 }, 57, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_215100_8014E2D4 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Gallery player clip 1 request with a reset.
+///
+/// The event interpreter copies this record and resolves the current weapon
+/// bank before dispatch. Playback takes scripted control and disables world
+/// collision. Keep the weapon bank and any copied clip data loaded.
+static AnimationPlayRequest _gActor215100GalleryPlayerClip1Request = {
+    .source               = { .index = 1 },
+    .animationId          = 1,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_215100_8014E2E8 = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Gallery player clip 9 request with a reset.
+///
+/// The event interpreter copies this record and resolves the current weapon
+/// bank before dispatch. Playback takes scripted control and disables world
+/// collision. Keep the weapon bank and any copied clip data loaded.
+static AnimationPlayRequest _gActor215100GalleryPlayerClip9Request = {
+    .source               = { .index = 1 },
+    .animationId          = 9,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_actor_215100_8014E2FC = { { .index = 1 }, 7, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-ActorTransform D_actor_215100_8014E310 = { { -0x27CE, 0, 4100, 0 }, { 0, 1024, 0, 0 } };
+/// Pierce's placement during the gallery briefing and course-menu scenes.
+///
+/// XYZ are whole room-coordinate units; yaw is a positive quarter turn.
+/// The placed-actor handler applies XYZ and yaw without retaining the record.
+static ActorTransform _gActor215100GalleryPiercePlacement = {
+    .pos = { -0x27CE, 0, 4100, 0 },
+    .rot = { 0, ONE / 4, 0, 0 },
+};
 
 ActorTransform D_actor_215100_8014E328 = { { -0x279C, 0, 4720, 0 }, { 0, 1024, 0, 0 } };
 
-ActorTransform D_actor_215100_8014E340 = { { -6550, 0, 2950, 0 }, { 0, 1024, 0, 0 } };
+/// Player placement for gallery briefings and course-menu selection.
+///
+/// XYZ are whole world-coordinate units; yaw is a positive quarter turn.
+/// The player applies XYZ and all three angles during synchronous dispatch.
+static ActorTransform _gActor215100GalleryPlayerMenuPlacement = {
+    .pos = { -6550, 0, 2950, 0 },
+    .rot = { 0, ONE / 4, 0, 0 },
+};
 
-ActorTransform D_actor_215100_8014E358 = { { -6800, 0, 2950, 0 }, { 0, 1024, 0, 0 } };
+/// Player placement for starting a fixed-view course or declining the gallery offer.
+///
+/// XYZ are whole world-coordinate units; yaw is a positive quarter turn.
+/// The player applies XYZ and all three angles during synchronous dispatch.
+static ActorTransform _gActor215100GalleryPlayerCoursePlacement = {
+    .pos = { -6800, 0, 2950, 0 },
+    .rot = { 0, ONE / 4, 0, 0 },
+};
 
 EvsCommand D_actor_215100_8014E370[59] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4004 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_215100_8014E2B8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor215100GalleryPlayerBankCopyRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor215100StartGalleryMovie }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_8014E2E8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor215100GalleryPlayerClip9Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_215100_8014E340 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_actor_215100_8014E310 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor215100GalleryPlayerMenuPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor215100GalleryPiercePlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -283,20 +399,20 @@ EvsCommand D_actor_215100_8014E370[59] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 80 }, { .value = 80 }, { .value = 80 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_8014E1A0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_8014E254 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip18Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor215100GalleryPlayerClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5114000D }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor215100SetGalleryRedFlashLoop }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_8014E268 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_8014E254 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor215100GalleryPlayerClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_8014E1C8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip20Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 44 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_8014E1A0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip18Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_8014E27C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_8014E1DC } }, { .value = 0 } },
@@ -305,17 +421,17 @@ EvsCommand D_actor_215100_8014E370[59] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_8014E290 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_actor_215100_8014E328 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_8014E1B4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip19Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 35 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_8014E1A0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip18Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_8014E1C8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip20Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 44 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_8014E1A0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip18Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_actor_215100_8014E310 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_8014E254 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor215100GalleryPiercePlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor215100GalleryPlayerClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -330,11 +446,11 @@ EvsCommand D_actor_215100_8014E8F8[17] = {
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 80 }, { .value = 80 }, { .value = 80 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor215100SetGalleryRedFlashLoop }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_8014E254 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor215100GalleryPlayerClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_actor_215100_8014E310 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_8014E1A0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_215100_8014E340 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor215100GalleryPiercePlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip18Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor215100GalleryPlayerMenuPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -350,7 +466,7 @@ EvsCommand D_actor_215100_8014EA90[5] = {
 
 EvsCommand D_actor_215100_8014EB08[6] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 7 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_215100_8014E2B8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor215100GalleryPlayerBankCopyRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_8014E240 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -364,19 +480,19 @@ EvsCommand D_actor_215100_8014EB98[3] = {
 };
 
 EvsCommand D_actor_215100_8014EBE0[18] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_215100_8014E2B8 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_8014E2A4 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor215100GalleryPlayerBankCopyRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor215100GalleryPlayerClip52Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_8014E1B4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip19Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 35 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_8014E1A0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip18Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 31 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_8014E2D4 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_215100_8014E358 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor215100GalleryPlayerClip1Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor215100GalleryPlayerCoursePlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_SHOW_HUD }, { .value = 0 }, { .value = 0 } },
@@ -386,11 +502,11 @@ EvsCommand D_actor_215100_8014EBE0[18] = {
 
 EvsCommand D_actor_215100_8014ED90[9] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4004 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_8014E2E8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor215100GalleryPlayerClip9Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_215100_8014E340 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_actor_215100_8014E310 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_8014E1A0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor215100GalleryPlayerMenuPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor215100GalleryPiercePlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip18Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 80 }, { .value = 80 }, { .value = 80 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -398,13 +514,13 @@ EvsCommand D_actor_215100_8014ED90[9] = {
 
 EvsCommand D_actor_215100_8014EE68[13] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4004 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_215100_8014E2B8 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_8014E254 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor215100GalleryPlayerBankCopyRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor215100GalleryPlayerClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_215100_8014E340 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor215100GalleryPlayerMenuPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_actor_215100_8014E310 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_8014E1A0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor215100GalleryPiercePlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip18Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 80 }, { .value = 80 }, { .value = 80 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -413,9 +529,9 @@ EvsCommand D_actor_215100_8014EE68[13] = {
 };
 
 EvsCommand D_actor_215100_8014EFA0[8] = {
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_8014E2D4 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor215100GalleryPlayerClip1Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_215100_8014E358 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor215100GalleryPlayerCoursePlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor215100SelectGalleryRoomLights }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -424,11 +540,11 @@ EvsCommand D_actor_215100_8014EFA0[8] = {
 };
 
 EvsCommand D_actor_215100_8014F060[9] = {
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_8014E2D4 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor215100GalleryPlayerClip1Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_215100_8014E358 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor215100GalleryPlayerCoursePlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_SHOW_HUD }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -437,9 +553,9 @@ EvsCommand D_actor_215100_8014F060[9] = {
 
 EvsCommand D_actor_215100_8014F138[6] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_8014E1C8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip20Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 35 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_8014E1A0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip18Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -840,21 +956,34 @@ static AnimationSet _gActor215100Animation09064 = {
     { NULL, _gActor215100Animation09064Bank1, NULL, NULL, _gActor215100Animation09064Bank4, NULL, NULL, NULL },
 };
 
-/// Player clips for extended ids 47-66, added by the actor's conversation
-/// scenes; NULL at the two ids (57-58) nothing requests, and no script sends
-/// the request for 59.
+/// Player animation extension for Pierce's story and conversation scenes.
 ///
-/// The two captioned scenes that play these clips each send the player its copy
-/// request before the first of them. `D_actor_215100_801531CC` copies
-/// `ANIMATION_BANK_EXTENSION_CAPACITY` (32) words starting here into the
-/// player's bank, which is twelve words past the end of this array: the read
-/// runs on through `D_actor_215100_80152EFC`, `D_actor_215100_80152F10` and the
-/// first two words of `D_actor_215100_80152F24`. That overrun is the original's
-/// and is kept as it is: the request carries the bank's fixed capacity, while
-/// the table was stored with only its own entries. The player's requests select
-/// ids 47-56 in the first scene and 60-66 in the second, so none of the words
-/// installed after the table is played as a clip.
-AnimationSet* D_actor_215100_80152EAC[20] = { &_gActor215100Animation075B4, &_gActor215100Animation07794, &_gActor215100Animation07960, &_gActor215100Animation07E28, &_gActor215100Animation07FFC, &_gActor215100Animation08400, &_gActor215100Animation08788, &_gActor215100Animation08BE0, &_gActor215100Animation08EBC, &_gActor215100Animation09064, NULL, NULL, &_gActor215100Animation05738, &_gActor215100Animation05B0C, &_gActor215100Animation05EFC, &_gActor215100Animation06268, &_gActor215100Animation066B4, &_gActor215100Animation069DC, &_gActor215100Animation06F5C, &_gActor215100Animation0733C };
+/// Entries map to player clip IDs 47..66; 57..58 are NULL and 59 is retained
+/// without a live request. Scripts play 47..56 or 60..66. The native pointer
+/// table occupies twenty words; the bank-copy request reads a larger raw image
+/// span. Keep these borrowed clips loaded while the weapon bank uses them.
+static AnimationSet* _gActor215100ConversationPlayerAnimationSets[20] = {
+    &_gActor215100Animation075B4, // Player clip 47.
+    &_gActor215100Animation07794, // Player clip 48.
+    &_gActor215100Animation07960, // Player clip 49.
+    &_gActor215100Animation07E28, // Player clip 50.
+    &_gActor215100Animation07FFC, // Player clip 51.
+    &_gActor215100Animation08400, // Player clip 52.
+    &_gActor215100Animation08788, // Player clip 53.
+    &_gActor215100Animation08BE0, // Player clip 54.
+    &_gActor215100Animation08EBC, // Player clip 55.
+    &_gActor215100Animation09064, // Player clip 56.
+    NULL,                         // Player clip 57.
+    NULL,                         // Player clip 58.
+    &_gActor215100Animation05738, // Player clip 59.
+    &_gActor215100Animation05B0C, // Player clip 60.
+    &_gActor215100Animation05EFC, // Player clip 61.
+    &_gActor215100Animation06268, // Player clip 62.
+    &_gActor215100Animation066B4, // Player clip 63.
+    &_gActor215100Animation069DC, // Player clip 64.
+    &_gActor215100Animation06F5C, // Player clip 65.
+    &_gActor215100Animation0733C, // Player clip 66.
+};
 
 // The run of requests the scripts send to this package's own actor, the scene's second placed actor, starts here. This one is not referenced.
 AnimationPlayRequest D_actor_215100_80152EFC = { { .index = 1 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
@@ -863,7 +992,18 @@ AnimationPlayRequest D_actor_215100_80152F10 = { { .index = 1 }, 1, ANIMATION_BL
 
 AnimationPlayRequest D_actor_215100_80152F24 = { { .index = 1 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_215100_80152F38 = { { .index = 1 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Conversation reset request for Pierce's body clip 3.
+///
+/// The placed-actor handler reseeds tracks 1..19 without moving the root.
+/// It ignores the stored bank selector and collision choice; the actor
+/// overlay and its clip data must remain loaded during playback.
+static AnimationPlayRequest _gActor215100PierceClip3Request = {
+    .source               = { .index = 1 },
+    .animationId          = 3,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_actor_215100_80152F4C = { { .index = 1 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -881,13 +1021,46 @@ AnimationPlayRequest D_actor_215100_80152FC4 = { { .index = 1 }, 10, ANIMATION_B
 
 AnimationPlayRequest D_actor_215100_80152FD8 = { { .index = 1 }, 11, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_215100_80152FEC = { { .index = 1 }, 12, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Conversation reset request for Pierce's body clip 12.
+///
+/// The placed-actor handler reseeds tracks 1..19 without moving the root.
+/// It ignores the stored bank selector and collision choice; the actor
+/// overlay and its clip data must remain loaded during playback.
+static AnimationPlayRequest _gActor215100PierceClip12Request = {
+    .source               = { .index = 1 },
+    .animationId          = 12,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_actor_215100_80153000 = { { .index = 1 }, 12, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_215100_80153014 = { { .index = 1 }, 13, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Conversation reset request for Pierce's body clip 13.
+///
+/// The placed-actor handler reseeds tracks 1..19 without moving the root.
+/// It ignores the stored bank selector and collision choice; the actor
+/// overlay and its clip data must remain loaded during playback.
+static AnimationPlayRequest _gActor215100PierceClip13Request = {
+    .source               = { .index = 1 },
+    .animationId          = 13,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_215100_80153028 = { { .index = 1 }, 14, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Conversation reset request for Pierce's body clip 14.
+///
+/// The placed-actor handler reseeds tracks 1..19 without moving the root.
+/// It ignores the stored bank selector and collision choice; the actor
+/// overlay and its clip data must remain loaded during playback.
+static AnimationPlayRequest _gActor215100PierceClip14Request = {
+    .source               = { .index = 1 },
+    .animationId          = 14,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_actor_215100_8015303C = { { .index = 1 }, 15, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -915,21 +1088,116 @@ AnimationPlayRequest D_actor_215100_80153118 = { { .index = 1 }, 56, ANIMATION_B
 
 AnimationPlayRequest D_actor_215100_8015312C = { { .index = 1 }, 59, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_215100_80153140 = { { .index = 1 }, 60, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Conversation player clip 60 request with a 10-frame blend.
+///
+/// The event interpreter copies this record and resolves the current weapon
+/// bank before dispatch. Playback takes scripted control and disables world
+/// collision. Keep the weapon bank and any copied clip data loaded.
+/// Requires the extension installed by `_gActor215100ConversationPlayerBankCopyRequest`.
+static AnimationPlayRequest _gActor215100ConversationPlayerClip60Request = {
+    .source               = { .index = 1 },
+    .animationId          = 60,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = ACTOR_215100_CONVERSATION_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_215100_80153154 = { { .index = 1 }, 61, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Conversation player clip 61 request with a 10-frame blend.
+///
+/// The event interpreter copies this record and resolves the current weapon
+/// bank before dispatch. Playback takes scripted control and disables world
+/// collision. Keep the weapon bank and any copied clip data loaded.
+/// Requires the extension installed by `_gActor215100ConversationPlayerBankCopyRequest`.
+static AnimationPlayRequest _gActor215100ConversationPlayerClip61Request = {
+    .source               = { .index = 1 },
+    .animationId          = 61,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = ACTOR_215100_CONVERSATION_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_215100_80153168 = { { .index = 1 }, 62, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Conversation player clip 62 request with a 10-frame blend.
+///
+/// The event interpreter copies this record and resolves the current weapon
+/// bank before dispatch. Playback takes scripted control and disables world
+/// collision. Keep the weapon bank and any copied clip data loaded.
+/// Requires the extension installed by `_gActor215100ConversationPlayerBankCopyRequest`.
+static AnimationPlayRequest _gActor215100ConversationPlayerClip62Request = {
+    .source               = { .index = 1 },
+    .animationId          = 62,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = ACTOR_215100_CONVERSATION_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_215100_8015317C = { { .index = 1 }, 63, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Conversation player clip 63 request with a 10-frame blend.
+///
+/// The event interpreter copies this record and resolves the current weapon
+/// bank before dispatch. Playback takes scripted control and disables world
+/// collision. Keep the weapon bank and any copied clip data loaded.
+/// Requires the extension installed by `_gActor215100ConversationPlayerBankCopyRequest`.
+static AnimationPlayRequest _gActor215100ConversationPlayerClip63Request = {
+    .source               = { .index = 1 },
+    .animationId          = 63,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = ACTOR_215100_CONVERSATION_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_215100_80153190 = { { .index = 1 }, 64, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Conversation player clip 64 request with a 10-frame blend.
+///
+/// The event interpreter copies this record and resolves the current weapon
+/// bank before dispatch. Playback takes scripted control and disables world
+/// collision. Keep the weapon bank and any copied clip data loaded.
+/// Requires the extension installed by `_gActor215100ConversationPlayerBankCopyRequest`.
+static AnimationPlayRequest _gActor215100ConversationPlayerClip64Request = {
+    .source               = { .index = 1 },
+    .animationId          = 64,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = ACTOR_215100_CONVERSATION_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_215100_801531A4 = { { .index = 1 }, 65, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Conversation player clip 65 request with a 10-frame blend.
+///
+/// The event interpreter copies this record and resolves the current weapon
+/// bank before dispatch. Playback takes scripted control and disables world
+/// collision. Keep the weapon bank and any copied clip data loaded.
+/// Requires the extension installed by `_gActor215100ConversationPlayerBankCopyRequest`.
+static AnimationPlayRequest _gActor215100ConversationPlayerClip65Request = {
+    .source               = { .index = 1 },
+    .animationId          = 65,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = ACTOR_215100_CONVERSATION_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_215100_801531B8 = { { .index = 1 }, 66, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Conversation player clip 66 request with a 10-frame blend.
+///
+/// The event interpreter copies this record and resolves the current weapon
+/// bank before dispatch. Playback takes scripted control and disables world
+/// collision. Keep the weapon bank and any copied clip data loaded.
+/// Requires the extension installed by `_gActor215100ConversationPlayerBankCopyRequest`.
+static AnimationPlayRequest _gActor215100ConversationPlayerClip66Request = {
+    .source               = { .index = 1 },
+    .animationId          = 66,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = ACTOR_215100_CONVERSATION_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationBankCopyRequest D_actor_215100_801531CC = { { .sets = D_actor_215100_80152EAC }, ANIMATION_BANK_EXTENSION_CAPACITY };
+/// Installs the conversation's player clips and retained adjacent words into the weapon bank.
+///
+/// Copies 32 raw words to bank indices 47..78, without starting playback.
+/// The first twenty are the clip table; the next twelve cover two complete
+/// five-word Pierce requests and the first two words of the next request.
+/// Their native order and contents are part of this transfer. Those trailing
+/// words are not playable clips. The source overlay must stay loaded through
+/// dispatch and through playback of the copied pointers.
+static AnimationBankCopyRequest _gActor215100ConversationPlayerBankCopyRequest = {
+    .source    = { .words = (const s32*)_gActor215100ConversationPlayerAnimationSets },
+    .wordCount = ANIMATION_BANK_EXTENSION_CAPACITY,
+};
 
 ActorTransform D_actor_215100_801531D4 = { { -0x27F6, 0, 4640, 0 }, { 0, 1024, 0, 0 } };
 
@@ -943,18 +1211,29 @@ ActorTransform D_actor_215100_80153234 = { { -0x29FA, 0, 3972, 0 }, { 0, 0, 0, 0
 
 AnimationPlayRequest D_actor_215100_8015324C = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_215100_80153260 = { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Conversation player clip 1 request with a 8-frame blend.
+///
+/// The event interpreter copies this record and resolves the current weapon
+/// bank before dispatch. Playback takes scripted control and disables world
+/// collision. Keep the weapon bank and any copied clip data loaded.
+static AnimationPlayRequest _gActor215100ConversationPlayerClip1BlendRequest = {
+    .source               = { .index = 1 },
+    .animationId          = 1,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = ACTOR_215100_CONVERSATION_IDLE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 EvsCommand D_actor_215100_80153274[117] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor215100SetConversationCap }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_80153260 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor215100ConversationPlayerClip1BlendRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_215100_801531CC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor215100ConversationPlayerBankCopyRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_actor_215100_801531D4 } }, { .value = 0 } },
@@ -972,7 +1251,7 @@ EvsCommand D_actor_215100_80153274[117] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80152F88 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80152FEC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_actor_215100_801531EC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_215100_8015321C } }, { .value = 0 } },
@@ -984,9 +1263,9 @@ EvsCommand D_actor_215100_80153274[117] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 42 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_80153064 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80152F38 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip3Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 22 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80152FEC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80152F9C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -997,7 +1276,7 @@ EvsCommand D_actor_215100_80153274[117] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80152FB0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_80153104 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 38 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80152FEC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_80153118 }, { .value = 0 } },
@@ -1040,7 +1319,7 @@ EvsCommand D_actor_215100_80153274[117] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80152FB0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80152FEC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_801530B4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 58 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1056,7 +1335,7 @@ EvsCommand D_actor_215100_80153274[117] = {
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_actor_215100_80153204 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80152FEC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_8015324C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_215100_80153234 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1074,7 +1353,7 @@ EvsCommand D_actor_215100_80153D6C[15] = {
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_8015324C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_actor_215100_80153204 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80152FEC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_215100_80153234 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1086,12 +1365,12 @@ EvsCommand D_actor_215100_80153D6C[15] = {
 EvsCommand D_actor_215100_80153ED4[11] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor215100SetConversationCap }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_80153260 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80153014 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor215100ConversationPlayerClip1BlendRequest }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip13Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80153028 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip14Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 23 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80152FEC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor215100SetConversationCap }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -1099,44 +1378,44 @@ EvsCommand D_actor_215100_80153ED4[11] = {
 
 EvsCommand D_actor_215100_80153FDC[43] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor215100SetConversationCap }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_215100_801531CC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor215100ConversationPlayerBankCopyRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_80153260 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80153014 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor215100ConversationPlayerClip1BlendRequest }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip13Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80153028 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip14Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 23 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80152FEC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80152F38 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip3Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 22 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80152FEC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_80153140 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor215100ConversationPlayerClip60Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 24 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_80153154 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor215100ConversationPlayerClip61Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80153014 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip13Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80153028 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip14Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 23 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80152FEC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_80153168 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor215100ConversationPlayerClip62Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_8015317C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor215100ConversationPlayerClip63Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_80153190 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor215100ConversationPlayerClip64Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80153014 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip13Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80153028 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip14Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 23 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80152FEC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_801531A4 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor215100ConversationPlayerClip65Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_801531B8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor215100ConversationPlayerClip66Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor215100SetConversationCap }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1146,12 +1425,12 @@ EvsCommand D_actor_215100_80153FDC[43] = {
 EvsCommand D_actor_215100_801543E4[11] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor215100SetConversationCap }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_80153260 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80153014 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor215100ConversationPlayerClip1BlendRequest }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip13Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80153028 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip14Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 23 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80152FEC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor215100PierceClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor215100SetConversationCap }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -1722,12 +2001,18 @@ TaskMessageEntry D_actor_215100_8015E5A0[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_215100_8015E5D0[2] = {
-    { { { TASK_BODY_TMD, 96 } }, _actor215100PierceTask, { .model = &_gActor215100PierceCarradineBody } },
-    { { { TASK_BODY_TMD, 192 } }, _pacedWalkSubModelTask, { .model = &_gActor215100Actor113100Model07960 } },
+TaskDesc gActor215100PierceTaskDescs[ACTOR_215100_PIERCE_TASK_COUNT] = {
+    { { { TASK_BODY_TMD, ACTOR_215100_PIERCE_BODY_TASK_PRIORITY } }, _actor215100PierceTask, { .model = &_gActor215100PierceCarradineBody } },
+    { { { TASK_BODY_TMD, ACTOR_215100_PIERCE_PAIR_TASK_PRIORITY } }, _pacedWalkSubModelTask, { .model = &_gActor215100Actor113100Model07960 } },
 };
 
-AnimationSet* D_actor_215100_8015E5E8[25] = {
+/// Pierce's body animation bank, indexed directly by scripted clip ID.
+///
+/// Clips 1..15 and 18..24 are loaded; 0, 16 and 17 are NULL. Spawn starts
+/// clip 12, and message playback rejects only IDs >=25, so callers must also
+/// exclude negative and unloaded IDs. The context and slots borrow this table
+/// and its twenty-track clips for the lifetime of Pierce's task.
+static AnimationSet* _gActor215100PierceAnimationSets[25] = {
     NULL,
     &_gActor215100Animation10DE8,
     &_gActor215100Animation111A0,
@@ -1833,7 +2118,7 @@ static u16 _gCapCaptionCaretTipY = 0;
 /// caret calls consume it; all initializer bytes remain stored verbatim.
 static CapCaptionCaretDelayStorage _gCapCaptionCaretDelayStorage = { 0, { 35, 192, 0 } };
 
-s32 D_actor_215100_8015E670;
+s32 gActor215100GallerySelectedCourseLevel;
 
 RoomEventMsg D_actor_215100_8015E678;
 
@@ -1870,7 +2155,7 @@ void actor215100CheckGalleryExitInput(void)
     player     = playerTask->work;
     rootCoord  = playerTask->extra.tmd->coords;
     if (D_actor_215100_8014D038 != 0) {
-        if (D_actor_215100_8015E670 >= ACTOR_215100_GALLERY_FIRST_FREE_MOVEMENT_COURSE) {
+        if (gActor215100GallerySelectedCourseLevel >= ACTOR_215100_GALLERY_FIRST_FREE_MOVEMENT_COURSE) {
             if (gGameSession->location.loc.view == ACTOR_215100_GALLERY_EXIT_INPUT_VIEW) {
                 mistShootingGallerySetTrainingBarrierLowered(0);
                 D_actor_215100_8014D03C = 0;
@@ -1938,7 +2223,7 @@ void actor215100GalleryExitDecisionTask(Task* task)
                 task->state                     += 1;
                 break;
             }
-            if (D_actor_215100_8015E670 == ACTOR_215100_GALLERY_FIRST_FREE_MOVEMENT_COURSE) {
+            if (gActor215100GallerySelectedCourseLevel == ACTOR_215100_GALLERY_FIRST_FREE_MOVEMENT_COURSE) {
                 gAttachmentState.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
             }
             D_actor_215100_8014D038 = 0;
@@ -2020,14 +2305,14 @@ void actor215100GalleryAbortDecisionTask(Task* task)
 void actor215100FinishGalleryCourse(void)
 {
     D_actor_215100_8014D038 = 0;
-    if (D_actor_215100_8015E670 < ACTOR_215100_GALLERY_FIRST_FREE_MOVEMENT_COURSE) {
+    if (gActor215100GallerySelectedCourseLevel < ACTOR_215100_GALLERY_FIRST_FREE_MOVEMENT_COURSE) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_215100_GALLERY_RETURN_VIEW;
         mistShootingGallerySelectRoomLights(0);
     } else {
         mistShootingGallerySetTrainingBarrierLowered(1);
         D_actor_215100_8014D03C = 1;
     }
-    if (D_actor_215100_8015E670 < ACTOR_215100_GALLERY_FIRST_SWAP_COURSE) {
+    if (gActor215100GallerySelectedCourseLevel < ACTOR_215100_GALLERY_FIRST_SWAP_COURSE) {
         gAttachmentState.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
     }
     sndEvtRequestMidiStop(0, ACTOR_215100_GALLERY_MUSIC_FADE_AUDIO_TICKS);
@@ -2035,7 +2320,7 @@ void actor215100FinishGalleryCourse(void)
 
 void actor215100RequestGalleryAbort(void)
 {
-    if (D_actor_215100_8015E670 == ACTOR_215100_GALLERY_BONUS_COURSE) {
+    if (gActor215100GallerySelectedCourseLevel == ACTOR_215100_GALLERY_BONUS_COURSE) {
         D_actor_215100_8014D038 = 0;
         mistShootingGallerySetTrainingBarrierLowered(1);
         D_actor_215100_8014D03C          = 1;
@@ -2043,7 +2328,7 @@ void actor215100RequestGalleryAbort(void)
         sndEvtRequestMidiStop(0, ACTOR_215100_GALLERY_MUSIC_FADE_AUDIO_TICKS);
         gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
     }
-    if (D_actor_215100_8015E670 < ACTOR_215100_GALLERY_FIRST_FREE_MOVEMENT_COURSE) {
+    if (gActor215100GallerySelectedCourseLevel < ACTOR_215100_GALLERY_FIRST_FREE_MOVEMENT_COURSE) {
         capRunCommand(ACTOR_215100_GALLERY_ABORT_CONFIRM_COMMAND, CAP_PLAYBACK_CLEAR_IF_UNSTARTED);
         taskSpawnFromTable(D_actor_215100_8014CF6C, ACTOR_215100_GALLERY_ABORT_DECISION_TASK, 0, 0);
     }
@@ -2107,7 +2392,6 @@ static void _actor215100GalleryIntroTask(Task* task)
         ACTOR_215100_GALLERY_EXIT_START          = 4,
         ACTOR_215100_GALLERY_MENU_REPLY_START    = 10,
         ACTOR_215100_GALLERY_MENU_REPLY_WAIT     = 11,
-        ACTOR_215100_GALLERY_MENU_TASK           = 1,
         ACTOR_215100_GALLERY_MENU_REPLY_SEQUENCE = 7,
         ACTOR_215100_GALLERY_EXIT_REPLY_SEQUENCE = 8,
         ACTOR_215100_GALLERY_INTRO_OBJECTIVE     = 0x3A,
@@ -2123,7 +2407,7 @@ static void _actor215100GalleryIntroTask(Task* task)
                 evsStartScriptWithSkip(D_actor_215100_8014E370, EVENT_SCRIPT_HUD_KEEP, D_actor_215100_8014E8F8);
                 task->state++;
             } else {
-                taskSpawnFromTable(D_actor_215100_8014E13C, ACTOR_215100_GALLERY_MENU_TASK, 0, 0);
+                taskSpawnFromTable(gActor215100GalleryTaskDescs, ACTOR_215100_GALLERY_MENU_TASK, 0, 0);
                 taskKill(task);
             }
             break;
@@ -2157,7 +2441,7 @@ static void _actor215100GalleryIntroTask(Task* task)
             break;
         case ACTOR_215100_GALLERY_MENU_REPLY_WAIT:
             if (gGameSession->eventState == 0) {
-                taskSpawnFromTable(D_actor_215100_8014E13C, ACTOR_215100_GALLERY_MENU_TASK, 0, 0);
+                taskSpawnFromTable(gActor215100GalleryTaskDescs, ACTOR_215100_GALLERY_MENU_TASK, 0, 0);
                 taskKill(task);
             }
             break;
@@ -2211,10 +2495,8 @@ static void _actor215100SpawnGalleryDemoTargetIfEnabled(s32 enabled)
 /// Both actor and gallery overlays must remain loaded until the loop is stopped.
 static void _actor215100SetGalleryRedFlashLoop(s32 enabled)
 {
-    enum { ACTOR_215100_GALLERY_RED_FLASH_LOOP_TASK = 2 };
-
     if (enabled != 0) {
-        D_actor_215100_8015E64C = taskSpawnFromTable(D_actor_215100_8014E13C, ACTOR_215100_GALLERY_RED_FLASH_LOOP_TASK, 0, 0);
+        D_actor_215100_8015E64C = taskSpawnFromTable(gActor215100GalleryTaskDescs, ACTOR_215100_GALLERY_RED_FLASH_LOOP_TASK, 0, 0);
         return;
     }
     if (D_actor_215100_8015E64C != NULL) {
@@ -2309,10 +2591,9 @@ void actor215100SelectCaptionResource(s16 texturePageX, s16 texturePageY, s16 da
 /// the returned child; the helper preserves the retained unchecked failure path.
 static inline Task* _actor215100SpawnPiercePair(Enemy* enemy, Task* task)
 {
-    enum { ACTOR_215100_PIERCE_PAIR_TASK = 1 };
     Enemy* pairedEnemy;
 
-    pairedEnemy = enemySpawnFromTable(D_actor_215100_8015E5D0, ACTOR_215100_PIERCE_PAIR_TASK, 0, enemy);
+    pairedEnemy = enemySpawnFromTable(gActor215100PierceTaskDescs, ACTOR_215100_PIERCE_PAIR_TASK, 0, enemy);
     _actorRenderApplyPlacementTextureOffsets(pairedEnemy->task->extra.tmd, enemy);
     taskReparent(task, pairedEnemy->task);
     return pairedEnemy->task;
@@ -2361,7 +2642,7 @@ static void _actor215100SpawnPierce(Enemy* enemy, Task* task)
     lightingPosition.vy = rootCoord->workm.t[1] - ACTOR_215100_PIERCE_LIGHT_HEIGHT;
     lightingPosition.vz = rootCoord->workm.t[2];
     worldCoordSetModelLighting(model, &lightingPosition, 0, ACTOR_215100_PIERCE_LIGHT_COUNT);
-    animationInitContext(&work->rig.anim, D_actor_215100_8015E5E8, model,
+    animationInitContext(&work->rig.anim, _gActor215100PierceAnimationSets, model,
                          work->rig.poses, work->rig.slots);
     work->st.state = ACTOR_ENEMY_ANIM_RESET;
     task->msgTable = D_actor_215100_8015E5A0;
@@ -2455,7 +2736,7 @@ static inline void _pacedWalkApplyAnimationRequest(PacedWalkWork* work, const An
 static s32 _pacedWalkPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument)
 {
     enum {
-        PACED_WALK_ANIMATION_ID_LIMIT         = ARRAY_SIZE(D_actor_215100_8015E5E8),
+        PACED_WALK_ANIMATION_ID_LIMIT         = ARRAY_SIZE(_gActor215100PierceAnimationSets),
         PACED_WALK_ANIMATION_REQUEST_APPLIED  = 0,
         PACED_WALK_ANIMATION_REQUEST_REJECTED = -1,
     };

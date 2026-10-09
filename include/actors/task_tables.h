@@ -453,8 +453,6 @@ extern TaskDesc D_actor_210600_8015A4EC;
 /// model geometry are in use.
 extern TaskDesc gActor01600ScavengerTaskDesc;
 
-extern TaskDesc D_actor_215100_8015E5D0[];
-
 /// Slot export of `gActor01100Tasks` from actor_201100, with the same descriptor contract.
 extern TaskDesc gActor201100Tasks[3];
 

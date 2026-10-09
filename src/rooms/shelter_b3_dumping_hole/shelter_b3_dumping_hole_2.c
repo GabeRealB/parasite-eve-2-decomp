@@ -444,7 +444,7 @@ extern EvsCommand               D_shelter_b3_dumping_hole_801899A4[];
 extern TaskDesc                 D_shelter_b3_dumping_hole_8018AFBC;
 static CapSequenceRecord*       _gCapCaptionSequence;
 static s16                      _gCapCaptionRecordIndex;
-static CapCaptionScheduleWindow CapCaption_Data_80154514[];
+static CapCaptionScheduleWindow _gCapCaptionSceneClockSchedule[];
 static const TextGlyphCell*     _gCapCaptionGlyphCells;
 static const CapCommandRef*     _gCapCaptionCommandRefs;
 static s16                      _gCapCaptionBlockLeftX;
@@ -459,7 +459,7 @@ static u16      _gCapCaptionCaretLeftX;
 static u16      _gCapCaptionCaretTipY;
 static s32      _gCapCaptionCaretPulseLevel;
 static s32      _gCapCaptionCaretPulseFalling;
-static TaskDesc CapCaption_Data_801544FC;
+static TaskDesc _gCapCaptionTimedTaskDesc;
 static TaskDesc CapCaption_Data_80154508;
 
 /// Encounter controller's message table, installed in `Task::msgTable`.

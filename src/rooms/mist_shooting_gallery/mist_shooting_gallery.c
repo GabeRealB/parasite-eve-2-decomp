@@ -151,7 +151,6 @@ static const char D_mist_shooting_gallery_8017D844[];
 static const char D_mist_shooting_gallery_8017D850[];
 
 extern s32        D_actor_215100_8014D038;
-extern TaskDesc   D_actor_215100_8014E13C[];
 extern EvsCommand D_actor_215100_80153274[];
 extern EvsCommand D_actor_215100_80153D6C[];
 
@@ -1851,7 +1850,7 @@ static void _mistShootingGalleryInitRoomTask(Task* task)
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == MIST_SHOOTING_GALLERY_DEMO_SCENE) {
         taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 0, 0, 0);
     } else if (gGameSession->location.loc.warp == MIST_SHOOTING_GALLERY_CARRYOVER_WARP) {
-        taskSpawnFromTable(D_actor_215100_8014E13C, 0, 0, 0);
+        taskSpawnFromTable(gActor215100GalleryTaskDescs, ACTOR_215100_GALLERY_INTRO_TASK, 0, 0);
     }
     if ((gGameSession->location.loc.warp == MIST_SHOOTING_GALLERY_TRAINING_WARP) && (gameFlagGetNibble(GAME_FLAG_0ED) != 0)) {
         capRunCommandWithTransition(MIST_SHOOTING_GALLERY_STORY_ENTRY_COMMAND);
@@ -2053,7 +2052,7 @@ static s32 _mistShootingGalleryHandleRoomAction(Task* unusedTask, s32 messageId,
     };
     if ((request->actionId == MIST_SHOOTING_GALLERY_ACTION_OPEN_COURSE_MENU) && (D_actor_215100_8014D038 == 0)) {
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-        taskSpawnFromTable(D_actor_215100_8014E13C, 1, 1, 0);
+        taskSpawnFromTable(gActor215100GalleryTaskDescs, ACTOR_215100_GALLERY_MENU_TASK, 1, 0);
         D_80114D08 = MIST_SHOOTING_GALLERY_ACTION_REARM_TICKS;
     }
     if ((request->actionId == MIST_SHOOTING_GALLERY_ACTION_TALK_TO_PIERCE) && (gameFlagGetNibble(GAME_FLAG_0ED) == 0)) {

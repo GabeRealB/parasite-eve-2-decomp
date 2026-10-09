@@ -225,13 +225,9 @@ extern u16 gBlazePlayerParts[];
 
 static s32 _shelterB3GarbageIncineratorAdvanceBlazeAnimation(Task* task);
 
-/// Main-executable global with no module header yet: the base animation-set
-/// id, whose alternate range `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` selects when it is 1.
+static CapCaptionScheduleWindow _gCapCaptionSceneClockSchedule[];
 
-/// Caption schedule scanned by `_capCaptionRunSchedule`.
-static CapCaptionScheduleWindow CapCaption_Data_80154514[];
-
-static TaskDesc CapCaption_Data_801544FC;
+static TaskDesc _gCapCaptionTimedTaskDesc;
 
 static TaskDesc CapCaption_Data_80154508;
 

@@ -5,6 +5,40 @@
 
 #include "gameplay/message.h"
 
+#include "main/task_types.h"
+
+/// Descriptor slots for the gallery's introduction, training menu and red-flash loop.
+enum {
+    ACTOR_215100_GALLERY_INTRO_TASK          = 0,
+    ACTOR_215100_GALLERY_MENU_TASK           = 1,
+    ACTOR_215100_GALLERY_RED_FLASH_LOOP_TASK = 2,
+    ACTOR_215100_GALLERY_TASK_COUNT          = 3,
+};
+
+/// Bodyless gallery event tasks, indexed by `ACTOR_215100_GALLERY_*_TASK`.
+///
+/// Introduction and menu tasks start at state 0. The menu's first spawn argument
+/// is zero for direct entry or nonzero to ask the repeat-entry confirmation.
+/// The red-flash loop ignores both arguments and must be killed by its owner.
+/// Keep the actor and gallery overlays and their CAP/script resources loaded
+/// through playback. Spawning borrows the descriptors and callback code.
+extern TaskDesc gActor215100GalleryTaskDescs[ACTOR_215100_GALLERY_TASK_COUNT];
+
+/// Descriptor slots for Pierce's body and its attached paired model.
+enum {
+    ACTOR_215100_PIERCE_BODY_TASK  = 0,
+    ACTOR_215100_PIERCE_PAIR_TASK  = 1,
+    ACTOR_215100_PIERCE_TASK_COUNT = 2,
+};
+
+/// Pierce's body and paired-model spawn descriptors.
+///
+/// Area placement uses the body slot; its initializer spawns and adopts the
+/// pair slot as a child. Enemy spawning supplies the owning Enemy in the second
+/// task argument. Both callbacks require the actor overlay and model sources
+/// to stay loaded until the task tree is destroyed.
+extern TaskDesc gActor215100PierceTaskDescs[ACTOR_215100_PIERCE_TASK_COUNT];
+
 /// Gallery exit-gate replies to the room-transition resolver.
 enum {
     ACTOR_215100_GALLERY_EXIT_ALLOW = 1,

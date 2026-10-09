@@ -362,8 +362,8 @@ void actor215100GalleryTrainingMenuTask(Task* task)
             }
             break;
         case ACTOR_215100_MENU_SAVE_LEVEL:
-            D_actor_215100_8015E670 = capGetVariantKey();
-            mistShootingGalleryPrepareTrainingLoadout(D_actor_215100_8015E670);
+            gActor215100GallerySelectedCourseLevel = capGetVariantKey();
+            mistShootingGalleryPrepareTrainingLoadout(gActor215100GallerySelectedCourseLevel);
             task->state = ACTOR_215100_MENU_CONFIRM_LEVEL;
             break;
         case ACTOR_215100_MENU_CONFIRM_LEVEL:
@@ -377,7 +377,7 @@ void actor215100GalleryTrainingMenuTask(Task* task)
         case ACTOR_215100_MENU_STAGE_TRAINING:
             D_actor_215100_8014D040++;
             gAttachmentState.flags |= ATTACHMENT_FLAG_SWAP_LOCK;
-            if (D_actor_215100_8015E670 < ACTOR_215100_MENU_FIRST_LOADOUT_LEVEL) {
+            if (gActor215100GallerySelectedCourseLevel < ACTOR_215100_MENU_FIRST_LOADOUT_LEVEL) {
                 evsStartScript(D_actor_215100_8014EFA0, EVENT_SCRIPT_HUD_KEEP);
             } else {
                 evsStartScript(D_actor_215100_8014F060, EVENT_SCRIPT_HUD_KEEP);
@@ -394,7 +394,7 @@ void actor215100GalleryTrainingMenuTask(Task* task)
             break;
         case ACTOR_215100_MENU_SPAWN_TRAINING:
             gGameSession->flowFlags &= (0xFF ^ GAME_SESSION_FLOW_REEQUIP_WEAPON);
-            taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 0, D_actor_215100_8015E670 - 1, 0);
+            taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 0, gActor215100GallerySelectedCourseLevel - 1, 0);
             D_actor_215100_8014D03C = 1;
             taskKill(task);
             break;

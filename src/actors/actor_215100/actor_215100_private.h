@@ -44,7 +44,15 @@ extern EvsCommand D_actor_215100_8014F060[9];
 
 extern EvsCommand D_actor_215100_8014F138[6];
 
-extern s32 D_actor_215100_8015E670;
+/// Selected shooting-gallery training course, numbered 1..5.
+///
+/// Stored from the level-menu CAP reply before loadout setup and retained through
+/// course completion or cancellation; it is not an active-session flag. The room
+/// controller receives level minus one. Levels 1..2 use the fixed-view return
+/// path, and movement exit checks apply to 3..5. Completion releases the
+/// weapon-swap lock for 1..3; level 5 has the bonus-course abort path. The
+/// zero-initialized word has no selected course until the menu stores a valid reply.
+extern s32 gActor215100GallerySelectedCourseLevel;
 
 /// Runs gallery briefing, music/weapon menus and the selected training handoff.
 ///
