@@ -30,6 +30,9 @@ asset that fits:
 `unique`     one asset in the whole manifest produces the value.
 `local`      several do, but only one of them is placed in the folder or file
              of the package the constant's source belongs to.
+`range`      a file reference whose group and hundreds are constants and whose
+             index is chosen at run time: one of the files sharing that part.
+`computed`   a file reference with more than the index decided at run time.
 `ambiguous`  several fit and the placement does not choose. A review decides,
              from how the code uses the constant.
 
@@ -124,22 +127,31 @@ def evaluate(expr: str, known: dict[str, int]) -> int | None:
     return value if isinstance(value, int) else None
 
 
-def constants(path: Path) -> list[tuple[str, str, int, str, str, int]]:
-    """(scope, symbol, line, kind, expression, value) of each numeric constant."""
+def code_of(path: Path) -> str:
+    """A source file with its comments blanked, offsets and lines unchanged."""
     raw = path.read_text(encoding="utf-8", errors="replace")
-    text = COMMENT.sub(lambda m: re.sub(r"[^\n]", " ", m[0]), raw)
-    starts = [(m.start(), m[1]) for m in FUNCTION.finditer(text)]
-    # A function ends where its braces close; an enum beyond that is at file scope.
+    return COMMENT.sub(lambda m: re.sub(r"[^\n]", " ", m[0]), raw)
+
+
+def functions(text: str) -> list[tuple[int, int, str]]:
+    """(start, end, name) of each function body; it ends where its braces close."""
     spans = []
-    for pos, name in starts:
-        depth, i = 0, text.index("{", pos)
+    for m in FUNCTION.finditer(text):
+        depth, i = 0, text.index("{", m.start())
         while i < len(text):
             c = text[i]
             depth += (c == "{") - (c == "}")
             if depth == 0:
                 break
             i += 1
-        spans.append((pos, i, name))
+        spans.append((m.start(), i, m[1]))
+    return spans
+
+
+def constants(path: Path) -> list[tuple[str, str, int, str, str, int]]:
+    """(scope, symbol, line, kind, expression, value) of each numeric constant."""
+    text = code_of(path)
+    spans = functions(text)      # an enum outside every body is at file scope
 
     def scope_at(offset: int) -> str:
         for a, b, name in spans:
@@ -167,6 +179,54 @@ def constants(path: Path) -> list[tuple[str, str, int, str, str, int]]:
                 continue
             known[name], nxt = value, value + 1
             out.append((scope_at(m.start()), name, line(m.start(1) + item.start()), "enum", (expr or "").strip(), value))
+    return out
+
+
+# A disc file is named by three numbers, set one field at a time before the
+# request is queued: stage-zero id = group * 10000 + hundreds * 100 + index,
+# and in stages 1-5 the folder is group * 100 + hundreds with the index within
+# it. So a reference is not one constant but up to four, found per function.
+KEY_FIELD = re.compile(r"\b(?:\w+(?:\.|->))*(stage|fileGroup|fileIdHundreds|fileIndex)\s*=\s*([^;=][^;]*);")
+DISPLAY_RESOURCE = re.compile(r"\bcdCmdEnqueueDisplayResource\s*\(([^;]*)\)\s*;")
+DISPLAY_RESOURCE_GROUP = 2
+
+
+def split_args(text: str) -> list[str]:
+    out, depth, cur = [], 0, ""
+    for c in text:
+        depth += (c == "(") - (c == ")")
+        if c == "," and depth == 0:
+            out.append(cur.strip()); cur = ""
+        else:
+            cur += c
+    return out + [cur.strip()]
+
+
+def file_references(path: Path, known: dict[str, int]) -> list[tuple[str, int, dict[str, tuple[str, int | None]]]]:
+    """(function, line, {field: (expression, value or None)}) per file a function names."""
+    text = code_of(path)
+    out = []
+    for start, end, name in functions(text):
+        body = text[start:end]
+        line = lambda off: text.count("\n", 0, start + off) + 1  # noqa: E731
+        fields: dict[str, set[str]] = defaultdict(set)
+        first = None
+        for m in KEY_FIELD.finditer(body):
+            fields[m[1]].add(m[2].strip())
+            first = m.start() if first is None else first
+        if "fileIndex" in fields or "fileGroup" in fields or "fileIdHundreds" in fields:
+            # A field set to two different things in one body names two files
+            # or a choice between them; neither is one constant reference.
+            ref = {f: (next(iter(v)), evaluate(next(iter(v)), known)) if len(v) == 1 else (" / ".join(sorted(v)), None)
+                   for f, v in fields.items()}
+            out.append((name, line(first), ref))
+        for m in DISPLAY_RESOURCE.finditer(body):
+            args = split_args(m[1])
+            # The seek profile ignores the id it is given and names no file.
+            if len(args) == 3 and "SEEK_CURRENT_VIEW" not in args[2]:
+                out.append((name, line(m.start()), {
+                    "stage": ("0", 0), "fileGroup": (str(DISPLAY_RESOURCE_GROUP), DISPLAY_RESOURCE_GROUP),
+                    "fileIdHundreds": (args[0], evaluate(args[0], known)), "fileIndex": (args[1], evaluate(args[1], known))}))
     return out
 
 
@@ -222,8 +282,15 @@ class Manifest:
         for key, rec in self.embedded.items():
             self.near[rec.get("source", "").removesuffix(".pe2pkg")].add(key)
         # Where each asset is placed, and what shares a folder or file with a package.
+        self.files: dict[tuple, str] = {}       # (stage, folder id or None, file id) -> path in the tree
+        self.folders: dict[tuple, str] = {}     # (stage, folder id) -> folder key
+        for stage, body in self.tree.items():
+            for folder, fnode in (body.get("folders") or {}).items():
+                self.folders[stage, int(fnode["id"])] = folder
         for stage, folder, fkey, node in asset_schema.tree_files(self.tree):
             self.by_value["file.id"][int(node["id"])].add((fkey if folder is None else f"{folder}/{fkey}", f"stage {stage}"))
+            folder_id = None if folder is None else int(self.tree[stage]["folders"][folder]["id"])
+            self.files[stage, folder_id, int(node["id"])] = f"{stage}/{fkey}" if folder is None else f"{stage}/{folder}/{fkey}"
         groups: dict[tuple, set[str]] = defaultdict(set)
         for stage, folder, fkey, node in asset_schema.tree_files(self.tree):
             groups[(stage, folder) if folder else (stage, None, fkey)].update((node.get("chunks") or {}).values())
@@ -301,11 +368,61 @@ def scan(db: sqlite3.Connection, by_value: bool) -> None:
             db.execute("DELETE FROM candidates WHERE evidence = ?", (eid,))
             db.executemany("INSERT OR IGNORE INTO candidates VALUES (?,?,?,?)",
                            [(eid, a, d, int(a in near)) for a, d in found])
+    # File references: a second pass, because the fields are set from constants
+    # declared anywhere. A name with one value across the tree is usable.
+    values: dict[str, set[int]] = defaultdict(set)
+    for path in files:
+        for _scope, symbol, _line, _kind, _expr, value in constants(path):
+            values[symbol].add(value)
+    known = {name: next(iter(v)) for name, v in values.items() if len(v) == 1}
+    for path in files:
+        rel = path.relative_to(ROOT).as_posix()
+        for function, line, ref in file_references(path, known):
+            get = lambda f: ref.get(f, ("", None))[1]  # noqa: E731
+            group, hundreds, index, stage = get("fileGroup"), get("fileIdHundreds"), get("fileIndex"), get("stage")
+            expr = "; ".join(f"{f} = {ref[f][0]}" for f in ("stage", "fileGroup", "fileIdHundreds", "fileIndex") if f in ref)
+            target = value = None
+            candidates_of: list[str] = []
+            if None not in (group, hundreds, index) and stage in (0, None):
+                value = group * 10000 + hundreds * 100 + index
+                target = man.files.get((0, None, value))
+                match = "unique" if target else "none"
+            elif None not in (group, hundreds, index) and stage:
+                value = index
+                target = man.files.get((stage, group * 100 + hundreds, index))
+                match = "unique" if target else "none"
+            elif None not in (group, hundreds) and stage in (0, None):
+                # The index is chosen at run time: the reference is to one of
+                # the files sharing the fixed part of the id.
+                base = group * 10000 + hundreds * 100
+                among = sorted(path for (st, folder, fid), path in man.files.items()
+                               if st == 0 and folder is None and base <= fid < base + 100)
+                match, value = ("range" if among else "none"), base
+                target = None
+                candidates_of = among
+            else:
+                match = "computed"       # the group or hundreds is decided at run time
+            counts["file.ref", match] += 1
+            row = db.execute("SELECT id, status FROM evidence WHERE file = ? AND scope = ? AND symbol = ? AND attribute = 'file.ref'",
+                             (rel, function, f"{function}:{line}")).fetchone()
+            fields = (line, "reference", expr, value, man.package_of(rel), match, len(candidates_of) or int(bool(target)), 0, seen_at)
+            if row is None:
+                row = {"status": "found", "id": None}
+                row["id"] = db.execute("INSERT INTO evidence (file, scope, symbol, attribute, line, kind, expr, value, package, match, "
+                           "n_candidates, n_local, seen, asset) VALUES (?,?,?,'file.ref',?,?,?,?,?,?,?,?,?,?)",
+                           (rel, function, f"{function}:{line}") + fields + (target,)).lastrowid
+            else:
+                db.execute("UPDATE evidence SET line = ?, kind = ?, expr = ?, value = ?, package = ?, match = ?, n_candidates = ?, "
+                           "n_local = ?, seen = ?, present = 1 WHERE id = ?", fields + (row["id"],))
+                if row["status"] == "found":
+                    db.execute("UPDATE evidence SET asset = ? WHERE id = ?", (target, row["id"]))
+            db.execute("DELETE FROM candidates WHERE evidence = ?", (row["id"],))
+            db.executemany("INSERT OR IGNORE INTO candidates VALUES (?,?,'',0)", [(row["id"], c) for c in candidates_of])
     db.commit()
     gone = db.execute("SELECT COUNT(*) FROM evidence WHERE present = 0").fetchone()[0]
     print(f"{len(files)} files scanned; {sum(counts.values())} constants recorded" + (f", {gone} no longer in the code" if gone else ""))
     for attribute in sorted({a for a, _ in counts}):
-        parts = [f"{m} {counts[attribute, m]}" for m in ("unique", "local", "ambiguous", "unnamed", "none") if counts[attribute, m]]
+        parts = [f"{m} {counts[attribute, m]}" for m in ("unique", "local", "ambiguous", "unnamed", "range", "computed", "none") if counts[attribute, m]]
         print(f"  {attribute:<12} " + ", ".join(parts))
 
 
@@ -346,12 +463,12 @@ def main() -> int:
         print("id\tattribute\tmatch\tvalue\tasset\tdetail\tcandidates\tlocal\tsymbol\tscope\tfile:line\tstatus")
         for r in db.execute(sql, params):
             print("\t".join(str(x if x is not None else "") for x in (
-                r["id"], r["attribute"], r["match"], hex(r["value"]), r["asset"], r["detail"], r["n_candidates"],
+                r["id"], r["attribute"], r["match"], hex(r["value"]) if r["value"] is not None else "", r["asset"], r["detail"], r["n_candidates"],
                 r["n_local"], r["symbol"], r["scope"], f"{r['file']}:{r['line']}", r["status"])))
     elif args.command == "show":
         rows = db.execute("SELECT * FROM evidence WHERE symbol = ? ORDER BY file", (args.symbol,)).fetchall()
         for r in rows:
-            print(f"#{r['id']} {r['symbol']} = {hex(r['value'])} ({r['expr']})  {r['file']}:{r['line']}" + (f" in {r['scope']}" if r["scope"] else ""))
+            print(f"#{r['id']} {r['symbol']} = {hex(r['value']) if r['value'] is not None else '?'} ({r['expr']})  {r['file']}:{r['line']}" + (f" in {r['scope']}" if r["scope"] else ""))
             print(f"   {r['attribute']}: {r['match']}, {r['status']}" + (f" -> {r['asset']} {r['detail'] or ''}" if r["asset"] else "")
                   + (f"   [{r['note']}]" if r["note"] else ""))
             for c in db.execute("SELECT * FROM candidates WHERE evidence = ? ORDER BY local DESC, asset LIMIT 12", (r["id"],)):
