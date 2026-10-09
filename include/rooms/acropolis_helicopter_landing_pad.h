@@ -39,7 +39,16 @@ extern SpriteView D_acropolis_helicopter_landing_pad_80187824[];
 
 extern ViewCamera D_acropolis_helicopter_landing_pad_80187968[];
 
-extern WorldCollisionSurfaceProperties* D_acropolis_helicopter_landing_pad_80187DC8[];
+/// The landing pad's collision and footstep policies indexed by surface class (0..7).
+///
+/// The Acropolis map publishes this directory for area 16. Classes 0, 1 and 7
+/// share a silent solid policy; 2 selects the upper floor and scripted exit
+/// stairs; 3 selects the lower floor. Classes 4 and 5 pass probes and suppress
+/// weapon impacts while retaining pushback and floor footsteps. Class 6 is a
+/// silent outer boundary that blocks probes and suppresses weapon impacts.
+/// The directory, records and sound tables belong to the loaded room overlay;
+/// borrowed pointers must not survive unloading it.
+extern WorldCollisionSurfaceProperties* gAcropolisHelicopterLandingPadSurfacePropertiesByClass[8];
 
 /// Draws one blue spark on the coordinate's lower local-Y side.
 ///

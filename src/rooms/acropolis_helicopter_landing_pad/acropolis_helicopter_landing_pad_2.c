@@ -103,23 +103,8 @@ static const TaskFuncTable3 D_acropolis_helicopter_landing_pad_8017D5E4 = {
     { _acropolisHelicopterLandingPadInitRoom, acropolisHelicopterLandingPadUpdateEncounterPhase, taskKill },
 };
 
-extern SpriteDrawArea D_acropolis_helicopter_landing_pad_80186C8C[2];
-extern SpriteDrawArea D_acropolis_helicopter_landing_pad_80186DD4[2];
-extern SpriteDrawArea D_acropolis_helicopter_landing_pad_80186EC8[2];
-extern SpriteDrawArea D_acropolis_helicopter_landing_pad_80187148[2];
-extern SpriteDrawArea D_acropolis_helicopter_landing_pad_8018723C[2];
-extern SpriteDrawArea D_acropolis_helicopter_landing_pad_80187358[2];
 extern SpriteDrawArea D_acropolis_helicopter_landing_pad_801875B0[2];
 extern SpriteDrawArea D_acropolis_helicopter_landing_pad_80187630[2];
-extern SpriteBatch    D_acropolis_helicopter_landing_pad_80186B00[2];
-extern SpriteBatch    D_acropolis_helicopter_landing_pad_80186C64[3];
-extern SpriteBatch    D_acropolis_helicopter_landing_pad_80186C7C[2];
-extern SpriteBatch    D_acropolis_helicopter_landing_pad_80186D04[3];
-extern SpriteBatch    D_acropolis_helicopter_landing_pad_80186DBC[3];
-extern SpriteBatch    D_acropolis_helicopter_landing_pad_80186EB0[3];
-extern SpriteBatch    D_acropolis_helicopter_landing_pad_80187120[5];
-extern SpriteBatch    D_acropolis_helicopter_landing_pad_80187224[3];
-extern SpriteBatch    D_acropolis_helicopter_landing_pad_80187340[3];
 extern SpriteBatch    D_acropolis_helicopter_landing_pad_80187588[5];
 extern SpriteBatch    D_acropolis_helicopter_landing_pad_801875C4[2];
 extern SpriteBatch    D_acropolis_helicopter_landing_pad_801875D4[2];
@@ -137,13 +122,6 @@ extern SpriteBatch    D_acropolis_helicopter_landing_pad_801877D0[2];
 extern SpriteBatch    D_acropolis_helicopter_landing_pad_801877E0[2];
 extern SpriteBatch    D_acropolis_helicopter_landing_pad_801877F0[2];
 extern SpriteBatch    D_acropolis_helicopter_landing_pad_80187800[2];
-extern SpriteSource   D_acropolis_helicopter_landing_pad_80186B10[17];
-extern SpriteSource   D_acropolis_helicopter_landing_pad_80186CA0[5];
-extern SpriteSource   D_acropolis_helicopter_landing_pad_80186D1C[8];
-extern SpriteSource   D_acropolis_helicopter_landing_pad_80186DE8[10];
-extern SpriteSource   D_acropolis_helicopter_landing_pad_80186EDC[29];
-extern SpriteSource   D_acropolis_helicopter_landing_pad_8018715C[10];
-extern SpriteSource   D_acropolis_helicopter_landing_pad_80187250[12];
 extern SpriteSource   D_acropolis_helicopter_landing_pad_8018736C[27];
 extern SpriteSource   D_acropolis_helicopter_landing_pad_80187604[1];
 extern SpriteSource   D_acropolis_helicopter_landing_pad_80187654[3];
@@ -647,16 +625,29 @@ static WorldCoordPointLight _gAcropolisHelicopterLandingPadPointLights[] = {
     },
 };
 
-WorldCoordRoomLights D_acropolis_helicopter_landing_pad_80186AE8[1] = {
-    { ARRAY_SIZE(_gAcropolisHelicopterLandingPadDirectionalLights), _gAcropolisHelicopterLandingPadDirectionalLights, ARRAY_SIZE(_gAcropolisHelicopterLandingPadPointLights), _gAcropolisHelicopterLandingPadPointLights, 0, NULL },
+WorldCoordRoomLights gAcropolisHelicopterLandingPadRoomLights = {
+    .directionalLightCount = ARRAY_SIZE(_gAcropolisHelicopterLandingPadDirectionalLights),
+    .directionalLights     = _gAcropolisHelicopterLandingPadDirectionalLights,
+    .pointLightCount       = ARRAY_SIZE(_gAcropolisHelicopterLandingPadPointLights),
+    .pointLights           = _gAcropolisHelicopterLandingPadPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
-SpriteBatch D_acropolis_helicopter_landing_pad_80186B00[2] = {
+/// Keeps decoded background strips in mapped view 1 without source sprites.
+///
+/// The zero-count first record selects image strips; the following record ends
+/// cached-sprite traversal. The view retains this address in its empty source slot.
+static SpriteBatch _gAcropolisHelicopterLandingPadView1SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_helicopter_landing_pad_80186B10[17] = {
+/// The 17 depth-sorted foreground texture rectangles in mapped view 2.
+///
+/// Positions and sizes are pixels relative to the view centre; depths are
+/// unscaled sorting values. The loaded overlay owns these mutable sources.
+static SpriteSource _gAcropolisHelicopterLandingPadView2SpriteSources[] = {
     { 141, 0x3FC0, { .fields = { 16, 16 } }, -104, -16, 721, { .fields = { 0, 240 } }, 128, 128, 128, 0 },
     { 141, 0x3FC0, { .fields = { 16, 24 } }, -96, 0, 658, { .fields = { 0, 216 } }, 128, 128, 128, 0 },
     { 141, 0x3FC0, { .fields = { 16, 16 } }, -88, 24, 605, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
@@ -676,23 +667,36 @@ SpriteSource D_acropolis_helicopter_landing_pad_80186B10[17] = {
     { 141, 0x3FC0, { .fields = { 72, 24 } }, 88, 96, 604, { .fields = { 16, 216 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_helicopter_landing_pad_80186C64[3] = {
+/// Adds all view-2 source sprites over decoded background strips, then ends the list.
+static SpriteBatch _gAcropolisHelicopterLandingPadView2SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 17, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gAcropolisHelicopterLandingPadView2SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_helicopter_landing_pad_80186C7C[2] = {
+/// Keeps decoded background strips in mapped view 3 without source sprites.
+///
+/// The zero-count selector precedes the terminator; its retained empty source
+/// address is never dereferenced as sprites. View clipping is independent.
+static SpriteBatch _gAcropolisHelicopterLandingPadView3SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteDrawArea D_acropolis_helicopter_landing_pad_80186C8C[2] = {
+/// Clips mapped view 3 to (4,4,133,235) pixels until sorting depth 1500.
+///
+/// Coordinates are from the draw buffer's upper-left corner. The final record
+/// ends the list; clipping also applies to scene primitives, without source sprites.
+static SpriteDrawArea _gAcropolisHelicopterLandingPadView3DrawAreas[] = {
     { { 4, 4, 133, 235 }, 1500 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_acropolis_helicopter_landing_pad_80186CA0[5] = {
+/// The five depth-sorted foreground texture rectangles in mapped view 4.
+///
+/// Positions and sizes are view-centred pixels; depth is an unscaled sorting
+/// value. These mutable sources remain live with the room overlay.
+static SpriteSource _gAcropolisHelicopterLandingPadView4SpriteSources[] = {
     { 142, 0x3FC0, { .fields = { 16, 112 } }, 0, -104, 2125, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 144 } }, -16, -112, 1750, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 32, 208 } }, -48, -120, 1500, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
@@ -700,13 +704,18 @@ SpriteSource D_acropolis_helicopter_landing_pad_80186CA0[5] = {
     { 143, 0x3FC0, { .fields = { 72, 240 } }, -160, -120, 500, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_helicopter_landing_pad_80186D04[3] = {
+/// Adds all view-4 source sprites over decoded background strips, then ends the list.
+static SpriteBatch _gAcropolisHelicopterLandingPadView4SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 5, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gAcropolisHelicopterLandingPadView4SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_helicopter_landing_pad_80186D1C[8] = {
+/// The eight foreground texture rectangles at sorting depth 500 in mapped view 5.
+///
+/// Positions and sizes are view-centred pixels. The room overlay owns these
+/// mutable sources, independently of the view's scene clipping commands.
+static SpriteSource _gAcropolisHelicopterLandingPadView5SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 56, 80 } }, -160, 0, 500, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 48, 80 } }, -104, 16, 500, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 96 } }, -56, 24, 500, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
@@ -717,18 +726,27 @@ SpriteSource D_acropolis_helicopter_landing_pad_80186D1C[8] = {
     { 143, 0x3FC0, { .fields = { 32, 16 } }, 112, -32, 500, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_helicopter_landing_pad_80186DBC[3] = {
+/// Adds all view-5 source sprites over decoded background strips, then ends the list.
+static SpriteBatch _gAcropolisHelicopterLandingPadView5SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 8, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gAcropolisHelicopterLandingPadView5SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteDrawArea D_acropolis_helicopter_landing_pad_80186DD4[2] = {
+/// Clips mapped view 5 to (267,0,51,239) pixels until sorting depth 3625.
+///
+/// The draw-buffer rectangle also clips scene primitives. The second record
+/// terminates the list without emitting commands.
+static SpriteDrawArea _gAcropolisHelicopterLandingPadView5DrawAreas[] = {
     { { 267, 0, 51, 239 }, 3625 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_acropolis_helicopter_landing_pad_80186DE8[10] = {
+/// The ten depth-sorted foreground texture rectangles in mapped view 6.
+///
+/// Positions and sizes are view-centred pixels; depth is unscaled. These
+/// mutable sources remain live with the room overlay.
+static SpriteSource _gAcropolisHelicopterLandingPadView6SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 32, 64 } }, -160, 56, 500, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 72 } }, -128, 48, 550, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 80 } }, -96, 40, 625, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
@@ -741,18 +759,28 @@ SpriteSource D_acropolis_helicopter_landing_pad_80186DE8[10] = {
     { 143, 0x3FC0, { .fields = { 16, 48 } }, 144, -16, 875, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_helicopter_landing_pad_80186EB0[3] = {
+/// Adds all view-6 source sprites over decoded background strips, then ends the list.
+static SpriteBatch _gAcropolisHelicopterLandingPadView6SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 10, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gAcropolisHelicopterLandingPadView6SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteDrawArea D_acropolis_helicopter_landing_pad_80186EC8[2] = {
+/// Applies mapped view 6's zero-size clip at (109,118) until sorting depth 1750.
+///
+/// Coordinates are draw-buffer pixels. The authored zero dimensions are
+/// retained; the second record terminates the list.
+static SpriteDrawArea _gAcropolisHelicopterLandingPadView6DrawAreas[] = {
     { { 109, 118, 0, 0 }, 1750 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_acropolis_helicopter_landing_pad_80186EDC[29] = {
+/// The 29 texture rectangles forming mapped view 7's three source ranges.
+///
+/// The ranges contain 12 foreground rectangles, three deeper rectangles and
+/// fourteen tiles at depth 2875. Positions and sizes are view-centred pixels;
+/// depth is unscaled. Sources remain mutable and owned by the loaded overlay.
+static SpriteSource _gAcropolisHelicopterLandingPadView7SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 16, 64 } }, -160, -24, 500, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 72 } }, -144, -16, 420, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 80 } }, -128, -8, 417, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
@@ -784,7 +812,12 @@ SpriteSource D_acropolis_helicopter_landing_pad_80186EDC[29] = {
     { 141, 0x4000, { .fields = { 32, 48 } }, 128, -40, 2875, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_helicopter_landing_pad_80187120[5] = {
+/// Adds view 7's source ranges [0,12), [12,15) and [15,29) over background strips.
+///
+/// The zero-count selector and final terminator are both required. The first
+/// two ranges retain serialized bytes 2 and 1 whose role is unproven; current
+/// packet processing reads neither byte.
+static SpriteBatch _gAcropolisHelicopterLandingPadView7SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 12, 0, 0, { 2, 0 } },
     { 12, 3, 0, 0, { 1, 0 } },
@@ -792,12 +825,19 @@ SpriteBatch D_acropolis_helicopter_landing_pad_80187120[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteDrawArea D_acropolis_helicopter_landing_pad_80187148[2] = {
+/// Clips mapped view 7 to (1,0,46,239) pixels until sorting depth 2750.
+///
+/// Coordinates are draw-buffer pixels; the second record terminates the list.
+static SpriteDrawArea _gAcropolisHelicopterLandingPadView7DrawAreas[] = {
     { { 1, 0, 46, 239 }, 2750 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_acropolis_helicopter_landing_pad_8018715C[10] = {
+/// The ten depth-sorted foreground texture rectangles in mapped view 8.
+///
+/// Positions and sizes are view-centred pixels; depth is unscaled. The room
+/// overlay owns these mutable sources for the view's complete lifetime.
+static SpriteSource _gAcropolisHelicopterLandingPadView8SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 32, 48 } }, -160, 0, 900, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 40 } }, -128, 8, 900, { .fields = { 40, 176 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 48 } }, -104, 8, 900, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
@@ -810,18 +850,27 @@ SpriteSource D_acropolis_helicopter_landing_pad_8018715C[10] = {
     { 143, 0x3FC0, { .fields = { 40, 72 } }, 120, 24, 775, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_helicopter_landing_pad_80187224[3] = {
+/// Adds all view-8 source sprites over decoded background strips, then ends the list.
+static SpriteBatch _gAcropolisHelicopterLandingPadView8SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 10, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gAcropolisHelicopterLandingPadView8SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteDrawArea D_acropolis_helicopter_landing_pad_8018723C[2] = {
+/// Applies mapped view 8's zero-size clip at (53,23) until sorting depth 2250.
+///
+/// Coordinates are draw-buffer pixels. The authored zero dimensions are
+/// retained; the second record terminates the list.
+static SpriteDrawArea _gAcropolisHelicopterLandingPadView8DrawAreas[] = {
     { { 53, 23, 0, 0 }, 2250 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_acropolis_helicopter_landing_pad_80187250[12] = {
+/// The twelve depth-sorted foreground texture rectangles in mapped view 9.
+///
+/// Positions and sizes are view-centred pixels; depth is unscaled, including
+/// the authored depth 50 at source 9. The loaded overlay owns these mutable sources.
+static SpriteSource _gAcropolisHelicopterLandingPadView9SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 16, 64 } }, -104, -64, 3000, { .fields = { 24, 152 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 88 } }, -88, -72, 2500, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 72 } }, -128, -32, 700, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
@@ -836,13 +885,17 @@ SpriteSource D_acropolis_helicopter_landing_pad_80187250[12] = {
     { 143, 0x3FC0, { .fields = { 24, 64 } }, 136, 16, 500, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_helicopter_landing_pad_80187340[3] = {
+/// Adds all view-9 source sprites over decoded background strips, then ends the list.
+static SpriteBatch _gAcropolisHelicopterLandingPadView9SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 12, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gAcropolisHelicopterLandingPadView9SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteDrawArea D_acropolis_helicopter_landing_pad_80187358[2] = {
+/// Clips mapped view 9 to (1,0,63,239) pixels until sorting depth 3500.
+///
+/// Coordinates are draw-buffer pixels; the second record terminates the list.
+static SpriteDrawArea _gAcropolisHelicopterLandingPadView9DrawAreas[] = {
     { { 1, 0, 63, 239 }, 3500 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
@@ -1011,15 +1064,15 @@ SpriteDrawArea D_acropolis_helicopter_landing_pad_80187810[2] = {
 };
 
 SpriteView D_acropolis_helicopter_landing_pad_80187824[27] = {
-    { { .empty = D_acropolis_helicopter_landing_pad_80186B00 }, D_acropolis_helicopter_landing_pad_80186B00, NULL },
-    { { .elements = D_acropolis_helicopter_landing_pad_80186B10 }, D_acropolis_helicopter_landing_pad_80186C64, NULL },
-    { { .empty = D_acropolis_helicopter_landing_pad_80186C7C }, D_acropolis_helicopter_landing_pad_80186C7C, D_acropolis_helicopter_landing_pad_80186C8C },
-    { { .elements = D_acropolis_helicopter_landing_pad_80186CA0 }, D_acropolis_helicopter_landing_pad_80186D04, NULL },
-    { { .elements = D_acropolis_helicopter_landing_pad_80186D1C }, D_acropolis_helicopter_landing_pad_80186DBC, D_acropolis_helicopter_landing_pad_80186DD4 },
-    { { .elements = D_acropolis_helicopter_landing_pad_80186DE8 }, D_acropolis_helicopter_landing_pad_80186EB0, D_acropolis_helicopter_landing_pad_80186EC8 },
-    { { .elements = D_acropolis_helicopter_landing_pad_80186EDC }, D_acropolis_helicopter_landing_pad_80187120, D_acropolis_helicopter_landing_pad_80187148 },
-    { { .elements = D_acropolis_helicopter_landing_pad_8018715C }, D_acropolis_helicopter_landing_pad_80187224, D_acropolis_helicopter_landing_pad_8018723C },
-    { { .elements = D_acropolis_helicopter_landing_pad_80187250 }, D_acropolis_helicopter_landing_pad_80187340, D_acropolis_helicopter_landing_pad_80187358 },
+    { { .empty = _gAcropolisHelicopterLandingPadView1SpriteBatches }, _gAcropolisHelicopterLandingPadView1SpriteBatches, NULL },
+    { { .elements = _gAcropolisHelicopterLandingPadView2SpriteSources }, _gAcropolisHelicopterLandingPadView2SpriteBatches, NULL },
+    { { .empty = _gAcropolisHelicopterLandingPadView3SpriteBatches }, _gAcropolisHelicopterLandingPadView3SpriteBatches, _gAcropolisHelicopterLandingPadView3DrawAreas },
+    { { .elements = _gAcropolisHelicopterLandingPadView4SpriteSources }, _gAcropolisHelicopterLandingPadView4SpriteBatches, NULL },
+    { { .elements = _gAcropolisHelicopterLandingPadView5SpriteSources }, _gAcropolisHelicopterLandingPadView5SpriteBatches, _gAcropolisHelicopterLandingPadView5DrawAreas },
+    { { .elements = _gAcropolisHelicopterLandingPadView6SpriteSources }, _gAcropolisHelicopterLandingPadView6SpriteBatches, _gAcropolisHelicopterLandingPadView6DrawAreas },
+    { { .elements = _gAcropolisHelicopterLandingPadView7SpriteSources }, _gAcropolisHelicopterLandingPadView7SpriteBatches, _gAcropolisHelicopterLandingPadView7DrawAreas },
+    { { .elements = _gAcropolisHelicopterLandingPadView8SpriteSources }, _gAcropolisHelicopterLandingPadView8SpriteBatches, _gAcropolisHelicopterLandingPadView8DrawAreas },
+    { { .elements = _gAcropolisHelicopterLandingPadView9SpriteSources }, _gAcropolisHelicopterLandingPadView9SpriteBatches, _gAcropolisHelicopterLandingPadView9DrawAreas },
     { { .elements = D_acropolis_helicopter_landing_pad_8018736C }, D_acropolis_helicopter_landing_pad_80187588, D_acropolis_helicopter_landing_pad_801875B0 },
     { { .empty = D_acropolis_helicopter_landing_pad_801875C4 }, D_acropolis_helicopter_landing_pad_801875C4, NULL },
     { { .empty = D_acropolis_helicopter_landing_pad_801875D4 }, D_acropolis_helicopter_landing_pad_801875D4, NULL },
@@ -1111,51 +1164,118 @@ PadScriptVibrationSegment D_acropolis_helicopter_landing_pad_80187D78[2] = {
     { 150, 100, 25, 1 },
 };
 
-WorldCollisionFootstepSounds D_acropolis_helicopter_landing_pad_80187D80 = {
-    0x10000015,
-    0x10000017,
-    0x10000019,
+/// Cue-2 bases in the loaded type-1 bank; cue 1 uses the following entry.
+enum {
+    ACROPOLIS_HELICOPTER_LANDING_PAD_FLOOR_WALK_SOUND          = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x15,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_FLOOR_RUN_SOUND           = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x17,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_FLOOR_SCRIPTED_JUMP_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x19,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_STAIR_WALK_SOUND          = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x0D,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_STAIR_RUN_SOUND           = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x0F,
 };
 
-WorldCollisionFootstepSounds D_acropolis_helicopter_landing_pad_80187D8C = {
-    0x1000000D,
-    0x1000000F,
-    0x1000000D,
+/// Paired footstep scripts for the lower floor and surface classes 4 and 5.
+///
+/// Walk, run and scripted-jump modes use distinct cue bases in the loaded
+/// type-1 bank. Cue 1 adds one and companion playback adds 100. Surface records
+/// borrow these bases for the room overlay's lifetime without modifying them.
+static WorldCollisionFootstepSounds _gAcropolisHelicopterLandingPadFloorFootstepSounds = {
+    .walk         = ACROPOLIS_HELICOPTER_LANDING_PAD_FLOOR_WALK_SOUND,
+    .run          = ACROPOLIS_HELICOPTER_LANDING_PAD_FLOOR_RUN_SOUND,
+    .scriptedJump = ACROPOLIS_HELICOPTER_LANDING_PAD_FLOOR_SCRIPTED_JUMP_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_helicopter_landing_pad_80187D98[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Paired footstep scripts for the upper floor and scripted fire-escape stairs.
+///
+/// Walking and scripted jumps share the same cue base; running has its own.
+/// Cue 1 adds one and companion playback adds 100 in the loaded type-1 bank.
+/// Surface class 2 borrows this record while the room overlay remains loaded.
+static WorldCollisionFootstepSounds _gAcropolisHelicopterLandingPadStairFootstepSounds = {
+    .walk         = ACROPOLIS_HELICOPTER_LANDING_PAD_STAIR_WALK_SOUND,
+    .run          = ACROPOLIS_HELICOPTER_LANDING_PAD_STAIR_RUN_SOUND,
+    .scriptedJump = ACROPOLIS_HELICOPTER_LANDING_PAD_STAIR_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_helicopter_landing_pad_80187DA0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_helicopter_landing_pad_80187D8C },
+/// Silent solid collision policy shared by surface classes 0, 1 and 7.
+///
+/// Blocks probes, allows weapon impacts and applies pushback. No footstep
+/// table is selected; the unproven first byte retains its authored zero.
+static WorldCollisionSurfaceProperties _gAcropolisHelicopterLandingPadSilentSolidSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_helicopter_landing_pad_80187DA8[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_helicopter_landing_pad_80187D80 },
+/// Solid upper-floor policy also selected explicitly during the exit stair sequence.
+///
+/// Surface class 2 blocks probes, allows weapon impacts, applies pushback and
+/// borrows the stair footstep bases for the loaded overlay's lifetime.
+static WorldCollisionSurfaceProperties _gAcropolisHelicopterLandingPadStairSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gAcropolisHelicopterLandingPadStairFootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_helicopter_landing_pad_80187DB0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_helicopter_landing_pad_80187D80 },
+/// Solid lower-floor policy for surface class 3, with floor footstep cues.
+///
+/// Blocks probes, allows weapon impacts and applies pushback. The floor cue
+/// bases remain borrowed while the room overlay is loaded.
+static WorldCollisionSurfaceProperties _gAcropolisHelicopterLandingPadFloorSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gAcropolisHelicopterLandingPadFloorFootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_helicopter_landing_pad_80187DB8[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_helicopter_landing_pad_80187D80 },
+/// Probe-transparent perimeter policy for surface class 4.
+///
+/// Applies pushback and retains floor footstep cues while probes pass and
+/// weapon impacts are suppressed. The room overlay owns this single record.
+static WorldCollisionSurfaceProperties _gAcropolisHelicopterLandingPadPerimeterSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gAcropolisHelicopterLandingPadFloorFootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_helicopter_landing_pad_80187DC0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Surface class 5's probe-transparent policy with pushback and floor footsteps.
+///
+/// Weapon impacts are suppressed. This distinct authored record is selected
+/// by class 5; the geometry or material associated with that class is unproven.
+static WorldCollisionSurfaceProperties _gAcropolisHelicopterLandingPadSurface5Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gAcropolisHelicopterLandingPadFloorFootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_acropolis_helicopter_landing_pad_80187DC8[8] = {
-    D_acropolis_helicopter_landing_pad_80187D98,
-    D_acropolis_helicopter_landing_pad_80187D98,
-    D_acropolis_helicopter_landing_pad_80187DA0,
-    D_acropolis_helicopter_landing_pad_80187DA8,
-    D_acropolis_helicopter_landing_pad_80187DB0,
-    D_acropolis_helicopter_landing_pad_80187DB8,
-    D_acropolis_helicopter_landing_pad_80187DC0,
-    D_acropolis_helicopter_landing_pad_80187D98,
+/// Silent outer-boundary policy for surface class 6.
+///
+/// Blocks probes and applies pushback while suppressing weapon impacts;
+/// no footstep table is selected. The room overlay owns this single record.
+static WorldCollisionSurfaceProperties _gAcropolisHelicopterLandingPadOuterBoundarySurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
+};
+
+WorldCollisionSurfaceProperties* gAcropolisHelicopterLandingPadSurfacePropertiesByClass[8] = {
+    &_gAcropolisHelicopterLandingPadSilentSolidSurface,
+    &_gAcropolisHelicopterLandingPadSilentSolidSurface,
+    &_gAcropolisHelicopterLandingPadStairSurface,
+    &_gAcropolisHelicopterLandingPadFloorSurface,
+    &_gAcropolisHelicopterLandingPadPerimeterSurface,
+    &_gAcropolisHelicopterLandingPadSurface5Properties,
+    &_gAcropolisHelicopterLandingPadOuterBoundarySurface,
+    &_gAcropolisHelicopterLandingPadSilentSolidSurface,
 };
 
 static TmdBone _gAcropolisHelicopterLandingPadModel0A8E8Skeleton[1] = {

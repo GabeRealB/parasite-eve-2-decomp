@@ -879,7 +879,7 @@ WorldCollisionSurfaceProperties** D_map_akropolis_8017AC6C[20] = {
     D_acropolis_roof_garden_80186DB0,
     D_acropolis_bridge_80190C34,
     D_acropolis_fire_escape_80183020,
-    D_acropolis_helicopter_landing_pad_80187DC8,
+    gAcropolisHelicopterLandingPadSurfacePropertiesByClass,
     D_acropolis_west_elevator_hall_80186AC4,
     D_mist_r18_80186E70,
     D_mist_parking_801952F0,

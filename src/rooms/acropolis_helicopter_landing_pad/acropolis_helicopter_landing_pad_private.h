@@ -40,7 +40,13 @@ extern WorldCollisionTrigger D_acropolis_helicopter_landing_pad_80185E7C[9];
 
 extern WorldCollisionOccluder D_acropolis_helicopter_landing_pad_80186128[2];
 
-extern WorldCoordRoomLights D_acropolis_helicopter_landing_pad_80186AE8[1];
+/// The landing pad's authored collection of one directional and 22 point lights.
+///
+/// The room lighting descriptor borrows this single collection independently
+/// of camera view. Its arrays remain writable for coordinate composition and
+/// attenuation queries; no cone lights are present. Keep the overlay loaded
+/// while the descriptor or any light is in use.
+extern WorldCoordRoomLights gAcropolisHelicopterLandingPadRoomLights;
 
 extern SVECTOR ActorContact_ScratchPosition;
 
