@@ -172,6 +172,41 @@ def _by_id(container: dict[Any, Any], disc_id: int) -> dict[str, Any] | None:
     return None
 
 
+# What a chunk is called when its asset's own name says nothing beyond the
+# folder and file it sits in.
+TYPE_WORD = {"pe2pkg": "package", "pe2img": "image", "pe2clut": "clut", "spk": "sound", "bs": "background",
+             "txt": "text", "pe2cap2": "caption", "model": "model"}
+
+
+def _default_chunk_name(aid: str, kind: str, folder_key: str | None, file_key: str) -> str:
+    """The asset's name less what the placement already says.
+
+    `dryfield_garage_view_a` in folder `dryfield_garage` is `view_a` there. An
+    asset named exactly like its file - a weapon's package in the weapon's
+    file - is called by what it is.
+    """
+    rest = aid
+    changed = True
+    while changed:
+        changed = False
+        for prefix in sorted((p for p in (folder_key, file_key) if p), key=len, reverse=True):
+            if rest == prefix:
+                rest, changed = "", True
+            elif rest.startswith(prefix + "_"):
+                rest, changed = rest[len(prefix) + 1:], True
+    if not rest or not rest[0].isalpha():
+        rest = TYPE_WORD.get(kind, "chunk") + (f"_{rest}" if rest else "")
+    return rest
+
+
+def _old_file_node(old_tree: dict[int, Any], stage: int, folder_id: int | None, file_id: int) -> dict[str, Any] | None:
+    stage_body = old_tree.get(stage)
+    if not isinstance(stage_body, dict):
+        return None
+    container = stage_body if folder_id is None else _by_id(stage_body.get("folders") or {}, folder_id)
+    return _by_id((container or {}).get("files") or {}, file_id)
+
+
 def _old_file_name(
     old_tree: dict[int, Any],
     stage: int,
@@ -273,6 +308,8 @@ def _keyed(by_id: dict[int, dict[str, Any]]) -> dict[str, dict[str, Any]]:
 def collect_tree(
     assets_root: Path,
     old_tree: dict[int, Any],
+    assets: dict[str, dict[str, Any]],
+    old_assets: dict[str, dict[str, Any]],
 ) -> dict[int, Any]:
     stages_path = assets_root / "stages.json"
     if not stages_path.is_file():
@@ -287,6 +324,7 @@ def collect_tree(
         file_id: int,
         file_key: str,
         chunks: dict[str, Any],
+        folder_key: str | None = None,
     ) -> dict[str, Any]:
         node: dict[str, Any] = {"id": file_id}
         name = _old_file_name(old_tree, stage, folder_id, file_id)
@@ -310,7 +348,29 @@ def collect_tree(
                 if idx is None or not aid:
                     continue
                 chunk_map[idx] = aid
-        node["chunks"] = dict(sorted(chunk_map.items()))
+        if sorted(chunk_map) != list(range(len(chunk_map))):
+            raise SystemExit(f"stage {stage} file {file_id}: chunk indices {sorted(chunk_map)} have a gap, "
+                             "and a chunk's index is its position in the tree")
+        # A name is kept from the old tree only where someone chose it. One
+        # that was the default then is derived again, so that naming an asset
+        # renames its placements instead of leaving `pe2img_12` behind.
+        old = _old_file_node(old_tree, stage, folder_id, file_id) or {}
+        old_chunks = list((old.get("chunks") or {}).items())
+        named: dict[str, str] = {}
+        for idx in range(len(chunk_map)):
+            aid = chunk_map[idx]
+            kind = (assets.get(aid) or {}).get("type", "")
+            name = _default_chunk_name(aid, kind, folder_key, node["_key"])
+            if idx < len(old_chunks) and isinstance(old_chunks[idx][0], str):
+                old_name, old_aid = old_chunks[idx]
+                old_kind = (old_assets.get(old_aid) or {}).get("type", kind)
+                if old_name != _default_chunk_name(old_aid, old_kind, folder_key, node["_key"]):
+                    name = old_name
+            base, n = name, 2
+            while name in named:
+                name, n = f"{base}_{n}", n + 1
+            named[name] = aid
+        node["chunks"] = named
         return node
 
     for sname, stage_body in stages.items():
@@ -359,7 +419,7 @@ def collect_tree(
                                 file=sys.stderr,
                             )
                             continue
-                        ff[fid] = file_node(stage_n, did, fid, str(fname), chunks)
+                        ff[fid] = file_node(stage_n, did, fid, str(fname), chunks, folder_node["_key"])
                 folder_node["files"] = _keyed(ff)
                 fmap_f[did] = folder_node
             out_stage["folders"] = _keyed(fmap_f)
@@ -378,8 +438,8 @@ def _fmt_record(rec: dict[str, Any]) -> str:
     return "{" + ", ".join(parts) + "}"
 
 
-def _fmt_chunks(chunks: dict[int, str]) -> str:
-    inner = ", ".join(f"{idx}: {aid!r}" for idx, aid in chunks.items())
+def _fmt_chunks(chunks: dict[str, str]) -> str:
+    inner = ", ".join(f"{name!r}: {aid!r}" for name, aid in chunks.items())
     return "{" + inner + "}"
 
 
@@ -550,13 +610,13 @@ def main(argv: list[str] | None = None) -> int:
     models, placements = collect_models(assets_root, old_assets)
     assets.update(models)
     embedded = {**embedded, **placements}
-    tree = collect_tree(assets_root, old_tree)
+    tree = collect_tree(assets_root, old_tree, assets, old_assets)
     # Dependencies and variants are written by hand or by a review and name
     # other assets by key, so a renamed or vanished key has to stop here
     # rather than be written back out.
     import asset_schema
 
-    problems = asset_schema.validate(assets, embedded)
+    problems = asset_schema.validate(assets, embedded) + asset_schema.validate_tree(tree, assets)
     if problems:
         for line in problems[:40]:
             print(line, file=sys.stderr)

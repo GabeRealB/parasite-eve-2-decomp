@@ -35,12 +35,19 @@ Some dependencies are already stated elsewhere in the manifest and are not
 repeated: a package requires every asset embedded in it, which is the
 `source` of each `EMBEDDED_ASSETS` record. `deps_of` returns both.
 
+Placement has one rule of its own. A file's `chunks` maps the name each chunk
+is emitted under to the asset placed there, and the chunk's index is its
+position: the key has to be usable as part of a constant's name, and must not
+be spelled twice.
+
     python3 tools/peassets/asset_schema.py --check     # fail on any problem
     python3 tools/peassets/asset_schema.py --deps KEY   # what KEY requires
 """
 from __future__ import annotations
 
 import argparse
+import ast
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -75,11 +82,65 @@ CLUT_ENTRY_WIDTH = 16          # a CLUT value addresses video memory in steps of
 TPAGE_MODE = {4: 0, 8: 1, 16: 2}
 
 
+MANIFEST = Path(__file__).resolve().parent / "asset_data.py"
+NAME = re.compile(r"[a-z][a-z0-9_]*\Z")
+
+
 def load() -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]]]:
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     import asset_data
 
     return asset_data.ASSETS, asset_data.EMBEDDED_ASSETS
+
+
+def load_tree() -> dict[int, Any]:
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import asset_data
+
+    return asset_data.TREE
+
+
+def tree_files(tree: dict[int, Any]):
+    """(stage, folder key or None, file key, node) of every file in the tree."""
+    for stage, body in tree.items():
+        for key, node in (body.get("files") or {}).items():
+            yield stage, None, key, node
+        for folder, fnode in (body.get("folders") or {}).items():
+            for key, node in (fnode.get("files") or {}).items():
+                yield stage, folder, key, node
+
+
+def duplicate_keys(path: Path = MANIFEST) -> list[str]:
+    """Mapping literals in the manifest that spell one key twice.
+
+    Python keeps the last and says nothing. In a file's `chunks` that drops a
+    chunk and moves every later one down an index, since the index is the
+    position; nothing that reads the loaded module could tell.
+    """
+    out = []
+    for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+        if not isinstance(node, ast.Dict):
+            continue
+        seen = set()
+        for key in node.keys:
+            if isinstance(key, ast.Constant):
+                if key.value in seen:
+                    out.append(f"{path.name}:{key.lineno}: the key {key.value!r} appears twice in one mapping")
+                seen.add(key.value)
+    return out
+
+
+def validate_tree(tree: dict[int, Any], assets: dict) -> list[str]:
+    """A chunk's key is the name it is emitted under, so it has to be one."""
+    problems = []
+    for stage, folder, key, node in tree_files(tree):
+        where = f"stage {stage}" + (f"/{folder}" if folder else "") + f"/{key}"
+        for name, aid in (node.get("chunks") or {}).items():
+            if not isinstance(name, str) or not NAME.match(name):
+                problems.append(f"{where}: chunk {name!r} is not a name (lower-case letters, digits and _)")
+            if aid not in assets:
+                problems.append(f"{where}: chunk {name!r} places {aid!r}, which is not in the manifest")
+    return problems
 
 
 def image_columns(rec: dict[str, Any]) -> list[tuple[int, int, int]]:
@@ -223,7 +284,7 @@ def main() -> int:
         for dep in deps_of(args.deps, assets, embedded, args.variant):
             print(dep)
         return 0
-    problems = validate(assets, embedded)
+    problems = validate(assets, embedded) + validate_tree(load_tree(), assets) + duplicate_keys()
     for line in problems[:40]:
         print(line, file=sys.stderr)
     if len(problems) > 40:

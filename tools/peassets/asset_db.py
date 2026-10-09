@@ -167,6 +167,19 @@ def _tree_file(
     return hit[1] if hit else None
 
 
+def file_chunks(node: dict[str, Any]) -> list[tuple[str, str]]:
+    """(name, asset id) of each chunk of a TREE file, in chunk-index order.
+
+    A file's `chunks` maps the name a chunk is emitted under to the asset
+    placed there. The key is the placement's name rather than the asset's
+    because one asset sits in several files, and within a folder and file the
+    short name is enough: `view_a`, not `dryfield_garage_view_a`. The chunk
+    index is the position, which holds because a file's chunks are numbered
+    from zero without gaps and the tree is regenerated from the disc's layout.
+    """
+    return list((node.get("chunks") or {}).items())
+
+
 def tree_chunk_asset(
     stage: int,
     file_id: int,
@@ -177,8 +190,23 @@ def tree_chunk_asset(
     node = _tree_file(stage, file_id, folder_id)
     if node is None:
         return None
-    aid = (node.get("chunks") or {}).get(chunk_idx)
+    chunks = file_chunks(node)
+    if not 0 <= chunk_idx < len(chunks):
+        return None
+    aid = chunks[chunk_idx][1]
     return aid if isinstance(aid, str) else None
+
+
+def tree_chunk_name(
+    stage: int,
+    file_id: int,
+    chunk_idx: int,
+    folder_id: int | None = None,
+) -> str | None:
+    """Name this CDF chunk is emitted under, or None if unset."""
+    node = _tree_file(stage, file_id, folder_id)
+    chunks = file_chunks(node) if node is not None else []
+    return chunks[chunk_idx][0] if 0 <= chunk_idx < len(chunks) else None
 
 
 def folder_key(stage: int, folder_id: int) -> str:
@@ -397,9 +425,9 @@ def reverse_chunk_idx(
     node = _tree_file(stage, file_id, folder_id)
     if node is None:
         return None
-    for idx, aid in (node.get("chunks") or {}).items():
+    for idx, (_name, aid) in enumerate(file_chunks(node)):
         if aid == stem:
-            return int(idx)
+            return idx
     return None
 
 
@@ -577,7 +605,11 @@ def validate_asset_db() -> None:
             )
             files.extend((folder.get("files") or {}).items())
         for key, node in files:
-            for idx, aid in (node.get("chunks") or {}).items():
+            for idx, (name, aid) in enumerate(file_chunks(node)):
+                if not isinstance(name, str):
+                    raise ValueError(
+                        f"TREE chunk {stage}/{key}/{idx} is keyed by {name!r}; a chunk's key is its name"
+                    )
                 if aid not in ASSETS:
                     raise ValueError(
                         f"TREE chunk {stage}/{key}/{idx} refs unknown asset {aid!r}"
@@ -618,5 +650,7 @@ __all__ = [
     "stages_file_key",
     "stages_folder_key",
     "tree_chunk_asset",
+    "tree_chunk_name",
+    "file_chunks",
     "validate_asset_db",
 ]
