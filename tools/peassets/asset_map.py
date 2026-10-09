@@ -568,6 +568,12 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
             "source": grid["package"] + ".pe2pkg", "vram": grid["load"] + grid["grid"],
             "notes": "the room's collision grid: normals, vertices, faces and per-cell face lists; its header follows at "
                      f"0x{grid['load'] + grid['source']:08X}"}]
+    # A collision patch has no header: its pieces are arrays some code copies into a room's live grid.
+    from gen_overlay_configs import declared_collision_patches
+    for patch in declared_collision_patches(_toml.loads((ROOT / "configs/USA/overlays.toml").read_text(encoding="utf-8"))):
+        catalogue[f"{patch['package']}_collision_{patch['offset']:05X}"] = ["collision", {
+            "source": patch["package"] + ".pe2pkg", "vram": patch["load"] + patch["offset"],
+            "notes": "a collision patch (" + ", ".join(patch["pieces"]) + "): arrays the overlay's code copies into a room's live grid"}]
     scripts = {key: [found["bank"], [[list(n) for n in notes] if notes is not None else None for notes in found["entries"]]] for key, found in spk_scripts.all_banks().items()}
     # How the code uses each asset, as read out of the sources (tools/peassets/usage/).
     usage = defaultdict(list)
