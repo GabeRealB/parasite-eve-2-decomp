@@ -73,8 +73,11 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
 # it back in. One that is uploaded also has the rectangle of its upload record:
 # its size always, its position only when the record fixes one.
 EMBEDDED_FIELDS = ("source", "vram", "size", "ext", "type", "include", "layout", "deps", "notes")
-EMBEDDED_PAYLOAD: dict[str, tuple[str, ...]] = {"image": ("x", "y", "w", "h"), "clut": ("x", "y", "w", "h")}
-EMBEDDED_STORED: dict[str, tuple[str, ...]] = {"image": ("bpp",)}
+# An animation bank states how many clips it holds; `clip_names` names them by
+# index, as a review finds what each is.
+EMBEDDED_PAYLOAD: dict[str, tuple[str, ...]] = {"image": ("x", "y", "w", "h"), "clut": ("x", "y", "w", "h"),
+                                                "animation": ("clips",)}
+EMBEDDED_STORED: dict[str, tuple[str, ...]] = {"image": ("bpp",), "animation": ("clip_names",)}
 
 # What a variant may hold, per type of the asset it belongs to.
 VARIANT_FIELDS: dict[str, tuple[str, ...]] = {"pe2img": ("deps", "row"), "model": ("deps",)}

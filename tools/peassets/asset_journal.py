@@ -89,14 +89,16 @@ HINTS = [
     ("image.tpage", re.compile(r"(^|_)(TPAGE|TEXTURE_PAGE|TEX_PAGE)(_ID)?$")),
     ("clut.value", re.compile(r"(^|_)(CLUT|PALETTE)(_ID|_VALUE)?$")),
     ("file.id", re.compile(r"(^|_)(FILE|PACKAGE|PKG|BUNDLE)_ID$")),
+    ("animation.clip", re.compile(r"(^|_)(CLIP|ANIM|ANIMATION)(_ID)?$")),
 ]
 # The same words anywhere in the name: `KEYPAD_CLUT_HIGHLIGHT` is a CLUT value
 # too. A looser hint, so such a constant is recorded only when an asset fits.
 LOOSE_HINTS = [
     ("image.tpage", re.compile(r"(^|_)(TPAGE|TEXTURE_PAGE|TEX_PAGE)_")),
     ("clut.value", re.compile(r"(^|_)(CLUT|PALETTE)_")),
+    ("animation.clip", re.compile(r"(^|_)(CLIP|ANIM|ANIMATION)_")),
 ]
-NOT_A_PROPERTY = re.compile(r"_(SHIFT|MASK|BITS|BIT|WORD|COUNT|STRIDE|OFFSET|INDEX|SIZE|STEP)$")
+NOT_A_PROPERTY = re.compile(r"_(SHIFT|MASK|BITS|BIT|WORD|COUNT|STRIDE|OFFSET|INDEX|SIZE|STEP|FLAGS?|SPEED|FRAMES?|TIME|TIMER|RATE|STATE|SLOT|NONE)$")
 
 COMMENT = re.compile(r"/\*.*?\*/|//[^\n]*", re.S)
 ENUM = re.compile(r"\benum\s*\w*\s*\{([^{}]*)\}", re.S)
@@ -286,6 +288,12 @@ class Manifest:
                     for abr in range(4):
                         page = (mode << 7) | (abr << 5) | ((rec["y"] & 0x100) >> 4) | ((rec["x"] & 0x3FF) >> 6)
                         self.by_value["image.tpage"][page].add((key, f"if {bpp}-bit" + (f", blend {abr}" if abr else "")))
+        # A clip is an index into a bank, so every bank long enough fits the
+        # number; only the bank of the constant's own package means anything.
+        for key, rec in self.embedded.items():
+            if rec["type"] == "animation":
+                for clip in range(rec["clips"] + 1):
+                    self.by_value["animation.clip"][clip].add((key, f"clip {clip}"))
         # A package's own embedded assets are as near to its code as anything.
         for key, rec in self.embedded.items():
             self.near[rec.get("source", "").removesuffix(".pe2pkg")].add(key)
@@ -350,6 +358,8 @@ def scan(db: sqlite3.Connection, by_value: bool) -> None:
             elif len({c[0] for c in local}) == 1:
                 match, chosen = "local", local[0]
             else:
+                match, chosen = "ambiguous", None
+            if attribute == "animation.clip" and match == "unique" and chosen[0] not in near:
                 match, chosen = "ambiguous", None
             if loose and match == "none":
                 continue

@@ -1086,6 +1086,17 @@ Two tables:
   an image's and a CLUT's place in video memory (`x`, `y`, `w`, `h`, read from
   the payload), `bpp`, the assets it directly requires (`deps`) and the ways it
   is used (`variants`).
+  A model lists the `[texture page, CLUT]` pairs its faces name (`textures`),
+  as stored: the draw handlers add the object's displacement, so a model
+  whose textures are relocated at load names a slot rather than a place.
+* **`EMBEDDED_ASSETS`** — assets inside a package or the executable, located
+  by address. An image or CLUT has the rectangle of the upload record that
+  points at it - its size always, its position only when the record fixes one.
+  An animation bank (`type: animation`, one per `animation` object of
+  `overlays.toml`) has its clip count (`clips`).
+
+Which constant in the code states which of these properties is recorded
+outside git, in `local/asset_journal.sqlite` (`tools/peassets/asset_journal.py`).
 * **`TREE`** — STAGE*.CDF file tree. Stages are keyed by number; folders and
   files by name, each carrying its disc `id`. A file's `chunks` maps the name
   each chunk is emitted under to the asset placed there, and the chunk's index

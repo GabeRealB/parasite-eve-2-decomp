@@ -366,6 +366,7 @@ TYPE_DIR_BY_EXT: dict[str, str] = {
     ".txt": "txt",
     ".mcsave": "mcsave",
     ".tmd": "model",
+    ".anim": "animation",
 }
 
 IMAGE_EXTS = frozenset({".pe2img", ".pe2clut"})
@@ -378,7 +379,7 @@ EMBEDDED_INFLATE_EXTS = frozenset({".mcsave"})
 # Types we can locate but not yet decode: stored raw, with no type-dir form, so
 # nothing implies a decode that does not exist. Drop an ext from here once its
 # materialize branch lands.
-RAW_ONLY_EXTS = frozenset({".tmd"})
+RAW_ONLY_EXTS = frozenset({".tmd", ".anim"})
 RAW_ROOT_NAME = "raw"
 
 

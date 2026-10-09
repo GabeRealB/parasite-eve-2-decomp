@@ -555,6 +555,43 @@ def collect_models(
     return out, placed
 
 
+def collect_animations(assets_root: Path, old: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    """Every animation bank the overlay manifest declares, as an embedded asset.
+
+    A bank is a run of exported animation sets, one per clip, and code selects
+    a clip by its index in the bank. It is located by address like a mesh, but
+    not deduplicated: its sets hold absolute pointers, so the same clips in two
+    packages are different bytes. A bank renamed in the manifest keeps its name,
+    found again by where it sits.
+    """
+    repo = Path(__file__).resolve().parents[2]
+    sys.path.insert(0, str(repo / "tools"))
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import tomllib
+    import pkg_anim
+    from gen_overlay_configs import declared_animations
+
+    named = {(rec.get("source"), rec.get("vram")): key for key, rec in old.items() if rec.get("type") == "animation"}
+    manifest = tomllib.loads((repo / "configs/USA/overlays.toml").read_text(encoding="utf-8"))
+    out: dict[str, dict[str, Any]] = {}
+    blobs: dict[str, bytes] = {}
+    for row in declared_animations(manifest):
+        source = row["package"] + ".pe2pkg"
+        path = assets_root / "pe2pkg" / source
+        if not path.is_file():
+            continue
+        if source not in blobs:
+            blobs[source] = path.read_bytes()
+        end = pkg_anim.read_set(blobs[source], row["load"], row["sets"][-1])["end"]
+        vram = row["load"] + row["offset"]
+        key = named.get((source, vram)) or f"{row['package']}_animation_{row['offset']:05X}"
+        rec = dict(old.get(key) or {})
+        rec.update({"source": source, "vram": vram, "size": end - row["offset"], "ext": ".anim",
+                    "type": "animation", "clips": len(row["sets"])})
+        out[key] = rec
+    return out
+
+
 def _fmt_embedded(rec: dict[str, Any]) -> str:
     """One EMBEDDED_ASSETS record. Located by address, so no sha1 to key on."""
     order = ("source", "vram", "size", "ext", "type")
@@ -653,10 +690,12 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     old_assets, old_tree, embedded = _load_old()
+    old_embedded = dict(embedded)
     assets = collect_assets(assets_root, old_assets)
     models, placements = collect_models(assets_root, old_assets)
     assets.update(models)
-    embedded = {**embedded, **placements}
+    embedded = {key: rec for key, rec in embedded.items() if rec.get("type") != "animation"}
+    embedded = {**embedded, **placements, **collect_animations(assets_root, old_embedded)}
     embedded_geometry(assets_root, embedded)
     tree = collect_tree(assets_root, old_tree, assets, old_assets)
     # Dependencies and variants are written by hand or by a review and name
