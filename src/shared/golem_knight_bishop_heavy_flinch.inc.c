@@ -34,7 +34,7 @@ static void _golemKnightBishopHeavyFlinchSeq(Task* task)
                 work->fadeState              = GOLEM_KNIGHT_BISHOP_FADE_VANISH;
                 work->translucencyFadeFrames = 0x1E;
                 work->colorBlendFadeFrames   = 0xF;
-                work->vanishSound            = gGolemKnightBishopPainCue | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                work->vanishSound            = _gGolemKnightBishopVanishSound | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 audioPan                     = (s8)worldCoordGetOriginAudioPan(root);
                 sndEvtRequestScriptStart(work->vanishSound, audioPan, (s8)worldCoordGetOriginAudioDepth(root));
                 break;

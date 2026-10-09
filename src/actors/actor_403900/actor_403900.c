@@ -34,6 +34,7 @@
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
+#include "main/areas.h"
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/fs.h"
@@ -56,8 +57,6 @@ static void _frameCaptureQueue(s32 orderingTableSlot);
 #define GOLEM_KNIGHT_BISHOP_KIND GOLEM_BISHOP
 #include "../../shared/golem_knight_bishop.h"
 
-extern GolemKnightBishopChargeSpeedSpan gGolemKnightBishopFrameSteps[];
-
 /// Per-roll wait lengths the wait state of `_golemKnightBishopIdleSeq`
 /// scales by `16 - attackCount`, indexed by a 4-bit `gRandomLcgState` draw.
 extern s16 gGolemKnightBishopIdleWaits[];
@@ -65,62 +64,11 @@ extern s16 gGolemKnightBishopIdleWaits[];
 /// Per-roll state offsets the wait state adds to 2 when `feintBroken` is set.
 extern u16 gGolemKnightBishopIdleSteps[];
 
-/// Cue word the countdown's expiry queues, a separate `D_` symbol in the
-/// overlay's data.
-extern s32 gGolemKnightBishopPainCue;
-
-/// Cue word the approach's state 0 queues as it plants the actor on its box.
-extern s32 gGolemKnightBishopApproachCue;
-
-/// Cue word the fade-out in `_golemKnightBishopUpdateAppearance` queues.
-extern s32 gGolemKnightBishopFadeCue;
-
-/// Cue word the approach's frame 0x12 queues.
-extern s32 gGolemKnightBishopStrikeCue;
-
-/// Base id of the actor's vocal cue: the `Enemy` work id's high nibble is
-/// OR'd in as bits 8-11 of the cue id.
-extern s32 gGolemKnightBishopHoldCue;
-
-/// Cue-id table: `GolemKnightBishopWork::soundSet` picks two adjacent words,
-/// `[soundSet * 2 - 1]` for the `flags` bit 0x20 cue and `[soundSet * 2]`
-/// for the 0x10 one; the branch sequences read `[soundSet + 8]`.
-extern s32 gGolemKnightBishopAnimCues[];
-
-/// Weighted 16-entry roll for `GolemKnightBishopWork::feinting`: indices 0-10 hold 0
-/// and 11-15 hold 1, so the appearance is a feint about a third of the time.
-extern u16 gGolemKnightBishopApproachRoll[];
-
-/// Per-clip blend duration in frames used by `_golemKnightBishopTickAnim`
-/// when a changed animation request restarts slots 1..18.
-extern s16 gGolemKnightBishopAnimBlend[];
-
-/// The spawn's tables: the task's next handler record, the `DamageAttack`
-/// `damagePackAttackKey` packs into the third collision object, the `EnemyParams` whose
-/// `hpMax` seeds the enemy's HP, the stage / room box-table index run, the
-/// box tables it selects, the per-stage cue-bank arrays and the animation data.
-// Message-table callbacks use the argument views required by this TU.
-
-extern TaskMessageEntry             gGolemKnightBishopMessages[2];
-extern DamageAttack                 gGolemKnightBishopAttacks[4];
-extern EnemyParams                  gGolemKnightBishopParams;
-extern GolemKnightBishopRoomRegions gGolemKnightBishopSpots[];
-extern GolemKnightBishopRegion*     gGolemKnightBishopRegions[];
-extern s16*                         gGolemKnightBishopStageCues[];
-extern AnimationSet*                gGolemKnightBishopAnimSets[22];
+extern GolemKnightBishopRegion* gGolemKnightBishopRegions[];
+extern s16*                     gGolemKnightBishopStageCues[];
 
 /// Per-difficulty HP above which the player always breaks the grab.
 extern s16 gGolemKnightBishopGrabHpLimits[];
-
-/// Animation block the grab's 0x3FF messages hand the player.
-extern AnimationSet* gGolemKnightBishopPlayerAnims[5];
-
-/// `effectSpawnHit` argument record for the grab's finishing spark.
-extern EffectSpawnArg gGolemKnightBishopGrabEffect;
-
-/// The two four-vertex index rows the trail's shaded quads take their corners
-/// from, into the scratch block's six-entry x / y runs.
-extern s16 gGolemKnightBishopBeamQuadCorners[2][4];
 
 /// Main-executable global with no module header yet: the remaining-enemy
 /// count. A grab only starts while it is positive.
@@ -155,41 +103,50 @@ static AnimationSet _gActor403900Animation1FB78;
 static AnimationSet _gActor403900Animation2010C;
 static AnimationSet _gActor403900Animation20B6C;
 static AnimationSet _gActor403900Animation21DA8;
-extern DamageAttack gGolemKnightBishopAttacks[4];
 static TmdSource    _gActor403900GolemBody;
 static void         _actor403900GolemTask(Task* task);
 
-TaskMessageEntry gGolemKnightBishopMessages[2] = {
+/// GOLEM message handlers, terminated by `TASK_MESSAGE_TABLE_END`.
+///
+/// Release-hold records a living player's completed struggle; other IDs return zero.
+static TaskMessageEntry _gGolemKnightBishopMessages[2] = {
     { ACTOR_MESSAGE_RELEASE_HOLD, _actor403900RecordGrabEscape },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-s16 gGolemKnightBishopAnimBlend[22] = {
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    8,
-    0,
-    1,
-    1,
-    1,
-    8,
-    0,
-    4,
-    0,
-    0,
-    0,
-    4,
-    0,
-    0,
-    0,
-    0,
+/// Blend duration in normal-rate frames for each requested GOLEM clip.
+///
+/// Indexed by `GOLEM_KNIGHT_BISHOP_ANIM_`; zero restarts without a blend.
+static s16 _gGolemKnightBishopAnimBlendFrames[GOLEM_KNIGHT_BISHOP_ANIM_COUNT] = {
+    [GOLEM_KNIGHT_BISHOP_ANIM_NONE]                = 0,
+    [GOLEM_KNIGHT_BISHOP_ANIM_GRAB_START]          = 0,
+    [GOLEM_KNIGHT_BISHOP_ANIM_GRAB_HOLD]           = 0,
+    [GOLEM_KNIGHT_BISHOP_ANIM_GRAB_KILL]           = 0,
+    [GOLEM_KNIGHT_BISHOP_ANIM_STAND]               = 0,
+    [GOLEM_KNIGHT_BISHOP_ANIM_STRIKE]              = 0,
+    [GOLEM_KNIGHT_BISHOP_ANIM_ADVANCE]             = 8,
+    [GOLEM_KNIGHT_BISHOP_ANIM_CHARGE]              = 0,
+    [GOLEM_KNIGHT_BISHOP_ANIM_LIGHT_FLINCH]        = 1,
+    [GOLEM_KNIGHT_BISHOP_ANIM_HEAVY_FLINCH_FRONT]  = 1,
+    [GOLEM_KNIGHT_BISHOP_ANIM_HEAVY_FLINCH_BEHIND] = 1,
+    [GOLEM_KNIGHT_BISHOP_ANIM_RECOVER]             = 8,
+    [GOLEM_KNIGHT_BISHOP_ANIM_GRAB_RELEASE]        = 0,
+    [GOLEM_KNIGHT_BISHOP_ANIM_FALL_BEHIND]         = 4,
+    [GOLEM_KNIGHT_BISHOP_ANIM_DOWNED_HIT_BEHIND]   = 0,
+    [GOLEM_KNIGHT_BISHOP_ANIM_WRITHE_BEHIND]       = 0,
+    [GOLEM_KNIGHT_BISHOP_ANIM_LIE_BEHIND]          = 0,
+    [GOLEM_KNIGHT_BISHOP_ANIM_FALL_FRONT]          = 4,
+    [GOLEM_KNIGHT_BISHOP_ANIM_DOWNED_HIT_FRONT]    = 0,
+    [GOLEM_KNIGHT_BISHOP_ANIM_WRITHE_FRONT]        = 0,
+    [GOLEM_KNIGHT_BISHOP_ANIM_LIE_FRONT]           = 0,
+    [GOLEM_KNIGHT_BISHOP_ANIM_GRAB_EARLY_RELEASE]  = 0,
 };
 
-GolemKnightBishopChargeSpeedSpan gGolemKnightBishopFrameSteps[18] = {
+/// Forward-speed curve of the box approach's charge, in world units per frame.
+///
+/// The first span ending at or after the animation frame supplies the raw
+/// halfword speed. The final frame 109 covers the charge through its end.
+static GolemKnightBishopChargeSpeedSpan _gGolemKnightBishopChargeSpeedSpans[18] = {
     { 3, -10 },
     { 5, 350 },
     { 6, 210 },
@@ -210,7 +167,13 @@ GolemKnightBishopChargeSpeedSpan gGolemKnightBishopFrameSteps[18] = {
     { 109, -6 },
 };
 
-s32 gGolemKnightBishopAnimCues[17] = {
+/// Base sound-script IDs for the room's GOLEM sound set.
+///
+/// Sets 1..4 use [set * 2 - 1] for cue 2, [set * 2] for cue 1, and
+/// [set + 8] for the fall impact. Set 0 disables animation cues; its impact
+/// lookup still selects entry 8. Entries 13..16 have no observed consumers.
+/// Callers OR the Enemy placement index into bits 8..11 before starting a script.
+static s32 _gGolemKnightBishopAnimSounds[17] = {
     0,
     0x40160001,
     0x40160002,
@@ -230,15 +193,32 @@ s32 gGolemKnightBishopAnimCues[17] = {
     0,
 };
 
-s32 gGolemKnightBishopApproachCue = 0x40160007;
+/// Base sound-script ID played during a real appearance.
+///
+/// The placement index is ORed into bits 8..11; the live instance ID is kept
+/// until the appearance completes or is interrupted, then stopped.
+static s32 _gGolemKnightBishopAppearSound = 0x40160007;
 
-s32 gGolemKnightBishopPainCue = 0x40160008;
+/// Base sound-script ID played while the GOLEM vanishes.
+///
+/// The placement index is ORed into bits 8..11; the live instance ID is kept
+/// until the model is hidden, then stopped.
+static s32 _gGolemKnightBishopVanishSound = 0x40160008;
 
-s32 gGolemKnightBishopFadeCue = 0x4016000F;
+/// Base sound-script ID played once when a normal vanish finishes.
+///
+/// Callers OR the placement index into bits 8..11; feint shrinking does not play it.
+static s32 _gGolemKnightBishopVanishEndSound = 0x4016000F;
 
-s32 gGolemKnightBishopStrikeCue = 0x40160010;
+/// Base sound-script ID for each strike blow and the charge's attack cue.
+///
+/// Callers OR the placement index into bits 8..11 before starting the script.
+static s32 _gGolemKnightBishopStrikeSound = 0x40160010;
 
-s32 gGolemKnightBishopHoldCue = 0x40160011;
+/// Base sound-script ID played twenty ticks into the grab release countdown.
+///
+/// Callers OR the placement index into bits 8..11 before starting the script.
+static s32 _gGolemKnightBishopGrabReleaseSound = 0x40160011;
 
 static TmdBone _gActor403900GolemBodySkeleton[19] = {
 #include "assets/golem_body_skeleton.inc"
@@ -822,9 +802,20 @@ static AnimationSet _gActor403900Animation21DA8 = {
     { NULL, _gActor403900Animation21DA8Bank1, NULL, NULL, _gActor403900Animation21DA8Bank4, NULL, NULL, NULL },
 };
 
-DamageAttack gGolemKnightBishopAttacks[4] = { { 10, 10 }, { 45, 2 }, { 58, 2 }, { 999, 0 } };
+/// Damage and reaction rows for the grab, strike and charge.
+///
+/// The fourth row is retained but is not selected by the included sequences.
+static DamageAttack _gGolemKnightBishopAttacks[4] = {
+    [GOLEM_KNIGHT_BISHOP_ATTACK_GRAB]   = { 10, 10 },
+    [GOLEM_KNIGHT_BISHOP_ATTACK_STRIKE] = { 45, 2 },
+    [GOLEM_KNIGHT_BISHOP_ATTACK_CHARGE] = { 58, 2 },
+    [3]                                 = { 999, 0 },
+};
 
-EnemyParams gGolemKnightBishopParams = { gGolemKnightBishopAttacks, 800, 400, 2500, 7, 100, 20, 0, 0 };
+/// Bishop GOLEM combat parameters and release rewards.
+///
+/// Shared by live enemies of this carrier; `hpMax` supplies their starting HP.
+static EnemyParams _gGolemKnightBishopParams = { _gGolemKnightBishopAttacks, 800, 400, 2500, 7, 100, 20, 0, 0 };
 
 s16 gGolemKnightBishopGrabHpLimits[6] = {
     6,
@@ -835,23 +826,26 @@ s16 gGolemKnightBishopGrabHpLimits[6] = {
     0,
 };
 
-u16 gGolemKnightBishopApproachRoll[16] = {
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    1,
-    1,
-    1,
-    1,
+/// Weighted four-bit roll selecting whether a strike appearance is a feint.
+///
+/// Eleven rolls select a real appearance and five a feint. Values are 0 real, 1 feint.
+static u16 _gGolemKnightBishopFeintRoll[16] = {
+    GOLEM_KNIGHT_BISHOP_FEINT_ROLL_REAL,
+    GOLEM_KNIGHT_BISHOP_FEINT_ROLL_REAL,
+    GOLEM_KNIGHT_BISHOP_FEINT_ROLL_REAL,
+    GOLEM_KNIGHT_BISHOP_FEINT_ROLL_REAL,
+    GOLEM_KNIGHT_BISHOP_FEINT_ROLL_REAL,
+    GOLEM_KNIGHT_BISHOP_FEINT_ROLL_REAL,
+    GOLEM_KNIGHT_BISHOP_FEINT_ROLL_REAL,
+    GOLEM_KNIGHT_BISHOP_FEINT_ROLL_REAL,
+    GOLEM_KNIGHT_BISHOP_FEINT_ROLL_REAL,
+    GOLEM_KNIGHT_BISHOP_FEINT_ROLL_REAL,
+    GOLEM_KNIGHT_BISHOP_FEINT_ROLL_REAL,
+    GOLEM_KNIGHT_BISHOP_FEINT_ROLL_FEINT,
+    GOLEM_KNIGHT_BISHOP_FEINT_ROLL_FEINT,
+    GOLEM_KNIGHT_BISHOP_FEINT_ROLL_FEINT,
+    GOLEM_KNIGHT_BISHOP_FEINT_ROLL_FEINT,
+    GOLEM_KNIGHT_BISHOP_FEINT_ROLL_FEINT,
 };
 
 s16 gGolemKnightBishopIdleWaits[16] = {
@@ -892,16 +886,29 @@ u16 gGolemKnightBishopIdleSteps[16] = {
     2,
 };
 
-GolemKnightBishopRoomRegions gGolemKnightBishopSpots[9] = {
-    { 1, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, 5 },
-    { 2, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SHRINE, 6 },
-    { 3, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL, 3 },
-    { 4, GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_PARKING_LOT, 3 },
-    { 5, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS, 8 },
-    { 6, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, 5 },
-    { 7, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_AIRLOCK, 2 },
-    { 8, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_2, 4 },
-    { 0, 0, 0, 0 },
+extern GolemKnightBishopRegion D_actor_403900_80153CC4[5];
+extern GolemKnightBishopRegion D_actor_403900_80153D14[6];
+extern GolemKnightBishopRegion D_actor_403900_80153D74[3];
+extern GolemKnightBishopRegion D_actor_403900_80153DA4[3];
+extern GolemKnightBishopRegion D_actor_403900_80153DD4[8];
+extern GolemKnightBishopRegion D_actor_403900_80153E54[5];
+extern GolemKnightBishopRegion D_actor_403900_80153EA4[2];
+extern GolemKnightBishopRegion D_actor_403900_80153EC4[4];
+
+/// Room selection for the GOLEM's activation regions.
+///
+/// `regionTable` indexes `gGolemKnightBishopRegions`; zero ends the list.
+/// Matching rows supply both circle and box regions, with the last match winning.
+static GolemKnightBishopRoomRegions _gGolemKnightBishopRoomRegions[9] = {
+    { 1, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, ARRAY_SIZE(D_actor_403900_80153CC4) },
+    { 2, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SHRINE, ARRAY_SIZE(D_actor_403900_80153D14) },
+    { 3, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL, ARRAY_SIZE(D_actor_403900_80153D74) },
+    { 4, GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_PARKING_LOT, ARRAY_SIZE(D_actor_403900_80153DA4) },
+    { 5, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS, ARRAY_SIZE(D_actor_403900_80153DD4) },
+    { 6, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, ARRAY_SIZE(D_actor_403900_80153E54) },
+    { 7, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_AIRLOCK, ARRAY_SIZE(D_actor_403900_80153EA4) },
+    { 8, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_2, ARRAY_SIZE(D_actor_403900_80153EC4) },
+    { GOLEM_KNIGHT_BISHOP_REGION_TABLE_END, GAME_STAGE_NONE, 0, 0 },
 };
 
 GolemKnightBishopRegion D_actor_403900_80153CC4[5] = {
@@ -1183,46 +1190,63 @@ s16* gGolemKnightBishopStageCues[6] = {
     D_actor_403900_80154058,
 };
 
-AnimationSet* gGolemKnightBishopPlayerAnims[5] = {
-    NULL,
-    &_gActor403900Animation1FB78,
-    &_gActor403900Animation2010C,
-    &_gActor403900Animation20B6C,
-    &_gActor403900Animation21DA8,
+/// Player clips borrowed for the GOLEM grab: start, hold, kill and release.
+///
+/// Index 0 is unused. The player retains the bank and clip data through playback,
+/// so the carrier must remain loaded until scripted control is returned.
+static AnimationSet* _gGolemKnightBishopPlayerGrabAnimSets[GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_ANIM_COUNT] = {
+    [GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_NONE]    = NULL,
+    [GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_START]   = &_gActor403900Animation1FB78,
+    [GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_HOLD]    = &_gActor403900Animation2010C,
+    [GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_KILL]    = &_gActor403900Animation20B6C,
+    [GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_RELEASE] = &_gActor403900Animation21DA8,
 };
 
-EffectSpawnArg gGolemKnightBishopGrabEffect = { NULL, 300, 1 };
+/// Writable puff-spawn record used at the fatal grab's killing frame.
+///
+/// The first call caches the player's part-4 coordinate in `coord`; it must remain
+/// live for later calls. `spawnArgHi` requests one repeated puff; this effect kind
+/// ignores the retained low-halfword value 300.
+static EffectSpawnArg _gGolemKnightBishopGrabKillEffectArg = { NULL, 300, 1 };
 
-s16 gGolemKnightBishopBeamQuadCorners[2][4] = {
+/// Vertex indices of the two fading ribbons around one aim-beam segment.
+///
+/// Each row selects four corners from the six screen-space vertices: 0/1 are
+/// the beam centreline, 2/3 and 4/5 the two outer edges.
+static s16 _gGolemKnightBishopBeamQuadCorners[2][4] = {
     { 0, 1, 2, 3 },
     { 0, 1, 4, 5 },
 };
 
 TaskDesc D_actor_403900_801540E0 = { { { TASK_BODY_TMD, 96 } }, _actor403900GolemTask, { .model = &_gActor403900GolemBody } };
 
-AnimationSet* gGolemKnightBishopAnimSets[22] = {
-    NULL,
-    &_gActor403900Animation0C44C,
-    &_gActor403900Animation0C904,
-    &_gActor403900Animation0D110,
-    &_gActor403900Animation0DD48,
-    &_gActor403900Animation0EDFC,
-    &_gActor403900Animation0F9A8,
-    &_gActor403900Animation13A20,
-    &_gActor403900Animation13F44,
-    &_gActor403900Animation1498C,
-    &_gActor403900Animation1567C,
-    &_gActor403900Animation16FB8,
-    &_gActor403900Animation17DC8,
-    &_gActor403900Animation18E40,
-    &_gActor403900Animation19314,
-    &_gActor403900Animation19624,
-    &_gActor403900Animation19800,
-    &_gActor403900Animation1A748,
-    &_gActor403900Animation1ACDC,
-    &_gActor403900Animation1AFA4,
-    &_gActor403900Animation1B180,
-    &_gActor403900Animation1E7A8,
+/// GOLEM animation bank indexed by `GOLEM_KNIGHT_BISHOP_ANIM_`.
+///
+/// Index 0 is unused; clips 1..21 drive the nineteen-part rig. The bank and
+/// its clip data are borrowed by live slots for the carrier's loaded lifetime.
+static AnimationSet* _gGolemKnightBishopAnimSets[GOLEM_KNIGHT_BISHOP_ANIM_COUNT] = {
+    [GOLEM_KNIGHT_BISHOP_ANIM_NONE]                = NULL,
+    [GOLEM_KNIGHT_BISHOP_ANIM_GRAB_START]          = &_gActor403900Animation0C44C,
+    [GOLEM_KNIGHT_BISHOP_ANIM_GRAB_HOLD]           = &_gActor403900Animation0C904,
+    [GOLEM_KNIGHT_BISHOP_ANIM_GRAB_KILL]           = &_gActor403900Animation0D110,
+    [GOLEM_KNIGHT_BISHOP_ANIM_STAND]               = &_gActor403900Animation0DD48,
+    [GOLEM_KNIGHT_BISHOP_ANIM_STRIKE]              = &_gActor403900Animation0EDFC,
+    [GOLEM_KNIGHT_BISHOP_ANIM_ADVANCE]             = &_gActor403900Animation0F9A8,
+    [GOLEM_KNIGHT_BISHOP_ANIM_CHARGE]              = &_gActor403900Animation13A20,
+    [GOLEM_KNIGHT_BISHOP_ANIM_LIGHT_FLINCH]        = &_gActor403900Animation13F44,
+    [GOLEM_KNIGHT_BISHOP_ANIM_HEAVY_FLINCH_FRONT]  = &_gActor403900Animation1498C,
+    [GOLEM_KNIGHT_BISHOP_ANIM_HEAVY_FLINCH_BEHIND] = &_gActor403900Animation1567C,
+    [GOLEM_KNIGHT_BISHOP_ANIM_RECOVER]             = &_gActor403900Animation16FB8,
+    [GOLEM_KNIGHT_BISHOP_ANIM_GRAB_RELEASE]        = &_gActor403900Animation17DC8,
+    [GOLEM_KNIGHT_BISHOP_ANIM_FALL_BEHIND]         = &_gActor403900Animation18E40,
+    [GOLEM_KNIGHT_BISHOP_ANIM_DOWNED_HIT_BEHIND]   = &_gActor403900Animation19314,
+    [GOLEM_KNIGHT_BISHOP_ANIM_WRITHE_BEHIND]       = &_gActor403900Animation19624,
+    [GOLEM_KNIGHT_BISHOP_ANIM_LIE_BEHIND]          = &_gActor403900Animation19800,
+    [GOLEM_KNIGHT_BISHOP_ANIM_FALL_FRONT]          = &_gActor403900Animation1A748,
+    [GOLEM_KNIGHT_BISHOP_ANIM_DOWNED_HIT_FRONT]    = &_gActor403900Animation1ACDC,
+    [GOLEM_KNIGHT_BISHOP_ANIM_WRITHE_FRONT]        = &_gActor403900Animation1AFA4,
+    [GOLEM_KNIGHT_BISHOP_ANIM_LIE_FRONT]           = &_gActor403900Animation1B180,
+    [GOLEM_KNIGHT_BISHOP_ANIM_GRAB_EARLY_RELEASE]  = &_gActor403900Animation1E7A8,
 };
 
 #include "../../shared/golem_knight_bishop_take_hits.inc.c"

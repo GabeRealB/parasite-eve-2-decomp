@@ -72,7 +72,7 @@ static void _golemKnightBishopKnockdownSeq(Task* task)
             break;
         case GOLEM_KNIGHT_BISHOP_KNOCKDOWN_FALL_BEHIND:
             if (work->animFrame == GOLEM_KNIGHT_BISHOP_FALL_BEHIND_IMPACT_FRAME) {
-                sound = gGolemKnightBishopAnimCues[work->soundSet + 8] | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                sound = _gGolemKnightBishopAnimSounds[work->soundSet + 8] | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 sndEvtRequestScriptStart(sound, (s8)worldCoordGetOriginAudioPan(root), (s8)worldCoordGetOriginAudioDepth(root));
             }
             if (work->animFrame >= GOLEM_KNIGHT_BISHOP_FALL_BEHIND_FRAMES) {
@@ -84,7 +84,7 @@ static void _golemKnightBishopKnockdownSeq(Task* task)
             break;
         case GOLEM_KNIGHT_BISHOP_KNOCKDOWN_FALL_FRONT:
             if (work->animFrame == GOLEM_KNIGHT_BISHOP_FALL_FRONT_IMPACT_FRAME) {
-                sound = gGolemKnightBishopAnimCues[work->soundSet + 8] | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                sound = _gGolemKnightBishopAnimSounds[work->soundSet + 8] | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 sndEvtRequestScriptStart(sound, (s8)worldCoordGetOriginAudioPan(root), (s8)worldCoordGetOriginAudioDepth(root));
             }
             if (work->animFrame >= GOLEM_KNIGHT_BISHOP_FALL_FRONT_FRAMES) {

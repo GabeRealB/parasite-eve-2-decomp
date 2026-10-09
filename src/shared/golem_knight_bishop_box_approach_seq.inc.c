@@ -74,7 +74,7 @@ static void _golemKnightBishopBoxApproachSeq(Task* task)
             work->fadeState              = GOLEM_KNIGHT_BISHOP_FADE_APPEAR;
             work->translucencyFadeFrames = GOLEM_KNIGHT_BISHOP_STANDARD_TRANSLUCENCY_FRAMES;
             work->colorBlendFadeFrames   = GOLEM_KNIGHT_BISHOP_STANDARD_COLOR_BLEND_FRAMES;
-            work->appearSound            = gGolemKnightBishopApproachCue | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+            work->appearSound            = _gGolemKnightBishopAppearSound | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
             sndEvtRequestScriptStart(work->appearSound, (s8)worldCoordGetOriginAudioPan(root), (s8)worldCoordGetOriginAudioDepth(root));
             sceneEngageBattle(1);
             if (work->hitCooldown == 0) {
@@ -128,7 +128,7 @@ static void _golemKnightBishopBoxApproachSeq(Task* task)
                     work->reactionLock           = GOLEM_KNIGHT_BISHOP_REACTION_UNLOCKED;
                     work->timer                  = work->translucencyFadeFrames + 0xA;
                     work->aimBeamBody.flags     &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-                    work->vanishSound            = gGolemKnightBishopPainCue | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                    work->vanishSound            = _gGolemKnightBishopVanishSound | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                     sndEvtRequestScriptStart(work->vanishSound, (s8)worldCoordGetOriginAudioPan(root), (s8)worldCoordGetOriginAudioDepth(root));
                 }
             }
@@ -137,11 +137,11 @@ static void _golemKnightBishopBoxApproachSeq(Task* task)
             }
             break;
         case GOLEM_KNIGHT_BISHOP_BOX_CHARGE:
-            for (speedSpanIndex = 0; work->animFrame > gGolemKnightBishopFrameSteps[speedSpanIndex].lastFrame; speedSpanIndex++) {
+            for (speedSpanIndex = 0; work->animFrame > _gGolemKnightBishopChargeSpeedSpans[speedSpanIndex].lastFrame; speedSpanIndex++) {
             }
-            work->forwardSpeed = gGolemKnightBishopFrameSteps[speedSpanIndex].forwardSpeed;
+            work->forwardSpeed = _gGolemKnightBishopChargeSpeedSpans[speedSpanIndex].forwardSpeed;
             if (work->animFrame == GOLEM_KNIGHT_BISHOP_CHARGE_CUE_FRAME) {
-                sound = gGolemKnightBishopStrikeCue | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                sound = _gGolemKnightBishopStrikeSound | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 sndEvtRequestScriptStart(sound, (s8)worldCoordGetOriginAudioPan(root), (s8)worldCoordGetOriginAudioDepth(root));
             }
             if (work->animFrame == GOLEM_KNIGHT_BISHOP_CHARGE_ARM_FRAME) {
@@ -150,7 +150,7 @@ static void _golemKnightBishopBoxApproachSeq(Task* task)
                 work->strikeBody.pos.vz = 0x1F4;
                 work->strikeBody.pos.vx = 0;
                 work->strikeBody.radius = 0x3E8;
-                work->strikeBody.key    = damagePackAttackKey(gGolemKnightBishopAttacks, 2);
+                work->strikeBody.key    = damagePackAttackKey(_gGolemKnightBishopAttacks, GOLEM_KNIGHT_BISHOP_ATTACK_CHARGE);
                 work->strikeBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             }
             if (work->animFrame == GOLEM_KNIGHT_BISHOP_CHARGE_DISARM_FRAME) {
@@ -163,7 +163,7 @@ static void _golemKnightBishopBoxApproachSeq(Task* task)
                 work->colorBlendFadeFrames   = GOLEM_KNIGHT_BISHOP_STANDARD_COLOR_BLEND_FRAMES;
                 work->step                   = GOLEM_KNIGHT_BISHOP_BOX_VANISH;
                 work->timer                  = work->translucencyFadeFrames + 0xA;
-                work->vanishSound            = gGolemKnightBishopPainCue | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                work->vanishSound            = _gGolemKnightBishopVanishSound | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 sndEvtRequestScriptStart(work->vanishSound, (s8)worldCoordGetOriginAudioPan(root), (s8)worldCoordGetOriginAudioDepth(root));
             }
             break;

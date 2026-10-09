@@ -676,7 +676,7 @@ AreaResource D_shelter_b2_breeding_room_80183C58[4] = {
 };
 
 AreaResource D_shelter_b2_breeding_room_80183C88[2] = {
-    { 22, 22, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_402200_80154188 },
+    { 22, 22, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor402200GolemTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

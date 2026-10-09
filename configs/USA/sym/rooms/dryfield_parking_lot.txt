@@ -51,7 +51,7 @@ D_dryfield_parking_lot_8017FB28 = 0x8017FB28; // size:0x8 defined:True
 D_dryfield_parking_lot_8017FB30 = 0x8017FB30; // size:0x20 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 gActor00100DesertChaserTaskDesc = 0x8014D8A4; // absolute:True owner=actor_400100
-D_actor_402200_80154188 = 0x80154188; // absolute:True owner=actor_402200
+gActor402200GolemTaskDesc = 0x80154188; // absolute:True owner=actor_402200
 gActor02500Tasks = 0x801679A8; // absolute:True owner=actor_302500
 D_map_dryfield_8017B1C4 = 0x8017B1C4; // absolute:True owner=map_dryfield
 D_map_dryfield_8017B1D4 = 0x8017B1D4; // absolute:True owner=map_dryfield

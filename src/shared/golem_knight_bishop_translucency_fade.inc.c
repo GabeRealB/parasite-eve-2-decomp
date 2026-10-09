@@ -116,7 +116,7 @@ static void _golemKnightBishopUpdateAppearance(Task* task)
                         sndEvtRequestScriptStop(work->vanishSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                         work->vanishSound = 0;
                     }
-                    vanishCue = gGolemKnightBishopFadeCue | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                    vanishCue = _gGolemKnightBishopVanishEndSound | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                     audioPan  = (s8)worldCoordGetOriginAudioPan(root);
                     sndEvtRequestScriptStart(vanishCue, audioPan, (s8)worldCoordGetOriginAudioDepth(root));
                 }

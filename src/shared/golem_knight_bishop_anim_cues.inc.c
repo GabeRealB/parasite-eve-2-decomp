@@ -37,10 +37,10 @@ static void _golemKnightBishopPlayAnimCues(Task* task)
         record = animationGetCurrentRecord(&work->rig.anim, &work->rig.slots[1]);
         if (record != NULL) {
             if (!(record->flags & ANIMATION_RECORD_CUE_2) && (work->prevCueFlags & ANIMATION_RECORD_CUE_2)) {
-                GOLEM_KNIGHT_BISHOP_PLAY_ANIM_CUE(root, gGolemKnightBishopAnimCues[work->soundSet * 2 - 1], ((Enemy*)task->spawnArg2.pointer)->placeKey);
+                GOLEM_KNIGHT_BISHOP_PLAY_ANIM_CUE(root, _gGolemKnightBishopAnimSounds[work->soundSet * 2 - 1], ((Enemy*)task->spawnArg2.pointer)->placeKey);
             }
             if (!(record->flags & ANIMATION_RECORD_CUE_1) && (work->prevCueFlags & ANIMATION_RECORD_CUE_1)) {
-                GOLEM_KNIGHT_BISHOP_PLAY_ANIM_CUE(root, gGolemKnightBishopAnimCues[work->soundSet * 2], ((Enemy*)task->spawnArg2.pointer)->placeKey);
+                GOLEM_KNIGHT_BISHOP_PLAY_ANIM_CUE(root, _gGolemKnightBishopAnimSounds[work->soundSet * 2], ((Enemy*)task->spawnArg2.pointer)->placeKey);
             }
             work->prevCueFlags = record->flags & ANIMATION_RECORD_CUE_MASK;
         }

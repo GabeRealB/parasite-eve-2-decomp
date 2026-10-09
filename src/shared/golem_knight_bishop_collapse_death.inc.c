@@ -56,7 +56,7 @@ static void _golemKnightBishopCollapseDeathSeq(Task* task)
                 impactFrame = GOLEM_KNIGHT_BISHOP_FALL_BEHIND_IMPACT_FRAME;
             }
             if (work->animFrame == impactFrame) {
-                sound    = gGolemKnightBishopAnimCues[work->soundSet + 8] | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                sound    = _gGolemKnightBishopAnimSounds[work->soundSet + 8] | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 audioPan = (s8)worldCoordGetOriginAudioPan(root);
                 sndEvtRequestScriptStart(sound, audioPan, (s8)worldCoordGetOriginAudioDepth(root));
             }

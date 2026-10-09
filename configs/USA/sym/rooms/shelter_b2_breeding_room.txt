@@ -69,7 +69,7 @@ D_actor_207200_8014E7A4 = 0x8014E7A4; // absolute:True owner=actor_207200
 gActor203800BlackBeetleTaskDesc = 0x8014FD74; // absolute:True owner=actor_203800
 gActor207200CreepingStrangerTaskDesc = 0x80153EC8; // absolute:True owner=actor_207200
 D_actor_403900_801540E0 = 0x801540E0; // absolute:True owner=actor_403900
-D_actor_402200_80154188 = 0x80154188; // absolute:True owner=actor_402200
+gActor402200GolemTaskDesc = 0x80154188; // absolute:True owner=actor_402200
 D_actor_207000_801575F0 = 0x801575F0; // absolute:True owner=actor_207000
 gShelterB2BreedingRoomModel02E04 = 0x801803F0; // size:0x24 defined:True
 _gShelterB2BreedingRoomModel02E04Skeleton = 0x8018037C; // size:0x24 defined:True

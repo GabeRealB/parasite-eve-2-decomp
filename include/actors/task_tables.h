@@ -254,7 +254,11 @@ extern TaskDesc gActor207200CreepingStrangerTaskDesc;
 
 extern TaskDesc D_actor_403900_801540E0;
 
-extern TaskDesc D_actor_402200_80154188;
+/// Knight GOLEM model-task descriptor exported to room resource tables.
+///
+/// Attaches the nineteen-part GOLEM body at task priority 96; the second spawn
+/// argument borrows the live Enemy through spawn, living frames and corpse frames.
+extern TaskDesc gActor402200GolemTaskDesc;
 
 extern TaskDesc D_actor_260400_80154C18[];
 

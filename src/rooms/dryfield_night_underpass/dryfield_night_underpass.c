@@ -634,7 +634,7 @@ AreaResource D_dryfield_night_underpass_80180294[2] = {
 };
 
 AreaResource D_dryfield_night_underpass_801802AC[2] = {
-    { 22, 22, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_402200_80154188 },
+    { 22, 22, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor402200GolemTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

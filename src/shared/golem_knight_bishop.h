@@ -331,6 +331,32 @@ enum {
     GOLEM_KNIGHT_BISHOP_SCALE_ONE                    = 4096,
 };
 
+/// Unused clip slots, complete bank extents and room-selection terminator.
+enum {
+    GOLEM_KNIGHT_BISHOP_ANIM_NONE              = 0,
+    GOLEM_KNIGHT_BISHOP_ANIM_COUNT             = 22,
+    GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_NONE       = 0,
+    GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_START      = 1,
+    GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_HOLD       = 2,
+    GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_KILL       = 3,
+    GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_RELEASE    = 4,
+    GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_ANIM_COUNT = 5,
+    GOLEM_KNIGHT_BISHOP_REGION_TABLE_END       = 0,
+};
+
+/// Attack-table rows selected by the GOLEM sequences.
+enum {
+    GOLEM_KNIGHT_BISHOP_ATTACK_GRAB   = 0,
+    GOLEM_KNIGHT_BISHOP_ATTACK_STRIKE = 1,
+    GOLEM_KNIGHT_BISHOP_ATTACK_CHARGE = 2,
+};
+
+/// Outcomes of the carrier's weighted sixteen-entry strike-appearance roll.
+enum {
+    GOLEM_KNIGHT_BISHOP_FEINT_ROLL_REAL  = 0,
+    GOLEM_KNIGHT_BISHOP_FEINT_ROLL_FEINT = 1,
+};
+
 /// Tests a player's world X/Z against a box region's four exclusive edges.
 ///
 /// The caller checks the region kind. `region` is a GolemKnightBishopRegion

@@ -16,7 +16,7 @@ static inline void _golemKnightBishopTickAnimInline(Task* task)
     if (work->anim != work->playingAnim) {
         work->playingAnim = work->anim;
         work->animFrame   = 0;
-        blendFrames       = gGolemKnightBishopAnimBlend[work->anim];
+        blendFrames       = _gGolemKnightBishopAnimBlendFrames[work->anim];
         for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
             animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->anim, 0, blendFrames);
         }

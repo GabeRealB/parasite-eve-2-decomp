@@ -24,7 +24,7 @@ static void _golemKnightBishopTickGrabRelease(Task* task)
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (work->grabStage != GOLEM_KNIGHT_BISHOP_GRAB_NONE) {
         if (work->grabReleaseTimer == GOLEM_KNIGHT_BISHOP_GRAB_RELEASE_CUE_TICK) {
-            sound    = gGolemKnightBishopHoldCue | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+            sound    = _gGolemKnightBishopGrabReleaseSound | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
             audioPan = (s8)worldCoordGetOriginAudioPan(root);
             sndEvtRequestScriptStart(sound, audioPan, (s8)worldCoordGetOriginAudioDepth(root));
         }

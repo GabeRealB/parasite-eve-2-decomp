@@ -35,19 +35,19 @@ static inline void _golemKnightBishopEmitAimBeamSegment(const _GolemKnightBishop
     LINE_F2*  line;
     DR_TPAGE* drawMode;
     s32       ribbonIndex;
-    for (ribbonIndex = 0; ribbonIndex < ARRAY_SIZE(gGolemKnightBishopBeamQuadCorners); ribbonIndex++) {
+    for (ribbonIndex = 0; ribbonIndex < ARRAY_SIZE(_gGolemKnightBishopBeamQuadCorners); ribbonIndex++) {
         ribbon         = gGpuPrimCursor;
         gGpuPrimCursor = ribbon + 1;
         setlen(ribbon, sizeof(*ribbon) / sizeof(u32) - 1);
         ribbon->code = GOLEM_KNIGHT_BISHOP_BEAM_RIBBON_CODE;
-        ribbon->x0   = beam->vertexX[gGolemKnightBishopBeamQuadCorners[ribbonIndex][0]];
-        ribbon->y0   = beam->vertexY[gGolemKnightBishopBeamQuadCorners[ribbonIndex][0]];
-        ribbon->x1   = beam->vertexX[gGolemKnightBishopBeamQuadCorners[ribbonIndex][1]];
-        ribbon->y1   = beam->vertexY[gGolemKnightBishopBeamQuadCorners[ribbonIndex][1]];
-        ribbon->x2   = beam->vertexX[gGolemKnightBishopBeamQuadCorners[ribbonIndex][2]];
-        ribbon->y2   = beam->vertexY[gGolemKnightBishopBeamQuadCorners[ribbonIndex][2]];
-        ribbon->x3   = beam->vertexX[gGolemKnightBishopBeamQuadCorners[ribbonIndex][3]];
-        ribbon->y3   = beam->vertexY[gGolemKnightBishopBeamQuadCorners[ribbonIndex][3]];
+        ribbon->x0   = beam->vertexX[_gGolemKnightBishopBeamQuadCorners[ribbonIndex][0]];
+        ribbon->y0   = beam->vertexY[_gGolemKnightBishopBeamQuadCorners[ribbonIndex][0]];
+        ribbon->x1   = beam->vertexX[_gGolemKnightBishopBeamQuadCorners[ribbonIndex][1]];
+        ribbon->y1   = beam->vertexY[_gGolemKnightBishopBeamQuadCorners[ribbonIndex][1]];
+        ribbon->x2   = beam->vertexX[_gGolemKnightBishopBeamQuadCorners[ribbonIndex][2]];
+        ribbon->y2   = beam->vertexY[_gGolemKnightBishopBeamQuadCorners[ribbonIndex][2]];
+        ribbon->x3   = beam->vertexX[_gGolemKnightBishopBeamQuadCorners[ribbonIndex][3]];
+        ribbon->y3   = beam->vertexY[_gGolemKnightBishopBeamQuadCorners[ribbonIndex][3]];
         setRGB0(ribbon, 0xFF, 0, 0);
         setRGB1(ribbon, 0xFF, 0, 0);
         setRGB2(ribbon, 0, 0, 0);

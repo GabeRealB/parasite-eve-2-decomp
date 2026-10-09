@@ -41,7 +41,7 @@ static void _golemKnightBishopStrikeSeq(Task* task)
     switch (work->step) {
         case GOLEM_KNIGHT_BISHOP_STRIKE_START:
             work->anim          = GOLEM_KNIGHT_BISHOP_ANIM_STAND;
-            work->feinting      = gGolemKnightBishopApproachRoll[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+            work->feinting      = _gGolemKnightBishopFeintRoll[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (ARRAY_SIZE(_gGolemKnightBishopFeintRoll) - 1)];
             scratch->operand.vx = 0;
             scratch->operand.vy = (work->targetYaw + GOLEM_KNIGHT_BISHOP_YAW_HALF_TURN) & GOLEM_KNIGHT_BISHOP_YAW_MASK;
             scratch->operand.vz = 0;
@@ -75,7 +75,7 @@ static void _golemKnightBishopStrikeSeq(Task* task)
                     work->colorBlendFadeFrames   = GOLEM_KNIGHT_BISHOP_STANDARD_COLOR_BLEND_FRAMES;
                 }
                 work->fadeState   = GOLEM_KNIGHT_BISHOP_FADE_APPEAR;
-                work->appearSound = gGolemKnightBishopApproachCue | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                work->appearSound = _gGolemKnightBishopAppearSound | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 sndEvtRequestScriptStart(work->appearSound, (s8)worldCoordGetOriginAudioPan(root), (s8)worldCoordGetOriginAudioDepth(root));
                 work->interruptDamage = 0;
                 work->reactionLock    = GOLEM_KNIGHT_BISHOP_REACTION_ATTACKING;
@@ -168,13 +168,13 @@ static void _golemKnightBishopStrikeSeq(Task* task)
                 work->strikeBody.pos.vy = 0;
                 work->strikeBody.pos.vz = 0;
                 work->strikeBody.radius = 0x12C;
-                work->strikeBody.key    = damagePackAttackKey(gGolemKnightBishopAttacks, 1);
+                work->strikeBody.key    = damagePackAttackKey(_gGolemKnightBishopAttacks, GOLEM_KNIGHT_BISHOP_ATTACK_STRIKE);
                 work->strikeBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                strikeSound             = gGolemKnightBishopStrikeCue | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                strikeSound             = _gGolemKnightBishopStrikeSound | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 sndEvtRequestScriptStart(strikeSound, (s8)worldCoordGetOriginAudioPan(root), (s8)worldCoordGetOriginAudioDepth(root));
             } else if (work->animFrame == GOLEM_KNIGHT_BISHOP_STRIKE_SECOND_FRAME) {
                 work->strikeBody.coord = &task->extra.tmd->coords[12];
-                strikeSound            = gGolemKnightBishopStrikeCue | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                strikeSound            = _gGolemKnightBishopStrikeSound | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 sndEvtRequestScriptStart(strikeSound, (s8)worldCoordGetOriginAudioPan(root), (s8)worldCoordGetOriginAudioDepth(root));
             }
             if (work->animFrame == GOLEM_KNIGHT_BISHOP_STRIKE_END_FRAME) {
@@ -184,7 +184,7 @@ static void _golemKnightBishopStrikeSeq(Task* task)
                 work->translucencyFadeFrames = GOLEM_KNIGHT_BISHOP_STANDARD_TRANSLUCENCY_FRAMES;
                 work->colorBlendFadeFrames   = GOLEM_KNIGHT_BISHOP_STANDARD_COLOR_BLEND_FRAMES;
                 work->strikeBody.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                work->vanishSound            = gGolemKnightBishopPainCue | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                work->vanishSound            = _gGolemKnightBishopVanishSound | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 sndEvtRequestScriptStart(work->vanishSound, (s8)worldCoordGetOriginAudioPan(root), (s8)worldCoordGetOriginAudioDepth(root));
             }
             break;

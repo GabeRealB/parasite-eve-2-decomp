@@ -46,7 +46,7 @@ static void _golemKnightBishopSpawn(Enemy* enemy, Task* task)
     work->hitEffectArg.coord      = &task->extra.tmd->coords[3];
     work->hitEffectArg.spawnArgLo = 0x500;
     work->hitEffectArg.spawnArgHi = 2;
-    animationInitContext(&work->rig.anim, gGolemKnightBishopAnimSets, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, _gGolemKnightBishopAnimSets, model, work->rig.poses, work->rig.slots);
     work->anim        = GOLEM_KNIGHT_BISHOP_ANIM_RECOVER;
     work->playingAnim = GOLEM_KNIGHT_BISHOP_ANIM_RECOVER;
     for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
@@ -66,13 +66,13 @@ static void _golemKnightBishopSpawn(Enemy* enemy, Task* task)
             enemy->bodyPos.vx = 0;
             enemy->bodyPos.vy = 0;
             enemy->bodyPos.vz = 0;
-            enemy->param      = &gGolemKnightBishopParams;
+            enemy->param      = &_gGolemKnightBishopParams;
             enemy->recs       = work->hurtContacts;
-            enemy->hp         = gGolemKnightBishopParams.hpMax;
-            for (roomIndex = 0; gGolemKnightBishopSpots[roomIndex].regionTable != 0; roomIndex++) {
-                if (gGameSession->location.loc.stage == gGolemKnightBishopSpots[roomIndex].stage && gGameSession->location.loc.area == gGolemKnightBishopSpots[roomIndex].area) {
-                    work->regions     = gGolemKnightBishopRegions[gGolemKnightBishopSpots[roomIndex].regionTable];
-                    work->regionCount = gGolemKnightBishopSpots[roomIndex].regionCount;
+            enemy->hp         = _gGolemKnightBishopParams.hpMax;
+            for (roomIndex = 0; _gGolemKnightBishopRoomRegions[roomIndex].regionTable != GOLEM_KNIGHT_BISHOP_REGION_TABLE_END; roomIndex++) {
+                if (gGameSession->location.loc.stage == _gGolemKnightBishopRoomRegions[roomIndex].stage && gGameSession->location.loc.area == _gGolemKnightBishopRoomRegions[roomIndex].area) {
+                    work->regions     = gGolemKnightBishopRegions[_gGolemKnightBishopRoomRegions[roomIndex].regionTable];
+                    work->regionCount = _gGolemKnightBishopRoomRegions[roomIndex].regionCount;
                 }
             }
             work->sequence = GOLEM_KNIGHT_BISHOP_SEQUENCE_REGION_SCAN;
@@ -124,7 +124,7 @@ static void _golemKnightBishopSpawn(Enemy* enemy, Task* task)
             work->strikeBody.pos.vx           = 0;
             work->strikeBody.pos.vy           = 0;
             work->strikeBody.pos.vz           = 0;
-            work->strikeBody.key              = damagePackAttackKey(gGolemKnightBishopAttacks, 1);
+            work->strikeBody.key              = damagePackAttackKey(_gGolemKnightBishopAttacks, GOLEM_KNIGHT_BISHOP_ATTACK_STRIKE);
             work->strikeBody.radius           = 0x12C;
             work->strikeBody.flags            = WORLD_COLLISION_BODY_SPHERE;
             worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->strikeBody);
@@ -182,7 +182,7 @@ static void _golemKnightBishopSpawn(Enemy* enemy, Task* task)
             worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->aimBeamBody);
             worldCollisionInitContacts(aimContacts, ARRAY_SIZE(work->aimBeamContacts), 0);
             work->aimBeamBody.flags = (work->aimBeamBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED))) | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT);
-            task->msgTable          = gGolemKnightBishopMessages;
+            task->msgTable          = _gGolemKnightBishopMessages;
             task->state             = GOLEM_KNIGHT_BISHOP_TASK_ACTIVE;
             break;
         case GOLEM_KNIGHT_BISHOP_DOWNED_BEHIND:
