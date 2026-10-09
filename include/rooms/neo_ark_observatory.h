@@ -18,9 +18,19 @@ extern AreaVariant D_neo_ark_observatory_8018786C[13];
 // neo_ark_observatory
 extern WorldCollisionRoomResources D_neo_ark_observatory_80181594[];
 
-extern WorldCoordRoomLighting D_neo_ark_observatory_801815B4[];
+/// Lighting for room configurations 1 and 2, indexed by the room ID minus one.
+///
+/// Both use 17 point lights and the default ambient minima. The light records
+/// stay writable for coordinate composition and attenuation queries; all
+/// borrowed pointers remain valid only while this room overlay is loaded.
+extern WorldCoordRoomLighting gNeoArkObservatoryRoomLighting[2];
 
-extern u8* D_neo_ark_observatory_801815DC[];
+/// Logical-view maps for room configurations 1 and 2, indexed by the room ID minus one.
+///
+/// Each has 21 logical views, addressed at view minus one. Configuration 1
+/// maps views 4..6 to camera/image/sprite indices 16..18; configuration 2 uses
+/// the gameplay identity map. Room-owned pointers require this overlay loaded.
+extern u8* gNeoArkObservatoryViewMaps[2];
 
 extern ViewCount D_neo_ark_observatory_801815E4[];
 
@@ -30,7 +40,13 @@ extern ViewCamera D_neo_ark_observatory_80181FC8[];
 
 extern SpriteView D_neo_ark_observatory_801860E8[];
 
-extern WorldCollisionSurfaceProperties* D_neo_ark_observatory_80187A08[];
+/// Collision and footstep properties indexed by the room-local surface class (0..7).
+///
+/// Every class blocks probes, enables weapon impacts and applies pushback.
+/// Classes 1..3 have their own walking, running and scripted-jump cue bases;
+/// classes 0 and 4..7 share a record without footstep cues. Borrowed records
+/// and sound tables remain valid only while this room overlay is loaded.
+extern WorldCollisionSurfaceProperties* gNeoArkObservatorySurfaceProperties[8];
 
 /// Sets the base grey intensity of the observatory's light beams.
 ///

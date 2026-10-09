@@ -3,7 +3,7 @@
 /// Rebuilds the actor-following obstacle at the start of the room collision grid.
 ///
 /// Restores four quad faces from `gFollowCollisionSource`, rotates their four
-/// normals and transforms eight vertices into `gFollowCollisionGrid` using
+/// normals and transforms eight vertices into `FOLLOW_COLLISION_ROOM_GRID` using
 /// `modelRoot->coord`. That local matrix must map the source geometry into room
 /// space; ancestors and the composed view matrix are not applied. Matrix rotation
 /// and source normals use 4096 for one unit; vertices and translation use game
@@ -29,7 +29,7 @@ static void _followCollisionRebuildObstacle(const GfxCoord* modelRoot, const SVE
     s32                       elementIndex;
     SVECTOR*                  destinationVector;
     SVECTOR*                  sourceVector;
-    WorldCollisionGrid*       roomGrid       = &gFollowCollisionGrid;
+    WorldCollisionGrid*       roomGrid       = &FOLLOW_COLLISION_ROOM_GRID;
     const WorldCollisionGrid* obstacleSource = &gFollowCollisionSource;
 
     /// Restores the obstacle's XYZ components and complete faces in the room grid.

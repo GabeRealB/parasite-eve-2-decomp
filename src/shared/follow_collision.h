@@ -1,10 +1,11 @@
 /* Included room-local actor-following collision obstacle.
  *
  * Include this header in the prologue and the rebuild fragment at its original
- * function position. Each carrier supplies gFollowCollisionSource and
- * gFollowCollisionGrid before including the fragment: the former holds the
- * obstacle's local geometry, the latter the room grid whose leading entries
- * reserve space for that obstacle.
+ * function position. Each carrier supplies gFollowCollisionSource, the
+ * obstacle's local geometry, and binds FOLLOW_COLLISION_ROOM_GRID to its
+ * mutable WorldCollisionGrid object before including the rebuild fragment.
+ * That grid contains the whole room, with leading faces, normals and vertices
+ * reserved for the obstacle. The carrier undefines the binding afterwards.
  */
 
 #ifndef SRC_SHARED_FOLLOW_COLLISION_H

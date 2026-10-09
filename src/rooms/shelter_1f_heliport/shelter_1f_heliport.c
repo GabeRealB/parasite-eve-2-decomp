@@ -152,7 +152,7 @@ extern SVECTOR D_shelter_1f_heliport_80181204;
 
 /// The mesh's pristine source and the working copy rebuilt from it.
 extern WorldCollisionGrid gFollowCollisionSource;
-extern WorldCollisionGrid gFollowCollisionGrid;
+static WorldCollisionGrid _gShelter1fHeliportCollisionGrid;
 
 static s32                          _gShopRefillDisplayQuantityFixed;
 static const EquipmentWeaponSupply* _gShopRefillSupply;
@@ -173,7 +173,6 @@ static void _shelter1fHeliportUpdatePlacedActorVisibility(void);
 #include "../../shared/shop.h"
 #include "../../shared/cap_dialogue.h"
 
-extern WorldCollisionGrid         gFollowCollisionGrid;
 extern WorldCollisionTrigger      D_shelter_1f_heliport_80182178[12];
 extern WorldCollisionTrigger      D_shelter_1f_heliport_80182508[21];
 extern WorldCoordRoomAmbientEntry D_shelter_1f_heliport_80182B44[13];
@@ -243,7 +242,7 @@ static s16* _gShelter1fHeliportCollision03CECTable[1] = {
 WorldCollisionGrid gFollowCollisionSource = { NULL, _gShelter1fHeliportCollision03CECNormals, _gShelter1fHeliportCollision03CECVerts, _gShelter1fHeliportCollision03CECFaces, _gShelter1fHeliportCollision03CECTable, 131, 227, 1, 1, 4000, 4 };
 
 WorldCollisionRoomResources D_shelter_1f_heliport_801812D0[1] = {
-    { &gFollowCollisionGrid, D_shelter_1f_heliport_80182178, D_shelter_1f_heliport_80182508, NULL },
+    { &_gShelter1fHeliportCollisionGrid, D_shelter_1f_heliport_80182178, D_shelter_1f_heliport_80182508, NULL },
 };
 
 WorldCoordRoomLighting D_shelter_1f_heliport_801812E0[1] = {
@@ -261,29 +260,43 @@ DirectionWarpEntry D_shelter_1f_heliport_801812F0[2] = {
     { { { .word = 1024 }, 440, 0, 4340 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x2792, 0, 2880 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gShelter1fHeliportCollision043B4Normals[12] = {
+enum { SHELTER_1F_HELIPORT_COLLISION_CELLS_X = 3,
+       SHELTER_1F_HELIPORT_COLLISION_CELLS_Z = 3 };
+
+/// Room-space collision normals; the first four are rebuilt for the companion obstacle.
+static SVECTOR _gShelter1fHeliportCollisionGridNormals[12] = {
 #include "assets/shelter_1f_heliport_collision_043B4_normals.inc"
 };
 
-static SVECTOR _gShelter1fHeliportCollision043B4Verts[75] = {
+/// Room-space collision vertices; the first eight are rebuilt for the companion obstacle.
+static SVECTOR _gShelter1fHeliportCollisionGridVerts[75] = {
 #include "assets/shelter_1f_heliport_collision_043B4_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelter1fHeliportCollision043B4Faces[40] = {
+/// Indexed room collision faces, with four leading slots reserved for the companion obstacle.
+static WorldCollisionGridFace _gShelter1fHeliportCollisionGridFaces[40] = {
 #include "assets/shelter_1f_heliport_collision_043B4_faces.inc"
 };
 
-static s16 _gShelter1fHeliportCollision043B4Cells[172] = {
+/// Serialized face-index lists, each terminated by `WORLD_COLLISION_GRID_CELL_END`.
+static s16 _gShelter1fHeliportCollisionGridCells[172] = {
 #include "assets/shelter_1f_heliport_collision_043B4_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelter1fHeliportCollision043B4Cells[i])
-static s16* _gShelter1fHeliportCollision043B4Table[9] = {
+#define GRID_CELL(i) (&_gShelter1fHeliportCollisionGridCells[i])
+/// X-major cell directory; every cell includes the four companion-obstacle face slots.
+static s16* _gShelter1fHeliportCollisionGridTable[SHELTER_1F_HELIPORT_COLLISION_CELLS_X * SHELTER_1F_HELIPORT_COLLISION_CELLS_Z] = {
 #include "assets/shelter_1f_heliport_collision_043B4_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid gFollowCollisionGrid = { NULL, _gShelter1fHeliportCollision043B4Normals, _gShelter1fHeliportCollision043B4Verts, _gShelter1fHeliportCollision043B4Faces, _gShelter1fHeliportCollision043B4Table, 0, 2800, 3, 3, 4000, 40 };
+/// Complete room collision grid, including the mutable companion-obstacle slots.
+///
+/// The 3 by 3 XZ cells are 4000 game units wide, with room origin (0, -2800).
+/// The rebuild replaces only the first four normals/faces and eight vertices;
+/// cell lists and the remaining room geometry stay intact. Activation borrows
+/// the current view coordinate; the record and pools live with this overlay.
+static WorldCollisionGrid _gShelter1fHeliportCollisionGrid = { NULL, _gShelter1fHeliportCollisionGridNormals, _gShelter1fHeliportCollisionGridVerts, _gShelter1fHeliportCollisionGridFaces, _gShelter1fHeliportCollisionGridTable, 0, 2800, SHELTER_1F_HELIPORT_COLLISION_CELLS_X, SHELTER_1F_HELIPORT_COLLISION_CELLS_Z, 4000, ARRAY_SIZE(_gShelter1fHeliportCollisionGridFaces) };
 
 ViewCamera D_shelter_1f_heliport_80181998[12] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -4500, 0x3CE8, -3400 } }, 235 },
@@ -899,7 +912,9 @@ static void _shelter1fHeliportUpdatePlacedActorVisibility(void)
     }
 }
 
+#define FOLLOW_COLLISION_ROOM_GRID _gShelter1fHeliportCollisionGrid
 #include "../../shared/follow_collision_rebuild.inc.c"
+#undef FOLLOW_COLLISION_ROOM_GRID
 
 void shelter1fHeliportNoOpEffectTask(Task* unusedTask)
 {

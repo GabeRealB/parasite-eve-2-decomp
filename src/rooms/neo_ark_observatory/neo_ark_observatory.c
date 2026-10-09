@@ -89,7 +89,7 @@ extern TaskMessageEntry D_neo_ark_observatory_801811B8[];
 extern SVECTOR D_neo_ark_observatory_80181368;
 
 extern WorldCollisionGrid gFollowCollisionSource;
-extern WorldCollisionGrid gFollowCollisionGrid;
+static WorldCollisionGrid _gNeoArkObservatoryCollisionGrid;
 extern SVECTOR            D_neo_ark_observatory_80181434[];
 extern SVECTOR            D_neo_ark_observatory_801814E4[];
 extern SVECTOR            D_neo_ark_observatory_801814F4[];
@@ -141,12 +141,11 @@ static inline void _neoArkObservatoryProjectBeamSegment(EffectQuadScratch* quadS
 
 enum { NEO_ARK_OBSERVATORY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
-extern WorldCollisionGrid     gFollowCollisionGrid;
 extern WorldCollisionOccluder D_neo_ark_observatory_801878D4[4];
 extern WorldCollisionTrigger  D_neo_ark_observatory_80186ED4[18];
 extern WorldCollisionTrigger  D_neo_ark_observatory_8018742C[14];
-extern WorldCoordRoomLights   D_neo_ark_observatory_80186844[1];
-extern WorldCoordRoomLights   D_neo_ark_observatory_80186EBC[1];
+static WorldCoordRoomLights   _gNeoArkObservatoryRoom1Lights;
+static WorldCoordRoomLights   _gNeoArkObservatoryRoom2Lights;
 
 static s32 _neoArkObservatoryRoomActionMessage(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* actionRequest, s32 unusedSecondArg);
 static s32 _neoArkObservatoryRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 secondArg);
@@ -352,16 +351,20 @@ SVECTOR D_neo_ark_observatory_8018157C[3] = {
 };
 
 WorldCollisionRoomResources D_neo_ark_observatory_80181594[2] = {
-    { &gFollowCollisionGrid, D_neo_ark_observatory_80186ED4, D_neo_ark_observatory_8018742C, D_neo_ark_observatory_801878D4 },
-    { &gFollowCollisionGrid, D_neo_ark_observatory_80186ED4, D_neo_ark_observatory_8018742C, D_neo_ark_observatory_801878D4 },
+    { &_gNeoArkObservatoryCollisionGrid, D_neo_ark_observatory_80186ED4, D_neo_ark_observatory_8018742C, D_neo_ark_observatory_801878D4 },
+    { &_gNeoArkObservatoryCollisionGrid, D_neo_ark_observatory_80186ED4, D_neo_ark_observatory_8018742C, D_neo_ark_observatory_801878D4 },
 };
 
-WorldCoordRoomLighting D_neo_ark_observatory_801815B4[2] = {
-    { D_neo_ark_observatory_80186844, NULL },
-    { D_neo_ark_observatory_80186EBC, NULL },
+WorldCoordRoomLighting gNeoArkObservatoryRoomLighting[2] = {
+    { &_gNeoArkObservatoryRoom1Lights, NULL },
+    { &_gNeoArkObservatoryRoom2Lights, NULL },
 };
 
-u8 D_neo_ark_observatory_801815C4[24] = {
+/// Logical-view map for room configuration 1, before the companion scene completes.
+///
+/// Views 4..6 select mapped views 16..18; the other logical views 1..21 retain
+/// their indices. The final three stored zeros are outside the 21-view count.
+static u8 _gNeoArkObservatoryRoom1ViewMap[24] = {
     1,
     2,
     3,
@@ -388,8 +391,8 @@ u8 D_neo_ark_observatory_801815C4[24] = {
     0,
 };
 
-u8* D_neo_ark_observatory_801815DC[2] = {
-    D_neo_ark_observatory_801815C4,
+u8* gNeoArkObservatoryViewMaps[2] = {
+    _gNeoArkObservatoryRoom1ViewMap,
     gViewIdentityMap,
 };
 
@@ -401,29 +404,43 @@ DirectionWarpEntry D_neo_ark_observatory_801815E8[3] = {
     { { { .word = 3072 }, 6490, 0, 1700 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 6490, 0, 1700 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 10, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gNeoArkObservatoryCollision049E4Normals[26] = {
+enum { NEO_ARK_OBSERVATORY_COLLISION_CELLS_X = 4,
+       NEO_ARK_OBSERVATORY_COLLISION_CELLS_Z = 5 };
+
+/// Room-space collision normals; the first four are rebuilt for the companion obstacle.
+static SVECTOR _gNeoArkObservatoryCollisionGridNormals[26] = {
 #include "assets/neo_ark_observatory_collision_049E4_normals.inc"
 };
 
-static SVECTOR _gNeoArkObservatoryCollision049E4Verts[106] = {
+/// Room-space collision vertices; the first eight are rebuilt for the companion obstacle.
+static SVECTOR _gNeoArkObservatoryCollisionGridVerts[106] = {
 #include "assets/neo_ark_observatory_collision_049E4_verts.inc"
 };
 
-static WorldCollisionGridFace _gNeoArkObservatoryCollision049E4Faces[48] = {
+/// Indexed room collision faces, with four leading slots reserved for the companion obstacle.
+static WorldCollisionGridFace _gNeoArkObservatoryCollisionGridFaces[48] = {
 #include "assets/neo_ark_observatory_collision_049E4_faces.inc"
 };
 
-static s16 _gNeoArkObservatoryCollision049E4Cells[306] = {
+/// Serialized face-index lists, each terminated by `WORLD_COLLISION_GRID_CELL_END`.
+static s16 _gNeoArkObservatoryCollisionGridCells[306] = {
 #include "assets/neo_ark_observatory_collision_049E4_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkObservatoryCollision049E4Cells[i])
-static s16* _gNeoArkObservatoryCollision049E4Table[20] = {
+#define GRID_CELL(i) (&_gNeoArkObservatoryCollisionGridCells[i])
+/// X-major cell directory; every cell includes the four companion-obstacle face slots.
+static s16* _gNeoArkObservatoryCollisionGridTable[NEO_ARK_OBSERVATORY_COLLISION_CELLS_X * NEO_ARK_OBSERVATORY_COLLISION_CELLS_Z] = {
 #include "assets/neo_ark_observatory_collision_049E4_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid gFollowCollisionGrid = { NULL, _gNeoArkObservatoryCollision049E4Normals, _gNeoArkObservatoryCollision049E4Verts, _gNeoArkObservatoryCollision049E4Faces, _gNeoArkObservatoryCollision049E4Table, 0, 0, 4, 5, 4000, 48 };
+/// Complete room collision grid, including the mutable companion-obstacle slots.
+///
+/// The 4 by 5 XZ cells are 4000 game units wide, with room origin (0, 0).
+/// The rebuild replaces only the first four normals/faces and eight vertices;
+/// cell lists and the remaining room geometry stay intact. Activation borrows
+/// the current view coordinate; the record and pools live with this overlay.
+static WorldCollisionGrid _gNeoArkObservatoryCollisionGrid = { NULL, _gNeoArkObservatoryCollisionGridNormals, _gNeoArkObservatoryCollisionGridVerts, _gNeoArkObservatoryCollisionGridFaces, _gNeoArkObservatoryCollisionGridTable, 0, 0, NEO_ARK_OBSERVATORY_COLLISION_CELLS_X, NEO_ARK_OBSERVATORY_COLLISION_CELLS_Z, 4000, ARRAY_SIZE(_gNeoArkObservatoryCollisionGridFaces) };
 
 ViewCamera D_neo_ark_observatory_80181FC8[21] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -7000, 0x61A8, -8000 } }, 329 },
@@ -449,190 +466,233 @@ ViewCamera D_neo_ark_observatory_80181FC8[21] = {
     { { { { -803, 0, 4016 }, { 3001, 2721, 600 }, { -2668, 3061, -534 } }, { -3016, 3531, -7604 } }, 329 },
 };
 
-SpriteBatch D_neo_ark_observatory_801822BC[2] = {
+/// Neutral 8-bit sprite colour modulation, preserving sampled texture intensity.
+enum { NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY = 128 };
+
+/// Drawing ranges for mapped view 1, ending with `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded background strips enabled. No
+/// source sprites are selected; the source slot retains this list address.
+static SpriteBatch _gNeoArkObservatoryView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_observatory_801822CC[2] = {
+/// Drawing ranges for mapped view 2, ending with `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded background strips enabled. No
+/// source sprites are selected; the source slot retains this list address.
+static SpriteBatch _gNeoArkObservatoryView2SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_observatory_801822DC[21] = {
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -120, 1450, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -72, 1450, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -24, 1450, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 24, 1450, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, 24, 1450, { .fields = { 24, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, -24, 1450, { .fields = { 0, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, -72, 1450, { .fields = { 0, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, -120, 1450, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 32, -120, 1450, { .fields = { 16, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 32, -72, 1450, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 16, -120, 1450, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 16, -72, 1450, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 32, -24, 1450, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 32, 24, 1450, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 16, 24, 1450, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 8, 48, 1500, { .fields = { 16, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 16, -24, 1450, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 8, -24, 1500, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 8, -72, 1500, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 0, -48, 1500, { .fields = { 16, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 8, -120, 1500, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped view 3.
+///
+/// Screen positions and dimensions are pixels relative to the view centre;
+/// depth is the unscaled ordering value. Batches select source elements.
+static SpriteSource _gNeoArkObservatoryView3SpriteSources[21] = {
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -120, 1450, { .fields = { 48, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -72, 1450, { .fields = { 48, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -24, 1450, { .fields = { 48, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 24, 1450, { .fields = { 48, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, 24, 1450, { .fields = { 24, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, -24, 1450, { .fields = { 0, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, -72, 1450, { .fields = { 0, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, -120, 1450, { .fields = { 0, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, 32, -120, 1450, { .fields = { 16, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, 32, -72, 1450, { .fields = { 72, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 16, -120, 1450, { .fields = { 112, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 16, -72, 1450, { .fields = { 112, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, 32, -24, 1450, { .fields = { 96, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, 32, 24, 1450, { .fields = { 96, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 16, 24, 1450, { .fields = { 112, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 8, 48, 1500, { .fields = { 16, 168 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 16, -24, 1450, { .fields = { 96, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 8, -24, 1500, { .fields = { 96, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 8, -72, 1500, { .fields = { 104, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 0, -48, 1500, { .fields = { 16, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 8, -120, 1500, { .fields = { 104, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
 };
 
-SpriteBatch D_neo_ark_observatory_80182480[3] = {
+/// Drawing ranges for mapped view 3, ending with `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded background strips enabled.
+/// Remaining ranges index this view's source array in elements.
+static SpriteBatch _gNeoArkObservatoryView3SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 21, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gNeoArkObservatoryView3SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_observatory_80182498[19] = {
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 16, 1950, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -32, 1950, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -80, 1950, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 40 } }, 112, -120, 1950, { .fields = { 8, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 40 } }, 64, -120, 1950, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, -80, 1950, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, -32, 1950, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, 16, 1950, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 48, 16, 1950, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 48, -32, 1950, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 48, -80, 1950, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 48, -120, 1950, { .fields = { 40, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 40, -120, 1950, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 40, -80, 1950, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 40, -32, 1950, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 40, 16, 1950, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 32, 16, 2075, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 32, -32, 2075, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 32, -80, 2075, { .fields = { 56, 232 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped view 4.
+///
+/// Screen positions and dimensions are pixels relative to the view centre;
+/// depth is the unscaled ordering value. Batches select source elements.
+static SpriteSource _gNeoArkObservatoryView4SpriteSources[19] = {
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 16, 1950, { .fields = { 80, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -32, 1950, { .fields = { 80, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -80, 1950, { .fields = { 80, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 40 } }, 112, -120, 1950, { .fields = { 8, 88 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 40 } }, 64, -120, 1950, { .fields = { 8, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, -80, 1950, { .fields = { 80, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, -32, 1950, { .fields = { 72, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, 16, 1950, { .fields = { 32, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 48, 16, 1950, { .fields = { 64, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 48, -32, 1950, { .fields = { 56, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 48, -80, 1950, { .fields = { 64, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 48, -120, 1950, { .fields = { 40, 128 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 40, -120, 1950, { .fields = { 56, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 40, -80, 1950, { .fields = { 72, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 40, -32, 1950, { .fields = { 64, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 40, 16, 1950, { .fields = { 120, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 32, 16, 2075, { .fields = { 56, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 32, -32, 2075, { .fields = { 56, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 32, -80, 2075, { .fields = { 56, 232 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
 };
 
-SpriteBatch D_neo_ark_observatory_80182614[3] = {
+/// Drawing ranges for mapped view 4, ending with `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded background strips enabled.
+/// Remaining ranges index this view's source array in elements.
+static SpriteBatch _gNeoArkObservatoryView4SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 19, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gNeoArkObservatoryView4SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_observatory_8018262C[21] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, -88, 1200, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 56, 1125, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 8, 1125, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -40, 1125, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -88, 1125, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 32 } }, 112, -120, 1125, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, 72, -120, 1125, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, 72, -88, 1125, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, 72, -40, 1125, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, 72, 8, 1125, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, 72, 56, 1125, { .fields = { 40, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 56, 56, 1125, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 56, 8, 1125, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 56, -40, 1125, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 56, -88, 1125, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 56, -120, 1125, { .fields = { 24, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 40, -120, 1200, { .fields = { 24, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 40, -48, 1200, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 40, -40, 1200, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 40, 8, 1200, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 48, 56, 1200, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped view 5.
+///
+/// Screen positions and dimensions are pixels relative to the view centre;
+/// depth is the unscaled ordering value. Batches select source elements.
+static SpriteSource _gNeoArkObservatoryView5SpriteSources[21] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, -88, 1200, { .fields = { 120, 248 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 56, 1125, { .fields = { 80, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 8, 1125, { .fields = { 80, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -40, 1125, { .fields = { 80, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -88, 1125, { .fields = { 80, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 32 } }, 112, -120, 1125, { .fields = { 120, 160 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 32 } }, 72, -120, 1125, { .fields = { 0, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 48 } }, 72, -88, 1125, { .fields = { 48, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 48 } }, 72, -40, 1125, { .fields = { 40, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 48 } }, 72, 8, 1125, { .fields = { 88, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 48 } }, 72, 56, 1125, { .fields = { 40, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 56, 56, 1125, { .fields = { 48, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 56, 8, 1125, { .fields = { 48, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 56, -40, 1125, { .fields = { 64, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 56, -88, 1125, { .fields = { 32, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 56, -120, 1125, { .fields = { 24, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 40, -120, 1200, { .fields = { 24, 128 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 40, -48, 1200, { .fields = { 112, 240 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 40, -40, 1200, { .fields = { 64, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 40, 8, 1200, { .fields = { 32, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 48, 56, 1200, { .fields = { 40, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
 };
 
-SpriteBatch D_neo_ark_observatory_801827D0[3] = {
+/// Drawing ranges for mapped view 5, ending with `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded background strips enabled.
+/// Remaining ranges index this view's source array in elements.
+static SpriteBatch _gNeoArkObservatoryView5SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 21, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gNeoArkObservatoryView5SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_observatory_801827E8[82] = {
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -40, -80, 975, { .fields = { 24, 248 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 8 } }, -40, -72, 987, { .fields = { 120, 40 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 8 } }, -40, -8, 1275, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 8 } }, -64, 72, 1000, { .fields = { 120, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, -160, -120, 912, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, -112, -120, 931, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, -160, -72, 912, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, -112, -72, 931, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, -160, -24, 912, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, -112, -24, 931, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, -160, 24, 912, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, -112, 24, 931, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, -160, 72, 912, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, -112, 72, 931, { .fields = { 8, 240 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 8 } }, -160, 88, 912, { .fields = { 112, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 48 } }, -64, -120, 937, { .fields = { 16, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 48 } }, -64, -72, 1000, { .fields = { 24, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 48 } }, -64, -24, 1000, { .fields = { 16, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 48 } }, -64, 24, 1000, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 48 } }, -56, -72, 1150, { .fields = { 8, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 48 } }, -56, -24, 1150, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 48 } }, -56, 24, 1150, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 32 } }, -48, 24, 1275, { .fields = { 0, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 24 } }, -48, -16, 1275, { .fields = { 8, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -56, -88, 950, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -48, -88, 950, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -56, -120, 1025, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -8, -120, 1025, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 40, -120, 1037, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, 48, -72, 1025, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, 48, -24, 1025, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, 48, 24, 1025, { .fields = { 40, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 40, 24, 1037, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 24, 8 } }, 56, 72, 1025, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 40 } }, -64, -120, 1025, { .fields = { 0, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 24 } }, 88, -120, 848, { .fields = { 0, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 40, -120, 1125, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 152, -120, 862, { .fields = { 16, 248 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 8 } }, 144, 24, 831, { .fields = { 120, 136 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 8 } }, 64, 72, 1100, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 104, -120, 825, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 104, -72, 825, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 104, -24, 825, { .fields = { 16, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, 104, 24, 825, { .fields = { 0, 144 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 40 } }, 104, 72, 825, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 48 } }, 72, -120, 950, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 48 } }, 72, -72, 950, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 72, -24, 950, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 48 } }, 72, 24, 950, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 32, 40 } }, 72, 72, 950, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 56, 24, 1100, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 56, -24, 1100, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 56, -72, 1100, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 56, -120, 1100, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 48, -120, 1125, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 48, -72, 1125, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 48, -24, 1125, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 40 } }, 48, 24, 1125, { .fields = { 8, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 40, 40, 1125, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 8 } }, 8, -8, 1325, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 8 } }, 40, 64, 1187, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 48 } }, 32, -80, 1187, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 48 } }, 32, -32, 1187, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 48 } }, 32, 16, 1187, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 48 } }, 16, 16, 1312, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 48 } }, 16, -32, 1312, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 48 } }, 16, -80, 1312, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, 0, 64, 1175, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, 0, 56, 1435, { .fields = { 32, 248 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 48, 8 } }, 0, 48, 1551, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 0, 40, 1633, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 0, 32, 1712, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 48, 8 } }, -48, 64, 1303, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 48, 8 } }, -48, 56, 1419, { .fields = { 88, 216 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 48, 8 } }, -48, 48, 1599, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 48, 8 } }, -48, 40, 1633, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 48, 8 } }, -48, 32, 1712, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, -72, 64, 1303, { .fields = { 24, 240 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 8 } }, -88, 56, 1419, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 8 } }, -88, 48, 1599, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 32, 8 } }, -80, 40, 1633, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 32, 8 } }, -80, 32, 1712, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped view 6.
+///
+/// Screen positions and dimensions are pixels relative to the view centre;
+/// depth is the unscaled ordering value. Batches select source elements.
+static SpriteSource _gNeoArkObservatoryView6SpriteSources[82] = {
+    { 142, 0x3FC0, { .fields = { 8, 8 } }, -40, -80, 975, { .fields = { 24, 248 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 8, 8 } }, -40, -72, 987, { .fields = { 120, 40 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 8, 8 } }, -40, -8, 1275, { .fields = { 120, 64 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 8, 8 } }, -64, 72, 1000, { .fields = { 120, 56 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 48 } }, -160, -120, 912, { .fields = { 48, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 48 } }, -112, -120, 931, { .fields = { 48, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 48 } }, -160, -72, 912, { .fields = { 40, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 48 } }, -112, -72, 931, { .fields = { 24, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 48 } }, -160, -24, 912, { .fields = { 32, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 48 } }, -112, -24, 931, { .fields = { 80, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 48 } }, -160, 24, 912, { .fields = { 88, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 48 } }, -112, 24, 931, { .fields = { 72, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 16 } }, -160, 72, 912, { .fields = { 56, 240 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 16 } }, -112, 72, 931, { .fields = { 8, 240 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 16, 8 } }, -160, 88, 912, { .fields = { 112, 72 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 48 } }, -64, -120, 937, { .fields = { 16, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 48 } }, -64, -72, 1000, { .fields = { 24, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 48 } }, -64, -24, 1000, { .fields = { 16, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 48 } }, -64, 24, 1000, { .fields = { 8, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 48 } }, -56, -72, 1150, { .fields = { 8, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 48 } }, -56, -24, 1150, { .fields = { 32, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 48 } }, -56, 24, 1150, { .fields = { 40, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 32 } }, -48, 24, 1275, { .fields = { 0, 120 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 24 } }, -48, -16, 1275, { .fields = { 8, 232 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -56, -88, 950, { .fields = { 104, 240 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -48, -88, 950, { .fields = { 112, 240 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, -56, -120, 1025, { .fields = { 80, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, -8, -120, 1025, { .fields = { 80, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 40, -120, 1037, { .fields = { 80, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 48 } }, 48, -72, 1025, { .fields = { 88, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 48 } }, 48, -24, 1025, { .fields = { 88, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 48 } }, 48, 24, 1025, { .fields = { 40, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 40, 24, 1037, { .fields = { 24, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 24, 8 } }, 56, 72, 1025, { .fields = { 104, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 40 } }, -64, -120, 1025, { .fields = { 0, 40 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 24 } }, 88, -120, 848, { .fields = { 0, 152 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 8 } }, 40, -120, 1125, { .fields = { 16, 240 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 8 } }, 152, -120, 862, { .fields = { 16, 248 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 8, 8 } }, 144, 24, 831, { .fields = { 120, 136 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 8, 8 } }, 64, 72, 1100, { .fields = { 120, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 104, -120, 825, { .fields = { 24, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 104, -72, 825, { .fields = { 32, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 104, -24, 825, { .fields = { 16, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 48 } }, 104, 24, 825, { .fields = { 0, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 40, 40 } }, 104, 72, 825, { .fields = { 96, 80 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 48 } }, 72, -120, 950, { .fields = { 112, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 48 } }, 72, -72, 950, { .fields = { 112, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, 72, -24, 950, { .fields = { 32, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 48 } }, 72, 24, 950, { .fields = { 120, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 32, 40 } }, 72, 72, 950, { .fields = { 104, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 56, 24, 1100, { .fields = { 8, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 56, -24, 1100, { .fields = { 16, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 56, -72, 1100, { .fields = { 64, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 56, -120, 1100, { .fields = { 64, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 48, -120, 1125, { .fields = { 72, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 48, -72, 1125, { .fields = { 80, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 48, -24, 1125, { .fields = { 80, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 40 } }, 48, 24, 1125, { .fields = { 8, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 40, 40, 1125, { .fields = { 120, 240 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 8, 8 } }, 8, -8, 1325, { .fields = { 120, 120 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 8, 8 } }, 40, 64, 1187, { .fields = { 120, 128 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 48 } }, 32, -80, 1187, { .fields = { 8, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 48 } }, 32, -32, 1187, { .fields = { 8, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 48 } }, 32, 16, 1187, { .fields = { 16, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 48 } }, 16, 16, 1312, { .fields = { 32, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 48 } }, 16, -32, 1312, { .fields = { 96, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 48 } }, 16, -80, 1312, { .fields = { 96, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 8 } }, 0, 64, 1175, { .fields = { 48, 240 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 8 } }, 0, 56, 1435, { .fields = { 32, 248 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 48, 8 } }, 0, 48, 1551, { .fields = { 88, 176 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 8 } }, 0, 40, 1633, { .fields = { 88, 248 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 8 } }, 0, 32, 1712, { .fields = { 104, 240 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 48, 8 } }, -48, 64, 1303, { .fields = { 88, 224 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 48, 8 } }, -48, 56, 1419, { .fields = { 88, 216 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 48, 8 } }, -48, 48, 1599, { .fields = { 88, 232 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 48, 8 } }, -48, 40, 1633, { .fields = { 88, 248 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 48, 8 } }, -48, 32, 1712, { .fields = { 88, 240 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 8 } }, -72, 64, 1303, { .fields = { 24, 240 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 40, 8 } }, -88, 56, 1419, { .fields = { 96, 184 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 40, 8 } }, -88, 48, 1599, { .fields = { 96, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 32, 8 } }, -80, 40, 1633, { .fields = { 104, 208 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 32, 8 } }, -80, 32, 1712, { .fields = { 104, 200 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
 };
 
-SpriteBatch D_neo_ark_observatory_80182E50[7] = {
+/// Drawing ranges for mapped view 6, ending with `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded background strips enabled.
+/// Remaining ranges index this view's source array in elements.
+static SpriteBatch _gNeoArkObservatoryView6SpriteBatches[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 26, 0, 0, { 0, 0 } },
     { 26, 10, 0, 0, { 3, 0 } },
@@ -642,81 +702,85 @@ SpriteBatch D_neo_ark_observatory_80182E50[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_observatory_80182E88[83] = {
-    { 142, 0x3FC0, { .fields = { 24, 32 } }, -160, 64, 1550, { .fields = { 16, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 32 } }, -160, 32, 1550, { .fields = { 0, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 40 } }, -160, -8, 1550, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 40 } }, -160, -48, 1550, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 40 } }, -160, -88, 1550, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, -128, -48, 1875, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -128, -8, 1875, { .fields = { 0, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -128, -72, 1875, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, -104, -48, 2150, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -104, -8, 2150, { .fields = { 0, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 32 } }, -104, 16, 2150, { .fields = { 32, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, -104, 48, 2150, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, -112, 32, 1875, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 32 } }, -112, 48, 1875, { .fields = { 24, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 40 } }, -80, -48, 2325, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, -104, -56, 2150, { .fields = { 8, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -64, 80, 2375, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, -160, 32, 2375, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, -112, 32, 2375, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, -80, 80, 2375, { .fields = { 8, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -64, 32, 2375, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, -16, 2375, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -112, -16, 2375, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -64, -16, 2375, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 48, 8 } }, -160, -24, 2375, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 48, 8 } }, -112, -24, 2375, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, -64, -24, 2375, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -80, -56, 1250, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 72, 1250, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -112, 72, 1250, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 24, 1250, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, -112, 40, 1250, { .fields = { 24, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, -24, 1250, { .fields = { 0, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -112, -24, 1250, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 24, 16 } }, -80, -8, 1250, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, -160, -72, 1250, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -112, -72, 1250, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 48, 24 } }, -160, -96, 1250, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 24, 16 } }, -112, -88, 1250, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, -152, 80, 812, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -128, 96, 775, { .fields = { 0, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, -152, 40, 812, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -128, 48, 775, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 32, 24 } }, -160, 16, 800, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -128, 24, 850, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -96, 24, 862, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -88, 24, 1062, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -160, 72, 1300, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, -152, 32, 1300, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -136, 72, 1200, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, -136, 32, 1200, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 40 } }, -112, 32, 1062, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -112, 72, 1062, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -56, -72, 2554, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, -160, -48, 2350, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 32 } }, -120, -48, 2350, { .fields = { 0, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 32 } }, -88, -48, 2350, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 32 } }, -56, -48, 2350, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 32, 16 } }, -152, -64, 2425, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -120, -64, 2425, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -88, -64, 2425, { .fields = { 8, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -56, -64, 2425, { .fields = { 0, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -48, -64, 2562, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 32, 8 } }, -88, -72, 2500, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, -48, -72, 2575, { .fields = { 40, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 104, 32, 987, { .fields = { 120, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 88, 72, 987, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 112, 72, 925, { .fields = { 40, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 32 } }, 88, 40, 987, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, 112, 40, 925, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 128, 40, 925, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 24 } }, 112, 16, 1000, { .fields = { 112, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 128, 16, 1000, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, 144, 8, 1000, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped view 7.
+///
+/// Screen positions and dimensions are pixels relative to the view centre;
+/// depth is the unscaled ordering value. Batches select source elements.
+static SpriteSource _gNeoArkObservatoryView7SpriteSources[83] = {
+    { 142, 0x3FC0, { .fields = { 24, 32 } }, -160, 64, 1550, { .fields = { 16, 104 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 32 } }, -160, 32, 1550, { .fields = { 0, 224 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 40 } }, -160, -8, 1550, { .fields = { 56, 160 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 40 } }, -160, -48, 1550, { .fields = { 64, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 40 } }, -160, -88, 1550, { .fields = { 56, 80 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 40 } }, -128, -48, 1875, { .fields = { 104, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, -128, -8, 1875, { .fields = { 0, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, -128, -72, 1875, { .fields = { 8, 168 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 40 } }, -104, -48, 2150, { .fields = { 88, 88 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, -104, -8, 2150, { .fields = { 0, 136 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 32 } }, -104, 16, 2150, { .fields = { 32, 224 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 32 } }, -104, 48, 2150, { .fields = { 32, 40 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 16 } }, -112, 32, 1875, { .fields = { 104, 240 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 32 } }, -112, 48, 1875, { .fields = { 24, 136 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 40 } }, -80, -48, 2325, { .fields = { 64, 40 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 8 } }, -104, -56, 2150, { .fields = { 8, 160 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 8 } }, -64, 80, 2375, { .fields = { 112, 88 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 48 } }, -160, 32, 2375, { .fields = { 104, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 48 } }, -112, 32, 2375, { .fields = { 88, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 8 } }, -80, 80, 2375, { .fields = { 8, 32 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, -64, 32, 2375, { .fields = { 104, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, -16, 2375, { .fields = { 56, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, -112, -16, 2375, { .fields = { 56, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -64, -16, 2375, { .fields = { 112, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 48, 8 } }, -160, -24, 2375, { .fields = { 88, 184 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 48, 8 } }, -112, -24, 2375, { .fields = { 104, 216 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 8 } }, -64, -24, 2375, { .fields = { 104, 40 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 8 } }, -80, -56, 1250, { .fields = { 88, 136 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 72, 1250, { .fields = { 80, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, -112, 72, 1250, { .fields = { 104, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 24, 1250, { .fields = { 48, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 32 } }, -112, 40, 1250, { .fields = { 24, 72 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, -24, 1250, { .fields = { 0, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, -112, -24, 1250, { .fields = { 24, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 24, 16 } }, -80, -8, 1250, { .fields = { 120, 120 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 48 } }, -160, -72, 1250, { .fields = { 112, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, -112, -72, 1250, { .fields = { 8, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 48, 24 } }, -160, -96, 1250, { .fields = { 88, 160 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 24, 16 } }, -112, -88, 1250, { .fields = { 104, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 40 } }, -152, 80, 812, { .fields = { 64, 200 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, -128, 96, 775, { .fields = { 0, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 40 } }, -152, 40, 812, { .fields = { 64, 120 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -128, 48, 775, { .fields = { 112, 240 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 32, 24 } }, -160, 16, 800, { .fields = { 104, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 16 } }, -128, 24, 850, { .fields = { 56, 240 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -96, 24, 862, { .fields = { 96, 128 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 8 } }, -88, 24, 1062, { .fields = { 88, 80 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, -160, 72, 1300, { .fields = { 56, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 40 } }, -152, 32, 1300, { .fields = { 88, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, -136, 72, 1200, { .fields = { 32, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 40 } }, -136, 32, 1200, { .fields = { 96, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 40 } }, -112, 32, 1062, { .fields = { 72, 40 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, -112, 72, 1062, { .fields = { 24, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 8 } }, -56, -72, 2554, { .fields = { 88, 128 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 40 } }, -160, -48, 2350, { .fields = { 24, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 32 } }, -120, -48, 2350, { .fields = { 0, 40 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 32 } }, -88, -48, 2350, { .fields = { 24, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 32 } }, -56, -48, 2350, { .fields = { 56, 200 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 32, 16 } }, -152, -64, 2425, { .fields = { 96, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -120, -64, 2425, { .fields = { 96, 240 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -88, -64, 2425, { .fields = { 8, 240 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -56, -64, 2425, { .fields = { 0, 240 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -48, -64, 2562, { .fields = { 40, 240 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 32, 8 } }, -88, -72, 2500, { .fields = { 96, 64 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 8 } }, -48, -72, 2575, { .fields = { 40, 112 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 8 } }, 104, 32, 987, { .fields = { 120, 88 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, 88, 72, 987, { .fields = { 56, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 112, 72, 925, { .fields = { 40, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 32 } }, 88, 40, 987, { .fields = { 32, 160 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 32 } }, 112, 40, 925, { .fields = { 40, 80 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 128, 40, 925, { .fields = { 80, 240 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 16, 24 } }, 112, 16, 1000, { .fields = { 112, 24 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, 128, 16, 1000, { .fields = { 88, 232 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 32 } }, 144, 8, 1000, { .fields = { 8, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
     { 142, 0x4000, { .fields = { 8, 8 } }, -88, 96, 1096, { .fields = { 96, 80 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
     { 143, 0x4000, { .fields = { 48, 48 } }, -160, 48, 796, { .fields = { 80, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
     { 141, 0x4000, { .fields = { 48, 24 } }, -160, 96, 789, { .fields = { 104, 72 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
@@ -728,7 +792,11 @@ SpriteSource D_neo_ark_observatory_80182E88[83] = {
     { 142, 0x4040, { .fields = { 32, 48 } }, -112, 48, 1300, { .fields = { 120, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteBatch D_neo_ark_observatory_80183504[11] = {
+/// Drawing ranges for mapped view 7, ending with `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded background strips enabled.
+/// Remaining ranges index this view's source array in elements.
+static SpriteBatch _gNeoArkObservatoryView7SpriteBatches[11] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 16, 0, 0, { 0, 0 } },
     { 16, 11, 0, 0, { 5, 0 } },
@@ -742,76 +810,80 @@ SpriteBatch D_neo_ark_observatory_80183504[11] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_observatory_8018355C[94] = {
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 48, 64, 812, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 88, 112, 875, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 136, 112, 750, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -160, 72, 750, { .fields = { 16, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -144, 56, 750, { .fields = { 16, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -128, 56, 750, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -112, 48, 750, { .fields = { 24, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -96, 40, 750, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -80, 40, 750, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -64, 32, 750, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -48, 32, 750, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -32, 32, 750, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -8, 32, 750, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 8, 40, 750, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 24, 40, 750, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 40, 48, 750, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 72, 64, 750, { .fields = { 16, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 88, 72, 750, { .fields = { 104, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 104, 80, 750, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 120, 96, 750, { .fields = { 96, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -152, 104, 875, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -136, 96, 875, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -112, 88, 875, { .fields = { 16, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -88, 88, 875, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -64, 88, 875, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -32, 88, 875, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 0, 88, 875, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 32, 88, 875, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 56, 88, 875, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 72, 96, 875, { .fields = { 104, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -104, 72, 875, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, -88, 72, 875, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -64, 72, 875, { .fields = { 72, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -32, 72, 875, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, 0, 72, 734, { .fields = { 64, 16 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 32, 72, 875, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 56, 56, 750, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 56, 72, 812, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, -56, 64, 875, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, -32, 64, 1236, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 32, 32, 625, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -96, 48, 625, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 88, 48, 625, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, 88, 625, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -128, 88, 625, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -96, 88, 625, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -64, 88, 625, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -32, 88, 625, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 0, 88, 625, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 32, 88, 625, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 64, 88, 625, { .fields = { 40, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 96, 88, 625, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 128, 88, 625, { .fields = { 32, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, 56, 625, { .fields = { 32, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -128, 56, 625, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -96, 56, 625, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -64, 64, 625, { .fields = { 0, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -32, 64, 625, { .fields = { 0, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 0, 56, 625, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 32, 56, 625, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 72, 56, 625, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 96, 56, 943, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 128, 56, 625, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 128, 48, 625, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, 96, 40, 625, { .fields = { 48, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 8, 40, 625, { .fields = { 56, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, 40, 625, { .fields = { 0, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, -160, 32, 625, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, -128, 32, 625, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped view 8.
+///
+/// Screen positions and dimensions are pixels relative to the view centre;
+/// depth is the unscaled ordering value. Batches select source elements.
+static SpriteSource _gNeoArkObservatoryView8SpriteSources[94] = {
+    { 142, 0x3FC0, { .fields = { 8, 8 } }, 48, 64, 812, { .fields = { 104, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 8 } }, 88, 112, 875, { .fields = { 120, 184 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 8 } }, 136, 112, 750, { .fields = { 120, 176 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -160, 72, 750, { .fields = { 16, 32 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -144, 56, 750, { .fields = { 16, 56 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -128, 56, 750, { .fields = { 56, 64 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -112, 48, 750, { .fields = { 24, 224 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -96, 40, 750, { .fields = { 32, 64 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -80, 40, 750, { .fields = { 72, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -64, 32, 750, { .fields = { 64, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -48, 32, 750, { .fields = { 64, 128 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -32, 32, 750, { .fields = { 40, 224 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -8, 32, 750, { .fields = { 80, 128 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 8, 40, 750, { .fields = { 80, 216 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 24, 40, 750, { .fields = { 56, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 40, 48, 750, { .fields = { 64, 160 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 72, 64, 750, { .fields = { 16, 80 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, 88, 72, 750, { .fields = { 104, 56 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 104, 80, 750, { .fields = { 48, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, 120, 96, 750, { .fields = { 96, 24 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -152, 104, 875, { .fields = { 72, 200 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, -136, 96, 875, { .fields = { 96, 80 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -112, 88, 875, { .fields = { 16, 160 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -88, 88, 875, { .fields = { 24, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -64, 88, 875, { .fields = { 8, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -32, 88, 875, { .fields = { 96, 224 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, 0, 88, 875, { .fields = { 96, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 32, 88, 875, { .fields = { 72, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 56, 88, 875, { .fields = { 80, 64 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, 72, 96, 875, { .fields = { 104, 176 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -104, 72, 875, { .fields = { 88, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, -88, 72, 875, { .fields = { 80, 168 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 16 } }, -64, 72, 875, { .fields = { 72, 184 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 16 } }, -32, 72, 875, { .fields = { 72, 64 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 16 } }, 0, 72, 734, { .fields = { 64, 16 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, 32, 72, 875, { .fields = { 72, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 56, 56, 750, { .fields = { 96, 240 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 8 } }, 56, 72, 812, { .fields = { 56, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 8 } }, -56, 64, 875, { .fields = { 56, 176 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 8 } }, -32, 64, 1236, { .fields = { 64, 248 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 8 } }, 32, 32, 625, { .fields = { 64, 200 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 8 } }, -96, 48, 625, { .fields = { 64, 208 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 8 } }, 88, 48, 625, { .fields = { 104, 168 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, 88, 625, { .fields = { 64, 32 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -128, 88, 625, { .fields = { 96, 160 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -96, 88, 625, { .fields = { 96, 32 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -64, 88, 625, { .fields = { 96, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -32, 88, 625, { .fields = { 96, 64 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, 0, 88, 625, { .fields = { 96, 128 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, 32, 88, 625, { .fields = { 96, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, 64, 88, 625, { .fields = { 40, 160 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, 96, 88, 625, { .fields = { 40, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, 128, 88, 625, { .fields = { 32, 32 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, 56, 625, { .fields = { 32, 128 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -128, 56, 625, { .fields = { 32, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -96, 56, 625, { .fields = { 48, 64 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 24 } }, -64, 64, 625, { .fields = { 0, 104 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 24 } }, -32, 64, 625, { .fields = { 0, 128 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, 0, 56, 625, { .fields = { 64, 128 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, 32, 56, 625, { .fields = { 64, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 72, 56, 625, { .fields = { 72, 160 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, 96, 56, 943, { .fields = { 64, 224 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, 128, 56, 625, { .fields = { 64, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 8 } }, 128, 48, 625, { .fields = { 80, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 16 } }, 96, 40, 625, { .fields = { 48, 216 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, 8, 40, 625, { .fields = { 56, 232 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, 40, 625, { .fields = { 0, 176 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, -160, 32, 625, { .fields = { 120, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, -128, 32, 625, { .fields = { 96, 104 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
     { 143, 0x4000, { .fields = { 8, 8 } }, 80, 80, 800, { .fields = { 16, 152 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
     { 143, 0x4000, { .fields = { 8, 8 } }, 72, 104, 800, { .fields = { 24, 152 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
     { 142, 0x4000, { .fields = { 8, 8 } }, -136, 112, 800, { .fields = { 96, 16 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
@@ -839,7 +911,11 @@ SpriteSource D_neo_ark_observatory_8018355C[94] = {
     { 142, 0x4000, { .fields = { 16, 16 } }, 112, 104, 800, { .fields = { 80, 232 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteBatch D_neo_ark_observatory_80183CB4[5] = {
+/// Drawing ranges for mapped view 8, ending with `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded background strips enabled.
+/// Remaining ranges index this view's source array in elements.
+static SpriteBatch _gNeoArkObservatoryView8SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 40, 0, 0, { 1, 0 } },
     { 40, 29, 0, 0, { 2, 0 } },
@@ -847,66 +923,70 @@ SpriteBatch D_neo_ark_observatory_80183CB4[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_observatory_80183CDC[69] = {
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, 32, 32, 2250, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, 80, 32, 2250, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 128, 32, 2250, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 32, -16, 2250, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 80, -16, 2250, { .fields = { 16, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 128, -16, 2250, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 48, 8 } }, 32, -24, 2284, { .fields = { 120, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, 80, -24, 1302, { .fields = { 0, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, 112, 72, 1200, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, 112, 24, 1200, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -24, 1200, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -72, 1200, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 112, -88, 1200, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 152, -112, 1200, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 88, -72, 1200, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 96, -80, 1200, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 88, -24, 1200, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 88, 24, 1200, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 88, 72, 1200, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 72, 72, 1200, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 72, -24, 1200, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, 72, -64, 1200, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, 56, -16, 1200, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 40, -8, 1200, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, -8, 1200, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, 64, -48, 1200, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 56, 24, 750, { .fields = { 32, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 72, 24, 737, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 96, 16, 700, { .fields = { 24, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, 128, 16, 650, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 96, 40, 700, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, 112, 64, 700, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 96, 96, 700, { .fields = { 24, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, 88, 96, 700, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, 88, 48, 700, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 144, 96, 1400, { .fields = { 40, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 112, 72, 1400, { .fields = { 16, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 112, 96, 1400, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 112, 48, 1400, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 112, 32, 1400, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 80, 72, 1350, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 80, 96, 1350, { .fields = { 56, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 56, 96, 1250, { .fields = { 56, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 56, 72, 1250, { .fields = { 48, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 56, 48, 1250, { .fields = { 40, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 80, 48, 1350, { .fields = { 48, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, 80, 32, 1350, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 56, 24, 1250, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 32, -56, 2309, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 72, -56, 1985, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, 112, -56, 1251, { .fields = { 72, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, 88, -16, 1496, { .fields = { 16, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, 112, -16, 1283, { .fields = { 16, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, 136, -24, 1216, { .fields = { 16, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, 136, -16, 1604, { .fields = { 16, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 32, -72, 2505, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, 72, -64, 2772, { .fields = { 0, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 16, -72, 2578, { .fields = { 0, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 16, -56, 2763, { .fields = { 24, 144 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped view 9.
+///
+/// Screen positions and dimensions are pixels relative to the view centre;
+/// depth is the unscaled ordering value. Batches select source elements.
+static SpriteSource _gNeoArkObservatoryView9SpriteSources[69] = {
+    { 142, 0x3FC0, { .fields = { 48, 48 } }, 32, 32, 2250, { .fields = { 112, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 48 } }, 80, 32, 2250, { .fields = { 88, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, 128, 32, 2250, { .fields = { 32, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 32, -16, 2250, { .fields = { 8, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 80, -16, 2250, { .fields = { 16, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, 128, -16, 2250, { .fields = { 40, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 141, 0x3FC0, { .fields = { 48, 8 } }, 32, -24, 2284, { .fields = { 120, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 8 } }, 80, -24, 1302, { .fields = { 0, 56 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 48 } }, 112, 72, 1200, { .fields = { 120, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 48 } }, 112, 24, 1200, { .fields = { 112, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -24, 1200, { .fields = { 32, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -72, 1200, { .fields = { 80, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, 112, -88, 1200, { .fields = { 16, 240 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 152, -112, 1200, { .fields = { 88, 240 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, 88, -72, 1200, { .fields = { 104, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 8 } }, 96, -80, 1200, { .fields = { 96, 248 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, 88, -24, 1200, { .fields = { 104, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, 88, 24, 1200, { .fields = { 80, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, 88, 72, 1200, { .fields = { 56, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 72, 72, 1200, { .fields = { 64, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 72, -24, 1200, { .fields = { 72, 96 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 40 } }, 72, -64, 1200, { .fields = { 96, 168 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 40 } }, 56, -16, 1200, { .fields = { 96, 208 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, 40, -8, 1200, { .fields = { 40, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, -8, 1200, { .fields = { 112, 240 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 16 } }, 64, -48, 1200, { .fields = { 120, 240 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 56, 24, 750, { .fields = { 32, 224 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, 72, 24, 737, { .fields = { 24, 208 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, 96, 16, 700, { .fields = { 24, 120 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 16 } }, 128, 16, 650, { .fields = { 40, 192 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, 96, 40, 700, { .fields = { 24, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 32 } }, 112, 64, 700, { .fields = { 80, 208 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, 96, 96, 700, { .fields = { 24, 24 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 16 } }, 88, 96, 700, { .fields = { 112, 240 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 16 } }, 88, 48, 700, { .fields = { 112, 128 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, 144, 96, 1400, { .fields = { 40, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, 112, 72, 1400, { .fields = { 16, 168 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, 112, 96, 1400, { .fields = { 56, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, 112, 48, 1400, { .fields = { 64, 72 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 112, 32, 1400, { .fields = { 80, 240 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, 80, 72, 1350, { .fields = { 56, 0 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, 80, 96, 1350, { .fields = { 56, 24 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, 56, 96, 1250, { .fields = { 56, 120 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, 56, 72, 1250, { .fields = { 48, 168 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, 56, 48, 1250, { .fields = { 40, 72 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, 80, 48, 1350, { .fields = { 48, 232 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 16 } }, 80, 32, 1350, { .fields = { 16, 240 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, 56, 24, 1250, { .fields = { 56, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 40 } }, 32, -56, 2309, { .fields = { 80, 88 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 40 } }, 72, -56, 1985, { .fields = { 88, 48 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 40 } }, 112, -56, 1251, { .fields = { 72, 168 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 8 } }, 88, -16, 1496, { .fields = { 16, 80 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 8 } }, 112, -16, 1283, { .fields = { 16, 72 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 8 } }, 136, -24, 1216, { .fields = { 16, 64 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 8 } }, 136, -16, 1604, { .fields = { 16, 88 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, 32, -72, 2505, { .fields = { 48, 240 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 8 } }, 72, -64, 2772, { .fields = { 0, 152 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 16, -72, 2578, { .fields = { 0, 240 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 8 } }, 16, -56, 2763, { .fields = { 24, 144 } }, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, NEO_ARK_OBSERVATORY_SPRITE_NEUTRAL_INTENSITY, 0 },
     { 143, 0x4000, { .fields = { 48, 48 } }, 112, 48, 650, { .fields = { 80, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
     { 142, 0x4000, { .fields = { 48, 24 } }, 112, 96, 650, { .fields = { 32, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
     { 143, 0x4000, { .fields = { 32, 48 } }, 80, 48, 700, { .fields = { 96, 192 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
@@ -919,7 +999,11 @@ SpriteSource D_neo_ark_observatory_80183CDC[69] = {
     { 142, 0x4040, { .fields = { 32, 40 } }, 96, 48, 1350, { .fields = { 80, 128 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteBatch D_neo_ark_observatory_80184240[9] = {
+/// Drawing ranges for mapped view 9, ending with `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded background strips enabled.
+/// Remaining ranges index this view's source array in elements.
+static SpriteBatch _gNeoArkObservatoryView9SpriteBatches[9] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 3, 0 } },
     { 8, 18, 0, 0, { 4, 0 } },
@@ -1409,15 +1493,15 @@ SpriteBatch D_neo_ark_observatory_801860D8[2] = {
 };
 
 SpriteView D_neo_ark_observatory_801860E8[21] = {
-    { { .empty = D_neo_ark_observatory_801822BC }, D_neo_ark_observatory_801822BC, NULL },
-    { { .empty = D_neo_ark_observatory_801822CC }, D_neo_ark_observatory_801822CC, NULL },
-    { { .elements = D_neo_ark_observatory_801822DC }, D_neo_ark_observatory_80182480, NULL },
-    { { .elements = D_neo_ark_observatory_80182498 }, D_neo_ark_observatory_80182614, NULL },
-    { { .elements = D_neo_ark_observatory_8018262C }, D_neo_ark_observatory_801827D0, NULL },
-    { { .elements = D_neo_ark_observatory_801827E8 }, D_neo_ark_observatory_80182E50, NULL },
-    { { .elements = D_neo_ark_observatory_80182E88 }, D_neo_ark_observatory_80183504, NULL },
-    { { .elements = D_neo_ark_observatory_8018355C }, D_neo_ark_observatory_80183CB4, NULL },
-    { { .elements = D_neo_ark_observatory_80183CDC }, D_neo_ark_observatory_80184240, NULL },
+    { { .empty = _gNeoArkObservatoryView1SpriteBatches }, _gNeoArkObservatoryView1SpriteBatches, NULL },
+    { { .empty = _gNeoArkObservatoryView2SpriteBatches }, _gNeoArkObservatoryView2SpriteBatches, NULL },
+    { { .elements = _gNeoArkObservatoryView3SpriteSources }, _gNeoArkObservatoryView3SpriteBatches, NULL },
+    { { .elements = _gNeoArkObservatoryView4SpriteSources }, _gNeoArkObservatoryView4SpriteBatches, NULL },
+    { { .elements = _gNeoArkObservatoryView5SpriteSources }, _gNeoArkObservatoryView5SpriteBatches, NULL },
+    { { .elements = _gNeoArkObservatoryView6SpriteSources }, _gNeoArkObservatoryView6SpriteBatches, NULL },
+    { { .elements = _gNeoArkObservatoryView7SpriteSources }, _gNeoArkObservatoryView7SpriteBatches, NULL },
+    { { .elements = _gNeoArkObservatoryView8SpriteSources }, _gNeoArkObservatoryView8SpriteBatches, NULL },
+    { { .elements = _gNeoArkObservatoryView9SpriteSources }, _gNeoArkObservatoryView9SpriteBatches, NULL },
     { { .elements = D_neo_ark_observatory_80184288 }, D_neo_ark_observatory_80184878, NULL },
     { { .elements = D_neo_ark_observatory_801848B8 }, D_neo_ark_observatory_80184ED0, NULL },
     { { .elements = D_neo_ark_observatory_80184F10 }, D_neo_ark_observatory_801850DC, NULL },
@@ -1432,53 +1516,61 @@ SpriteView D_neo_ark_observatory_801860E8[21] = {
     { { .empty = D_neo_ark_observatory_801860D8 }, D_neo_ark_observatory_801860D8, NULL },
 };
 
-WorldCoordPointLight D_neo_ark_observatory_801861E4[17] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2CF2, -2500, 0x2EC5 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 3500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9184, -2500, 0x2EC6 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 3500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8002, -2500, 9640 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 2500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8002, -2500, 7413 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 2500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8002, -2500, 5559 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 2500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6982, -2500, 3913 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 2500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3998, -2500, 6335 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 2000, 8000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3998, -2500, 9409 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 2000, 8000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7441, -2000, 0x37E0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 4500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -802, -2500, 8240 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 2000, 8000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2CD5, -2337, 0x2BA7 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 906, 669 }, { 0, 0 } }, 100, 1600 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -70, -2500, 0x2F1B } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 2000, 8000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -70, -2500, 3999 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 2000, 8000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7441, -2000, 1447 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 4500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x3103, -2500, 0x2EC5 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 3500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1155, -2500, 1837 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 2000, 7000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1155, -2500, 0x36FE } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 2000, 7000 },
+/// The 17 point lights for room configuration 1.
+///
+/// Positions and falloff radii use room units; RGB uses 12 fractional bits.
+/// All views admit every light. Composition and queries update the records.
+/// The two configurations retain their authored order for equal-rank selection.
+static WorldCoordPointLight _gNeoArkObservatoryRoom1PointLights[17] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2CF2, -2500, 0x2EC5 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 3500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 9184, -2500, 0x2EC6 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 3500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8002, -2500, 9640 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 2500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8002, -2500, 7413 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 2500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8002, -2500, 5559 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 2500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6982, -2500, 3913 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 2500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3998, -2500, 6335 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 2000, 8000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3998, -2500, 9409 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 2000, 8000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7441, -2000, 0x37E0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 4500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -802, -2500, 8240 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 2000, 8000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2CD5, -2337, 0x2BA7 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 906, 669 }, { 0, 0 } }, 100, 1600 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -70, -2500, 0x2F1B } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 2000, 8000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -70, -2500, 3999 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 2000, 8000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7441, -2000, 1447 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 4500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x3103, -2500, 0x2EC5 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 3500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1155, -2500, 1837 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 2000, 7000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1155, -2500, 0x36FE } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 2000, 7000 },
 };
 
-WorldCoordRoomLights D_neo_ark_observatory_80186844[1] = {
-    { 0, NULL, ARRAY_SIZE(D_neo_ark_observatory_801861E4), D_neo_ark_observatory_801861E4, 0, NULL },
+/// Point-light collection for room configuration 1; no directional or cone lights.
+static WorldCoordRoomLights _gNeoArkObservatoryRoom1Lights = { 0, NULL, ARRAY_SIZE(_gNeoArkObservatoryRoom1PointLights), _gNeoArkObservatoryRoom1PointLights, 0, NULL };
+
+/// The 17 point lights for room configuration 2.
+///
+/// Positions and falloff radii use room units; RGB uses 12 fractional bits.
+/// All views admit every light. Composition and queries update the records.
+/// The two configurations retain their authored order for equal-rank selection.
+static WorldCoordPointLight _gNeoArkObservatoryRoom2PointLights[17] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2CD5, -2337, 0x2BA7 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 906, 669 }, { 0, 0 } }, 100, 1600 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2CF2, -2500, 0x2EC5 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 3500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 9184, -2500, 0x2EC6 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 3500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8002, -2500, 9640 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 2500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8002, -2500, 7413 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 2500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8002, -2500, 5559 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 2500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6982, -2500, 3913 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 2500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3998, -2500, 6335 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 2000, 8000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3998, -2500, 9409 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 2000, 8000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7441, -2000, 0x37E0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 4500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -802, -2500, 8240 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 2000, 8000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -70, -2500, 0x2F1B } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 2000, 8000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -70, -2500, 3999 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 2000, 8000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7441, -2000, 1447 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 4500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x3103, -2500, 0x2EC5 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 3500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1155, -2500, 1837 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 2000, 7000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1155, -2500, 0x36FE } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 2000, 7000 },
 };
 
-WorldCoordPointLight D_neo_ark_observatory_8018685C[17] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2CD5, -2337, 0x2BA7 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 906, 669 }, { 0, 0 } }, 100, 1600 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2CF2, -2500, 0x2EC5 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 3500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9184, -2500, 0x2EC6 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 3500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8002, -2500, 9640 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 2500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8002, -2500, 7413 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 2500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8002, -2500, 5559 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 2500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6982, -2500, 3913 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 2500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3998, -2500, 6335 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 2000, 8000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3998, -2500, 9409 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 2000, 8000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7441, -2000, 0x37E0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 4500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -802, -2500, 8240 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 2000, 8000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -70, -2500, 0x2F1B } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 2000, 8000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -70, -2500, 3999 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 2000, 8000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7441, -2000, 1447 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 4500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x3103, -2500, 0x2EC5 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 3500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1155, -2500, 1837 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 2000, 7000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1155, -2500, 0x36FE } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 2000, 7000 },
-};
-
-WorldCoordRoomLights D_neo_ark_observatory_80186EBC[1] = {
-    { 0, NULL, ARRAY_SIZE(D_neo_ark_observatory_8018685C), D_neo_ark_observatory_8018685C, 0, NULL },
-};
+/// Point-light collection for room configuration 2; no directional or cone lights.
+static WorldCoordRoomLights _gNeoArkObservatoryRoom2Lights = { 0, NULL, ARRAY_SIZE(_gNeoArkObservatoryRoom2PointLights), _gNeoArkObservatoryRoom2PointLights, 0, NULL };
 
 WorldCollisionTrigger D_neo_ark_observatory_80186ED4[18] = {
     { NULL, NULL, NULL, { 8851, -1408, 0x2EEF, 0 }, { { 506, -1872, -1859, 0 }, { -506, -1872, 1859, 0 }, { 506, 1872, -1859, 0 }, { -506, 1872, 1859, 0 } }, { 3953, 0, 1076, 0 }, { 0, 0, 4096, 0 }, 2684, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -1546,49 +1638,54 @@ WorldCollisionOccluder D_neo_ark_observatory_801878D4[4] = {
     { NULL, NULL, { 0x291F, -1504, 0x349F, 0 }, { { 4013, 2688, 166, 0 }, { -4012, 2688, -165, 0 }, { 4013, -2688, 166, 0 }, { -4012, -2688, -165, 0 } }, { 169, 0, -4111, 0 }, 4830, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCollisionFootstepSounds D_neo_ark_observatory_801879C4 = {
-    0x10000015,
-    0x10000017,
-    0x10000019,
+/// Walking, running and scripted-jump cue bases for surface class 1.
+///
+/// Type-1 requests select the loaded room bank; cue 1 uses the next entry.
+static WorldCollisionFootstepSounds _gNeoArkObservatorySurface1FootstepSounds = {
+    SOUND_SCRIPT_REQUEST_TYPE_1 | 0x15,
+    SOUND_SCRIPT_REQUEST_TYPE_1 | 0x17,
+    SOUND_SCRIPT_REQUEST_TYPE_1 | 0x19,
 };
 
-WorldCollisionFootstepSounds D_neo_ark_observatory_801879D0 = {
-    0x10000041,
-    0x10000043,
-    0x10000055,
+/// Walking, running and scripted-jump cue bases for surface class 2.
+///
+/// Type-1 requests select the loaded room bank; cue 1 uses the next entry.
+static WorldCollisionFootstepSounds _gNeoArkObservatorySurface2FootstepSounds = {
+    SOUND_SCRIPT_REQUEST_TYPE_1 | 0x41,
+    SOUND_SCRIPT_REQUEST_TYPE_1 | 0x43,
+    SOUND_SCRIPT_REQUEST_TYPE_1 | 0x55,
 };
 
-WorldCollisionFootstepSounds D_neo_ark_observatory_801879DC = {
-    0x10000059,
-    0x1000005B,
-    0x10000059,
+/// Walking, running and scripted-jump cue bases for surface class 3.
+///
+/// Type-1 requests select the loaded room bank; cue 1 uses the next entry.
+static WorldCollisionFootstepSounds _gNeoArkObservatorySurface3FootstepSounds = {
+    SOUND_SCRIPT_REQUEST_TYPE_1 | 0x59,
+    SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5B,
+    SOUND_SCRIPT_REQUEST_TYPE_1 | 0x59,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_observatory_801879E8[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
-};
+/// Blocking, impact-enabled surface with pushback and no footstep cues (classes 0, 4..7).
+static WorldCollisionSurfaceProperties _gNeoArkObservatorySilentSurface = { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL };
 
-WorldCollisionSurfaceProperties D_neo_ark_observatory_801879F0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_observatory_801879C4 },
-};
+/// Blocking, impact-enabled surface with pushback and class-1 footstep cues.
+static WorldCollisionSurfaceProperties _gNeoArkObservatorySurface1 = { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &_gNeoArkObservatorySurface1FootstepSounds };
 
-WorldCollisionSurfaceProperties D_neo_ark_observatory_801879F8[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_observatory_801879D0 },
-};
+/// Blocking, impact-enabled surface with pushback and class-2 footstep cues.
+static WorldCollisionSurfaceProperties _gNeoArkObservatorySurface2 = { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &_gNeoArkObservatorySurface2FootstepSounds };
 
-WorldCollisionSurfaceProperties D_neo_ark_observatory_80187A00[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_observatory_801879DC },
-};
+/// Blocking, impact-enabled surface with pushback and class-3 footstep cues.
+static WorldCollisionSurfaceProperties _gNeoArkObservatorySurface3 = { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &_gNeoArkObservatorySurface3FootstepSounds };
 
-WorldCollisionSurfaceProperties* D_neo_ark_observatory_80187A08[8] = {
-    D_neo_ark_observatory_801879E8,
-    D_neo_ark_observatory_801879F0,
-    D_neo_ark_observatory_801879F8,
-    D_neo_ark_observatory_80187A00,
-    D_neo_ark_observatory_801879E8,
-    D_neo_ark_observatory_801879E8,
-    D_neo_ark_observatory_801879E8,
-    D_neo_ark_observatory_801879E8,
+WorldCollisionSurfaceProperties* gNeoArkObservatorySurfaceProperties[8] = {
+    &_gNeoArkObservatorySilentSurface,
+    &_gNeoArkObservatorySurface1,
+    &_gNeoArkObservatorySurface2,
+    &_gNeoArkObservatorySurface3,
+    &_gNeoArkObservatorySilentSurface,
+    &_gNeoArkObservatorySilentSurface,
+    &_gNeoArkObservatorySilentSurface,
+    &_gNeoArkObservatorySilentSurface,
 };
 
 AreaApplyRec D_neo_ark_observatory_80187A28[2] = {
@@ -1939,7 +2036,9 @@ void neoArkObservatoryRoomTask(Task* task)
     handlers.funcs[task->state](task);
 }
 
+#define FOLLOW_COLLISION_ROOM_GRID _gNeoArkObservatoryCollisionGrid
 #include "../../shared/follow_collision_rebuild.inc.c"
+#undef FOLLOW_COLLISION_ROOM_GRID
 
 void neoArkObservatoryGlowTask(Task* effectTask)
 {
