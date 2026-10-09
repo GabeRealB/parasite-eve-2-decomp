@@ -467,7 +467,13 @@ extern TaskDesc gActor401000StrangerTaskDesc;
 
 extern TaskDesc D_actor_511000_80155070[];
 
-extern TaskDesc D_actor_403100_8015560C[];
+/// Spawn recipes for the Burner model (index 0) and its floor-puff emitter (index 1).
+///
+/// Both use priority 96. The model recipe owns a TMD task and defers primitive
+/// buffer allocation; spawn argument 2 borrows the live Enemy. The emitter
+/// owns a single coordinate body. Keep actor_403100 and its model assets loaded
+/// throughout either task's lifetime.
+extern TaskDesc gActor403100TaskDescriptors[2];
 
 /// Odd Stranger TMD spawn descriptor; priority 96, with automatic model buffers disabled.
 ///

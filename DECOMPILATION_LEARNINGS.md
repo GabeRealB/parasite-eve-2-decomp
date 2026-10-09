@@ -46373,8 +46373,8 @@ base_1.c 100.00%`.
 ## Diff the whole object, not your functions: a retyped global rescales old code
 
 A typing pass on `actor_403100` gave the overlay's work-block global its real
-type - `extern s32 D_actor_403100_80155808;` became
-`extern Actor403100Work* D_actor_403100_80155808;` - and all 25 newly typed
+type - `extern s32 _gActor403100Work;` became
+`extern Actor403100Work* _gActor403100Work;` - and all 25 newly typed
 bodies matched instruction for instruction. The scoped build still failed the
 checksum, on the *first* function landed.
 
@@ -46382,7 +46382,7 @@ The culprit was a function nobody touched. `_actor403100Destroy` had
 been landed earlier as
 
 ```c
-worldCollisionUnlinkBody(D_actor_403100_80155808 + 0x47C);   /* s32 + byte offset */
+worldCollisionUnlinkBody(_gActor403100Work + 0x47C);   /* s32 + byte offset */
 ```
 
 which is integer arithmetic while the global is an `s32`, and *pointer*
@@ -144065,17 +144065,17 @@ move s2,s4; move s0,s5`, a `%hi` of the count pointer held in `v1` across the lo
 and fields reached as `s0` (entry), `s1` (member), `s2+s5` and `s2+s7`. The tree
 rebuilt that by hand - a `goto` loop with `entry`, `walker`, `objects` and `offset`
 locals, which keeps `loop.c` out, plus `lui`/`lw` asm for the shared `%hi`. A plain
-`for (flameIndex = 0; flameIndex < D_actor_403100_80155808->flameLifetime; flameIndex++)` with `entry = &D[flameIndex]` and `D[flameIndex]` accesses gives all
+`for (flameIndex = 0; flameIndex < _gActor403100Work->flameLifetime; flameIndex++)` with `entry = &D[flameIndex]` and `D[flameIndex]` accesses gives all
 of it: those are `loop.c`'s giv inits and hoisted invariant, and the shared `%hi` is
 `duplicate_loop_exit_test` keeping the exit test's `high` pseudo.
 
-**Member address.** `D_actor_403100_80155814[flameIndex].body.flags` folds the member offset into the displacement
-(`addu v1,s2,s5; lhu 0x8e(v1)`). Passing `&D_actor_403100_80155814[flameIndex].body` to a helper taking `WorldCollisionBody*`
+**Member address.** `_gActor403100Flames[flameIndex].body.flags` folds the member offset into the displacement
+(`addu v1,s2,s5; lhu 0x8e(v1)`). Passing `&_gActor403100Flames[flameIndex].body` to a helper taking `WorldCollisionBody*`
 computes the member's address first - `(D+0x70) + flameIndex*0xF0` - so the invariant `D+0x70`
-is hoisted and the access is `addu v1,s2,s7; lhu 0x1e(v1)`. A single `obj = &D_actor_403100_80155814[flameIndex].body`
+is hoisted and the access is `addu v1,s2,s7; lhu 0x1e(v1)`. A single `obj = &_gActor403100Flames[flameIndex].body`
 local at the top of the body makes one reduced giv instead, which changes how many
 movables `loop.c` hoists (and here let `0xFFFF0000` escape to an `$s` register).
-Writing each use through the helper matched; `(&D_actor_403100_80155814[flameIndex].body)->f` does too but is a `*&`.
+Writing each use through the helper matched; `(&_gActor403100Flames[flameIndex].body)->f` does too but is a `*&`.
 
 **Arm tails.** `flameSize = base + (age*K + 0x90)` in each arm lets `fold` pull `0x90` out
 next to `base`; an `ageGrowth` temp per arm keeps `addiu 0x90; addu flameSize,base,ageGrowth`,
@@ -153183,15 +153183,15 @@ has `$v0` (`li v0,0x300`, the `&param` address), so global-alloc gives it
 savedViewOrTargetFlags           = gGameSession->location.loc.view;   /* first set: lbu v0 */
 work->savedView = savedViewOrTargetFlags;
 ...
-linkedEnemy = D_actor_403100_8015580C;
+linkedEnemy = _gActor403100Enemy;
 linkedEnemy->bodyPos.vx = 0; ... linkedEnemy->coord = &task->extra.tmd->coords[3];
 worldTargetLinkNode(&linkedEnemy->node);
 savedViewOrTargetFlags = WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE;   /* second set */
-linkedEnemy  = D_actor_403100_8015580C;
+linkedEnemy  = _gActor403100Enemy;
 linkedEnemy->node.state.parts.flags = savedViewOrTargetFlags;
-linkedEnemy  = D_actor_403100_8015580C;
-linkedEnemy->param = &D_actor_403100_8014762C;
-linkedEnemy->recs  = D_actor_403100_80155808->hitContacts;
+linkedEnemy  = _gActor403100Enemy;
+linkedEnemy->param = &_gActor403100EnemyParams;
+linkedEnemy->recs  = _gActor403100Work->hitContacts;
 ```
 
 sched1 then orders the block `li`, `lw`, `lui a1`, `addiu a1`, `sb`

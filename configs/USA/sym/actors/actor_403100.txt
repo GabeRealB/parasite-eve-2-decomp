@@ -3,26 +3,26 @@
 // Referenced in another actor load slot, resident beside this one.
 D_actor_335800_80165FC0 = 0x80165FC0; // absolute:True owner=actor_335800
 D_actor_335800_80166098 = 0x80166098; // absolute:True owner=actor_335800
-D_actor_403100_80155638 = 0x80155638; // size:0x60 defined:True
-D_actor_403100_80155698 = 0x80155698; // size:0x54 defined:True
-D_actor_403100_801556EC = 0x801556EC; // size:0x20 defined:True
+_gActor403100PlayerRegions = 0x80155638; // size:0x60 defined:True
+_gActor403100BalconySections = 0x80155698; // size:0x54 defined:True
+_gActor403100MessageTable = 0x801556EC; // size:0x20 defined:True
 _gActor403100PlayerAnimationSets = 0x8015570C; // size:0x20 defined:True
-D_actor_403100_8015572C = 0x8015572C; // size:0x68 defined:True
-D_actor_403100_80155794 = 0x80155794; // size:0x14 defined:True
+_gActor403100AnimationSets = 0x8015572C; // size:0x68 defined:True
+_gActor403100FloorPuffPoints = 0x80155794; // size:0x14 defined:True
 D_actor_403100_801557A8 = 0x801557A8; // size:0x8 defined:True
-D_actor_403100_801557B0 = 0x801557B0; // size:0x30 defined:True
-D_actor_403100_8015560C = 0x8015560C; // size:0x18 defined:True
+_gActor403100AttackOdds = 0x801557B0; // size:0x30 defined:True
+gActor403100TaskDescriptors = 0x8015560C; // size:0x18 defined:True
 D_actor_403100_80155624 = 0x80155624; // size:0xC defined:True
-D_actor_403100_80155630 = 0x80155630; // size:0x8 defined:True
-D_actor_403100_801555EC = 0x801555EC; // size:0x20 defined:True
+_gActor403100HitEffectArgs = 0x80155630; // size:0x8 defined:True
+_gActor403100LowHealthTextureUploads = 0x801555EC; // size:0x20 defined:True
 _gActor403100BurnerBodySkeleton = 0x8013F7C4; // size:0x21C defined:True
 _gActor403100BurnerBodyPartVerts = 0x8013F9E0; // size:0x3C defined:True
 _gActor403100BurnerBodyVerts = 0x8013FA1C; // size:0x1060 defined:True
 _gActor403100BurnerBodyNormals = 0x80140A7C; // size:0x10F8 defined:True
 _gActor403100BurnerBodyStream = 0x80141B74; // size:0x5A7C defined:True
 _gActor403100BurnerBody = 0x801475F0; // size:0x24 defined:True
-D_actor_403100_80147614 = 0x80147614; // size:0x18 defined:True
-D_actor_403100_8014762C = 0x8014762C; // size:0x10 defined:True
+_gActor403100Attacks = 0x80147614; // size:0x18 defined:True
+_gActor403100EnemyParams = 0x8014762C; // size:0x10 defined:True
 _gActor403100Animation15BB0Bank1 = 0x8014763C; // size:0x30 defined:True
 _gActor403100Animation15BB0Bank4 = 0x8014766C; // size:0x130 defined:True
 _gActor403100Animation15BB0Records = 0x8014779C; // size:0x214 defined:True
@@ -173,12 +173,12 @@ _gActor403100Animation2192CBank4 = 0x801532C8; // size:0x17C defined:True
 _gActor403100Animation2192CRecords = 0x80153444; // size:0x2E8 defined:True
 _gActor403100Animation2192CIndices = 0x8015372C; // size:0x20 defined:True
 _gActor403100Animation2192C = 0x8015374C; // size:0x28 defined:True
-D_actor_403100_80153774 = 0x80153774; // size:0x1E78 defined:True
-D_actor_403100_801557E0 = 0x801557E0; // size:0x28 defined:True
-D_actor_403100_80155808 = 0x80155808; // size:0x4 defined:True
-D_actor_403100_8015580C = 0x8015580C; // size:0x4 defined:True
-D_actor_403100_80155810 = 0x80155810; // size:0x2 defined:True
-D_actor_403100_80155814 = 0x80155814; // size:0x1A40 defined:True
+_gActor403100LowHealthTextureWords = 0x80153774; // size:0x1E78 defined:True
+_gActor403100HoldForegroundSprites = 0x801557E0; // size:0x28 defined:True
+_gActor403100Work = 0x80155808; // size:0x4 defined:True
+_gActor403100Enemy = 0x8015580C; // size:0x4 defined:True
+_gActor403100FlameHitCooldown = 0x80155810; // size:0x2 defined:True
+_gActor403100Flames = 0x80155814; // size:0x1A40 defined:True
 
 dryfieldNightMotelBalconyTrySpawnFlame = 0x80182730; // type:func absolute:True owner=dryfield_night_motel_balcony shared=rooms
 
@@ -366,3 +366,17 @@ _actor403100StepHeldPlayerSqueeze = 0x8013922c; // type:func
 _actor403100StepHeldPlayerFlameBreath = 0x80139818; // type:func
 _actor403100FinishHeldPlayerThrow = 0x8013a254; // type:func
 _actor403100FinishPlayerDrag = 0x8013ae28; // type:func
+_gActor403100PlayerReactionHandlers = 0x80131e24;
+_gActor403100FloorPuffTaskStates = 0x80131e70;
+_gActor403100DriftPuffTaskStates = 0x80131e7c;
+_gActor403100SceneEntranceSteps = 0x80131eb0;
+_gActor403100SceneAimAndImpactSteps = 0x80131ebc;
+_gActor403100SceneAdvanceSteps = 0x80131ec8;
+_gActor403100SceneFlameBreathSteps = 0x80131ed8;
+_gActor403100SceneBalconyImpactSteps = 0x80131ee4;
+_gActor403100SceneTurnSteps = 0x80131ef0;
+_gActor403100SceneFlameRetreatSteps = 0x80131f00;
+_gActor403100SceneDepartureSteps = 0x80131f10;
+_gActor403100AttackApproachSteps = 0x80131f60;
+_gActor403100BuildupStunSteps = 0x80132024;
+_gActor403100WalkStages = 0x80132030;
