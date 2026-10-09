@@ -86,17 +86,35 @@ class Supply:
         mode = (page >> 7) & 3
         return (4, 8, 16)[mode] if mode < 3 else 16, (page & 15) * 64, 256 if page & 16 else 0, (clut & 63) * 16, clut >> 6
 
-    def covers(self, found, page: int, clut: int):
-        """(image rect, CLUT rect) when these rectangles hold the page and the palette, else None."""
+    def covers(self, found, page: int, clut: int, box=None):
+        """(image rect, CLUT rect) when these rectangles hold the page and the palette, else None.
+
+        With the part of the page the faces cover (`box`, in texels), the image
+        has to hold all of that part, not merely touch the page.
+        """
         bpp, tx, ty, cx, cy = self.geometry(page, clut)
         width = 64 if bpp == 4 else 128
-        image = next((r for r in found if r[0] == "image" and r[1] < tx + width and tx < r[1] + r[3] and r[2] < ty + 256 and ty < r[2] + r[4]), None)
+        if box:
+            per = 4 if bpp == 4 else 2 if bpp == 8 else 1
+            x0, x1, y0, y1 = tx + box[0] // per, tx + box[2] // per, ty + box[1], ty + box[3]
+            image = next((r for r in found if r[0] == "image" and r[1] <= x0 and x1 < r[1] + r[3] and r[2] <= y0 and y1 < r[2] + r[4]), None)
+        else:
+            image = next((r for r in found if r[0] == "image" and r[1] < tx + width and tx < r[1] + r[3] and r[2] < ty + 256 and ty < r[2] + r[4]), None)
         palette = next((r for r in found if r[0] == "clut" and r[1] <= cx < r[1] + r[3] and r[2] <= cy < r[2] + r[4]), None)
         return (image, palette) if image and (bpp == 16 or palette) else None
 
-    def resolve(self, package: str, page: int, clut: int):
-        """("own", [(file, image, palette)]) | ("ancestor", name, [(file, page, row, mode)]) | None."""
-        mine = [(path, *hit) for path in self.own(package) if (hit := self.covers(self.rects(path, None), page, clut))]
+    def resolve(self, package: str, page: int, clut: int, box=None):
+        """("own", [(file, image, palette)]) | ("ancestor", name, [(file, page, row, mode)]) | None.
+
+        Several of an overlay's own files can fit: its actors' textures are
+        stored at the same place in each. Those whose image holds all of what
+        the faces cover come first, the tightest first - a model that reads
+        half a page is the one made for the half-page image.
+        """
+        fits = [(path, *hit) for path in self.own(package) if box and (hit := self.covers(self.rects(path, None), page, clut, box))]
+        fits.sort(key=lambda found: found[1][3] * found[1][4])
+        loose = [(path, *hit) for path in self.own(package) if (hit := self.covers(self.rects(path, None), page, clut))]
+        mine = fits + [found for found in loose if found[0] not in {f[0] for f in fits}]
         if mine and not self.is_room(package):
             return ("own", mine)
         for holder in ([package] if self.is_room(package) else []) + asset_schema.ancestors_of(package, self.assets, self.tree):
@@ -290,14 +308,14 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
         for page, clut in assets[key]["textures"]:
             box = bounds.get((page, clut), [])
             page &= ~0x60
-            found = supply.resolve(package, page, clut)
+            found = supply.resolve(package, page, clut, box)
             bpp, tx, ty, cx, cy = supply.geometry(page, clut)
             if found is None:
                 how = ["none"]
                 findings[package].append(f"{key}: page ({tx}, {ty}) {bpp}-bit with palette ({cx}, {cy}) is supplied by nothing in its chain")
             elif found[0] == "own":
                 how = ["own", [index[path] for path, _i, _p in found[1]]]
-                for _path, image, palette in found[1]:
+                for _path, image, palette in found[1][:1]:      # only the best fit says how the image is meant to be read
                     column = max(0, (tx - image[1]) // 64)
                     if palette:
                         pairs[image[5]][bpp, palette[5], cy - palette[2], (cx - palette[1]) // 16, column].add(key)
