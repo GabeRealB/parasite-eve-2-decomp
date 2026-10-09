@@ -75,7 +75,7 @@ D_dryfield_r08_80180C04 = 0x80180C04; // absolute:True owner=dryfield_r08
 dryfieldDilapidatedHouseRoomTask = 0x8017EB60; // type:func absolute:True owner=dryfield_dilapidated_house
 D_dryfield_dilapidated_house_80186954 = 0x80186954; // absolute:True owner=dryfield_dilapidated_house
 D_dryfield_dilapidated_house_80186964 = 0x80186964; // absolute:True owner=dryfield_dilapidated_house
-D_dryfield_dilapidated_house_80186968 = 0x80186968; // absolute:True owner=dryfield_dilapidated_house shared=rooms
+D_dryfield_dilapidated_house_80186968 = 0x80186968; // absolute:True owner=dryfield_dilapidated_house
 D_dryfield_dilapidated_house_8018696C = 0x8018696C; // absolute:True owner=dryfield_dilapidated_house
 D_dryfield_dilapidated_house_80186974 = 0x80186974; // absolute:True owner=dryfield_dilapidated_house
 D_dryfield_dilapidated_house_80187308 = 0x80187308; // absolute:True owner=dryfield_dilapidated_house
