@@ -42,7 +42,7 @@ D_dryfield_back_street_8017F9B4 = 0x8017F9B4; // absolute:True owner=dryfield_ba
 D_dryfield_back_street_8017F9C4 = 0x8017F9C4; // absolute:True owner=dryfield_back_street
 D_dryfield_back_street_8017F9C8 = 0x8017F9C8; // absolute:True owner=dryfield_back_street
 D_dryfield_back_street_8017F9CC = 0x8017F9CC; // absolute:True owner=dryfield_back_street
-D_dryfield_back_street_8017F9D4 = 0x8017F9D4; // absolute:True owner=dryfield_back_street shared=rooms
+D_dryfield_back_street_8017F9D4 = 0x8017F9D4; // absolute:True owner=dryfield_back_street
 D_dryfield_back_street_801802A8 = 0x801802A8; // absolute:True owner=dryfield_back_street shared=rooms
 D_dryfield_back_street_80180484 = 0x80180484; // absolute:True owner=dryfield_back_street shared=rooms
 D_dryfield_back_street_80181034 = 0x80181034; // absolute:True owner=dryfield_back_street shared=rooms
@@ -59,7 +59,7 @@ dryfieldWarehouseRoomTask = 0x8017DA00; // type:func absolute:True owner=dryfiel
 D_dryfield_warehouse_8017FBBC = 0x8017FBBC; // absolute:True owner=dryfield_warehouse shared=rooms
 D_dryfield_warehouse_8017FC04 = 0x8017FC04; // absolute:True owner=dryfield_warehouse shared=rooms
 D_dryfield_warehouse_8017FC10 = 0x8017FC10; // absolute:True owner=dryfield_warehouse
-D_dryfield_warehouse_8017FC18 = 0x8017FC18; // absolute:True owner=dryfield_warehouse shared=rooms
+D_dryfield_warehouse_8017FC18 = 0x8017FC18; // absolute:True owner=dryfield_warehouse
 D_dryfield_warehouse_8017FC30 = 0x8017FC30; // absolute:True owner=dryfield_warehouse
 D_dryfield_warehouse_8018105C = 0x8018105C; // absolute:True owner=dryfield_warehouse
 D_dryfield_warehouse_80181638 = 0x80181638; // absolute:True owner=dryfield_warehouse shared=rooms

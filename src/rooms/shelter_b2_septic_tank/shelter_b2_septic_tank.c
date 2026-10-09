@@ -87,9 +87,6 @@ extern SVECTOR D_shelter_b2_septic_tank_80183514[];
 extern SVECTOR D_shelter_b2_septic_tank_80183524[];
 extern SVECTOR D_shelter_b2_septic_tank_80183534[];
 
-/// The two points, relative to the effect's parent coordinate, that the trail
-/// effect's two edges follow. The second is also read by its own name.
-
 extern u8 D_shelter_b2_septic_tank_80187045;
 
 static __inline__ s32 _shelterB2SepticTankStartEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event);

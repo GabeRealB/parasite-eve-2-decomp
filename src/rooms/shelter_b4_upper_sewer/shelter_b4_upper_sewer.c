@@ -116,23 +116,12 @@ extern SVECTOR D_shelter_b4_upper_sewer_80186490[];
 extern SVECTOR D_shelter_b4_upper_sewer_801864B0[];
 extern SVECTOR D_shelter_b4_upper_sewer_801864D0[];
 
-/// The two points the trail is emitted from, relative to the effect's parent:
-/// the first positions the effect's own coordinate, the second is the other
-/// end of the trail.
-/// The second of those points, which the per-frame state reaches through its
-/// own label rather than by indexing the pair.
-
-/// Per-variant right shifts applied to the red, green and blue channels of a
-/// disc's brightness.
-
 static void _shelterB4UpperSewerInitializeRoom(Task* task);
 static void _shelterB4UpperSewerIdleRoom(Task* task);
 static void _shelterB4UpperSewerDrawWaterSurfaces(Task* task, const _ShelterB4UpperSewerWaterSurface* surface, s16 waterY, u8 blueIntensity);
 static void _shelterB4UpperSewerInitializeWater(Task* task);
 static void _shelterB4UpperSewerSetView13SpriteHidden(s32 hidden);
 #include "../../shared/room_visual_effects.h"
-
-static RoomFxShade _gRoomEffectHaloShades[3];
 
 /// State handlers of the task `shelterB4UpperSewerRoomTask` runs,
 /// which copies the table to the stack and calls the entry for the task's
@@ -257,7 +246,7 @@ static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 
 /// Returns this overlay's three read-only halo tint rows for spawn indices 0..2.
 static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 {
-    return _gRoomEffectHaloShades;
+    return _gRoomVisualEffectsHaloShades;
 }
 #undef ROOM_FX_HALO_STORAGE_INITIALIZER
 #undef ROOM_FX_HALO_STORAGE_TYPE

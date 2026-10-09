@@ -3,7 +3,7 @@ D_shelter_b1_north_maintenance_walkway_80184AB8 = 0x80184AB8; // size:0x50 defin
 D_shelter_b1_north_maintenance_walkway_80184B08 = 0x80184B08; // size:0x10 defined:True
 D_shelter_b1_north_maintenance_walkway_80184B18 = 0x80184B18; // size:0x30 defined:True
 D_shelter_b1_north_maintenance_walkway_80184B48 = 0x80184B48; // size:0x8 defined:True
-RoomFx_DiscShades = 0x80184B74; // size:0xC defined:True
+_gRoomVisualEffectsGlowDiscShades = 0x80184B74; // size:0xC defined:True
 D_shelter_b1_north_maintenance_walkway_80184A78 = 0x80184A78; // size:0xC defined:True
 D_shelter_b1_north_maintenance_walkway_80184A84 = 0x80184A84; // size:0x28 defined:True
 D_shelter_b1_north_maintenance_walkway_80184AAC = 0x80184AAC; // size:0xC defined:True
@@ -54,8 +54,8 @@ gActor202400Tasks = 0x8014E47C; // absolute:True owner=actor_202400
 gActor204600SucklercephTaskDesc = 0x8014F698; // absolute:True owner=actor_204600
 gActor204600SkullStalkerTaskDesc = 0x801502BC; // absolute:True owner=actor_204600
 gActor05700RookGolemTasks = 0x801611F8; // absolute:True owner=actor_205700
-RoomFx_TrailOffsets = 0x80184B64; // size:0x10 defined:True
-_gRoomEffectHaloShades = 0x80184B50; // size:0x14 defined:True
+_gRoomVisualEffectsTwinTrailEndpointOffsets = 0x80184B64; // size:0x10 defined:True
+_gRoomVisualEffectsHaloShades = 0x80184B50; // size:0x14 defined:True
 gRoomEventStagedMsg = 0x80185B74; // size:0x8 defined:True
 D_shelter_b1_north_maintenance_walkway_80185B7C = 0x80185B7C; // size:0x1 defined:True
 D_shelter_b1_north_maintenance_walkway_80185B7D = 0x80185B7D; // size:0x1 defined:True

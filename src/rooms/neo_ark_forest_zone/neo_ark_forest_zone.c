@@ -51,6 +51,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
+#define ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/room_events.h"
 #include "../../shared/falling_leaves.h"
@@ -63,10 +64,6 @@ extern RoomLatchedEvent gRoomEventLatched;
 
 /// Payload handed to the helper task 0x31 the event may start.
 extern RoomFadeStorage gRoomEventFade;
-
-/// The smoke trail's two spawn offsets: `[0]` places the object's own frame
-/// and `[1]` the second trail's frame. `RoomFx_TrailOffsets[1]` is
-/// `[1]` under its own name, which the per-frame path reads directly.
 
 static void _neoArkForestZoneInitializeRoom(Task* task);
 static void _neoArkForestZonePauseRoamersState(Task* task);

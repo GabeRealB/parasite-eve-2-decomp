@@ -59,7 +59,7 @@ D_map_neo_ark_8017C620 = 0x8017C620; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017C690 = 0x8017C690; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017C720 = 0x8017C720; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017C760 = 0x8017C760; // absolute:True owner=map_neo_ark
-RoomFx_TrailOffsets = 0x8017FC18; // size:0x10 defined:True
+_gRoomVisualEffectsTwinTrailEndpointOffsets = 0x8017FC18; // size:0x10 defined:True
 
 neoArkPyramidRoomVisualEffectsFlashTask = 0x8017DC50; // type:func
 

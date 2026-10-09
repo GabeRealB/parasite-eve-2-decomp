@@ -66,10 +66,6 @@ extern RoomFadeStorage gRoomEventFade;
 /// The room's message table, which the room setup task installs.
 extern TaskMessageEntry D_neo_ark_savanna_zone_8017F9AC[];
 
-/// The coordinate trail's two spawn offsets: `[0]` places the object's own
-/// frame and `[1]` the second trail's frame. `RoomFx_TrailOffsets[1]`
-/// is `[1]` under its own name, which the per-frame path reads directly.
-
 extern WorldCollisionGrid         D_neo_ark_savanna_zone_8017FBD0[1];
 extern WorldCollisionOccluder     D_neo_ark_savanna_zone_801808CC[1];
 extern WorldCollisionTrigger      D_neo_ark_savanna_zone_801804EC[4];

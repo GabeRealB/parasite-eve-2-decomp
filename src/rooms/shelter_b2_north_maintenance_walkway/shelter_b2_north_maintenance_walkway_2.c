@@ -57,9 +57,6 @@ extern SVECTOR D_shelter_b2_north_maintenance_walkway_80183C30[];
 /// Per-palette channel shifts for the halo, indexed by the palette the spawn
 /// argument selects.
 
-/// Offsets from the anchor of the two points the smoke trail follows. The
-/// second is also reached under its own name.
-
 TaskDesc D_shelter_b2_north_maintenance_walkway_80183B48 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
@@ -119,7 +116,7 @@ static void _glowDrawTintedDisc(const SVECTOR* worldPoint, s32 radiusScale, s32 
 /// Returns this overlay's three read-only halo tint rows for spawn indices 0..2.
 static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 {
-    return _gRoomEffectHaloShades.entries;
+    return _gRoomVisualEffectsHaloShades.entries;
 }
 #undef ROOM_FX_HALO_STORAGE_INITIALIZER
 #undef ROOM_FX_HALO_STORAGE_TYPE

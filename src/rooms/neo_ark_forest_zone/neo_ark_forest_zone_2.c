@@ -37,6 +37,7 @@
 #include "main/tmd_types.h"
 
 #include "mapui/map_neo_ark.h"
+#define ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/room_events.h"
 #include "../../shared/roaming_enemies.h"

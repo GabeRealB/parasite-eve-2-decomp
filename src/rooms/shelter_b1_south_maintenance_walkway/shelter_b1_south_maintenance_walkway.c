@@ -71,9 +71,6 @@ extern TaskMessageEntry D_shelter_b1_south_maintenance_walkway_80182308[];
 /// ten pairs of glow end points followed by the centre of the red disc.
 extern SVECTOR D_shelter_b1_south_maintenance_walkway_80182330[];
 
-/// The two points of the twin trail, as offsets from its anchor frame. The
-/// second is also reached under its own name.
-
 /// Spawn payload of the task 0x31 the event task may start.
 extern RoomFadeStorage  gRoomEventFade;
 extern RoomEventMsg     gRoomEventStagedMsg;

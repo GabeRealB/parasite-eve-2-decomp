@@ -1,5 +1,5 @@
 // Overlay-local symbols for neo_ark_pavilion.
-RoomFx_DiscShades = 0x801838A8; // size:0xC defined:True
+_gRoomVisualEffectsGlowDiscShades = 0x801838A8; // size:0xC defined:True
 D_neo_ark_pavilion_80183864 = 0x80183864; // size:0xC defined:True
 D_neo_ark_pavilion_80183870 = 0x80183870; // size:0x28 defined:True
 D_neo_ark_pavilion_801838B4 = 0x801838B4; // size:0x20 defined:True
@@ -10,7 +10,7 @@ D_neo_ark_pavilion_801838F4 = 0x801838F4; // size:0x4 defined:True
 D_neo_ark_pavilion_8018384C = 0x8018384C; // size:0xC defined:True
 D_neo_ark_pavilion_80183858 = 0x80183858; // size:0xC defined:True
 D_neo_ark_pavilion_801838F8 = 0x801838F8; // size:0xA8 defined:True
-RoomFx_TrailOffsets = 0x80183898; // size:0x10 defined:True
+_gRoomVisualEffectsTwinTrailEndpointOffsets = 0x80183898; // size:0x10 defined:True
 D_neo_ark_pavilion_801839A0 = 0x801839A0; // size:0x2 defined:True
 D_neo_ark_pavilion_801839A4 = 0x801839A4; // size:0x40 defined:True
 D_neo_ark_pavilion_801839E4 = 0x801839E4; // size:0x40 defined:True

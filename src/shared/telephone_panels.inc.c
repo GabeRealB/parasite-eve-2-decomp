@@ -91,7 +91,7 @@ static void _telephonePlayDataTask(Task* task)
     list           = &Telephone_Data_80181C44;
     object         = task->spawnArg2.pointer;
     object->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&(object)->panel, Telephone_Data_8017D610);
+    uiDrawPanelLabel(&(object)->panel, _gTelephonePlayDataTitle);
     if (task->state == TELEPHONE_PANEL_INITIALIZE) {
         uiSpawnObject(&Telephone_Data_80181C90, 0, USER_INTERFACE_PANEL_INACTIVE, 1, object);
         uiFitPanelToList(list, &(object)->panel);

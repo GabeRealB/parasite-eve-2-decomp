@@ -135,9 +135,6 @@ extern EvsCommand D_shelter_b1_pod_access_tunnel_8018380C[];
 extern SVECTOR D_shelter_b1_pod_access_tunnel_801839A4[];
 extern SVECTOR D_shelter_b1_pod_access_tunnel_801839E4[];
 
-/// The two points of the twin trail, as offsets from its anchor frame. The
-/// second is also reached under its own name.
-
 extern RoomFadeStorage  gRoomEventFade;
 extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;

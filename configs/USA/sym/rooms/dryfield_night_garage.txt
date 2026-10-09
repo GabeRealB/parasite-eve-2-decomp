@@ -1,5 +1,5 @@
 // Overlay-local symbols for dryfield_night_garage.
-Shop_Data_8017D6F4 = 0x8017D6F4; // force_not_migration:True string with a non-zero byte after its terminator, read from C
+_gShopWeaponSupplyRefillTitle = 0x8017D6F4; // force_not_migration:True string with a non-zero byte after its terminator, read from C
 Shop_Data_801815F8 = 0x801815F8; // size:0x8 defined:True
 Shop_Data_80181600 = 0x80181600; // size:0x8 defined:True
 Shop_Data_80181608 = 0x80181608; // size:0x8 defined:True
@@ -96,9 +96,9 @@ D_map_dryfield_full_8017C4E8 = 0x8017C4E8; // absolute:True owner=map_dryfield_f
 D_map_dryfield_full_8017C538 = 0x8017C538; // absolute:True owner=map_dryfield_full
 D_map_dryfield_full_8017C568 = 0x8017C568; // absolute:True owner=map_dryfield_full
 D_map_dryfield_full_8017C578 = 0x8017C578; // absolute:True owner=map_dryfield_full
-Shop_Data_80181ADC = 0x80181ADC; // size:0x4 defined:True
+_gShopCategoryRowCallbacks = 0x80181ADC; // size:0x4 defined:True
 Shop_Data_80181AE0 = 0x80181AE0; // size:0x24 defined:True
-Shop_Data_80181B04 = 0x80181B04; // size:0x8 defined:True
+_gShopPurchasePromptRowCallbacks = 0x80181B04; // size:0x8 defined:True
 Shop_Data_80181B0C = 0x80181B0C; // size:0x24 defined:True
 Shop_Data_80181B30 = 0x80181B30; // size:0x1C defined:True
 Shop_Data_80181B4C = 0x80181B4C; // size:0x1C defined:True
@@ -165,7 +165,7 @@ D_dryfield_night_garage_80186734 = 0x80186734; // size:0x390 defined:True
 _gDryfieldNightGaragePointLights = 0x80186AC4; // size:0x2A0 defined:True
 _gDryfieldNightGarageRoomLights = 0x80186D64; // size:0x18 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
-Shop_ItemListDescriptor = 0x80181BBC; // size:0x1C defined:True
+_gShopRetainedItemListDescriptor = 0x80181BBC; // size:0x1C defined:True
 Shop_Data_80181BD8 = 0x80181BD8; // size:0x1C defined:True
 Shop_Data_80181BF4 = 0x80181BF4; // size:0x1C defined:True
 Shop_Data_80181C10 = 0x80181C10; // size:0x1C defined:True
@@ -256,11 +256,11 @@ _shopPurchaseQuantityTask = 0x8017F794; // type:func
 _shopDrawPassRow = 0x8017FC14; // type:func
 _shopPurchasePromptTask = 0x8017FCD0; // type:func
 _shopSessionTask = 0x8017FDF8; // type:func
-Shop_Data_8017D6D0 = 0x8017D6D0;
-Shop_Data_8017D6D8 = 0x8017D6D8;
-Shop_Data_8017D6DC = 0x8017D6DC;
-Shop_Data_8017D6E4 = 0x8017D6E4;
-Shop_Data_8017D6EC = 0x8017D6EC;
+_gShopItemListTitle = 0x8017D6D0;
+_gShopBpLabel = 0x8017D6D8;
+_gShopCategoryListTitle = 0x8017D6DC;
+_gShopCarriedRowCapacityLabel = 0x8017D6E4;
+_gShopNoticeTitle = 0x8017D6EC;
 _glowDrawGreyCapsule = 0x80180D9C; // type:func
 _garageSoundMsg = 0x80180300; // type:func
 _dryfieldNightGarageBlackoutTask = 0x80180cec; // type:func

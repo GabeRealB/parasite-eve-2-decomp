@@ -58,12 +58,6 @@ extern SVECTOR D_shelter_b4_lower_sewer_80181EA4[];
 extern SVECTOR D_shelter_b4_lower_sewer_80181F04[];
 extern SVECTOR D_shelter_b4_lower_sewer_80181F14[];
 
-/// The two points the ribbon trail is emitted from, relative to the effect's
-/// parent: the first positions the effect's own coordinate, the second is the
-/// other end of the trail.
-/// The second of those points, which the trail's per-frame state reaches
-/// through its own label rather than by indexing the pair.
-
 SVECTOR D_shelter_b4_lower_sewer_80181EA4[12] = {
     { -0x3B42, -5090, 2290, 0 },
     { -0x3692, -5090, 2290, 0 },

@@ -8,7 +8,7 @@ D_shelter_b2_pod_access_tunnel_80185708 = 0x80185708; // size:0x1 defined:True
 D_shelter_b2_pod_access_tunnel_80185709 = 0x80185709; // size:0x1 defined:True
 D_shelter_b2_pod_access_tunnel_8018570A = 0x8018570A; // size:0x1 defined:True
 D_shelter_b2_pod_access_tunnel_8018570B = 0x8018570B; // size:0x1 defined:True
-_gRoomEffectHaloShades = 0x80183DC8; // size:0x14 defined:True
+_gRoomVisualEffectsHaloShades = 0x80183DC8; // size:0x14 defined:True
 D_shelter_b2_pod_access_tunnel_80183DEC = 0x80183DEC; // size:0x20 defined:True
 D_shelter_b2_pod_access_tunnel_80183E0C = 0x80183E0C; // size:0x10 defined:True
 D_shelter_b2_pod_access_tunnel_80183E1C = 0x80183E1C; // size:0x8 defined:True
@@ -75,7 +75,7 @@ D_shelter_b2_pod_access_tunnel_801856A0 = 0x801856A0; // size:0xC defined:True
 D_shelter_b2_pod_access_tunnel_80183BC0 = 0x80183BC0; // size:0xC defined:True
 D_shelter_b2_pod_access_tunnel_80183BCC = 0x80183BCC; // size:0x30 defined:True
 D_shelter_b2_pod_access_tunnel_80183BFC = 0x80183BFC; // size:0xC defined:True
-RoomFx_TrailOffsets = 0x80183DDC; // size:0x10 defined:True
+_gRoomVisualEffectsTwinTrailEndpointOffsets = 0x80183DDC; // size:0x10 defined:True
 
 shelterB2PodAccessTunnelEffectSpriteDriftTask = 0x8017E6E0; // type:func
 

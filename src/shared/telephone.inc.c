@@ -297,9 +297,14 @@ static void _telephoneDrawPlayDataRow(UiList* list, UiObject* object)
 #undef TELEPHONE_DRAW_PLAY_DATA_CAPTION
 }
 
-static const char Telephone_Data_8017D610[] = "Play Data";
+/// NUL-terminated title of the nine-row play-statistics panel.
+static const char _gTelephonePlayDataTitle[] = "Play Data";
 
-static const u8 Telephone_Data_8017D61C[] = "100.0%";
+/// Fixed byte-text label for usage shares at or above 100 percent.
+///
+/// The usage renderer keeps this one-decimal spelling; smaller shares are
+/// formatted with two fractional digits. Includes the NUL terminator.
+static const u8 _gTelephoneFullUsageShareText[] = "100.0%";
 
 /// Formats a sub-100-percent usage share in hundredths of a percent.
 ///
@@ -429,7 +434,7 @@ static void _telephoneDrawUsageRow(UiList* list, UiObject* object)
         itemMenuDrawDefaultItemIcon(object, rowX, rowY, itemId);
     }
     if (usageShare >= TELEPHONE_PERCENT_WHOLE) {
-        textDrawUiLine(object, -list->rowTextX.signedValue, list->rowTextY.signedValue, Telephone_Data_8017D61C, list->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+        textDrawUiLine(object, -list->rowTextX.signedValue, list->rowTextY.signedValue, _gTelephoneFullUsageShareText, list->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
     } else {
         _telephoneFormatUsageShare(formatBuffer, usageShare);
         textDrawUiLine(object, -list->rowTextX.signedValue, list->rowTextY.signedValue, percentageText, list->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
@@ -646,9 +651,11 @@ static void _telephoneBuildPeUsageList(UiList* list, const UiObject* object)
     list->selectedItemIndex                   = 0;
 }
 
-static const char Telephone_Data_8017D624[] = "Weapon Data";
+/// NUL-terminated title of the weapon-usage statistics panel.
+static const char _gTelephoneWeaponUsageTitle[] = "Weapon Data";
 
-static const char Telephone_Data_8017D630[] = "PE Data";
+/// NUL-terminated title of the Parasite Energy usage statistics panel.
+static const char _gTelephonePeUsageTitle[] = "PE Data";
 
 /// Updates a weapon or Parasite Energy usage panel and its child windows.
 ///
@@ -671,9 +678,9 @@ static void _telephoneUsageTask(Task* task)
     object->result = USER_INTERFACE_RESULT_NONE;
     list           = &Telephone_Data_80181C6C;
     if (task->spawnArg1.value == TELEPHONE_USAGE_WEAPONS) {
-        uiDrawPanelLabel(&(object)->panel, Telephone_Data_8017D624);
+        uiDrawPanelLabel(&(object)->panel, _gTelephoneWeaponUsageTitle);
     } else {
-        uiDrawPanelLabel(&(object)->panel, Telephone_Data_8017D630);
+        uiDrawPanelLabel(&(object)->panel, _gTelephonePeUsageTitle);
     }
     // Keep initialization pending when work allocation fails.
     if (task->state == TELEPHONE_PANEL_INITIALIZE) {

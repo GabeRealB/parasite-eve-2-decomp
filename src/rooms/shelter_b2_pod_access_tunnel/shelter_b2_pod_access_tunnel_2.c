@@ -64,11 +64,6 @@ extern SVECTOR D_shelter_b2_pod_access_tunnel_80183CC8[];
 /// Tint rows for the expanding halo, indexed by the palette selector in its
 /// spawn argument.
 
-/// The two offsets the trail task places its coordinates at: `[0]` for the
-/// object's own coordinate and `[1]` for the second trail. The per-tick path
-/// reaches `[1]` under its own name,
-/// `RoomFx_TrailOffsets[1]`.
-
 extern WorldCollisionGrid     D_shelter_b2_pod_access_tunnel_801841B4[1];
 extern WorldCollisionOccluder D_shelter_b2_pod_access_tunnel_80185664[1];
 extern WorldCollisionTrigger  D_shelter_b2_pod_access_tunnel_80184FD8[4];
@@ -162,7 +157,7 @@ SVECTOR D_shelter_b2_pod_access_tunnel_80183CC8[32] = {
 /// Returns this overlay's three read-only halo tint rows for spawn indices 0..2.
 static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 {
-    return _gRoomEffectHaloShades.entries;
+    return _gRoomVisualEffectsHaloShades.entries;
 }
 #undef ROOM_FX_HALO_STORAGE_INITIALIZER
 #undef ROOM_FX_HALO_STORAGE_TYPE

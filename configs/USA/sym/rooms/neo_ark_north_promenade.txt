@@ -41,9 +41,9 @@ gActor105600PawnGolemTasks = 0x801482C0; // absolute:True owner=actor_105600
 D_map_neo_ark_8017B0F0 = 0x8017B0F0; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017B120 = 0x8017B120; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017B160 = 0x8017B160; // absolute:True owner=map_neo_ark
-RoomFx_TrailOffsets = 0x80181DA4; // size:0x10 defined:True
+_gRoomVisualEffectsTwinTrailEndpointOffsets = 0x80181DA4; // size:0x10 defined:True
 D_neo_ark_north_promenade_80181D68 = 0x80181D68; // size:0x28 defined:True
-_gRoomEffectHaloShades = 0x80181D90; // size:0x14 defined:True
+_gRoomVisualEffectsHaloShades = 0x80181D90; // size:0x14 defined:True
 
 neoArkNorthPromenadeRoomVisualEffectsFlashTask = 0x8017FDD4; // type:func
 

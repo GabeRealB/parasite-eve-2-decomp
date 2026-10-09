@@ -177,8 +177,6 @@ extern s8 D_shelter_b6_nursery_80185034[];
 
 /// Anchor points of the room's glints and effects.
 
-/// The two ends of the trail effect, relative to its parent coordinate.
-
 /// The cutscene's running sound task.
 extern Task* gRoomCutsceneSoundTask;
 

@@ -70,12 +70,6 @@ extern TaskMessageEntry D_shelter_1f_vehicular_airlock_80182034[];
 extern SVECTOR D_shelter_1f_vehicular_airlock_8018205C[];
 extern SVECTOR D_shelter_1f_vehicular_airlock_8018206C[];
 
-/// The trail's two ends as offsets from the parent coordinate: `[0]` places
-/// the object itself and `[1]` the trail's far end.
-
-/// The far end's offset, `RoomFx_TrailOffsets[1]` reached
-/// by its own name, as the task does on every tick after the first.
-
 /// Spawn argument of the helper task 0x31 the room's event task starts.
 extern RoomFadeStorage gRoomEventFade;
 

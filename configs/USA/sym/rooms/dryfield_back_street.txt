@@ -42,7 +42,7 @@ gActor00100DesertChaserTaskDesc = 0x8014D8A4; // absolute:True owner=actor_40010
 gActor205600PawnGolemTasks = 0x801602C0; // absolute:True owner=actor_205600
 D_map_dryfield_8017AEA4 = 0x8017AEA4; // absolute:True owner=map_dryfield
 D_map_dryfield_8017AED4 = 0x8017AED4; // absolute:True owner=map_dryfield
-RoomFx_TrailOffsets = 0x8017F9A4; // size:0x10 defined:True
+_gRoomVisualEffectsTwinTrailEndpointOffsets = 0x8017F9A4; // size:0x10 defined:True
 
 dryfieldBackStreetRoomVisualEffectsFlashTask = 0x8017D9D0; // type:func
 

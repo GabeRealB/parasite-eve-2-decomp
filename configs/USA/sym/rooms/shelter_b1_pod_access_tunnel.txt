@@ -141,7 +141,7 @@ D_shelter_b1_pod_access_tunnel_80184D0D = 0x80184D0D; // size:0x1 defined:True
 D_shelter_b1_pod_access_tunnel_80184D0E = 0x80184D0E; // size:0x1 defined:True
 D_shelter_b1_pod_access_tunnel_80184D0F = 0x80184D0F; // size:0x1 defined:True
 gRoomEventLatched = 0x80184D10; // size:0xC defined:True
-RoomFx_TrailOffsets = 0x80183A04; // size:0x10 defined:True
+_gRoomVisualEffectsTwinTrailEndpointOffsets = 0x80183A04; // size:0x10 defined:True
 
 shelterB1PodAccessTunnelDrawGlowsTask = 0x8017E7D4; // type:func
 

@@ -107,7 +107,7 @@ D_map_neo_ark_8017C070 = 0x8017C070; // absolute:True owner=map_neo_ark
 D_neo_ark_shrine_8018686C = 0x8018686C; // size:0x20 defined:True
 D_neo_ark_shrine_8018688C = 0x8018688C; // size:0x40 defined:True
 D_neo_ark_shrine_801868CC = 0x801868CC; // size:0x40 defined:True
-RoomFx_TrailOffsets = 0x80182714; // size:0x10 defined:True
+_gRoomVisualEffectsTwinTrailEndpointOffsets = 0x80182714; // size:0x10 defined:True
 D_neo_ark_shrine_80181E34 = 0x80181E34; // size:0x28 defined:True
 D_neo_ark_shrine_80181E5C = 0x80181E5C; // size:0x18 defined:True
 D_neo_ark_shrine_80181E74 = 0x80181E74; // size:0x4 defined:True

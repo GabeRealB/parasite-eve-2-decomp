@@ -5,7 +5,7 @@
 /// Runs an attached charge disc with player-joint sparks, flicker and a fading release ring.
 ///
 /// `task` owns a coordinate body and the zeroed `EffectWork` in
-/// `spawnArg2.pointer`. `spawnArg1.value` indexes the two `RoomFx_DiscShades`
+/// `spawnArg2.pointer`. `spawnArg1.value` indexes the two `_gRoomVisualEffectsGlowDiscShades`
 /// rows (0 or 1). The work's borrowed parent coordinate and its ancestors must
 /// remain live. ATTACH replaces the spawn placement with an identity rotation
 /// and the copied offset in that parent's axes; this first active tick does not draw.
@@ -25,16 +25,16 @@ static inline void _roomVisualEffectsGlowDiscTask(Task* task)
     ///
     /// Captures this task's `work`, `task` and three-byte `rgb` locals; the
     /// tint index must be 0 or 1. Use as a standalone statement list in a block.
-#define ROOM_VISUAL_EFFECTS_GROW_AND_TINT_GLOW_DISC()                        \
-    if (work->scale < GLOW_DISC_FULL_BRIGHTNESS) {                           \
-        work->scale += GLOW_DISC_BRIGHTEN_STEP;                              \
-    }                                                                        \
-    if (work->angle < GLOW_DISC_FULL_RADIUS) {                               \
-        work->angle += GLOW_DISC_RADIUS_STEP;                                \
-    }                                                                        \
-    rgb[0] = work->scale >> RoomFx_DiscShades[task->spawnArg1.value].rShift; \
-    rgb[1] = work->scale >> RoomFx_DiscShades[task->spawnArg1.value].gShift; \
-    rgb[2] = work->scale >> RoomFx_DiscShades[task->spawnArg1.value].bShift
+#define ROOM_VISUAL_EFFECTS_GROW_AND_TINT_GLOW_DISC()                                        \
+    if (work->scale < GLOW_DISC_FULL_BRIGHTNESS) {                                           \
+        work->scale += GLOW_DISC_BRIGHTEN_STEP;                                              \
+    }                                                                                        \
+    if (work->angle < GLOW_DISC_FULL_RADIUS) {                                               \
+        work->angle += GLOW_DISC_RADIUS_STEP;                                                \
+    }                                                                                        \
+    rgb[0] = work->scale >> _gRoomVisualEffectsGlowDiscShades[task->spawnArg1.value].rShift; \
+    rgb[1] = work->scale >> _gRoomVisualEffectsGlowDiscShades[task->spawnArg1.value].gShift; \
+    rgb[2] = work->scale >> _gRoomVisualEffectsGlowDiscShades[task->spawnArg1.value].bShift
 
     enum { GLOW_DISC_FULL_BRIGHTNESS      = 0xC0,
            GLOW_DISC_BRIGHTEN_STEP        = 8,
@@ -104,9 +104,9 @@ static inline void _roomVisualEffectsGlowDiscTask(Task* task)
             break;
         case ROOM_VISUAL_EFFECTS_GLOW_DISC_RELEASE:
             actorRenderComposeCoord(coord);
-            rgb[0] = work->scale >> RoomFx_DiscShades[task->spawnArg1.value].rShift;
-            rgb[1] = work->scale >> RoomFx_DiscShades[task->spawnArg1.value].gShift;
-            rgb[2] = work->scale >> RoomFx_DiscShades[task->spawnArg1.value].bShift;
+            rgb[0] = work->scale >> _gRoomVisualEffectsGlowDiscShades[task->spawnArg1.value].rShift;
+            rgb[1] = work->scale >> _gRoomVisualEffectsGlowDiscShades[task->spawnArg1.value].gShift;
+            rgb[2] = work->scale >> _gRoomVisualEffectsGlowDiscShades[task->spawnArg1.value].bShift;
             _roomVisualEffectsDrawFlyingDisc(coord, work->angle, rgb);
             ROOM_VISUAL_EFFECTS_SET_ORANGE_TINT(rgb, work->scale);
             // Freeze a local release offset in composed view axes on entering this phase.

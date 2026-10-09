@@ -18,14 +18,16 @@
  * whole. A room with no task of the library may still use a helper fragment on
  * its own, as one uses _glow_quad.
  *
- * Trail and disc tables have external linkage: some rooms define a table in
- * one file and use it from another. Halo shades are private to each carrier.
+ * Disc and halo shades are private to each carrier. Twin-trail offsets are
+ * private except in Acropolis Cafeteria and Neo Ark Forest Zone, whose data
+ * and task live in different translation units. Those carriers define
+ * ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS before including this header.
  * Include _halo_data, _trail_data and _disc_data for the room's sections, at
- * the tables' position in the data. The halo shades are always the same three
- * rows, but the two bytes of alignment after them are zero in some rooms and
- * hold differing non-zero fill in others, so the room sets
+ * the tables' position in the data. The halo shades have the same three readable
+ * rows. Some carriers also preserve a following unread halfword whose role is
+ * unproven, so the room sets
  * ROOM_FX_HALO_STORAGE_TYPE, _BOUND and _INITIALIZER before including
- * _halo_data - RoomFxShade [3], or RoomFxHaloStorage to spell the fill - and
+ * _halo_data - RoomFxShade [3], or RoomFxHaloStorage to retain that halfword - and
  * defines _roomVisualEffectsGetHaloShades, the array view the halo code reads, where its
  * halo code is.
  */
@@ -156,8 +158,23 @@ typedef struct {
 } RoomFxHaloStorage;
 STATIC_ASSERT_SIZEOF(RoomFxHaloStorage, 0x14);
 
-extern SVECTOR     RoomFx_TrailOffsets[2];
-extern RoomFxShade RoomFx_DiscShades[2];
+/// Selects the twin-trail offset table's linkage for the complete translation unit.
+///
+/// Define `ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS` before this header
+/// in both the provider and reader TUs of Acropolis Cafeteria or Neo Ark Forest
+/// Zone. Other carriers define their private table before including the task body.
+/// `ROOM_VISUAL_EFFECTS_TWIN_TRAIL_ENDPOINT_OFFSETS` is an array-name binding:
+/// indexing it evaluates the index once and retains the signed SVECTOR components.
+#ifdef ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS
+/// Twin-trail endpoint positions in whole units along the borrowed parent's axes.
+///
+/// Entry 0 places the task's coordinate; entry 1 places the second endpoint.
+/// Both are composed into world space before recording the trail histories.
+extern SVECTOR gRoomVisualEffectsTwinTrailEndpointOffsets[2];
+#define ROOM_VISUAL_EFFECTS_TWIN_TRAIL_ENDPOINT_OFFSETS gRoomVisualEffectsTwinTrailEndpointOffsets
+#else
+#define ROOM_VISUAL_EFFECTS_TWIN_TRAIL_ENDPOINT_OFFSETS _gRoomVisualEffectsTwinTrailEndpointOffsets
+#endif
 
 /* Each carrier returns its three readable tint rows, live for that overlay's
  * lifetime. Spawn tint indices must be 0..2; alignment fill is not a row. */

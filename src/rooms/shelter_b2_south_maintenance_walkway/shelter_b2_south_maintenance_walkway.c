@@ -84,9 +84,6 @@ extern TaskMessageEntry D_shelter_b2_south_maintenance_walkway_80182550[];
 /// Views share pairs, so each view draws its own run of the table.
 extern SVECTOR D_shelter_b2_south_maintenance_walkway_80182578[];
 
-/// Offsets from the anchor of the two points the twin trail follows. The
-/// second is also reached under its own name.
-
 /// Spawn payload of the task 0x31 the handler's event task may start.
 extern RoomFadeStorage gRoomEventFade;
 

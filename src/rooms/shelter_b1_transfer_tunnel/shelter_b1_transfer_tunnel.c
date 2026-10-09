@@ -65,10 +65,6 @@ extern SVECTOR D_shelter_b1_transfer_tunnel_801828F8[];
 /// Per-palette right shifts that turn the halo's level into its red, green
 /// and blue channels.
 
-/// The smoke trail's two spawn offsets: `[0]` places the effect's own
-/// coordinate and `[1]` the second trail's origin. State 1 reads `[1]` again
-/// under its own name.
-
 static void _shelterB1TransferTunnelInitializeRoom(Task* task);
 static void _shelterB1TransferTunnelIdle(Task* task);
 
@@ -117,7 +113,7 @@ SVECTOR D_shelter_b1_transfer_tunnel_801828F8[7] = {
 /// Returns this overlay's three read-only halo tint rows for spawn indices 0..2.
 static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 {
-    return _gRoomEffectHaloShades.entries;
+    return _gRoomVisualEffectsHaloShades.entries;
 }
 #undef ROOM_FX_HALO_STORAGE_INITIALIZER
 #undef ROOM_FX_HALO_STORAGE_TYPE

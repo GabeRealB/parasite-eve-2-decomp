@@ -1,8 +1,8 @@
 // Overlay-local symbols for shelter_b1_storeroom.
-_gRoomEffectHaloShades = 0x80184B20; // size:0x12 defined:True
+_gRoomVisualEffectsHaloShades = 0x80184B20; // size:0x12 defined:True
 D_shelter_b1_storeroom_80184998 = 0x80184998; // size:0x188 defined:True
 D_shelter_b1_storeroom_80184968 = 0x80184968; // size:0x30 defined:True
-RoomFx_DiscShades = 0x80184B44; // size:0xC defined:True
+_gRoomVisualEffectsGlowDiscShades = 0x80184B44; // size:0xC defined:True
 D_shelter_b1_storeroom_80184B50 = 0x80184B50; // size:0x10 defined:True
 D_shelter_b1_storeroom_80184B60 = 0x80184B60; // size:0x8 defined:True
 D_shelter_b1_storeroom_80184B68 = 0x80184B68; // size:0x4 defined:True
@@ -56,7 +56,7 @@ gActor100300Tasks = 0x80148110; // absolute:True owner=actor_100300 shared=actor
 gActor401800OddStrangerTaskDesc = 0x80155AC4; // absolute:True owner=actor_401800
 gActor205600PawnGolemTasks = 0x801602C0; // absolute:True owner=actor_205600
 D_actor_300700_801693AC = 0x801693AC; // absolute:True owner=actor_300700
-RoomFx_TrailOffsets = 0x80184B34; // size:0x10 defined:True
+_gRoomVisualEffectsTwinTrailEndpointOffsets = 0x80184B34; // size:0x10 defined:True
 
 shelterB1StoreroomRoomVisualEffectsFlashTask = 0x80180DCC; // type:func
 

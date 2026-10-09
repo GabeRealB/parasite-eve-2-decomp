@@ -47,10 +47,6 @@
 /// The room's message table, which the message-driven task installs.
 extern TaskMessageEntry D_neo_ark_south_promenade_8017F6B4[];
 
-/// The smoke trail's two spawn offsets: `[0]` places the object's own frame
-/// and `[1]` the second trail's frame. `RoomFx_TrailOffsets[1]` is
-/// `[1]` under its own name, which the per-frame path reads directly.
-
 static void _neoArkSouthPromenadeInitRoomTask(Task* task);
 static void _neoArkSouthPromenadeIdleRoomTask(Task* task);
 

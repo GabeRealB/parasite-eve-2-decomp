@@ -57,6 +57,7 @@
 #include "main/wipsys_types.h"
 
 #include "mapui/map_akropolis.h"
+#define ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS
 #include "../../shared/room_visual_effects.h"
 
 extern AnimationSet* D_acropolis_cafeteria_80182C60[4];

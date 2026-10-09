@@ -205,7 +205,7 @@ MineMesaRemaining = 0x80189B6C; // type:s16 size:0x2 defined:True
 MineMesaCooldown = 0x80189B6E; // type:s16 size:0x2 defined:True
 D_mine_mesa_80189B70 = 0x80189B70; // type:s16 size:0x2 defined:True
 D_mine_mesa_80189B74 = 0x80189B74; // size:0x8 defined:True
-RoomFx_TrailOffsets = 0x80186528; // size:0x10 defined:True
+_gRoomVisualEffectsTwinTrailEndpointOffsets = 0x80186528; // size:0x10 defined:True
 
 mineMesaBuildWalls = 0x801811C4; // type:func
 

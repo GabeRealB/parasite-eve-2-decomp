@@ -56,6 +56,7 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
+#define ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/actor_contacts.h"
 #include "../../shared/streamed_scene.h"

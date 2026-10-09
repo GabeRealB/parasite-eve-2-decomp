@@ -56,9 +56,6 @@
 
 /// Per-index shifts applied to the flash brightness, one per colour channel.
 
-/// Offsets of the two trail anchors from the effect's parent; the second entry
-/// is also reached through its own name.
-
 // Indexed views below share one contiguous table.
 extern WorldCollisionGrid     D_shelter_b1_elevator_hall_80183414[1];
 extern WorldCollisionOccluder D_shelter_b1_elevator_hall_80184748[1];
@@ -120,7 +117,7 @@ static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 
 /// Returns this overlay's three read-only halo tint rows for spawn indices 0..2.
 static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 {
-    return _gRoomEffectHaloShades.entries;
+    return _gRoomVisualEffectsHaloShades.entries;
 }
 #undef ROOM_FX_HALO_STORAGE_INITIALIZER
 #undef ROOM_FX_HALO_STORAGE_TYPE

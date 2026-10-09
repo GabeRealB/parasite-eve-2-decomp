@@ -1,5 +1,5 @@
 // Overlay-local symbols for shelter_b1_south_maintenance_walkway.
-RoomFx_DiscShades = 0x801823E8; // size:0xC defined:True
+_gRoomVisualEffectsGlowDiscShades = 0x801823E8; // size:0xC defined:True
 D_shelter_b1_south_maintenance_walkway_801822FC = 0x801822FC; // size:0xC defined:True
 D_shelter_b1_south_maintenance_walkway_80182308 = 0x80182308; // size:0x28 defined:True
 D_shelter_b1_south_maintenance_walkway_80182330 = 0x80182330; // size:0xA8 defined:True
@@ -48,7 +48,7 @@ gActor202400Tasks = 0x8014E47C; // absolute:True owner=actor_202400
 gActor200700RatTaskDesc = 0x80150C80; // absolute:True owner=actor_200700
 gActor202600MaggotCaterpillarBodyTask = 0x801528D4; // absolute:True owner=actor_202600
 gActor202000PawnGolemTasks = 0x8015FDF0; // absolute:True owner=actor_202000
-RoomFx_TrailOffsets = 0x801823D8; // size:0x10 defined:True
+_gRoomVisualEffectsTwinTrailEndpointOffsets = 0x801823D8; // size:0x10 defined:True
 gRoomEventStagedMsg = 0x8018363C; // size:0x8 defined:True
 D_shelter_b1_south_maintenance_walkway_80183644 = 0x80183644; // size:0x1 defined:True
 D_shelter_b1_south_maintenance_walkway_80183645 = 0x80183645; // size:0x1 defined:True

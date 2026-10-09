@@ -77,10 +77,6 @@ extern SVECTOR          D_neo_ark_power_plant_2_80180678;
 extern AreaApplyRec     D_neo_ark_power_plant_2_80182F70[];
 extern AreaApplyRec     D_neo_ark_power_plant_2_80182F94[];
 
-/// The smoke trail's two spawn offsets: `[0]` places the object's own frame
-/// and `[1]` the second trail's frame. `RoomFx_TrailOffsets[1]` is
-/// `[1]` under its own name, which the per-frame path reads directly.
-
 static void _neoArkPowerPlant2InitializeRoom(Task* task);
 static void _neoArkPowerPlant2UpdateRoom(Task* unusedTask);
 

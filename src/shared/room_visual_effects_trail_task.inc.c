@@ -20,7 +20,7 @@ _RoomVisualEffectsTwinTrailHistory* history;
 GfxCoord*                           firstEndpointCoord;
 GfxCoord*                           historyFrame;
 EffectWork*                         work;
-SVECTOR*                            initialOffset;
+const SVECTOR*                      initialOffset;
 s32                                 slotIndex;
 
 history            = task->work;
@@ -39,14 +39,14 @@ if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
             }
             task->work                       = history;
             firstEndpointCoord->parent       = work->parent;
-            firstEndpointCoord->coord.t[0]   = RoomFx_TrailOffsets[0].vx;
-            firstEndpointCoord->coord.t[1]   = RoomFx_TrailOffsets[0].vy;
-            firstEndpointCoord->coord.t[2]   = RoomFx_TrailOffsets[0].vz;
+            firstEndpointCoord->coord.t[0]   = ROOM_VISUAL_EFFECTS_TWIN_TRAIL_ENDPOINT_OFFSETS[0].vx;
+            firstEndpointCoord->coord.t[1]   = ROOM_VISUAL_EFFECTS_TWIN_TRAIL_ENDPOINT_OFFSETS[0].vy;
+            firstEndpointCoord->coord.t[2]   = ROOM_VISUAL_EFFECTS_TWIN_TRAIL_ENDPOINT_OFFSETS[0].vz;
             firstEndpointCoord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(firstEndpointCoord);
             task->state                      = TRAIL_RECORD;
             secondEndpointCoord.parent       = work->parent;
-            initialOffset                    = &RoomFx_TrailOffsets[1];
+            initialOffset                    = &ROOM_VISUAL_EFFECTS_TWIN_TRAIL_ENDPOINT_OFFSETS[1];
             secondEndpointCoord.coord.t[0]   = initialOffset->vx;
             secondEndpointCoord.coord.t[1]   = initialOffset->vy;
             secondEndpointCoord.coord.t[2]   = initialOffset->vz;
@@ -66,7 +66,7 @@ if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
             actorRenderComposeCoord(firstEndpointCoord);
             secondEndpointCoord.parent = work->parent;
             {
-                SVECTOR* updateOffset          = &RoomFx_TrailOffsets[1];
+                const SVECTOR* updateOffset    = &ROOM_VISUAL_EFFECTS_TWIN_TRAIL_ENDPOINT_OFFSETS[1];
                 secondEndpointCoord.coord.t[0] = updateOffset->vx;
                 secondEndpointCoord.coord.t[1] = updateOffset->vy;
                 secondEndpointCoord.coord.t[2] = updateOffset->vz;

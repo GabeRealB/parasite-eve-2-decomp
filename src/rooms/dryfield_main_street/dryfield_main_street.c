@@ -116,9 +116,6 @@ extern u16 D_dryfield_main_street_80181B94[];
 /// Spawn position scratch of the room task's effects.
 extern SVECTOR D_dryfield_main_street_80181BA4;
 
-/// The two anchors of the trail task's coordinate trails; the second is also
-/// reached by its own name.
-
 /// Spawn argument of the helper task 0x31 the room's event task starts.
 extern RoomFadeStorage gRoomEventFade;
 

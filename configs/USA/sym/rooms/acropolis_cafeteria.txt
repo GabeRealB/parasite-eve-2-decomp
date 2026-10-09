@@ -219,7 +219,7 @@ _gAcropolisCafeteriaAnimation07704Records = 0x80184728; // size:0x574 defined:Tr
 _gAcropolisCafeteriaAnimation07704Indices = 0x80184C9C; // size:0x28 defined:True
 _gAcropolisCafeteriaAnimation07704 = 0x80184CC4; // size:0x28 defined:True
 D_acropolis_cafeteria_80184CEC = 0x80184CEC; // size:0x10 defined:True
-RoomFx_TrailOffsets = 0x80184E80; // size:0x10 defined:True
+gRoomVisualEffectsTwinTrailEndpointOffsets = 0x80184E80; // size:0x10 defined:True
 
 acropolisCafeteriaInitRoomEffectsTask = 0x8017E708; // type:func
 

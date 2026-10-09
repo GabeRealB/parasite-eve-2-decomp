@@ -60,8 +60,8 @@ gActor207200CreepingStrangerTaskDesc = 0x80153EC8; // absolute:True owner=actor_
 gActor207000SlouchTaskDescs = 0x801575F0; // absolute:True owner=actor_207000
 gActor202000PawnGolemTasks = 0x8015FDF0; // absolute:True owner=actor_202000
 D_actor_341300_80165208 = 0x80165208; // absolute:True owner=actor_341300
-RoomFx_TrailOffsets = 0x80183C4C; // size:0x10 defined:True
-_gRoomEffectHaloShades = 0x80183C38; // size:0x14 defined:True
+_gRoomVisualEffectsTwinTrailEndpointOffsets = 0x80183C4C; // size:0x10 defined:True
+_gRoomVisualEffectsHaloShades = 0x80183C38; // size:0x14 defined:True
 gRoomEventStagedMsg = 0x801863A8; // size:0x8 defined:True
 D_shelter_b2_north_maintenance_walkway_801863B0 = 0x801863B0; // size:0x8 defined:True
 gRoomEventMsg = 0x801863B8; // size:0x8 defined:True

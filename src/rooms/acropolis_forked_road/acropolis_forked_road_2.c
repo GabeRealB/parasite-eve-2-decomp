@@ -91,10 +91,6 @@ extern SVECTOR D_acropolis_forked_road_80182178[14];
 /// the sixteen ambient-effect slots: which of the room's lamps are lit today.
 extern u16 D_acropolis_forked_road_801821E8[14];
 
-/// The two points the twin trail is anchored at, relative to its parent frame:
-/// `[0]` places the task's own frame and `[1]`, also reached by its own name,
-/// the second trail's.
-
 static void _acropolisForkedRoadOutboundMoviePathTask(Task* task);
 static void _acropolisForkedRoadReturnMoviePathTask(Task* task);
 static void _acropolisForkedRoadSkipFadeOutTask(Task* task);

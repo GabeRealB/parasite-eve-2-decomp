@@ -60,10 +60,6 @@ extern TaskDesc D_neo_ark_pyramid_8017FC0C;
 /// and 0x13F0, closed by a `TASK_MESSAGE_TABLE_END` entry.
 extern TaskMessageEntry D_neo_ark_pyramid_8017FBE4[];
 
-/// The two points on the spawner's parent coordinate that the ribbon task
-/// trails: the first entry places the effect, the second (reached here both
-/// as `[1]` and under its own label) is the ribbon's other edge.
-
 static void _neoArkPyramidSetRotationPuzzleAngle(s32 sweepAngle);
 static void _neoArkPyramidInitializeRoom(Task* task);
 static void _neoArkPyramidDrawRotationPuzzleState(Task* unusedTask);

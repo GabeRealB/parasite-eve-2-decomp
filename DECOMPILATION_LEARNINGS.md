@@ -97098,7 +97098,7 @@ addiu $a0,$s0,-0x10              # &X[2]  (0x8018035C)
 ```
 
 The light table is five 0x10-byte pairs at 0x8018034C..0x8018039C; the separate
-`RoomFx_TrailOffsets` pair follows it. 0x8018036C is the *third* light pair's
+`_gRoomVisualEffectsTwinTrailEndpointOffsets` pair follows it. 0x8018036C is the *third* light pair's
 first endpoint, not the array base. splat names the
 address each `%hi`/`%lo` pair folds to, and only three of them are ever
 materialised (0x8018036C, 0x8018037C, 0x8018038C - one per case block, because

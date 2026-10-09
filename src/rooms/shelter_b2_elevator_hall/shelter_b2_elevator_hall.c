@@ -184,7 +184,7 @@ static void _glowDrawTintedDisc(const SVECTOR* worldPoint, s32 radiusScale, s32 
 /// Returns this overlay's three read-only halo tint rows for spawn indices 0..2.
 static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 {
-    return _gRoomEffectHaloShades;
+    return _gRoomVisualEffectsHaloShades;
 }
 #undef ROOM_FX_HALO_STORAGE_INITIALIZER
 #undef ROOM_FX_HALO_STORAGE_TYPE

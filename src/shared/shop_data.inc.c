@@ -1128,18 +1128,26 @@ static UiListRowCallback Shop_Data_80181AD8[1] = {
     _shopDrawItemRow,
 };
 
-static UiListRowCallback Shop_Data_80181ADC[1] = {
+/// Shared row callback for all four shop categories and the service/Pass row.
+///
+/// The list must enable `USER_INTERFACE_LIST_SHARED_ROW_CALLBACK`; entry 0
+/// handles every item. This borrowed table lives for the overlay's lifetime.
+static UiListRowCallback _gShopCategoryRowCallbacks[] = {
     _shopDrawCategoryRow,
 };
 
-static UiList Shop_Data_80181AE0 = { Shop_Data_80181ADC, 1, { .unsignedValue = 1 }, 0, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
+static UiList Shop_Data_80181AE0 = { _gShopCategoryRowCallbacks, 1, { .unsignedValue = 1 }, 0, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
-static UiListRowCallback Shop_Data_80181B04[2] = {
+/// Per-item callbacks for the two purchase-prompt choices: Purchase, then Pass.
+///
+/// Dispatch uses row indices 0..1 without the shared-row flag. This borrowed
+/// table lives for the overlay's lifetime.
+static UiListRowCallback _gShopPurchasePromptRowCallbacks[] = {
     _shopDrawPurchaseRow,
     _shopDrawPassRow,
 };
 
-static UiList Shop_Data_80181B0C = { Shop_Data_80181B04, 2, { .unsignedValue = 2 }, 1, 10, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
+static UiList Shop_Data_80181B0C = { _gShopPurchasePromptRowCallbacks, 2, { .unsignedValue = 2 }, 1, 10, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
 static UiObjectDesc Shop_Data_80181B30 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 128, 40 }, 56, 0, TASK_BODY_NONE, 192, _shopCategoryListTask, 0 };
 
@@ -1151,5 +1159,17 @@ static UiObjectDesc Shop_Data_80181B84 = { 0, { 48, 32, 70, 32 }, 20, 0, TASK_BO
 
 static UiObjectDesc Shop_Data_80181BA0 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -96, -48, 192, 96 }, 8, 0, TASK_BODY_NONE, 192, _shopNoticeTask, 0 };
 
-/* Retained complete UI descriptor, including its embedded task seed. */
-static UiObjectDesc Shop_ItemListDescriptor = { 0, { -128, -32, 160, 92 }, 48, 0, TASK_BODY_NONE, 192, _shopItemListTask, 0 };
+/// Unused item-list panel recipe with a 160-by-92-pixel initial rectangle.
+///
+/// Retained in each shop overlay's data; no current shop controller spawns it.
+/// It seeds a bodyless task with item-list content, OT tag 48 and priority 192.
+static UiObjectDesc _gShopRetainedItemListDescriptor = {
+    .style           = 0,
+    .bounds          = { -128, -32, 160, 92 },
+    .otIndexSeed     = 48,
+    .field_E         = 0,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = 192,
+    .contentCallback = _shopItemListTask,
+    .taskDataValue   = 0,
+};

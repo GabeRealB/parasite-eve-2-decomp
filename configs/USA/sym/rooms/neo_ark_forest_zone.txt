@@ -102,7 +102,7 @@ D_neo_ark_forest_zone_80181E3C = 0x80181E3C; // size:0x14 defined:True
 D_neo_ark_forest_zone_80181E50 = 0x80181E50; // size:0x18 defined:True
 D_neo_ark_forest_zone_80181E68 = 0x80181E68; // size:0x4 defined:True
 D_neo_ark_forest_zone_80181E6C = 0x80181E6C; // size:0x228 defined:True
-RoomFx_TrailOffsets = 0x80182094; // size:0x10 defined:True
+gRoomVisualEffectsTwinTrailEndpointOffsets = 0x80182094; // size:0x10 defined:True
 
 neoArkForestZoneConfigureEffectsTask = 0x8017E3C0; // type:func
 

@@ -54,10 +54,6 @@
 
 extern TaskMessageEntry D_neo_ark_north_promenade_80181D68[];
 
-/// The smoke trail's two spawn offsets: `[0]` places the object's own frame
-/// and `[1]` the second trail's frame. `RoomFx_TrailOffsets[1]` is
-/// `[1]` under its own name, which the per-frame path reads directly.
-
 static void _neoArkNorthPromenadeInitializeRoom(Task* task);
 static void _neoArkNorthPromenadeRoomIdleState(Task* task);
 
@@ -96,7 +92,7 @@ TaskMessageEntry D_neo_ark_north_promenade_80181D68[5] = {
 /// Returns this overlay's three read-only halo tint rows for spawn indices 0..2.
 static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 {
-    return _gRoomEffectHaloShades.entries;
+    return _gRoomVisualEffectsHaloShades.entries;
 }
 #undef ROOM_FX_HALO_STORAGE_INITIALIZER
 #undef ROOM_FX_HALO_STORAGE_TYPE

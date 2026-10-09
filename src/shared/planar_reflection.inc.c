@@ -914,7 +914,7 @@ static void _planarReflectionAttachmentTask(Task* reflectionTask)
         reflectionModel->colorMtx = &mirrorWork->color;
         // Equipment needs another X flip within the already reflected player frame.
         if (reflectionTask->spawnArg1.value >= PLANAR_REFLECTION_FIRST_EQUIPMENT_SLOT) {
-            xFlipScale = Reflection_Data_8017D5C4;
+            xFlipScale = _gPlanarReflectionXFlipScale;
             ScaleMatrix(&reflectionRoot->coord, &xFlipScale);
         }
         _planarReflectionReflectAttachmentOffset(reflectionRoot, sourceRoot);

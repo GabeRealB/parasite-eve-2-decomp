@@ -35,7 +35,7 @@ gRoomEventFade = 0x80182AA0; // size:0x8 defined:True
 gActor102000PawnGolemTasks = 0x80147DF0; // absolute:True owner=actor_102000
 gActor05700RookGolemTasks = 0x801611F8; // absolute:True owner=actor_205700
 D_map_neo_ark_8017AED0 = 0x8017AED0; // absolute:True owner=map_neo_ark
-RoomFx_TrailOffsets = 0x801820EC; // size:0x10 defined:True
+_gRoomVisualEffectsTwinTrailEndpointOffsets = 0x801820EC; // size:0x10 defined:True
 _gShelter1fVehicularAirlockModel03A58Skeleton = 0x80180C50; // size:0x24 defined:True
 _gShelter1fVehicularAirlockModel03A58PartVerts = 0x80180C74; // size:0x4 defined:True
 _gShelter1fVehicularAirlockModel03A58Verts = 0x80180C78; // size:0x3A0 defined:True

@@ -38,7 +38,7 @@ D_mine_tunnel_8017E16C = 0x8017E16C; // absolute:True owner=mine_tunnel
 D_mine_tunnel_8017E170 = 0x8017E170; // absolute:True owner=mine_tunnel
 D_mine_tunnel_8017E174 = 0x8017E174; // absolute:True owner=mine_tunnel
 D_mine_tunnel_8017E890 = 0x8017E890; // absolute:True owner=mine_tunnel
-D_mine_tunnel_8017F9A4 = 0x8017F9A4; // absolute:True owner=mine_tunnel shared=rooms
+D_mine_tunnel_8017F9A4 = 0x8017F9A4; // absolute:True owner=mine_tunnel
 D_mine_tunnel_8018032C = 0x8018032C; // absolute:True owner=mine_tunnel shared=rooms
 mineGorgeRoomTask = 0x8017D9A0; // type:func absolute:True owner=mine_gorge shared=rooms
 D_mine_gorge_8017E7A8 = 0x8017E7A8; // absolute:True owner=mine_gorge

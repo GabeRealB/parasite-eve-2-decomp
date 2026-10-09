@@ -57,7 +57,7 @@ gActor105300GeneratorTasks = 0x8013D3FC; // absolute:True owner=actor_105300
 gActor05700RookGolemTasks = 0x801491F8; // absolute:True owner=actor_105700
 gActor202100WatcherTaskDesc = 0x8014DC30; // absolute:True owner=actor_202100
 gActor403900GolemTaskDesc = 0x801540E0; // absolute:True owner=actor_403900
-RoomFx_TrailOffsets = 0x80180680; // size:0x10 defined:True
+_gRoomVisualEffectsTwinTrailEndpointOffsets = 0x80180680; // size:0x10 defined:True
 _gNeoArkPowerPlant2Animation02A4CBank1 = 0x8017FDF0; // size:0x24 defined:True
 _gNeoArkPowerPlant2Animation02A4CBank4 = 0x8017FE14; // size:0x70 defined:True
 _gNeoArkPowerPlant2Animation02A4CRecords = 0x8017FE84; // size:0x160 defined:True

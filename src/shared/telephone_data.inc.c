@@ -666,17 +666,25 @@ static u8 Telephone_Data_80181C08[56] = {
     0,
 };
 
-static UiListRowCallback Telephone_Data_80181C40[1] = {
+/// Shared row callback for all nine telephone play-statistic rows.
+///
+/// The list must enable `USER_INTERFACE_LIST_SHARED_ROW_CALLBACK`; entry 0
+/// handles every item. This borrowed table lives for the overlay's lifetime.
+static UiListRowCallback _gTelephonePlayDataRowCallbacks[] = {
     _telephoneDrawPlayDataRow,
 };
 
-static UiList Telephone_Data_80181C44 = { Telephone_Data_80181C40, 9, { .unsignedValue = 9 }, 0, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
+static UiList Telephone_Data_80181C44 = { _gTelephonePlayDataRowCallbacks, 9, { .unsignedValue = 9 }, 0, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
-static UiListRowCallback Telephone_Data_80181C68[1] = {
+/// Shared row callback for the populated weapon or Parasite Energy usage list.
+///
+/// The list must enable `USER_INTERFACE_LIST_SHARED_ROW_CALLBACK`; entry 0
+/// handles every item. This borrowed table lives for the overlay's lifetime.
+static UiListRowCallback _gTelephoneUsageRowCallbacks[] = {
     _telephoneDrawUsageRow,
 };
 
-static UiList Telephone_Data_80181C6C = { Telephone_Data_80181C68, 1, { .unsignedValue = 1 }, 0, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
+static UiList Telephone_Data_80181C6C = { _gTelephoneUsageRowCallbacks, 1, { .unsignedValue = 1 }, 0, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
 static UiObjectDesc Telephone_Data_80181C90 = { 3, { -144, 64, 288, 40 }, 56, 0, TASK_BODY_NONE, 192, _telephonePromptTask, 0 };
 
@@ -684,11 +692,15 @@ static UiObjectDesc Telephone_Data_80181CAC = { USER_INTERFACE_PANEL_TITLE_STYLE
 
 static UiObjectDesc Telephone_Data_80181CC8 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 288, 168 }, 40, 0, TASK_BODY_NONE, 192, _telephoneUsageTask, 0 };
 
-static UiListRowCallback Telephone_Data_80181CE4[4] = {
+/// Per-item telephone menu callbacks: Save, Play Data, Weapon Data, then PE Data.
+///
+/// Dispatch uses row indices 0..3 without the shared-row flag. This borrowed
+/// table lives for the overlay's lifetime.
+static UiListRowCallback _gTelephoneMenuRowCallbacks[] = {
     _telephoneSaveMenuRow,
     _telephonePlayDataMenuRow,
     _telephoneWeaponDataMenuRow,
     _telephonePeDataMenuRow,
 };
 
-static UiList Telephone_Data_80181CF4 = { Telephone_Data_80181CE4, 4, { .unsignedValue = 4 }, 1, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
+static UiList Telephone_Data_80181CF4 = { _gTelephoneMenuRowCallbacks, 4, { .unsignedValue = 4 }, 1, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };

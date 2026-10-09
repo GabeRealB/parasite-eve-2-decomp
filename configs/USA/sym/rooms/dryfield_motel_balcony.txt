@@ -79,10 +79,10 @@ D_map_dryfield_8017BA44 = 0x8017BA44; // absolute:True owner=map_dryfield
 D_map_dryfield_8017BA84 = 0x8017BA84; // absolute:True owner=map_dryfield
 D_map_dryfield_8017BAF4 = 0x8017BAF4; // absolute:True owner=map_dryfield
 D_map_dryfield_8017BB24 = 0x8017BB24; // absolute:True owner=map_dryfield
-RoomFx_TrailOffsets = 0x801822C0; // size:0x10 defined:True
+_gRoomVisualEffectsTwinTrailEndpointOffsets = 0x801822C0; // size:0x10 defined:True
 gRoomEventTaskDesc = 0x80182270; // size:0xC defined:True
 D_dryfield_motel_balcony_8018227C = 0x8018227C; // size:0x30 defined:True
-_gRoomEffectHaloShades = 0x801822AC; // size:0x14 defined:True
+_gRoomVisualEffectsHaloShades = 0x801822AC; // size:0x14 defined:True
 gRoomEventActive = 0x8018672C; // size:0x4 defined:True
 gRoomEventReq = 0x80186730; // size:0x14 defined:True
 

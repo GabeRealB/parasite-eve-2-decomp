@@ -34,6 +34,8 @@
 
 #include "../../shared/room_visual_effects.h"
 
+static RoomFxShade _gRoomVisualEffectsGlowDiscShades[2];
+
 #include "../../shared/room_visual_effects.inc.c"
 
 #include "../../shared/room_visual_effects_flying_tasks.inc.c"

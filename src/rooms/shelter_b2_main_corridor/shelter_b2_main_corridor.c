@@ -161,9 +161,6 @@ extern SVECTOR D_shelter_b2_main_corridor_80182FCC[];
 extern SVECTOR D_shelter_b2_main_corridor_8018305C[];
 extern SVECTOR D_shelter_b2_main_corridor_8018306C[];
 
-/// The two points, relative to the effect's parent coordinate, that the trail
-/// effect's two edges follow. The second is also read by its own name.
-
 /// Areas the room re-applies when it clears its pending game-flag state.
 extern AreaApplyRec D_shelter_b2_main_corridor_80189644[];
 

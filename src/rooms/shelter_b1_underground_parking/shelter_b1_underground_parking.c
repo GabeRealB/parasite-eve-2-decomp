@@ -341,9 +341,7 @@ static u8 Shop_Data_80181A80[];
 static u8 Shop_Data_80181A94[];
 static u8 Shop_Data_80181AA4[];
 
-/// The charge panel's title, and the quantity and item map of the slot it is
-/// animating.
-static const char                   Shop_Data_8017D6F4[];
+/// The quantity and supply of the slot the charge panel is animating.
 static s32                          Shop_Data_80187628;
 static const EquipmentWeaponSupply* Shop_Data_8018762C;
 

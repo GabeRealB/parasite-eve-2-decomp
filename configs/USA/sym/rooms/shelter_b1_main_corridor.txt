@@ -7,7 +7,7 @@ D_shelter_b1_main_corridor_80183144 = 0x80183144; // size:0x90 defined:True
 gRoomEventTaskDesc = 0x8018308C; // size:0xC defined:True
 D_shelter_b1_main_corridor_80183098 = 0x80183098; // size:0xC defined:True
 D_shelter_b1_main_corridor_801830A4 = 0x801830A4; // size:0x30 defined:True
-_gRoomEffectHaloShades = 0x801831D4; // size:0x14 defined:True
+_gRoomVisualEffectsHaloShades = 0x801831D4; // size:0x14 defined:True
 D_shelter_b1_main_corridor_801831F8 = 0x801831F8; // size:0x4 defined:True
 D_shelter_b1_main_corridor_801831FC = 0x801831FC; // size:0x2 defined:True
 D_shelter_b1_main_corridor_80183200 = 0x80183200; // size:0x150 defined:True
@@ -73,7 +73,7 @@ gRoomEventStagedMsg = 0x80185D3C; // size:0x8 defined:True
 D_shelter_b1_main_corridor_80185D44 = 0x80185D44; // size:0x4 defined:True
 gRoomEventReq = 0x80185D48; // size:0x20 defined:True
 gRoomEventLatched = 0x80185D68; // size:0xC defined:True
-RoomFx_TrailOffsets = 0x801831E8; // size:0x10 defined:True
+_gRoomVisualEffectsTwinTrailEndpointOffsets = 0x801831E8; // size:0x10 defined:True
 
 shelterB1MainCorridorDrawViewLightsTask = 0x8017DDF0; // type:func
 

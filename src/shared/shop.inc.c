@@ -624,17 +624,26 @@ static void _shopBuildItemList(UiList* list, UiObject* object)
     Shop_Data_801819EC = SHOP_PREVIEW_NONE;
 }
 
-static const u8 Shop_Data_8017D6D0[] = "Select";
+/// NUL-terminated title of the offered-item list panel.
+static const char _gShopItemListTitle[] = "Select";
 
-static const u8 Shop_Data_8017D6D8[] = "BP";
+/// Byte-text currency label for item prices, the BP balance and purchase totals.
+static const u8 _gShopBpLabel[] = "BP";
 
-static const u8 Shop_Data_8017D6DC[] = "List";
+/// NUL-terminated title of the category-and-service menu.
+static const char _gShopCategoryListTitle[] = "List";
 
-static const u8 Shop_Data_8017D6E4[] = "TOTAL";
+/// Byte-text heading for occupied carried inventory rows over row capacity.
+static const u8 _gShopCarriedRowCapacityLabel[] = "TOTAL";
 
-static const u8 Shop_Data_8017D6EC[] = "Notice";
+/// NUL-terminated title of the shop's purchase-error notices.
+static const char _gShopNoticeTitle[] = "Notice";
 
-static const char Shop_Data_8017D6F4[8] = SHOP_CHARGE_TITLE_BYTES;
+/// NUL-terminated title of the built-in weapon-supply refill panel.
+///
+/// `SHOP_CHARGE_TITLE_BYTES` supplies "Charge", its terminator and one retained
+/// carrier-specific byte. Panel-label drawing reads only through the terminator.
+static const char _gShopWeaponSupplyRefillTitle[8] = SHOP_CHARGE_TITLE_BYTES;
 
 /// Runs the offered-item list and its preview and purchase child panels.
 ///
@@ -659,7 +668,7 @@ static void _shopItemListTask(Task* task)
 
     object         = task->spawnArg2.pointer;
     object->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&object->panel, (const char*)Shop_Data_8017D6D0);
+    uiDrawPanelLabel(&object->panel, _gShopItemListTitle);
     if (task->state == SHOP_PANEL_INITIAL) {
         allocation = memCalloc(sizeof(_ShopItemListWork), 0);
         if (allocation != NULL) {
@@ -691,7 +700,7 @@ static void _shopItemListTask(Task* task)
     req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req.alignment  = TEXT_ALIGNMENT_RIGHT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req, Shop_Data_8017D6D8);
+    textDrawString(&req, _gShopBpLabel);
 
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
@@ -801,7 +810,7 @@ static void _shopCategoryListTask(Task* task)
     object         = task->spawnArg2.pointer;
     list           = &Shop_Data_80181AE0;
     object->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&object->panel, (const char*)Shop_Data_8017D6DC);
+    uiDrawPanelLabel(&object->panel, _gShopCategoryListTitle);
     if (task->state == SHOP_PANEL_INITIAL) {
         itemMenuClearPreviewItems();
         D_80067634 = NULL;
@@ -874,7 +883,7 @@ static void _shopBalancePanelTask(Task* task)
     balanceLabelRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     balanceLabelRequest.alignment  = TEXT_ALIGNMENT_LEFT;
     balanceLabelRequest.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&balanceLabelRequest, Shop_Data_8017D6D8);
+    textDrawString(&balanceLabelRequest, _gShopBpLabel);
 
     textItoaUnsigned(balanceText, playerStatus->bp);
     textDrawUiLine(object, valueRight, contentTop + 0x19, balanceText, SHOP_TEXT_COLOR_RGB, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
@@ -887,7 +896,7 @@ static void _shopBalancePanelTask(Task* task)
     capacityLabelRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     capacityLabelRequest.alignment  = TEXT_ALIGNMENT_LEFT;
     capacityLabelRequest.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&capacityLabelRequest, Shop_Data_8017D6E4);
+    textDrawString(&capacityLabelRequest, _gShopCarriedRowCapacityLabel);
 
     textCursor   = capacityText;
     carriedItems = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
@@ -987,7 +996,7 @@ static void _shopNoticeTask(Task* task)
             break;
     }
 
-    uiDrawPanelLabel(&object->panel, (const char*)Shop_Data_8017D6EC);
+    uiDrawPanelLabel(&object->panel, _gShopNoticeTitle);
     object->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == SHOP_PANEL_INITIAL) {
         uiSizePanelForTextDefault(&object->panel, message);
@@ -1035,7 +1044,7 @@ static void _shopRefillWeaponSupplyTask(Task* task)
 
     object         = task->spawnArg2.pointer;
     object->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&object->panel, Shop_Data_8017D6F4);
+    uiDrawPanelLabel(&object->panel, _gShopWeaponSupplyRefillTitle);
 
     if (task->state == SHOP_REFILL_INITIAL) {
         task->spawnArg1.value = 0;
@@ -1260,7 +1269,7 @@ static void _shopPurchaseQuantityTask(Task* task)
     priceLabelRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     priceLabelRequest.alignment  = TEXT_ALIGNMENT_RIGHT;
     priceLabelRequest.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&priceLabelRequest, Shop_Data_8017D6D8);
+    textDrawString(&priceLabelRequest, _gShopBpLabel);
 
     textDrawUiLine(object, -rowLeft, contentTop + 0x2B, textItoaSigned(numberText, purchasePacks * packPrice), SHOP_TEXT_COLOR_RGB, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 

@@ -1,6 +1,6 @@
 // Overlay-local symbols for shelter_b2_operating_room.
 D_shelter_b2_operating_room_801809BC = 0x801809BC; // size:0x200 defined:True
-RoomFx_DiscShades = 0x80180BBC; // size:0xC defined:True
+_gRoomVisualEffectsGlowDiscShades = 0x80180BBC; // size:0xC defined:True
 D_shelter_b2_operating_room_80180BC8 = 0x80180BC8; // size:0x4 defined:True
 D_shelter_b2_operating_room_80180BCC = 0x80180BCC; // size:0x2 defined:True
 D_shelter_b2_operating_room_80180BD0 = 0x80180BD0; // size:0xA8 defined:True

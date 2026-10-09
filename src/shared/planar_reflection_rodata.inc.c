@@ -1,2 +1,4 @@
-/* Private reflection scale, included at its original rodata position. */
-static const VECTOR Reflection_Data_8017D5C4 = { -0x1000, 0x1000, 0x1000, 0 };
+/* Include at the original rodata position. */
+
+/// Q12 axis factors for the equipment's additional X reflection in the player frame.
+static const VECTOR _gPlanarReflectionXFlipScale = { -ONE, ONE, ONE, 0 };

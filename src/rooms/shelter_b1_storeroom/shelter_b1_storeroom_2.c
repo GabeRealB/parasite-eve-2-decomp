@@ -52,8 +52,6 @@
 
 #include "../../shared/room_visual_effects.h"
 
-static RoomFxShade _gRoomEffectHaloShades[3];
-
 // Indexed views below share one contiguous table.
 extern WorldCollisionGrid         D_shelter_b1_storeroom_801850D8[1];
 extern WorldCollisionOccluder     D_shelter_b1_storeroom_80186D94[1];
@@ -130,7 +128,7 @@ static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 
 /// Returns this overlay's three read-only halo tint rows for spawn indices 0..2.
 static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 {
-    return _gRoomEffectHaloShades;
+    return _gRoomVisualEffectsHaloShades;
 }
 #undef ROOM_FX_HALO_STORAGE_INITIALIZER
 #undef ROOM_FX_HALO_STORAGE_TYPE
