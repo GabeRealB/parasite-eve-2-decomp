@@ -6,6 +6,7 @@
 #include "common.h"
 
 #include "actors/actor.h"
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
@@ -44,8 +45,6 @@
 #include "rooms/shelter_b6_nursery.h"
 // The paced walk helpers this package carries run on Kyle Madigan's block.
 #define PACED_WALK_WORK_T _Actor450800KyleMadiganWork
-// Exported instance: rooms spawn from this package's table by name.
-#define gPairWalkTasks gActor450800PairWalkTasks
 #include "../../shared/paced_walk.h"
 #include "../../shared/pair_walk.h"
 
@@ -118,9 +117,6 @@ extern TaskDesc         D_actor_450800_8014AC88[];
 
 /// Animation-set table bound to the work block's context by `animationInitContext`.
 extern u8 D_actor_450800_8014ACC4[];
-
-/// The `TaskDesc` table its model tasks come from.
-extern TaskDesc gPairWalkTasks[];
 
 extern EvsCommand D_actor_450800_8013A564[];
 extern EvsCommand D_actor_450800_8013A684[];
@@ -2892,9 +2888,9 @@ static TaskMessageEntry _gPairWalkMessages[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc gPairWalkTasks[2] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor450800PawnGolemWalkerTask, { .model = &_gActor450800PawnGolemBody } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _pairWalkSubModelTask, { .model = &_gActor450800GolemBeamSword } },
+TaskDesc gActor450800PawnGolemTasks[PAIR_WALK_TASK_COUNT] = {
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), PAIR_WALK_TASK_PRIORITY } }, _actor450800PawnGolemWalkerTask, { .model = &_gActor450800PawnGolemBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), PAIR_WALK_TASK_PRIORITY } }, _pairWalkSubModelTask, { .model = &_gActor450800GolemBeamSword } },
 };
 
 /// Six-entry clip bank borrowed by this carrier's pair-walker animation context.
@@ -3562,7 +3558,13 @@ static s32 _actor450800SetKyleMadiganWalkTarget(Task* task, s32 messageId, const
     return 0;
 }
 
+/// Binds the shared pair-walker spawn to this package's public TaskDesc table.
+///
+/// The table uses PAIR_WALK_TASK_* indices. This identifier alias evaluates no
+/// arguments, captures no locals and is scoped to the following fragment.
+#define PAIR_WALK_TASK_TABLE gActor450800PawnGolemTasks
 #include "../../shared/pair_walk_spawn.inc.c"
+#undef PAIR_WALK_TASK_TABLE
 
 #include "../../shared/pair_walk_update_model.inc.c"
 

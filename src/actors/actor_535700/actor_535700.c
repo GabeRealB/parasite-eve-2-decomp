@@ -5,6 +5,7 @@
 #include "common.h"
 
 #include "actors/actor.h"
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
@@ -33,8 +34,6 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
-// Exported instance: rooms spawn from this package's table by name.
-#define gPairWalkTasks       gActor535700PairWalkTasks
 #define FOOTSTEP_WALK_WORK_T FootstepWalkWork
 #include "../../shared/footstep_walk.h"
 #include "../../shared/pair_walk.h"
@@ -77,9 +76,6 @@ extern TaskDesc D_actor_535700_8013346C;
 
 extern TaskMessageEntry gFootstepWalkMsgTable[];
 extern u8               gFootstepWalkAnims[];
-
-/// The `TaskDesc` table its sub-model task comes from.
-extern TaskDesc gPairWalkTasks[];
 
 static void _actorRenderWalkerFrame(Enemy* unusedEnemy, Task* task);
 static void _actorRenderWalkerFrameSecond(Enemy* unusedEnemy, Task* task);
@@ -1079,9 +1075,9 @@ static TaskMessageEntry _gPairWalkMessages[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc gPairWalkTasks[2] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor535700PairWalkerTask, { .model = &_gActor535700PawnGolemBody } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _pairWalkSubModelTask, { .model = &_gActor535700GolemBeamSword } },
+TaskDesc gActor535700PawnGolemTasks[PAIR_WALK_TASK_COUNT] = {
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), PAIR_WALK_TASK_PRIORITY } }, _actor535700PairWalkerTask, { .model = &_gActor535700PawnGolemBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), PAIR_WALK_TASK_PRIORITY } }, _pairWalkSubModelTask, { .model = &_gActor535700GolemBeamSword } },
 };
 
 /// Six-entry clip bank borrowed by this carrier's pair-walker animation context.
@@ -1350,7 +1346,13 @@ static s32 _actor535700ApplyWalkerCommand(Task* unusedTask, s32 messageId, const
 #include "../../shared/actor_render_walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW
 
+/// Binds the shared pair-walker spawn to this package's public TaskDesc table.
+///
+/// The table uses PAIR_WALK_TASK_* indices. This identifier alias evaluates no
+/// arguments, captures no locals and is scoped to the following fragment.
+#define PAIR_WALK_TASK_TABLE gActor535700PawnGolemTasks
 #include "../../shared/pair_walk_spawn.inc.c"
+#undef PAIR_WALK_TASK_TABLE
 
 #include "../../shared/pair_walk_update_model.inc.c"
 

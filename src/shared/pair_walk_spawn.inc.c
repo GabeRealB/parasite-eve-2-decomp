@@ -1,5 +1,11 @@
 /* Part of the pair walk library; see pair_walk.h. */
 
+// actor_450800 and actor_535700 bind PAIR_WALK_TASK_TABLE to their public
+// TaskDesc[PAIR_WALK_TASK_COUNT] before including this fragment and undefine it
+// afterwards. The indices are declared in actors/task_tables.h: body at
+// PAIR_WALK_TASK_BODY, carried TMD model at PAIR_WALK_TASK_CARRIED_MODEL.
+// The binding is one identifier, with no arguments or captured locals.
+
 /// Initializes the pair walker's matrices and cached three-light sample.
 ///
 /// Use only as standalone statements in a compound scope. Arguments must be
@@ -51,7 +57,7 @@ static void _pairWalkSpawn(Enemy* enemy, Task* task)
     enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
     model->otOffset                  = 1;
     work->enemy                      = enemy;
-    pairedEnemy                      = enemySpawnFromTable(gPairWalkTasks, 1, 0, enemy);
+    pairedEnemy                      = enemySpawnFromTable(PAIR_WALK_TASK_TABLE, PAIR_WALK_TASK_CARRIED_MODEL, 0, enemy);
     _actorRenderApplyPlacementTextureOffsets(pairedEnemy->task->extra.tmd, enemy);
     taskReparent(task, pairedEnemy->task);
     work->pairTask = pairedEnemy->task;

@@ -283,8 +283,6 @@ extern TaskDesc D_actor_113100_80144308[];
 /// Slot export of `gActor01600ScavengerTaskDesc` from actor_101600, with the same descriptor contract.
 extern TaskDesc gActor101600ScavengerTaskDesc;
 
-extern TaskDesc gPairWalkTasks[];
-
 extern TaskDesc D_actor_511000_801472E8[];
 
 /// Slot export of `gActor01100Tasks` from actor_101100, with the same descriptor contract.
@@ -393,8 +391,6 @@ extern TaskDesc D_actor_213100_801521A8[];
 extern TaskDesc gActor202600MaggotCaterpillarBodyTask;
 
 extern TaskDesc D_actor_205500_801528DC[];
-
-extern TaskDesc gPairWalkTasks[];
 
 /// Gray Stalker body-task spawn recipe exported to Dryfield underpass resources.
 ///
@@ -632,8 +628,27 @@ extern TaskDesc gActor05700RookGolemTasks[4];
 /// body or its puff children remain live.
 extern TaskDesc gActor02600MaggotCaterpillarBodyTask;
 
-extern TaskDesc gActor450800PairWalkTasks[];
+/// Spawn indices of the scripted Pawn GOLEM tables, without a terminator.
+enum {
+    PAIR_WALK_TASK_BODY          = 0,
+    PAIR_WALK_TASK_CARRIED_MODEL = 1,
+    PAIR_WALK_TASK_COUNT         = 2,
+};
 
-extern TaskDesc gActor535700PairWalkTasks[];
+/// Nursery's scripted Pawn GOLEM spawn descriptors: body 0, carried Beam Sword 1.
+///
+/// Both create TMD bodies at priority 96 with automatic model buffers disabled.
+/// The body creates and owns the sword child, which follows part 7 and borrows
+/// the body's lighting. Spawn the body through its room placement; keep
+/// actor_450800's callbacks, models and animation data loaded until teardown.
+extern TaskDesc gActor450800PawnGolemTasks[PAIR_WALK_TASK_COUNT];
+
+/// Dryfield night R08's scripted Pawn GOLEM spawn descriptors: body 0, carried Beam Sword 1.
+///
+/// Both create TMD bodies at priority 96 with automatic model buffers disabled.
+/// The body creates and owns the sword child, which follows part 7 and borrows
+/// the body's lighting. Spawn the body through its room placement; keep
+/// actor_535700's callbacks, models and animation data loaded until teardown.
+extern TaskDesc gActor535700PawnGolemTasks[PAIR_WALK_TASK_COUNT];
 
 #endif // INCLUDE_ACTORS_TASK_TABLES_H
