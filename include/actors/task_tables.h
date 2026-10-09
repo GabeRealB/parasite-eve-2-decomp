@@ -283,7 +283,11 @@ extern TaskDesc D_actor_420700_8013EF68[];
 /// Slot export of `gActor07000SlouchTaskDescs` from actor_107000, with the same descriptor contract.
 extern TaskDesc gActor107000SlouchTaskDescs[3];
 
-extern TaskDesc D_actor_451100_8013F734;
+/// Quiet scene-walker spawn descriptor using the Aya Brea body at priority 192.
+///
+/// Creates a TMD task with automatic primitive buffers and singleton message
+/// handlers. Keep the actor_451100 code, geometry and clip data loaded.
+extern TaskDesc gActor451100QuietWalkTaskDesc;
 
 extern TaskDesc D_actor_135400_8013F8D8;
 
@@ -367,7 +371,13 @@ extern TaskDesc gActor202100WatcherTaskDesc;
 /// Slot export of `gActor02400Tasks` from actor_202400, with the same descriptor contract.
 extern TaskDesc gActor202400Tasks[2];
 
-extern TaskDesc D_actor_451100_8014E6E4[];
+/// Spawn descriptors for the No. 9 GOLEM scene walker and its carried model.
+///
+/// Index 0 spawns the paired walker; it spawns index 1 as its child and
+/// attaches that model to part 8. Both run at priority 96; only the child
+/// skips automatic primitive buffers. Keep actor_451100's borrowed assets
+/// and callbacks loaded while either task is live.
+extern TaskDesc gActor451100PairWalkTaskDescs[2];
 
 /// Skull Stalker TMD spawn descriptor; priority 96 with automatic model buffers.
 ///
