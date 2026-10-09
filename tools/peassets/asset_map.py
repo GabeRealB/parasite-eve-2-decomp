@@ -523,7 +523,9 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
     # A room's caption bundle holds a palette per view, in the slot before that view's number, besides the dialogue.
     import base64
     import cap_bundle
+    import cap_dialogue
     import spk_scripts
+    dialogue = {}
     viewpal = {}
     for stage, folder, fkey, node in asset_schema.tree_files(tree):
         if folder is None:
@@ -549,6 +551,9 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
                             f"PIX({json.dumps(name)},{json.dumps([[slot['x'], slot['y'], slot['w'], slot['h'], base64.b64encode(cap_bundle.palette_words(data, slot)).decode()]])});\n", encoding="utf-8")
                 else:
                     catalogue[name] = [slot["what"], {"source": key, "size": slot["length"], "vram": slot["dest"], "notes": f"slot {slot['slot']} of the bundle {room} loads"}]
+                    if slot["what"] == "dialogue":
+                        found = cap_dialogue.commands(data[slot["offset"]:slot["offset"] + slot["length"]])
+                        dialogue[name] = [line for command in found for line in cap_dialogue.describe(command)]
     # A room's collision grid is an asset too: the overlay manifest declares where it sits in the package.
     import tomllib as _toml
     from gen_overlay_configs import declared_collisions
@@ -585,7 +590,7 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
                 streams[meta.stem] = f"audio/{meta.stem}.wav"
     saves = sorted(p.name for p in (extracted / "mcsave" / "mc_save_header").glob("*.png")) if (extracted / "mcsave" / "mc_save_header").is_dir() else []
     return {
-        "holds": side["holds"], "viewpal": viewpal, "scripts": scripts, "usage": usage, "swept": by_overlay,
+        "holds": side["holds"], "viewpal": viewpal, "scripts": scripts, "usage": usage, "swept": by_overlay, "dialogue": dialogue,
         "mesh": side["mesh"], "track": side["track"], "banks": banks, "streams": streams, "saves": saves, "side": out.stem + "_data" if pixels else "",
         "files": files, "chunks": chunks, "fp": footprint, "loads": loads, "overlays": overlays, "requests": requests,
         "consts": constants, "findings": findings, "assets": catalogue, "sounds": sounds,

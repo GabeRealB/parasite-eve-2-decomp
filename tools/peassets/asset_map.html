@@ -51,6 +51,7 @@ label.row { flex-direction: row; align-items: center; gap: 8px; }
 table { border-collapse: collapse; font: 12px var(--mono); font-variant-numeric: tabular-nums; }
 th { text-align: left; font: 500 11px var(--sans); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 4px 14px 4px 0; border-bottom: 1px solid var(--line); }
 td { padding: 3px 14px 3px 0; border-bottom: 1px solid var(--grid); vertical-align: top; }
+pre.mono { font: 12px var(--mono); margin: 0; overflow-x: auto; }
 .scrollx { overflow-x: auto; } table.wide td { white-space: normal; min-width: 90px; max-width: 360px; overflow-wrap: anywhere; }
 button { font: 12px var(--sans); color: var(--accent); background: none; border: 1px solid var(--line); border-radius: 3px; padding: 3px 10px; margin-top: 6px; cursor: pointer; }
 .seg button { margin-top: 0; }
@@ -394,6 +395,8 @@ async function showAsset(key) {
     sections.push(sec(`Script entries (${entries.length})`, `What each entry of the bank plays. A sound id in the code is 0x${bank.toString(16).padStart(4, "0")} in its high half and the entry in its low byte.`,
       capped(entries.map((e, i) => [i, e]), 80, part => h("table", {}, h("tr", {}, ["Entry", "Sound id", "Plays"].map(t => h("th", { text: t }))), part.map(([i, e]) => h("tr", {}, h("td", { text: "0x" + i.toString(16).padStart(2, "0") }), h("td", { text: "0x" + ((bank * 65536 + i) >>> 0).toString(16).padStart(8, "0") }),
         h("td", { text: e === null ? "empty" : e.map(([other, sample, program, layer]) => sample !== null ? `sample ${sample}` : other ? `bank 0x${other.toString(16)} program ${program} layer ${layer}` : `program ${program} layer ${layer}`).join(", ") || "no voice" }))))))); }
+  if (type === "dialogue" && D.dialogue[key]) sections.push(sec(`Commands (${D.dialogue[key].filter(l => /^  command/.test(l)).length})`, "The dialogue's commands and the records each plays: lines of text (by length; the text is glyph cells, not characters) and scene steps that select a view or send a message. Code runs a command by its number.",
+    capped(D.dialogue[key], 200, part => h("pre", { class: "mono" }, part.join("\n")))));
   if (type === "txt" && D.pictures) sections.push(sec("Text", "", h("iframe", { src: `${D.pictures}/txt/${key}.txt`, title: key })));
   else if (type === "movie" && D.pictures) sections.push(sec("Movie", "As the extraction encoded it. If the browser cannot play that encoding, open the file in a player.", h("div", { class: "shots" }, h("div", { class: "shot" }, h("video", { controls: "", preload: "none", width: 640, src: `${D.pictures}/${D.streams[key]}` }), h("div", { text: D.streams[key] })))));
   else if (type === "stream" && D.pictures) sections.push(sec("Audio", "", h("div", { class: "shots" }, h("div", { class: "shot" }, h("audio", { controls: "", preload: "none", src: `${D.pictures}/${D.streams[key]}` }), h("div", { text: D.streams[key] })))));
