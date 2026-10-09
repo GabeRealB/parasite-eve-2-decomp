@@ -5,6 +5,15 @@
 
 // Room placement records address these tables in the currently loaded actor
 // slots. Different packages occupy those slots over the lifetime of a stage.
+
+/// Brain Stinger spawn descriptors: 0 enemy body, 1 drain attachment, 2 flying fireball.
+///
+/// Entries 0 and 1 allocate TMD bodies with automatic buffers; entry 2 allocates
+/// one coordinate body. All run at priority 96. Indices are 0..2, without a
+/// terminator. Keep the callbacks and borrowed models loaded for the tasks' lives;
+/// the drain child additionally borrows its parent enemy's work and lighting.
+extern TaskDesc gActor00300Tasks[3];
+
 /// Standing Sucklerceph TMD spawn descriptor; priority 96 with automatic model buffers.
 ///
 /// Spawn at index 0. Keep the callback and borrowed model geometry loaded.
@@ -235,7 +244,8 @@ extern TaskDesc gActor102000PawnGolemTasks[2];
 /// while the callbacks, model geometry and body animation bank are borrowed.
 extern TaskDesc gActor02000PawnGolemTasks[2];
 
-extern TaskDesc D_actor_100300_80148110[];
+/// Slot export of `gActor00300Tasks` from actor_100300, with the same descriptor contract.
+extern TaskDesc gActor100300Tasks[3];
 
 extern TaskDesc gActor460200StrideWalkTasks[];
 
@@ -409,7 +419,8 @@ extern TaskDesc gActor202300RookGolemTasks[3];
 /// Slot export of `gActor02000PawnGolemTasks` from actor_202000, with the same descriptor contract.
 extern TaskDesc gActor202000PawnGolemTasks[2];
 
-extern TaskDesc D_actor_200300_80160110[];
+/// Slot export of `gActor00300Tasks` from actor_200300, with the same descriptor contract.
+extern TaskDesc gActor200300Tasks[3];
 
 /// Slot export of `gActor05600PawnGolemTasks` from actor_205600, with the same descriptor contract.
 extern TaskDesc gActor205600PawnGolemTasks[3];

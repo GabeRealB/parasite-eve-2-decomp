@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -282,12 +284,6 @@ typedef struct {
 } _Actor00300FireballWork;
 STATIC_ASSERT_SIZEOF(_Actor00300FireballWork, 0x8C);
 
-extern DamageAttack Actor00300_D15FD8[4];
-
-extern s16 Actor00300_D16394[];
-extern s16 Actor00300_D16000[];
-extern s16 Actor00300_D15FF8[];
-
 static void _actor00300TickEvent(Enemy* enemy, Task* task);
 static void _actor00300TickCombat(Enemy* enemy, Task* task);
 
@@ -318,18 +314,18 @@ static void _actor00300SetRootScaleY(Task* task, const MATRIX* unscaledMatrix, s
 static void _actor00300InitDrainModel(Enemy* enemy, Task* task);
 static void _actor00300TeardownFireball(Enemy* enemy, Task* task);
 
-extern EnemyParams           Actor00300_D15FE8;
 extern _Actor00300PatrolRoom Actor00300_D16020[15];
 extern SVECTOR*              Actor00300_D16278[15][2];
-extern TaskDesc              Actor00300_D162F0[];
 // Typed callback views for the task message dispatcher.
 
 extern TaskMessageEntry Actor00300_D16314[5];
 extern AnimationSet*    Actor00300_D1633C[22];
 
-/// State handlers of the task `_actor00300EnemyTask` dispatches, indexed by
-/// `Task::state`. The first sets the task up and moves it to state 1.
-static const EnemyTaskFuncTable3 Actor00300_D00004 = {
+/// Enemy task states: 0 initialization, 1 event/combat update, 2 death.
+///
+/// Indexed by `Task::state` in 0..2; each callback receives the live enemy and task.
+/// The complete table is copied by value before dispatch.
+static const EnemyTaskFuncTable3 _gActor00300EnemyTaskStates = {
     {
         _actor00300InitEnemy,
         _actor00300TickActive,
@@ -1053,39 +1049,78 @@ static AnimationSet _gActor00300Actor100300Animation15FB0 = {
     { NULL, _gActor00300Actor100300Animation15FB0Bank1, NULL, NULL, _gActor00300Actor100300Animation15FB0Bank4, NULL, NULL, NULL },
 };
 
-DamageAttack Actor00300_D15FD8[4] = {
-    { 25, 8 },
-    { 35, 3 },
-    { 35, 2 },
-    { 35, 1 },
+/// Indices shared by the attack properties and fireball charge durations.
+enum {
+    ACTOR_00300_ATTACK_DRAIN              = 0,
+    ACTOR_00300_ATTACK_FIREBALL_POISON    = 1,
+    ACTOR_00300_ATTACK_FIREBALL_PARALYSIS = 2,
+    ACTOR_00300_ATTACK_FIREBALL_DARKNESS  = 3
 };
 
-EnemyParams Actor00300_D15FE8 = { Actor00300_D15FD8, 400, 105, 158, 8, 100, 10, 100, 7 };
+/// Zero in the fireball draw table skips the attack after its MP cost is paid.
+enum { ACTOR_00300_FIREBALL_NO_ATTACK = 0 };
 
-s16 Actor00300_D15FF8[4] = {
-    0,
-    98,
-    150,
-    120,
+/// Execution priority shared by the enemy, drain attachment and fireball.
+enum { ACTOR_00300_TASK_PRIORITY = 96 };
+
+/// Collision attacks: drain with silence, then poison, paralysis and darkness fireballs.
+///
+/// Rows are `ACTOR_00300_ATTACK_*`; powers precede the player's HP-band damage scale.
+/// The enemy parameter record borrows this table; collision bodies store packed copies.
+static DamageAttack _gActor00300Attacks[4] = {
+    [ACTOR_00300_ATTACK_DRAIN]              = { 25, GAME_ACTOR_REACTION_SILENCE },
+    [ACTOR_00300_ATTACK_FIREBALL_POISON]    = { 35, GAME_ACTOR_REACTION_POISON },
+    [ACTOR_00300_ATTACK_FIREBALL_PARALYSIS] = { 35, GAME_ACTOR_REACTION_PARALYSIS },
+    [ACTOR_00300_ATTACK_FIREBALL_DARKNESS]  = { 35, GAME_ACTOR_REACTION_DARKNESS },
 };
 
-s16 Actor00300_D16000[16] = {
-    0,
-    1,
-    1,
-    1,
-    1,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    3,
-    3,
-    3,
-    3,
-    3,
+/// Shared health, battle rewards and hit-reaction tuning of this enemy kind.
+///
+/// Each live enemy borrows the record; its maximum HP also sets the heal threshold.
+static EnemyParams _gActor00300EnemyParams = {
+    .attacks              = _gActor00300Attacks,
+    .hpMax                = 400,
+    .exp                  = 105,
+    .bp                   = 158,
+    .mp                   = 8,
+    .critChance           = 100,
+    .buildupSteps         = 10,
+    .damageOverTimeChance = 100,
+    .damageOverTimeTicks  = 7,
+};
+
+/// Charge-animation ticks before release, indexed by `ACTOR_00300_ATTACK_*`.
+///
+/// Fireballs use rows 1..3; the unused drain row is zero. The duration also
+/// determines the charge halo's lifetime after its fixed lead-in.
+static s16 _gActor00300FireballChargeTicks[4] = {
+    [ACTOR_00300_ATTACK_DRAIN]              = 0,
+    [ACTOR_00300_ATTACK_FIREBALL_POISON]    = 98,
+    [ACTOR_00300_ATTACK_FIREBALL_PARALYSIS] = 150,
+    [ACTOR_00300_ATTACK_FIREBALL_DARKNESS]  = 120,
+};
+
+/// Sixteen fireball draw choices: one skip, four poison, six paralysis, five darkness.
+///
+/// The low four bits of an upper-halfword LCG draw select a row. Nonzero
+/// results are attack indices 1..3, shared with the charge-duration table.
+static s16 _gActor00300FireballAttackDraws[16] = {
+    ACTOR_00300_FIREBALL_NO_ATTACK,
+    ACTOR_00300_ATTACK_FIREBALL_POISON,
+    ACTOR_00300_ATTACK_FIREBALL_POISON,
+    ACTOR_00300_ATTACK_FIREBALL_POISON,
+    ACTOR_00300_ATTACK_FIREBALL_POISON,
+    ACTOR_00300_ATTACK_FIREBALL_PARALYSIS,
+    ACTOR_00300_ATTACK_FIREBALL_PARALYSIS,
+    ACTOR_00300_ATTACK_FIREBALL_PARALYSIS,
+    ACTOR_00300_ATTACK_FIREBALL_PARALYSIS,
+    ACTOR_00300_ATTACK_FIREBALL_PARALYSIS,
+    ACTOR_00300_ATTACK_FIREBALL_PARALYSIS,
+    ACTOR_00300_ATTACK_FIREBALL_DARKNESS,
+    ACTOR_00300_ATTACK_FIREBALL_DARKNESS,
+    ACTOR_00300_ATTACK_FIREBALL_DARKNESS,
+    ACTOR_00300_ATTACK_FIREBALL_DARKNESS,
+    ACTOR_00300_ATTACK_FIREBALL_DARKNESS,
 };
 
 _Actor00300PatrolRoom Actor00300_D16020[15] = {
@@ -1106,160 +1141,232 @@ _Actor00300PatrolRoom Actor00300_D16020[15] = {
     { 0, 0, 0, 0 },
 };
 
-SVECTOR Actor00300_D16098[4] = {
+/// Cyclic patrol points for Mine Cavern placements in mode 0.
+///
+/// X/Z use the enemy root's parent coordinates; Y is ignored.
+static SVECTOR _gActor00300MineCavernPatrolMode0Points[4] = {
     { 0x413C, 0, 1500, 0 },
     { 0x413C, 0, 7600, 0 },
     { 1800, 0, 7600, 0 },
     { 1800, 0, 1500, 0 },
 };
 
-SVECTOR Actor00300_D160B8[4] = {
+/// Cyclic patrol points for Mine Cavern placements in mode 1.
+///
+/// X/Z use the enemy root's parent coordinates; Y is ignored.
+static SVECTOR _gActor00300MineCavernPatrolMode1Points[4] = {
     { 0x2710, 0, 6000, 0 },
     { 7800, 0, 6000, 0 },
     { 0x2710, 0, 6000, 0 },
     { 7800, 0, 6000, 0 },
 };
 
-SVECTOR Actor00300_D160D8[2] = {
+/// Cyclic patrol points for Mine Secret Passage placements in mode 0.
+///
+/// X/Z use the enemy root's parent coordinates; Y is ignored.
+static SVECTOR _gActor00300MineSecretPassagePatrolMode0Points[2] = {
     { 1500, 0, 0x2710, 0 },
     { 1500, 0, 3500, 0 },
 };
 
-SVECTOR Actor00300_D160E8[2] = {
+/// Cyclic patrol points for Mine Secret Passage placements in mode 1.
+///
+/// X/Z use the enemy root's parent coordinates; Y is ignored.
+static SVECTOR _gActor00300MineSecretPassagePatrolMode1Points[2] = {
     { 3000, 0, 3500, 0 },
     { 0x2904, 0, 3500, 0 },
 };
 
-SVECTOR Actor00300_D160F8[2] = {
+/// Cyclic patrol points for Shelter B1 Elevator Hall placements in mode 0.
+///
+/// X/Z use the enemy root's parent coordinates; Y is ignored.
+static SVECTOR _gActor00300ShelterB1ElevatorHallPatrolMode0Points[2] = {
     { -9000, 0, 0, 0 },
     { -2000, 0, 0, 0 },
 };
 
-SVECTOR Actor00300_D16108[2] = {
+/// Cyclic patrol points for Shelter B1 Elevator Hall placements in mode 1.
+///
+/// X/Z use the enemy root's parent coordinates; Y is ignored.
+static SVECTOR _gActor00300ShelterB1ElevatorHallPatrolMode1Points[2] = {
     { 7500, 0, 0, 0 },
     { -1000, 0, 0, 0 },
 };
 
-SVECTOR Actor00300_D16118[2] = {
+/// Cyclic patrol points for Shelter B1 Storeroom placements in mode 0.
+///
+/// X/Z use the enemy root's parent coordinates; Y is ignored.
+static SVECTOR _gActor00300ShelterB1StoreroomPatrolMode0Points[2] = {
     { -1000, 0, 1300, 0 },
     { 4000, 0, 1300, 0 },
 };
 
-SVECTOR Actor00300_D16128[2] = {
+/// Cyclic patrol points for Shelter B1 Storeroom placements in mode 1.
+///
+/// X/Z use the enemy root's parent coordinates; Y is ignored.
+static SVECTOR _gActor00300ShelterB1StoreroomPatrolMode1Points[2] = {
     { 4000, 0, -1300, 0 },
     { -1000, 0, -1300, 0 },
 };
 
-SVECTOR Actor00300_D16138[4] = {
+/// Cyclic patrol points for Shelter B1 North Maintenance Walkway placements in mode 0.
+///
+/// X/Z use the enemy root's parent coordinates; Y is ignored.
+static SVECTOR _gActor00300ShelterB1NorthMaintenanceWalkwayPatrolMode0Points[4] = {
     { 2000, 0, -3500, 0 },
     { 2000, 0, 4000, 0 },
     { -2000, 0, 4000, 0 },
     { 2000, 0, 4000, 0 },
 };
 
-SVECTOR Actor00300_D16158[2] = {
+/// Cyclic patrol points for Shelter B1 Main Corridor placements in mode 0.
+///
+/// X/Z use the enemy root's parent coordinates; Y is ignored.
+static SVECTOR _gActor00300ShelterB1MainCorridorPatrolMode0Points[2] = {
     { 0, 0, -8000, 0 },
     { 0, 0, -2000, 0 },
 };
 
-SVECTOR Actor00300_D16168[2] = {
+/// Cyclic patrol points for Shelter B1 Main Corridor placements in mode 1.
+///
+/// X/Z use the enemy root's parent coordinates; Y is ignored.
+static SVECTOR _gActor00300ShelterB1MainCorridorPatrolMode1Points[2] = {
     { -2000, 0, -0x2710, 0 },
     { 2000, 0, -0x2710, 0 },
 };
 
-SVECTOR Actor00300_D16178[2] = {
+/// Cyclic patrol points for Shelter B1 Transfer Tunnel placements in mode 0.
+///
+/// X/Z use the enemy root's parent coordinates; Y is ignored.
+static SVECTOR _gActor00300ShelterB1TransferTunnelPatrolMode0Points[2] = {
     { 1000, 0, 80, 0 },
     { 6000, 0, 80, 0 },
 };
 
-SVECTOR Actor00300_D16188[2] = {
+/// Cyclic patrol points for Shelter B2 Elevator Hall placements in mode 0.
+///
+/// X/Z use the enemy root's parent coordinates; Y is ignored.
+static SVECTOR _gActor00300ShelterB2ElevatorHallPatrolMode0Points[2] = {
     { 6500, 0, 0, 0 },
     { 6500, 0, 3300, 0 },
 };
 
-SVECTOR Actor00300_D16198[2] = {
+/// Cyclic patrol points for Shelter B2 Elevator Hall placements in mode 1.
+///
+/// X/Z use the enemy root's parent coordinates; Y is ignored.
+static SVECTOR _gActor00300ShelterB2ElevatorHallPatrolMode1Points[2] = {
     { 4000, 0, 0, 0 },
     { -4000, 0, 0, 0 },
 };
 
-SVECTOR Actor00300_D161A8[4] = {
+/// Cyclic patrol points for Shelter B2 Pod Access Tunnel placements in mode 0.
+///
+/// X/Z use the enemy root's parent coordinates; Y is ignored.
+static SVECTOR _gActor00300ShelterB2PodAccessTunnelPatrolMode0Points[4] = {
     { 1700, 0, -1700, 0 },
     { 4500, 0, -1700, 0 },
     { 1700, 0, -1700, 0 },
     { 1700, 0, -7000, 0 },
 };
 
-SVECTOR Actor00300_D161C8[2] = {
+/// Cyclic patrol points for Shelter B3 Elevator Hall placements in mode 0.
+///
+/// X/Z use the enemy root's parent coordinates; Y is ignored.
+static SVECTOR _gActor00300ShelterB3ElevatorHallPatrolMode0Points[2] = {
     { 0, 0, -2000, 0 },
     { -5000, 0, -2000, 0 },
 };
 
-SVECTOR Actor00300_D161D8[2] = {
+/// Cyclic patrol points for Shelter B3 Elevator Hall placements in mode 1.
+///
+/// X/Z use the enemy root's parent coordinates; Y is ignored.
+static SVECTOR _gActor00300ShelterB3ElevatorHallPatrolMode1Points[2] = {
     { 1000, 0, -2000, 0 },
     { 6000, 0, -2000, 0 },
 };
 
-SVECTOR Actor00300_D161E8[2] = {
+/// Cyclic patrol points for Shelter B4 Upper Sewer placements in mode 0.
+///
+/// X/Z use the enemy root's parent coordinates; Y is ignored.
+static SVECTOR _gActor00300ShelterB4UpperSewerPatrolMode0Points[2] = {
     { -6500, -2000, 9000, 0 },
     { 1000, -2000, 9000, 0 },
 };
 
-SVECTOR Actor00300_D161F8[2] = {
+/// Cyclic patrol points for Neo Ark North Promenade placements in mode 0.
+///
+/// X/Z use the enemy root's parent coordinates; Y is ignored.
+static SVECTOR _gActor00300NeoArkNorthPromenadePatrolMode0Points[2] = {
     { 0x2710, 0, 0x2CEC, 0 },
     { 4500, 0, 0x2CEC, 0 },
 };
 
-SVECTOR Actor00300_D16208[2] = {
+/// Cyclic patrol points for Neo Ark North Promenade placements in mode 1.
+///
+/// X/Z use the enemy root's parent coordinates; Y is ignored.
+static SVECTOR _gActor00300NeoArkNorthPromenadePatrolMode1Points[2] = {
     { 0x2C24, 0, 0x2710, 0 },
     { 0x2C24, 0, 4500, 0 },
 };
 
-SVECTOR Actor00300_D16218[4] = {
+/// Cyclic patrol points for Dryfield Motel Balcony placements in mode 0.
+///
+/// X/Z use the enemy root's parent coordinates; Y is ignored.
+static SVECTOR _gActor00300DryfieldMotelBalconyPatrolMode0Points[4] = {
     { -6000, 0, -4000, 0 },
     { -6000, 0, 2000, 0 },
     { -0x2CEC, 0, 2000, 0 },
     { -6000, 0, 2000, 0 },
 };
 
-SVECTOR Actor00300_D16238[4] = {
+/// Cyclic patrol points for Dryfield Motel Balcony placements in mode 1.
+///
+/// X/Z use the enemy root's parent coordinates; Y is ignored.
+static SVECTOR _gActor00300DryfieldMotelBalconyPatrolMode1Points[4] = {
     { -6000, 0, 4500, 0 },
     { -6000, 0, 0x2904, 0 },
     { -1000, 0, 0x2904, 0 },
     { -6000, 0, 0x2904, 0 },
 };
 
-SVECTOR Actor00300_D16258[2] = {
+/// Cyclic patrol points for Dryfield Night Main Street placements in mode 0.
+///
+/// X/Z use the enemy root's parent coordinates; Y is ignored.
+static SVECTOR _gActor00300DryfieldNightMainStreetPatrolMode0Points[2] = {
     { -2100, 0, -2100, 0 },
     { -1600, 0, 4000, 0 },
 };
 
-SVECTOR Actor00300_D16268[2] = {
+/// Cyclic patrol points for Dryfield Night Main Street placements in mode 1.
+///
+/// X/Z use the enemy root's parent coordinates; Y is ignored.
+static SVECTOR _gActor00300DryfieldNightMainStreetPatrolMode1Points[2] = {
     { -4700, 0, 1750, 0 },
     { -1000, 0, 6300, 0 },
 };
 
 SVECTOR* Actor00300_D16278[15][2] = {
     { NULL, NULL },
-    { Actor00300_D16098, Actor00300_D160B8 },
-    { Actor00300_D160D8, Actor00300_D160E8 },
-    { Actor00300_D160F8, Actor00300_D16108 },
-    { Actor00300_D16118, Actor00300_D16128 },
-    { Actor00300_D16138, NULL },
-    { Actor00300_D16158, Actor00300_D16168 },
-    { Actor00300_D16178, NULL },
-    { Actor00300_D16188, Actor00300_D16198 },
-    { Actor00300_D161A8, NULL },
-    { Actor00300_D161C8, Actor00300_D161D8 },
-    { Actor00300_D161E8, NULL },
-    { Actor00300_D161F8, Actor00300_D16208 },
-    { Actor00300_D16218, Actor00300_D16238 },
-    { Actor00300_D16258, Actor00300_D16268 },
+    { _gActor00300MineCavernPatrolMode0Points, _gActor00300MineCavernPatrolMode1Points },
+    { _gActor00300MineSecretPassagePatrolMode0Points, _gActor00300MineSecretPassagePatrolMode1Points },
+    { _gActor00300ShelterB1ElevatorHallPatrolMode0Points, _gActor00300ShelterB1ElevatorHallPatrolMode1Points },
+    { _gActor00300ShelterB1StoreroomPatrolMode0Points, _gActor00300ShelterB1StoreroomPatrolMode1Points },
+    { _gActor00300ShelterB1NorthMaintenanceWalkwayPatrolMode0Points, NULL },
+    { _gActor00300ShelterB1MainCorridorPatrolMode0Points, _gActor00300ShelterB1MainCorridorPatrolMode1Points },
+    { _gActor00300ShelterB1TransferTunnelPatrolMode0Points, NULL },
+    { _gActor00300ShelterB2ElevatorHallPatrolMode0Points, _gActor00300ShelterB2ElevatorHallPatrolMode1Points },
+    { _gActor00300ShelterB2PodAccessTunnelPatrolMode0Points, NULL },
+    { _gActor00300ShelterB3ElevatorHallPatrolMode0Points, _gActor00300ShelterB3ElevatorHallPatrolMode1Points },
+    { _gActor00300ShelterB4UpperSewerPatrolMode0Points, NULL },
+    { _gActor00300NeoArkNorthPromenadePatrolMode0Points, _gActor00300NeoArkNorthPromenadePatrolMode1Points },
+    { _gActor00300DryfieldMotelBalconyPatrolMode0Points, _gActor00300DryfieldMotelBalconyPatrolMode1Points },
+    { _gActor00300DryfieldNightMainStreetPatrolMode0Points, _gActor00300DryfieldNightMainStreetPatrolMode1Points },
 };
 
-TaskDesc Actor00300_D162F0[3] = {
-    { { { TASK_BODY_TMD, 96 } }, _actor00300EnemyTask, { .model = &_gActor00300StingerBody } },
-    { { { TASK_BODY_TMD, 96 } }, _actor00300DrainModelTask, { .model = &_gActor00300Actor100300Model09FA0 } },
-    { { { TASK_BODY_COORD, 96 } }, _actor00300FireballTask, { .value = 0 } },
+TaskDesc gActor00300Tasks[3] = {
+    { { { TASK_BODY_TMD, ACTOR_00300_TASK_PRIORITY } }, _actor00300EnemyTask, { .model = &_gActor00300StingerBody } },
+    { { { TASK_BODY_TMD, ACTOR_00300_TASK_PRIORITY } }, _actor00300DrainModelTask, { .model = &_gActor00300Actor100300Model09FA0 } },
+    { { { TASK_BODY_COORD, ACTOR_00300_TASK_PRIORITY } }, _actor00300FireballTask, { .value = 0 } },
 };
 
 TaskMessageEntry Actor00300_D16314[5] = {
@@ -1295,7 +1402,11 @@ AnimationSet* Actor00300_D1633C[22] = {
     &_gActor00300Actor100300Animation15FB0,
 };
 
-s16 Actor00300_D16394[18] = {
+/// Normal-rate blend frames for combat animations 0..18; zero starts without a transition.
+///
+/// Indexed by `ACTOR_00300_ANIM_*` when reaction blending is inactive.
+/// Event clips 19..21 are started directly with the message's blend duration.
+static s16 _gActor00300AnimationBlendFrames[19] = {
     0,
     8,
     8,
@@ -1312,6 +1423,7 @@ s16 Actor00300_D16394[18] = {
     0,
     0,
     8,
+    0,
     0,
     0,
 };
@@ -1451,10 +1563,10 @@ static void _actor00300InitEnemy(Enemy* enemy, Task* task)
     enemy->bodyPos.vx             = 0;
     enemy->bodyPos.vy             = 0;
     enemy->bodyPos.vz             = 0;
-    enemy->param                  = &Actor00300_D15FE8;
+    enemy->param                  = &_gActor00300EnemyParams;
     enemy->recs                   = work->hitContacts;
     enemy->coord                  = bodyCoords + ACTOR_00300_HIT_PART;
-    enemy->hp                     = (s16)Actor00300_D15FE8.hpMax;
+    enemy->hp                     = (s16)_gActor00300EnemyParams.hpMax;
     work->hitEffectArg.coord      = task->extra.tmd->coords + ACTOR_00300_HIT_PART;
     work->hitEffectArg.spawnArgLo = ACTOR_00300_HIT_EFFECT_ARG_LOW;
     work->hitEffectArg.spawnArgHi = ACTOR_00300_HIT_EFFECT_ARG_HIGH;
@@ -1469,7 +1581,7 @@ static void _actor00300InitEnemy(Enemy* enemy, Task* task)
     work->timer        = ACTOR_00300_SPAWN_WAIT_TICKS;
     work->mp           = ACTOR_00300_MP_AT_SPAWN;
     // The drain child borrows this work and the placement texture offsets.
-    drainEnemy = enemySpawnFromTable(Actor00300_D162F0, ACTOR_00300_DRAIN_DESCRIPTOR, 0, enemy);
+    drainEnemy = enemySpawnFromTable(gActor00300Tasks, ACTOR_00300_DRAIN_DESCRIPTOR, 0, enemy);
     ACTOR_00300_BIND_DRAIN_TEXTURE();
     // Register sensing, hit, floor and drain bodies before enabling their passes.
     drainTask                     = drainEnemy->task;
@@ -1526,7 +1638,7 @@ static void _actor00300InitEnemy(Enemy* enemy, Task* task)
     work->drainBody.pos.vx           = ACTOR_00300_DRAIN_OFFSET_X;
     work->drainBody.pos.vy           = ACTOR_00300_DRAIN_OFFSET_Y;
     work->drainBody.pos.vz           = 0;
-    work->drainBody.key              = damagePackAttackKey(Actor00300_D15FD8, 0);
+    work->drainBody.key              = damagePackAttackKey(_gActor00300Attacks, ACTOR_00300_ATTACK_DRAIN);
     work->drainBody.radius           = ACTOR_00300_DRAIN_RADIUS;
     work->drainBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->drainBody);
@@ -2056,7 +2168,6 @@ static void _actor00300TickPursuit(Task* task)
 static void _actor00300SelectAttack(Task* task)
 {
     enum { ACTOR_00300_HEAL_HP_THRESHOLD_PERCENT = 50,
-           ACTOR_00300_FIREBALL_NO_ATTACK        = 0,
            ACTOR_00300_ATTACK_TURN_MIN_TICKS     = 60 };
 
     _Actor00300Work*  work;
@@ -2067,7 +2178,7 @@ static void _actor00300SelectAttack(Task* task)
     scratch = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
     work    = task->work;
     coord   = task->extra.tmd->coords;
-    if (((Enemy*)task->spawnArg2.pointer)->hp * 100 / (s32)Actor00300_D15FE8.hpMax < ACTOR_00300_HEAL_HP_THRESHOLD_PERCENT &&
+    if (((Enemy*)task->spawnArg2.pointer)->hp * 100 / (s32)_gActor00300EnemyParams.hpMax < ACTOR_00300_HEAL_HP_THRESHOLD_PERCENT &&
         work->mp >= ACTOR_00300_MP_HEAL_COST) {
         work->mp        -= ACTOR_00300_MP_HEAL_COST;
         work->anim       = ACTOR_00300_ANIM_CHARGE;
@@ -2075,7 +2186,7 @@ static void _actor00300SelectAttack(Task* task)
         work->actionStep = ACTOR_00300_ACTION_BEGIN;
     } else if (work->mp >= ACTOR_00300_MP_FIREBALL_COST) {
         work->mp            -= ACTOR_00300_MP_FIREBALL_COST;
-        work->fireballAttack = Actor00300_D16000[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 15];
+        work->fireballAttack = _gActor00300FireballAttackDraws[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (ARRAY_SIZE(_gActor00300FireballAttackDraws) - 1)];
         if (work->fireballAttack == ACTOR_00300_FIREBALL_NO_ATTACK) {
             work->action     = ACTOR_00300_ACTION_PURSUE;
             work->actionStep = ACTOR_00300_ACTION_BEGIN;
@@ -2231,11 +2342,11 @@ static void _actor00300TickFireballAttack(Task* task)
                 scratch->rot.vz = 0x320;
                 effect =
                     effectSpawn(gRoomEffectHaloId, coord,
-                                Actor00300_D15FF8[work->fireballAttack] - ACTOR_00300_FIREBALL_HALO_LEAD_TICKS, &scratch->rot);
+                                _gActor00300FireballChargeTicks[work->fireballAttack] - ACTOR_00300_FIREBALL_HALO_LEAD_TICKS, &scratch->rot);
                 work->chargeEffect = effect;
                 if (effect != NULL) {
                     taskReparent(task, effect->task);
-                    work->chargeEffectTimer = Actor00300_D15FF8[work->fireballAttack] - ACTOR_00300_FIREBALL_HALO_LEAD_TICKS;
+                    work->chargeEffectTimer = _gActor00300FireballChargeTicks[work->fireballAttack] - ACTOR_00300_FIREBALL_HALO_LEAD_TICKS;
                 }
                 work->chargeSound =
                     ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_00300_SOUND_CHARGE;
@@ -2243,7 +2354,7 @@ static void _actor00300TickFireballAttack(Task* task)
                 sndEvtRequestScriptStart(work->chargeSound, (s32)chargeLoopPan,
                                          (s32)(s8)worldCoordGetOriginAudioDepth(coord));
             }
-            if (work->animFrame >= Actor00300_D15FF8[work->fireballAttack]) {
+            if (work->animFrame >= _gActor00300FireballChargeTicks[work->fireballAttack]) {
                 work->actionStep = ACTOR_00300_FIREBALL_RELEASE;
                 work->anim       = ACTOR_00300_ANIM_RELEASE;
                 work->turnRate   = 0;
@@ -2280,7 +2391,7 @@ static void _actor00300TickFireballAttack(Task* task)
             }
             // Release exactly one projectile on the animation cue.
             if (work->animFrame == ACTOR_00300_FIREBALL_SPAWN_FRAME) {
-                enemySpawnFromTable(Actor00300_D162F0, ACTOR_00300_FIREBALL_DESCRIPTOR_INDEX, 0, task->spawnArg2.pointer);
+                enemySpawnFromTable(gActor00300Tasks, ACTOR_00300_FIREBALL_DESCRIPTOR_INDEX, 0, task->spawnArg2.pointer);
                 soundId    = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_00300_SOUND_FIREBALL_RELEASE;
                 releasePan = (s8)worldCoordGetOriginAudioPan(coord);
                 sndEvtRequestScriptStart(soundId, (s32)releasePan,
@@ -3231,7 +3342,7 @@ static inline void _actor00300InitFireballAttackBody(Task* task, _Actor00300Fire
     work->body.pos.vy           = 0;
     work->body.pos.vz           = 0;
     work->body.coord            = coord;
-    work->body.key              = damagePackAttackKey(Actor00300_D15FD8, parentWork->fireballAttack);
+    work->body.key              = damagePackAttackKey(_gActor00300Attacks, parentWork->fireballAttack);
     work->body.radius           = ACTOR_00300_FIREBALL_HIT_RADIUS;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->body);
@@ -3457,7 +3568,7 @@ static void _actor00300EnemyTask(Task* task)
 {
     EnemyTaskFuncTable3 handlers;
 
-    handlers = Actor00300_D00004;
+    handlers = _gActor00300EnemyTaskStates;
     handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
@@ -3597,10 +3708,11 @@ static void _actor00300TickStatusReactions(Task* task)
 
 #include "../../shared/player_detection_segment.inc.c"
 
-/// State handlers of the task `_actor00300DrainModelTask` dispatches, indexed by
-/// `Task::state`: a setup that attaches the coordinate to the parent's and
-/// moves to state 1, a scaled drain-model update, and `enemyDestroy`.
-static const EnemyTaskFuncTable3 Actor00300_D0003C = {
+/// Drain-model task states: 0 attachment setup, 1 parent-driven scaling, 2 destruction.
+///
+/// Indexed by `Task::state` in 0..2; each callback receives the live enemy and task.
+/// The parent enemy's work and lighting matrices outlive the attachment.
+static const EnemyTaskFuncTable3 _gActor00300DrainModelTaskStates = {
     {
         _actor00300InitDrainModel,
         _actor00300DrainModelActive,
@@ -3763,7 +3875,7 @@ static void _actor00300UpdateAnimation(Task* task)
         work->playingAnim = work->anim;
         work->animFrame   = 0;
         if (work->reactionBlend == 0) {
-            blendFrames = Actor00300_D16394[work->anim];
+            blendFrames = _gActor00300AnimationBlendFrames[work->anim];
         } else {
             blendFrames = ACTOR_00300_REACTION_BLEND_FRAMES;
         }
@@ -3848,7 +3960,7 @@ static void _actor00300DrainModelTask(Task* task)
 {
     EnemyTaskFuncTable3 handlers;
 
-    handlers = Actor00300_D0003C;
+    handlers = _gActor00300DrainModelTaskStates;
     handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
@@ -4007,3 +4119,5 @@ static s32 _actor00300MsgApplyCommand(Task* task, s32 messageId, const ActorComm
     }
     return 0;
 }
+
+PACKAGE_ALIASES

@@ -3496,12 +3496,11 @@ objects = [
 
 [actors.overlays.actor_00300]
 slots = [
-  { slot = 1, package = "actor_100300", id = 88 },
-  { slot = 2, package = "actor_200300", id = 177 },
+  { slot = 1, package = "actor_100300", id = 88, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor00300Tasks = "gActor100300Tasks" } },
+  { slot = 2, package = "actor_200300", id = 177, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor00300Tasks = "gActor200300Tasks" } },
 ]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_00300/actor_00300", rodata = "0x4", text = "0x78", data = "0x54B4" },
   { kind = "model", at = "0x54B4", in_c = true },
   { kind = "modelSource", at = "0x9E84", in_c = true },
   { kind = "model", at = "0x9EA8", in_c = true },
@@ -3517,6 +3516,7 @@ objects = [
   { kind = "model", at = "0xBE68", in_c = true },
   { kind = "modelSource", at = "0xC2C4", in_c = true },
   { kind = "animation", at = "0xC2E8", sets = ["0xCAD4", "0xD8A8", "0xE028", "0xECF8", "0xF1A8", "0xF5E4", "0xFF4C", "0x1065C", "0x10FBC", "0x118C4", "0x11F30", "0x12754", "0x12E24", "0x1369C", "0x13C00", "0x13DE4", "0x13FC0", "0x14268", "0x14C8C", "0x15594", "0x15FB0"], in_c = true },
+  { unit = "actor_00300", variant = true, rodata = "0x4", text = "0x78", data = "0x54B4", tail = true },
 ]
 
 [actors.overlays.actor_800300]
