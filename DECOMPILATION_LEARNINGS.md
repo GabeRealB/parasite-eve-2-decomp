@@ -148005,7 +148005,7 @@ Fix: `index = i + 2; ... table[index];` with `index` assigned inside the loop.
 The scale is no longer distributed, so the RTL is `r1 = i + 2; r2 = r1 << 2;
 addr = r2 + table`. `-dL` lists `r1` and `r2` as givs and not `addr`, so only
 `r2` is reduced and the base is added per iteration, offset first. Indexing a
-global array directly (`D_mist_parking_8018DF24[i + 2]`, no local at all)
+global array directly (`_gMistParkingOptionLabelPairs[alternatePairSelector][i]`, no local at all)
 expands the same add-then-shift through `get_inner_reference` and matches too;
 a struct member reached that way leaves the member offset in the displacement
 (`addiu t0,a1,-124` / `lw v0,124(v0)`), which is when the pointer local is

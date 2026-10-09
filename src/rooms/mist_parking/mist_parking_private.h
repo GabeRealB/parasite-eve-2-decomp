@@ -55,7 +55,15 @@ typedef struct {
 } MistParkingShopTalkState;
 STATIC_ASSERT_SIZEOF(MistParkingShopTalkState, 8);
 
-extern TaskDesc D_mist_parking_8018D75C[];
+/// Nine indexed task recipes for the parking conversations and their presentation.
+///
+/// Entries 0..8: cutscene model, modal two-option dialog, departure-choice
+/// continuation, Dryfield departure, player head aim, delayed display exit,
+/// shop-choice continuation, Jodie prize/shop talk and departure-menu talk.
+/// Priorities are 192 except head aim at 97, which dispatches earlier.
+/// There is no terminator. Callback code and model data must remain loaded
+/// while spawned tasks use them. Entry 1's external launcher is unproven.
+extern TaskDesc gMistParkingConversationTaskDescs[9];
 
 extern TaskDesc D_mist_parking_8018FC24[];
 
@@ -118,9 +126,19 @@ extern AnimationSet gMistParkingAnimation0FE5C;
 
 extern AnimationSet gMistParkingAnimation10174;
 
-extern AnimationBankCopyRequest D_mist_parking_8018D82C;
+/// Copies the room's 25 pointer words into the equipped player's animation-bank extension.
+///
+/// The first copied entry is NULL; extension indices 1..24 select room clips.
+/// The request and table are borrowed through synchronous dispatch, and the
+/// copied descriptors and clips must remain loaded while playback uses them.
+extern AnimationBankCopyRequest gMistParkingPlayerConversationBankCopy;
 
-extern s8 D_mist_parking_8018DA28[28];
+/// Animation-controlled player head aim, indexed by set index minus the 47 base sets.
+///
+/// Values are 0 off and 1 aim toward scene placement 0. The head-aim task reads
+/// only entries 1..24, bounded by `gMistParkingPlayerConversationBankCopy`;
+/// entry 0 and the three trailing zero bytes are not read by that task.
+extern s8 gMistParkingPlayerAnimationHeadAimFlags[28];
 
 extern EvsCommand D_mist_parking_8018DF34[155];
 

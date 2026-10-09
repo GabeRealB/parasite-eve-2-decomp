@@ -1052,7 +1052,7 @@ static s32 _mistParkingHandleCommand(Task* task, s32 messageId, s32 commandId, s
                     gameFlagSetNibble(GAME_FLAG_0F1, MIST_PARKING_CONVERSATION_SECOND_FOLLOWUP_STARTED);
                 } else if (gameFlagGetNibble(GAME_FLAG_0F1) == MIST_PARKING_CONVERSATION_SECOND_FOLLOWUP_STARTED) {
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                    taskSpawnFromTable(D_mist_parking_8018D75C, MIST_PARKING_DEPARTURE_MENU_DESCRIPTOR, 0, 0);
+                    taskSpawnFromTable(gMistParkingConversationTaskDescs, MIST_PARKING_DEPARTURE_MENU_DESCRIPTOR, 0, 0);
                 }
             } else if (gameFlagGetNibble(GAME_FLAG_0ED) == MIST_PARKING_DEPARTURE_TALK_ENABLED) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
@@ -1067,7 +1067,7 @@ static s32 _mistParkingHandleCommand(Task* task, s32 messageId, s32 commandId, s
             if (gGameSession->location.loc.variant == MIST_PARKING_SHOP_VARIANT) {
                 taskSpawnFromTable(D_mist_parking_80190824, MIST_PARKING_SHOP_TALK_DESCRIPTOR, 0, 0);
             } else {
-                taskSpawnFromTable(D_mist_parking_8018D75C, MIST_PARKING_JODIE_TALK_DESCRIPTOR, 0, 0);
+                taskSpawnFromTable(gMistParkingConversationTaskDescs, MIST_PARKING_JODIE_TALK_DESCRIPTOR, 0, 0);
             }
             break;
         case MIST_PARKING_COMMAND_SCRIPT:
@@ -1213,8 +1213,8 @@ void mistParkingAimPlayerHeadAtTalkPartnerTask(Task* task)
     if (D_801156F9 == 0) {
         // Extension index zero has no aim flag; the copied bank bounds the lookup.
         extensionIndex = player->animationSlots[1].nextPose.indices.setIndex - ANIMATION_BANK_BASE_SET_COUNT;
-        if ((extensionIndex > 0) && (extensionIndex < D_mist_parking_8018D82C.wordCount)) {
-            animationRequestsAim = D_mist_parking_8018DA28[extensionIndex];
+        if ((extensionIndex > 0) && (extensionIndex < gMistParkingPlayerConversationBankCopy.wordCount)) {
+            animationRequestsAim = gMistParkingPlayerAnimationHeadAimFlags[extensionIndex];
         } else {
             animationRequestsAim = 0;
         }
