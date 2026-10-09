@@ -32,6 +32,14 @@
  *
  * Include this header in the prologue and each fragment at its function's
  * position.
+ *
+ * The death-start fragment also requires the carrier-private u8 array
+ * `_gStalkerZebraIvoryDeathClipsByPose`, one entry per body-bank clip selector
+ * (0..34), returning a STALKER_ZEBRA_IVORY_DEATH_CLIP_* in that carrier's bank.
+ * The knockdown dispatcher requires the carrier-private const TaskFuncTable3
+ * `_gStalkerZebraIvoryKnockdownPhases`, ordered recoil, blend to rest, recover.
+ * Define both before including their consuming fragments. They own no work
+ * or animation records and remain loaded with the carrier's callbacks.
  */
 
 #ifndef SRC_SHARED_STALKER_ZEBRA_IVORY_H
@@ -91,6 +99,17 @@ enum {
     STALKER_ZEBRA_IVORY_PENDING_STATUS    = 3, // status hold (state 5); on the ceiling, knocked off it (state 0xE)
     STALKER_ZEBRA_IVORY_PENDING_BLAST     = 4, // heavy recoil (state 4); a blast that kills bursts the body
     STALKER_ZEBRA_IVORY_PENDING_KNOCKDOWN = 5  // knockdown (state 0xF); on the ceiling, knocked off it (state 0xE)
+};
+
+/// Body-bank clips selected by both carriers' pose-to-death maps.
+///
+/// The hold and knockdown clips also serve living reactions; the death sequence
+/// restarts them and waits for their boundary before releasing collision links.
+enum {
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_HOLD      = 15,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_KNOCKDOWN = 26,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_ON_BACK_KNOCKDOWN = 27,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_FROM_BACK_LANDING = 30
 };
 
 static void _stalkerZebraIvoryTurnToward(Task* task, const SVECTOR* target, s32 turnStep);

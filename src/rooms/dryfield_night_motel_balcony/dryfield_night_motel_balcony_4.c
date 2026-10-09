@@ -3096,7 +3096,7 @@ AreaResource D_dryfield_night_motel_balcony_8018EA34[4] = {
 };
 
 AreaResource D_dryfield_night_motel_balcony_8018EA64[2] = {
-    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_400600_80151B10 },
+    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor400600ZebraStalkerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

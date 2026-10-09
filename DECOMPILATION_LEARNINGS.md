@@ -13173,12 +13173,12 @@ and only the symbol in the `%hi`/`%lo` pair differs, which is what the scratch
 diff shows as a two-line `regs` penalty on an otherwise perfect body:
 
 ```c
-extern const TaskFuncTable4 D_actor_400600_80131F60;
+extern const TaskFuncTable4 _gActor400600BackwardLeapPhases;
 
 static void _actor400600RunBackwardLeap(Task* task)
 {
     _Actor400600ZebraStalkerWork* work = task->work;
-    TaskFuncTable4 phases = D_actor_400600_80131F60;
+    TaskFuncTable4 phases = _gActor400600BackwardLeapPhases;
 
     _stalkerZebraIvoryFoldArms(task);
     phases.funcs[work->subState](task);

@@ -234,7 +234,6 @@ extern AnimationSet* D_actor_405800_80151410[35];
 // Message-table callbacks use the argument views required by this TU.
 
 extern TaskMessageEntry D_actor_405800_8015149C[3];
-extern u8               gStalkerZebraIvoryResumeClips[];
 
 /* The records closing four of the overlay's model streams, selected through
    `D_800678F0`. */
@@ -1435,7 +1434,47 @@ TaskDesc D_actor_405800_801514B4[2] = {
 
 TaskDesc D_actor_405800_801514CC = { { { TASK_BODY_TMD, 96 } }, _actor405800Task, { .model = &_gActor405800IvoryStalkerBody } };
 
-u8 gStalkerZebraIvoryResumeClips[35] = { 26, 26, 26, 27, 27, 15, 15, 26, 26, 26, 26, 27, 27, 15, 15, 26, 26, 27, 27, 30, 27, 26, 26, 26, 26, 26, 15, 15, 15, 15, 15, 15, 15, 15, 15 };
+/// Grounded-death clip selected from the requested body pose, indexed 0..34.
+///
+/// Supplies the Ivory carrier's death-clip map to the shared Stalker code.
+/// Each entry is a clip in this carrier's body bank; there is no terminator.
+static u8 _gStalkerZebraIvoryDeathClipsByPose[ARRAY_SIZE(D_actor_405800_80151410)] = {
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_KNOCKDOWN,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_KNOCKDOWN,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_KNOCKDOWN,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_ON_BACK_KNOCKDOWN,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_ON_BACK_KNOCKDOWN,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_HOLD,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_HOLD,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_KNOCKDOWN,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_KNOCKDOWN,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_KNOCKDOWN,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_KNOCKDOWN,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_ON_BACK_KNOCKDOWN,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_ON_BACK_KNOCKDOWN,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_HOLD,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_HOLD,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_KNOCKDOWN,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_KNOCKDOWN,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_ON_BACK_KNOCKDOWN,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_ON_BACK_KNOCKDOWN,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_FROM_BACK_LANDING,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_ON_BACK_KNOCKDOWN,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_KNOCKDOWN,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_KNOCKDOWN,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_KNOCKDOWN,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_KNOCKDOWN,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_KNOCKDOWN,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_HOLD,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_HOLD,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_HOLD,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_HOLD,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_HOLD,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_HOLD,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_HOLD,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_HOLD,
+    STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_HOLD,
+};
 
 static __inline__ void _actor405800QueuePartFrameCapture(GfxCoord* partCoord);
 
@@ -2177,8 +2216,12 @@ static const TaskFuncTable4 D_actor_405800_80131EF4 = {
     },
 };
 
-/// Sub-state handlers of `_stalkerZebraIvoryRunSubStates`, by `subState`.
-static const TaskFuncTable3 gStalkerZebraIvorySubStates = {
+/// Knockdown phases supplied to the shared Stalker behavior, indexed 0..2.
+///
+/// Sub-states play upright/on-back recoil, blend into rest, then resume walk
+/// or on-back crawl. This carrier supplies its own callback addresses; shared
+/// dispatch accepts armed reactions before selecting a phase.
+static const TaskFuncTable3 _gStalkerZebraIvoryKnockdownPhases = {
     {
         _actor405800StartKnockdownRecoil,
         _actor405800BlendKnockdownRest,

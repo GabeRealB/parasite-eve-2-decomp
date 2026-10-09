@@ -10,7 +10,7 @@
 static void _stalkerZebraIvoryRunSubStates(Task* task)
 {
     StalkerZebraIvoryWork* work      = task->work;
-    TaskFuncTable3         subStates = gStalkerZebraIvorySubStates;
+    TaskFuncTable3         subStates = _gStalkerZebraIvoryKnockdownPhases;
 
     _stalkerZebraIvoryFoldArms(task);
     if ((_stalkerZebraIvoryApplyArmedReaction(task) << 0x10) == 0) {

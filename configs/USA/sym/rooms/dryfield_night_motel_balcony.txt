@@ -136,7 +136,7 @@ D_dryfield_night_motel_balcony_8018F29C = 0x8018F29C; // size:0x8 defined:True
 D_dryfield_night_motel_balcony_8018F2A4 = 0x8018F2A4; // size:0x8 defined:True
 gActor01500MindSucklerTaskDesc = 0x8013BE28; // absolute:True owner=actor_101500
 gActor101600ScavengerTaskDesc = 0x801445DC; // absolute:True owner=actor_101600
-D_actor_400600_80151B10 = 0x80151B10; // absolute:True owner=actor_400600
+gActor400600ZebraStalkerTaskDesc = 0x80151B10; // absolute:True owner=actor_400600
 D_actor_403100_8015560C = 0x8015560C; // absolute:True owner=actor_403100
 gActor335800GaryDouglasTasks = 0x8016EADC; // absolute:True owner=actor_335800
 gActor335800FlintTaskDesc = 0x80172E9C; // absolute:True owner=actor_335800

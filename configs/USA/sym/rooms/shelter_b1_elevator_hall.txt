@@ -53,7 +53,7 @@ gViewIdentityMap = 0x8010CAF8; // absolute:True
 gActor102100WatcherTaskDesc = 0x80135C30; // absolute:True owner=actor_102100
 gActor102300RookGolemTasks = 0x80147AB8; // absolute:True owner=actor_102300
 D_actor_100300_80148110 = 0x80148110; // absolute:True owner=actor_100300 shared=actors
-D_actor_400600_80151B10 = 0x80151B10; // absolute:True owner=actor_400600
+gActor400600ZebraStalkerTaskDesc = 0x80151B10; // absolute:True owner=actor_400600
 gActor205600PawnGolemTasks = 0x801602C0; // absolute:True owner=actor_205600
 D_shelter_b1_elevator_hall_80182CAC = 0x80182CAC; // size:0xC defined:True
 D_shelter_b1_elevator_hall_80182CB8 = 0x80182CB8; // size:0x30 defined:True

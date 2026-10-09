@@ -306,7 +306,7 @@ extern Task* D_actor_560800_8017578C;
 
 /// Animation block `_actor560800BlendScenePlayerAnimation` points the `source.sets` of its
 /// `AnimationPlayRequest` at when it sends message 0x3F4 - the same role
-/// `D_actor_400600_80151A48` plays in that overlay.
+/// `_gActor400600PlayerHoldAnimationSets` plays in that overlay.
 extern AnimationSet* D_actor_560800_8016EA40[13];
 
 extern ActorAnimChainLink D_actor_560800_8016EBE8[];

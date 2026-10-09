@@ -281,7 +281,14 @@ extern TaskDesc Actor00700_D075A8;
 
 extern TaskDesc D_actor_405800_801514CC;
 
-extern TaskDesc D_actor_400600_80151B10;
+/// Spawn recipe for the Zebra Stalker body task, running at priority 96.
+///
+/// Requires this actor overlay's model, animation records and code to remain
+/// loaded until the body and its arm tasks are released. The callback takes
+/// ownership of the Enemy in spawnArg2.pointer. The high nibble of spawnArg1's
+/// low byte selects 0 ordinary, 1 water, 2 group drop, 3 Junk Yard, 4 floor drop
+/// or 5 delayed group entrance; the low nibble is ignored.
+extern TaskDesc gActor400600ZebraStalkerTaskDesc;
 
 /// Slot export of `gActor03700BatTaskDesc` from actor_203700, with the same descriptor contract.
 extern TaskDesc gActor203700BatTaskDesc;
