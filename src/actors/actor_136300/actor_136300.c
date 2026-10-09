@@ -1,3 +1,5 @@
+#include "actors/actor_136300.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -38,20 +40,6 @@
 #include "rooms/dryfield_night_garage.h"
 #include "../../shared/screen_wave.h"
 
-/// Descriptor 0 of the task table this package publishes to the garage room.
-///
-/// The room's area-resource entry for this package names the table by this
-/// address with task index 0, and its interaction handler spawns the
-/// descriptor after this one from the same address. The layout that entry
-/// belongs to places no actor, so this descriptor is only ever the table's
-/// base and is never spawned.
-extern TaskDesc D_actor_136300_8013B11C;
-
-extern TaskDesc D_actor_136300_8013B134;
-
-extern AnimationPlayRequest D_actor_136300_8013B208;
-extern AnimationPlayRequest D_actor_136300_8013B230;
-
 /// Script pair handed to `evsStartScript` -- the first while the ending is being
 /// armed, the second when the capture event is cancelled.
 extern EvsCommand D_actor_136300_8013C5C8[];
@@ -69,13 +57,6 @@ extern ScreenWaveCtx* gScreenWaveCtx;
 /// and speed at spawn and advanced by its speed every frame.
 extern ScreenWaveOscillator gScreenWaveColumns[13];
 extern ScreenWaveOscillator gScreenWaveRows[32];
-
-/// The ramp context the message handler seeds and hands to the screen-wave
-/// task.
-extern ScreenWaveCtx D_actor_136300_8013C99C;
-
-/// Spawn table of the screen-wave task.
-extern TaskDesc D_actor_136300_80132AC4[];
 
 static AnimationSet _gActor136300Animation00F14;
 static AnimationSet _gActor136300Animation010EC;
@@ -95,35 +76,32 @@ static AnimationSet _gActor136300Animation04658;
 static void         _actor136300GarageDepartureTask(Task* task);
 static void         _actor136300StageExitCountdownTask(Task* task);
 
-extern AnimationPlayRequest D_actor_136300_8013B1CC;
-extern AnimationPlayRequest D_actor_136300_8013B1E0;
-extern AnimationPlayRequest D_actor_136300_8013B1F4;
-static AnimationSet         _gActor136300Animation0495C;
-static AnimationSet         _gActor136300Animation04B60;
-static AnimationSet         _gActor136300Animation04E40;
-static AnimationSet         _gActor136300Animation05038;
-static AnimationSet         _gActor136300Animation0538C;
-static AnimationSet         _gActor136300Animation05584;
-static AnimationSet         _gActor136300Animation05748;
-static AnimationSet         _gActor136300Animation05A08;
-static AnimationSet         _gActor136300Animation05BCC;
-static AnimationSet         _gActor136300Animation05F84;
-static AnimationSet         _gActor136300Animation062B0;
-static AnimationSet         _gActor136300Animation06568;
-static AnimationSet         _gActor136300Animation066F8;
-static AnimationSet         _gActor136300Animation069B8;
-static AnimationSet         _gActor136300Animation06D8C;
-static AnimationSet         _gActor136300Animation0717C;
-static AnimationSet         _gActor136300Animation074E8;
-static AnimationSet         _gActor136300Animation07BE4;
-static AnimationSet         _gActor136300Animation07E5C;
-static AnimationSet         _gActor136300Animation082B0;
-static AnimationSet         _gActor136300Animation08544;
-static AnimationSet         _gActor136300Animation088AC;
-static AnimationSet         _gActor136300Animation08A84;
-static AnimationSet         _gActor136300Animation08D9C;
-static AnimationSet         _gActor136300Animation08F98;
-static AnimationSet         _gActor136300Animation092D4;
+static AnimationSet _gActor136300Animation0495C;
+static AnimationSet _gActor136300Animation04B60;
+static AnimationSet _gActor136300Animation04E40;
+static AnimationSet _gActor136300Animation05038;
+static AnimationSet _gActor136300Animation0538C;
+static AnimationSet _gActor136300Animation05584;
+static AnimationSet _gActor136300Animation05748;
+static AnimationSet _gActor136300Animation05A08;
+static AnimationSet _gActor136300Animation05BCC;
+static AnimationSet _gActor136300Animation05F84;
+static AnimationSet _gActor136300Animation062B0;
+static AnimationSet _gActor136300Animation06568;
+static AnimationSet _gActor136300Animation066F8;
+static AnimationSet _gActor136300Animation069B8;
+static AnimationSet _gActor136300Animation06D8C;
+static AnimationSet _gActor136300Animation0717C;
+static AnimationSet _gActor136300Animation074E8;
+static AnimationSet _gActor136300Animation07BE4;
+static AnimationSet _gActor136300Animation07E5C;
+static AnimationSet _gActor136300Animation082B0;
+static AnimationSet _gActor136300Animation08544;
+static AnimationSet _gActor136300Animation088AC;
+static AnimationSet _gActor136300Animation08A84;
+static AnimationSet _gActor136300Animation08D9C;
+static AnimationSet _gActor136300Animation08F98;
+static AnimationSet _gActor136300Animation092D4;
 /// Scene callback request that prepares mask-bit RGB16 decoding without starting a wave.
 enum { ACTOR_136300_WAVE_PREPARE_DECODE = -2 };
 
@@ -135,8 +113,19 @@ static void _actor136300PlayCompanionDialogueAnimation(void);
 static void _actor136300QueueStageExitCountdown(s32 countdownTicks);
 static void _actor136300SelectSceneCaptions(s32 restoreDefaults);
 
-TaskDesc D_actor_136300_80132AC4[2] = {
-    { { { TASK_BODY_NONE, 192 } }, _screenWaveTask, { .value = 0 } },
+/// Scheduler priorities of the screen effect and this package's task recipes.
+enum {
+    ACTOR_136300_SCREEN_WAVE_TASK_PRIORITY = 192,
+    ACTOR_136300_RETAINED_TASK_PRIORITY    = 192,
+    ACTOR_136300_SCENE_TASK_PRIORITY       = 32,
+};
+
+/// Workless screen-wave task recipe, followed by the descriptor terminator.
+///
+/// Entry 0 borrows the package's persistent ramp context through its final draw.
+/// It runs at priority 192 and uses the package's singleton wave storage.
+static TaskDesc _gActor136300ScreenWaveTaskTable[] = {
+    { { { TASK_BODY_NONE, ACTOR_136300_SCREEN_WAVE_TASK_PRIORITY } }, _screenWaveTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -1044,89 +1033,278 @@ static AnimationSet _gActor136300Animation092D4 = {
     { NULL, _gActor136300Animation092D4Bank1, NULL, NULL, _gActor136300Animation092D4Bank4, NULL, NULL, NULL },
 };
 
-// `enemyDestroy` takes the enemy work object before its task, so it does not
-// have the one-argument shape a task callback is called with.
-TaskDesc D_actor_136300_8013B11C = { { { TASK_BODY_NONE, 192 } }, (TaskFunc)enemyDestroy, { .value = 0 } };
+TaskDesc gActor136300TaskTable[ACTOR_136300_TASK_COUNT] = {
+    // The empty placement list never spawns entry 0; preserve its stored address.
+    { { { TASK_BODY_NONE, ACTOR_136300_RETAINED_TASK_PRIORITY } }, (TaskFunc)enemyDestroy, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACTOR_136300_SCENE_TASK_PRIORITY } }, _actor136300GarageDepartureTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACTOR_136300_SCENE_TASK_PRIORITY } }, _actor136300StageExitCountdownTask, { .value = 0 } },
+};
 
-TaskDesc D_actor_136300_8013B128 = { { { TASK_BODY_NONE, 32 } }, _actor136300GarageDepartureTask, { .value = 0 } };
-
-TaskDesc D_actor_136300_8013B134 = { { { TASK_BODY_NONE, 32 } }, _actor136300StageExitCountdownTask, { .value = 0 } };
-
-/// Companion clips for extended ids 47-61.
+/// Companion clip pointers installed at animation-bank indices 47-61.
 ///
-/// The captioned scene the garage room starts and the script of the package's
-/// own event task each send the companion its copy request before they play any
-/// of these clips; the captioned scene's skip script plays one without sending
-/// the request itself. `D_actor_136300_8013B520` copies
-/// `ANIMATION_BANK_EXTENSION_CAPACITY` (32) words starting here into the
-/// companion's bank, which is 17 words past the end of this array: the read
-/// runs on through `D_actor_136300_8013B17C`, `D_actor_136300_8013B190`,
-/// `D_actor_136300_8013B1A4` and the first two words of
-/// `D_actor_136300_8013B1B8`. That overrun is the original's and is kept as it
-/// is: the request carries the bank's fixed capacity, while the table was
-/// stored with only its own entries. The companion's requests select ids 47-61
-/// only, so none of the words installed after the fifteen clips is played as
-/// one.
-AnimationSet* D_actor_136300_8013B140[15] = { &_gActor136300Animation00F14, &_gActor136300Animation010EC, &_gActor136300Animation01508, &_gActor136300Animation016C4, &_gActor136300Animation018AC, &_gActor136300Animation01B68, &_gActor136300Animation01D48, &_gActor136300Animation021A0, &_gActor136300Animation027B8, &_gActor136300Animation03164, &_gActor136300Animation034AC, &_gActor136300Animation036E8, &_gActor136300Animation039F8, &_gActor136300Animation04074, &_gActor136300Animation04658 };
+/// Element i supplies clip `ANIMATION_BANK_BASE_SET_COUNT + i`. These fifteen
+/// borrowed sets and their data must stay loaded throughout scene playback.
+/// The copy request transfers 32 words: after these fifteen pointers it reads
+/// all of the requests for clips 47, 48 and 49, then the source index and clip id
+/// of the clip-50 request. Those seventeen extra words fill unused bank slots
+/// and must never be played as sets. This is the original fixed-count overread;
+/// the pointer array and the separately addressed requests retain their extents.
+static AnimationSet* _gActor136300CompanionAnimationSets[] = { &_gActor136300Animation00F14, &_gActor136300Animation010EC, &_gActor136300Animation01508, &_gActor136300Animation016C4, &_gActor136300Animation018AC, &_gActor136300Animation01B68, &_gActor136300Animation01D48, &_gActor136300Animation021A0, &_gActor136300Animation027B8, &_gActor136300Animation03164, &_gActor136300Animation034AC, &_gActor136300Animation036E8, &_gActor136300Animation039F8, &_gActor136300Animation04074, &_gActor136300Animation04658 };
 
-// Requests for the companion's extended ids start here, one per clip in id order.
-AnimationPlayRequest D_actor_136300_8013B17C = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
-
-AnimationPlayRequest D_actor_136300_8013B190 = { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
-
-AnimationPlayRequest D_actor_136300_8013B1A4 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
-
-AnimationPlayRequest D_actor_136300_8013B1B8 = { { .index = 1 }, 50, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
-
-AnimationPlayRequest D_actor_136300_8013B1CC = { { .index = 1 }, 51, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
-
-AnimationPlayRequest D_actor_136300_8013B1E0 = { { .index = 1 }, 52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
-
-AnimationPlayRequest D_actor_136300_8013B1F4 = { { .index = 1 }, 53, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
-
-AnimationPlayRequest D_actor_136300_8013B208 = { { .index = 1 }, 54, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
-
-AnimationPlayRequest D_actor_136300_8013B21C = { { .index = 1 }, 55, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
-
-AnimationPlayRequest D_actor_136300_8013B230 = { { .index = 1 }, 56, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
-
-AnimationPlayRequest D_actor_136300_8013B244 = { { .index = 1 }, 57, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
-
-AnimationPlayRequest D_actor_136300_8013B258 = { { .index = 1 }, 58, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
-
-AnimationPlayRequest D_actor_136300_8013B26C = { { .index = 1 }, 59, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
-
-AnimationPlayRequest D_actor_136300_8013B280 = { { .index = 1 }, 60, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
-
-AnimationPlayRequest D_actor_136300_8013B294 = { { .index = 1 }, 61, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
-
-/// Player clips for extended ids 47-72.
+/// Companion clip 47 request with 10-frame blend and world collision disabled.
 ///
-/// The captioned scene the garage room starts and the script of the package's
-/// own event task each send the player its copy request before they play any of
-/// these clips. `D_actor_136300_8013B518` copies
-/// `ANIMATION_BANK_EXTENSION_CAPACITY` (32) words starting here into the
-/// player's bank, which is six words past the end of this array: the read runs
-/// on through `D_actor_136300_8013B310` and the first word of
-/// `D_actor_136300_8013B324`. That overrun is the original's and is kept as it
-/// is: the request carries the bank's fixed capacity, while the table was
-/// stored with only its own entries. The player's requests select ids 47-72
-/// only, so none of the words installed after the 26 clips is played as one.
-AnimationSet* D_actor_136300_8013B2A8[26] = { &_gActor136300Animation0495C, &_gActor136300Animation04B60, &_gActor136300Animation04E40, &_gActor136300Animation05038, &_gActor136300Animation0538C, &_gActor136300Animation05584, &_gActor136300Animation05748, &_gActor136300Animation05A08, &_gActor136300Animation05BCC, &_gActor136300Animation05F84, &_gActor136300Animation062B0, &_gActor136300Animation06568, &_gActor136300Animation066F8, &_gActor136300Animation069B8, &_gActor136300Animation06D8C, &_gActor136300Animation0717C, &_gActor136300Animation074E8, &_gActor136300Animation07BE4, &_gActor136300Animation07E5C, &_gActor136300Animation082B0, &_gActor136300Animation08544, &_gActor136300Animation088AC, &_gActor136300Animation08A84, &_gActor136300Animation08D9C, &_gActor136300Animation08F98, &_gActor136300Animation092D4 };
+/// Opens the captioned garage scene.
+/// Scripts resolve the companion bank on a local copy before synchronous
+/// dispatch. Requires the installed package clips and loaded receiver bank.
+static AnimationPlayRequest _gActor136300CompanionAnimation47Request = {
+    .source               = { .index = 1 },
+    .animationId          = 47,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 10,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-// Requests for the player's extended ids start here, one per clip in id order. The captioned scene opens on this one.
-AnimationPlayRequest D_actor_136300_8013B310 = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Companion clip 48 request with reset and world collision disabled.
+///
+/// Garage cue sequences play clip 49 nine frames later.
+/// Scripts resolve the companion bank on a local copy before synchronous
+/// dispatch. Requires the installed package clips and loaded receiver bank.
+static AnimationPlayRequest _gActor136300CompanionAnimation48Request = {
+    .source               = { .index = 1 },
+    .animationId          = 48,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
+
+/// Companion clip 49 request with reset and world collision disabled.
+///
+/// Garage cue sequences select this nine frames after clip 48.
+/// Scripts resolve the companion bank on a local copy before synchronous
+/// dispatch. Requires the installed package clips and loaded receiver bank.
+static AnimationPlayRequest _gActor136300CompanionAnimation49Request = {
+    .source               = { .index = 1 },
+    .animationId          = 49,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
+
+/// Companion clip 50 request with 10-frame blend and world collision disabled.
+///
+/// Used after garage cue sequences and on scene skipping.
+/// Scripts resolve the companion bank on a local copy before synchronous
+/// dispatch. Requires the installed package clips and loaded receiver bank.
+static AnimationPlayRequest _gActor136300CompanionAnimation50Request = {
+    .source               = { .index = 1 },
+    .animationId          = 50,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 10,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
+
+/// Companion clip 51 request with reset and world collision disabled.
+///
+/// Scripts resolve the companion bank on a local copy before synchronous
+/// dispatch. Requires the installed package clips and loaded receiver bank.
+static AnimationPlayRequest _gActor136300CompanionAnimation51Request = {
+    .source               = { .index = 1 },
+    .animationId          = 51,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
+
+/// Companion clip 52 request with reset and world collision disabled.
+///
+/// Scripts resolve the companion bank on a local copy before synchronous
+/// dispatch. Requires the installed package clips and loaded receiver bank.
+static AnimationPlayRequest _gActor136300CompanionAnimation52Request = {
+    .source               = { .index = 1 },
+    .animationId          = 52,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
+
+/// Companion clip 53 request with 10-frame blend and world collision disabled.
+///
+/// Scripts resolve the companion bank on a local copy before synchronous
+/// dispatch. Requires the installed package clips and loaded receiver bank.
+static AnimationPlayRequest _gActor136300CompanionAnimation53Request = {
+    .source               = { .index = 1 },
+    .animationId          = 53,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 10,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
+
+/// Companion clip 54 request with reset and world collision disabled.
+///
+/// Selected for CAP variant one in the departure dialogue.
+/// Dialogue playback rewrites this record's bank index before dispatch; scripts
+/// resolve the bank on a local copy. Requires the installed companion clips.
+static AnimationPlayRequest _gActor136300CompanionAnimation54Request = {
+    .source               = { .index = 1 },
+    .animationId          = 54,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
+
+/// Companion clip 55 request with 8-frame blend and world collision disabled.
+///
+/// Scripts resolve the companion bank on a local copy before synchronous
+/// dispatch. Requires the installed package clips and loaded receiver bank.
+static AnimationPlayRequest _gActor136300CompanionAnimation55Request = {
+    .source               = { .index = 1 },
+    .animationId          = 55,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 8,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
+
+/// Companion clip 56 request with reset and world collision disabled.
+///
+/// Used by garage cues and by departure dialogue for other CAP variants.
+/// Dialogue playback rewrites this record's bank index before dispatch; scripts
+/// resolve the bank on a local copy. Requires the installed companion clips.
+static AnimationPlayRequest _gActor136300CompanionAnimation56Request = {
+    .source               = { .index = 1 },
+    .animationId          = 56,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
+
+/// Companion clip 57 request with reset and world collision disabled.
+///
+/// Garage cue sequences select clip 58 after a 26-frame interval.
+/// Scripts resolve the companion bank on a local copy before synchronous
+/// dispatch. Requires the installed package clips and loaded receiver bank.
+static AnimationPlayRequest _gActor136300CompanionAnimation57Request = {
+    .source               = { .index = 1 },
+    .animationId          = 57,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
+
+/// Companion clip 58 request with reset and world collision disabled.
+///
+/// Selected after the 26-frame interval following clip 57.
+/// Scripts resolve the companion bank on a local copy before synchronous
+/// dispatch. Requires the installed package clips and loaded receiver bank.
+static AnimationPlayRequest _gActor136300CompanionAnimation58Request = {
+    .source               = { .index = 1 },
+    .animationId          = 58,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
+
+/// Companion clip 59 request with reset and world collision disabled.
+///
+/// Scripts resolve the companion bank on a local copy before synchronous
+/// dispatch. Requires the installed package clips and loaded receiver bank.
+static AnimationPlayRequest _gActor136300CompanionAnimation59Request = {
+    .source               = { .index = 1 },
+    .animationId          = 59,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
+
+/// Companion clip 60 request with reset and world collision disabled.
+///
+/// Scripts resolve the companion bank on a local copy before synchronous
+/// dispatch. Requires the installed package clips and loaded receiver bank.
+static AnimationPlayRequest _gActor136300CompanionAnimation60Request = {
+    .source               = { .index = 1 },
+    .animationId          = 60,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
+
+/// Companion clip 61 request with reset and world collision disabled.
+///
+/// Scripts resolve the companion bank on a local copy before synchronous
+/// dispatch. Requires the installed package clips and loaded receiver bank.
+static AnimationPlayRequest _gActor136300CompanionAnimation61Request = {
+    .source               = { .index = 1 },
+    .animationId          = 61,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
+
+/// Player clip pointers installed at animation-bank indices 47-72.
+///
+/// Element i supplies clip `ANIMATION_BANK_BASE_SET_COUNT + i`. These 26
+/// borrowed sets and their data must stay loaded throughout scene playback.
+/// The copy request transfers 32 words: after these pointers it reads all five
+/// words of the clip-47 request and the source index of the following clip-48
+/// request. Those six extra words fill unused bank slots and must never be
+/// played as sets. This is the original fixed-count overread; the pointer array
+/// and the separately addressed requests retain their extents.
+static AnimationSet* _gActor136300PlayerAnimationSets[] = { &_gActor136300Animation0495C, &_gActor136300Animation04B60, &_gActor136300Animation04E40, &_gActor136300Animation05038, &_gActor136300Animation0538C, &_gActor136300Animation05584, &_gActor136300Animation05748, &_gActor136300Animation05A08, &_gActor136300Animation05BCC, &_gActor136300Animation05F84, &_gActor136300Animation062B0, &_gActor136300Animation06568, &_gActor136300Animation066F8, &_gActor136300Animation069B8, &_gActor136300Animation06D8C, &_gActor136300Animation0717C, &_gActor136300Animation074E8, &_gActor136300Animation07BE4, &_gActor136300Animation07E5C, &_gActor136300Animation082B0, &_gActor136300Animation08544, &_gActor136300Animation088AC, &_gActor136300Animation08A84, &_gActor136300Animation08D9C, &_gActor136300Animation08F98, &_gActor136300Animation092D4 };
+
+/// Player clip 47 request with 10-frame blend and world collision disabled.
+///
+/// Opens the captioned garage scene.
+/// Scripts resolve the player bank on a local copy before synchronous
+/// dispatch. Requires the installed package clips and loaded receiver bank.
+static AnimationPlayRequest _gActor136300PlayerAnimation47Request = {
+    .source               = { .index = 1 },
+    .animationId          = 47,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 10,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 // Not referenced.
 AnimationPlayRequest D_actor_136300_8013B324 = { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 AnimationPlayRequest D_actor_136300_8013B338 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_136300_8013B34C = { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player clip 50 request with reset and world collision disabled.
+///
+/// The captioned scene selects clip 51 after 21 frames.
+/// Scripts resolve the player bank on a local copy before synchronous
+/// dispatch. Requires the installed package clips and loaded receiver bank.
+static AnimationPlayRequest _gActor136300PlayerAnimation50Request = {
+    .source               = { .index = 1 },
+    .animationId          = 50,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_136300_8013B360 = { { .index = 1 }, 51, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player clip 51 request with reset and world collision disabled.
+///
+/// Selected 21 frames after clip 50, before the next caption cue.
+/// Scripts resolve the player bank on a local copy before synchronous
+/// dispatch. Requires the installed package clips and loaded receiver bank.
+static AnimationPlayRequest _gActor136300PlayerAnimation51Request = {
+    .source               = { .index = 1 },
+    .animationId          = 51,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_136300_8013B374 = { { .index = 1 }, 52, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player clip 52 request with 10-frame blend and world collision disabled.
+///
+/// Scripts resolve the player bank on a local copy before synchronous
+/// dispatch. Requires the installed package clips and loaded receiver bank.
+static AnimationPlayRequest _gActor136300PlayerAnimation52Request = {
+    .source               = { .index = 1 },
+    .animationId          = 52,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 10,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_actor_136300_8013B388 = { { .index = 1 }, 53, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -1134,15 +1312,70 @@ AnimationPlayRequest D_actor_136300_8013B39C = { { .index = 1 }, 54, ANIMATION_B
 
 AnimationPlayRequest D_actor_136300_8013B3B0 = { { .index = 1 }, 55, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_136300_8013B3C4 = { { .index = 1 }, 56, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player clip 56 request with 10-frame blend and world collision disabled.
+///
+/// Used in captioned scenes and in the departure dialogue.
+/// Scripts resolve the player bank on a local copy before synchronous
+/// dispatch. Requires the installed package clips and loaded receiver bank.
+static AnimationPlayRequest _gActor136300PlayerAnimation56Request = {
+    .source               = { .index = 1 },
+    .animationId          = 56,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 10,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_136300_8013B3D8 = { { .index = 1 }, 57, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player clip 57 request with reset and world collision disabled.
+///
+/// Selected near the end of the captioned garage scene.
+/// Scripts resolve the player bank on a local copy before synchronous
+/// dispatch. Requires the installed package clips and loaded receiver bank.
+static AnimationPlayRequest _gActor136300PlayerAnimation57Request = {
+    .source               = { .index = 1 },
+    .animationId          = 57,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_136300_8013B3EC = { { .index = 1 }, 58, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player clip 58 request with reset and world collision disabled.
+///
+/// The captioned scene selects clip 59 after 25 frames.
+/// Scripts resolve the player bank on a local copy before synchronous
+/// dispatch. Requires the installed package clips and loaded receiver bank.
+static AnimationPlayRequest _gActor136300PlayerAnimation58Request = {
+    .source               = { .index = 1 },
+    .animationId          = 58,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_136300_8013B400 = { { .index = 1 }, 59, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player clip 59 request with reset and world collision disabled.
+///
+/// Selected 25 frames after clip 58, before the next caption cue.
+/// Scripts resolve the player bank on a local copy before synchronous
+/// dispatch. Requires the installed package clips and loaded receiver bank.
+static AnimationPlayRequest _gActor136300PlayerAnimation59Request = {
+    .source               = { .index = 1 },
+    .animationId          = 59,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_136300_8013B414 = { { .index = 1 }, 60, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player clip 60 request with reset and world collision disabled.
+///
+/// Selected at the caption cue following clip 59.
+/// Scripts resolve the player bank on a local copy before synchronous
+/// dispatch. Requires the installed package clips and loaded receiver bank.
+static AnimationPlayRequest _gActor136300PlayerAnimation60Request = {
+    .source               = { .index = 1 },
+    .animationId          = 60,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_actor_136300_8013B428 = { { .index = 1 }, 61, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -1168,9 +1401,19 @@ AnimationPlayRequest D_actor_136300_8013B4F0 = { { .index = 1 }, 71, ANIMATION_B
 
 AnimationPlayRequest D_actor_136300_8013B504 = { { .index = 1 }, 72, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationBankCopyRequest D_actor_136300_8013B518 = { { .sets = D_actor_136300_8013B2A8 }, ANIMATION_BANK_EXTENSION_CAPACITY };
+/// Installs the garage scene's player bank extension by copying 32 raw words.
+///
+/// Sent before scene clips play; borrows the source through dispatch. The count
+/// includes request words beyond the clip-pointer array, as documented there.
+/// Copied clip pointers remain borrowed while playback uses the loaded package.
+static AnimationBankCopyRequest _gActor136300PlayerAnimationBankCopyRequest = { { .sets = _gActor136300PlayerAnimationSets }, ANIMATION_BANK_EXTENSION_CAPACITY };
 
-AnimationBankCopyRequest D_actor_136300_8013B520 = { { .sets = D_actor_136300_8013B140 }, ANIMATION_BANK_EXTENSION_CAPACITY };
+/// Installs the garage scene's companion bank extension by copying 32 raw words.
+///
+/// Sent before scene clips play; borrows the source through dispatch. The count
+/// includes request words beyond the clip-pointer array, as documented there.
+/// Copied clip pointers remain borrowed while playback uses the loaded package.
+static AnimationBankCopyRequest _gActor136300CompanionAnimationBankCopyRequest = { { .sets = _gActor136300CompanionAnimationSets }, ANIMATION_BANK_EXTENSION_CAPACITY };
 
 ActorTransform D_actor_136300_8013B528 = { { 2000, 0, 1940, 0 }, { 0, 0, 0, 0 } };
 
@@ -1178,17 +1421,20 @@ ActorTransform D_actor_136300_8013B540 = { { 2000, 0, 3940, 0 }, { 0, 0, 0, 0 } 
 
 ActorTransform D_actor_136300_8013B558 = { { 2000, 0, 5240, 0 }, { 0, -2048, 0, 0 } };
 
-ActorTransform D_actor_136300_8013B570 = { { 2230, 0, 5240, 0 }, { 0, -1024, 0, 0 } };
+ActorTransform gActor136300CompanionGaragePlacement = {
+    .pos = { 2230, 0, 5240, 0 },
+    .rot = { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 },
+};
 
 GameActorMoveAnim D_actor_136300_8013B588 = { 19, 47 };
 
 EvsCommand D_actor_136300_8013B590[149] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor136300SelectSceneCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 14 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_136300_8013B518 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_136300_8013B520 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B310 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B17C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor136300PlayerAnimationBankCopyRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor136300CompanionAnimationBankCopyRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300PlayerAnimation47Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation47Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor136300ControlScreenWave }, { .value = ACTOR_136300_WAVE_PREPARE_DECODE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1199,50 +1445,50 @@ EvsCommand D_actor_136300_8013B590[149] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_136300_8013B558 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B34C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300PlayerAnimation50Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 21 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B360 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300PlayerAnimation51Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B374 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B190 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300PlayerAnimation52Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B1A4 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation49Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B1B8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation50Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B230 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation56Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B190 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B1A4 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation49Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B1B8 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B3EC }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation50Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300PlayerAnimation58Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 25 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B400 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300PlayerAnimation59Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B414 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B244 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300PlayerAnimation60Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation57Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 26 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B258 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation58Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B26C }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B3C4 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation59Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300PlayerAnimation56Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B280 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation60Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B428 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 26 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B43C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B450 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B190 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B1A4 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation49Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B1B8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation50Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B4B4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 29 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B4C8 }, { .value = 0 } },
@@ -1257,8 +1503,8 @@ EvsCommand D_actor_136300_8013B590[149] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor136300StartGarageMovie }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_136300_8013B518 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_136300_8013B520 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor136300PlayerAnimationBankCopyRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor136300CompanionAnimationBankCopyRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_136300_8013B540 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_136300_8013B558 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 15 }, { .value = 0 } },
@@ -1268,64 +1514,64 @@ EvsCommand D_actor_136300_8013B590[149] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B1F4 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation53Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B504 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B3C4 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300PlayerAnimation56Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B190 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B1A4 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation49Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B1B8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation50Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B48C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B4A0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B294 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation61Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B1CC }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation51Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B1E0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation52Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B1F4 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation53Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B464 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B244 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation57Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 26 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B258 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation58Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B478 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B3C4 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300PlayerAnimation56Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B1F4 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation53Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B21C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation55Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B190 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B1A4 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation49Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B1B8 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B3D8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation50Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300PlayerAnimation57Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B190 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B1A4 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation49Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B1B8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation50Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _actor136300SetSceneEvent }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_136300_8013B570 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &gActor136300CompanionGaragePlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1343,8 +1589,8 @@ EvsCommand D_actor_136300_8013C388[16] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _actor136300SetSceneEvent }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_136300_8013B570 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B1B8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &gActor136300CompanionGaragePlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300CompanionAnimation50Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1365,11 +1611,11 @@ EvsCommand D_actor_136300_8013C508[8] = {
 };
 
 EvsCommand D_actor_136300_8013C5C8[10] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_136300_8013B518 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_136300_8013B520 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor136300PlayerAnimationBankCopyRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor136300CompanionAnimationBankCopyRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor136300StartGarageDialogue }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B3C4 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor136300PlayerAnimation56Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor136300PlayCompanionDialogueAnimation }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1410,7 +1656,14 @@ ScreenWaveOscillator gScreenWaveColumns[13] = { 0 };
 
 ScreenWaveOscillator gScreenWaveRows[32] = { 0 };
 
-ScreenWaveCtx D_actor_136300_8013C99C = { 0 };
+/// Persistent ramp state borrowed by the garage scene's screen-wave task.
+///
+/// The scene seeds a 100- or five-frame rise peaking at strength 256, then can
+/// request falling or finished. The task initializes frame/state on its first
+/// tick. Zero texture modulation keeps the captured frame's own colours.
+/// Keep this actor package loaded through the final draw; only one wave may
+/// borrow the context at a time, and it is reused for subsequent starts.
+static ScreenWaveCtx _gActor136300ScreenWaveSpawnContext = { 0 };
 
 #include "../../shared/screen_wave.inc.c"
 
@@ -1561,16 +1814,16 @@ static void _actor136300ControlScreenWave(s32 request)
         // Prepare RGB16 mask-bit decoding before optionally starting distortion.
         if (request != ACTOR_136300_WAVE_PREPARE_DECODE) {
             if (request == ACTOR_136300_WAVE_SLOW_RISE) {
-                D_actor_136300_8013C99C.span  = ACTOR_136300_WAVE_SLOW_RISE_FRAMES;
-                D_actor_136300_8013C99C.scale = ACTOR_136300_WAVE_PEAK_STRENGTH;
+                _gActor136300ScreenWaveSpawnContext.span  = ACTOR_136300_WAVE_SLOW_RISE_FRAMES;
+                _gActor136300ScreenWaveSpawnContext.scale = ACTOR_136300_WAVE_PEAK_STRENGTH;
             } else {
-                D_actor_136300_8013C99C.span  = ACTOR_136300_WAVE_FAST_RISE_FRAMES;
-                D_actor_136300_8013C99C.scale = ACTOR_136300_WAVE_PEAK_STRENGTH;
+                _gActor136300ScreenWaveSpawnContext.span  = ACTOR_136300_WAVE_FAST_RISE_FRAMES;
+                _gActor136300ScreenWaveSpawnContext.scale = ACTOR_136300_WAVE_PEAK_STRENGTH;
             }
-            taskSpawnFromTable(D_actor_136300_80132AC4, 0, 0, &D_actor_136300_8013C99C);
+            taskSpawnFromTable(_gActor136300ScreenWaveTaskTable, 0, 0, &_gActor136300ScreenWaveSpawnContext);
         }
     } else {
-        D_actor_136300_8013C99C.state = request;
+        _gActor136300ScreenWaveSpawnContext.state = request;
     }
 }
 
@@ -1606,9 +1859,9 @@ static void _actor136300PlayCompanionDialogueAnimation(void)
     AnimationPlayRequest* request;
 
     if (capGetVariantKey() == ACTOR_136300_DIALOGUE_VARIANT_FIRST) {
-        request = &D_actor_136300_8013B208;
+        request = &_gActor136300CompanionAnimation54Request;
     } else {
-        request = &D_actor_136300_8013B230;
+        request = &_gActor136300CompanionAnimation56Request;
     }
     companionWriteAnimationBankIndex(&request->source.index);
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, request, 0);
@@ -1621,7 +1874,7 @@ static void _actor136300PlayCompanionDialogueAnimation(void)
 /// causes the request to be ignored; this callback discards that result.
 static void _actor136300QueueStageExitCountdown(s32 countdownTicks)
 {
-    displayQueueModeTask(&D_actor_136300_8013B134, countdownTicks, 0, STAGE_ENTRY_GRAY_CAPTURE);
+    displayQueueModeTask(&gActor136300TaskTable[ACTOR_136300_TASK_STAGE_EXIT_COUNTDOWN], countdownTicks, 0, STAGE_ENTRY_GRAY_CAPTURE);
 }
 
 /// Selects this scene's CAP resource and texture page, or restores CAP defaults.

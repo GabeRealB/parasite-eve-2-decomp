@@ -11,6 +11,7 @@
 #include "dryfield_night_garage_private.h"
 
 #include "actors/task_tables.h"
+#include "actors/actor_136300.h"
 
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
@@ -71,8 +72,6 @@ extern AreaResource D_dryfield_night_garage_80187450[2];
 extern AreaResource D_dryfield_night_garage_80187468[3];
 extern AreaResource D_dryfield_night_garage_8018748C[2];
 extern AreaResource D_dryfield_night_garage_801874A4[2];
-
-extern TaskDesc D_actor_136300_8013B11C;
 
 extern WorldCollisionGrid    D_dryfield_night_garage_801843D4[1];
 extern WorldCollisionTrigger D_dryfield_night_garage_8018630C[14];
@@ -1009,7 +1008,7 @@ AreaResource D_dryfield_night_garage_80187468[3] = {
 };
 
 AreaResource D_dryfield_night_garage_8018748C[2] = {
-    { 101, 363, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_136300_8013B11C },
+    { 101, 363, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_136300_TASK_RETAINED, { 0, 0 }, gActor136300TaskTable },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
