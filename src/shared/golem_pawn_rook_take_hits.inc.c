@@ -12,8 +12,8 @@
 #define GOLEM_PAWN_ROOK_SHIELD_WEAPON_ROWS gGolemPawnRookWeakPointWeapons
 #define GOLEM_PAWN_ROOK_SHIELD_PE_ROWS     gGolemPawnRookWeakPointPe
 #else
-#define GOLEM_PAWN_ROOK_SHIELD_WEAPON_ROWS gGolemPawnRookWeakSpotHits
-#define GOLEM_PAWN_ROOK_SHIELD_PE_ROWS     gGolemPawnRookWeakSpotHitsFlagged
+#define GOLEM_PAWN_ROOK_SHIELD_WEAPON_ROWS _gGolemPawnRookShieldWeaponRows
+#define GOLEM_PAWN_ROOK_SHIELD_PE_ROWS     _gGolemPawnRookShieldPeRows
 #endif
 
 /// Requests release of a hit-interrupted Silence flash and drops its borrowed handle.

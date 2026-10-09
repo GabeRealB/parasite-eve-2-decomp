@@ -415,7 +415,7 @@ AreaResource D_neo_ark_pyramid_801816BC[3] = {
 
 AreaResource D_neo_ark_pyramid_801816E0[3] = {
     { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_401300_80158A18 },
-    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_actor_302000_80177DF0 },
+    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, gActor302000PawnGolemTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

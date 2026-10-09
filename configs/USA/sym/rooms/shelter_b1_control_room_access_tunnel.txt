@@ -40,7 +40,7 @@ gActor102100WatcherTaskDesc = 0x80135C30; // absolute:True owner=actor_102100
 gActor101100Tasks = 0x80147400; // absolute:True owner=actor_101100
 gActor202400Tasks = 0x8014E47C; // absolute:True owner=actor_202400
 gActor201100Tasks = 0x8015F400; // absolute:True owner=actor_201100
-Actor02000_D15FD0 = 0x8015FDF0; // absolute:True owner=actor_202000
+gActor202000PawnGolemTasks = 0x8015FDF0; // absolute:True owner=actor_202000
 RoomFx_TrailOffsets = 0x80181EE4; // size:0x10 defined:True
 
 shelterB1ControlRoomAccessTunnelDrawGlowsTask = 0x8017E1BC; // type:func

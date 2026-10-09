@@ -145,7 +145,7 @@ static void _golemPawnRookGrenadeBurstState(Task* actor)
                 work->targetYaw = ratan2((s16)scratch->playerDirection.vx, (s16)scratch->playerDirection.vz) & ACTOR_TRANSFORM_ANGLE_MASK;
                 work->turnRate  = GOLEM_PAWN_ROOK_BURST_FIRE_TURN;
             }
-            if (work->burstShots != 0 && work->animFrame == gGolemPawnRookAnimBlendFrames[GOLEM_PAWN_ROOK_BURST_FIRE_ANIM] - 1) {
+            if (work->burstShots != 0 && work->animFrame == _gGolemPawnRookAnimBlendFrames[GOLEM_PAWN_ROOK_BURST_FIRE_ANIM] - 1) {
                 work->fireRequest = 1;
                 work->shotsSinceReload++;
                 work->burstShots++;
@@ -159,26 +159,26 @@ static void _golemPawnRookGrenadeBurstState(Task* actor)
                 work->shieldRaised      = 0;
                 work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             } else if (work->shotsSinceReload >= GOLEM_PAWN_ROOK_BURST_SHOTS_PER_RELOAD) {
-                if (work->animFrame >= gGolemPawnRookAnimBlendFrames[GOLEM_PAWN_ROOK_BURST_FIRE_ANIM] + GOLEM_PAWN_ROOK_BURST_END_FRAMES) {
-                    work->step                                                     = GOLEM_PAWN_ROOK_BURST_RELOAD;
-                    work->anim                                                     = GOLEM_PAWN_ROOK_BURST_RELOAD_ANIM;
-                    work->shotsSinceReload                                         = 0;
-                    work->burstShots                                               = 0;
-                    gGolemPawnRookAnimBlendFrames[GOLEM_PAWN_ROOK_BURST_FIRE_ANIM] = 0;
-                    work->attackActive                                             = 0;
+                if (work->animFrame >= _gGolemPawnRookAnimBlendFrames[GOLEM_PAWN_ROOK_BURST_FIRE_ANIM] + GOLEM_PAWN_ROOK_BURST_END_FRAMES) {
+                    work->step                                                      = GOLEM_PAWN_ROOK_BURST_RELOAD;
+                    work->anim                                                      = GOLEM_PAWN_ROOK_BURST_RELOAD_ANIM;
+                    work->shotsSinceReload                                          = 0;
+                    work->burstShots                                                = 0;
+                    _gGolemPawnRookAnimBlendFrames[GOLEM_PAWN_ROOK_BURST_FIRE_ANIM] = 0;
+                    work->attackActive                                              = 0;
                 }
             } else if (work->burstShots < GOLEM_PAWN_ROOK_STRIKE_LIMIT) {
-                if (work->animFrame >= gGolemPawnRookAnimBlendFrames[GOLEM_PAWN_ROOK_BURST_FIRE_ANIM] + GOLEM_PAWN_ROOK_BURST_REPEAT_BLEND_FRAMES) {
-                    gGolemPawnRookAnimBlendFrames[GOLEM_PAWN_ROOK_BURST_FIRE_ANIM] = GOLEM_PAWN_ROOK_BURST_REPEAT_BLEND_FRAMES;
-                    work->anim                                                     = GOLEM_PAWN_ROOK_BURST_FIRE_ANIM;
-                    work->playingAnim                                              = GOLEM_PAWN_ROOK_BURST_BACKOFF_ANIM;
+                if (work->animFrame >= _gGolemPawnRookAnimBlendFrames[GOLEM_PAWN_ROOK_BURST_FIRE_ANIM] + GOLEM_PAWN_ROOK_BURST_REPEAT_BLEND_FRAMES) {
+                    _gGolemPawnRookAnimBlendFrames[GOLEM_PAWN_ROOK_BURST_FIRE_ANIM] = GOLEM_PAWN_ROOK_BURST_REPEAT_BLEND_FRAMES;
+                    work->anim                                                      = GOLEM_PAWN_ROOK_BURST_FIRE_ANIM;
+                    work->playingAnim                                               = GOLEM_PAWN_ROOK_BURST_BACKOFF_ANIM;
                 }
-            } else if (work->animFrame >= gGolemPawnRookAnimBlendFrames[GOLEM_PAWN_ROOK_BURST_FIRE_ANIM] + GOLEM_PAWN_ROOK_BURST_END_FRAMES) {
-                work->step                                                     = GOLEM_PAWN_ROOK_BURST_BACKOFF;
-                work->burstShots                                               = 0;
-                work->anim                                                     = GOLEM_PAWN_ROOK_BURST_BACKOFF_ANIM;
-                gGolemPawnRookAnimBlendFrames[GOLEM_PAWN_ROOK_BURST_FIRE_ANIM] = 0;
-                work->attackActive                                             = 0;
+            } else if (work->animFrame >= _gGolemPawnRookAnimBlendFrames[GOLEM_PAWN_ROOK_BURST_FIRE_ANIM] + GOLEM_PAWN_ROOK_BURST_END_FRAMES) {
+                work->step                                                      = GOLEM_PAWN_ROOK_BURST_BACKOFF;
+                work->burstShots                                                = 0;
+                work->anim                                                      = GOLEM_PAWN_ROOK_BURST_BACKOFF_ANIM;
+                _gGolemPawnRookAnimBlendFrames[GOLEM_PAWN_ROOK_BURST_FIRE_ANIM] = 0;
+                work->attackActive                                              = 0;
             }
             break;
         case GOLEM_PAWN_ROOK_BURST_RELOAD:

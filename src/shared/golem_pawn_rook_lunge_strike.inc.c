@@ -28,15 +28,15 @@ static void _golemPawnRookLauncherStrikeState(Task* actor)
 
     toPlayer    = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
     work        = actor->work;
-    blendFrames = gGolemPawnRookAnimBlendFrames[work->anim];
+    blendFrames = _gGolemPawnRookAnimBlendFrames[work->anim];
     root        = actor->extra.tmd->coords;
     if (work->animFrame == blendFrames + GOLEM_PAWN_ROOK_LAUNCHER_STRIKE_START_FRAME) {
-        work->strikeBody.key    = damagePackAttackKey(gGolemPawnRookAttacks, GOLEM_PAWN_ROOK_LAUNCHER_STRIKE_ATTACK);
+        work->strikeBody.key    = damagePackAttackKey(_gGolemPawnRookAttacks, GOLEM_PAWN_ROOK_LAUNCHER_STRIKE_ATTACK);
         work->strikeBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     } else if (work->animFrame == blendFrames + GOLEM_PAWN_ROOK_LAUNCHER_STRIKE_END_FRAME) {
         work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
-    blendFrames = gGolemPawnRookAnimBlendFrames[work->anim];
+    blendFrames = _gGolemPawnRookAnimBlendFrames[work->anim];
     if ((work->animFrame >= blendFrames + GOLEM_PAWN_ROOK_LAUNCHER_STRIKE_START_FRAME) && (blendFrames + GOLEM_PAWN_ROOK_LAUNCHER_STRIKE_ADVANCE_END_FRAME >= work->animFrame)) {
         playerOffsetX  = gPlayerStatus.coordMtx->t[0] - root->coord.t[0];
         toPlayer->vx   = playerOffsetX;
@@ -51,7 +51,7 @@ static void _golemPawnRookLauncherStrikeState(Task* actor)
     } else {
         work->forwardSpeed = 0;
     }
-    if (work->animFrame >= gGolemPawnRookAnimBlendFrames[work->anim] + GOLEM_PAWN_ROOK_LAUNCHER_STRIKE_FRAMES) {
+    if (work->animFrame >= _gGolemPawnRookAnimBlendFrames[work->anim] + GOLEM_PAWN_ROOK_LAUNCHER_STRIKE_FRAMES) {
         work->behavior = GOLEM_PAWN_ROOK_BEHAVIOR_ENGAGE;
         work->step     = GOLEM_PAWN_ROOK_ENGAGE_LISTEN_STEP;
         work->anim     = GOLEM_PAWN_ROOK_ANIM_LISTEN;

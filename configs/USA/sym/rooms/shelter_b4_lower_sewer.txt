@@ -65,7 +65,7 @@ D_shelter_b4_lower_sewer_80183DF4 = 0x80183DF4; // size:0x20 defined:True
 D_shelter_b4_lower_sewer_80183E14 = 0x80183E14; // size:0x4 defined:True
 gActor04400MadChaserTaskDescs = 0x80142604; // absolute:True owner=actor_104400
 gActor102300RookGolemTasks = 0x80147AB8; // absolute:True owner=actor_102300
-Actor02000_D15FD0 = 0x80147DF0; // absolute:True owner=actor_102000
+gActor102000PawnGolemTasks = 0x80147DF0; // absolute:True owner=actor_102000
 gActor100400Tasks = 0x80147E48; // absolute:True owner=actor_100400
 D_actor_207200_8014E7A4 = 0x8014E7A4; // absolute:True owner=actor_207200
 gActor207200CreepingStrangerTaskDesc = 0x80153EC8; // absolute:True owner=actor_207200

@@ -40,7 +40,7 @@ static void _golemPawnRookPatrolState(Task* actor)
     switch (step) {
         case GOLEM_PAWN_ROOK_PATROL_WALK:
             speed = 0;
-            if (work->animFrame >= gGolemPawnRookAnimBlendFrames[work->anim]) {
+            if (work->animFrame >= _gGolemPawnRookAnimBlendFrames[work->anim]) {
                 speed = GOLEM_PAWN_ROOK_PATROL_SPEED;
             }
             work->forwardSpeed        = speed;

@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/gtemac.h>
@@ -34,6 +36,7 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/sound.h"
+#include "main/sound_ids.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
@@ -44,17 +47,20 @@
 #include "../../shared/player_detection.h"
 #include "../../shared/golem_pawn_rook.h"
 
-static const EnemyTaskFuncTable3 Actor02000_D00060;
-static const EnemyTaskFuncTable3 Actor02000_D0006C;
+/// Execution priority shared by the Pawn body and attached sword descriptors.
+enum { ACTOR_02000_TASK_PRIORITY = 96 };
 
-extern DamageAttack gGolemPawnRookAttacks[];
-extern s32          gGolemPawnRookSwingCue;
+/// Area sound selector that suppresses the group-10 file request and animation cues.
+enum { ACTOR_02000_SOUND_SET_NONE = 0 };
 
-extern s16 gGolemPawnRookAnimBlendFrames[];
-extern s16 gGolemPawnRookWeakSpotHits[];
-extern s16 gGolemPawnRookWeakSpotHitsFlagged[];
-extern s32 gGolemPawnRookVoiceCues[];
+/// Character script bank used by this carrier's cue tables.
+enum { GOLEM_PAWN_ROOK_SOUND_BANK = 0x14 };
 
+static const EnemyTaskFuncTable3 _gActor02000SwordLifecycleHandlers;
+static const EnemyTaskFuncTable3 _gActor02000BodyLifecycleHandlers;
+
+static s16          _gGolemPawnRookShieldWeaponRows[];
+static s16          _gGolemPawnRookShieldPeRows[];
 static AnimationSet _gActor02000Actor102000Animation09C20;
 
 static AnimationSet _gActor02000Actor102000Animation0A588;
@@ -109,21 +115,15 @@ static void _actor02000SwordTask(Task* sword);
 
 static void _actor02000BodyTask(Task* body);
 
-extern AnimationSet* Actor02000_D15FE8[31];
-
-extern TaskDesc Actor02000_D15FD0[];
-
-extern u16* Actor02000_D15FB8[];
-
-extern EnemyParams Actor02000_D15D10;
-
-extern TaskFunc gGolemPawnRookStates[];
-
 static void _actor02000SpawnBody(Enemy* enemy, Task* actor);
 
 #include "../../shared/golem_pawn_rook_take_hits.inc.c"
 
-s16 gGolemPawnRookAnimBlendFrames[32] = {
+/// Blend-in durations indexed by animation request, in whole frames.
+///
+/// The 32 signed halfwords belong to this carrier. Launcher bursts change
+/// entry 13 to 0 or 3 for successive shots; all bodies in the carrier share it.
+static s16 _gGolemPawnRookAnimBlendFrames[32] = {
     0,
     8,
     8,
@@ -706,374 +706,454 @@ static AnimationSet _gActor02000Actor102000Animation15CD4 = {
     { NULL, _gActor02000Actor102000Animation15CD4Bank1, NULL, NULL, _gActor02000Actor102000Animation15CD4Bank4, NULL, NULL, NULL },
 };
 
-DamageAttack gGolemPawnRookAttacks[5] = {
+/// Five category-4 attack rows, storing base HP damage and player reaction.
+///
+/// Slots 0/1 are sword swing/charge, 2 is the zero-power Silence row,
+/// 3 is the grenade and 4 is the launcher strike. Unused weapon rows remain
+/// present so every carrier uses the same attack indices.
+static DamageAttack _gGolemPawnRookAttacks[5] = {
     { 28, 5 },
     { 24, 5 },
-    { 0, 8 },
-    { 15, 2 },
-    { 5, 0 },
+    { 0, GAME_ACTOR_REACTION_SILENCE },
+    { 15, GAME_ACTOR_REACTION_PARALYSIS },
+    { 5, GAME_ACTOR_REACTION_ORDINARY },
 };
 
-EnemyParams Actor02000_D15D10 = { gGolemPawnRookAttacks, 425, 125, 100, 5, 50, 6, 0, 0 };
-
-s16 gGolemPawnRookWeakSpotHits[46] = {
-    0,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    1,
-    0,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    1,
-    0,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    1,
-    0,
+/// Combat parameters shared by the Beam Sword Pawn GOLEM bodies in this carrier.
+///
+/// Bodies start with 425 HP and borrow the five attack rows for their lifetime.
+/// Release awards 125 EXP, 100 BP and 5 MP; critical chance is 50 percent,
+/// buildup uses six base steps, and damage-over-time chance/pulse count are zero.
+static EnemyParams _gActor02000PawnGolemParams = {
+    .attacks              = _gGolemPawnRookAttacks,
+    .hpMax                = 425,
+    .exp                  = 125,
+    .bp                   = 100,
+    .mp                   = 5,
+    .critChance           = 50,
+    .buildupSteps         = 6,
+    .damageOverTimeChance = 0,
+    .damageOverTimeTicks  = 0,
 };
 
-s16 gGolemPawnRookWeakSpotHitsFlagged[56] = {
-    0,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    0,
-    0,
-    0,
-    1,
-    1,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
+/// Weapon attack rows absorbed by the raised frontal shield (0 bypass, 1 absorb).
+///
+/// Indexed by bits 0..6 of a bit-15-clear category-2 contact key. The caller
+/// must supply a row in 0..45; absorbed damage reduces shield HP instead of
+/// body HP. The signed halfword entries preserve the carrier table layout.
+static s16 _gGolemPawnRookShieldWeaponRows[46] = {
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
 };
 
-s32 gGolemPawnRookVoiceCues[17] = {
-    0,
-    0x40140001,
-    0x40140002,
-    0x40140003,
-    0x40140004,
-    0x40140005,
-    0x40140006,
-    0x4014000C,
-    0x4014000D,
-    0x40140009,
-    0x4014000A,
-    0x4014000B,
-    0x4014000E,
-    0x4014000F,
-    0x40140010,
-    0x40140011,
-    0x40140012,
+/// Parasite Energy rows absorbed by the raised frontal shield (0 bypass, 1 absorb).
+///
+/// Indexed by bits 0..6 of a bit-15-set category-2 contact key. Damage
+/// calculation accepts rows 0..54; stored row 55 is unused by that domain.
+/// Absorbed damage reduces shield HP instead of body HP; entries remain s16.
+static s16 _gGolemPawnRookShieldPeRows[56] = {
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
 };
 
-s32 gGolemPawnRookSwingCue = 0x40140007;
+/// Character-bank script IDs for animation cues and falls, without instance tags.
+///
+/// Sound sets 1..4 select cue pairs at 2*set-1/2*set, fall impacts at 8+set,
+/// and the start of a backward fall at 12+set. Set 0 skips animation pairs
+/// but falls still use entries 8/12; entry 0 is a no-op. Callers insert the
+/// placement instance into bits 8..15 and supply spatial pan/depth.
+static s32 _gGolemPawnRookMotionCues[17] = {
+    SOUND_SCRIPT_REQUEST_NO_OP,
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 1),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 2),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 3),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 4),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 5),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 6),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 12),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 13),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 9),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 10),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 11),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 14),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 15),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 16),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 17),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 18),
+};
+
+/// Character-bank script ID for a Beam Sword swing or charging strike.
+///
+/// The instance byte is zero; the caller inserts the enemy placement index.
+static s32 _gGolemPawnRookSwingCue = SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 7);
 
 /* The four cue ids the other builds define at this position: the grenade's
- * impact, and the Rook's scream, silence and burst. The Pawn's Beam Sword
+ * impact, and the Rook's scream, silence and shield break. The Pawn's Beam Sword
  * build has none of the code that plays them, so nothing in this package
  * reads these and each holds no id. */
 s32 gGolemPawnRookImpactSound = 0;
 
-s32 gGolemPawnRookScreamCue = 0;
+/// Character-bank script ID for the start of the Rook's Silence charge.
+///
+/// The instance byte is zero; the caller inserts the enemy placement index.
+/// Pawn carriers retain a no-op ID in the same cue slot.
+static s32 _gGolemPawnRookScreamCue = SOUND_SCRIPT_REQUEST_NO_OP;
 
-s32 gGolemPawnRookSilenceCue = 0;
+/// Character-bank script ID played when the Rook applies Silence.
+///
+/// The instance byte is zero; the caller inserts the enemy placement index.
+/// Pawn carriers retain a no-op ID in the same cue slot.
+static s32 _gGolemPawnRookSilenceCue = SOUND_SCRIPT_REQUEST_NO_OP;
 
-s32 gGolemPawnRookBurstCue = 0;
+/// Character-bank script ID for the attached Rook shield breaking.
+///
+/// The instance byte is zero; the caller inserts the shield placement index.
+/// Pawn carriers retain a no-op ID in the same cue slot.
+static s32 _gGolemPawnRookShieldBreakCue = SOUND_SCRIPT_REQUEST_NO_OP;
 
-u16 Actor02000_D15E44[22] = {
-    0,
-    0,
-    0,
-    0,
+/// Beam Sword Pawn GOLEM sound-file selectors for Acropolis/M.I.S.T., indexed by area ID.
+///
+/// Rows 0..21; 0 disables animation cues, 1..4 select a group-10 sound
+/// file and the corresponding motion/fall cue set. Area row 0 is unused.
+static u16 _gActor02000AcropolisAreaSoundSets[22] = {
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
     2,
-    0,
-    0,
-    0,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
     2,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
     2,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
 };
 
-u16 Actor02000_D15E70[40] = {
-    0,
-    0,
+/// Beam Sword Pawn GOLEM sound-file selectors for daytime Dryfield, indexed by area ID.
+///
+/// Rows 0..39; 0 disables animation cues, 1..4 select a group-10 sound
+/// file and the corresponding motion/fall cue set. Area row 0 is unused.
+static u16 _gActor02000DryfieldAreaSoundSets[40] = {
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
     4,
-    0,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
     4,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
     4,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
     2,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
 };
 
-u16 Actor02000_D15EC0[40] = {
-    0,
+/// Beam Sword Pawn GOLEM sound-file selectors for nighttime Dryfield, indexed by area ID.
+///
+/// Rows 0..39; 0 disables animation cues, 1..4 select a group-10 sound
+/// file and the corresponding motion/fall cue set. Area row 0 is unused.
+static u16 _gActor02000DryfieldNightAreaSoundSets[40] = {
+    ACTOR_02000_SOUND_SET_NONE,
     4,
-    0,
-    0,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
     4,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
     4,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
     4,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
     4,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
 };
 
-u16 Actor02000_D15F10[50] = {
-    0,
+/// Beam Sword Pawn GOLEM sound-file selectors for the Mine/Shelter stage, indexed by area ID.
+///
+/// Rows 0..49; 0 disables animation cues, 1..4 select a group-10 sound
+/// file and the corresponding motion/fall cue set. Area row 0 is unused.
+static u16 _gActor02000MineShelterAreaSoundSets[50] = {
+    ACTOR_02000_SOUND_SET_NONE,
     4,
     4,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
     3,
     1,
     2,
     1,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
     3,
     2,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
     2,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
     3,
-    0,
-    0,
-    0,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
     1,
     1,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
     3,
     1,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
     1,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
     2,
     2,
     2,
     1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
     2,
     2,
-    0,
-    0,
-    0,
-    0,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
 };
 
-u16 Actor02000_D15F74[34] = {
-    0,
-    0,
+/// Beam Sword Pawn GOLEM sound-file selectors for the Shelter/Neo Ark stage, indexed by area ID.
+///
+/// Rows 0..33; 0 disables animation cues, 1..4 select a group-10 sound
+/// file and the corresponding motion/fall cue set. Area row 0 is unused.
+static u16 _gActor02000ShelterNeoArkAreaSoundSets[34] = {
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
     2,
     2,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
     2,
-    0,
-    0,
-    0,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
     2,
     4,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
     2,
     2,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
     2,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
     4,
     2,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
     2,
-    0,
-    0,
-    0,
-    0,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
     1,
-    0,
-    0,
-    0,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
+    ACTOR_02000_SOUND_SET_NONE,
     4,
-    0,
+    ACTOR_02000_SOUND_SET_NONE,
 };
 
-u16* Actor02000_D15FB8[6] = {
-    NULL,
-    Actor02000_D15E44,
-    Actor02000_D15E70,
-    Actor02000_D15EC0,
-    Actor02000_D15F10,
-    Actor02000_D15F74,
+/// Stage-indexed area sound sets for the Beam Sword Pawn GOLEM.
+///
+/// Stage 0 has no table; stages 1..5 follow `GAME_STAGE_*`. Each selected
+/// area ID must fit its stage table. The body caches only the u16 selector.
+static u16* _gActor02000StageAreaSoundSets[6] = {
+    [GAME_STAGE_NONE]            = NULL,
+    [GAME_STAGE_ACROPOLIS]       = _gActor02000AcropolisAreaSoundSets,
+    [GAME_STAGE_DRYFIELD]        = _gActor02000DryfieldAreaSoundSets,
+    [GAME_STAGE_DRYFIELD_NIGHT]  = _gActor02000DryfieldNightAreaSoundSets,
+    [GAME_STAGE_MINE_SHELTER]    = _gActor02000MineShelterAreaSoundSets,
+    [GAME_STAGE_SHELTER_NEO_ARK] = _gActor02000ShelterNeoArkAreaSoundSets,
 };
 
-TaskDesc Actor02000_D15FD0[2] = {
-    { { { TASK_BODY_TMD, 96 } }, _actor02000BodyTask, { .model = &_gActor02000PawnGolemBody } },
-    { { { TASK_BODY_TMD, 96 } }, _actor02000SwordTask, { .model = &_gActor02000GolemBeamSword } },
+TaskDesc gActor02000PawnGolemTasks[2] = {
+    { { { TASK_BODY_TMD, ACTOR_02000_TASK_PRIORITY } }, _actor02000BodyTask, { .model = &_gActor02000PawnGolemBody } },
+    { { { TASK_BODY_TMD, ACTOR_02000_TASK_PRIORITY } }, _actor02000SwordTask, { .model = &_gActor02000GolemBeamSword } },
 };
 
-AnimationSet* Actor02000_D15FE8[31] = {
+/// Animation request bank borrowed by the Beam Sword Pawn GOLEM body rig.
+///
+/// Indices 1..9 and 17..29 have clips; 0, 10..16 and 30 are NULL. Playback
+/// requests must select a present clip. The table and clip data stay loaded
+/// while the body's nineteen-slot animation context borrows them.
+static AnimationSet* _gActor02000AnimationSets[31] = {
     NULL,
     &_gActor02000Actor102000Animation09C20,
     &_gActor02000Actor102000Animation0A588,
@@ -1107,7 +1187,11 @@ AnimationSet* Actor02000_D15FE8[31] = {
     NULL,
 };
 
-TaskFunc gGolemPawnRookStates[15] = {
+/// Combat behavior callbacks indexed by `GOLEM_PAWN_ROOK_BEHAVIOR_*`.
+///
+/// Indices 0..14 require live body work; unsupported weapon/kind behaviors
+/// use the no-op handler. These are separate from the body task lifecycle.
+static TaskFunc _gGolemPawnRookBehaviorHandlers[GOLEM_PAWN_ROOK_BEHAVIOR_DOWNED_DEATH + 1] = {
     _golemPawnRookIdleState,
     _golemPawnRookPatrolState,
     _golemPawnRookEngageState,
@@ -1221,15 +1305,15 @@ static void _actor02000SpawnBody(Enemy* enemy, Task* actor)
     model->lightMtx               = &work->lightMtx;
     model->colorMtx               = &work->colorMtx;
     work->actorId                 = ACTOR_02000_ID;
-    work->taskTable               = Actor02000_D15FD0;
+    work->taskTable               = gActor02000PawnGolemTasks;
     work->hitEffectArg.coord      = &actor->extra.tmd->coords[ACTOR_02000_BODY_PART];
     work->hitEffectArg.spawnArgLo = ACTOR_02000_HIT_EFFECT_SIZE;
     work->hitEffectArg.spawnArgHi = ACTOR_02000_HIT_EFFECT_HIGH_ARGUMENT;
-    animationInitContext(&work->rig.anim, Actor02000_D15FE8, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, _gActor02000AnimationSets, model, work->rig.poses, work->rig.slots);
     for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
         animationResetSlot(&work->rig.anim, slotIndex, ACTOR_02000_IDLE_ANIM);
     }
-    swordEnemy = enemySpawnFromTable(Actor02000_D15FD0, ACTOR_02000_SWORD_TASK, 0, enemy);
+    swordEnemy = enemySpawnFromTable(gActor02000PawnGolemTasks, ACTOR_02000_SWORD_TASK, 0, enemy);
     _actorRenderApplyTaskPlacementTextureOffsets(swordEnemy->task, enemy);
 
     // Restored corpses retain the sword but do not rejoin combat.
@@ -1242,10 +1326,10 @@ static void _actor02000SpawnBody(Enemy* enemy, Task* actor)
             enemy->bodyPos.vx = 0;
             enemy->bodyPos.vy = 0;
             enemy->bodyPos.vz = 0;
-            enemy->param      = &Actor02000_D15D10;
+            enemy->param      = &_gActor02000PawnGolemParams;
             enemy->recs       = work->hurtContacts;
             enemy->coord      = &bodyCoords[ACTOR_02000_BODY_PART];
-            enemy->hp         = Actor02000_D15D10.hpMax;
+            enemy->hp         = _gActor02000PawnGolemParams.hpMax;
             sceneAcquireBattleRef(0);
             work->patrols = enemy->place->mode & ACTOR_02000_PLACEMENT_PATROLS;
             if (work->patrols == 0) {
@@ -1259,7 +1343,7 @@ static void _actor02000SpawnBody(Enemy* enemy, Task* actor)
             }
 
             // The CD request reads key bytes 3/2/0 and only four argument bytes.
-            areaSoundSets = Actor02000_D15FB8[gGameSession->location.loc.stage];
+            areaSoundSets = _gActor02000StageAreaSoundSets[gGameSession->location.loc.stage];
             if (areaSoundSets != NULL) {
                 work->soundSet = areaSoundSets[gGameSession->location.loc.area];
             }
@@ -1432,7 +1516,7 @@ static void _golemPawnRookEngageState(Task* task)
         // Approach after the blend, opening sight only inside the narrow yaw cone.
         case GOLEM_PAWN_ROOK_ENGAGE_TRACK:
             forwardSpeed = 0;
-            if (work->animFrame >= gGolemPawnRookAnimBlendFrames[work->anim]) {
+            if (work->animFrame >= _gGolemPawnRookAnimBlendFrames[work->anim]) {
                 forwardSpeed = GOLEM_PAWN_ROOK_ENGAGE_SPEED;
             }
             work->forwardSpeed = forwardSpeed;
@@ -1539,7 +1623,7 @@ static void _golemPawnRookEngageState(Task* task)
 /// from the body; sword teardown also releases its successfully spawned trail.
 static void _actor02000SwordTask(Task* sword)
 {
-    const EnemyTaskFuncTable3 stateHandlers = Actor02000_D00060;
+    const EnemyTaskFuncTable3 stateHandlers = _gActor02000SwordLifecycleHandlers;
 
     stateHandlers.funcs[sword->state](sword->spawnArg2.pointer, sword);
 }
@@ -1551,24 +1635,34 @@ static void _actor02000SwordTask(Task* sword)
 /// Runs the Beam Sword Pawn GOLEM body's lifecycle.
 ///
 /// Requires a live body Enemy in `spawnArg2.pointer` and a nineteen-part model.
-/// The unchecked state is 0 allocation/setup, 1 combat update, or 2 corpse and
-/// teardown handling. Spawn owns the work shared by attached children; a handler
+/// The unchecked state is 0 allocation/setup, 1 combat update, or 2 persistent
+/// corpse update. Spawn owns the work shared by attached children; a handler
 /// may destroy the Enemy/task pair, so nothing is read after dispatch.
 static void _actor02000BodyTask(Task* body)
 {
-    const EnemyTaskFuncTable3 stateHandlers = Actor02000_D0006C;
+    const EnemyTaskFuncTable3 stateHandlers = _gActor02000BodyLifecycleHandlers;
 
     stateHandlers.funcs[body->state](body->spawnArg2.pointer, body);
 }
 
-static const EnemyTaskFuncTable3 Actor02000_D00060 = { {
+/// Attached Beam Sword lifecycle: 0 attach, 1 follow body/spawn trail, 2 destroy.
+///
+/// Each handler receives the live sword Enemy/task pair. Attachment borrows
+/// body work and lighting; destruction releases the attached trail as well.
+static const EnemyTaskFuncTable3 _gActor02000SwordLifecycleHandlers = { {
     _golemPawnRookSwordSpawn,
     _golemPawnRookSwordTick,
     enemyDestroy,
 } };
 
-static const EnemyTaskFuncTable3 Actor02000_D0006C = { {
+/// Beam Sword Pawn GOLEM lifecycle: 0 initialize, 1 combat frame, 2 persistent corpse.
+///
+/// Each handler receives the live body Enemy/task pair. State 2 advances and
+/// records the dead pose; it does not request task destruction.
+static const EnemyTaskFuncTable3 _gActor02000BodyLifecycleHandlers = { {
     _actor02000SpawnBody,
     _golemPawnRookFrameStateNoSparks,
     _golemPawnRookDeadState,
 } };
+
+PACKAGE_ALIASES

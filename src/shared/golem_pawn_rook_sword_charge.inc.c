@@ -95,7 +95,7 @@ static void _golemPawnRookSwordChargeState(Task* actor)
                 _golemPawnRookInterruptCharge(work, false);
                 break;
             }
-            if (work->animFrame >= (gGolemPawnRookAnimBlendFrames[work->anim] + GOLEM_PAWN_ROOK_CHARGE_WINDUP_FRAMES)) {
+            if (work->animFrame >= (_gGolemPawnRookAnimBlendFrames[work->anim] + GOLEM_PAWN_ROOK_CHARGE_WINDUP_FRAMES)) {
                 work->step = GOLEM_PAWN_ROOK_CHARGE_RUN;
                 work->anim = GOLEM_PAWN_ROOK_ANIM_SWORD_RUN;
             }
@@ -138,8 +138,8 @@ static void _golemPawnRookSwordChargeState(Task* actor)
             }
             if (work->animFrame == GOLEM_PAWN_ROOK_CHARGE_STRIKE_START_FRAME) {
                 work->strikeBody.flags = work->strikeBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED;
-                work->strikeBody.key   = damagePackAttackKey(gGolemPawnRookAttacks, GOLEM_PAWN_ROOK_CHARGE_ATTACK);
-                soundId                = gGolemPawnRookSwingCue | ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << GOLEM_PAWN_ROOK_SOUND_INSTANCE_SHIFT);
+                work->strikeBody.key   = damagePackAttackKey(_gGolemPawnRookAttacks, GOLEM_PAWN_ROOK_CHARGE_ATTACK);
+                soundId                = _gGolemPawnRookSwingCue | ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << GOLEM_PAWN_ROOK_SOUND_INSTANCE_SHIFT);
                 audioPan               = (s8)worldCoordGetOriginAudioPan(root);
                 sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(root));
             }

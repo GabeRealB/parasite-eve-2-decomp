@@ -84,7 +84,7 @@ static void _golemPawnRookEngageState(Task* actor)
         // Approach after the blend, opening sight inside the narrow yaw cone.
         case GOLEM_PAWN_ROOK_ENGAGE_TRACK:
             forwardSpeed = 0;
-            if (work->animFrame >= gGolemPawnRookAnimBlendFrames[work->anim]) {
+            if (work->animFrame >= _gGolemPawnRookAnimBlendFrames[work->anim]) {
                 forwardSpeed = GOLEM_PAWN_ROOK_ENGAGE_SPEED;
             }
             work->forwardSpeed = forwardSpeed;

@@ -58,7 +58,7 @@ D_actor_100300_80148110 = 0x80148110; // absolute:True owner=actor_100300 shared
 D_actor_207200_8014E7A4 = 0x8014E7A4; // absolute:True owner=actor_207200
 gActor207200CreepingStrangerTaskDesc = 0x80153EC8; // absolute:True owner=actor_207200
 D_actor_207000_801575F0 = 0x801575F0; // absolute:True owner=actor_207000
-Actor02000_D15FD0 = 0x8015FDF0; // absolute:True owner=actor_202000
+gActor202000PawnGolemTasks = 0x8015FDF0; // absolute:True owner=actor_202000
 D_actor_341300_80165208 = 0x80165208; // absolute:True owner=actor_341300
 RoomFx_TrailOffsets = 0x80183C4C; // size:0x10 defined:True
 _gRoomEffectHaloShades = 0x80183C38; // size:0x14 defined:True

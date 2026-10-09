@@ -44,7 +44,7 @@ static void _golemPawnRookShieldTick(Enemy* unusedEnemy, Task* shield)
             effectSpawn(EFFECT_EXPLOSION, shieldRoot, GOLEM_PAWN_ROOK_SHIELD_FRAGMENT_ARGUMENT, NULL);
             effectSpawn(EFFECT_EXPLOSION, shieldRoot, GOLEM_PAWN_ROOK_SHIELD_FAST_FRAGMENT_ARGUMENT, NULL);
             work->shieldBreakStep = GOLEM_PAWN_ROOK_SHIELD_BROKEN;
-            soundId               = gGolemPawnRookBurstCue |
+            soundId               = _gGolemPawnRookShieldBreakCue |
                       ((((Enemy*)shield->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << GOLEM_PAWN_ROOK_SOUND_INSTANCE_SHIFT);
             audioPan = (s8)worldCoordGetOriginAudioPan(shieldRoot);
             sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(shieldRoot));

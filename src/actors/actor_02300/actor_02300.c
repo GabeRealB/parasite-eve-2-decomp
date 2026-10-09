@@ -37,6 +37,7 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/sound.h"
+#include "main/sound_ids.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
@@ -47,15 +48,8 @@
 #define GOLEM_PAWN_ROOK_WEAPON GOLEM_BEAM_SWORD
 #include "../../shared/golem_pawn_rook.h"
 
-/// First frame of each animation, indexed by `GolemPawnRookWork::anim`;
-/// the state handlers offset it to get the frames their cues fire on.
-extern s16 gGolemPawnRookAnimBlendFrames[];
-/// The `damagePackAttackKey` entry the lunge parks in the work block's `strikeBody`.
-extern DamageAttack gGolemPawnRookAttacks[5];
-/// Sound id of the cue a sword strike plays as its hit body goes live; the
-/// swing and charge states OR the enemy's place index into bits 8 and up
-/// before queueing it.
-extern s32 gGolemPawnRookSwingCue;
+/// Character script bank used by this carrier's cue tables.
+enum { GOLEM_PAWN_ROOK_SOUND_BANK = 0x17 };
 
 /// The `EnemyParams` the enemy parks in its own `field_50` slot.
 extern EnemyParams Actor02300_D159D8;
@@ -64,23 +58,6 @@ extern EnemyParams Actor02300_D159D8;
 extern u16* Actor02300_D15C80[];
 /// Animation bank `animationInitContext` binds to the work block.
 extern AnimationSet* Actor02300_D15CBC[31];
-
-/// Per-weapon-id weak-point flags (`id & 0x7F`) for the two hit families,
-/// picked by the id's 0x8000 bit.
-extern s16 gGolemPawnRookWeakSpotHits[];
-extern s16 gGolemPawnRookWeakSpotHitsFlagged[];
-
-/// Voice-cue sound ids, indexed from `GolemPawnRookWork::soundSet`.
-extern s32 gGolemPawnRookVoiceCues[];
-/// Sound ids of the burst state's two cues.
-extern s32 gGolemPawnRookScreamCue;
-extern s32 gGolemPawnRookSilenceCue;
-
-/// Handlers of the `GolemPawnRookWork::behavior` states, one per entry.
-extern TaskFunc gGolemPawnRookStates[];
-
-/// Sound id of the part-11 child's cue, ORed with the enemy's id nibble.
-extern s32 gGolemPawnRookBurstCue;
 
 static AnimationSet _gActor02300Actor102300Animation0A2F0;
 static AnimationSet _gActor02300Actor102300Animation0AC58;
@@ -113,7 +90,11 @@ static void         _actor02300SwordTask(Task* sword);
 static void         _actor02300ShieldTask(Task* shield);
 static void         _actor02300BodyTask(Task* task);
 
-s16 gGolemPawnRookAnimBlendFrames[32] = {
+/// Blend-in durations indexed by animation request, in whole frames.
+///
+/// The 32 signed halfwords belong to this carrier. Launcher bursts change
+/// entry 13 to 0 or 3 for successive shots; all bodies in the carrier share it.
+static s16 _gGolemPawnRookAnimBlendFrames[32] = {
     0,
     8,
     8,
@@ -772,156 +753,192 @@ static AnimationSet _gActor02300Actor102300Animation1599C = {
     { NULL, _gActor02300Actor102300Animation1599CBank1, NULL, NULL, _gActor02300Actor102300Animation1599CBank4, NULL, NULL, NULL },
 };
 
-DamageAttack gGolemPawnRookAttacks[5] = {
+/// Five category-4 attack rows, storing base HP damage and player reaction.
+///
+/// Slots 0/1 are sword swing/charge, 2 is the zero-power Silence row,
+/// 3 is the grenade and 4 is the launcher strike. Unused weapon rows remain
+/// present so every carrier uses the same attack indices.
+static DamageAttack _gGolemPawnRookAttacks[5] = {
     { 28, 5 },
     { 24, 5 },
-    { 0, 8 },
-    { 15, 2 },
-    { 5, 0 },
+    { 0, GAME_ACTOR_REACTION_SILENCE },
+    { 15, GAME_ACTOR_REACTION_PARALYSIS },
+    { 5, GAME_ACTOR_REACTION_ORDINARY },
 };
 
-EnemyParams Actor02300_D159D8 = { gGolemPawnRookAttacks, 482, 250, 400, 8, 0, 6, 0, 0 };
+EnemyParams Actor02300_D159D8 = { _gGolemPawnRookAttacks, 482, 250, 400, 8, 0, 6, 0, 0 };
 
-s16 gGolemPawnRookWeakSpotHits[46] = {
-    0,
-    1,
-    1,
-    1,
-    0,
-    0,
-    0,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    0,
-    0,
-    1,
-    0,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    0,
+/// Weapon attack rows absorbed by the raised frontal shield (0 bypass, 1 absorb).
+///
+/// Indexed by bits 0..6 of a bit-15-clear category-2 contact key. The caller
+/// must supply a row in 0..45; absorbed damage reduces shield HP instead of
+/// body HP. The signed halfword entries preserve the carrier table layout.
+static s16 _gGolemPawnRookShieldWeaponRows[46] = {
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
 };
 
-s16 gGolemPawnRookWeakSpotHitsFlagged[56] = {
-    0,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    1,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
+/// Parasite Energy rows absorbed by the raised frontal shield (0 bypass, 1 absorb).
+///
+/// Indexed by bits 0..6 of a bit-15-set category-2 contact key. Damage
+/// calculation accepts rows 0..54; stored row 55 is unused by that domain.
+/// Absorbed damage reduces shield HP instead of body HP; entries remain s16.
+static s16 _gGolemPawnRookShieldPeRows[56] = {
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS,
 };
 
-s32 gGolemPawnRookVoiceCues[17] = {
-    0,
-    0x40170001,
-    0x40170002,
-    0x40170003,
-    0x40170004,
-    0x40170005,
-    0x40170006,
-    0x4017000C,
-    0x4017000D,
-    0x40170009,
-    0x4017000A,
-    0x4017000B,
-    0x4017000E,
-    0x4017000F,
-    0x40170010,
-    0x40170011,
-    0x40170012,
+/// Character-bank script IDs for animation cues and falls, without instance tags.
+///
+/// Sound sets 1..4 select cue pairs at 2*set-1/2*set, fall impacts at 8+set,
+/// and the start of a backward fall at 12+set. Set 0 skips animation pairs
+/// but falls still use entries 8/12; entry 0 is a no-op. Callers insert the
+/// placement instance into bits 8..15 and supply spatial pan/depth.
+static s32 _gGolemPawnRookMotionCues[17] = {
+    SOUND_SCRIPT_REQUEST_NO_OP,
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 1),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 2),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 3),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 4),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 5),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 6),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 12),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 13),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 9),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 10),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 11),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 14),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 15),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 16),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 17),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 18),
 };
 
-s32 gGolemPawnRookSwingCue = 0x40170007;
+/// Character-bank script ID for a Beam Sword swing or charging strike.
+///
+/// The instance byte is zero; the caller inserts the enemy placement index.
+static s32 _gGolemPawnRookSwingCue = SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 7);
 
 /* The grenade's impact cue, which the Grenade Launcher builds define at this
  * position. The Beam Sword is built without the grenade, so nothing in this
  * package reads it and it holds no id. */
 s32 gGolemPawnRookImpactSound = 0;
 
-s32 gGolemPawnRookScreamCue = 0x40170013;
+/// Character-bank script ID for the start of the Rook's Silence charge.
+///
+/// The instance byte is zero; the caller inserts the enemy placement index.
+/// Pawn carriers retain a no-op ID in the same cue slot.
+static s32 _gGolemPawnRookScreamCue = SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 19);
 
-s32 gGolemPawnRookSilenceCue = 0x40170014;
+/// Character-bank script ID played when the Rook applies Silence.
+///
+/// The instance byte is zero; the caller inserts the enemy placement index.
+/// Pawn carriers retain a no-op ID in the same cue slot.
+static s32 _gGolemPawnRookSilenceCue = SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 20);
 
-s32 gGolemPawnRookBurstCue = 0x40170015;
+/// Character-bank script ID for the attached Rook shield breaking.
+///
+/// The instance byte is zero; the caller inserts the shield placement index.
+/// Pawn carriers retain a no-op ID in the same cue slot.
+static s32 _gGolemPawnRookShieldBreakCue = SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 21);
 
 u16 Actor02300_D15B0C[22] = {
     0,
@@ -1173,7 +1190,11 @@ AnimationSet* Actor02300_D15CBC[31] = {
     NULL,
 };
 
-TaskFunc gGolemPawnRookStates[15] = {
+/// Combat behavior callbacks indexed by `GOLEM_PAWN_ROOK_BEHAVIOR_*`.
+///
+/// Indices 0..14 require live body work; unsupported weapon/kind behaviors
+/// use the no-op handler. These are separate from the body task lifecycle.
+static TaskFunc _gGolemPawnRookBehaviorHandlers[GOLEM_PAWN_ROOK_BEHAVIOR_DOWNED_DEATH + 1] = {
     _golemPawnRookIdleState,
     _golemPawnRookPatrolState,
     _golemPawnRookEngageState,

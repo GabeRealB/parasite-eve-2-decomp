@@ -22,7 +22,7 @@ static inline void _golemPawnRookAdvanceCorpsePose(Task* actor, GfxCoord* coord)
     if (animWork->anim != animWork->playingAnim) {
         animWork->playingAnim = animWork->anim;
         animWork->animFrame   = 0U;
-        blendFrames           = gGolemPawnRookAnimBlendFrames[animWork->anim];
+        blendFrames           = _gGolemPawnRookAnimBlendFrames[animWork->anim];
         for (slotIndex = 1; slotIndex < ARRAY_SIZE(animWork->rig.slots); slotIndex++) {
             animationSeekSlotWithBlend(&animWork->rig.anim, slotIndex, animWork->anim, 0, blendFrames);
         }

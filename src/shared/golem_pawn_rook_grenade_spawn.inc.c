@@ -90,14 +90,14 @@ static void _golemPawnRookGrenadeSpawn(Enemy* enemy, Task* grenade)
     _golemPawnRookPlaceGrenade(root, launcherRoot, placement);
 
     // Two strike spheres share a contact; the trailing capsule tests the room grid.
-    work->burstStyle = (gGolemPawnRookAttacks[GOLEM_PAWN_ROOK_GRENADE_ATTACK].reaction != GOLEM_PAWN_ROOK_GRENADE_REACTION_DARKNESS);
+    work->burstStyle = (_gGolemPawnRookAttacks[GOLEM_PAWN_ROOK_GRENADE_ATTACK].reaction != GOLEM_PAWN_ROOK_GRENADE_REACTION_DARKNESS);
 
     work->playerStrikeBody.coord            = root;
     work->playerStrikeBody.context.contacts = work->strikeContacts;
     work->playerStrikeBody.pos.vx           = 0;
     work->playerStrikeBody.pos.vy           = 0;
     work->playerStrikeBody.pos.vz           = 0;
-    work->playerStrikeBody.key              = damagePackAttackKey(gGolemPawnRookAttacks, GOLEM_PAWN_ROOK_GRENADE_ATTACK);
+    work->playerStrikeBody.key              = damagePackAttackKey(_gGolemPawnRookAttacks, GOLEM_PAWN_ROOK_GRENADE_ATTACK);
     work->playerStrikeBody.radius           = GOLEM_PAWN_ROOK_GRENADE_RADIUS;
     work->playerStrikeBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->playerStrikeBody);

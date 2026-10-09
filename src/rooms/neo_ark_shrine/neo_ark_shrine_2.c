@@ -1042,7 +1042,7 @@ AreaResource D_neo_ark_shrine_8018665C[3] = {
 };
 
 AreaResource D_neo_ark_shrine_80186680[2] = {
-    { 20, 20, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, Actor02000_D15FD0 },
+    { 20, 20, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102000PawnGolemTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

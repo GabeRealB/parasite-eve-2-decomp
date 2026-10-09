@@ -17,15 +17,15 @@ static void _golemPawnRookPlayAnimCues(Task* actor)
 
     /// Plays a carrier cue at the body origin with its placement instance tag.
     ///
-    /// Borrows actor/root and the carrier's gGolemPawnRookVoiceCues table; cueIndex
+    /// Borrows actor/root and the carrier's _gGolemPawnRookMotionCues table; cueIndex
     /// must be valid there. soundId and audioPan are writable s32 lvalues. Arguments
     /// must be side-effect-free; root and outputs occur repeatedly. The compound
     /// statement is confined to this handler and undefined below.
-#define GOLEM_PAWN_ROOK_PLAY_ANIM_CUE(actor, root, cueIndex, soundId, audioPan)                                                                                                   \
-    {                                                                                                                                                                             \
-        (soundId)  = gGolemPawnRookVoiceCues[(cueIndex)] | ((((Enemy*)(actor)->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << GOLEM_PAWN_ROOK_SOUND_INSTANCE_SHIFT); \
-        (audioPan) = (s8)worldCoordGetOriginAudioPan((root));                                                                                                                     \
-        sndEvtRequestScriptStart((soundId), (audioPan), (s8)worldCoordGetOriginAudioDepth((root)));                                                                               \
+#define GOLEM_PAWN_ROOK_PLAY_ANIM_CUE(actor, root, cueIndex, soundId, audioPan)                                                                                                     \
+    {                                                                                                                                                                               \
+        (soundId)  = _gGolemPawnRookMotionCues[(cueIndex)] | ((((Enemy*)(actor)->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << GOLEM_PAWN_ROOK_SOUND_INSTANCE_SHIFT); \
+        (audioPan) = (s8)worldCoordGetOriginAudioPan((root));                                                                                                                       \
+        sndEvtRequestScriptStart((soundId), (audioPan), (s8)worldCoordGetOriginAudioDepth((root)));                                                                                 \
     }
 
     work = actor->work;

@@ -3788,13 +3788,13 @@ objects = [
 
 [actors.overlays.actor_02000]
 slots = [
-  { slot = 1, package = "actor_102000", id = 117 },
-  { slot = 2, package = "actor_202000", id = 175 },
-  { slot = 3, package = "actor_302000", id = 216 },
+  { slot = 1, package = "actor_102000", id = 117, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor02000PawnGolemTasks = "gActor102000PawnGolemTasks" } },
+  { slot = 2, package = "actor_202000", id = 175, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor02000PawnGolemTasks = "gActor202000PawnGolemTasks" } },
+  { slot = 3, package = "actor_302000", id = 216, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor02000PawnGolemTasks = "gActor302000PawnGolemTasks" } },
 ]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_02000/actor_102000_text", rodata = "0x4", text = "0x78", data = "0x3784" },
+  { unit = "actor_102000_text", variant = true, rodata = "0x4", text = "0x78", data = "0x3784" },
   { kind = "model", at = "0x37C4", in_c = true },
   { kind = "modelSource", at = "0x8AA8", in_c = true },
   { kind = "model", at = "0x8ACC", in_c = true },

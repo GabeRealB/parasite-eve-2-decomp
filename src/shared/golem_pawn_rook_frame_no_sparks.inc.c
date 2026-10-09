@@ -36,7 +36,7 @@ static void _golemPawnRookFrameStateNoSparks(Enemy* enemy, Task* actor)
         _golemPawnRookApplyBuildupReaction(actor);
     }
     _golemPawnRookTakeHits(actor);
-    gGolemPawnRookStates[work->behavior](actor);
+    _gGolemPawnRookBehaviorHandlers[work->behavior](actor);
     if (work->turnRate != 0) {
         _golemPawnRookTurnTowardTarget(actor);
     }

@@ -80558,7 +80558,7 @@ snd = D_actor_105700_80149004[work->soundSet * 2 - 1] | (...);
 snd = D_actor_105700_80149004[work->soundSet * 2]     | (...);
 ```
 
-Same shape here as `Actor02000_D15DEC[work->soundSet * 2 - 1]` in
+Same shape here as `_gGolemPawnRookMotionCues[work->soundSet * 2 - 1]` in
 `src/actors/lib/actor_102000_text.c`, which is the idiom to copy whenever a
 copy of this body turns up in another actor overlay.
 

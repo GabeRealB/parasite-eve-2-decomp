@@ -62,7 +62,7 @@ static void _golemPawnRookSilenceScreamState(Task* actor)
                 effectOffset->vy   = 0;
                 effectOffset->vz   = 0;
                 work->screamEffect = effectSpawn(gRoomEffectFlashId, &actor->extra.tmd->coords[4], GOLEM_PAWN_ROOK_SCREAM_CHARGE_FRAMES, effectOffset);
-                GOLEM_PAWN_ROOK_PLAY_SCREAM_CUE(actor, root, gGolemPawnRookScreamCue, soundId);
+                GOLEM_PAWN_ROOK_PLAY_SCREAM_CUE(actor, root, _gGolemPawnRookScreamCue, soundId);
             }
             work->shieldRaised = work->shieldHp > 0;
             if ((s16)(work->timer % GOLEM_PAWN_ROOK_SCREAM_RUMBLE_INTERVAL) == 0) {
@@ -105,7 +105,7 @@ static void _golemPawnRookSilenceScreamState(Task* actor)
             work->behavior = GOLEM_PAWN_ROOK_BEHAVIOR_ENGAGE;
             work->step     = GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP;
             work->anim     = GOLEM_PAWN_ROOK_ANIM_WALK;
-            GOLEM_PAWN_ROOK_PLAY_SCREAM_CUE(actor, root, gGolemPawnRookSilenceCue, soundId);
+            GOLEM_PAWN_ROOK_PLAY_SCREAM_CUE(actor, root, _gGolemPawnRookSilenceCue, soundId);
             break;
         case GOLEM_PAWN_ROOK_SCREAM_RECOVER:
             if (!(work->animFrame & GOLEM_PAWN_ROOK_SCREAM_SPARK_FRAME_MASK)) {

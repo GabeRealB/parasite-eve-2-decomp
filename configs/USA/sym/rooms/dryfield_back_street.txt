@@ -37,7 +37,7 @@ D_dryfield_back_street_8018102C = 0x8018102C; // size:0x8 defined:True
 D_dryfield_back_street_80181034 = 0x80181034; // size:0x20 defined:True
 D_dryfield_back_street_80181054 = 0x80181054; // size:0x4 defined:True
 gActor01500MindSucklerTaskDesc = 0x8013BE28; // absolute:True owner=actor_101500
-Actor02000_D15FD0 = 0x80147DF0; // absolute:True owner=actor_102000
+gActor102000PawnGolemTasks = 0x80147DF0; // absolute:True owner=actor_102000
 gActor00100DesertChaserTaskDesc = 0x8014D8A4; // absolute:True owner=actor_400100
 gActor205600PawnGolemTasks = 0x801602C0; // absolute:True owner=actor_205600
 D_map_dryfield_8017AEA4 = 0x8017AEA4; // absolute:True owner=map_dryfield

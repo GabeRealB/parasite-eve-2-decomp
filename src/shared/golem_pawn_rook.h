@@ -17,9 +17,9 @@
  * position. The package defines its tables at its own positions under these
  * names:
  *
- *   s16 gGolemPawnRookAnimBlendFrames[32]  blend-in length per animation, in frames
- *   s32 gGolemPawnRookVoiceCues[17]        the voice-cue sound ids of its sound bank
- *   s32 gGolemPawnRookSwingCue             the sword strike's cue (Beam Sword only)
+ *   s16 _gGolemPawnRookAnimBlendFrames[32]  blend-in length per animation, in frames
+ *   s32 _gGolemPawnRookMotionCues[17]        animation/fall script IDs with a zero instance byte
+ *   s32 _gGolemPawnRookSwingCue             sword swing/charge script ID (Beam Sword only)
  *   s32 gGolemPawnRookImpactSound          the grenade's impact cue (Grenade Launcher only)
  */
 
@@ -92,8 +92,14 @@
 
 #include "main/task_types.h"
 
+/// Shield-table row values; front-facing covered hits redirect HP loss to the shield.
+enum {
+    GOLEM_PAWN_ROOK_SHIELD_BYPASS = 0,
+    GOLEM_PAWN_ROOK_SHIELD_ABSORB = 1,
+};
+
 /// Values of `GolemPawnRookWork::behavior`, the entries of each package's
-/// `gGolemPawnRookStates`.
+/// `_gGolemPawnRookBehaviorHandlers`.
 ///
 /// Every package uses the same numbering and fills the entries its build has
 /// no handler for with `_golemPawnRookNopState`: the two sword entries in a
@@ -149,7 +155,7 @@ enum {
 /// grenade and shield child tasks reach it through their parent to share the
 /// matrices and to take requests from the behaviour handlers.
 ///
-/// `behavior` indexes `gGolemPawnRookStates` and `step` is the position inside
+/// `behavior` indexes `_gGolemPawnRookBehaviorHandlers` and `step` is the position inside
 /// that handler; a handler asks for an animation in `anim` and for movement in
 /// `forwardSpeed` and `turnRate`, and the tick carries them out.
 typedef struct {
@@ -182,7 +188,7 @@ typedef struct {
     u16                   prevCueFlags;       // cue bits of the previous frame's animation record, so a cue plays once on its falling edge
     s16                   yaw;                // heading of the root, 0..0xFFF
     s16                   targetYaw;          // heading the root turns toward, 0..0xFFF
-    s16                   behavior;           // running handler, a `GOLEM_PAWN_ROOK_BEHAVIOR_` index into `gGolemPawnRookStates`
+    s16                   behavior;           // running handler, a `GOLEM_PAWN_ROOK_BEHAVIOR_` index into `_gGolemPawnRookBehaviorHandlers`
     s16                   step;               // step inside that handler; each handler numbers its own
     s16                   hitFromFront;       // side the last weapon hit came from (1 in front of the enemy, 0 behind)
     s16                   patrols;            // bit 0 of the placement's mode (0 stands idle, 1 walks a patrol); read at spawn only

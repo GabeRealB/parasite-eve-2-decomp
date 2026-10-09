@@ -45,6 +45,7 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/sound.h"
+#include "main/sound_ids.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd.h"
@@ -58,16 +59,8 @@
 #define GOLEM_PAWN_ROOK_WEAPON GOLEM_GRENADE_LAUNCHER
 #include "../../shared/golem_pawn_rook.h"
 
-/// Sound ids this actor's cues play, indexed by `GolemPawnRookWork.soundSet`
-/// (row `soundSet` starts at the second word, the `- 1` in the body).
-extern s32 gGolemPawnRookVoiceCues[];
-
-/// Per-animation frame marks: row `anim` holds the frame the 0x1C, 0x28
-/// and 0x7A marks of `_golemPawnRookLauncherStrikeState` are measured from.
-extern s16 gGolemPawnRookAnimBlendFrames[];
-
-/// The body objects' variant flag comes from `gGolemPawnRookAttacks`.
-extern DamageAttack gGolemPawnRookAttacks[5];
+/// Character script bank used by this carrier's cue tables.
+enum { GOLEM_PAWN_ROOK_SOUND_BANK = 0x39 };
 
 /// Per-weapon-id weak-point flags (`id & 0x7F`) for the two hit families,
 /// picked by the id's 0x8000 bit.
@@ -108,7 +101,11 @@ static void         _actor05700GrenadeTask(Task* grenade);
 static void         _actor05700ShieldTask(Task* shield);
 static void         _actor05700RookGolemTask(Task* golem);
 
-s16 gGolemPawnRookAnimBlendFrames[32] = {
+/// Blend-in durations indexed by animation request, in whole frames.
+///
+/// The 32 signed halfwords belong to this carrier. Launcher bursts change
+/// entry 13 to 0 or 3 for successive shots; all bodies in the carrier share it.
+static s16 _gGolemPawnRookAnimBlendFrames[32] = {
     0,
     8,
     8,
@@ -821,16 +818,21 @@ static AnimationSet _gActor05700Actor105700Animation170CC = {
     { NULL, _gActor05700Actor105700Animation170CCBank1, NULL, NULL, _gActor05700Actor105700Animation170CCBank4, NULL, NULL, NULL },
 };
 
-DamageAttack gGolemPawnRookAttacks[5] = {
+/// Five category-4 attack rows, storing base HP damage and player reaction.
+///
+/// Slots 0/1 are sword swing/charge, 2 is the zero-power Silence row,
+/// 3 is the grenade and 4 is the launcher strike. Unused weapon rows remain
+/// present so every carrier uses the same attack indices.
+static DamageAttack _gGolemPawnRookAttacks[5] = {
     { 30, 5 },
     { 20, 5 },
-    { 0, 8 },
-    { 20, 2 },
+    { 0, GAME_ACTOR_REACTION_SILENCE },
+    { 20, GAME_ACTOR_REACTION_PARALYSIS },
     { 30, 7 },
 };
 
 EnemyParams gGolemPawnRookParams[1] = {
-    { gGolemPawnRookAttacks, 482, 250, 400, 8, 0, 6, 0, 0 },
+    { _gGolemPawnRookAttacks, 482, 250, 400, 8, 0, 6, 0, 0 },
 };
 
 s16 gGolemPawnRookWeakPointWeapons[46] = {
@@ -941,24 +943,30 @@ s16 gGolemPawnRookWeakPointPe[56] = {
     0,
 };
 
-s32 gGolemPawnRookVoiceCues[17] = {
-    0,
-    0x40390001,
-    0x40390002,
-    0x40390003,
-    0x40390004,
-    0x40390005,
-    0x40390006,
-    0x4039000C,
-    0x4039000D,
-    0x40390009,
-    0x4039000A,
-    0x4039000B,
-    0x4039000E,
-    0x4039000F,
-    0x40390010,
-    0x40390011,
-    0x40390012,
+/// Character-bank script IDs for animation cues and falls, without instance tags.
+///
+/// Sound sets 1..4 select cue pairs at 2*set-1/2*set, fall impacts at 8+set,
+/// and the start of a backward fall at 12+set. Set 0 skips animation pairs
+/// but falls still use entries 8/12; entry 0 is a no-op. Callers insert the
+/// placement instance into bits 8..15 and supply spatial pan/depth.
+static s32 _gGolemPawnRookMotionCues[17] = {
+    SOUND_SCRIPT_REQUEST_NO_OP,
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 1),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 2),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 3),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 4),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 5),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 6),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 12),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 13),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 9),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 10),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 11),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 14),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 15),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 16),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 17),
+    SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 18),
 };
 
 s32 gGolemPawnRookShotSound = 0x40390007;
@@ -967,11 +975,23 @@ s32 gGolemPawnRookShotSound = 0x40390007;
 /// the firing enemy's place index into bits 8 and up before queueing it.
 s32 gGolemPawnRookImpactSound = 0x40390008;
 
-s32 gGolemPawnRookScreamCue = 0x40390013;
+/// Character-bank script ID for the start of the Rook's Silence charge.
+///
+/// The instance byte is zero; the caller inserts the enemy placement index.
+/// Pawn carriers retain a no-op ID in the same cue slot.
+static s32 _gGolemPawnRookScreamCue = SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 19);
 
-s32 gGolemPawnRookSilenceCue = 0x40390014;
+/// Character-bank script ID played when the Rook applies Silence.
+///
+/// The instance byte is zero; the caller inserts the enemy placement index.
+/// Pawn carriers retain a no-op ID in the same cue slot.
+static s32 _gGolemPawnRookSilenceCue = SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 20);
 
-s32 gGolemPawnRookBurstCue = 0x40390015;
+/// Character-bank script ID for the attached Rook shield breaking.
+///
+/// The instance byte is zero; the caller inserts the shield placement index.
+/// Pawn carriers retain a no-op ID in the same cue slot.
+static s32 _gGolemPawnRookShieldBreakCue = SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 21);
 
 u16 Actor05700_D1723C[22] = {
     0,
@@ -1229,7 +1249,11 @@ AnimationSet* gGolemPawnRookAnimSets[31] = {
     &_gActor05700Actor105700Animation170CC,
 };
 
-TaskFunc gGolemPawnRookStates[15] = {
+/// Combat behavior callbacks indexed by `GOLEM_PAWN_ROOK_BEHAVIOR_*`.
+///
+/// Indices 0..14 require live body work; unsupported weapon/kind behaviors
+/// use the no-op handler. These are separate from the body task lifecycle.
+static TaskFunc _gGolemPawnRookBehaviorHandlers[GOLEM_PAWN_ROOK_BEHAVIOR_DOWNED_DEATH + 1] = {
     _golemPawnRookIdleState,
     _golemPawnRookPatrolState,
     _golemPawnRookEngageState,
@@ -1251,10 +1275,6 @@ extern s16 gGolemPawnRookBeamRibbonCorners[][4];
 
 extern s32 gGolemPawnRookShotSound;
 
-extern s32 gGolemPawnRookScreamCue;
-
-extern s32 gGolemPawnRookSilenceCue;
-
 /// Animation bank the work block's animation context is started on.
 extern AnimationSet* gGolemPawnRookAnimSets[31];
 
@@ -1268,13 +1288,6 @@ extern u16* gGolemPawnRookAreaParams[];
 
 /// Enemy parameter record the spawn hands to its `Enemy`.
 extern EnemyParams gGolemPawnRookParams[];
-
-/// Per-state handlers of the approach cycle, indexed by `behavior`.
-extern TaskFunc gGolemPawnRookStates[];
-
-/// Sound id the spawn cue is played against; the low byte comes from the
-/// context block's room/channel bits.
-extern s32 gGolemPawnRookBurstCue;
 
 #include "../../shared/golem_pawn_rook_take_hits.inc.c"
 

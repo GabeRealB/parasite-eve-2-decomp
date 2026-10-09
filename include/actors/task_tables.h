@@ -215,7 +215,15 @@ extern TaskDesc gActor101100Tasks[3];
 /// Slot export of `gActor02300RookGolemTasks` from actor_102300, with the same descriptor contract.
 extern TaskDesc gActor102300RookGolemTasks[3];
 
-extern TaskDesc Actor02000_D15FD0[];
+/// Slot export of `gActor02000PawnGolemTasks` from actor_102000, with the same descriptor contract.
+extern TaskDesc gActor102000PawnGolemTasks[2];
+
+/// Beam Sword Pawn GOLEM spawn descriptors: 0 body, 1 attached sword.
+///
+/// Both are priority-96 TMD tasks with automatic model buffers. Indices 0..1
+/// select descriptors without a terminator. Keep this actor package loaded
+/// while the callbacks, model geometry and body animation bank are borrowed.
+extern TaskDesc gActor02000PawnGolemTasks[2];
 
 extern TaskDesc D_actor_100300_80148110[];
 
@@ -389,7 +397,8 @@ extern TaskDesc D_actor_403200_8015F8D0;
 /// Slot export of `gActor02300RookGolemTasks` from actor_202300, with the same descriptor contract.
 extern TaskDesc gActor202300RookGolemTasks[3];
 
-extern TaskDesc Actor02000_D15FD0[];
+/// Slot export of `gActor02000PawnGolemTasks` from actor_202000, with the same descriptor contract.
+extern TaskDesc gActor202000PawnGolemTasks[2];
 
 extern TaskDesc D_actor_200300_80160110[];
 
@@ -486,7 +495,8 @@ extern TaskDesc gActor503500TentacleTaskDesc;
 /// Slot export of `gActor01100Tasks` from actor_301100, with the same descriptor contract.
 extern TaskDesc gActor301100Tasks[3];
 
-extern TaskDesc D_actor_302000_80177DF0[];
+/// Slot export of `gActor02000PawnGolemTasks` from actor_302000, with the same descriptor contract.
+extern TaskDesc gActor302000PawnGolemTasks[2];
 
 extern TaskDesc D_actor_301900_80179120[];
 

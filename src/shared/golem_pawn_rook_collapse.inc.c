@@ -68,7 +68,7 @@ static void _golemPawnRookCollapseState(Task* actor)
                 if (work->animFrame == GOLEM_PAWN_ROOK_COLLAPSE_BEHIND_FIRST_CUE_FRAME) {
                     s32 audioPan;
 
-                    soundId = gGolemPawnRookVoiceCues[work->soundSet + GOLEM_PAWN_ROOK_COLLAPSE_FIRST_CUE_BASE] |
+                    soundId = _gGolemPawnRookMotionCues[work->soundSet + GOLEM_PAWN_ROOK_COLLAPSE_FIRST_CUE_BASE] |
                               ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << GOLEM_PAWN_ROOK_SOUND_INSTANCE_SHIFT);
                     audioPan = (s8)worldCoordGetOriginAudioPan(root);
 
@@ -77,7 +77,7 @@ static void _golemPawnRookCollapseState(Task* actor)
                 if (work->animFrame == GOLEM_PAWN_ROOK_COLLAPSE_BEHIND_SECOND_CUE_FRAME) {
                     s32 audioPan;
 
-                    soundId = gGolemPawnRookVoiceCues[work->soundSet + GOLEM_PAWN_ROOK_COLLAPSE_IMPACT_CUE_BASE] |
+                    soundId = _gGolemPawnRookMotionCues[work->soundSet + GOLEM_PAWN_ROOK_COLLAPSE_IMPACT_CUE_BASE] |
                               ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << GOLEM_PAWN_ROOK_SOUND_INSTANCE_SHIFT);
                     audioPan = (s8)worldCoordGetOriginAudioPan(root);
 
@@ -86,7 +86,7 @@ static void _golemPawnRookCollapseState(Task* actor)
             } else if (work->animFrame == GOLEM_PAWN_ROOK_COLLAPSE_FRONT_CUE_FRAME) {
                 s32 audioPan;
 
-                soundId = gGolemPawnRookVoiceCues[work->soundSet + GOLEM_PAWN_ROOK_COLLAPSE_IMPACT_CUE_BASE] |
+                soundId = _gGolemPawnRookMotionCues[work->soundSet + GOLEM_PAWN_ROOK_COLLAPSE_IMPACT_CUE_BASE] |
                           ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << GOLEM_PAWN_ROOK_SOUND_INSTANCE_SHIFT);
                 audioPan = (s8)worldCoordGetOriginAudioPan(root);
 
