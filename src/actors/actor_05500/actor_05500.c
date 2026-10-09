@@ -50,7 +50,8 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
-#define MAGGOT_CATERPILLAR_KIND CATERPILLAR
+#define MAGGOT_CATERPILLAR_KIND      CATERPILLAR
+#define MAGGOT_CATERPILLAR_BODY_TASK gMaggotCaterpillarBodyTask
 #include "../../shared/maggot_caterpillar.h"
 
 extern void* D_80067704[1];
@@ -687,6 +688,7 @@ static const EnemyTaskFuncTable3 gMaggotCaterpillarStates = {
 #include "../../shared/maggot_caterpillar_draw_thread.inc.c"
 
 #include "../../shared/maggot_caterpillar_spawn.inc.c"
+#undef MAGGOT_CATERPILLAR_BODY_TASK
 
 #include "../../shared/maggot_caterpillar_tick.inc.c"
 

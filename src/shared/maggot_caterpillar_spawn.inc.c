@@ -71,7 +71,7 @@ static void _maggotCaterpillarSpawn(Enemy* enemy, Task* actor)
     model->colorMtx     = &work->colorMtx;
     rootMatrix          = &coord->coord;
     work->isCaterpillar = MAGGOT_CATERPILLAR_IS_CATERPILLAR;
-    work->taskTable     = &gMaggotCaterpillarBodyTask;
+    work->taskTable     = &MAGGOT_CATERPILLAR_BODY_TASK;
     enemy->field_4      = rootMatrix;
     enemy->field_48     = 0;
     worldTargetLinkNode(&enemy->node);

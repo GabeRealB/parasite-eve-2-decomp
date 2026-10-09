@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -51,9 +53,14 @@
 
 #include "overlay.h"
 #define MAGGOT_CATERPILLAR_KIND MAGGOT
-// Exported instance: rooms spawn from this package's table by name.
-#define gMaggotCaterpillarBodyTask gActor02600MaggotCaterpillarBodyTask
+/// Selects the exported Maggot body descriptor for this shared-source instance.
+///
+/// The binding is a declared `TaskDesc` lvalue whose address seeds the body's
+/// task-table pointer; it must remain defined through the spawn fragment.
+#define MAGGOT_CATERPILLAR_BODY_TASK gActor02600MaggotCaterpillarBodyTask
 #include "../../shared/maggot_caterpillar.h"
+
+enum { MAGGOT_CATERPILLAR_BODY_PRIORITY = 96 };
 
 extern ActorSpriteUv gMaggotCaterpillarPuffCells[];
 extern s16           gMaggotCaterpillarPuffRadius[];
@@ -63,7 +70,6 @@ extern SVECTOR       gMaggotCaterpillarLeapInSpots[];
 extern s16           gMaggotCaterpillarLeapInYaws[];
 extern SVECTOR       gMaggotCaterpillarDropInSpots[];
 extern s16           gMaggotCaterpillarDropInYaws[];
-extern TaskDesc      gMaggotCaterpillarBodyTask;
 extern AnimationSet* gMaggotCaterpillarAnimSets[15];
 extern u16           gMaggotCaterpillarIdleDelay[];
 extern u16           gMaggotCaterpillarRoamDelay[];
@@ -620,7 +626,11 @@ s16 gMaggotCaterpillarPuffRadius[14] = {
     0,
 };
 
-TaskDesc gMaggotCaterpillarBodyTask = { { { TASK_BODY_TMD, 96 } }, _maggotCaterpillarTask, { .model = &_gActor02600CaterpillarMaggotBody } };
+TaskDesc gActor02600MaggotCaterpillarBodyTask = {
+    .header   = { .fields = { TASK_BODY_TMD, MAGGOT_CATERPILLAR_BODY_PRIORITY } },
+    .callback = _maggotCaterpillarTask,
+    .data     = { .model = &_gActor02600CaterpillarMaggotBody },
+};
 
 TaskDesc Actor02600_D08AC0 = { { { TASK_BODY_COORD, 96 } }, _maggotCaterpillarPuffTask, { .value = 0 } };
 
@@ -695,6 +705,7 @@ static const EnemyTaskFuncTable3 gMaggotCaterpillarStates = {
 #include "../../shared/maggot_caterpillar_draw_thread.inc.c"
 
 #include "../../shared/maggot_caterpillar_spawn.inc.c"
+#undef MAGGOT_CATERPILLAR_BODY_TASK
 
 #include "../../shared/maggot_caterpillar_tick.inc.c"
 
@@ -723,3 +734,5 @@ static const EnemyTaskFuncTable3 gMaggotCaterpillarStates = {
 #include "../../shared/maggot_caterpillar_puff_setup.inc.c"
 
 #include "../../shared/maggot_caterpillar_task.inc.c"
+
+DEFINE_ALIAS(gActor02600MaggotCaterpillarBodyTask, gActor202600MaggotCaterpillarBodyTask);
