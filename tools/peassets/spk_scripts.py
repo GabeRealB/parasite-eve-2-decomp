@@ -6,7 +6,8 @@
 
 A sound-script bank (`imageKind` 2) carries an `hONE` image at 0x800: a header
 with the bank id and an entry count, a table of entry offsets, and for each
-entry a `oneC` channel chunk followed by `oneV` commands up to `endC`
+entry a `oneC` channel chunk followed by `oneV` commands, with `Loop`/`Wait`/`endL`
+flow commands among them, up to `endC`
 (src/main/sound_types.h, src/main/sndscript.c). A `oneV` keys one voice on a
 layer, named by program and layer within it; a program is a group of the
 bank's layer table, so its layers follow those of the programs before it. A
@@ -29,7 +30,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 RAW = ROOT / "assets" / "USA" / "raw" / "spk"
 IMAGE = 0x800
-CHUNK = {b"oneC": 0x10, b"oneV": 0x18, b"oneA": 0x08, b"oneE": 0x18}
+# `Loop` and `Wait` are eight-byte flow commands and `endL` is its tag alone (src/main/sndscript.c, `_SndScriptCmd`).
+CHUNK = {b"oneC": 0x10, b"oneV": 0x18, b"oneA": 0x08, b"oneE": 0x18, b"Loop": 0x08, b"Wait": 0x08, b"endL": 0x04}
 
 
 def scripts(data: bytes) -> dict | None:
