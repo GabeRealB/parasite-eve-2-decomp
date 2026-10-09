@@ -71,7 +71,9 @@ def main() -> int:
         if only is None or recipient == only:
             print(f"{name}:{n}\tto {recipient}\t{message}\t{' ; '.join(payload)}\t{' '.join(values)}")
             count += 1
-    return 0 if count else 1
+    if not count:
+        print(f"{args[0]}: no scene message in its C event scripts (its scenes may live in an actor package)")
+    return 0
 
 
 if __name__ == "__main__":
