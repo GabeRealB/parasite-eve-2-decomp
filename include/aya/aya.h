@@ -22,11 +22,19 @@ extern TmdSource D_aya_10500_801164C0;
 
 extern TmdSource D_aya_10500_80116900;
 
-extern TmdSource D_aya_10300_8011ACE8;
+/// Aya's nineteen-part player-body model for resource variant 2.
+///
+/// Objects borrow the writable geometry and command stream. Keep this package
+/// loaded until all referring models are released and queued GPU work finishes.
+extern TmdSource gAya10300BodyModel;
 
 extern TmdSource D_aya_10400_8011B078;
 
-extern TmdSource D_aya_10300_8011B128;
+/// One-part hand model for variant 2's first pair, attachment slot 0 at body joint 12.
+///
+/// Pair selectors are 0 first and 1 second; slot selectors are 0 and 1.
+/// The model borrows this package under `gAya10300BodyModel`'s lifetime contract.
+extern TmdSource gAya10300FirstPairHand0Model;
 
 extern TmdSource D_aya_10400_8011B4CC;
 
@@ -34,11 +42,38 @@ extern TmdSource D_aya_10300_8011B568;
 
 extern TmdSource D_aya_10400_8011B9BC;
 
-extern TmdSource D_aya_10300_8011BA58;
+/// One-part hand model for variant 2's first pair, attachment slot 1 at body joint 8.
+///
+/// The model borrows this package under `gAya10300BodyModel`'s lifetime contract.
+extern TmdSource gAya10300FirstPairHand1Model;
 
 extern TmdSource D_aya_10400_8011BE10;
 
-extern TmdSource D_aya_10300_8011BE98;
+/// One-part hand model for variant 2's second pair, attachment slot 1 at body joint 8.
+///
+/// This is the equipped weapon's parent hand. The model borrows this package
+/// under `gAya10300BodyModel`'s lifetime contract.
+extern TmdSource gAya10300SecondPairHand1Model;
+
+/// Restores open eyes with one frame, then terminates (eye selector 1; reset command 0).
+///
+/// Variant 2's eye sequences hold read-only frame pointers to writable upload
+/// lists. Each frame contains 50x16 8-bit texels (25x16 VRAM words), placed at
+/// texture U/V (0,78), and frames advance every four actor ticks. Each upload
+/// list has one copy and an operation terminator; playback rewrites its
+/// destination. Keep the package loaded through playback and GPU completion.
+/// The final NULL stops playback and leaves the last frame's texels in place.
+extern GpuImageUpload* const gAya10300EyesRestSequence[2];
+
+/// Closes the eyes through open, half-closed and closed frames (eye selector 2; command 1).
+///
+/// Bounds, tick cadence and package lifetime follow `gAya10300EyesRestSequence`.
+extern GpuImageUpload* const gAya10300EyesClosingSequence[4];
+
+/// Opens the eyes through closed, half-closed and open frames (eye selector 3; command 2).
+///
+/// Bounds, tick cadence and package lifetime follow `gAya10300EyesRestSequence`.
+extern GpuImageUpload* const gAya10300EyesOpeningSequence[4];
 
 /// Aya's nineteen-part body model for player resource variant 3.
 ///

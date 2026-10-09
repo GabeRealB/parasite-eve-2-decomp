@@ -364,7 +364,7 @@ extern u16 D_80112E30[];
 /// NULL-terminated `GpuImageUpload*` lists for `_playerActorTickTextureSequences`. Indexed as
 /// `table[type * 4 + gPlayerStatus.resourceVariant - 5][frame]`. `D_80112E74` is
 /// the `textureSequenceA` sequence; `D_80112EB4` is the `textureSequenceB` sequence.
-extern GpuImageUpload** D_80112E74[];
+extern GpuImageUpload* const* D_80112E74[];
 
 extern GpuImageUpload** D_80112EB4[];
 
@@ -658,19 +658,13 @@ extern AnimationBank D_mp5a5_8012B3CC;
 
 extern GpuImageUpload* D_aya_10400_8011CC94[];
 
-extern GpuImageUpload* D_aya_10300_8011CD1C[];
-
 extern GpuImageUpload* D_8011D168[];
 
 extern GpuImageUpload* D_aya_10400_8011CC9C[];
 
-extern GpuImageUpload* D_aya_10300_8011CD24[];
-
 extern GpuImageUpload* D_8011D170[];
 
 extern GpuImageUpload* D_aya_10400_8011CCAC[];
-
-extern GpuImageUpload* D_aya_10300_8011CD34[];
 
 extern GpuImageUpload* D_8011D180[];
 
@@ -1075,8 +1069,8 @@ u16 D_80112E30[33] = {
     96,
     96
 };
-GpuImageUpload** D_80112E74[16] = { D_aya_10400_8011CC94, D_aya_10300_8011CD1C, gAya10200EyesRestSequence, D_8011D168, D_aya_10400_8011CC9C, D_aya_10300_8011CD24, gAya10200EyesClosingSequence, D_8011D170, D_aya_10400_8011CCAC, D_aya_10300_8011CD34, gAya10200EyesOpeningSequence, D_8011D180, D_aya_10400_8011CCBC, D_aya_10300_8011CD44, gAya10200EyesBlinkSequence, D_8011D190 };
-GpuImageUpload** D_80112EB4[8]  = { D_aya_10400_8011CCDC, D_aya_10300_8011CD64, gAya10200MouthAlternateSequence, D_8011D1B0, D_aya_10400_8011CCD4, D_aya_10300_8011CD5C, gAya10200MouthRestSequence, D_8011D1A8 };
+GpuImageUpload* const* D_80112E74[16] = { D_aya_10400_8011CC94, gAya10300EyesRestSequence, gAya10200EyesRestSequence, D_8011D168, D_aya_10400_8011CC9C, gAya10300EyesClosingSequence, gAya10200EyesClosingSequence, D_8011D170, D_aya_10400_8011CCAC, gAya10300EyesOpeningSequence, gAya10200EyesOpeningSequence, D_8011D180, D_aya_10400_8011CCBC, D_aya_10300_8011CD44, gAya10200EyesBlinkSequence, D_8011D190 };
+GpuImageUpload**       D_80112EB4[8]  = { D_aya_10400_8011CCDC, D_aya_10300_8011CD64, gAya10200MouthAlternateSequence, D_8011D1B0, D_aya_10400_8011CCD4, D_aya_10300_8011CD5C, gAya10200MouthRestSequence, D_8011D1A8 };
 /// Unused, probably stale program data: likely per-weapon boolean flags.
 /// No reader identified; the original flag meaning is unknown.
 u8 D_80112ED4[33] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1 };
