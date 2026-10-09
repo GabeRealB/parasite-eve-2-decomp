@@ -1,28 +1,21 @@
+#include "aya/aya.h"
+
 #include <psyq/sys/types.h>
 
 #include "types.h"
 
 #include "gameplay/collision.h"
-#include "gameplay/gpu_image_upload.h"
-#include "main/tmd_types.h"
 
-/// Texture animation frame lists, six per costume package. Each is a
-/// NULL-terminated run of `GpuImageUpload` upload lists, one per frame; the player's
-/// task uploads the frames in turn over a fixed rectangle of the costume
-/// model's texture page. Gameplay's two frame tables hold their addresses:
-/// the first four lists of a package belong to the first table, the last two
-/// to the second.
-extern GpuImageUpload* D_aya_10200_8011D094[];
+/// Packed facial-frame dimensions, in 16-bit VRAM words and rows.
+enum {
+    AYA_10200_EYES_FRAME_WIDTH_WORDS  = 25,
+    AYA_10200_EYES_FRAME_HEIGHT_ROWS  = 16,
+    AYA_10200_MOUTH_FRAME_WIDTH_WORDS = 14,
+    AYA_10200_MOUTH_FRAME_HEIGHT_ROWS = 20,
+};
 
-extern GpuImageUpload* D_aya_10200_8011D09C[];
-
-extern GpuImageUpload* D_aya_10200_8011D0AC[];
-
-extern GpuImageUpload* D_aya_10200_8011D0BC[];
-
-extern GpuImageUpload* D_aya_10200_8011D0D4[];
-
-extern GpuImageUpload* D_aya_10200_8011D0DC[];
+/// Initial state of this package's writable model command stream.
+enum { AYA_10200_BODY_MODEL_HANDLERS_UNRESOLVED = 0 };
 
 static TmdBone _gAya10200Model0019CSkeleton[1] = {
 #include "assets/aya_10200_model_0019C_skeleton.inc"
@@ -152,94 +145,102 @@ TmdSource D_aya_10200_80116900 = {
     _gAya10200Model00F0CStream,
 };
 
-static TmdBone _gAya10200Model02B58Skeleton[19] = {
+/// Nineteen initial part transforms and parent indices for the player body.
+///
+/// Read-only tables retain their serialized positions in the package's data section.
+static const TmdBone _gAya10200BodyModelSkeleton[19] __attribute__((section(".data"))) = {
 #include "assets/aya_10200_model_02B58_skeleton.inc"
 };
 
-static u32 _gAya10200Model02B58PartVerts[19] = {
+/// Part-local vertex counts in skeleton order, totaling 352 vertices.
+static const u32 _gAya10200BodyModelPartVerts[ARRAY_SIZE(_gAya10200BodyModelSkeleton)] __attribute__((section(".data"))) = {
 #include "assets/aya_10200_model_02B58_partVerts.inc"
 };
 
-static SVECTOR _gAya10200Model02B58Verts[352] = {
+/// Writable player-body vertices in integer coordinates local to each part.
+static SVECTOR _gAya10200BodyModelVerts[352] = {
 #include "assets/aya_10200_model_02B58_verts.inc"
 };
 
-static SVECTOR _gAya10200Model02B58Normals[373] = {
+/// Writable part-local body normals, with 12 fractional bits and independent stream indices.
+static SVECTOR _gAya10200BodyModelNormals[373] = {
 #include "assets/aya_10200_model_02B58_normals.inc"
 };
 
-static u32 _gAya10200Model02B58Stream[4051] = {
+/// Body draw commands whose handler slots are resolved in place on first model creation.
+static u32 _gAya10200BodyModelStream[4051] = {
 #include "assets/aya_10200_model_02B58_stream.inc"
 };
 
-TmdSource D_aya_10200_8011C210 = {
-    0,
+TmdSource gAya10200BodyModel = {
+    AYA_10200_BODY_MODEL_HANDLERS_UNRESOLVED,
     22344,
     5824,
-    19,
-    _gAya10200Model02B58PartVerts,
-    _gAya10200Model02B58Verts,
-    _gAya10200Model02B58Normals,
-    _gAya10200Model02B58Skeleton,
-    _gAya10200Model02B58Stream,
+    ARRAY_SIZE(_gAya10200BodyModelSkeleton),
+    _gAya10200BodyModelPartVerts,
+    _gAya10200BodyModelVerts,
+    _gAya10200BodyModelNormals,
+    _gAya10200BodyModelSkeleton,
+    _gAya10200BodyModelStream,
 };
-
-/* The costume's texture animation: five images, each with the one-image upload
- * list that places it, and the frame lists that sequence those uploads. The
- * image bytes are assets, generated from the extracted package.
- */
 
 static u_long _gAya10200Image06AC4[] = {
 #include "assets/aya_10200_image_06AC4.inc"
 };
-static GpuImageUpload D_aya_10200_8011C554[] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 25, 16 }, _gAya10200Image06AC4 },
+/// One open-eyes frame followed by the upload terminator; the destination is rewritten at playback.
+static GpuImageUpload _gAya10200EyesOpenUploads[] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, AYA_10200_EYES_FRAME_WIDTH_WORDS, AYA_10200_EYES_FRAME_HEIGHT_ROWS }, _gAya10200Image06AC4 },
     { GP_IMG_REC_END },
 };
 
 static u_long _gAya10200Image06E04[] = {
 #include "assets/aya_10200_image_06E04.inc"
 };
-static GpuImageUpload D_aya_10200_8011C894[] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 25, 16 }, _gAya10200Image06E04 },
+/// One half-closed-eyes frame followed by the upload terminator; the destination is rewritten at playback.
+static GpuImageUpload _gAya10200EyesHalfClosedUploads[] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, AYA_10200_EYES_FRAME_WIDTH_WORDS, AYA_10200_EYES_FRAME_HEIGHT_ROWS }, _gAya10200Image06E04 },
     { GP_IMG_REC_END },
 };
 
 static u_long _gAya10200Image07144[] = {
 #include "assets/aya_10200_image_07144.inc"
 };
-static GpuImageUpload D_aya_10200_8011CBD4[] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 25, 16 }, _gAya10200Image07144 },
+/// One closed-eyes frame followed by the upload terminator; the destination is rewritten at playback.
+static GpuImageUpload _gAya10200EyesClosedUploads[] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, AYA_10200_EYES_FRAME_WIDTH_WORDS, AYA_10200_EYES_FRAME_HEIGHT_ROWS }, _gAya10200Image07144 },
     { GP_IMG_REC_END },
 };
 
-static u_long D_aya_10200_8011CBF4[] = {
+/// Default mouth frame: packed 8-bit indices, two texels per VRAM word and four per u_long.
+static u_long _gAya10200MouthRestPixels[AYA_10200_MOUTH_FRAME_WIDTH_WORDS * AYA_10200_MOUTH_FRAME_HEIGHT_ROWS / 2] = {
 #include "assets/aya_10200_image_07484.inc"
 };
-static GpuImageUpload D_aya_10200_8011CE24[] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 14, 20 }, D_aya_10200_8011CBF4 },
+/// One default mouth frame followed by the upload terminator; the destination is rewritten at playback.
+static GpuImageUpload _gAya10200MouthRestUploads[] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, AYA_10200_MOUTH_FRAME_WIDTH_WORDS, AYA_10200_MOUTH_FRAME_HEIGHT_ROWS }, _gAya10200MouthRestPixels },
     { GP_IMG_REC_END },
 };
 
-/* Byte-identical to the image before it, so both come from one asset. */
-static u_long D_aya_10200_8011CE44[] = {
+/// Alternate mouth selector's packed 8-bit frame, identical to the default frame in this package.
+static u_long _gAya10200MouthAlternatePixels[AYA_10200_MOUTH_FRAME_WIDTH_WORDS * AYA_10200_MOUTH_FRAME_HEIGHT_ROWS / 2] = {
 #include "assets/aya_10200_image_07484.inc"
 };
-static GpuImageUpload D_aya_10200_8011D074[] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 14, 20 }, D_aya_10200_8011CE44 },
+/// One alternate mouth frame followed by the upload terminator; the destination is rewritten at playback.
+static GpuImageUpload _gAya10200MouthAlternateUploads[] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, AYA_10200_MOUTH_FRAME_WIDTH_WORDS, AYA_10200_MOUTH_FRAME_HEIGHT_ROWS }, _gAya10200MouthAlternatePixels },
     { GP_IMG_REC_END },
 };
 
-GpuImageUpload* D_aya_10200_8011D094[] = { D_aya_10200_8011C554, NULL };
-GpuImageUpload* D_aya_10200_8011D09C[] = { D_aya_10200_8011C554, D_aya_10200_8011C894, D_aya_10200_8011CBD4, NULL };
-GpuImageUpload* D_aya_10200_8011D0AC[] = { D_aya_10200_8011CBD4, D_aya_10200_8011C894, D_aya_10200_8011C554, NULL };
-GpuImageUpload* D_aya_10200_8011D0BC[] = {
-    D_aya_10200_8011C554,
-    D_aya_10200_8011C894,
-    D_aya_10200_8011CBD4,
-    D_aya_10200_8011C894,
-    D_aya_10200_8011C554,
+GpuImageUpload* gAya10200EyesRestSequence[]    = { _gAya10200EyesOpenUploads, NULL };
+GpuImageUpload* gAya10200EyesClosingSequence[] = { _gAya10200EyesOpenUploads, _gAya10200EyesHalfClosedUploads, _gAya10200EyesClosedUploads, NULL };
+GpuImageUpload* gAya10200EyesOpeningSequence[] = { _gAya10200EyesClosedUploads, _gAya10200EyesHalfClosedUploads, _gAya10200EyesOpenUploads, NULL };
+GpuImageUpload* gAya10200EyesBlinkSequence[]   = {
+    _gAya10200EyesOpenUploads,
+    _gAya10200EyesHalfClosedUploads,
+    _gAya10200EyesClosedUploads,
+    _gAya10200EyesHalfClosedUploads,
+    _gAya10200EyesOpenUploads,
     NULL,
 };
-GpuImageUpload* D_aya_10200_8011D0D4[] = { D_aya_10200_8011CE24, NULL };
-GpuImageUpload* D_aya_10200_8011D0DC[] = { D_aya_10200_8011D074, NULL };
+GpuImageUpload* gAya10200MouthRestSequence[]      = { _gAya10200MouthRestUploads, NULL };
+GpuImageUpload* gAya10200MouthAlternateSequence[] = { _gAya10200MouthAlternateUploads, NULL };

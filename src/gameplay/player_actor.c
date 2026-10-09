@@ -46,6 +46,8 @@
 
 #include "actors/companion.h"
 
+#include "aya/aya.h"
+
 #include "weapons/as12.h"
 #include "weapons/m249.h"
 #include "weapons/m4a1.h"
@@ -658,15 +660,11 @@ extern GpuImageUpload* D_aya_10400_8011CC94[];
 
 extern GpuImageUpload* D_aya_10300_8011CD1C[];
 
-extern GpuImageUpload* D_aya_10200_8011D094[];
-
 extern GpuImageUpload* D_8011D168[];
 
 extern GpuImageUpload* D_aya_10400_8011CC9C[];
 
 extern GpuImageUpload* D_aya_10300_8011CD24[];
-
-extern GpuImageUpload* D_aya_10200_8011D09C[];
 
 extern GpuImageUpload* D_8011D170[];
 
@@ -674,15 +672,11 @@ extern GpuImageUpload* D_aya_10400_8011CCAC[];
 
 extern GpuImageUpload* D_aya_10300_8011CD34[];
 
-extern GpuImageUpload* D_aya_10200_8011D0AC[];
-
 extern GpuImageUpload* D_8011D180[];
 
 extern GpuImageUpload* D_aya_10400_8011CCBC[];
 
 extern GpuImageUpload* D_aya_10300_8011CD44[];
-
-extern GpuImageUpload* D_aya_10200_8011D0BC[];
 
 extern GpuImageUpload* D_8011D190[];
 
@@ -690,15 +684,11 @@ extern GpuImageUpload* D_aya_10400_8011CCDC[];
 
 extern GpuImageUpload* D_aya_10300_8011CD64[];
 
-extern GpuImageUpload* D_aya_10200_8011D0DC[];
-
 extern GpuImageUpload* D_8011D1B0[];
 
 extern GpuImageUpload* D_aya_10400_8011CCD4[];
 
 extern GpuImageUpload* D_aya_10300_8011CD5C[];
-
-extern GpuImageUpload* D_aya_10200_8011D0D4[];
 
 extern GpuImageUpload* D_8011D1A8[];
 
@@ -1085,8 +1075,8 @@ u16 D_80112E30[33] = {
     96,
     96
 };
-GpuImageUpload** D_80112E74[16] = { D_aya_10400_8011CC94, D_aya_10300_8011CD1C, D_aya_10200_8011D094, D_8011D168, D_aya_10400_8011CC9C, D_aya_10300_8011CD24, D_aya_10200_8011D09C, D_8011D170, D_aya_10400_8011CCAC, D_aya_10300_8011CD34, D_aya_10200_8011D0AC, D_8011D180, D_aya_10400_8011CCBC, D_aya_10300_8011CD44, D_aya_10200_8011D0BC, D_8011D190 };
-GpuImageUpload** D_80112EB4[8]  = { D_aya_10400_8011CCDC, D_aya_10300_8011CD64, D_aya_10200_8011D0DC, D_8011D1B0, D_aya_10400_8011CCD4, D_aya_10300_8011CD5C, D_aya_10200_8011D0D4, D_8011D1A8 };
+GpuImageUpload** D_80112E74[16] = { D_aya_10400_8011CC94, D_aya_10300_8011CD1C, gAya10200EyesRestSequence, D_8011D168, D_aya_10400_8011CC9C, D_aya_10300_8011CD24, gAya10200EyesClosingSequence, D_8011D170, D_aya_10400_8011CCAC, D_aya_10300_8011CD34, gAya10200EyesOpeningSequence, D_8011D180, D_aya_10400_8011CCBC, D_aya_10300_8011CD44, gAya10200EyesBlinkSequence, D_8011D190 };
+GpuImageUpload** D_80112EB4[8]  = { D_aya_10400_8011CCDC, D_aya_10300_8011CD64, gAya10200MouthAlternateSequence, D_8011D1B0, D_aya_10400_8011CCD4, D_aya_10300_8011CD5C, gAya10200MouthRestSequence, D_8011D1A8 };
 /// Unused, probably stale program data: likely per-weapon boolean flags.
 /// No reader identified; the original flag meaning is unknown.
 u8 D_80112ED4[33] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1 };
