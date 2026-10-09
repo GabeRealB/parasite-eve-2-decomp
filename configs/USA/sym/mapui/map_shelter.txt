@@ -430,7 +430,7 @@ D_shelter_b3_garbage_incinerator_8018740C = 0x8018740C; // absolute:True owner=s
 D_shelter_b3_garbage_incinerator_8018741C = 0x8018741C; // absolute:True owner=shelter_b3_garbage_incinerator
 D_shelter_b3_garbage_incinerator_801883AC = 0x801883AC; // absolute:True owner=shelter_b3_garbage_incinerator
 D_shelter_b3_garbage_incinerator_8018D100 = 0x8018D100; // absolute:True owner=shelter_b3_garbage_incinerator
-D_shelter_b3_garbage_incinerator_8018FB4C = 0x8018FB4C; // absolute:True owner=shelter_b3_garbage_incinerator
+gShelterB3GarbageIncineratorSurfaceProperties = 0x8018FB4C; // absolute:True owner=shelter_b3_garbage_incinerator
 shelterB3IncineratorControlRoomTask = 0x8017FCB8; // type:func absolute:True owner=shelter_b3_incinerator_control_room
 D_shelter_b3_incinerator_control_room_80181920 = 0x80181920; // absolute:True owner=shelter_b3_incinerator_control_room
 D_shelter_b3_incinerator_control_room_80181928 = 0x80181928; // absolute:True owner=shelter_b3_incinerator_control_room

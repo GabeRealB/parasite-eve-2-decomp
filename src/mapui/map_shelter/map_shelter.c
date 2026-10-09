@@ -1280,7 +1280,7 @@ WorldCollisionSurfaceProperties** D_map_shelter_8017B614[49] = {
     D_shelter_r37_8017DED8,
     D_shelter_1f_heliport_s4_8017E060,
     D_shelter_b3_dumping_hole_8018F480,
-    D_shelter_b3_garbage_incinerator_8018FB4C,
+    gShelterB3GarbageIncineratorSurfaceProperties,
     D_shelter_b3_incinerator_control_room_80182A20,
     D_shelter_b3_elevator_hall_801849E0,
     D_shelter_b4_lower_sewer_80183DF4,

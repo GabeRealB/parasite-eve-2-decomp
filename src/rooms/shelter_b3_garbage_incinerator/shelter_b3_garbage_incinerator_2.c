@@ -451,13 +451,13 @@ static TaskDesc D_shelter_b3_garbage_incinerator_80187184[1] = {
 #include "../../shared/cap_captions_schedule.inc.c"
 
 WorldCoordRoomLighting gShelterB3GarbageIncineratorRoomLighting[7] = {
-    { D_shelter_b3_garbage_incinerator_8018DCF0, NULL },
-    { D_shelter_b3_garbage_incinerator_8018DCF0, NULL },
-    { D_shelter_b3_garbage_incinerator_8018DCF0, NULL },
-    { D_shelter_b3_garbage_incinerator_8018E598, NULL },
-    { D_shelter_b3_garbage_incinerator_8018E598, NULL },
-    { D_shelter_b3_garbage_incinerator_8018E598, NULL },
-    { D_shelter_b3_garbage_incinerator_8018E598, NULL },
+    { &gShelterB3GarbageIncineratorRooms1To3Lights, NULL },
+    { &gShelterB3GarbageIncineratorRooms1To3Lights, NULL },
+    { &gShelterB3GarbageIncineratorRooms1To3Lights, NULL },
+    { &gShelterB3GarbageIncineratorRooms4To7Lights, NULL },
+    { &gShelterB3GarbageIncineratorRooms4To7Lights, NULL },
+    { &gShelterB3GarbageIncineratorRooms4To7Lights, NULL },
+    { &gShelterB3GarbageIncineratorRooms4To7Lights, NULL },
 };
 
 WorldCollisionRoomResources D_shelter_b3_garbage_incinerator_801872B8[7] = {

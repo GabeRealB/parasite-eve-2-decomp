@@ -41,6 +41,7 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/text.h"
@@ -267,180 +268,282 @@ ViewCamera D_shelter_b3_garbage_incinerator_801883AC[40] = {
     { { { { 4096, 0, 0 }, { 0, 3778, -1580 }, { 0, 1580, 3778 } }, { -0x351C, 2884, 0x6560 } }, 329 },
 };
 
-SpriteBatch D_shelter_b3_garbage_incinerator_8018894C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Backdrop-only batch list for mapped incinerator view 1.
+///
+/// The zero first count keeps decoded image strips; the following end marker
+/// selects no source sprites. The source slot retains this list's address.
+static SpriteBatch _gShelterB3GarbageIncineratorView1SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b3_garbage_incinerator_8018895C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Backdrop-only batch list for mapped incinerator view 2.
+///
+/// The zero first count keeps decoded image strips; the following end marker
+/// selects no source sprites. The source slot retains this list's address.
+static SpriteBatch _gShelterB3GarbageIncineratorView2SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b3_garbage_incinerator_8018896C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Backdrop-only batch list for mapped incinerator view 3.
+///
+/// The zero first count keeps decoded image strips; the following end marker
+/// selects no source sprites. The source slot retains this list's address.
+static SpriteBatch _gShelterB3GarbageIncineratorView3SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_shelter_b3_garbage_incinerator_8018897C[14] = {
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -112, 80, 1050, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -120, 56, 1050, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -120, -56, 1087, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -120, -120, 1100, { .fields = { 120, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -128, -64, 1087, { .fields = { 104, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -128, -120, 1112, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -128, -8, 1075, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -128, 48, 1050, { .fields = { 120, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -136, -120, 1075, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -136, -72, 1050, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -136, -16, 1025, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -136, 40, 1000, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -120, 0, 1075, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -120, 24, 1068, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
+/// GPU encodings for the incinerator view sprites' 8-bit texture page and palette.
+enum {
+    SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE  = getTPage(1, 0, 960, 0),
+    SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT          = getClut(0, 255),
+    SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR = 128,
 };
 
-SpriteBatch D_shelter_b3_garbage_incinerator_80188A94[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 14, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Depth-sorted texture rectangles for mapped incinerator view 4.
+///
+/// The 14 elements use pixel positions relative to the view centre and
+/// unscaled ordering depths. The view's batches select their complete extent;
+/// cached packets snapshot geometry and texture state while this overlay is loaded.
+static SpriteSource _gShelterB3GarbageIncineratorView4SpriteSources[14] = {
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 32 } }, -112, 80, 1050, { .fields = { 104, 160 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 56 } }, -120, 56, 1050, { .fields = { 112, 168 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 56 } }, -120, -56, 1087, { .fields = { 112, 112 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 64 } }, -120, -120, 1100, { .fields = { 120, 136 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 56 } }, -128, -64, 1087, { .fields = { 104, 56 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 56 } }, -128, -120, 1112, { .fields = { 104, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 56 } }, -128, -8, 1075, { .fields = { 120, 200 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 64 } }, -128, 48, 1050, { .fields = { 120, 72 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 48 } }, -136, -120, 1075, { .fields = { 104, 112 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 56 } }, -136, -72, 1050, { .fields = { 112, 56 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 56 } }, -136, -16, 1025, { .fields = { 112, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 72 } }, -136, 40, 1000, { .fields = { 120, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, -120, 0, 1075, { .fields = { 104, 192 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 32 } }, -120, 24, 1068, { .fields = { 112, 224 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteDrawArea D_shelter_b3_garbage_incinerator_80188AAC[2] = {
+/// Complete sprite range over the backdrop of mapped incinerator view 4.
+///
+/// The zero first count preserves the decoded image; the live batch selects
+/// every source element before the end marker. Both cached packet buffers
+/// retain that range while this overlay and view are active.
+static SpriteBatch _gShelterB3GarbageIncineratorView4SpriteBatches[3] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gShelterB3GarbageIncineratorView4SpriteSources) },
+    { .firstSprite = SPRITE_BATCH_END },
+};
+
+/// Drawing clip and full-screen restore for mapped incinerator view 4.
+///
+/// The rectangle uses draw-buffer pixels; unscaled ordering depth 1012
+/// restores full-screen drawing. The next record is the end marker. This
+/// clips depth-sorted scene drawing as well as the view's sprites.
+static SpriteDrawArea _gShelterB3GarbageIncineratorView4SpriteDrawAreas[2] = {
     { { 27, 0, 292, 239 }, 1012 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_shelter_b3_garbage_incinerator_80188AC0[11] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -120, 56, 1900, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, 40, 1950, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -104, -120, 2000, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -104, -64, 1975, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -104, 0, 1950, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -112, 0, 1937, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -120, -8, 1925, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -112, -64, 1962, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -120, -72, 1950, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -112, -120, 1987, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -120, -120, 1975, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+/// Depth-sorted texture rectangles for mapped incinerator view 5.
+///
+/// The 11 elements use pixel positions relative to the view centre and
+/// unscaled ordering depths. The view's batches select their complete extent;
+/// cached packets snapshot geometry and texture state while this overlay is loaded.
+static SpriteSource _gShelterB3GarbageIncineratorView5SpriteSources[11] = {
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, -120, 56, 1900, { .fields = { 112, 240 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, -96, 40, 1950, { .fields = { 104, 48 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 56 } }, -104, -120, 2000, { .fields = { 112, 184 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 64 } }, -104, -64, 1975, { .fields = { 112, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 64 } }, -104, 0, 1950, { .fields = { 112, 64 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 64 } }, -112, 0, 1937, { .fields = { 120, 64 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 64 } }, -120, -8, 1925, { .fields = { 120, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 64 } }, -112, -64, 1962, { .fields = { 120, 192 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 64 } }, -120, -72, 1950, { .fields = { 120, 128 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 56 } }, -112, -120, 1987, { .fields = { 112, 128 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 48 } }, -120, -120, 1975, { .fields = { 104, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b3_garbage_incinerator_80188B9C[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 11, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Complete sprite range over the backdrop of mapped incinerator view 5.
+///
+/// The zero first count preserves the decoded image; the live batch selects
+/// every source element before the end marker. Both cached packet buffers
+/// retain that range while this overlay and view are active.
+static SpriteBatch _gShelterB3GarbageIncineratorView5SpriteBatches[3] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gShelterB3GarbageIncineratorView5SpriteSources) },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteDrawArea D_shelter_b3_garbage_incinerator_80188BB4[2] = {
+/// Drawing clip and full-screen restore for mapped incinerator view 5.
+///
+/// The rectangle uses draw-buffer pixels; unscaled ordering depth 1962
+/// restores full-screen drawing. The next record is the end marker. This
+/// clips depth-sorted scene drawing as well as the view's sprites.
+static SpriteDrawArea _gShelterB3GarbageIncineratorView5SpriteDrawAreas[2] = {
     { { 42, 0, 278, 239 }, 1962 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_shelter_b3_garbage_incinerator_80188BC8[8] = {
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 136, 56, 1150, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 144, 64, 1175, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 152, 72, 1150, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 144, 0, 1175, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 152, 8, 1150, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 136, -40, 1150, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 144, -40, 1175, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 152, -40, 1150, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
+/// Depth-sorted texture rectangles for mapped incinerator view 6.
+///
+/// The 8 elements use pixel positions relative to the view centre and
+/// unscaled ordering depths. The view's batches select their complete extent;
+/// cached packets snapshot geometry and texture state while this overlay is loaded.
+static SpriteSource _gShelterB3GarbageIncineratorView6SpriteSources[8] = {
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 40 } }, 136, 56, 1150, { .fields = { 120, 176 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 32 } }, 144, 64, 1175, { .fields = { 112, 32 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 152, 72, 1150, { .fields = { 112, 64 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 64 } }, 144, 0, 1175, { .fields = { 120, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 64 } }, 152, 8, 1150, { .fields = { 120, 64 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 32 } }, 136, -40, 1150, { .fields = { 112, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 40 } }, 144, -40, 1175, { .fields = { 120, 216 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 48 } }, 152, -40, 1150, { .fields = { 120, 128 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b3_garbage_incinerator_80188C68[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 8, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Complete sprite range over the backdrop of mapped incinerator view 6.
+///
+/// The zero first count preserves the decoded image; the live batch selects
+/// every source element before the end marker. Both cached packet buffers
+/// retain that range while this overlay and view are active.
+static SpriteBatch _gShelterB3GarbageIncineratorView6SpriteBatches[3] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gShelterB3GarbageIncineratorView6SpriteSources) },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteDrawArea D_shelter_b3_garbage_incinerator_80188C80[2] = {
+/// Drawing clip and full-screen restore for mapped incinerator view 6.
+///
+/// The rectangle uses draw-buffer pixels; unscaled ordering depth 2875
+/// restores full-screen drawing. The next record is the end marker. This
+/// clips depth-sorted scene drawing as well as the view's sprites.
+static SpriteDrawArea _gShelterB3GarbageIncineratorView6SpriteDrawAreas[2] = {
     { { 83, 0, 237, 239 }, 2875 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_shelter_b3_garbage_incinerator_80188C94[5] = {
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, 48, -32, 2300, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, 56, -40, 2250, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, 64, -40, 2200, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 104 } }, 80, -48, 2100, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 104 } }, 72, -48, 2150, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+/// Depth-sorted texture rectangles for mapped incinerator view 7.
+///
+/// The 5 elements use pixel positions relative to the view centre and
+/// unscaled ordering depths. The view's batches select their complete extent;
+/// cached packets snapshot geometry and texture state while this overlay is loaded.
+static SpriteSource _gShelterB3GarbageIncineratorView7SpriteSources[5] = {
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 80 } }, 48, -32, 2300, { .fields = { 112, 176 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 88 } }, 56, -40, 2250, { .fields = { 112, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 88 } }, 64, -40, 2200, { .fields = { 112, 88 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 104 } }, 80, -48, 2100, { .fields = { 120, 104 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 104 } }, 72, -48, 2150, { .fields = { 120, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b3_garbage_incinerator_80188CF8[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 5, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Complete sprite range over the backdrop of mapped incinerator view 7.
+///
+/// The zero first count preserves the decoded image; the live batch selects
+/// every source element before the end marker. Both cached packet buffers
+/// retain that range while this overlay and view are active.
+static SpriteBatch _gShelterB3GarbageIncineratorView7SpriteBatches[3] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gShelterB3GarbageIncineratorView7SpriteSources) },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteDrawArea D_shelter_b3_garbage_incinerator_80188D10[2] = {
+/// Drawing clip and full-screen restore for mapped incinerator view 7.
+///
+/// The rectangle uses draw-buffer pixels; unscaled ordering depth 4000
+/// restores full-screen drawing. The next record is the end marker. This
+/// clips depth-sorted scene drawing as well as the view's sprites.
+static SpriteDrawArea _gShelterB3GarbageIncineratorView7SpriteDrawAreas[2] = {
     { { 85, 0, 235, 239 }, 4000 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_shelter_b3_garbage_incinerator_80188D24[47] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 152, 56, 1450, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 152, 112, 825, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 48, 72, 1225, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 112, 72, 1250, { .fields = { 72, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 56, 80, 1100, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 120, 80, 1175, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 128, 88, 1125, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 64, 88, 1125, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 8, 96, 950, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 24, 112, 825, { .fields = { 56, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 72, 96, 950, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 80, 104, 900, { .fields = { 56, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 88, 112, 825, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 136, 96, 950, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 144, 104, 900, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, 0, 80, 1087, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -8, 72, 1200, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 0, 88, 1000, { .fields = { 24, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -64, 88, 1000, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 16, 104, 875, { .fields = { 32, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -56, 72, 1187, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -56, 80, 1075, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, -64, 96, 925, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 0, 112, 825, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -48, 104, 875, { .fields = { 40, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 104, 875, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -64, 112, 825, { .fields = { 56, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -120, 80, 1075, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -128, 88, 1000, { .fields = { 56, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -128, 96, 925, { .fields = { 56, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -112, 72, 1162, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -80, 104, 875, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -48, 64, 1275, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -16, 64, 1275, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, 104, 64, 1325, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, 96, 56, 1450, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 136, 48, 1450, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -128, 104, 875, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -128, 112, 825, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 72, 56, 1387, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 48, 56, 1375, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 72, 64, 1312, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 40, 64, 1300, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 16, -24, 2725, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 24, -32, 2675, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 32, -32, 2625, { .fields = { 120, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 40, -32, 2575, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
+/// Depth-sorted texture rectangles for mapped incinerator view 8.
+///
+/// The 47 elements use pixel positions relative to the view centre and
+/// unscaled ordering depths. The view's batches select their complete extent;
+/// cached packets snapshot geometry and texture state while this overlay is loaded.
+static SpriteSource _gShelterB3GarbageIncineratorView8SpriteSources[47] = {
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 152, 56, 1450, { .fields = { 112, 64 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 152, 112, 825, { .fields = { 112, 56 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 64, 8 } }, 48, 72, 1225, { .fields = { 56, 176 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 48, 8 } }, 112, 72, 1250, { .fields = { 72, 168 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 64, 8 } }, 56, 80, 1100, { .fields = { 56, 184 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 40, 8 } }, 120, 80, 1175, { .fields = { 80, 200 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 128, 88, 1125, { .fields = { 88, 192 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 64, 8 } }, 64, 88, 1125, { .fields = { 56, 160 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 64, 8 } }, 8, 96, 950, { .fields = { 56, 128 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 64, 8 } }, 24, 112, 825, { .fields = { 56, 120 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 64, 8 } }, 72, 96, 950, { .fields = { 56, 136 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 64, 8 } }, 80, 104, 900, { .fields = { 56, 152 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 64, 8 } }, 88, 112, 825, { .fields = { 56, 144 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 24, 8 } }, 136, 96, 950, { .fields = { 96, 208 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 8 } }, 144, 104, 900, { .fields = { 80, 216 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 56, 8 } }, 0, 80, 1087, { .fields = { 40, 208 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 56, 8 } }, -8, 72, 1200, { .fields = { 40, 96 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 64, 8 } }, 0, 88, 1000, { .fields = { 24, 48 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 64, 8 } }, -64, 88, 1000, { .fields = { 24, 40 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 64, 8 } }, 16, 104, 875, { .fields = { 32, 88 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 48, 8 } }, -56, 72, 1187, { .fields = { 64, 64 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 56, 8 } }, -56, 80, 1075, { .fields = { 56, 56 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 72, 8 } }, -64, 96, 925, { .fields = { 40, 224 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 24, 8 } }, 0, 112, 825, { .fields = { 72, 72 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 64, 8 } }, -48, 104, 875, { .fields = { 40, 112 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 8 } }, -64, 104, 875, { .fields = { 104, 112 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 64, 8 } }, -64, 112, 825, { .fields = { 56, 8 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 64, 8 } }, -120, 80, 1075, { .fields = { 56, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 64, 8 } }, -128, 88, 1000, { .fields = { 56, 24 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 64, 8 } }, -128, 96, 925, { .fields = { 56, 16 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 56, 8 } }, -112, 72, 1162, { .fields = { 72, 248 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 8 } }, -80, 104, 875, { .fields = { 112, 224 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -48, 64, 1275, { .fields = { 96, 216 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 56, 8 } }, -16, 64, 1275, { .fields = { 72, 240 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 56, 8 } }, 104, 64, 1325, { .fields = { 72, 232 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 56, 8 } }, 96, 56, 1450, { .fields = { 64, 32 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 24, 8 } }, 136, 48, 1450, { .fields = { 96, 88 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 48, 8 } }, -128, 104, 875, { .fields = { 72, 80 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 64, 8 } }, -128, 112, 825, { .fields = { 56, 104 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 24, 8 } }, 72, 56, 1387, { .fields = { 96, 96 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 24, 8 } }, 48, 56, 1375, { .fields = { 96, 72 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 72, 64, 1312, { .fields = { 88, 48 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 40, 64, 1300, { .fields = { 88, 40 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 48 } }, 16, -24, 2725, { .fields = { 120, 168 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 56 } }, 24, -32, 2675, { .fields = { 120, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 56 } }, 32, -32, 2625, { .fields = { 120, 56 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 56 } }, 40, -32, 2575, { .fields = { 120, 112 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b3_garbage_incinerator_801890D0[4] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 43, 0, 0, { 1, 0 } },
-    { 43, 4, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Source-element boundary between mapped view 8's two live sprite batches.
+enum { SHELTER_B3_GARBAGE_INCINERATOR_VIEW8_SECOND_BATCH_FIRST_SPRITE = 43 };
+
+/// Two depth-sorted sprite ranges over the backdrop of mapped incinerator view 8.
+///
+/// The zero first count preserves the decoded image. The live ranges partition
+/// all 47 source elements at element 43, then the end marker stops traversal.
+/// The first range retains serialized byte 1 in `SpriteBatch.field_6[0]`;
+/// that byte's role is unproven.
+static SpriteBatch _gShelterB3GarbageIncineratorView8SpriteBatches[4] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = SHELTER_B3_GARBAGE_INCINERATOR_VIEW8_SECOND_BATCH_FIRST_SPRITE, .field_6 = { 1, 0 } },
+    { .firstSprite = SHELTER_B3_GARBAGE_INCINERATOR_VIEW8_SECOND_BATCH_FIRST_SPRITE, .spriteCount = ARRAY_SIZE(_gShelterB3GarbageIncineratorView8SpriteSources) - SHELTER_B3_GARBAGE_INCINERATOR_VIEW8_SECOND_BATCH_FIRST_SPRITE },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteDrawArea D_shelter_b3_garbage_incinerator_801890F0[2] = {
+/// Drawing clip and full-screen restore for mapped incinerator view 8.
+///
+/// The rectangle uses draw-buffer pixels; unscaled ordering depth 4250
+/// restores full-screen drawing. The next record is the end marker. This
+/// clips depth-sorted scene drawing as well as the view's sprites.
+static SpriteDrawArea _gShelterB3GarbageIncineratorView8SpriteDrawAreas[2] = {
     { { 98, 0, 222, 239 }, 4250 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteBatch D_shelter_b3_garbage_incinerator_80189104[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Backdrop-only batch list for mapped incinerator view 9.
+///
+/// The zero first count keeps decoded image strips; the following end marker
+/// selects no source sprites. The source slot retains this list's address.
+static SpriteBatch _gShelterB3GarbageIncineratorView9SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
 SpriteBatch D_shelter_b3_garbage_incinerator_80189114[2] = {
@@ -1494,15 +1597,15 @@ SpriteDrawArea D_shelter_b3_garbage_incinerator_8018D0EC[2] = {
 };
 
 SpriteView D_shelter_b3_garbage_incinerator_8018D100[40] = {
-    { { .empty = D_shelter_b3_garbage_incinerator_8018894C }, D_shelter_b3_garbage_incinerator_8018894C, NULL },
-    { { .empty = D_shelter_b3_garbage_incinerator_8018895C }, D_shelter_b3_garbage_incinerator_8018895C, NULL },
-    { { .empty = D_shelter_b3_garbage_incinerator_8018896C }, D_shelter_b3_garbage_incinerator_8018896C, NULL },
-    { { .elements = D_shelter_b3_garbage_incinerator_8018897C }, D_shelter_b3_garbage_incinerator_80188A94, D_shelter_b3_garbage_incinerator_80188AAC },
-    { { .elements = D_shelter_b3_garbage_incinerator_80188AC0 }, D_shelter_b3_garbage_incinerator_80188B9C, D_shelter_b3_garbage_incinerator_80188BB4 },
-    { { .elements = D_shelter_b3_garbage_incinerator_80188BC8 }, D_shelter_b3_garbage_incinerator_80188C68, D_shelter_b3_garbage_incinerator_80188C80 },
-    { { .elements = D_shelter_b3_garbage_incinerator_80188C94 }, D_shelter_b3_garbage_incinerator_80188CF8, D_shelter_b3_garbage_incinerator_80188D10 },
-    { { .elements = D_shelter_b3_garbage_incinerator_80188D24 }, D_shelter_b3_garbage_incinerator_801890D0, D_shelter_b3_garbage_incinerator_801890F0 },
-    { { .empty = D_shelter_b3_garbage_incinerator_80189104 }, D_shelter_b3_garbage_incinerator_80189104, NULL },
+    { { .empty = _gShelterB3GarbageIncineratorView1SpriteBatches }, _gShelterB3GarbageIncineratorView1SpriteBatches, NULL },
+    { { .empty = _gShelterB3GarbageIncineratorView2SpriteBatches }, _gShelterB3GarbageIncineratorView2SpriteBatches, NULL },
+    { { .empty = _gShelterB3GarbageIncineratorView3SpriteBatches }, _gShelterB3GarbageIncineratorView3SpriteBatches, NULL },
+    { { .elements = _gShelterB3GarbageIncineratorView4SpriteSources }, _gShelterB3GarbageIncineratorView4SpriteBatches, _gShelterB3GarbageIncineratorView4SpriteDrawAreas },
+    { { .elements = _gShelterB3GarbageIncineratorView5SpriteSources }, _gShelterB3GarbageIncineratorView5SpriteBatches, _gShelterB3GarbageIncineratorView5SpriteDrawAreas },
+    { { .elements = _gShelterB3GarbageIncineratorView6SpriteSources }, _gShelterB3GarbageIncineratorView6SpriteBatches, _gShelterB3GarbageIncineratorView6SpriteDrawAreas },
+    { { .elements = _gShelterB3GarbageIncineratorView7SpriteSources }, _gShelterB3GarbageIncineratorView7SpriteBatches, _gShelterB3GarbageIncineratorView7SpriteDrawAreas },
+    { { .elements = _gShelterB3GarbageIncineratorView8SpriteSources }, _gShelterB3GarbageIncineratorView8SpriteBatches, _gShelterB3GarbageIncineratorView8SpriteDrawAreas },
+    { { .empty = _gShelterB3GarbageIncineratorView9SpriteBatches }, _gShelterB3GarbageIncineratorView9SpriteBatches, NULL },
     { { .empty = D_shelter_b3_garbage_incinerator_80189114 }, D_shelter_b3_garbage_incinerator_80189114, NULL },
     { { .elements = D_shelter_b3_garbage_incinerator_80189124 }, D_shelter_b3_garbage_incinerator_801894D0, NULL },
     { { .empty = D_shelter_b3_garbage_incinerator_801894E8 }, D_shelter_b3_garbage_incinerator_801894E8, NULL },
@@ -1536,74 +1639,106 @@ SpriteView D_shelter_b3_garbage_incinerator_8018D100[40] = {
     { { .elements = D_shelter_b3_garbage_incinerator_8018CF44 }, D_shelter_b3_garbage_incinerator_8018D0D4, D_shelter_b3_garbage_incinerator_8018D0EC },
 };
 
-WorldCoordLight D_shelter_b3_garbage_incinerator_8018D2E0[2] = {
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1010, -2010, -2010 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 3072, 3072 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -990, -2010, 990 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 3072, 3072 }, { 0, 0 } },
+/// Two neutral directional lights shared by incinerator rooms 1..3.
+///
+/// Every view admits them. Translations supply light directions and RGB uses
+/// 12 fractional bits. Gameplay updates their parent, composition cache and
+/// attenuation in place; this loaded overlay owns the writable array.
+static WorldCoordLight _gShelterB3GarbageIncineratorRooms1To3DirectionalLights[2] = {
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1010, -2010, -2010 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 3072, 3072 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -990, -2010, 990 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 3072, 3072 }, { 0, 0 } },
 };
 
-WorldCoordPointLight D_shelter_b3_garbage_incinerator_8018D390[25] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x36B0, -2150, -0x6464 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 0, 0 }, { 0, 0 } }, 1119, 1413 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x34BC, -1760, -0x4CDF } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, 20, { 0, 0, 0, 0 }, 0, NULL } }, { 1641, 1496, 1355 }, { 0, 0 } }, 1504, 1825 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x38A4, -1760, -0x6658 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2868, 2725, 2582 }, { 0, 0 } }, 1040, 1361 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2BC0, -2000, -8500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2BC0, -2000, -0x2CEC } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2BC0, -2000, -0x5FB4 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x41A0, -2000, -0x5FB4 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x41A0, -2000, -0x2CEC } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x41A0, -2000, -8500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x41A0, -2000, -5500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x41A0, -2000, -2500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8000, -2000, -5300 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5000, -2000, -5300 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2000, -2000, -5300 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2000, -2000, 300 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5000, -2000, 300 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8000, -2000, 300 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x36B0, -2000, 300 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2AF8, -2000, 300 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 40, -2049, -901 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0, 2048, 716 }, { 0, 0 } }, 100, 750 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x4268, -2000, -0x36B0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2868, 2724, 2581 }, { 0, 0 } }, 1412, 2092 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x44FD, 127, -0x55F0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2871, 2724, 2581 }, { 0, 0 } }, 1682, 2378 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x36AE, -1038, -0x4C68 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, 19, { 0, 0, 0, 0 }, 0, NULL } }, { 2871, 2724, 2583 }, { 0, 0 } }, 1421, 3321 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2498, -678, -2500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, 12, { 0, 0, 0, 0 }, 0, NULL } }, { 1845, 1765, 1682 }, { 0, 0 } }, 1363, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x3712, -1038, -0x4C68 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, 21, { 0, 0, 0, 0 }, 0, NULL } }, { 2871, 2724, 2583 }, { 0, 0 } }, 1421, 3321 },
+/// 25 point lights shared by incinerator rooms 1..3.
+///
+/// Four entries are limited to views 12, 19, 20 and 21; the others admit every view.
+/// Positions and inner/outer falloff distances use world-coordinate units;
+/// RGB and query attenuation use 12 fractional bits. Gameplay updates the
+/// transforms and attenuation in this overlay-owned writable array.
+static WorldCoordPointLight _gShelterB3GarbageIncineratorRooms1To3PointLights[25] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x36B0, -2150, -0x6464 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 0, 0 }, { 0, 0 } }, 1119, 1413 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x34BC, -1760, -0x4CDF } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, 20, { 0, 0, 0, 0 }, 0, NULL } }, { 1641, 1496, 1355 }, { 0, 0 } }, 1504, 1825 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x38A4, -1760, -0x6658 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2868, 2725, 2582 }, { 0, 0 } }, 1040, 1361 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2BC0, -2000, -8500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2BC0, -2000, -0x2CEC } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2BC0, -2000, -0x5FB4 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x41A0, -2000, -0x5FB4 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x41A0, -2000, -0x2CEC } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x41A0, -2000, -8500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x41A0, -2000, -5500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x41A0, -2000, -2500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8000, -2000, -5300 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5000, -2000, -5300 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2000, -2000, -5300 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2000, -2000, 300 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5000, -2000, 300 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8000, -2000, 300 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x36B0, -2000, 300 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2AF8, -2000, 300 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 40, -2049, -901 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0, 2048, 716 }, { 0, 0 } }, 100, 750 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x4268, -2000, -0x36B0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2868, 2724, 2581 }, { 0, 0 } }, 1412, 2092 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x44FD, 127, -0x55F0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2871, 2724, 2581 }, { 0, 0 } }, 1682, 2378 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x36AE, -1038, -0x4C68 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, 19, { 0, 0, 0, 0 }, 0, NULL } }, { 2871, 2724, 2583 }, { 0, 0 } }, 1421, 3321 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2498, -678, -2500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, 12, { 0, 0, 0, 0 }, 0, NULL } }, { 1845, 1765, 1682 }, { 0, 0 } }, 1363, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x3712, -1038, -0x4C68 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, 21, { 0, 0, 0, 0 }, 0, NULL } }, { 2871, 2724, 2583 }, { 0, 0 } }, 1421, 3321 },
 };
 
-WorldCoordRoomLights D_shelter_b3_garbage_incinerator_8018DCF0[1] = {
-    { ARRAY_SIZE(D_shelter_b3_garbage_incinerator_8018D2E0), D_shelter_b3_garbage_incinerator_8018D2E0, ARRAY_SIZE(D_shelter_b3_garbage_incinerator_8018D390), D_shelter_b3_garbage_incinerator_8018D390, 0, NULL },
+WorldCoordRoomLights gShelterB3GarbageIncineratorRooms1To3Lights = {
+    .directionalLightCount = ARRAY_SIZE(_gShelterB3GarbageIncineratorRooms1To3DirectionalLights),
+    .directionalLights     = _gShelterB3GarbageIncineratorRooms1To3DirectionalLights,
+    .pointLightCount       = ARRAY_SIZE(_gShelterB3GarbageIncineratorRooms1To3PointLights),
+    .pointLights           = _gShelterB3GarbageIncineratorRooms1To3PointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
-WorldCoordLight D_shelter_b3_garbage_incinerator_8018DD08[2] = {
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1010, -2010, -2010 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 1843, 1843 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -990, -2010, 990 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 1843, 1843 }, { 0, 0 } },
+/// Two red-biased directional lights shared by incinerator rooms 4..7.
+///
+/// Every view admits them. Translations supply light directions and RGB uses
+/// 12 fractional bits. Gameplay updates their parent, composition cache and
+/// attenuation in place; this loaded overlay owns the writable array.
+static WorldCoordLight _gShelterB3GarbageIncineratorRooms4To7DirectionalLights[2] = {
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1010, -2010, -2010 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 1843, 1843 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -990, -2010, 990 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 1843, 1843 }, { 0, 0 } },
 };
 
-WorldCoordPointLight D_shelter_b3_garbage_incinerator_8018DDB8[21] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x36B0, -2150, -0x6464 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 0, 0 }, { 0, 0 } }, 1119, 1413 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x38A4, -1760, -0x6658 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2868, 2725, 2582 }, { 0, 0 } }, 1040, 1361 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2BC0, -2000, -8500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2BC0, -2000, -0x2CEC } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2BC0, -2000, -0x5FB4 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x41A0, -2000, -0x5FB4 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x41A0, -2000, -0x2CEC } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x41A0, -2000, -8500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x41A0, -2000, -5500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x41A0, -2000, -2500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8000, -2000, -5300 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5000, -2000, -5300 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2000, -2000, -5300 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2000, -2000, 300 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5000, -2000, 300 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8000, -2000, 300 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x36B0, -2000, 300 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2AF8, -2000, 300 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 40, -2049, -901 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0, 2048, 716 }, { 0, 0 } }, 100, 750 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x4268, -2000, -0x36B0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2868, 2724, 2581 }, { 0, 0 } }, 1412, 2092 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x44FD, 127, -0x55F0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2871, 2724, 2581 }, { 0, 0 } }, 1682, 2378 },
+/// 21 point lights shared by incinerator rooms 4..7.
+///
+/// Every entry admits every view.
+/// Positions and inner/outer falloff distances use world-coordinate units;
+/// RGB and query attenuation use 12 fractional bits. Gameplay updates the
+/// transforms and attenuation in this overlay-owned writable array.
+static WorldCoordPointLight _gShelterB3GarbageIncineratorRooms4To7PointLights[21] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x36B0, -2150, -0x6464 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 0, 0 }, { 0, 0 } }, 1119, 1413 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x38A4, -1760, -0x6658 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2868, 2725, 2582 }, { 0, 0 } }, 1040, 1361 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2BC0, -2000, -8500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2BC0, -2000, -0x2CEC } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2BC0, -2000, -0x5FB4 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x41A0, -2000, -0x5FB4 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x41A0, -2000, -0x2CEC } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x41A0, -2000, -8500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x41A0, -2000, -5500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x41A0, -2000, -2500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8000, -2000, -5300 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5000, -2000, -5300 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2000, -2000, -5300 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2000, -2000, 300 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5000, -2000, 300 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8000, -2000, 300 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x36B0, -2000, 300 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2AF8, -2000, 300 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 40, -2049, -901 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0, 2048, 716 }, { 0, 0 } }, 100, 750 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x4268, -2000, -0x36B0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2868, 2724, 2581 }, { 0, 0 } }, 1412, 2092 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x44FD, 127, -0x55F0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2871, 2724, 2581 }, { 0, 0 } }, 1682, 2378 },
 };
 
-WorldCoordRoomLights D_shelter_b3_garbage_incinerator_8018E598[1] = {
-    { ARRAY_SIZE(D_shelter_b3_garbage_incinerator_8018DD08), D_shelter_b3_garbage_incinerator_8018DD08, ARRAY_SIZE(D_shelter_b3_garbage_incinerator_8018DDB8), D_shelter_b3_garbage_incinerator_8018DDB8, 0, NULL },
+WorldCoordRoomLights gShelterB3GarbageIncineratorRooms4To7Lights = {
+    .directionalLightCount = ARRAY_SIZE(_gShelterB3GarbageIncineratorRooms4To7DirectionalLights),
+    .directionalLights     = _gShelterB3GarbageIncineratorRooms4To7DirectionalLights,
+    .pointLightCount       = ARRAY_SIZE(_gShelterB3GarbageIncineratorRooms4To7PointLights),
+    .pointLights           = _gShelterB3GarbageIncineratorRooms4To7PointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 WorldCollisionTrigger D_shelter_b3_garbage_incinerator_8018E5B0[22] = {
@@ -1757,43 +1892,88 @@ WorldCollisionOccluder D_shelter_b3_garbage_incinerator_8018FAD8[1] = {
     { NULL, NULL, { 4624, -2864, -5504, 0 }, { { -5200, 3888, 0, 0 }, { 5200, 3888, 0, 0 }, { -5200, -3888, 0, 0 }, { 5200, -3888, 0, 0 } }, { 0, 0, 4116, 0 }, 6476, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCollisionFootstepSounds D_shelter_b3_garbage_incinerator_8018FB14 = {
-    0x10000015,
-    0x10000017,
-    0x10000019,
+/// Cue-2 bases in the loaded type-1 sound bank; cue 1 uses the next entry.
+enum {
+    SHELTER_B3_GARBAGE_INCINERATOR_FOOTSTEP_SURFACE3_AND4_WALK_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x15,
+    SHELTER_B3_GARBAGE_INCINERATOR_FOOTSTEP_SURFACE3_AND4_RUN_CUE_BASE   = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x17,
+    SHELTER_B3_GARBAGE_INCINERATOR_FOOTSTEP_SURFACE3_AND4_STAIR_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x19,
+    SHELTER_B3_GARBAGE_INCINERATOR_FOOTSTEP_DEFAULT_WALK_CUE_BASE        = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x59,
+    SHELTER_B3_GARBAGE_INCINERATOR_FOOTSTEP_DEFAULT_RUN_CUE_BASE         = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5B,
 };
 
-WorldCollisionFootstepSounds D_shelter_b3_garbage_incinerator_8018FB20 = {
-    0x10000059,
-    0x1000005B,
-    0x10000059,
+/// Footstep cue bases for incinerator surface classes 3 and 4.
+///
+/// Walking, running and scripted stair climbing have separate encoded cue
+/// bases in the loaded type-1 bank. Cue 1 adds one; companion playback adds 100.
+static WorldCollisionFootstepSounds _gShelterB3GarbageIncineratorSurface3And4FootstepSounds = {
+    .walk         = SHELTER_B3_GARBAGE_INCINERATOR_FOOTSTEP_SURFACE3_AND4_WALK_CUE_BASE,
+    .run          = SHELTER_B3_GARBAGE_INCINERATOR_FOOTSTEP_SURFACE3_AND4_RUN_CUE_BASE,
+    .scriptedJump = SHELTER_B3_GARBAGE_INCINERATOR_FOOTSTEP_SURFACE3_AND4_STAIR_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b3_garbage_incinerator_8018FB2C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b3_garbage_incinerator_8018FB20 },
+/// Footstep cue bases for incinerator surface classes 0..2 and 5..7.
+///
+/// Walking and scripted stair climbing share a pair; running uses the other.
+/// Requests use the loaded type-1 bank. Cue 1 adds one; companion playback adds 100.
+static WorldCollisionFootstepSounds _gShelterB3GarbageIncineratorDefaultFootstepSounds = {
+    .walk         = SHELTER_B3_GARBAGE_INCINERATOR_FOOTSTEP_DEFAULT_WALK_CUE_BASE,
+    .run          = SHELTER_B3_GARBAGE_INCINERATOR_FOOTSTEP_DEFAULT_RUN_CUE_BASE,
+    .scriptedJump = SHELTER_B3_GARBAGE_INCINERATOR_FOOTSTEP_DEFAULT_WALK_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b3_garbage_incinerator_8018FB34[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b3_garbage_incinerator_8018FB20 },
+/// Collision policy for incinerator surface classes 0, 2 and 5..7: probes block, weapon impacts are enabled and pushback applies.
+///
+/// Borrows the class's footstep cue bases for the lifetime of the loaded room overlay.
+static WorldCollisionSurfaceProperties _gShelterB3GarbageIncineratorDefaultSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB3GarbageIncineratorDefaultFootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b3_garbage_incinerator_8018FB3C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b3_garbage_incinerator_8018FB14 },
+/// Collision policy for incinerator surface class 1: probes pass, weapon impacts are ignored and pushback applies.
+///
+/// Borrows the class's footstep cue bases for the lifetime of the loaded room overlay.
+static WorldCollisionSurfaceProperties _gShelterB3GarbageIncineratorSurface1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB3GarbageIncineratorDefaultFootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b3_garbage_incinerator_8018FB44[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b3_garbage_incinerator_8018FB14 },
+/// Collision policy for incinerator surface class 3: probes block, weapon impacts are enabled and pushback applies.
+///
+/// Borrows the class's footstep cue bases for the lifetime of the loaded room overlay.
+static WorldCollisionSurfaceProperties _gShelterB3GarbageIncineratorSurface3Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB3GarbageIncineratorSurface3And4FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_b3_garbage_incinerator_8018FB4C[8] = {
-    D_shelter_b3_garbage_incinerator_8018FB2C,
-    D_shelter_b3_garbage_incinerator_8018FB34,
-    D_shelter_b3_garbage_incinerator_8018FB2C,
-    D_shelter_b3_garbage_incinerator_8018FB3C,
-    D_shelter_b3_garbage_incinerator_8018FB44,
-    D_shelter_b3_garbage_incinerator_8018FB2C,
-    D_shelter_b3_garbage_incinerator_8018FB2C,
-    D_shelter_b3_garbage_incinerator_8018FB2C,
+/// Collision policy for incinerator surface class 4: probes block, weapon impacts are enabled and pushback applies.
+///
+/// Borrows the class's footstep cue bases for the lifetime of the loaded room overlay.
+static WorldCollisionSurfaceProperties _gShelterB3GarbageIncineratorSurface4Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB3GarbageIncineratorSurface3And4FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gShelterB3GarbageIncineratorSurfaceProperties[8] = {
+    &_gShelterB3GarbageIncineratorDefaultSurfaceProperties,
+    &_gShelterB3GarbageIncineratorSurface1Properties,
+    &_gShelterB3GarbageIncineratorDefaultSurfaceProperties,
+    &_gShelterB3GarbageIncineratorSurface3Properties,
+    &_gShelterB3GarbageIncineratorSurface4Properties,
+    &_gShelterB3GarbageIncineratorDefaultSurfaceProperties,
+    &_gShelterB3GarbageIncineratorDefaultSurfaceProperties,
+    &_gShelterB3GarbageIncineratorDefaultSurfaceProperties,
 };
 
 AreaApplyRec D_shelter_b3_garbage_incinerator_8018FB6C[23] = {

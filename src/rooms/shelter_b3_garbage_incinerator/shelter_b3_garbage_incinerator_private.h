@@ -23,9 +23,19 @@ extern TaskDesc D_shelter_b3_garbage_incinerator_80185BA0;
 
 extern WorldCollisionGrid D_shelter_b3_garbage_incinerator_80188388[1];
 
-extern WorldCoordRoomLights D_shelter_b3_garbage_incinerator_8018DCF0[1];
+/// Model-light collection shared by incinerator rooms 1..3.
+///
+/// Two directional lights and 25 point lights, with no cone lights.
+/// Borrows writable arrays owned by this overlay; gameplay updates their
+/// transforms and attenuation. The collection must not outlive the overlay.
+extern WorldCoordRoomLights gShelterB3GarbageIncineratorRooms1To3Lights;
 
-extern WorldCoordRoomLights D_shelter_b3_garbage_incinerator_8018E598[1];
+/// Model-light collection shared by incinerator rooms 4..7.
+///
+/// Two directional lights and 21 point lights, with no cone lights.
+/// Borrows writable arrays owned by this overlay; gameplay updates their
+/// transforms and attenuation. The collection must not outlive the overlay.
+extern WorldCoordRoomLights gShelterB3GarbageIncineratorRooms4To7Lights;
 
 extern WorldCollisionTrigger D_shelter_b3_garbage_incinerator_8018E5B0[22];
 

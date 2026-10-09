@@ -64,7 +64,14 @@ extern ViewCamera D_shelter_b3_garbage_incinerator_801883AC[];
 
 extern SpriteView D_shelter_b3_garbage_incinerator_8018D100[];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b3_garbage_incinerator_8018FB4C[];
+/// Collision policies and footstep cues indexed by incinerator surface class 0..7.
+///
+/// Classes 0, 2 and 5..7 share the default record. Class 1 passes probes and
+/// ignores weapon impacts; every other class blocks probes and allows impacts.
+/// All classes apply pushback. Classes 3/4 share one footstep set, and all others
+/// share another. The Shelter map borrows this directory while this room overlay
+/// is loaded; the records and sound tables must not survive its unloading.
+extern WorldCollisionSurfaceProperties* gShelterB3GarbageIncineratorSurfaceProperties[8];
 
 /// Runs garbage-incinerator room setup, switch timing and teardown.
 ///
