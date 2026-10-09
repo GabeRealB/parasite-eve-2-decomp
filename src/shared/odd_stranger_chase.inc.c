@@ -71,10 +71,10 @@ static void _oddStrangerCircleDash(Task* task)
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
         _oddStrangerDriveAnimation(task);
-        work->dashRateStep        = ODD_STRANGER_CIRCLE_DASH_RATE_RISE;
-        work->stateTimer          = 0;
-        work->exitCounter         = 0;
-        gOddStrangerChaseDistance = 0;
+        work->dashRateStep              = ODD_STRANGER_CIRCLE_DASH_RATE_RISE;
+        work->stateTimer                = 0;
+        work->exitCounter               = 0;
+        _gOddStrangerCircleDashDistance = 0;
         work->dashCount++;
         return;
     }
@@ -137,7 +137,7 @@ static void _oddStrangerCircleDash(Task* task)
     if ((_playerDetectionOutOfReach(task->extra.tmd->coords, ODD_STRANGER_MOVE_STOP_DISTANCE, work->slideStep) << 0x10) != 0) {
         _actorMovementTranslateForwardNonzero(task->extra.tmd->coords, (u16)work->slideStep);
     }
-    gOddStrangerChaseDistance += (u16)work->slideStep;
+    _gOddStrangerCircleDashDistance += (u16)work->slideStep;
     if (work->dashRateStep == ODD_STRANGER_CIRCLE_DASH_RATE_RISE && work->animRate >= ODD_STRANGER_CIRCLE_DASH_RATE_PEAK) {
         work->dashRateStep = ODD_STRANGER_CIRCLE_DASH_RATE_FALL;
     }

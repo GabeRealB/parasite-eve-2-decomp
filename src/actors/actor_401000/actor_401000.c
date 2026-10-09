@@ -57,69 +57,12 @@
 
 static void _oddStrangerTick(Enemy* enemy, Task* actor);
 
-/// Animation bank `_actor401000Spawn` hands to both `animationInitContext`
-/// calls; the same `s32` the 401300 sibling keeps in `D_actor_401300_80158838`.
-extern AnimationSet* gOddStrangerAnimSets[46];
-
-/// Parameter pair `_actor401000Spawn` installs as `Enemy::param`
-/// and reads `hpMax` out of as the actor's initial `field_40`.
-extern EnemyParams D_actor_401000_8013E09C;
-
-/// Three combat-parameter records `_actor401000Spawn` picks between
-/// with `Task::spawnArg1 & 0xF`.
-extern ActorStrangerVariant D_actor_401000_8013E0AC[3];
-
-/// Animation table `_actor401000Spawn` writes to `Task::msgTable`.
-// Message-table callbacks use the argument views required by this TU.
-
-extern TaskMessageEntry D_actor_401000_80154F90[8];
-
-/// Overlay-data word `_oddStrangerDormantScripted` points
-/// `gOddStrangerAnimSets[16]` at on entering its state.
-extern AnimationSet gOddStrangerDormantAnimSet;
-
 /// Message 0x3FF payload of `_oddStrangerGrabStrike` and
 /// `_oddStrangerGrabRelease`: the animation argument the player task reads
 /// when the actor's live-actor flag goes up.
 extern AnimationPlayRequest gOddStrangerPlayerAnim;
 
-/// Animation blocks selected for the grab by the player-character flag.
-extern AnimationSet* D_actor_401000_80154F00[7];
-
-/// Free-running scroll the actor's forward draw accumulates into:
-/// `_oddStrangerCircleDash` adds `slideStep` to it every frame, and the
-/// walk state zeroes it on entry. The same slot `Actor01900` keeps in
-/// `Actor01900_D172FC`.
-extern u16 gOddStrangerChaseDistance;
-
-/// Twelve `SVECTOR` hit positions `_oddStrangerSpawnHitEffect` picks from by
-/// the hit bearing relative to its facing. The fourth halfword (`pad`, unused
-/// by the effect) is the model part index the spawned effect anchors to. Same table as the
-/// `Actor00100_D1B9F4` one `Actor00100_Fn03340` reads.
-extern SVECTOR gOddStrangerHitOffsets[12];
-
-/// The two `ActorHeightClamp` rows `_actor401000ClampRootHeight` and
-/// `_actor401000ApplyGridPushback` walk.
-extern ActorHeightClamp D_actor_401000_80154FD0[];
-
-/// Message 0x3E9 payload of `_oddStrangerGrabPull`: the player task's
-/// world position, then the yaw from the actor to it, handed straight to the
-/// slot-3 handler. The 401000 twin of the block `_actor401300StateGrabPull`
-/// keeps inline at `_Actor401300Work.playerPlacement`.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-
-/// Gameplay slot `effectSpawn` effects read their model data from; set before
-/// each spawn in `_actor401000DeathBurst`.
-
-/// The records closing four of the overlay's model streams, which
-/// `_actor401000DeathBurst` points `D_80114B34[5].data.model` at before spawning, one per
-/// animation-latch key frame (`stateTimer` 3, 5, 7, 8).
-extern TmdSource gOddStrangerBurstModelA;
 static TmdSource _gActor401000Model123EC;
-extern TmdSource gOddStrangerBurstModelC;
-extern TmdSource gOddStrangerBurstModelB;
 
 /// Handlers defined after the state table and the init that name them.
 static void _actor401000Hidden(Task* task);
@@ -140,13 +83,18 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
     return &ActorContact_ScratchPosition;
 }
 
-extern OddStrangerTransformStorage gOddStrangerGrabTransform;
+/// Player placement lent synchronously to the grab's place message.
+///
+/// Position uses the roots' common parent space; yaw faces the enemy, in
+/// 4096 units per turn, with zero pitch and roll. The trailing eight bytes
+/// have no established role and remain in `OddStrangerTransformStorage`.
+static OddStrangerTransformStorage _gOddStrangerPlayerGrabPlacement;
 
-extern GameActorButtonPressHold D_actor_401000_80155038;
-
-/// Transition table the clip change seeks through: one byte per
-/// (playing clip, requested clip) pair, 0x2D requested clips to a row.
-extern s8 gOddStrangerTransitions[45][45];
+/// Eight-button struggle request lent synchronously to the player.
+///
+/// Only `pressCount` is written or consumed; the animation fallback stays
+/// zero because this request addresses the player's hold handler.
+static GameActorButtonPressHold _gActor401000PlayerHoldRequest;
 
 static TmdSource _gActor401000StrangerBody;
 static void      _actor401000StrangerTask(Task* task);
@@ -178,14 +126,30 @@ static AnimationSet _gActor401000Animation1E250;
 static AnimationSet _gActor401000Animation1F0C8;
 static AnimationSet _gActor401000Animation1FFD8;
 
-DamageAttack D_actor_401000_8013E094[2] = {
-    { 20, 7 },
-    { 18, 0 },
+/// Player hit presentation used by the grab: one spark and accompanying puffs.
+enum { ACTOR_401000_GRAB_HIT_REACTION = 7 };
+
+/// Two attack definitions belonging to this Odd Stranger enemy kind.
+///
+/// Entry 0 supplies the grab strike's 20-power reaction-7 hit. Entry 1 is
+/// an 18-power ordinary hit with no recovered attacker selecting it.
+static DamageAttack _gActor401000Attacks[2] = {
+    { 20, ACTOR_401000_GRAB_HIT_REACTION },
+    { 18, GAME_ACTOR_REACTION_ORDINARY },
 };
 
-EnemyParams D_actor_401000_8013E09C = { D_actor_401000_8013E094, 180, 42, 82, 4, 100, 10, 100, 0 };
+/// Shared health, attack, reward and hit-reaction parameters of this Odd Stranger.
+///
+/// Spawn copies the 180 starting HP and lends this record through `Enemy::param`
+/// for the enemy's lifetime; the attack rows stay loaded with it.
+static EnemyParams _gActor401000EnemyParams = { _gActor401000Attacks, 180, 42, 82, 4, 100, 10, 100, 0 };
 
-ActorStrangerVariant D_actor_401000_8013E0AC[3] = {
+/// Three combat tunings selected by the spawn argument's low nibble.
+///
+/// Value 2 selects row 0, value 1 row 2, and all others row 1. Each row sets
+/// down ticks, sidestep angle (4096 units per turn), chase delay ticks and
+/// notice distance in the roots' common parent space. Unknown row bytes stay zero.
+static ActorStrangerVariant _gActor401000StrangerVariants[3] = {
     { 20, 900, 12, 2000, { 0, 0, 0, 0 } },
     { 10, 800, 12, 2500, { 0, 0, 0, 0 } },
     { 0, 500, 12, 3000, { 0, 0, 0, 0 } },
@@ -223,36 +187,40 @@ static TmdSource _gActor401000StrangerBody = {
     _gActor401000StrangerBodyStream,
 };
 
-static TmdBone _gActor401000StrangerBurstHandSkeleton[3] = {
+static TmdBone _gOddStrangerBurstPart9ModelSkeleton[3] = {
 #include "assets/stranger_burst_hand_skeleton.inc"
 };
 
-static u32 _gActor401000StrangerBurstHandPartVerts[3] = {
+static u32 _gOddStrangerBurstPart9ModelPartVerts[3] = {
 #include "assets/stranger_burst_hand_partVerts.inc"
 };
 
-static SVECTOR _gActor401000StrangerBurstHandVerts[33] = {
+static SVECTOR _gOddStrangerBurstPart9ModelVerts[33] = {
 #include "assets/stranger_burst_hand_verts.inc"
 };
 
-static SVECTOR _gActor401000StrangerBurstHandNormals[45] = {
+static SVECTOR _gOddStrangerBurstPart9ModelNormals[45] = {
 #include "assets/stranger_burst_hand_normals.inc"
 };
 
-static u32 _gActor401000StrangerBurstHandStream[357] = {
+static u32 _gOddStrangerBurstPart9ModelStream[357] = {
 #include "assets/stranger_burst_hand_stream.inc"
 };
 
-TmdSource gOddStrangerBurstModelA = {
+/// Detached debris model spawned from body part 9 in both burst deaths.
+///
+/// The effect borrows this mutable source and stream for its lifetime and
+/// inherits the enemy placement's texture offsets.
+static TmdSource _gOddStrangerBurstPart9Model = {
     0,
     2008,
     304,
-    3,
-    _gActor401000StrangerBurstHandPartVerts,
-    _gActor401000StrangerBurstHandVerts,
-    _gActor401000StrangerBurstHandNormals,
-    _gActor401000StrangerBurstHandSkeleton,
-    _gActor401000StrangerBurstHandStream,
+    ARRAY_SIZE(_gOddStrangerBurstPart9ModelSkeleton),
+    _gOddStrangerBurstPart9ModelPartVerts,
+    _gOddStrangerBurstPart9ModelVerts,
+    _gOddStrangerBurstPart9ModelNormals,
+    _gOddStrangerBurstPart9ModelSkeleton,
+    _gOddStrangerBurstPart9ModelStream,
 };
 
 static TmdBone _gActor401000Model123ECSkeleton[3] = {
@@ -287,68 +255,76 @@ static TmdSource _gActor401000Model123EC = {
     _gActor401000Model123ECStream,
 };
 
-static TmdBone _gActor401000Model12F70Skeleton[3] = {
+static TmdBone _gOddStrangerBurstPart3ModelSkeleton[3] = {
 #include "assets/actor_401000_model_12F70_skeleton.inc"
 };
 
-static u32 _gActor401000Model12F70PartVerts[3] = {
+static u32 _gOddStrangerBurstPart3ModelPartVerts[3] = {
 #include "assets/actor_401000_model_12F70_partVerts.inc"
 };
 
-static SVECTOR _gActor401000Model12F70Verts[76] = {
+static SVECTOR _gOddStrangerBurstPart3ModelVerts[76] = {
 #include "assets/actor_401000_model_12F70_verts.inc"
 };
 
-static SVECTOR _gActor401000Model12F70Normals[76] = {
+static SVECTOR _gOddStrangerBurstPart3ModelNormals[76] = {
 #include "assets/actor_401000_model_12F70_normals.inc"
 };
 
-static u32 _gActor401000Model12F70Stream[772] = {
+static u32 _gOddStrangerBurstPart3ModelStream[772] = {
 #include "assets/actor_401000_model_12F70_stream.inc"
 };
 
-TmdSource gOddStrangerBurstModelC = {
+/// Detached debris model spawned from body part 3 in both burst deaths.
+///
+/// The effect borrows this mutable source and stream for its lifetime and
+/// inherits the enemy placement's texture offsets.
+static TmdSource _gOddStrangerBurstPart3Model = {
     0,
     4600,
     688,
-    3,
-    _gActor401000Model12F70PartVerts,
-    _gActor401000Model12F70Verts,
-    _gActor401000Model12F70Normals,
-    _gActor401000Model12F70Skeleton,
-    _gActor401000Model12F70Stream,
+    ARRAY_SIZE(_gOddStrangerBurstPart3ModelSkeleton),
+    _gOddStrangerBurstPart3ModelPartVerts,
+    _gOddStrangerBurstPart3ModelVerts,
+    _gOddStrangerBurstPart3ModelNormals,
+    _gOddStrangerBurstPart3ModelSkeleton,
+    _gOddStrangerBurstPart3ModelStream,
 };
 
-static TmdBone _gActor401000Model13E40Skeleton[1] = {
+static TmdBone _gActor401000BurstPart1ModelSkeleton[1] = {
 #include "assets/actor_401000_model_13E40_skeleton.inc"
 };
 
-static u32 _gActor401000Model13E40PartVerts[1] = {
+static u32 _gActor401000BurstPart1ModelPartVerts[1] = {
 #include "assets/actor_401000_model_13E40_partVerts.inc"
 };
 
-static SVECTOR _gActor401000Model13E40Verts[37] = {
+static SVECTOR _gActor401000BurstPart1ModelVerts[37] = {
 #include "assets/actor_401000_model_13E40_verts.inc"
 };
 
-static SVECTOR _gActor401000Model13E40Normals[42] = {
+static SVECTOR _gActor401000BurstPart1ModelNormals[42] = {
 #include "assets/actor_401000_model_13E40_normals.inc"
 };
 
-static u32 _gActor401000Model13E40Stream[332] = {
+static u32 _gActor401000BurstPart1ModelStream[332] = {
 #include "assets/actor_401000_model_13E40_stream.inc"
 };
 
-TmdSource gOddStrangerBurstModelB = {
+/// Detached debris model spawned from body part 1 in both burst deaths.
+///
+/// The effect borrows this mutable source and stream for its lifetime and
+/// inherits the enemy placement's texture offsets.
+static TmdSource _gActor401000BurstPart1Model = {
     0,
     2192,
     0,
-    1,
-    _gActor401000Model13E40PartVerts,
-    _gActor401000Model13E40Verts,
-    _gActor401000Model13E40Normals,
-    _gActor401000Model13E40Skeleton,
-    _gActor401000Model13E40Stream,
+    ARRAY_SIZE(_gActor401000BurstPart1ModelSkeleton),
+    _gActor401000BurstPart1ModelPartVerts,
+    _gActor401000BurstPart1ModelVerts,
+    _gActor401000BurstPart1ModelNormals,
+    _gActor401000BurstPart1ModelSkeleton,
+    _gActor401000BurstPart1ModelStream,
 };
 
 static AnimationPackedPose _gActor401000Animation14E90Bank1[28] = {
@@ -901,29 +877,37 @@ static AnimationSet _gActor401000Animation219B8 = {
     { NULL, _gActor401000Animation219B8Bank1, NULL, NULL, _gActor401000Animation219B8Bank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gActor401000Animation22814Bank1[18] = {
+static AnimationPackedPose _gOddStrangerScriptedDormantAnimSetBank1[18] = {
 #include "assets/actor_401000_animation_22814_bank1.inc"
 };
 
-static AnimationPackedRotation _gActor401000Animation22814Bank4[361] = {
+static AnimationPackedRotation _gOddStrangerScriptedDormantAnimSetBank4[361] = {
 #include "assets/actor_401000_animation_22814_bank4.inc"
 };
 
-static AnimationRecord _gActor401000Animation22814Records[484] = {
+static AnimationRecord _gOddStrangerScriptedDormantAnimSetRecords[484] = {
 #include "assets/actor_401000_animation_22814_records.inc"
 };
 
-static u16 _gActor401000Animation22814Indices[20] = {
+static u16 _gOddStrangerScriptedDormantAnimSetIndices[20] = {
 #include "assets/actor_401000_animation_22814_indices.inc"
 };
 
-AnimationSet gOddStrangerDormantAnimSet = {
-    _gActor401000Animation22814Records,
-    _gActor401000Animation22814Indices,
-    { NULL, _gActor401000Animation22814Bank1, NULL, NULL, _gActor401000Animation22814Bank4, NULL, NULL, NULL },
+/// Dormant cue animation installed in bank slot 16 on scripted-dormant entry.
+///
+/// Tracks borrow the pose banks and record/index arrays for the overlay lifetime.
+static AnimationSet _gOddStrangerScriptedDormantAnimSet = {
+    _gOddStrangerScriptedDormantAnimSetRecords,
+    _gOddStrangerScriptedDormantAnimSetIndices,
+    { NULL, _gOddStrangerScriptedDormantAnimSetBank1, NULL, NULL, _gOddStrangerScriptedDormantAnimSetBank4, NULL, NULL, NULL },
 };
 
-s8 gOddStrangerTransitions[45][45] = {
+/// Crossfade durations in whole normal-rate animation frames.
+///
+/// Indexed [previous clip][requested clip], each in 0..44; zero means no
+/// transition time. Signed bytes are promoted for `animationSeekSlotWithBlend`.
+/// This table excludes the clip bank's trailing slot 45.
+static s8 _gOddStrangerTransitionFrames[ODD_STRANGER_TRANSITION_ANIM_COUNT][ODD_STRANGER_TRANSITION_ANIM_COUNT] = {
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 0, 0, 0, 4, 4, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 3, 3, 0, 0, 0, 0, 15, 5, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -971,7 +955,13 @@ s8 gOddStrangerTransitions[45][45] = {
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AnimationSet* gOddStrangerAnimSets[46] = {
+/// Mutable clip bank borrowed by both nineteen-part animation rigs.
+///
+/// Indices are `ODD_STRANGER_ANIM_*`. Slots 0, 1 and 27..45 are NULL at load;
+/// slot 16 is installed on scripted-dormant entry. Script-message slots
+/// 34..37 and 39 require loaded sets before playback; no population is recovered.
+/// Status slots 23 and 24 alias the back-down and front-down sets.
+static AnimationSet* _gOddStrangerAnimSets[ODD_STRANGER_ANIM_SET_CAPACITY] = {
     NULL,
     NULL,
     &_gActor401000Animation14E90,
@@ -1020,7 +1010,13 @@ AnimationSet* gOddStrangerAnimSets[46] = {
     NULL,
 };
 
-AnimationSet* D_actor_401000_80154F00[7] = {
+/// Character-selected player clip bank for the grab hold, strike and release.
+///
+/// Character 1 uses base + 2 and clips 1..3 (loaded entries 3..5). The other
+/// branch uses base + 0; its required entries 1 and 2 are NULL at load and
+/// their population or supported encounter domain is unproven. Entries 0..2
+/// and 6 remain NULL in the embedded bank; playback borrows the selected sets.
+static AnimationSet* _gActor401000PlayerGrabAnimSets[7] = {
     NULL,
     NULL,
     NULL,
@@ -1030,9 +1026,15 @@ AnimationSet* D_actor_401000_80154F00[7] = {
     NULL,
 };
 
-AnimationPlayRequest gOddStrangerPlayerAnim = { { .sets = D_actor_401000_80154F00 }, 1, ANIMATION_BLEND_RESET, 3, ANIMATION_WORLD_COLLISION_DISABLE };
+AnimationPlayRequest gOddStrangerPlayerAnim = { { .sets = _gActor401000PlayerGrabAnimSets }, 1, ANIMATION_BLEND_RESET, 3, ANIMATION_WORLD_COLLISION_DISABLE };
 
-SVECTOR gOddStrangerHitOffsets[12] = {
+/// Part-local hit-effect positions grouped by the hit's relative bearing.
+///
+/// Front uses entries 0..3, rear 5 or 7, positive side 8..9 and negative
+/// side 10..11. Entries 4 and 6 are retained although their selectors are
+/// unreachable. XYZ use integer model units; `pad` stores the attachment
+/// part index (2, 7 or 9) and is copied intact with the `SVECTOR`.
+static SVECTOR _gOddStrangerHitOffsets[12] = {
     { 60, -12, 30, 2 },
     { -50, -130, 29, 2 },
     { 20, -70, 25, 2 },
@@ -1051,7 +1053,12 @@ enum { ACTOR_401000_MESSAGE_IGNORE = 2015 };
 
 static s32 _actor401000IgnoreMessage2015(Task* task, s32 messageId, s32 unusedPayload, s32 unusedExtra);
 
-TaskMessageEntry D_actor_401000_80154F90[8] = {
+/// Synchronous message handlers installed on the Odd Stranger task.
+///
+/// Entries cover ignored 2015, animation, visibility, presence, placement,
+/// hold release and room commands. `TASK_MESSAGE_TABLE_END` ends the search;
+/// the table and callback code stay loaded while the task receives messages.
+static TaskMessageEntry _gActor401000Messages[8] = {
     { ACTOR_401000_MESSAGE_IGNORE, _actor401000IgnoreMessage2015 },
     { ACTOR_MESSAGE_PLAY_ANIMATION, _oddStrangerPlayMessage },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetVisibility },
@@ -1062,21 +1069,26 @@ TaskMessageEntry D_actor_401000_80154F90[8] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-ActorHeightClamp D_actor_401000_80154FD0[3] = {
+/// Room-specific limits on the root's Y translation in parent-coordinate units.
+///
+/// Only the Patio and woodland-path rows are consulted, selected by stage
+/// and area without view or variant. The trailing zero row is never read;
+/// its ownership and each row's unread bytes remain unproven.
+static ActorHeightClamp _gActor401000HeightClamps[3] = {
     { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, -300, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } },
     { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_WOODLAND_PATH, 0, 300, { 0, 0, 0, 0, 0, 0, 0, 0 } },
     { 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } },
 };
 
-u16 gOddStrangerChaseDistance = 0;
+/// Sum of requested circling-dash steps in parent-coordinate units, modulo 65536.
+///
+/// Reset on dash entry and incremented even when proximity prevents movement.
+/// Shared by all tasks in this carrier; no recovered consumer reads the total.
+static u16 _gOddStrangerCircleDashDistance = 0;
 
-TaskDesc D_actor_401000_80155004 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor401000StrangerTask, { .model = &_gActor401000StrangerBody } };
+TaskDesc gActor401000StrangerTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor401000StrangerTask, { .model = &_gActor401000StrangerBody } };
 
 SVECTOR ActorContact_ScratchPosition;
-
-OddStrangerTransformStorage gOddStrangerGrabTransform;
-
-GameActorButtonPressHold D_actor_401000_80155038;
 
 /// Active room rows and correction limits, in whole parent-coordinate units.
 enum {
@@ -1200,12 +1212,12 @@ static void _actor401000Spawn(Enemy* enemy, Task* actor)
     worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->reactionFlags          = 0;
-    enemy->hp                     = (s16)D_actor_401000_8013E09C.hpMax;
-    enemy->param                  = &D_actor_401000_8013E09C;
+    enemy->hp                     = (s16)_gActor401000EnemyParams.hpMax;
+    enemy->param                  = &_gActor401000EnemyParams;
     enemy->recs                   = work->hitContacts;
-    animationInitContext(&work->rig.anim, gOddStrangerAnimSets, model,
+    animationInitContext(&work->rig.anim, _gOddStrangerAnimSets, model,
                          work->rig.poses, work->rig.slots);
-    animationInitContext(&work->blend.anim, gOddStrangerAnimSets,
+    animationInitContext(&work->blend.anim, _gOddStrangerAnimSets,
                          model, work->blend.poses,
                          work->blend.slots);
     work->animRequest   = ODD_STRANGER_ANIM_REQUEST_RESET;
@@ -1304,7 +1316,7 @@ static void _actor401000Spawn(Enemy* enemy, Task* actor)
     ACTOR_401000_INIT_PATROL_POINTS(actor, work, patrolDirection, direction);
 #undef ACTOR_401000_INIT_PATROL_POINTS
 
-    actor->msgTable         = D_actor_401000_80154F90;
+    actor->msgTable         = _gActor401000Messages;
     rootCoord->parent       = &gGfxViewCoord;
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(rootCoord);
@@ -1335,23 +1347,23 @@ static void _actor401000Spawn(Enemy* enemy, Task* actor)
     }
     switch (actor->spawnArg1.value & ACTOR_401000_SPAWN_NIBBLE_MASK) {
         case 2:
-            work->downFramesBase = D_actor_401000_8013E0AC[0].downFramesBase;
-            work->sidestepAngle  = D_actor_401000_8013E0AC[0].sidestepAngle;
-            work->sidestepDelay  = D_actor_401000_8013E0AC[0].sidestepDelay;
-            work->noticeRadius   = D_actor_401000_8013E0AC[0].noticeRadius;
+            work->downFramesBase = _gActor401000StrangerVariants[0].downFramesBase;
+            work->sidestepAngle  = _gActor401000StrangerVariants[0].sidestepAngle;
+            work->sidestepDelay  = _gActor401000StrangerVariants[0].sidestepDelay;
+            work->noticeRadius   = _gActor401000StrangerVariants[0].noticeRadius;
             break;
         case 1:
-            work->downFramesBase = D_actor_401000_8013E0AC[2].downFramesBase;
-            work->sidestepAngle  = D_actor_401000_8013E0AC[2].sidestepAngle;
-            work->sidestepDelay  = D_actor_401000_8013E0AC[2].sidestepDelay;
-            work->noticeRadius   = D_actor_401000_8013E0AC[2].noticeRadius;
+            work->downFramesBase = _gActor401000StrangerVariants[2].downFramesBase;
+            work->sidestepAngle  = _gActor401000StrangerVariants[2].sidestepAngle;
+            work->sidestepDelay  = _gActor401000StrangerVariants[2].sidestepDelay;
+            work->noticeRadius   = _gActor401000StrangerVariants[2].noticeRadius;
             break;
         case 0:
         default:
-            work->downFramesBase = D_actor_401000_8013E0AC[1].downFramesBase;
-            work->sidestepAngle  = D_actor_401000_8013E0AC[1].sidestepAngle;
-            work->sidestepDelay  = D_actor_401000_8013E0AC[1].sidestepDelay;
-            work->noticeRadius   = D_actor_401000_8013E0AC[1].noticeRadius;
+            work->downFramesBase = _gActor401000StrangerVariants[1].downFramesBase;
+            work->sidestepAngle  = _gActor401000StrangerVariants[1].sidestepAngle;
+            work->sidestepDelay  = _gActor401000StrangerVariants[1].sidestepDelay;
+            work->noticeRadius   = _gActor401000StrangerVariants[1].noticeRadius;
             break;
     }
 
@@ -1381,7 +1393,7 @@ static void _actor401000ClampRootHeight(const GameLocationKey* location, GfxCoor
     s16                     rowIndex;
 
     for (rowIndex = 0; rowIndex < ACTOR_401000_HEIGHT_CLAMP_ACTIVE_ROWS; rowIndex++) {
-        row = &D_actor_401000_80154FD0[rowIndex];
+        row = &_gActor401000HeightClamps[rowIndex];
         if (location->stage == row->stage && location->area == row->area) {
             minY  = row->minY;
             rootY = root->coord.t[1];
@@ -1406,7 +1418,7 @@ static __inline__ s32 _actor401000HasRoomHeightClamp(const GameLocationKey* loca
     s16                     rowIndex;
 
     for (rowIndex = 0; rowIndex < ACTOR_401000_HEIGHT_CLAMP_ACTIVE_ROWS; rowIndex++) {
-        row = &D_actor_401000_80154FD0[rowIndex];
+        row = &_gActor401000HeightClamps[rowIndex];
         if (location->stage == row->stage && location->area == row->area) {
             return 1;
         }
@@ -1700,8 +1712,8 @@ static __inline__ void _oddStrangerTryStartPlayerHold(OddStrangerWork* work)
            ODD_STRANGER_GRAB_PLAYER_HOLD_ANIM = 1,
            ODD_STRANGER_GRAB_HOLD_ACCEPTED    = 0 };
 
-    D_actor_401000_80155038.pressCount = ODD_STRANGER_GRAB_HOLD_PRESS_COUNT;
-    if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_401000_80155038, 0) == ODD_STRANGER_GRAB_HOLD_ACCEPTED) {
+    _gActor401000PlayerHoldRequest.pressCount = ODD_STRANGER_GRAB_HOLD_PRESS_COUNT;
+    if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &_gActor401000PlayerHoldRequest, 0) == ODD_STRANGER_GRAB_HOLD_ACCEPTED) {
         work->state                        = ODD_STRANGER_STATE_GRAB_PULL;
         work->playerHeld                   = 1;
         gOddStrangerPlayerAnim.animationId = ODD_STRANGER_GRAB_PLAYER_HOLD_ANIM;
@@ -1790,9 +1802,9 @@ static void _oddStrangerGrabReach(Task* task)
         playerTurn = _actorAngleTurnToMatrixPosition(task, &playerOffset, gPlayerStatus.coordMtx);
         if (abs(playerTurn) < ODD_STRANGER_GRAB_TURN_LIMIT && !_oddStrangerOutOfRange(&playerOffset, ODD_STRANGER_GRAB_REACH)) {
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ODD_STRANGER_GRAB_PRIMARY_CHARACTER) {
-                gOddStrangerPlayerAnim.source.sets = &D_actor_401000_80154F00[ODD_STRANGER_GRAB_PRIMARY_BANK_OFFSET];
+                gOddStrangerPlayerAnim.source.sets = &_gActor401000PlayerGrabAnimSets[ODD_STRANGER_GRAB_PRIMARY_BANK_OFFSET];
             } else {
-                gOddStrangerPlayerAnim.source.sets = D_actor_401000_80154F00;
+                gOddStrangerPlayerAnim.source.sets = _gActor401000PlayerGrabAnimSets;
             }
             _oddStrangerTryStartPlayerHold(work);
         }
@@ -2185,7 +2197,7 @@ static void _actor401000DeathBurst(Task* task)
     nextTick         = work->stateTimer + 1;
     work->stateTimer = nextTick;
     if ((s16)nextTick == ACTOR_401000_BURST_FIRST_TICK) {
-        D_80114B34[ACTOR_401000_BURST_MODEL_SLOT].data.model = &gOddStrangerBurstModelA;
+        D_80114B34[ACTOR_401000_BURST_MODEL_SLOT].data.model = &_gOddStrangerBurstPart9Model;
         work->effectOffset.vz                                = ACTOR_401000_BURST_OFFSET;
         work->effectOffset.vy                                = 0;
         work->effectOffset.vx                                = 0;
@@ -2198,11 +2210,11 @@ static void _actor401000DeathBurst(Task* task)
         _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + 12, ACTOR_401000_BURST_PART_SIZE, &work->effectOffset), enemy);
     }
     if (work->stateTimer == ACTOR_401000_BURST_BODY_TICK) {
-        D_80114B34[ACTOR_401000_BURST_MODEL_SLOT].data.model = &gOddStrangerBurstModelB;
+        D_80114B34[ACTOR_401000_BURST_MODEL_SLOT].data.model = &_gActor401000BurstPart1Model;
         _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + 1, ACTOR_401000_BURST_PART_SIZE, NULL), enemy);
     }
     if (work->stateTimer == ACTOR_401000_BURST_HEAD_TICK) {
-        D_80114B34[ACTOR_401000_BURST_MODEL_SLOT].data.model = &gOddStrangerBurstModelC;
+        D_80114B34[ACTOR_401000_BURST_MODEL_SLOT].data.model = &_gOddStrangerBurstPart3Model;
         _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + 3, ACTOR_401000_BURST_PART_SIZE, NULL), enemy);
     }
     if (work->stateTimer >= ACTOR_401000_BURST_HIDE_TICK) {
@@ -2286,46 +2298,6 @@ static void _actor401000RefallFront(Task* task)
     }
 }
 
-/// The actor's state handlers, indexed by `OddStrangerWork::state`. Copied to
-/// the frame by `_oddStrangerTick` before the dispatch, so the
-/// handler may overwrite the live table entry.
-static const OddStrangerStateTable gOddStrangerStates = { {
-    _actor401000Hidden,
-    _oddStrangerPlayWalk,
-    _oddStrangerPlayRun,
-    _oddStrangerPlayDown,
-    _oddStrangerStatusHold,
-    _oddStrangerFlinch,
-    _oddStrangerAlert,
-    _actor401000Chase,
-    _oddStrangerCircleDash,
-    _oddStrangerTurnAround,
-    _oddStrangerSidestep,
-    _oddStrangerGrabReach,
-    _oddStrangerGrabPull,
-    _oddStrangerGrabStrike,
-    _oddStrangerGrabRelease,
-    _oddStrangerRiseBack,
-    _actor401000RiseFront,
-    _oddStrangerDown,
-    NULL,
-    _actor401000FallBack,
-    _actor401000FallFront,
-    _oddStrangerDeathBurn,
-    _actor401000Dormant,
-    _oddStrangerDormantScripted,
-    _oddStrangerPatrol,
-    _oddStrangerBackOff,
-    _oddStrangerSlide,
-    _oddStrangerWatch,
-    _actor401000Ambush,
-    _actor401000DeathBurst,
-    _oddStrangerStalk,
-    _actor401000RefallBack,
-    _actor401000RefallFront,
-    _oddStrangerWalkingDeath,
-} };
-
 #include "../../shared/odd_stranger_tick.inc.c"
 
 /// Ignores message 2015 without accessing the receiver or either payload.
@@ -2336,11 +2308,11 @@ static s32 _actor401000IgnoreMessage2015(Task* task, s32 messageId, s32 unusedPa
 {
 }
 
-/// The task's handlers, indexed by `Task::state` in
-/// `_actor401000StrangerTask`: the first allocates and sets up the work
-/// block, the second runs the per-state logic every frame, and the third tears
-/// the enemy down.
-static const EnemyTaskFuncTable3 D_actor_401000_8013207C = { {
+/// Enemy task handlers: state 0 spawns, state 1 ticks, state 2 destroys.
+///
+/// Copied before unchecked dispatch with the live enemy and its owning task;
+/// the table has no terminator and all three callbacks remain loaded.
+static const EnemyTaskFuncTable3 _gActor401000TaskStates = { {
     _actor401000Spawn,
     _oddStrangerTick,
     enemyDestroy,
@@ -2430,6 +2402,6 @@ static void _actor401000StrangerTask(Task* task)
 {
     EnemyTaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_actor_401000_8013207C;
+    stateHandlers = _gActor401000TaskStates;
     stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }

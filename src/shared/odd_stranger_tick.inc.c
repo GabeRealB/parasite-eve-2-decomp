@@ -36,9 +36,84 @@ static inline void _oddStrangerDrawFrameShadow(Task* actor, const OddStrangerWor
 /// dispatched handler's nested workspace.
 static void _oddStrangerTick(Enemy* enemy, Task* actor)
 {
-    VECTOR                    rootPosition;
-    OddStrangerStateTable     states;
-    OddStrangerWork*          work;
+    VECTOR           rootPosition;
+    OddStrangerWork* work = actor->work;
+    // Initialize this carrier's handlers; unused state 18 must never be dispatched.
+#if ODD_STRANGER_VARIANT == 1
+    OddStrangerStateTable states = { {
+        _actor401000Hidden,
+        _oddStrangerPlayWalk,
+        _oddStrangerPlayRun,
+        _oddStrangerPlayDown,
+        _oddStrangerStatusHold,
+        _oddStrangerFlinch,
+        _oddStrangerAlert,
+        _actor401000Chase,
+        _oddStrangerCircleDash,
+        _oddStrangerTurnAround,
+        _oddStrangerSidestep,
+        _oddStrangerGrabReach,
+        _oddStrangerGrabPull,
+        _oddStrangerGrabStrike,
+        _oddStrangerGrabRelease,
+        _oddStrangerRiseBack,
+        _actor401000RiseFront,
+        _oddStrangerDown,
+        NULL,
+        _actor401000FallBack,
+        _actor401000FallFront,
+        _oddStrangerDeathBurn,
+        _actor401000Dormant,
+        _oddStrangerDormantScripted,
+        _oddStrangerPatrol,
+        _oddStrangerBackOff,
+        _oddStrangerSlide,
+        _oddStrangerWatch,
+        _actor401000Ambush,
+        _actor401000DeathBurst,
+        _oddStrangerStalk,
+        _actor401000RefallBack,
+        _actor401000RefallFront,
+        _oddStrangerWalkingDeath,
+    } };
+#else
+    OddStrangerStateTable states = { {
+        _actor401800Hidden,
+        _oddStrangerPlayWalk,
+        _oddStrangerPlayRun,
+        _oddStrangerPlayDown,
+        _oddStrangerStatusHold,
+        _oddStrangerFlinch,
+        _oddStrangerAlert,
+        _actor401800Chase,
+        _oddStrangerCircleDash,
+        _oddStrangerTurnAround,
+        _oddStrangerSidestep,
+        _actor401800Grab,
+        _oddStrangerGrabPull,
+        _oddStrangerGrabStrike,
+        _oddStrangerGrabRelease,
+        _oddStrangerRiseBack,
+        _actor401800RiseFront,
+        _oddStrangerDown,
+        NULL,
+        _actor401800FallBack,
+        _actor401800FallFront,
+        _oddStrangerDeathBurn,
+        _actor401800Dormant,
+        _oddStrangerDormantScripted,
+        _oddStrangerPatrol,
+        _oddStrangerBackOff,
+        _oddStrangerSlide,
+        _oddStrangerWatch,
+        _actor401800Ambush,
+        _actor401800BurstDeath,
+        _oddStrangerStalk,
+        _actor401800RefallBack,
+        _actor401800RefallFront,
+        _oddStrangerWalkingDeath,
+    } };
+#endif
     ActorPartPositionScratch* bodyPosition;
     ActorPartPositionScratch* savedCursor;
     s32                       state;
@@ -47,9 +122,6 @@ static void _oddStrangerTick(Enemy* enemy, Task* actor)
     s32      dispatchState;
     TaskFunc stateHandler;
 #endif
-
-    work   = actor->work;
-    states = gOddStrangerStates;
 
     actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(actor->extra.tmd->coords);

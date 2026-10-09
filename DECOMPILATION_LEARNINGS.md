@@ -109101,7 +109101,7 @@ Transporting the twin's source and then adding the missing statement scored
 loop-with-`goto` shape scored 47.1% with `insert=10 delete=9`.
 
 The neighbouring unmatched `_actor401000ApplyGridPushback` reads the same
-`D_actor_401000_80154FD0` table through `_actor401000HasRoomHeightClamp`.
+`_gActor401000HeightClamps` table through `_actor401000HasRoomHeightClamp`.
 `ActorHeightClamp` (2 x 0x10 rows, `(1, 3, -0x12C, 0)` and
 `(5, 0x1D, 0, 0x12C)`) now lives in `include/actors/actor.h`.
 
@@ -109797,9 +109797,9 @@ each arm. The matched sibling `_actor356100GrabReach` supplies that form:
 
 ```c
 if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
-    gOddStrangerPlayerAnim.source.sets = &D_actor_401000_80154F00[2];
+    gOddStrangerPlayerAnim.source.sets = &_gActor401000PlayerGrabAnimSets[2];
 } else {
-    gOddStrangerPlayerAnim.source.sets = D_actor_401000_80154F00;
+    gOddStrangerPlayerAnim.source.sets = _gActor401000PlayerGrabAnimSets;
 }
 ```
 

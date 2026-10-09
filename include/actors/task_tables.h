@@ -265,7 +265,12 @@ extern TaskDesc gActor402200GolemTaskDesc;
 
 extern TaskDesc D_actor_260400_80154C18[];
 
-extern TaskDesc D_actor_401000_80155004;
+/// Odd Stranger spawn recipe exported by actor_401000 to room resources.
+///
+/// Uses a TMD body at priority 96 and defers primitive-buffer allocation
+/// until the chosen opening state needs drawing. Borrows a live `Enemy` as
+/// spawn argument 2; the actor overlay and its model data must remain loaded.
+extern TaskDesc gActor401000StrangerTaskDesc;
 
 extern TaskDesc D_actor_511000_80155070[];
 

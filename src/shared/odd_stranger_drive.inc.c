@@ -68,7 +68,7 @@ static void _oddStrangerDriveAnimation(Task* task)
                 work->rig.slots[seekIndex].rate = seekWork->animRate;
                 animationId                     = seekWork->animId;
                 animationSeekSlotWithBlend(&seekWork->rig.anim, seekIndex, animationId, 0,
-                                           gOddStrangerTransitions[seekWork->appliedAnim][animationId]);
+                                           _gOddStrangerTransitionFrames[seekWork->appliedAnim][animationId]);
             }
             seekWork->appliedAnim = seekWork->animId;
         }

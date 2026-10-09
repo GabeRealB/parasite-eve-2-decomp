@@ -71,7 +71,7 @@ static void _oddStrangerGrabPull(Task* task)
         // Preserve the player's origin while turning it toward the enemy.
         player->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(player->extra.tmd->coords);
-        playerPlacement         = &gOddStrangerGrabTransform.placement;
+        playerPlacement         = &_gOddStrangerPlayerGrabPlacement.placement;
         playerPlacement->pos.vx = player->extra.tmd->coords->coord.t[0];
         playerPlacement->pos.vy = player->extra.tmd->coords->coord.t[1];
         playerPlacement->pos.vz = player->extra.tmd->coords->coord.t[2];

@@ -22,47 +22,47 @@ static void _oddStrangerSpawnHitEffect(Task* task, s16 hitYaw, s32 attackKey)
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         switch ((s32)(gRandomLcgState >> 16) & 3) {
             case 0:
-                *hitOffset = gOddStrangerHitOffsets[0];
+                *hitOffset = _gOddStrangerHitOffsets[0];
                 break;
             case 1:
-                *hitOffset = gOddStrangerHitOffsets[1];
+                *hitOffset = _gOddStrangerHitOffsets[1];
                 break;
             case 2:
-                *hitOffset = gOddStrangerHitOffsets[2];
+                *hitOffset = _gOddStrangerHitOffsets[2];
                 break;
             case 3:
-                *hitOffset = gOddStrangerHitOffsets[3];
+                *hitOffset = _gOddStrangerHitOffsets[3];
                 break;
             default:
-                *hitOffset = gOddStrangerHitOffsets[4];
+                *hitOffset = _gOddStrangerHitOffsets[4];
                 break;
         }
     } else if (yawMagnitude > 3 * ACTOR_TRANSFORM_ANGLE_TURN / 8) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         switch ((s32)(gRandomLcgState >> 16) & 2) {
             case 0:
-                *hitOffset = gOddStrangerHitOffsets[5];
+                *hitOffset = _gOddStrangerHitOffsets[5];
                 break;
             case 1:
-                *hitOffset = gOddStrangerHitOffsets[6];
+                *hitOffset = _gOddStrangerHitOffsets[6];
                 break;
             default:
-                *hitOffset = gOddStrangerHitOffsets[7];
+                *hitOffset = _gOddStrangerHitOffsets[7];
                 break;
         }
     } else if (hitYaw > 0) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if ((gRandomLcgState >> 16) & 1) {
-            *hitOffset = gOddStrangerHitOffsets[8];
+            *hitOffset = _gOddStrangerHitOffsets[8];
         } else {
-            *hitOffset = gOddStrangerHitOffsets[9];
+            *hitOffset = _gOddStrangerHitOffsets[9];
         }
     } else {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if ((gRandomLcgState >> 16) & 1) {
-            *hitOffset = gOddStrangerHitOffsets[10];
+            *hitOffset = _gOddStrangerHitOffsets[10];
         } else {
-            *hitOffset = gOddStrangerHitOffsets[11];
+            *hitOffset = _gOddStrangerHitOffsets[11];
         }
     }
     // The selected vector names both a local offset and the receiving model part.

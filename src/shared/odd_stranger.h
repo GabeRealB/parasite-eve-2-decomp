@@ -18,25 +18,25 @@
  * ODD_STRANGER_VARIANT before including this header; the differences between
  * the builds follow from it. */
 #if ODD_STRANGER_VARIANT == 1
-#define ODD_STRANGER_HIT_FX_OFFSET     1                        /* the work block keeps the hit effect offset */
-#define ODD_STRANGER_CLIP2_STEP_A      0x11                     /* first footstep cue frame of clip 2 */
-#define ODD_STRANGER_CLIP2_STEP_B      0x1B                     /* second footstep cue frame of clip 2 */
-#define ODD_STRANGER_BODY_RADIUS       0x1AE                    /* body collision sphere radius */
-#define ODD_STRANGER_SWING_RADIUS      0xD7                     /* body sphere radius in the chase and sidestep states */
-#define ODD_STRANGER_BODY2_GRID        1                        /* whether some states enable (1) or disable (0) the second body's grid collision */
-#define ODD_STRANGER_SIGHT_TEST        0                        /* whether turning and chasing test the line of sight */
-#define ODD_STRANGER_WALK_STEP         0xA                      /* forward step while walking */
-#define ODD_STRANGER_PATROL_TURN_CLAMP 0x20                     /* per-frame turn clamp toward the patrol waypoint */
-#define ODD_STRANGER_STALK_RATE        0x24                     /* body slot rate the stalk state starts with */
-#define ODD_STRANGER_STALK_TURN_BIAS   0x300                    /* turn bias of the stalk state */
-#define ODD_STRANGER_STALK_STEP        0x16                     /* forward step of the stalk state */
-#define ODD_STRANGER_HOLD_AIM_CLIP     0x13                     /* clip of the hold-aim state */
-#define ODD_STRANGER_PART1_FX_SCALE    0x100                    /* scale of the effect at part 1 when dormant */
-#define ODD_STRANGER_GRAB_FX_PART      5                        /* model part of the effect at the end of the grab */
-#define ODD_STRANGER_IDLE_JITTER_MASK  0xF                      /* mask on the random idle countdown */
-#define ODD_STRANGER_STAGGER_DAMAGE    0x4C                     /* accumulated damage that forces a stagger */
-#define ODD_STRANGER_DEATH_RELEASE_ARG 2                        /* argument of the 0x3F1 message on death */
-#define ODD_STRANGER_BURST_MODEL_5     &gOddStrangerBurstModelB /* model of the frame-5 burst of the walking death */
+#define ODD_STRANGER_HIT_FX_OFFSET     1                             /* the work block keeps the hit effect offset */
+#define ODD_STRANGER_CLIP2_STEP_A      0x11                          /* first footstep cue frame of clip 2 */
+#define ODD_STRANGER_CLIP2_STEP_B      0x1B                          /* second footstep cue frame of clip 2 */
+#define ODD_STRANGER_BODY_RADIUS       0x1AE                         /* body collision sphere radius */
+#define ODD_STRANGER_SWING_RADIUS      0xD7                          /* body sphere radius in the chase and sidestep states */
+#define ODD_STRANGER_BODY2_GRID        1                             /* whether some states enable (1) or disable (0) the second body's grid collision */
+#define ODD_STRANGER_SIGHT_TEST        0                             /* whether turning and chasing test the line of sight */
+#define ODD_STRANGER_WALK_STEP         0xA                           /* forward step while walking */
+#define ODD_STRANGER_PATROL_TURN_CLAMP 0x20                          /* per-frame turn clamp toward the patrol waypoint */
+#define ODD_STRANGER_STALK_RATE        0x24                          /* body slot rate the stalk state starts with */
+#define ODD_STRANGER_STALK_TURN_BIAS   0x300                         /* turn bias of the stalk state */
+#define ODD_STRANGER_STALK_STEP        0x16                          /* forward step of the stalk state */
+#define ODD_STRANGER_HOLD_AIM_CLIP     0x13                          /* clip of the hold-aim state */
+#define ODD_STRANGER_PART1_FX_SCALE    0x100                         /* scale of the effect at part 1 when dormant */
+#define ODD_STRANGER_GRAB_FX_PART      5                             /* model part of the effect at the end of the grab */
+#define ODD_STRANGER_IDLE_JITTER_MASK  0xF                           /* mask on the random idle countdown */
+#define ODD_STRANGER_STAGGER_DAMAGE    0x4C                          /* accumulated damage that forces a stagger */
+#define ODD_STRANGER_DEATH_RELEASE_ARG 2                             /* argument of the 0x3F1 message on death */
+#define ODD_STRANGER_BURST_MODEL_5     &_gActor401000BurstPart1Model /* model of the frame-5 burst of the walking death */
 #elif ODD_STRANGER_VARIANT == 2
 #define ODD_STRANGER_HIT_FX_OFFSET     0
 #define ODD_STRANGER_CLIP2_STEP_A      0x10
@@ -56,7 +56,7 @@
 #define ODD_STRANGER_IDLE_JITTER_MASK  7
 #define ODD_STRANGER_STAGGER_DAMAGE    0x38
 #define ODD_STRANGER_DEATH_RELEASE_ARG 0
-#define ODD_STRANGER_BURST_MODEL_5     &gOddStrangerBurstModelA
+#define ODD_STRANGER_BURST_MODEL_5     &_gOddStrangerBurstPart9Model
 #else
 #error "ODD_STRANGER_VARIANT must be 1 or 2"
 #endif
@@ -154,6 +154,12 @@ enum {
     ODD_STRANGER_ANIM_SCRIPT_2          = 36,
     ODD_STRANGER_ANIM_SCRIPT_3          = 37,
     ODD_STRANGER_ANIM_SCRIPT_4          = 39
+};
+
+/// Stored clip-bank capacity and the independent crossfade index domain.
+enum {
+    ODD_STRANGER_ANIM_SET_CAPACITY     = 46,
+    ODD_STRANGER_TRANSITION_ANIM_COUNT = 45
 };
 
 /// The model root is placed separately; secondary rotation mixing covers parts 1..10.
@@ -276,9 +282,8 @@ STATIC_ASSERT_SIZEOF(OddStrangerWork, ODD_STRANGER_HIT_FX_OFFSET ? 0xC80 : 0xC78
 
 /// The Odd Stranger's state handlers, indexed by `OddStrangerWork::state`.
 ///
-/// Each package defines one table, since some of the handlers are its own. The
-/// per-frame tick copies the table to the stack before calling the entry of
-/// the current state. The call is unconditional, so the `NULL` entry of
+/// Each package's tick initializes a stack table with its own handlers before
+/// calling the current state's entry. The call is unconditional, so the `NULL` entry of
 /// `ODD_STRANGER_STATE_UNUSED_12` marks a state the actor must never be put in.
 typedef struct {
     TaskFunc handlers[ODD_STRANGER_STATE_COUNT]; // Handler of each state, taking the actor's task

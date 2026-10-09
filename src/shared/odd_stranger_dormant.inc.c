@@ -20,11 +20,11 @@ static void _oddStrangerDormantScripted(Task* task)
     work  = task->work;
     enemy = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        model                                                    = task->extra.tmd;
-        gOddStrangerAnimSets[ODD_STRANGER_ANIM_DORMANT_SCRIPTED] = &gOddStrangerDormantAnimSet;
-        work->animId                                             = ODD_STRANGER_ANIM_DORMANT_SCRIPTED;
-        work->animRequest                                        = ODD_STRANGER_ANIM_REQUEST_RESET;
-        model->flags                                             = 0;
+        model                                                     = task->extra.tmd;
+        _gOddStrangerAnimSets[ODD_STRANGER_ANIM_DORMANT_SCRIPTED] = &_gOddStrangerScriptedDormantAnimSet;
+        work->animId                                              = ODD_STRANGER_ANIM_DORMANT_SCRIPTED;
+        work->animRequest                                         = ODD_STRANGER_ANIM_REQUEST_RESET;
+        model->flags                                              = 0;
         tmdAllocPrimitiveBuffer(model);
         work->hitBody.radius          = ODD_STRANGER_BODY_RADIUS;
         work->attackBody.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
