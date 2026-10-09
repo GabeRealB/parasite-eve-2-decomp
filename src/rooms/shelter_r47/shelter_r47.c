@@ -544,8 +544,6 @@ u8 D_shelter_r47_801873FC[8] = {
     0,
 };
 
-static const char Telephone_Data_8017D638[];
-
 #include "../../shared/telephone.inc.c"
 
 void shelterR47TelephoneMenuTask(Task* task)

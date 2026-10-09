@@ -79,9 +79,6 @@ static u8 Telephone_Data_80181A68[];
 /// The suffix appended to the statistics rows that count events.
 static u8 Telephone_Data_80181A70[];
 
-/// The "%" suffix appended to a formatted percentage.
-static u8 Telephone_Data_80181A78[];
-
 /// Help lines shown for the selected statistics row, one per row index.
 static u8 Telephone_Data_80181A7C[];
 static u8 Telephone_Data_80181AA8[];
@@ -142,9 +139,6 @@ TaskMessageEntry D_dryfield_gas_station_80181E54[5] = {
     { ROOM_MESSAGE_SOUND, _gasStationCueSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
-
-/// Telephone menu title, including retained bytes after its terminator.
-static const char Telephone_Data_8017D638[];
 
 static void _dryfieldGasStationInitRoomTask(Task* task);
 static void _dryfieldGasStationIdleRoomTask(Task* unusedTask);

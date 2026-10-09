@@ -67,9 +67,6 @@ static void _roomCutsceneTask(Task* task);
 
 static void _roomCutsceneSoundTask(Task* task);
 
-/// The "%" suffix appended to a formatted percentage.
-static u8 Telephone_Data_80181A78[];
-
 /// UI descriptor of the help-line box the "Play Data" panels open beside their
 /// lists.
 static UiObjectDesc Telephone_Data_80181C90;

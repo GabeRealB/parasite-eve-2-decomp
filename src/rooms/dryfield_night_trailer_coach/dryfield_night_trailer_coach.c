@@ -67,9 +67,6 @@ static void _trailerCoachSetDepthShift(Task* unusedTask);
 
 static void _roomCutsceneSoundTask(Task* task);
 
-/// The "%" suffix the room's percentage formatters append.
-static u8 Telephone_Data_80181A78[];
-
 /// The item id the shop list's cursor last rested on.
 static s32 Shop_Data_801819EC;
 
@@ -798,8 +795,6 @@ static u8 Telephone_Data_80181B9C[];
 static u8 Telephone_Data_80181BD0[];
 
 static u8 Telephone_Data_80181C08[];
-
-static const char Telephone_Data_8017D638[];
 
 extern UiObjectDesc D_800611E4;
 

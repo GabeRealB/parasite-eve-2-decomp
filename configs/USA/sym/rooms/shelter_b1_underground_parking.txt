@@ -1,5 +1,5 @@
 // Overlay-local symbols for shelter_b1_underground_parking.
-Telephone_Data_8017D638 = 0x8017D638; // force_not_migration:True string with non-zero bytes after its terminator, read from C
+_gTelephoneMenuTitle = 0x8017D638; // force_not_migration:True string with non-zero bytes after its terminator, read from C
 Shop_Data_8017D6F4 = 0x8017D774; // force_not_migration:True string with a non-zero byte after its terminator, read from C
 Shop_Data_801815F8 = 0x80186BBC; // size:0x8 defined:True
 Shop_Data_80181600 = 0x80186BC4; // size:0x8 defined:True
@@ -97,7 +97,7 @@ Telephone_Data_80181A58 = 0x801868FC; // size:0x8 defined:True
 Telephone_Data_80181A60 = 0x80186904; // size:0x8 defined:True
 Telephone_Data_80181A68 = 0x8018690C; // size:0x8 defined:True
 Telephone_Data_80181A70 = 0x80186914; // size:0x8 defined:True
-Telephone_Data_80181A78 = 0x8018691C; // size:0x4 defined:True
+_gTelephonePercentSuffix = 0x8018691C; // size:0x4 defined:True
 Telephone_Data_80181A7C = 0x80186920; // size:0x2C defined:True
 Telephone_Data_80181AA8 = 0x8018694C; // size:0x24 defined:True
 Telephone_Data_80181ACC = 0x80186970; // size:0x30 defined:True

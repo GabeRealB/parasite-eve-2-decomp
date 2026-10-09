@@ -71,7 +71,7 @@ static u8* _telephoneFormatPercentage(u8* buffer, s32 scaledPercent, s32 fractio
         TELEPHONE_SHIFT_DECIMAL_DIGITS(digitEnd, digitCount, shiftBytes, digitCount);
     }
 
-    textAppendString(buffer, Telephone_Data_80181A78);
+    textAppendString(buffer, _gTelephonePercentSuffix);
     return buffer;
 }
 

@@ -118,9 +118,6 @@ static u8 Telephone_Data_80181A68[];
 /// The " times" suffix appended to the statistics rows that count events.
 static u8 Telephone_Data_80181A70[];
 
-/// The "%" suffix appended to a formatted percentage.
-static u8 Telephone_Data_80181A78[];
-
 /// Help lines shown for the selected statistics row, one per row index.
 static u8 Telephone_Data_80181A7C[];
 static u8 Telephone_Data_80181AA8[];

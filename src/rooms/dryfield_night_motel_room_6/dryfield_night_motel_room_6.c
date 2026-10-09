@@ -115,9 +115,6 @@ static u8 Telephone_Data_80181A68[];
 /// The suffix appended to that panel's count rows.
 static u8 Telephone_Data_80181A70[];
 
-/// The "%" suffix appended to the percentages the play-data panels print.
-static u8 Telephone_Data_80181A78[];
-
 /// Help texts of the statistics panel's nine rows, handed to the UI holder for
 /// the selected row.
 static u8 Telephone_Data_80181A7C[];
@@ -872,9 +869,6 @@ AreaApplyRec D_dryfield_night_motel_room_6_801862B0[1] = {
 Task* gRoomCutsceneSoundTask = NULL;
 
 RoomCutsceneRec gMotelRoom6CutsceneRec;
-
-/// Telephone menu title, including retained bytes after its terminator.
-static const char Telephone_Data_8017D638[];
 
 #include "../../shared/telephone.inc.c"
 

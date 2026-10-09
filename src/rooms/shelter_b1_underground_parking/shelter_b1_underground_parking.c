@@ -208,9 +208,6 @@ extern RoomDeparture gRoomDeparture;
 /// is the scene's sub-task.
 extern TaskDesc gRoomCutsceneTaskDescs[];
 
-/// The "%" suffix appended to the play-data percentages.
-static u8 Telephone_Data_80181A78[];
-
 /// Descriptor of the play-data panels' shared frame.
 static UiObjectDesc Telephone_Data_80181C90;
 
@@ -253,10 +250,8 @@ static u8 Telephone_Data_80181A70[];
 /// The list the weapon and PE usage panels fill.
 static UiList Telephone_Data_80181C6C;
 
-/// Title and list of the menu `shelterB1UndergroundParkingTelephoneMenuTask`
-/// runs.
-static const char Telephone_Data_8017D638[];
-static UiList     Telephone_Data_80181CF4;
+/// List of the telephone menu.
+static UiList Telephone_Data_80181CF4;
 
 /// List of the menu `func_shelter_b1_underground_parking_8017F2A0` runs.
 static UiList Telephone_Data_80181C44;

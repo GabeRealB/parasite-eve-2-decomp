@@ -64,9 +64,6 @@ static void _roomCutsceneSoundTask(Task* task);
 /// Task descriptor tables the room spawns its tasks from.
 extern TaskDesc gRoomCutsceneTaskDescs[];
 
-/// The "%" suffix appended to the play-data percentages.
-static u8 Telephone_Data_80181A78[];
-
 /// The item id the shop list's cursor last rested on.
 static s32 Shop_Data_801819EC;
 
@@ -915,9 +912,6 @@ static u8 Telephone_Data_80181B9C[];
 static u8 Telephone_Data_80181BD0[];
 
 static u8 Telephone_Data_80181C08[];
-
-/// Telephone menu title, including retained bytes after its terminator.
-static const char Telephone_Data_8017D638[];
 
 /// Lists of the usage panel and of the play-data menu, and the descriptor of
 /// the frame the usage panel spawns.

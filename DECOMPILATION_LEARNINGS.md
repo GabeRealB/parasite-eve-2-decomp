@@ -78392,8 +78392,8 @@ shaft drawer — `Room_Draw37` and its per-room twins — takes `&D_<room>_<addr
 an `SVECTOR*` and reads exactly 8 bytes of it (`gte_ldv0`), while splat's
 `dlabel` for that address spans 0x98: the vertex is the first field of a larger
 room record that no interior reference lets the splitter name, so the extent is
-the chunk map's, not the code's. Declare it `extern SVECTOR D_<room>_<addr>;` as
-`D_dryfield_gas_station_80183144` and `D_dryfield_trailer_coach_801871C4` are —
+the chunk map's, not the code's. Declare the point as an `SVECTOR`, as at
+`D_dryfield_gas_station_80183144` and `_gDryfieldTrailerCoachGlowLocalPoint` —
 the type is used for nothing but its address, so the `dlabel` size is not
 evidence about it in either direction.
 

@@ -61,9 +61,6 @@ static u8 Telephone_Data_80181A68[];
 /// The " times" suffix appended to that panel's count rows.
 static u8 Telephone_Data_80181A70[];
 
-/// The "%" suffix appended to the percentages the play-data panels print.
-static u8 Telephone_Data_80181A78[];
-
 /// Help texts of the panel's nine rows, handed to the UI holder for the
 /// selected row.
 static u8 Telephone_Data_80181A7C[];
@@ -89,8 +86,6 @@ static UiObjectDesc Telephone_Data_80181C90;
 /// UI descriptors the "Play Data" entry and the two usage entries open.
 static UiObjectDesc Telephone_Data_80181CAC;
 static UiObjectDesc Telephone_Data_80181CC8;
-
-static const char Telephone_Data_8017D638[];
 
 /// The telephone menu's entry list.
 static UiList Telephone_Data_80181CF4;

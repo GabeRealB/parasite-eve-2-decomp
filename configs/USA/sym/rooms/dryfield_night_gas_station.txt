@@ -1,5 +1,5 @@
 // Overlay-local symbols for dryfield_night_gas_station.
-Telephone_Data_8017D638 = 0x8017D638; // force_not_migration:True string with non-zero bytes after its terminator, read from C
+_gTelephoneMenuTitle = 0x8017D638; // force_not_migration:True string with non-zero bytes after its terminator, read from C
 D_dryfield_night_gas_station_80188580 = 0x80188580; // size:0x320 defined:True
 D_dryfield_night_gas_station_801888A0 = 0x801888A0; // size:0x30 defined:True
 D_dryfield_night_gas_station_801888D0 = 0x801888D0; // size:0x18 defined:True
@@ -237,7 +237,7 @@ Telephone_Data_80181A58 = 0x80183D74; // size:0x8 defined:True
 Telephone_Data_80181A60 = 0x80183D7C; // size:0x8 defined:True
 Telephone_Data_80181A68 = 0x80183D84; // size:0x8 defined:True
 Telephone_Data_80181A70 = 0x80183D8C; // size:0x8 defined:True
-Telephone_Data_80181A78 = 0x80183D94; // size:0x4 defined:True
+_gTelephonePercentSuffix = 0x80183D94; // size:0x4 defined:True
 Telephone_Data_80181A7C = 0x80183D98; // size:0x2C defined:True
 Telephone_Data_80181AA8 = 0x80183DC4; // size:0x24 defined:True
 Telephone_Data_80181ACC = 0x80183DE8; // size:0x30 defined:True

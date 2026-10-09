@@ -226,7 +226,7 @@ static void _telephoneDrawPlayDataRow(UiList* list, UiObject* object)
             digitEnd   = formatBuffer;
             digitCount = 0;
             TELEPHONE_SHIFT_DECIMAL_DIGITS(digitEnd, digitCount, shiftBytes, shiftIndex);
-            textAppendString(formatBuffer, Telephone_Data_80181A78);
+            textAppendString(formatBuffer, _gTelephonePercentSuffix);
             textDrawUiLine(object, -list->rowTextX.signedValue, list->rowTextY.signedValue, valueText, list->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
         }
@@ -259,7 +259,7 @@ static void _telephoneDrawPlayDataRow(UiList* list, UiObject* object)
             digitEnd   = formatBuffer;
             digitCount = 0;
             TELEPHONE_SHIFT_DECIMAL_DIGITS(digitEnd, digitCount, shiftBytes, shiftIndex);
-            textAppendString(formatBuffer, Telephone_Data_80181A78);
+            textAppendString(formatBuffer, _gTelephonePercentSuffix);
             textDrawUiLine(object, -list->rowTextX.signedValue, list->rowTextY.signedValue, valueText, list->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             uiDrawHorizontalSeparator(&(object)->panel, object->panel.contentLeft.signedValue, object->panel.contentRight.signedValue, list->rowTextY.signedValue + 3);
             list->rowTextY.signedValue = list->rowTextY.unsignedValue + 5;
@@ -327,7 +327,7 @@ static inline void _telephoneFormatUsageShare(u8* formatBuffer, s32 usageShare)
     digitEnd   = formatBuffer;
     digitCount = 0;
     TELEPHONE_SHIFT_DECIMAL_DIGITS(digitEnd, digitCount, shiftBytes, digitCount);
-    textAppendString(formatBuffer, Telephone_Data_80181A78);
+    textAppendString(formatBuffer, _gTelephonePercentSuffix);
 }
 
 /// Queues the usage gauge's opaque red horizontal gradient.
@@ -712,7 +712,11 @@ static void _telephoneUsageTask(Task* task)
     }
 }
 
-static const char Telephone_Data_8017D638[12] = TELEPHONE_TITLE_BYTES;
+/// NUL-terminated title of the telephone save and statistics menu.
+///
+/// `TELEPHONE_TITLE_BYTES` supplies twelve bytes: "Telephone", its terminator
+/// and two retained carrier-specific bytes that panel-label drawing does not read.
+static const char _gTelephoneMenuTitle[12] = TELEPHONE_TITLE_BYTES;
 
 /// Updates the telephone menu and routes save and statistics dismissal.
 ///
@@ -762,7 +766,7 @@ static inline void _telephoneMenuTask(Task* task)
         Wip_UiHolder = NULL;
         task->state  = task->state + 1;
     } else {
-        uiDrawPanelLabel(&(object)->panel, Telephone_Data_8017D638);
+        uiDrawPanelLabel(&(object)->panel, _gTelephoneMenuTitle);
         uiUpdateList(list, &object->panel);
     }
     if (object->result == USER_INTERFACE_RESULT_CONFIRM) {

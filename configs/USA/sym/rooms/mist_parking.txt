@@ -1,6 +1,6 @@
 // Overlay-local symbols for mist_parking.
 Shop_Data_8017D6F4 = 0x8017D6F4; // force_not_migration:True string with a non-zero byte after its terminator, read from C
-Telephone_Data_8017D638 = 0x8017D770; // force_not_migration:True string with non-zero bytes after its terminator, read from C
+_gTelephoneMenuTitle = 0x8017D770; // force_not_migration:True string with non-zero bytes after its terminator, read from C
 Shop_Data_801815F8 = 0x80186058; // size:0x8 defined:True
 Shop_Data_80181600 = 0x80186060; // size:0x8 defined:True
 Shop_Data_80181608 = 0x80186068; // size:0x8 defined:True
@@ -207,7 +207,7 @@ Telephone_Data_80181A58 = 0x801866F8; // size:0x8 defined:True
 Telephone_Data_80181A60 = 0x80186700; // size:0x8 defined:True
 Telephone_Data_80181A68 = 0x80186708; // size:0x8 defined:True
 Telephone_Data_80181A70 = 0x80186710; // size:0x8 defined:True
-Telephone_Data_80181A78 = 0x80186718; // size:0x4 defined:True
+_gTelephonePercentSuffix = 0x80186718; // size:0x4 defined:True
 Telephone_Data_80181A7C = 0x8018671C; // size:0x2C defined:True
 Telephone_Data_80181AA8 = 0x80186748; // size:0x24 defined:True
 Telephone_Data_80181ACC = 0x8018676C; // size:0x30 defined:True

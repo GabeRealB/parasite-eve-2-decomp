@@ -181,12 +181,11 @@ static u8 Telephone_Data_80181A70[8] = {
     0,
 };
 
-static u8 Telephone_Data_80181A78[4] = {
-    37,
-    0,
-    0,
-    0,
-};
+/// NUL-terminated percent sign appended to telephone statistics.
+///
+/// The four-byte allocation retains two more zero bytes after the terminator.
+/// Formatters borrow the suffix without modifying it.
+static const u8 _gTelephonePercentSuffix[4] SECTION(".data") = "%";
 
 static u8 Telephone_Data_80181A7C[44] = {
     84,

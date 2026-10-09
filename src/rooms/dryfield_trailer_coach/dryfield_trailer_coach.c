@@ -87,9 +87,6 @@ static void _trailerCoachSetDepthShift(Task* unusedTask);
 
 static void _roomCutsceneSoundTask(Task* task);
 
-/// The "%" suffix the room's percentage formatters append.
-static u8 Telephone_Data_80181A78[];
-
 /// The item id the shop list's cursor last rested on.
 static s32 Shop_Data_801819EC;
 
@@ -188,53 +185,52 @@ enum { DRYFIELD_TRAILER_COACH_FIRST_CONVERSATION_COMPLETE  = 2,
 /// Inventory request to use a key item in this room.
 enum { DRYFIELD_TRAILER_COACH_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
-extern AnimationPlayRequest       D_dryfield_trailer_coach_80185038;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_8018504C;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_80185060;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_80185088;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_8018509C;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_801850B0;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_801850C4;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_801850EC;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_80185100;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_80185114;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_80185128;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_8018513C;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_80185150;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_80185178;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_801851B0;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_801851EC;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_80185200;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_80185214;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_80185228;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_8018523C;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_80185250;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_80185264;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_801852A0;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_801852B4;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_801852C8;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_801852DC;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_801852F0;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_80185304;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_80185318;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_8018532C;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_80185340;
-extern AnimationPlayRequest       D_dryfield_trailer_coach_80185354;
-static AnimationSet               _gDryfieldTrailerCoachAnimation07668;
-static AnimationSet               _gDryfieldTrailerCoachAnimation07994;
-extern ActorCommand               D_dryfield_trailer_coach_8018518C;
-extern ActorCommand               D_dryfield_trailer_coach_80185190;
-extern ActorCommand               D_dryfield_trailer_coach_80185194;
-extern ActorCommand               D_dryfield_trailer_coach_80185198;
-extern WorldCollisionGrid         D_dryfield_trailer_coach_801876B4[1];
-extern WorldCollisionTrigger      D_dryfield_trailer_coach_80189254[4];
-extern WorldCollisionTrigger      D_dryfield_trailer_coach_80189384[12];
-extern WorldCoordRoomAmbientEntry D_dryfield_trailer_coach_80189BAC[12];
-extern WorldCoordRoomLights       D_dryfield_trailer_coach_80189B94[1];
-extern ActorTransform             D_dryfield_trailer_coach_80184FD8;
-extern ActorTransform             D_dryfield_trailer_coach_80184FF0;
-extern ActorTransform             D_dryfield_trailer_coach_80185008;
-static void                       _dryfieldTrailerCoachStartConversationCaption(void);
+extern AnimationPlayRequest             D_dryfield_trailer_coach_8018504C;
+extern AnimationPlayRequest             D_dryfield_trailer_coach_80185060;
+extern AnimationPlayRequest             D_dryfield_trailer_coach_80185088;
+extern AnimationPlayRequest             D_dryfield_trailer_coach_8018509C;
+extern AnimationPlayRequest             D_dryfield_trailer_coach_801850B0;
+extern AnimationPlayRequest             D_dryfield_trailer_coach_801850C4;
+extern AnimationPlayRequest             D_dryfield_trailer_coach_801850EC;
+extern AnimationPlayRequest             D_dryfield_trailer_coach_80185100;
+extern AnimationPlayRequest             D_dryfield_trailer_coach_80185114;
+extern AnimationPlayRequest             D_dryfield_trailer_coach_80185128;
+extern AnimationPlayRequest             D_dryfield_trailer_coach_8018513C;
+extern AnimationPlayRequest             D_dryfield_trailer_coach_80185150;
+extern AnimationPlayRequest             D_dryfield_trailer_coach_80185178;
+extern AnimationPlayRequest             D_dryfield_trailer_coach_801851B0;
+extern AnimationPlayRequest             D_dryfield_trailer_coach_801851EC;
+extern AnimationPlayRequest             D_dryfield_trailer_coach_80185200;
+extern AnimationPlayRequest             D_dryfield_trailer_coach_80185214;
+extern AnimationPlayRequest             D_dryfield_trailer_coach_80185228;
+extern AnimationPlayRequest             D_dryfield_trailer_coach_8018523C;
+extern AnimationPlayRequest             D_dryfield_trailer_coach_80185250;
+extern AnimationPlayRequest             D_dryfield_trailer_coach_80185264;
+extern AnimationPlayRequest             D_dryfield_trailer_coach_801852A0;
+extern AnimationPlayRequest             D_dryfield_trailer_coach_801852B4;
+extern AnimationPlayRequest             D_dryfield_trailer_coach_801852C8;
+extern AnimationPlayRequest             D_dryfield_trailer_coach_801852DC;
+extern AnimationPlayRequest             D_dryfield_trailer_coach_801852F0;
+extern AnimationPlayRequest             D_dryfield_trailer_coach_80185304;
+extern AnimationPlayRequest             D_dryfield_trailer_coach_80185318;
+extern AnimationPlayRequest             D_dryfield_trailer_coach_8018532C;
+extern AnimationPlayRequest             D_dryfield_trailer_coach_80185340;
+extern AnimationPlayRequest             D_dryfield_trailer_coach_80185354;
+static AnimationSet                     _gDryfieldTrailerCoachAnimation07668;
+static AnimationSet                     _gDryfieldTrailerCoachAnimation07994;
+extern ActorCommand                     D_dryfield_trailer_coach_8018518C;
+extern ActorCommand                     D_dryfield_trailer_coach_80185190;
+extern ActorCommand                     D_dryfield_trailer_coach_80185194;
+extern ActorCommand                     D_dryfield_trailer_coach_80185198;
+extern WorldCollisionGrid               D_dryfield_trailer_coach_801876B4[1];
+extern WorldCollisionTrigger            D_dryfield_trailer_coach_80189254[4];
+extern WorldCollisionTrigger            D_dryfield_trailer_coach_80189384[12];
+static const WorldCoordRoomAmbientEntry _gDryfieldTrailerCoachAmbientByView[DRYFIELD_TRAILER_COACH_VIEW_COUNT + 1];
+static WorldCoordRoomLights             _gDryfieldTrailerCoachLights;
+extern ActorTransform                   D_dryfield_trailer_coach_80184FD8;
+extern ActorTransform                   D_dryfield_trailer_coach_80184FF0;
+extern ActorTransform                   D_dryfield_trailer_coach_80185008;
+static void                             _dryfieldTrailerCoachStartConversationCaption(void);
 
 #include "../../shared/shop_data.inc.c"
 
@@ -347,7 +343,19 @@ ActorTransform D_dryfield_trailer_coach_80185008 = { { 4870, 0, -900, 0 }, { 0, 
 // Retained parameter record; layout follows the adjacent script arguments.
 ActorTransform D_dryfield_trailer_coach_80185020 = { { 4400, 128, -2400, 0 }, { 0, 512, 0, 0 } };
 
-AnimationPlayRequest D_dryfield_trailer_coach_80185038 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+enum { DRYFIELD_TRAILER_COACH_PLAYER_RESET_CLIP = 1 };
+
+/// Resets player clip 1 in the equipped weapon bank and restores grid participation.
+///
+/// Event scripts borrow this template and resolve the bank in a local copy;
+/// the stored source index is overwritten, and reset ignores blendFrames.
+static const AnimationPlayRequest _gDryfieldTrailerCoachPlayerClip1ResetRequest SECTION(".data") = {
+    .source               = { .index = 1 },
+    .animationId          = DRYFIELD_TRAILER_COACH_PLAYER_RESET_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 AnimationPlayRequest D_dryfield_trailer_coach_8018504C = { { .index = 6 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -479,7 +487,7 @@ u8 D_dryfield_trailer_coach_801853D8[] = "\x91\xBC\x82\xC9\x89\xBD\x82\xA9\x81\x
 u8* D_dryfield_trailer_coach_801853E4[4] = { D_dryfield_trailer_coach_801853B4, D_dryfield_trailer_coach_801853C4, D_dryfield_trailer_coach_801853B4, D_dryfield_trailer_coach_801853D8 };
 
 EvsCommand D_dryfield_trailer_coach_801853F4[58] = {
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_trailer_coach_80185038 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldTrailerCoachPlayerClip1ResetRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_trailer_coach_8018504C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_trailer_coach_801853AC } }, { .value = 0 } },
@@ -487,7 +495,7 @@ EvsCommand D_dryfield_trailer_coach_801853F4[58] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_trailer_coach_80185038 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldTrailerCoachPlayerClip1ResetRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_trailer_coach_8018504C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -531,7 +539,7 @@ EvsCommand D_dryfield_trailer_coach_801853F4[58] = {
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_trailer_coach_80185008 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_trailer_coach_80185038 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldTrailerCoachPlayerClip1ResetRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -543,7 +551,7 @@ EvsCommand D_dryfield_trailer_coach_80185964[17] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_trailer_coach_80185008 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_trailer_coach_80185038 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldTrailerCoachPlayerClip1ResetRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_trailer_coach_80185200 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -562,7 +570,7 @@ EvsCommand D_dryfield_trailer_coach_80185964[17] = {
 EvsCommand D_dryfield_trailer_coach_80185AFC[14] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4004 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_trailer_coach_80185038 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldTrailerCoachPlayerClip1ResetRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_trailer_coach_80185214 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 21 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_trailer_coach_80185228 } }, { .value = 0 } },
@@ -578,7 +586,7 @@ EvsCommand D_dryfield_trailer_coach_80185AFC[14] = {
 
 EvsCommand D_dryfield_trailer_coach_80185C4C[11] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_trailer_coach_80185038 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldTrailerCoachPlayerClip1ResetRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackResult = shopOpenSession }, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_trailer_coach_80185250 } }, { .value = 0 } },
@@ -680,7 +688,7 @@ EvsCommand D_dryfield_trailer_coach_80185D54[98] = {
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_trailer_coach_80185008 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_trailer_coach_80185038 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldTrailerCoachPlayerClip1ResetRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_trailer_coach_801851EC } }, { .value = 0 } },
@@ -695,7 +703,7 @@ EvsCommand D_dryfield_trailer_coach_80186684[17] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_trailer_coach_80185008 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_trailer_coach_80185038 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldTrailerCoachPlayerClip1ResetRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_trailer_coach_80185200 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -714,7 +722,7 @@ EvsCommand D_dryfield_trailer_coach_80186684[17] = {
 EvsCommand D_dryfield_trailer_coach_8018681C[25] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 6 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_trailer_coach_801853AC } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_trailer_coach_80185038 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldTrailerCoachPlayerClip1ResetRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_trailer_coach_8018504C }, { .value = 0 } },
@@ -744,7 +752,7 @@ EvsCommand D_dryfield_trailer_coach_80186A74[15] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_trailer_coach_80185200 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_trailer_coach_80185038 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldTrailerCoachPlayerClip1ResetRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -760,7 +768,7 @@ EvsCommand D_dryfield_trailer_coach_80186A74[15] = {
 EvsCommand D_dryfield_trailer_coach_80186BDC[14] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 7 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_trailer_coach_801853AC } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_trailer_coach_80185038 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldTrailerCoachPlayerClip1ResetRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_trailer_coach_801852A0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_trailer_coach_8018532C } }, { .value = 0 } },
@@ -777,7 +785,7 @@ EvsCommand D_dryfield_trailer_coach_80186BDC[14] = {
 EvsCommand D_dryfield_trailer_coach_80186D2C[35] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 27 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_trailer_coach_801853AC } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_trailer_coach_80185038 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldTrailerCoachPlayerClip1ResetRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_trailer_coach_801852A0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_trailer_coach_8018532C } }, { .value = 0 } },
@@ -815,7 +823,7 @@ EvsCommand D_dryfield_trailer_coach_80186D2C[35] = {
 EvsCommand D_dryfield_trailer_coach_80187074[14] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 28 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_trailer_coach_801853AC } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_trailer_coach_80185038 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldTrailerCoachPlayerClip1ResetRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_trailer_coach_801852A0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_trailer_coach_8018532C } }, { .value = 0 } },
@@ -829,21 +837,25 @@ EvsCommand D_dryfield_trailer_coach_80187074[14] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-SVECTOR D_dryfield_trailer_coach_801871C4 = { 163, -1532, -766, 0 };
+/// Local-space centre shared by the trailer coach's projected glows.
+///
+/// XYZ use signed game-coordinate units in the effect body's frame. Both glow
+/// drawers borrow this point without changing it; the fourth halfword is zero.
+static const SVECTOR _gDryfieldTrailerCoachGlowLocalPoint SECTION(".data") = { 163, -1532, -766, 0 };
 
 WorldCollisionRoomResources D_dryfield_trailer_coach_801871CC[1] = {
     { D_dryfield_trailer_coach_801876B4, D_dryfield_trailer_coach_80189254, D_dryfield_trailer_coach_80189384, NULL },
 };
 
-WorldCoordRoomLighting D_dryfield_trailer_coach_801871DC[1] = {
-    { D_dryfield_trailer_coach_80189B94, D_dryfield_trailer_coach_80189BAC },
+WorldCoordRoomLighting gDryfieldTrailerCoachRoomLighting[1] = {
+    { &_gDryfieldTrailerCoachLights, _gDryfieldTrailerCoachAmbientByView },
 };
 
-u8* D_dryfield_trailer_coach_801871E4[1] = {
+u8* gDryfieldTrailerCoachViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_dryfield_trailer_coach_801871E8[1] = { 11 };
+ViewCount gDryfieldTrailerCoachViewCounts[1] = { DRYFIELD_TRAILER_COACH_VIEW_COUNT };
 
 DirectionWarpEntry D_dryfield_trailer_coach_801871EC[2] = {
     { { { .word = 2048 }, 1579, 0, -800 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 1579, 0, -800 }, { 0, 0, 0, 0 }, 0x521B0002, 0x521B0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 471 },
@@ -897,12 +909,12 @@ AreaVariant D_dryfield_trailer_coach_801876F0[13] = {
     { NULL, NULL },
 };
 
-ViewCamera D_dryfield_trailer_coach_80187758[11] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -5000, 0x2710, 1625 } }, 230 },
+ViewCamera gDryfieldTrailerCoachViewCameras[DRYFIELD_TRAILER_COACH_VIEW_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -5000, 0x2710, 1625 } }, 230 },
     { { { { 373, 0, 4078 }, { 877, 4000, -80 }, { -3983, 881, 364 } }, { -5900, 1690, 2010 } }, 230 },
     { { { { 879, 0, -4000 }, { -892, 3992, -196 }, { 3899, 913, 857 } }, { -1154, 1800, 2260 } }, 230 },
     { { { { 595, 0, -4052 }, { -1245, 3897, -183 }, { 3856, 1258, 567 } }, { -6104, 1950, 2060 } }, 230 },
-    { { { { -18, 0, -4095 }, { 0, 4096, 0 }, { 4095, 0, -18 } }, { -8071, 1241, 2144 } }, 230 },
+    { { { { -18, 0, -4095 }, { 0, ONE, 0 }, { 4095, 0, -18 } }, { -8071, 1241, 2144 } }, 230 },
     { { { { 2991, 0, -2797 }, { 212, 4084, 226 }, { 2789, -310, 2982 } }, { -5571, 801, 2134 } }, 230 },
     { { { { -3734, 0, -1681 }, { -909, 3445, 2019 }, { 1414, 2214, -3141 } }, { -6604, 1680, 1710 } }, 230 },
     { { { { -450, 0, 4071 }, { 108, 4094, 12 }, { -4069, 109, -450 } }, { -6545, 1155, 1159 } }, 230 },
@@ -911,12 +923,17 @@ ViewCamera D_dryfield_trailer_coach_80187758[11] = {
     { { { { 3255, 0, -2485 }, { 160, 4087, 210 }, { 2480, -265, 3248 } }, { -3895, 1115, 2089 } }, 289 },
 };
 
-SpriteBatch D_dryfield_trailer_coach_801878E4[2] = {
+/// Image-background selector and empty sprite list for mapped view 1.
+static SpriteBatch _gDryfieldTrailerCoachView1SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_trailer_coach_801878F4[101] = {
+/// Texture rectangles and unscaled sorting depths for mapped view 2.
+///
+/// The 101 mutable sources use pixel coordinates relative to the view centre;
+/// the corresponding batch list partitions the complete source array.
+static SpriteSource _gDryfieldTrailerCoachView2SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 48, 40 } }, -72, 24, 750, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 72, 40 } }, -72, 64, 750, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 64, 16 } }, -64, 104, 750, { .fields = { 32, 232 } }, 128, 128, 128, 0 },
@@ -1020,7 +1037,8 @@ SpriteSource D_dryfield_trailer_coach_801878F4[101] = {
     { 143, 0x3FC0, { .fields = { 32, 32 } }, 72, 24, 1100, { .fields = { 88, 72 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_trailer_coach_801880D8[5] = {
+/// Image-background selector and sprite ranges for mapped view 2.
+static SpriteBatch _gDryfieldTrailerCoachView2SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 4, 0, 0, { 1, 0 } },
     { 4, 94, 0, 0, { 2, 0 } },
@@ -1028,7 +1046,11 @@ SpriteBatch D_dryfield_trailer_coach_801880D8[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_trailer_coach_80188100[160] = {
+/// Texture rectangles and unscaled sorting depths for mapped view 3.
+///
+/// The 160 mutable sources use pixel coordinates relative to the view centre;
+/// the corresponding batch list partitions the complete source array.
+static SpriteSource _gDryfieldTrailerCoachView3SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 32, 48 } }, 40, -24, 1562, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, 0, 465, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 88, 0, 481, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
@@ -1191,14 +1213,19 @@ SpriteSource D_dryfield_trailer_coach_80188100[160] = {
     { 143, 0x3FC0, { .fields = { 80, 16 } }, 0, 104, 375, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_trailer_coach_80188D80[4] = {
+/// Image-background selector and sprite ranges for mapped view 3.
+static SpriteBatch _gDryfieldTrailerCoachView3SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 1, 0 } },
     { 1, 159, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_trailer_coach_80188DA0[41] = {
+/// Texture rectangles and unscaled sorting depths for mapped view 4.
+///
+/// The 41 mutable sources use pixel coordinates relative to the view centre;
+/// the corresponding batch list partitions the complete source array.
+static SpriteSource _gDryfieldTrailerCoachView4SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, -64, 500, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -120, 64, 450, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 88, 362, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
@@ -1242,29 +1269,37 @@ SpriteSource D_dryfield_trailer_coach_80188DA0[41] = {
     { 143, 0x3FC0, { .fields = { 56, 40 } }, 16, 80, 400, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_trailer_coach_801890D4[4] = {
+/// Image-background selector and sprite ranges for mapped view 4.
+static SpriteBatch _gDryfieldTrailerCoachView4SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 40, 0, 0, { 1, 0 } },
     { 40, 1, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_trailer_coach_801890F4[2] = {
+/// Image-background selector and empty sprite list for mapped view 5.
+static SpriteBatch _gDryfieldTrailerCoachView5SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_trailer_coach_80189104[2] = {
+/// Image-background selector and empty sprite list for mapped view 6.
+static SpriteBatch _gDryfieldTrailerCoachView6SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_trailer_coach_80189114[2] = {
+/// Image-background selector and empty sprite list for mapped view 7.
+static SpriteBatch _gDryfieldTrailerCoachView7SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_trailer_coach_80189124[5] = {
+/// Texture rectangles and unscaled sorting depths for mapped view 8.
+///
+/// The 5 mutable sources use pixel coordinates relative to the view centre;
+/// the corresponding batch list partitions the complete source array.
+static SpriteSource _gDryfieldTrailerCoachView8SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 112 } }, 120, 8, 312, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 112 } }, 128, 8, 312, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 112 } }, 136, 8, 312, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
@@ -1272,39 +1307,43 @@ SpriteSource D_dryfield_trailer_coach_80189124[5] = {
     { 143, 0x3FC0, { .fields = { 8, 112 } }, 152, 8, 312, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_trailer_coach_80189188[3] = {
+/// Image-background selector and sprite ranges for mapped view 8.
+static SpriteBatch _gDryfieldTrailerCoachView8SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 5, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldTrailerCoachView8SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_trailer_coach_801891A0[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-SpriteBatch D_dryfield_trailer_coach_801891B0[2] = {
+/// Image-background selector and empty sprite list for mapped view 9.
+static SpriteBatch _gDryfieldTrailerCoachView9SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_trailer_coach_801891C0[2] = {
+/// Image-background selector and empty sprite list for mapped view 10.
+static SpriteBatch _gDryfieldTrailerCoachView10SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_dryfield_trailer_coach_801891D0[11] = {
-    { { .empty = D_dryfield_trailer_coach_801878E4 }, D_dryfield_trailer_coach_801878E4, NULL },
-    { { .elements = D_dryfield_trailer_coach_801878F4 }, D_dryfield_trailer_coach_801880D8, NULL },
-    { { .elements = D_dryfield_trailer_coach_80188100 }, D_dryfield_trailer_coach_80188D80, NULL },
-    { { .elements = D_dryfield_trailer_coach_80188DA0 }, D_dryfield_trailer_coach_801890D4, NULL },
-    { { .empty = D_dryfield_trailer_coach_801890F4 }, D_dryfield_trailer_coach_801890F4, NULL },
-    { { .empty = D_dryfield_trailer_coach_80189104 }, D_dryfield_trailer_coach_80189104, NULL },
-    { { .empty = D_dryfield_trailer_coach_80189114 }, D_dryfield_trailer_coach_80189114, NULL },
-    { { .elements = D_dryfield_trailer_coach_80189124 }, D_dryfield_trailer_coach_80189188, NULL },
-    { { .empty = D_dryfield_trailer_coach_801891A0 }, D_dryfield_trailer_coach_801891A0, NULL },
-    { { .empty = D_dryfield_trailer_coach_801891B0 }, D_dryfield_trailer_coach_801891B0, NULL },
-    { { .empty = D_dryfield_trailer_coach_801891C0 }, D_dryfield_trailer_coach_801891C0, NULL },
+/// Image-background selector and empty sprite list for mapped view 11.
+static SpriteBatch _gDryfieldTrailerCoachView11SpriteBatches[] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+};
+
+SpriteView gDryfieldTrailerCoachSpriteViews[DRYFIELD_TRAILER_COACH_VIEW_COUNT] = {
+    { { .empty = _gDryfieldTrailerCoachView1SpriteBatches }, _gDryfieldTrailerCoachView1SpriteBatches, NULL },
+    { { .elements = _gDryfieldTrailerCoachView2SpriteSources }, _gDryfieldTrailerCoachView2SpriteBatches, NULL },
+    { { .elements = _gDryfieldTrailerCoachView3SpriteSources }, _gDryfieldTrailerCoachView3SpriteBatches, NULL },
+    { { .elements = _gDryfieldTrailerCoachView4SpriteSources }, _gDryfieldTrailerCoachView4SpriteBatches, NULL },
+    { { .empty = _gDryfieldTrailerCoachView5SpriteBatches }, _gDryfieldTrailerCoachView5SpriteBatches, NULL },
+    { { .empty = _gDryfieldTrailerCoachView6SpriteBatches }, _gDryfieldTrailerCoachView6SpriteBatches, NULL },
+    { { .empty = _gDryfieldTrailerCoachView7SpriteBatches }, _gDryfieldTrailerCoachView7SpriteBatches, NULL },
+    { { .elements = _gDryfieldTrailerCoachView8SpriteSources }, _gDryfieldTrailerCoachView8SpriteBatches, NULL },
+    { { .empty = _gDryfieldTrailerCoachView9SpriteBatches }, _gDryfieldTrailerCoachView9SpriteBatches, NULL },
+    { { .empty = _gDryfieldTrailerCoachView10SpriteBatches }, _gDryfieldTrailerCoachView10SpriteBatches, NULL },
+    { { .empty = _gDryfieldTrailerCoachView11SpriteBatches }, _gDryfieldTrailerCoachView11SpriteBatches, NULL },
 };
 
 WorldCollisionTrigger D_dryfield_trailer_coach_80189254[4] = {
@@ -1329,27 +1368,42 @@ WorldCollisionTrigger D_dryfield_trailer_coach_80189384[12] = {
     { NULL, NULL, NULL, { 8624, -64, -2496, 0 }, { { -336, 0, -736, 0 }, { 336, 0, -736, 0 }, { -336, 0, 736, 0 }, { 336, 0, 736, 0 } }, { 0, 4102, 0, 0 }, { 4016, 0, 798, 0 }, 807, WORLD_COLLISION_TRIGGER_ACTION_CAP, 22, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCoordPointLight D_dryfield_trailer_coach_80189714[12] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2807, -936, -1738 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3280, 3076, 2870 }, { 0, 0 } }, 1587, 2185 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8192, -2555, -1604 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2460, 2460, 2460 }, { 0, 0 } }, 1120, 1672 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6380, -2555, -1625 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2460, 2460, 2460 }, { 0, 0 } }, 1057, 1718 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2944, -1003, -1164 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3278, 3278, 3278 }, { 0, 0 } }, 1839, 2505 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 490, -1975, -479 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 3072 }, { 0, 0 } }, 1107, 1294 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 169, -2006, -1625 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 3076 }, { 0, 0 } }, 1112, 1374 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -911, -2035, -2681 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 3072 }, { 0, 0 } }, 1288, 1572 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1618, -1020, -130 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2870, 2870, 2870 }, { 0, 0 } }, 2591, 3272 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3750, -1440, -3 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1229, 1229, 1229 }, { 0, 0 } }, 2029, 2673 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6865, -1440, 10 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1229, 1229, 1229 }, { 0, 0 } }, 1935, 2601 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6885, -1440, -2420 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2666, 2666, 2663 }, { 0, 0 } }, 2646, 3283 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3665, -1440, -2318 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3280, 3280, 3280 }, { 0, 0 } }, 2164, 2832 },
+/// Twelve point lights shared by all trailer-coach views.
+///
+/// RGB intensities use twelve fractional bits; placement and falloff radii use
+/// world-coordinate units. Lighting updates the coordinate caches, parents and
+/// attenuation in these room-owned records.
+static WorldCoordPointLight _gDryfieldTrailerCoachPointLights[] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2807, -936, -1738 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3280, 3076, 2870 }, { 0, 0 } }, 1587, 2185 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8192, -2555, -1604 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2460, 2460, 2460 }, { 0, 0 } }, 1120, 1672 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6380, -2555, -1625 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2460, 2460, 2460 }, { 0, 0 } }, 1057, 1718 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2944, -1003, -1164 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3278, 3278, 3278 }, { 0, 0 } }, 1839, 2505 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 490, -1975, -479 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, 3072 }, { 0, 0 } }, 1107, 1294 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 169, -2006, -1625 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, 3076 }, { 0, 0 } }, 1112, 1374 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -911, -2035, -2681 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, 3072 }, { 0, 0 } }, 1288, 1572 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1618, -1020, -130 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2870, 2870, 2870 }, { 0, 0 } }, 2591, 3272 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3750, -1440, -3 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1229, 1229, 1229 }, { 0, 0 } }, 2029, 2673 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6865, -1440, 10 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1229, 1229, 1229 }, { 0, 0 } }, 1935, 2601 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6885, -1440, -2420 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2666, 2666, 2663 }, { 0, 0 } }, 2646, 3283 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3665, -1440, -2318 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3280, 3280, 3280 }, { 0, 0 } }, 2164, 2832 },
 };
 
-WorldCoordRoomLights D_dryfield_trailer_coach_80189B94[1] = {
-    { 0, NULL, ARRAY_SIZE(D_dryfield_trailer_coach_80189714), D_dryfield_trailer_coach_80189714, 0, NULL },
+/// Room light collection containing point lights only.
+static WorldCoordRoomLights _gDryfieldTrailerCoachLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gDryfieldTrailerCoachPointLights),
+    .pointLights           = _gDryfieldTrailerCoachPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
-WorldCoordRoomAmbientEntry D_dryfield_trailer_coach_80189BAC[12] = {
-    { .viewCount = ARRAY_SIZE(D_dryfield_trailer_coach_80189BAC) - 1 },
+/// View-count header followed by the eleven views' minimum ambient colours.
+///
+/// Entries 1..11 use sixteen units per colour level. Luma retains the authored
+/// weighted brightness but does not participate in ambient-light clamping.
+static const WorldCoordRoomAmbientEntry _gDryfieldTrailerCoachAmbientByView[DRYFIELD_TRAILER_COACH_VIEW_COUNT + 1] SECTION(".data") = {
+    { .viewCount = ARRAY_SIZE(_gDryfieldTrailerCoachAmbientByView) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 1025, 1025, 1025, 1025 } },
     { .color = { 1025, 1025, 1025, 1025 } },
@@ -1363,33 +1417,56 @@ WorldCoordRoomAmbientEntry D_dryfield_trailer_coach_80189BAC[12] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-WorldCollisionFootstepSounds D_dryfield_trailer_coach_80189C0C = {
-    0x1000002D,
-    0x1000002F,
-    0x1000002D,
+enum {
+    DRYFIELD_TRAILER_COACH_WALK_FOOTSTEP_CUE2 = 0x1000002D,
+    DRYFIELD_TRAILER_COACH_RUN_FOOTSTEP_CUE2  = 0x1000002F,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_trailer_coach_80189C18[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Class-6 footstep cue bases in the currently loaded type-1 sound bank.
+///
+/// Cue 1 uses base + 1; companions add 100. Scripted jumps share the walk pair.
+static const WorldCollisionFootstepSounds _gDryfieldTrailerCoachFootstepSounds SECTION(".data") = {
+    .walk         = DRYFIELD_TRAILER_COACH_WALK_FOOTSTEP_CUE2,
+    .run          = DRYFIELD_TRAILER_COACH_RUN_FOOTSTEP_CUE2,
+    .scriptedJump = DRYFIELD_TRAILER_COACH_WALK_FOOTSTEP_CUE2,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_trailer_coach_80189C20[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Blocking surface policy shared by classes 0..4 and 7, without footstep cues.
+static WorldCollisionSurfaceProperties _gDryfieldTrailerCoachDefaultSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_trailer_coach_80189C28[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_trailer_coach_80189C0C },
+/// Separate class-5 blocking surface policy, without footstep cues.
+static WorldCollisionSurfaceProperties _gDryfieldTrailerCoachSurfaceClass5 = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_trailer_coach_80189C30[8] = {
-    D_dryfield_trailer_coach_80189C18,
-    D_dryfield_trailer_coach_80189C18,
-    D_dryfield_trailer_coach_80189C18,
-    D_dryfield_trailer_coach_80189C18,
-    D_dryfield_trailer_coach_80189C18,
-    D_dryfield_trailer_coach_80189C20,
-    D_dryfield_trailer_coach_80189C28,
-    D_dryfield_trailer_coach_80189C18,
+/// Class-6 blocking surface policy with walking, running and scripted-jump cues.
+static WorldCollisionSurfaceProperties _gDryfieldTrailerCoachFootstepSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldTrailerCoachFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gDryfieldTrailerCoachSurfaceClasses[DRYFIELD_TRAILER_COACH_SURFACE_CLASS_COUNT] = {
+    &_gDryfieldTrailerCoachDefaultSurface,
+    &_gDryfieldTrailerCoachDefaultSurface,
+    &_gDryfieldTrailerCoachDefaultSurface,
+    &_gDryfieldTrailerCoachDefaultSurface,
+    &_gDryfieldTrailerCoachDefaultSurface,
+    &_gDryfieldTrailerCoachSurfaceClass5,
+    &_gDryfieldTrailerCoachFootstepSurface,
+    &_gDryfieldTrailerCoachDefaultSurface,
 };
 
 AreaApplyRec D_dryfield_trailer_coach_80189C50[15] = {
@@ -1520,8 +1597,6 @@ static u8 Telephone_Data_80181BD0[];
 
 static u8 Telephone_Data_80181C08[];
 
-static const char Telephone_Data_8017D638[];
-
 extern UiObjectDesc D_800611E4;
 
 /// Lists of the usage panel and of the play-data menu, and the descriptor of
@@ -1586,8 +1661,6 @@ extern EvsCommand D_dryfield_trailer_coach_801853F4[];
 extern EvsCommand D_dryfield_trailer_coach_80185964[];
 
 static void _dryfieldTrailerCoachInitializeRoomTask(Task* task);
-
-extern SVECTOR D_dryfield_trailer_coach_801871C4;
 
 static void _dryfieldTrailerCoachOpenTopicChoice(Task* task);
 
@@ -1975,12 +2048,12 @@ void dryfieldTrailerCoachDrawGlowsTask(Task* task)
     viewMask = 1 << gGameSession->location.loc.view;
     coord    = task->extra.coordBody->coord;
     if (viewMask & DRYFIELD_TRAILER_COACH_DIAMOND_GLOW_VIEWS) {
-        _glowDrawStarLocal(coord, &D_dryfield_trailer_coach_801871C4,
+        _glowDrawStarLocal(coord, &_gDryfieldTrailerCoachGlowLocalPoint,
                            DRYFIELD_TRAILER_COACH_GLOW_PULSE_RATE, DRYFIELD_TRAILER_COACH_DIAMOND_RADIUS_SCALE);
         return;
     }
     if (viewMask & DRYFIELD_TRAILER_COACH_RAY_GLOW_VIEWS) {
-        _glowDrawRayStar(coord, &D_dryfield_trailer_coach_801871C4,
+        _glowDrawRayStar(coord, &_gDryfieldTrailerCoachGlowLocalPoint,
                          DRYFIELD_TRAILER_COACH_GLOW_PULSE_RATE, DRYFIELD_TRAILER_COACH_RAY_RADIUS_SCALE);
     }
 }

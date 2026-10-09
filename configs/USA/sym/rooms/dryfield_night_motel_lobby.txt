@@ -1,5 +1,5 @@
 // Overlay-local symbols for dryfield_night_motel_lobby.
-Telephone_Data_8017D638 = 0x8017D638; // force_not_migration:True string with non-zero bytes after its terminator, read from C
+_gTelephoneMenuTitle = 0x8017D638; // force_not_migration:True string with non-zero bytes after its terminator, read from C
 
 // Past this room's image. What occupies this address when the code runs is not established.
 Telephone_Data_801819F8 = 0x80182488; // size:0x8 defined:True
@@ -16,7 +16,7 @@ Telephone_Data_80181A58 = 0x801824E8; // size:0x8 defined:True
 Telephone_Data_80181A60 = 0x801824F0; // size:0x8 defined:True
 Telephone_Data_80181A68 = 0x801824F8; // size:0x8 defined:True
 Telephone_Data_80181A70 = 0x80182500; // size:0x8 defined:True
-Telephone_Data_80181A78 = 0x80182508; // size:0x4 defined:True
+_gTelephonePercentSuffix = 0x80182508; // size:0x4 defined:True
 Telephone_Data_80181A7C = 0x8018250C; // size:0x2C defined:True
 Telephone_Data_80181AA8 = 0x80182538; // size:0x24 defined:True
 Telephone_Data_80181ACC = 0x8018255C; // size:0x30 defined:True

@@ -103,9 +103,6 @@ static u8 Telephone_Data_80181A68[];
 /// The suffix appended to that panel's count rows.
 static u8 Telephone_Data_80181A70[];
 
-/// The "%" suffix the room's percentage formatters append.
-static u8 Telephone_Data_80181A78[];
-
 /// Help texts of the statistics panel's nine rows, handed to the UI holder for
 /// the selected row.
 static u8 Telephone_Data_80181A7C[];
@@ -1363,9 +1360,6 @@ Task* gRoomCutsceneSoundTask = NULL;
 RoomCutsceneRecStorage D_acropolis_square_801888AC = { 0 };
 
 GfxCoord D_acropolis_square_801888CC = { 0 };
-
-/// Telephone menu title, including retained bytes after its terminator.
-static const char Telephone_Data_8017D638[];
 
 #include "../../shared/planar_reflection.inc.c"
 

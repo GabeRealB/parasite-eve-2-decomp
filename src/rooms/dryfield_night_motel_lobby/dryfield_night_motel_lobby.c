@@ -93,8 +93,6 @@ static u8 Telephone_Data_80181C08[];
 /// The usage panel's row list.
 static UiList Telephone_Data_80181C6C;
 
-static const char Telephone_Data_8017D638[];
-
 /// The telephone menu's entry list.
 static UiList Telephone_Data_80181CF4;
 
@@ -122,9 +120,6 @@ extern TaskDesc gRoomCutsceneTaskDescs[];
 extern TaskMessageEntry D_dryfield_night_motel_lobby_801827CC[6];
 
 extern TaskDesc D_dryfield_night_motel_lobby_801827FC[];
-
-/// The "%" suffix appended to the percentages the play-data panels print.
-static u8 Telephone_Data_80181A78[];
 
 /// UI descriptor the "Play Data" panel and the usage panel spawn when they
 /// first open.

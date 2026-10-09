@@ -137,9 +137,6 @@ static u8 Telephone_Data_80181A68[];
 /// Suffix appended to the plain counts.
 static u8 Telephone_Data_80181A70[];
 
-/// Suffix appended to the percentages.
-static u8 Telephone_Data_80181A78[];
-
 /// Help lines shown while the matching row is selected.
 static u8 Telephone_Data_80181A7C[];
 static u8 Telephone_Data_80181AA8[];
@@ -165,9 +162,6 @@ static UiList       Telephone_Data_80181C44;
 static UiList       Telephone_Data_80181C6C;
 static UiObjectDesc Telephone_Data_80181C90;
 static UiList       Telephone_Data_80181CF4;
-
-/// Telephone menu title, including retained bytes after its terminator.
-static const char Telephone_Data_8017D638[];
 
 /// Task tables: the cutscene and its sound task; the ambient sound task.
 extern TaskDesc gRoomCutsceneTaskDescs[];

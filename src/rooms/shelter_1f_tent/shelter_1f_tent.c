@@ -65,9 +65,6 @@ extern EvsCommand D_actor_460200_80137890[];
 
 /// View saved when the cutscene starts and restored when it ends.
 
-/// Telephone menu title, including retained bytes after its terminator.
-static const char Telephone_Data_8017D638[];
-
 /// Captions of the telephone menu's rows ("Save", "Play Data", "Weapon Data",
 /// "PE Data").
 static u8 Telephone_Data_801819F8[];
@@ -89,9 +86,6 @@ static u8 Telephone_Data_80181A68[];
 /// Suffix appended after a plain count on rows 1, 2, 3 and 6 of the play-data
 /// panel.
 static u8 Telephone_Data_80181A70[];
-
-/// Suffix appended after a percentage.
-static u8 Telephone_Data_80181A78[];
 
 /// Help strings handed to the UI holder while the cursor rests on a row of
 /// the play-data panel, one per row.

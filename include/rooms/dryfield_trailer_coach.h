@@ -21,19 +21,57 @@ extern TmdSource gDryfieldTrailerCoachAcropolisSanctuaryModel090F0;
 // dryfield_trailer_coach
 extern WorldCollisionRoomResources D_dryfield_trailer_coach_801871CC[];
 
-extern WorldCoordRoomLighting D_dryfield_trailer_coach_801871DC[];
+/// Number of logical views and mapped camera/sprite records in the trailer coach.
+enum { DRYFIELD_TRAILER_COACH_VIEW_COUNT = 11 };
 
-extern u8* D_dryfield_trailer_coach_801871E4[];
+/// Number of collision surface classes in the trailer coach's surface directory.
+enum { DRYFIELD_TRAILER_COACH_SURFACE_CLASS_COUNT = 8 };
 
-extern ViewCount D_dryfield_trailer_coach_801871E8[];
+/// Light collection and per-view ambient minima for room 1 of daytime Dryfield area 27.
+///
+/// The stage map borrows this array at room minus one. Its collection contains
+/// twelve mutable point lights; ambient entries cover logical views 1..11.
+/// Keep the trailer-coach overlay loaded while any of these pointers are used.
+extern WorldCoordRoomLighting gDryfieldTrailerCoachRoomLighting[1];
+
+/// Logical-view map for room 1 of daytime Dryfield area 27.
+///
+/// Borrows `gViewIdentityMap`: logical views 1..11 select the same camera/image
+/// and sprite indices. Index this directory at room minus one, then the map at
+/// view minus one. The directory belongs to the loaded trailer-coach overlay;
+/// the mapped byte array belongs to gameplay and has no terminator.
+extern u8* gDryfieldTrailerCoachViewMaps[1];
+
+/// Eleven logical views for room 1 of daytime Dryfield area 27.
+///
+/// Indexed at room minus one, this signed-halfword count bounds reverse view
+/// lookup in `gDryfieldTrailerCoachViewMaps`. Keep the owning overlay loaded.
+extern ViewCount gDryfieldTrailerCoachViewCounts[1];
 
 extern DirectionWarpEntry D_dryfield_trailer_coach_801871EC[];
 
-extern ViewCamera D_dryfield_trailer_coach_80187758[];
+/// Authored cameras for mapped trailer-coach views 1..11.
+///
+/// Indexed at mapped view minus one. Rotations use 4096 units for 1.0;
+/// translations are negated world-coordinate origins and projection distances
+/// are pixels. The stage map borrows this array while this overlay is loaded.
+extern ViewCamera gDryfieldTrailerCoachViewCameras[DRYFIELD_TRAILER_COACH_VIEW_COUNT];
 
-extern SpriteView D_dryfield_trailer_coach_801891D0[];
+/// Sprite resources for mapped trailer-coach views 1..11.
+///
+/// Indexed at mapped view minus one. Views 2, 3, 4 and 8 supply source sprites;
+/// the other views retain empty batch-list pointers in their source slots.
+/// Every view keeps its image background and has no clipping-area list.
+/// Sources and batch lists remain borrowed from this overlay while it is loaded.
+extern SpriteView gDryfieldTrailerCoachSpriteViews[DRYFIELD_TRAILER_COACH_VIEW_COUNT];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_trailer_coach_80189C30[];
+/// Collision policies indexed by trailer-coach surface class 0..7.
+///
+/// Every class blocks probes, enables weapon impacts and applies pushback.
+/// Classes 0..4 and 7 share the default record; class 5 has a separate silent
+/// record, and class 6 supplies paired footstep cues. Records and their sound
+/// data belong to this overlay and must not be retained after it unloads.
+extern WorldCollisionSurfaceProperties* gDryfieldTrailerCoachSurfaceClasses[DRYFIELD_TRAILER_COACH_SURFACE_CLASS_COUNT];
 
 /// Draws the trailer coach's pulsing glows for the current camera view.
 ///
