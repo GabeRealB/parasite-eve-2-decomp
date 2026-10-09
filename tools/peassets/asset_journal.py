@@ -18,6 +18,13 @@ in the build reads it.
     asset_journal.py confirm ID ASSET [--detail D] [--note N]
     asset_journal.py reject ID [--note N]
 
+It also records two things that are not constants: each file a function
+names by group, hundreds and index (`file.ref`), and the image and CLUT each
+model's faces name (`model.image`, `model.clut`), taken from the manifest's
+`textures`. A model's pair is as stored; the game adds the object's page and
+CLUT-row displacement when it draws, so a model whose textures are relocated
+at load names a slot, and its match needs the code's word on the displacement.
+
 `scan` reads enum constants and macros with a numeric value. A literal
 written straight into an expression has no name to journal and is not seen.
 
@@ -189,6 +196,7 @@ def constants(path: Path) -> list[tuple[str, str, int, str, str, int]]:
 KEY_FIELD = re.compile(r"\b(?:\w+(?:\.|->))*(stage|fileGroup|fileIdHundreds|fileIndex)\s*=\s*([^;=][^;]*);")
 DISPLAY_RESOURCE = re.compile(r"\bcdCmdEnqueueDisplayResource\s*\(([^;]*)\)\s*;")
 DISPLAY_RESOURCE_GROUP = 2
+TPAGE_BLEND = 0x60
 
 
 def split_args(text: str) -> list[str]:
@@ -418,9 +426,49 @@ def scan(db: sqlite3.Connection, by_value: bool) -> None:
                     db.execute("UPDATE evidence SET asset = ? WHERE id = ?", (target, row["id"]))
             db.execute("DELETE FROM candidates WHERE evidence = ?", (row["id"],))
             db.executemany("INSERT OR IGNORE INTO candidates VALUES (?,?,'',0)", [(row["id"], c) for c in candidates_of])
+    # Model textures: here the evidence is the model's own faces, not a
+    # constant. Each names a page and a CLUT as stored; the blend bits of the
+    # page say how the face is drawn, not where its image is.
+    for key, rec in sorted(man.embedded.items()):
+        model = man.assets.get(key, {})
+        if rec.get("type") != "model" or not model.get("textures"):
+            continue
+        package = rec["source"].removesuffix(".pe2pkg")
+        near = man.near.get(package, set())
+        for page, clut in model["textures"]:
+            for attribute, value, found in (
+                    ("model.image", page, sorted(man.by_value["image.tpage"].get(page & ~TPAGE_BLEND, ()))),
+                    ("model.clut", clut, sorted(man.by_value["clut.value"].get(clut, ())))):
+                local = [c for c in found if c[0] in near]
+                if not found:
+                    match, chosen = "none", None
+                elif len({c[0] for c in found}) == 1:
+                    match, chosen = "unique", found[0]
+                elif len({c[0] for c in local}) == 1:
+                    match, chosen = "local", local[0]
+                else:
+                    match, chosen = "ambiguous", None
+                counts[attribute, match] += 1
+                where = (rec["source"], f"{page:#x}/{clut:#x}", key, attribute)
+                row = db.execute("SELECT id, status FROM evidence WHERE file = ? AND scope = ? AND symbol = ? AND attribute = ?", where).fetchone()
+                fields = ("faces", "", value, package, match, len({c[0] for c in found}), len({c[0] for c in local}), seen_at)
+                if row is None:
+                    eid = db.execute(
+                        "INSERT INTO evidence (file, scope, symbol, attribute, kind, expr, value, package, match, n_candidates, "
+                        "n_local, seen, asset, detail) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                        where + fields + (chosen[0] if chosen else None, chosen[1] if chosen else None)).lastrowid
+                else:
+                    eid = row["id"]
+                    db.execute("UPDATE evidence SET kind = ?, expr = ?, value = ?, package = ?, match = ?, n_candidates = ?, "
+                               "n_local = ?, seen = ?, present = 1 WHERE id = ?", fields + (eid,))
+                    if row["status"] == "found":
+                        db.execute("UPDATE evidence SET asset = ?, detail = ? WHERE id = ?",
+                                   (chosen[0] if chosen else None, chosen[1] if chosen else None, eid))
+                db.execute("DELETE FROM candidates WHERE evidence = ?", (eid,))
+                db.executemany("INSERT OR IGNORE INTO candidates VALUES (?,?,?,?)", [(eid, a, d, int(a in near)) for a, d in found])
     db.commit()
     gone = db.execute("SELECT COUNT(*) FROM evidence WHERE present = 0").fetchone()[0]
-    print(f"{len(files)} files scanned; {sum(counts.values())} constants recorded" + (f", {gone} no longer in the code" if gone else ""))
+    print(f"{len(files)} files scanned; {sum(counts.values())} rows recorded" + (f", {gone} no longer in the code" if gone else ""))
     for attribute in sorted({a for a, _ in counts}):
         parts = [f"{m} {counts[attribute, m]}" for m in ("unique", "local", "ambiguous", "unnamed", "range", "computed", "none") if counts[attribute, m]]
         print(f"  {attribute:<12} " + ", ".join(parts))

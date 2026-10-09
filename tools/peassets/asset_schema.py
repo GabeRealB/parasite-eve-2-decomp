@@ -61,7 +61,7 @@ BOOKKEEPING = ("required", "notes")
 SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     "pe2img": {"payload": ("x", "y", "w", "h"), "stored": ("bpp",)},
     "pe2clut": {"payload": ("x", "y", "w", "h"), "stored": ()},
-    "model": {"payload": (), "stored": ("parts",)},
+    "model": {"payload": ("textures",), "stored": ("parts",)},
     "pe2pkg": {"payload": (), "stored": ()},
     "bs": {"payload": (), "stored": ()},
     "spk": {"payload": (), "stored": ("sounds",)},

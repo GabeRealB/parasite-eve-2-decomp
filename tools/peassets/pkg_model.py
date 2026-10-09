@@ -98,6 +98,43 @@ def walk_stream(data: bytes, off: int) -> tuple[list[dict], int] | None:
     return None
 
 
+# Word index, within an element, of the first texture word (`u0`), per draw
+# family (doc/TMD_FORMAT.md 5.1). `u0` carries the CLUT in its high half and
+# the word after it the texture page, as POLY_GT3 / POLY_FT4 lay them out.
+_U0_BY_FAMILY = {
+    2: (0x18, 0x1A, 0x1C, 0x1E, 0x31, 0x39, 0x3B, 0x131, 0x8039, 0x5C, 0x5E, 0x71, 0x79, 0x7B, 0x171, 0x8079, 0x4039, 0x4079),
+    3: (0x38, 0x3A, 0x8038, 0x10038, 0x1003A, 0x20038, 0x58, 0x5A, 0x4038),
+    4: (0x30, 0x78, 0x7A, 0x8078, 0x10078, 0x20078, 0x4078),
+    5: (0x70,),
+    6: (0x130, 0x156),
+    8: (0x170,),
+}
+TEXTURE_WORD = {op: word for word, ops in _U0_BY_FAMILY.items() for op in ops}
+
+
+def stream_textures(data: bytes, off: int = 0) -> list[tuple[int, int]] | None:
+    """Every (texture page, CLUT) pair a stream's faces name, sorted.
+
+    These are the words as stored. The draw handlers add the object's page and
+    CLUT-row displacement to them, so for a model the game relocates they name
+    a slot relative to wherever its textures were loaded, not a fixed place.
+    """
+    walked = walk_stream(data, off)
+    if walked is None:
+        return None
+    found: set[tuple[int, int]] = set()
+    for packet in walked[0]:
+        word = TEXTURE_WORD.get(packet["op"])
+        if word is None or packet["stride"] < word + 2:
+            continue
+        at = packet["offset"] + HEADER_WORDS * 4 + word * 4
+        for _ in range(packet["count"]):
+            u0, u1 = struct.unpack_from("<2I", data, at)
+            found.add((u1 >> 16, u0 >> 16))
+            at += packet["stride"] * 4
+    return sorted(found)
+
+
 TMD_SOURCE_SIZE = 0x24
 SRC_PARTS = 0x0C      # part (bone) count
 SRC_PARTVERTS = 0x10  # partCount x u32: vertices owned by each part

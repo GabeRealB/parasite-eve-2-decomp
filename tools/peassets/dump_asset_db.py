@@ -535,6 +535,9 @@ def collect_models(
             aid = known.get(digest) or f"{pkg.stem}_model_{off:05X}"
             rec = dict(old.get(aid) or {})
             rec.update({"sha1": digest, "type": "model"})
+            # The pages and CLUTs its faces name, as [page, clut] pairs.
+            # An untextured model states that too, as an empty list.
+            rec["textures"] = [list(pair) for pair in pkg_model.stream_textures(blob) or ()]
             rec.pop("source", None)
             rec.pop("offset", None)
             rec.pop("size", None)
