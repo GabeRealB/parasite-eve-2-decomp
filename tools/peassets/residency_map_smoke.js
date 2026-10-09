@@ -1,6 +1,7 @@
 // Runs the residency map's script without a browser, under a stub document:
 //   node tools/peassets/residency_map_smoke.js local/residency_map.html '[["shelter_b3_dumping_hole","view 3","variant 1"]]'
-// Each triple is an overlay, a view and a variant; it prints the applied view's tiles and what is flagged.
+// Each entry is an overlay, a view and a variant, and for an overlay that is not a room optionally "room|condition",
+// the load that brings it in; it prints the applied view's tiles and what is flagged.
 // It catches a script that throws and lets the pairing be read as text; it does not check layout.
 const fs = require("fs"), path = require("path");
 const page = process.argv[2], html = fs.readFileSync(page, "utf8"), js = html.slice(html.indexOf("<script>") + 8, html.lastIndexOf("</script>"));
@@ -18,10 +19,12 @@ global.document = { getElementById: id => els.get(id) || (els.set(id, node("#" +
 global.window = global; global.location = { hash: "" }; global.history = { replaceState() {} }; global.getComputedStyle = () => ({ getPropertyValue: () => "#f00" }); global.atob = s => Buffer.from(s, "base64").toString("binary");
 eval(js + `
 ;(async () => {
-  for (const [name, view, variant] of JSON.parse(process.argv[3])) {
-    pick(name); document.getElementById("view").value = view; document.getElementById("variant").value = variant; side("applied"); await drawApplied();
+  for (const [name, view, variant, context] of JSON.parse(process.argv[3])) {
+    pick(name);
+    if (context) { const [room, cond] = context.split("|"), gi = D.loaders[room].findIndex(g => g[1] === cond && g[3].some(m => D.pkg[m[0]] === name)); document.getElementById("parent").value = room + "|" + gi; buildChain(); }
+    document.getElementById("view").value = view; if (cur.scope && cur.scope !== cur.name) buildChain(); document.getElementById("variant").value = variant; side("applied"); await drawApplied();
     const tiles = document.getElementById("applied").children;
-    console.log(name, view, variant, "->", tiles.length, "tiles,", tiles.filter(t => / miss/.test(t.className)).length, "flagged");
+    console.log(name, view, variant, context || "", "->", tiles.length, "tiles,", tiles.filter(t => / miss/.test(t.className)).length, "flagged");
     for (const t of tiles.slice(0, 40)) { const txt = t.children.slice(1).map(c => c.textContent); if (/guessed/.test(txt[0]) || txt[3]) console.log("   ", txt.join(" | ").slice(0, 230)); }
   }
   tab("all"); console.log("matrix:", document.getElementById("allfacts").textContent);

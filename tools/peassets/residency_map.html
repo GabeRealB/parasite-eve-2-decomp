@@ -241,13 +241,16 @@ function occupancy(groups) { const at = new Map(), out = new Map(); if (D.addr[c
 // The chain: who loads this overlay, and who loads that. What an ancestor always loads is still resident here,
 // and so is the group that brought this overlay in; further loads of an ancestor can be added by hand.
 const parents = new Map();
-for (const loader of names) D.loaders[loader].forEach((g, gi) => { for (const m of g[3]) { const child = D.pkg[m[0]]; if (child && child !== loader) { const list = parents.get(child) || []; if (!list.some(p => p.loader === loader)) list.push({ loader, gi }); parents.set(child, list); } } });
+for (const loader of names) D.loaders[loader].forEach((g, gi) => { for (const m of g[3]) { const child = D.pkg[m[0]]; if (child && child !== loader) { const list = parents.get(child) || []; if (!list.some(p => p.loader === loader && p.gi === gi)) list.push({ loader, gi }); parents.set(child, list); } } });
+const hasViews = n => D.loaders[n].some(g => g[0] === "o" && isView(g[1]));
 const chainPicked = new Set();           // "ancestor|condition"
 function buildChain() {
-  const out = [], seen = new Set([cur.name]); let child = cur.name, want = $("parent").value; cur.ancestors = [];
+  const out = [], seen = new Set([cur.name]); let child = cur.name, want = $("parent").value; cur.ancestors = []; cur.scope = hasViews(cur.name) ? cur.name : null;
   for (let depth = 0; depth < 6; depth++) {
     const list = (parents.get(child) || []).filter(p => !seen.has(p.loader)); if (!list.length) break;
-    const link = (depth === 0 && list.find(p => p.loader === want)) || list.find(p => p.loader === "gameplay") || list[0];
+    const link = (depth === 0 && list.find(p => p.loader + "|" + p.gi === want)) || list.find(p => p.loader === "gameplay") || list[0];
+    // An overlay that is not a room is looked at inside the room that brings it in: that room's views apply.
+    if (depth === 0 && !cur.scope && hasViews(link.loader)) { cur.scope = link.loader; const v = $("view").value, g = D.loaders[link.loader].find(g => g[0] === "o" && g[1] === v); if (g) out.unshift(["i", `${link.loader} · ${g[1]}`, g[2], g[3], g[4] || [], g[5], link.loader, g[1]]); }
     seen.add(link.loader); cur.ancestors.push(link.loader);
     const groups = D.loaders[link.loader], add = (g, why) => out.unshift(["i", `${link.loader} · ${why}`, g[2], g[3], g[4] || [], g[5], link.loader, g[1]]);
     groups.forEach((g, gi) => { if (chainPicked.has(link.loader + "|" + g[1])) add(g, g[1]); });
@@ -258,6 +261,14 @@ function buildChain() {
   }
   cur.chain = out;
   const more = $("chainadd"); more.innerHTML = `<option value="">add a load of an ancestor…</option>` + cur.ancestors.map(a => D.loaders[a].filter(g => g[0] === "o" && g[3].some(m => (D.fp[m[0]] || []).length) && !/^(room:|file )/.test(g[1])).slice(0, 400).map(g => `<option value="${a}|${g[1].replace(/"/g, "&quot;")}">${a} · ${g[1]}</option>`).join("")).join(""); more.disabled = !cur.ancestors.length;
+}
+// The view selector lists the views of the room in scope: the overlay itself, or the room that brings it in.
+function scopeViews(reset) {
+  const room = cur.scope, list = room ? D.loaders[room].filter(g => g[0] === "o" && isView(g[1])) : [], was = $("view").value;
+  $("view").innerHTML = `<option value="">none</option>` + list.map(g => `<option>${g[1]}</option>`).join(""); $("view").disabled = !list.length;
+  const first = list.find(g => g[3].some(m => (D.fp[m[0]] || []).length));
+  $("view").value = !reset && list.some(g => g[1] === was) ? was : first ? first[1] : "";
+  if (room && room !== cur.name) buildChain();
 }
 const homeOf = n => { const g = D.loaders[n].find(g => g[0] === "c"); return g ? D.files[g[3][0][0]] : "9/" + n; };
 async function drawApplied() {
@@ -326,14 +337,14 @@ function render() {
 function pick(name, keep) {
   if (!D.loaders[name]) return;
   cur = { name, groups: D.loaders[name] }; hot = null; picked.clear(); chainPicked.clear();
-  const ps = parents.get(name) || []; $("parent").innerHTML = ps.map(p => `<option>${p.loader}</option>`).join("") || `<option value="">nothing</option>`; $("parent").disabled = ps.length < 2;
-  if (ps.some(p => p.loader === "gameplay")) $("parent").value = "gameplay";
-  buildChain();
+  const ps = parents.get(name) || []; $("parent").innerHTML = ps.map(p => `<option value="${p.loader}|${p.gi}">${p.loader} · ${D.loaders[p.loader][p.gi][1] || "always"}</option>`).join("") || `<option value="">nothing</option>`; $("parent").disabled = ps.length < 2;
+  const viaGame = ps.find(p => p.loader === "gameplay"); if (viaGame) $("parent").value = "gameplay|" + viaGame.gi;
+  $("view").innerHTML = ""; buildChain(); scopeViews(true);
   const conds = k => cur.groups.filter(g => g[0] === "o" && (k === "view" ? isView(g[1]) : isVariant(g[1]))).map(g => g[1]);
   const fill = (s, list, none) => { s.innerHTML = `<option value="">${none}</option>` + list.map(c => `<option>${c}</option>`).join(""); s.disabled = !list.length; };
-  fill($("view"), conds("view"), "none"); fill($("variant"), conds("variant"), "none");
+  fill($("variant"), conds("variant"), "none");
   const withUploads = k => cur.groups.find(g => g[0] === "o" && (k === "view" ? isView(g[1]) : isVariant(g[1])) && g[3].some(m => (D.fp[m[0]] || []).length));
-  if (!keep) { $("view").value = (withUploads("view") || [0, ""])[1]; $("variant").value = (withUploads("variant") || [0, ""])[1]; }
+  if (!keep) { $("variant").value = (withUploads("variant") || [0, ""])[1]; }
   $("loader").value = name; try { history.replaceState(null, "", "#" + name); } catch (e) {}
   render();
 }
@@ -381,8 +392,8 @@ function open(name) { tab("one"); pick(name); }
 $("tab-all").addEventListener("click", () => tab("all")); $("tab-one").addEventListener("click", () => tab("one"));
 $("loader").addEventListener("change", e => pick(e.target.value.trim()));
 $("loader").addEventListener("input", e => { if (D.loaders[e.target.value]) pick(e.target.value); });
-$("view").addEventListener("change", render); $("variant").addEventListener("change", render);
-$("parent").addEventListener("change", () => { buildChain(); render(); });
+$("view").addEventListener("change", () => { if (cur.scope && cur.scope !== cur.name) buildChain(); render(); }); $("variant").addEventListener("change", render);
+$("parent").addEventListener("change", () => { $("view").innerHTML = ""; buildChain(); scopeViews(true); render(); });
 $("chainadd").addEventListener("change", e => { if (e.target.value) { chainPicked.add(e.target.value); buildChain(); render(); } });
 $("pics").addEventListener("change", render); $("regs").addEventListener("change", render); $("picslabel").hidden = !D.pictures;
 $("seg-raw").addEventListener("click", () => side("raw")); $("seg-app").addEventListener("click", () => side("applied")); $("seg").hidden = !D.pixels;
