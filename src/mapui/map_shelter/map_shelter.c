@@ -722,7 +722,7 @@ static WorldCoordRoomLighting D_map_shelter_8017AE8C[2] = {
 };
 
 static WorldCoordRoomLighting D_map_shelter_8017AE9C[1] = {
-    { &D_shelter_b3_elevator_hall_80184410, NULL },
+    { &gShelterB3ElevatorHallRoomLights, NULL },
 };
 
 static WorldCoordRoomLighting D_map_shelter_8017AEA4[1] = {
@@ -1112,7 +1112,7 @@ static ViewCamera* D_map_shelter_8017B3BC[49] = {
     D_shelter_b3_dumping_hole_8018C410,
     D_shelter_b3_garbage_incinerator_801883AC,
     D_shelter_b3_incinerator_control_room_80181CE4,
-    D_shelter_b3_elevator_hall_801834EC,
+    gShelterB3ElevatorHallViewCameras,
     D_shelter_b4_lower_sewer_80182908,
     D_shelter_b4_upper_sewer_80186F1C,
     D_shelter_b4_reservoir_80185ADC,
@@ -1170,7 +1170,7 @@ static u8** _gMapShelterAreaViewMaps[49] = {
     gShelterB3DumpingHoleViewMaps,
     gShelterB3GarbageIncineratorViewMaps,
     D_shelter_b3_incinerator_control_room_80181920,
-    D_shelter_b3_elevator_hall_80182B54,
+    gShelterB3ElevatorHallViewMaps,
     D_shelter_b4_lower_sewer_80181FA4,
     D_shelter_b4_upper_sewer_80186590,
     D_shelter_b4_reservoir_80185118,
@@ -1228,7 +1228,7 @@ static SpriteView* _gMapShelterAreaSpriteViews[49] = {
     gShelterB3DumpingHoleSpriteViews,
     D_shelter_b3_garbage_incinerator_8018D100,
     D_shelter_b3_incinerator_control_room_80182140,
-    D_shelter_b3_elevator_hall_801841DC,
+    gShelterB3ElevatorHallSpriteViews,
     D_shelter_b4_lower_sewer_80182E80,
     D_shelter_b4_upper_sewer_801879BC,
     D_shelter_b4_reservoir_80186730,
@@ -1282,7 +1282,7 @@ WorldCollisionSurfaceProperties** D_map_shelter_8017B614[49] = {
     D_shelter_b3_dumping_hole_8018F480,
     gShelterB3GarbageIncineratorSurfaceProperties,
     D_shelter_b3_incinerator_control_room_80182A20,
-    D_shelter_b3_elevator_hall_801849E0,
+    gShelterB3ElevatorHallSurfacePropertiesByClass,
     D_shelter_b4_lower_sewer_80183DF4,
     D_shelter_b4_upper_sewer_80188CFC,
     D_shelter_b4_reservoir_80187480,

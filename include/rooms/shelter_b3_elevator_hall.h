@@ -14,8 +14,13 @@
 
 extern AreaVariant D_shelter_b3_elevator_hall_8018477C[12];
 
-// shelter_b3_elevator_hall
-extern u8* D_shelter_b3_elevator_hall_80182B54[];
+/// Logical-view map directory for the hall's single room.
+///
+/// Room index zero borrows the first seven entries of `gViewIdentityMap`:
+/// logical views 1..7 select the same 1-based camera, image and sprite indices.
+/// There is no terminator. The directory requires this room overlay loaded;
+/// the shared byte map remains owned by gameplay.
+extern u8* gShelterB3ElevatorHallViewMaps[1];
 
 extern ViewCount D_shelter_b3_elevator_hall_80182B58[];
 
@@ -23,11 +28,28 @@ extern DirectionWarpEntry D_shelter_b3_elevator_hall_80182B5C[];
 
 extern WorldCollisionGrid D_shelter_b3_elevator_hall_801834C8;
 
-extern ViewCamera D_shelter_b3_elevator_hall_801834EC[];
+/// Seven authored cameras for the hall's mapped views 1..7.
+///
+/// Indexed by mapped view minus one, with no terminator. `ViewCamera` gives
+/// the world-to-view transform and pixel projection distance. Queued camera
+/// requests borrow these records until application; keep the room loaded.
+extern ViewCamera gShelterB3ElevatorHallViewCameras[7];
 
-extern SpriteView D_shelter_b3_elevator_hall_801841DC[];
+/// Foreground sprite resources for the hall's mapped views 1..7.
+///
+/// Indexed by mapped view minus one, with no descriptor terminator. Views
+/// 3..6 contain source rectangles, terminated batch lists and clip lists;
+/// views 1, 2 and 7 retain empty batch addresses in the source slot and draw
+/// the decoded background. Descriptors and their lists require the room
+/// overlay to remain loaded throughout packet allocation and drawing.
+extern SpriteView gShelterB3ElevatorHallSpriteViews[7];
 
-extern WorldCoordRoomLights D_shelter_b3_elevator_hall_80184410;
+/// The hall's five authored point lights for model shading in every view.
+///
+/// Directional and cone arrays are absent. Point-light nodes remain writable
+/// for parenting, composition and attenuation updates; the collection and its
+/// arrays must remain in the loaded room overlay while lighting uses them.
+extern WorldCoordRoomLights gShelterB3ElevatorHallRoomLights;
 
 extern WorldCollisionTrigger D_shelter_b3_elevator_hall_80184428[];
 
@@ -35,7 +57,13 @@ extern WorldCollisionTrigger D_shelter_b3_elevator_hall_801847DC[];
 
 extern WorldCollisionOccluder D_shelter_b3_elevator_hall_8018490C[];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b3_elevator_hall_801849E0[];
+/// Collision and footstep records indexed by the hall's surface class 0..7.
+///
+/// All eight pointers are populated, with no terminator. Classes 0 and 7 share
+/// a record with no footstep cues. Classes 4 and 6 pass probes and ignore
+/// weapon impacts; all classes apply grid pushback. Records and cue tables
+/// are borrowed from this room overlay and require it to remain loaded.
+extern WorldCollisionSurfaceProperties* gShelterB3ElevatorHallSurfacePropertiesByClass[8];
 
 /// Runs the elevator hall's message receiver through initialization, idle and release.
 ///
