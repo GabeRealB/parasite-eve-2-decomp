@@ -20,3 +20,4 @@ pe2clut_307	row 2 (y=267), 16-colour palette 8 (x=128)	antibody:_antibodyDrawMot
 # the lasting aura is gameplay's, not this overlay's: the cast spawns EFFECT_ANTIBODY_AURA (0xAC) at src/pe/antibody/antibody.c:230; its task (src/gameplay/player_actor.c:3295-3420) plays common-bank sounds SOUND_ANTIBODY_AURA_LOOP (0x23) and SOUND_ANTIBODY_AURA_HIT (0x0E), so the aura's sounds are not from spk_74..76 and survive the bank being replaced.
 # entries 0 and 1 of each bank are the same script per spk_scripts.py; only entry 1 is requested.
 # the charge-up sound was not traced here (pyrokinesis.tsv found it in the common bank through D_80112B94).
+# Reconcile (rooms consulted): no room record names this spell or spk_74 / spk_75 / spk_76 (grep of all 168 room records; the one 'Antibody' hit, shelter_b6_training_room, is about a pe2clut_307 palette, not these banks). Entry 0 of each bank stays 'no use found': a question internal to the spell and gameplay's cast code.

@@ -6,3 +6,4 @@ pe2clut_244	whole (2 rows of 256 stored at rows 245-246)		no use found		searched
 # The file is a sound bank and a texture pair without code: a room wanting actor 18 in slot 3 would find no task table here, and no room asks for it. By its contents (spk_90 with pe2img_245 / pe2clut_244) it matches file 111800's chunks rather than file 401800's.
 # actor_201800 and actor_301800 carry the same three chunks and differ only in id.
 # Mechanical data: `asset_residency.py show actor_301800` prints 'carrier - 0/file301800 (2 uploads)' although no loader of the file exists in the data read.
+# Room sweep (all 166 rooms): no room's residency names file 301800 (python3 tools/peassets/asset_residency.py show ROOM for every room) and no room record under tools/peassets/usage/ names it as loaded, so the 'no use found' lines above stand - they stay open only because an unused asset is recorded that way, not because a room is still to be read.
