@@ -248,7 +248,8 @@ def view_maps(files: list[Path], packages: set[str]) -> dict[str, list[list[int]
                 names = [c.strip() for c in directory[2].split(",") if c.strip()]
                 if not names or any(n != IDENTITY_MAP and n not in tables for n in names):
                     continue
-                counts = next((c for c in counted if len(c) == len(names)), None)
+                # The counts may carry a zero terminator the directory does not have.
+                counts = next((c[:len(names)] for c in counted if len(c) >= len(names) and not any(c[len(names):])), None)
                 if counts is None:
                     continue
                 maps = [list(range(1, count + 1)) if name == IDENTITY_MAP else tables[name][:count] for name, count in zip(names, counts)]
