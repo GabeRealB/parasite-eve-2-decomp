@@ -24,6 +24,14 @@ images and CLUTs upload to, moved by the edge's offsets.
     asset_residency.py dot LOADER       the loader's part of the graph, for graphviz
     asset_residency.py html [--out F]   the whole graph as one page: load graph and VRAM sheet per overlay
 
+The page draws the decoded pictures of the local extraction, and - run with
+venv/bin/python3, for the image decoders - an "applied" view: video memory
+composed from what the selected groups load, each texture page read at the
+depth and through the palette a resident model's faces name. The raw words
+for that are written beside the page as `<page>_pix/<asset>.js`, since a page
+opened from disk cannot read a picture's pixels but can run a script. A page
+or palette nothing resident fills is flagged.
+
 Every edge records where it comes from (`evidence`): `carrier` (the file holds
 the overlay's own package), `placement` (an `AreaVariant`'s placement and
 resource tables), `traced` (a load decided by code, read out of the sources
@@ -302,13 +310,62 @@ DOCUMENT = ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n
             '<style>body{margin:0}[hidden]{display:none!important}</style>\n</head>\n<body>\n%s\n</body>\n</html>\n')
 
 
+def raw_columns(kind: str, data: bytes) -> list[tuple[int, int, int, int, bytes]]:
+    """(x, y, w, h, little-endian VRAM words) for each rectangle a raw image or CLUT uploads."""
+    import struct
+    import image_codec          # needs Pillow, like the rest of the image tools
+    from lzss import decode_lzss
+    if kind == "clut":
+        x, y, h, w = struct.unpack_from("<4H", data, 0)
+        words = decode_lzss(data[16:])[: w * h * 2]
+        return [(x, y, w, h, words + bytes(w * h * 2 - len(words)))]
+    entries, term_y = image_codec.parse_work_entries(data)
+    height = image_codec.height_from_work_entries(entries, term_y)
+    per_column = max(1, height // image_codec.STRIP_H)
+    strips = list(image_codec.iter_lzss_strips(data[entries[0].offset:]))
+    out = []
+    for n, entry in enumerate(entries):
+        words = b"".join(strips[n * per_column:(n + 1) * per_column])
+        need = asset_schema.IMAGE_COLUMN_WIDTH * height * 2
+        out.append((entry.x, entry.y, asset_schema.IMAGE_COLUMN_WIDTH, height, words[:need] + bytes(max(0, need - len(words)))))
+    return out
+
+
+def write_pixels(db: sqlite3.Connection, folder: Path) -> int:
+    """One small script per image and CLUT holding its VRAM words, for the page to load on demand.
+
+    A page opened from disk may not read the pixels of a picture it shows, but
+    it may run a script beside it; so the words go in scripts. They are game
+    data and stay under local/. A file newer than its source is left alone.
+    """
+    import base64
+    import json
+    raw = ROOT / "assets" / "USA" / "raw"
+    folder.mkdir(parents=True, exist_ok=True)
+    written = 0
+    for asset, kind in db.execute("SELECT DISTINCT asset, kind FROM footprint"):
+        source = raw / ("pe2clut" if kind == "clut" else "pe2img") / f"{asset}.{'pe2clut' if kind == 'clut' else 'pe2img'}"
+        target = folder / f"{asset}.js"
+        if not source.is_file() or (target.is_file() and target.stat().st_mtime >= source.stat().st_mtime):
+            continue
+        try:
+            columns = raw_columns(kind, source.read_bytes())
+        except Exception as exc:  # noqa: BLE001 - one undecodable asset must not stop the page
+            print(f"{asset}: {exc}", file=sys.stderr)
+            continue
+        payload = [[x, y, w, h, base64.b64encode(words).decode()] for x, y, w, h, words in columns]
+        target.write_text(f"PIX({json.dumps(asset)},{json.dumps(payload, separators=(',', ':'))});\n", encoding="utf-8")
+        written += 1
+    return written
+
+
 def brief(note: str) -> str:
     """A traced load's note runs to a paragraph; the page has room for its first clause."""
     note = (note or "").split(". ")[0]
     return note if len(note) <= 72 else note[:71].rstrip() + "…"
 
 
-def page_data(db: sqlite3.Connection, pictures: str = "") -> str:
+def page_data(db: sqlite3.Connection, pictures: str = "", pixels: str = "") -> str:
     """The graph as the page reads it: files by index, footprints, groups per loader."""
     import json
     files = [r["path"] for r in db.execute("SELECT path FROM file ORDER BY path")]
@@ -325,7 +382,14 @@ def page_data(db: sqlite3.Connection, pictures: str = "") -> str:
         if index[r["file"]] in used:
             footprint[index[r["file"]]].append([r["asset"], r["kind"][0], r["part"], r["x"], r["y"], r["w"], r["h"], r["bpp"] or 0])
     carried = {index[r["path"]]: r["package"] for r in db.execute("SELECT path, package FROM file WHERE package IS NOT NULL")}
-    return json.dumps({"files": files, "fp": footprint, "loaders": loaders, "pkg": carried, "pictures": pictures}, separators=(",", ":")).replace("</", "<\\/")
+    # What each package's models ask for: the [page, CLUT] pairs of their faces.
+    assets, embedded = asset_schema.load()
+    models = defaultdict(list)
+    for key, rec in sorted(embedded.items()):
+        if rec.get("type") == "model" and assets.get(key, {}).get("textures"):
+            models[rec["source"].removesuffix(".pe2pkg")].append([key, assets[key]["textures"]])
+    return json.dumps({"files": files, "fp": footprint, "loaders": loaders, "pkg": carried, "pictures": pictures,
+                       "pixels": pixels, "models": models}, separators=(",", ":")).replace("</", "<\\/")
 
 
 def write_page(db: sqlite3.Connection, out: Path, bare: bool) -> None:
@@ -338,7 +402,16 @@ def write_page(db: sqlite3.Connection, out: Path, bare: bool) -> None:
     out.parent.mkdir(parents=True, exist_ok=True)
     extracted = ROOT / "assets" / "USA"
     pictures = "" if bare or not (extracted / "pe2img").is_dir() else os.path.relpath(extracted.resolve(), out.parent.resolve())
-    page = template.replace("/*DATA*/", page_data(db, pictures))
+    pixels = ""
+    if pictures:
+        try:
+            folder = out.with_name(out.stem + "_pix")
+            n = write_pixels(db, folder)
+            pixels = folder.name
+            print(f"{n} pixel files written to {folder}" if n else f"pixel files in {folder} are current")
+        except ImportError as exc:
+            print(f"no applied view: {exc} (run with venv/bin/python3 for the image decoders)", file=sys.stderr)
+    page = template.replace("/*DATA*/", page_data(db, pictures, pixels))
     out.write_text(page if bare else DOCUMENT % page, encoding="utf-8")
     print(f"wrote {out}  ({out.stat().st_size // 1024} KB)")
 
