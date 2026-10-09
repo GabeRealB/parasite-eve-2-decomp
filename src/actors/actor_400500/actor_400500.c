@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -367,8 +369,6 @@ typedef struct {
 } _Actor400500GrayStalkerWork;
 STATIC_ASSERT_SIZEOF(_Actor400500GrayStalkerWork, 0xA50);
 
-extern ActorZone D_actor_400500_80153D6C[];
-
 static void _actor400500DrawLimbShadow(Task* task, s16 firstJoint, s16 secondJoint, s16 halfWidth, s32 worldY, s32 shade);
 static void _actor400500FinishGrabRecovery(Task* task);
 static s32  _actor400500LocalizeWorldRotation(const GfxCoord* joint, MATRIX* worldRotation);
@@ -389,15 +389,6 @@ extern void* D_800678F0[1];
 static TmdSource _gActor400500GrayStalkerBurstHead;
 static TmdSource _gActor400500GrayStalkerBurstLegRight;
 static TmdSource _gActor400500GrayStalkerBurstLegLeft;
-
-extern EnemyParams D_actor_400500_80153C90;
-// Message-table callbacks use the argument views required by this TU.
-
-extern TaskMessageEntry D_actor_400500_80153CA0[2];
-extern u8               D_actor_400500_80153CC0[];
-extern TaskDesc         D_actor_400500_80153D48[];
-extern u16              D_actor_400500_80153DB4[];
-extern u8               D_actor_400500_80153DD4[];
 
 static void _actor400500UpdateTargetMotion(Task* task);
 static void _actor400500DrawLimbShadows(Task* task, s16 worldY, s32 shade);
@@ -1490,20 +1481,40 @@ static AnimationSet _gActor400500Animation21E3C = {
     { NULL, _gActor400500Animation21E3CBank1, NULL, NULL, _gActor400500Animation21E3CBank4, NULL, NULL, NULL },
 };
 
-DamageAttack D_actor_400500_80153C84[3] = {
-    { 28, 7 },
-    { 35, 10 },
-    { 8, 7 },
+/// Player reaction selected by the Stalker's arm contact keys.
+enum { ACTOR_400500_PLAYER_REACTION_SPARK_AND_PUFFS = 7 };
+
+/// Gray Stalker attack definitions: arm strikes, grab damage and an unused third row.
+///
+/// Power is the base damage before health-band scaling; reaction selects the
+/// player's hit presentation/status. Both arms use row 0; the grab uses row 1.
+/// No package code selects row 2, whose stored definition is retained.
+static DamageAttack _gActor400500Attacks[3] = {
+    { 28, ACTOR_400500_PLAYER_REACTION_SPARK_AND_PUFFS },
+    { 35, GAME_ACTOR_REACTION_CONFUSION },
+    { 8, ACTOR_400500_PLAYER_REACTION_SPARK_AND_PUFFS },
 };
 
-EnemyParams D_actor_400500_80153C90 = { D_actor_400500_80153C84, 450, 500, 200, 15, 100, 8, 100, 10 };
+/// Shared Gray Stalker health, battle rewards and incoming-hit reaction parameters.
+///
+/// Live enemies borrow this record and its attack definitions while the package
+/// is loaded. New enemies start with 450 HP and award 500 EXP, 200 BP and 15 MP.
+static EnemyParams _gActor400500EnemyParams = { _gActor400500Attacks, 450, 500, 200, 15, 100, 8, 100, 10 };
 
-TaskMessageEntry D_actor_400500_80153CA0[2] = {
+/// Gray Stalker room-command message binding, followed by the lookup terminator.
+///
+/// Tasks borrow this table while the package is loaded. The command payload is
+/// a borrowed `ActorCommand`; unsupported message IDs return zero.
+static TaskMessageEntry _gActor400500RoomCommandMessages[2] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor400500ApplyRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-/// Borrowed player animation table; entry zero is unused.
+/// Gray Stalker grab clips borrowed by the player's scripted animation playback.
+///
+/// Clip IDs are 1 caught, 2 surviving release and 3 fatal follow-up; slot 0 is
+/// NULL and cannot be played. The table and clips must stay loaded until the
+/// player's borrowed playback finishes.
 static AnimationSet* _gActor400500PlayerAnimationSets[4] = {
     NULL,
     &_gActor400500Animation2141C,
@@ -1511,163 +1522,81 @@ static AnimationSet* _gActor400500PlayerAnimationSets[4] = {
     &_gActor400500Animation21E3C,
 };
 
-u8 D_actor_400500_80153CC0[136] = {
-    0,
-    0,
-    0,
-    0,
-    16,
-    83,
-    20,
-    128,
-    72,
-    90,
-    20,
-    128,
-    44,
-    97,
-    20,
-    128,
-    196,
-    105,
-    20,
-    128,
-    128,
-    120,
-    20,
-    128,
-    0,
-    135,
-    20,
-    128,
-    192,
-    143,
-    20,
-    128,
-    56,
-    153,
-    20,
-    128,
-    12,
-    158,
-    20,
-    128,
-    236,
-    169,
-    20,
-    128,
-    68,
-    175,
-    20,
-    128,
-    4,
-    185,
-    20,
-    128,
-    48,
-    189,
-    20,
-    128,
-    156,
-    194,
-    20,
-    128,
-    84,
-    204,
-    20,
-    128,
-    192,
-    209,
-    20,
-    128,
-    76,
-    223,
-    20,
-    128,
-    220,
-    229,
-    20,
-    128,
-    100,
-    233,
-    20,
-    128,
-    4,
-    239,
-    20,
-    128,
-    128,
-    243,
-    20,
-    128,
-    236,
-    254,
-    20,
-    128,
-    56,
-    5,
-    21,
-    128,
-    196,
-    10,
-    21,
-    128,
-    48,
-    14,
-    21,
-    128,
-    48,
-    19,
-    21,
-    128,
-    44,
-    25,
-    21,
-    128,
-    240,
-    26,
-    21,
-    128,
-    180,
-    28,
-    21,
-    128,
-    120,
-    30,
-    21,
-    128,
-    60,
-    32,
-    21,
-    128,
-    228,
-    36,
-    21,
-    128,
-    0,
-    0,
-    0,
-    0,
+/// Gray Stalker animation bank borrowed by the body rig and its playback slots.
+///
+/// Loaded clip IDs are 1..32; slots 0 and 33 are NULL and cannot be played.
+/// The table and its clip records remain live for the rig's entire lifetime.
+static AnimationSet* _gActor400500AnimationSets[34] = {
+    NULL,
+    &_gActor400500Animation134F0,
+    &_gActor400500Animation13C28,
+    &_gActor400500Animation1430C,
+    &_gActor400500Animation14BA4,
+    &_gActor400500Animation15A60,
+    &_gActor400500Animation168E0,
+    &_gActor400500Animation171A0,
+    &_gActor400500Animation17B18,
+    &_gActor400500Animation17FEC,
+    &_gActor400500Animation18BCC,
+    &_gActor400500Animation19124,
+    &_gActor400500Animation19AE4,
+    &_gActor400500Animation19F10,
+    &_gActor400500Animation1A47C,
+    &_gActor400500Animation1AE34,
+    &_gActor400500Animation1B3A0,
+    &_gActor400500Animation1C12C,
+    &_gActor400500Animation1C7BC,
+    &_gActor400500Animation1CB44,
+    &_gActor400500Animation1D0E4,
+    &_gActor400500Animation1D560,
+    &_gActor400500Animation1E0CC,
+    &_gActor400500Animation1E718,
+    &_gActor400500Animation1ECA4,
+    &_gActor400500Animation1F010,
+    &_gActor400500Animation1F510,
+    &_gActor400500Animation1FB0C,
+    &_gActor400500Animation1FCD0,
+    &_gActor400500Animation1FE94,
+    &_gActor400500Animation20058,
+    &_gActor400500Animation2021C,
+    &_gActor400500Animation206C4,
+    NULL,
 };
 
-TaskDesc D_actor_400500_80153D48[2] = {
-    { { { TASK_BODY_TMD, 96 } }, _actor400500LeftArmTask, { .model = &_gActor400500GrayStalkerBurstArmLeft } },
-    { { { TASK_BODY_TMD, 96 } }, _actor400500RightArmTask, { .model = &_gActor400500GrayStalkerBurstArmRight } },
+/// Execution priority shared by the Stalker's body and attached strike-arm tasks.
+enum { ACTOR_400500_MODEL_TASK_PRIORITY = 96 };
+
+/// Attached strike-arm spawn recipes, indexed by `ACTOR_400500_ARM_LEFT/RIGHT`.
+///
+/// Each creates an owned TMD body from borrowed package geometry at priority 96.
+/// The parent owns the child handles and ends both tasks during teardown.
+static TaskDesc _gActor400500ArmTaskDescs[2] = {
+    { { { TASK_BODY_TMD, ACTOR_400500_MODEL_TASK_PRIORITY } }, _actor400500LeftArmTask, { .model = &_gActor400500GrayStalkerBurstArmLeft } },
+    { { { TASK_BODY_TMD, ACTOR_400500_MODEL_TASK_PRIORITY } }, _actor400500RightArmTask, { .model = &_gActor400500GrayStalkerBurstArmRight } },
 };
 
-TaskDesc D_actor_400500_80153D60 = { { { TASK_BODY_TMD, 96 } }, _actor400500Task, { .model = &_gActor400500GrayStalkerBody } };
+TaskDesc gActor400500TaskDesc = { { { TASK_BODY_TMD, ACTOR_400500_MODEL_TASK_PRIORITY } }, _actor400500Task, { .model = &_gActor400500GrayStalkerBody } };
 
-ActorZone D_actor_400500_80153D6C[7] = {
-    { -1700, -10200, 1700, 3200, 4 },
-    { 0, -10200, 15300, 3200, 1 },
-    { 15000, -10200, 3000, 3200, 2 },
-    { 15000, -7200, 3000, 5200, 3 },
-    { 4200, -11800, 2200, 1600, 5 },
-    { 15000, -2000, 3000, 1800, 6 },
+/// Six crawl-route rectangles in room X/Z coordinates, followed by `ACTOR_ZONE_END`.
+///
+/// The same table classifies the Stalker and player. Edges are inclusive and
+/// the first matching rectangle wins, so order resolves overlapping edges.
+static ActorZone _gActor400500CrawlZones[7] = {
+    { -1700, -10200, 1700, 3200, ACTOR_400500_CRAWL_ZONE_X_END },
+    { 0, -10200, 15300, 3200, ACTOR_400500_CRAWL_ZONE_X_SEGMENT },
+    { 15000, -10200, 3000, 3200, ACTOR_400500_CRAWL_ZONE_CORNER },
+    { 15000, -7200, 3000, 5200, ACTOR_400500_CRAWL_ZONE_Z_SEGMENT },
+    { 4200, -11800, 2200, 1600, ACTOR_400500_CRAWL_ZONE_PATROL },
+    { 15000, -2000, 3000, 1800, ACTOR_400500_CRAWL_ZONE_Z_END },
     { 0, 0, 0, 0, ACTOR_ZONE_END },
 };
 
-u16 D_actor_400500_80153DB4[16] = {
+/// Per-tick turn-in-place yaw increments, in 4096ths of a turn.
+///
+/// Indexed by the low four bits of `stateFrames`, repeating until the turn
+/// animation ends. The same magnitudes serve both directions; a full cycle
+/// sums to 512 units, one eighth of a turn.
+static u16 _gActor400500TurnYawSteps[16] = {
     0,
     0,
     0,
@@ -1686,7 +1615,52 @@ u16 D_actor_400500_80153DB4[16] = {
     0,
 };
 
-u8 D_actor_400500_80153DD4[33] = { 26, 26, 26, 27, 27, 15, 15, 26, 15, 26, 26, 27, 27, 15, 15, 26, 26, 27, 27, 30, 27, 26, 26, 26, 26, 26, 15, 15, 15, 15, 15, 15, 15 };
+/// Loaded clip IDs used only through the death-pose selection map.
+enum {
+    ACTOR_400500_DEATH_POSE_CLIP_26 = 26,
+    ACTOR_400500_DEATH_POSE_CLIP_27 = 27,
+    ACTOR_400500_DEATH_POSE_CLIP_30 = 30
+};
+
+/// Death-pose clip selected by the prior body animation ID, in the range 0..32.
+///
+/// Outputs are loaded clip IDs 15, 26, 27 and 30 in `_gActor400500AnimationSets`.
+/// The NULL bank endpoint at 33 is excluded from this map's input domain.
+static u8 _gActor400500DeathPoseByAnim[33] = {
+    ACTOR_400500_DEATH_POSE_CLIP_26,
+    ACTOR_400500_DEATH_POSE_CLIP_26,
+    ACTOR_400500_DEATH_POSE_CLIP_26,
+    ACTOR_400500_DEATH_POSE_CLIP_27,
+    ACTOR_400500_DEATH_POSE_CLIP_27,
+    ACTOR_400500_ANIM_UPRIGHT_RECOIL,
+    ACTOR_400500_ANIM_UPRIGHT_RECOIL,
+    ACTOR_400500_DEATH_POSE_CLIP_26,
+    ACTOR_400500_ANIM_UPRIGHT_RECOIL,
+    ACTOR_400500_DEATH_POSE_CLIP_26,
+    ACTOR_400500_DEATH_POSE_CLIP_26,
+    ACTOR_400500_DEATH_POSE_CLIP_27,
+    ACTOR_400500_DEATH_POSE_CLIP_27,
+    ACTOR_400500_ANIM_UPRIGHT_RECOIL,
+    ACTOR_400500_ANIM_UPRIGHT_RECOIL,
+    ACTOR_400500_DEATH_POSE_CLIP_26,
+    ACTOR_400500_DEATH_POSE_CLIP_26,
+    ACTOR_400500_DEATH_POSE_CLIP_27,
+    ACTOR_400500_DEATH_POSE_CLIP_27,
+    ACTOR_400500_DEATH_POSE_CLIP_30,
+    ACTOR_400500_DEATH_POSE_CLIP_27,
+    ACTOR_400500_DEATH_POSE_CLIP_26,
+    ACTOR_400500_DEATH_POSE_CLIP_26,
+    ACTOR_400500_DEATH_POSE_CLIP_26,
+    ACTOR_400500_DEATH_POSE_CLIP_26,
+    ACTOR_400500_DEATH_POSE_CLIP_26,
+    ACTOR_400500_ANIM_UPRIGHT_RECOIL,
+    ACTOR_400500_ANIM_UPRIGHT_RECOIL,
+    ACTOR_400500_ANIM_UPRIGHT_RECOIL,
+    ACTOR_400500_ANIM_UPRIGHT_RECOIL,
+    ACTOR_400500_ANIM_UPRIGHT_RECOIL,
+    ACTOR_400500_ANIM_UPRIGHT_RECOIL,
+    ACTOR_400500_ANIM_UPRIGHT_RECOIL,
+};
 
 static void           _actor400500InitCollisionBodies(Task* task);
 static void           _actor400500SpawnArmModels(Task* task);
@@ -1835,7 +1809,7 @@ static void _actor400500SpawnArmModels(Task* task)
     work                                  = task->work;
     rightArmCoord                         = &partCoords[ACTOR_400500_PART_RIGHT_ARM];
     leftArmCoord                          = &partCoords[ACTOR_400500_PART_LEFT_ARM];
-    armTask                               = taskSpawnFromTable(D_actor_400500_80153D48, ACTOR_400500_ARM_LEFT, 0, 0);
+    armTask                               = taskSpawnFromTable(_gActor400500ArmTaskDescs, ACTOR_400500_ARM_LEFT, 0, 0);
     work->armTasks[ACTOR_400500_ARM_LEFT] = armTask;
     armModel                              = armTask->extra.tmd;
     childRoot                             = armModel->coords;
@@ -1850,7 +1824,7 @@ static void _actor400500SpawnArmModels(Task* task)
     parentModel   = task->extra.tmd;
     texturedModel = armTask->extra.tmd;
     _actor400500ApplyArmTexturePlacement(parentModel, texturedModel);
-    armTask                                = taskSpawnFromTable(D_actor_400500_80153D48, ACTOR_400500_ARM_RIGHT, 0, 0);
+    armTask                                = taskSpawnFromTable(_gActor400500ArmTaskDescs, ACTOR_400500_ARM_RIGHT, 0, 0);
     work->armTasks[ACTOR_400500_ARM_RIGHT] = armTask;
     armModel                               = armTask->extra.tmd;
     childRoot                              = armModel->coords;
@@ -2327,7 +2301,7 @@ static s32 _actor400500TickTurn(Task* task)
     enum {
         ACTOR_400500_ANIM_TURN_YAW_DOWN = 0x17,
         ACTOR_400500_ANIM_TURN_YAW_UP   = 0x18,
-        ACTOR_400500_TURN_PROFILE_MASK  = ARRAY_SIZE(D_actor_400500_80153DB4) - 1,
+        ACTOR_400500_TURN_PROFILE_MASK  = ARRAY_SIZE(_gActor400500TurnYawSteps) - 1,
         ACTOR_400500_TURN_SOUND_PHASE   = 8,
         ACTOR_400500_TURN_GRID_MASK     = 0xE00
     };
@@ -2348,7 +2322,7 @@ static s32 _actor400500TickTurn(Task* task)
             soundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_400500_SOUND_STEP_1;
             _actor400500EnqueueRootSound(task, soundId);
         }
-        nextYaw   = (u16)work->yaw - D_actor_400500_80153DB4[work->stateFrames & ACTOR_400500_TURN_PROFILE_MASK];
+        nextYaw   = (u16)work->yaw - _gActor400500TurnYawSteps[work->stateFrames & ACTOR_400500_TURN_PROFILE_MASK];
         work->yaw = nextYaw;
         if ((_actor400500CheckAnimBoundary(task) << 0x10) != 0) {
             work->stateFrames = 0;
@@ -2369,7 +2343,7 @@ static s32 _actor400500TickTurn(Task* task)
             soundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_400500_SOUND_STEP_2;
             _actor400500EnqueueRootSound(task, soundId);
         }
-        nextYaw   = (u16)work->yaw + D_actor_400500_80153DB4[work->stateFrames & ACTOR_400500_TURN_PROFILE_MASK];
+        nextYaw   = (u16)work->yaw + _gActor400500TurnYawSteps[work->stateFrames & ACTOR_400500_TURN_PROFILE_MASK];
         work->yaw = nextYaw;
         if ((_actor400500CheckAnimBoundary(task) << 0x10) != 0) {
             work->stateFrames = 0;
@@ -3212,15 +3186,15 @@ static void _actor400500InitTask(Task* task)
     worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->recs                   = work->bodyContacts;
-    enemy->param                  = &D_actor_400500_80153C90;
-    enemy->hp = enemy->hpMax = D_actor_400500_80153C90.hpMax;
+    enemy->param                  = &_gActor400500EnemyParams;
+    enemy->hp = enemy->hpMax = _gActor400500EnemyParams.hpMax;
     // Borrow the package clip bank and install the initial crawl pose.
-    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_400500_80153CC0, model, work->rig.poses,
+    animationInitContext(&work->rig.anim, _gActor400500AnimationSets, model, work->rig.poses,
                          work->rig.slots);
     rootCoord->parent = &gGfxViewCoord;
     _actor400500SetAnim(task, ACTOR_400500_ANIM_CRAWL, ACTOR_400500_CRAWL_RATE);
     _actor400500TickAnim(task);
-    task->msgTable = D_actor_400500_80153CA0;
+    task->msgTable = _gActor400500RoomCommandMessages;
     _actor400500PlaceAtArrival(task);
     movementWork = task->work;
     if (gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER] != NULL) {
@@ -3260,15 +3234,23 @@ static void _actor400500InitTask(Task* task)
     task->state = task->state + 1;
 }
 
-/// Handlers the task entry `_actor400500Task` runs by task state:
-/// set-up, the per-frame state machine run by `state`, a second one run by
-/// `state` from task state 2, and the teardown that kills the child tasks
-/// and destroys the enemy 0x12D frames later.
-static const TaskFuncTable4 D_actor_400500_80131E4C = { {
-    _actor400500InitTask,
-    _actor400500TickCombatTask,
-    _actor400500TickDeathTask,
-    _actor400500TickTeardown,
+/// Indices of the Gray Stalker's task lifecycle table.
+enum {
+    ACTOR_400500_TASK_INIT     = 0,
+    ACTOR_400500_TASK_COMBAT   = 1,
+    ACTOR_400500_TASK_DEATH    = 2,
+    ACTOR_400500_TASK_TEARDOWN = 3
+};
+
+/// Gray Stalker lifecycle handlers, indexed by `Task::state` in `ACTOR_400500_TASK_*`.
+///
+/// All four entries are live callbacks. Combat and death use distinct work-state
+/// tables; teardown releases the arm children before the delayed enemy release.
+static const TaskFuncTable4 _gActor400500TaskStates = { {
+    [ACTOR_400500_TASK_INIT]     = _actor400500InitTask,
+    [ACTOR_400500_TASK_COMBAT]   = _actor400500TickCombatTask,
+    [ACTOR_400500_TASK_DEATH]    = _actor400500TickDeathTask,
+    [ACTOR_400500_TASK_TEARDOWN] = _actor400500TickTeardown,
 } };
 
 /// Returns the first crawl-route zone containing a model root's X/Z, or zero outside all zones.
@@ -3284,7 +3266,7 @@ static inline s32 _actor400500FindRouteZone(Task* task)
     s16              x         = rootCoord->coord.t[0];
     s16              z         = rootCoord->coord.t[2];
 
-    for (zone = D_actor_400500_80153D6C; zone->id != ACTOR_ZONE_END; zone++) {
+    for (zone = _gActor400500CrawlZones; zone->id != ACTOR_ZONE_END; zone++) {
         if (zone->x <= x && x <= zone->x + zone->width && zone->z <= z && z <= zone->z + zone->depth) {
             return zone->id;
         }
@@ -3369,7 +3351,10 @@ static inline void _actor400500QueueCoordFrameCapture(GfxCoord* coord, s32 depth
     SCRATCH_STACK_RELEASE_BLOCK(ActorOriginDepthScratch);
 }
 
-static const _Actor400500StateTable D_actor_400500_80131E5C = { {
+/// Living Gray Stalker handlers, indexed by `ACTOR_400500_STATE_*` (0..12).
+///
+/// Every entry is a live callback; this numbering applies only during combat.
+static const _Actor400500StateTable _gActor400500States = { {
     _actor400500TickCrawlState,
     _actor400500TickGrabState,
     _actor400500TickCeilingStrikeState,
@@ -3465,7 +3450,7 @@ static void _actor400500TickCombatTask(Task* task)
     captureCoord = bodyModel->coords + ACTOR_400500_PART_CAPTURE_ORIGIN;
     drawModel    = bodyModel;
     playerTask   = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
-    states       = D_actor_400500_80131E5C;
+    states       = _gActor400500States;
 
     // Finish the caught clip before releasing a survivor or retaining the fatal pose.
     grabStep = work->grabStep;
@@ -3566,9 +3551,8 @@ static void _actor400500TickCombatTask(Task* task)
 
 #undef ACTOR_400500_UPDATE_COMBAT_COLOR
 
-/// Sub-state handlers `_actor400500TickCrawlState` copies onto the stack and runs
-/// by `subState` every frame.
-static const TaskFuncTable11 D_actor_400500_80131E90 = { {
+/// Ordinary ceiling/floor crawl-route handlers, indexed by `ACTOR_400500_CRAWL_STEP_*` (0..10).
+static const TaskFuncTable11 _gActor400500CrawlSteps = { {
     _actor400500SelectCrawlRoute,
     _actor400500TickCrawlPositiveX,
     _actor400500TickCrawlTurnNegativeX,
@@ -3582,9 +3566,11 @@ static const TaskFuncTable11 D_actor_400500_80131E90 = { {
     _actor400500TickCrawlTurnPositiveZ,
 } };
 
-/// Handlers `_actor400500TickCrawlState` also runs, by `deathStep`, while the
-/// enemy is out of hit points.
-static const TaskFuncTable3 D_actor_400500_80131EBC = { {
+/// Lethal ceiling-crawl fall handlers, indexed by `deathStep` (0 setup, 1 fall, 2 landing).
+///
+/// The final step releases the death hold without advancing beyond the table.
+/// A floor death or blast releases the hold at step zero instead.
+static const TaskFuncTable3 _gActor400500CrawlDeathFallSteps = { {
     _actor400500StartCrawlDeathFall,
     _actor400500TickCrawlDeathFall,
     _actor400500FinishCrawlDeathLanding,
@@ -3636,8 +3622,8 @@ static void _actor400500TickCrawlState(Task* task)
 
     work       = task->work;
     enemy      = task->spawnArg2.pointer;
-    crawlSteps = D_actor_400500_80131E90;
-    deathSteps = D_actor_400500_80131EBC;
+    crawlSteps = _gActor400500CrawlSteps;
+    deathSteps = _gActor400500CrawlDeathFallSteps;
     if (enemy->hp <= 0) {
         // Finish the ceiling-death fall while showing the body and ending attacks.
         deathSteps.funcs[(s16)work->deathStep](task);
@@ -4630,24 +4616,35 @@ static void _actor400500FinishGrabRecovery(Task* task)
     }
 }
 
-/// Sub-state handlers `_actor400500TickGrabState` copies onto the stack and runs by `subState`.
-static const TaskFuncTable3 D_actor_400500_80131EE4 = { {
-    _actor400500StartGrab,
-    _actor400500TickGrab,
-    _actor400500FinishGrabRecovery,
+/// Indices of the Stalker's grab attack, separate from the captured player's playback phases.
+enum {
+    ACTOR_400500_GRAB_ATTACK_STEP_START         = 0,
+    ACTOR_400500_GRAB_ATTACK_STEP_ATTACK        = 1,
+    ACTOR_400500_GRAB_ATTACK_STEP_MISS_RECOVERY = 2
+};
+
+/// Grab attack handlers, indexed by `subState` in `ACTOR_400500_GRAB_ATTACK_STEP_*`.
+///
+/// Each step advances body playback itself. The miss path enters recovery;
+/// a completed successful grab returns directly to the living crawl state.
+static const TaskFuncTable3 _gActor400500GrabSteps = { {
+    [ACTOR_400500_GRAB_ATTACK_STEP_START]         = _actor400500StartGrab,
+    [ACTOR_400500_GRAB_ATTACK_STEP_ATTACK]        = _actor400500TickGrab,
+    [ACTOR_400500_GRAB_ATTACK_STEP_MISS_RECOVERY] = _actor400500FinishGrabRecovery,
 } };
 
-/// Sub-state handlers `_actor400500TickCeilingStrikeState` copies onto the stack and runs
-/// by `subState` while the enemy is alive.
-static const TaskFuncTable3 D_actor_400500_80131EF0 = { {
+/// Ceiling right-arm strike handlers, indexed by `subState` (0 setup, 1 extend, 2 strike/return).
+static const TaskFuncTable3 _gActor400500CeilingStrikeSteps = { {
     _actor400500StartCeilingArmStrike,
     _actor400500ExtendCeilingStrikeArm,
     _actor400500TickCeilingArmStrike,
 } };
 
-/// Handlers `_actor400500TickCeilingStrikeState` runs by `deathStep`, instead of the
-/// sub-state, once the enemy is out of hit points.
-static const TaskFuncTable3 D_actor_400500_80131EFC = { {
+/// Lethal ceiling-strike fall handlers, indexed by `deathStep` (0 setup, 1 fall, 2 landing).
+///
+/// The final step releases the death hold without advancing beyond the table.
+/// Blast kills bypass this fall and release the hold immediately.
+static const TaskFuncTable3 _gActor400500CeilingStrikeDeathFallSteps = { {
     _actor400500StartCeilingStrikeDeathFall,
     _actor400500TickCeilingStrikeDeathFall,
     _actor400500FinishCeilingStrikeDeathLanding,
@@ -4669,8 +4666,8 @@ static void _actor400500TickCeilingStrikeState(Task* task)
 
     work        = task->work;
     enemy       = task->spawnArg2.pointer;
-    strikeSteps = D_actor_400500_80131EF0;
-    deathSteps  = D_actor_400500_80131EFC;
+    strikeSteps = _gActor400500CeilingStrikeSteps;
+    deathSteps  = _gActor400500CeilingStrikeDeathFallSteps;
     if (enemy->hp <= 0) {
         if (work->lastHitReaction == ACTOR_400500_HIT_REACTION_BLAST) {
             work->deathHeld = 0;
@@ -4732,8 +4729,11 @@ static void _actor400500TickCeilingArmStrike(Task* task)
     }
 }
 
-/// Sub-state handlers `_actor400500TickFloorStrikeState` copies onto the stack and runs by `subState`.
-static const TaskFuncTable5 D_actor_400500_80131F08 = { {
+/// Floor left-arm strike handlers, indexed by `subState` in 0..4.
+///
+/// Steps are setup, extend, strike/return, arm recovery and selection of crawl
+/// or a jump to the ceiling. The last step changes state instead of advancing.
+static const TaskFuncTable5 _gActor400500FloorStrikeSteps = { {
     _actor400500StartFloorArmStrike,
     _actor400500ExtendFloorStrikeArm,
     _actor400500TickFloorArmStrike,
@@ -4754,7 +4754,7 @@ static void _actor400500TickFloorStrikeState(Task* task)
 
     work        = task->work;
     enemy       = task->spawnArg2.pointer;
-    strikeSteps = D_actor_400500_80131F08;
+    strikeSteps = _gActor400500FloorStrikeSteps;
     if (enemy->hp > 0) {
         if (_actor400500TakeKnockdown(task)) {
             return;
@@ -4868,8 +4868,8 @@ static void _actor400500FinishFloorArmStrike(Task* task)
     }
 }
 
-/// Sub-state handlers `_actor400500TickCeilingFallState` copies onto the stack and runs by `subState`.
-static const TaskFuncTable4 D_actor_400500_80131F1C = { {
+/// Ceiling-fall handlers, indexed by `subState` (0 setup, 1 fall, 2 landing, 3 recovery).
+static const TaskFuncTable4 _gActor400500CeilingFallSteps = { {
     _actor400500StartCeilingFall,
     _actor400500TickCeilingFall,
     _actor400500FinishCeilingFallLanding,
@@ -4892,7 +4892,7 @@ static void _actor400500TickCeilingFallState(Task* task)
 
     work      = task->work;
     enemy     = task->spawnArg2.pointer;
-    fallSteps = D_actor_400500_80131F1C;
+    fallSteps = _gActor400500CeilingFallSteps;
     if ((enemy->hp <= 0) && (work->lastHitReaction == ACTOR_400500_HIT_REACTION_BLAST)) {
         work->deathHeld = 0;
         _actor400500DisableArmContacts(work);
@@ -4907,8 +4907,11 @@ static void _actor400500TickCeilingFallState(Task* task)
     reactionWork->ceilingFallPending = 0;
 }
 
-/// Sub-state handlers `_actor400500TickKnockdownState` copies onto the stack and runs by `subState`.
-static const TaskFuncTable7 D_actor_400500_80131F2C = { {
+/// Posture-dependent knockdown handlers, indexed by `subState` in 0..6.
+///
+/// Step 0 selects floor recoil/recovery (1..2) or ceiling recoil/fall/landing/
+/// recovery (3..6). Final recovery returns to the appropriate living crawl.
+static const TaskFuncTable7 _gActor400500KnockdownSteps = { {
     _actor400500StartKnockdownRecoil,
     _actor400500FinishFloorKnockdownRecoil,
     _actor400500FinishFloorKnockdownRecovery,
@@ -4928,7 +4931,7 @@ static void _actor400500TickKnockdownState(Task* task)
     TaskFuncTable7               recoilSteps;
 
     work        = task->work;
-    recoilSteps = D_actor_400500_80131F2C;
+    recoilSteps = _gActor400500KnockdownSteps;
     recoilSteps.funcs[(s16)work->subState](task);
     _actor400500TickAnim(task);
 }
@@ -5045,8 +5048,8 @@ static void _actor400500WaitAmbushTrigger(Task* task)
     }
 }
 
-/// Sub-state handlers `_actor400500TickDropState` copies onto the stack and runs by `subState`.
-static const TaskFuncTable3 D_actor_400500_80131F48 = { {
+/// Deliberate ceiling-to-floor drop handlers, indexed by `subState` (0 setup, 1 drop, 2 landing).
+static const TaskFuncTable3 _gActor400500DropSteps = { {
     _actor400500StartDropFromCeiling,
     _actor400500TickDropFromCeiling,
     _actor400500FinishDropLanding,
@@ -5064,7 +5067,7 @@ static void _actor400500TickDropState(Task* task)
     TaskFuncTable3               stepHandlers;
 
     work         = task->work;
-    stepHandlers = D_actor_400500_80131F48;
+    stepHandlers = _gActor400500DropSteps;
     if ((s16)work->subState != ACTOR_400500_POSTURE_CHANGE_STEP_START) {
         _actor400500TickAnim(task);
     }
@@ -5198,8 +5201,8 @@ static void _actor400500FinishDropLanding(Task* task)
     }
 }
 
-/// Sub-state handlers `_actor400500TickJumpState` copies onto the stack and runs by `subState`.
-static const TaskFuncTable3 D_actor_400500_80131F54 = { {
+/// Floor-to-ceiling jump handlers, indexed by `subState` (0 setup, 1 jump, 2 ceiling landing).
+static const TaskFuncTable3 _gActor400500JumpSteps = { {
     _actor400500StartJumpToCeiling,
     _actor400500TickJumpToCeiling,
     _actor400500FinishJumpToCeiling,
@@ -5216,7 +5219,7 @@ static void _actor400500TickJumpState(Task* task)
     TaskFuncTable3               stepHandlers;
 
     work         = task->work;
-    stepHandlers = D_actor_400500_80131F54;
+    stepHandlers = _gActor400500JumpSteps;
     stepHandlers.funcs[(s16)work->subState](task);
     _actor400500TickAnim(task);
     _actor400500ClearHitAndFallRequests(task);
@@ -5386,8 +5389,12 @@ static void _actor400500TickTurnOver(Task* task)
     }
 }
 
-/// Sub-state handlers `_actor400500TickStatusHoldState` copies onto the stack and runs by `subState`.
-static const TaskFuncTable7 D_actor_400500_80131F60 = { {
+/// Status-held recoil handlers, indexed by `subState` in 0..6.
+///
+/// Step 0 selects floor recoil/recovery (1..2) or ceiling recoil/fall/landing/
+/// recovery (3..6). Floor recoil waits for status buildup to expire; ceiling
+/// recoil falls when its clip ends or the enemy dies.
+static const TaskFuncTable7 _gActor400500StatusHoldSteps = { {
     _actor400500StartStatusHoldRecoil,
     _actor400500FinishFloorStatusHoldRecoil,
     _actor400500FinishFloorStatusHoldRecovery,
@@ -5408,7 +5415,7 @@ static void _actor400500TickStatusHoldState(Task* task)
     TaskFuncTable7               stepHandlers;
 
     work         = task->work;
-    stepHandlers = D_actor_400500_80131F60;
+    stepHandlers = _gActor400500StatusHoldSteps;
     stepHandlers.funcs[(s16)work->subState](task);
     _actor400500TickAnim(task);
 }
@@ -5452,19 +5459,35 @@ static void _actor400500StartStatusHoldRecoil(Task* task)
     }
 }
 
-/// State handlers `_actor400500TickDeathTask` copies onto the stack and runs
-/// by `state`.
-static const TaskFuncTable10 D_actor_400500_80131F7C = { {
-    _actor400500StartDeath,
-    _actor400500WaitDeathAnimation,
-    _actor400500PrepareDeathShrink,
-    _actor400500WaitDeathShrinkDelay,
-    _actor400500TickDeathShrink,
-    _actor400500BeginTeardown,
-    _actor400500HideBurstBody,
-    _actor400500WaitBurstBufferDelay,
-    _actor400500ReleaseBurstBufferAndSpawnFragments,
-    _actor400500BeginBurstTeardown,
+/// Indices of the death sequence, separate from the living `ACTOR_400500_STATE_*` values.
+enum {
+    ACTOR_400500_DEATH_STEP_START          = 0,
+    ACTOR_400500_DEATH_STEP_POSE_WAIT      = 1,
+    ACTOR_400500_DEATH_STEP_PREPARE_SHRINK = 2,
+    ACTOR_400500_DEATH_STEP_REVEAL_DELAY   = 3,
+    ACTOR_400500_DEATH_STEP_SHRINK         = 4,
+    ACTOR_400500_DEATH_STEP_TEARDOWN       = 5,
+    ACTOR_400500_DEATH_STEP_HIDE_BODY      = 6,
+    ACTOR_400500_DEATH_STEP_BUFFER_DELAY   = 7,
+    ACTOR_400500_DEATH_STEP_FRAGMENTS      = 8,
+    ACTOR_400500_DEATH_STEP_BURST_TEARDOWN = 9
+};
+
+/// Gray Stalker death handlers, indexed by `state` in `ACTOR_400500_DEATH_STEP_*` (0..9).
+///
+/// Step 0 selects pose/shrink/teardown (1..5) or blast hide/fragments/teardown
+/// (6..9). Both terminal entries enter task teardown and reset its work state.
+static const TaskFuncTable10 _gActor400500DeathSteps = { {
+    [ACTOR_400500_DEATH_STEP_START]          = _actor400500StartDeath,
+    [ACTOR_400500_DEATH_STEP_POSE_WAIT]      = _actor400500WaitDeathAnimation,
+    [ACTOR_400500_DEATH_STEP_PREPARE_SHRINK] = _actor400500PrepareDeathShrink,
+    [ACTOR_400500_DEATH_STEP_REVEAL_DELAY]   = _actor400500WaitDeathShrinkDelay,
+    [ACTOR_400500_DEATH_STEP_SHRINK]         = _actor400500TickDeathShrink,
+    [ACTOR_400500_DEATH_STEP_TEARDOWN]       = _actor400500BeginTeardown,
+    [ACTOR_400500_DEATH_STEP_HIDE_BODY]      = _actor400500HideBurstBody,
+    [ACTOR_400500_DEATH_STEP_BUFFER_DELAY]   = _actor400500WaitBurstBufferDelay,
+    [ACTOR_400500_DEATH_STEP_FRAGMENTS]      = _actor400500ReleaseBurstBufferAndSpawnFragments,
+    [ACTOR_400500_DEATH_STEP_BURST_TEARDOWN] = _actor400500BeginBurstTeardown,
 } };
 
 /// Updates actor lighting at a cached coordinate position and applies the room's ambient tint.
@@ -5505,7 +5528,7 @@ static void _actor400500TickDeathTask(Task* task)
 
     model  = task->extra.tmd;
     work   = task->work;
-    states = D_actor_400500_80131F7C;
+    states = _gActor400500DeathSteps;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
             model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -5539,7 +5562,7 @@ static void _actor400500StartDeath(Task* task)
 
     work              = task->work;
     enemy             = task->spawnArg2.pointer;
-    deathAnimId       = D_actor_400500_80153DD4[work->animId];
+    deathAnimId       = _gActor400500DeathPoseByAnim[work->animId];
     work->animRate    = ANIMATION_RATE_ONE;
     work->animRequest = ACTOR_400500_ANIM_REQUEST_RESET;
     work->animId      = deathAnimId;
@@ -5636,8 +5659,11 @@ static void _actor400500TickDeathShrink(Task* task)
     }
 }
 
-/// Sub-state handlers `_actor400500TickFallenCrawlState` copies onto the stack and runs by `subState`.
-static const TaskFuncTable11 D_actor_400500_80131FA4 = { {
+/// Crawl-on-back route handlers, indexed by `subState` in 0..10.
+///
+/// Route slots parallel the ordinary crawl table, but heading changes enter
+/// turn-over rather than rotating in place. Heading checks resume a matching gait.
+static const TaskFuncTable11 _gActor400500FallenCrawlSteps = { {
     _actor400500SelectFallenCrawlRoute,
     _actor400500TickFallenCrawlPositiveX,
     _actor400500CheckFallenCrawlNegativeXHeading,
@@ -5665,7 +5691,7 @@ static void _actor400500TickFallenCrawlState(Task* task)
 
     work         = task->work;
     enemy        = task->spawnArg2.pointer;
-    stepHandlers = D_actor_400500_80131FA4;
+    stepHandlers = _gActor400500FallenCrawlSteps;
     if ((s16)work->subState != ACTOR_400500_FALLEN_CRAWL_STEP_SELECT) {
         _actor400500TickAnim(task);
     }
@@ -5925,8 +5951,11 @@ static void _actor400500UpdateCloakTiming(Task* task)
     }
 }
 
-/// Sub-state handlers `_actor400500TickRoomSequenceState` copies onto the stack and runs by `subState`.
-static const TaskFuncTable5 D_actor_400500_80131FEC = { {
+/// Room-command sequence handlers, indexed by `subState` in 0..4.
+///
+/// Command 1 starts setup; the remaining steps wait for command 2, crawl to the
+/// stop point, wait for command 3 and wait for command 4 before normal crawling.
+static const TaskFuncTable5 _gActor400500RoomSequenceSteps = { {
     _actor400500StartRoomSequence,
     _actor400500WaitRoomCrawlCommand,
     _actor400500TickRoomSequenceCrawl,
@@ -5945,7 +5974,7 @@ static void _actor400500TickRoomSequenceState(Task* task)
     TaskFuncTable5               stepHandlers;
 
     work         = task->work;
-    stepHandlers = D_actor_400500_80131FEC;
+    stepHandlers = _gActor400500RoomSequenceSteps;
     stepHandlers.funcs[(s16)work->subState](task);
     _actor400500TickAnim(task);
 }
@@ -6023,7 +6052,7 @@ static void _actor400500TickGrabState(Task* task)
     TaskFuncTable3               steps;
 
     work  = task->work;
-    steps = D_actor_400500_80131EE4;
+    steps = _gActor400500GrabSteps;
     steps.funcs[(s16)work->subState](task);
     reactionWork                     = task->work;
     reactionWork->hitTaken           = 0;
@@ -7573,7 +7602,7 @@ static void _actor400500Task(Task* task)
 {
     TaskFuncTable4 states;
 
-    states = D_actor_400500_80131E4C;
+    states = _gActor400500TaskStates;
     states.funcs[task->state](task);
 }
 

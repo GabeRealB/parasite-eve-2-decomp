@@ -619,7 +619,7 @@ WorldCoordRoomLights D_dryfield_night_underpass_8018024C[1] = {
 };
 
 AreaResource D_dryfield_night_underpass_80180264[2] = {
-    { 5, 5, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_400500_80153D60 },
+    { 5, 5, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor400500TaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

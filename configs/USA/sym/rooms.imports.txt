@@ -594,7 +594,7 @@ gActor00100DesertChaserTaskDesc = 0x8014D8A4; // absolute:True owner=actor_40010
 D_actor_215100_8014E13C = 0x8014E13C; // absolute:True owner=actor_215100
 D_actor_207000_80151E60 = 0x80151E60; // absolute:True owner=actor_207000
 D_actor_215100_80153274 = 0x80153274; // absolute:True owner=actor_215100
-D_actor_215100_80153D6C = 0x80153D6C; // absolute:True owner=actor_215100 shared=actors
+D_actor_215100_80153D6C = 0x80153D6C; // absolute:True owner=actor_215100
 D_actor_207000_801575F0 = 0x801575F0; // absolute:True owner=actor_207000
 actor341300ResetScriptTaskHandle = 0x8016268C; // type:func absolute:True owner=actor_341300
 actor361100ClearHeadAimTaskHandle = 0x80162B0C; // type:func absolute:True owner=actor_361100

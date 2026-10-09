@@ -78,7 +78,7 @@ D_dryfield_night_underpass_80180374 = 0x80180374; // size:0x20 defined:True
 gActor01500MindSucklerTaskDesc = 0x8013BE28; // absolute:True owner=actor_101500
 gActor101600ScavengerTaskDesc = 0x801445DC; // absolute:True owner=actor_101600
 gActor101100Tasks = 0x80147400; // absolute:True owner=actor_101100
-D_actor_400500_80153D60 = 0x80153D60; // absolute:True owner=actor_400500
+gActor400500TaskDesc = 0x80153D60; // absolute:True owner=actor_400500
 gActor402200GolemTaskDesc = 0x80154188; // absolute:True owner=actor_402200
 D_map_dryfield_full_8017CF58 = 0x8017CF58; // absolute:True
 D_map_dryfield_full_8017CF78 = 0x8017CF78; // absolute:True

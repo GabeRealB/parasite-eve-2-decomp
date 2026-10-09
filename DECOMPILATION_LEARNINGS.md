@@ -2937,8 +2937,8 @@ function lands immediately before that function's `.text` and matches
 (`_actor223600Update`; see the `## A local array initialiser of *three
 or more* elements becomes a .rdata table plus a block move` section).
 
-Example: `_actor400500TickCeilingStrikeState` (`D_actor_400500_80131EF0` /
-`D_actor_400500_80131EFC`).
+Example: `_actor400500TickCeilingStrikeState` (`_gActor400500CeilingStrikeSteps` /
+`_gActor400500CeilingStrikeDeathFallSteps`).
 
 ## Name `spawnArg2` before two stack table copies so `lw` of the enemy hoists
 
@@ -71480,8 +71480,8 @@ function lands immediately before that function's `.text` and matches
 (`_actor223600Update`; see the `## A local array initialiser of *three
 or more* elements becomes a .rdata table plus a block move` section).
 
-Example: `_actor400500TickCeilingStrikeState` (`D_actor_400500_80131EF0` /
-`D_actor_400500_80131EFC`).
+Example: `_actor400500TickCeilingStrikeState` (`_gActor400500CeilingStrikeSteps` /
+`_gActor400500CeilingStrikeDeathFallSteps`).
 
 ## Name `spawnArg2` before two stack table copies so `lw` of the enemy hoists
 
