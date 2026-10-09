@@ -8,6 +8,8 @@
 #include "area_flags.h"
 #include "gameplay/enemy.h"
 #include "gameplay/item_placement.h"
+#include "gameplay/items.h"
+#include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "scene_runtime.h"
 
@@ -16,6 +18,52 @@
 #include "main/mc.h"
 #include "main/session.h"
 #include "main/task_types.h"
+
+/// Catalogue and UI kinds used by Dryfield's shared placed-object lists.
+///
+/// Banks 0 and 1 are catalogue ids, bank 7 selects item-box UI, and bank 8
+/// selects save-point UI. Key-item kinds reuse the collection-id constants.
+enum {
+    AREA_DRYFIELD_KIND_RECOVERY_1               = 0x1,
+    AREA_DRYFIELD_KIND_RECOVERY_3               = 0x3,
+    AREA_DRYFIELD_KIND_COLA                     = 0x5,
+    AREA_DRYFIELD_KIND_MP_BOOST_2               = 0x7,
+    AREA_DRYFIELD_KIND_PENICILLIN               = 0x8,
+    AREA_DRYFIELD_KIND_LIPSTICK                 = 0xB,
+    AREA_DRYFIELD_KIND_SNAIL_MAGAZINE           = 0xC,
+    AREA_DRYFIELD_KIND_BELT_POUCH               = 0xD,
+    AREA_DRYFIELD_KIND_HOLY_WATER               = 0x38,
+    AREA_DRYFIELD_KIND_OFUDA                    = 0x39,
+    AREA_DRYFIELD_KIND_FLARE                    = 0x3A,
+    AREA_DRYFIELD_KIND_PROTEIN_CAPSULE          = 0x3C,
+    AREA_DRYFIELD_KIND_TACTICAL_VEST            = 0x65,
+    AREA_DRYFIELD_KIND_CHICKEN_PLATE            = 0x68,
+    AREA_DRYFIELD_KIND_M950                     = 0x82,
+    AREA_DRYFIELD_KIND_9MM_PARABELLUM           = 0xA0,
+    AREA_DRYFIELD_KIND_BUCKSHOT                 = 0xAC,
+    AREA_DRYFIELD_KIND_FIREFLY                  = 0xAD,
+    AREA_DRYFIELD_KIND_RIFLED_SLUG              = 0xAE,
+    AREA_DRYFIELD_KIND_SALOON_KEY               = 0x110,
+    AREA_DRYFIELD_KIND_GAS_STATION_ITEM_BOX     = 0x703,
+    AREA_DRYFIELD_KIND_MOTEL_ROOM_6_ITEM_BOX    = 0x704,
+    AREA_DRYFIELD_KIND_GARAGE_ITEM_BOX          = 0x705,
+    AREA_DRYFIELD_KIND_GAS_STATION_SAVE_POINT   = 0x804,
+    AREA_DRYFIELD_KIND_TRAILER_COACH_SAVE_POINT = 0x805,
+    AREA_DRYFIELD_KIND_MOTEL_LOBBY_SAVE_POINT   = 0x806,
+    AREA_DRYFIELD_KIND_MOTEL_ROOM_6_SAVE_POINT  = 0x810
+};
+
+/// Initial saved states: available, collected, or replenishable full-stack pickup.
+///
+/// The container lid also uses the collected state to suppress opening.
+/// State bit 8 has no current reader; its stored 0x100 is retained below and
+/// its purpose remains unproven. AREA_OBJECT_PLACE_PROMPT controls whether the
+/// pickup panel collects immediately instead of asking for confirmation.
+enum {
+    AREA_DRYFIELD_STATE_AVAILABLE     = 1,
+    AREA_DRYFIELD_STATE_COLLECTED     = 2,
+    AREA_DRYFIELD_STATE_REPLENISHABLE = 3
+};
 
 static inline s32 _gpGetCurBit2Flag(s32 arg0);
 
@@ -72,146 +120,146 @@ static inline void _gpSpawnPlace(AreaObjectSpawn* spawn, AreaObjectPlace* place)
     }
 }
 
-AreaObjectPlace D_80114588[] = {
-    { 0x2E, 0x804, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0x1, 0x703, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0x2, 0xA0, 0x0, 0x3, 0, 0, 0, 0x0 },
-    { 0x26, 0x65, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0x27, 0xB, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0xB, 0x118, 0x0, 0x201, 0, 0, 0, 0x0 },
-    { 0xFFFF, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
+AreaObjectPlace gAreaDryfieldGasStationObjectPlaces[7] = {
+    { 0x2E, AREA_DRYFIELD_KIND_GAS_STATION_SAVE_POINT, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { 0x1, AREA_DRYFIELD_KIND_GAS_STATION_ITEM_BOX, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { 0x2, AREA_DRYFIELD_KIND_9MM_PARABELLUM, 0x0, AREA_DRYFIELD_STATE_REPLENISHABLE, 0, 0, 0, 0x0 },
+    { 0x26, AREA_DRYFIELD_KIND_TACTICAL_VEST, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { 0x27, AREA_DRYFIELD_KIND_LIPSTICK, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { 0xB, INVENTORY_COLLECTION_ID_GASOLINE, 0x0, AREA_DRYFIELD_STATE_AVAILABLE | AREA_OBJECT_PLACE_PROMPT, 0, 0, 0, 0x0 },
+    { AREA_OBJECT_PLACE_END, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
 };
 
-AreaObjectPlace D_801145F8[] = {
-    { 0xC, 0x116, 0x0, 0x201, 0, 0, 0, 0x0 },
-    { 0x1B, 0x119, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0xFFFF, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
+AreaObjectPlace gAreaDryfieldMainStreetObjectPlaces[3] = {
+    { 0xC, INVENTORY_COLLECTION_ID_TRUCK_KEY, 0x0, AREA_DRYFIELD_STATE_AVAILABLE | AREA_OBJECT_PLACE_PROMPT, 0, 0, 0, 0x0 },
+    { 0x1B, INVENTORY_COLLECTION_ID_ICE_BAG, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { AREA_OBJECT_PLACE_END, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
 };
 
-AreaObjectPlace D_80114628[] = {
-    { 0xF, 0x5, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0x10, 0x3, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0xFFFF, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
+AreaObjectPlace gAreaDryfieldGeneralStoreObjectPlaces[3] = {
+    { 0xF, AREA_DRYFIELD_KIND_COLA, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { 0x10, AREA_DRYFIELD_KIND_RECOVERY_3, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { AREA_OBJECT_PLACE_END, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
 };
 
-AreaObjectPlace D_80114658[] = {
-    { 0x28, 0xAD, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0xFFFF, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
+AreaObjectPlace gAreaDryfieldBackStreetObjectPlaces[2] = {
+    { 0x28, AREA_DRYFIELD_KIND_FIREFLY, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { AREA_OBJECT_PLACE_END, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
 };
 
-AreaObjectPlace D_80114678[] = {
-    { 0x29, 0xD, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0xFFFF, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
+AreaObjectPlace gAreaDryfieldSouvenirShopObjectPlaces[2] = {
+    { 0x29, AREA_DRYFIELD_KIND_BELT_POUCH, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { AREA_OBJECT_PLACE_END, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
 };
 
-AreaObjectPlace D_80114698[] = {
-    { 0xFFFF, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
+AreaObjectPlace gAreaDryfieldWarehouseObjectPlaces[1] = {
+    { AREA_OBJECT_PLACE_END, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
 };
 
-AreaObjectPlace D_801146A8[] = {
-    { 0x12, 0x8, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0x14, 0x1, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0xFFFF, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
+AreaObjectPlace gAreaDryfieldMotelRoom2ObjectPlaces[3] = {
+    { 0x12, AREA_DRYFIELD_KIND_PENICILLIN, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { 0x14, AREA_DRYFIELD_KIND_RECOVERY_1, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { AREA_OBJECT_PLACE_END, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
 };
 
-AreaObjectPlace D_801146D8[] = {
-    { 0x2A, 0x7, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0xFFFF, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
+AreaObjectPlace gAreaDryfieldMotelRoom3ObjectPlaces[2] = {
+    { 0x2A, AREA_DRYFIELD_KIND_MP_BOOST_2, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { AREA_OBJECT_PLACE_END, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
 };
 
-AreaObjectPlace D_801146F8[] = {
-    { 0xD, 0xAC, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0xFFFF, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
+AreaObjectPlace gAreaDryfieldParkingLotObjectPlaces[2] = {
+    { 0xD, AREA_DRYFIELD_KIND_BUCKSHOT, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { AREA_OBJECT_PLACE_END, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
 };
 
-AreaObjectPlace D_80114718[] = {
-    { 0x9, 0x113, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0x2D, 0x806, 0x0, 0x101, 0, 0, 0, 0x0 },
-    { 0xFFFF, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
+AreaObjectPlace gAreaDryfieldMotelLobbyObjectPlaces[3] = {
+    { 0x9, INVENTORY_COLLECTION_ID_BRONCO_MASTERKEY, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { 0x2D, AREA_DRYFIELD_KIND_MOTEL_LOBBY_SAVE_POINT, 0x0, AREA_DRYFIELD_STATE_AVAILABLE | 0x100, 0, 0, 0, 0x0 },
+    { AREA_OBJECT_PLACE_END, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
 };
 
-AreaObjectPlace D_80114748[] = {
-    { 0x15, 0x5, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0xFFFF, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
+AreaObjectPlace gAreaDryfieldSaloonGRObjectPlaces[2] = {
+    { 0x15, AREA_DRYFIELD_KIND_COLA, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { AREA_OBJECT_PLACE_END, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
 };
 
-AreaObjectPlace D_80114768[] = {
-    { 0x16, 0x11B, 0x0, 0x201, 0, 0, 0, 0x0 },
-    { 0x17, 0x1, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0xFFFF, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
+AreaObjectPlace gAreaDryfieldGRKitchenObjectPlaces[3] = {
+    { 0x16, INVENTORY_COLLECTION_ID_BOTTLECAP_MAGNET, 0x0, AREA_DRYFIELD_STATE_AVAILABLE | AREA_OBJECT_PLACE_PROMPT, 0, 0, 0, 0x0 },
+    { 0x17, AREA_DRYFIELD_KIND_RECOVERY_1, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { AREA_OBJECT_PLACE_END, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
 };
 
-AreaObjectPlace D_80114798[] = {
-    { 0x19, 0x110, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0x1A, 0x1, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0x1E, 0x11E, 0x0, 0x201, 0, 0, 0, 0x0 },
-    { 0x1F, 0x5, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0x20, 0x7, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0x21, 0x39, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0xFFFF, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
+AreaObjectPlace gAreaDryfieldWaterTankObjectPlaces[7] = {
+    { 0x19, AREA_DRYFIELD_KIND_SALOON_KEY, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { 0x1A, AREA_DRYFIELD_KIND_RECOVERY_1, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { 0x1E, INVENTORY_COLLECTION_ID_SUV_KEY, 0x0, AREA_DRYFIELD_STATE_AVAILABLE | AREA_OBJECT_PLACE_PROMPT, 0, 0, 0, 0x0 },
+    { 0x1F, AREA_DRYFIELD_KIND_COLA, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { 0x20, AREA_DRYFIELD_KIND_MP_BOOST_2, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { 0x21, AREA_DRYFIELD_KIND_OFUDA, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { AREA_OBJECT_PLACE_END, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
 };
 
-AreaObjectPlace D_80114808[] = {
-    { 0x6, 0x115, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0xFFFF, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
+AreaObjectPlace gAreaDryfieldBreezewayObjectPlaces[2] = {
+    { 0x6, INVENTORY_COLLECTION_ID_FACTORY_KEY, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { AREA_OBJECT_PLACE_END, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
 };
 
-AreaObjectPlace D_80114828[] = {
-    { 0x13, 0xAE, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0xFFFF, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
+AreaObjectPlace gAreaDryfieldFactoryObjectPlaces[2] = {
+    { 0x13, AREA_DRYFIELD_KIND_RIFLED_SLUG, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { AREA_OBJECT_PLACE_END, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
 };
 
-AreaObjectPlace D_80114848[] = {
-    { 0x4, 0x10F, 0x0, 0x201, 0, 0, 0, 0x0 },
-    { 0x23, 0x705, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0x3, 0x111, 0x0, 0x201, 0, 0, 0, 0x0 },
-    { 0xFFFF, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
+AreaObjectPlace gAreaDryfieldGarageObjectPlaces[4] = {
+    { 0x4, INVENTORY_COLLECTION_ID_MOTEL_ROOM_6_KEY, 0x0, AREA_DRYFIELD_STATE_AVAILABLE | AREA_OBJECT_PLACE_PROMPT, 0, 0, 0, 0x0 },
+    { 0x23, AREA_DRYFIELD_KIND_GARAGE_ITEM_BOX, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { 0x3, INVENTORY_COLLECTION_ID_MONKEY_WRENCH, 0x0, AREA_DRYFIELD_STATE_AVAILABLE | AREA_OBJECT_PLACE_PROMPT, 0, 0, 0, 0x0 },
+    { AREA_OBJECT_PLACE_END, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
 };
 
-AreaObjectPlace D_80114888[] = {
-    { 0x1D, 0x1, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0xFFFF, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
+AreaObjectPlace gAreaDryfieldDrivewayObjectPlaces[2] = {
+    { 0x1D, AREA_DRYFIELD_KIND_RECOVERY_1, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { AREA_OBJECT_PLACE_END, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
 };
 
-AreaObjectPlace D_801148A8[] = {
-    { 0x7, 0x114, 0x0, 0x101, 1745, 0, 280, 0x0 },
-    { 0x1C, 0x68, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0xFFFF, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
+AreaObjectPlace gAreaDryfieldJunkYardObjectPlaces[3] = {
+    { 0x7, INVENTORY_COLLECTION_ID_WIRE_ROPE, 0x0, AREA_DRYFIELD_STATE_AVAILABLE | 0x100, 1745, 0, 280, 0x0 },
+    { 0x1C, AREA_DRYFIELD_KIND_CHICKEN_PLATE, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { AREA_OBJECT_PLACE_END, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
 };
 
-AreaObjectPlace D_801148D8[] = {
-    { 0x8, 0x112, 0x0, 0x201, 0, 0, 0, 0x0 },
-    { 0x2F, 0x805, 0x0, 0x101, 0, 0, 0, 0x0 },
-    { 0x22, 0x82, 0x0, 0x2, 4128, 0, -256, 0x800 },
-    { 0xFFFF, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
+AreaObjectPlace gAreaDryfieldTrailerCoachObjectPlaces[4] = {
+    { 0x8, INVENTORY_COLLECTION_ID_LOBBY_KEY, 0x0, AREA_DRYFIELD_STATE_AVAILABLE | AREA_OBJECT_PLACE_PROMPT, 0, 0, 0, 0x0 },
+    { 0x2F, AREA_DRYFIELD_KIND_TRAILER_COACH_SAVE_POINT, 0x0, AREA_DRYFIELD_STATE_AVAILABLE | 0x100, 0, 0, 0, 0x0 },
+    { 0x22, AREA_DRYFIELD_KIND_M950, 0x0, AREA_DRYFIELD_STATE_COLLECTED, 4128, 0, -256, ACTOR_TRANSFORM_ANGLE_HALF_TURN },
+    { AREA_OBJECT_PLACE_END, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
 };
 
-AreaObjectPlace D_80114918[] = {
-    { 0x2B, 0xD, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0xFFFF, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
+AreaObjectPlace gAreaDryfieldMotelRoom5ObjectPlaces[2] = {
+    { 0x2B, AREA_DRYFIELD_KIND_BELT_POUCH, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { AREA_OBJECT_PLACE_END, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
 };
 
-AreaObjectPlace D_80114938[] = {
-    { 0xE, 0x704, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0x30, 0x810, 0x0, 0x101, 0, 0, 0, 0x0 },
-    { 0xFFFF, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
+AreaObjectPlace gAreaDryfieldMotelRoom6ObjectPlaces[3] = {
+    { 0xE, AREA_DRYFIELD_KIND_MOTEL_ROOM_6_ITEM_BOX, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { 0x30, AREA_DRYFIELD_KIND_MOTEL_ROOM_6_SAVE_POINT, 0x0, AREA_DRYFIELD_STATE_AVAILABLE | 0x100, 0, 0, 0, 0x0 },
+    { AREA_OBJECT_PLACE_END, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
 };
 
-AreaObjectPlace D_80114968[] = {
-    { 0xA, 0x117, 0x0, 0x1, -5950, -500, -20, 0x0 },
-    { 0x2C, 0x38, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0xFFFF, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
+AreaObjectPlace gAreaDryfieldMotelLoftObjectPlaces[3] = {
+    { 0xA, INVENTORY_COLLECTION_ID_JERRY_CAN, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, -5950, -500, -20, 0x0 },
+    { 0x2C, AREA_DRYFIELD_KIND_HOLY_WATER, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { AREA_OBJECT_PLACE_END, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
 };
 
-AreaObjectPlace D_80114998[] = {
-    { 0x25, 0x3C, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0xFFFF, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
+AreaObjectPlace gAreaDryfieldWaterHoleObjectPlaces[2] = {
+    { 0x25, AREA_DRYFIELD_KIND_PROTEIN_CAPSULE, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { AREA_OBJECT_PLACE_END, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
 };
 
-AreaObjectPlace D_801149B8[] = {
-    { 0x11, 0x3A, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0x5, 0xC, 0x0, 0x1, 0, 0, 0, 0x0 },
-    { 0xFFFF, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
+AreaObjectPlace gAreaDryfieldCellarObjectPlaces[3] = {
+    { 0x11, AREA_DRYFIELD_KIND_FLARE, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { 0x5, AREA_DRYFIELD_KIND_SNAIL_MAGAZINE, 0x0, AREA_DRYFIELD_STATE_AVAILABLE, 0, 0, 0, 0x0 },
+    { AREA_OBJECT_PLACE_END, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
 };
 
 /// Spawns the first saved-area placement with this flag index when its live-stage state is nonzero.
