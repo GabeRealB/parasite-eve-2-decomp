@@ -68,6 +68,14 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     "txt": {"payload": (), "stored": ()},
     "pe2cap2": {"payload": (), "stored": ()},
 }
+# An asset embedded in a package or the executable is located by address
+# (`source`, `vram`, `size`), and `include` / `layout` say how the build takes
+# it back in. One that is uploaded also has the rectangle of its upload record:
+# its size always, its position only when the record fixes one.
+EMBEDDED_FIELDS = ("source", "vram", "size", "ext", "type", "include", "layout", "deps", "notes")
+EMBEDDED_PAYLOAD: dict[str, tuple[str, ...]] = {"image": ("x", "y", "w", "h"), "clut": ("x", "y", "w", "h")}
+EMBEDDED_STORED: dict[str, tuple[str, ...]] = {"image": ("bpp",)}
+
 # What a variant may hold, per type of the asset it belongs to.
 VARIANT_FIELDS: dict[str, tuple[str, ...]] = {"pe2img": ("deps", "row"), "model": ("deps",)}
 # What each type may depend on. A type missing here may depend on anything.
@@ -265,8 +273,15 @@ def validate(assets: dict, embedded: dict) -> list[str]:
                 elif not isinstance(body["row"], int) or not 0 <= body["row"] < assets[cluts[0]].get("h", 0):
                     problems.append(f"{where}: row {body['row']!r} is outside {cluts[0]!r}")
     for key, rec in embedded.items():
+        kind = rec.get("type", "")
+        allowed = set(EMBEDDED_FIELDS) | set(EMBEDDED_PAYLOAD.get(kind, ())) | set(EMBEDDED_STORED.get(kind, ()))
+        for field in rec:
+            if field not in allowed:
+                problems.append(f"{key}: an embedded {kind} has no attribute {field!r}")
+        if ("x" in rec) != ("y" in rec) or (("x" in rec) and "w" not in rec):
+            problems.append(f"{key}: a position is x and y together, with the size")
         if "deps" in rec:
-            check_deps(key, rec.get("type", ""), rec["deps"], key)
+            check_deps(key, kind, rec["deps"], key)
     return problems
 
 

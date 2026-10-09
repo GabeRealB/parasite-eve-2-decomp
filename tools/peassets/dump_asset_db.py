@@ -145,6 +145,50 @@ def _pe2clut_geometry(path: Path) -> dict[str, Any]:
     return {"x": x, "y": y, "w": w, "h": h}
 
 
+# An image or CLUT embedded in a package is bare pixels: where it goes is in
+# the upload record beside it, a `GpuImageUpload` whose last word points at the
+# pixels. So its rectangle is found by that pointer, in the package's own
+# bytes. A record placed at the origin is one the code moves before loading -
+# an actor's texture patch lands wherever the actor's texture is - so only its
+# size is a property of the asset.
+EMBEDDED_UPLOADED = ("image", "clut")
+GEOMETRY = ("x", "y", "w", "h")
+
+
+def _embedded_upload_rect(blob: bytes, vram: int, size: int) -> dict[str, int]:
+    needle = struct.pack("<I", vram)
+    found = set()
+    at = blob.find(needle)
+    while at != -1:
+        if at >= 12 and at % 4 == 0:
+            operation, unknown, x, y, w, h = struct.unpack_from("<2H4h", blob, at - 12)
+            # Two VRAM words to a u_long, an odd area rounded up to a whole one.
+            if operation == 0 and unknown == 0 and w > 0 and h > 0 and -(-(w * h) // 2) * 4 == size \
+                    and 0 <= x < 1024 and 0 <= y < 512:
+                found.add((x, y, w, h))
+        at = blob.find(needle, at + 1)
+    if len(found) != 1:
+        return {}
+    x, y, w, h = found.pop()
+    return {"w": w, "h": h} if (x, y) == (0, 0) else {"x": x, "y": y, "w": w, "h": h}
+
+
+def embedded_geometry(assets_root: Path, embedded: dict[str, dict[str, Any]]) -> None:
+    """Rewrite the rectangle of every embedded image and CLUT from its package."""
+    blobs: dict[str, bytes | None] = {}
+    for rec in embedded.values():
+        if rec.get("type") not in EMBEDDED_UPLOADED:
+            continue
+        for field in GEOMETRY:
+            rec.pop(field, None)
+        source = rec.get("source", "")
+        if source not in blobs:
+            path = assets_root / ("pe2pkg" if source.endswith(".pe2pkg") else "") / source
+            blobs[source] = path.read_bytes() if path.is_file() else None
+        if blobs[source] is not None:
+            rec.update(_embedded_upload_rect(blobs[source], int(rec["vram"]), int(rec["size"])))
+
+
 def _asset_id_from_stages_path(rel: str) -> str | None:
     if not rel:
         return None
@@ -610,6 +654,7 @@ def main(argv: list[str] | None = None) -> int:
     models, placements = collect_models(assets_root, old_assets)
     assets.update(models)
     embedded = {**embedded, **placements}
+    embedded_geometry(assets_root, embedded)
     tree = collect_tree(assets_root, old_tree, assets, old_assets)
     # Dependencies and variants are written by hand or by a review and name
     # other assets by key, so a renamed or vanished key has to stop here

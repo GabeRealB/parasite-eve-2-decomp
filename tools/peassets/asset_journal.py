@@ -196,6 +196,30 @@ class Manifest:
                     for column in range(max(1, rec["w"] // asset_schema.CLUT_ENTRY_WIDTH)):
                         value = asset_schema.clut_value(rec, row, column)
                         self.by_value["clut.value"][value].add((key, f"row {row}" + (f", palette {column}" if column else "")))
+        # Embedded images and CLUTs whose upload record fixes a position. An
+        # embedded image's depth is not recorded, so its page is offered for each.
+        for key, rec in self.embedded.items():
+            if "x" not in rec:
+                continue
+            if rec["type"] == "clut":
+                for column in range(max(1, rec["w"] // asset_schema.CLUT_ENTRY_WIDTH)):
+                    x = rec["x"] + column * asset_schema.CLUT_ENTRY_WIDTH
+                    palette = f"palette {column}" if column else ""
+                    self.by_value["clut.x"][x].add((key, palette))
+                    self.by_value["clut.x"][x >> 4].add((key, (palette + ", " if palette else "") + "in sixteens"))
+                for row in range(rec["h"]):
+                    self.by_value["clut.y"][rec["y"] + row].add((key, f"row {row}"))
+                    for column in range(max(1, rec["w"] // asset_schema.CLUT_ENTRY_WIDTH)):
+                        value = asset_schema.clut_value(rec, row, column)
+                        self.by_value["clut.value"][value].add((key, f"row {row}" + (f", palette {column}" if column else "")))
+            elif rec["type"] == "image":
+                for bpp, mode in asset_schema.TPAGE_MODE.items():
+                    for abr in range(4):
+                        page = (mode << 7) | (abr << 5) | ((rec["y"] & 0x100) >> 4) | ((rec["x"] & 0x3FF) >> 6)
+                        self.by_value["image.tpage"][page].add((key, f"if {bpp}-bit" + (f", blend {abr}" if abr else "")))
+        # A package's own embedded assets are as near to its code as anything.
+        for key, rec in self.embedded.items():
+            self.near[rec.get("source", "").removesuffix(".pe2pkg")].add(key)
         # Where each asset is placed, and what shares a folder or file with a package.
         self.near: dict[str, set[str]] = defaultdict(set)
         for stage, folder, fkey, node in asset_schema.tree_files(self.tree):
