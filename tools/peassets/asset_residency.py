@@ -657,8 +657,8 @@ def chain_check(db: sqlite3.Connection, verbose: bool) -> int:
             f = files[path]
             if f["stage"]:
                 out |= {p for p, g in files.items() if g["stage"] == f["stage"] and g["folder"] == f["folder"]}
-            elif f["id"] >= 100000:
-                out |= {p for i, p in zero.items() if i // 100 == f["id"] // 100}
+            else:
+                out |= {p for i, p in zero.items() if i // 100 == f["id"] // 100 and not files[p]["package"]}
                 out |= {p for i, p in zero.items() if 60 <= i // 10000 < 70 and (i % 100000) // 100 == (f["id"] % 100000) // 100}
         return out
 

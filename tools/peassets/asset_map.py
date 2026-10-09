@@ -159,9 +159,10 @@ class Supply:
                     f = self.files[path]
                     if f["stage"]:
                         out |= {p for p, g in self.files.items() if g["stage"] == f["stage"] and g["folder"] == f["folder"]}
-                    elif f["id"] >= 100000:
-                        # An actor entry's further files; below that the hundreds are a family of separate overlays.
-                        out |= {p for i, p in self.zero.items() if i // 100 == f["id"] // 100}
+                    else:
+                        # The entry's further files: those beside it that carry no overlay of their own. A file
+                        # that does is a sibling overlay (another weapon, another companion, another stage's map).
+                        out |= {p for i, p in self.zero.items() if i // 100 == f["id"] // 100 and not self.files[p]["package"]}
                         out |= {p for i, p in self.zero.items() if 60 <= i // 10000 < 70 and (i % 100000) // 100 == (f["id"] % 100000) // 100}
             self._own[package] = sorted(out)
         return self._own[package]
