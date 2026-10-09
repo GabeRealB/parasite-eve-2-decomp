@@ -11,6 +11,7 @@
 
 #include "neo_ark_island_private.h"
 
+#include "actors/actor_00400.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/companion_load.h"
@@ -64,8 +65,6 @@ extern AreaResource D_neo_ark_island_80183EF4[2];
 extern AreaResource D_neo_ark_island_80183F0C[2];
 extern AreaResource D_neo_ark_island_80183F24[1];
 extern AreaResource D_neo_ark_island_80183F30[2];
-
-extern TaskDesc D_actor_100400_80147E48;
 
 // Height override read by the shared waypoint actor.
 s16 D_neo_ark_island_80181C24 = 300;
@@ -477,7 +476,7 @@ WorldCollisionTrigger D_neo_ark_island_80183DF8[3] = {
 };
 
 AreaResource D_neo_ark_island_80183EDC[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_100400_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -487,7 +486,7 @@ AreaResource D_neo_ark_island_80183EF4[2] = {
 };
 
 AreaResource D_neo_ark_island_80183F0C[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_100400_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

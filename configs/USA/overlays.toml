@@ -3532,12 +3532,12 @@ objects = [
 
 [actors.overlays.actor_00400]
 slots = [
-  { slot = 1, package = "actor_100400", id = 116 },
-  { slot = 2, package = "actor_200400", id = 189 },
+  { slot = 1, package = "actor_100400", id = 116, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor00400Tasks = "gActor100400Tasks" } },
+  { slot = 2, package = "actor_200400", id = 189, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor00400Tasks = "gActor200400Tasks" } },
 ]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_00400/actor_00400", rodata = "0x4", text = "0x1AC", data = "0xAB0C" },
+  { unit = "actor_00400", variant = true, rodata = "0x4", text = "0x1AC", data = "0xAB0C" },
   { kind = "model", at = "0xAB0C", in_c = true },
   { kind = "modelSource", at = "0xDD54", in_c = true },
   { kind = "model", at = "0xDD78", in_c = true },

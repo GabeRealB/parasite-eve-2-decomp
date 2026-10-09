@@ -384,8 +384,6 @@ extern TaskDesc gActor202300RookGolemTasks[3];
 
 extern TaskDesc Actor02000_D15FD0[];
 
-extern TaskDesc D_actor_200400_8015FE48[];
-
 extern TaskDesc D_actor_200300_80160110[];
 
 /// Slot export of `gActor05600PawnGolemTasks` from actor_205600, with the same descriptor contract.

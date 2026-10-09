@@ -1,3 +1,5 @@
+#include "actors/actor_00400.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -388,32 +390,6 @@ typedef struct {
 } _Actor00400AreaConfig;
 STATIC_ASSERT_SIZEOF(_Actor00400AreaConfig, 0x14);
 
-/// Clip indices used by the water status hold and the scripted introductions.
-enum {
-    ACTOR_00400_ANIM_SURFACED               = 1,
-    ACTOR_00400_ANIM_SWIM                   = 3,
-    ACTOR_00400_ANIM_DISCHARGE              = 7,
-    ACTOR_00400_ANIM_SWIM_STATUS_HOLD_ENTER = 14
-};
-
-/// Clip indices used by the crawl, recoil and swimming status hold.
-enum {
-    ACTOR_00400_ANIM_CRAWL                 = 4,
-    ACTOR_00400_ANIM_SWIM_RECOIL_LIGHT     = 10,
-    ACTOR_00400_ANIM_STRANDED_RECOIL_LIGHT = 12,
-    ACTOR_00400_ANIM_STRANDED_RECOIL_HEAVY = 13,
-    ACTOR_00400_ANIM_SWIM_STATUS_HOLD_LOOP = 16,
-    ACTOR_00400_ANIM_SWIM_STATUS_HOLD_HIT  = 18
-};
-
-/// Clip indices used by stranded state 3, discharge and status hold.
-enum {
-    ACTOR_00400_ANIM_STRANDED_STATE3            = 6,
-    ACTOR_00400_ANIM_STRANDED_DISCHARGE         = 9,
-    ACTOR_00400_ANIM_STRANDED_STATUS_HOLD_ENTER = 15,
-    ACTOR_00400_ANIM_STRANDED_STATUS_HOLD_LOOP  = 17
-};
-
 /// Horizontal target distance below which a crawl returns to the decision state.
 enum { ACTOR_00400_STRANDED_CRAWL_STOP_DISTANCE = 948 };
 
@@ -446,12 +422,16 @@ enum { ACTOR_00400_WOUNDED_STATE_IDLE = 0 };
 /// Q9 reduction gives 128 units.
 enum { ACTOR_00400_WOUNDED_FLOAT_BOB_SCALE = 16 };
 
-/// Outer task states selected or tested by the command, visibility and death handlers.
+/// Indices of the body task's eight phases; distinct from work state/subState.
 enum {
+    ACTOR_00400_TASK_INIT           = 0,
     ACTOR_00400_TASK_STRANDED       = 1,
     ACTOR_00400_TASK_STRANDED_DEATH = 2,
+    ACTOR_00400_TASK_SWIM           = 3,
     ACTOR_00400_TASK_SWIM_DEATH     = 4,
-    ACTOR_00400_TASK_DESPAWN        = 5
+    ACTOR_00400_TASK_DESPAWN        = 5,
+    ACTOR_00400_TASK_WOUNDED_GROUND = 6,
+    ACTOR_00400_TASK_WOUNDED_FLOAT  = 7
 };
 
 /// Entry of the two-step despawn table that releases the room's surface-spot claim.
@@ -522,6 +502,68 @@ static void _actor00400AwaitFightCue(Task* task);
 static void _actor00400WoundedFloatIdleEnter(Task* task);
 static void _actor00400WoundedFloatFlinchEnter(Task* task);
 
+/// Retained inert slots in the living behavior tables; no transition selects them.
+enum {
+    ACTOR_00400_STRANDED_STATE_UNUSED6 = 6,
+    ACTOR_00400_SWIM_STATE_UNUSED5     = 5,
+    ACTOR_00400_SWIM_STATE_UNUSED6     = 6
+};
+
+/// Indices of `_gActor00400ShotStates`; the dispatcher performs no bounds check.
+enum {
+    ACTOR_00400_SHOT_STATE_LAUNCH = 0,
+    ACTOR_00400_SHOT_STATE_FLIGHT = 1,
+    ACTOR_00400_SHOT_STATE_LINGER = 2
+};
+
+/// Indices of `_gActor00400SwimPatrolSteps`; the dispatcher performs no bounds check.
+enum {
+    ACTOR_00400_PATROL_STEP_ENTER         = 0,
+    ACTOR_00400_PATROL_STEP_TRAVEL        = 1,
+    ACTOR_00400_PATROL_STEP_SURFACE       = 2,
+    ACTOR_00400_PATROL_STEP_WAIT_FOR_CLIP = 3
+};
+
+/// Indices of `_gActor00400DiveSteps`; the dispatcher performs no bounds check.
+enum {
+    ACTOR_00400_DIVE_STEP_ENTER         = 0,
+    ACTOR_00400_DIVE_STEP_WAIT_FOR_CLIP = 1,
+    ACTOR_00400_DIVE_STEP_TRAVEL        = 2
+};
+
+/// Indices of `_gActor00400SwimAttackSteps`; the dispatcher performs no bounds check.
+enum {
+    ACTOR_00400_ATTACK_STEP_ENTER     = 0,
+    ACTOR_00400_ATTACK_STEP_WINDUP    = 1,
+    ACTOR_00400_ATTACK_STEP_FIRE_WAIT = 2
+};
+
+/// Indices of `_gActor00400TunnelPatrolSteps`; the dispatcher performs no bounds check.
+enum {
+    ACTOR_00400_TUNNEL_PATROL_STEP_ENTER        = 0,
+    ACTOR_00400_TUNNEL_PATROL_STEP_WAIT_FOR_CUE = 1,
+    ACTOR_00400_TUNNEL_PATROL_STEP_SWIM         = 2
+};
+
+/// Indices of `_gActor00400TunnelIntroSteps`; the dispatcher performs no bounds check.
+enum {
+    ACTOR_00400_TUNNEL_INTRO_STEP_ENTER           = 0,
+    ACTOR_00400_TUNNEL_INTRO_STEP_WAIT_FOR_SWIM   = 1,
+    ACTOR_00400_TUNNEL_INTRO_STEP_SWIM            = 2,
+    ACTOR_00400_TUNNEL_INTRO_STEP_WAIT_FOR_PATROL = 3
+};
+
+/// Indices of `_gActor00400RoomIntroSteps`; the dispatcher performs no bounds check.
+enum {
+    ACTOR_00400_ROOM_INTRO_STEP_ENTER                = 0,
+    ACTOR_00400_ROOM_INTRO_STEP_WAIT_FOR_SWIM        = 1,
+    ACTOR_00400_ROOM_INTRO_STEP_SWIM                 = 2,
+    ACTOR_00400_ROOM_INTRO_STEP_WAIT_FOR_SURFACE     = 3,
+    ACTOR_00400_ROOM_INTRO_STEP_DISCHARGE            = 4,
+    ACTOR_00400_ROOM_INTRO_STEP_WAIT_AFTER_DISCHARGE = 5,
+    ACTOR_00400_ROOM_INTRO_STEP_WAIT_FOR_FIGHT       = 6
+};
+
 /* States the dispatch tables name before their definitions. */
 static void _actor00400SwimDeathEnter(Task* task);
 static void _actor00400SwimDeathFallWait(Task* task);
@@ -587,25 +629,14 @@ static void _actor00400RoomIntroWaitForSurface(Task* task);
 static void _actor00400RoomIntroWaitAfterDischarge(Task* task);
 static void _actor00400RoomIntroWaitForFight(Task* task);
 
-extern EnemyParams Actor00400_D0FDC8;
-/// Pair table `_actor00400LaunchShot` packs, at index 1, into the `key` of the
-/// shot's sphere.
-extern DamageAttack          Actor00400_D0FDC0[2];
-extern TaskDesc              Actor00400_D16028[];
 extern _Actor00400AreaConfig Actor00400_D15F20[];
-// Typed callback views for the task message dispatcher.
-
-extern TaskMessageEntry Actor00400_D16010[3];
-
-extern u16           Actor00400_D1609C[8];
-extern AnimationSet* Actor00400_D1604C[20];
-static TmdSource     _gActor00400DiverBurstHead;
-static TmdSource     _gActor00400DiverBurstArmRight;
-static TmdSource     _gActor00400DiverBurstArmLeft1;
-static TmdSource     _gActor00400DiverBurstLegRight;
-static TmdSource     _gActor00400DiverBurstArmLeft2;
-static TmdSource     _gActor00400DiverEnergyBall;
-extern void*         D_800678F0[1];
+static TmdSource             _gActor00400DiverBurstHead;
+static TmdSource             _gActor00400DiverBurstArmRight;
+static TmdSource             _gActor00400DiverBurstArmLeft1;
+static TmdSource             _gActor00400DiverBurstLegRight;
+static TmdSource             _gActor00400DiverBurstArmLeft2;
+static TmdSource             _gActor00400DiverEnergyBall;
+extern void*                 D_800678F0[1];
 
 /* Inline rotation traversal helpers. Every ancestor rotation is copied out
    and renormalised before it is fed to the GTE, instead of being loaded
@@ -861,12 +892,40 @@ static TmdSource _gActor00400DiverEnergyBall = {
     _gActor00400DiverEnergyBallStream,
 };
 
-DamageAttack Actor00400_D0FDC0[2] = {
-    { 18, 5 },
-    { 24, 5 },
+/// Rows of the Bog Diver's category-4 attack keys.
+enum {
+    ACTOR_00400_DISCHARGE_ATTACK_INDEX = 0,
+    ACTOR_00400_SHOT_ATTACK_INDEX      = 1,
+    ACTOR_00400_ATTACK_COUNT           = 2,
+    ACTOR_00400_ATTACK_REACTION        = 5 // Three player hit flashes, with no status effect
 };
 
-EnemyParams Actor00400_D0FDC8 = { Actor00400_D0FDC0, 240, 70, 88, 3, 100, 10, 100, 0 };
+/// Base attacks of the stranded trunk discharge and the independently flying shot.
+///
+/// Both display the player's hit flashes. Enemy collision keys borrow row 0 through the
+/// shared parameters; each shot packs row 1 directly. Storage stays loaded
+/// until every body carrying one of these keys has been unlinked.
+static DamageAttack _gActor00400Attacks[ACTOR_00400_ATTACK_COUNT] = {
+    [ACTOR_00400_DISCHARGE_ATTACK_INDEX] = { .power = 18, .reaction = ACTOR_00400_ATTACK_REACTION },
+    [ACTOR_00400_SHOT_ATTACK_INDEX]      = { .power = 24, .reaction = ACTOR_00400_ATTACK_REACTION },
+};
+
+/// Shared Bog Diver health, battle rewards and incoming-hit reaction parameters.
+///
+/// Each body borrows this record in its Enemy for its lifetime and copies
+/// hpMax into current/max HP. Wounded placements then reduce current HP to
+/// one eighth. The zero damage-over-time pulse count does not expire by itself.
+static EnemyParams _gActor00400EnemyParams = {
+    .attacks              = _gActor00400Attacks,
+    .hpMax                = 240,
+    .exp                  = 70,
+    .bp                   = 88,
+    .mp                   = 3,
+    .critChance           = 100,
+    .buildupSteps         = 10,
+    .damageOverTimeChance = 100,
+    .damageOverTimeTicks  = 0,
+};
 
 static AnimationPackedPose _gActor00400Actor100400Animation10348Bank1[8] = {
 #include "assets/actor_100400_animation_10348_bank1.inc"
@@ -1301,42 +1360,89 @@ _Actor00400AreaConfig Actor00400_D15F20[12] = {
     { NULL, NULL, NULL, ACTOR_00400_AREA_CONFIG_END, 0, 0 },
 };
 
-TaskMessageEntry Actor00400_D16010[3] = {
+/// Room-command and model-visibility messages accepted by the Bog Diver body.
+///
+/// APPLY borrows an ActorCommand; SET_MODEL_DRAW takes an integer mode
+/// (0 hide/suspend, 1 resume). Both callbacks leave the reply undefined, so
+/// senders must ignore it. The final end-ID/null row rejects other IDs.
+/// The task borrows this table while the actor package is loaded.
+static TaskMessageEntry _gActor00400Messages[3] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor00400ApplyCommand },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor00400SetModelDraw },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc Actor00400_D16028[3] = {
-    { { { TASK_BODY_TMD, 96 } }, _actor00400BodyTask, { .model = &_gActor00400DiverBody } },
-    { { { TASK_BODY_COORD, 96 } }, _actor00400ShotTask, { .value = 0 } },
-    { { { TASK_BODY_COORD, 96 } }, _actor00400GroundStainTask, { .value = 0 } },
+enum { ACTOR_00400_TASK_PRIORITY = 96 };
+
+TaskDesc gActor00400Tasks[ACTOR_00400_TASK_DESCRIPTOR_COUNT] = {
+    [ACTOR_00400_BODY_TASK_INDEX]  = { { { TASK_BODY_TMD, ACTOR_00400_TASK_PRIORITY } }, _actor00400BodyTask, { .model = &_gActor00400DiverBody } },
+    [ACTOR_00400_SHOT_TASK_INDEX]  = { { { TASK_BODY_COORD, ACTOR_00400_TASK_PRIORITY } }, _actor00400ShotTask, { .value = 0 } },
+    [ACTOR_00400_STAIN_DESCRIPTOR] = { { { TASK_BODY_COORD, ACTOR_00400_TASK_PRIORITY } }, _actor00400GroundStainTask, { .value = 0 } },
 };
 
-AnimationSet* Actor00400_D1604C[20] = {
-    NULL,
-    &_gActor00400Actor100400Animation10348,
-    &_gActor00400Actor100400Animation105F4,
-    &_gActor00400Actor100400Animation1097C,
-    &_gActor00400Actor100400Animation11054,
-    &_gActor00400Actor100400Animation11918,
-    &_gActor00400Actor100400Animation11C64,
-    &_gActor00400Actor100400Animation1236C,
-    &_gActor00400Actor100400Animation12C50,
-    &_gActor00400Actor100400Animation132B0,
-    &_gActor00400Actor100400Animation136E8,
-    &_gActor00400Actor100400Animation13C28,
-    &_gActor00400Actor100400Animation13FB0,
-    &_gActor00400Actor100400Animation14608,
-    &_gActor00400Actor100400Animation14C08,
-    &_gActor00400Actor100400Animation15050,
-    &_gActor00400Actor100400Animation15340,
-    &_gActor00400Actor100400Animation15624,
-    &_gActor00400Actor100400Animation15B34,
-    &_gActor00400Actor100400Animation15EF8,
+/// Indices into the Bog Diver body animation bank; playback requires 1..19.
+enum {
+    ACTOR_00400_ANIM_NONE                       = 0, // No set; never request playback
+    ACTOR_00400_ANIM_SURFACED                   = 1,
+    ACTOR_00400_ANIM_STRANDED_IDLE              = 2,
+    ACTOR_00400_ANIM_SWIM                       = 3,
+    ACTOR_00400_ANIM_CRAWL                      = 4,
+    ACTOR_00400_PATROL_SURFACE_CLIP             = 5,
+    ACTOR_00400_ANIM_STRANDED_STATE3            = 6, // Retained stranded state 3; visible action unproven
+    ACTOR_00400_ANIM_DISCHARGE                  = 7,
+    ACTOR_00400_ANIM_UNUSED_SLOT8               = 8, // No playback request; visible action unproven
+    ACTOR_00400_ANIM_STRANDED_DISCHARGE         = 9,
+    ACTOR_00400_ANIM_SWIM_RECOIL_LIGHT          = 10,
+    ACTOR_00400_ANIM_SWIM_RECOIL_HEAVY          = 11,
+    ACTOR_00400_ANIM_STRANDED_RECOIL_LIGHT      = 12,
+    ACTOR_00400_ANIM_STRANDED_RECOIL_HEAVY      = 13,
+    ACTOR_00400_ANIM_SWIM_STATUS_HOLD_ENTER     = 14, // Also used for swimming death rest
+    ACTOR_00400_ANIM_STRANDED_STATUS_HOLD_ENTER = 15, // Also used for wounded ground idle and stranded death
+    ACTOR_00400_ANIM_SWIM_STATUS_HOLD_LOOP      = 16, // Also used for wounded floating idle
+    ACTOR_00400_ANIM_STRANDED_STATUS_HOLD_LOOP  = 17,
+    ACTOR_00400_ANIM_SWIM_STATUS_HOLD_HIT       = 18, // Also used for wounded floating flinch
+    ACTOR_00400_ANIM_WOUNDED_GROUND_FLINCH      = 19,
+    ACTOR_00400_ANIM_BANK_COUNT                 = 20
 };
 
-u16 Actor00400_D1609C[8] = {
+/// Animation sets borrowed by body slots 1..14 for this loaded Bog Diver package.
+///
+/// Slot 0 is NULL; all nineteen remaining sets have tracks for the body rig.
+/// Clip 6 is requested only by retained stranded state 3; clip 8 is not requested.
+/// The context borrows this bank and every set's playback streams for the
+/// body's lifetime. Clip IDs name their code roles rather than inferred motion.
+static AnimationSet* _gActor00400AnimationBank[ACTOR_00400_ANIM_BANK_COUNT] = {
+    [ACTOR_00400_ANIM_NONE]                       = NULL,
+    [ACTOR_00400_ANIM_SURFACED]                   = &_gActor00400Actor100400Animation10348,
+    [ACTOR_00400_ANIM_STRANDED_IDLE]              = &_gActor00400Actor100400Animation105F4,
+    [ACTOR_00400_ANIM_SWIM]                       = &_gActor00400Actor100400Animation1097C,
+    [ACTOR_00400_ANIM_CRAWL]                      = &_gActor00400Actor100400Animation11054,
+    [ACTOR_00400_PATROL_SURFACE_CLIP]             = &_gActor00400Actor100400Animation11918,
+    [ACTOR_00400_ANIM_STRANDED_STATE3]            = &_gActor00400Actor100400Animation11C64,
+    [ACTOR_00400_ANIM_DISCHARGE]                  = &_gActor00400Actor100400Animation1236C,
+    [ACTOR_00400_ANIM_UNUSED_SLOT8]               = &_gActor00400Actor100400Animation12C50,
+    [ACTOR_00400_ANIM_STRANDED_DISCHARGE]         = &_gActor00400Actor100400Animation132B0,
+    [ACTOR_00400_ANIM_SWIM_RECOIL_LIGHT]          = &_gActor00400Actor100400Animation136E8,
+    [ACTOR_00400_ANIM_SWIM_RECOIL_HEAVY]          = &_gActor00400Actor100400Animation13C28,
+    [ACTOR_00400_ANIM_STRANDED_RECOIL_LIGHT]      = &_gActor00400Actor100400Animation13FB0,
+    [ACTOR_00400_ANIM_STRANDED_RECOIL_HEAVY]      = &_gActor00400Actor100400Animation14608,
+    [ACTOR_00400_ANIM_SWIM_STATUS_HOLD_ENTER]     = &_gActor00400Actor100400Animation14C08,
+    [ACTOR_00400_ANIM_STRANDED_STATUS_HOLD_ENTER] = &_gActor00400Actor100400Animation15050,
+    [ACTOR_00400_ANIM_SWIM_STATUS_HOLD_LOOP]      = &_gActor00400Actor100400Animation15340,
+    [ACTOR_00400_ANIM_STRANDED_STATUS_HOLD_LOOP]  = &_gActor00400Actor100400Animation15624,
+    [ACTOR_00400_ANIM_SWIM_STATUS_HOLD_HIT]       = &_gActor00400Actor100400Animation15B34,
+    [ACTOR_00400_ANIM_WOUNDED_GROUND_FLINCH]      = &_gActor00400Actor100400Animation15EF8,
+};
+
+/// Number of unsigned shot-speed rows selected by the placement's low three bits.
+enum { ACTOR_00400_SHOT_SPEED_COUNT = 8 };
+
+/// Forward distances used to aim the flying shot, in game-coordinate units per tick.
+///
+/// Indexed by placement rowIndex & 7, so every entry is reachable. With no
+/// placement the spawner uses 190. The head's basis transforms this distance
+/// into the initial velocity; launch then replaces vertical velocity with -20.
+static u16 _gActor00400ShotSpeeds[ACTOR_00400_SHOT_SPEED_COUNT] = {
     190,
     200,
     210,
@@ -1471,13 +1577,13 @@ static void _actor00400InitModelAndEnemy(Task* task)
     worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->recs                   = work->hitContacts;
-    enemy->param                  = &Actor00400_D0FDC8;
-    maxHp                         = Actor00400_D0FDC8.hpMax;
+    enemy->param                  = &_gActor00400EnemyParams;
+    maxHp                         = _gActor00400EnemyParams.hpMax;
     enemy->hpMax                  = maxHp;
     enemy->hp                     = maxHp;
     // The enemy and its spheres borrow model parts and work-owned contacts.
     rootCoord->parent = &gGfxViewCoord;
-    animationInitContext(&work->rig.anim, Actor00400_D1604C, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, _gActor00400AnimationBank, model, work->rig.poses, work->rig.slots);
     _actor00400InitCollisionBodies(task);
     work->rotation.vy = ratan2(-rootCoord->coord.m[2][0], rootCoord->coord.m[2][2]);
 }
@@ -1827,7 +1933,7 @@ static void _actor00400InitCollisionBodies(Task* task)
     work->headBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
     ACTOR_00400_LINK_SPHERE(work->attackBody, &task->extra.tmd->coords[ACTOR_00400_COLLISION_PART_TRUNK], work->attackContacts,
-                            damagePackEnemyAttackKey(task->spawnArg2.pointer, 0), ACTOR_00400_COLLISION_ATTACK_RADIUS, WORLD_COLLISION_LIST_ENEMY_ATTACKS);
+                            damagePackEnemyAttackKey(task->spawnArg2.pointer, ACTOR_00400_DISCHARGE_ATTACK_INDEX), ACTOR_00400_COLLISION_ATTACK_RADIUS, WORLD_COLLISION_LIST_ENEMY_ATTACKS);
     worldCollisionInitContacts(work->attackContacts, ARRAY_SIZE(work->attackContacts), 0);
     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
@@ -2658,25 +2764,32 @@ static void _actor00400DrawGroundStain(SVECTOR* corner0, SVECTOR* corner1, SVECT
    declarations, because `.rodata` follows source order: each sits between the
    jump tables of the functions around it. */
 
-/// Shot states, indexed by `Task::state` in `_actor00400ShotTask`.
-static const TaskFuncTable3 Actor00400_D0002C = { {
-    _actor00400LaunchShot,
-    _actor00400FlyShot,
-    _diverStrikeTeardown,
+/// The flying shot's launch, flight and disabled-sphere linger phases.
+///
+/// Indexed by `Task::state` (0..2). Every slot is a void(Task*) callback;
+/// there is no terminator or bounds check. Linger unlinks the sphere and
+/// releases the independently owned task after its disabled delay.
+static const TaskFuncTable3 _gActor00400ShotStates = { {
+    [ACTOR_00400_SHOT_STATE_LAUNCH] = _actor00400LaunchShot,
+    [ACTOR_00400_SHOT_STATE_FLIGHT] = _actor00400FlyShot,
+    [ACTOR_00400_SHOT_STATE_LINGER] = _diverStrikeTeardown,
 } };
 
-/// The eight states `_actor00400BodyTask` dispatches on `Task::state`. The zero
-/// word after it in the image is the alignment pad of
-/// `_actor00400InitDiver`'s jump table, not a terminator.
-static const TaskFuncTable8 Actor00400_D00038 = { {
-    _actor00400InitDiver,
-    _actor00400StrandedTask,
-    _actor00400StrandedDeathTask,
-    _actor00400SwimTask,
-    _actor00400SwimDeathTask,
-    _actor00400Despawn,
-    _actor00400WoundedGroundTask,
-    _actor00400WoundedFloatTask,
+/// The Bog Diver body's initialization, living, dying and despawn phases.
+///
+/// Indexed by `Task::state` (ACTOR_00400_TASK_*, 0..7); all slots are filled
+/// and copied whole to the frame dispatcher's stack. There is no terminator
+/// or bounds check. The following zero word aligns the initializer's jump
+/// table and is outside this eight-entry object.
+static const TaskFuncTable8 _gActor00400BodyStates = { {
+    [ACTOR_00400_TASK_INIT]           = _actor00400InitDiver,
+    [ACTOR_00400_TASK_STRANDED]       = _actor00400StrandedTask,
+    [ACTOR_00400_TASK_STRANDED_DEATH] = _actor00400StrandedDeathTask,
+    [ACTOR_00400_TASK_SWIM]           = _actor00400SwimTask,
+    [ACTOR_00400_TASK_SWIM_DEATH]     = _actor00400SwimDeathTask,
+    [ACTOR_00400_TASK_DESPAWN]        = _actor00400Despawn,
+    [ACTOR_00400_TASK_WOUNDED_GROUND] = _actor00400WoundedGroundTask,
+    [ACTOR_00400_TASK_WOUNDED_FLOAT]  = _actor00400WoundedFloatTask,
 } };
 
 /// Applies the current room's diver configuration and reports spawn rejection.
@@ -2765,14 +2878,9 @@ static void _actor00400InitDiver(Task* task)
         ACTOR_00400_SPAWN_ROOM_INTRO_PARTNER        = 5,
         ACTOR_00400_SPAWN_WOUNDED_GROUND            = 6,
         ACTOR_00400_SPAWN_WOUNDED_FLOAT             = 7,
-        ACTOR_00400_TASK_SWIM                       = 3,
-        ACTOR_00400_TASK_WOUNDED_GROUND             = 6,
-        ACTOR_00400_TASK_WOUNDED_FLOAT              = 7,
-        ACTOR_00400_ANIM_STRANDED_IDLE              = 2,
         ACTOR_00400_WOUNDED_FLOAT_OFFSET            = 200,
         ACTOR_00400_WOUNDED_HP_DIVISOR              = 8,
         ACTOR_00400_DIVE_START_HEIGHT               = 2000,
-        ACTOR_00400_STAIN_DESCRIPTOR                = 2,
         ACTOR_00400_STAIN_FULL_INTENSITY            = 255,
         ACTOR_00400_ROOM_INTRO_COMPLETE             = 2,
         ACTOR_00400_SCENE_MUSIC_ENTRY               = 11,
@@ -2815,7 +2923,7 @@ static void _actor00400InitDiver(Task* task)
         work->gridCollision = 1;
     }
     _actor00400InitModelAndEnemy(task);
-    task->msgTable = Actor00400_D16010;
+    task->msgTable = _gActor00400Messages;
     // Select the land, water or scripted state from the placement payload.
     switch (task->spawnArg1.value & ACTOR_00400_SPAWN_KIND_MASK) {
         case ACTOR_00400_SPAWN_WOUNDED_FLOAT:
@@ -2852,7 +2960,7 @@ static void _actor00400InitDiver(Task* task)
             stainCoord = task->extra.tmd->coords;
             stainEnemy = task->spawnArg2.pointer;
             stainY     = (u16)stainCoord->coord.t[1];
-            stainTask  = taskSpawnFromTable(Actor00400_D16028, ACTOR_00400_STAIN_DESCRIPTOR, 0, 0);
+            stainTask  = taskSpawnFromTable(gActor00400Tasks, ACTOR_00400_STAIN_DESCRIPTOR, 0, 0);
             if (stainTask != NULL) {
                 stain = memCalloc(sizeof(_Actor00400GroundStainWork), 0);
                 if (stain == NULL) {
@@ -3049,20 +3157,24 @@ static __inline__ void _actor00400UpdateModelColor(Task* task, GfxCoord* sampleC
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
-/// States `_actor00400SwimDeathTask` dispatches on `_Actor00400Work::state`:
-/// `ACTOR_00400_SWIM_DEATH_*`.
-static const TaskFuncTable11 Actor00400_D0007C = { {
-    _actor00400SwimDeathEnter,
-    _actor00400SwimDeathFallWait,
-    _actor00400SwimDeathRest,
-    _actor00400SwimDeathBeginColorFade,
-    _actor00400SwimDeathFade,
-    _actor00400SwimDeathDarken,
-    _actor00400SwimDeathHide,
-    _actor00400SwimDeathBlastHide,
-    _actor00400SwimDeathBlastWait,
-    _actor00400SwimDeathBlastBurst,
-    _actor00400SwimDeathBlastEnd,
+/// Swimming death phases, with separate fall/fade and body-burst paths.
+///
+/// Indexed by `_Actor00400Work::state` (ACTOR_00400_SWIM_DEATH_*, 0..10).
+/// Entry unlinks combat bodies; a blast skips to slot 7. Both paths hand
+/// off to the outer despawn phase. The whole table is copied for unchecked
+/// frame dispatch, with no terminator.
+static const TaskFuncTable11 _gActor00400SwimDeathStates = { {
+    [ACTOR_00400_SWIM_DEATH_START]       = _actor00400SwimDeathEnter,
+    [ACTOR_00400_SWIM_DEATH_FALL]        = _actor00400SwimDeathFallWait,
+    [ACTOR_00400_SWIM_DEATH_REST]        = _actor00400SwimDeathRest,
+    [ACTOR_00400_SWIM_DEATH_WEIGH]       = _actor00400SwimDeathBeginColorFade,
+    [ACTOR_00400_SWIM_DEATH_FADE]        = _actor00400SwimDeathFade,
+    [ACTOR_00400_SWIM_DEATH_DARKEN]      = _actor00400SwimDeathDarken,
+    [ACTOR_00400_SWIM_DEATH_HIDE]        = _actor00400SwimDeathHide,
+    [ACTOR_00400_SWIM_DEATH_BLAST_HIDE]  = _actor00400SwimDeathBlastHide,
+    [ACTOR_00400_SWIM_DEATH_BLAST_WAIT]  = _actor00400SwimDeathBlastWait,
+    [ACTOR_00400_SWIM_DEATH_BLAST_BURST] = _actor00400SwimDeathBlastBurst,
+    [ACTOR_00400_SWIM_DEATH_BLAST_END]   = _actor00400SwimDeathBlastEnd,
 } };
 
 /// Drives the Bog Diver's swimming death task state.
@@ -3085,7 +3197,7 @@ static void _actor00400SwimDeathTask(Task* task)
     rootCoord = task->extra.tmd->coords;
     work      = task->work;
     model     = task->extra.tmd;
-    states    = Actor00400_D0007C;
+    states    = _gActor00400SwimDeathStates;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
             model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -3192,19 +3304,23 @@ static void _actor00400SwimDeathFallWait(Task* task)
     work->state++;
 }
 
-/// States `_actor00400StrandedTask` dispatches on `_Actor00400Work::state`:
-/// `ACTOR_00400_STRANDED_STATE_*` and the three recoil states.
-static const TaskFuncTable10 Actor00400_D000A8 = { {
-    _actor00400StrandedStart,
-    _actor00400StrandedIdleWait,
-    _actor00400StrandedDecision,
-    _actor00400StrandedState3,
-    _actor00400StrandedCrawl,
-    _actor00400StrandedDischarge,
-    _actor00400StrandedUnusedState6,
-    _actor00400StrandedLightRecoil,
-    _actor00400StrandedHeavyRecoil,
-    _actor00400StrandedStatusHold,
+/// Living stranded behavior: idle, decisions, motion, discharge and hit reactions.
+///
+/// Indexed by `_Actor00400Work::state` (0..9), sharing recoil/hold slots 7..9
+/// with the swimming table. Retained slot 3 plays clip 6, whose visible
+/// action is unproven; slot 6 does nothing. Neither is ordinarily selected.
+/// The whole table is copied for unchecked frame dispatch; it has no terminator.
+static const TaskFuncTable10 _gActor00400StrandedStates = { {
+    [ACTOR_00400_STRANDED_STATE_START]     = _actor00400StrandedStart,
+    [ACTOR_00400_STRANDED_STATE_WAIT]      = _actor00400StrandedIdleWait,
+    [ACTOR_00400_STRANDED_STATE_DECIDE]    = _actor00400StrandedDecision,
+    [ACTOR_00400_STRANDED_STATE_SETTLE]    = _actor00400StrandedState3,
+    [ACTOR_00400_STRANDED_STATE_CRAWL]     = _actor00400StrandedCrawl,
+    [ACTOR_00400_STRANDED_STATE_DISCHARGE] = _actor00400StrandedDischarge,
+    [ACTOR_00400_STRANDED_STATE_UNUSED6]   = _actor00400StrandedUnusedState6,
+    [ACTOR_00400_STATE_RECOIL_LIGHT]       = _actor00400StrandedLightRecoil,
+    [ACTOR_00400_STATE_RECOIL_HEAVY]       = _actor00400StrandedHeavyRecoil,
+    [ACTOR_00400_STATE_STATUS_HOLD]        = _actor00400StrandedStatusHold,
 } };
 
 /// Replaces the diver root's basis with its stored roll followed by heading.
@@ -3256,7 +3372,7 @@ static void _actor00400StrandedTask(Task* task)
     _Actor00400Work* lightingWork;
     TmdObject*       lightingModel;
 
-    states = Actor00400_D000A8;
+    states = _gActor00400StrandedStates;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
             model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -3354,19 +3470,23 @@ static void _actor00400StrandedHeavyRecoilWait(Task* task)
     }
 }
 
-/// States `_actor00400StrandedDeathTask` dispatches on `_Actor00400Work::state`:
-/// `ACTOR_00400_STRANDED_DEATH_*`.
-static const TaskFuncTable10 Actor00400_D000D0 = { {
-    _actor00400StrandedDeathEnter,
-    _actor00400StrandedDeathFallWait,
-    _actor00400StrandedDeathWeigh,
-    _actor00400StrandedDeathFadeWait,
-    _actor00400StrandedDeathShrink,
-    _actor00400StrandedDeathEnd,
-    _actor00400StrandedDeathBlastHide,
-    _actor00400StrandedDeathBlastWait,
-    _actor00400StrandedDeathBlastBurst,
-    _actor00400StrandedDeathBlastEnd,
+/// Stranded death phases, with separate falling/shrinking and body-burst paths.
+///
+/// Indexed by `_Actor00400Work::state` (ACTOR_00400_STRANDED_DEATH_*, 0..9).
+/// Entry unlinks combat bodies; a blast skips to slot 6. Both paths hand
+/// off to the outer despawn phase. The whole table is copied for unchecked
+/// frame dispatch, with no terminator.
+static const TaskFuncTable10 _gActor00400StrandedDeathStates = { {
+    [ACTOR_00400_STRANDED_DEATH_START]       = _actor00400StrandedDeathEnter,
+    [ACTOR_00400_STRANDED_DEATH_FALL]        = _actor00400StrandedDeathFallWait,
+    [ACTOR_00400_STRANDED_DEATH_WEIGH]       = _actor00400StrandedDeathWeigh,
+    [ACTOR_00400_STRANDED_DEATH_FADE]        = _actor00400StrandedDeathFadeWait,
+    [ACTOR_00400_STRANDED_DEATH_SHRINK]      = _actor00400StrandedDeathShrink,
+    [ACTOR_00400_STRANDED_DEATH_END]         = _actor00400StrandedDeathEnd,
+    [ACTOR_00400_STRANDED_DEATH_BLAST_HIDE]  = _actor00400StrandedDeathBlastHide,
+    [ACTOR_00400_STRANDED_DEATH_BLAST_WAIT]  = _actor00400StrandedDeathBlastWait,
+    [ACTOR_00400_STRANDED_DEATH_BLAST_BURST] = _actor00400StrandedDeathBlastBurst,
+    [ACTOR_00400_STRANDED_DEATH_BLAST_END]   = _actor00400StrandedDeathBlastEnd,
 } };
 
 /// Drives the Bog Diver's stranded death task state.
@@ -3386,7 +3506,7 @@ static void _actor00400StrandedDeathTask(Task* task)
 
     work   = task->work;
     model  = task->extra.tmd;
-    states = Actor00400_D000D0;
+    states = _gActor00400StrandedDeathStates;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
             model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -3445,24 +3565,28 @@ static void _actor00400StrandedDeathEnter(Task* task)
     work->state++;
 }
 
-/// States `_actor00400SwimTask` dispatches on `_Actor00400Work::state`:
-/// `ACTOR_00400_SWIM_STATE_*` and the three `ACTOR_00400_STATE_*`.
-static const _Actor00400SwimStateTable Actor00400_D000F8 = { {
-    _actor00400SwimStart,
-    _actor00400SwimPatrol,
-    _actor00400SwimDecide,
-    _actor00400SwimEmerge,
-    _actor00400Dive,
-    _actor00400SwimUnusedState5,
-    _actor00400SwimUnusedState6,
-    _actor00400SwimLightRecoil,
-    _actor00400SwimHeavyRecoil,
-    _actor00400SwimStatusHold,
-    _actor00400SwimAttack,
-    _actor00400TunnelPatrol,
-    _actor00400TunnelIntro,
-    _actor00400RoomIntro,
-    _actor00400AwaitFight,
+/// Living swimming behavior, including the room- and tunnel-command introductions.
+///
+/// Indexed by `_Actor00400Work::state` (0..14); recoil/hold slots 7..9 are
+/// shared with stranded behavior. Slots 5 and 6 have inert handlers and
+/// no selecting transitions. The whole table is copied for unchecked frame
+/// dispatch, with no terminator.
+static const _Actor00400SwimStateTable _gActor00400SwimStates = { {
+    [ACTOR_00400_SWIM_STATE_START]         = _actor00400SwimStart,
+    [ACTOR_00400_SWIM_STATE_PATROL]        = _actor00400SwimPatrol,
+    [ACTOR_00400_SWIM_STATE_DECIDE]        = _actor00400SwimDecide,
+    [ACTOR_00400_SWIM_STATE_EMERGE]        = _actor00400SwimEmerge,
+    [ACTOR_00400_SWIM_STATE_DIVE]          = _actor00400Dive,
+    [ACTOR_00400_SWIM_STATE_UNUSED5]       = _actor00400SwimUnusedState5,
+    [ACTOR_00400_SWIM_STATE_UNUSED6]       = _actor00400SwimUnusedState6,
+    [ACTOR_00400_STATE_RECOIL_LIGHT]       = _actor00400SwimLightRecoil,
+    [ACTOR_00400_STATE_RECOIL_HEAVY]       = _actor00400SwimHeavyRecoil,
+    [ACTOR_00400_STATE_STATUS_HOLD]        = _actor00400SwimStatusHold,
+    [ACTOR_00400_SWIM_STATE_ATTACK]        = _actor00400SwimAttack,
+    [ACTOR_00400_SWIM_STATE_TUNNEL_PATROL] = _actor00400TunnelPatrol,
+    [ACTOR_00400_SWIM_STATE_TUNNEL_INTRO]  = _actor00400TunnelIntro,
+    [ACTOR_00400_SWIM_STATE_ROOM_INTRO]    = _actor00400RoomIntro,
+    [ACTOR_00400_SWIM_STATE_AWAIT_FIGHT]   = _actor00400AwaitFight,
 } };
 
 /// Sets the swimming diver's lock eligibility from its target part's depth.
@@ -3527,7 +3651,7 @@ static void _actor00400SwimTask(Task* task)
     TmdObject*                visibilityModel;
     GameLocationKey*          location;
 
-    states = Actor00400_D000F8;
+    states = _gActor00400SwimStates;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
             model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -4029,8 +4153,7 @@ static void _actor00400SwimLightRecoilWait(Task* task)
 static void _actor00400SwimHeavyRecoilEnter(Task* task)
 {
     enum {
-        ACTOR_00400_ANIM_SWIM_RECOIL_HEAVY = 11,
-        ACTOR_00400_RECOIL_BLEND_FRAMES    = 3,
+        ACTOR_00400_RECOIL_BLEND_FRAMES = 3,
     };
     _Actor00400Work* work;
     GfxCoord*        rootCoord;
@@ -4091,9 +4214,8 @@ static void _actor00400SwimAttackWindup(Task* task)
 static inline void _actor00400SpawnShot(Task* parentTask)
 {
     enum {
-        ACTOR_00400_SHOT_TASK_INDEX     = 1,
         ACTOR_00400_SHOT_DEFAULT_SPEED  = 190,
-        ACTOR_00400_SHOT_SPEED_ROW_MASK = 7,
+        ACTOR_00400_SHOT_SPEED_ROW_MASK = ACTOR_00400_SHOT_SPEED_COUNT - 1,
         ACTOR_00400_SHOT_ORIGIN_PART    = 5,
         ACTOR_00400_SHOT_DIRECTION_PART = 4,
     };
@@ -4111,14 +4233,14 @@ static inline void _actor00400SpawnShot(Task* parentTask)
 
     placement = ((Enemy*)parentTask->spawnArg2.pointer)->place;
     if (placement != NULL) {
-        speed = Actor00400_D1609C[placement->rowIndex & ACTOR_00400_SHOT_SPEED_ROW_MASK];
+        speed = _gActor00400ShotSpeeds[placement->rowIndex & ACTOR_00400_SHOT_SPEED_ROW_MASK];
     } else {
         speed = ACTOR_00400_SHOT_DEFAULT_SPEED;
     }
     coords         = parentTask->extra.tmd->coords;
     muzzleCoord    = &coords[ACTOR_00400_SHOT_ORIGIN_PART];
     directionCoord = &coords[ACTOR_00400_SHOT_DIRECTION_PART];
-    shotTask       = taskSpawnFromTable(Actor00400_D16028, ACTOR_00400_SHOT_TASK_INDEX, 0, 0);
+    shotTask       = taskSpawnFromTable(gActor00400Tasks, ACTOR_00400_SHOT_TASK_INDEX, 0, 0);
     if (shotTask != NULL) {
         shot = memCalloc(sizeof(_Actor00400ShotWork), false);
         if (shot == NULL) {
@@ -4384,7 +4506,6 @@ static void _actor00400WoundedGroundIdleTick(Task* task)
 /// pose selects wounded idle at substate zero.
 static void _actor00400WoundedGroundFlinchWait(Task* task)
 {
-    enum { ACTOR_00400_ANIM_WOUNDED_GROUND_FLINCH = 19 };
     _Actor00400Work* work;
     _Actor00400Work* nextStateWork;
 
@@ -4556,12 +4677,17 @@ static void _actor00400SwimStart(Task* task)
     work->goalY              = rootCoord->coord.t[1];
 }
 
-/// States `_actor00400SwimPatrol` dispatches on `_Actor00400Work.subState`.
-static const TaskFuncTable4 Actor00400_D00134 = { {
-    _actor00400SwimPatrolEnter,
-    _actor00400SwimPatrolTravel,
-    _actor00400SwimPatrolSurface,
-    _actor00400SwimPatrolWaitForClip,
+/// Swimming-patrol steps: entry, waypoint travel, surface cycle and clip wait.
+///
+/// Indexed by `_Actor00400Work::subState` (ACTOR_00400_PATROL_STEP_*, 0..3).
+/// Entry advances through surface/clip wait and returns to travel; a hit
+/// or combat alert can interrupt the patrol. Copied whole for unchecked
+/// void(Task*) dispatch, with no terminator.
+static const TaskFuncTable4 _gActor00400SwimPatrolSteps = { {
+    [ACTOR_00400_PATROL_STEP_ENTER]         = _actor00400SwimPatrolEnter,
+    [ACTOR_00400_PATROL_STEP_TRAVEL]        = _actor00400SwimPatrolTravel,
+    [ACTOR_00400_PATROL_STEP_SURFACE]       = _actor00400SwimPatrolSurface,
+    [ACTOR_00400_PATROL_STEP_WAIT_FOR_CLIP] = _actor00400SwimPatrolWaitForClip,
 } };
 
 /// Dispatches the swimming patrol until a hit or combat alert interrupts it.
@@ -4578,7 +4704,7 @@ static void _actor00400SwimPatrol(Task* task)
     _Actor00400Work* nextStateWork;
 
     work     = task->work;
-    handlers = Actor00400_D00134;
+    handlers = _gActor00400SwimPatrolSteps;
     if ((_actor00400ApplyHitReaction(task) << 0x10) != 0) {
         gSceneCombatState.signals.bytes.enemyAlert = 1;
         sceneEngageBattle(1);
@@ -4609,11 +4735,15 @@ static void _actor00400SwimEmerge(Task* task)
     }
 }
 
-/// States `_actor00400Dive` dispatches on `_Actor00400Work.subState`.
-static const TaskFuncTable3 Actor00400_D00144 = { {
-    _actor00400DiveEnter,
-    _actor00400DiveWaitForClip,
-    _actor00400DiveSwimToSurfaceSpot,
+/// Dive steps: entry, clip transition and travel toward a claimed surface spot.
+///
+/// Indexed by `_Actor00400Work::subState` (ACTOR_00400_DIVE_STEP_*, 0..2).
+/// Entry skips the clip wait when already swimming; travel selects emergence
+/// on arrival. Copied whole for unchecked void(Task*) dispatch, with no terminator.
+static const TaskFuncTable3 _gActor00400DiveSteps = { {
+    [ACTOR_00400_DIVE_STEP_ENTER]         = _actor00400DiveEnter,
+    [ACTOR_00400_DIVE_STEP_WAIT_FOR_CLIP] = _actor00400DiveWaitForClip,
+    [ACTOR_00400_DIVE_STEP_TRAVEL]        = _actor00400DiveSwimToSurfaceSpot,
 } };
 
 /// Dispatches the dive's entry, transition wait or travel to a surface spot.
@@ -4627,7 +4757,7 @@ static void _actor00400Dive(Task* task)
     TaskFuncTable3   handlers;
 
     work     = task->work;
-    handlers = Actor00400_D00144;
+    handlers = _gActor00400DiveSteps;
     handlers.funcs[work->subState](task);
 }
 
@@ -4729,11 +4859,16 @@ static void _actor00400SwimStatusHold(Task* task)
     states[work->subState](task);
 }
 
-/// States `_actor00400SwimAttack` dispatches on `_Actor00400Work.subState`.
-static const TaskFuncTable3 Actor00400_D00150 = { {
-    _actor00400SwimAttackEnter,
-    _actor00400SwimAttackWindup,
-    _actor00400SwimAttackFireWait,
+/// Swimming attack steps: entry, discharge windup and aimed shot release.
+///
+/// Indexed by `_Actor00400Work::subState` (ACTOR_00400_ATTACK_STEP_*, 0..2).
+/// The final step releases the shot on its animation-frame cue and returns
+/// to decision when the clip ends. Copied whole for unchecked void(Task*)
+/// dispatch, with no terminator.
+static const TaskFuncTable3 _gActor00400SwimAttackSteps = { {
+    [ACTOR_00400_ATTACK_STEP_ENTER]     = _actor00400SwimAttackEnter,
+    [ACTOR_00400_ATTACK_STEP_WINDUP]    = _actor00400SwimAttackWindup,
+    [ACTOR_00400_ATTACK_STEP_FIRE_WAIT] = _actor00400SwimAttackFireWait,
 } };
 
 /// Dispatches the swimming discharge and shot attack unless a hit changes state.
@@ -4747,17 +4882,22 @@ static void _actor00400SwimAttack(Task* task)
     TaskFuncTable3   handlers;
 
     work     = task->work;
-    handlers = Actor00400_D00150;
+    handlers = _gActor00400SwimAttackSteps;
     if ((_actor00400ApplyHitReaction(task) << 0x10) == 0) {
         handlers.funcs[work->subState](task);
     }
 }
 
-/// States `_actor00400TunnelPatrol` dispatches on `_Actor00400Work.subState`.
-static const TaskFuncTable3 Actor00400_D0015C = { {
-    _actor00400TunnelPatrolEnter,
-    _actor00400TunnelPatrolWaitForCue,
-    _actor00400TunnelPatrolSwim,
+/// Scripted tunnel-patrol steps: entry, patrol-cue wait and waypoint swimming.
+///
+/// Indexed by `_Actor00400Work::subState` (ACTOR_00400_TUNNEL_PATROL_STEP_*,
+/// 0..2). The cue or a saved completed introduction releases the wait; the
+/// last step keeps circling without combat targeting. Copied whole for
+/// unchecked void(Task*) dispatch, with no terminator.
+static const TaskFuncTable3 _gActor00400TunnelPatrolSteps = { {
+    [ACTOR_00400_TUNNEL_PATROL_STEP_ENTER]        = _actor00400TunnelPatrolEnter,
+    [ACTOR_00400_TUNNEL_PATROL_STEP_WAIT_FOR_CUE] = _actor00400TunnelPatrolWaitForCue,
+    [ACTOR_00400_TUNNEL_PATROL_STEP_SWIM]         = _actor00400TunnelPatrolSwim,
 } };
 
 /// Dispatches the scripted tunnel patrol while keeping the diver untargetable.
@@ -4773,18 +4913,23 @@ static void _actor00400TunnelPatrol(Task* task)
 
     enemy                         = task->spawnArg2.pointer;
     work                          = task->work;
-    handlers                      = Actor00400_D0015C;
+    handlers                      = _gActor00400TunnelPatrolSteps;
     work->neckRetracted           = 1;
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     handlers.funcs[work->subState](task);
 }
 
-/// States `_actor00400TunnelIntro` dispatches on `_Actor00400Work.subState`.
-static const TaskFuncTable4 Actor00400_D00168 = { {
-    _actor00400TunnelIntroEnter,
-    _actor00400TunnelIntroWaitForSwim,
-    _actor00400TunnelIntroSwim,
-    _actor00400TunnelIntroWaitForPatrol,
+/// Tunnel-introduction steps: placement, swim-cue wait, timed swim and patrol-cue wait.
+///
+/// Indexed by `_Actor00400Work::subState` (ACTOR_00400_TUNNEL_INTRO_STEP_*,
+/// 0..3). The final cue selects tunnel patrol; a saved completed introduction
+/// bypasses this sequence. Copied whole for unchecked void(Task*) dispatch,
+/// with no terminator.
+static const TaskFuncTable4 _gActor00400TunnelIntroSteps = { {
+    [ACTOR_00400_TUNNEL_INTRO_STEP_ENTER]           = _actor00400TunnelIntroEnter,
+    [ACTOR_00400_TUNNEL_INTRO_STEP_WAIT_FOR_SWIM]   = _actor00400TunnelIntroWaitForSwim,
+    [ACTOR_00400_TUNNEL_INTRO_STEP_SWIM]            = _actor00400TunnelIntroSwim,
+    [ACTOR_00400_TUNNEL_INTRO_STEP_WAIT_FOR_PATROL] = _actor00400TunnelIntroWaitForPatrol,
 } };
 
 /// Dispatches the tunnel introduction, or skips a completed introduction to patrol.
@@ -4800,7 +4945,7 @@ static void _actor00400TunnelIntro(Task* task)
 
     enemy    = task->spawnArg2.pointer;
     work     = task->work;
-    handlers = Actor00400_D00168;
+    handlers = _gActor00400TunnelIntroSteps;
     if (gameFlagGetNibble(GAME_FLAG_SUBMARINE_TUNNEL_EVENT_SEEN) != 0) {
         _diverSetState(task, ACTOR_00400_SWIM_STATE_TUNNEL_PATROL);
     } else {
@@ -4967,19 +5112,24 @@ static void _actor00400ShotTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = Actor00400_D0002C;
+    handlers = _gActor00400ShotStates;
     handlers.funcs[task->state](task);
 }
 
-/// States `_actor00400RoomIntro` dispatches on `_Actor00400Work.subState`.
-static const TaskFuncTable7 Actor00400_D00178 = { {
-    _actor00400RoomIntroEnter,
-    _actor00400RoomIntroWaitForSwim,
-    _actor00400RoomIntroSwim,
-    _actor00400RoomIntroWaitForSurface,
-    _actor00400RoomIntroBeginDischarge,
-    _actor00400RoomIntroWaitAfterDischarge,
-    _actor00400RoomIntroWaitForFight,
+/// Room-introduction steps from placement through cued swimming, discharge and combat.
+///
+/// Indexed by `_Actor00400Work::subState` (ACTOR_00400_ROOM_INTRO_STEP_*,
+/// 0..6). Saved encounter progress can skip swimming to the surface wait;
+/// the fight cue restores combat and selects dive. Copied whole for unchecked
+/// void(Task*) dispatch, with no terminator.
+static const TaskFuncTable7 _gActor00400RoomIntroSteps = { {
+    [ACTOR_00400_ROOM_INTRO_STEP_ENTER]                = _actor00400RoomIntroEnter,
+    [ACTOR_00400_ROOM_INTRO_STEP_WAIT_FOR_SWIM]        = _actor00400RoomIntroWaitForSwim,
+    [ACTOR_00400_ROOM_INTRO_STEP_SWIM]                 = _actor00400RoomIntroSwim,
+    [ACTOR_00400_ROOM_INTRO_STEP_WAIT_FOR_SURFACE]     = _actor00400RoomIntroWaitForSurface,
+    [ACTOR_00400_ROOM_INTRO_STEP_DISCHARGE]            = _actor00400RoomIntroBeginDischarge,
+    [ACTOR_00400_ROOM_INTRO_STEP_WAIT_AFTER_DISCHARGE] = _actor00400RoomIntroWaitAfterDischarge,
+    [ACTOR_00400_ROOM_INTRO_STEP_WAIT_FOR_FIGHT]       = _actor00400RoomIntroWaitForFight,
 } };
 
 /// Applies a borrowed room command to the diver's scripted or combat state.
@@ -5322,7 +5472,7 @@ static void _actor00400BodyTask(Task* task)
 {
     TaskFuncTable8 handlers;
 
-    handlers = Actor00400_D00038;
+    handlers = _gActor00400BodyStates;
     handlers.funcs[task->state](task);
 }
 
@@ -5421,8 +5571,7 @@ static void _actor00400WoundedGroundFlinch(Task* task)
 /// driver applies the request; this entry only advances substate 0 to 1.
 static void _actor00400WoundedGroundFlinchEnter(Task* task)
 {
-    enum { ACTOR_00400_ANIM_WOUNDED_GROUND_FLINCH  = 19,
-           ACTOR_00400_WOUNDED_FLINCH_BLEND_FRAMES = 2 };
+    enum { ACTOR_00400_WOUNDED_FLINCH_BLEND_FRAMES = 2 };
     _Actor00400Work* work;
     _Actor00400Work* requestWork;
 
@@ -5639,8 +5788,7 @@ static void _actor00400StrandedDeathBlastEnd(Task* task)
 /// applies the animation request later in the same frame.
 static void _actor00400StrandedStart(Task* task)
 {
-    enum { ACTOR_00400_ANIM_STRANDED_IDLE           = 2,
-           ACTOR_00400_STRANDED_INITIAL_FRAME_COUNT = 0x174B };
+    enum { ACTOR_00400_STRANDED_INITIAL_FRAME_COUNT = 0x174B };
     _Actor00400Work* work;
     _Actor00400Work* requestWork;
     Enemy*           enemy;
@@ -5867,7 +6015,6 @@ static void _actor00400SwimPatrolEnter(Task* task)
 static void _actor00400SwimPatrolTravel(Task* task)
 {
     enum {
-        ACTOR_00400_PATROL_SURFACE_CLIP = 5,
         ACTOR_00400_PATROL_SOUND_PERIOD = 16
     };
     _Actor00400Work* work;
@@ -5902,7 +6049,6 @@ static void _actor00400SwimPatrolTravel(Task* task)
 /// the preceding tick's status without advancing playback.
 static void _actor00400SwimPatrolWaitForClip(Task* task)
 {
-    enum { ACTOR_00400_PATROL_STEP_TRAVEL = 1 };
     _Actor00400Work* work;
 
     work                = task->work;
@@ -6167,7 +6313,7 @@ static void _actor00400TunnelIntroWaitForPatrol(Task* task)
     work = task->work;
     if (work->command == ACTOR_00400_COMMAND_TUNNEL_PATROL) {
         work->state    = ACTOR_00400_SWIM_STATE_TUNNEL_PATROL;
-        work->subState = 0;
+        work->subState = ACTOR_00400_TUNNEL_PATROL_STEP_ENTER;
     }
 }
 
@@ -6182,7 +6328,7 @@ static void _actor00400RoomIntro(Task* task)
     TaskFuncTable7   stateHandlers;
 
     work          = task->work;
-    stateHandlers = Actor00400_D00178;
+    stateHandlers = _gActor00400RoomIntroSteps;
     stateHandlers.funcs[work->subState](task);
 }
 
@@ -6239,8 +6385,7 @@ static void _actor00400RoomIntroEnter(Task* task)
 static void _actor00400RoomIntroWaitForSwim(Task* task)
 {
     enum {
-        ACTOR_00400_SEPTIC_TANK_SKIP_INTRO_SWIM      = 1,
-        ACTOR_00400_ROOM_INTRO_STEP_WAIT_FOR_SURFACE = 3
+        ACTOR_00400_SEPTIC_TANK_SKIP_INTRO_SWIM = 1
     };
     _Actor00400Work* work;
 
@@ -6377,7 +6522,7 @@ static void _actor00400RoomIntroWaitForFight(Task* task)
         sceneAcquireBattleRef(0);
         work           = task->work;
         work->state    = ACTOR_00400_SWIM_STATE_DIVE;
-        work->subState = 0;
+        work->subState = ACTOR_00400_DIVE_STEP_ENTER;
     }
 }
 
@@ -6401,7 +6546,7 @@ static void _actor00400AwaitFightCue(Task* task)
         sceneAcquireBattleRef(0);
         work           = task->work;
         work->state    = ACTOR_00400_SWIM_STATE_DIVE;
-        work->subState = 0;
+        work->subState = ACTOR_00400_DIVE_STEP_ENTER;
     }
 }
 
@@ -6417,8 +6562,7 @@ static void _actor00400AwaitFightCue(Task* task)
 /// Horizontal speed and position are retained from the spawner.
 static void _actor00400LaunchShot(Task* task)
 {
-    enum { ACTOR_00400_SHOT_ATTACK_INDEX = 1,
-           ACTOR_00400_SHOT_RADIUS       = 256 };
+    enum { ACTOR_00400_SHOT_RADIUS = 256 };
     _Actor00400ShotWork* work;
     GfxCoord*            rootCoord;
 
@@ -6428,7 +6572,7 @@ static void _actor00400LaunchShot(Task* task)
     work->frames                            = 0;
     rootCoord->parent                       = &gGfxViewCoord;
     rootCoord->composeStamp                 = GRAPHICS_COORD_DIRTY;
-    work->child.attackBody.key              = damagePackAttackKey(Actor00400_D0FDC0, ACTOR_00400_SHOT_ATTACK_INDEX);
+    work->child.attackBody.key              = damagePackAttackKey(_gActor00400Attacks, ACTOR_00400_SHOT_ATTACK_INDEX);
     work->child.attackBody.coord            = task->extra.coordBody->coord;
     work->child.attackBody.context.contacts = work->contacts;
     work->child.attackBody.pos.vx           = 0;
@@ -6810,3 +6954,5 @@ static void _actor00400StrandedStatusHoldTick(Task* task)
         nextStateWork->subState = 0;
     }
 }
+
+PACKAGE_ALIASES

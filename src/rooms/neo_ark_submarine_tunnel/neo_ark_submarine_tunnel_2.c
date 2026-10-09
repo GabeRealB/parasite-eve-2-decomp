@@ -11,6 +11,7 @@
 
 #include "neo_ark_submarine_tunnel_private.h"
 
+#include "actors/actor_00400.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/display.h"
@@ -50,8 +51,6 @@ extern WorldCollisionOccluder D_neo_ark_submarine_tunnel_8018781C[3];
 extern WorldCollisionTrigger  D_neo_ark_submarine_tunnel_80187248[6];
 extern WorldCollisionTrigger  D_neo_ark_submarine_tunnel_801874D8[11];
 extern WorldCoordRoomLights   D_neo_ark_submarine_tunnel_80187230[1];
-
-extern TaskDesc D_actor_100400_80147E48;
 
 u8 D_neo_ark_submarine_tunnel_80181DF0 = 0;
 
@@ -1180,7 +1179,7 @@ WorldCollisionTrigger D_neo_ark_submarine_tunnel_80187248[6] = {
 };
 
 AreaResource D_neo_ark_submarine_tunnel_80187410[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_100400_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

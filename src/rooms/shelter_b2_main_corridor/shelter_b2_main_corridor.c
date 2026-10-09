@@ -9,6 +9,7 @@
 #include "common.h"
 #include "gte.h"
 
+#include "actors/actor_00400.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
@@ -170,8 +171,6 @@ static void _shelterB2MainCorridorResetCompanionScheduleOnDeparture(const RoomEv
 static void _shelterB2MainCorridorInitializeRoomTask(Task* task);
 static void _shelterB2MainCorridorIdleRoomTask(Task* task);
 static void _shelterB2MainCorridorInitializeWaterTask(Task* task);
-
-extern TaskDesc D_actor_100400_80147E48;
 
 static s32  _shelterB2MainCorridorResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32  _shelterB2MainCorridorHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
@@ -1455,17 +1454,17 @@ WorldCollisionTrigger D_shelter_b2_main_corridor_80188BFC[18] = {
 };
 
 AreaResource D_shelter_b2_main_corridor_80189154[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_100400_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b2_main_corridor_8018916C[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_100400_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b2_main_corridor_80189184[3] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_100400_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
     { 49, 49, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor201100Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

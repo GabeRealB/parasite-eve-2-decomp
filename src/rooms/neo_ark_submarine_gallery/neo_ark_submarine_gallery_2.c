@@ -11,6 +11,7 @@
 
 #include "neo_ark_submarine_gallery_private.h"
 
+#include "actors/actor_00400.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/display.h"
@@ -57,7 +58,6 @@ static void _neoArkSubmarineGalleryDrawLightPrism(const GfxCoord* coord, s16 fir
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
 // Indexed views below share one contiguous table.
-extern TaskDesc D_actor_100400_80147E48;
 
 extern WorldCollisionSurfaceProperties D_neo_ark_submarine_gallery_801858D4[1];
 extern WorldCollisionSurfaceProperties D_neo_ark_submarine_gallery_801858DC[1];
@@ -859,23 +859,23 @@ WorldCollisionTrigger D_neo_ark_submarine_gallery_801854FC[10] = {
 };
 
 AreaResource D_neo_ark_submarine_gallery_801857F4[3] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_100400_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
     { 61, 61, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_actor_206100_80158B0C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_neo_ark_submarine_gallery_80185818[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_100400_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_neo_ark_submarine_gallery_80185830[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_100400_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_neo_ark_submarine_gallery_80185848[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_100400_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

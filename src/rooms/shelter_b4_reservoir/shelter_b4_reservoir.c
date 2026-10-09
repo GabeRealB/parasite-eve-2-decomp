@@ -12,6 +12,7 @@
 #include "gte.h"
 
 #include "actors/actor_04400.h"
+#include "actors/actor_00400.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/companion_load.h"
@@ -235,7 +236,6 @@ extern WorldCollisionTrigger  D_shelter_b4_reservoir_80186AC0[8];
 extern WorldCollisionTrigger  D_shelter_b4_reservoir_80186D20[7];
 extern WorldCollisionTrigger  D_shelter_b4_reservoir_80186F34[9];
 extern WorldCoordRoomLights   D_shelter_b4_reservoir_80186AA8[1];
-extern TaskDesc               D_actor_100400_80147E48;
 extern TaskDesc               D_actor_207000_801575F0;
 
 static s32  _shelterB4ReservoirRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 secondArg);
@@ -855,7 +855,7 @@ WorldCollisionTrigger D_shelter_b4_reservoir_80186F34[9] = {
 };
 
 AreaResource D_shelter_b4_reservoir_801871E0[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_100400_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -874,7 +874,7 @@ AreaResource D_shelter_b4_reservoir_80187228[4] = {
 };
 
 AreaResource D_shelter_b4_reservoir_80187258[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_100400_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

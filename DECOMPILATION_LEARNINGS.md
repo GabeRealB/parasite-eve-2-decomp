@@ -104286,14 +104286,14 @@ static void _actor00400BodyTask(Task* task)
 {
     TaskFuncTable8 handlers;
 
-    handlers = Actor00400_D00038;
+    handlers = _gActor00400BodyStates;
     handlers.funcs[task->state](task);
 }
 ```
 
 The copy is eight `lw`/`sw` pairs, fixing both the local and the source table
 at `TaskFuncTable8`. The merged `src/actors/actor_00400/actor_00400.c` defines
-`Actor00400_D00038` once, as a `static const TaskFuncTable8` in the same TU.
+`_gActor00400BodyStates` once, as a `static const TaskFuncTable8` in the same TU.
 There is no ninth callback or terminator: the following zero word aligns the
 compiler-generated jump table of `_actor00400InitDiver`. The source table must
 stay at its position among the functions because `.rodata` follows source order.

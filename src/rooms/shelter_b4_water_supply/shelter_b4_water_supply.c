@@ -10,6 +10,7 @@
 #include "gte.h"
 #include "common.h"
 
+#include "actors/actor_00400.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/companion_load.h"
@@ -127,8 +128,6 @@ static void _shelterB4WaterSupplyFirstValveDepartureTask(Task* task);
 static void _shelterB4WaterSupplyWaterTask(Task* task);
 
 enum { SHELTER_B4_WATER_SUPPLY_MESSAGE_USE_KEY_ITEM = 5105 };
-
-extern TaskDesc D_actor_100400_80147E48;
 
 TaskDesc D_shelter_b4_water_supply_801825E4 = { { { TASK_BODY_NONE, 32 } }, roomEventDepartureTask, { .value = 0 } };
 
@@ -630,7 +629,7 @@ WorldCollisionTrigger D_shelter_b4_water_supply_80184944[7] = {
 };
 
 AreaResource D_shelter_b4_water_supply_80184B58[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_100400_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -646,7 +645,7 @@ AreaResource D_shelter_b4_water_supply_80184B94[2] = {
 };
 
 AreaResource D_shelter_b4_water_supply_80184BAC[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_100400_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

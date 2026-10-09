@@ -12,6 +12,7 @@
 #include "shelter_b4_lower_sewer_private.h"
 
 #include "actors/actor_04400.h"
+#include "actors/actor_00400.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/display.h"
@@ -62,8 +63,6 @@ extern SVECTOR D_shelter_b4_lower_sewer_80181F14[];
 /// other end of the trail.
 /// The second of those points, which the trail's per-frame state reaches
 /// through its own label rather than by indexing the pair.
-
-extern TaskDesc D_actor_100400_80147E48;
 
 SVECTOR D_shelter_b4_lower_sewer_80181EA4[12] = {
     { -0x3B42, -5090, 2290, 0 },
@@ -374,12 +373,12 @@ AreaResource D_shelter_b4_lower_sewer_80183B64[2] = {
 };
 
 AreaResource D_shelter_b4_lower_sewer_80183B7C[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_100400_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b4_lower_sewer_80183B94[4] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_100400_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
     { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor207200CreepingStrangerTaskDesc },
     { 73, 73, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &D_actor_207200_8014E7A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
@@ -396,7 +395,7 @@ AreaResource D_shelter_b4_lower_sewer_80183BDC[2] = {
 };
 
 AreaResource D_shelter_b4_lower_sewer_80183BF4[3] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_100400_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
     { 49, 49, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor201100Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

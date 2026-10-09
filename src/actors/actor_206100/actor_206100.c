@@ -11,6 +11,7 @@
 #include "gte.h"
 
 #include "actors/actor.h"
+#include "actors/actor_00400.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
@@ -947,8 +948,6 @@ static void _actor206100DispatchStatusHold(Task* task);
 static void _actor206100EntranceHoldPlayer(Task* task);
 
 static void _actor206100EntranceLeadInTick(Task* task);
-
-extern TaskDesc D_actor_100400_80147E48;
 
 static void           _actor206100TrackTarget(Task* task);
 static void           _actor206100TakeHits(Task* task);
@@ -2928,7 +2927,7 @@ static Enemy* _actor206100SpawnBogDiver(s32 placementIndex)
     Enemy*     enemy;
     TmdObject* model;
 
-    enemy = enemySpawnFromTable(&D_actor_100400_80147E48, 0, ACTOR_206100_BOG_DIVER_VARIANT, NULL);
+    enemy = enemySpawnFromTable(gActor100400Tasks, ACTOR_00400_BODY_TASK_INDEX, ACTOR_206100_BOG_DIVER_VARIANT, NULL);
     if (enemy != NULL) {
         enemy->placeKey          = placementIndex << ENEMY_PLACE_INDEX_SHIFT;
         enemy->place             = &D_actor_206100_80155134[(s16)placementIndex];

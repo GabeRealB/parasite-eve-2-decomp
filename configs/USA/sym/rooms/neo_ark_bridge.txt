@@ -54,7 +54,7 @@ D_neo_ark_bridge_80184BC4 = 0x80184BC4; // size:0x8 defined:True
 D_neo_ark_bridge_80184BCC = 0x80184BCC; // size:0x8 defined:True
 D_neo_ark_bridge_80184BD4 = 0x80184BD4; // size:0x20 defined:True
 gActor102300RookGolemTasks = 0x80147AB8; // absolute:True owner=actor_102300
-D_actor_100400_80147E48 = 0x80147E48; // absolute:True owner=actor_100400
+gActor100400Tasks = 0x80147E48; // absolute:True owner=actor_100400
 gActor203800BlackBeetleTaskDesc = 0x8014FD74; // absolute:True owner=actor_203800
 gActor201100Tasks = 0x8015F400; // absolute:True owner=actor_201100
 D_map_neo_ark_8017C1D0 = 0x8017C1D0; // absolute:True owner=map_neo_ark

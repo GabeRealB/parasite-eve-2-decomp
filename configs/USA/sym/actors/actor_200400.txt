@@ -5,19 +5,19 @@
 
 Actor00400_D00000 = 0x80149E20;
 Actor00400_Jt00004 = 0x80149E24;
-Actor00400_D0002C = 0x80149E4C;
-Actor00400_D00038 = 0x80149E58;
+_gActor00400ShotStates = 0x80149E4C;
+_gActor00400BodyStates = 0x80149E58;
 Actor00400_Jt0005C = 0x80149E7C;
-Actor00400_D0007C = 0x80149E9C;
-Actor00400_D000A8 = 0x80149EC8;
-Actor00400_D000D0 = 0x80149EF0;
-Actor00400_D000F8 = 0x80149F18;
-Actor00400_D00134 = 0x80149F54;
-Actor00400_D00144 = 0x80149F64;
-Actor00400_D00150 = 0x80149F70;
-Actor00400_D0015C = 0x80149F7C;
-Actor00400_D00168 = 0x80149F88;
-Actor00400_D00178 = 0x80149F98;
+_gActor00400SwimDeathStates = 0x80149E9C;
+_gActor00400StrandedStates = 0x80149EC8;
+_gActor00400StrandedDeathStates = 0x80149EF0;
+_gActor00400SwimStates = 0x80149F18;
+_gActor00400SwimPatrolSteps = 0x80149F54;
+_gActor00400DiveSteps = 0x80149F64;
+_gActor00400SwimAttackSteps = 0x80149F70;
+_gActor00400TunnelPatrolSteps = 0x80149F7C;
+_gActor00400TunnelIntroSteps = 0x80149F88;
+_gActor00400RoomIntroSteps = 0x80149F98;
 Actor00400_Jt00194 = 0x80149FB4;
 _diverImpactBurst = 0x80149FCC;
 _diverDrawSpark = 0x8014A3FC;
@@ -200,7 +200,7 @@ _actor00400StrandedHeavyRecoilEnter = 0x80154760;
 _actor00400StrandedStatusHoldEnter = 0x80154814;
 _actor00400StrandedStatusHoldTick = 0x80154860;
 Actor00400_D0D7D0 = 0x801575F0;
-Actor00400_D0FDC8 = 0x80159BE8; // size:0x10 defined:True
+_gActor00400EnemyParams = 0x80159BE8; // size:0x10 defined:True
 Actor00400_D11670 = 0x8015B490;
 Actor00400_D11F5C = 0x8015BD7C;
 Actor00400_D12244 = 0x8015C064;
@@ -345,7 +345,7 @@ _gActor00400DiverEnergyBallVerts = 0x801595FC; // size:0xC0 defined:True
 _gActor00400DiverEnergyBallNormals = 0x801596BC; // size:0xC8 defined:True
 _gActor00400DiverEnergyBallStream = 0x80159784; // size:0x438 defined:True
 _gActor00400DiverEnergyBall = 0x80159BBC; // size:0x24 defined:True
-Actor00400_D0FDC0 = 0x80159BE0; // size:0x8 defined:True
+_gActor00400Attacks = 0x80159BE0; // size:0x8 defined:True
 D_shelter_b4_reservoir_801851D4 = 0x801851D4; // absolute:True owner=shelter_b4_reservoir
 D_shelter_b4_reservoir_801851E4 = 0x801851E4; // absolute:True owner=shelter_b4_reservoir
 D_shelter_b4_reservoir_80184F80 = 0x80184F80; // absolute:True owner=shelter_b4_reservoir shared=rooms
@@ -376,7 +376,7 @@ D_shelter_b4_lower_sewer_8018210C = 0x8018210C; // absolute:True owner=shelter_b
 D_shelter_b4_lower_sewer_8018211C = 0x8018211C; // absolute:True owner=shelter_b4_lower_sewer shared=rooms
 D_shelter_b4_lower_sewer_80181E6C = 0x80181E6C; // absolute:True owner=shelter_b4_lower_sewer shared=rooms
 Actor00400_D15F20 = 0x8015FD40; // size:0xF0 defined:True
-Actor00400_D16010 = 0x8015FE30; // size:0x18 defined:True
-Actor00400_D16028 = 0x8015FE48; // size:0x24 defined:True
-Actor00400_D1604C = 0x8015FE6C; // size:0x50 defined:True
-Actor00400_D1609C = 0x8015FEBC; // size:0x10 defined:True
+_gActor00400Messages = 0x8015FE30; // size:0x18 defined:True
+gActor00400Tasks = 0x8015FE48; // size:0x24 defined:True
+_gActor00400AnimationBank = 0x8015FE6C; // size:0x50 defined:True
+_gActor00400ShotSpeeds = 0x8015FEBC; // size:0x10 defined:True
