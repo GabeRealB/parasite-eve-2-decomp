@@ -14,70 +14,6 @@
 #include "main/wipsys.h"
 
 /* Item names and descriptions shared by the inventory tables. */
-extern const u8 D_80093E68[];
-
-extern const u8 D_80093E70[];
-
-extern const u8 D_80093EB4[];
-
-extern const u8 D_80093EE0[];
-
-extern const u8 D_80093F2C[];
-
-extern const u8 D_80093F90[];
-
-extern const u8 D_80093FD8[];
-
-extern const u8 D_80094030[];
-
-extern const u8 D_80094090[];
-
-extern const u8 D_800940F8[];
-
-extern const u8 D_80094148[];
-
-extern const u8 D_80094198[];
-
-extern const u8 D_800941FC[];
-
-extern const u8 D_80094268[];
-
-extern const u8 D_800942C4[];
-
-extern const u8 D_80094338[];
-
-extern const u8 D_80094368[];
-
-extern const u8 D_800943A0[];
-
-extern const u8 D_800943DC[];
-
-extern const u8 D_80094400[];
-
-extern const u8 D_80094438[];
-
-extern const u8 D_8009446C[];
-
-extern const u8 D_800944A0[];
-
-extern const u8 D_800944D8[];
-
-extern const u8 D_80094510[];
-
-extern const u8 D_80094538[];
-
-extern const u8 D_80094574[];
-
-extern const u8 D_800945B0[];
-
-extern const u8 D_800945E8[];
-
-extern const u8 D_80094620[];
-
-extern const u8 D_8009465C[];
-
-extern const u8 D_80094694[];
-
 extern const u8 D_800946D0[];
 
 extern const u8 D_80094710[];
@@ -368,38 +304,390 @@ static inline InventoryItemRow* _gpScanTable(const InventoryItemRange* scan);
     }
 
 /* Item names and descriptions shared by the inventory tables. */
-const u8 D_80093E68[]   = "\n\n\n\n\n\n";
-const u8 D_80093E70[]   = "Recovery1\nMulti-vitamin tablet.\nHeals some HP.\nTablet\nA tablet.\n\n";
-const u8 D_80093EB4[]   = "Recovery2\nAnalgesic capsule.\nHeals HP.\n\n\n\n";
-const u8 D_80093EE0[]   = "Recovery3\nNutritive tonic.\nHeals lots of HP.\nBottle\nA medicine bottle.\n\n";
-const u8 D_80093F2C[]   = "Stim\nRestores nerve function. Cures\nSilence, Berserker, Confusion.\nAmpoule\nSome sort of ampoule.\n\n";
-const u8 D_80093F90[]   = "Cola\nCanned cola.\nRestores HP and MP.\nCan\nA tasty beverage in a can.\n\n";
-const u8 D_80093FD8[]   = "MP Boost1\nSpring water.\nRestores some MP.\nPlastic Bottle\nA bottle filled with water.\n\n";
-const u8 D_80094030[]   = "MP Boost2\nCarbonated mineral water.\nRestores lots of MP.\nBottle\nA bottle filled with water.\n\n";
-const u8 D_80094090[]   = "Penicillin\nAnti-bacterial medkit.\nCures Darkness, Paralysis, Poison.\nMedkit\nA multi-purpose medkit.\n\n";
-const u8 D_800940F8[]   = "SMG Clip Holder\nMP5A5 magazine clip holder.\nIncreases ammo capacity by 30.\n\n\n\n";
-const u8 D_80094148[]   = "Rifle Clip Holder\nM4A1 magazine clip holder.\nIncreases ammo capacity by 30.\n\n\n\n";
-const u8 D_80094198[]   = "Lipstick\nMoisturizing lip balm.\nAttach to prevent Silence.\nCylinder\nA small metallic cylinder.\n\n";
-const u8 D_800941FC[]   = "Snail Magazine\nP08 Snail magazine.\nIncreases ammo capacity by 25.\nMagazine\nA snail-shaped ammo magazine.\n\n";
-const u8 D_80094268[]   = "Belt Pouch\nA large belt pack.\nIncreases # of armor attachments.\nPouch\nA clip-on pouch.\n\n";
-const u8 D_800942C4[]   = "MD Player\nMD player with \"whale songs\" disc.\nPrevents Confusion, Berserker.\nMD Player\nA portable music player.\n\n";
-const u8 D_80094338[]   = "Pyrokinesis\nFires a burst\nof flame forward.\n\n\n\n";
-const u8 D_80094368[]   = "Pyrokinesis\nFires two bursts.\nBetter power & range.\n\n\n\n";
-const u8 D_800943A0[]   = "Pyrokinesis\nFires multiple bursts.\nBest power & range.\n\n\n\n";
-const u8 D_800943DC[]   = "Combustion\nImmolates enemy.\n\n\n\n\n";
-const u8 D_80094400[]   = "Combustion\nImmolates enemy.\nBetter power & range.\n\n\n\n";
-const u8 D_80094438[]   = "Combustion\nImmolates enemy.\nBest power & range.\n\n\n\n";
-const u8 D_8009446C[]   = "Inferno\nGenerates a small,\nlocalized explosion.\n\n\n\n";
-const u8 D_800944A0[]   = "Inferno\nGenerates a medium,\nlocalized explosion.\n\n\n\n";
-const u8 D_800944D8[]   = "Inferno\nGenerates a large,\nlocal area explosion.\n\n\n\n";
-const u8 D_80094510[]   = "Necrosis\nDischarges electricity.\n\n\n\n\n";
-const u8 D_80094538[]   = "Necrosis\nDischarges electricity.\nBetter power & range.\n\n\n\n";
-const u8 D_80094574[]   = "Necrosis\nDischarges electricity.\nBest power & range.\n\n\n\n";
-const u8 D_800945B0[]   = "Plasma\nKnocks down targets\nw/ a small blast wave.\n\n\n\n";
-const u8 D_800945E8[]   = "Plasma\nSmashes down targets\nw/ a small blast wave.\n\n\n\n";
-const u8 D_80094620[]   = "Plasma\nFlattens all targets\nin the surrounding area.\n\n\n\n";
-const u8 D_8009465C[]   = "Apobiosis\nTemporarily paralyzes\nadjacent enemies.\n\n\n\n";
-const u8 D_80094694[]   = "Apobiosis\nCauses acute seizures\nin surrounding targets.\n\n\n\n";
+/// Six empty catalogue text fields shared by empty and unused descriptor rows.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemEmptyTextFields[] =
+    "\n"
+    "\n"
+    "\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for Recovery1.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemRecovery1TextFields[] =
+    "Recovery1\n"
+    "Multi-vitamin tablet.\n"
+    "Heals some HP.\n"
+    "Tablet\n"
+    "A tablet.\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for Recovery2.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemRecovery2TextFields[] =
+    "Recovery2\n"
+    "Analgesic capsule.\n"
+    "Heals HP.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for Recovery3.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemRecovery3TextFields[] =
+    "Recovery3\n"
+    "Nutritive tonic.\n"
+    "Heals lots of HP.\n"
+    "Bottle\n"
+    "A medicine bottle.\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for Stim.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemStimTextFields[] =
+    "Stim\n"
+    "Restores nerve function. Cures\n"
+    "Silence, Berserker, Confusion.\n"
+    "Ampoule\n"
+    "Some sort of ampoule.\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for Cola.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemColaTextFields[] =
+    "Cola\n"
+    "Canned cola.\n"
+    "Restores HP and MP.\n"
+    "Can\n"
+    "A tasty beverage in a can.\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for MP Boost1.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemMpBoost1TextFields[] =
+    "MP Boost1\n"
+    "Spring water.\n"
+    "Restores some MP.\n"
+    "Plastic Bottle\n"
+    "A bottle filled with water.\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for MP Boost2.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemMpBoost2TextFields[] =
+    "MP Boost2\n"
+    "Carbonated mineral water.\n"
+    "Restores lots of MP.\n"
+    "Bottle\n"
+    "A bottle filled with water.\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for Penicillin.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemPenicillinTextFields[] =
+    "Penicillin\n"
+    "Anti-bacterial medkit.\n"
+    "Cures Darkness, Paralysis, Poison.\n"
+    "Medkit\n"
+    "A multi-purpose medkit.\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for SMG Clip Holder.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemSmgClipHolderTextFields[] =
+    "SMG Clip Holder\n"
+    "MP5A5 magazine clip holder.\n"
+    "Increases ammo capacity by 30.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for Rifle Clip Holder.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemRifleClipHolderTextFields[] =
+    "Rifle Clip Holder\n"
+    "M4A1 magazine clip holder.\n"
+    "Increases ammo capacity by 30.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for Lipstick.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemLipstickTextFields[] =
+    "Lipstick\n"
+    "Moisturizing lip balm.\n"
+    "Attach to prevent Silence.\n"
+    "Cylinder\n"
+    "A small metallic cylinder.\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for Snail Magazine.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemSnailMagazineTextFields[] =
+    "Snail Magazine\n"
+    "P08 Snail magazine.\n"
+    "Increases ammo capacity by 25.\n"
+    "Magazine\n"
+    "A snail-shaped ammo magazine.\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for Belt Pouch.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemBeltPouchTextFields[] =
+    "Belt Pouch\n"
+    "A large belt pack.\n"
+    "Increases # of armor attachments.\n"
+    "Pouch\n"
+    "A clip-on pouch.\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for MD Player.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemMdPlayerTextFields[] =
+    "MD Player\n"
+    "MD player with \"whale songs\" disc.\n"
+    "Prevents Confusion, Berserker.\n"
+    "MD Player\n"
+    "A portable music player.\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for Pyrokinesis level 1.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemPyrokinesisLevel1TextFields[] =
+    "Pyrokinesis\n"
+    "Fires a burst\n"
+    "of flame forward.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for Pyrokinesis level 2.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemPyrokinesisLevel2TextFields[] =
+    "Pyrokinesis\n"
+    "Fires two bursts.\n"
+    "Better power & range.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for Pyrokinesis level 3.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemPyrokinesisLevel3TextFields[] =
+    "Pyrokinesis\n"
+    "Fires multiple bursts.\n"
+    "Best power & range.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for Combustion level 1.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemCombustionLevel1TextFields[] =
+    "Combustion\n"
+    "Immolates enemy.\n"
+    "\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for Combustion level 2.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemCombustionLevel2TextFields[] =
+    "Combustion\n"
+    "Immolates enemy.\n"
+    "Better power & range.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for Combustion level 3.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemCombustionLevel3TextFields[] =
+    "Combustion\n"
+    "Immolates enemy.\n"
+    "Best power & range.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for Inferno level 1.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemInfernoLevel1TextFields[] =
+    "Inferno\n"
+    "Generates a small,\n"
+    "localized explosion.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for Inferno level 2.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemInfernoLevel2TextFields[] =
+    "Inferno\n"
+    "Generates a medium,\n"
+    "localized explosion.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for Inferno level 3.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemInfernoLevel3TextFields[] =
+    "Inferno\n"
+    "Generates a large,\n"
+    "local area explosion.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for Necrosis level 1.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemNecrosisLevel1TextFields[] =
+    "Necrosis\n"
+    "Discharges electricity.\n"
+    "\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for Necrosis level 2.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemNecrosisLevel2TextFields[] =
+    "Necrosis\n"
+    "Discharges electricity.\n"
+    "Better power & range.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for Necrosis level 3.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemNecrosisLevel3TextFields[] =
+    "Necrosis\n"
+    "Discharges electricity.\n"
+    "Best power & range.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for Plasma level 1.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemPlasmaLevel1TextFields[] =
+    "Plasma\n"
+    "Knocks down targets\n"
+    "w/ a small blast wave.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for Plasma level 2.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemPlasmaLevel2TextFields[] =
+    "Plasma\n"
+    "Smashes down targets\n"
+    "w/ a small blast wave.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for Plasma level 3.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemPlasmaLevel3TextFields[] =
+    "Plasma\n"
+    "Flattens all targets\n"
+    "in the surrounding area.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for Apobiosis level 1.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemApobiosisLevel1TextFields[] =
+    "Apobiosis\n"
+    "Temporarily paralyzes\n"
+    "adjacent enemies.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Identified and unidentified catalogue text for Apobiosis level 2.
+///
+/// Name and two description lines per form, identified first; final NUL.
+/// Read-only storage for the gameplay image's lifetime.
+static const u8 _gItemApobiosisLevel2TextFields[] =
+    "Apobiosis\n"
+    "Causes acute seizures\n"
+    "in surrounding targets.\n"
+    "\n"
+    "\n"
+    "\n";
+
 const u8 D_800946D0[]   = "Apobiosis\nParalyzes all enemies\nin the surrounding area.\n\n\n\n";
 const u8 D_80094710[]   = "Metabolism\nRestores normal\nstatus over time.\n\n\n\n";
 const u8 D_80094744[]   = "Metabolism\nRapidly restores\nnormal status.\n\n\n\n";
@@ -539,38 +827,38 @@ const u8 D_80096E28[]   = "You do not have";
 const u8 D_80096E38[]   = "applicable weapon";
 
 ItemDesc Gp_ItemDescs[] = {
-    { 0, 0, 0x00, D_80093E68 },
-    { 100, 1, 0x00, D_80093E70 },
-    { 180, 1, 0x8, D_80093EB4 },
-    { 350, 1, 0x00, D_80093EE0 },
-    { 80, 1, 0x00, D_80093F2C },
-    { 120, 1, 0x00, D_80093F90 },
-    { 320, 1, 0x00, D_80093FD8 },
-    { 580, 1, 0x00, D_80094030 },
-    { 80, 1, 0x00, D_80094090 },
-    { 3980, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_800940F8 },
-    { 1800, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80094148 },
-    { 5000, 0, 0x00, D_80094198 },
-    { 1000, 0, ITEM_FLAG_NO_ATTACHMENT, D_800941FC },
-    { 10000, 0, ITEM_FLAG_NO_ATTACHMENT, D_80094268 },
-    { 1000, 0, 0x00, D_800942C4 },
-    { 500, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80094338 },
-    { 1250, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80094368 },
-    { 3000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_800943A0 },
-    { 750, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_800943DC },
-    { 1750, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80094400 },
-    { 4000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80094438 },
-    { 3000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_8009446C },
-    { 4000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_800944A0 },
-    { 5000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_800944D8 },
-    { 500, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80094510 },
-    { 1250, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80094538 },
-    { 3000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80094574 },
-    { 750, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_800945B0 },
-    { 1750, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_800945E8 },
-    { 4000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80094620 },
-    { 3000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_8009465C },
-    { 4000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80094694 },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 100, 1, 0x00, _gItemRecovery1TextFields },
+    { 180, 1, 0x8, _gItemRecovery2TextFields },
+    { 350, 1, 0x00, _gItemRecovery3TextFields },
+    { 80, 1, 0x00, _gItemStimTextFields },
+    { 120, 1, 0x00, _gItemColaTextFields },
+    { 320, 1, 0x00, _gItemMpBoost1TextFields },
+    { 580, 1, 0x00, _gItemMpBoost2TextFields },
+    { 80, 1, 0x00, _gItemPenicillinTextFields },
+    { 3980, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemSmgClipHolderTextFields },
+    { 1800, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemRifleClipHolderTextFields },
+    { 5000, 0, 0x00, _gItemLipstickTextFields },
+    { 1000, 0, ITEM_FLAG_NO_ATTACHMENT, _gItemSnailMagazineTextFields },
+    { 10000, 0, ITEM_FLAG_NO_ATTACHMENT, _gItemBeltPouchTextFields },
+    { 1000, 0, 0x00, _gItemMdPlayerTextFields },
+    { 500, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemPyrokinesisLevel1TextFields },
+    { 1250, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemPyrokinesisLevel2TextFields },
+    { 3000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemPyrokinesisLevel3TextFields },
+    { 750, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemCombustionLevel1TextFields },
+    { 1750, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemCombustionLevel2TextFields },
+    { 4000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemCombustionLevel3TextFields },
+    { 3000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemInfernoLevel1TextFields },
+    { 4000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemInfernoLevel2TextFields },
+    { 5000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemInfernoLevel3TextFields },
+    { 500, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemNecrosisLevel1TextFields },
+    { 1250, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemNecrosisLevel2TextFields },
+    { 3000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemNecrosisLevel3TextFields },
+    { 750, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemPlasmaLevel1TextFields },
+    { 1750, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemPlasmaLevel2TextFields },
+    { 4000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemPlasmaLevel3TextFields },
+    { 3000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemApobiosisLevel1TextFields },
+    { 4000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemApobiosisLevel2TextFields },
     { 5000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_800946D0 },
     { 500, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80094710 },
     { 1250, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80094744 },
@@ -590,9 +878,9 @@ ItemDesc Gp_ItemDescs[] = {
     { 3000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_800949D4 },
     { 4000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80094A10 },
     { 5000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80094A4C },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
     { 5000, 0, 0x00, D_80094A88 },
     { 27800, 0, 0x00, D_80094AF8 },
     { 5000, 0, 0x00, D_80094B70 },
@@ -610,31 +898,31 @@ ItemDesc Gp_ItemDescs[] = {
     { 7500, 0, ITEM_FLAG_NO_ATTACHMENT, D_8009506C },
     { 2130, 0, ITEM_FLAG_NO_ATTACHMENT, D_800950D0 },
     { 980, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80095138 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
     { 1000, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80095170 },
     { 12800, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_800951C4 },
     { 3250, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_8009521C },
@@ -649,34 +937,34 @@ ItemDesc Gp_ItemDescs[] = {
     { 8000, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80095508 },
     { 2580, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_8009555C },
     { 3000, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80095590 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
     { 1000, 33, 0x8, D_800955DC },
     { 2000, 33, ITEM_FLAG_NO_DISCARD | 0x8, D_8009562C },
     { 5750, 34, 0x00, D_8009565C },
     { 680, 33, 0x00, D_800956AC },
     { 1880, 33, 0x00, D_800956F0 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
     { 2850, 34, 0x00, D_80095748 },
-    { 0, 0, 0x00, D_80093E68 },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
     { 1680, 36, 0x00, D_800957A8 },
     { 23500, 36, 0x8, D_80095804 },
     { 1000, 37, 0x8, D_80095834 },
@@ -684,13 +972,13 @@ ItemDesc Gp_ItemDescs[] = {
     { 12500, 37, 0x8, D_800958B0 },
     { 2450, 38, 0x8, D_800958E0 },
     { 15800, 35, 0x00, D_80095924 },
-    { 0, 0, 0x00, D_80093E68 },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
     { 1000, 39, ITEM_FLAG_NO_DISCARD | 0x8, D_80095990 },
     { 5000, 38, 0x8, D_800959E4 },
     { 7500, 38, 0x8, D_80095A28 },
     { 20000, 36, 0x8, D_80095A6C },
     { 10000, 32, 0x00, D_80095AAC },
-    { 0, 0, 0x00, D_80093E68 },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
     { 6000, 38, 0x8, D_80095B24 },
     { 4000, 38, 0x8, D_80095B58 },
     { 4500, 38, 0x8, D_80095B84 },
@@ -702,9 +990,9 @@ ItemDesc Gp_ItemDescs[] = {
     { 30, 49, 0x8, D_80095CFC },
     { 50, 49, 0x00, D_80095D50 },
     { 80, 49, 0x00, D_80095DB0 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
     { 100, 51, 0x00, D_80095E10 },
     { 800, 51, 0x00, D_80095E74 },
     { 0, 51, 0x8, D_80095EDC },
@@ -717,24 +1005,24 @@ ItemDesc Gp_ItemDescs[] = {
     { 100, 54, 0x00, D_8009618C },
     { 0, 54, 0x8, D_800961FC },
     { 0, 54, 0x8, D_8009620C },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 56, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_8009621C },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 56, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_8009622C },
-    { 0, 0, 0x00, D_80093E68 },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 56, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_8009623C },
-    { 0, 0, 0x00, D_80093E68 },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 57, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_8009624C },
     { 0, 56, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80096258 },
-    { 0, 0, 0x00, D_80093E68 },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
 };
 
 ItemDesc Gp_KeyItemDescs[] = {
-    { 0, 0, 0x00, D_80093E68 },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
     { 1000, 64, ITEM_FLAG_NO_ATTACHMENT, D_80096268 },
     { 1000, 64, 0x00, D_800962C4 },
     { 1000, 64, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80096348 },
@@ -747,8 +1035,8 @@ ItemDesc Gp_KeyItemDescs[] = {
     { 1000, 64, 0x00, D_80096578 },
     { 1000, 64, 0x8, D_800965D8 },
     { 1000, 64, 0x00, D_8009660C },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
     { 1000, 64, 0x8, D_80096678 },
     { 1000, 64, 0x00, D_800966C0 },
     { 1000, 64, 0x8, D_80096718 },
@@ -762,8 +1050,8 @@ ItemDesc Gp_KeyItemDescs[] = {
     { 1000, 64, 0x8, D_80096928 },
     { 1000, 64, 0x8, D_8009694C },
     { 1000, 64, ITEM_FLAG_NO_ATTACHMENT, D_8009698C },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
     { 20000, 64, 0x8, D_80096A00 },
     { 1000, 64, 0x00, D_80096A3C },
     { 1000, 64, 0x00, D_80096A84 },
@@ -772,96 +1060,96 @@ ItemDesc Gp_KeyItemDescs[] = {
     { 1000, 64, 0x00, D_80096B6C },
     { 20000, 64, 0x00, D_80096BC4 },
     { 50000, 64, 0x00, D_80096C0C },
-    { 0, 0, 0x00, D_80093E68 },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
     { 10000, 64, 0x00, D_80096C60 },
     { 20000, 64, 0x00, D_80096CE8 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
     { 1000, 64, 0x00, D_80096D44 },
     { 10000, 64, 0x8, D_80096D9C },
-    { 0, 0, 0x00, D_80093E68 },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
     { 60000, 64, 0x8, D_80096DF0 },
     { 60000, 64, 0x8, D_80096E0C },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
-    { 0, 0, 0x00, D_80093E68 },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
 };
 
 /* Gives `scan` one `weapon` and loads it with `ammo`. */
