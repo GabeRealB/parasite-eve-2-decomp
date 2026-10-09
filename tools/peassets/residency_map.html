@@ -247,7 +247,7 @@ function buildChain() {
     child = link.loader;
   }
   cur.chain = out;
-  const more = $("chainadd"); more.innerHTML = `<option value="">add a load of an ancestor…</option>` + cur.ancestors.map(a => D.loaders[a].filter(g => g[0] === "o" && g[3].some(m => (D.fp[m[0]] || []).length) && !/^(room|file|view|variant)\b/.test(g[1])).slice(0, 400).map(g => `<option value="${a}|${g[1].replace(/"/g, "&quot;")}">${a} · ${g[1]}</option>`).join("")).join(""); more.disabled = !cur.ancestors.length;
+  const more = $("chainadd"); more.innerHTML = `<option value="">add a load of an ancestor…</option>` + cur.ancestors.map(a => D.loaders[a].filter(g => g[0] === "o" && g[3].some(m => (D.fp[m[0]] || []).length) && !/^(room:|file )/.test(g[1])).slice(0, 400).map(g => `<option value="${a}|${g[1].replace(/"/g, "&quot;")}">${a} · ${g[1]}</option>`).join("")).join(""); more.disabled = !cur.ancestors.length;
 }
 const homeOf = n => { const g = D.loaders[n].find(g => g[0] === "a"); return g ? D.files[g[3][0][0]] : "9/" + n; };
 async function drawApplied() {
