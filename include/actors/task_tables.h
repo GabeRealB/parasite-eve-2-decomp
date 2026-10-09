@@ -43,7 +43,11 @@ extern TaskDesc gActor01100Tasks[3];
 /// Spawn at index 0. Keep the callback and borrowed model geometry loaded.
 extern TaskDesc gActor00100DesertChaserTaskDesc;
 
-extern TaskDesc D_actor_143000_801350B0[];
+/// Laboratory terminal task table: slot 0 ends a placement task, slot 1 runs login/menu/quiz control.
+///
+/// Slot 1 borrows a persistent `ScreenFade` as its second spawn argument and
+/// requests its return on initialization; the actor overlay must remain loaded.
+extern TaskDesc gActor143000TerminalTasks[2];
 
 /// Slot export of `gActor02100WatcherTaskDesc` from actor_102100, with the same descriptor contract.
 extern TaskDesc gActor102100WatcherTaskDesc;

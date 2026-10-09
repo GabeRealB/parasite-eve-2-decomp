@@ -1,13 +1,17 @@
 #include "types.h"
 
 /* GCC orders BSS by first declaration; keep this prologue before the API headers. */
-s32 D_actor_143000_80135C10;
+/// Eligible caption-cursor calls since overlay load; bit 2 gives a four-on/four-off blink.
+static s32 _gActor143000CaptionCursorCalls;
 
-s32 D_actor_143000_80135C14;
+/// Selected quiz question index (0..10), retained until its answer is scored.
+static s32 _gActor143000TerminalQuestionIndex;
 
-s32 D_actor_143000_80135C18;
+/// Answers scored in the current three-question attempt (0..3); reset when a quiz starts.
+static s32 _gActor143000TerminalQuestionsAsked;
 
-s32 D_actor_143000_80135C1C;
+/// Correct answers in the current attempt (0..3), also passed as the CAP score variant.
+static s32 _gActor143000TerminalCorrectAnswers;
 
 #include "actor_143000_private.h"
 
@@ -41,14 +45,7 @@ s32 D_actor_143000_80135C1C;
 
 #include "rooms/shelter_b2_laboratory.h"
 
-extern u8         D_actor_143000_801351AC;
 extern EvsCommand D_actor_143000_801351B0[];
-extern TaskDesc   D_actor_143000_801350C8;
-extern EvsCommand D_actor_143000_80135870[];
-extern EvsCommand D_actor_143000_80135A20[];
-extern EvsCommand D_actor_143000_80135AE0[];
-
-extern u8 D_actor_143000_80135C38[];
 
 static void _actor143000StartCaptureBand(void* captureArgs);
 static void _actor143000SelectSceneCaptions(void);
@@ -60,78 +57,111 @@ static void _actor143000TerminalSessionTask(Task* task);
 
 static void _actor143000UpdateCaptionCursor(s32 cursorX, s32 cursorY, const u16* text, s32 revealIndex, s32 codeAdvanced);
 
-TaskDesc D_actor_143000_801350B0[2] = {
+enum {
+    ACTOR_143000_TERMINAL_QUESTION_COUNT     = 11,
+    ACTOR_143000_QUESTION_UNSEEN             = 0,
+    ACTOR_143000_QUESTION_ASKED              = 1,
+    ACTOR_143000_CAPTION_CUE_RELEASED        = 0,
+    ACTOR_143000_CAPTION_CUE_ACTIVE          = 1,
+    ACTOR_143000_SCENE_FADE_FRAMES           = 30,
+    ACTOR_143000_FADE_USE_DEFAULT_RAMP       = 0, // Event-script default: seven frames
+    ACTOR_143000_FADE_KEEP_CURRENT_RAMP      = 0, // Returning a secondary fade preserves its ramp duration
+    ACTOR_143000_SKIP_FADE_WAIT_UPDATES      = 8,
+    ACTOR_143000_SKIP_ANIMATION_WAIT_UPDATES = 3,
+    ACTOR_143000_MUSIC_FADE_CONTROL          = 1,
+    ACTOR_143000_PLAYER_BASE_CLIP            = 1,
+    ACTOR_143000_PLAYER_TERMINAL_CLIP        = ANIMATION_BANK_BASE_SET_COUNT,
+    ACTOR_143000_PLAYER_CAPTION_GLYPH_CLIP   = ANIMATION_BANK_BASE_SET_COUNT + 1,
+    ACTOR_143000_PLAYER_COMPLETION_CLIP_49   = ANIMATION_BANK_BASE_SET_COUNT + 2,
+    ACTOR_143000_PLAYER_CAPTION_RELEASE_CLIP = ANIMATION_BANK_BASE_SET_COUNT + 3,
+    ACTOR_143000_PLAYER_COMPLETION_CLIP_51   = ANIMATION_BANK_BASE_SET_COUNT + 4,
+    ACTOR_143000_PLAYER_CUE_BLEND_FRAMES     = 10,
+    ACTOR_143000_PLAYER_SCENE_SET_COUNT      = ACTOR_143000_PLAYER_COMPLETION_CLIP_51 - ACTOR_143000_PLAYER_TERMINAL_CLIP + 1,
+    ACTOR_143000_PLAYER_SCENE_REQUEST_COUNT  = 7,
+    ACTOR_143000_PLAYER_SCENE_WORD_COUNT     = ACTOR_143000_PLAYER_SCENE_SET_COUNT + ACTOR_143000_PLAYER_SCENE_REQUEST_COUNT * sizeof(AnimationPlayRequest) / sizeof(s32),
+    ACTOR_143000_TERMINAL_VIEW               = 10,
+    ACTOR_143000_EXIT_VIEW                   = 15,
+};
+
+TaskDesc gActor143000TerminalTasks[2] = {
     { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, _actor143000TerminalSessionTask, { .value = 0 } },
 };
 
-TaskDesc D_actor_143000_801350C8 = { { { TASK_BODY_NONE, 32 } }, actor143000CaptureStripTask, { .value = 0 } };
+/// Bodyless priority-32 task descriptor for asynchronous background-band capture.
+static TaskDesc _gActor143000CaptureStripTaskDesc = { { { TASK_BODY_NONE, 32 } }, actor143000CaptureStripTask, { .value = 0 } };
 
-/// Player clips for extended ids 47-51.
+/// Player clips and playback requests for laboratory terminal and completion scenes.
 ///
-/// Each event script that plays one of these clips first sends the player its
-/// copy request. `D_actor_143000_80135174` copies
-/// `ANIMATION_BANK_EXTENSION_CAPACITY` (32) words starting here into the
-/// player's bank, which is 27 words past the end of this array: the read runs
-/// on through `D_actor_143000_801350E8`, `D_actor_143000_801350FC`,
-/// `D_actor_143000_80135110`, `D_actor_143000_80135124`,
-/// `D_actor_143000_80135138` and the first two words of
-/// `D_actor_143000_8013514C`. That overrun is the original's and is kept as it
-/// is: the request carries the bank's fixed capacity, while the table was
-/// stored with only its own entries. The requests select ids 1 and 47-51 only,
-/// so none of the words installed after the table is played as a clip.
-AnimationSet* D_actor_143000_801350D4[5] = { &gActor143000Animation02A20, &gActor143000Animation02CCC, &gActor143000Animation02EE8, &gActor143000Animation03090, &gActor143000Animation03248 };
+/// `records.sets` supplies extended clips 47..51. The copy request transfers
+/// the first 32 of this storage's 40 words, including five complete play
+/// requests and the first two words of `records.captionRelease`. These copied
+/// request words are not playable clips. All requests disable world collision;
+/// reset requests ignore blendFrames, while the two interpolated cues take
+/// ten frames. Event scripts resolve the weapon bank in a copy; caption cues
+/// instead rewrite their stored source index before synchronous dispatch.
+/// Keep this writable storage and the borrowed clips loaded throughout playback.
+static union {
+    struct {
+        AnimationSet*        sets[ACTOR_143000_PLAYER_SCENE_SET_COUNT]; // Borrowed clips, ordered by extended id 47..51
+        AnimationPlayRequest base;                                      // Clip 1 reset used on exit, logout and scene skip
+        AnimationPlayRequest unusedTerminal;                            // Unplayed clip 47 reset; retained among the raw copied words
+        AnimationPlayRequest terminal;                                  // Clip 47 reset for login and completion CAP cues
+        AnimationPlayRequest captionGlyph;                              // Clip 48 reset for newly reached six-tick-delay glyphs; bank index is rewritten
+        AnimationPlayRequest completion49;                              // Clip 49 reset after background capture in the completion script
+        AnimationPlayRequest captionRelease;                            // Clip 50 ten-frame blend at a line break after a glyph cue; bank index is rewritten
+        AnimationPlayRequest completion51;                              // Clip 51 ten-frame blend near completion-scene end
+    } records;                                                          // Typed clip pointers and individually addressed playback requests
+    s32 words[ACTOR_143000_PLAYER_SCENE_WORD_COUNT];                    // Complete representation; only the first 32 words are copied
+} _gActor143000PlayerAnimationStorage = { .records = {
+                                              { &gActor143000Animation02A20, &gActor143000Animation02CCC, &gActor143000Animation02EE8, &gActor143000Animation03090, &gActor143000Animation03248 },
+                                              { { .index = 1 }, ACTOR_143000_PLAYER_BASE_CLIP, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+                                              { { .index = 1 }, ACTOR_143000_PLAYER_TERMINAL_CLIP, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+                                              { { .index = 1 }, ACTOR_143000_PLAYER_TERMINAL_CLIP, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+                                              { { .index = 1 }, ACTOR_143000_PLAYER_CAPTION_GLYPH_CLIP, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+                                              { { .index = 1 }, ACTOR_143000_PLAYER_COMPLETION_CLIP_49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+                                              { { .index = 1 }, ACTOR_143000_PLAYER_CAPTION_RELEASE_CLIP, ANIMATION_BLEND_INTERPOLATE, ACTOR_143000_PLAYER_CUE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE },
+                                              { { .index = 1 }, ACTOR_143000_PLAYER_COMPLETION_CLIP_51, ANIMATION_BLEND_INTERPOLATE, ACTOR_143000_PLAYER_CUE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE } } };
 
-// The player's requests start here: base id 1, then the extended ids in order.
-AnimationPlayRequest D_actor_143000_801350E8 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Installs 32 borrowed words from the terminal clip table and following play requests.
+///
+/// The source span includes non-clip data; playback uses only installed ids
+/// 47..51. Both the copy source and its clip descriptors must remain loaded.
+static AnimationBankCopyRequest _gActor143000PlayerAnimationBankCopy = { { .words = _gActor143000PlayerAnimationStorage.words }, ANIMATION_BANK_EXTENSION_CAPACITY };
 
-// Not referenced.
-AnimationPlayRequest D_actor_143000_801350FC = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player placement at the laboratory terminal: world XYZ (3270,0,-1630), yaw zero.
+static ActorTransform _gActor143000TerminalPlayerPlacement = { { 3270, 0, -1630, 0 }, { 0, 0, 0, 0 } };
 
-AnimationPlayRequest D_actor_143000_80135110 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player placement after logout or completion: world XYZ (3270,0,-2630), yaw minus a half-turn.
+static ActorTransform _gActor143000ExitPlayerPlacement = { { 3270, 0, -2630, 0 }, { 0, -ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0 } };
 
-// The caption callback stores the player's current weapon bank in `source.index` before it dispatches this one.
-AnimationPlayRequest D_actor_143000_80135124 = { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
-
-AnimationPlayRequest D_actor_143000_80135138 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
-
-// The caption callback stores the player's current weapon bank in `source.index` before it dispatches this one.
-AnimationPlayRequest D_actor_143000_8013514C = { { .index = 1 }, 50, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
-
-AnimationPlayRequest D_actor_143000_80135160 = { { .index = 1 }, 51, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
-
-AnimationBankCopyRequest D_actor_143000_80135174 = { { .sets = D_actor_143000_801350D4 }, ANIMATION_BANK_EXTENSION_CAPACITY };
-
-ActorTransform D_actor_143000_8013517C = { { 3270, 0, -1630, 0 }, { 0, 0, 0, 0 } };
-
-ActorTransform D_actor_143000_80135194 = { { 3270, 0, -2630, 0 }, { 0, -2048, 0, 0 } };
-
-u8 D_actor_143000_801351AC = 0;
+/// Caption-glyph animation latch (0 released, 1 awaiting a line break); initially released.
+static u8 _gActor143000CaptionAnimationActive = ACTOR_143000_CAPTION_CUE_RELEASED;
 
 EvsCommand D_actor_143000_801351B0[72] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor143000SelectSceneCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackSetText = capSetTextUpdateCallback }, { .captionText = _actor143000UpdateCaptionCursor }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_143000_80135174 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &_gActor143000PlayerAnimationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_143000_8013517C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &_gActor143000TerminalPlayerPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_143000_80135110 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor143000PlayerAnimationStorage.records.terminal }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x541F0009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_143000_80135110 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor143000PlayerAnimationStorage.records.terminal }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x541F000A }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_143000_80135110 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor143000PlayerAnimationStorage.records.terminal }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x541F000B }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -139,7 +169,7 @@ EvsCommand D_actor_143000_801351B0[72] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x541F000C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_143000_80135110 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor143000PlayerAnimationStorage.records.terminal }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x541F000D }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -155,7 +185,7 @@ EvsCommand D_actor_143000_801351B0[72] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _actor143000SetActorControl }, { .value = SCENE_COMBAT_ACTORS_RUNNING }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_143000_80135138 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor143000PlayerAnimationStorage.records.completion49 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -165,14 +195,14 @@ EvsCommand D_actor_143000_801351B0[72] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = shelterB2LaboratoryStartAmbience }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_143000_80135160 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor143000PlayerAnimationStorage.records.completion51 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_143000_80135194 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_143000_801350E8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &_gActor143000ExitPlayerPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gActor143000PlayerAnimationStorage.records.base }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -183,71 +213,85 @@ EvsCommand D_actor_143000_801351B0[72] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_143000_80135870[18] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Skip path for the quiz completion scene, restoring exit view, player equipment, lighting and CAP.
+///
+/// Borrows the exit placement and base-animation request; must remain loaded
+/// until event playback has ended. The completion scene installs the clip bank.
+static EvsCommand _gActor143000CompletionSkipScript[18] = {
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = ACTOR_143000_FADE_USE_DEFAULT_RAMP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = ACTOR_143000_MUSIC_FADE_CONTROL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACTOR_143000_SKIP_FADE_WAIT_UPDATES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = ACTOR_143000_EXIT_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _actor143000SetActorControl }, { .value = SCENE_COMBAT_ACTORS_RUNNING }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_143000_80135194 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_143000_801350E8 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .pointer = &_gActor143000ExitPlayerPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor143000PlayerAnimationStorage.records.base }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACTOR_143000_SKIP_ANIMATION_WAIT_UPDATES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = shelterB2LaboratoryStartAmbience }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor143000RestorePlayerEquipment }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACTOR_143000_SKIP_FADE_WAIT_UPDATES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor143000ResetSceneCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_143000_80135A20[8] = {
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_143000_80135174 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_143000_8013517C } }, { .value = 0 } },
+/// Login scene: selects terminal view, installs clips, places the player and hides equipped models.
+///
+/// Leaves terminal clip 47 and ambient RGB (100,100,100) active for the menu.
+static EvsCommand _gActor143000TerminalLoginScript[8] = {
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = ACTOR_143000_TERMINAL_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &_gActor143000PlayerAnimationBankCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .pointer = &_gActor143000TerminalPlayerPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_143000_80135110 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor143000PlayerAnimationStorage.records.terminal }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_143000_80135AE0[12] = {
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_143000_80135194 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_143000_801350E8 }, { .value = 0 } },
+/// Logout scene: fades to the exit view and restores player equipment, lighting and scripted control.
+static EvsCommand _gActor143000TerminalLogoutScript[12] = {
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = ACTOR_143000_SCENE_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACTOR_143000_SCENE_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = ACTOR_143000_EXIT_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .pointer = &_gActor143000ExitPlayerPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor143000PlayerAnimationStorage.records.base }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor143000RestorePlayerEquipment }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = ACTOR_143000_FADE_KEEP_CURRENT_RAMP }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACTOR_143000_SCENE_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-s32 D_actor_143000_80135C00 = 0;
+s32 gActor143000KeypadCaretDrawCalls = 0;
 
-s32 D_actor_143000_80135C04 = 0;
+s32 gActor143000KeypadDogPhaseQ4 = 0;
 
-ScreenFade D_actor_143000_80135C08 = { 0 };
+ScreenFade gActor143000CodeAcceptedFade = { 0 };
 
-u8 D_actor_143000_80135C0C = 0;
+u8 gActor143000KeypadPreviousView = 0;
 
-/// Three bytes stored after the flag; nothing references them.
-u8 D_actor_143000_80135C0D = 101;
+/// Unreferenced initialized byte; its role is unproven.
+static u8 D_actor_143000_80135C0D = 101;
 
-u8 D_actor_143000_80135C0E = 2;
+/// Unreferenced initialized byte; its role is unproven.
+static u8 D_actor_143000_80135C0E = 2;
 
-u8 D_actor_143000_80135C0F = 57;
+/// Unreferenced initialized byte; its role is unproven.
+static u8 D_actor_143000_80135C0F = 57;
 
-char D_actor_143000_80135C20[24];
+char gActor143000KeypadCode[ACTOR_143000_KEYPAD_CODE_BUFFER_BYTES];
 
-u8 D_actor_143000_80135C38[8];
+/// Eleven question selection latches (0 unseen, 1 already asked), reset for each quiz attempt.
+///
+/// Occupies the remainder of the overlay's stored zero-initialized data.
+/// Selection uses indices 0..10, and reset clears all eleven bytes.
+static u8 _gActor143000TerminalVisitedQuestions[ACTOR_143000_TERMINAL_QUESTION_COUNT];
 
 /// Runs the laboratory terminal menu and three-question challenge after keypad login.
 ///
@@ -291,7 +335,6 @@ static void _actor143000TerminalSessionTask(Task* task)
         ACTOR_143000_TERMINAL_CHOICE_QUIZ              = 10,
         ACTOR_143000_TERMINAL_CHOICE_LOGOUT            = 99,
         ACTOR_143000_TERMINAL_ANSWER_CORRECT           = 11,
-        ACTOR_143000_TERMINAL_QUESTION_COUNT           = 11,
         ACTOR_143000_TERMINAL_RAND_BITS                = 15,
         ACTOR_143000_TERMINAL_CAP_FIRST_QUESTION       = 5,
         ACTOR_143000_TERMINAL_ANSWERS_REQUIRED         = 3,
@@ -320,7 +363,7 @@ static void _actor143000TerminalSessionTask(Task* task)
             capSetTexturePage(ACTOR_143000_TERMINAL_CAP_VRAM_X, 0);
             itemSetIdentified(INVENTORY_COLLECTION_ID_BOWMANS_CARD, 1);
             itemSetIdentified(ACTOR_143000_TERMINAL_YOSHIDAS_CARD, 1);
-            evsStartScript(D_actor_143000_80135A20, EVENT_SCRIPT_HUD_KEEP);
+            evsStartScript(_gActor143000TerminalLoginScript, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             return;
         case ACTOR_143000_TERMINAL_STATE_WAIT_LOGIN_SCENE:
@@ -362,7 +405,7 @@ static void _actor143000TerminalSessionTask(Task* task)
             }
             return;
         case ACTOR_143000_TERMINAL_STATE_START_LOGOUT:
-            evsStartScript(D_actor_143000_80135AE0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+            evsStartScript(_gActor143000TerminalLogoutScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             task->state++;
             return;
         case ACTOR_143000_TERMINAL_STATE_WAIT_LOGOUT:
@@ -377,14 +420,14 @@ static void _actor143000TerminalSessionTask(Task* task)
         // Select three distinct questions; visited storage needs eleven entries.
         case ACTOR_143000_TERMINAL_STATE_RESET_QUIZ:
             questionIndex   = ACTOR_143000_TERMINAL_QUESTION_COUNT - 1;
-            visitedQuestion = &D_actor_143000_80135C38[questionIndex];
+            visitedQuestion = &_gActor143000TerminalVisitedQuestions[questionIndex];
             do {
-                *visitedQuestion = 0;
+                *visitedQuestion = ACTOR_143000_QUESTION_UNSEEN;
                 questionIndex--;
                 visitedQuestion--;
             } while (questionIndex >= 0);
-            D_actor_143000_80135C18 = 0;
-            D_actor_143000_80135C1C = 0;
+            _gActor143000TerminalQuestionsAsked = 0;
+            _gActor143000TerminalCorrectAnswers = 0;
             capRunCommand(ACTOR_143000_TERMINAL_CAP_QUIZ_INTRO, CAP_PLAYBACK_IN_PLACE);
             task->state++;
             return;
@@ -395,14 +438,14 @@ static void _actor143000TerminalSessionTask(Task* task)
             return;
         case ACTOR_143000_TERMINAL_STATE_SELECT_QUESTION:
             while (1) {
-                D_actor_143000_80135C14 = (rand() * ACTOR_143000_TERMINAL_QUESTION_COUNT) >> ACTOR_143000_TERMINAL_RAND_BITS;
-                selectedQuestion        = &D_actor_143000_80135C38[D_actor_143000_80135C14];
-                if (*selectedQuestion == 0) {
-                    *selectedQuestion = 1;
+                _gActor143000TerminalQuestionIndex = (rand() * ACTOR_143000_TERMINAL_QUESTION_COUNT) >> ACTOR_143000_TERMINAL_RAND_BITS;
+                selectedQuestion                   = &_gActor143000TerminalVisitedQuestions[_gActor143000TerminalQuestionIndex];
+                if (*selectedQuestion == ACTOR_143000_QUESTION_UNSEEN) {
+                    *selectedQuestion = ACTOR_143000_QUESTION_ASKED;
                     break;
                 }
             }
-            capRunCommand(D_actor_143000_80135C14 + ACTOR_143000_TERMINAL_CAP_FIRST_QUESTION, CAP_PLAYBACK_IN_PLACE);
+            capRunCommand(_gActor143000TerminalQuestionIndex + ACTOR_143000_TERMINAL_CAP_FIRST_QUESTION, CAP_PLAYBACK_IN_PLACE);
             task->state++;
             return;
         case ACTOR_143000_TERMINAL_STATE_WAIT_QUESTION:
@@ -412,11 +455,11 @@ static void _actor143000TerminalSessionTask(Task* task)
             return;
         case ACTOR_143000_TERMINAL_STATE_SCORE_ANSWER:
             if (capGetVariantKey() == ACTOR_143000_TERMINAL_ANSWER_CORRECT) {
-                D_actor_143000_80135C1C++;
+                _gActor143000TerminalCorrectAnswers++;
             }
-            D_actor_143000_80135C18++;
-            if (D_actor_143000_80135C18 >= ACTOR_143000_TERMINAL_ANSWERS_REQUIRED) {
-                if (D_actor_143000_80135C1C >= ACTOR_143000_TERMINAL_ANSWERS_REQUIRED) {
+            _gActor143000TerminalQuestionsAsked++;
+            if (_gActor143000TerminalQuestionsAsked >= ACTOR_143000_TERMINAL_ANSWERS_REQUIRED) {
+                if (_gActor143000TerminalCorrectAnswers >= ACTOR_143000_TERMINAL_ANSWERS_REQUIRED) {
                     task->state = ACTOR_143000_TERMINAL_STATE_SHOW_SUCCESS;
                 } else {
                     task->state = ACTOR_143000_TERMINAL_STATE_SHOW_SCORE;
@@ -426,7 +469,7 @@ static void _actor143000TerminalSessionTask(Task* task)
             }
             return;
         case ACTOR_143000_TERMINAL_STATE_SHOW_SCORE:
-            capStartSequenceSlot(ACTOR_143000_TERMINAL_CAP_QUIZ_SCORE, 0, (s16)D_actor_143000_80135C1C);
+            capStartSequenceSlot(ACTOR_143000_TERMINAL_CAP_QUIZ_SCORE, 0, (s16)_gActor143000TerminalCorrectAnswers);
             task->state++;
             return;
         case ACTOR_143000_TERMINAL_STATE_WAIT_MENU_MESSAGE:
@@ -451,7 +494,7 @@ static void _actor143000TerminalSessionTask(Task* task)
                 }
                 gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
                 gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ACTOR_143000_TERMINAL_COMPLETE_DIALOGUE);
-                evsStartScriptWithSkip(D_actor_143000_801351B0, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_143000_80135870);
+                evsStartScriptWithSkip(D_actor_143000_801351B0, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gActor143000CompletionSkipScript);
                 taskKill(task);
             }
             return;
@@ -489,14 +532,14 @@ static void _actor143000UpdateCaptionCursor(s32 cursorX, s32 cursorY, const u16*
         // Newly reached delayed glyphs restart clip 48; a line break releases it.
         if (codeAdvanced != 0) {
             if ((text[revealIndex] & ACTOR_143000_ANIMATION_CODE_MASK) == ACTOR_143000_ANIMATION_CODE_DELAY_6) {
-                playerActorWriteWeaponAnimationBankIndex(&D_actor_143000_80135124.source.index);
-                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_actor_143000_80135124, 0);
-                D_actor_143000_801351AC = 1;
+                playerActorWriteWeaponAnimationBankIndex(&_gActor143000PlayerAnimationStorage.records.captionGlyph.source.index);
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &_gActor143000PlayerAnimationStorage.records.captionGlyph, 0);
+                _gActor143000CaptionAnimationActive = ACTOR_143000_CAPTION_CUE_ACTIVE;
             }
-            if (text[revealIndex] == ACTOR_143000_TEXT_LINE_BREAK && D_actor_143000_801351AC == 1) {
-                D_actor_143000_801351AC = 0;
-                playerActorWriteWeaponAnimationBankIndex(&D_actor_143000_8013514C.source.index);
-                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_actor_143000_8013514C, 0);
+            if (text[revealIndex] == ACTOR_143000_TEXT_LINE_BREAK && _gActor143000CaptionAnimationActive == ACTOR_143000_CAPTION_CUE_ACTIVE) {
+                _gActor143000CaptionAnimationActive = ACTOR_143000_CAPTION_CUE_RELEASED;
+                playerActorWriteWeaponAnimationBankIndex(&_gActor143000PlayerAnimationStorage.records.captionRelease.source.index);
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &_gActor143000PlayerAnimationStorage.records.captionRelease, 0);
             }
         }
         // Reserve the cursor packet even on the dark half of its eight-call blink.
@@ -505,10 +548,10 @@ static void _actor143000UpdateCaptionCursor(s32 cursorX, s32 cursorY, const u16*
         setPolyF4(quad);
         setRGB0(quad, 0, ACTOR_143000_CURSOR_GREEN, ACTOR_143000_CURSOR_BLUE);
         setXY4(quad, cursorX + ACTOR_143000_CURSOR_X_OFFSET, cursorY - ACTOR_143000_CURSOR_SIZE, cursorX + ACTOR_143000_CURSOR_X_OFFSET + ACTOR_143000_CURSOR_SIZE, cursorY - ACTOR_143000_CURSOR_SIZE, cursorX + ACTOR_143000_CURSOR_X_OFFSET, cursorY, cursorX + ACTOR_143000_CURSOR_X_OFFSET + ACTOR_143000_CURSOR_SIZE, cursorY);
-        if (D_actor_143000_80135C10 & ACTOR_143000_CURSOR_BLINK_BIT) {
+        if (_gActor143000CaptionCursorCalls & ACTOR_143000_CURSOR_BLINK_BIT) {
             addPrim(&gGpuCurrentOt[ACTOR_143000_CURSOR_OT_INDEX], quad);
         }
-        D_actor_143000_80135C10++;
+        _gActor143000CaptionCursorCalls++;
     }
 }
 
@@ -520,7 +563,7 @@ static void _actor143000UpdateCaptionCursor(s32 cursorX, s32 cursorY, const u16*
 /// The event callback's pointer is transported in one PS1 argument word.
 static void _actor143000StartCaptureBand(void* captureArgs)
 {
-    taskSpawnFromTable(&D_actor_143000_801350C8, 0, 0, captureArgs);
+    taskSpawnFromTable(&_gActor143000CaptureStripTaskDesc, 0, 0, captureArgs);
 }
 
 /// Selects the laboratory scene's CAP file and title/text texture origin.

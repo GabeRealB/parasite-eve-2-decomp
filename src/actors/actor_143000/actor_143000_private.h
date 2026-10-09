@@ -7,17 +7,19 @@
 
 #include "common.h"
 
+#include "actors/task_tables.h"
+
 #include "gameplay/animation.h"
 #include "gameplay/display.h"
 
 #include "main/task_types.h"
 
-/// Control record of the screen fade that follows an accepted code.
+/// Persistent fade to black for an accepted keypad code and back into the terminal scene.
 ///
 /// The keypad task starts a fade to black with it and, once the screen is
 /// dark, hands the same record to the event task it spawns; that task requests
 /// the fade's return as it starts, so the scene it sets up fades in.
-extern ScreenFade D_actor_143000_80135C08;
+extern ScreenFade gActor143000CodeAcceptedFade;
 
 /// A band of the background image for the overlay's strip-capture task, and
 /// that task's progress through it.
@@ -49,13 +51,26 @@ extern AnimationSet gActor143000Animation03090;
 
 extern AnimationSet gActor143000Animation03248;
 
-extern TaskDesc D_actor_143000_801350B0[2];
+/// Keypad draw calls since overlay load; bit 4 controls its insertion-caret blink.
+extern s32 gActor143000KeypadCaretDrawCalls;
 
-extern s32 D_actor_143000_80135C00;
+/// Dog animation phase in sixteenths of a sequence step; each draw adds the Q4 marquee speed.
+///
+/// Initialized on overlay load and retained across keypad sessions.
+extern s32 gActor143000KeypadDogPhaseQ4;
 
-extern s32 D_actor_143000_80135C04;
+/// Byte capacity of the keypad entry storage, including its terminator.
+enum { ACTOR_143000_KEYPAD_CODE_BUFFER_BYTES = 24 };
 
-extern char D_actor_143000_80135C20[24];
+/// Keypad entry string; holds at most twenty characters plus a terminating zero.
+///
+/// Typing writes characters and drawing terminates at the current length;
+/// automatic entry copies the eleven-byte accepted string. The storage persists
+/// for the overlay lifetime, while each new keypad task starts with length zero.
+extern char gActor143000KeypadCode[ACTOR_143000_KEYPAD_CODE_BUFFER_BYTES];
+
+/// Room view saved before the keypad selects view 11, restored on a rejected or cancelled login.
+extern u8 gActor143000KeypadPreviousView;
 
 extern Actor143000CaptureArgs D_actor_143000_80135090;
 

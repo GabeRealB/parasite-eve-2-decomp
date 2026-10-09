@@ -35,8 +35,6 @@
 #include "main/task_types.h"
 #include "../../shared/action_prompt.h"
 
-extern u8 D_actor_143000_80135C0C;
-
 /// Most characters the keypad's entry line holds.
 #define ACTOR_143000_KEYPAD_CODE_CAPACITY 20
 
@@ -396,7 +394,7 @@ static void _actor143000InitializeKeypad(Task* task)
     task->work                                                 = work;
     previousView                                               = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_143000_KEYPAD_VIEW;
-    D_actor_143000_80135C0C                                    = previousView;
+    gActor143000KeypadPreviousView                             = previousView;
     task->state                                               += ACTOR_143000_KEYPAD_STATE_ARM_CURSOR - ACTOR_143000_KEYPAD_STATE_INITIALIZE;
     work->field_4                                              = 0;
     displayAcquireMenuHold();
@@ -596,7 +594,7 @@ static void _actor143000CheckKeypadCode(Task* task)
     if (task->killCountdown == 0) {
         s32 accepted = 0;
 
-        if ((strcmp(D_actor_143000_80135C20, D_actor_143000_80131EB0) == 0) || ((strcmp(D_actor_143000_80135C20, D_actor_143000_80131EBC) == 0) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0))) {
+        if ((strcmp(gActor143000KeypadCode, D_actor_143000_80131EB0) == 0) || ((strcmp(gActor143000KeypadCode, D_actor_143000_80131EBC) == 0) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0))) {
             accepted = 1;
         }
         work->codeAccepted = accepted;
@@ -634,11 +632,11 @@ static void _actor143000CheckKeypadCode(Task* task)
             case ACTOR_143000_KEYPAD_CHECK_TICK_FINISH:
                 task->state = ACTOR_143000_KEYPAD_STATE_WAIT_FADE;
                 // Fade to black, and stay in the closing state for as long as the ramp takes.
-                D_actor_143000_80135C08.blend      = SCREEN_FADE_SUBTRACT;
-                D_actor_143000_80135C08.phase      = SCREEN_FADE_RUNNING;
-                D_actor_143000_80135C08.rampFrames = ACTOR_143000_KEYPAD_FADE_FRAMES;
-                task->killCountdown                = ACTOR_143000_KEYPAD_FADE_FRAMES;
-                taskSpawn(ACTOR_143000_KEYPAD_FADE_BANK, ACTOR_143000_KEYPAD_FADE_SLOT, 0, &D_actor_143000_80135C08);
+                gActor143000CodeAcceptedFade.blend      = SCREEN_FADE_SUBTRACT;
+                gActor143000CodeAcceptedFade.phase      = SCREEN_FADE_RUNNING;
+                gActor143000CodeAcceptedFade.rampFrames = ACTOR_143000_KEYPAD_FADE_FRAMES;
+                task->killCountdown                     = ACTOR_143000_KEYPAD_FADE_FRAMES;
+                taskSpawn(ACTOR_143000_KEYPAD_FADE_BANK, ACTOR_143000_KEYPAD_FADE_SLOT, 0, &gActor143000CodeAcceptedFade);
                 break;
         }
     } else {
@@ -719,10 +717,10 @@ static void _actor143000DrawKeypad(Task* task)
     s16                     clut;
 
     // Keep the entry terminated before another state checks or copies it.
-    edgeX                                     = -0x48;
-    work                                      = task->work;
-    D_actor_143000_80135C20[work->codeLength] = '\0';
-    D_actor_143000_80135C00++;
+    edgeX                                    = -0x48;
+    work                                     = task->work;
+    gActor143000KeypadCode[work->codeLength] = '\0';
+    gActor143000KeypadCaretDrawCalls++;
     entryY = 0x10;
     // Draw one mask glyph per character and a blinking insertion caret.
     for (characterIndex = 0; characterIndex < work->codeLength; characterIndex++) {
@@ -749,7 +747,7 @@ static void _actor143000DrawKeypad(Task* task)
         quad->tpage = ACTOR_143000_KEYPAD_TEXTURE_PAGE;
         quad->clut  = ACTOR_143000_KEYPAD_CLUT_CARET;
         setShadeTex(quad, 1);
-        if (D_actor_143000_80135C00 & ACTOR_143000_KEYPAD_CARET_BLINK_BIT) {
+        if (gActor143000KeypadCaretDrawCalls & ACTOR_143000_KEYPAD_CARET_BLINK_BIT) {
             addPrim(&gGpuCurrentOt[ACTOR_143000_KEYPAD_OT_SLOT], quad);
         }
     }
@@ -796,7 +794,7 @@ static void _actor143000DrawKeypad(Task* task)
     left       = work->marqueeX >> ACTOR_143000_KEYPAD_DOG_FRACTION_BITS;
     edgeY      = top + ACTOR_143000_KEYPAD_DOG_HEIGHT;
     edgeX      = left + ACTOR_143000_KEYPAD_DOG_WIDTH;
-    textureRow = D_actor_143000_80134570[(D_actor_143000_80135C04 / ACTOR_143000_KEYPAD_DOG_FRAME_UNITS) % (s32)ARRAY_SIZE(D_actor_143000_80134570)] * ACTOR_143000_KEYPAD_DOG_HEIGHT + ACTOR_143000_KEYPAD_DOG_TEXTURE_TOP - 0x100;
+    textureRow = D_actor_143000_80134570[(gActor143000KeypadDogPhaseQ4 / ACTOR_143000_KEYPAD_DOG_FRAME_UNITS) % (s32)ARRAY_SIZE(D_actor_143000_80134570)] * ACTOR_143000_KEYPAD_DOG_HEIGHT + ACTOR_143000_KEYPAD_DOG_TEXTURE_TOP - 0x100;
     bottomV    = textureRow + ACTOR_143000_KEYPAD_DOG_HEIGHT;
     clut       = ACTOR_143000_KEYPAD_CLUT_DOG;
     ACTOR_143000_RESERVE_KEYPAD_QUAD(quad);
@@ -806,7 +804,7 @@ static void _actor143000DrawKeypad(Task* task)
     quad->clut  = clut;
     setShadeTex(quad, 1);
     addPrim(&gGpuCurrentOt[ACTOR_143000_KEYPAD_OT_SLOT], quad);
-    D_actor_143000_80135C04 += work->marqueeSpeed;
+    gActor143000KeypadDogPhaseQ4 += work->marqueeSpeed;
     if (task->state != ACTOR_143000_KEYPAD_STATE_CHECK_CODE && task->state != ACTOR_143000_KEYPAD_STATE_WAIT_FADE) {
         work->marqueeX -= work->marqueeSpeed;
         if (work->marqueeX < ACTOR_143000_KEYPAD_DOG_WRAP_X) {
@@ -962,10 +960,10 @@ static void _actor143000CloseKeypad(Task* task)
         gGameSession->eventState                                   = 0;
         gGameSession->hideHud                                      = 0;
         gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_actor_143000_80135C0C;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gActor143000KeypadPreviousView;
         playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     } else {
-        taskSpawnFromTable(D_actor_143000_801350B0, ACTOR_143000_TERMINAL_TASK_SLOT, 0, &D_actor_143000_80135C08);
+        taskSpawnFromTable(gActor143000TerminalTasks, ACTOR_143000_TERMINAL_TASK_SLOT, 0, &gActor143000CodeAcceptedFade);
     }
     taskKill(task->spawnArg2.pointer);
     taskRequestKill(task, work->codeAccepted);
@@ -1010,7 +1008,7 @@ static void _actor143000TypeKeypadKey(Task* task)
                         work->codeLength--;
                     }
                 } else if (work->codeLength < ACTOR_143000_KEYPAD_CODE_CAPACITY) {
-                    D_actor_143000_80135C20[work->codeLength] = *keyCharacter;
+                    gActor143000KeypadCode[work->codeLength] = *keyCharacter;
                     work->codeLength++;
                 }
                 work->marqueeSpeed = ACTOR_143000_KEYPAD_DOG_KEY_SPEED;
@@ -1045,7 +1043,7 @@ static void _actor143000AutoTypeKeypadCode(Task* task)
             work->codeLength++;
             sndEvtRequestScriptStart(SOUND_SHELTER_B2_LAB_KEYPAD_KEY, 0, 0);
             // Copy the whole code; the drawer reveals only codeLength characters.
-            memcpy(D_actor_143000_80135C20, D_actor_143000_80131EB0, sizeof(D_actor_143000_80131EB0));
+            memcpy(gActor143000KeypadCode, D_actor_143000_80131EB0, sizeof(D_actor_143000_80131EB0));
             revealedLength = work->codeLength;
             if (revealedLength >= sizeof(D_actor_143000_80131EB0) - 1) {
                 task->state = ACTOR_143000_KEYPAD_STATE_INPUT;

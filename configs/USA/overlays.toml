@@ -5039,8 +5039,8 @@ id = 132
 objects = [
   { kind = "packageId" },
   { unit = "actor_143000/actor_143000", rodata = "0x4", text = "0x160", data = "0x2738" },
-  { unit = "actor_143000/actor_143000_2", rodata = "0xB8", text = "0x20C4", data = "0x3290", bss = "0x3DF0" },
   { kind = "animation", at = "0x27E4", sets = ["0x2A20", "0x2CCC", "0x2EE8", "0x3090", "0x3248"], in_c = true },
+  { unit = "actor_143000/actor_143000_2", rodata = "0xB8", text = "0x20C4", data = "0x3290", bss = "0x3DF0", tail = true },
 ]
 
 [actors.overlays.actor_143400]
