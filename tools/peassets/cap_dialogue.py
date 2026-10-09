@@ -17,7 +17,8 @@ placed actor. Records also start room sounds and run flag or item actions.
 Text is not characters: each code is a glyph cell of the payload's own table,
 drawn from the room's glyph image, so a line is reported by its length. A text
 stream can also carry view codes, which change the view as the line is drawn;
-those are listed with the line.
+those are listed with the line, as are the choices a line offers: each choice
+names the event key its reply selects.
 """
 from __future__ import annotations
 
@@ -37,6 +38,16 @@ def dialogues(data: bytes) -> list[tuple[dict, bytes]]:
     return [(s, data[s["offset"]:s["offset"] + s["length"]]) for s in cap_bundle.slots(data) if s["what"] == "dialogue"]
 
 
+# A text stream can end a line in a choice: the code's low byte is the event key the reply selects
+# (src/gameplay/cap.h, `CAP_TEXT_CHOICE_*`; src/gameplay/captions.c, the choice branch of the text drawer).
+CHOICES = {0x8100: "confirm", 0x8200: "silent", 0x8300: "cursor"}
+TEXT_CHOICES: dict[tuple[int, int], list[tuple[str, int]]] = {}
+
+
+def offset_key(cap: bytes, offset: int) -> tuple[int, int]:
+    return id(cap), offset
+
+
 def text_length(cap: bytes, offset: int) -> tuple[int, int, list[tuple[int, bool, bool]]]:
     """(glyphs, control codes, view codes) of the code stream at an offset.
 
@@ -49,6 +60,8 @@ def text_length(cap: bytes, offset: int) -> tuple[int, int, list[tuple[int, bool
     """
     glyphs = controls = 0
     views = []
+    choices = TEXT_CHOICES.setdefault(offset_key(cap, offset), [])
+    del choices[:]
     while offset + 2 <= len(cap):
         (code,) = struct.unpack_from("<H", cap, offset)
         if code == 0xFFFF:
@@ -57,6 +70,8 @@ def text_length(cap: bytes, offset: int) -> tuple[int, int, list[tuple[int, bool
             controls += 1
             if code & 0x9F00 == 0x8000:
                 views.append((code & 0xFF, bool(code & 0x2000), bool(code & 0x4000)))
+            elif code & 0xFF00 in CHOICES:
+                choices.append((CHOICES[code & 0xFF00], code & 0xFF))
         else:
             glyphs += 1
         offset += 2
@@ -90,7 +105,7 @@ def commands(cap: bytes) -> list[dict]:
                     record.update(message=b2, delay=b3, recipient="player" if b4 == 0 else "companion" if b4 == 1 else f"placed actor {b4 - 2}")
             else:
                 glyphs, controls, views = text_length(cap, ref) if ref < len(cap) else (0, 0, [])
-                record.update(kind="text", views=views, title=b0, show=b2, pause=b3, sound=b4 >> 1, instant=bool(b4 & 1), glyphs=glyphs, controls=controls, minimum=minimum)
+                record.update(kind="text", views=views, choices=list(TEXT_CHOICES.get(offset_key(cap, ref), [])), title=b0, show=b2, pause=b3, sound=b4 >> 1, instant=bool(b4 & 1), glyphs=glyphs, controls=controls, minimum=minimum)
             command["records"].append(record)
             at += 12
         out.append(command)
@@ -123,7 +138,8 @@ def describe(command: dict) -> list[str]:
             sound = f", room sound {record['sound']}" if record["sound"] else ""
             title = f", title {record['title'] - 1 + (256 if record['flags'] & TITLE_BANK else 0)}" if record["title"] else ""
             views = "".join(f", selects {'logical view' if direct else 'view file'} {view}" + (", hiding the actors" if hide else "") for view, direct, hide in record["views"])
-            lines.append(f"    key {record['key']}: text, {record['glyphs']} glyphs{title}{sound}{action}{views}")
+            choices = (", choices " + ", ".join(f"key {key}" + ("" if kind == "confirm" else f" ({kind})") for kind, key in record["choices"])) if record["choices"] else ""
+            lines.append(f"    key {record['key']}: text, {record['glyphs']} glyphs{title}{sound}{action}{views}{choices}")
     return lines
 
 

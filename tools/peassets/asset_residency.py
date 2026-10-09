@@ -232,12 +232,15 @@ def view_maps(files: list[Path], packages: set[str]) -> dict[str, list[list[int]
         for directory in VIEW_DIRECTORY.finditer(text):
             names = [c.strip() for c in directory[2].split(",") if c.strip()]
             counts = [asset_journal.evaluate(c, {}) or 0 for c in directory[3].split(",") if c.strip()]
+            # A count table can be shorter than its directory (neo_ark_altar: two counts, three room indices);
+            # a byte map without a count is taken at its own length.
+            counts += [0] * (len(names) - len(counts))
             maps = []
             for name, count in zip(names, counts):
                 if name == IDENTITY_MAP:
                     maps.append(IDENTITY_VIEWS)
-                elif name in tables and None not in tables[name][:count]:
-                    maps.append(tables[name][:count])
+                elif name in tables and None not in tables[name][:count or None]:
+                    maps.append(tables[name][:count or None])
                 else:
                     maps = None
                     break

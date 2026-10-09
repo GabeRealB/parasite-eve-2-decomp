@@ -79,6 +79,16 @@ def records():
                 current = None
 
 
+def modes(policy: str) -> str:
+    """The save modes a record's policy byte accepts (high nibble, `AREA_APPLY_MODE_*`) and its map mark."""
+    shared = " (shared slot)" if policy.endswith("(shared slot)") else ""
+    value = number(policy.removesuffix("(shared slot)").strip(), {})
+    if value is None:
+        return f"policy {policy}"
+    who = {0x00: "every mode", 0x10: "Replay and Scavenger modes only", 0x20: "Bounty and Nightmare modes only"}.get(value & 0xF0, f"mode nibble {value >> 4:#x}")
+    return f"{who}, map mark {'set' if value & 0x0F else 'cleared'}{shared}"
+
+
 def main() -> int:
     args = sys.argv[1:]
     source = args[args.index("--from") + 1] if "--from" in args else None
@@ -90,7 +100,7 @@ def main() -> int:
     for room in sorted(by_room):
         print(room)
         for variant, overlay, path, line, symbol, policy in sorted(by_room[room], key=str):
-            print(f"  variant {variant}  stored by {overlay}  {path}:{line}  {symbol}  policy {policy}")
+            print(f"  variant {variant}  stored by {overlay}  {path}:{line}  {symbol}  {modes(policy)}")
     if not by_room:
         print("no AreaApplyRec list in the C sources stores a variant for " + (target or "that selection") + "; it keeps its default unless code writes one")
     return 0
