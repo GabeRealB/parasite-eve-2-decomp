@@ -182,8 +182,15 @@ typedef struct {
 } TextGlyphCell;
 STATIC_ASSERT_SIZEOF(TextGlyphCell, 0x4);
 
-/// Caption font cells shared with room title sequences.
-extern TextGlyphCell Caption_Glyphs[];
+/// Number of resident caption-font cells, indexed by glyph-script bytes.
+enum { TEXT_CAPTION_GLYPH_CELL_COUNT = 70 };
+
+/// Resident caption-font cells for load-screen and room date/place captions.
+///
+/// Scripts select indices 0..69; the high glyph bit can mark filtered text.
+/// Each stream supplies its own texture page and palette, so this table holds
+/// cell rectangles rather than pixels. The cells remain resident across overlays.
+extern TextGlyphCell gTextCaptionGlyphCells[TEXT_CAPTION_GLYPH_CELL_COUNT];
 
 /// Glyph-script encoding for `TextStream::chars`.
 enum {

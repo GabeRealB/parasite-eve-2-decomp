@@ -601,7 +601,7 @@ void itemMenuCommandTask(Task* task)
                     object->result = listAction;
                 } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
                     object->result = USER_INTERFACE_RESULT_CANCEL;
-                } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
+                } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
                     sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
                     object->result = USER_INTERFACE_RESULT_CONFIRM;
                 }
@@ -733,7 +733,7 @@ void itemMenuApplyHealingPanel(UiObject* object, Task* task, s32 healingId)
                 task->killCountdown = task->killCountdown - 1;
             }
         }
-        if ((padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0) || (task->killCountdown < 0)) {
+        if ((padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0) || (task->killCountdown < 0)) {
             Gp_HpMpWork.hp      = player->hp;
             Gp_HpMpWork.mp      = player->mp;
             object->result      = USER_INTERFACE_RESULT_DISMISS;
@@ -976,7 +976,7 @@ void itemMenuApplyWeaponAddonPanel(UiObject* object, Task* task)
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         remainingUpdates    = task->killCountdown - 1;
         task->killCountdown = remainingUpdates;
-        if ((((s32)(remainingUpdates << 0x10)) <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+        if ((((s32)(remainingUpdates << 0x10)) <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0)) {
             object->result      = USER_INTERFACE_RESULT_DISMISS;
             task->killCountdown = ITEM_MENU_COMPLETED_COUNTDOWN;
             return;
@@ -1063,7 +1063,7 @@ void itemMenuInvokeParasiteEnergyItem(UiObject* object, Task* task, s32 itemId)
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
             object->result = USER_INTERFACE_RESULT_CANCEL;
-        } else if ((task->killCountdown <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+        } else if ((task->killCountdown <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0)) {
             object->result      = USER_INTERFACE_RESULT_DISMISS;
             task->killCountdown = ITEM_MENU_COMPLETED_COUNTDOWN;
         }
@@ -1724,7 +1724,7 @@ static void _itemPickupObtainedNoticeTask(Task* task)
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if ((task->killCountdown <= 0) ||
             (((task->spawnArg1.value & ITEM_PICKUP_OBTAINED_TIMEOUT_ONLY) == 0) &&
-             (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0))) {
+             (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0))) {
             object->result      = USER_INTERFACE_RESULT_CANCEL;
             task->killCountdown = ITEM_MENU_COMPLETED_COUNTDOWN;
         }

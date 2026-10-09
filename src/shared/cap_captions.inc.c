@@ -782,7 +782,7 @@ static void _capCaptionCancelableTask(Task* task)
         case CAP_CAPTION_MODAL_WAIT:
             remaining             = task->spawnArg1.value - 1;
             task->spawnArg1.value = remaining;
-            if ((remaining <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0)) {
+            if ((remaining <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0)) {
                 taskKill(task);
                 stageRequestModeTaskExit();
             }

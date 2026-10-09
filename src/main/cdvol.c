@@ -30,7 +30,11 @@ typedef struct {
 
 static u16 D_8006EBB8;
 
-static s8 D_8006EBBA;
+/// Resident output selection (0 mono, 1 stereo), shared by all sound paths.
+///
+/// Starts at zero in BSS; the output setter stores only the request's low bit
+/// before refreshing MIDI, script, streaming and CD-input gains.
+static u8 _gSndOutputStereoEnabled;
 
 /// Unreferenced.
 static u8 D_8006EBC0[8];
@@ -275,8 +279,8 @@ void sndOutputSetStereo(s32 enabled)
     } while (0)
 
     // Publish the selection before requesting voice-volume refreshes.
-    D_8006EBBA    = enabled & SOUND_OUTPUT_STEREO;
-    stereoEnabled = D_8006EBBA;
+    _gSndOutputStereoEnabled = enabled & SOUND_OUTPUT_STEREO;
+    stereoEnabled            = (s8)_gSndOutputStereoEnabled;
     midiSetMasterVolume(midiGetMasterVolume() & 0xFF);
     stereoEnabled = (u8)stereoEnabled;
     sndScriptSetMasterVolume(sndScriptGetMasterVolume());
@@ -287,7 +291,7 @@ void sndOutputSetStereo(s32 enabled)
 
 u8 sndOutputIsStereo(void)
 {
-    return D_8006EBBA;
+    return _gSndOutputStereoEnabled;
 }
 
 void cdVolBeginFadeOut(void)

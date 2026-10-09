@@ -101,7 +101,7 @@ static void _telephonePlayDataTask(Task* task)
         task->state += 1;
     }
     uiUpdateList(list, &object->panel);
-    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
         object->result = USER_INTERFACE_RESULT_CONFIRM;
     }
 }
@@ -163,7 +163,7 @@ static void _telephoneSaveMenuRow(UiList* list, UiObject* object)
 
     textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, Telephone_Data_801819F8, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     rowInputEnabled = list->rowInputEnabled;
-    if (rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0 && cdCmdIsIdle() != 0) {
+    if (rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0 && cdCmdIsIdle() != 0) {
         sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
         gDisplayState.gameMode = DISPLAY_GAME_MODAL;
         uiSpawnObject(&D_800611E4, 1, USER_INTERFACE_PANEL_INACTIVE, 0, object);
@@ -181,7 +181,7 @@ static void _telephoneSaveMenuRow(UiList* list, UiObject* object)
 static void _telephonePlayDataMenuRow(UiList* list, UiObject* object)
 {
     textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, Telephone_Data_80181A00, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
         sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
         uiSpawnObject(&Telephone_Data_80181CAC, 0, USER_INTERFACE_PANEL_ACTIVE, 1, object);
         object->result             = USER_INTERFACE_RESULT_CONFIRM;
@@ -198,7 +198,7 @@ static void _telephonePlayDataMenuRow(UiList* list, UiObject* object)
 static void _telephoneWeaponDataMenuRow(UiList* list, UiObject* object)
 {
     textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, Telephone_Data_80181A0C, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
         sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
         uiSpawnObject(&Telephone_Data_80181CC8, TELEPHONE_USAGE_WEAPONS, USER_INTERFACE_PANEL_ACTIVE, 1, object);
         object->result             = USER_INTERFACE_RESULT_CONFIRM;
@@ -215,7 +215,7 @@ static void _telephoneWeaponDataMenuRow(UiList* list, UiObject* object)
 static void _telephonePeDataMenuRow(UiList* list, UiObject* object)
 {
     textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, Telephone_Data_80181A18, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
         sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
         uiSpawnObject(&Telephone_Data_80181CC8, TELEPHONE_USAGE_PARASITE_ENERGY, USER_INTERFACE_PANEL_ACTIVE, 1, object);
         object->result             = USER_INTERFACE_RESULT_CONFIRM;

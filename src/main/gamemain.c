@@ -22,6 +22,7 @@
 #include "gpuext.h"
 #include "mc.h"
 #include "main/mem.h"
+#include "main/game_debug.h"
 #include "main/pad.h"
 #include "pad.h"
 #include "main/pad_types.h"
@@ -198,7 +199,7 @@ static void _gameMainInitialize(void)
     drawBufferIndex          = GAME_MAIN_INITIAL_DRAW_BUFFER;
     gDisplayState.drawBuffer = drawBufferIndex;
     displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT);
-    memFillBytes(Pad_RemapState, 0, sizeof(*Pad_RemapState));
+    memFillBytes(gGameDebugState, 0, sizeof(*gGameDebugState));
 }
 
 void displayPresentTaskFrame(s32 bufferIndex)
@@ -484,7 +485,7 @@ static inline void _gameMainBeginFrame(void)
 
     // Select matching halves of the system-packet and heap-packet arenas.
     Gpu_SysPrimCursor = Gpu_PrimBufStatic + gDisplayState.otBuffer * (s32)(sizeof(Gpu_PrimBufStatic) / 2);
-    gGpuPrimCursor    = Gpu_PrimHeapBase + gDisplayState.otBuffer * (Gpu_PrimHeapSize >> 1);
+    gGpuPrimCursor    = gGpuPrimitiveBufferBase + gDisplayState.otBuffer * (gGpuPrimitiveBufferBytes >> 1);
 }
 
 /// Dispatches resident game and task-owned frames indefinitely.

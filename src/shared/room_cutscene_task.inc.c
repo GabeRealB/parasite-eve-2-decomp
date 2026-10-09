@@ -148,7 +148,7 @@ static void _roomCutsceneTask(Task* task)
             task->state++;
             break;
         case ROOM_CUTSCENE_STATE_WAIT_SCENE:
-            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0) {
                 sndEvtRequestScriptStop(cutscene->sceneSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 taskKill(ROOM_CUTSCENE_SOUND_TASK);
                 task->state++;

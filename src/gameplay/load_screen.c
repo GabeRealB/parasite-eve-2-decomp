@@ -37,6 +37,7 @@
 #include "main/loadui.h"
 #include "main/mc.h"
 #include "main/mem.h"
+#include "main/game_debug.h"
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/sound.h"
@@ -382,8 +383,8 @@ void loadingPrepareCharacterResourcesTask(Task* task)
     u16           bootLoadActive;
     s32           packetBufferIndex;
 
-    Pad_RemapState->loadingActive = GAME_DEBUG_LOADING_ACTIVE;
-    cdQueue                       = &gCdCmdQueue;
+    gGameDebugState->loadingActive = GAME_DEBUG_LOADING_ACTIVE;
+    cdQueue                        = &gCdCmdQueue;
     if (cdCmdIsIdle()) {
         if (loadUiPollDiskSwap() != LOAD_UI_DISK_SWAP_COMPLETE) {
             return;

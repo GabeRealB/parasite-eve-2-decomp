@@ -628,7 +628,7 @@ void itemMenuArmorAttachmentPanelTask(Task* panelTask)
     textDrawString(&attachmentLabel, (const u8*)D_80097448);
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         // Re-read the selected position on Confirm before applying its item use.
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm)) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask)) {
             if (selectedUsable == 1) {
                 useAttachmentIndex = D_8010F884;
                 useRow             = NULL;
@@ -656,7 +656,7 @@ void itemMenuArmorAttachmentPanelTask(Task* panelTask)
             if (D_8010F884 >= equipmentGetArmorAttachmentSlotCount(armorItemId)) {
                 D_8010F884 = 0;
             }
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu)) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask | Pad_MaskMenu)) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
             object->result   = USER_INTERFACE_RESULT_CANCEL;
             panelTask->state = ITEM_MENU_ATTACHMENT_PANEL_CLOSED;

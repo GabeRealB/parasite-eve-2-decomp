@@ -639,7 +639,7 @@ void itemMenuDrawTransferInventoryRow(UiList* list, UiObject* object)
         // Browsing opens commands/details; swap selection checks the candidate partner.
         Gp_SelItemRec = row;
         if (object->owner->state == ITEM_MENU_PANE_BROWSING) {
-            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
                 sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                 actionPopup = uiSpawnObject(&D_8010D6F4[ITEM_MENU_TRANSFER_ACTIONS_PANEL], object->owner->spawnArg1, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_TRANSFER_OPEN_DELAY_TICKS, object);
                 if (actionPopup != NULL) {
@@ -652,7 +652,7 @@ void itemMenuDrawTransferInventoryRow(UiList* list, UiObject* object)
                 uiSpawnObject(&D_8010EAB4[ITEM_MENU_TRANSFER_INFO_PANEL], itemId, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_TRANSFER_OPEN_DELAY_TICKS, object);
                 object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             paneIndex     = object->owner->spawnArg1.value;
             partnerItemId = inventoryGetRow(&Gp_MoveScanSrc + paneIndex, Gp_InvLists[paneIndex].selectedItemIndex, 0)->itemId;
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
@@ -774,7 +774,7 @@ static void _itemMenuTransferPaneTask(Task* task)
             uiEaseAndDrawCursor(&(object)->panel, object->panel.contentLeft.signedValue + 4, object->panel.contentTop.signedValue + 0xA);
         }
         if (task->state == ITEM_MENU_PANE_BROWSING) {
-            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
                 object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 object->result             = USER_INTERFACE_RESULT_CANCEL;
             } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
@@ -786,7 +786,7 @@ static void _itemMenuTransferPaneTask(Task* task)
                     object->result = ITEM_MENU_RESULT_CHANGE_PANE;
                 }
             }
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask | Pad_MaskMenu) != 0) {
             object->result = ITEM_MENU_RESULT_CANCEL_SWAP;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_UP | PAD_BUTTON_DOWN) == 0) {
             if ((task->spawnArg1.value == ITEM_MENU_PANE_CONTAINER && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) || (task->spawnArg1.value == ITEM_MENU_PANE_CARRIED && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) || padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_L2 | PAD_BUTTON_R2) != 0) {
@@ -822,7 +822,7 @@ void itemMenuDrawTransferMoveRow(UiList* list, UiObject* object)
     textRequest.drawMode   = TEXT_DRAW_OUTLINED;
     textDrawString(&textRequest, Gp_StrMove2);
     rowInputEnabled = list->rowInputEnabled;
-    if ((rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0)) {
+    if ((rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0)) {
         noticeId       = -1;
         chooseQuantity = 0;
         paneIndex      = object->owner->spawnArg1.value;
@@ -903,7 +903,7 @@ void itemMenuDrawSwitchRow(UiList* list, UiObject* object)
 
     rowInputEnabled = list->rowInputEnabled;
     if (rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             paneIndex   = object->owner->spawnArg1.value;
             selectedRow = inventoryGetRow(&Gp_MoveScanSrc + paneIndex, Gp_InvLists[paneIndex].selectedItemIndex, 0);
             itemId      = selectedRow->itemId;
@@ -1016,7 +1016,7 @@ static void _itemMenuTransferActionsTask(Task* task)
                 object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 object->result             = USER_INTERFACE_RESULT_CANCEL;
             }
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
             object->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
@@ -1245,7 +1245,7 @@ static void _itemMenuAmmoSplitTask(Task* task)
         _itemMenuAdjustAmmoSplitQuantities(task, split, pad, repeatStep);
 
         // Apply only the net change; the preview has not touched inventory.
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             transferQty = split->containerQty - split->containerInitialQty;
             if (transferQty > 0) {
@@ -1263,7 +1263,7 @@ static void _itemMenuAmmoSplitTask(Task* task)
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
             object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             object->result             = USER_INTERFACE_RESULT_CANCEL;
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
             object->result = USER_INTERFACE_RESULT_DISMISS;
         }
@@ -1409,7 +1409,7 @@ static void _itemMenuTransferExitRow(UiList* list, UiObject* object)
                 return;
             }
         }
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             switch (list->currentItemIndex) {
                 case ITEM_MENU_PROMPT_ALL:
                     sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
@@ -1425,7 +1425,7 @@ static void _itemMenuTransferExitRow(UiList* list, UiObject* object)
                     object->result = ITEM_MENU_RESULT_DISCARD_AND_EXIT;
                     break;
             }
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
             if (list->selectedItemIndex == ITEM_MENU_PROMPT_DISCARD) {
                 _equipmentClearOrphanedWeaponLoads();

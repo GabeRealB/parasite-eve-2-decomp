@@ -24,8 +24,14 @@
 /// sentinel and must stay linked and alive until the endpoints are restored.
 extern TmdListNode gTmdList;
 
-/// Cleared by actorRenderResetLists during system init.
-extern s32 D_80071210;
+/// Coordinate-composition pass counter shared by both actor-render lists.
+///
+/// Reset to zero with the list sentinels. A full list composition advances it
+/// once after both walks, even when empty; explicit node compositions reuse
+/// the current value without advancing it. Bits 0..30 supply the rebuild stamp
+/// and bit 0 also supplies visit parity. Multiple passes can occur within a
+/// frame. Stamp zero is allowed at reset and after the stored word wraps.
+extern s32 gActorRenderCoordPassCounter;
 
 /// Forgets both rendering-list chains and resets their coordinate-composition pass.
 ///

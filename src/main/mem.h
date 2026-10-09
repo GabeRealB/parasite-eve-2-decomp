@@ -34,14 +34,34 @@ enum {
 /// free-list cursor moves within it; the storage belongs to the allocator.
 extern void* gMemPrimaryHeapBase;
 
-/// Pointer to the auxiliary heap.
-extern u8* GAuxHeap;
+/// Saved auxiliary portion of image memory, selected by the true heap selector.
+///
+/// Ordinary configuration starts it after the primitive reservation and extends
+/// through the resident image workspace; the initial active heap stops before
+/// that workspace. Frame capture instead saves a suffix of the workspace after
+/// its pixels. This is borrowed raw storage, requiring heap3 initialization
+/// after selection and before allocation; it is separate from the primary heap.
+extern void* gMemSavedAuxHeap;
 
-/// Length in bytes of the heap pointed to by `GAuxHeap`.
-extern size_t GAuxHeapSize;
+/// Saved auxiliary-portion extent in bytes, including allocator metadata.
+///
+/// Paired with `gMemSavedAuxHeap`. Ordinary configuration includes the image
+/// workspace; frame capture records 0x10000 minus the selected suffix offset.
+/// Selection copies this extent rather than recalculating available space.
+extern size_t gMemSavedAuxHeapBytes;
 
-extern u8* Mem_AuxRegionBase;
+/// Saved complete image-memory region, selected by the false heap selector.
+///
+/// Ordinary configuration includes the primitive reservation and resident image
+/// workspace. After capture this view is only the 0x10000-byte workspace after
+/// the captured pixels. Selecting it for heap3 can overwrite GPU/image storage,
+/// whose previous users must have finished; selection does not initialize it.
+extern void* gMemSavedImageRegion;
 
-extern size_t Mem_AuxRegionBytes;
+/// Saved complete image-memory view's byte extent, including heap3 metadata.
+///
+/// Paired with `gMemSavedImageRegion`: the configured slot extent plus 0x26000
+/// ordinarily, or the 0x10000-byte workspace after an area's captured frame.
+extern size_t gMemSavedImageRegionBytes;
 
 #endif // MAIN_PRIVATE_MEM_H

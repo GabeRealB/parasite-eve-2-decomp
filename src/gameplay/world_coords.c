@@ -34,6 +34,7 @@
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/gfxgte.h"
+#include "main/game_debug.h"
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -1222,7 +1223,7 @@ void worldCoordSetModelLighting(const TmdObject* model, const void* worldPositio
     }
 
     // Retain the ranked snapshot before releasing the query's scratch storage.
-    if (Pad_RemapState->diagnosticMode == GAME_DEBUG_DIAGNOSTIC_LIGHT_PROBE && D_80760618->captureEnabled == WORLD_COORDINATE_LIGHT_CAPTURE_ENABLED) {
+    if (gGameDebugState->diagnosticMode == GAME_DEBUG_DIAGNOSTIC_LIGHT_PROBE && D_80760618->captureEnabled == WORLD_COORDINATE_LIGHT_CAPTURE_ENABLED) {
         lightIndex = 0;
         do {
             D_80760618->rankedLights[lightIndex] = lightQuery->rankedLights[lightIndex];
@@ -1303,7 +1304,7 @@ static void _worldCoordUpdatePlayerLighting(Task* unusedTask)
     samplePosition.vy = coord->workm.t[1] - WORLD_COORDINATE_PLAYER_LIGHT_SAMPLE_Y_OFFSET;
     samplePosition.vz = coord->workm.t[2];
 
-    if (Pad_RemapState->diagnosticMode == GAME_DEBUG_DIAGNOSTIC_LIGHT_PROBE) {
+    if (gGameDebugState->diagnosticMode == GAME_DEBUG_DIAGNOSTIC_LIGHT_PROBE) {
         SCRATCH_STACK_RESERVE_BLOCK(WorldCoordProjectionScratch);
         projection = SCRATCH_STACK_CURSOR(WorldCoordProjectionScratch);
         // Open the ranked snapshot gate only for the player's diagnostic sample.

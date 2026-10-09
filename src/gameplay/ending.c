@@ -352,7 +352,7 @@ void itemMenuBattleResultTask(Task* task)
     }
 
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0) {
             object->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }

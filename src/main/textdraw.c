@@ -126,10 +126,17 @@ STATIC_ASSERT(FONT_GLYPH_MEDIUM_COUNT * sizeof(_FontGlyph) == 0xA80, fontGlyphsM
 STATIC_ASSERT(FONT_GLYPH_LARGE_COUNT * sizeof(_FontGlyph) == 0xA80, fontGlyphsLargeBytes);
 STATIC_ASSERT(FONT_GLYPH_SMALL_COUNT * sizeof(_FontGlyph) == 0x444, fontGlyphsSmallBytes);
 
-/// Immediate-mode SPRT scratch used by _textDrawGlyphImmediate.
-static SPRT D_80071710;
+/// Reusable opaque, RGB-modulated glyph sprite for immediate text drawing.
+///
+/// Submitted synchronously with DrawPrim, without allocating an OT packet.
+/// Its four-word payload is rebuilt for each glyph; calls must not overlap.
+static SPRT _gTextImmediateGlyphSprite;
 
-static DR_TPAGE D_80071728;
+/// Reusable one-word font texture-page command for immediate text drawing.
+///
+/// Submitted synchronously before the string's glyphs. Selects the 4bpp font
+/// page at VRAM (960,256); calls sharing this packet must not overlap.
+static DR_TPAGE _gTextImmediateTexturePage;
 
 static TaskDesc D_8005EDA0[];
 
@@ -141,12 +148,11 @@ static _FontGlyph _gFontGlyphsSmall[FONT_GLYPH_SMALL_COUNT];
 
 static UiObjectDesc Ui_OverlayLoadingDesc[];
 
-/// Overflow and zero texts of the number formatters.
-static const char Text_MaxEightDigits[];
+static const char _gTextSignedDecimalOverflow[sizeof("99999999")];
 
-static const char Text_ZeroDigit[];
+static const char _gTextNumberZero[sizeof("0")];
 
-static const char Text_MaxNineDigits[];
+static const char _gTextUnsignedDecimalOverflow[sizeof("999999999")];
 
 void func_807011D8(Task* arg0);
 
@@ -173,10 +179,6 @@ static void _textDrawGlyphOutline(TextDrawReq* request, const _FontGlyph* glyph,
 static void _uiVibrationOptionsTask(Task* task);
 
 static void _bootStartTitleTask(Task* task);
-
-static const char Text_MaxEightDigits[];
-static const char Text_ZeroDigit[];
-static const char Text_MaxNineDigits[];
 
 static TaskDesc D_8005EDA0[] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskNoopCallback },
@@ -761,7 +763,7 @@ void textDrawString(TextDrawReq* request, const u8* text)
             drawGlyph = _textDrawGlyphOutline;
             break;
         case TEXT_DRAW_IMMEDIATE:
-            texturePage = &D_80071728;
+            texturePage = &_gTextImmediateTexturePage;
             setlen(texturePage, ARRAY_SIZE(texturePage->code));
             texturePage->code[0] = TEXT_LINE_FONT_PAGE_COMMAND;
             DrawPrim(texturePage);
@@ -953,9 +955,9 @@ static inline u8* _textItoaUnsigned(u8* buffer, u32 value)
 
     decimalPlace = 100000000;
     if (value >= TEXT_UNSIGNED_DECIMAL_MAX) {
-        __builtin_memcpy(buffer, Text_MaxNineDigits, sizeof("999999999"));
+        __builtin_memcpy(buffer, _gTextUnsignedDecimalOverflow, sizeof(_gTextUnsignedDecimalOverflow));
     } else if (value == 0) {
-        __builtin_memcpy(buffer, Text_ZeroDigit, sizeof("0"));
+        __builtin_memcpy(buffer, _gTextNumberZero, sizeof(_gTextNumberZero));
     } else {
         // Skip leading zero places, then consume the remaining decimal digits.
         destination = buffer;
@@ -1011,12 +1013,12 @@ static inline u8* _textItoaSigned(u8* buffer, s32 value)
         return buffer;
     }
     if (value > TEXT_SIGNED_DECIMAL_MAX) {
-        __builtin_memcpy(buffer, Text_MaxEightDigits, sizeof("99999999"));
+        __builtin_memcpy(buffer, _gTextSignedDecimalOverflow, sizeof(_gTextSignedDecimalOverflow));
         return buffer;
     }
     belowLeadingPlace = value < decimalPlace;
     if (value == 0) {
-        __builtin_memcpy(buffer, Text_ZeroDigit, sizeof("0"));
+        __builtin_memcpy(buffer, _gTextNumberZero, sizeof(_gTextNumberZero));
         return buffer;
     }
     // Skip leading zero places, then consume the remaining decimal digits.
@@ -1172,7 +1174,7 @@ static u8* _textItoaHexSigned(u8* buffer, s32 value)
     }
     belowLeadingPlace = value < hexPlace;
     if (value == 0) {
-        __builtin_memcpy(buffer, Text_ZeroDigit, sizeof("0"));
+        __builtin_memcpy(buffer, _gTextNumberZero, sizeof(_gTextNumberZero));
         return buffer;
     }
     // Skip leading zero nibbles, then consume the magnitude in base sixteen.
@@ -1215,7 +1217,7 @@ static u8* _textItoaHex(u8* buffer, u32 value)
 
     hexPlace = 0x10000000;
     if (value == 0) {
-        __builtin_memcpy(buffer, Text_ZeroDigit, sizeof("0"));
+        __builtin_memcpy(buffer, _gTextNumberZero, sizeof(_gTextNumberZero));
     } else {
         // Skip leading zero nibbles, then consume all remaining nibbles.
         destination = buffer;
@@ -1345,7 +1347,7 @@ static void _textDrawGlyphImmediate(TextDrawReq* request, const _FontGlyph* glyp
 {
     SPRT* fill;
 
-    fill = &D_80071710;
+    fill = &_gTextImmediateGlyphSprite;
     _textInitImmediateGlyphSprite(fill, request, glyph, colorRgb);
     DrawPrim(fill);
 }
@@ -1552,7 +1554,9 @@ static void _bootStartTitleTask(Task* task)
     taskKill(task);
 }
 
-/// Overflow and zero texts of the number formatters.
-static const char Text_MaxEightDigits[] = "99999999";
-static const char Text_ZeroDigit[]      = "0";
-static const char Text_MaxNineDigits[]  = "999999999";
+/// NUL-terminated saturated magnitude for signed decimal formatting above 99,999,999.
+static const char _gTextSignedDecimalOverflow[] = "99999999";
+/// NUL-terminated zero shared by decimal and hexadecimal number formatting.
+static const char _gTextNumberZero[] = "0";
+/// NUL-terminated saturation text for unsigned decimal values at or above 999,999,999.
+static const char _gTextUnsignedDecimalOverflow[] = "999999999";

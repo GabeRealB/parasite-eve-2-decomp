@@ -239,12 +239,12 @@ void memFreeFromHeap(void* allocation, bool auxHeap)
 
 void memInitAuxHeap(void)
 {
-    InitHeap3(gMemActiveAuxHeap, GActiveAuxHeapSize);
+    InitHeap3(gMemActiveAuxHeap, gMemActiveAuxHeapBytes);
 }
 
 void memInitHeaps(void)
 {
-    InitHeap3(gMemActiveAuxHeap, GActiveAuxHeapSize);
+    InitHeap3(gMemActiveAuxHeap, gMemActiveAuxHeapBytes);
     InitHeap3(gMemPrimaryHeapBase, G_HEAP_SIZE);
 }
 
@@ -260,13 +260,13 @@ void memSelectAuxHeapRegion(bool configuredAuxHeap)
     // Only the low halfword selects a view; other values leave the pair intact.
     switch ((u16)configuredAuxHeap) {
         case false:
-            gMemActiveAuxHeap  = Mem_AuxRegionBase;
-            GActiveAuxHeapSize = Mem_AuxRegionBytes;
+            gMemActiveAuxHeap      = gMemSavedImageRegion;
+            gMemActiveAuxHeapBytes = gMemSavedImageRegionBytes;
             break;
 
         case true:
-            gMemActiveAuxHeap  = GAuxHeap;
-            GActiveAuxHeapSize = GAuxHeapSize;
+            gMemActiveAuxHeap      = gMemSavedAuxHeap;
+            gMemActiveAuxHeapBytes = gMemSavedAuxHeapBytes;
             break;
     }
 }

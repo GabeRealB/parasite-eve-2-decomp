@@ -34,6 +34,7 @@
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/game_debug.h"
 #include "main/pad.h"
 #include "main/scratch.h"
 #include "main/session.h"
@@ -367,7 +368,7 @@ void worldTargetDrawOverlay(void)
     }
 
     targetNode = gWorldTargetListHead;
-    if (Pad_RemapState->hideHud != 0) {
+    if (gGameDebugState->hideHud != 0) {
         return;
     }
     // Readouts keep aging under the cursor-only gates below.

@@ -8760,16 +8760,16 @@ prologue, assigning into a local and then storing is usually wrong:
 ```c
 /* Wrong schedule: andi into $s0, then later lui */
 stereoEnabled = enabled & 1;
-D_8006EBBA = stereoEnabled;
+_gSndOutputStereoEnabled = stereoEnabled;
 ```
 
 Force the address load first by writing the expression into the global and
 reloading it for the rest of the function (`sndOutputSetStereo`):
 
 ```c
-/* Matches: lui of D_8006EBBA, then sw $s0 / andi $s0 */
-D_8006EBBA = enabled & 1;
-stereoEnabled = D_8006EBBA;
+/* Matches: lui of _gSndOutputStereoEnabled, then sw $s0 / andi $s0 */
+_gSndOutputStereoEnabled = enabled & 1;
+stereoEnabled = (s8)_gSndOutputStereoEnabled;
 ```
 
 CSE still reuses the masked value for later uses after the reload is combined,
@@ -12774,7 +12774,7 @@ pointer, `$v1` = index). Initialize the counter first:
 
 ```c
 i = 0;
-p = SndScript_Slots;
+p = _gSndScriptInstances;
 do {
     if ((p->state & SOUND_SCRIPT_PLAYING) && (p->soundId == arg0)) {
         return i;
@@ -13657,7 +13657,7 @@ if (all_banks) {
     flag = arg0 & 1;
     /* … fill loop … */
 } else {
-    flag = (s32)D_80082138; /* lui v1 / addiu v1,v1 */
+    flag = (s32)_gSndScriptTypeRequestsEnabled; /* lui v1 / addiu v1,v1 */
     ((volatile u8*)flag)[idx] = arg0 & 1;
 }
 ```
@@ -13738,12 +13738,12 @@ in the compare still scored only ~81% — the cast was deleted.
 
 ## Same global, `lb` in one function and `lbu` in another
 
-`D_80082749` is loaded with `lb` by `sndScriptReleaseDuck` (`if (D_80082749 != 0)`)
+`_gSndScriptUnduckedVolume` is loaded with `lb` by `sndScriptReleaseDuck` (`if (_gSndScriptUnduckedVolume != 0)`)
 and with `lbu` (+ `sll/sra 24` sign-extend) by `_sndScriptStepDucking`. Declaring the
 symbol `s8` matches the first; the second needs an unsigned load:
 
 ```c
-bound = *(u8*)&D_80082749;  /* forces lbu, then s8 assignment sign-extends */
+bound = (u8)_gSndScriptUnduckedVolume;  /* forces lbu, then s8 assignment sign-extends */
 ```
 
 Flipping the global to `u8` breaks the already-matched `lb` site. Prefer
@@ -16360,10 +16360,10 @@ and then copying it to the saved extent preserves the sequence without either
 device or an auxiliary-size temporary:
 
 ```c
-Gpu_PrimHeapSize   = MEMORY_PRIMITIVE_HEAP_BYTES;
-GActiveAuxHeapSize = MEMORY_PRIMITIVE_HEAP_BYTES - auxHeapOffsetBytes;
-Mem_AuxRegionBytes = MEMORY_PRIMITIVE_HEAP_BYTES;
-GAuxHeapSize       = GActiveAuxHeapSize;
+gGpuPrimitiveBufferBytes   = MEMORY_PRIMITIVE_HEAP_BYTES;
+gMemActiveAuxHeapBytes = MEMORY_PRIMITIVE_HEAP_BYTES - auxHeapOffsetBytes;
+gMemSavedImageRegionBytes = MEMORY_PRIMITIVE_HEAP_BYTES;
+gMemSavedAuxHeapBytes       = gMemActiveAuxHeapBytes;
 
 workspaceBase = areaSlot->regionBase + sizeof(FsImgBuffers);
 ```
@@ -16527,7 +16527,7 @@ When a loop walks a fixed-size struct array and both (a) loads fields near the
 start and (b) takes the address of a mid/high field for a call, writing:
 
 ```c
-_SndScript* p = SndScript_Slots;
+_SndScript* p = _gSndScriptInstances;
 for (i = 0; i < 8; i++, p++) {
     if (p->soundId == arg0) {
         linInterpSetup(&p->volumeRamp, ...);
@@ -16544,11 +16544,11 @@ Re-deriving the element from the index each time keeps a single base IV:
 
 ```c
 for (i = 0; i < 8; i++) {
-    p = &SndScript_Slots[i];
+    p = &_gSndScriptInstances[i];
     if ((arg0 == p->soundId) || ((p->soundId & 0xF0000000) == arg0)) {
         if (p->state == SOUND_SCRIPT_MUTING) {
             p->state = SOUND_SCRIPT_UNMUTING;
-            linInterpSetup(&p->volumeRamp, 0, (u8)D_80082748, 8);
+            linInterpSetup(&p->volumeRamp, 0, (u8)_gSndScriptMasterVolume, 8);
         }
     }
 }
@@ -17664,7 +17664,7 @@ at `-0x10`.
 `gfxSetFlatLight` takes `MATRIX* directionMatrix/colorMatrix` and keeps
 `scratch = SCRATCH_STACK_CURSOR_SLOT` in a callee-saved reg (`lui`/`ori` + `$sN`).
 `_gfxSetDefaultFlatLight` is the same body writing to globals `&GsLIGHTWSMATRIX` /
-`&D_80074080`, but the ROM rematerialises `0x1F8003FC` on every access
+`&gGfxDefaultColorMatrix`, but the ROM rematerialises `0x1F8003FC` on every access
 (`lui $r,0x1f80` / `lw|sw 0x3fc($r)`) and only uses five s-regs (frame `0x28`).
 
 Writing the body with local matrix pointers plus direct
@@ -17681,7 +17681,7 @@ static __inline__ void _gfxWriteFlatLightMatrices(s32 lightIndex, const GsF_LIGH
 
 static void _gfxSetDefaultFlatLight(s32 lightIndex, const GsF_LIGHT* light)
 {
-    _gfxWriteFlatLightMatrices(lightIndex, light, &GsLIGHTWSMATRIX, &D_80074080);
+    _gfxWriteFlatLightMatrices(lightIndex, light, &GsLIGHTWSMATRIX, &gGfxDefaultColorMatrix);
 }
 ```
 
@@ -20344,7 +20344,7 @@ temp = *pB - K;
 
 `memConfigureImageMemory` supplies this ordering through the inline boundary of
 `_memClearPrimitiveTrailer`; the helper's final assignment matches as the direct
-expression `Gpu_PrimHeapCanaryAddress = Gpu_PrimHeapBase + (Gpu_PrimHeapSize - MEMORY_PRIMITIVE_TRAILER_BYTES)`.
+expression `_gMemPrimitiveTrailerStart = gGpuPrimitiveBufferBase + (gGpuPrimitiveBufferBytes - MEMORY_PRIMITIVE_TRAILER_BYTES)`.
 
 ## Zero-tail loop: single byte index, increment at bottom
 
@@ -20371,7 +20371,7 @@ the masks without spelling them out:
 u8 trailerIndex;
 
 for (trailerIndex = 0; trailerIndex < MEMORY_PRIMITIVE_TRAILER_BYTES; trailerIndex++) {
-    Gpu_PrimHeapBase[Gpu_PrimHeapSize - trailerIndex - 1] = 0;
+    gGpuPrimitiveBufferBase[gGpuPrimitiveBufferBytes - trailerIndex - 1] = 0;
 }
 ```
 
@@ -20869,7 +20869,7 @@ GCC 2.8.1 merges the two call sites into one `jal` (the fixed-size arm jumps
 with `a0` already set). A single shared site via `goto do_malloc` or a flag
 keeps the control flow but reloads `%hi` into `$v0`/`$v1` after the call
 instead of pinning it in `$s0` from the zeroing store. `cdCmdReservePlaybackBuffers` /
-`D_8006AC00` is the pure example.
+`_gCdCmdMovieWorkspace` is the pure example.
 
 ## An argument setup written twice around one shared `jal` means two call sites
 
@@ -22009,7 +22009,7 @@ tmp = 2;
 p->state = tmp; /* QI store of SI temp — no hoist */
 ```
 
-`_sndScriptTickSlots` is the pure example (`SndScript_Slots` state machine, `state` values
+`_sndScriptTickSlots` is the pure example (`_gSndScriptInstances` state machine, `state` values
 `SOUND_SCRIPT_STARTING`, `RUNNING`, `STOPPING`, `MUTING`, `UNMUTING`, `RELEASING` and `FADING_OUT`).
 
 ## `*(volatile u8*)&field` forces lbu+sll24+sra24 sign-extend
@@ -22331,7 +22331,7 @@ Making *both* volatile keeps the body order correct but parks `lui` after
 
 ## Handwritten light setup: SetColorMatrix + ldbkdir + transpose MulMatrix0
 
-`_tmdDrawModel` loads `model->colorMtx` (color MATRIX, often `D_80074080`) with
+`_tmdDrawModel` loads `model->colorMtx` (color MATRIX, often `gGfxDefaultColorMatrix`) with
 `gte_SetColorMatrix`, then ambient from `t[]` via `gte_ldbkdir(t[0],t[1],t[2])`
 (not `gte_SetBackColor` — no `<<4`). It then transpose-copies `gGfxViewCoord.workm` into
 scratch (same `t4/t5/t6` halfword pattern as `_gfxTransposeRotation`), `gte_SetRotMatrix`
@@ -22615,8 +22615,8 @@ Pinning `register T* p asm("v1"); p = GlobalArray;` often yields
 `lui v1,%hi; addiu v1,v1,%lo`. The target wants the high half in `$v0`:
 
 ```
-lui   v0, %hi(SndScript_Slots)
-addiu v1, v0, %lo(SndScript_Slots)
+lui   v0, %hi(_gSndScriptInstances)
+addiu v1, v0, %lo(_gSndScriptInstances)
 ```
 
 Force that pair with a short asm (do **not** over-pin path-local constants in
@@ -22628,14 +22628,14 @@ register _SndScript* p asm("v1");
 {
     register s32 hi asm("v0");
     __asm__ volatile(
-        "lui %0, %%hi(SndScript_Slots)\n\t"
-        "addiu %1, %0, %%lo(SndScript_Slots)"
+        "lui %0, %%hi(_gSndScriptInstances)\n\t"
+        "addiu %1, %0, %%lo(_gSndScriptInstances)"
         : "=&r"(hi), "=r"(p));
 }
 ```
 
 `sndScriptStopMatching` is the pure example. Pair with unpinned locals for the mask /
-status constants so the case-2 `beq` can still put `lui %hi(D_80082748)` in its
+status constants so the case-2 `beq` can still put `lui %hi(_gSndScriptMasterVolume)` in its
 delay slot.
 
 
@@ -28380,7 +28380,7 @@ textDrawUiLines(object, x, y, text, colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT
 task->killCountdown--;
 if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
     if ((task->killCountdown <= 0) ||
-        (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+        (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0)) {
         object->result      = USER_INTERFACE_RESULT_CONFIRM;
         task->killCountdown = ITEM_MENU_TIMED_DIALOG_ACCEPTED_TICKS;
     } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
@@ -41099,9 +41099,9 @@ rotate with the `poly[1]` giv.
 
 ## Nested `a0`/`v0` temps so a pinned dest does not eat `lui 0x7FFF`
 
-Pinning `flag` to `$s4` makes `flag = D_80071210 & GRAPHICS_COORD_STAMP_MASK` load the mask
+Pinning `flag` to `$s4` makes `flag = gActorRenderCoordPassCounter & GRAPHICS_COORD_STAMP_MASK` load the mask
 straight into `$s4` (`lui s4, 0x7fff`) and the BSS word into the other pinned
-dest (`lw s6, D_80071210`). The target keeps the mask in `$a0` and the load in
+dest (`lw s6, gActorRenderCoordPassCounter`). The target keeps the mask in `$a0` and the load in
 `$v0`, then `and s4, v0, a0`. Compute both in a nested block whose temps are
 pinned to those scratch regs:
 
@@ -41111,7 +41111,7 @@ register s32 flag asm("s4");
     register s32 tmp asm("v0");
     register s32 mask asm("a0");
     mask = GRAPHICS_COORD_STAMP_MASK;
-    tmp  = D_80071210;
+    tmp  = gActorRenderCoordPassCounter;
     flag = tmp & mask;
     bit  = tmp & 1;
 }
@@ -65669,7 +65669,7 @@ the declared `u16` global against `-1U` removes the target's comparison.
 ## sndScriptKeyOffType1AndArea: split branch-local type checks to constrain delay slots
 
 The minimally typed seed scored 86.615%. Replacing its explicit walking
-`_SndScript*` with the sibling pattern `script = &SndScript_Slots[slotIndex]` inside a
+`_SndScript*` with the sibling pattern `script = &_gSndScriptInstances[slotIndex]` inside a
 `for` loop, and duplicating the status/ID stores instead of the m2c shared-tail
 `goto`, reached 97.954%. These edits were tested together. The baseline
 `.loop` dump had strength-reduced `script + 0x16` into an extra walking pointer;
@@ -65724,7 +65724,7 @@ or barriers; inverting case 5's condition alone produced identical code.
 
 Both jump tables belong in loadui's generated `.rodata`: the five-entry table
 at file offset 0x46E8, four bytes of compiler alignment, and the six-entry
-table at 0x4700. Extend that subsegment through 0x4718 and keep D_80013F18 in
+table at 0x4700. Extend that subsegment through 0x4718 and keep _gMidiSavedMusicVolumes in
 its existing raw-rodata unit. An explicit pad subsegment between the tables
 would split a single compiler-generated section.
 
@@ -67196,7 +67196,7 @@ quantity whose span is decided before that deletion. sched1 is a reverse list
 scheduler that breaks priority ties by original insn order, so the `lui`
 lands at the block top and the `lo_sum` at the bottom only when the
 assignment has the lowest LUID in the block; the span then covers everything,
-the quantity ranks last, and the `Pad_RemapState` load / `lb` chain keeps
+the quantity ranks last, and the `gGameDebugState` load / `lb` chain keeps
 `v0` with `lui v1,%hi(gPlayerStatus)` in the delay slot. With the assignment
 after the other prologue statements (or behind a `SCHED_BARRIER`), the
 high/low pair is adjacent, ranks first, and steals `v0`.
@@ -132966,7 +132966,7 @@ re-derived with either address written as a literal emits `lui`/`addiu` and
 stops matching.
 
 The aux heap has a selected base/size pair, `gMemActiveAuxHeap` and
-`GActiveAuxHeapSize`, plus saved pairs for the configured auxiliary region and
+`gMemActiveAuxHeapBytes`, plus saved pairs for the configured auxiliary region and
 the whole image-memory region. `memSelectAuxHeapRegion` copies either saved pair
 into the selected pair. The whole region starts at the memory reserved for
 image data, not the game's primary heap, which is a fixed region lower in RAM —

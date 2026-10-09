@@ -325,7 +325,7 @@ void itemMenuDrawPeCommandRow(UiList* list, UiObject* object)
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (attachmentIsTrainingMode() != 0) {
             list->actionResult = USER_INTERFACE_LIST_ACTION_SKIP_ROW;
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             object->resultValue = ITEM_MENU_COMMAND_PARASITE_ENERGY;
             object->result      = USER_INTERFACE_RESULT_CONFIRM;
@@ -361,7 +361,7 @@ void itemMenuDrawOptionsCommandRow(UiList* list, UiObject* object)
     }
 
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             commandReceiver = object->owner->spawnArg2.pointer;
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             commandReceiver->resultValue = ITEM_MENU_COMMAND_OPTIONS;
@@ -387,7 +387,7 @@ void itemMenuDrawExitCommandRow(UiList* list, UiObject* object)
     }
 
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             object->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }
@@ -563,7 +563,7 @@ static UiObject* _itemMenuOpenCommandPopup(UiList* list, UiObject* parent, Inven
 
     popup         = NULL;
     Gp_SelItemRec = selectedRow;
-    if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm)) {
+    if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask)) {
         sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
         popup = uiSpawnObject(&D_8010EAB4[ITEM_MENU_COMMAND_POPUP_DESCRIPTOR], commandMode, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_COMMAND_POPUP_OPEN_DELAY_TICKS, parent);
         if (popup != NULL) {
@@ -667,7 +667,7 @@ void itemMenuDrawSortRow(UiList* list, UiObject* object)
         }
     }
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             inventorySortItems(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, 1);
         }
@@ -793,7 +793,7 @@ void itemMenuDrawKeyItemUseRow(UiList* list, UiObject* object)
     ITEM_MENU_PREPARE_COMMAND_TEXT(request, list, object, list->colorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_DRAW_OUTLINED);
     textDrawString(&request, (const u8*)Gp_StrUse);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             uiSpawnObject(&D_8010EAB4[ITEM_MENU_KEY_ITEM_USE_DESCRIPTOR], 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_KEY_ITEM_USE_OPEN_DELAY_TICKS, object);
             object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -958,7 +958,7 @@ void itemMenuDrawUseRow(UiList* list, UiObject* object)
     request.drawMode   = TEXT_DRAW_OUTLINED;
     textDrawString(&request, Gp_StrUse);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             _itemMenuOpenUsePanel(list, object);
             list->actionResult = USER_INTERFACE_LIST_ACTION_INPUT_CONSUMED;
@@ -979,7 +979,7 @@ void itemMenuDrawMoveRow(UiList* list, UiObject* object)
     request.drawMode   = TEXT_DRAW_OUTLINED;
     textDrawString(&request, Gp_StrMove);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             list->actionResult = USER_INTERFACE_LIST_ACTION_MOVE;
         }
@@ -997,7 +997,7 @@ void itemMenuDrawAttachmentExchangeRow(UiList* list, UiObject* object)
     ITEM_MENU_PREPARE_COMMAND_TEXT(request, list, object, list->colorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_DRAW_OUTLINED);
     textDrawString(&request, (const u8*)Gp_StrExchange);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             attachmentPicker = uiSpawnObject(&D_8010EAB4[ITEM_MENU_ATTACHMENT_PICKER_DESCRIPTOR], ITEM_MENU_ATTACHMENT_PICKER_KEEP_DISMISS, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ATTACHMENT_PICKER_OPEN_DELAY_TICKS, object);
             if (attachmentPicker != NULL) {
@@ -1036,7 +1036,7 @@ void itemMenuDrawOkRow(UiList* list, UiObject* object)
 {
     textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, (const u8*)Gp_StrOk, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             list->actionResult              = USER_INTERFACE_RESULT_CONFIRM;
             list->commandResult.signedValue = USER_INTERFACE_LIST_COMMAND_OK;
@@ -1048,7 +1048,7 @@ void itemMenuDrawCancelRow(UiList* list, UiObject* object)
 {
     textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, (const u8*)Gp_StrCancel, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             list->actionResult              = USER_INTERFACE_RESULT_CONFIRM;
             list->commandResult.signedValue = USER_INTERFACE_LIST_COMMAND_CANCEL;
@@ -1063,11 +1063,11 @@ void itemMenuDrawYesRow(UiList* list, UiObject* object)
     textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, (const u8*)Gp_StrYes, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     inputEnabled = list->rowInputEnabled;
     if (inputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             list->actionResult              = USER_INTERFACE_RESULT_CONFIRM;
             list->commandResult.signedValue = USER_INTERFACE_LIST_COMMAND_YES;
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
             list->navigationStep = inputEnabled;
             list->actionResult   = USER_INTERFACE_LIST_ACTION_SKIP_ROW;
@@ -1079,7 +1079,7 @@ void itemMenuDrawNoRow(UiList* list, UiObject* object)
 {
     textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, (const u8*)Gp_StrNo, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
             list->actionResult              = USER_INTERFACE_RESULT_CONFIRM;
             list->commandResult.signedValue = USER_INTERFACE_LIST_COMMAND_NO;
@@ -1204,7 +1204,7 @@ void menuMapNavigateTask(Task* mapTask)
         displaySetTaskDrawMode(DISPLAY_TASK_DRAW_CLEAR);
     }
     if (mapObject->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | PAD_BUTTON_SELECT) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask | PAD_BUTTON_SELECT) != 0) {
             mapObject->resultValue = ITEM_MENU_COMMAND_RETURN_FROM_MAP;
             _menuMapBeginClosing(mapTask, mapObject, USER_INTERFACE_RESULT_CONFIRM);
             return;
@@ -2050,7 +2050,7 @@ void menuMapHelpTask(Task* task)
             textDrawUiLines(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + MENU_MAP_HELP_TEXT_TOP_PIXELS, fsGetChunkPayload(), ITEM_MENU_TEXT_COLOR_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
             panelControl = object->panel.control.word;
             if (panelControl == USER_INTERFACE_PANEL_ACTIVE) {
-                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | PAD_BUTTON_TRIANGLE) != 0) {
+                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask | PAD_BUTTON_TRIANGLE) != 0) {
                     object->resultValue = panelControl;
                     object->result      = USER_INTERFACE_RESULT_CONFIRM;
                     sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
@@ -2130,7 +2130,7 @@ void menuMapOpenTask(Task* mapTask)
         textureStrip.y = 0;
         textureStrip.h = MENU_MAP_TEXTURE_STRIP_HEIGHT_PIXELS;
         displaySetTaskDrawMode(DISPLAY_TASK_DRAW_CLEAR);
-        StoreImage2(&textureStrip, (u_long*)(Gpu_PrimHeapBase - sizeof(FsImgBuffers)));
+        StoreImage2(&textureStrip, (u_long*)(gGpuPrimitiveBufferBase - sizeof(FsImgBuffers)));
     }
     menuMapRebuildMarkedAreaBits();
     session    = gGameSession;
@@ -2194,7 +2194,7 @@ void menuMapCloseTask(Task* mapTask)
             textureStrip.h = MENU_MAP_TEXTURE_STRIP_HEIGHT_PIXELS;
             // Restore the room image first, then the strip displaced by map textures.
             loadingUploadCachedViewImage();
-            LoadImage2(&textureStrip, (u_long*)(Gpu_PrimHeapBase - sizeof(FsImgBuffers)));
+            LoadImage2(&textureStrip, (u_long*)(gGpuPrimitiveBufferBase - sizeof(FsImgBuffers)));
         }
         mapTask->spawnArg1.value += MENU_MAP_RESTORE_COMPLETE;
     } else if (mapTask->killCountdown >= MENU_MAP_LAST_DRAW_COUNTDOWN) {
@@ -2251,7 +2251,7 @@ static u8 _menuMapSelectCurrentAreaPage(void)
 /// Zero saves and selects clear drawing; every nonzero `restore` restores.
 /// Keeping room graphics suppresses both operations. Otherwise the caller must
 /// provide the word-aligned captured-frame workspace immediately before
-/// `Gpu_PrimHeapBase`; the first 0x10000 bytes hold the 128x256 strip. Keep that
+/// `gGpuPrimitiveBufferBase`; the first 0x10000 bytes hold the 128x256 strip. Keep that
 /// backup and the primitive heap base intact until restoration, and ensure GPU
 /// transfers can use the storage. Restoring borrows the retained current-view
 /// image and retries its upload through `loadingUploadCachedViewImage`.
@@ -2269,10 +2269,10 @@ static void _menuMapTransferTextureStrip(u8 restore)
     textureStrip.y = 0;
     if (restore == 0) {
         displaySetTaskDrawMode(DISPLAY_TASK_DRAW_CLEAR);
-        StoreImage2(&textureStrip, (u_long*)(Gpu_PrimHeapBase - sizeof(FsImgBuffers)));
+        StoreImage2(&textureStrip, (u_long*)(gGpuPrimitiveBufferBase - sizeof(FsImgBuffers)));
     } else {
         loadingUploadCachedViewImage();
-        LoadImage2(&textureStrip, (u_long*)(Gpu_PrimHeapBase - sizeof(FsImgBuffers)));
+        LoadImage2(&textureStrip, (u_long*)(gGpuPrimitiveBufferBase - sizeof(FsImgBuffers)));
     }
 }
 
@@ -2333,7 +2333,7 @@ void itemMenuItemCommandTask(Task* task)
     }
     uiUpdateList(list, &object->panel);
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
             object->result = USER_INTERFACE_RESULT_CONFIRM;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
@@ -2371,7 +2371,7 @@ void itemMenuDrawPeUpgradeRow(UiList* list, UiObject* object)
         textDrawString(&request, (const u8*)Gp_StrRevive);
     }
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             noticeId = ITEM_MENU_NOTICE_NONE;
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             if ((abilityId & ATTACHMENT_MENU_LEVEL_MASK) == ITEM_MENU_PE_MAX_LEVEL) {
@@ -2422,7 +2422,7 @@ void itemMenuPeCommandTask(Task* task)
     }
     uiUpdateList(list, &object->panel);
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
             object->result = USER_INTERFACE_RESULT_CONFIRM;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
@@ -2590,7 +2590,7 @@ void itemMenuDrawPeAbilityRow(UiList* list, UiObject* object)
     }
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         itemMenuSetPreviewItem(abilityId, CD_COMMAND_DISPLAY_LOAD_MENU);
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             activeMode  = USER_INTERFACE_PANEL_ACTIVE;
             childObject = uiSpawnObject(&D_8010F670, abilityId, activeMode, activeMode, object);
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
@@ -2661,7 +2661,7 @@ void itemMenuPeElementTask(Task* task)
     // Transfer focus around the four siblings, clamping horizontal row selection.
     uiUpdateList(list, &object->panel);
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
             object->result = USER_INTERFACE_RESULT_CONFIRM;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
@@ -2797,7 +2797,7 @@ void itemMenuNoticeTask(Task* task)
 
     task->killCountdown--;
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if ((task->killCountdown <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+        if ((task->killCountdown <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0)) {
             object->result      = USER_INTERFACE_RESULT_CONFIRM;
             task->killCountdown = ITEM_MENU_NOTICE_ACCEPTED_TICKS;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
@@ -3282,7 +3282,7 @@ void itemMenuHotspotCommandTask(Task* task)
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
             object->result = USER_INTERFACE_RESULT_CANCEL;
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
             object->result = USER_INTERFACE_RESULT_CONFIRM;
         }
@@ -3671,7 +3671,7 @@ void itemMenuDrawUseAttachCommandRow(UiList* list, UiObject* object)
     }
 
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             object->resultValue = ITEM_MENU_COMMAND_USE_ATTACH;
             object->result      = USER_INTERFACE_RESULT_CONFIRM;
@@ -3703,7 +3703,7 @@ void itemMenuDrawKeyItemCommandRow(UiList* list, UiObject* object)
     }
 
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             object->resultValue = ITEM_MENU_COMMAND_KEY_ITEMS;
             object->result      = USER_INTERFACE_RESULT_CONFIRM;
@@ -3745,7 +3745,7 @@ void itemMenuDrawPeCancelRow(UiList* list, UiObject* object)
     request.drawMode   = TEXT_DRAW_OUTLINED;
     textDrawString(&request, Gp_StrCancel2);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             object->result = USER_INTERFACE_RESULT_CONFIRM;
         }
@@ -3770,7 +3770,7 @@ void itemMenuDrawMapCommandRow(UiList* list, UiObject* object)
     }
 
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             object->resultValue = ITEM_MENU_COMMAND_MAP;
             object->result      = USER_INTERFACE_RESULT_CONFIRM;
@@ -3791,7 +3791,7 @@ void itemMenuDrawDiscardRow(UiList* list, UiObject* object)
     request.drawMode   = TEXT_DRAW_OUTLINED;
     textDrawString(&request, Gp_StrDiscard2);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             uiSpawnObject(&D_8010F6FC, 0, USER_INTERFACE_PANEL_ACTIVE, 1, object);
             object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -3811,7 +3811,7 @@ static inline void _itemMenuTickTimedDialogInput(UiObject* object, Task* task)
 {
     task->killCountdown--;
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if ((task->killCountdown <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+        if ((task->killCountdown <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0)) {
             object->result      = USER_INTERFACE_RESULT_CONFIRM;
             task->killCountdown = ITEM_MENU_TIMED_DIALOG_ACCEPTED_TICKS;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
@@ -3914,7 +3914,7 @@ void itemMenuPeSpecificationsTask(Task* task)
         textDrawUiLines(object, object->panel.contentLeft.signedValue + 2, 0x14, text, ITEM_MENU_TEXT_COLOR_RGB, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
     }
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel | PAD_BUTTON_TRIANGLE) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask | PAD_BUTTON_TRIANGLE) != 0) {
             object->result = USER_INTERFACE_RESULT_CONFIRM;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
             object->result = USER_INTERFACE_RESULT_CANCEL;
@@ -3937,7 +3937,7 @@ void itemMenuDrawHotspotActionRow(UiList* list, UiObject* object)
     textDrawString(&request, label);
     rowInputEnabled = list->rowInputEnabled;
     if (rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             D_80114E88     = rowInputEnabled;
             object->result = USER_INTERFACE_RESULT_CONFIRM;
@@ -3954,7 +3954,7 @@ void itemMenuDrawHotspotItemRow(UiList* list, UiObject* object)
     ITEM_MENU_PREPARE_COMMAND_TEXT(request, list, object, list->colorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_DRAW_OUTLINED);
     textDrawString(&request, (const u8*)Gp_StrItem2);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             uiSpawnObject(&D_8010EAB4[ITEM_MENU_HOTSPOT_ITEM_PANEL_DESCRIPTOR], 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_HOTSPOT_ITEM_OPEN_DELAY_TICKS, object);
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             uiStartPanelHiding(object, object->owner);

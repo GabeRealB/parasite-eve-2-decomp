@@ -6,7 +6,6 @@
 
 #include "types.h"
 
-#include "main/game_debug_types.h"
 #include "main/pad_types.h"
 
 /// Persistent processed input, controller setup and vibration state for ports 0 and 1.
@@ -18,15 +17,19 @@
 /// including across overlay loads; consumers may clear pressed-button bits.
 extern PadState gPadStates[PAD_PORT_COUNT];
 
-extern GameDebugState* Pad_RemapState;
+/// Resident active-high button mask for confirming UI choices (Cross, 0x40).
+///
+/// Used with the pad query's selected sample; the mask does not itself select
+/// pressed versus held input. The current program initializes it once.
+extern s32 gPadConfirmButtonMask;
 
-// Button masks checked with padCheckButtons: confirm (0x40), cancel
-// (0xA0) and menu-open (0x900). Gp_PadSuppressMask masks out 0x900
-// exactly while the in-game menu is locked.
-extern s32 Pad_MaskConfirm;
+/// Resident active-high button mask for cancelling UI choices (Circle or Square, 0xA0).
+///
+/// Either button can cancel when queried with PAD_BUTTON_QUERY_PRESSED.
+/// The current program initializes this combined mask once.
+extern s32 gPadCancelButtonMask;
 
-extern s32 Pad_MaskCancel;
-
+// Menu-open mask (0x900); suppressed exactly while the in-game menu is locked.
 extern s32 Pad_MaskMenu;
 
 /// Tests the stored Start-button press on controller port 0.

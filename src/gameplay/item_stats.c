@@ -673,7 +673,7 @@ void itemMenuInfoTask(Task* task)
         }
         _itemMenuDrawUnmarkedItemRowIntoRequest(object, &labelRequest, 2, object->panel.contentTop.signedValue + 0xF, ITEM_MENU_PANEL_TEXT_COLOR, itemId);
         if ((object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (cdCmdIsIdle())) {
-            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskConfirm | PAD_BUTTON_TRIANGLE) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask | gPadConfirmButtonMask | PAD_BUTTON_TRIANGLE) != 0) {
                 if (!(task->spawnArg1.value & ITEM_MENU_INFO_NEXT_REPLAY)) {
                     sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
                 }
@@ -750,7 +750,7 @@ void itemMenuUseKeyItemTask(Task* task)
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
                 object->result = USER_INTERFACE_RESULT_CANCEL;
             } else if ((task->killCountdown <= 0) ||
-                       (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+                       (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0)) {
                 if (task->spawnArg1.value == ITEM_MENU_KEY_ITEM_USE_REFUSED_ID) {
                     if (gGameSession->cutsceneHold == 1) {
                         object->result = USER_INTERFACE_RESULT_CONFIRM;
@@ -786,7 +786,7 @@ void itemMenuKeyItemCommandTask(Task* task)
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
             object->result = USER_INTERFACE_RESULT_CANCEL;
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
             object->result = USER_INTERFACE_RESULT_CONFIRM;
         }
@@ -900,7 +900,7 @@ void itemMenuDrawCollectedItemRow(UiList* list, UiObject* object)
 
     rowInputEnabled = list->rowInputEnabled;
     if (rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             if (gGameSession->cutsceneHold == rowInputEnabled) {
                 uiSpawnObject(&D_8010EAB4[ITEM_MENU_COLLECTED_USE_NOTICE_PANEL], 0, USER_INTERFACE_PANEL_ACTIVE, 1, object);
@@ -981,7 +981,7 @@ void itemMenuCollectedItemsTask(Task* task)
             if (object->result == USER_INTERFACE_RESULT_NONE) {
                 if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
                     object->result = USER_INTERFACE_RESULT_CANCEL;
-                } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
+                } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
                     if (gGameSession->cutsceneHold == 1) {
                         sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
                         object->result = USER_INTERFACE_RESULT_CANCEL;

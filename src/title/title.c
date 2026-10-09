@@ -454,7 +454,7 @@ static void _titleUpdateScreenTask(Task* task)
             if (work->selection < 0) {
                 work->selection += work->menuCount;
             }
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | PAD_BUTTON_START) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | PAD_BUTTON_START) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             taskSpawn(TITLE_RESIDENT_TASK_BANK, Title_MenuSpawnIds[work->selection], 0, 0);
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
@@ -468,7 +468,7 @@ static void _titleUpdateScreenTask(Task* task)
         _titleDrawChromeRow(TITLE_CHROME_PROMPT_Y - (TITLE_SCREEN_FADE_FULL - work->promptFade) / TITLE_SCREEN_BRIGHTNESS_PER_PIXEL,
                             TITLE_CHROME_ATLAS_V_PROMPT, work->promptFade);
         _titleDrawChromeRow(TITLE_CHROME_COPYRIGHT_Y, TITLE_CHROME_ATLAS_V_COPYRIGHT, TITLE_SCREEN_FADE_FULL);
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | PAD_BUTTON_START) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | PAD_BUTTON_START) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             work->idleFrames = 0;
             task->state++;

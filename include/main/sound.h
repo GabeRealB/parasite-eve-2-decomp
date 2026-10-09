@@ -13,6 +13,15 @@ extern s16 D_800820E4;
 
 extern s16 D_800820E6;
 
+/// Last music gain selected from the saved option or an explicit override.
+///
+/// Stores the full unsigned 16-bit level before event admission, even when
+/// the queue is full. Saved options produce 100, 64, 32 or 0; an override
+/// retains all sixteen bits, while MIDI requests consume only the low byte
+/// (0..127 gain, high bit set requests 127). Event-script fades snapshot this
+/// value. It is a requested level, not proof of the audible sequence gain.
+extern u16 gMidiMusicVolume;
+
 /// Selects the saved music-volume option instead of an explicit gain override.
 enum { MIDI_MUSIC_VOLUME_SAVED = 0 };
 
@@ -23,7 +32,7 @@ enum { MIDI_MUSIC_VOLUME_SAVED = 0 };
 /// to gains 100, 64, 32, 0. Otherwise only its low byte is sent: 0..127 is
 /// sequence gain (127 full), and a byte with bit 7 set requests 127.
 /// A nonzero override with a zero low byte requests silence. The level is
-/// cached as a signed halfword for event-script fades, even if the gain request
+/// cached in `gMidiMusicVolume` for event-script fades, even if the gain request
 /// fails. An explicit override leaves the music mute gate alone.
 ///
 /// Saved option 3 enables the mute gate; other options release it. This happens

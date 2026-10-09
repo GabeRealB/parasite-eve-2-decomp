@@ -40,7 +40,7 @@ rand = 0x80037164; // type:func absolute:True
 
 // Title C aliases / overlay-only refs (VRAM == name).
 Fs_ActorLoadBase2 = 0x8005C374; // absolute:True
-Pad_MaskConfirm = 0x8005ED70; // absolute:True
+gPadConfirmButtonMask = 0x8005ED70; // absolute:True
 gGpuPrimCursor = 0x80071190; // absolute:True
 gGameFlagNibbleBanks = 0x80073980; // absolute:True
 func_807246B4 = 0x807246B4; // type:func absolute:True

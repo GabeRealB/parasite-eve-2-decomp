@@ -16,7 +16,6 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
-#include "main/sound.h"
 #include "sound.h"
 #include "main/stage.h"
 #include "main/task.h"
@@ -44,12 +43,12 @@ static u8 D_8007A393;
 
 u8 D_8007A394;
 
-s16 D_8007A396;
+u16 gMidiMusicVolume;
 
 #include "main/loadui.h"
+#include "main/sound.h"
 
-/// Music volume for each of the four volume settings, loudest first.
-static const _SndMusicVolumeTable D_80013F18;
+static const _SndMusicVolumeTable _gMidiSavedMusicVolumes;
 
 static void _loadUiDrawDiskSwapMessage(void);
 
@@ -63,8 +62,6 @@ enum {
     LOAD_UI_DISK_SWAP_REJECTION_POLLS  = 128,
     LOAD_UI_DISK_SWAP_RESTORE_PROMPT   = 0x8000,
 };
-
-static const _SndMusicVolumeTable D_80013F18;
 
 u8       D_800626E8    = 0;
 TaskDesc D_800626EC[6] = {
@@ -381,38 +378,40 @@ void midiApplyMusicVolume(u16 volumeOverride)
     /// and the local `savedVolume` temporary. Expands to a compound statement.
 #define MIDI_APPLY_SAVED_MUSIC_VOLUME(table)                                                                                              \
     {                                                                                                                                     \
-        savedVolume = (table).volumes[(u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume];                                          \
-        D_8007A396  = savedVolume;                                                                                                        \
+        savedVolume      = (table).volumes[(u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume];                                     \
+        gMidiMusicVolume = savedVolume;                                                                                                   \
         /* Change the gate before the selected gain; unmuting queues the cached gain. */                                                  \
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume == MIDI_MUSIC_SAVED_VOLUME_OFF) {                                        \
             midiMuteMusic();                                                                                                              \
         } else {                                                                                                                          \
             midiUnmuteMusic();                                                                                                            \
         }                                                                                                                                 \
-        if (gStageRoomSong != MIDI_MUSIC_ALL_SEQUENCES) {                                                                                 \
-            sndEvtRequestMidiVolume(gStageRoomSong, (u8)D_8007A396);                                                                      \
+        if (gStageRoomMusicSequence != MIDI_MUSIC_ALL_SEQUENCES) {                                                                        \
+            sndEvtRequestMidiVolume(gStageRoomMusicSequence, (u8)gMidiMusicVolume);                                                       \
         } else {                                                                                                                          \
             sndEvtRequestMidiVolume(MIDI_MUSIC_ALL_SEQUENCES, (table).volumes[(u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume]); \
         }                                                                                                                                 \
     }
 
-    volumeTable = D_80013F18;
+    volumeTable = _gMidiSavedMusicVolumes;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode == SOUND_OUTPUT_SAVED_STEREO) {
         sndOutputSetStereo(SOUND_OUTPUT_STEREO);
     } else {
         sndOutputSetStereo(SOUND_OUTPUT_MONO);
     }
     if (volumeOverride != MIDI_MUSIC_VOLUME_SAVED) {
-        D_8007A396 = volumeOverride;
-        if (gStageRoomSong != MIDI_MUSIC_ALL_SEQUENCES) {
-            sndEvtRequestMidiVolume(gStageRoomSong, (u8)D_8007A396);
+        gMidiMusicVolume = volumeOverride;
+        if (gStageRoomMusicSequence != MIDI_MUSIC_ALL_SEQUENCES) {
+            sndEvtRequestMidiVolume(gStageRoomMusicSequence, (u8)gMidiMusicVolume);
         } else {
-            sndEvtRequestMidiVolume(MIDI_MUSIC_ALL_SEQUENCES, (u8)D_8007A396);
+            sndEvtRequestMidiVolume(MIDI_MUSIC_ALL_SEQUENCES, (u8)gMidiMusicVolume);
         }
     } else
         MIDI_APPLY_SAVED_MUSIC_VOLUME(volumeTable);
 #undef MIDI_APPLY_SAVED_MUSIC_VOLUME
 }
 
-/// Music volume for each of the four volume settings, loudest first.
-static const _SndMusicVolumeTable D_80013F18 = { { 100, 64, 32, 0 } };
+/// MIDI gain for each saved music-volume option (0 loudest, 1 medium, 2 low, 3 off).
+///
+/// The four bytes are copied together into the music-volume setter's local table.
+static const _SndMusicVolumeTable _gMidiSavedMusicVolumes = { { 100, 64, 32, 0 } };

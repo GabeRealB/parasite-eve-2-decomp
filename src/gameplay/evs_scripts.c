@@ -696,7 +696,7 @@ void evsMusicVolumeFadeTask(Task* task)
                 D_8010FBE4 = NULL;
             } else {
                 D_801156C2 = 0;
-                D_801156C0 = D_8007A396;
+                D_801156C0 = gMidiMusicVolume;
             }
             task->state++;
             break;

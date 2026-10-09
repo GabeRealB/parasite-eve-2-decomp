@@ -510,7 +510,7 @@ u8 D_mist_r18_80184EA8[60] = {
     0,
 };
 
-TextStream D_mist_r18_80184EE4 = { -150, -90, 704, 48, 16, 260, 1, 0, D_mist_r18_80184EA8, Caption_Glyphs, 13, 45, 216, 29 };
+TextStream D_mist_r18_80184EE4 = { -150, -90, 704, 48, 16, 260, 1, 0, D_mist_r18_80184EA8, gTextCaptionGlyphCells, 13, 45, 216, 29 };
 
 TaskDesc D_mist_r18_80184F04[8] = {
     { { { TASK_BODY_TMD, 192 } }, _mistR18AttachedModelTask, { .model = &_gMistR18Actor213000Model072AC } },

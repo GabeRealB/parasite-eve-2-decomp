@@ -46,7 +46,7 @@ static void _jukeboxDrawRow(UiList* list, UiObject* object)
 
     rowInputEnabled = list->rowInputEnabled;
     if (rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             if (object->owner->spawnArg1.value != list->currentItemIndex) {
                 sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
                 if (object->owner->status != track->sequenceId) {

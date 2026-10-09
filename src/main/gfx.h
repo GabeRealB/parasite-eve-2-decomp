@@ -6,8 +6,13 @@
 
 #include "types.h"
 
-/// Color/light matrix written by _gfxSetDefaultFlatLight / _gfxSetDefaultAmbientColor.
-extern MATRIX D_80074080;
+/// Resident default directional-colour and ambient matrix borrowed by new TMD models.
+///
+/// The three columns of `m` describe the directional lights, with RGB channels
+/// in its rows and 16 units per RGB unit. `t` holds ambient RGB in raw GTE
+/// background-register units, also 16 units per RGB unit. Shared models observe
+/// later changes to this matrix; model-specific lighting can replace their pointer.
+extern MATRIX gGfxDefaultColorMatrix;
 
 /// Captures the displayed 320x240 16-bit frame in the area's RAM image slot.
 ///
@@ -60,7 +65,7 @@ void gfxResetView(void);
 ///
 /// Uses world-space directions (100,100,100), (20,-50,-100) and (-20,20,100),
 /// normalized and negated into `GsLIGHTWSMATRIX`. Their grayscale RGB bytes
-/// are 208, 128 and 96, scaled by 16 into `D_80074080`'s colour columns.
+/// are 208, 128 and 96, scaled by 16 into `gGfxDefaultColorMatrix`'s colour columns.
 /// Ambient RGB is 64 in raw GTE background-register units (4 RGB units).
 /// Direction-matrix translation and both matrices' alignment bytes are retained.
 ///

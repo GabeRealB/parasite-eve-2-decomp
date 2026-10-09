@@ -250,7 +250,7 @@ void itemMenuDrawAttachmentCandidateRow(UiList* list, UiObject* object)
         }
 
         if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
                 UiList*           armorSlots;
                 InventoryItemRow* rows;
                 s32               rowIndex;
@@ -295,7 +295,7 @@ void itemMenuDrawAttachmentCandidateRow(UiList* list, UiObject* object)
             textDrawString(&textRequest, Gp_StrRemoveArmor);
         }
         if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
                 s32 attachmentSlot;
                 s32 rowIndex;
                 s32 rowCount;
@@ -398,7 +398,7 @@ void itemMenuAttachmentItemPickerTask(Task* task)
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
             object->result = USER_INTERFACE_RESULT_CANCEL;
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
             object->result = USER_INTERFACE_RESULT_DISMISS;
         }

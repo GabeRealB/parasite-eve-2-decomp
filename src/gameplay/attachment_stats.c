@@ -32,6 +32,7 @@
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/mc.h"
+#include "main/game_debug.h"
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/text.h"
@@ -485,7 +486,7 @@ static void _hudDrawWeaponSupplyPrompt(s32 unusedPanelX, s32 unusedPanelY)
     // The load is read only after the equipped-weapon guard below.
     weaponLoad        = equipmentGetWeaponLoad(player->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1));
     secondaryQuantity = HUD_WEAPON_PROMPT_NO_SECONDARY_QUANTITY;
-    if (Pad_RemapState->hideHud != 0) {
+    if (gGameDebugState->hideHud != 0) {
         return;
     }
     if (capIsBusy() != 0) {
@@ -1465,11 +1466,11 @@ static void _attachmentUpdateAndDrawHud(HudState* hud)
     if ((Gp_StateC08.queuedIndex != 0 && actor->mode == GAME_ACTOR_MODE_SCRIPTED) || (Gp_StateC08.flags & ATTACHMENT_FLAG_EVENT_LOCK)) {
         Gp_StateC08.queuedIndex = 0;
     }
-    if ((hud->wheelTurn == 0 && padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, Pad_MaskConfirm) != 0) ||
+    if ((hud->wheelTurn == 0 && padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, gPadConfirmButtonMask) != 0) ||
         Gp_StateC08.queuedIndex != 0) {
         if (_attachmentIsBattleSoundLoadReady()) {
             pad                        = &gPadStates[0];
-            confirmButtons             = Pad_MaskConfirm;
+            confirmButtons             = gPadConfirmButtonMask;
             pad->pressedButtons       &= ~confirmButtons;
             gGameSession->padPressed  &= ~confirmButtons;
             gGameSession->padHeld     &= ~confirmButtons;

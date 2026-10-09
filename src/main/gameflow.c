@@ -90,6 +90,7 @@ static u8 D_80071600[0x20];
 
 PadState gPadStates[PAD_PORT_COUNT];
 
+#include "main/game_debug.h"
 #include "main/pad.h"
 
 /// Unreferenced.
@@ -140,10 +141,10 @@ enum {
 GameSession* gGameSession = &_gGameSessionState;
 s32          D_8005ED68   = 0;
 /// Unreferenced.
-static s32 D_8005ED6C      = 0x40;
-s32        Pad_MaskConfirm = 0x40;
-s32        Pad_MaskCancel  = 0xA0;
-s32        Pad_MaskMenu    = 0x900;
+static s32 D_8005ED6C            = 0x40;
+s32        gPadConfirmButtonMask = PAD_BUTTON_CROSS;
+s32        gPadCancelButtonMask  = PAD_BUTTON_CIRCLE | PAD_BUTTON_SQUARE;
+s32        Pad_MaskMenu          = 0x900;
 /// Unreferenced.
 static s32 D_8005ED7C = 0x10;
 /// Unreferenced.
@@ -839,13 +840,13 @@ void padUpdatePort0(void)
 
             // Diagnostic playback replaces the sampled word only during game presentation.
             if (port == 0) {
-                if (Pad_RemapState->inputOverrideMode != GAME_DEBUG_INPUT_OVERRIDE_NONE) {
+                if (gGameDebugState->inputOverrideMode != GAME_DEBUG_INPUT_OVERRIDE_NONE) {
                     if (display->displayOwner == DISPLAY_OWNER_GAME_LOOP) {
                         pad->stickAxes[PAD_STICK_RIGHT_Y] = 0;
                         pad->stickAxes[PAD_STICK_RIGHT_X] = 0;
                         pad->stickAxes[PAD_STICK_LEFT_Y]  = 0;
                         pad->stickAxes[PAD_STICK_LEFT_X]  = 0;
-                        gameDebugApplyInputOverride(Pad_RemapState->inputOverrideMode, &scratch->buttons);
+                        gameDebugApplyInputOverride(gGameDebugState->inputOverrideMode, &scratch->buttons);
                     }
                 }
             }

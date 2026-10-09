@@ -581,7 +581,7 @@ void itemMenuDrawWeaponChoiceRow(UiList* list, UiObject* object)
 
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         object->resultValue = weaponItemId;
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             if (object->owner->spawnArg1.value == 0) {
                 sndEvtRequestScriptStart(SOUND_WEAPON_EQUIP, 0, 0);
                 equipmentEquipCarriedWeapon(weaponItemId);
@@ -683,7 +683,7 @@ void itemMenuWeaponChoiceListTask(Task* task)
         if (object->panel.control.word == activeState) {
             if (padCheckButtons(0, activeState, Pad_MaskMenu) != 0) {
                 object->result = USER_INTERFACE_RESULT_CANCEL;
-            } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
+            } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
                 sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
                 object->result = USER_INTERFACE_RESULT_CONFIRM;
             }
@@ -718,7 +718,7 @@ void itemMenuWeaponChoiceListTask(Task* task)
         object->result = USER_INTERFACE_RESULT_CANCEL;
         return;
     }
-    if ((task->killCountdown == 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+    if ((task->killCountdown == 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0)) {
         object->result      = USER_INTERFACE_RESULT_DISMISS;
         task->killCountdown = ITEM_MENU_WEAPON_CHOICE_DISMISSED_TICKS;
     }
@@ -888,7 +888,7 @@ void itemMenuDrawConsumableChoiceRow(UiList* list, UiObject* object)
     }
 
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             uiSpawnObject(&D_8010EAB4[ITEM_MENU_RELOAD_NOTICE_PANEL], (weaponItemId << ITEM_MENU_RELOAD_WEAPON_SHIFT) | consumableItemId, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_CHOICE_CHILD_OPEN_DELAY_TICKS, object);
             object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         } else if ((padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) && (consumableItemId != 0)) {

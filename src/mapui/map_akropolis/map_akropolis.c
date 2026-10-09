@@ -229,7 +229,7 @@ static void _mapAkropolisDrawKeyItemRow(UiList* list, UiObject* object)
     }
     inputEnabled = list->rowInputEnabled;
     if (inputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             uiSpawnObject(&D_8010EAB4[MAP_AKROPOLIS_KEY_ITEM_DETAIL_DESCRIPTOR_INDEX], itemId, USER_INTERFACE_PANEL_ACTIVE, 1, object);
             object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -264,7 +264,7 @@ static void _mapAkropolisKeyItemPanelTask(Task* task)
         task->state          += 1;
     }
     uiUpdateList(list, &object->panel);
-    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu) != 0) {
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask | Pad_MaskMenu) != 0) {
         object->result = USER_INTERFACE_RESULT_CANCEL;
     }
     if (task->firstChild != NULL) {

@@ -7,8 +7,6 @@ extern u8 D_800626E8;
 
 extern u8 D_8007A394;
 
-extern s16 D_8007A396;
-
 /// Results of advancing the disk-swap prompt, retained as a byte.
 enum {
     LOAD_UI_DISK_SWAP_COMPLETE = 0,

@@ -408,7 +408,7 @@ void gpuInitTaskOrderingTables(void)
 void displayUseHeapTaskPrimitiveBuffer(void)
 {
     _gGpuDisplayPrimBufferBytes = MEMORY_PRIMITIVE_HEAP_BYTES;
-    _gGpuDisplayPrimBufferBase  = Gpu_PrimHeapBase;
+    _gGpuDisplayPrimBufferBase  = gGpuPrimitiveBufferBase;
 }
 
 void displayUseStaticTaskPrimitiveBuffer(void)

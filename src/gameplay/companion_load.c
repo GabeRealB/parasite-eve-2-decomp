@@ -24,6 +24,7 @@
 #include "main/gameflow.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/game_debug.h"
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/sound.h"
@@ -413,7 +414,7 @@ void loadingFinishSessionLoadTask(Task* task)
         // Retire loading before room startup can reuse its task storage.
         gpuClearFrameOrderingTable(0);
         gpuClearFrameOrderingTable(1);
-        Pad_RemapState->loadingActive = GAME_DEBUG_LOADING_IDLE;
+        gGameDebugState->loadingActive = GAME_DEBUG_LOADING_IDLE;
         taskKill(task);
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 0, 0)) {
             areaStartRoomRuntime(AREA_ROOM_START_SKIP_VIEW_GATE);

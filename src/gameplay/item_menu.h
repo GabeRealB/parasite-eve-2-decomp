@@ -706,7 +706,7 @@ void menuMapTask(Task* mapTask);
 /// advancing to state 1; the no-page marker consequently selects zero. Normal
 /// navigation requires a nonzero page. With keepGraphics zero, saves the
 /// 128x256 VRAM strip at (896,0) in the word-aligned captured-frame workspace
-/// before `Gpu_PrimHeapBase`. Its first 0x10000 bytes and the heap base must
+/// before `gGpuPrimitiveBufferBase`. Its first 0x10000 bytes and the heap base must
 /// remain intact until closing restores them. Requires CD request capacity;
 /// the page load completes asynchronously.
 void menuMapOpenTask(Task* mapTask);

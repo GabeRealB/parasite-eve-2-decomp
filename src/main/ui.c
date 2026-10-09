@@ -3224,13 +3224,13 @@ static void _uiDrawOptionDialogRow(UiList* list, UiObject* object)
     }
     textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, option->text, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             confirmResult       = USER_INTERFACE_RESULT_CONFIRM;
             object->resultValue = list->currentItemIndex + 1;
             object->result      = confirmResult;
             return;
         }
-        if ((request->flags & USER_INTERFACE_OPTION_DIALOG_CANCELLABLE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu) != 0)) {
+        if ((request->flags & USER_INTERFACE_OPTION_DIALOG_CANCELLABLE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask | Pad_MaskMenu) != 0)) {
             object->resultValue = USER_INTERFACE_RESULT_CANCEL;
             object->result      = USER_INTERFACE_RESULT_CANCEL;
         }

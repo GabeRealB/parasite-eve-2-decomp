@@ -5,13 +5,22 @@
 
 #include "types.h"
 
-extern u8* Gpu_PrimHeapBase;
+/// Base of the current byte arena for GPU primitives and frame presentation.
+///
+/// The main loop alternates between its two equal halves. Memory configuration
+/// or ending setup can replace the arena; previous GPU work must finish before
+/// its storage is repurposed. Packet formats vary, so the base is a byte view.
+extern u8* gGpuPrimitiveBufferBase;
 
-extern size_t Gpu_PrimHeapSize;
+/// Total primitive-arena capacity in bytes, including both frame halves.
+///
+/// Normally 0x10000; ending setup uses 0xB000. Memory configuration
+/// clears the last ten bytes as a trailer without reducing this recorded extent.
+extern size_t gGpuPrimitiveBufferBytes;
 
 /// Base of the RAM region selected for auxiliary allocations and image decoding.
 ///
-/// `GActiveAuxHeapSize` is its heap extent in bytes, including heap3 metadata.
+/// `gMemActiveAuxHeapBytes` is its heap extent in bytes, including heap3 metadata.
 /// Image-memory configuration normally selects storage after the GPU primitive
 /// reservation; `memSelectAuxHeapRegion` can select the whole image-memory region.
 /// This storage is separate from the fixed primary heap. Selecting a region
@@ -23,8 +32,12 @@ extern size_t Gpu_PrimHeapSize;
 /// the heap must be reinitialized after decoding before allocation resumes.
 extern void* gMemActiveAuxHeap;
 
-/// Length in bytes of the heap pointed to by `gMemActiveAuxHeap`.
-extern size_t GActiveAuxHeapSize;
+/// Byte extent of the currently selected auxiliary region, including heap3 metadata.
+///
+/// Paired with `gMemActiveAuxHeap`; zero is used for an empty captured-frame
+/// suffix. Configuration, saved-region selection and ending setup can replace
+/// it. It measures storage, not remaining free space or payload capacity.
+extern size_t gMemActiveAuxHeapBytes;
 
 /// Fills a writable memory region with the low byte of `value`.
 ///
@@ -48,7 +61,7 @@ void memInitHeaps(void);
 
 /// Initializes or resets the currently selected auxiliary heap3 region.
 ///
-/// Uses `gMemActiveAuxHeap` and its byte extent, `GActiveAuxHeapSize`, including
+/// Uses `gMemActiveAuxHeap` and its byte extent, `gMemActiveAuxHeapBytes`, including
 /// allocator metadata. For a non-null base and nonzero extent, the base must be
 /// word-aligned writable storage and the extent must be at least eight bytes.
 /// Heap3 rounds the extent down to eight-byte units, creates its free-block ring
@@ -140,7 +153,7 @@ void memFreeFromHeap(void* allocation, bool auxHeap);
 /// selector are examined; values other than zero or one leave the pair intact.
 ///
 /// The saved views must already be configured. Selection only copies the base
-/// and extent into `gMemActiveAuxHeap` and `GActiveAuxHeapSize`; it leaves heap3
+/// and extent into `gMemActiveAuxHeap` and `gMemActiveAuxHeapBytes`; it leaves heap3
 /// metadata and its search cursor untouched. Call `memInitAuxHeap` before using
 /// a newly selected nonempty region. Allocations and GPU/image data discarded by
 /// repurposing that storage must no longer be in use.

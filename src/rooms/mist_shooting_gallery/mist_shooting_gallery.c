@@ -1032,7 +1032,7 @@ static void _mistShootingGalleryWeaponRow(UiList* list, UiObject* object)
     }
     rowInputMode = list->rowInputEnabled;
     if (rowInputMode == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             carriedInventory = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
             equippedWeapon   = &gPlayerStatus.weapon;
             loadOptions      = &Gp_RelatedQty0.rows[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
@@ -1291,7 +1291,7 @@ static void _mistShootingGalleryResultPanelTask(Task* task)
 
     // Record a course reward once, then let the bonus child credit its BP.
     panelControl = object->panel.control.word;
-    if ((panelControl == USER_INTERFACE_PANEL_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+    if ((panelControl == USER_INTERFACE_PANEL_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0)) {
         bonusBp    = mistShootingGalleryGetBonusBp(totalScore);
         panelPhase = task->state;
         if (panelPhase == panelControl) {
@@ -1418,7 +1418,7 @@ static void _mistShootingGalleryBonusPanelTask(Task* task)
     bonusText.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
     textDrawString(&bonusText, textItoaSigned(numberText, mistShootingGalleryGetBonusBp(score)));
 
-    if ((object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+    if ((object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0)) {
         object->result = USER_INTERFACE_RESULT_CONFIRM;
     }
 }
@@ -1480,7 +1480,7 @@ static void _mistShootingGalleryModeSelectPanelTask(Task* task)
         task->state = task->state + 1;
     }
     uiUpdateList(list, &object->panel);
-    if ((object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0)) {
+    if ((object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0)) {
         sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
         object->result = USER_INTERFACE_RESULT_CONFIRM;
     }
@@ -2320,9 +2320,9 @@ static void _mistShootingGalleryJukeboxPanelTask(Task* task)
         } else {
             if (cdCmdIsIdle() & 0xFFFF) {
                 sndEvtRequestMidiStart(sequenceId, 0);
-                sndEvtRequestMidiVolume(sequenceId, (u8)D_8007A396);
-                sequenceStarted = 1;
-                gStageRoomSong  = sequenceId;
+                sndEvtRequestMidiVolume(sequenceId, (u8)gMidiMusicVolume);
+                sequenceStarted         = 1;
+                gStageRoomMusicSequence = sequenceId;
             } else {
                 sequenceStarted = 0;
             }
@@ -2339,7 +2339,7 @@ static void _mistShootingGalleryJukeboxPanelTask(Task* task)
         }
     }
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu | Pad_MaskCancel) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu | gPadCancelButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_SYSTEM_CANCEL, 0, 0);
             if (task->status != MIST_SHOOTING_GALLERY_JUKEBOX_TRAINING_UNSELECTED) {
                 if (task->status == MIST_SHOOTING_GALLERY_JUKEBOX_IDLE) {

@@ -649,7 +649,7 @@ TmdObject* tmdCreateModel(TmdSource* source, s32 bufferFlags)
         coord                    = model->coords;
         model->bufferHalfBytes   = source->bufferHalfBytes;
         model->lightMtx          = &GsLIGHTWSMATRIX;
-        model->colorMtx          = &D_80074080;
+        model->colorMtx          = &gGfxDefaultColorMatrix;
         model->texturePageOffset = 0;
         model->clutRowOffset     = 0;
         model->source            = source;

@@ -47,15 +47,7 @@ enum {
 
 static const char McText_Select[];
 
-static UiListRowCallback Mc_YesNoCallbacks[];
-
 static UiList Mc_YesNoList;
-
-static UiListRowCallback Mc_OkCallbacks[];
-
-static UiList Mc_OkList;
-
-static UiListRowCallback Mc_YesCallbacks[];
 
 static UiList Mc_YesList;
 
@@ -83,13 +75,31 @@ const char        McText_Exp[]         = "EXP";
 const char        McText_Unavailable[] = "---";
 const char        McText_Bp[]          = "BP";
 
-static UiListRowCallback Mc_YesNoCallbacks[] = { _mcMenuYesRow, _mcMenuNoRow };
-static UiList            Mc_YesNoList        = { Mc_YesNoCallbacks, 2, 2, 0, 0x0F };
-static UiListRowCallback Mc_OkCallbacks[]    = { _mcMenuOkRow };
-static UiList            Mc_OkList           = { Mc_OkCallbacks, 1, 1, 0, 0x0F };
-static UiListRowCallback Mc_YesCallbacks[]   = { _mcMenuCancelRow };
-static UiList            Mc_YesList          = { Mc_YesCallbacks, 1, 1, 0, 0x0F };
-UiObjectDesc             Mc_PromptDesc[]     = {
+/// Per-item callbacks for the memory-card prompt's Yes row followed by No.
+///
+/// Borrowed by the two-row prompt list for its resident lifetime.
+static UiListRowCallback _gMcMenuYesNoRowCallbacks[2] = { _mcMenuYesRow, _mcMenuNoRow };
+static UiList            Mc_YesNoList                 = { _gMcMenuYesNoRowCallbacks, 2, 2, 0, 0x0F };
+/// Single OK-row callback borrowed by the memory-card acknowledgement list.
+static UiListRowCallback _gMcMenuOkRowCallbacks[1] = { _mcMenuOkRow };
+/// Shared mutable one-row list for acknowledging memory-card notices with OK.
+///
+/// One visible row, clamped navigation and 15-pixel row spacing. Prompt setup
+/// resets selection and scrolling, then enables the system cursor sound.
+/// Only one prompt using this list may run at a time; the row publishes answer 1.
+static UiList _gMcMenuOkList = {
+    .rowCallbacks    = _gMcMenuOkRowCallbacks,
+    .itemCount       = ARRAY_SIZE(_gMcMenuOkRowCallbacks),
+    .visibleRowCount = { .unsignedValue = ARRAY_SIZE(_gMcMenuOkRowCallbacks) },
+    .wrapNavigation  = 0,
+    .rowHeight       = 15,
+};
+/// Single Cancel-row callback borrowed by the memory-card cancel-only prompt.
+///
+/// Confirming this row publishes answer 1; the parent owns prompt dismissal.
+static UiListRowCallback _gMcMenuCancelRowCallbacks[1] = { _mcMenuCancelRow };
+static UiList            Mc_YesList                    = { _gMcMenuCancelRowCallbacks, 1, 1, 0, 0x0F };
+UiObjectDesc             Mc_PromptDesc[]               = {
     { 0, { 0, 0, 0x4B, 0x20 }, 0x10, 0, TASK_BODY_NONE, 0xC0, _mcMenuUpdatePromptChoices, 0 },
 };
 
@@ -199,9 +209,9 @@ void mcMenuDrawSaveFileRow(UiList* list, UiObject* object)
     mcDrawFilePreview(object, work, directoryIndex, 0, list->rowTextY.signedValue + 7);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         // Saving may replace a corrupt file; acceptance does not require a valid preview.
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             _mcMenuPublishFileSelection(object, list, true, SOUND_SYSTEM_CONFIRM);
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
             _mcMenuPublishFileSelection(object, list, false, SOUND_SYSTEM_CANCEL);
         }
     }
@@ -293,9 +303,9 @@ static void _mcMenuYesRow(UiList* list, UiObject* object)
 {
     textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, McText_Yes, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             _mcMenuPublishAnswer(object, MEMORY_CARD_MENU_ANSWER_SELECTED, SOUND_SYSTEM_CONFIRM);
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
             // Cancel moves focus to No; a later input on that row publishes the answer.
             sndEvtRequestScriptStart(SOUND_SYSTEM_CURSOR, 0, 0);
             list->navigationStep = USER_INTERFACE_LIST_STEP_NEXT;
@@ -313,7 +323,7 @@ static void _mcMenuOkRow(UiList* list, UiObject* object)
 {
     textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, McText_Ok, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             _mcMenuPublishAnswer(object, MEMORY_CARD_MENU_ANSWER_SELECTED, SOUND_SYSTEM_CONFIRM);
         }
     }
@@ -329,7 +339,7 @@ static void _mcMenuCancelRow(UiList* list, UiObject* object)
 {
     textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, McText_Cancel, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             _mcMenuPublishAnswer(object, MEMORY_CARD_MENU_ANSWER_SELECTED, SOUND_SYSTEM_CANCEL);
         }
     }
@@ -344,7 +354,7 @@ static void _mcMenuNoRow(UiList* list, UiObject* object)
 {
     textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, McText_No, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0) {
             _mcMenuPublishAnswer(object, MEMORY_CARD_MENU_ANSWER_NO, SOUND_SYSTEM_CANCEL);
         }
     }
@@ -410,7 +420,7 @@ static void _mcMenuUpdatePromptChoices(Task* owningTask)
     promptObject = owningTask->spawnArg2.pointer;
     switch (promptMode) {
         case MEMORY_CARD_MENU_PROMPT_OK:
-            choiceList = &Mc_OkList;
+            choiceList = &_gMcMenuOkList;
             break;
         case MEMORY_CARD_MENU_PROMPT_CANCEL:
             choiceList = &Mc_YesList;

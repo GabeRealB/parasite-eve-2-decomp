@@ -2685,11 +2685,11 @@ static void _mcDrawLoadFileRow(UiList* list, UiObject* object)
     }
     mcDrawFilePreview(object, work, list->currentItemIndex, 0, list->rowTextY.signedValue + 7);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (previewValid && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm)) {
+        if (previewValid && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask)) {
             sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
             object->result      = USER_INTERFACE_RESULT_CONFIRM;
             object->resultValue = list->currentItemIndex;
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel)) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask)) {
             sndEvtRequestScriptStart(SOUND_SYSTEM_CANCEL, 0, 0);
             object->result      = USER_INTERFACE_RESULT_CONFIRM;
             object->resultValue = MEMORY_CARD_FILE_SELECTION_CANCELLED;

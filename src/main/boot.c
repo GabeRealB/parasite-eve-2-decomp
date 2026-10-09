@@ -38,25 +38,29 @@
 #include "title/title.h"
 
 /* Define BSS before API headers to preserve first-declaration order. */
-u8* GAuxHeap;
+void* gMemSavedAuxHeap;
 
-size_t GAuxHeapSize;
+size_t gMemSavedAuxHeapBytes;
 
-u8* Gpu_PrimHeapBase;
+u8* gGpuPrimitiveBufferBase;
 
 void* gMemActiveAuxHeap;
 
-size_t Gpu_PrimHeapSize;
+size_t gGpuPrimitiveBufferBytes;
 
-size_t GActiveAuxHeapSize;
+size_t gMemActiveAuxHeapBytes;
 
-static u8* Gpu_PrimHeapCanaryAddress;
+/// Saved start of the primitive reservation's ten zeroed trailer bytes.
+///
+/// Updated when image memory is configured. No reader or trailer check is
+/// established; ending setup can replace the arena without updating this pointer.
+static u8* _gMemPrimitiveTrailerStart;
 
 CdCmdQueue gCdCmdQueue;
 
-u8* Mem_AuxRegionBase;
+void* gMemSavedImageRegion;
 
-size_t Mem_AuxRegionBytes;
+size_t gMemSavedImageRegionBytes;
 
 #include "main/fs.h"
 #include "main/mem.h"
@@ -166,17 +170,17 @@ static __inline__ void _bootReleaseMovieRing(void)
 
 /// Clears the trailing ten bytes of the configured GPU primitive reservation.
 ///
-/// `Gpu_PrimHeapBase` must address `Gpu_PrimHeapSize` writable bytes, with
+/// `gGpuPrimitiveBufferBase` must address `gGpuPrimitiveBufferBytes` writable bytes, with
 /// at least `MEMORY_PRIMITIVE_TRAILER_BYTES` bytes in the region. Stores their
-/// start in `Gpu_PrimHeapCanaryAddress`, which has no reader in the game.
+/// start in `_gMemPrimitiveTrailerStart`, which has no reader in the game.
 static __inline__ void _memClearPrimitiveTrailer(void)
 {
     u8 trailerIndex;
 
     for (trailerIndex = 0; trailerIndex < MEMORY_PRIMITIVE_TRAILER_BYTES; trailerIndex++) {
-        Gpu_PrimHeapBase[Gpu_PrimHeapSize - trailerIndex - 1] = 0;
+        gGpuPrimitiveBufferBase[gGpuPrimitiveBufferBytes - trailerIndex - 1] = 0;
     }
-    Gpu_PrimHeapCanaryAddress = Gpu_PrimHeapBase + (Gpu_PrimHeapSize - MEMORY_PRIMITIVE_TRAILER_BYTES);
+    _gMemPrimitiveTrailerStart = gGpuPrimitiveBufferBase + (gGpuPrimitiveBufferBytes - MEMORY_PRIMITIVE_TRAILER_BYTES);
 }
 
 /// Configures the primitive and auxiliary heap views after an area's captured frame.
@@ -197,16 +201,16 @@ static __inline__ void _memConfigureCapturedFrameWorkspace(const GfxImageSlot* a
     u8* workspaceBase;
 
     // Save both the complete workspace and its auxiliary suffix for heap selection.
-    Gpu_PrimHeapSize   = MEMORY_PRIMITIVE_HEAP_BYTES;
-    GActiveAuxHeapSize = MEMORY_PRIMITIVE_HEAP_BYTES - auxHeapOffsetBytes;
-    Mem_AuxRegionBytes = MEMORY_PRIMITIVE_HEAP_BYTES;
-    GAuxHeapSize       = GActiveAuxHeapSize;
+    gGpuPrimitiveBufferBytes  = MEMORY_PRIMITIVE_HEAP_BYTES;
+    gMemActiveAuxHeapBytes    = MEMORY_PRIMITIVE_HEAP_BYTES - auxHeapOffsetBytes;
+    gMemSavedImageRegionBytes = MEMORY_PRIMITIVE_HEAP_BYTES;
+    gMemSavedAuxHeapBytes     = gMemActiveAuxHeapBytes;
 
-    workspaceBase     = areaSlot->regionBase + sizeof(FsImgBuffers);
-    Gpu_PrimHeapBase  = workspaceBase;
-    gMemActiveAuxHeap = workspaceBase + auxHeapOffsetBytes;
-    Mem_AuxRegionBase = workspaceBase;
-    GAuxHeap          = workspaceBase + auxHeapOffsetBytes;
+    workspaceBase           = areaSlot->regionBase + sizeof(FsImgBuffers);
+    gGpuPrimitiveBufferBase = workspaceBase;
+    gMemActiveAuxHeap       = workspaceBase + auxHeapOffsetBytes;
+    gMemSavedImageRegion    = workspaceBase;
+    gMemSavedAuxHeap        = workspaceBase + auxHeapOffsetBytes;
 }
 
 void memConfigureImageMemory(s32 stageId, s32 areaId)
@@ -216,23 +220,23 @@ void memConfigureImageMemory(s32 stageId, s32 areaId)
     areaSlots = Gfx_ImageSlotTables[stageId];
     // Initially keep the active heap below the resident image workspace.
     if ((gDisplayState.videoMode == DISPLAY_VIDEO_NORMAL) || (stageId == GAME_STAGE_NONE)) {
-        Mem_AuxRegionBase  = MEM_AUX_REGION_DEFAULT_BASE;
-        Mem_AuxRegionBytes = MEMORY_IMAGE_DEFAULT_REGION_BYTES;
-        Gpu_PrimHeapBase   = MEM_AUX_REGION_DEFAULT_BASE;
-        gMemActiveAuxHeap  = MEM_AUX_REGION_DEFAULT_BASE + MEMORY_PRIMITIVE_HEAP_BYTES;
-        GActiveAuxHeapSize = MEMORY_IMAGE_DEFAULT_REGION_BYTES - MEMORY_IMAGE_REGION_EXTENSION_BYTES - MEMORY_PRIMITIVE_HEAP_BYTES;
+        gMemSavedImageRegion      = MEM_AUX_REGION_DEFAULT_BASE;
+        gMemSavedImageRegionBytes = MEMORY_IMAGE_DEFAULT_REGION_BYTES;
+        gGpuPrimitiveBufferBase   = MEM_AUX_REGION_DEFAULT_BASE;
+        gMemActiveAuxHeap         = MEM_AUX_REGION_DEFAULT_BASE + MEMORY_PRIMITIVE_HEAP_BYTES;
+        gMemActiveAuxHeapBytes    = MEMORY_IMAGE_DEFAULT_REGION_BYTES - MEMORY_IMAGE_REGION_EXTENSION_BYTES - MEMORY_PRIMITIVE_HEAP_BYTES;
     } else {
-        Mem_AuxRegionBase  = areaSlots[areaId].regionBase;
-        Mem_AuxRegionBytes = areaSlots[areaId].byteExtent + MEMORY_IMAGE_REGION_EXTENSION_BYTES;
-        Gpu_PrimHeapBase   = areaSlots[areaId].regionBase;
-        gMemActiveAuxHeap  = Gpu_PrimHeapBase + MEMORY_PRIMITIVE_HEAP_BYTES;
-        GActiveAuxHeapSize = areaSlots[areaId].byteExtent - MEMORY_PRIMITIVE_HEAP_BYTES;
+        gMemSavedImageRegion      = areaSlots[areaId].regionBase;
+        gMemSavedImageRegionBytes = areaSlots[areaId].byteExtent + MEMORY_IMAGE_REGION_EXTENSION_BYTES;
+        gGpuPrimitiveBufferBase   = areaSlots[areaId].regionBase;
+        gMemActiveAuxHeap         = gGpuPrimitiveBufferBase + MEMORY_PRIMITIVE_HEAP_BYTES;
+        gMemActiveAuxHeapBytes    = areaSlots[areaId].byteExtent - MEMORY_PRIMITIVE_HEAP_BYTES;
     }
 
     // Save the larger heap view that also reclaims the image workspace.
-    Gpu_PrimHeapSize = MEMORY_PRIMITIVE_HEAP_BYTES;
-    GAuxHeap         = gMemActiveAuxHeap;
-    GAuxHeapSize     = Mem_AuxRegionBytes - MEMORY_PRIMITIVE_HEAP_BYTES;
+    gGpuPrimitiveBufferBytes = MEMORY_PRIMITIVE_HEAP_BYTES;
+    gMemSavedAuxHeap         = gMemActiveAuxHeap;
+    gMemSavedAuxHeapBytes    = gMemSavedImageRegionBytes - MEMORY_PRIMITIVE_HEAP_BYTES;
     _memClearPrimitiveTrailer();
 }
 

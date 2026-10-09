@@ -2575,17 +2575,17 @@ _spu_rev_param              = 0x800686D4;
 //--------------------------------------------------------------------
 //--- PA: 0x59780   VA: 0x80068F80   subsegment: c, main
 //--------------------------------------------------------------------
-GAuxHeap                    = 0x80068F80;
-GAuxHeapSize                = 0x80068F84;
-Gpu_PrimHeapBase                  = 0x80068F88;
+gMemSavedAuxHeap                    = 0x80068F80;
+gMemSavedAuxHeapBytes                = 0x80068F84;
+gGpuPrimitiveBufferBase                  = 0x80068F88;
 gMemActiveAuxHeap              = 0x80068F8C;
-Gpu_PrimHeapSize                  = 0x80068F90;
-GActiveAuxHeapSize          = 0x80068F94;
-Gpu_PrimHeapCanaryAddress                  = 0x80068F98; // size:0x4
+gGpuPrimitiveBufferBytes                  = 0x80068F90;
+gMemActiveAuxHeapBytes          = 0x80068F94;
+_gMemPrimitiveTrailerStart                  = 0x80068F98; // size:0x4
 D_80068F9C                  = 0x80068F9C; // ignore:true
 gCdCmdQueue                 = 0x80068FA0; // type:CdCmdQueue size:0x254
-Mem_AuxRegionBase                  = 0x800691F4;
-Mem_AuxRegionBytes                  = 0x800691F8;
+gMemSavedImageRegion                  = 0x800691F4;
+gMemSavedImageRegionBytes                  = 0x800691F8;
 
 //--------------------------------------------------------------------
 //--- PA: 0x59A00   VA: 0x80069200   subsegment: o, libcd/bios
@@ -2796,7 +2796,7 @@ _gFontGlyphsLarge           = 0x8005FA30; // type:u8 size:0xA80 // large _FontGl
 _gFontGlyphsSmall           = 0x800604B0; // type:u8 size:0x444 // small _FontGlyph[91], byte representation for splitting
 
 // sound script / MIDI / LinInterp renames
-SndScript_Slots             = 0x80082248; // type:SndScript // _SndScript[8]
+_gSndScriptInstances             = 0x80082248; // size:0x300 // _SndScript[8]
 _gSndBankSlots              = 0x80082148; // type:SndBankSlot
 SndLoad_State               = 0x800820F0; // type:SndLoadState size:0x30
 Midi_Song                   = 0x8007F300; // type:MidiSong // _MidiSong
@@ -2821,7 +2821,7 @@ Stage_Ctx                   = 0x80062698;
 // Remaining GStruct cleanup (Wip_* = weak evidence)
 Snd_BankInitTable           = 0x80068A60;
 CdAudio_TblEntries          = 0x80082794;
-Pad_RemapState              = 0x800626A8;
+gGameDebugState              = 0x800626A8;
 gPlayerStatus               = 0x80073B88; // type:PlayerStatus size:0x80
 Wip_UiHolder                = 0x80067694;
 
@@ -2851,8 +2851,8 @@ gGfxViewCoord               = 0x80070F10; // type:GfxCoord size:0x50
 Gfx_ViewWorldMtx            = 0x80070F34;
 gGfxViewRotCoord            = 0x80070E40; // type:GfxCoord size:0x50
 Gfx_ViewOffsetCoord         = 0x80070E90; // type:GfxCoord size:0x50
-Pad_MaskConfirm             = 0x8005ED70;
-Pad_MaskCancel              = 0x8005ED74;
+gPadConfirmButtonMask             = 0x8005ED70;
+gPadCancelButtonMask              = 0x8005ED74;
 Pad_MaskMenu                = 0x8005ED78;
 Mc_StrMemoryCard            = 0x8001398C;
 
@@ -2874,7 +2874,7 @@ D_8005ED8A                  = 0x8005ED8A; // type:u16 size:0x2
 gStageMusicLoadState        = 0x80062734; // type:u8 size:0x1
 gStageSceneMusicEntry       = 0x80062735; // type:u8 size:0x1
 gStageAmbientOn             = 0x80062736; // type:u8 size:0x1
-gStageRoomSong              = 0x80062737; // type:u8 size:0x1
+gStageRoomMusicSequence              = 0x80062737; // type:u8 size:0x1
 gStageMusicRow              = 0x80062738; // type:u8 size:0x1
 gStageCurrentSong           = 0x80062739; // type:u8 size:0x1
 D_80068B5F                  = 0x80068B5F; // type:u8 size:0x1
@@ -2953,7 +2953,7 @@ BootCaptionText_ShelterExperiment = 0x80063038;
 BootCaption_ShelterExperiment = 0x80063068;
 BootCaptionText_ShelterHeliport = 0x80063088;
 BootCaption_ShelterHeliport = 0x800630B0;
-Caption_Glyphs = 0x800627E0;
+gTextCaptionGlyphCells = 0x800627E0;
 
 gStageMusicParams = 0x8007A39C;
 
@@ -3059,11 +3059,11 @@ McText_Unavailable = 0x80013BAC;
 
 McText_Bp = 0x80013BB0;
 
-Text_MaxEightDigits = 0x800138BC;
+_gTextSignedDecimalOverflow = 0x800138BC;
 
-Text_ZeroDigit = 0x800138C8;
+_gTextNumberZero = 0x800138C8;
 
-Text_MaxNineDigits = 0x800138CC;
+_gTextUnsignedDecimalOverflow = 0x800138CC;
 
 McLocation_WhereAmI = 0x80067334;
 
@@ -3203,15 +3203,15 @@ Mc_SaveListDesc = 0x80061200;
 
 Mc_LoadListDescriptors = 0x8006121C;
 
-Mc_YesNoCallbacks = 0x80061254;
+_gMcMenuYesNoRowCallbacks = 0x80061254;
 
 Mc_YesNoList = 0x8006125C;
 
-Mc_OkCallbacks = 0x80061280;
+_gMcMenuOkRowCallbacks = 0x80061280;
 
-Mc_OkList = 0x80061284;
+_gMcMenuOkList = 0x80061284;
 
-Mc_YesCallbacks = 0x800612A8;
+_gMcMenuCancelRowCallbacks = 0x800612A8;
 
 Mc_YesList = 0x800612AC;
 
@@ -3274,3 +3274,14 @@ D_80067634 = 0x80067634; // size:0x4 defined:True
 gSndLoadBankId = 0x800689E4; // size:0x4
 gSndVolumeReducedMode = 0x800689ec; // type:s16 size:0x2
 gTaskDeferModelBufferAllocation = 0x8005ed8c;
+_gMidiSavedMusicVolumes = 0x80013f18;
+_gCdCmdMovieWorkspace = 0x8006ac00;
+_gSndOutputStereoEnabled = 0x8006ebba;
+_gTextImmediateGlyphSprite = 0x80071710;
+_gTextImmediateTexturePage = 0x80071728;
+gGfxDefaultColorMatrix = 0x80074080;
+_gSndScriptTypeRequestsEnabled = 0x80082138;
+_gSndScriptMasterVolume = 0x80082748;
+_gSndScriptUnduckedVolume = 0x80082749;
+gActorRenderCoordPassCounter = 0x80071210; // type:s32 size:0x4
+gMidiMusicVolume = 0x8007A396; // type:u16 size:0x2

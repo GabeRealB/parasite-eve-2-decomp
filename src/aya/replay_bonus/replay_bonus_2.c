@@ -602,7 +602,7 @@ static inline void _replayBonusSelectCreditsPrimitiveBuffer(void)
 {
     enum { REPLAY_BONUS_CREDITS_PRIMITIVE_BUFFER_BYTES = 0x10000 };
     D_replay_bonus_801192B4  = 0;
-    D_replay_bonus_801192C0  = Gpu_PrimHeapBase + Gpu_PrimHeapSize + D_replay_bonus_80119224 * REPLAY_BONUS_CREDITS_PRIMITIVE_BUFFER_BYTES;
+    D_replay_bonus_801192C0  = gGpuPrimitiveBufferBase + gGpuPrimitiveBufferBytes + D_replay_bonus_80119224 * REPLAY_BONUS_CREDITS_PRIMITIVE_BUFFER_BYTES;
     D_replay_bonus_80119224 ^= 1;
 }
 

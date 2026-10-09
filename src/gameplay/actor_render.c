@@ -86,8 +86,8 @@ static __inline__ void _actorRenderComposeListedCoords(void)
     s32          visitParity;
     u32          partIndex;
 
-    rebuildStamp = D_80071210 & GRAPHICS_COORD_STAMP_MASK;
-    visitParity  = D_80071210 & ACTOR_RENDER_COORD_PASS_PARITY_MASK;
+    rebuildStamp = gActorRenderCoordPassCounter & GRAPHICS_COORD_STAMP_MASK;
+    visitParity  = gActorRenderCoordPassCounter & ACTOR_RENDER_COORD_PASS_PARITY_MASK;
     // Both lists share one pass, so common ancestors can reuse their caches.
     for (link = gModelObjectCoordBodyList.next; link != NULL; link = link->next) {
         _actorRenderRefreshCoord(PARENT_OF(link, ModelObjectCoordBody, link)->coord, rebuildStamp, visitParity, NULL);
@@ -100,7 +100,7 @@ static __inline__ void _actorRenderComposeListedCoords(void)
         }
     }
     // Advance only after both lists have used the same rebuild stamp and parity.
-    D_80071210 += 1;
+    gActorRenderCoordPassCounter += 1;
 }
 
 void actorRenderComposeAndDrawFlaggedModels(GsOT* unusedOt)
@@ -120,8 +120,8 @@ void actorRenderComposeAndDrawActiveModels(GsOT* unusedOt)
 void actorRenderComposeCoord(GfxCoord* coord)
 {
     _gActorRenderLastFullChainCoord = coord;
-    actorRenderComposeCoordChain(coord, D_80071210 & GRAPHICS_COORD_STAMP_MASK,
-                                 D_80071210 & ACTOR_RENDER_COORD_PASS_PARITY_MASK, NULL);
+    actorRenderComposeCoordChain(coord, gActorRenderCoordPassCounter & GRAPHICS_COORD_STAMP_MASK,
+                                 gActorRenderCoordPassCounter & ACTOR_RENDER_COORD_PASS_PARITY_MASK, NULL);
 }
 
 void actorRenderComposeCoordRelative(GfxCoord* coord, GfxCoord* excludedAncestor)
@@ -129,11 +129,11 @@ void actorRenderComposeCoordRelative(GfxCoord* coord, GfxCoord* excludedAncestor
     if (coord->parent == NULL) {
         // Keep the composed cache while rebasing only the detached node's local matrix.
         _gActorRenderLastFullChainCoord = coord;
-        actorRenderComposeCoordChain(coord, D_80071210 & GRAPHICS_COORD_STAMP_MASK,
-                                     D_80071210 & ACTOR_RENDER_COORD_PASS_PARITY_MASK, NULL);
+        actorRenderComposeCoordChain(coord, gActorRenderCoordPassCounter & GRAPHICS_COORD_STAMP_MASK,
+                                     gActorRenderCoordPassCounter & ACTOR_RENDER_COORD_PASS_PARITY_MASK, NULL);
         gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &coord->coord);
     } else {
-        actorRenderComposeCoordChain(coord, D_80071210 & GRAPHICS_COORD_STAMP_MASK,
-                                     D_80071210 & ACTOR_RENDER_COORD_PASS_PARITY_MASK, excludedAncestor);
+        actorRenderComposeCoordChain(coord, gActorRenderCoordPassCounter & GRAPHICS_COORD_STAMP_MASK,
+                                     gActorRenderCoordPassCounter & ACTOR_RENDER_COORD_PASS_PARITY_MASK, excludedAncestor);
     }
 }

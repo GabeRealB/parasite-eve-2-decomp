@@ -111,8 +111,8 @@ u8 gStageMusicLoadState  = 0xFF;
 u8 gStageSceneMusicEntry = 0;
 /// Nonzero while the 0x60010001 ambient sound, started by a table entry of
 /// 0x80, is playing.
-static u8 gStageAmbientOn = 0;
-u8        gStageRoomSong  = 0;
+static u8 gStageAmbientOn         = 0;
+u8        gStageRoomMusicSequence = 0;
 /// Where the current scene's rows begin in the stage's music table.
 static u8 gStageMusicRow = 0;
 /// The song last started from the music table.
@@ -198,9 +198,9 @@ static void _stageMusicSelectEntry(Task* task)
     }
     // The task owns the selection block; its table stays borrowed from the map overlay.
     task->work = selection;
-    if (gStageRoomSong != 0) {
+    if (gStageRoomMusicSequence != 0) {
         sndEvtRequestMidiStop(STAGE_MUSIC_ALL_SEQUENCES, 1);
-        gStageRoomSong = 0;
+        gStageRoomMusicSequence = 0;
     }
     stageId                    = gGameSession->location.loc.stage;
     sceneColumn                = stageMusicSelectColumn(stageId, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent, Stage_SceneEventLimits[stageId - 1]);

@@ -23,7 +23,7 @@ typedef struct {
 } _GfxFlatLightScratch;
 STATIC_ASSERT_SIZEOF(_GfxFlatLightScratch, 0x18);
 
-MATRIX D_80074080;
+MATRIX gGfxDefaultColorMatrix;
 
 /// Shift from RGB byte levels (256 for 1.0) to Q12 light-colour coefficients.
 enum { GRAPHICS_FLAT_LIGHT_COLOR_SHIFT = 4 };
@@ -81,7 +81,7 @@ void gfxResetDefaultLights(void)
     lights[0].r  = GRAPHICS_DEFAULT_LIGHT_0_COLOR;
     lights[0].g  = GRAPHICS_DEFAULT_LIGHT_0_COLOR;
     lights[0].b  = GRAPHICS_DEFAULT_LIGHT_0_COLOR;
-    _gfxWriteFlatLightMatrices(0, &lights[0], &GsLIGHTWSMATRIX, &D_80074080);
+    _gfxWriteFlatLightMatrices(0, &lights[0], &GsLIGHTWSMATRIX, &gGfxDefaultColorMatrix);
 
     lights[1].vy = -50;
     lights[1].vz = -100;
@@ -89,7 +89,7 @@ void gfxResetDefaultLights(void)
     lights[1].r  = GRAPHICS_DEFAULT_LIGHT_1_COLOR;
     lights[1].g  = GRAPHICS_DEFAULT_LIGHT_1_COLOR;
     lights[1].b  = GRAPHICS_DEFAULT_LIGHT_1_COLOR;
-    _gfxWriteFlatLightMatrices(1, &lights[1], &GsLIGHTWSMATRIX, &D_80074080);
+    _gfxWriteFlatLightMatrices(1, &lights[1], &GsLIGHTWSMATRIX, &gGfxDefaultColorMatrix);
 
     lights[2].vx = -20;
     lights[2].vy = 20;
@@ -97,11 +97,11 @@ void gfxResetDefaultLights(void)
     lights[2].r  = GRAPHICS_DEFAULT_LIGHT_2_COLOR;
     lights[2].g  = GRAPHICS_DEFAULT_LIGHT_2_COLOR;
     lights[2].b  = GRAPHICS_DEFAULT_LIGHT_2_COLOR;
-    _gfxWriteFlatLightMatrices(2, &lights[2], &GsLIGHTWSMATRIX, &D_80074080);
+    _gfxWriteFlatLightMatrices(2, &lights[2], &GsLIGHTWSMATRIX, &gGfxDefaultColorMatrix);
 
-    D_80074080.t[0] = GRAPHICS_DEFAULT_AMBIENT_COLOR;
-    D_80074080.t[1] = GRAPHICS_DEFAULT_AMBIENT_COLOR;
-    D_80074080.t[2] = GRAPHICS_DEFAULT_AMBIENT_COLOR;
+    gGfxDefaultColorMatrix.t[0] = GRAPHICS_DEFAULT_AMBIENT_COLOR;
+    gGfxDefaultColorMatrix.t[1] = GRAPHICS_DEFAULT_AMBIENT_COLOR;
+    gGfxDefaultColorMatrix.t[2] = GRAPHICS_DEFAULT_AMBIENT_COLOR;
 }
 
 void gfxSetFlatLight(s32 lightIndex, const GsF_LIGHT* light, MATRIX* directionMatrix, MATRIX* colorMatrix)
@@ -120,20 +120,20 @@ void gfxSetFlatLight(s32 lightIndex, const GsF_LIGHT* light, MATRIX* directionMa
 ///
 /// `lightIndex` is 0..2; input direction, colour and scratch requirements are
 /// those of `gfxSetFlatLight`. Writes `GsLIGHTWSMATRIX`'s selected direction
-/// row and `D_80074080`'s RGB column; ambient colour is retained.
+/// row and `gGfxDefaultColorMatrix`'s RGB column; ambient colour is retained.
 static void _gfxSetDefaultFlatLight(s32 lightIndex, const GsF_LIGHT* light)
 {
-    _gfxWriteFlatLightMatrices(lightIndex, light, &GsLIGHTWSMATRIX, &D_80074080);
+    _gfxWriteFlatLightMatrices(lightIndex, light, &GsLIGHTWSMATRIX, &gGfxDefaultColorMatrix);
 }
 
 /// Sets the resident default ambient RGB in raw GTE background-register units.
 ///
-/// Values use 16 units per RGB unit and are stored unchanged in `D_80074080.t`.
+/// Values use 16 units per RGB unit and are stored unchanged in `gGfxDefaultColorMatrix.t`.
 /// There is no scaling or clamping. The TMD renderer loads them when drawing;
 /// this setter leaves directional coefficients and current GTE state intact.
 static void _gfxSetDefaultAmbientColor(long ambientRed, long ambientGreen, long ambientBlue)
 {
-    D_80074080.t[0] = ambientRed;
-    D_80074080.t[1] = ambientGreen;
-    D_80074080.t[2] = ambientBlue;
+    gGfxDefaultColorMatrix.t[0] = ambientRed;
+    gGfxDefaultColorMatrix.t[1] = ambientGreen;
+    gGfxDefaultColorMatrix.t[2] = ambientBlue;
 }

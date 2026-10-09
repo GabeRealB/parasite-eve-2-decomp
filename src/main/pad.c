@@ -15,7 +15,7 @@ TmdListNode gModelObjectCoordBodyList;
 
 PadRawPort Pad_RawPorts[2];
 
-s32 D_80071210;
+s32 gActorRenderCoordPassCounter;
 
 #include "pad.h"
 
@@ -71,7 +71,7 @@ void padInit(void)
 
 void actorRenderResetLists(void)
 {
-    D_80071210                     = 0;
+    gActorRenderCoordPassCounter   = 0;
     gTmdList.next                  = NULL;
     gTmdList.prev                  = &gTmdList;
     gModelObjectCoordBodyList.next = NULL;

@@ -20,7 +20,7 @@ static u32 GStackBase = 0x801fff00;
 // Keep the heap-base word in main's fixed .data subsegment.
 void* gMemPrimaryHeapBase = MEM_PRIMARY_HEAP_ADDRESS;
 
-// BSS symbols (GAuxHeap … gCdCmdQueue … Mem_AuxRegionBytes) live in the `main` bss
+// BSS symbols (gMemSavedAuxHeap … gCdCmdQueue … gMemSavedImageRegionBytes) live in the `main` bss
 // split (asm/USA/main/data/main.bss.s) so layout matches the retail binary.
 // Defining the large gCdCmdQueue here makes GCC 2.8.1 reorder .comm symbols.
 

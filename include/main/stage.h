@@ -15,9 +15,13 @@ extern u8 gStageMusicLoadState;
 /// plays it instead of the area's own entry; rooms and actors set it.
 extern u8 gStageSceneMusicEntry;
 
-/// A song a room started itself, outside the music table. Music-volume
-/// changes are applied to it too, and the next load stops it and clears this.
-extern u8 gStageRoomSong;
+/// MIDI sequence id requested by a room jukebox outside the stage music table.
+///
+/// Zero means no room override and music-volume changes address all sequences;
+/// a nonzero id directs them to this sequence. A jukebox records it after
+/// requesting playback, so it does not guarantee that a start was admitted.
+/// The next stage-music selection requests an all-sequence stop and clears it.
+extern u8 gStageRoomMusicSequence;
 
 /// Requests the active mode task's reload-and-exit path, returning 0.
 ///

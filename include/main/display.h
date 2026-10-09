@@ -131,8 +131,8 @@ extern GsOT Gpu_OrderingTables[2];
 /// byte-pointer view; there is no common packet stride. Reservations must remain
 /// word-aligned and fit in the selected half; allocation does not check capacity.
 ///
-/// The game loop selects a half of `Gpu_PrimHeapBase`, whose total byte capacity
-/// is `Gpu_PrimHeapSize`. Task-owned presentation instead selects a half of its
+/// The game loop selects a half of `gGpuPrimitiveBufferBase`, whose total byte capacity
+/// is `gGpuPrimitiveBufferBytes`. Task-owned presentation instead selects a half of its
 /// configured arena (the 0x6000-byte static arena or 0x10000-byte heap arena).
 /// Display code resets the cursor before drawing; packets remain borrowed until
 /// GPU drawing completes and that half is reused. Consumers must not free them

@@ -694,7 +694,7 @@ static void _telephoneUsageTask(Task* task)
         task->state += 1;
     }
     uiUpdateList(list, &object->panel);
-    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
         object->result = USER_INTERFACE_RESULT_CONFIRM;
     }
     // Save the next sibling before requesting child-tree closure.
@@ -770,7 +770,7 @@ static inline void _telephoneMenuTask(Task* task)
         uiStartPanelHiding(object, task);
         object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
     }
-    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
         if (task->state != TELEPHONE_MENU_INITIALIZE) {
             sndEvtRequestScriptStart(SOUND_SYSTEM_CANCEL, 0, 0);
         }

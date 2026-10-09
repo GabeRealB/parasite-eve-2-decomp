@@ -50,6 +50,7 @@
 #include "main/gameflag_types.h"
 #include "main/mc.h"
 #include "main/mem.h"
+#include "main/game_debug.h"
 #include "main/pad.h"
 #include "main/random.h"
 #include "main/session.h"
@@ -2829,12 +2830,12 @@ void gameDebugApplyInputOverride(s32 overrideMode, u16* buttons)
             Gp_ReplayButtons = GAME_DEBUG_REPLAY_BUTTONS_INVALID;
             Gp_ReplayCursor  = nextRecord;
             if (*nextRecord == GAME_DEBUG_REPLAY_BUTTONS_END) {
-                Wip_SysFlags.skipTitleIntro       = 0;
-                Pad_RemapState->inputOverrideMode = GAME_DEBUG_INPUT_OVERRIDE_NONE;
+                Wip_SysFlags.skipTitleIntro        = 0;
+                gGameDebugState->inputOverrideMode = GAME_DEBUG_INPUT_OVERRIDE_NONE;
             }
         }
     } else {
-        Pad_RemapState->inputOverrideMode = GAME_DEBUG_INPUT_OVERRIDE_NONE;
+        gGameDebugState->inputOverrideMode = GAME_DEBUG_INPUT_OVERRIDE_NONE;
     }
 }
 
@@ -2872,9 +2873,9 @@ static inline void _gameDebugInitializePlayReplay(DisplayState* display)
         Gp_ReplayCursor = (u16*)((u8*)Fs_ActorLoadBase2 + GAME_DEBUG_REPLAY_STREAM_OFFSET_BYTES);
     }
     // Invalidate the button cache so the first record installs its duration.
-    Gp_ReplayButtons                  = GAME_DEBUG_REPLAY_BUTTONS_INVALID;
-    Gp_ReplayFramesLeft               = GAME_DEBUG_REPLAY_INITIAL_FRAMES_LEFT;
-    Pad_RemapState->inputOverrideMode = GAME_DEBUG_INPUT_OVERRIDE_REPLAY;
+    Gp_ReplayButtons                   = GAME_DEBUG_REPLAY_BUTTONS_INVALID;
+    Gp_ReplayFramesLeft                = GAME_DEBUG_REPLAY_INITIAL_FRAMES_LEFT;
+    gGameDebugState->inputOverrideMode = GAME_DEBUG_INPUT_OVERRIDE_REPLAY;
 }
 
 void playClockInitializeTask(Task* task)
@@ -2901,7 +2902,7 @@ void playClockInitializeTask(Task* task)
     sceneStartRoomTasks();
     if (display->demoScene != DISPLAY_DEMO_NONE) {
         _gameDebugInitializePlayReplay(display);
-    } else if (Pad_RemapState->field_9 == 1) {
+    } else if (gGameDebugState->field_9 == 1) {
         func_80715198();
     }
     task->state++;
@@ -3131,10 +3132,10 @@ void playClockRestartSessionTask(Task* task)
     memConfigureImageMemory(GAME_STAGE_NONE, 0);
     // Subtract byte addresses to locate separate heaps before the image workspace.
     if (gGameSession->restartMode == GAME_SESSION_RESTART_ENDING) {
-        Gpu_PrimHeapSize   = PLAY_CLOCK_ENDING_PRIMITIVE_HEAP_BYTES;
-        GActiveAuxHeapSize = PLAY_CLOCK_ENDING_AUXILIARY_HEAP_BYTES;
-        Gpu_PrimHeapBase   = (u8*)((u32)Fs_ImgBuffers - PLAY_CLOCK_ENDING_PRIMITIVE_BEFORE_IMAGE_BYTES);
-        gMemActiveAuxHeap  = (void*)((u32)Fs_ImgBuffers - PLAY_CLOCK_ENDING_AUXILIARY_BEFORE_IMAGE_BYTES);
+        gGpuPrimitiveBufferBytes = PLAY_CLOCK_ENDING_PRIMITIVE_HEAP_BYTES;
+        gMemActiveAuxHeapBytes   = PLAY_CLOCK_ENDING_AUXILIARY_HEAP_BYTES;
+        gGpuPrimitiveBufferBase  = (u8*)((u32)Fs_ImgBuffers - PLAY_CLOCK_ENDING_PRIMITIVE_BEFORE_IMAGE_BYTES);
+        gMemActiveAuxHeap        = (void*)((u32)Fs_ImgBuffers - PLAY_CLOCK_ENDING_AUXILIARY_BEFORE_IMAGE_BYTES);
     }
     memInitHeaps();
     memInitAuxHeap();

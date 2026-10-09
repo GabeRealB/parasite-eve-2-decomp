@@ -98,7 +98,7 @@ void displayPresentTaskFrame(s32 bufferIndex);
 
 /// Selects the image-memory primitive reservation for task-owned drawing.
 ///
-/// `Gpu_PrimHeapBase` must provide `MEMORY_PRIMITIVE_HEAP_BYTES` (0x10000)
+/// `gGpuPrimitiveBufferBase` must provide `MEMORY_PRIMITIVE_HEAP_BYTES` (0x10000)
 /// writable bytes with previous GPU/heap users finished. Subsequent task frames
 /// select one 0x8000-byte half. This records borrowed storage without allocating,
 /// clearing it or resetting the live cursor; image-memory configuration owns

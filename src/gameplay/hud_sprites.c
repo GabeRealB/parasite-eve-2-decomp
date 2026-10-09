@@ -44,6 +44,7 @@
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mem.h"
+#include "main/game_debug.h"
 #include "main/pad.h"
 #include "main/scratch.h"
 #include "main/session.h"
@@ -630,7 +631,7 @@ void hudDrawHpReadout(s32 x, s32 y, s32 hp, s32 hpMax, s32 layout)
         hp = 0;
     }
     y -= gDisplayState.vramYOffset;
-    if (Pad_RemapState->hideHud != 0) {
+    if (gGameDebugState->hideHud != 0) {
         return;
     }
 
@@ -1022,9 +1023,9 @@ static void _gameDebugStartInputReplay(void)
         Gp_ReplayCursor = (u16*)((u8*)Fs_ActorLoadBase2 + GAME_DEBUG_REPLAY_STREAM_OFFSET_BYTES);
     }
     // Force the first record to install its duration before the countdown steps.
-    Gp_ReplayButtons                  = GAME_DEBUG_REPLAY_BUTTONS_INVALID;
-    Gp_ReplayFramesLeft               = 1;
-    Pad_RemapState->inputOverrideMode = GAME_DEBUG_INPUT_OVERRIDE_REPLAY;
+    Gp_ReplayButtons                   = GAME_DEBUG_REPLAY_BUTTONS_INVALID;
+    Gp_ReplayFramesLeft                = 1;
+    gGameDebugState->inputOverrideMode = GAME_DEBUG_INPUT_OVERRIDE_REPLAY;
 }
 
 void playClockStartDeathFade(Task* task)
@@ -1144,7 +1145,7 @@ void itemPickupTitleTask(Task* task)
     panelObject->result = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&panelObject->panel, Gp_StrItem);
     if (panelObject->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0) {
             panelObject->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }

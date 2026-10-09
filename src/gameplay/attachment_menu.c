@@ -258,7 +258,7 @@ static inline void _itemMenuUpdateNoticeResult(UiObject* object, Task* task)
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
             object->result = USER_INTERFACE_RESULT_CANCEL;
-        } else if ((task->killCountdown <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+        } else if ((task->killCountdown <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0)) {
             object->result      = USER_INTERFACE_RESULT_DISMISS;
             task->killCountdown = ITEM_MENU_NOTICE_DISMISSED_TICKS;
         }
@@ -368,7 +368,7 @@ void itemMenuConsumableChoiceListTask(Task* choiceTask)
         if (object->panel.control.word == selectingState) {
             if (padCheckButtons(0, selectingState, Pad_MaskMenu) != 0) {
                 object->result = USER_INTERFACE_RESULT_CANCEL;
-            } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
+            } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
                 sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
                 object->result = USER_INTERFACE_RESULT_CONFIRM;
             }
@@ -392,7 +392,7 @@ void itemMenuConsumableChoiceListTask(Task* choiceTask)
             object->result = USER_INTERFACE_RESULT_CANCEL;
             return;
         }
-        if ((choiceTask->killCountdown == 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+        if ((choiceTask->killCountdown == 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0)) {
             if ((choiceTask->spawnArg1.value & ITEM_MENU_LOAD_AFTER_EQUIP) && (choiceTask->state == ITEM_MENU_CONSUMABLE_CHOICE_NO_AMMO)) {
                 object->result = USER_INTERFACE_RESULT_CONFIRM;
             } else {
@@ -525,7 +525,7 @@ void itemMenuDrawArmorChoiceRow(UiList* list, UiObject* object)
     _itemMenuDrawArmorChoiceContents(object, rowX, rowY, armorItemId, textColorRgb, attachmentState);
 
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             uiSpawnObject(&D_8010EAB4[ITEM_MENU_ARMOR_EQUIP_NOTICE_PANEL], armorItemId, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_COMMAND_OPEN_DELAY_TICKS, object);
             object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
@@ -595,7 +595,7 @@ void itemMenuArmorSelectionTask(Task* task)
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
             object->result = USER_INTERFACE_RESULT_CANCEL;
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
             object->result = USER_INTERFACE_RESULT_DISMISS;
         }
@@ -829,7 +829,7 @@ void itemMenuDrawLoadRow(UiList* list, UiObject* object)
 
     _itemMenuDrawEquipmentCommandLabel(list, object, (const u8*)Gp_StrLoad);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             // Capture the selected row before the sound request; it remains the dialog payload.
             selectedItemId = Gp_SelItemRec->itemId;
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
@@ -864,7 +864,7 @@ void itemMenuDrawExchangeRow(UiList* list, UiObject* object)
 
     _itemMenuDrawEquipmentCommandLabel(list, object, (const u8*)Gp_StrExchange);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             selectedItemId = INVENTORY_ITEM_NONE;
             if (Gp_SelItemRec != NULL) {

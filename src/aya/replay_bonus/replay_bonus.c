@@ -588,7 +588,7 @@ void replayBonusCompleteBonusPanelTask(Task* task)
 
     displayedTotalBp = _replayBonusGetDisplayedTotalBp(list, object);
     textDrawUiLine(object, -leftInset, textY, textItoaUnsigned(bpText, (u32)displayedTotalBp), REPLAY_BONUS_PANEL_TEXT_COLOR, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
-    if ((object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu) != 0)) {
+    if ((object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask | Pad_MaskMenu) != 0)) {
         object->result = USER_INTERFACE_RESULT_CONFIRM;
     }
 #undef REPLAY_BONUS_DRAW_COMPLETE_HEADING
@@ -683,7 +683,7 @@ void replayBonusBalancePanelTask(Task* task)
         }
     }
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask | Pad_MaskMenu) != 0) {
             object->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
@@ -871,7 +871,7 @@ void replayBonusExtraBpPanelTask(Task* task)
     holdTicksLeft       = (u16)task->killCountdown - 1;
     task->killCountdown = holdTicksLeft;
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (((holdTicksLeft << 0x10) <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu) != 0)) {
+        if (((holdTicksLeft << 0x10) <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask | Pad_MaskMenu) != 0)) {
             object->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }

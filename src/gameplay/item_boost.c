@@ -468,7 +468,7 @@ void itemMenuApplyPouchPanel(UiObject* object, Task* task)
     // Opening and inactive panels draw the notice without advancing its timeout.
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         task->killCountdown--;
-        if ((task->killCountdown <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+        if ((task->killCountdown <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0)) {
             object->result      = USER_INTERFACE_RESULT_DISMISS;
             task->killCountdown = ITEM_MENU_POUCH_COMPLETED_COUNTDOWN;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {

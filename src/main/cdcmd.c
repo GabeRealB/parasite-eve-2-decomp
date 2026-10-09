@@ -33,7 +33,13 @@
 
 #include "rooms/acropolis_plaza.h"
 
-static void* D_8006AC00;
+/// Retained auxiliary-heap reservation for the current location's movie workspace.
+///
+/// NULL when no reservation is available. Its byte capacity comes from the
+/// title reservation or the saved stage/area table; movie descriptors choose
+/// the layout later. The stream subsystem borrows the reservation; heap reset
+/// or repurposing ends its lifetime.
+static void* _gCdCmdMovieWorkspace;
 
 static u16 CdCmd_EntryIter;
 
@@ -153,9 +159,9 @@ void* cdCmdReservePlaybackBuffers(void)
         }
     }
 
-    D_8006AC00 = NULL;
+    _gCdCmdMovieWorkspace = NULL;
     if (gGameSession->location.loc.stage == GAME_STAGE_NONE) {
-        D_8006AC00 = memMalloc(CD_COMMAND_TITLE_MOVIE_WORKSPACE_BYTES, true);
+        _gCdCmdMovieWorkspace = memMalloc(CD_COMMAND_TITLE_MOVIE_WORKSPACE_BYTES, true);
     } else if (streamFindMovieSlot(&gGameSession->location.loc, 0, 0) < 0) {
         return NULL;
     } else {
@@ -163,11 +169,11 @@ void* cdCmdReservePlaybackBuffers(void)
         if (areaWorkspaceBytes != NULL) {
             workspaceBytes = areaWorkspaceBytes[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area];
             if (workspaceBytes != 0) {
-                D_8006AC00 = memMalloc(workspaceBytes, true);
+                _gCdCmdMovieWorkspace = memMalloc(workspaceBytes, true);
             }
         }
     }
-    return D_8006AC00;
+    return _gCdCmdMovieWorkspace;
 }
 
 /// Resets request-handler progress and retires the head of a nonempty ring.
@@ -1149,7 +1155,7 @@ void cdCmdSelectMovieWorkspace(void)
 
     queue = &gCdCmdQueue;
     if (streamFindMovieSlot(&gGameSession->location.loc, 0, 0) >= 0) {
-        D_8006AC40 = D_8006AC00;
+        D_8006AC40 = _gCdCmdMovieWorkspace;
     }
     queue->movieFrameAvailable = 0;
 }

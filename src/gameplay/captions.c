@@ -485,9 +485,9 @@ void capUpdatePlaybackTask(Task* task)
                     D_80115664 = 0;
                 }
                 _capUpdateChoiceSelection();
-                confirmButtons = Pad_MaskConfirm;
+                confirmButtons = gPadConfirmButtonMask;
                 if (D_801155BE == 0) {
-                    confirmButtons |= Pad_MaskCancel;
+                    confirmButtons |= gPadCancelButtonMask;
                 }
                 if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, confirmButtons) != 0) {
                     if (D_801155BE != 0) {
@@ -562,7 +562,7 @@ void capUpdatePlaybackTask(Task* task)
                 D_8011566A = 0;
                 return;
             }
-            if ((padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0) || (D_80115670 & CAP_SEQUENCE_INSTANT_TEXT)) {
+            if ((padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0) || (D_80115670 & CAP_SEQUENCE_INSTANT_TEXT)) {
                 D_801155AC          = _capDrawTextStream(Gp_CapTable[(s16)D_801155AE].textRef.text, CAP_PLAYBACK_UNUSED_TEXT_DRAW_ARG, 1, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << CAP_TEXT_TITLE_FLAGS_SHIFT));
                 nextRecordForReveal = capFindVariantRecord((s16)D_801155AE + 1);
                 if (((Gp_CapTable[nextRecordForReveal].textRef.offset != CAP_TEXT_REF_END) && (Gp_CapTable[nextRecordForReveal].actionId == 0) && ((Gp_CapTable[nextRecordForReveal].control.text.displayFrames != 0) || (Gp_CapTable[nextRecordForReveal].control.text.pauseFrames == 0))) || (Gp_CapTable[(s16)D_801155AE].control.text.flags & CAP_SEQUENCE_FORCE_CARET)) {

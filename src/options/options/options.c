@@ -546,7 +546,7 @@ void optionsUpdateMenuTask(Task* owningTask)
     controlMode = object->panel.control.word;
     // Cancel acknowledges this panel; Menu requests cancellation of its parent flow.
     if (controlMode == USER_INTERFACE_PANEL_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
             object->resultValue = controlMode;
             object->result      = USER_INTERFACE_RESULT_CONFIRM;
@@ -894,7 +894,7 @@ static void _optionsUpdateKeyConfigurationTask(Task* owningTask)
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_UP | PAD_BUTTON_LEFT) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout = ((s8)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout + (ARRAY_SIZE(labels) - 1))) % ARRAY_SIZE(labels);
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             object->result = USER_INTERFACE_RESULT_CONFIRM;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
@@ -931,7 +931,7 @@ static void _optionsUpdateKeyConfigurationRow(UiList* list, UiObject* object)
     if ((((controlMode >> OPTIONS_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (controlMode == USER_INTERFACE_PANEL_ACTIVE)) && (list->selectedItemIndex == list->currentItemIndex)) {
         uiSetPromptText(D_options_801D5DA4, 0, 0);
     }
-    if ((list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0)) {
+    if ((list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0)) {
         sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
         uiSpawnObject(&D_options_801D5EFC, 0, USER_INTERFACE_PANEL_ACTIVE, 1, object);
         object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -952,7 +952,7 @@ static void _optionsUpdateRestoreDefaultsRow(UiList* list, UiObject* object)
     if ((((controlMode >> OPTIONS_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (controlMode == USER_INTERFACE_PANEL_ACTIVE)) && (list->selectedItemIndex == list->currentItemIndex)) {
         uiSetPromptText(D_options_801D5DDC, 0, 0);
     }
-    if ((list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0)) {
+    if ((list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0)) {
         sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
         mcResetOptions();
     }

@@ -463,7 +463,14 @@ enum {
     SOUND_BANK_SLOT_MATCH_TYPE = 1
 };
 
-static volatile u8 D_80082138[0x10];
+/// Admission gates for sound-script requests, indexed by the id's top nibble (0..15).
+///
+/// Each volatile byte stores 0 disabled or 1 enabled. BSS starts disabled;
+/// sound boot enables all types and later policy can replace one or all gates.
+/// Starts can bypass a disabled gate through the entry's allow-disabled flag;
+/// mute/unmute and mix/volume requests cannot. Stop requests bypass these gates.
+/// Starts test the resolved id; other gated producers test the original type.
+static volatile u8 _gSndScriptTypeRequestsEnabled[16];
 
 /// Stable sound-script bank slots owning images and borrowing sample descriptors.
 ///
@@ -478,14 +485,31 @@ static volatile u8 D_80082138[0x10];
 /// table pointers require their contents to remain loaded until their last use.
 static SndBankSlot _gSndBankSlots[16];
 
-static _SndScript SndScript_Slots[8];
+/// Eight resident execution slots for sound-script instances, separate from SPU voices.
+///
+/// Slot indices are 0..7; mix/volume slot APIs mask their input to this range.
+/// A slot owns its execution and voice-list state but borrows the loaded bank
+/// image, entry controls and command bytes for playback. Audio updates advance
+/// all slots; sound boot clears the complete array without releasing resources.
+/// Addresses remain stable across starts, stops and bank reloads.
+static _SndScript _gSndScriptInstances[8];
 
 /// Script voices use SPU slots 16..23, after the MIDI sequencer's sixteen slots.
 static _SndVoice SndScript_Voices[8];
 
-static s8 D_80082748;
+/// Current sound-script master gain (0 silent, 127 full), shared by script instances.
+///
+/// Sound boot selects 127. The signed-byte setter clamps a negative request
+/// only after applying it to eligible voices, then stores this nonnegative gain.
+/// Mute/stop ramps capture it as an unsigned starting or target level.
+static s8 _gSndScriptMasterVolume;
 
-static s8 D_80082749;
+/// Saved master gain while sound-script ducking is active (0 inactive, otherwise 48..127).
+///
+/// The first eligible duck captures the current gain. Exempt entries keep this
+/// gain while other entries duck toward 48. The last release starts restoration;
+/// the audio ramp clears this byte only after crossing the saved target.
+static s8 _gSndScriptUnduckedVolume;
 
 static s8 D_8008274A;
 
@@ -1106,7 +1130,7 @@ s32 sndEvtRequestScriptStart(s32 soundId, s32 panOffset, s32 attenuation)
             return SOUND_SCRIPT_START_REDUCED_VOLUME;
         }
     }
-    if (D_80082138[(u32)soundId >> 28] == 0) {
+    if (_gSndScriptTypeRequestsEnabled[(u32)soundId >> 28] == 0) {
         if ((entry->flags & SOUND_SCRIPT_ALLOW_DISABLED_TYPE) == 0) {
             return SOUND_SCRIPT_START_TYPE_DISABLED;
         }
@@ -1148,7 +1172,7 @@ void sndEvtRequestScriptMute(s32 soundSelector)
     SndEvtScriptArgs* args;
 
     // Admission uses the requested type; type-1 resolution happens only after allocation.
-    if (D_80082138[(u32)soundSelector >> SOUND_SCRIPT_REQUEST_TYPE_SHIFT] != 0) {
+    if (_gSndScriptTypeRequestsEnabled[(u32)soundSelector >> SOUND_SCRIPT_REQUEST_TYPE_SHIFT] != 0) {
         event = sndEvtAlloc();
         if (event != NULL) {
             event->command = SOUND_EVENT_SCRIPT_MUTE;
@@ -1166,7 +1190,7 @@ void sndEvtRequestScriptUnmute(s32 soundSelector)
     SndEvtScriptArgs* args;
 
     // Admission uses the requested type; type-1 resolution follows allocation.
-    if (D_80082138[(u32)soundSelector >> SOUND_SCRIPT_REQUEST_TYPE_SHIFT] != 0) {
+    if (_gSndScriptTypeRequestsEnabled[(u32)soundSelector >> SOUND_SCRIPT_REQUEST_TYPE_SHIFT] != 0) {
         event = sndEvtAlloc();
         if (event != NULL) {
             event->command = SOUND_EVENT_SCRIPT_UNMUTE;
@@ -1185,7 +1209,7 @@ void sndEvtRequestScriptMix(s32 soundId, s32 panOffset, s32 attenuation)
     SndEvtScriptArgs* args;
 
     // Check the requested type before reserving an event or remapping the bank.
-    if (D_80082138[(u32)soundId >> SOUND_SCRIPT_REQUEST_TYPE_SHIFT] != 0) {
+    if (_gSndScriptTypeRequestsEnabled[(u32)soundId >> SOUND_SCRIPT_REQUEST_TYPE_SHIFT] != 0) {
         event = sndEvtAlloc();
         if (event != NULL) {
             event->command          = SOUND_EVENT_SCRIPT_SET_PAN_ATTENUATION;
@@ -1204,7 +1228,7 @@ void sndEvtRequestScriptVolume(s32 soundId, s32 volumeScale)
     SndEvt*           event;
     SndEvtScriptArgs* args;
 
-    if (D_80082138[(u32)soundId >> SOUND_SCRIPT_REQUEST_TYPE_SHIFT] != 0) {
+    if (_gSndScriptTypeRequestsEnabled[(u32)soundId >> SOUND_SCRIPT_REQUEST_TYPE_SHIFT] != 0) {
         event = sndEvtAlloc();
         if (event != NULL) {
             event->command          = SOUND_EVENT_SCRIPT_SET_VOLUME;
@@ -1230,11 +1254,11 @@ void sndScriptSetTypeRequestsEnabled(s32 enabled, s32 typeSelector)
     s32               typeIndex;
 
     if (typeSelector == SOUND_BANK_TYPE_ALL_NON_AMBIENT) {
-        for (typeIndex = 0; typeIndex < ARRAY_SIZE(D_80082138); typeIndex++) {
-            D_80082138[typeIndex] = enabled & 1;
+        for (typeIndex = 0; typeIndex < ARRAY_SIZE(_gSndScriptTypeRequestsEnabled); typeIndex++) {
+            _gSndScriptTypeRequestsEnabled[typeIndex] = enabled & 1;
         }
     } else {
-        D_80082138[(u32)(typeSelector & SOUND_SCRIPT_REQUEST_TYPE_MASK) >> SOUND_SCRIPT_REQUEST_TYPE_SHIFT] = enabled & 1;
+        _gSndScriptTypeRequestsEnabled[(u32)(typeSelector & SOUND_SCRIPT_REQUEST_TYPE_MASK) >> SOUND_SCRIPT_REQUEST_TYPE_SHIFT] = enabled & 1;
         // The raw zero request also stops character scripts, keeping their release.
         if (enabled == 0 && (typeSelector & SOUND_SCRIPT_REQUEST_TYPE_MASK) == SOUND_BANK_TYPE_CHARACTER_ALL) {
             event = sndEvtAlloc();
@@ -1314,8 +1338,8 @@ s32 sndScriptStopMatching(s32 soundSelector, s32 stopControl)
 
     // Type-only stops bypass the entry fade and replace the release policy.
     if (!(soundSelector & SOUND_SCRIPT_REQUEST_ENTRY_MASK)) {
-        for (slotIndex = 0; slotIndex < ARRAY_SIZE(SndScript_Slots); slotIndex++) {
-            script   = &SndScript_Slots[slotIndex];
+        for (slotIndex = 0; slotIndex < ARRAY_SIZE(_gSndScriptInstances); slotIndex++) {
+            script   = &_gSndScriptInstances[slotIndex];
             bankType = script->soundId & SOUND_SCRIPT_REQUEST_TYPE_MASK;
             if ((bankType == soundSelector) || ((soundSelector == SOUND_BANK_TYPE_ALL_NON_AMBIENT) && (bankType != (SOUND_STAGE_AMBIENT & SOUND_SCRIPT_REQUEST_TYPE_MASK)))) {
                 if ((script->state != SOUND_SCRIPT_STOPPING) && (script->state != SOUND_SCRIPT_IDLE)) {
@@ -1328,14 +1352,14 @@ s32 sndScriptStopMatching(s32 soundSelector, s32 stopControl)
     }
 
     lastSlotIndex = 0;
-    for (slotIndex = 0; slotIndex < ARRAY_SIZE(SndScript_Slots); slotIndex++) {
-        script = &SndScript_Slots[slotIndex];
+    for (slotIndex = 0; slotIndex < ARRAY_SIZE(_gSndScriptInstances); slotIndex++) {
+        script = &_gSndScriptInstances[slotIndex];
         if ((script->soundId == soundSelector) || ((script->soundId | SOUND_SCRIPT_STOP_ALL_INSTANCES) == soundSelector)) {
             switch (script->state) {
                 case SOUND_SCRIPT_RUNNING:
                     if (stopControl != SOUND_SCRIPT_STOP_NO_FADE) {
                         if (stopControl != SOUND_SCRIPT_KEEP_RELEASE) {
-                            linInterpSetup(&script->volumeRamp, (u8)D_80082748, 0, stopControl);
+                            linInterpSetup(&script->volumeRamp, (u8)_gSndScriptMasterVolume, 0, stopControl);
                             script->state = SOUND_SCRIPT_FADING_OUT;
                             break;
                         }
@@ -1371,11 +1395,11 @@ static void _sndScriptStepDucking(void)
     masterVolume = sndScriptGetMasterVolume();
     if (D_8008274A > 0) {
         masterVolume   = masterVolume + D_8008274A;
-        unduckedVolume = (u8)D_80082749;
+        unduckedVolume = (u8)_gSndScriptUnduckedVolume;
         if (unduckedVolume < masterVolume) {
             if (unduckedVolume != 0) {
-                masterVolume = unduckedVolume;
-                D_80082749   = 0;
+                masterVolume              = unduckedVolume;
+                _gSndScriptUnduckedVolume = 0;
             }
             D_8008274A = 0;
         }
@@ -1421,8 +1445,8 @@ static s32 _sndScriptTickSlots(s32* unused)
         _sndScriptStepDucking();
     }
 
-    for (slotIndex = 0; slotIndex < ARRAY_SIZE(SndScript_Slots); slotIndex++) {
-        script = &SndScript_Slots[slotIndex];
+    for (slotIndex = 0; slotIndex < ARRAY_SIZE(_gSndScriptInstances); slotIndex++) {
+        script = &_gSndScriptInstances[slotIndex];
         switch (script->state) {
             case SOUND_SCRIPT_IDLE:
                 break;
@@ -1626,8 +1650,8 @@ static void _sndScriptScanSlotCandidates(_SndScriptSlotPick* candidates, u16 req
 
     _sndScriptInitSlotPick(candidates, requestPriority);
 
-    for (slotIndex = 0; slotIndex < ARRAY_SIZE(SndScript_Slots); slotIndex++) {
-        script = &SndScript_Slots[slotIndex];
+    for (slotIndex = 0; slotIndex < ARRAY_SIZE(_gSndScriptInstances); slotIndex++) {
+        script = &_gSndScriptInstances[slotIndex];
         if (script->state == SOUND_SCRIPT_IDLE) {
             candidates->idleSlot = slotIndex;
         } else if (script->state != SOUND_SCRIPT_STOPPING) {
@@ -1692,8 +1716,8 @@ void sndScriptKeyOffType1AndArea(void)
         (ref).attr->mask  |= SPU_VOICE_ADSR_ADSR2;                                                                                   \
     }
 
-    for (slotIndex = 0; slotIndex < (s32)ARRAY_SIZE(SndScript_Slots); slotIndex++) {
-        script    = &SndScript_Slots[slotIndex];
+    for (slotIndex = 0; slotIndex < (s32)ARRAY_SIZE(_gSndScriptInstances); slotIndex++) {
+        script    = &_gSndScriptInstances[slotIndex];
         voiceHead = script->voices;
         if (voiceHead != NULL) {
             bankType = script->soundId & SOUND_SCRIPT_REQUEST_TYPE_MASK;
@@ -1885,10 +1909,10 @@ static s32 _sndScriptExecCommand(_SndScript* script)
                 spuGetVoiceRef(voice->spuVoice, &voiceRef);
                 bankLayer    = sndBankGetLayer(bank, note->program, note->layer);
                 attr         = voiceRef.attr;
-                masterVolume = D_80082748;
+                masterVolume = _gSndScriptMasterVolume;
                 attr->addr   = bankLayer->waveAddr;
-                if ((D_80082749 != 0) && (script->entryControls->flags & SOUND_SCRIPT_USE_UNDUCKED_VOLUME)) {
-                    masterVolume = D_80082749;
+                if ((_gSndScriptUnduckedVolume != 0) && (script->entryControls->flags & SOUND_SCRIPT_USE_UNDUCKED_VOLUME)) {
+                    masterVolume = _gSndScriptUnduckedVolume;
                 }
                 // Choose the layer value or override before applying the entry pan bias.
                 layerVolume = (u8)note->volumeOverride;
@@ -2101,18 +2125,18 @@ void sndScriptSetMuteMatching(s32 soundSelector, s32 muted)
     s32         slotIndex;
     _SndScript* script;
 
-    for (slotIndex = 0; slotIndex < ARRAY_SIZE(SndScript_Slots); slotIndex++) {
-        script = &SndScript_Slots[slotIndex];
+    for (slotIndex = 0; slotIndex < ARRAY_SIZE(_gSndScriptInstances); slotIndex++) {
+        script = &_gSndScriptInstances[slotIndex];
         if ((soundSelector == script->soundId) || ((script->soundId & SOUND_SCRIPT_REQUEST_TYPE_MASK) == soundSelector)) {
             if (muted == 0) {
                 if (script->state == SOUND_SCRIPT_MUTING) {
                     script->state = SOUND_SCRIPT_UNMUTING;
-                    linInterpSetup(&script->volumeRamp, 0, (u8)D_80082748, SOUND_SCRIPT_MUTE_RAMP_UPDATES);
+                    linInterpSetup(&script->volumeRamp, 0, (u8)_gSndScriptMasterVolume, SOUND_SCRIPT_MUTE_RAMP_UPDATES);
                 }
             } else {
                 if (script->state & SOUND_SCRIPT_MUTABLE) {
                     script->state = SOUND_SCRIPT_MUTING;
-                    linInterpSetup(&script->volumeRamp, (u8)D_80082748, 0, SOUND_SCRIPT_MUTE_RAMP_UPDATES);
+                    linInterpSetup(&script->volumeRamp, (u8)_gSndScriptMasterVolume, 0, SOUND_SCRIPT_MUTE_RAMP_UPDATES);
                 }
             }
         }
@@ -2126,8 +2150,8 @@ void sndScriptRampMix(s32 scriptSlotIndex, s32 panOffset, s32 attenuation)
     s32         panStep;
     s32         volumeScale;
 
-    scriptSlotIndex &= ARRAY_SIZE(SndScript_Slots) - 1;
-    script           = &SndScript_Slots[scriptSlotIndex];
+    scriptSlotIndex &= ARRAY_SIZE(_gSndScriptInstances) - 1;
+    script           = &_gSndScriptInstances[scriptSlotIndex];
 
     // Wrap the pan delta to a signed byte before choosing a snap or ramp.
     panDelta        = *(volatile u8*)&script->panOffset;
@@ -2172,7 +2196,7 @@ void sndScriptRampVolume(s32 scriptSlotIndex, s32 volumeScale)
     u8          targetAttenuation;
     s16         attenuationDelta;
 
-    script = &SndScript_Slots[scriptSlotIndex & (ARRAY_SIZE(SndScript_Slots) - 1)];
+    script = &_gSndScriptInstances[scriptSlotIndex & (ARRAY_SIZE(_gSndScriptInstances) - 1)];
     // Keep the unsigned target byte separate from the signed ramp difference.
     attenuationDelta  = ~volumeScale & SOUND_SCRIPT_VOLUME_UNITY;
     targetAttenuation = attenuationDelta;
@@ -2202,11 +2226,11 @@ void sndScriptAcquireDuck(void)
     D_8008274C += 1;
     if (D_8008274C == 1) {
         if (D_8008274A == 0) {
-            if (D_80082749 == 0) {
+            if (_gSndScriptUnduckedVolume == 0) {
                 masterVolume = sndScriptGetMasterVolume();
                 if (masterVolume >= SOUND_SCRIPT_DUCK_LEVEL) {
-                    D_80082749 = masterVolume;
-                    D_8008274A = -SOUND_SCRIPT_DUCK_STEP;
+                    _gSndScriptUnduckedVolume = masterVolume;
+                    D_8008274A                = -SOUND_SCRIPT_DUCK_STEP;
                 }
             }
         }
@@ -2218,7 +2242,7 @@ void sndScriptReleaseDuck(void)
     if (D_8008274C > 0) {
         D_8008274C -= 1;
         if (D_8008274C == 0) {
-            if (D_80082749 != 0) {
+            if (_gSndScriptUnduckedVolume != 0) {
                 D_8008274A = SOUND_SCRIPT_DUCK_STEP;
             }
         }
@@ -2252,12 +2276,12 @@ static inline void _sndScriptClearWords(void* storage, u32 wordCount)
 /// and reverb level 1. Duck-request nesting is initialized separately.
 static void _sndScriptInit(void)
 {
-    _sndScriptClearWords(SndScript_Slots, sizeof(SndScript_Slots) / sizeof(s32));
+    _sndScriptClearWords(_gSndScriptInstances, sizeof(_gSndScriptInstances) / sizeof(s32));
     _sndScriptClearWords(_gSndBankSlots, sizeof(_gSndBankSlots) / sizeof(s32));
     _sndScriptClearWords(SndScript_Voices, sizeof(SndScript_Voices) / sizeof(s32));
 
-    D_8008274A = 0;
-    D_80082749 = 0;
+    D_8008274A                = 0;
+    _gSndScriptUnduckedVolume = 0;
     sndScriptSetMasterVolume(SOUND_SCRIPT_VOLUME_UNITY);
     _sndScriptSetReverbLevel(SOUND_SCRIPT_REVERB_DEFAULT_LEVEL);
 }
@@ -2286,14 +2310,14 @@ s32 sndScriptFindInstanceById(s32 soundId)
     _SndScript* script;
 
     slotIndex = 0;
-    script    = SndScript_Slots;
+    script    = _gSndScriptInstances;
     do {
         if ((script->state & SOUND_SCRIPT_PLAYING) && (script->soundId == soundId)) {
             return slotIndex;
         }
         slotIndex++;
         script++;
-    } while (slotIndex < ARRAY_SIZE(SndScript_Slots));
+    } while (slotIndex < ARRAY_SIZE(_gSndScriptInstances));
     return SOUND_SCRIPT_SLOT_NONE;
 }
 
@@ -2327,9 +2351,9 @@ void sndScriptSetMasterVolume(s8 masterVolume)
     s8          storedVolume;
 
     // Entries exempt from active ducking keep their previously scaled gain.
-    for (slotIndex = 0; slotIndex < ARRAY_SIZE(SndScript_Slots); slotIndex++) {
-        script = &SndScript_Slots[slotIndex];
-        if ((script->useUnduckedVolume != 1) || (D_80082749 == 0)) {
+    for (slotIndex = 0; slotIndex < ARRAY_SIZE(_gSndScriptInstances); slotIndex++) {
+        script = &_gSndScriptInstances[slotIndex];
+        if ((script->useUnduckedVolume != 1) || (_gSndScriptUnduckedVolume == 0)) {
             _sndScriptRescaleVoices(script, masterVolume);
             script->mixDirty = 1;
         }
@@ -2339,12 +2363,12 @@ void sndScriptSetMasterVolume(s8 masterVolume)
     if (storedVolume < 0) {
         storedVolume = 0;
     }
-    D_80082748 = storedVolume;
+    _gSndScriptMasterVolume = storedVolume;
 }
 
 s8 sndScriptGetMasterVolume(void)
 {
-    return D_80082748;
+    return _gSndScriptMasterVolume;
 }
 
 /// Selects a script-slot replacement from a completed start-request survey.
@@ -2430,7 +2454,7 @@ static void _sndScriptStartSlot(s32 scriptSlotIndex, s8 panOffset, s8 attenuatio
 
     // Release the previous hardware allocations before publishing the new instance.
     controls = entryControls;
-    script   = &SndScript_Slots[scriptSlotIndex];
+    script   = &_gSndScriptInstances[scriptSlotIndex];
     _sndScriptDiscardVoices(script->voices);
     script->state             = SOUND_SCRIPT_STARTING;
     script->voices            = NULL;
@@ -2855,7 +2879,7 @@ static void _sndScriptResetStageSlots(void)
     ambientType = SOUND_STAGE_AMBIENT & typeMask;
     areaType    = SOUND_AREA_BANK_ALL;
     type1       = SOUND_SCRIPT_REQUEST_TYPE_1;
-    script      = SndScript_Slots;
+    script      = _gSndScriptInstances;
     do {
         bankType = script->soundId & typeMask;
         if (bankType != ambientType) {
@@ -2865,5 +2889,5 @@ static void _sndScriptResetStageSlots(void)
         }
         slotIndex++;
         script++;
-    } while (slotIndex < ARRAY_SIZE(SndScript_Slots));
+    } while (slotIndex < ARRAY_SIZE(_gSndScriptInstances));
 }

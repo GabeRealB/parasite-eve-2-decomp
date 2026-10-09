@@ -25,6 +25,7 @@
 #include "main/gfx.h"
 #include "main/gfxgte.h"
 #include "main/mc.h"
+#include "main/game_debug.h"
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/text.h"
@@ -532,7 +533,7 @@ void hudDrawStatusBlock(const HudState* hud)
     HudHpMp*        displayedStats;
 
     playerStatus = &gPlayerStatus;
-    debugState   = Pad_RemapState;
+    debugState   = gGameDebugState;
     pendingHp    = 0;
     pendingMp    = 0;
     if (debugState->hideHud != 0) {

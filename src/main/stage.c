@@ -15,7 +15,7 @@
 #include "fs.h"
 #include "main/fs_types.h"
 #include "fs_types.h"
-#include "main/game_debug_types.h"
+#include "main/game_debug.h"
 #include "gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -134,7 +134,7 @@ static StreamSceneImageHeader* Stage_CdEntry;
 
 /// Resident storage for diagnostic controls, input overrides and loading status.
 ///
-/// Shared through `Pad_RemapState` and cleared at main-loop initialization;
+/// Shared through `gGameDebugState` and cleared at main-loop initialization;
 /// its lifetime spans gameplay and room overlay loads.
 static GameDebugState _gGameDebugStateStorage;
 
@@ -189,7 +189,7 @@ static void _mdecImageStripCallback(void);
 /// Active stage/flow context pointer.
 static StageCtx* Stage_Ctx            = &Stage_Context;
 static TaskDesc  Display_ModeTaskDesc = { { { TASK_BODY_NONE, 0 } }, _stageModeControllerTask };
-GameDebugState*  Pad_RemapState       = &_gGameDebugStateStorage;
+GameDebugState*  gGameDebugState      = &_gGameDebugStateStorage;
 TaskDesc         D_800626AC[]         = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskDebugLaunchCallback },
@@ -722,7 +722,7 @@ static __inline__ void _gfxInvertFourRgb555PixelsGray(u32* firstWord, u32* secon
 /// Converts the area's captured RAM frame to inverted grey in place.
 ///
 /// Call after `gfxCaptureAreaFrame` has completed its GPU readback and placed
-/// `Gpu_PrimHeapBase` immediately after the word-aligned 320x240 RGB555 frame.
+/// `gGpuPrimitiveBufferBase` immediately after the word-aligned 320x240 RGB555 frame.
 /// Processes every pixel, clearing its mask bit; frame storage must remain
 /// writable and unavailable for other transfers throughout the conversion.
 static void _gfxInvertCapturedFrameGray(void)
@@ -734,7 +734,7 @@ static void _gfxInvertCapturedFrameGray(void)
     u32* firstWord;
     u32* secondWord;
 
-    firstWord  = (u32*)(Gpu_PrimHeapBase - sizeof(FsImgBuffers));
+    firstWord  = (u32*)(gGpuPrimitiveBufferBase - sizeof(FsImgBuffers));
     secondWord = firstWord + 1;
     for (pixelGroup = 0; pixelGroup < GRAPHICS_CAPTURE_PIXEL_GROUP_COUNT; pixelGroup++) {
         _gfxInvertFourRgb555PixelsGray(firstWord, secondWord);

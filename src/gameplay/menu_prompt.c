@@ -534,7 +534,7 @@ void itemMenuMainPanelTask(Task* task)
         uiUpdateList(commandList, &object->panel);
         if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
             if (object->result == USER_INTERFACE_RESULT_NONE) {
-                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
+                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
                     object->result = USER_INTERFACE_RESULT_CANCEL;
                 } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
                     object->result = USER_INTERFACE_RESULT_CANCEL;
@@ -1375,7 +1375,7 @@ void itemMenuDrawReorderableItemRow(UiList* list, UiObject* object)
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (Gp_ItemOrderMode == ITEM_MENU_ROW_MODE_SELECT) {
             Gp_SelItemRec = carriedRow;
-            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
                 sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                 dialog = uiSpawnObject(&D_8010EAB4[ITEM_MENU_ROW_COMMAND_DESCRIPTOR], 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ROW_DIALOG_DELAY_TICKS, object);
                 if (dialog != NULL) {
@@ -1385,7 +1385,7 @@ void itemMenuDrawReorderableItemRow(UiList* list, UiObject* object)
             } else {
                 itemMenuOpenInfoOnTriangle(object);
             }
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             InventoryItemRange* carriedRange;
             carriedRange        = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
             sourceRowIndex      = inventoryIndexOfRow(carriedRange, Gp_SelItemRec);
@@ -1585,14 +1585,14 @@ static void _itemMenuInventoryListTask(Task* task)
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
                 object->result = USER_INTERFACE_RESULT_CANCEL;
             } else if (Gp_ItemOrderMode == ITEM_MENU_MODE_SELECT) {
-                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
+                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
                     sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
                     object->resultValue = ITEM_MENU_COMMAND_MAIN;
                     object->result      = USER_INTERFACE_RESULT_CONFIRM;
                 } else {
                     padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_L2 | PAD_BUTTON_R2);
                 }
-            } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
+            } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
                 sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
                 Gp_ItemOrderMode = ITEM_MENU_MODE_SELECT;
             }
@@ -1739,7 +1739,7 @@ void itemMenuDrawEquippedWeaponRow(UiList* list, UiObject* object)
             } else {
                 Gp_SelItemRec = NULL;
             }
-            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
                 itemMenuSetWeaponChoiceRows(&D_8010E9A4, INVENTORY_ITEM_NONE);
                 if (D_8010E9A4.itemCount >= 2U || (D_8010E9A4.itemCount == 1 && player->weapon == PLAYER_STATUS_EQUIPMENT_NONE)) {
                     UiObject* childObject;
@@ -1757,7 +1757,7 @@ void itemMenuDrawEquippedWeaponRow(UiList* list, UiObject* object)
                 itemMenuOpenInfoOnTriangle(object);
             }
         } else if (orderMode == rowInputEnabled) {
-            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
                 if ((u8)(Gp_SelItemRec->itemId + EQUIPMENT_WEAPON_ITEM_FIRST) < ITEM_MENU_WEAPON_ITEM_COUNT) {
                     PlayerStatus*     livePlayer;
                     InventoryItemRow* selectedRow;
@@ -1930,7 +1930,7 @@ void itemMenuDrawWeaponLoadRow(UiList* list, UiObject* object)
                 carriedRow = inventoryFindLastCarriedItemRow(itemId);
             }
             Gp_SelItemRec = carriedRow;
-            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
                 s32 currentWeaponItemId;
                 s32 yOffset;
                 s32 xOffset;
@@ -1948,7 +1948,7 @@ void itemMenuDrawWeaponLoadRow(UiList* list, UiObject* object)
                 itemMenuOpenInfoOnTriangle(object);
             }
         } else if (orderMode == rowInputEnabled) {
-            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
                 if (equipmentLoadWeaponConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, weaponItemId, Gp_SelItemRec->itemId, EQUIPMENT_WEAPON_LOAD_TO_CAPACITY) >= 0) {
                     itemSetIdentified(Gp_SelItemRec->itemId, 1);
                     sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
@@ -2071,7 +2071,7 @@ void itemMenuWeaponPanelTask(Task* task)
                 parentObject->panel.control.word = controlMode;
                 object->panel.control.word       = USER_INTERFACE_PANEL_INACTIVE;
             }
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
             Task*     parentTask;
             UiObject* parentObject;
 
@@ -2264,7 +2264,7 @@ void itemMenuDrawArmorAttachmentRow(UiList* list, UiObject* object)
     if (rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         orderMode = Gp_ItemOrderMode;
         if (orderMode == rowInputEnabled) {
-            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
                 const ItemDesc* selectedDescriptor;
                 selectedDescriptor = &Gp_ItemDescs[Gp_SelItemRec->itemId];
                 if (!(selectedDescriptor->flags & ITEM_FLAG_NO_ATTACHMENT)) {
@@ -2288,7 +2288,7 @@ void itemMenuDrawArmorAttachmentRow(UiList* list, UiObject* object)
             }
         } else {
             if (carriedRow == NULL) {
-                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
                     sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                     childObject = uiSpawnObject(&D_8010EAB4[ITEM_MENU_ATTACHMENT_CHOICE_DESCRIPTOR], 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_EQUIPMENT_CHOICE_DELAY_TICKS, object);
                     if (childObject != NULL) {
@@ -2304,7 +2304,7 @@ void itemMenuDrawArmorAttachmentRow(UiList* list, UiObject* object)
                 Gp_SelItemRec = carriedRow;
             } else {
                 Gp_SelItemRec = carriedRow;
-                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
                     sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                     dialogObject = uiSpawnObject(&D_8010EAB4[ITEM_MENU_ROW_COMMAND_DESCRIPTOR], ITEM_MENU_COMMAND_ATTACHED_ITEM, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ROW_DIALOG_DELAY_TICKS, object);
                     if (dialogObject != NULL) {
@@ -2479,7 +2479,7 @@ void itemMenuArmorPanelTask(Task* task)
                             scratch.rowX  = object->panel.contentLeft.signedValue + 2;
                             Gp_SelItemRec = carriedRow;
                             scratch.rowY  = object->panel.contentTop.unsignedValue + 0xF;
-                            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+                            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
                                 sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                                 itemMenuSizeUnequippedArmorList(&D_8010E9F4, object);
                                 if (D_8010E9F4.itemCount != 0) {
@@ -2505,7 +2505,7 @@ void itemMenuArmorPanelTask(Task* task)
                             break;
                         }
                     }
-                } else if ((orderMode == controlWord) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0)) {
+                } else if ((orderMode == controlWord) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0)) {
                     if ((u32)(Gp_SelItemRec->itemId - ITEM_MENU_ARMOR_ITEM_FIRST) < (u32)ITEM_MENU_ARMOR_ITEM_COUNT) {
                         sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                         equipmentEquipCarriedArmor(Gp_SelItemRec->itemId);
@@ -2584,7 +2584,7 @@ void itemMenuArmorPanelTask(Task* task)
         if (activeControl == USER_INTERFACE_PANEL_ACTIVE) {
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
                 object->result = USER_INTERFACE_RESULT_CANCEL;
-            } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
+            } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
                 Task*     parentTask;
                 UiObject* parentObject;
                 sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
