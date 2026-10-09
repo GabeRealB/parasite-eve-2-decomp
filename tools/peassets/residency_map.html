@@ -1,0 +1,171 @@
+<title>PE2 Residency Map</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a control strip, then two instruments side by side - the load graph (what brings what) and the VRAM sheet (where it lands). */
+:root {
+  --bg: #eef1f2; --panel: #f8fafa; --ink: #16242b; --muted: #5b6d75; --line: #c9d3d6; --grid: #dde4e6;
+  --accent: #0b6b7a; --accent-soft: #d5e8ea; --clash: #b3402a; --clut: #7a5a0b;
+  --sans: "IBM Plex Sans", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #10181c; --panel: #162126; --ink: #dfe8ea; --muted: #8fa3aa; --line: #2c3c43; --grid: #1f2d33;
+  --accent: #56c0cf; --accent-soft: #173940; --clash: #f08a6e; --clut: #e0bd62; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #10181c; --panel: #162126; --ink: #dfe8ea; --muted: #8fa3aa; --line: #2c3c43; --grid: #1f2d33;
+  --accent: #56c0cf; --accent-soft: #173940; --clash: #f08a6e; --clut: #e0bd62; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.45; }
+.wrap { max-width: 1500px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 40px; display: flex; flex-direction: column; gap: 16px; }
+h1 { font-size: 20px; font-weight: 600; margin: 0; text-wrap: balance; }
+.lede { color: var(--muted); max-width: 70ch; margin: 4px 0 0; }
+.bar { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: end; }
+label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+input, select { font: 14px var(--mono); color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 3px; padding: 6px 8px; min-width: 0; max-width: 100%; }
+input:focus-visible, select:focus-visible, button:focus-visible, .g:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.facts { font: 12px var(--mono); color: var(--muted); }
+.cols { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 16px; align-items: start; }
+@media (max-width: 1000px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 3px; min-width: 0; }
+.panel h2 { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 500; margin: 0; padding: 8px 12px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.scroll { overflow: auto; max-height: 640px; }
+#graph { display: block; }
+#graph text { font: 11px var(--mono); fill: var(--ink); }
+#graph .dim { fill: var(--muted); }
+#graph .edge { fill: none; stroke: var(--muted); stroke-width: 1; }
+#graph .opt { stroke-dasharray: 4 3; }
+#graph .on { stroke: var(--accent); stroke-width: 1.6; }
+#graph .g { cursor: pointer; }
+#graph .g rect { fill: var(--panel); stroke: var(--line); }
+#graph .g.sel rect { fill: var(--accent-soft); stroke: var(--accent); }
+#graph .loader rect { fill: var(--ink); } #graph .loader text { fill: var(--bg); font-weight: 500; }
+.sheet { padding: 12px; }
+#vram { display: block; width: 100%; height: auto; background: var(--bg); border: 1px solid var(--line); }
+#vram .grid { stroke: var(--grid); stroke-width: 1; vector-effect: non-scaling-stroke; }
+#vram .half { stroke: var(--line); stroke-width: 1; vector-effect: non-scaling-stroke; }
+#vram .lab { font: 9px var(--mono); fill: var(--muted); }
+#vram .img { fill: var(--accent); fill-opacity: .28; stroke: var(--accent); vector-effect: non-scaling-stroke; }
+#vram .clut { fill: var(--clut); fill-opacity: .55; stroke: var(--clut); vector-effect: non-scaling-stroke; }
+#vram .clash { fill: var(--clash); fill-opacity: .4; stroke: var(--clash); }
+#vram .hot { fill-opacity: .75; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12px; color: var(--muted); padding: 8px 0 0; }
+.sw { display: inline-block; width: 12px; height: 12px; vertical-align: -2px; margin-right: 5px; border: 1px solid; }
+.sw.i { background: var(--accent-soft); border-color: var(--accent); } .sw.c { background: var(--clut); border-color: var(--clut); } .sw.x { background: var(--clash); border-color: var(--clash); }
+table { border-collapse: collapse; width: 100%; font: 12px var(--mono); font-variant-numeric: tabular-nums; }
+th { text-align: left; font: 500 11px var(--sans); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 6px 12px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--panel); }
+td { padding: 4px 12px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+tr.hot td { background: var(--accent-soft); } tr.clash td:first-child { color: var(--clash); }
+.note { color: var(--muted); font-size: 12px; max-width: 80ch; }
+</style>
+<div class="wrap">
+  <header>
+    <h1>PE2 Residency Map</h1>
+    <p class="lede">Pick an overlay to see which disc files it brings into memory, and where their images and palettes land in video memory. Solid edges always load; dashed edges load under a condition. Select a view and an enemy variant to see what is resident together.</p>
+  </header>
+  <div class="bar">
+    <label for="loader">Overlay<input id="loader" list="loaders" autocomplete="off" spellcheck="false" size="34"></label>
+    <datalist id="loaders"></datalist>
+    <label for="view">View<select id="view"></select></label>
+    <label for="variant">Enemy variant<select id="variant"></select></label>
+    <div class="facts" id="facts"></div>
+  </div>
+  <div class="cols">
+    <section class="panel">
+      <h2><span>Load graph</span><span>overlay → group → file</span></h2>
+      <div class="scroll"><svg id="graph" xmlns="http://www.w3.org/2000/svg"></svg></div>
+    </section>
+    <section class="panel">
+      <h2><span>Video memory, 1024 × 512</span><span id="hover">hover a rectangle</span></h2>
+      <div class="sheet">
+        <svg id="vram" viewBox="-22 -12 1050 530" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div class="legend"><span><i class="sw i"></i>image</span><span><i class="sw c"></i>palette (CLUT)</span><span><i class="sw x"></i>two resident files claim the same area</span><span>grid: 64-wide texture pages, split at row 256</span></div>
+      </div>
+      <div class="scroll" style="max-height:300px"><table><thead><tr><th>Asset</th><th>At</th><th>Size</th><th>Depth</th><th>Loaded by</th><th>File</th></tr></thead><tbody id="rows"></tbody></table></div>
+    </section>
+  </div>
+  <p class="note">View edges assume file N of a room's folder is view N, which holds for rooms that use the identity view map. Variant edges come from each room's placement and resource tables, with the page and row offsets the placement loads the file with; a rectangle is drawn where it lands after those offsets. Not yet in the graph: stage-common files, gameplay's own loads (weapons, menus, companions) and uploads done by code.</p>
+</div>
+<script>
+const D = /*DATA*/;
+const $ = id => document.getElementById(id), NS = "http://www.w3.org/2000/svg";
+const el = (tag, attrs, text) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; return e; };
+const names = Object.keys(D.loaders).sort();
+$("loaders").innerHTML = names.map(n => `<option value="${n}">`).join("");
+let cur = null, hot = null;
+
+function landed(r, page, row) {           // the loader's offsets: header rows 245..255 move by rows, images from row 256 by pages
+  let [asset, kind, part, x, y, w, h, bpp] = r;
+  if (y >= 245 && y <= 255) y += row; else if (y >= 256 && kind === "i") x += page * 64;
+  return { asset, kind, part, x, y, w, h, bpp };
+}
+function resident() {
+  const out = [], view = $("view").value, variant = $("variant").value;
+  cur.groups.forEach((g, gi) => {
+    const on = g[0] === "a" || g[1] === view || g[1] === variant;
+    g.on = on;
+    if (on) for (const [f, page, row] of g[3]) for (const r of (D.fp[f] || [])) out.push({ ...landed(r, page, row), group: gi, file: D.files[f], by: g[0] === "a" ? "always" : g[1] });
+  });
+  out.forEach((a, i) => { a.clash = out.some((b, j) => i !== j && a.file !== b.file && a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h); });
+  return out;
+}
+function drawGraph() {
+  const svg = $("graph"); svg.replaceChildren();
+  const rowH = 20, gx = 170, fx = 330; let y = 14; const rows = [];
+  cur.groups.forEach((g, gi) => { rows.push({ gi, y, n: Math.max(1, g[3].length) }); y += Math.max(1, g[3].length) * rowH + 6; });
+  const H = y + 8, W = 760, ly = Math.min(H / 2, 300);
+  svg.setAttribute("width", W); svg.setAttribute("height", H); svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const edges = el("g", {}), nodes = el("g", {}); svg.append(edges, nodes);
+  const lg = el("g", { class: "loader" }); lg.append(el("rect", { x: 6, y: ly - 11, width: 130, height: 22, rx: 2 }), el("text", { x: 12, y: ly + 4 }, cur.name.length > 19 ? cur.name.slice(0, 18) + "…" : cur.name)); nodes.append(lg);
+  for (const { gi, y, n } of rows) {
+    const g = cur.groups[gi], cy = y + 8, opt = g[0] !== "a";
+    edges.append(el("path", { class: "edge" + (opt ? " opt" : "") + (g.on ? " on" : ""), d: `M136 ${ly} C ${gx - 20} ${ly}, ${gx - 30} ${cy}, ${gx} ${cy}` }));
+    const node = el("g", { class: "g" + (g.on ? " sel" : ""), tabindex: opt ? 0 : -1, role: "button" });
+    node.append(el("rect", { x: gx, y: cy - 9, width: 110, height: 18, rx: 2 }), el("text", { x: gx + 6, y: cy + 4 }, opt ? g[1] : "always"));
+    if (opt) { const pick = () => { const s = g[1].startsWith("view") ? $("view") : $("variant"); s.value = s.value === g[1] ? "" : g[1]; render(); }; node.addEventListener("click", pick); node.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } }); }
+    nodes.append(node);
+    g[3].forEach(([f, page, row, note], k) => {
+      const fy = y + 8 + k * rowH, n = (D.fp[f] || []).length;
+      edges.append(el("path", { class: "edge" + (g.on ? " on" : ""), d: `M${gx + 110} ${cy} C ${fx - 30} ${cy}, ${fx - 30} ${fy}, ${fx - 4} ${fy}` }));
+      nodes.append(el("text", { x: fx, y: fy + 4 }, D.files[f]));
+      const extra = [(page || row) ? `page ${page >= 0 ? "+" : ""}${page}, row ${row >= 0 ? "+" : ""}${row}` : "", n ? `${n} upload${n > 1 ? "s" : ""}` : "no uploads", note].filter(Boolean).join(" · ");
+      nodes.append(el("text", { class: "dim", x: fx + 8 + D.files[f].length * 6.7, y: fy + 4 }, extra));
+    });
+  }
+}
+function drawVram(list) {
+  const svg = $("vram"); svg.replaceChildren();
+  for (let x = 0; x <= 1024; x += 64) { svg.append(el("line", { class: "grid", x1: x, y1: 0, x2: x, y2: 512 })); if (x < 1024) svg.append(el("text", { class: "lab", x: x + 2, y: -3 }, x)); }
+  for (const yy of [0, 256, 512]) { svg.append(el("line", { class: "half", x1: 0, y1: yy, x2: 1024, y2: yy })); svg.append(el("text", { class: "lab", x: -20, y: yy + (yy ? 3 : 8) }, yy)); }
+  list.forEach((a, i) => {
+    const r = el("rect", { class: (a.kind === "c" ? "clut" : "img") + (a.clash ? " clash" : "") + (hot === i ? " hot" : ""), x: a.x, y: a.y, width: a.w, height: Math.max(a.h, a.kind === "c" ? 2 : 1) });
+    r.addEventListener("mouseenter", () => { hot = i; mark(list); }); r.addEventListener("mouseleave", () => { hot = null; mark(list); });
+    r.append(el("title", {}, `${a.asset} ${a.part} (${a.x},${a.y}) ${a.w}×${a.h} — ${a.file}`)); svg.append(r);
+  });
+}
+function mark(list) {
+  [...$("vram").querySelectorAll("rect")].forEach((r, i) => r.classList.toggle("hot", i === hot));
+  [...$("rows").children].forEach((r, i) => r.classList.toggle("hot", i === hot));
+  const a = list[hot]; $("hover").textContent = a ? `${a.asset} ${a.part} at (${a.x}, ${a.y})` : "hover a rectangle";
+}
+function render() {
+  const list = resident(); drawGraph(); drawVram(list);
+  $("rows").innerHTML = list.map(a => `<tr class="${a.clash ? "clash" : ""}"><td>${a.asset} ${a.part}</td><td>${a.x}, ${a.y}</td><td>${a.w} × ${a.h}</td><td>${a.kind === "c" ? "palette" : a.bpp + "-bit"}</td><td>${a.by}</td><td>${a.file}</td></tr>`).join("") || `<tr><td colspan="6">Nothing resident uploads to video memory.</td></tr>`;
+  [...$("rows").children].forEach((r, i) => { r.addEventListener("mouseenter", () => { hot = i; mark(list); }); r.addEventListener("mouseleave", () => { hot = null; mark(list); }); });
+  const n = cur.groups.length, files = cur.groups.reduce((s, g) => s + g[3].length, 0);
+  $("facts").textContent = `${n} groups · ${files} file loads · ${list.length} rectangles resident · ${list.filter(a => a.clash).length} in conflict`;
+}
+function pick(name, keep) {
+  if (!D.loaders[name]) return;
+  cur = { name, groups: D.loaders[name] }; hot = null;
+  const conds = k => cur.groups.filter(g => g[0] === "o" && g[1].startsWith(k)).map(g => g[1]);
+  const fill = (s, list, none) => { s.innerHTML = `<option value="">${none}</option>` + list.map(c => `<option>${c}</option>`).join(""); s.disabled = !list.length; };
+  fill($("view"), conds("view"), "none"); fill($("variant"), conds("variant"), "none");
+  const withUploads = k => cur.groups.find(g => g[0] === "o" && g[1].startsWith(k) && g[3].some(m => (D.fp[m[0]] || []).length));
+  if (!keep) { $("view").value = (withUploads("view") || [0, ""])[1]; $("variant").value = (withUploads("variant") || [0, ""])[1]; }
+  $("loader").value = name; try { history.replaceState(null, "", "#" + name); } catch (e) {}
+  render();
+}
+$("loader").addEventListener("change", e => pick(e.target.value.trim()));
+$("loader").addEventListener("input", e => { if (D.loaders[e.target.value]) pick(e.target.value); });
+$("view").addEventListener("change", render); $("variant").addEventListener("change", render);
+const start = location.hash.slice(1);
+pick(D.loaders[start] ? start : "shelter_b3_dumping_hole");
+</script>

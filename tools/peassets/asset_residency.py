@@ -22,6 +22,7 @@ images and CLUTs upload to, moved by the edge's offsets.
     asset_residency.py show LOADER      a loader's groups and what each brings
     asset_residency.py at LOADER X Y    what can sit at a VRAM position while LOADER runs
     asset_residency.py dot LOADER       the loader's part of the graph, for graphviz
+    asset_residency.py html [--out F]   the whole graph as one page: load graph and VRAM sheet per overlay
 
 Every edge records where it comes from (`evidence`): `carrier` (the file holds
 the overlay's own package), `placement` (an `AreaVariant`'s placement and
@@ -204,6 +205,43 @@ def build(db: sqlite3.Connection) -> None:
           + (f"; {missing} placement loads name a file the disc does not have" if missing else ""))
 
 
+TEMPLATE = Path(__file__).with_name("residency_map.html")
+# The template is the page's content only, as an artifact host wraps it; a
+# local file needs the document around it.
+DOCUMENT = ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
+            '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
+            '<style>body{margin:0}[hidden]{display:none!important}</style>\n</head>\n<body>\n%s\n</body>\n</html>\n')
+
+
+def page_data(db: sqlite3.Connection) -> str:
+    """The graph as the page reads it: files by index, footprints, groups per loader."""
+    import json
+    files = [r["path"] for r in db.execute("SELECT path FROM file ORDER BY path")]
+    index = {path: n for n, path in enumerate(files)}
+    members = defaultdict(list)
+    for r in db.execute("SELECT * FROM member"):
+        members[r["grp"]].append([index[r["file"]], r["page"], r["row"], r["note"]])
+    loaders = defaultdict(list)
+    for g in db.execute("SELECT * FROM grp ORDER BY loader, kind, id"):
+        loaders[g["loader"]].append([g["kind"][0], g["condition"], g["evidence"], members[g["id"]]])
+    used = {m[0] for groups in loaders.values() for g in groups for m in g[3]}
+    footprint = defaultdict(list)
+    for r in db.execute("SELECT * FROM footprint"):
+        if index[r["file"]] in used:
+            footprint[index[r["file"]]].append([r["asset"], r["kind"][0], r["part"], r["x"], r["y"], r["w"], r["h"], r["bpp"] or 0])
+    return json.dumps({"files": files, "fp": footprint, "loaders": loaders}, separators=(",", ":")).replace("</", "<\\/")
+
+
+def write_page(db: sqlite3.Connection, out: Path, bare: bool) -> None:
+    template = TEMPLATE.read_text(encoding="utf-8")
+    if template.count("/*DATA*/") != 1:
+        raise SystemExit(f"{TEMPLATE}: expected one /*DATA*/ marker")
+    page = template.replace("/*DATA*/", page_data(db))
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(page if bare else DOCUMENT % page, encoding="utf-8")
+    print(f"wrote {out}  ({out.stat().st_size // 1024} KB)")
+
+
 def resident(db: sqlite3.Connection, loader: str):
     """(group row, member row, footprint row, x, y) for everything LOADER can bring in."""
     for g in db.execute("SELECT * FROM grp WHERE loader = ? ORDER BY kind, id", (loader,)):
@@ -221,6 +259,9 @@ def main() -> int:
     sub.add_parser("stats")
     for name in ("show", "dot"):
         p = sub.add_parser(name); p.add_argument("loader")
+    p = sub.add_parser("html")
+    p.add_argument("--out", type=Path, default=ROOT / "local" / "residency_map.html")
+    p.add_argument("--bare", action="store_true", help="the page's content only, for a host that supplies the document")
     p = sub.add_parser("at"); p.add_argument("loader"); p.add_argument("x", type=lambda v: int(v, 0)); p.add_argument("y", type=lambda v: int(v, 0))
     args = ap.parse_args()
     args.db.parent.mkdir(parents=True, exist_ok=True)
@@ -229,6 +270,8 @@ def main() -> int:
 
     if args.command == "build":
         build(db)
+    elif args.command == "html":
+        write_page(db, args.out, args.bare)
     elif args.command == "stats":
         for row in db.execute("SELECT kind, evidence, COUNT(*), COUNT(DISTINCT loader) FROM grp GROUP BY 1, 2"):
             print(f"  {row[0]:<9} {row[1]:<10} {row[2]:>5} groups, {row[3]:>4} loaders")
