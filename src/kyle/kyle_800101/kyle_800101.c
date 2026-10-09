@@ -185,36 +185,45 @@ TmdSource D_kyle_800101_8016D81C = {
     _gKyle800101KyleMadiganHandLeftStream,
 };
 
-static TmdBone _gKyle800101KyleMadiganGunSkeleton[1] = {
+/// Identity rest transform for the gun's single root, copied into each model.
+static TmdBone _gKyle800101KyleMadiganGunSkeleton[] = {
 #include "assets/kyle_madigan_gun_skeleton.inc"
 };
 
-static u32 _gKyle800101KyleMadiganGunPartVerts[1] = {
+/// Vertex count for the single part-local gun group (22 vertices).
+static u32 _gKyle800101KyleMadiganGunPartVerts[] = {
 #include "assets/kyle_madigan_gun_partVerts.inc"
 };
 
-static SVECTOR _gKyle800101KyleMadiganGunVerts[22] = {
+/// Gun vertices in integer coordinates local to the gun root.
+static SVECTOR _gKyle800101KyleMadiganGunVerts[] = {
 #include "assets/kyle_madigan_gun_verts.inc"
 };
 
-static SVECTOR _gKyle800101KyleMadiganGunNormals[24] = {
+/// Gun lighting normals with twelve fractional bits, indexed independently of vertices.
+static SVECTOR _gKyle800101KyleMadiganGunNormals[] = {
 #include "assets/kyle_madigan_gun_normals.inc"
 };
 
-static u32 _gKyle800101KyleMadiganGunStream[162] = {
+/// Writable draw commands for one flat textured quad, two Gouraud triangles and nineteen Gouraud quads.
+///
+/// One skeletal group and an empty final group end in `TMD_STREAM_END`.
+/// First model creation resolves the command handler slots in place.
+static u32 _gKyle800101KyleMadiganGunStream[] = {
 #include "assets/kyle_madigan_gun_stream.inc"
 };
 
-TmdSource D_kyle_800101_8016DC60 = {
-    0,
-    1108,
-    0,
-    1,
-    _gKyle800101KyleMadiganGunPartVerts,
-    _gKyle800101KyleMadiganGunVerts,
-    _gKyle800101KyleMadiganGunNormals,
-    _gKyle800101KyleMadiganGunSkeleton,
-    _gKyle800101KyleMadiganGunStream,
+TmdSource gKyle800101KyleMadiganGun = {
+    .handlersResolved = false,
+    .bufferHalfBytes  = sizeof(POLY_FT4) + (2 * sizeof(POLY_GT3)) + (19 * sizeof(POLY_GT4)),
+    // All faces transform directly from the single gun part.
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gKyle800101KyleMadiganGunSkeleton),
+    .partVertexCounts    = _gKyle800101KyleMadiganGunPartVerts,
+    .verts               = _gKyle800101KyleMadiganGunVerts,
+    .normals             = _gKyle800101KyleMadiganGunNormals,
+    .skeleton            = _gKyle800101KyleMadiganGunSkeleton,
+    .stream              = _gKyle800101KyleMadiganGunStream,
 };
 
 static AnimationPackedPose _gKyle800101Animation0641CBank1[2] = {

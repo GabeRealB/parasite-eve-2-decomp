@@ -77,7 +77,12 @@ extern TmdSource D_kyle_800102_8016D77C;
 
 extern TmdSource D_kyle_800102_8016DBD0;
 
-extern TmdSource D_kyle_800101_8016DC60;
+/// Kyle Madigan's one-part gun model for companion resource variant 1.
+///
+/// Parent its root to the companion's left-hand model. Borrows this package's
+/// geometry and writable command stream; keep the package loaded until every
+/// model using this source has been released.
+extern TmdSource gKyle800101KyleMadiganGun;
 
 extern TmdSource D_kyle_800103_8016DE3C;
 
