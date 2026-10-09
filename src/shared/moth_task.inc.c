@@ -9,6 +9,6 @@ static void _mothTask(Task* task)
 {
     EnemyTaskFuncTable3 handlers;
 
-    handlers = gMothStateHandlers;
+    handlers = _gMothStateHandlers;
     handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }

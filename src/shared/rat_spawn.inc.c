@@ -77,7 +77,7 @@ static __inline__ void _ratInitCollisionBodies(RatWork* work, const Task* actor,
     work->attackBody.pos.vy           = 0;
     work->attackBody.pos.vz           = RAT_ATTACK_FORWARD_OFFSET;
     work->gridBody.flags             |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
-    work->attackBody.key              = damagePackAttackKey(&gRatAttack, 0);
+    work->attackBody.key              = damagePackAttackKey(&RAT_ATTACK_PARAMS, 0);
     work->attackBody.radius           = RAT_ATTACK_RADIUS;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
@@ -113,14 +113,14 @@ void ratSpawn(Enemy* enemy, Task* actor)
     enemy->bodyPos.vx             = 0;
     enemy->bodyPos.vy             = 0;
     enemy->bodyPos.vz             = 0;
-    enemy->param                  = &gRatParams;
+    enemy->param                  = &RAT_ENEMY_PARAMS;
     enemy->recs                   = work->hitContacts;
-    enemy->hp                     = gRatParams.hpMax;
+    enemy->hp                     = RAT_ENEMY_PARAMS.hpMax;
     work->hitEffectArg.spawnArgLo = 0x100;
     work->hitEffectArg.spawnArgHi = 1;
     work->hitEffectArg.coord      = rootCoord;
     // Slot zero is the root; reset only the six articulated-part tracks.
-    animationInitContext(&work->rig.anim, gRatAnimSets, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, RAT_ANIM_SETS, model, work->rig.poses, work->rig.slots);
     for (slot = 1; slot < ARRAY_SIZE(work->rig.slots); slot++) {
         animationResetSlot(&work->rig.anim, slot, RAT_ANIM_IDLE);
     }

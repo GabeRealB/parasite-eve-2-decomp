@@ -16,7 +16,7 @@ static void _ratAnimate(Task* actor)
     if (work->animId != work->appliedAnimId) {
         work->appliedAnimId = work->animId;
         work->animFrame     = 0;
-        blendFrames         = gRatAnimBlend[work->animId];
+        blendFrames         = _gRatAnimBlendFrames[work->animId];
         for (slot = 1; slot < ARRAY_SIZE(work->rig.slots); slot++) {
             animationSeekSlotWithBlend(&work->rig.anim, slot, work->animId, 0, blendFrames);
         }

@@ -68,6 +68,16 @@ enum {
 /// Placement index occupies the sound script instance byte.
 enum { MOTH_SOUND_PLACE_INDEX_SHIFT = 8 };
 
+/// Rest-pose set and extent of the carrier's spawn animation table.
+enum { MOTH_ANIM_REST_POSE = 1,
+       MOTH_ANIM_SET_COUNT = 2 };
+
+/// Eight placement rows select nonnegative pursuit speeds in units per update.
+enum { MOTH_PLACEMENT_ROW_COUNT = 8 };
+
+/// Darkness reaction nibble packed into the moth death sphere's attack key.
+enum { MOTH_BURST_REACTION_DARKNESS = 1 };
+
 /// The death burst advances through eight texture cells, three timer ticks per cell.
 enum { MOTH_BURST_CELL_COUNT     = 8,
        MOTH_BURST_TICKS_PER_CELL = 3 };

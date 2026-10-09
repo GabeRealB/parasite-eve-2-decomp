@@ -51,6 +51,29 @@ enum {
     RAT_ANIM_STAGGER         = 10, // Knocked back
 };
 
+/// Extents of the carrier's animation and idle-movement tables.
+///
+/// Placement rows must be 0..7. Chance entries are thresholds against a
+/// uniform 0..15 roll (0 never, 16 always); duration entries count updates.
+enum {
+    RAT_ANIM_SET_COUNT      = RAT_ANIM_STAGGER + 1,
+    RAT_PLACEMENT_ROW_COUNT = 8,
+    RAT_CHANCE_ROLL_COUNT   = 16,
+    RAT_MOVE_DURATION_COUNT = 16
+};
+
+/// Poison reaction nibble packed into the rat bite's enemy-attack key.
+enum { RAT_BITE_REACTION_POISON = 3 };
+
+// The spawn fragment requires three carrier bindings before inclusion.
+//
+// `RAT_ATTACK_PARAMS` names a writable `DamageAttack` object;
+// `RAT_ENEMY_PARAMS` names a writable `EnemyParams` object;
+// `RAT_ANIM_SETS` names a writable `AnimationSet*` array with
+// `RAT_ANIM_SET_COUNT` entries. Bind plain identifiers without side effects.
+// The carrier undefines the bindings after the fragment. actor_00700 binds
+// TU-local objects; actor_300700 binds its private two-TU interface.
+
 /// Work block of a rat: the zeroed allocation its spawn handler makes and
 /// keeps at `Task::work` until the enemy is destroyed.
 ///

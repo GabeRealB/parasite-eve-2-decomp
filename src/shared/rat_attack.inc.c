@@ -120,7 +120,7 @@ static void _ratAttack(Task* actor)
                 audioPan = (s8)worldCoordGetOriginAudioPan(rootCoord);
                 sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                if ((s32)((gRandomLcgState >> 16) & 0xF) < gRatAttackRepeatChance[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex]) {
+                if ((s32)((gRandomLcgState >> 16) & (RAT_CHANCE_ROLL_COUNT - 1)) < _gRatAttackRepeatChance[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex]) {
                     work->step   = RAT_ATTACK_STEP_APPROACH;
                     work->animId = RAT_ANIM_RUN;
                 } else {

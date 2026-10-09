@@ -91,11 +91,21 @@ extern TaskDesc gActor103800BlackBeetleTaskDesc;
 /// Slot export of `gActor04600SkullStalkerTaskDesc` from actor_104600, with the same descriptor contract.
 extern TaskDesc gActor104600SkullStalkerTaskDesc;
 
-extern TaskDesc Actor00700_D06E60;
+/// Rat TMD spawn descriptor shared by actor_100700 and actor_200700; priority 96.
+///
+/// Spawn at index 0 with a live `Enemy` in `Task::spawnArg2.pointer`.
+/// Automatic model buffers attach the seven-part rat; keep its package loaded
+/// until enemy teardown. Placement entry 7 selects this descriptor.
+extern TaskDesc gActor00700RatTaskDesc;
 
 extern TaskDesc D_actor_101200_80138E98[];
 
-extern TaskDesc Actor00700_D075A8;
+/// Moth TMD spawn descriptor shared by actor_100700 and actor_200700; priority 96.
+///
+/// Spawn at index 0 with a live `Enemy` in `Task::spawnArg2.pointer`.
+/// Automatic model buffers attach the four-part moth; keep its package loaded
+/// until enemy teardown. Placement entry 8 selects this descriptor.
+extern TaskDesc gActor00700MothTaskDesc;
 
 extern TaskDesc D_actor_511000_80139924[];
 
@@ -279,13 +289,12 @@ extern TaskDesc gActor204600SkullStalkerTaskDesc;
 
 extern TaskDesc D_actor_223600_80150B48;
 
-extern TaskDesc D_actor_200700_80150C80;
+/// Slot-2 export of `gActor00700RatTaskDesc`, with the same spawn contract.
+extern TaskDesc gActor200700RatTaskDesc;
 
 extern TaskDesc D_actor_201200_80150E98[];
 
 extern TaskDesc D_actor_421600_80151254;
-
-extern TaskDesc Actor00700_D075A8;
 
 extern TaskDesc D_actor_405800_801514CC;
 

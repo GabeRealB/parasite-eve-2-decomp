@@ -45,7 +45,6 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
-#include "../../shared/rat.h"
 #include "../../shared/moth.h"
 
 static void _mothSpawn(Enemy* enemy, Task* task);
@@ -59,16 +58,6 @@ static void _mothDrawBurst(Task* task);
 static void _mothTask(Task* task);
 static void _mothSquash(Task* task);
 static void _mothUpdateColor(Task* task);
-
-extern DamageAttack gMothAttack;
-
-extern EnemyParams gMothParams;
-
-extern u16 gMothSpeeds[8];
-
-extern AnimationSet* gMothAnimSets[2];
-
-extern ActorSpriteUv gMothBurstUvs[];
 
 static TmdBone _gActor300700MothBodySkeleton[4] = {
 #include "assets/moth_body_skeleton.inc"
@@ -124,11 +113,27 @@ static AnimationSet _gActor300700Animation03D1C = {
     { NULL, _gActor300700Animation03D1CBank1, NULL, NULL, _gActor300700Animation03D1CBank4, NULL, NULL, NULL },
 };
 
-DamageAttack gMothAttack = { 5, 1 };
+/// Attack delivered by the moth's death sphere: base power 5 and darkness reaction.
+static DamageAttack _gMothAttack = { .power = 5, .reaction = MOTH_BURST_REACTION_DARKNESS };
 
-EnemyParams gMothParams = { &gMothAttack, 1, 2, 18, 1, 100, 0, 100, 99 };
+/// Shared moth health, battle rewards and hit-reaction tuning, borrowed by live enemies.
+static EnemyParams _gMothParams = {
+    .attacks              = &_gMothAttack,
+    .hpMax                = 1,
+    .exp                  = 2,
+    .bp                   = 18,
+    .mp                   = 1,
+    .critChance           = 100,
+    .buildupSteps         = 0,
+    .damageOverTimeChance = 100,
+    .damageOverTimeTicks  = 99,
+};
 
-u16 gMothSpeeds[8] = {
+/// Base forward speeds for alerted flight, in parent-coordinate units per update.
+///
+/// Indexed by placement `rowIndex` 0..7; a 0..31 draw is added before
+/// narrowing to s16 and stepping along the root's Q12 forward axis.
+static u16 _gMothPursuitSpeeds[MOTH_PLACEMENT_ROW_COUNT] = {
     2,
     8,
     16,
@@ -141,12 +146,20 @@ u16 gMothSpeeds[8] = {
 
 TaskDesc gActor300700MothTaskDesc = { { { TASK_BODY_TMD, 96 } }, _mothTask, { .model = &_gActor300700MothBody } };
 
-AnimationSet* gMothAnimSets[2] = {
+/// Moth rest-pose sets: entry 0 empty, entry 1 seeds articulated slots 1..3.
+///
+/// The rig borrows this table while its package is loaded. Wing motion is
+/// procedural; the rest-pose clip is never ticked after spawn.
+static AnimationSet* _gMothAnimSets[MOTH_ANIM_SET_COUNT] = {
     NULL,
-    &_gActor300700Animation03D1C,
+    [MOTH_ANIM_REST_POSE] = &_gActor300700Animation03D1C,
 };
 
-ActorSpriteUv gMothBurstUvs[8] = {
+/// Texture origins of the eight 32-texel-square cells in the moth death burst.
+///
+/// Timer ticks 1..23 select `timer / MOTH_BURST_TICKS_PER_CELL`; the drawer
+/// supplies the texture page and palette from the live model's offsets.
+static ActorSpriteUv _gMothBurstUvs[MOTH_BURST_CELL_COUNT] = {
     { 96, 0, 96, 0 },
     { 0, 0, 160, 0 },
     { 0, 0, 192, 0 },
@@ -204,13 +217,14 @@ TmdSource gActor300700RatBody = {
 #include "../../shared/moth_death.inc.c"
 
 #include "../../shared/moth_draw_burst.inc.c"
-/// The first variant's state handlers, dispatched by `_mothTask`
-/// on the task's state: spawn, per-frame update, and the handler for state 2.
-static const EnemyTaskFuncTable3 gMothStateHandlers = {
+/// Task-state callbacks: 0 spawn, 1 living update, 2 death; copied before dispatch.
+///
+/// Indexed by `Task::state` in 0..2, with no terminator or bounds check.
+static const EnemyTaskFuncTable3 _gMothStateHandlers = {
     {
-        _mothSpawn,
-        _mothUpdate,
-        _mothDeath,
+        [MOTH_TASK_SPAWN]  = _mothSpawn,
+        [MOTH_TASK_UPDATE] = _mothUpdate,
+        [MOTH_TASK_DEATH]  = _mothDeath,
     },
 };
 
@@ -220,4 +234,12 @@ static const EnemyTaskFuncTable3 gMothStateHandlers = {
 
 #include "../../shared/moth_squash.inc.c"
 
+// Bind the spawn fragment to this carrier's attack, enemy tuning and clip table.
+// Each binding is a plain writable object identifier; see the contract in rat.h.
+#define RAT_ATTACK_PARAMS gRatAttack
+#define RAT_ENEMY_PARAMS  gRatParams
+#define RAT_ANIM_SETS     gRatAnimSets
 #include "../../shared/rat_spawn.inc.c"
+#undef RAT_ATTACK_PARAMS
+#undef RAT_ENEMY_PARAMS
+#undef RAT_ANIM_SETS

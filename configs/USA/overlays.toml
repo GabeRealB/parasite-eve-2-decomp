@@ -3607,12 +3607,12 @@ objects = [
 
 [actors.overlays.actor_00700]
 slots = [
-  { slot = 1, package = "actor_100700", id = 101 },
-  { slot = 2, package = "actor_200700", id = 163 },
+  { slot = 1, package = "actor_100700", id = 101, defines = { PACKAGE_ALIASES = "" } },
+  { slot = 2, package = "actor_200700", id = 163, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor00700RatTaskDesc = "gActor200700RatTaskDesc" } },
 ]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_00700/actor_00700", rodata = "0x4", text = "0x60", data = "0x3670" },
+  { unit = "actor_00700", variant = true, rodata = "0x4", text = "0x60", data = "0x3670" },
   { kind = "model", at = "0x3670", in_c = true },
   { kind = "modelSource", at = "0x4EB4", in_c = true },
   { kind = "model", at = "0x6EB0", in_c = true },
@@ -3627,13 +3627,13 @@ id = 205
 objects = [
   { kind = "packageId" },
   { unit = "actor_300700/actor_300700", rodata = "0x4", text = "0x60", data = "0x3670" },
-  { unit = "actor_300700/actor_300700_2", rodata = "0x10", text = "0x19C4", data = "0x5604" },
   { kind = "model", at = "0x3670", in_c = true },
   { kind = "modelSource", at = "0x3CA4", in_c = true },
   { kind = "model", at = "0x3D9C", in_c = true },
   { kind = "modelSource", at = "0x55E0", in_c = true },
   { kind = "animation", at = "0x3CC8", sets = ["0x3D1C"], in_c = true },
   { kind = "animation", at = "0x5604", sets = ["0x5AEC", "0x5DA8", "0x6238", "0x6578", "0x67B8", "0x6A34", "0x6D74", "0x6F08", "0x719C", "0x74E0"], in_c = true },
+  { unit = "actor_300700/actor_300700_2", rodata = "0x10", text = "0x19C4", data = "0x5604", tail = true },
 ]
 
 [actors.overlays.actor_401000]

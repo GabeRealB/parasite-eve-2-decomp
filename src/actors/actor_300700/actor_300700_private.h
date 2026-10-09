@@ -18,12 +18,22 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
+#include "../../shared/rat.h"
+
 extern TmdSource gActor300700RatBody;
 
+/// Bite attack shared by the rat parameters and the briefly enabled attack sphere.
+///
+/// Base power 6; the poison reaction is packed into the category-4 contact key.
 extern DamageAttack gRatAttack;
 
+/// Shared rat health, battle rewards and hit-reaction tuning, borrowed by live enemies.
 extern EnemyParams gRatParams;
 
-extern AnimationSet* gRatAnimSets[11];
+/// Rat clips indexed by `RAT_ANIM_*`: entry 0 empty, entries 1..10 drive slots 1..6.
+///
+/// The animation context borrows the table and its package-local clip data
+/// until the rat's task is destroyed.
+extern AnimationSet* gRatAnimSets[RAT_ANIM_SET_COUNT];
 
 #endif // SRC_ACTORS_ACTOR_300700_ACTOR_300700_PRIVATE_H

@@ -28,7 +28,7 @@ static void _ratDeath(Enemy* enemy, Task* actor)
         if (animationWork->animId != animationWork->appliedAnimId) {                                                        \
             animationWork->appliedAnimId = animationWork->animId;                                                           \
             animationWork->animFrame     = 0;                                                                               \
-            blendFrames                  = gRatAnimBlend[animationWork->animId];                                            \
+            blendFrames                  = _gRatAnimBlendFrames[animationWork->animId];                                     \
             for (animationSlot = 1; animationSlot < ARRAY_SIZE(animationWork->rig.slots); animationSlot++) {                \
                 animationSeekSlotWithBlend(&animationWork->rig.anim, animationSlot, animationWork->animId, 0, blendFrames); \
             }                                                                                                               \

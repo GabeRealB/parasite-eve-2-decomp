@@ -8,6 +8,6 @@ static void _ratTask(Task* actor)
 {
     EnemyTaskFuncTable3 handlers;
 
-    handlers = gRatStateHandlers;
+    handlers = _gRatStateHandlers;
     handlers.funcs[actor->state](actor->spawnArg2.pointer, actor);
 }

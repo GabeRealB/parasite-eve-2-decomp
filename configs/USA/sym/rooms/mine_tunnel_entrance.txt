@@ -51,7 +51,7 @@ D_mine_tunnel_entrance_8017F3E8 = 0x8017F3E8; // size:0x20 defined:True
 gActor102500Tasks = 0x801379A8; // absolute:True owner=actor_102500 shared=actors
 gActor101600ScavengerTaskDesc = 0x801445DC; // absolute:True owner=actor_101600
 gActor00100DesertChaserTaskDesc = 0x8014D8A4; // absolute:True owner=actor_400100
-Actor00700_D075A8 = 0x801513C8; // absolute:True owner=actor_200700
+gActor00700MothTaskDesc = 0x801513C8; // absolute:True owner=actor_200700
 gActor400600ZebraStalkerTaskDesc = 0x80151B10; // absolute:True owner=actor_400600
 gActor300700MothTaskDesc = 0x80165B88; // absolute:True owner=actor_300700
 

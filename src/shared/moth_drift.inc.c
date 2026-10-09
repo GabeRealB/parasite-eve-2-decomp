@@ -79,7 +79,7 @@ static void _mothDrift(Task* task)
             }
             break;
         case true:
-            forwardSpeed = gMothSpeeds[((Enemy*)task->spawnArg2.pointer)->place->rowIndex] +
+            forwardSpeed = _gMothPursuitSpeeds[((Enemy*)task->spawnArg2.pointer)->place->rowIndex] +
                            (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & MOTH_FLIGHT_JITTER_MASK);
             rootCoord->coord.t[0] += (rootCoord->coord.m[0][2] * forwardSpeed) >> MOTH_FORWARD_BASIS_FRACTION_BITS;
             rootCoord->coord.t[2] += (rootCoord->coord.m[2][2] * forwardSpeed) >> MOTH_FORWARD_BASIS_FRACTION_BITS;

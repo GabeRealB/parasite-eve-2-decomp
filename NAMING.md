@@ -1014,8 +1014,8 @@ task's work block: the animation rig, the hit, grid and attack spheres with
 their contact tables, and the wander, wing-beat and death state the handlers
 share. Handlers reached only inside each carrier keep static linkage and the
 `_moth` marker; their declarations live in each carrier's source prologue.
-Each package defines the tables the fragments read (`gMothParams`,
-`gMothAttack`, `gMothSpeeds`, `gMothAnimSets`, `gMothBurstUvs`).
+Each package defines the tables the fragments read (`_gMothParams`,
+`_gMothAttack`, `_gMothPursuitSpeeds`, `_gMothAnimSets`, `_gMothBurstUvs`).
 
 `scriptedWalk` owns the included walk of the twenty-part NPCs that cutscene
 scripts move around, over a work block each walker publishes in a global. Its

@@ -48,15 +48,15 @@ static void _mothSpawn(Enemy* enemy, Task* task)
     enemy->bodyPos.vx             = 0;
     enemy->bodyPos.vy             = 0;
     enemy->bodyPos.vz             = 0;
-    enemy->param                  = &gMothParams;
+    enemy->param                  = &_gMothParams;
     enemy->recs                   = work->hitContacts;
-    enemy->hp                     = (u16)gMothParams.hpMax;
+    enemy->hp                     = _gMothParams.hpMax;
     work->hitEffectArg.spawnArgLo = MOTH_HIT_EFFECT_ARGUMENT;
     work->hitEffectArg.spawnArgHi = MOTH_HIT_EFFECT_COUNT;
     work->hitEffectArg.coord      = rootCoord;
-    animationInitContext(&work->rig.anim, gMothAnimSets, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, _gMothAnimSets, model, work->rig.poses, work->rig.slots);
     for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
-        animationResetSlot(&work->rig.anim, slotIndex, 1);
+        animationResetSlot(&work->rig.anim, slotIndex, MOTH_ANIM_REST_POSE);
     }
     sceneAcquireBattleRef(0);
     work->flapSign                 = 1;
@@ -91,7 +91,7 @@ static void _mothSpawn(Enemy* enemy, Task* task)
     work->attackBody.pos.vy           = 0;
     work->attackBody.pos.vz           = 0;
     work->gridBody.flags              = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
-    work->attackBody.key              = damagePackAttackKey(&gMothAttack, 0);
+    work->attackBody.key              = damagePackAttackKey(&_gMothAttack, 0);
     work->attackBody.radius           = MOTH_ATTACK_RADIUS;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);

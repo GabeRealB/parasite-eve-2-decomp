@@ -44,8 +44,8 @@ D_acropolis_patio_80185E50 = 0x80185E50; // size:0x78 defined:True
 D_acropolis_patio_80185EC8 = 0x80185EC8; // size:0x10 defined:True
 D_acropolis_patio_80185ED8 = 0x80185ED8; // size:0x10 defined:True
 D_acropolis_patio_80185EE8 = 0x80185EE8; // size:0x10 defined:True
-Actor00700_D06E60 = 0x80138C80; // absolute:True owner=actor_100700
-Actor00700_D075A8 = 0x801393C8; // absolute:True owner=actor_100700
+gActor00700RatTaskDesc = 0x80138C80; // absolute:True owner=actor_100700
+gActor00700MothTaskDesc = 0x801393C8; // absolute:True owner=actor_100700
 D_actor_101900_80149120 = 0x80149120; // absolute:True owner=actor_101900
 gActor401000StrangerTaskDesc = 0x80155004; // absolute:True owner=actor_401000
 gActor300700MothTaskDesc = 0x80165B88; // absolute:True owner=actor_300700

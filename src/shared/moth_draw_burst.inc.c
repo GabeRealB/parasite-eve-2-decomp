@@ -98,7 +98,7 @@ static void _mothDrawBurst(Task* task)
     setShadeTex(quad, true);
     quad->tpage = getTPage(1, GPU_BLEND_SUBTRACT, model->texturePageOffset * MOTH_BURST_TEXTURE_PAGE_WORDS + MOTH_BURST_TEXTURE_X, MOTH_BURST_TEXTURE_Y);
     quad->clut  = (model->clutRowOffset << 6) + getClut(0, MOTH_BURST_CLUT_ROW);
-    cell        = &gMothBurstUvs[(s16)(work->timer / MOTH_BURST_TICKS_PER_CELL)];
+    cell        = &_gMothBurstUvs[(s16)(work->timer / MOTH_BURST_TICKS_PER_CELL)];
     quad->u0    = cell->u;
     quad->v0    = cell->v;
     quad->u1    = cell->u + MOTH_BURST_CELL_PIXELS - 1;

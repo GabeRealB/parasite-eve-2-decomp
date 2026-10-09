@@ -70,10 +70,10 @@ static void _ratIdle(Task* actor)
             }
             slowChanceRandom = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             gRandomLcgState  = slowChanceRandom;
-            if ((s32)(((u32)slowChanceRandom >> 16) & 0xF) <
-                gRatSlowMoveChance[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex]) {
+            if ((s32)(((u32)slowChanceRandom >> 16) & (RAT_CHANCE_ROLL_COUNT - 1)) <
+                _gRatWalkChance[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex]) {
                 work->animId    = RAT_ANIM_WALK;
-                moveFrames      = gRatSlowMoveTimes[((u32)(slowDurationRandom = slowChanceRandom * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+                moveFrames      = _gRatWalkFrames[((u32)(slowDurationRandom = slowChanceRandom * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (RAT_MOVE_DURATION_COUNT - 1)];
                 gRandomLcgState = slowDurationRandom;
                 work->step      = RAT_IDLE_STEP_WALK;
                 work->timer     = moveFrames;
@@ -81,10 +81,10 @@ static void _ratIdle(Task* actor)
             }
             fastChanceRandom = slowChanceRandom * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             gRandomLcgState  = fastChanceRandom;
-            if ((s32)(((u32)fastChanceRandom >> 16) & 0xF) <
-                gRatFastMoveChance[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex]) {
+            if ((s32)(((u32)fastChanceRandom >> 16) & (RAT_CHANCE_ROLL_COUNT - 1)) <
+                _gRatRunChance[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex]) {
                 work->animId    = RAT_ANIM_RUN;
-                moveFrames      = gRatFastMoveTimes[((u32)(fastDurationRandom = fastChanceRandom * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+                moveFrames      = _gRatRunFrames[((u32)(fastDurationRandom = fastChanceRandom * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (RAT_MOVE_DURATION_COUNT - 1)];
                 gRandomLcgState = fastDurationRandom;
                 work->step      = RAT_IDLE_STEP_RUN;
                 work->timer     = moveFrames;

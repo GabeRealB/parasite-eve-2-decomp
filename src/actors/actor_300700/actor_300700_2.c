@@ -38,7 +38,6 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
-#include "../../shared/rat.h"
 #include "../../shared/moth.h"
 
 static void _ratDeath(Enemy* enemy, Task* actor);
@@ -60,27 +59,14 @@ static void _ratTask(Task* actor);
 static void _ratTurn(Task* actor);
 static void _ratUpdateColor(Task* actor);
 
-extern s16 gRatSlowMoveChance[8];
-
-extern u16 gRatSlowMoveTimes[16];
-
-extern s16 gRatFastMoveChance[8];
-
-extern u16 gRatFastMoveTimes[16];
-
-extern s16 gRatAttackRepeatChance[8];
-
-/// Per-state animation id handed to `animationSeekSlotWithBlend`, indexed by `field_37E`.
-extern s16 gRatAnimBlend[];
-
-/// The second variant's state handlers, in the same order as the first's:
-/// spawn, per-frame update and state 2. `_ratTask`
-/// dispatches them.
-static const EnemyTaskFuncTable3 gRatStateHandlers = {
+/// Task-state callbacks: 0 spawn, 1 living update, 2 death; copied before dispatch.
+///
+/// Indexed by `Task::state` in 0..2, with no terminator or bounds check.
+static const EnemyTaskFuncTable3 _gRatStateHandlers = {
     {
-        ratSpawn,
-        _ratUpdate,
-        _ratDeath,
+        [RAT_TASK_SPAWN]  = ratSpawn,
+        [RAT_TASK_UPDATE] = _ratUpdate,
+        [RAT_TASK_DEATH]  = _ratDeath,
     },
 };
 
@@ -315,11 +301,25 @@ static AnimationSet _gActor300700Animation074E0 = {
     { NULL, _gActor300700Animation074E0Bank1, NULL, NULL, _gActor300700Animation074E0Bank4, NULL, NULL, NULL },
 };
 
-DamageAttack gRatAttack = { 6, 3 };
+DamageAttack gRatAttack = { .power = 6, .reaction = RAT_BITE_REACTION_POISON };
 
-EnemyParams gRatParams = { &gRatAttack, 18, 4, 22, 1, 100, 20, 100, 0 };
+EnemyParams gRatParams = {
+    .attacks              = &gRatAttack,
+    .hpMax                = 18,
+    .exp                  = 4,
+    .bp                   = 22,
+    .mp                   = 1,
+    .critChance           = 100,
+    .buildupSteps         = 20,
+    .damageOverTimeChance = 100,
+    .damageOverTimeTicks  = 0,
+};
 
-s16 gRatSlowMoveChance[8] = {
+/// Walk-start thresholds by placement `rowIndex` 0..7, compared with a 0..15 roll.
+///
+/// Tested first at each idle move roll; a threshold of 0 never starts a walk
+/// and 16 always does.
+static s16 _gRatWalkChance[RAT_PLACEMENT_ROW_COUNT] = {
     2,
     4,
     4,
@@ -330,7 +330,8 @@ s16 gRatSlowMoveChance[8] = {
     3,
 };
 
-u16 gRatSlowMoveTimes[16] = {
+/// Walk durations in update calls, selected by a uniform random index 0..15.
+static u16 _gRatWalkFrames[RAT_MOVE_DURATION_COUNT] = {
     15,
     20,
     25,
@@ -349,7 +350,11 @@ u16 gRatSlowMoveTimes[16] = {
     63,
 };
 
-s16 gRatFastMoveChance[8] = {
+/// Run-start thresholds by placement `rowIndex` 0..7, compared with a 0..15 roll.
+///
+/// Tested only after the walk roll fails; a threshold of 0 never starts a run
+/// and 16 always does. These are conditional chances, not percentages.
+static s16 _gRatRunChance[RAT_PLACEMENT_ROW_COUNT] = {
     1,
     2,
     5,
@@ -360,7 +365,8 @@ s16 gRatFastMoveChance[8] = {
     14,
 };
 
-u16 gRatFastMoveTimes[16] = {
+/// Run durations in update calls, selected by a uniform random index 0..15.
+static u16 _gRatRunFrames[RAT_MOVE_DURATION_COUNT] = {
     10,
     11,
     12,
@@ -379,7 +385,10 @@ u16 gRatFastMoveTimes[16] = {
     32,
 };
 
-s16 gRatAttackRepeatChance[8] = {
+/// Bite-repeat thresholds by placement `rowIndex` 0..7, compared with a 0..15 roll.
+///
+/// After retreat, success restarts the approach; 0 never repeats and 16 always does.
+static s16 _gRatAttackRepeatChance[RAT_PLACEMENT_ROW_COUNT] = {
     0,
     0,
     4,
@@ -392,21 +401,25 @@ s16 gRatAttackRepeatChance[8] = {
 
 TaskDesc D_actor_300700_801693AC = { { { TASK_BODY_TMD, 96 } }, _ratTask, { .model = &gActor300700RatBody } };
 
-AnimationSet* gRatAnimSets[11] = {
+AnimationSet* gRatAnimSets[RAT_ANIM_SET_COUNT] = {
     NULL,
-    &_gActor300700Animation05AEC,
-    &_gActor300700Animation05DA8,
-    &_gActor300700Animation06238,
-    &_gActor300700Animation06578,
-    &_gActor300700Animation067B8,
-    &_gActor300700Animation06A34,
-    &_gActor300700Animation06D74,
-    &_gActor300700Animation06F08,
-    &_gActor300700Animation0719C,
-    &_gActor300700Animation074E0,
+    [RAT_ANIM_IDLE]            = &_gActor300700Animation05AEC,
+    [RAT_ANIM_RUN]             = &_gActor300700Animation05DA8,
+    [RAT_ANIM_BACK_OFF]        = &_gActor300700Animation06238,
+    [RAT_ANIM_ATTACK]          = &_gActor300700Animation06578,
+    [RAT_ANIM_HURT]            = &_gActor300700Animation067B8,
+    [RAT_ANIM_COLLAPSE]        = &_gActor300700Animation06A34,
+    [RAT_ANIM_WALK]            = &_gActor300700Animation06D74,
+    [RAT_ANIM_BUILDUP_HOLD]    = &_gActor300700Animation06F08,
+    [RAT_ANIM_STAGGER_RECOVER] = &_gActor300700Animation0719C,
+    [RAT_ANIM_STAGGER]         = &_gActor300700Animation074E0,
 };
 
-s16 gRatAnimBlend[10] = {
+/// Whole-frame transition durations indexed by the requested `RAT_ANIM_*` clip.
+///
+/// Signed s16 entries are promoted for playback; 0 seeks without blending.
+/// Entries 0..10 include the zero-duration stagger at the package's final halfword.
+static s16 _gRatAnimBlendFrames[RAT_ANIM_SET_COUNT] = {
     0,
     3,
     3,
@@ -414,6 +427,7 @@ s16 gRatAnimBlend[10] = {
     2,
     0,
     3,
+    0,
     0,
     0,
     0,

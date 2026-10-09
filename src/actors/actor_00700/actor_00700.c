@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -80,35 +82,14 @@ static void _mothTask(Task* task);
 static void _mothSquash(Task* task);
 static void _mothUpdateColor(Task* task);
 
-extern ActorSpriteUv gMothBurstUvs[];
+/// Execution priority of this package's two enemy model tasks.
+enum { ACTOR_00700_TASK_PRIORITY = 96 };
 
-extern s16 gRatSlowMoveChance[];
-extern u16 gRatSlowMoveTimes[];
-extern s16 gRatFastMoveChance[];
-extern u16 gRatFastMoveTimes[];
-extern s16 gRatAttackRepeatChance[];
-extern s16 gRatAnimBlend[];
-
-/// Per-`field_F` drift speed for the state-1 wander in `_mothDrift`,
-/// summed with a 5-bit `gRandomLcgState` draw.
-extern s16 gMothSpeeds[];
-
-/// The records `ratSpawn` binds the first body to: the pair it packs
-/// into the fourth collision node's key, the context's parameter source (whose
-/// `hpMax` seeds the health), and the second argument of `animationInitContext`.
-extern struct DamageAttack gRatAttack;
-extern EnemyParams         gRatParams;
-extern AnimationSet*       gRatAnimSets[11];
-
-/// The same three for the second body, used by `_mothSpawn`.
-extern EnemyParams         gMothParams;
-extern struct DamageAttack gMothAttack;
-extern AnimationSet*       gMothAnimSets[2];
-
-/// The state handlers `_ratTask` dispatches on `Task::state`:
-/// set-up, per-frame update, and the one entered once the health runs out.
-static const EnemyTaskFuncTable3 gRatStateHandlers = {
-    { ratSpawn, _ratUpdate, _ratDeath },
+/// Task-state callbacks: 0 spawn, 1 living update, 2 death; copied before dispatch.
+///
+/// Indexed by `Task::state` in 0..2, with no terminator or bounds check.
+static const EnemyTaskFuncTable3 _gRatStateHandlers = {
+    { [RAT_TASK_SPAWN] = ratSpawn, [RAT_TASK_UPDATE] = _ratUpdate, [RAT_TASK_DEATH] = _ratDeath },
 };
 
 static TmdBone _gActor00700RatBodySkeleton[7] = {
@@ -363,11 +344,29 @@ static AnimationSet _gActor00700Actor100700Animation06DB4 = {
     { NULL, _gActor00700Actor100700Animation06DB4Bank1, NULL, NULL, _gActor00700Actor100700Animation06DB4Bank4, NULL, NULL, NULL },
 };
 
-struct DamageAttack gRatAttack = { 6, 3 };
+/// Bite attack shared by the rat parameters and the briefly enabled attack sphere.
+///
+/// Base power 6; the poison reaction is packed into the category-4 contact key.
+static DamageAttack _gRatAttack = { .power = 6, .reaction = RAT_BITE_REACTION_POISON };
 
-EnemyParams gRatParams = { &gRatAttack, 18, 4, 22, 1, 100, 20, 100, 0 };
+/// Shared rat health, battle rewards and hit-reaction tuning, borrowed by live enemies.
+static EnemyParams _gRatParams = {
+    .attacks              = &_gRatAttack,
+    .hpMax                = 18,
+    .exp                  = 4,
+    .bp                   = 22,
+    .mp                   = 1,
+    .critChance           = 100,
+    .buildupSteps         = 20,
+    .damageOverTimeChance = 100,
+    .damageOverTimeTicks  = 0,
+};
 
-s16 gRatSlowMoveChance[8] = {
+/// Walk-start thresholds by placement `rowIndex` 0..7, compared with a 0..15 roll.
+///
+/// Tested first at each idle move roll; a threshold of 0 never starts a walk
+/// and 16 always does.
+static s16 _gRatWalkChance[RAT_PLACEMENT_ROW_COUNT] = {
     2,
     4,
     4,
@@ -378,7 +377,8 @@ s16 gRatSlowMoveChance[8] = {
     3,
 };
 
-u16 gRatSlowMoveTimes[16] = {
+/// Walk durations in update calls, selected by a uniform random index 0..15.
+static u16 _gRatWalkFrames[RAT_MOVE_DURATION_COUNT] = {
     15,
     20,
     25,
@@ -397,7 +397,11 @@ u16 gRatSlowMoveTimes[16] = {
     63,
 };
 
-s16 gRatFastMoveChance[8] = {
+/// Run-start thresholds by placement `rowIndex` 0..7, compared with a 0..15 roll.
+///
+/// Tested only after the walk roll fails; a threshold of 0 never starts a run
+/// and 16 always does. These are conditional chances, not percentages.
+static s16 _gRatRunChance[RAT_PLACEMENT_ROW_COUNT] = {
     1,
     2,
     5,
@@ -408,7 +412,8 @@ s16 gRatFastMoveChance[8] = {
     14,
 };
 
-u16 gRatFastMoveTimes[16] = {
+/// Run durations in update calls, selected by a uniform random index 0..15.
+static u16 _gRatRunFrames[RAT_MOVE_DURATION_COUNT] = {
     10,
     11,
     12,
@@ -427,7 +432,10 @@ u16 gRatFastMoveTimes[16] = {
     32,
 };
 
-s16 gRatAttackRepeatChance[8] = {
+/// Bite-repeat thresholds by placement `rowIndex` 0..7, compared with a 0..15 roll.
+///
+/// After retreat, success restarts the approach; 0 never repeats and 16 always does.
+static s16 _gRatAttackRepeatChance[RAT_PLACEMENT_ROW_COUNT] = {
     0,
     0,
     4,
@@ -438,23 +446,31 @@ s16 gRatAttackRepeatChance[8] = {
     16,
 };
 
-TaskDesc Actor00700_D06E60 = { { { TASK_BODY_TMD, 96 } }, _ratTask, { .model = &_gActor00700RatBody } };
+TaskDesc gActor00700RatTaskDesc = { { { TASK_BODY_TMD, ACTOR_00700_TASK_PRIORITY } }, _ratTask, { .model = &_gActor00700RatBody } };
 
-AnimationSet* gRatAnimSets[11] = {
+/// Rat clips indexed by `RAT_ANIM_*`: entry 0 empty, entries 1..10 drive slots 1..6.
+///
+/// The animation context borrows the table and its package-local clip data
+/// until the rat's task is destroyed.
+static AnimationSet* _gRatAnimSets[RAT_ANIM_SET_COUNT] = {
     NULL,
-    &_gActor00700Actor100700Animation053C0,
-    &_gActor00700Actor100700Animation0567C,
-    &_gActor00700Actor100700Animation05B0C,
-    &_gActor00700Actor100700Animation05E4C,
-    &_gActor00700Actor100700Animation0608C,
-    &_gActor00700Actor100700Animation06308,
-    &_gActor00700Actor100700Animation06648,
-    &_gActor00700Actor100700Animation067DC,
-    &_gActor00700Actor100700Animation06A70,
-    &_gActor00700Actor100700Animation06DB4,
+    [RAT_ANIM_IDLE]            = &_gActor00700Actor100700Animation053C0,
+    [RAT_ANIM_RUN]             = &_gActor00700Actor100700Animation0567C,
+    [RAT_ANIM_BACK_OFF]        = &_gActor00700Actor100700Animation05B0C,
+    [RAT_ANIM_ATTACK]          = &_gActor00700Actor100700Animation05E4C,
+    [RAT_ANIM_HURT]            = &_gActor00700Actor100700Animation0608C,
+    [RAT_ANIM_COLLAPSE]        = &_gActor00700Actor100700Animation06308,
+    [RAT_ANIM_WALK]            = &_gActor00700Actor100700Animation06648,
+    [RAT_ANIM_BUILDUP_HOLD]    = &_gActor00700Actor100700Animation067DC,
+    [RAT_ANIM_STAGGER_RECOVER] = &_gActor00700Actor100700Animation06A70,
+    [RAT_ANIM_STAGGER]         = &_gActor00700Actor100700Animation06DB4,
 };
 
-s16 gRatAnimBlend[12] = {
+/// Whole-frame transition durations indexed by the requested `RAT_ANIM_*` clip.
+///
+/// Signed s16 entries are promoted for playback; 0 seeks without blending.
+/// Entries 0..10 cover all requests; the stored twelfth zero is never indexed.
+static s16 _gRatAnimBlendFrames[RAT_ANIM_SET_COUNT + 1] = {
     0,
     3,
     3,
@@ -523,11 +539,27 @@ static AnimationSet _gActor00700Actor100700Animation0755C = {
     { NULL, _gActor00700Actor100700Animation0755CBank1, NULL, NULL, _gActor00700Actor100700Animation0755CBank4, NULL, NULL, NULL },
 };
 
-DamageAttack gMothAttack = { 5, 1 };
+/// Attack delivered by the moth's death sphere: base power 5 and darkness reaction.
+static DamageAttack _gMothAttack = { .power = 5, .reaction = MOTH_BURST_REACTION_DARKNESS };
 
-EnemyParams gMothParams = { &gMothAttack, 1, 2, 18, 1, 100, 0, 100, 99 };
+/// Shared moth health, battle rewards and hit-reaction tuning, borrowed by live enemies.
+static EnemyParams _gMothParams = {
+    .attacks              = &_gMothAttack,
+    .hpMax                = 1,
+    .exp                  = 2,
+    .bp                   = 18,
+    .mp                   = 1,
+    .critChance           = 100,
+    .buildupSteps         = 0,
+    .damageOverTimeChance = 100,
+    .damageOverTimeTicks  = 99,
+};
 
-s16 gMothSpeeds[8] = {
+/// Base forward speeds for alerted flight, in parent-coordinate units per update.
+///
+/// Indexed by placement `rowIndex` 0..7; a 0..31 draw is added before
+/// narrowing to s16 and stepping along the root's Q12 forward axis.
+static u16 _gMothPursuitSpeeds[MOTH_PLACEMENT_ROW_COUNT] = {
     2,
     8,
     16,
@@ -538,14 +570,22 @@ s16 gMothSpeeds[8] = {
     36,
 };
 
-TaskDesc Actor00700_D075A8 = { { { TASK_BODY_TMD, 96 } }, _mothTask, { .model = &_gActor00700MothBody } };
+TaskDesc gActor00700MothTaskDesc = { { { TASK_BODY_TMD, ACTOR_00700_TASK_PRIORITY } }, _mothTask, { .model = &_gActor00700MothBody } };
 
-AnimationSet* gMothAnimSets[2] = {
+/// Moth rest-pose sets: entry 0 empty, entry 1 seeds articulated slots 1..3.
+///
+/// The rig borrows this table while its package is loaded. Wing motion is
+/// procedural; the rest-pose clip is never ticked after spawn.
+static AnimationSet* _gMothAnimSets[MOTH_ANIM_SET_COUNT] = {
     NULL,
-    &_gActor00700Actor100700Animation0755C,
+    [MOTH_ANIM_REST_POSE] = &_gActor00700Actor100700Animation0755C,
 };
 
-ActorSpriteUv gMothBurstUvs[8] = {
+/// Texture origins of the eight 32-texel-square cells in the moth death burst.
+///
+/// Timer ticks 1..23 select `timer / MOTH_BURST_TICKS_PER_CELL`; the drawer
+/// supplies the texture page and palette from the live model's offsets.
+static ActorSpriteUv _gMothBurstUvs[MOTH_BURST_CELL_COUNT] = {
     { 96, 0, 96, 0 },
     { 0, 0, 160, 0 },
     { 0, 0, 192, 0 },
@@ -556,7 +596,15 @@ ActorSpriteUv gMothBurstUvs[8] = {
     { 96, 0, 224, 0 },
 };
 
+// Bind the spawn fragment to this carrier's attack, enemy tuning and clip table.
+// Each binding is a plain writable object identifier; see the contract in rat.h.
+#define RAT_ATTACK_PARAMS _gRatAttack
+#define RAT_ENEMY_PARAMS  _gRatParams
+#define RAT_ANIM_SETS     _gRatAnimSets
 #include "../../shared/rat_spawn.inc.c"
+#undef RAT_ATTACK_PARAMS
+#undef RAT_ENEMY_PARAMS
+#undef RAT_ANIM_SETS
 
 #include "../../shared/rat_contacts.inc.c"
 
@@ -594,11 +642,11 @@ ActorSpriteUv gMothBurstUvs[8] = {
 
 #include "../../shared/rat_squash.inc.c"
 
-/// The state handlers `_mothTask` dispatches on `Task::state`,
-/// for the second body this package carries: set-up, per-frame update, and the
-/// one a resolved hit switches it to.
-static const EnemyTaskFuncTable3 gMothStateHandlers = {
-    { _mothSpawn, _mothUpdate, _mothDeath },
+/// Task-state callbacks: 0 spawn, 1 living update, 2 death; copied before dispatch.
+///
+/// Indexed by `Task::state` in 0..2, with no terminator or bounds check.
+static const EnemyTaskFuncTable3 _gMothStateHandlers = {
+    { [MOTH_TASK_SPAWN] = _mothSpawn, [MOTH_TASK_UPDATE] = _mothUpdate, [MOTH_TASK_DEATH] = _mothDeath },
 };
 
 #include "../../shared/moth_spawn.inc.c"
@@ -622,3 +670,5 @@ static const EnemyTaskFuncTable3 gMothStateHandlers = {
 #include "../../shared/moth_update_color.inc.c"
 
 #include "../../shared/moth_squash.inc.c"
+
+PACKAGE_ALIASES
