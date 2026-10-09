@@ -719,6 +719,86 @@ def check(db: sqlite3.Connection, verbose: bool) -> int:
     return 1 if total else 0
 
 
+def chain_check(db: sqlite3.Connection, verbose: bool) -> int:
+    """Does every texture a model names come from its own overlay's files or an ancestor's?
+
+    An overlay's own files are the one that carries it, the further files of
+    its entry, its texture-only file, and for a room its view files. A model
+    and its file are displaced together, so a face's stored page and CLUT are
+    held against the file's stored positions first, then against where the
+    file lands under the offsets it is loaded with.
+    """
+    assets, embedded = asset_schema.load()
+    tree = asset_schema.load_tree()
+    files = {r["path"]: r for r in db.execute("SELECT * FROM file")}
+    prints = defaultdict(list)
+    for r in db.execute("SELECT * FROM footprint"):
+        prints[r["file"]].append(tuple(r)[1:])
+    offsets = defaultdict(set)
+    for m in db.execute("SELECT m.file, m.page, m.row, m.mode FROM member m JOIN grp g ON g.id = m.grp WHERE g.kind != 'carrier'"):
+        offsets[m["file"]].add((m["page"], m["row"], m["mode"] or ""))
+    carrier = defaultdict(list)
+    for r in files.values():
+        if r["package"]:
+            carrier[r["package"]].append(r["path"])
+    zero = {r["id"]: r["path"] for r in files.values() if r["stage"] == 0 and r["id"] is not None}
+
+    def own_files(package: str) -> set[str]:
+        if package == asset_schema.ROOT_OVERLAY:
+            return {zero[1]} if 1 in zero else set()         # what main loads at boot
+        out = set(carrier[package])
+        for path in carrier[package]:
+            f = files[path]
+            if f["stage"]:
+                out |= {p for p, g in files.items() if g["stage"] == f["stage"] and g["folder"] == f["folder"]}
+            else:
+                out |= {p for i, p in zero.items() if i // 100 == f["id"] // 100}
+                out |= {p for i, p in zero.items() if 60 <= i // 10000 < 70 and (i % 100000) // 100 == (f["id"] % 100000) // 100}
+        return out
+
+    def rects(paths, landed: bool):
+        out = []
+        for path in paths:
+            for at in (offsets.get(path) or {(0, 0, "")}) if landed else {(0, 0, "")}:
+                for r in prints.get(path, ()):
+                    x, y = moved(r, *at) if landed else (r[3], r[4])
+                    out.append((r[1], x, y, r[5], r[6]))
+        return out
+
+    def resolves(found, page: int, clut: int) -> bool:
+        bpp = (4, 8, 16)[(page >> 7) & 3] if (page >> 7) & 3 < 3 else 16
+        tx, ty, cx, cy = (page & 15) * 64, 256 if page & 16 else 0, (clut & 63) * 16, clut >> 6
+        covers = lambda kind, x, y, w, h: any(k == kind and rx < x + w and x < rx + rw and ry < y + h and y < ry + rh for k, rx, ry, rw, rh in found)  # noqa: E731
+        return covers("image", tx, ty, 64 if bpp == 4 else 128, 256) and (bpp == 16 or covers("clut", cx, cy, 1, 1))
+
+    cache: dict[tuple, list] = {}
+    supply = lambda package, landed: cache.setdefault((package, landed), rects(own_files(package), landed))  # noqa: E731
+    tally: dict[str, int] = defaultdict(int)
+    outside = []
+    for key, rec in sorted(embedded.items()):
+        package = rec.get("source", "").removesuffix(".pe2pkg")
+        if rec.get("type") != "model" or package not in carrier:
+            continue
+        chain = asset_schema.ancestors_of(package, assets, tree)
+        for page, clut in assets.get(key, {}).get("textures", ()):
+            page &= ~0x60
+            if resolves(supply(package, False), page, clut) or resolves(supply(package, True), page, clut):
+                tally["its own files"] += 1
+                continue
+            by = next((a for a in chain if resolves(supply(a, True), page, clut)), None)
+            if by:
+                tally[f"an ancestor ({'room' if files[carrier[by][0]]['stage'] else by})" if by in carrier else f"an ancestor ({by})"] += 1
+            else:
+                tally["nothing in its chain"] += 1
+                outside.append(f"{key} in {package}: page ({(page & 15) * 64},{256 if page & 16 else 0}), CLUT ({(clut & 63) * 16},{clut >> 6}); chain {' > '.join(chain)}")
+    print("textures named by models, by who supplies them: " + ", ".join(f"{k} {v}" for k, v in sorted(tally.items(), key=lambda kv: -kv[1])))
+    for line in outside[: (200 if verbose else 12)]:
+        print(f"  {line}")
+    if len(outside) > 12 and not verbose:
+        print(f"  ... {len(outside) - 12} more (--verbose)")
+    return 1 if outside else 0
+
+
 def slots(db: sqlite3.Connection) -> None:
     """Which overlays share a load address, so cannot be in memory together."""
     import tomllib
@@ -776,7 +856,7 @@ def main() -> int:
     elif args.command == "regions":
         regions(db)
     elif args.command == "check":
-        return check(db, args.verbose)
+        return check(db, args.verbose) | chain_check(db, args.verbose)
     elif args.command == "slots":
         slots(db)
     elif args.command == "stats":

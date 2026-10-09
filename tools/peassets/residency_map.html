@@ -118,7 +118,7 @@ tr.hot td { background: var(--accent-soft); } tr.clash td:first-child { color: v
     <section class="panel">
       <h2><span>Video memory, 1024 × 512</span><span class="seg" id="seg"><button id="seg-raw" aria-pressed="true">Uploads</button><button id="seg-app" aria-pressed="false">Applied</button></span><span id="hover">hover a rectangle</span></h2>
       <div id="appliedbox" hidden>
-        <div class="empty" id="appliednote">Each tile is one texture page as a resident model, or a pair of the code's constants, asks for it: read at the depth and through the palette it names, from what the selected groups have loaded. A model is displaced as the placement that spawns it says; where that leaves it without a page or palette and another displacement in use does not, that one is taken and marked "guessed". The outline is the part of the page the faces cover.</div>
+        <div class="empty" id="appliednote">Each tile is one texture page as a resident model, or a pair of the code's constants, asks for it: read at the depth and through the palette it names, from what the selected groups have loaded. A model is displaced as the placement that spawns it says; where that leaves it without a page or palette and another displacement in use does not, that one is taken and marked "guessed". The outline is the part of the page the faces cover; the rest of the page belongs to other faces and their palette, and is faded.</div>
         <div id="applied"></div>
       </div>
       <div id="rawbox">
@@ -318,6 +318,8 @@ async function drawApplied() {
       if (!col) continue;
       d[k] = (col & 31) * 255 / 31; d[k + 1] = ((col >> 5) & 31) * 255 / 31; d[k + 2] = ((col >> 10) & 31) * 255 / 31; d[k + 3] = 255;
     }
+    // A page is shared: its other columns belong to other faces, with their own palette. Fade what these faces do not cover.
+    if (a.box) for (let v = 0; v < 256; v++) for (let u = 0; u < 256; u++) if (u < a.box[0] || u > a.box[2] || v < a.box[1] || v > a.box[3]) d[(v * 256 + u) * 4 + 3] >>= 3;
     ctx.putImageData(im, 0, 0);
     if (a.box) { ctx.strokeStyle = css.getPropertyValue("--accent"); ctx.lineWidth = 1; ctx.strokeRect(a.box[0] + .5, a.box[1] + .5, Math.max(1, a.box[2] - a.box[0]), Math.max(1, a.box[3] - a.box[1])); }
     const flags = []; if (!filled) flags.push("page not resident"); if (bpp < 16 && !palFilled) flags.push("palette not resident"); else if (bpp < 16 && palFilled < n) flags.push(`palette ${palFilled} of ${n} entries resident`); if (lacking && palFilled) flags.push("texels use entries that are not resident");

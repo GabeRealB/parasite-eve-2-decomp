@@ -62,7 +62,7 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     "pe2img": {"payload": ("x", "y", "w", "h"), "stored": ("bpp",)},
     "pe2clut": {"payload": ("x", "y", "w", "h"), "stored": ()},
     "model": {"payload": ("textures",), "stored": ("parts",)},
-    "pe2pkg": {"payload": (), "stored": ()},
+    "pe2pkg": {"payload": (), "stored": ("parent",)},
     "bs": {"payload": (), "stored": ()},
     "spk": {"payload": (), "stored": ("sounds",)},
     "txt": {"payload": (), "stored": ()},
@@ -199,6 +199,50 @@ def deps_of(key: str, assets: dict, embedded: dict, variant: str | None = None) 
     for dep in implied_deps(key, assets, embedded):
         if dep not in out:
             out.append(dep)
+    return out
+
+
+# The overlays form a tree, and an overlay names only what its own files load
+# or what an ancestor's do. `parent` states an overlay's place where its
+# family's does not: an actor made for one room hangs under that room (or
+# under each of several), not under gameplay with the ordinary enemies.
+ROOT_OVERLAY = "main"
+
+
+def parents_of(key: str, assets: dict, tree: dict) -> list[str]:
+    """An overlay's parents: the stated ones, else its family's.
+
+    main loads title and gameplay; gameplay loads the stage maps and
+    everything that goes with the player or any room - costumes, weapons,
+    spells, companions, ordinary actors; a stage map is the parent of its
+    stage's rooms.
+    """
+    stated = assets.get(key, {}).get("parent")
+    if stated:
+        return [stated] if isinstance(stated, str) else list(stated)
+    if key in ("title", "gameplay"):
+        return [ROOT_OVERLAY]
+    for stage, body in tree.items():
+        if not stage:
+            continue
+        for fnode in (body.get("folders") or {}).values():
+            if any(key in (n.get("chunks") or {}).values() for n in fnode["files"].values()):
+                for node in tree[0]["files"].values():
+                    if int(node["id"]) == 900000 + stage:
+                        return [c for c in node["chunks"].values() if assets.get(c, {}).get("type") == "pe2pkg"][:1] or ["gameplay"]
+    return ["gameplay"]
+
+
+def ancestors_of(key: str, assets: dict, tree: dict) -> list[str]:
+    """Every overlay above this one, nearest first, over all its parents."""
+    out, queue = [], parents_of(key, assets, tree)
+    while queue:
+        parent = queue.pop(0)
+        if parent in out or parent == key:
+            continue
+        out.append(parent)
+        if parent != ROOT_OVERLAY:
+            queue += parents_of(parent, assets, tree)
     return out
 
 
