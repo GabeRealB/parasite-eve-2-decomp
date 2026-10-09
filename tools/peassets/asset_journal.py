@@ -289,12 +289,15 @@ class Manifest:
                     for abr in range(4):
                         page = (mode << 7) | (abr << 5) | ((rec["y"] & 0x100) >> 4) | ((rec["x"] & 0x3FF) >> 6)
                         self.by_value["image.tpage"][page].add((key, f"if {bpp}-bit" + (f", blend {abr}" if abr else "")))
-        # A clip is an index into a bank, so every bank long enough fits the
-        # number; only the bank of the constant's own package means anything.
+        # A clip constant indexes the code's table of set pointers, not the
+        # bank's sets in address order: a table may skip, repeat or borrow
+        # sets. So the number only says the bank is long enough, and the row
+        # records the index; which set that is takes the table to say. Only
+        # the bank of the constant's own package means anything.
         for key, rec in self.embedded.items():
             if rec["type"] == "animation":
                 for clip in range(rec["clips"] + 1):
-                    self.by_value["animation.clip"][clip].add((key, f"clip {clip}"))
+                    self.by_value["animation.clip"][clip].add((key, f"table index {clip}"))
         # A package's own embedded assets are as near to its code as anything.
         for key, rec in self.embedded.items():
             self.near[rec.get("source", "").removesuffix(".pe2pkg")].add(key)
@@ -495,7 +498,7 @@ def main() -> int:
     p = sub.add_parser("list")
     p.add_argument("--attribute"); p.add_argument("--match"); p.add_argument("--asset")
     p.add_argument("--file"); p.add_argument("--status"); p.add_argument("--limit", type=int); p.add_argument("--package")
-    p = sub.add_parser("show"); p.add_argument("symbol")
+    p = sub.add_parser("show"); p.add_argument("symbol"); p.add_argument("--all", action="store_true", help="every candidate, not the first 12")
     p = sub.add_parser("confirm"); p.add_argument("id", type=int); p.add_argument("asset")
     p.add_argument("--detail"); p.add_argument("--note")
     p = sub.add_parser("reject"); p.add_argument("id", type=int); p.add_argument("--note")
@@ -534,7 +537,7 @@ def main() -> int:
             print(f"#{r['id']} {r['symbol']} = {hex(r['value']) if r['value'] is not None else '?'} ({r['expr']})  {r['file']}:{r['line']}" + (f" in {r['scope']}" if r["scope"] else ""))
             print(f"   {r['attribute']}: {r['match']}, {r['status']}" + (f" -> {r['asset']} {r['detail'] or ''}" if r["asset"] else "")
                   + (f"   [{r['note']}]" if r["note"] else ""))
-            for c in db.execute("SELECT * FROM candidates WHERE evidence = ? ORDER BY local DESC, asset LIMIT 12", (r["id"],)):
+            for c in db.execute("SELECT * FROM candidates WHERE evidence = ? ORDER BY local DESC, asset" + ("" if args.all else " LIMIT 12"), (r["id"],)):
                 print(f"     {'near ' if c['local'] else '     '}{c['asset']} {c['detail'] or ''}")
         if not rows:
             return 1
