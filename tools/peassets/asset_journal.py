@@ -177,6 +177,7 @@ class Manifest:
         self.assets, self.embedded = asset_schema.load()
         self.tree = asset_schema.load_tree()
         self.by_value: dict[str, dict[int, set[tuple[str, str]]]] = defaultdict(lambda: defaultdict(set))
+        self.near: dict[str, set[str]] = defaultdict(set)
         for key, rec in self.assets.items():
             if rec["type"] == "pe2img":
                 for n, (x, y, bpp) in enumerate(asset_schema.image_columns(rec)):
@@ -221,7 +222,6 @@ class Manifest:
         for key, rec in self.embedded.items():
             self.near[rec.get("source", "").removesuffix(".pe2pkg")].add(key)
         # Where each asset is placed, and what shares a folder or file with a package.
-        self.near: dict[str, set[str]] = defaultdict(set)
         for stage, folder, fkey, node in asset_schema.tree_files(self.tree):
             self.by_value["file.id"][int(node["id"])].add((fkey if folder is None else f"{folder}/{fkey}", f"stage {stage}"))
         groups: dict[tuple, set[str]] = defaultdict(set)
