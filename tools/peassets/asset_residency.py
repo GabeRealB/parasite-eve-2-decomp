@@ -33,7 +33,8 @@ opened from disk cannot read a picture's pixels but can run a script. A page
 or palette nothing resident fills is flagged.
 
 Every edge records where it comes from (`evidence`): `carrier` (the file holds
-the overlay's own package), `placement` (an `AreaVariant`'s placement and
+the overlay's own package), `viewmap` (a room's view map sends that view to
+that file), `placement` (an `AreaVariant`'s placement and
 resource tables), `traced` (a load decided by code, read out of the sources
 into `residency_loads.tsv` beside this tool), or `folder` - a file in a room's folder taken to be the view
 of its number, which holds for rooms using the identity view map and is an
@@ -56,10 +57,11 @@ import asset_schema  # noqa: E402
 DB = ROOT / "local" / "asset_residency.sqlite"
 
 DDL = """
-DROP TABLE IF EXISTS file; DROP TABLE IF EXISTS footprint; DROP TABLE IF EXISTS grp; DROP TABLE IF EXISTS member;
+DROP TABLE IF EXISTS file; DROP TABLE IF EXISTS footprint; DROP TABLE IF EXISTS grp; DROP TABLE IF EXISTS member; DROP TABLE IF EXISTS spawn;
 CREATE TABLE file (path TEXT PRIMARY KEY, stage INTEGER, folder TEXT, id INTEGER, package TEXT);
 CREATE TABLE footprint (file TEXT, asset TEXT, kind TEXT, part TEXT, x INTEGER, y INTEGER, w INTEGER, h INTEGER, bpp INTEGER);
 CREATE TABLE grp (id INTEGER PRIMARY KEY, loader TEXT, kind TEXT, condition TEXT, evidence TEXT, source TEXT);
+CREATE TABLE spawn (grp INTEGER, package TEXT, page INTEGER, row INTEGER, entry INTEGER);
 CREATE TABLE member (grp INTEGER, file TEXT, page INTEGER, row INTEGER, mode TEXT, note TEXT);
 CREATE INDEX grp_loader ON grp(loader); CREATE INDEX member_grp ON member(grp); CREATE INDEX footprint_file ON footprint(file);
 """
@@ -72,6 +74,7 @@ RELOCATED_FROM = 256                 # images at or below this row move by whole
 VARIANT_TABLE = re.compile(r"\bAreaVariant\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{(.*?)\n\};", re.S)
 RESOURCE_TABLE = re.compile(r"\bAreaResource\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{(.*?)\n\};", re.S)
 RESOURCE_ROW = re.compile(r"\{\s*([\w]+)\s*,\s*([-\w]+)\s*,\s*(\w+)\s*,[^{}]*\{[^{}]*\}\s*,\s*(&?\w+)\s*\}")
+OWNER = re.compile(r"D_([a-z0-9_]+?)_[0-9A-F]{8}$")
 PLACEMENT_TABLE = re.compile(r"\bAreaPlacement\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{(.*?)\n\};", re.S)
 
 
@@ -205,6 +208,45 @@ def traced_loads(common: dict[int, str], folders: dict[tuple[int, int], dict[int
         yield loader, kind, condition, evidence_of[loader, kind, condition], members
 
 
+BYTE_TABLE = re.compile(r"\bu8\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{([^{}]*)\}\s*;")
+VIEW_DIRECTORY = re.compile(r"\bu8\s*\*\s*(\w+)\s*\[[^\]]*\]\s*=\s*\{([^{}]*)\}\s*;\s*(?:/\*.*?\*/\s*|//[^\n]*\n\s*)*ViewCount\s+\w+\s*\[[^\]]*\]\s*=\s*\{([^{}]*)\}", re.S)
+IDENTITY_MAP = "gViewIdentityMap"
+
+
+def view_maps(files: list[Path], packages: set[str]) -> dict[str, list[list[int]]]:
+    """room package -> for each of its rooms, the file index of each view (1-based views).
+
+    A room overlay publishes a directory of byte maps, one per room it holds,
+    followed by its view counts (`ViewIndexTable` in include/gameplay/view.h):
+    `map[view - 1]` is the index of the view's file in the room's folder.
+    Most rooms borrow gameplay's identity map.
+    """
+    out: dict[str, list[list[int]]] = {}
+    for path in files:
+        if path.suffix != ".c" or "rooms" not in path.parts:
+            continue
+        text = asset_journal.code_of(path)
+        if "ViewCount" not in text:
+            continue
+        room = next((part for part in reversed(path.relative_to(ROOT).parts[:-1]) if part in packages), None)
+        tables = {m[1]: [asset_journal.evaluate(c, {}) for c in m[2].split(",") if c.strip()] for m in BYTE_TABLE.finditer(text)}
+        for directory in VIEW_DIRECTORY.finditer(text):
+            names = [c.strip() for c in directory[2].split(",") if c.strip()]
+            counts = [asset_journal.evaluate(c, {}) or 0 for c in directory[3].split(",") if c.strip()]
+            maps = []
+            for name, count in zip(names, counts):
+                if name == IDENTITY_MAP:
+                    maps.append(list(range(1, count + 1)))
+                elif name in tables and None not in tables[name][:count]:
+                    maps.append(tables[name][:count])
+                else:
+                    maps = None
+                    break
+            if room and maps:
+                out[room] = maps
+    return out
+
+
 def build(db: sqlite3.Connection) -> None:
     db.executescript(DDL)
     assets, _embedded = asset_schema.load()
@@ -226,27 +268,41 @@ def build(db: sqlite3.Connection) -> None:
         gid = db.execute("INSERT INTO grp (loader, kind, condition, evidence, source) VALUES (?,?,?,?,?)",
                          (loader, kind, condition, evidence, source)).lastrowid
         db.executemany("INSERT INTO member VALUES (?,?,?,?,?,?)", [(gid,) + m for m in members])
+        return gid
 
     # An overlay and the file that carries it: one cannot be without the other.
     for package, paths in sorted(carriers.items()):
         for path in paths:
             group(package, "always", "", "carrier", path, [(path, 0, 0, "", "")])
-    # A room's other files are its views, one loaded at a time.
+    # A room's other files are its views, one loaded at a time; which file a
+    # view is comes from the room's view map.
+    files = sorted(p for base in ("src", "include") for p in (ROOT / base).rglob("*")
+                   if p.suffix in (".c", ".h") and "psyq" not in p.parts)
+    maps = view_maps(files, packages)
     rooms: dict[str, str] = {}
+    unmapped = 0
     for stage, body in tree.items():
         for folder, fnode in (body.get("folders") or {}).items():
             room = next((c for n in fnode["files"].values() for c in (n.get("chunks") or {}).values() if c in packages), None)
             if room is None:
                 continue
             rooms[room] = f"{stage}/{folder}"
+            by_index = {int(n["id"]): k for k, n in fnode["files"].items()}
+            reached = set()
+            for number, mapping in enumerate(maps.get(room, ()), 1):
+                for view, index in enumerate(mapping, 1):
+                    if index in by_index and index:
+                        reached.add(index)
+                        label = f"view {view}" if len(maps[room]) == 1 else f"room {number} view {view}"
+                        group(room, "optional", label, "viewmap", f"{stage}/{folder}",
+                              [(f"{stage}/{folder}/{by_index[index]}", 0, 0, "", "" if index == view else f"file {index}")])
             for fkey, node in fnode["files"].items():
-                if not any(c in packages for c in (node.get("chunks") or {}).values()):
-                    group(room, "optional", f"view {node['id']}", "folder", f"{stage}/{folder}",
-                          [(f"{stage}/{folder}/{fkey}", 0, 0, "", "")])
+                if int(node["id"]) not in reached and not any(c in packages for c in (node.get("chunks") or {}).values()):
+                    unmapped += 1
+                    group(room, "optional", f"file {node['id']}", "folder", f"{stage}/{folder}",
+                          [(f"{stage}/{folder}/{fkey}", 0, 0, "", "no view maps to it")])
 
     # A room's variants: each pairs placements with the resources they name.
-    files = sorted(p for base in ("src", "include") for p in (ROOT / base).rglob("*")
-                   if p.suffix in (".c", ".h") and "psyq" not in p.parts)
     values: dict[str, set[int]] = defaultdict(set)
     for path in files:
         for _scope, symbol, _line, _kind, _expr, value in asset_journal.constants(path):
@@ -254,7 +310,7 @@ def build(db: sqlite3.Connection) -> None:
     known = {name: next(iter(v)) for name, v in values.items() if len(v) == 1}
     placements, resources, variants = area_tables(files, known)
     man_packages = packages
-    missing = 0
+    missing: set[int] = set()
     for name, (rel, rows) in sorted(variants.items()):
         room = next((part for part in reversed(Path(rel).parts[:-1]) if part in man_packages), None)
         if room is None:
@@ -286,9 +342,18 @@ def build(db: sqlite3.Connection) -> None:
                 if fid in common:
                     members.append((common[fid], page, row, "", note))
                 else:
-                    missing += 1
+                    missing.add(fid)
             if members:
-                group(room, "optional", f"variant {index}", "placement", f"{rel}:{name}", members)
+                gid = group(room, "optional", f"variant {index}", "placement", f"{rel}:{name}", members)
+                # What a placement spawns is the actor its resource's task
+                # table belongs to, displaced by that placement's offsets -
+                # which need not be the offsets its package's file came with.
+                spawned = set()
+                for entry, lows in used.items():
+                    owner = OWNER.match(entries.get(entry, (0, ""))[1].lstrip("&"))
+                    if owner and owner[1] in man_packages:
+                        spawned.update((owner[1], page, row, entry) for _low, page, row in lows)
+                db.executemany("INSERT INTO spawn VALUES (?,?,?,?,?)", [(gid,) + sp for sp in sorted(spawned)])
     folders: dict[tuple[int, int], dict[int, str]] = {}
     for stage, body in tree.items():
         for folder, fnode in (body.get("folders") or {}).items():
@@ -299,7 +364,8 @@ def build(db: sqlite3.Connection) -> None:
     print(f"{db.execute('SELECT COUNT(*) FROM file').fetchone()[0]} files, "
           f"{db.execute('SELECT COUNT(*) FROM footprint').fetchone()[0]} uploaded rectangles, "
           f"{db.execute('SELECT COUNT(*) FROM grp').fetchone()[0]} groups"
-          + (f"; {missing} placement loads name a file the disc does not have" if missing else ""))
+          + (f"; {unmapped} room files no view maps to" if unmapped else "")
+          + (f"; placements name {len(missing)} files the disc does not have: {sorted(missing)}" if missing else ""))
 
 
 TEMPLATE = Path(__file__).with_name("residency_map.html")
@@ -373,9 +439,12 @@ def page_data(db: sqlite3.Connection, pictures: str = "", pixels: str = "") -> s
     members = defaultdict(list)
     for r in db.execute("SELECT * FROM member"):
         members[r["grp"]].append([index[r["file"]], r["page"], r["row"], brief(r["note"]), int("RELOCATE" in (r["mode"] or ""))])
+    spawns = defaultdict(list)
+    for r in db.execute("SELECT * FROM spawn"):
+        spawns[r["grp"]].append([r["package"], r["page"], r["row"]])
     loaders = defaultdict(list)
     for g in db.execute("SELECT * FROM grp ORDER BY loader, kind, id"):
-        loaders[g["loader"]].append([g["kind"][0], g["condition"], g["evidence"], members[g["id"]]])
+        loaders[g["loader"]].append([g["kind"][0], g["condition"], g["evidence"], members[g["id"]], spawns[g["id"]]])
     used = {m[0] for groups in loaders.values() for g in groups for m in g[3]}
     footprint = defaultdict(list)
     for r in db.execute("SELECT * FROM footprint"):
@@ -388,8 +457,24 @@ def page_data(db: sqlite3.Connection, pictures: str = "", pixels: str = "") -> s
     for key, rec in sorted(embedded.items()):
         if rec.get("type") == "model" and assets.get(key, {}).get("textures"):
             models[rec["source"].removesuffix(".pe2pkg")].append([key, assets[key]["textures"]])
+    # What the code's own constants ask for: a texture page and a CLUT value
+    # declared together in one function, from the asset journal when there is one.
+    constants = defaultdict(list)
+    journal = ROOT / "local" / "asset_journal.sqlite"
+    if journal.is_file():
+        scopes = defaultdict(lambda: {"image.tpage": [], "clut.value": []})
+        jdb = sqlite3.connect(journal)
+        for package, file, scope, symbol, attribute, value in jdb.execute(
+                "SELECT package, file, scope, symbol, attribute, value FROM evidence WHERE present = 1 AND status != 'rejected' "
+                "AND attribute IN ('image.tpage', 'clut.value') AND package != '' AND scope != '' AND kind != 'faces'"):
+            scopes[package, file, scope][attribute].append((symbol, value))
+        for (package, _file, scope), found in sorted(scopes.items()):
+            if 1 <= len(found["image.tpage"]) <= 2 and 1 <= len(found["clut.value"]) <= 3:
+                for page_name, page in found["image.tpage"]:
+                    for clut_name, clut in found["clut.value"]:
+                        constants[package].append([f"{scope}: {page_name} + {clut_name}", page, clut])
     return json.dumps({"files": files, "fp": footprint, "loaders": loaders, "pkg": carried, "pictures": pictures,
-                       "pixels": pixels, "models": models}, separators=(",", ":")).replace("</", "<\\/")
+                       "pixels": pixels, "models": models, "consts": constants}, separators=(",", ":")).replace("</", "<\\/")
 
 
 def write_page(db: sqlite3.Connection, out: Path, bare: bool) -> None:

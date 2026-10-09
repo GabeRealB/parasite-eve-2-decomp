@@ -146,7 +146,7 @@ def evaluate(expr: str, known: dict[str, int]) -> int | None:
     if not text.strip() or not SAFE.match(text):
         return None
     try:
-        value = eval(text.replace("/", "//"), {"__builtins__": {}}, {})  # noqa: S307 - digits and operators only
+        value = eval(text.strip().replace("/", "//"), {"__builtins__": {}}, {})  # noqa: S307 - digits and operators only
     except Exception:  # noqa: BLE001
         return None
     return value if isinstance(value, int) else None
