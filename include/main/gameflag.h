@@ -25,12 +25,37 @@ enum {
 /// only the live bank. Each bank's checksum covers its entire payload.
 extern GameFlagNibbleBank gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_COUNT];
 
-/// Stage banks contain the live state followed by its memory-card backup.
-extern GameFlagAcropolisBank     GameFlag_AcropolisBanks[2];
-extern GameFlagDryfieldBank      GameFlag_DryfieldBanks[2];
+/// Resident live and backup state for Akropolis Tower and the MIST areas.
+///
+/// Indexed by `GAME_FLAG_STAGE_BANK_LIVE` / `GAME_FLAG_STAGE_BANK_BACKUP`.
+/// Each 0x6C-byte copy holds visited bits, object states and 18 area slots.
+/// The MIST shooting gallery instead uses `gGameFlagDryfieldBanks` slot 29.
+extern GameFlagAcropolisBank gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_COUNT];
+
+/// Resident live and backup Dryfield state, including shared day/night area slots.
+///
+/// Indexed by `GAME_FLAG_STAGE_BANK_LIVE` / `GAME_FLAG_STAGE_BANK_BACKUP`.
+/// Each 0xB0-byte copy holds the daytime visited bits, object states used by
+/// both times of day, and 36 area slots, including the MIST shooting gallery.
+/// Nighttime visited bits are stored separately in `GameFlag_DryfieldFullBanks`.
+extern GameFlagDryfieldBank gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_COUNT];
+
 extern GameFlagDryfieldNightBank GameFlag_DryfieldFullBanks[2];
-extern GameFlagMineShelterBank   GameFlag_ShelterBanks[2];
-extern GameFlagNeoArkBank        GameFlag_NeoArkBanks[2];
+
+/// Resident live and backup state for the mine and Shelter B1 through B4.
+///
+/// Indexed by `GAME_FLAG_STAGE_BANK_LIVE` / `GAME_FLAG_STAGE_BANK_BACKUP`.
+/// Each 0xE4-byte copy holds visited bits, object states and 48 area slots.
+/// Shelter area 49 shares the mine refuge's slot 5. Shelter 1F and B6 use
+/// `gGameFlagNeoArkBanks` instead.
+extern GameFlagMineShelterBank gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_COUNT];
+
+/// Resident live and backup state for Shelter 1F and B6 together with Neo Ark.
+///
+/// Indexed by `GAME_FLAG_STAGE_BANK_LIVE` / `GAME_FLAG_STAGE_BANK_BACKUP`.
+/// Each 0xA4-byte copy holds visited bits, object states and 32 area slots.
+/// The B6 nursery and growth room share slot 21.
+extern GameFlagNeoArkBank gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_COUNT];
 
 /// Live stage headers, indexed by GameLocationKey.stage (1..5; slot 0 is NULL).
 extern GameFlagStageHeader* Gp_FlagBanks[6];

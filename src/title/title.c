@@ -483,7 +483,7 @@ void titleRestoreAttractDemoState(void)
     s32       savedVibration;
     s32       bank;
     s32       bankTimesEight;
-    u8*       shelterBankBytes;
+    u8*       mineShelterBankBytes;
 
     stateBytes     = Fs_ActorLoadBase2;
     bank           = GAME_FLAG_NIBBLE_BANK_LIVE;
@@ -502,24 +502,23 @@ void titleRestoreAttractDemoState(void)
     memcpy(((u8(*)[PLAYER_STATUS_SAVE_RECORD_BYTES]) & gPlayerStatus)[bank], stateBytes, PLAYER_STATUS_SAVE_RECORD_BYTES);
     stateBytes += PLAYER_STATUS_SAVE_RECORD_BYTES;
 
-    memcpy(&GameFlag_AcropolisBanks[bank], stateBytes, sizeof(GameFlag_AcropolisBanks[bank]));
-    stateBytes += sizeof(GameFlag_AcropolisBanks[bank]);
+    memcpy(&gGameFlagAcropolisBanks[bank], stateBytes, sizeof(gGameFlagAcropolisBanks[bank]));
+    stateBytes += sizeof(gGameFlagAcropolisBanks[bank]);
 
-    memcpy(GameFlag_DryfieldBanks, stateBytes, sizeof(GameFlag_DryfieldBanks[0]));
-    stateBytes += sizeof(GameFlag_DryfieldBanks[0]);
+    memcpy(gGameFlagDryfieldBanks, stateBytes, sizeof(gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE]));
+    stateBytes += sizeof(gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE]);
 
     memcpy(GameFlag_DryfieldFullBanks, stateBytes, sizeof(GameFlag_DryfieldFullBanks[0]));
     stateBytes += sizeof(GameFlag_DryfieldFullBanks[0]);
 
-    // &GameFlag_ShelterBanks[bank], with bank * 0xE4 spelled out: the typed
-    // index loads the array address before the first shift, the target after.
-    bankTimesEight   = bank * 8;
-    shelterBankBytes = (u8*)GameFlag_ShelterBanks;
-    memcpy(shelterBankBytes + ((bankTimesEight - bank) * 8 + bank) * 4, stateBytes, sizeof(GameFlag_ShelterBanks[bank]));
-    stateBytes += sizeof(GameFlag_ShelterBanks[bank]);
+    // Keep the byte stride's first shift before the bank-base address load.
+    bankTimesEight       = bank * 8;
+    mineShelterBankBytes = (u8*)gGameFlagMineShelterBanks;
+    memcpy(mineShelterBankBytes + ((bankTimesEight - bank) * 8 + bank) * 4, stateBytes, sizeof(gGameFlagMineShelterBanks[bank]));
+    stateBytes += sizeof(gGameFlagMineShelterBanks[bank]);
 
-    memcpy(GameFlag_NeoArkBanks, stateBytes, sizeof(GameFlag_NeoArkBanks[0]));
-    stateBytes += sizeof(GameFlag_NeoArkBanks[0]);
+    memcpy(gGameFlagNeoArkBanks, stateBytes, sizeof(gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE]));
+    stateBytes += sizeof(gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE]);
 
     memcpy(&gGameFlagNibbleBanks[bank], stateBytes, sizeof(gGameFlagNibbleBanks[bank]));
 

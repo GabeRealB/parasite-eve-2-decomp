@@ -483,11 +483,11 @@ D_shelter_b4_reservoir_801850D8 = 0x801850D8; // absolute:True owner=shelter_b4_
 
 
 
-GameFlag_AcropolisBanks = 0x800733F0; // absolute:True size:0xD8
-GameFlag_DryfieldBanks = 0x800734C8; // absolute:True size:0x160
+gGameFlagAcropolisBanks = 0x800733F0; // absolute:True size:0xD8
+gGameFlagDryfieldBanks = 0x800734C8; // absolute:True size:0x160
 GameFlag_DryfieldFullBanks = 0x80073628; // absolute:True size:0x48
-GameFlag_ShelterBanks = 0x80073670; // absolute:True size:0x1C8
-GameFlag_NeoArkBanks = 0x80073838; // absolute:True size:0x148
+gGameFlagMineShelterBanks = 0x80073670; // absolute:True size:0x1C8
+gGameFlagNeoArkBanks = 0x80073838; // absolute:True size:0x148
 Gp_FlagBanks = 0x80060A30; // absolute:True size:0x18
 
 dryfieldNightMotelLoftFallingShardTask = 0x8017E090; // type:func absolute:True owner=dryfield_night_motel_loft shared=rooms

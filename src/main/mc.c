@@ -175,15 +175,15 @@ static McWork Mc_MenuWork;
 
 McSaveData gMcSaveData[MEMORY_CARD_SAVE_COUNT];
 
-GameFlagAcropolisBank GameFlag_AcropolisBanks[2];
+GameFlagAcropolisBank gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_COUNT];
 
-GameFlagDryfieldBank GameFlag_DryfieldBanks[2];
+GameFlagDryfieldBank gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_COUNT];
 
 GameFlagDryfieldNightBank GameFlag_DryfieldFullBanks[2];
 
-GameFlagMineShelterBank GameFlag_ShelterBanks[2];
+GameFlagMineShelterBank gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_COUNT];
 
-GameFlagNeoArkBank GameFlag_NeoArkBanks[2];
+GameFlagNeoArkBank gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_COUNT];
 
 GameFlagNibbleBank gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_COUNT];
 
@@ -228,62 +228,6 @@ extern _McSaveSection Mc_BufferSlots[9];
 static const char Mc_StrMemoryCard[];
 
 static u8 McText_NewBlock[];
-
-static u8 McText_Empty[];
-
-static u8 McText_AccessFailed[];
-
-static u8 McText_CheckingCard[];
-
-static u8 McText_CardChanged[];
-
-static u8 McText_InsertCard[];
-
-static u8 McText_NoCard[];
-
-static u8 McText_Saving[];
-
-static u8 McText_Loading[];
-
-static u8 McText_Formatting[];
-
-static u8 McText_SavePrompt[];
-
-static u8 McText_LoadPrompt[];
-
-static u8 McText_FormatPrompt[];
-
-static u8 McText_NoGameData[];
-
-static u8 McText_CreatePrompt[];
-
-static u8 McText_CreatingData[];
-
-static u8 McText_OverwritePrompt[];
-
-static u8 McText_PleaseTryAgain[];
-
-static u8 McText_CardFull[];
-
-static u8 McText_DoNotRemoveCard[];
-
-static u8 McText_InsertAnotherCard[];
-
-static u8 McText_SaveOptional[];
-
-static u8 McText_SelectData[];
-
-static u8 McText_SaveFailed[];
-
-static u8 McText_LoadFailed[];
-
-static u8 McText_FormatFailed[];
-
-static u8 McText_CardNotFormatted[];
-
-static u8 McText_SaveCorrupted[];
-
-static u8 McText_CannotLoadData[];
 
 static u8 McText_LoadAbortedCorrupted[];
 
@@ -547,68 +491,123 @@ static const char McText_CloseParen[];
 
 static const char Mc_StrMemoryCard[] = "Memory Card";
 
-static u8 McText_NewBlock[]             = "New Block";
-u8        McText_Yes[]                  = "Yes";
-u8        McText_No[]                   = "No";
-u8        McText_Cancel[]               = "Cancel";
-u8        McText_Ok[]                   = "OK";
-static u8 McText_Empty[]                = "";
-static u8 McText_AccessFailed[]         = "Failed to access MEMORY CARD.";
-static u8 McText_CheckingCard[]         = "Checking MEMORY CARD in slot 1.";
-static u8 McText_CardChanged[]          = "MEMORY CARD has been changed.";
-static u8 McText_InsertCard[]           = "Insert MEMORY CARD in slot 1.";
-static u8 McText_NoCard[]               = "No MEMORY CARD inserted.";
-static u8 McText_Saving[]               = "Saving...";
-static u8 McText_Loading[]              = "Loading...";
-static u8 McText_Formatting[]           = "Formatting...";
-static u8 McText_SavePrompt[]           = "Save game data?";
-static u8 McText_LoadPrompt[]           = "Load game data?";
-static u8 McText_FormatPrompt[]         = "Format MEMORY CARD?";
-static u8 McText_NoGameData[]           = "No game data available. Insert";
-static u8 McText_CreatePrompt[]         = "Create save data?";
-static u8 McText_CreatingData[]         = "Creating save data...";
-static u8 McText_OverwritePrompt[]      = "Overwrite data?";
-static u8 McText_PleaseTryAgain[]       = "Please try again.";
-static u8 McText_CardFull[]             = "MEMORY CARD full. Insert";
-static u8 McText_DoNotRemoveCard[]      = "Do not remove MEMORY CARD.";
-static u8 McText_InsertAnotherCard[]    = "another MEMORY CARD in slot 1.";
-static u8 McText_SaveOptional[]         = "Need not to save now.";
-static u8 McText_SelectData[]           = "Select data.";
-static u8 McText_SaveFailed[]           = "Save Failed!";
-static u8 McText_LoadFailed[]           = "Load Failed!";
-static u8 McText_FormatFailed[]         = "Format Failed!";
-static u8 McText_CardNotFormatted[]     = "MEMORY CARD not formatted.";
-static u8 McText_SaveCorrupted[]        = "Save data corrupted.";
-static u8 McText_CannotLoadData[]       = "Cannot load data.";
+static u8 McText_NewBlock[] = "New Block";
+u8        McText_Yes[]      = "Yes";
+u8        McText_No[]       = "No";
+u8        McText_Cancel[]   = "Cancel";
+u8        McText_Ok[]       = "OK";
+/// NUL-only byte string that leaves a prompt line blank.
+static u8 _gMcTextEmpty[] = "";
+
+/// NUL-terminated upper line reporting a card-access failure.
+static u8 _gMcTextAccessFailed[] = "Failed to access MEMORY CARD.";
+
+/// NUL-terminated upper line while probing the card in slot 1.
+static u8 _gMcTextCheckingCard[] = "Checking MEMORY CARD in slot 1.";
+
+/// NUL-terminated card-replacement notice for `MEMORY_CARD_PROMPT_CHANGED`, unused by the dialogs.
+static u8 _gMcTextCardChanged[] = "MEMORY CARD has been changed.";
+
+/// NUL-terminated lower line requesting a card in slot 1 after the no-card notice.
+static u8 _gMcTextInsertCard[] = "Insert MEMORY CARD in slot 1.";
+
+/// NUL-terminated upper line reporting that no card is inserted.
+static u8 _gMcTextNoCard[] = "No MEMORY CARD inserted.";
+
+/// NUL-terminated upper line during save-file creation and writes.
+static u8 _gMcTextSaving[] = "Saving...";
+
+/// NUL-terminated upper line during the save-section read walk.
+static u8 _gMcTextLoading[] = "Loading...";
+
+/// NUL-terminated upper line during card formatting.
+static u8 _gMcTextFormatting[] = "Formatting...";
+
+/// NUL-terminated single-line question asking whether to save the game.
+static u8 _gMcTextSavePrompt[] = "Save game data?";
+
+/// NUL-terminated single-line question asking whether to load a saved game.
+static u8 _gMcTextLoadPrompt[] = "Load game data?";
+
+/// NUL-terminated lower-line format question following the unformatted-card notice.
+static u8 _gMcTextFormatPrompt[] = "Format MEMORY CARD?";
+
+/// NUL-terminated upper line requesting another card when no game data is available.
+static u8 _gMcTextNoGameData[] = "No game data available. Insert";
+
+/// NUL-terminated single-line question asking whether to create a missing save file.
+static u8 _gMcTextCreatePrompt[] = "Create save data?";
+
+/// NUL-terminated save-creation status for `MEMORY_CARD_PROMPT_CREATING`, unused by the dialogs.
+static u8 _gMcTextCreatingData[] = "Creating save data...";
+
+/// NUL-terminated single-line question before overwriting an existing save file.
+static u8 _gMcTextOverwritePrompt[] = "Overwrite data?";
+
+/// NUL-terminated retry instruction beneath failures, also an unused single-line prompt.
+static u8 _gMcTextPleaseTryAgain[] = "Please try again.";
+
+/// NUL-terminated upper line requesting another card when foreign files fill the card.
+static u8 _gMcTextCardFull[] = "MEMORY CARD full. Insert";
+
+/// NUL-terminated lower-line warning shared by card-check and transfer-status prompts.
+static u8 _gMcTextDoNotRemoveCard[] = "Do not remove MEMORY CARD.";
+
+/// NUL-terminated lower line completing the no-data and card-full requests.
+static u8 _gMcTextInsertAnotherCard[] = "another MEMORY CARD in slot 1.";
+
+/// NUL-terminated optional-save notice in prompt-table row 0x14, unused by the dialogs.
+static u8 _gMcTextSaveOptional[] = "Need not to save now.";
+
+/// NUL-terminated single-line instruction while the save or load file list is open.
+static u8 _gMcTextSelectData[] = "Select data.";
+
+/// NUL-terminated upper line reporting a save failure.
+static u8 _gMcTextSaveFailed[] = "Save Failed!";
+
+/// NUL-terminated upper line reporting a load failure.
+static u8 _gMcTextLoadFailed[] = "Load Failed!";
+
+/// NUL-terminated upper line reporting a format failure.
+static u8 _gMcTextFormatFailed[] = "Format Failed!";
+
+/// NUL-terminated upper line explaining why the card needs formatting.
+static u8 _gMcTextCardNotFormatted[] = "MEMORY CARD not formatted.";
+
+/// NUL-terminated upper line reporting failed checksums in the restored save records.
+static u8 _gMcTextSaveCorrupted[] = "Save data corrupted.";
+
+/// NUL-terminated lower line explaining that the corrupted save cannot be loaded.
+static u8 _gMcTextCannotLoadData[]      = "Cannot load data.";
 static u8 McText_LoadAbortedCorrupted[] = "Save data corrupted.\nLoad aborted";
 /// Unreferenced.
 static u8 McText_SlotCorrupted[] = "Save data corrupted.";
 
 static McPromptPair Mc_PromptTable[] = {
-    { McText_AccessFailed, McText_PleaseTryAgain },
-    { McText_CheckingCard, McText_DoNotRemoveCard },
-    { McText_CardChanged, McText_Empty },
-    { McText_NoCard, McText_InsertCard },
-    { McText_Saving, McText_DoNotRemoveCard },
-    { McText_Loading, McText_DoNotRemoveCard },
-    { McText_Formatting, McText_DoNotRemoveCard },
-    { McText_SavePrompt, McText_Empty },
-    { McText_LoadPrompt, McText_Empty },
-    { McText_CardNotFormatted, McText_FormatPrompt },
-    { McText_NoGameData, McText_InsertAnotherCard },
-    { McText_CreatePrompt, McText_Empty },
-    { McText_CreatingData, McText_DoNotRemoveCard },
-    { McText_FormatFailed, McText_PleaseTryAgain },
-    { McText_SaveFailed, McText_PleaseTryAgain },
-    { McText_LoadFailed, McText_PleaseTryAgain },
-    { McText_AccessFailed, McText_PleaseTryAgain },
-    { McText_OverwritePrompt, McText_Empty },
-    { McText_PleaseTryAgain, McText_Empty },
-    { McText_CardFull, McText_InsertAnotherCard },
-    { McText_SaveOptional, McText_Empty },
-    { McText_Empty, McText_Empty },
-    { McText_SelectData, McText_Empty },
-    { McText_SaveCorrupted, McText_CannotLoadData },
+    { _gMcTextAccessFailed, _gMcTextPleaseTryAgain },
+    { _gMcTextCheckingCard, _gMcTextDoNotRemoveCard },
+    { _gMcTextCardChanged, _gMcTextEmpty },
+    { _gMcTextNoCard, _gMcTextInsertCard },
+    { _gMcTextSaving, _gMcTextDoNotRemoveCard },
+    { _gMcTextLoading, _gMcTextDoNotRemoveCard },
+    { _gMcTextFormatting, _gMcTextDoNotRemoveCard },
+    { _gMcTextSavePrompt, _gMcTextEmpty },
+    { _gMcTextLoadPrompt, _gMcTextEmpty },
+    { _gMcTextCardNotFormatted, _gMcTextFormatPrompt },
+    { _gMcTextNoGameData, _gMcTextInsertAnotherCard },
+    { _gMcTextCreatePrompt, _gMcTextEmpty },
+    { _gMcTextCreatingData, _gMcTextDoNotRemoveCard },
+    { _gMcTextFormatFailed, _gMcTextPleaseTryAgain },
+    { _gMcTextSaveFailed, _gMcTextPleaseTryAgain },
+    { _gMcTextLoadFailed, _gMcTextPleaseTryAgain },
+    { _gMcTextAccessFailed, _gMcTextPleaseTryAgain },
+    { _gMcTextOverwritePrompt, _gMcTextEmpty },
+    { _gMcTextPleaseTryAgain, _gMcTextEmpty },
+    { _gMcTextCardFull, _gMcTextInsertAnotherCard },
+    { _gMcTextSaveOptional, _gMcTextEmpty },
+    { _gMcTextEmpty, _gMcTextEmpty },
+    { _gMcTextSelectData, _gMcTextEmpty },
+    { _gMcTextSaveCorrupted, _gMcTextCannotLoadData },
 };
 
 static u8  Mc_SaveFilePattern[]    = "BASLUS-01042*";
@@ -720,11 +719,11 @@ _McSaveSection Mc_BufferSlots[9] = {
     { Mc_DefaultChecksumSrc, sizeof(Mc_DefaultChecksumSrc) / 2, MEMORY_CARD_FILE_HEADER_CARD_SECTORS },
     { &gMcSaveData[MEMORY_CARD_SAVE_LIVE], sizeof(McSaveData), MEMORY_CARD_SAVE_CARD_SECTORS },
     { &gPlayerStatus, PLAYER_STATUS_SAVE_RECORD_BYTES, PLAYER_STATUS_CARD_SECTORS },
-    { GameFlag_AcropolisBanks, GAME_FLAG_ACROPOLIS_BANK_BYTES, GAME_FLAG_ACROPOLIS_BANK_CARD_SECTORS },
-    { GameFlag_DryfieldBanks, GAME_FLAG_DRYFIELD_BANK_BYTES, GAME_FLAG_DRYFIELD_BANK_CARD_SECTORS },
+    { gGameFlagAcropolisBanks, sizeof(gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE]), GAME_FLAG_ACROPOLIS_BANK_CARD_SECTORS },
+    { gGameFlagDryfieldBanks, sizeof(gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE]), GAME_FLAG_DRYFIELD_BANK_CARD_SECTORS },
     { GameFlag_DryfieldFullBanks, GAME_FLAG_DRYFIELD_NIGHT_BANK_BYTES, GAME_FLAG_DRYFIELD_NIGHT_BANK_CARD_SECTORS },
-    { GameFlag_ShelterBanks, GAME_FLAG_MINE_SHELTER_BANK_BYTES, GAME_FLAG_MINE_SHELTER_BANK_CARD_SECTORS },
-    { GameFlag_NeoArkBanks, GAME_FLAG_NEO_ARK_BANK_BYTES, GAME_FLAG_NEO_ARK_BANK_CARD_SECTORS },
+    { gGameFlagMineShelterBanks, sizeof(gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE]), GAME_FLAG_MINE_SHELTER_BANK_CARD_SECTORS },
+    { gGameFlagNeoArkBanks, sizeof(gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE]), GAME_FLAG_NEO_ARK_BANK_CARD_SECTORS },
     { &gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE], sizeof(gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE]), GAME_FLAG_NIBBLE_BANK_CARD_SECTORS },
 };
 
@@ -789,8 +788,8 @@ static void _mcBuildSaveFileName(u8* filenameCursor, s32 directoryIndex)
 static inline void _mcResetStageFlagCopies(void)
 {
     enum {
-        MEMORY_CARD_STAGE_FLAG_COPY_LIVE   = 0,
-        MEMORY_CARD_STAGE_FLAG_COPY_BACKUP = 1,
+        MEMORY_CARD_STAGE_FLAG_COPY_LIVE   = GAME_FLAG_STAGE_BANK_LIVE,
+        MEMORY_CARD_STAGE_FLAG_COPY_BACKUP = GAME_FLAG_STAGE_BANK_BACKUP,
     };
 
     GameFlagAcropolisBank*     acropolisBanks;
@@ -799,21 +798,21 @@ static inline void _mcResetStageFlagCopies(void)
     GameFlagMineShelterBank*   mineShelterBanks;
     GameFlagNeoArkBank*        neoArkBanks;
 
-    acropolisBanks = &GameFlag_AcropolisBanks[MEMORY_CARD_STAGE_FLAG_COPY_LIVE];
+    acropolisBanks = &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE];
     memFillBytes(acropolisBanks, 0, sizeof(*acropolisBanks));
-    dryfieldBanks = &GameFlag_DryfieldBanks[MEMORY_CARD_STAGE_FLAG_COPY_LIVE];
+    dryfieldBanks = &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE];
     memFillBytes(dryfieldBanks, 0, sizeof(*dryfieldBanks));
     dryfieldNightBanks = &GameFlag_DryfieldFullBanks[MEMORY_CARD_STAGE_FLAG_COPY_LIVE];
     memFillBytes(dryfieldNightBanks, 0, sizeof(*dryfieldNightBanks));
-    mineShelterBanks = &GameFlag_ShelterBanks[MEMORY_CARD_STAGE_FLAG_COPY_LIVE];
+    mineShelterBanks = &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE];
     memFillBytes(mineShelterBanks, 0, sizeof(*mineShelterBanks));
-    neoArkBanks = &GameFlag_NeoArkBanks[MEMORY_CARD_STAGE_FLAG_COPY_LIVE];
+    neoArkBanks = &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE];
     memFillBytes(neoArkBanks, 0, sizeof(*neoArkBanks));
-    memFillBytes(&acropolisBanks[MEMORY_CARD_STAGE_FLAG_COPY_BACKUP], MEMORY_CARD_BACKUP_FILL_BYTE, sizeof(*acropolisBanks));
-    memFillBytes(&dryfieldBanks[MEMORY_CARD_STAGE_FLAG_COPY_BACKUP], MEMORY_CARD_BACKUP_FILL_BYTE, sizeof(*dryfieldBanks));
+    memFillBytes(&acropolisBanks[GAME_FLAG_STAGE_BANK_BACKUP], MEMORY_CARD_BACKUP_FILL_BYTE, sizeof(*acropolisBanks));
+    memFillBytes(&dryfieldBanks[GAME_FLAG_STAGE_BANK_BACKUP], MEMORY_CARD_BACKUP_FILL_BYTE, sizeof(*dryfieldBanks));
     memFillBytes(&dryfieldNightBanks[MEMORY_CARD_STAGE_FLAG_COPY_BACKUP], MEMORY_CARD_BACKUP_FILL_BYTE, sizeof(*dryfieldNightBanks));
-    memFillBytes(&mineShelterBanks[MEMORY_CARD_STAGE_FLAG_COPY_BACKUP], MEMORY_CARD_BACKUP_FILL_BYTE, sizeof(*mineShelterBanks));
-    memFillBytes(&neoArkBanks[MEMORY_CARD_STAGE_FLAG_COPY_BACKUP], MEMORY_CARD_BACKUP_FILL_BYTE, sizeof(*neoArkBanks));
+    memFillBytes(&mineShelterBanks[GAME_FLAG_STAGE_BANK_BACKUP], MEMORY_CARD_BACKUP_FILL_BYTE, sizeof(*mineShelterBanks));
+    memFillBytes(&neoArkBanks[GAME_FLAG_STAGE_BANK_BACKUP], MEMORY_CARD_BACKUP_FILL_BYTE, sizeof(*neoArkBanks));
 }
 
 /// Restore the six live save options and immediately apply stereo and music gain.

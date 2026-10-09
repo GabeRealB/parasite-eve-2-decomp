@@ -85,11 +85,11 @@ static GpuImageUpload Text_OutlineClut[2] = {
 
 GameFlagStageHeader* Gp_FlagBanks[] = {
     NULL,
-    &GameFlag_AcropolisBanks[0].header,
-    &GameFlag_DryfieldBanks[0].header,
+    &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].header,
+    &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].header,
     &GameFlag_DryfieldFullBanks[0].header,
-    &GameFlag_ShelterBanks[0].header,
-    &GameFlag_NeoArkBanks[0].header,
+    &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].header,
+    &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].header,
 };
 
 /// Copies one encoded UI-text line and advances the source cursor past it.

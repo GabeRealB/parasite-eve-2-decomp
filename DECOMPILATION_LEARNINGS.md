@@ -23548,7 +23548,7 @@ p->field_s8 = save;     /* sb */
 `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene`. The struct fields themselves must also be
 `s8` (see also the `D_80072189` / `D_8007218B` aliases).
 
-## Interleave `lui` into a `index * 0xE4` multiply (title `GameFlag_ShelterBanks`)
+## Interleave `lui` into a `index * 0xE4` multiply (title `gGameFlagMineShelterBanks`)
 
 Target schedule after a preceding memcpy remainder:
 
@@ -23570,9 +23570,9 @@ load by splitting:
 
 ```c
 s32 bankTimesEight = bank * 8;
-u8* shelterBankBytes = (u8*)GameFlag_ShelterBanks;
-memcpy(shelterBankBytes + ((bankTimesEight - bank) * 8 + bank) * 4,
-       stateBytes, sizeof(GameFlag_ShelterBanks[bank])); /* == bank * 0xE4 */
+u8* mineShelterBankBytes = (u8*)gGameFlagMineShelterBanks;
+memcpy(mineShelterBankBytes + ((bankTimesEight - bank) * 8 + bank) * 4,
+       stateBytes, sizeof(gGameFlagMineShelterBanks[bank])); /* == bank * 0xE4 */
 ```
 
 Same size, same ops, but the address load is scheduled one insn into the

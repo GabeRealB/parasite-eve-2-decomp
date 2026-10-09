@@ -18,6 +18,18 @@ enum {
     GAME_FLAG_NIBBLE_BANK_COUNT  = 2
 };
 
+/// Indices and extent of each resident stage-bank pair.
+///
+/// Gameplay uses the live bank. Loading restores both copies; saving writes
+/// the live bank twice to the card and then refreshes the resident backup.
+/// Initialization clears the live bank and fills the backup with 0xFF.
+/// Demo restore replaces only the live bank.
+enum {
+    GAME_FLAG_STAGE_BANK_LIVE   = 0,
+    GAME_FLAG_STAGE_BANK_BACKUP = 1,
+    GAME_FLAG_STAGE_BANK_COUNT  = 2
+};
+
 /// Checksummed save bank of packed game flags and a play-time mark.
 ///
 /// Each 0x100-byte bank has a four-byte checksum header and 252 payload bytes.
@@ -100,7 +112,7 @@ STATIC_ASSERT_SIZEOF(GameFlagAreaSlot, 4);
 
 /// Bytes in one Akropolis stage-bank copy, checksum prefix included.
 ///
-/// `GameFlag_AcropolisBanks` stores the live copy followed by its memory-card
+/// `gGameFlagAcropolisBanks` stores the live copy followed by its memory-card
 /// backup. The pair occupies two 128-byte card sectors.
 enum { GAME_FLAG_ACROPOLIS_BANK_BYTES = 0x6C };
 
@@ -124,7 +136,7 @@ STATIC_ASSERT_SIZEOF(GameFlagAcropolisBank, GAME_FLAG_ACROPOLIS_BANK_BYTES);
 
 /// Bytes in one Dryfield day-bank copy, checksum prefix included.
 ///
-/// `GameFlag_DryfieldBanks` stores the live copy followed by its memory-card
+/// `gGameFlagDryfieldBanks` stores the live copy followed by its memory-card
 /// backup. The pair occupies three 128-byte card sectors.
 enum { GAME_FLAG_DRYFIELD_BANK_BYTES = 0xB0 };
 
@@ -166,7 +178,7 @@ STATIC_ASSERT_SIZEOF(GameFlagDryfieldNightBank, GAME_FLAG_DRYFIELD_NIGHT_BANK_BY
 
 /// Bytes in one mine and Shelter stage-bank copy, checksum prefix included.
 ///
-/// `GameFlag_ShelterBanks` stores the live copy followed by its memory-card
+/// `gGameFlagMineShelterBanks` stores the live copy followed by its memory-card
 /// backup. The pair occupies four 128-byte card sectors.
 enum { GAME_FLAG_MINE_SHELTER_BANK_BYTES = 0xE4 };
 
@@ -190,7 +202,7 @@ STATIC_ASSERT_SIZEOF(GameFlagMineShelterBank, GAME_FLAG_MINE_SHELTER_BANK_BYTES)
 
 /// Bytes in one Shelter and Neo Ark stage-bank copy, checksum prefix included.
 ///
-/// `GameFlag_NeoArkBanks` stores the live copy followed by its memory-card
+/// `gGameFlagNeoArkBanks` stores the live copy followed by its memory-card
 /// backup. The pair occupies three 128-byte card sectors.
 enum { GAME_FLAG_NEO_ARK_BANK_BYTES = 0xA4 };
 
