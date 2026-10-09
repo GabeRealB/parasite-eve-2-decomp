@@ -106,6 +106,8 @@ ENUM = re.compile(r"\benum\s*\w*\s*\{([^{}]*)\}", re.S)
 ITEM = re.compile(r"\b([A-Za-z_]\w*)\s*(?:=\s*([^,}]+?))?\s*(?:,|\Z)")
 DEFINE = re.compile(r"^[ \t]*#[ \t]*define[ \t]+([A-Za-z_]\w*)[ \t]+([^\n]+?)[ \t]*$", re.M)
 FUNCTION = re.compile(r"^[A-Za-z_][\w \t\*]*?\b([A-Za-z_]\w*)\s*\([^;{}]*\)\s*\{", re.M)
+ITEM_WHOLE = re.compile(r"\s*([A-Za-z_]\w*)\s*(?:=\s*(.+?))?\s*\Z", re.S)
+GPU_MACRO = re.compile(r"\b(getClut|GetClut|getTPage|GetTPage)\s*\(([^()]*)\)")
 SAFE = re.compile(r"[\s\dxXa-fA-F()+\-*/|&^~<>]*\Z")
 
 
@@ -127,6 +129,19 @@ def evaluate(expr: str, known: dict[str, int]) -> int | None:
     """An integer constant expression of literals and constants already known."""
     text = re.sub(r"\b([A-Za-z_]\w*)\b", lambda m: str(known[m[1]]) if m[1] in known else m[0], expr)
     text = re.sub(r"\(\s*(?:[us](?:8|16|32)|int|unsigned|short|long|char)\s*\)", "", text)
+    # libgpu's two macros, which is how most pages and CLUT values are written.
+    for _ in range(4):
+        call = GPU_MACRO.search(text)
+        if call is None:
+            break
+        args = [evaluate(a, known) for a in split_args(call[2])]
+        if None in args or len(args) != (2 if call[1].lower() == "getclut" else 4):
+            return None
+        if len(args) == 2:
+            value = (args[1] << 6) | ((args[0] >> 4) & 0x3F)
+        else:
+            value = ((args[0] & 3) << 7) | ((args[1] & 3) << 5) | ((args[3] & 0x100) >> 4) | ((args[2] & 0x3FF) >> 6)
+        text = text[:call.start()] + str(value) + text[call.end():]
     text = re.sub(r"(\d)[uUlL]+\b", r"\1", text)
     if not text.strip() or not SAFE.match(text):
         return None
@@ -179,17 +194,30 @@ def constants(path: Path) -> list[tuple[str, str, int, str, str, int]]:
             out.append((scope_at(m.start()), m[1], line(m.start()), "macro", m[2].strip(), value))
     for m in ENUM.finditer(text):
         nxt = 0
-        for item in ITEM.finditer(m[1]):
-            name, expr = item[1], item[2]
-            if not name:
+        # Split on the commas between enumerators, not those inside a call.
+        cursor = 0
+        for piece in split_args(m[1]):
+            at = m[1].index(piece, cursor) if piece else cursor
+            cursor = at + len(piece)
+            item = ITEM_WHOLE.match(piece)
+            if item is None:
                 continue
+            name, expr = item[1], item[2]
             value = evaluate(expr, known) if expr else nxt
             if value is None:
                 nxt = 0
                 continue
             known[name], nxt = value, value + 1
-            out.append((scope_at(m.start()), name, line(m.start(1) + item.start()), "enum", (expr or "").strip(), value))
+            out.append((scope_at(m.start()), name, line(m.start(1) + at), "enum", (expr or "").strip(), value))
     return out
+
+
+def stated_attribute(expr: str) -> str | None:
+    """The attribute an expression states outright, by the macro it is written with."""
+    call = GPU_MACRO.search(expr or "")
+    if call is None or expr.strip() != call[0]:
+        return None
+    return "clut.value" if call[1].lower() == "getclut" else "image.tpage"
 
 
 # A disc file is named by three numbers, set one field at a time before the
@@ -341,7 +369,8 @@ def scan(db: sqlite3.Connection, by_value: bool) -> None:
         package = man.package_of(rel)
         near = man.near.get(package, set())
         for scope, symbol, line, kind, expr, value in constants(path):
-            attribute = next((a for a, rx in HINTS if rx.search(symbol)), None)
+            stated = stated_attribute(expr)
+            attribute = stated or next((a for a, rx in HINTS if rx.search(symbol)), None)
             loose = False
             if attribute is None and not NOT_A_PROPERTY.search(symbol):
                 attribute = next((a for a, rx in LOOSE_HINTS if rx.search(symbol)), None)
@@ -351,7 +380,7 @@ def scan(db: sqlite3.Connection, by_value: bool) -> None:
                 named = False
             else:
                 named = True
-            if attribute is None or (attribute != "file.id" and NOT_A_PROPERTY.search(symbol)):
+            if attribute is None or (attribute != "file.id" and not stated and NOT_A_PROPERTY.search(symbol)):
                 continue
             found = sorted(man.by_value[attribute].get(value, ()))
             local = [c for c in found if c[0] in near]
