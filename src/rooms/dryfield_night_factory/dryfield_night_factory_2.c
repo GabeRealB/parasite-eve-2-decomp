@@ -288,8 +288,8 @@ u8* D_dryfield_night_factory_80186F1C[2] = {
 };
 
 WorldCoordRoomLighting D_dryfield_night_factory_80186F24[2] = {
-    { D_dryfield_night_factory_80189C88, D_dryfield_night_factory_8018A0C8 },
-    { D_dryfield_night_factory_80189C88, D_dryfield_night_factory_8018A0C8 },
+    { &gDryfieldNightFactoryRoomLights, gDryfieldNightFactoryAmbientByView },
+    { &gDryfieldNightFactoryRoomLights, gDryfieldNightFactoryAmbientByView },
 };
 
 WorldCollisionRoomResources D_dryfield_night_factory_80186F34[2] = {

@@ -24,6 +24,7 @@
 #include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/sound_types.h"
 #include "main/task_types.h"
 
 #include "mapui/map_shelter.h"
@@ -45,10 +46,21 @@ s32 D_shelter_b2_pod_access_tunnel_801856A0[3] = {
     0x10000059,
 };
 
-WorldCollisionFootstepSounds D_shelter_b2_pod_access_tunnel_801856AC = {
-    0x1000005D,
-    0x1000005F,
-    0x1000005D,
+/// Cue-2 sound requests in the loaded type-1 bank; cue 1 selects the next entry.
+enum {
+    SHELTER_B2_POD_ACCESS_TUNNEL_SURFACE_3_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5D,
+    SHELTER_B2_POD_ACCESS_TUNNEL_SURFACE_3_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5F
+};
+
+/// Footstep cue bases for surface class 3.
+///
+/// Walking and scripted jumps share one pair; running uses the other.
+/// Cue 1 adds one to each base, and companion playback adds 100.
+/// Requests borrow the loaded type-1 bank while the room is active.
+static WorldCollisionFootstepSounds _gShelterB2PodAccessTunnelSurface3FootstepSounds = {
+    .walk         = SHELTER_B2_POD_ACCESS_TUNNEL_SURFACE_3_WALK_CUE_BASE,
+    .run          = SHELTER_B2_POD_ACCESS_TUNNEL_SURFACE_3_RUN_CUE_BASE,
+    .scriptedJump = SHELTER_B2_POD_ACCESS_TUNNEL_SURFACE_3_WALK_CUE_BASE,
 };
 
 WorldCollisionSurfaceProperties D_shelter_b2_pod_access_tunnel_801856B8[1] = {
@@ -64,7 +76,7 @@ WorldCollisionSurfaceProperties D_shelter_b2_pod_access_tunnel_801856C8[1] = {
 };
 
 WorldCollisionSurfaceProperties D_shelter_b2_pod_access_tunnel_801856D0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b2_pod_access_tunnel_801856AC },
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &_gShelterB2PodAccessTunnelSurface3FootstepSounds },
 };
 
 WorldCollisionSurfaceProperties* D_shelter_b2_pod_access_tunnel_801856D8[8] = {

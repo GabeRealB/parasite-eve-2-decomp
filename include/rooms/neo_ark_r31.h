@@ -18,7 +18,12 @@ extern TaskDesc D_neo_ark_r31_8017D9E8;
 extern AreaVariant D_neo_ark_r31_8017DBB8[13];
 
 // neo_ark_r31
-extern u8* D_neo_ark_r31_8017DA1C[];
+/// Logical-view map directory for the area's single room selector.
+///
+/// Entry zero borrows `gViewIdentityMap`: logical views 1..3 select the same
+/// camera, image and sprite indices. Room IDs index at room minus one; there
+/// is no terminator. The directory requires this room overlay to stay loaded.
+extern u8* gNeoArkR31ViewMaps[1];
 
 extern ViewCount D_neo_ark_r31_8017DA20[];
 
@@ -28,7 +33,11 @@ extern ViewCamera D_neo_ark_r31_8017DA5C[];
 
 extern SpriteView D_neo_ark_r31_8017DAF8[];
 
-extern WorldCoordRoomLights D_neo_ark_r31_8017DB7C;
+/// The room's point-light collection.
+///
+/// Contains no directional or cone lights. The room owns the mutable light
+/// array; coordinate setup and queries require this overlay to remain loaded.
+extern WorldCoordRoomLights gNeoArkR31RoomLights;
 
 extern WorldCollisionSurfaceProperties* D_neo_ark_r31_8017DC34[];
 

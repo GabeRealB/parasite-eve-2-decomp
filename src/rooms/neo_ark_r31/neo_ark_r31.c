@@ -52,7 +52,7 @@ TaskMessageEntry D_neo_ark_r31_8017D9F4[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-u8* D_neo_ark_r31_8017DA1C[1] = {
+u8* gNeoArkR31ViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -89,11 +89,36 @@ SpriteView D_neo_ark_r31_8017DAF8[3] = {
     { { .empty = D_neo_ark_r31_8017DAE8 }, D_neo_ark_r31_8017DAE8, NULL },
 };
 
-WorldCoordPointLight D_neo_ark_r31_8017DB1C[1] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -0x2710, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 0x186A0, 0x186A0 },
+/// Authored point lights for the room, eligible in every logical view.
+///
+/// Positions and falloff radii use world-coordinate units; RGB uses Q12.
+/// Coordinate setup parents and composes these mutable lights, and queries
+/// overwrite attenuation. Pointers remain valid while this room is loaded.
+static WorldCoordPointLight _gNeoArkR31PointLights[1] = {
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -10000, 0 } },
+                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                               .parent       = NULL,
+                           } },
+            .color     = { ONE, ONE, ONE },
+        },
+        .inner = 100000,
+        .outer = 100000,
+    },
 };
 
-WorldCoordRoomLights D_neo_ark_r31_8017DB7C = { 0, NULL, ARRAY_SIZE(D_neo_ark_r31_8017DB1C), D_neo_ark_r31_8017DB1C, 0, NULL };
+WorldCoordRoomLights gNeoArkR31RoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gNeoArkR31PointLights),
+    .pointLights           = _gNeoArkR31PointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
+};
 
 AreaResource D_neo_ark_r31_8017DB94[3] = {
     { 101, 618, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_461800_80139F8C },

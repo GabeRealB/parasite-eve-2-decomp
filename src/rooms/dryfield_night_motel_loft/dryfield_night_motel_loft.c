@@ -29,6 +29,7 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/task.h"
+#include "main/sound_types.h"
 #include "main/task_types.h"
 
 #include "mapui/map_dryfield_full.h"
@@ -231,8 +232,13 @@ static WorldCoordPointLight _gDryfieldNightMotelLoftPointLights[] = {
     },
 };
 
-WorldCoordRoomLights D_dryfield_night_motel_loft_8018004C[1] = {
-    { 0, NULL, ARRAY_SIZE(_gDryfieldNightMotelLoftPointLights), _gDryfieldNightMotelLoftPointLights, 0, NULL },
+WorldCoordRoomLights gDryfieldNightMotelLoftRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gDryfieldNightMotelLoftPointLights),
+    .pointLights           = _gDryfieldNightMotelLoftPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 WorldCollisionTrigger D_dryfield_night_motel_loft_80180064[12] = {
@@ -304,10 +310,21 @@ AreaVariant D_dryfield_night_motel_loft_80180888[13] = {
     { NULL, NULL },
 };
 
-WorldCollisionFootstepSounds D_dryfield_night_motel_loft_801808F0 = {
-    0x10000035,
-    0x10000037,
-    0x10000035,
+/// Cue-2 sound requests in the loaded type-1 bank; cue 1 selects the next entry.
+enum {
+    DRYFIELD_NIGHT_MOTEL_LOFT_SURFACE_1_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x35,
+    DRYFIELD_NIGHT_MOTEL_LOFT_SURFACE_1_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x37
+};
+
+/// Footstep cue bases for surface class 1.
+///
+/// Walking and scripted jumps share one pair; running uses the other.
+/// Cue 1 adds one to each base, and companion playback adds 100.
+/// Requests borrow the loaded type-1 bank while the room is active.
+static WorldCollisionFootstepSounds _gDryfieldNightMotelLoftSurface1FootstepSounds = {
+    .walk         = DRYFIELD_NIGHT_MOTEL_LOFT_SURFACE_1_WALK_CUE_BASE,
+    .run          = DRYFIELD_NIGHT_MOTEL_LOFT_SURFACE_1_RUN_CUE_BASE,
+    .scriptedJump = DRYFIELD_NIGHT_MOTEL_LOFT_SURFACE_1_WALK_CUE_BASE,
 };
 
 WorldCollisionSurfaceProperties D_dryfield_night_motel_loft_801808FC[1] = {
@@ -315,7 +332,7 @@ WorldCollisionSurfaceProperties D_dryfield_night_motel_loft_801808FC[1] = {
 };
 
 WorldCollisionSurfaceProperties D_dryfield_night_motel_loft_80180904[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_motel_loft_801808F0 },
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &_gDryfieldNightMotelLoftSurface1FootstepSounds },
 };
 
 WorldCollisionSurfaceProperties* D_dryfield_night_motel_loft_8018090C[8] = {

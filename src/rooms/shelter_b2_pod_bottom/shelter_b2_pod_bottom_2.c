@@ -20,12 +20,14 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/random.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
+#include "main/sound_types.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
@@ -91,14 +93,15 @@ static void _shelterB2PodBottomDrawShockRing(const GfxCoord* coord, s16 innerRad
 static void _shelterB2PodBottomDrawArcFlashBand(const EffectWork* work, const GfxCoord* coord, s32 bandIndex);
 static void _shelterB2PodBottomDrawLightBeam(const GfxCoord* coord, s16 radiusScale, u16 packedColor, u16 brightness);
 
-extern u16 D_shelter_b2_pod_bottom_80188790[3][16];
-
 static void _shelterB2PodBottomDrawStarburst(const GfxCoord* coord, s32 radiusScale, const u8* rgb);
 static void _shelterB2PodBottomDrawBurstBlade(const GfxCoord* coord, s32 radiusScale, s32 bladeAngle, const u8* rgb);
 
-// All eight angles are initialized before use. The package contains only
-// the first twelve zero bytes of this sixteen-byte runtime allocation.
-static s16 D_shelter_b2_pod_bottom_801887F0[8];
+/// Shared charge-burst blade angles, one in each eighth turn.
+///
+/// Angles use 4096 units per turn. Each burst initializes all eight before
+/// drawing, replacing the angles also used by any earlier live burst.
+/// The sixteen-byte runtime allocation contains only twelve package zero bytes.
+static s16 _gShelterB2PodBottomBurstBladeAngles[8];
 
 static TmdBone _gShelterB2PodBottomModel0A2A0Skeleton[1] = {
 #include "assets/shelter_b2_pod_bottom_model_0A2A0_skeleton.inc"
@@ -228,12 +231,29 @@ TmdSource gShelterB2PodBottomModel0AE48 = {
     _gShelterB2PodBottomModel0AE48Stream,
 };
 
-WorldCollisionTrigger D_shelter_b2_pod_bottom_80188670[1] = {
-    { NULL, NULL, NULL, { -2336, -2176, 6848, 0 }, { { -576, 0, -1024, 0 }, { 576, 0, -1024, 0 }, { -576, 0, 1024, 0 }, { 576, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1173, WORLD_COLLISION_TRIGGER_ACTION_WARP, 35, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Departure slot 1 in this area and arrival slot 2 in the tunnel, packed by nibble.
+enum { SHELTER_B2_POD_BOTTOM_TUNNEL_WARP_ENDPOINTS = (1 << 4) | 2 };
+
+WorldCollisionTrigger gShelterB2PodBottomActionTriggers[1] = {
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { -2336, -2176, 6848, 0 },
+        .vertices     = { { -576, 0, -1024, 0 }, { 576, 0, -1024, 0 }, { -576, 0, 1024, 0 }, { 576, 0, 1024, 0 } },
+        .normal       = { 0, 4095, 0, 0 },
+        .facingNormal = { ONE, 0, 0, 0 },
+        .radius       = 1173,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_WARP,
+        .parameter0   = GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL,
+        .parameter1   = SHELTER_B2_POD_BOTTOM_TUNNEL_WARP_ENDPOINTS,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST,
+        .hit          = 0,
+    },
 };
 
-WorldCoordRoomAmbientEntry D_shelter_b2_pod_bottom_801886BC[17] = {
-    { .viewCount = ARRAY_SIZE(D_shelter_b2_pod_bottom_801886BC) - 1 },
+WorldCoordRoomAmbientEntry gShelterB2PodBottomAmbientByView[17] = {
+    { .viewCount = ARRAY_SIZE(gShelterB2PodBottomAmbientByView) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 820, 820, 820, 820 } },
@@ -252,40 +272,90 @@ WorldCoordRoomAmbientEntry D_shelter_b2_pod_bottom_801886BC[17] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-WorldCollisionFootstepSounds D_shelter_b2_pod_bottom_80188744 = {
-    0x10000059,
-    0x1000005B,
-    0x10000059,
+/// Cue-2 sound requests in the loaded type-1 bank; cue 1 selects the next entry.
+enum {
+    SHELTER_B2_POD_BOTTOM_FOOTSTEP_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x59,
+    SHELTER_B2_POD_BOTTOM_FOOTSTEP_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5B
 };
 
-WorldCollisionSurfaceProperties D_shelter_b2_pod_bottom_80188750[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Footstep cue bases for surface classes 1 and 3.
+///
+/// Walking and scripted jumps share one pair; running uses the other.
+/// Cue 1 adds one to each base, and companion playback adds 100.
+/// Requests borrow the loaded type-1 bank while the room is active.
+static WorldCollisionFootstepSounds _gShelterB2PodBottomFootstepSounds = {
+    .walk         = SHELTER_B2_POD_BOTTOM_FOOTSTEP_WALK_CUE_BASE,
+    .run          = SHELTER_B2_POD_BOTTOM_FOOTSTEP_RUN_CUE_BASE,
+    .scriptedJump = SHELTER_B2_POD_BOTTOM_FOOTSTEP_WALK_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b2_pod_bottom_80188758[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b2_pod_bottom_80188744 },
+/// Collision policy for surface classes 0 and 4..7: probes block, impacts are enabled and pushback applies.
+///
+/// No footstep cues; the loaded room overlay owns this record.
+static WorldCollisionSurfaceProperties _gShelterB2PodBottomDefaultSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b2_pod_bottom_80188760[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Collision policy for surface class 1: probes block, impacts are enabled and pushback applies.
+///
+/// Borrowed footstep cue bases; the loaded room overlay owns this record.
+static WorldCollisionSurfaceProperties _gShelterB2PodBottomSurface1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB2PodBottomFootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b2_pod_bottom_80188768[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b2_pod_bottom_80188744 },
+/// Collision policy for surface class 2: probes block, impacts are enabled and pushback applies.
+///
+/// No footstep cues; the loaded room overlay owns this record.
+static WorldCollisionSurfaceProperties _gShelterB2PodBottomSurface2Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_b2_pod_bottom_80188770[8] = {
-    D_shelter_b2_pod_bottom_80188750,
-    D_shelter_b2_pod_bottom_80188758,
-    D_shelter_b2_pod_bottom_80188760,
-    D_shelter_b2_pod_bottom_80188768,
-    D_shelter_b2_pod_bottom_80188750,
-    D_shelter_b2_pod_bottom_80188750,
-    D_shelter_b2_pod_bottom_80188750,
-    D_shelter_b2_pod_bottom_80188750,
+/// Collision policy for surface class 3: probes block, impacts are enabled and pushback applies.
+///
+/// Borrowed footstep cue bases; the loaded room overlay owns this record.
+static WorldCollisionSurfaceProperties _gShelterB2PodBottomSurface3Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB2PodBottomFootstepSounds,
 };
 
-u16 D_shelter_b2_pod_bottom_80188790[3][16] = { 0 };
+WorldCollisionSurfaceProperties* gShelterB2PodBottomSurfaceProperties[8] = {
+    &_gShelterB2PodBottomDefaultSurfaceProperties,
+    &_gShelterB2PodBottomSurface1Properties,
+    &_gShelterB2PodBottomSurface2Properties,
+    &_gShelterB2PodBottomSurface3Properties,
+    &_gShelterB2PodBottomDefaultSurfaceProperties,
+    &_gShelterB2PodBottomDefaultSurfaceProperties,
+    &_gShelterB2PodBottomDefaultSurfaceProperties,
+    &_gShelterB2PodBottomDefaultSurfaceProperties,
+};
+
+/// Arc flashes have three bands with one byte-range phase per rim segment.
+enum {
+    SHELTER_B2_POD_BOTTOM_ARC_FLASH_BAND_COUNT = 3,
+    SHELTER_B2_POD_BOTTOM_ARC_FLASH_PHASE_MASK = 0xFF
+};
+
+/// Shared animation phase offsets for all three arc-flash bands.
+///
+/// Indexed by band 0..2 and segment 0..15. Room setup seeds values 0..255;
+/// Drawing adds the age in running updates and selects a frame modulo six.
+/// Offsets are unsigned halfwords shared by every live flash.
+static u16 _gShelterB2PodBottomArcFlashPhases[SHELTER_B2_POD_BOTTOM_ARC_FLASH_BAND_COUNT][EFFECT_BAND_SEGMENT_COUNT] = { 0 };
 
 static void _shelterB2PodBottomDrawWhiteDisc(const GfxCoord* coord, s16 radius, const SVECTOR* center);
 
@@ -299,13 +369,13 @@ void shelterB2PodBottomShadowTask(Task* task)
     s32 segmentIndex;
 
     if (task->state == SHELTER_B2_POD_BOTTOM_EFFECT_INIT) {
-        for (segmentIndex = 0; segmentIndex < (s32)ARRAY_SIZE(D_shelter_b2_pod_bottom_80188790[0]); segmentIndex++) {
-            gRandomLcgState                                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            D_shelter_b2_pod_bottom_80188790[0][segmentIndex] = (gRandomLcgState >> 16) & 0xFF;
-            gRandomLcgState                                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            D_shelter_b2_pod_bottom_80188790[1][segmentIndex] = (gRandomLcgState >> 16) & 0xFF;
-            gRandomLcgState                                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            D_shelter_b2_pod_bottom_80188790[2][segmentIndex] = (gRandomLcgState >> 16) & 0xFF;
+        for (segmentIndex = 0; segmentIndex < (s32)ARRAY_SIZE(_gShelterB2PodBottomArcFlashPhases[0]); segmentIndex++) {
+            gRandomLcgState                                     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            _gShelterB2PodBottomArcFlashPhases[0][segmentIndex] = (gRandomLcgState >> 16) & SHELTER_B2_POD_BOTTOM_ARC_FLASH_PHASE_MASK;
+            gRandomLcgState                                     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            _gShelterB2PodBottomArcFlashPhases[1][segmentIndex] = (gRandomLcgState >> 16) & SHELTER_B2_POD_BOTTOM_ARC_FLASH_PHASE_MASK;
+            gRandomLcgState                                     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            _gShelterB2PodBottomArcFlashPhases[2][segmentIndex] = (gRandomLcgState >> 16) & SHELTER_B2_POD_BOTTOM_ARC_FLASH_PHASE_MASK;
         }
         task->state                          = SHELTER_B2_POD_BOTTOM_EFFECT_ACTIVE;
         gRoomEffectState->groundTraceEnabled = false;
@@ -519,15 +589,15 @@ void shelterB2PodBottomArcFlashTask(Task* task)
 /// all arguments must be side-effect-free, and the outputs writable scalars.
 /// Captures the initialized room phase table and the frame-count enum in its
 /// drawer. This is a statement sequence: use only inside braces, as below.
-#define SHELTER_B2_POD_BOTTOM_PROJECT_ARC_FLASH_SEGMENT(scratch, work, bandIndex, segmentIndex, textureFrame, nextSegmentIndex)                   \
-    gte_ldv0(&(scratch)->topRing[(segmentIndex)]);                                                                                                \
-    gte_rtps();                                                                                                                                   \
-    (textureFrame) = (D_shelter_b2_pod_bottom_80188790[(bandIndex)][(segmentIndex)] + (work)->age) % SHELTER_B2_POD_BOTTOM_ARC_FLASH_FRAME_COUNT; \
-    gte_stsxy(&(scratch)->sxy0);                                                                                                                  \
-    (nextSegmentIndex) = ((segmentIndex) + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);                                                                  \
-    gte_ldv3(&(scratch)->topRing[(nextSegmentIndex)], &(scratch)->bottomRing[(segmentIndex)], &(scratch)->bottomRing[(nextSegmentIndex)]);        \
-    gte_rtpt();                                                                                                                                   \
-    gte_stsxy3(&(scratch)->sxy1, &(scratch)->sxy2, &(scratch)->sxy3);                                                                             \
+#define SHELTER_B2_POD_BOTTOM_PROJECT_ARC_FLASH_SEGMENT(scratch, work, bandIndex, segmentIndex, textureFrame, nextSegmentIndex)                     \
+    gte_ldv0(&(scratch)->topRing[(segmentIndex)]);                                                                                                  \
+    gte_rtps();                                                                                                                                     \
+    (textureFrame) = (_gShelterB2PodBottomArcFlashPhases[(bandIndex)][(segmentIndex)] + (work)->age) % SHELTER_B2_POD_BOTTOM_ARC_FLASH_FRAME_COUNT; \
+    gte_stsxy(&(scratch)->sxy0);                                                                                                                    \
+    (nextSegmentIndex) = ((segmentIndex) + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);                                                                    \
+    gte_ldv3(&(scratch)->topRing[(nextSegmentIndex)], &(scratch)->bottomRing[(segmentIndex)], &(scratch)->bottomRing[(nextSegmentIndex)]);          \
+    gte_rtpt();                                                                                                                                     \
+    gte_stsxy3(&(scratch)->sxy1, &(scratch)->sxy2, &(scratch)->sxy3);                                                                               \
     gte_stflg(&(scratch)->projectionFlags);
 
 /// Draws one of the arc flash's three animated, raised textured bands.
@@ -881,9 +951,9 @@ void shelterB2PodBottomChargeBurstTask(Task* task)
                 work->angle         = SHELTER_B2_POD_BOTTOM_CHARGE_BURST_INITIAL_RADIUS;
                 work->step          = SHELTER_B2_POD_BOTTOM_CHARGE_BURST_BRIGHTNESS_SPAN / task->spawnArg1.value;
                 task->state         = SHELTER_B2_POD_BOTTOM_EFFECT_ACTIVE;
-                for (bladeIndex = 0; bladeIndex < (s32)ARRAY_SIZE(D_shelter_b2_pod_bottom_801887F0); bladeIndex++) {
-                    gRandomLcgState                              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    D_shelter_b2_pod_bottom_801887F0[bladeIndex] = (bladeIndex * SHELTER_B2_POD_BOTTOM_EIGHTH_TURN) + ((gRandomLcgState >> 16) & (SHELTER_B2_POD_BOTTOM_EIGHTH_TURN - 1));
+                for (bladeIndex = 0; bladeIndex < (s32)ARRAY_SIZE(_gShelterB2PodBottomBurstBladeAngles); bladeIndex++) {
+                    gRandomLcgState                                  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    _gShelterB2PodBottomBurstBladeAngles[bladeIndex] = (bladeIndex * SHELTER_B2_POD_BOTTOM_EIGHTH_TURN) + ((gRandomLcgState >> 16) & (SHELTER_B2_POD_BOTTOM_EIGHTH_TURN - 1));
                 }
             // Pausing retains drawing without consuming the charge countdown.
             case SHELTER_B2_POD_BOTTOM_EFFECT_ACTIVE:
@@ -926,8 +996,8 @@ void shelterB2PodBottomChargeBurstTask(Task* task)
                 rgb[2] = work->scale >> 1;
                 _shelterB2PodBottomDrawStarburst(coord, (s16)((u16)work->angle * 2), rgb);
                 effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 4), rgb);
-                for (bladeIndex = 0; bladeIndex < (s32)ARRAY_SIZE(D_shelter_b2_pod_bottom_801887F0); bladeIndex++) {
-                    _shelterB2PodBottomDrawBurstBlade(coord, (s16)((u16)work->angle * 2), D_shelter_b2_pod_bottom_801887F0[bladeIndex], rgb);
+                for (bladeIndex = 0; bladeIndex < (s32)ARRAY_SIZE(_gShelterB2PodBottomBurstBladeAngles); bladeIndex++) {
+                    _shelterB2PodBottomDrawBurstBlade(coord, (s16)((u16)work->angle * 2), _gShelterB2PodBottomBurstBladeAngles[bladeIndex], rgb);
                 }
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;

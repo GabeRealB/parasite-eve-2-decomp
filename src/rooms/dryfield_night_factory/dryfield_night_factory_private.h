@@ -12,11 +12,20 @@
 
 #include "rooms/room_common.h"
 
-extern WorldCoordRoomLights D_dryfield_night_factory_80189C88[1];
+/// Point-light collection shared by both room selectors.
+///
+/// Contains no directional or cone lights. The room owns the mutable light
+/// array; coordinate setup and queries require this overlay to remain loaded.
+extern WorldCoordRoomLights gDryfieldNightFactoryRoomLights;
 
 extern WorldCollisionTrigger D_dryfield_night_factory_80189CA0[14];
 
-extern WorldCoordRoomAmbientEntry D_dryfield_night_factory_8018A0C8[20];
+/// Minimum ambient colours for logical views 1..19.
+///
+/// Entry zero stores the count; each subsequent entry belongs to that 1-based
+/// view. RGB uses 16 units per 8-bit colour level. Lighting reads the table
+/// while this overlay is loaded and uses default minima above its count.
+extern WorldCoordRoomAmbientEntry gDryfieldNightFactoryAmbientByView[20];
 
 extern WorldCollisionTrigger D_dryfield_night_factory_8018A168[19];
 

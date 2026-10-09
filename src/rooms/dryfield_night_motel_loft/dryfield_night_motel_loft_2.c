@@ -172,8 +172,8 @@ SVECTOR D_dryfield_night_motel_loft_8017ED78[7] = {
 };
 
 WorldCoordRoomLighting D_dryfield_night_motel_loft_8017EDB0[2] = {
-    { D_dryfield_night_motel_loft_8018004C, NULL },
-    { D_dryfield_night_motel_loft_8018004C, NULL },
+    { &gDryfieldNightMotelLoftRoomLights, NULL },
+    { &gDryfieldNightMotelLoftRoomLights, NULL },
 };
 
 WorldCollisionRoomResources D_dryfield_night_motel_loft_8017EDC0[2] = {

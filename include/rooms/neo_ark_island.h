@@ -30,7 +30,12 @@ extern WorldCollisionRoomResources D_neo_ark_island_80181B94[];
 
 extern WorldCoordRoomLighting D_neo_ark_island_80181BA4[];
 
-extern u8* D_neo_ark_island_80181BAC[];
+/// Logical-view map directory for the area's single room selector.
+///
+/// Entry zero borrows `gViewIdentityMap`: logical views 1..5 select the same
+/// camera, image and sprite indices. Room IDs index at room minus one; there
+/// is no terminator. The directory requires this room overlay to stay loaded.
+extern u8* gNeoArkIslandViewMaps[1];
 
 extern ViewCount D_neo_ark_island_80181BB0[];
 

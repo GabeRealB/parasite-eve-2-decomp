@@ -564,7 +564,7 @@ static WorldCoordRoomLighting D_map_neo_ark_8017A9EC[1] = {
 };
 
 static WorldCoordRoomLighting D_map_neo_ark_8017A9F4[1] = {
-    { &D_neo_ark_r31_8017DB7C, NULL },
+    { &gNeoArkR31RoomLights, NULL },
 };
 
 WorldCoordRoomLighting* D_map_neo_ark_8017A9FC[33] = {
@@ -803,7 +803,7 @@ static u8** D_map_neo_ark_8017AD2C[33] = {
     D_neo_ark_forest_zone_801820BC,
     D_neo_ark_submarine_tunnel_80181E18,
     D_neo_ark_pavilion_801838EC,
-    D_neo_ark_island_80181BAC,
+    gNeoArkIslandViewMaps,
     D_neo_ark_garden_80181424,
     D_neo_ark_power_plant_2_801806A8,
     D_neo_ark_power_plant_1_8017F1E0,
@@ -820,7 +820,7 @@ static u8** D_map_neo_ark_8017AD2C[33] = {
     D_shelter_1f_tent_80181D44,
     D_neo_ark_woodland_path_80181694,
     D_neo_ark_submarine_gallery_80181A08,
-    D_neo_ark_r31_8017DA1C,
+    gNeoArkR31ViewMaps,
     D_neo_ark_pyramid_8017FC60,
     D_neo_ark_substation_8017E408,
 };

@@ -72,7 +72,7 @@ WorldCoordRoomLighting D_neo_ark_island_80181BA4[1] = {
     { D_neo_ark_island_80183CB0, NULL },
 };
 
-u8* D_neo_ark_island_80181BAC[1] = {
+u8* gNeoArkIslandViewMaps[1] = {
     gViewIdentityMap,
 };
 

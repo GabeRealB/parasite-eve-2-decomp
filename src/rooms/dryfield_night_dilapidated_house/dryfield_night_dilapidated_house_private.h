@@ -22,7 +22,12 @@ extern WorldCollisionTrigger D_dryfield_night_dilapidated_house_80189B78[12];
 
 extern WorldCollisionOccluder D_dryfield_night_dilapidated_house_80189F08[1];
 
-extern WorldCoordRoomAmbientEntry D_dryfield_night_dilapidated_house_8018A054[12];
+/// Minimum ambient colours for logical views 1..11.
+///
+/// Entry zero stores the count; each subsequent entry belongs to that 1-based
+/// view. RGB uses 16 units per 8-bit colour level. Lighting reads the table
+/// while this overlay is loaded and uses default minima above its count.
+extern WorldCoordRoomAmbientEntry gDryfieldNightDilapidatedHouseAmbientByView[12];
 
 extern TaskDesc gRoomEventTaskDesc;
 

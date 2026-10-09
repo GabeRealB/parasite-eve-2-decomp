@@ -91,11 +91,11 @@ u16 D_shelter_b2_pod_bottom_80181CA8[18][3] = {
 };
 
 WorldCollisionRoomResources D_shelter_b2_pod_bottom_80181D14[1] = {
-    { D_shelter_b2_pod_bottom_80182B5C, D_shelter_b2_pod_bottom_80186FA8, D_shelter_b2_pod_bottom_80188670, NULL },
+    { D_shelter_b2_pod_bottom_80182B5C, D_shelter_b2_pod_bottom_80186FA8, gShelterB2PodBottomActionTriggers, NULL },
 };
 
 WorldCoordRoomLighting D_shelter_b2_pod_bottom_80181D24[1] = {
-    { D_shelter_b2_pod_bottom_80186F90, D_shelter_b2_pod_bottom_801886BC },
+    { D_shelter_b2_pod_bottom_80186F90, gShelterB2PodBottomAmbientByView },
 };
 
 u8* D_shelter_b2_pod_bottom_80181D2C[1] = {

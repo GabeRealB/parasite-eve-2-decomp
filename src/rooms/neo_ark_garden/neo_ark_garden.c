@@ -35,6 +35,7 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/task.h"
+#include "main/sound_types.h"
 #include "main/task_types.h"
 
 #include "mapui/map_neo_ark.h"
@@ -94,10 +95,21 @@ AreaVariant D_neo_ark_garden_80182B54[13] = {
     { NULL, NULL },
 };
 
-WorldCollisionFootstepSounds D_neo_ark_garden_80182BBC = {
-    0x1000000D,
-    0x1000000F,
-    0x1000000D,
+/// Cue-2 sound requests in the loaded type-1 bank; cue 1 selects the next entry.
+enum {
+    NEO_ARK_GARDEN_SURFACE_4_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x0D,
+    NEO_ARK_GARDEN_SURFACE_4_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x0F
+};
+
+/// Footstep cue bases for surface class 4.
+///
+/// Walking and scripted jumps share one pair; running uses the other.
+/// Cue 1 adds one to each base, and companion playback adds 100.
+/// Requests borrow the loaded type-1 bank while the room is active.
+static WorldCollisionFootstepSounds _gNeoArkGardenSurface4FootstepSounds = {
+    .walk         = NEO_ARK_GARDEN_SURFACE_4_WALK_CUE_BASE,
+    .run          = NEO_ARK_GARDEN_SURFACE_4_RUN_CUE_BASE,
+    .scriptedJump = NEO_ARK_GARDEN_SURFACE_4_WALK_CUE_BASE,
 };
 
 WorldCollisionSurfaceProperties D_neo_ark_garden_80182BC8[1] = {
@@ -105,7 +117,7 @@ WorldCollisionSurfaceProperties D_neo_ark_garden_80182BC8[1] = {
 };
 
 WorldCollisionSurfaceProperties D_neo_ark_garden_80182BD0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_garden_80182BBC },
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &_gNeoArkGardenSurface4FootstepSounds },
 };
 
 WorldCollisionSurfaceProperties* D_neo_ark_garden_80182BD8[8] = {

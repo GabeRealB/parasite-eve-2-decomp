@@ -12,7 +12,11 @@
 
 #include "main/task_types.h"
 
-extern WorldCoordRoomLights D_dryfield_night_motel_loft_8018004C[1];
+/// Point-light collection shared by both room selectors.
+///
+/// Contains no directional or cone lights. The room owns the mutable light
+/// array; coordinate setup and queries require this overlay to remain loaded.
+extern WorldCoordRoomLights gDryfieldNightMotelLoftRoomLights;
 
 extern WorldCollisionTrigger D_dryfield_night_motel_loft_80180064[12];
 

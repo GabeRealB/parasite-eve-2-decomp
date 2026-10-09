@@ -29,6 +29,7 @@
 #include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/sound_types.h"
 #include "main/task_types.h"
 
 #include "mapui/map_dryfield_full.h"
@@ -112,8 +113,8 @@ AreaVariant D_dryfield_night_dilapidated_house_80189FA4[22] = {
     { D_map_dryfield_full_8017B648, D_dryfield_night_dilapidated_house_80189F8C },
 };
 
-WorldCoordRoomAmbientEntry D_dryfield_night_dilapidated_house_8018A054[12] = {
-    { .viewCount = ARRAY_SIZE(D_dryfield_night_dilapidated_house_8018A054) - 1 },
+WorldCoordRoomAmbientEntry gDryfieldNightDilapidatedHouseAmbientByView[12] = {
+    { .viewCount = ARRAY_SIZE(gDryfieldNightDilapidatedHouseAmbientByView) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 16, 16, 16, 16 } },
@@ -127,39 +128,82 @@ WorldCoordRoomAmbientEntry D_dryfield_night_dilapidated_house_8018A054[12] = {
     { .color = { 250, 250, 500, 281 } },
 };
 
-WorldCollisionFootstepSounds D_dryfield_night_dilapidated_house_8018A0B4 = {
-    0x10000045,
-    0x10000047,
-    0x10000045,
+/// Cue-2 sound requests in the loaded type-1 bank; cue 1 selects the next entry.
+enum {
+    DRYFIELD_NIGHT_DILAPIDATED_HOUSE_SURFACE_1_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x45,
+    DRYFIELD_NIGHT_DILAPIDATED_HOUSE_SURFACE_1_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x47
 };
 
-WorldCollisionFootstepSounds D_dryfield_night_dilapidated_house_8018A0C0 = {
-    0x1000004D,
-    0x1000004F,
-    0x1000004D,
+/// Footstep cue bases for surface class 1.
+///
+/// Walking and scripted jumps share one pair; running uses the other.
+/// Cue 1 adds one to each base, and companion playback adds 100.
+/// Requests borrow the loaded type-1 bank while the room is active.
+static WorldCollisionFootstepSounds _gDryfieldNightDilapidatedHouseSurface1FootstepSounds = {
+    .walk         = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_SURFACE_1_WALK_CUE_BASE,
+    .run          = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_SURFACE_1_RUN_CUE_BASE,
+    .scriptedJump = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_SURFACE_1_WALK_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_dilapidated_house_8018A0CC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Cue-2 sound requests in the loaded type-1 bank; cue 1 selects the next entry.
+enum {
+    DRYFIELD_NIGHT_DILAPIDATED_HOUSE_SURFACE_2_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x4D,
+    DRYFIELD_NIGHT_DILAPIDATED_HOUSE_SURFACE_2_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x4F
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_dilapidated_house_8018A0D4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_dilapidated_house_8018A0B4 },
+/// Footstep cue bases for surface class 2.
+///
+/// Walking and scripted jumps share one pair; running uses the other.
+/// Cue 1 adds one to each base, and companion playback adds 100.
+/// Requests borrow the loaded type-1 bank while the room is active.
+static WorldCollisionFootstepSounds _gDryfieldNightDilapidatedHouseSurface2FootstepSounds = {
+    .walk         = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_SURFACE_2_WALK_CUE_BASE,
+    .run          = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_SURFACE_2_RUN_CUE_BASE,
+    .scriptedJump = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_SURFACE_2_WALK_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_dilapidated_house_8018A0DC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_dilapidated_house_8018A0C0 },
+/// Collision policy for surface classes 0 and 3..7: probes block, impacts are enabled and pushback applies.
+///
+/// No footstep cues; the loaded room overlay owns this record.
+static WorldCollisionSurfaceProperties _gDryfieldNightDilapidatedHouseDefaultSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
+};
+
+/// Collision policy for surface class 1: probes block, impacts are enabled and pushback applies.
+///
+/// Borrowed footstep cue bases; the loaded room overlay owns this record.
+static WorldCollisionSurfaceProperties _gDryfieldNightDilapidatedHouseSurface1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldNightDilapidatedHouseSurface1FootstepSounds,
+};
+
+/// Collision policy for surface class 2: probes block, impacts are enabled and pushback applies.
+///
+/// Borrowed footstep cue bases; the loaded room overlay owns this record.
+static WorldCollisionSurfaceProperties _gDryfieldNightDilapidatedHouseSurface2Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldNightDilapidatedHouseSurface2FootstepSounds,
 };
 
 WorldCollisionSurfaceProperties* D_dryfield_night_dilapidated_house_8018A0E4[8] = {
-    D_dryfield_night_dilapidated_house_8018A0CC,
-    D_dryfield_night_dilapidated_house_8018A0D4,
-    D_dryfield_night_dilapidated_house_8018A0DC,
-    D_dryfield_night_dilapidated_house_8018A0CC,
-    D_dryfield_night_dilapidated_house_8018A0CC,
-    D_dryfield_night_dilapidated_house_8018A0CC,
-    D_dryfield_night_dilapidated_house_8018A0CC,
-    D_dryfield_night_dilapidated_house_8018A0CC,
+    &_gDryfieldNightDilapidatedHouseDefaultSurfaceProperties,
+    &_gDryfieldNightDilapidatedHouseSurface1Properties,
+    &_gDryfieldNightDilapidatedHouseSurface2Properties,
+    &_gDryfieldNightDilapidatedHouseDefaultSurfaceProperties,
+    &_gDryfieldNightDilapidatedHouseDefaultSurfaceProperties,
+    &_gDryfieldNightDilapidatedHouseDefaultSurfaceProperties,
+    &_gDryfieldNightDilapidatedHouseDefaultSurfaceProperties,
+    &_gDryfieldNightDilapidatedHouseDefaultSurfaceProperties,
 };
 
 RoomEventMsg gRoomEventMsg = { 0 };

@@ -37,7 +37,12 @@ extern ViewCamera D_shelter_b2_pod_bottom_80182B80[];
 
 extern SpriteView D_shelter_b2_pod_bottom_80185904[];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b2_pod_bottom_80188770[];
+/// Pod-bottom collision and footstep records indexed by surface class 0..7.
+///
+/// All classes block probes, allow weapon impacts and apply pushback. Classes
+/// 1 and 3 share footstep cue bases; other classes are silent. Entries borrow
+/// room-owned records that remain live only while this overlay is loaded.
+extern WorldCollisionSurfaceProperties* gShelterB2PodBottomSurfaceProperties[8];
 
 /// Runs the pod-bottom room's entry setup, idle or teardown state.
 ///

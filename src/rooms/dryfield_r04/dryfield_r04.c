@@ -22,7 +22,7 @@ WorldCollisionRoomResources D_dryfield_r04_8017D5C4[1] = {
     { &D_dryfield_r04_8017E1F4, NULL, NULL, NULL },
 };
 
-u8* D_dryfield_r04_8017D5D4[1] = { gViewIdentityMap };
+u8* gDryfieldR04ViewMaps[1] = { gViewIdentityMap };
 
 ViewCount D_dryfield_r04_8017D5D8[1] = { 2 };
 

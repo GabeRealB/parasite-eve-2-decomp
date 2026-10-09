@@ -2,7 +2,7 @@
 D_dryfield_night_motel_loft_8018092C = 0x8018092C; // size:0x4 defined:True
 D_dryfield_night_motel_loft_8017ED78 = 0x8017ED78; // size:0x38 defined:True
 D_dryfield_night_motel_loft_80180888 = 0x80180888; // size:0x68 defined:True
-D_dryfield_night_motel_loft_801808F0 = 0x801808F0; // size:0xC defined:True
+_gDryfieldNightMotelLoftSurface1FootstepSounds = 0x801808F0; // size:0xC defined:True
 D_dryfield_night_motel_loft_801808FC = 0x801808FC; // size:0x8 defined:True
 D_dryfield_night_motel_loft_80180904 = 0x80180904; // size:0x8 defined:True
 D_dryfield_night_motel_loft_8018090C = 0x8018090C; // size:0x20 defined:True
@@ -56,7 +56,7 @@ D_dryfield_night_motel_loft_8017FBC4 = 0x8017FBC4; // size:0x10 defined:True
 D_dryfield_night_motel_loft_8017FBD4 = 0x8017FBD4; // size:0x10 defined:True
 D_dryfield_night_motel_loft_8017FBE4 = 0x8017FBE4; // size:0xA8 defined:True
 _gDryfieldNightMotelLoftPointLights = 0x8017FC8C; // size:0x3C0 defined:True
-D_dryfield_night_motel_loft_8018004C = 0x8018004C; // size:0x18 defined:True
+gDryfieldNightMotelLoftRoomLights = 0x8018004C; // size:0x18 defined:True
 D_dryfield_night_motel_loft_80180064 = 0x80180064; // size:0x390 defined:True
 D_dryfield_night_motel_loft_801803F4 = 0x801803F4; // size:0x428 defined:True
 D_dryfield_night_motel_loft_8017FB84 = 0x8017FB84; // size:0x30 defined:True

@@ -1262,7 +1262,7 @@ WorldCollisionSurfaceProperties** D_map_shelter_8017B614[49] = {
     D_shelter_b1_access_tunnel_8017FF24,
     D_shelter_b1_underground_parking_8018D724,
     D_shelter_b1_golem_freezer_1_8017F290,
-    D_shelter_b2_pod_bottom_80188770,
+    gShelterB2PodBottomSurfaceProperties,
     D_shelter_b1_pod_service_gantry_80182520,
     D_shelter_b1_transfer_tunnel_80183184,
     D_shelter_b1_control_room_access_tunnel_80182678,

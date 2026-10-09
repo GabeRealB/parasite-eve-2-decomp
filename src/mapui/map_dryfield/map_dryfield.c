@@ -717,7 +717,7 @@ static u8** _gMapDryfieldAreaViewMaps[38] = {
     D_dryfield_gas_station_8018315C,
     D_dryfield_main_street_80181BCC,
     D_dryfield_general_store_8017E680,
-    D_dryfield_r04_8017D5D4,
+    gDryfieldR04ViewMaps,
     D_dryfield_back_street_8017F9C4,
     D_dryfield_souvenir_shop_8017E0CC,
     D_dryfield_warehouse_8017FC04,

@@ -125,7 +125,7 @@ D_neo_ark_pavilion_801879EC = 0x801879EC; // absolute:True owner=neo_ark_pavilio
 neoArkIslandRoomTask = 0x8017EB10; // type:func absolute:True owner=neo_ark_island
 D_neo_ark_island_80181B94 = 0x80181B94; // absolute:True owner=neo_ark_island shared=rooms
 D_neo_ark_island_80181BA4 = 0x80181BA4; // absolute:True owner=neo_ark_island shared=rooms
-D_neo_ark_island_80181BAC = 0x80181BAC; // absolute:True owner=neo_ark_island shared=rooms
+gNeoArkIslandViewMaps = 0x80181BAC; // absolute:True owner=neo_ark_island shared=rooms
 D_neo_ark_island_80181BB0 = 0x80181BB0; // absolute:True owner=neo_ark_island shared=rooms
 D_neo_ark_island_80181BB4 = 0x80181BB4; // absolute:True owner=neo_ark_island shared=rooms
 D_neo_ark_island_801826EC = 0x801826EC; // absolute:True owner=neo_ark_island
@@ -298,12 +298,12 @@ D_neo_ark_submarine_gallery_8018529C = 0x8018529C; // absolute:True owner=neo_ar
 D_neo_ark_submarine_gallery_801854FC = 0x801854FC; // absolute:True owner=neo_ark_submarine_gallery shared=rooms
 D_neo_ark_submarine_gallery_801858EC = 0x801858EC; // absolute:True owner=neo_ark_submarine_gallery shared=rooms
 neoArkR31RoomTask = 0x8017D990; // type:func absolute:True owner=neo_ark_r31 shared=rooms
-D_neo_ark_r31_8017DA1C = 0x8017DA1C; // absolute:True owner=neo_ark_r31 shared=rooms
+gNeoArkR31ViewMaps = 0x8017DA1C; // absolute:True owner=neo_ark_r31 shared=rooms
 D_neo_ark_r31_8017DA20 = 0x8017DA20; // absolute:True owner=neo_ark_r31 shared=rooms
 D_neo_ark_r31_8017DA24 = 0x8017DA24; // absolute:True owner=neo_ark_r31
 D_neo_ark_r31_8017DA5C = 0x8017DA5C; // absolute:True owner=neo_ark_r31 shared=rooms
 D_neo_ark_r31_8017DAF8 = 0x8017DAF8; // absolute:True owner=neo_ark_r31
-D_neo_ark_r31_8017DB7C = 0x8017DB7C; // absolute:True owner=neo_ark_r31
+gNeoArkR31RoomLights = 0x8017DB7C; // absolute:True owner=neo_ark_r31
 D_neo_ark_r31_8017DC34 = 0x8017DC34; // absolute:True owner=neo_ark_r31 shared=rooms
 neoArkPyramidRoomTask = 0x8017DB98; // type:func absolute:True owner=neo_ark_pyramid
 D_neo_ark_pyramid_8017FC28 = 0x8017FC28; // absolute:True owner=neo_ark_pyramid

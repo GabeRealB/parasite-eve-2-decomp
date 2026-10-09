@@ -35,6 +35,7 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/task.h"
+#include "main/sound_types.h"
 #include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
@@ -113,15 +114,77 @@ SpriteView D_dryfield_night_factory_80189A24[19] = {
     { { .elements = D_dryfield_night_factory_80189890 }, D_dryfield_night_factory_801899E4, NULL },
 };
 
-WorldCoordPointLight D_dryfield_night_factory_80189B08[4] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3051, -1864, 8762 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1419, 4022 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5657, -1403, 9444 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1759, 1784, 1784 }, { 0, 0 } }, 1000, 1319 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3051, -1864, 2398 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1702, 3699 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3051, -1864, 5767 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1522, 4180 },
+/// Authored point lights for the room, eligible in every logical view.
+///
+/// Positions and falloff radii use world-coordinate units; RGB uses Q12.
+/// Coordinate setup parents and composes these mutable lights, and queries
+/// overwrite attenuation. Pointers remain valid while this room is loaded.
+static WorldCoordPointLight _gDryfieldNightFactoryPointLights[4] = {
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3051, -1864, 8762 } },
+                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                               .parent       = NULL,
+                           } },
+            .color     = { ONE, ONE, ONE },
+        },
+        .inner = 1419,
+        .outer = 4022,
+    },
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5657, -1403, 9444 } },
+                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                               .parent       = NULL,
+                           } },
+            .color     = { 1759, 1784, 1784 },
+        },
+        .inner = 1000,
+        .outer = 1319,
+    },
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3051, -1864, 2398 } },
+                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                               .parent       = NULL,
+                           } },
+            .color     = { ONE, ONE, ONE },
+        },
+        .inner = 1702,
+        .outer = 3699,
+    },
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3051, -1864, 5767 } },
+                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                               .parent       = NULL,
+                           } },
+            .color     = { ONE, ONE, ONE },
+        },
+        .inner = 1522,
+        .outer = 4180,
+    },
 };
 
-WorldCoordRoomLights D_dryfield_night_factory_80189C88[1] = {
-    { 0, NULL, ARRAY_SIZE(D_dryfield_night_factory_80189B08), D_dryfield_night_factory_80189B08, 0, NULL },
+WorldCoordRoomLights gDryfieldNightFactoryRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gDryfieldNightFactoryPointLights),
+    .pointLights           = _gDryfieldNightFactoryPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 WorldCollisionTrigger D_dryfield_night_factory_80189CA0[14] = {
@@ -141,8 +204,8 @@ WorldCollisionTrigger D_dryfield_night_factory_80189CA0[14] = {
     { NULL, NULL, NULL, { 5008, -2112, 4160, 0 }, { { -1600, -2976, 0, 0 }, { -1600, 2976, 0, 0 }, { 1600, -2976, 0, 0 }, { 1600, 2976, 0, 0 } }, { 0, 0, 4107, 0 }, { 0, 0, 4096, 0 }, 3376, 0, 6, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCoordRoomAmbientEntry D_dryfield_night_factory_8018A0C8[20] = {
-    { .viewCount = ARRAY_SIZE(D_dryfield_night_factory_8018A0C8) - 1 },
+WorldCoordRoomAmbientEntry gDryfieldNightFactoryAmbientByView[20] = {
+    { .viewCount = ARRAY_SIZE(gDryfieldNightFactoryAmbientByView) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 763, 757, 658, 746 } },
     { .color = { 870, 852, 838, 857 } },
@@ -188,43 +251,79 @@ WorldCollisionTrigger D_dryfield_night_factory_8018A168[19] = {
 
 AreaVariant D_dryfield_night_factory_8018A70C[11] = { 0 };
 
-WorldCollisionFootstepSounds D_dryfield_night_factory_8018A764 = {
-    0x10000051,
-    0x10000053,
-    0x10000051,
+/// Cue-2 sound requests in the loaded type-1 bank; cue 1 selects the next entry.
+enum {
+    DRYFIELD_NIGHT_FACTORY_SURFACE_2_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x51,
+    DRYFIELD_NIGHT_FACTORY_SURFACE_2_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x53
 };
 
-WorldCollisionFootstepSounds D_dryfield_night_factory_8018A770 = {
-    0x10000015,
-    0x10000017,
-    0x10000015,
+/// Footstep cue bases for surface class 2.
+///
+/// Walking and scripted jumps share one pair; running uses the other.
+/// Cue 1 adds one to each base, and companion playback adds 100.
+/// Requests borrow the loaded type-1 bank while the room is active.
+static WorldCollisionFootstepSounds _gDryfieldNightFactorySurface2FootstepSounds = {
+    .walk         = DRYFIELD_NIGHT_FACTORY_SURFACE_2_WALK_CUE_BASE,
+    .run          = DRYFIELD_NIGHT_FACTORY_SURFACE_2_RUN_CUE_BASE,
+    .scriptedJump = DRYFIELD_NIGHT_FACTORY_SURFACE_2_WALK_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_factory_8018A77C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Cue-2 sound requests in the loaded type-1 bank; cue 1 selects the next entry.
+enum {
+    DRYFIELD_NIGHT_FACTORY_SURFACE_3_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x15,
+    DRYFIELD_NIGHT_FACTORY_SURFACE_3_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x17
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_factory_8018A784[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Footstep cue bases for surface class 3.
+///
+/// Walking and scripted jumps share one pair; running uses the other.
+/// Cue 1 adds one to each base, and companion playback adds 100.
+/// Requests borrow the loaded type-1 bank while the room is active.
+static WorldCollisionFootstepSounds _gDryfieldNightFactorySurface3FootstepSounds = {
+    .walk         = DRYFIELD_NIGHT_FACTORY_SURFACE_3_WALK_CUE_BASE,
+    .run          = DRYFIELD_NIGHT_FACTORY_SURFACE_3_RUN_CUE_BASE,
+    .scriptedJump = DRYFIELD_NIGHT_FACTORY_SURFACE_3_WALK_CUE_BASE,
+};
+
+/// Collision policy for surface classes 0 and 4..7: probes block, impacts are enabled and pushback applies.
+///
+/// No footstep cues; the loaded room overlay owns this record.
+static WorldCollisionSurfaceProperties _gDryfieldNightFactoryDefaultSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
+};
+
+/// Collision policy for surface class 1: probes pass and weapon impacts are ignored.
+///
+/// Grid contacts still apply pushback; this class supplies no footstep cues.
+static WorldCollisionSurfaceProperties _gDryfieldNightFactorySurface1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
 WorldCollisionSurfaceProperties D_dryfield_night_factory_8018A78C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_factory_8018A764 },
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &_gDryfieldNightFactorySurface2FootstepSounds },
 };
 
 WorldCollisionSurfaceProperties D_dryfield_night_factory_8018A794[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_factory_8018A770 },
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &_gDryfieldNightFactorySurface3FootstepSounds },
 };
 
 WorldCollisionSurfaceProperties* D_dryfield_night_factory_8018A79C[8] = {
-    D_dryfield_night_factory_8018A77C,
-    D_dryfield_night_factory_8018A784,
+    &_gDryfieldNightFactoryDefaultSurfaceProperties,
+    &_gDryfieldNightFactorySurface1Properties,
     D_dryfield_night_factory_8018A78C,
     D_dryfield_night_factory_8018A794,
-    D_dryfield_night_factory_8018A77C,
-    D_dryfield_night_factory_8018A77C,
-    D_dryfield_night_factory_8018A77C,
-    D_dryfield_night_factory_8018A77C,
+    &_gDryfieldNightFactoryDefaultSurfaceProperties,
+    &_gDryfieldNightFactoryDefaultSurfaceProperties,
+    &_gDryfieldNightFactoryDefaultSurfaceProperties,
+    &_gDryfieldNightFactoryDefaultSurfaceProperties,
 };
 
 PadScriptCmd gFactoryNightJoltCmds[3] = { { 0x201, 1 }, { 0, 0x101 }, { 0, 0 } };

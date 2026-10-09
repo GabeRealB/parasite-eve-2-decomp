@@ -11,7 +11,12 @@
 // dryfield_r04
 extern WorldCollisionRoomResources D_dryfield_r04_8017D5C4[];
 
-extern u8* D_dryfield_r04_8017D5D4[];
+/// Logical-view map directory for the area's single room selector.
+///
+/// Entry zero borrows `gViewIdentityMap`: logical views 1..2 select the same
+/// camera, image and sprite indices. Room IDs index at room minus one; there
+/// is no terminator. The directory requires this room overlay to stay loaded.
+extern u8* gDryfieldR04ViewMaps[1];
 
 extern ViewCount D_dryfield_r04_8017D5D8[];
 
