@@ -43,7 +43,7 @@ D_acropolis_cafeteria_801875C4 = 0x801875C4; // absolute:True owner=acropolis_ca
 D_acropolis_cafeteria_801875E4 = 0x801875E4; // absolute:True owner=acropolis_cafeteria shared=rooms
 D_acropolis_cafeteria_8018C48C = 0x8018C48C; // absolute:True owner=acropolis_cafeteria shared=rooms
 D_acropolis_cafeteria_8018C5AC = 0x8018C5AC; // absolute:True owner=acropolis_cafeteria
-D_acropolis_cafeteria_8018CA2C = 0x8018CA2C; // absolute:True owner=acropolis_cafeteria
+gAcropolisCafeteriaSurfacePropertiesByClass = 0x8018CA2C; // absolute:True owner=acropolis_cafeteria
 gAcropolisCafeteriaModel0F7A4 = 0x8018D230; // absolute:True owner=acropolis_cafeteria
 gAcropolisCafeteriaModel0FDFC = 0x8018D57C; // absolute:True owner=acropolis_cafeteria
 D_acropolis_plaza_801988B8 = 0x801988B8; // absolute:True

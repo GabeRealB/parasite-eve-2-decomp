@@ -39,9 +39,22 @@ extern s32 D_acropolis_cafeteria_80184CFC;
 /// attenuation remain writable.
 extern WorldCoordPointLight gAcropolisCafeteriaPointLights[15];
 
-extern WorldCoordRoomLights D_acropolis_cafeteria_8018AA18[1];
+/// Light collection shared by all four cafeteria room configurations.
+///
+/// Borrows fifteen writable point lights and one live cone light, with no
+/// directional lights. Coordinate setup and lighting queries mutate the
+/// borrowed arrays; the collection and its pointers live only while this
+/// overlay is loaded. Inactive cone-light storage is outside the live count.
+extern WorldCoordRoomLights gAcropolisCafeteriaRoomLights;
 
-extern WorldCoordRoomAmbientEntry D_acropolis_cafeteria_8018C90C[25];
+/// Minimum model ambient colours for the cafeteria's 24 session views.
+///
+/// Entry zero counts the following view entries, indexed by 1-based session
+/// view rather than mapped background index. RGB uses 16 units per 8-bit level;
+/// views 7 and 8 use a brighter, blue-biased minimum. The stored fourth colour
+/// component is unused by lighting. All four room configurations borrow this
+/// table only while the overlay is loaded.
+extern WorldCoordRoomAmbientEntry gAcropolisCafeteriaViewAmbientColors[25];
 
 extern AreaApplyRec D_acropolis_cafeteria_8018C9D4[3];
 

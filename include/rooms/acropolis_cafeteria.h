@@ -47,7 +47,14 @@ extern SpriteView D_acropolis_cafeteria_8018C48C[];
 
 extern ViewCamera D_acropolis_cafeteria_8018C5AC[];
 
-extern WorldCollisionSurfaceProperties* D_acropolis_cafeteria_8018CA2C[];
+/// Cafeteria collision and footstep properties indexed by surface class 0..7.
+///
+/// The Acropolis map directory borrows this table while the room overlay is
+/// loaded. Classes 0 and 5..7 share silent, probe-blocking properties. Classes
+/// 1..3 block probes and allow weapon impacts with distinct footstep cues;
+/// class 4 passes probes and suppresses weapon impacts, borrowing class 3's
+/// cues. Every class applies collision pushback. The table has no terminator.
+extern WorldCollisionSurfaceProperties* gAcropolisCafeteriaSurfacePropertiesByClass[8];
 
 /// Installs the cafeteria's room-effect messages and five wandering model effects.
 ///

@@ -120,89 +120,93 @@ static SVECTOR _gAcropolisCafeteriaModel0FDFCNormals[18];
 static TmdBone _gAcropolisCafeteriaModel0FDFCSkeleton[1];
 static u32     _gAcropolisCafeteriaModel0FDFCStream[112];
 
-extern SpriteDrawArea D_acropolis_cafeteria_8018B3A4[2];
-extern SpriteBatch    D_acropolis_cafeteria_8018AA30[2];
-extern SpriteBatch    D_acropolis_cafeteria_8018AD60[10];
-extern SpriteBatch    D_acropolis_cafeteria_8018B2EC[19];
-extern SpriteBatch    D_acropolis_cafeteria_8018B394[2];
-extern SpriteBatch    D_acropolis_cafeteria_8018B6C4[6];
-extern SpriteBatch    D_acropolis_cafeteria_8018B6F4[2];
-extern SpriteBatch    D_acropolis_cafeteria_8018B704[2];
-extern SpriteBatch    D_acropolis_cafeteria_8018B714[2];
-extern SpriteBatch    D_acropolis_cafeteria_8018B724[2];
-extern SpriteBatch    D_acropolis_cafeteria_8018B7C0[3];
-extern SpriteBatch    D_acropolis_cafeteria_8018B800[3];
-extern SpriteBatch    D_acropolis_cafeteria_8018B818[2];
-extern SpriteBatch    D_acropolis_cafeteria_8018BA94[17];
-extern SpriteBatch    D_acropolis_cafeteria_8018BC0C[3];
-extern SpriteBatch    D_acropolis_cafeteria_8018BC24[2];
-extern SpriteBatch    D_acropolis_cafeteria_8018BC34[2];
-extern SpriteBatch    D_acropolis_cafeteria_8018BC44[2];
-extern SpriteBatch    D_acropolis_cafeteria_8018BC54[2];
-extern SpriteBatch    D_acropolis_cafeteria_8018BC64[2];
-extern SpriteBatch    D_acropolis_cafeteria_8018C250[19];
-extern SpriteSource   D_acropolis_cafeteria_8018AA40[40];
-extern SpriteSource   D_acropolis_cafeteria_8018ADB0[67];
-extern SpriteSource   D_acropolis_cafeteria_8018B3B8[39];
-extern SpriteSource   D_acropolis_cafeteria_8018B734[7];
-extern SpriteSource   D_acropolis_cafeteria_8018B7D8[2];
-extern SpriteSource   D_acropolis_cafeteria_8018B828[31];
-extern SpriteSource   D_acropolis_cafeteria_8018BB1C[12];
-extern SpriteSource   D_acropolis_cafeteria_8018BC74[75];
+extern SpriteBatch  D_acropolis_cafeteria_8018BC0C[3];
+extern SpriteBatch  D_acropolis_cafeteria_8018BC24[2];
+extern SpriteBatch  D_acropolis_cafeteria_8018BC34[2];
+extern SpriteBatch  D_acropolis_cafeteria_8018BC44[2];
+extern SpriteBatch  D_acropolis_cafeteria_8018BC54[2];
+extern SpriteBatch  D_acropolis_cafeteria_8018BC64[2];
+extern SpriteBatch  D_acropolis_cafeteria_8018C250[19];
+extern SpriteSource D_acropolis_cafeteria_8018BC74[75];
 
-WorldCoordRoomLights D_acropolis_cafeteria_8018AA18[1] = {
-    { 0, NULL, ARRAY_SIZE(gAcropolisCafeteriaPointLights), gAcropolisCafeteriaPointLights, ARRAY_SIZE(gAcropolisCafeteriaSpotLightStorage.liveLights), gAcropolisCafeteriaSpotLightStorage.liveLights },
+/// Neutral colour modulation and an empty GPU sprite-code flag mask.
+enum {
+    ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB = 128,
+    ACROPOLIS_CAFETERIA_SPRITE_OPAQUE      = 0,
 };
 
-SpriteBatch D_acropolis_cafeteria_8018AA30[2] = {
+WorldCoordRoomLights gAcropolisCafeteriaRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(gAcropolisCafeteriaPointLights),
+    .pointLights           = gAcropolisCafeteriaPointLights,
+    .coneLightCount        = ARRAY_SIZE(gAcropolisCafeteriaSpotLightStorage.liveLights),
+    .coneLights            = gAcropolisCafeteriaSpotLightStorage.liveLights,
+};
+
+/// Background-only batch list for mapped cafeteria views 1 and 4.
+///
+/// The zero-count header retains decoded image strips and the sentinel ends
+/// the list without source sprites. The view also retains this address in
+/// `sources.empty`, which is never dereferenced as sprite elements.
+static SpriteBatch _gAcropolisCafeteriaViews1And4SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_cafeteria_8018AA40[40] = {
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 72, 48, 751, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 72, 56, 709, { .fields = { 16, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 16 } }, 72, 64, 677, { .fields = { 16, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 16 } }, 80, 80, 627, { .fields = { 24, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 104, 96, 659, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 40, 40, 874, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 40, 56, 871, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 56, 56, 867, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 72, 56, 867, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 120, 48, 770, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 112, 56, 696, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 136, 56, 770, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 104, 72, 638, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 128, 72, 864, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 56, 72, 700, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 56, 80, 697, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 72, 80, 699, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 72, 88, 672, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 72, 96, 649, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 48, 88, 650, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 48, 96, 664, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 48, 104, 728, { .fields = { 56, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 120, 88, 660, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 16 } }, 104, 104, 616, { .fields = { 40, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 72, -8, 1350, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 80, -32, 1275, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, 88, -32, 1225, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, 104, -24, 1125, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, 120, -16, 1050, { .fields = { 112, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 136, -8, 975, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 136, -32, 925, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 136, -24, 925, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, 152, -8, 900, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 120, -24, 1000, { .fields = { 80, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 104, -32, 1075, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 88, -40, 1175, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 96, -48, 1175, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 112, -104, 1000, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 120, -120, 975, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, 136, -120, 950, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
+/// Depth-sorted background sprites for mapped cafeteria view 2.
+///
+/// Positions are pixels from the view centre; depths are unscaled OT sorting
+/// values. Textures and palettes come from the loaded mapped background.
+static SpriteSource _gAcropolisCafeteriaView2SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 8 } }, 72, 48, 751, { .fields = { 32, 40 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 8 } }, 72, 56, 709, { .fields = { 16, 48 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 72, 16 } }, 72, 64, 677, { .fields = { 16, 80 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 16 } }, 80, 80, 627, { .fields = { 24, 96 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, 104, 96, 659, { .fields = { 48, 56 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 16 } }, 40, 40, 874, { .fields = { 72, 152 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 40, 56, 871, { .fields = { 80, 184 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 56, 56, 867, { .fields = { 80, 168 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 72, 56, 867, { .fields = { 112, 216 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, 120, 48, 770, { .fields = { 64, 248 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 16 } }, 112, 56, 696, { .fields = { 72, 200 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 136, 56, 770, { .fields = { 72, 64 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, 104, 72, 638, { .fields = { 72, 0 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, 128, 72, 864, { .fields = { 88, 224 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 56, 72, 700, { .fields = { 72, 224 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 56, 80, 697, { .fields = { 72, 232 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 72, 80, 699, { .fields = { 72, 240 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 72, 88, 672, { .fields = { 64, 184 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 72, 96, 649, { .fields = { 64, 192 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, 48, 88, 650, { .fields = { 56, 168 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, 48, 96, 664, { .fields = { 56, 176 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 16 } }, 48, 104, 728, { .fields = { 56, 120 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 16 } }, 120, 88, 660, { .fields = { 56, 136 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 16 } }, 104, 104, 616, { .fields = { 40, 24 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 72, -8, 1350, { .fields = { 112, 64 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, 80, -32, 1275, { .fields = { 96, 0 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, 88, -32, 1225, { .fields = { 96, 120 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 64 } }, 104, -24, 1125, { .fields = { 104, 0 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 64 } }, 120, -16, 1050, { .fields = { 112, 152 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 72 } }, 136, -8, 975, { .fields = { 112, 80 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, 136, -32, 925, { .fields = { 88, 248 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 16 } }, 136, -24, 925, { .fields = { 80, 48 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 80 } }, 152, -8, 900, { .fields = { 120, 0 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 120, -24, 1000, { .fields = { 80, 40 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, 104, -32, 1075, { .fields = { 56, 112 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, 88, -40, 1175, { .fields = { 56, 216 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 96, -48, 1175, { .fields = { 112, 248 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 112, -104, 1000, { .fields = { 120, 216 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, 120, -120, 975, { .fields = { 96, 176 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 56 } }, 136, -120, 950, { .fields = { 88, 64 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_acropolis_cafeteria_8018AD60[10] = {
+/// Sentinel-terminated sprite ranges for mapped cafeteria view 2.
+///
+/// The zero-count first record retains decoded background strips. Subsequent
+/// nonterminal ranges cover all 40 source elements; zero-count intermediate
+/// records remain in the list. The terminal record selects no sprites.
+static SpriteBatch _gAcropolisCafeteriaView2SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 5, 0, 0, { 6, 0 } },
     { 5, 4, 0, 0, { 1, 0 } },
@@ -215,77 +219,86 @@ SpriteBatch D_acropolis_cafeteria_8018AD60[10] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_cafeteria_8018ADB0[67] = {
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 0, -24, 1444, { .fields = { 8, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 8, -8, 1443, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 0, 0, 1460, { .fields = { 8, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -8, -16, 1620, { .fields = { 24, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 8, -16, 1601, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -8, -16, 1365, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 24, -16, 1324, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 16, -8, 1319, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 16, 8, 1370, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, -88, 16, 875, { .fields = { 40, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 16, 1038, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, -72, 24, 1052, { .fields = { 120, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -80, 32, 873, { .fields = { 0, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -48, 32, 1035, { .fields = { 8, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, -88, 40, 888, { .fields = { 0, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -40, 40, 1052, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -80, 56, 902, { .fields = { 0, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 72, 906, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 32 } }, -104, 32, 925, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 64, 32, 894, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 64, 56, 926, { .fields = { 40, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 120, 48, 804, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 120, 56, 688, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 112, 80, 810, { .fields = { 0, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 120, 96, 780, { .fields = { 0, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, 80, 40, 809, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 16 } }, 80, 48, 808, { .fields = { 8, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 16 } }, 80, 64, 667, { .fields = { 8, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, 80, 80, 862, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, 80, 88, 647, { .fields = { 24, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 88, 104, 601, { .fields = { 32, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 88, 80, 678, { .fields = { 48, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 104, 88, 662, { .fields = { 0, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 88, 96, 622, { .fields = { 32, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 112, 96, 589, { .fields = { 40, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 80, 112, 668, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 32, -56, 1850, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 32, -48, 1875, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 24, -32, 1900, { .fields = { 56, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 40, -48, 1775, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 40, -40, 1825, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, 48, -40, 1725, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 88, -40, 1375, { .fields = { 56, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 48, -32, 1775, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 56, -32, 1625, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 88, -32, 1375, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 56, -24, 1675, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 8 } }, 72, -24, 1425, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 72, -16, 1450, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, 88, -16, 1250, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 88, -8, 1325, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 144, 8, 1100, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 128, 8, 1125, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 104, -8, 1250, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 128, 0, 1125, { .fields = { 0, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 112, 0, 1200, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 112, -8, 1200, { .fields = { 112, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 40, -96, 1700, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 48, -96, 1525, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 56, -104, 1450, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 72, -104, 1325, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 96, -104, 1200, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 128, -104, 1150, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 152, -56, 1150, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 152, -16, 1100, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 144, -16, 1125, { .fields = { 120, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 136, 8, 1150, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
+/// Depth-sorted background sprites for mapped cafeteria view 3.
+///
+/// Positions are pixels from the view centre; depths are unscaled OT sorting
+/// values. Textures and palettes come from the loaded mapped background.
+static SpriteSource _gAcropolisCafeteriaView3SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, 0, -24, 1444, { .fields = { 8, 72 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 8, -8, 1443, { .fields = { 48, 56 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, 0, 0, 1460, { .fields = { 8, 152 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -8, -16, 1620, { .fields = { 24, 168 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 8, -16, 1601, { .fields = { 80, 64 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, -8, -16, 1365, { .fields = { 72, 128 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, 24, -16, 1324, { .fields = { 64, 32 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 16 } }, 16, -8, 1319, { .fields = { 24, 208 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 16 } }, 16, 8, 1370, { .fields = { 24, 192 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 32 } }, -88, 16, 875, { .fields = { 40, 160 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -48, 16, 1038, { .fields = { 104, 88 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 8 } }, -72, 24, 1052, { .fields = { 120, 24 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -80, 32, 873, { .fields = { 0, 144 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -48, 32, 1035, { .fields = { 8, 32 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 16 } }, -88, 40, 888, { .fields = { 0, 224 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -40, 40, 1052, { .fields = { 32, 240 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 16 } }, -80, 56, 902, { .fields = { 0, 56 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -64, 72, 906, { .fields = { 48, 248 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 32 } }, -104, 32, 925, { .fields = { 48, 200 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 24 } }, 64, 32, 894, { .fields = { 64, 232 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 24 } }, 64, 56, 926, { .fields = { 40, 64 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 8 } }, 120, 48, 804, { .fields = { 120, 208 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 24 } }, 120, 56, 688, { .fields = { 32, 0 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 16 } }, 112, 80, 810, { .fields = { 0, 40 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, 120, 96, 780, { .fields = { 0, 128 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 8 } }, 80, 40, 809, { .fields = { 112, 120 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 16 } }, 80, 48, 808, { .fields = { 8, 88 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 16 } }, 80, 64, 667, { .fields = { 8, 104 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 64, 8 } }, 80, 80, 862, { .fields = { 88, 176 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 16 } }, 80, 88, 647, { .fields = { 24, 120 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 16 } }, 88, 104, 601, { .fields = { 32, 136 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 88, 80, 678, { .fields = { 48, 232 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, 104, 88, 662, { .fields = { 0, 168 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 16 } }, 88, 96, 622, { .fields = { 32, 24 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 16 } }, 112, 96, 589, { .fields = { 40, 40 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, 80, 112, 668, { .fields = { 112, 248 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 8 } }, 32, -56, 1850, { .fields = { 120, 192 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 32, -48, 1875, { .fields = { 88, 128 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 24, -32, 1900, { .fields = { 56, 24 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 8 } }, 40, -48, 1775, { .fields = { 120, 200 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 40, -40, 1825, { .fields = { 96, 224 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 8 } }, 48, -40, 1725, { .fields = { 120, 240 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 88, -40, 1375, { .fields = { 56, 152 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 48, -32, 1775, { .fields = { 104, 224 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, 56, -32, 1625, { .fields = { 0, 0 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, 88, -32, 1375, { .fields = { 48, 192 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, 56, -24, 1675, { .fields = { 80, 168 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 80, 8 } }, 72, -24, 1425, { .fields = { 88, 184 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, 72, -16, 1450, { .fields = { 96, 48 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, 88, -16, 1250, { .fields = { 88, 136 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, 88, -8, 1325, { .fields = { 96, 184 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 144, 8, 1100, { .fields = { 120, 232 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, 128, 8, 1125, { .fields = { 72, 0 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, 104, -8, 1250, { .fields = { 112, 48 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, 128, 0, 1125, { .fields = { 0, 8 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, 112, 0, 1200, { .fields = { 112, 184 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, 112, -8, 1200, { .fields = { 112, 16 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 40, -96, 1700, { .fields = { 112, 232 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 48, -96, 1525, { .fields = { 72, 96 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, 56, -104, 1450, { .fields = { 104, 96 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, 72, -104, 1325, { .fields = { 80, 88 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 48 } }, 96, -104, 1200, { .fields = { 96, 136 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 48 } }, 128, -104, 1150, { .fields = { 88, 0 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 152, -56, 1150, { .fields = { 88, 48 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 72 } }, 152, -16, 1100, { .fields = { 120, 0 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 64 } }, 144, -16, 1125, { .fields = { 120, 72 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 136, 8, 1150, { .fields = { 72, 64 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_acropolis_cafeteria_8018B2EC[19] = {
+/// Sentinel-terminated sprite ranges for mapped cafeteria view 3.
+///
+/// The zero-count first record retains decoded background strips. Subsequent
+/// nonterminal ranges cover all 67 source elements; zero-count intermediate
+/// records remain in the list. The terminal record selects no sprites.
+static SpriteBatch _gAcropolisCafeteriaView3SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 0, 0, 0, { 6, 0 } },
     { 0, 3, 0, 0, { 9, 0 } },
@@ -312,59 +325,78 @@ SpriteBatch D_acropolis_cafeteria_8018B384[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_cafeteria_8018B394[2] = {
+/// Background-only batch list for mapped cafeteria view 5.
+///
+/// The zero-count header retains decoded image strips and the sentinel ends
+/// the list without source sprites. The view also retains this address in
+/// `sources.empty`, which is never dereferenced as sprite elements.
+static SpriteBatch _gAcropolisCafeteriaView5SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteDrawArea D_acropolis_cafeteria_8018B3A4[2] = {
+/// Depth-limited drawing clip for mapped cafeteria view 5.
+///
+/// Clips scene drawing to (72, 0, 248, 239) in draw-buffer pixels, then restores
+/// the full buffer at unscaled sorting depth 707. The final record is the
+/// terminator and emits no command. This clips models as well as sprites.
+static SpriteDrawArea _gAcropolisCafeteriaView5DrawAreas[] = {
     { { 72, 0, 248, 239 }, 707 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_acropolis_cafeteria_8018B3B8[39] = {
-    { 143, 0x3FC0, { .fields = { 64, 64 } }, -160, -120, 525, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 64 } }, -96, -120, 525, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 64 } }, -32, -120, 525, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 64 } }, 32, -120, 525, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 64 } }, 96, -120, 525, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 112, -56, 925, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 128, -56, 950, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 64, 8 } }, 64, -8, 925, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 16 } }, 80, 0, 925, { .fields = { 32, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 24 } }, 24, 0, 875, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, 24, -8, 875, { .fields = { 16, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 32, -16, 875, { .fields = { 16, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 32 } }, -24, 0, 850, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -64, 0, 825, { .fields = { 8, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 32 } }, -96, -8, 800, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 64, 16 } }, -128, 24, 800, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -128, 8, 800, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 32 } }, -160, 8, 775, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -160, 40, 825, { .fields = { 32, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -160, 80, 850, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 40 } }, -128, 40, 850, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 32 } }, -128, 80, 875, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 32 } }, -72, 40, 875, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 32 } }, -72, 72, 900, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 32 } }, -24, 32, 900, { .fields = { 88, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 32 } }, -24, 64, 925, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 32 } }, 24, 24, 925, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 32 } }, 24, 56, 950, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 32 } }, 80, 16, 975, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 32 } }, 80, 48, 1000, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 128, -8, 950, { .fields = { 0, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 128, 32, 1025, { .fields = { 0, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 88, 634, { .fields = { 40, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 0, 88, 250, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -8, 96, 225, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 16, 96, 225, { .fields = { 8, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, 72, 112, 200, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 24, 104, 225, { .fields = { 8, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, 8, 112, 200, { .fields = { 8, 248 } }, 128, 128, 128, 0 },
+/// Depth-sorted background sprites for mapped cafeteria view 6.
+///
+/// Positions are pixels from the view centre; depths are unscaled OT sorting
+/// values. Textures and palettes come from the loaded mapped background.
+static SpriteSource _gAcropolisCafeteriaView6SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 64 } }, -160, -120, 525, { .fields = { 64, 192 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 64 } }, -96, -120, 525, { .fields = { 0, 0 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 64 } }, -32, -120, 525, { .fields = { 64, 128 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 64 } }, 32, -120, 525, { .fields = { 64, 0 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 64 } }, 96, -120, 525, { .fields = { 64, 64 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, 112, -56, 925, { .fields = { 48, 112 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 48 } }, 128, -56, 950, { .fields = { 32, 64 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 64, 8 } }, 64, -8, 925, { .fields = { 120, 184 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 16 } }, 80, 0, 925, { .fields = { 32, 232 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 56, 24 } }, 24, 0, 875, { .fields = { 80, 232 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 8 } }, 24, -8, 875, { .fields = { 16, 176 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 8 } }, 32, -16, 875, { .fields = { 16, 32 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 32 } }, -24, 0, 850, { .fields = { 32, 64 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -64, 0, 825, { .fields = { 8, 112 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 32 } }, -96, -8, 800, { .fields = { 48, 128 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 64, 16 } }, -128, 24, 800, { .fields = { 120, 160 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, -128, 8, 800, { .fields = { 32, 240 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 32 } }, -160, 8, 775, { .fields = { 48, 32 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, -160, 40, 825, { .fields = { 32, 200 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, -160, 80, 850, { .fields = { 32, 160 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 56, 40 } }, -128, 40, 850, { .fields = { 104, 192 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 56, 32 } }, -128, 80, 875, { .fields = { 24, 0 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 32 } }, -72, 40, 875, { .fields = { 80, 32 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 32 } }, -72, 72, 900, { .fields = { 80, 64 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 32 } }, -24, 32, 900, { .fields = { 88, 104 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 32 } }, -24, 64, 925, { .fields = { 80, 0 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 56, 32 } }, 24, 24, 925, { .fields = { 48, 200 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 56, 32 } }, 24, 56, 950, { .fields = { 32, 96 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 32 } }, 80, 16, 975, { .fields = { 80, 136 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 32 } }, 80, 48, 1000, { .fields = { 56, 168 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, 128, -8, 950, { .fields = { 0, 152 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, 128, 32, 1025, { .fields = { 0, 64 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 32, 88, 634, { .fields = { 40, 152 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 8 } }, 0, 88, 250, { .fields = { 24, 192 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 24 } }, -8, 96, 225, { .fields = { 104, 168 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, 16, 96, 225, { .fields = { 8, 232 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 8 } }, 72, 112, 200, { .fields = { 88, 96 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, 24, 104, 225, { .fields = { 8, 104 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, 8, 112, 200, { .fields = { 8, 248 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_acropolis_cafeteria_8018B6C4[6] = {
+/// Sentinel-terminated sprite ranges for mapped cafeteria view 6.
+///
+/// The zero-count first record retains decoded background strips. Subsequent
+/// nonterminal ranges cover all 39 source elements. The terminal record selects
+/// no sprites.
+static SpriteBatch _gAcropolisCafeteriaView6SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 32, 0, 0, { 3, 0 } },
     { 32, 4, 0, 0, { 0, 0 } },
@@ -373,93 +405,147 @@ SpriteBatch D_acropolis_cafeteria_8018B6C4[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_cafeteria_8018B6F4[2] = {
+/// Background-only batch list for mapped cafeteria view 7.
+///
+/// The zero-count header retains decoded image strips and the sentinel ends
+/// the list without source sprites. The view also retains this address in
+/// `sources.empty`, which is never dereferenced as sprite elements.
+static SpriteBatch _gAcropolisCafeteriaView7SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_cafeteria_8018B704[2] = {
+/// Background-only batch list for mapped cafeteria view 8.
+///
+/// The zero-count header retains decoded image strips and the sentinel ends
+/// the list without source sprites. The view also retains this address in
+/// `sources.empty`, which is never dereferenced as sprite elements.
+static SpriteBatch _gAcropolisCafeteriaView8SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_cafeteria_8018B714[2] = {
+/// Background-only batch list for mapped cafeteria view 9.
+///
+/// The zero-count header retains decoded image strips and the sentinel ends
+/// the list without source sprites. The view also retains this address in
+/// `sources.empty`, which is never dereferenced as sprite elements.
+static SpriteBatch _gAcropolisCafeteriaView9SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_cafeteria_8018B724[2] = {
+/// Background-only batch list for mapped cafeteria view 10.
+///
+/// The zero-count header retains decoded image strips and the sentinel ends
+/// the list without source sprites. The view also retains this address in
+/// `sources.empty`, which is never dereferenced as sprite elements.
+static SpriteBatch _gAcropolisCafeteriaView10SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_cafeteria_8018B734[7] = {
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 8, 64, 525, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -8, 72, 492, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 32, 72, 636, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 16 } }, -24, 80, 499, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 16 } }, 32, 80, 515, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 24 } }, -32, 96, 506, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 24 } }, 40, 96, 250, { .fields = { 64, 24 } }, 128, 128, 128, 0 },
+/// Depth-sorted background sprites for mapped cafeteria view 11.
+///
+/// Positions are pixels from the view centre; depths are unscaled OT sorting
+/// values. Textures and palettes come from the loaded mapped background.
+static SpriteSource _gAcropolisCafeteriaView11SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, 8, 64, 525, { .fields = { 88, 80 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -8, 72, 492, { .fields = { 88, 88 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, 32, 72, 636, { .fields = { 88, 96 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 16 } }, -24, 80, 499, { .fields = { 72, 64 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 16 } }, 32, 80, 515, { .fields = { 64, 48 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 72, 24 } }, -32, 96, 506, { .fields = { 56, 0 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 24 } }, 40, 96, 250, { .fields = { 64, 24 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_acropolis_cafeteria_8018B7C0[3] = {
+/// Sentinel-terminated sprite ranges for mapped cafeteria view 11.
+///
+/// The zero-count first record retains decoded background strips. Subsequent
+/// nonterminal ranges cover all 7 source elements. The terminal record selects
+/// no sprites.
+static SpriteBatch _gAcropolisCafeteriaView11SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_cafeteria_8018B7D8[2] = {
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -48, 0, 675, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -8, 0, 675, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
+/// Depth-sorted background sprites for mapped cafeteria view 12.
+///
+/// Positions are pixels from the view centre; depths are unscaled OT sorting
+/// values. Textures and palettes come from the loaded mapped background.
+static SpriteSource _gAcropolisCafeteriaView12SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 16 } }, -48, 0, 675, { .fields = { 88, 0 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, -8, 0, 675, { .fields = { 96, 16 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_acropolis_cafeteria_8018B800[3] = {
+/// Sentinel-terminated sprite ranges for mapped cafeteria view 12.
+///
+/// The zero-count first record retains decoded background strips. Subsequent
+/// nonterminal ranges cover all 2 source elements. The terminal record selects
+/// no sprites.
+static SpriteBatch _gAcropolisCafeteriaView12SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 2, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_cafeteria_8018B818[2] = {
+/// Background-only batch list for mapped cafeteria view 13.
+///
+/// The zero-count header retains decoded image strips and the sentinel ends
+/// the list without source sprites. The view also retains this address in
+/// `sources.empty`, which is never dereferenced as sprite elements.
+static SpriteBatch _gAcropolisCafeteriaView13SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_cafeteria_8018B828[31] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -112, 40, 1100, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -160, -16, 975, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -160, 48, 1000, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -144, -16, 975, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -128, -16, 1000, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -120, 0, 1025, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -112, 8, 1037, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -144, 40, 1025, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -128, 32, 1050, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -120, 32, 1075, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -96, 56, 787, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -96, 40, 825, { .fields = { 56, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -88, 32, 1163, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -80, 8, 950, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -88, 16, 925, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -80, 32, 937, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -56, 0, 950, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -56, 40, 925, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -80, 16, 900, { .fields = { 40, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -72, 8, 925, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, 40, 962, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -32, 8, 975, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -40, 16, 950, { .fields = { 64, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 16 } }, -96, 0, 1350, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 56 } }, -104, -40, 1325, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 96 } }, -112, -72, 1300, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 144 } }, -120, -112, 1275, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 72 } }, -136, -120, 1125, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 72 } }, -160, -120, 1100, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 48 } }, -160, -48, 1100, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 56 } }, -136, -48, 1125, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
+/// Depth-sorted background sprites for mapped cafeteria views 14 and 22.
+///
+/// Positions are pixels from the view centre; depths are unscaled OT sorting
+/// values. Textures and palettes come from the loaded mapped background.
+/// Views 14 and 22 share this complete source array and the same camera.
+/// The final eight sprites use palette row 256; the others use row 255.
+static SpriteSource _gAcropolisCafeteriaViews14And22SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -112, 40, 1100, { .fields = { 80, 232 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 64 } }, -160, -16, 975, { .fields = { 104, 144 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -160, 48, 1000, { .fields = { 72, 160 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, -144, -16, 975, { .fields = { 88, 184 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, -128, -16, 1000, { .fields = { 112, 208 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -120, 0, 1025, { .fields = { 104, 208 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -112, 8, 1037, { .fields = { 88, 48 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -144, 40, 1025, { .fields = { 72, 48 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -128, 32, 1050, { .fields = { 80, 112 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -120, 32, 1075, { .fields = { 120, 240 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 32 } }, -96, 56, 787, { .fields = { 64, 80 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, -96, 40, 825, { .fields = { 56, 208 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -88, 32, 1163, { .fields = { 72, 112 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -80, 8, 950, { .fields = { 64, 240 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, -88, 16, 925, { .fields = { 80, 240 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -80, 32, 937, { .fields = { 72, 224 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -56, 0, 950, { .fields = { 80, 72 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -56, 40, 925, { .fields = { 72, 72 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 24 } }, -80, 16, 900, { .fields = { 40, 184 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -72, 8, 925, { .fields = { 40, 232 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -32, 40, 962, { .fields = { 72, 120 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -32, 8, 975, { .fields = { 64, 128 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, -40, 16, 950, { .fields = { 64, 136 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 16 } }, -96, 0, 1350, { .fields = { 88, 112 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 56 } }, -104, -40, 1325, { .fields = { 96, 72 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 96 } }, -112, -72, 1300, { .fields = { 120, 144 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 144 } }, -120, -112, 1275, { .fields = { 120, 0 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 72 } }, -136, -120, 1125, { .fields = { 104, 72 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 24, 72 } }, -160, -120, 1100, { .fields = { 96, 0 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 24, 48 } }, -160, -48, 1100, { .fields = { 72, 0 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 56 } }, -136, -48, 1125, { .fields = { 88, 128 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_acropolis_cafeteria_8018BA94[17] = {
+/// Sentinel-terminated sprite ranges for mapped cafeteria views 14 and 22.
+///
+/// The zero-count first record retains decoded background strips. Subsequent
+/// nonterminal ranges cover all 31 source elements; zero-count intermediate
+/// records remain in the list. The terminal record selects no sprites.
+static SpriteBatch _gAcropolisCafeteriaViews14And22SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 10, 0, 0, { 8, 0 } },
     { 10, 2, 0, 0, { 3, 0 } },
@@ -479,19 +565,23 @@ SpriteBatch D_acropolis_cafeteria_8018BA94[17] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_cafeteria_8018BB1C[12] = {
-    { 143, 0x3FC0, { .fields = { 40, 80 } }, -160, -120, 750, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 72 } }, -160, -40, 750, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 80 } }, -160, 32, 750, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 80 } }, -120, -120, 775, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 72 } }, -120, -40, 775, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 72 } }, -120, 32, 775, { .fields = { 32, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 80 } }, -88, -120, 800, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 72 } }, -88, -40, 800, { .fields = { 16, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 64 } }, -88, 32, 800, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 80 } }, -56, -120, 825, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 72 } }, -56, -40, 825, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 56 } }, -56, 32, 825, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
+/// Depth-sorted background sprites for mapped cafeteria view 15.
+///
+/// Positions are pixels from the view centre; depths are unscaled OT sorting
+/// values. Textures and palettes come from the loaded mapped background.
+static SpriteSource _gAcropolisCafeteriaView15SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 80 } }, -160, -120, 750, { .fields = { 88, 0 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 72 } }, -160, -40, 750, { .fields = { 48, 80 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 80 } }, -160, 32, 750, { .fields = { 88, 80 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 80 } }, -120, -120, 775, { .fields = { 64, 160 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 72 } }, -120, -40, 775, { .fields = { 24, 0 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 72 } }, -120, 32, 775, { .fields = { 32, 152 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 80 } }, -88, -120, 800, { .fields = { 96, 160 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 72 } }, -88, -40, 800, { .fields = { 16, 72 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 64 } }, -88, 32, 800, { .fields = { 120, 0 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 80 } }, -56, -120, 825, { .fields = { 56, 0 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 72 } }, -56, -40, 825, { .fields = { 120, 144 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 56 } }, -56, 32, 825, { .fields = { 104, 64 } }, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB, ACROPOLIS_CAFETERIA_SPRITE_OPAQUE },
 };
 
 SpriteBatch D_acropolis_cafeteria_8018BC0C[3] = {
@@ -668,28 +758,28 @@ SpriteBatch D_acropolis_cafeteria_8018C474[3] = {
 };
 
 SpriteView D_acropolis_cafeteria_8018C48C[24] = {
-    { { .empty = D_acropolis_cafeteria_8018AA30 }, D_acropolis_cafeteria_8018AA30, NULL },
-    { { .elements = D_acropolis_cafeteria_8018AA40 }, D_acropolis_cafeteria_8018AD60, NULL },
-    { { .elements = D_acropolis_cafeteria_8018ADB0 }, D_acropolis_cafeteria_8018B2EC, NULL },
-    { { .empty = D_acropolis_cafeteria_8018AA30 }, D_acropolis_cafeteria_8018AA30, NULL },
-    { { .empty = D_acropolis_cafeteria_8018B394 }, D_acropolis_cafeteria_8018B394, D_acropolis_cafeteria_8018B3A4 },
-    { { .elements = D_acropolis_cafeteria_8018B3B8 }, D_acropolis_cafeteria_8018B6C4, NULL },
-    { { .empty = D_acropolis_cafeteria_8018B6F4 }, D_acropolis_cafeteria_8018B6F4, NULL },
-    { { .empty = D_acropolis_cafeteria_8018B704 }, D_acropolis_cafeteria_8018B704, NULL },
-    { { .empty = D_acropolis_cafeteria_8018B714 }, D_acropolis_cafeteria_8018B714, NULL },
-    { { .empty = D_acropolis_cafeteria_8018B724 }, D_acropolis_cafeteria_8018B724, NULL },
-    { { .elements = D_acropolis_cafeteria_8018B734 }, D_acropolis_cafeteria_8018B7C0, NULL },
-    { { .elements = D_acropolis_cafeteria_8018B7D8 }, D_acropolis_cafeteria_8018B800, NULL },
-    { { .empty = D_acropolis_cafeteria_8018B818 }, D_acropolis_cafeteria_8018B818, NULL },
-    { { .elements = D_acropolis_cafeteria_8018B828 }, D_acropolis_cafeteria_8018BA94, NULL },
-    { { .elements = D_acropolis_cafeteria_8018BB1C }, D_acropolis_cafeteria_8018BC0C, NULL },
+    { { .empty = _gAcropolisCafeteriaViews1And4SpriteBatches }, _gAcropolisCafeteriaViews1And4SpriteBatches, NULL },
+    { { .elements = _gAcropolisCafeteriaView2SpriteSources }, _gAcropolisCafeteriaView2SpriteBatches, NULL },
+    { { .elements = _gAcropolisCafeteriaView3SpriteSources }, _gAcropolisCafeteriaView3SpriteBatches, NULL },
+    { { .empty = _gAcropolisCafeteriaViews1And4SpriteBatches }, _gAcropolisCafeteriaViews1And4SpriteBatches, NULL },
+    { { .empty = _gAcropolisCafeteriaView5SpriteBatches }, _gAcropolisCafeteriaView5SpriteBatches, _gAcropolisCafeteriaView5DrawAreas },
+    { { .elements = _gAcropolisCafeteriaView6SpriteSources }, _gAcropolisCafeteriaView6SpriteBatches, NULL },
+    { { .empty = _gAcropolisCafeteriaView7SpriteBatches }, _gAcropolisCafeteriaView7SpriteBatches, NULL },
+    { { .empty = _gAcropolisCafeteriaView8SpriteBatches }, _gAcropolisCafeteriaView8SpriteBatches, NULL },
+    { { .empty = _gAcropolisCafeteriaView9SpriteBatches }, _gAcropolisCafeteriaView9SpriteBatches, NULL },
+    { { .empty = _gAcropolisCafeteriaView10SpriteBatches }, _gAcropolisCafeteriaView10SpriteBatches, NULL },
+    { { .elements = _gAcropolisCafeteriaView11SpriteSources }, _gAcropolisCafeteriaView11SpriteBatches, NULL },
+    { { .elements = _gAcropolisCafeteriaView12SpriteSources }, _gAcropolisCafeteriaView12SpriteBatches, NULL },
+    { { .empty = _gAcropolisCafeteriaView13SpriteBatches }, _gAcropolisCafeteriaView13SpriteBatches, NULL },
+    { { .elements = _gAcropolisCafeteriaViews14And22SpriteSources }, _gAcropolisCafeteriaViews14And22SpriteBatches, NULL },
+    { { .elements = _gAcropolisCafeteriaView15SpriteSources }, D_acropolis_cafeteria_8018BC0C, NULL },
     { { .empty = D_acropolis_cafeteria_8018BC24 }, D_acropolis_cafeteria_8018BC24, NULL },
     { { .empty = D_acropolis_cafeteria_8018BC34 }, D_acropolis_cafeteria_8018BC34, NULL },
     { { .empty = D_acropolis_cafeteria_8018BC44 }, D_acropolis_cafeteria_8018BC44, NULL },
     { { .empty = D_acropolis_cafeteria_8018BC54 }, D_acropolis_cafeteria_8018BC54, NULL },
     { { .empty = D_acropolis_cafeteria_8018BC64 }, D_acropolis_cafeteria_8018BC64, NULL },
     { { .elements = D_acropolis_cafeteria_8018BC74 }, D_acropolis_cafeteria_8018C250, NULL },
-    { { .elements = D_acropolis_cafeteria_8018B828 }, D_acropolis_cafeteria_8018BA94, NULL },
+    { { .elements = _gAcropolisCafeteriaViews14And22SpriteSources }, _gAcropolisCafeteriaViews14And22SpriteBatches, NULL },
     { { .elements = D_acropolis_cafeteria_8018C2F8 }, D_acropolis_cafeteria_8018C438, NULL },
     { { .elements = D_acropolis_cafeteria_8018C460 }, D_acropolis_cafeteria_8018C474, NULL },
 };
@@ -721,8 +811,8 @@ ViewCamera D_acropolis_cafeteria_8018C5AC[24] = {
     { { { { -3916, 0, -1197 }, { 691, 3344, -2261 }, { 977, -2365, -3197 } }, { 3690, 380, -80 } }, 257 },
 };
 
-WorldCoordRoomAmbientEntry D_acropolis_cafeteria_8018C90C[25] = {
-    { .viewCount = ARRAY_SIZE(D_acropolis_cafeteria_8018C90C) - 1 },
+WorldCoordRoomAmbientEntry gAcropolisCafeteriaViewAmbientColors[25] = {
+    { .viewCount = ARRAY_SIZE(gAcropolisCafeteriaViewAmbientColors) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 16, 16, 16, 16 } },
@@ -755,53 +845,105 @@ AreaApplyRec D_acropolis_cafeteria_8018C9D4[3] = {
     { 255, 0, 0, 0 },
 };
 
-WorldCollisionFootstepSounds D_acropolis_cafeteria_8018C9E0 = {
-    0x1000002D,
-    0x1000002F,
-    0x1000002D,
+/// Paired cue-2 bases in the loaded type-1 sound bank; cue 1 uses base + 1.
+enum {
+    ACROPOLIS_CAFETERIA_SURFACE1_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x2D,
+    ACROPOLIS_CAFETERIA_SURFACE1_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x2F,
+    ACROPOLIS_CAFETERIA_SURFACE2_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x11,
+    ACROPOLIS_CAFETERIA_SURFACE2_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x13,
+    ACROPOLIS_CAFETERIA_SURFACE3_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x01,
+    ACROPOLIS_CAFETERIA_SURFACE3_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x03,
+    ACROPOLIS_CAFETERIA_SURFACE3_JUMP_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x05,
 };
 
-WorldCollisionFootstepSounds D_acropolis_cafeteria_8018C9EC = {
-    0x10000011,
-    0x10000013,
-    0x10000011,
+/// Footstep cue bases for cafeteria surface class 1, borrowed for the overlay lifetime.
+///
+/// Walking and scripted jumps share a pair; running selects a separate pair.
+static WorldCollisionFootstepSounds _gAcropolisCafeteriaSurface1FootstepSounds = {
+    .walk         = ACROPOLIS_CAFETERIA_SURFACE1_WALK_SOUND,
+    .run          = ACROPOLIS_CAFETERIA_SURFACE1_RUN_SOUND,
+    .scriptedJump = ACROPOLIS_CAFETERIA_SURFACE1_WALK_SOUND,
 };
 
-WorldCollisionFootstepSounds D_acropolis_cafeteria_8018C9F8 = {
-    0x10000001,
-    0x10000003,
-    0x10000005,
+/// Footstep cue bases for cafeteria surface class 2, borrowed for the overlay lifetime.
+///
+/// Walking and scripted jumps share a pair; running selects a separate pair.
+static WorldCollisionFootstepSounds _gAcropolisCafeteriaSurface2FootstepSounds = {
+    .walk         = ACROPOLIS_CAFETERIA_SURFACE2_WALK_SOUND,
+    .run          = ACROPOLIS_CAFETERIA_SURFACE2_RUN_SOUND,
+    .scriptedJump = ACROPOLIS_CAFETERIA_SURFACE2_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_cafeteria_8018CA04[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Footstep cue bases shared by cafeteria surface classes 3 and 4.
+///
+/// Walking, running and scripted jumps select different pairs in the loaded
+/// type-1 bank. Both surface records borrow these bases for the overlay lifetime.
+static WorldCollisionFootstepSounds _gAcropolisCafeteriaSurfaces3And4FootstepSounds = {
+    .walk         = ACROPOLIS_CAFETERIA_SURFACE3_WALK_SOUND,
+    .run          = ACROPOLIS_CAFETERIA_SURFACE3_RUN_SOUND,
+    .scriptedJump = ACROPOLIS_CAFETERIA_SURFACE3_JUMP_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_cafeteria_8018CA0C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_cafeteria_8018C9E0 },
+/// Silent properties shared by cafeteria classes 0 and 5..7.
+///
+/// Blocks probes, permits weapon impacts and applies pushback. The leading
+/// serialized byte remains zero; its role is unproven.
+static WorldCollisionSurfaceProperties _gAcropolisCafeteriaSilentSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_cafeteria_8018CA14[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_cafeteria_8018C9EC },
+/// Cafeteria class 1: blocking, weapon-impact-enabled, with pushback and footstep cues.
+static WorldCollisionSurfaceProperties _gAcropolisCafeteriaSurface1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gAcropolisCafeteriaSurface1FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_cafeteria_8018CA1C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_cafeteria_8018C9F8 },
+/// Cafeteria class 2: blocking, weapon-impact-enabled, with pushback and footstep cues.
+static WorldCollisionSurfaceProperties _gAcropolisCafeteriaSurface2Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gAcropolisCafeteriaSurface2FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_cafeteria_8018CA24[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_cafeteria_8018C9F8 },
+/// Cafeteria class 3: blocking, weapon-impact-enabled, with pushback and footstep cues.
+static WorldCollisionSurfaceProperties _gAcropolisCafeteriaSurface3Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gAcropolisCafeteriaSurfaces3And4FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_acropolis_cafeteria_8018CA2C[8] = {
-    D_acropolis_cafeteria_8018CA04,
-    D_acropolis_cafeteria_8018CA0C,
-    D_acropolis_cafeteria_8018CA14,
-    D_acropolis_cafeteria_8018CA1C,
-    D_acropolis_cafeteria_8018CA24,
-    D_acropolis_cafeteria_8018CA04,
-    D_acropolis_cafeteria_8018CA04,
-    D_acropolis_cafeteria_8018CA04,
+/// Cafeteria class 4: passes probes, ignores weapon impacts, applies pushback.
+///
+/// Footstep cues are shared with class 3. The leading serialized byte is zero,
+/// with its role unproven, as in the other cafeteria surface records.
+static WorldCollisionSurfaceProperties _gAcropolisCafeteriaSurface4Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gAcropolisCafeteriaSurfaces3And4FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gAcropolisCafeteriaSurfacePropertiesByClass[8] = {
+    &_gAcropolisCafeteriaSilentSurfaceProperties,
+    &_gAcropolisCafeteriaSurface1Properties,
+    &_gAcropolisCafeteriaSurface2Properties,
+    &_gAcropolisCafeteriaSurface3Properties,
+    &_gAcropolisCafeteriaSurface4Properties,
+    &_gAcropolisCafeteriaSilentSurfaceProperties,
+    &_gAcropolisCafeteriaSilentSurfaceProperties,
+    &_gAcropolisCafeteriaSilentSurfaceProperties,
 };
 
 static TmdBone _gAcropolisCafeteriaModel0F7A4Skeleton[1] = {

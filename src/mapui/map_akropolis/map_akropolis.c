@@ -867,7 +867,7 @@ WorldCollisionSurfaceProperties** D_map_akropolis_8017AC6C[20] = {
     D_acropolis_square_80188868,
     D_acropolis_east_elevator_hall_80187B74,
     D_acropolis_patio_8018703C,
-    D_acropolis_cafeteria_8018CA2C,
+    gAcropolisCafeteriaSurfacePropertiesByClass,
     D_acropolis_plaza_80199F28,
     D_acropolis_security_room_80184FA0,
     D_acropolis_hallway_8017ED40,

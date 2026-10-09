@@ -744,10 +744,10 @@ u8* D_acropolis_cafeteria_801875AC[4] = {
 ViewCount D_acropolis_cafeteria_801875BC[4] = { 24, 24, 24, 24 };
 
 WorldCoordRoomLighting D_acropolis_cafeteria_801875C4[4] = {
-    { D_acropolis_cafeteria_8018AA18, D_acropolis_cafeteria_8018C90C },
-    { D_acropolis_cafeteria_8018AA18, D_acropolis_cafeteria_8018C90C },
-    { D_acropolis_cafeteria_8018AA18, D_acropolis_cafeteria_8018C90C },
-    { D_acropolis_cafeteria_8018AA18, D_acropolis_cafeteria_8018C90C },
+    { &gAcropolisCafeteriaRoomLights, gAcropolisCafeteriaViewAmbientColors },
+    { &gAcropolisCafeteriaRoomLights, gAcropolisCafeteriaViewAmbientColors },
+    { &gAcropolisCafeteriaRoomLights, gAcropolisCafeteriaViewAmbientColors },
+    { &gAcropolisCafeteriaRoomLights, gAcropolisCafeteriaViewAmbientColors },
 };
 
 DirectionWarpEntry D_acropolis_cafeteria_801875E4[3] = {
