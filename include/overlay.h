@@ -289,11 +289,6 @@ typedef struct {
 } OverlayEncounterPairWork;
 STATIC_ASSERT_SIZEOF(OverlayEncounterPairWork, 0xC);
 
-/// The enemy table the pair slots of a scripted encounter spawn their two
-/// enemies from. It lies at a fixed address outside the images of the
-/// overlays that reach it.
-extern TaskDesc D_actor_207000_80151E60;
-
 /// Scratch-stack block a water-refraction drawer reserves for one call.
 ///
 /// The drawer stores the transpose of `gGfxViewCoord.workm` in

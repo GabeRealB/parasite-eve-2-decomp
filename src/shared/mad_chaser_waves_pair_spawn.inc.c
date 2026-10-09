@@ -46,8 +46,8 @@ static void _overlayEncounterPairSpawn(Task* waveTask)
     }
     // The spawner owns its work; the two independently spawned enemies are borrowed.
     waveTask->work = work;
-    work->enemy0   = enemySpawnFromTable(&D_actor_207000_80151E60, OVERLAY_ENCOUNTER_PAIR_DESCRIPTOR_INDEX, OVERLAY_ENCOUNTER_PAIR_SOUND_VARIANT, 0);
-    work->enemy1   = enemySpawnFromTable(&D_actor_207000_80151E60, OVERLAY_ENCOUNTER_PAIR_DESCRIPTOR_INDEX, OVERLAY_ENCOUNTER_PAIR_SOUND_VARIANT, 0);
+    work->enemy0   = enemySpawnFromTable(gActor207000SucklercephTaskDescs, OVERLAY_ENCOUNTER_PAIR_DESCRIPTOR_INDEX, OVERLAY_ENCOUNTER_PAIR_SOUND_VARIANT, 0);
+    work->enemy1   = enemySpawnFromTable(gActor207000SucklercephTaskDescs, OVERLAY_ENCOUNTER_PAIR_DESCRIPTOR_INDEX, OVERLAY_ENCOUNTER_PAIR_SOUND_VARIANT, 0);
     if (work->enemy0 == NULL && work->enemy1 == NULL) {
         taskKill(waveTask);
         return;

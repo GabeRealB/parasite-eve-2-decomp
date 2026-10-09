@@ -84,8 +84,6 @@ extern AreaResource D_shelter_b2_north_maintenance_walkway_80186050[3];
 extern AreaResource D_shelter_b2_north_maintenance_walkway_80186074[4];
 extern AreaResource D_shelter_b2_north_maintenance_walkway_801860A4[3];
 
-extern TaskDesc D_actor_207000_801575F0;
-
 u8* D_shelter_b2_north_maintenance_walkway_80183C5C[1] = {
     gViewIdentityMap,
 };
@@ -553,14 +551,14 @@ AreaResource D_shelter_b2_north_maintenance_walkway_80186008[3] = {
 };
 
 AreaResource D_shelter_b2_north_maintenance_walkway_8018602C[3] = {
-    { 70, 70, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_107000_8013F5F0 },
+    { 70, 70, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor107000SlouchTaskDescs },
     { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor207200CreepingStrangerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b2_north_maintenance_walkway_80186050[3] = {
     { 11, 11, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor101100Tasks },
-    { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &D_actor_207000_801575F0 },
+    { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor207000SlouchTaskDescs },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

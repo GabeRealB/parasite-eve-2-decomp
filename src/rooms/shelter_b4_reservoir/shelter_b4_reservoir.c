@@ -236,22 +236,20 @@ extern WorldCollisionTrigger  D_shelter_b4_reservoir_80186AC0[8];
 extern WorldCollisionTrigger  D_shelter_b4_reservoir_80186D20[7];
 extern WorldCollisionTrigger  D_shelter_b4_reservoir_80186F34[9];
 extern WorldCoordRoomLights   D_shelter_b4_reservoir_80186AA8[1];
-extern TaskDesc               D_actor_207000_801575F0;
-
-static s32  _shelterB4ReservoirRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 secondArg);
-static s32  _shelterB4ReservoirResolveTransitionMessage(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
-static s32  _shelterB4ReservoirCommandMessage(Task* task, s32 messageId, s32 command, s32 secondArg);
-static s32  _shelterB4ReservoirIgnoreRoomActionMessage(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
-static s32  _shelterB4ReservoirSoundMessage(Task* task, s32 messageId, s32 soundCommand, s32 secondArg);
-static void _shelterB4ReservoirWaterEventTask(Task* task);
-static void _shelterB4ReservoirExitTask(Task* task);
-static void _shelterB4ReservoirRampMainWaterHeightTask(Task* task);
-static void _shelterB4ReservoirRampView10WaterHeightTask(Task* task);
-static void _shelterB4ReservoirView8ModelTask(Task* task);
-static void _shelterB4ReservoirWaterCommand(s32 waterCommand);
-static void _shelterB4ReservoirSetEventModelState(s32 modelState);
-static void _shelterB4ReservoirSetBurstChance(s32 spawnChancePercent);
-static void _shelterB4ReservoirCancelEffects(void);
+static s32                    _shelterB4ReservoirRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 secondArg);
+static s32                    _shelterB4ReservoirResolveTransitionMessage(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32                    _shelterB4ReservoirCommandMessage(Task* task, s32 messageId, s32 command, s32 secondArg);
+static s32                    _shelterB4ReservoirIgnoreRoomActionMessage(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
+static s32                    _shelterB4ReservoirSoundMessage(Task* task, s32 messageId, s32 soundCommand, s32 secondArg);
+static void                   _shelterB4ReservoirWaterEventTask(Task* task);
+static void                   _shelterB4ReservoirExitTask(Task* task);
+static void                   _shelterB4ReservoirRampMainWaterHeightTask(Task* task);
+static void                   _shelterB4ReservoirRampView10WaterHeightTask(Task* task);
+static void                   _shelterB4ReservoirView8ModelTask(Task* task);
+static void                   _shelterB4ReservoirWaterCommand(s32 waterCommand);
+static void                   _shelterB4ReservoirSetEventModelState(s32 modelState);
+static void                   _shelterB4ReservoirSetBurstChance(s32 spawnChancePercent);
+static void                   _shelterB4ReservoirCancelEffects(void);
 
 TaskDesc gScreenWaveTaskDesc[2] = {
     { { { TASK_BODY_NONE, 192 } }, _screenWaveTask, { .value = 0 } },
@@ -868,8 +866,8 @@ AreaResource D_shelter_b4_reservoir_801871F8[4] = {
 
 AreaResource D_shelter_b4_reservoir_80187228[4] = {
     { 24, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102400Tasks },
-    { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &D_actor_207000_801575F0 },
-    { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &D_actor_207000_80151E60 },
+    { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor207000SlouchTaskDescs },
+    { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor207000SucklercephTaskDescs },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

@@ -6,6 +6,7 @@
 #include "gte.h"
 
 #include "actors/actor.h"
+#include "actors/task_tables.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
@@ -100,16 +101,33 @@ static EnemyParams _gSucklercephParams = {
     .damageOverTimeTicks  = 0,
 };
 
-PadScriptCmd Actor07000_D06938[3] = {
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2) },
+/// Segment indices selected by the two lanes of the burst vibration script.
+enum {
+    SUCKLERCEPH_BURST_VIBRATION_HOLD = 0,
+    SUCKLERCEPH_BURST_VIBRATION_FULL = 1,
+    SUCKLERCEPH_BURST_VIBRATION_FADE = 2
+};
+
+/// Two-lane controller vibration for a Sucklerceph burst.
+///
+/// The binary motor holds for nine script frames; the variable motor plays
+/// twelve full-intensity frames and a six-frame fade from 100 to 50. Each lane
+/// stops within these three commands. The script task borrows the array.
+static PadScriptCmd _gSucklercephBurstPadScript[3] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, SUCKLERCEPH_BURST_VIBRATION_HOLD), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, SUCKLERCEPH_BURST_VIBRATION_FULL) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, SUCKLERCEPH_BURST_VIBRATION_FADE) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
 };
 
-PadScriptVibrationSegment Actor07000_D06944[3] = {
-    { 0, 0, 9, 0 },
-    { 255, 255, 12, 1 },
-    { 100, 50, 6, 1 },
+/// Timed burst-vibration segments: binary hold, full intensity and fade.
+///
+/// Durations count script frames and intensities are bytes in 0..255. The
+/// script task borrows all three entries until teardown. The field_3 bytes
+/// are retained; their role is unproven and the interpreter never reads them.
+static PadScriptVibrationSegment _gSucklercephBurstVibrationSegments[3] = {
+    [SUCKLERCEPH_BURST_VIBRATION_HOLD] = { .startIntensity = 0, .endIntensity = 0, .durationFrames = 9, .field_3 = 0 },
+    [SUCKLERCEPH_BURST_VIBRATION_FULL] = { .startIntensity = 255, .endIntensity = 255, .durationFrames = 12, .field_3 = 1 },
+    [SUCKLERCEPH_BURST_VIBRATION_FADE] = { .startIntensity = 100, .endIntensity = 50, .durationFrames = 6, .field_3 = 1 },
 };
 
 static TmdBone _gActor07000SucklercephBodySkeleton[3] = {
@@ -219,9 +237,12 @@ static TaskMessageEntry _gSucklercephDropMsgTable[2] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc Actor07000_D08040 = { { { TASK_BODY_TMD, 96 } }, _sucklercephTask, { .model = &_gActor07000SucklercephBody } };
+enum { ACTOR_07000_TASK_PRIORITY = 96 };
 
-TaskDesc Actor07000_D0804C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _sucklercephDropTask, { .model = &_gActor07000SucklercephBody } };
+TaskDesc gActor07000SucklercephTaskDescs[2] = {
+    { { { TASK_BODY_TMD, ACTOR_07000_TASK_PRIORITY } }, _sucklercephTask, { .model = &_gActor07000SucklercephBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_07000_TASK_PRIORITY } }, _sucklercephDropTask, { .model = &_gActor07000SucklercephBody } },
+};
 
 /// Sucklerceph animation sets: 0 empty, 1 idle, 2 crawl, 3 retained but unrequested.
 ///
@@ -233,17 +254,42 @@ static AnimationSet* _gSucklercephAnimSets[4] = {
     &_gActor07000Actor107000Animation08008,
 };
 
-SVECTOR Actor07000_D08068 = { 0, -10, 0, 0 };
+/// Burst-particle offset in signed game-coordinate units relative to the model root.
+static SVECTOR _gSucklercephBurstParticleOffset = { 0, -10, 0, 0 };
 
 /// Additive-puff offset in signed game-coordinate units relative to the model root.
 static SVECTOR _gSucklercephPuffOffset = { 0, -300, 0, 0 };
 
-DamageAttack Actor07000_D08078[2] = {
-    { 20, 7 },
-    { 12, 3 },
+enum {
+    ACTOR_07000_SLOUCH_STRIKE_ATTACK_ROW = 0,
+    ACTOR_07000_SLOUCH_STRIKE_REACTION   = 7 // Player spark-and-puff hit presentation, without a status effect.
 };
 
-EnemyParams Actor07000_D08080 = { Actor07000_D08078, 120, 12, 36, 1, 250, 20, 100, 0 };
+/// Slouch attack rows packed into category-4 collision keys: 0 strike, 1 spit projectile.
+///
+/// The strike sphere belongs to model part 6; its reaction emits sparks and
+/// puffs. The projectile capsule uses the poison reaction. Both powers are
+/// base HP damage before the victim's HP-band scaling. Enemies borrow this table.
+static DamageAttack _gActor07000SlouchAttacks[2] = {
+    { .power = 20, .reaction = ACTOR_07000_SLOUCH_STRIKE_REACTION },
+    { .power = 12, .reaction = GAME_ACTOR_REACTION_POISON },
+};
+
+/// Shared kind parameters of standing and hidden Slouches.
+///
+/// Each spawn seeds HP from hpMax and borrows this record. The critical-roll
+/// percent base remains 250; a zero damage-over-time pulse base never expires by count.
+static EnemyParams _gActor07000SlouchParams = {
+    .attacks              = _gActor07000SlouchAttacks,
+    .hpMax                = 120,
+    .exp                  = 12,
+    .bp                   = 36,
+    .mp                   = 1,
+    .critChance           = 250,
+    .buildupSteps         = 20,
+    .damageOverTimeChance = 100,
+    .damageOverTimeTicks  = 0,
+};
 
 static TmdBone _gActor07000Actor107000Model08BB4Skeleton[7] = {
 #include "assets/actor_107000_model_08BB4_skeleton.inc"
@@ -637,7 +683,12 @@ static AnimationSet _gActor07000Actor107000Animation0D754 = {
     { NULL, _gActor07000Actor107000Animation0D754Bank1, NULL, NULL, _gActor07000Actor107000Animation0D754Bank4, NULL, NULL, NULL },
 };
 
-AnimationSet* Actor07000_D0D77C[13] = {
+/// Animation sets borrowed by both Slouch spawn forms for the model's lifetime.
+///
+/// Entry 0 is empty. Indices 1..7 are idle, fidget, spit, strike, status flinch,
+/// flinch and recoil; 9 is watch and 12 death. Entries 8, 10 and 11 are retained
+/// but never requested. Playback uses ACTOR_07000_SLOUCH_ANIM_* indices.
+static AnimationSet* _gActor07000SlouchAnimSets[13] = {
     NULL,
     &_gActor07000Actor107000Animation0B868,
     &_gActor07000Actor107000Animation0BCF4,
@@ -653,21 +704,26 @@ AnimationSet* Actor07000_D0D77C[13] = {
     &_gActor07000Actor107000Animation0D754,
 };
 
-SVECTOR Actor07000_D0D7B0 = { 0, 0, -120, 0 };
+/// Hit-effect offset in signed game-coordinate units relative to Slouch model part 1.
+static SVECTOR _gActor07000SlouchHitEffectOffset = { 0, 0, -120, 0 };
 
-SVECTOR Actor07000_D0D7B8 = { 0, -300, 0, 0 };
+/// Additive-puff offset in signed game-coordinate units relative to the Slouch's root.
+static SVECTOR _gActor07000SlouchPuffOffset = { 0, -300, 0, 0 };
 
-TaskMessageEntry Actor07000_D0D7C0[2] = {
+/// Room-command dispatch table borrowed by hidden/drop Slouches.
+///
+/// APPLY borrows an ActorCommand synchronously and returns zero. The second
+/// row terminates lookup and must never be dispatched as a message.
+static TaskMessageEntry _gActor07000SlouchHiddenMsgTable[2] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor07000SlouchApplyCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc Actor07000_D0D7D0[2] = {
-    { { { TASK_BODY_TMD, 96 } }, _actor07000SlouchTask, { .model = &_gActor07000Actor107000Model08BB4 } },
-    { { { TASK_BODY_COORD, 96 } }, _actor07000SlouchProjectileTask, { .value = 0 } },
+TaskDesc gActor07000SlouchTaskDescs[3] = {
+    { { { TASK_BODY_TMD, ACTOR_07000_TASK_PRIORITY } }, _actor07000SlouchTask, { .model = &_gActor07000Actor107000Model08BB4 } },
+    { { { TASK_BODY_COORD, ACTOR_07000_TASK_PRIORITY } }, _actor07000SlouchProjectileTask, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_07000_TASK_PRIORITY } }, _actor07000SlouchHiddenTask, { .model = &_gActor07000Actor107000Model08BB4 } },
 };
-
-TaskDesc Actor07000_D0D7E8 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor07000SlouchHiddenTask, { .model = &_gActor07000Actor107000Model08BB4 } };
 
 /// Values of `_Actor07000SlouchWork::state`, the behaviour the per-frame update runs.
 enum {
@@ -769,19 +825,6 @@ typedef struct {
 } _Actor07000SlouchWork;
 STATIC_ASSERT_SIZEOF(_Actor07000SlouchWork, 0x39C);
 
-extern PadScriptCmd Actor07000_D06938[];
-
-extern PadScriptVibrationSegment Actor07000_D06944[];
-
-extern SVECTOR Actor07000_D08068;
-
-/// Pair table the second form's node 3 and the projectile's collision body pack
-/// into their keys.
-extern DamageAttack Actor07000_D08078[2];
-
-/// Enemy parameters of the second form; its `hpMax` seeds the enemy's HP.
-extern EnemyParams Actor07000_D08080;
-
 /// Models effect 0x80005 spawns, set in `D_800626EC[5].data.model`, one per
 /// random variant the roll selects.
 static TmdSource _gActor07000SlouchBurstLeg;
@@ -789,20 +832,6 @@ static TmdSource _gActor07000SlouchBurstLeg;
 static TmdSource _gActor07000SlouchBurstArm;
 
 static TmdSource _gActor07000SlouchPoison;
-
-/// Animation-set table bound to the second form's context by `animationInitContext`.
-extern AnimationSet* Actor07000_D0D77C[13];
-
-extern SVECTOR Actor07000_D0D7B0;
-
-/// Offset the second form's collapse arms spawn the 0x60080 effect at,
-/// `{ 0, -0x12C, 0 }`.
-extern SVECTOR Actor07000_D0D7B8;
-
-/// Message dispatch table the second form's spawn parks in `Task::msgTable`.
-extern TaskMessageEntry Actor07000_D0D7C0[2];
-
-extern TaskDesc Actor07000_D0D7D0[];
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
@@ -900,23 +929,23 @@ static const EnemyTaskFuncTable4 _gSucklercephDropTaskStates = {
 
 #include "../../shared/sucklerceph_death_state.inc.c"
 
-#define SUCKLERCEPH_BURST_FX_OFFSET          Actor07000_D08068
-#define SUCKLERCEPH_BURST_PAD_SCRIPT         Actor07000_D06938
-#define SUCKLERCEPH_BURST_VIBRATION_SEGMENTS Actor07000_D06944
 #include "../../shared/sucklerceph_kill.inc.c"
 
 #include "../../shared/sucklerceph_drop_spawn_state.inc.c"
 
-/// Task states of the specimen's second form as `_actor07000SlouchTask`
-/// dispatches them: spawn, per-frame update, death and destruction.
-static const EnemyTaskFuncTable4 Actor07000_D0003C = {
+/// Standing Slouch task callbacks: spawn, update, death and destruction.
+///
+/// The dispatcher copies all four entries and indexes them without checking;
+/// Task.state must remain in 0..3. Destruction may release both task and enemy.
+static const EnemyTaskFuncTable4 _gActor07000SlouchTaskStates = {
     { _actor07000SlouchSpawn, _actor07000SlouchUpdateState, _actor07000SlouchDeathState, enemyDestroy },
 };
 
-/// Task states of the hidden Slouch as `_actor07000SlouchHiddenTask`
-/// dispatches them: the same update, death and destruction after a spawn that
-/// parks the model hidden, and a fifth state for its drop into place.
-static const EnemyTaskFuncTable5 Actor07000_D0004C = {
+/// Hidden/drop Slouch task callbacks: hidden setup, update, death, destruction and drop.
+///
+/// The dispatcher copies all five entries and indexes them without checking;
+/// Task.state must remain in 0..4. Hidden setup enters the drop/wait state.
+static const EnemyTaskFuncTable5 _gActor07000SlouchHiddenTaskStates = {
     { _actor07000SlouchHiddenSpawn, _actor07000SlouchUpdateState, _actor07000SlouchDeathState, enemyDestroy, _actor07000SlouchDropState },
 };
 
@@ -989,13 +1018,13 @@ static void _actor07000SlouchSpawn(Enemy* enemy, Task* task)
     enemy->node.state.parts.flags = 0;
     enemy->bodyPos.vx             = 0;
     enemy->bodyPos.vz             = 0;
-    enemy->param                  = &Actor07000_D08080;
-    enemy->hp                     = Actor07000_D08080.hpMax;
+    enemy->param                  = &_gActor07000SlouchParams;
+    enemy->hp                     = _gActor07000SlouchParams.hpMax;
     enemy->recs                   = work->contacts;
     work->hitEffectArg.coord      = &task->extra.tmd->coords[1];
     work->hitEffectArg.spawnArgLo = 0x280;
     work->hitEffectArg.spawnArgHi = 2;
-    animationInitContext(&work->rig.anim, Actor07000_D0D77C, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, _gActor07000SlouchAnimSets, model, work->rig.poses, work->rig.slots);
     for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
         animationResetSlot(&work->rig.anim, slotIndex, 1);
     }
@@ -1039,7 +1068,7 @@ static void _actor07000SlouchSpawn(Enemy* enemy, Task* task)
     work->attackBody.pos.vx           = -0x154;
     work->attackBody.pos.vy           = 0;
     work->attackBody.pos.vz           = 0;
-    work->attackBody.key              = damagePackAttackKey(Actor07000_D08078, 0);
+    work->attackBody.key              = damagePackAttackKey(_gActor07000SlouchAttacks, ACTOR_07000_SLOUCH_STRIKE_ATTACK_ROW);
     work->attackBody.radius           = 0x1F4;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
@@ -1129,7 +1158,7 @@ static void _actor07000SlouchUpdateState(Enemy* enemy, Task* task)
             }
             work->idleFrames += 1;
             if (work->idleFrames >= ACTOR_07000_SLOUCH_PUFF_INTERVAL_TICKS) {
-                effectSpawn(EFFECT_ADDITIVE_PUFF, task->extra.tmd->coords, ACTOR_07000_SLOUCH_PUFF_SIZE, &Actor07000_D0D7B8);
+                effectSpawn(EFFECT_ADDITIVE_PUFF, task->extra.tmd->coords, ACTOR_07000_SLOUCH_PUFF_SIZE, &_gActor07000SlouchPuffOffset);
                 work->idleFrames = 0;
             }
             break;
@@ -1152,7 +1181,7 @@ static void _actor07000SlouchUpdateState(Enemy* enemy, Task* task)
             }
             work->idleFrames += 1;
             if (work->idleFrames >= ACTOR_07000_SLOUCH_PUFF_INTERVAL_TICKS) {
-                effectSpawn(EFFECT_ADDITIVE_PUFF, task->extra.tmd->coords, ACTOR_07000_SLOUCH_PUFF_SIZE, &Actor07000_D0D7B8);
+                effectSpawn(EFFECT_ADDITIVE_PUFF, task->extra.tmd->coords, ACTOR_07000_SLOUCH_PUFF_SIZE, &_gActor07000SlouchPuffOffset);
                 work->idleFrames = 0;
             }
             break;
@@ -1578,7 +1607,7 @@ static void _actor07000SlouchContacts(Task* task)
                             break;
                     }
                     work->alert = 1;
-                    effectSpawnHit(damageGetPlayerAttackEffectId(work->contacts[contactIndex].key.value), (task->extra.tmd->coords + 1), &Actor07000_D0D7B0, &work->hitEffectArg);
+                    effectSpawnHit(damageGetPlayerAttackEffectId(work->contacts[contactIndex].key.value), (task->extra.tmd->coords + 1), &_gActor07000SlouchHitEffectOffset, &work->hitEffectArg);
                     hitCooldownTicks = damageGetPlayerAttackHitCooldown(work->contacts[contactIndex].key.value);
                     if ((hitCooldownTicks << 0x10) > 0) {
                         work->hitCooldown = hitCooldownTicks;
@@ -1683,9 +1712,11 @@ static void _actor07000SlouchTakeDamage(Task* task, s32 damage)
     }
 }
 
-/// Task states of a specimen projectile as `_actor07000SlouchProjectileTask` dispatches
-/// them: launch, flight and the countdown after impact.
-static const TaskFuncTable3 Actor07000_D000E0 = {
+/// Slouch projectile task callbacks: launch, flight and post-impact expiry.
+///
+/// The dispatcher copies all three entries and indexes them without checking;
+/// Task.state must remain in 0..2. Allocation failure or expiry can release the task.
+static const TaskFuncTable3 _gActor07000SlouchProjectileStates = {
     { _actor07000SlouchProjectileLaunch, _actor07000SlouchProjectileFly, _actor07000SlouchProjectileExpire },
 };
 
@@ -1967,7 +1998,7 @@ static void _actor07000SlouchProjectileLaunch(Task* task)
     body->pos.vy            = 0;
     body->pos.vz            = 0;
     body->radius            = 0;
-    body->key               = damagePackAttackKey(Actor07000_D08078, ACTOR_07000_SLOUCH_PROJECTILE_ATTACK_ROW);
+    body->key               = damagePackAttackKey(_gActor07000SlouchAttacks, ACTOR_07000_SLOUCH_PROJECTILE_ATTACK_ROW);
     body->flags             = WORLD_COLLISION_BODY_CAPSULE;
     capsule->contacts       = work->contacts;
     capsule->ends[1].vx     = 0;
@@ -2085,7 +2116,7 @@ static inline void _actor07000SlouchInitHiddenRig(_Actor07000SlouchWork* work, T
 {
     s32 slotIndex;
 
-    animationInitContext(&work->rig.anim, Actor07000_D0D77C, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, _gActor07000SlouchAnimSets, model, work->rig.poses, work->rig.slots);
     slotIndex = 1;
     do {
         animationResetSlot(&work->rig.anim, slotIndex, ACTOR_07000_SLOUCH_ANIM_IDLE);
@@ -2153,8 +2184,8 @@ static void _actor07000SlouchHiddenSpawn(Enemy* enemy, Task* task)
     enemy->bodyPos.vx             = 0;
     enemy->bodyPos.vy             = 0;
     enemy->bodyPos.vz             = 0;
-    enemy->param                  = &Actor07000_D08080;
-    enemy->hp                     = Actor07000_D08080.hpMax;
+    enemy->param                  = &_gActor07000SlouchParams;
+    enemy->hp                     = _gActor07000SlouchParams.hpMax;
     enemy->recs                   = &work->contacts[0];
     work->hitEffectArg.coord      = &task->extra.tmd->coords[1];
     work->hitEffectArg.spawnArgLo = ACTOR_07000_SLOUCH_HIDDEN_HIT_EFFECT_ARGUMENT;
@@ -2199,7 +2230,7 @@ static void _actor07000SlouchHiddenSpawn(Enemy* enemy, Task* task)
     work->attackBody.pos.vy           = 0;
     work->attackBody.pos.vz           = 0;
     work->body.flags                  = (u16)(work->body.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED)));
-    work->attackBody.key              = damagePackAttackKey(Actor07000_D08078, 0);
+    work->attackBody.key              = damagePackAttackKey(_gActor07000SlouchAttacks, ACTOR_07000_SLOUCH_STRIKE_ATTACK_ROW);
     work->attackBody.radius           = ACTOR_07000_SLOUCH_STRIKE_RADIUS;
     work->attackBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
@@ -2212,7 +2243,7 @@ static void _actor07000SlouchHiddenSpawn(Enemy* enemy, Task* task)
     work->idleFrames             = (u16)(((u32)randomDraw >> 16) % (u32)ACTOR_07000_SLOUCH_IDLE_TICKS_COUNT + ACTOR_07000_SLOUCH_IDLE_TICKS_BASE);
     randomDraw = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     work->watchFrames            = (u16)(((u32)randomDraw >> 16) % (u32)ACTOR_07000_SLOUCH_WATCH_TICKS_COUNT + ACTOR_07000_SLOUCH_WATCH_TICKS_BASE);
-    task->msgTable               = Actor07000_D0D7C0;
+    task->msgTable               = _gActor07000SlouchHiddenMsgTable;
     task->state                  = ACTOR_07000_SLOUCH_TASK_HIDDEN;
 }
 
@@ -2402,7 +2433,7 @@ static void _actor07000SlouchDropCollide(Task* task)
 static inline void _actor07000SlouchStartPuffing(_Actor07000SlouchWork* work, GfxCoord* rootCoord, s32 resetWatch)
 {
     enum { ACTOR_07000_SLOUCH_PUFF_SIZE = 1024 };
-    effectSpawn(EFFECT_ADDITIVE_PUFF, rootCoord, ACTOR_07000_SLOUCH_PUFF_SIZE, &Actor07000_D0D7B8);
+    effectSpawn(EFFECT_ADDITIVE_PUFF, rootCoord, ACTOR_07000_SLOUCH_PUFF_SIZE, &_gActor07000SlouchPuffOffset);
     work->idleFrames = 0;
     if (resetWatch) {
         work->watchFrames = 0;
@@ -2521,7 +2552,7 @@ static void _actor07000SlouchTask(Task* task)
 {
     EnemyTaskFuncTable4 states;
 
-    states = Actor07000_D0003C;
+    states = _gActor07000SlouchTaskStates;
     states.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
@@ -2678,7 +2709,7 @@ static void _actor07000SlouchSpawnProjectile(Task* slouchTask)
     offset.vz      = 0;
     offset.vy      = 0;
     offset.vx      = 0;
-    projectileTask = taskSpawnFromTable(Actor07000_D0D7D0, ACTOR_07000_SLOUCH_PROJECTILE_DESCRIPTOR, playerBearing, 0);
+    projectileTask = taskSpawnFromTable(gActor07000SlouchTaskDescs, ACTOR_07000_SLOUCH_PROJECTILE_DESCRIPTOR, playerBearing, 0);
     if (projectileTask != NULL) {
         actorRenderCopyCoordBodyTransform(projectileTask, muzzleCoord, &offset);
         taskReparent(slouchTask, projectileTask);
@@ -2694,7 +2725,7 @@ static void _actor07000SlouchProjectileTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = Actor07000_D000E0;
+    states = _gActor07000SlouchProjectileStates;
     states.funcs[task->state](task);
 }
 
@@ -2819,7 +2850,7 @@ static void _actor07000SlouchHiddenTask(Task* task)
 {
     EnemyTaskFuncTable5 stateHandlers;
 
-    stateHandlers = Actor07000_D0004C;
+    stateHandlers = _gActor07000SlouchHiddenTaskStates;
     stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
@@ -2876,3 +2907,5 @@ static void _actor07000SlouchProjectileExit(Task* task)
     worldCollisionUnlinkBody(&work->body);
     taskKill(task);
 }
+
+PACKAGE_ALIASES

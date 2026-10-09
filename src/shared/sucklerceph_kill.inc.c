@@ -6,8 +6,8 @@
 ///
 /// The offset binding is a live SVECTOR object; the script and segment bindings
 /// name PadScriptCmd and PadScriptVibrationSegment arrays that outlive the
-/// spawned vibration task. actor_04600 uses the defaults; actor_07000 binds its
-/// own objects before inclusion. All three bindings are undefined afterwards.
+/// spawned vibration task. actor_04600 and actor_07000 each supply private
+/// objects under the default names. All three bindings are undefined afterwards.
 #ifndef SUCKLERCEPH_BURST_FX_OFFSET
 #define SUCKLERCEPH_BURST_FX_OFFSET _gSucklercephBurstParticleOffset
 #endif

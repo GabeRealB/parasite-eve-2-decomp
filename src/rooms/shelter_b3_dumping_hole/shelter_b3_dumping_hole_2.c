@@ -460,7 +460,6 @@ static u16      _gCapCaptionCaretTipY;
 static s32      _gCapCaptionCaretPulseLevel;
 static s32      _gCapCaptionCaretPulseFalling;
 static TaskDesc CapCaption_Data_801544FC;
-extern TaskDesc D_actor_207000_801575F0;
 static TaskDesc CapCaption_Data_80154508;
 
 /// Encounter controller's message table, installed in `Task::msgTable`.
@@ -2146,8 +2145,8 @@ AreaPlacement D_shelter_b3_dumping_hole_8018EB90[2] = {
 
 AreaResource D_shelter_b3_dumping_hole_8018EBB0[5] = {
     { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_04400_MAD_CHASER_TASK_SCRIPTED_NO_BUFFER, { 0, 0 }, gActor04400MadChaserTaskDescs },
-    { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 2, { 0, 0 }, &D_actor_207000_801575F0 },
-    { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_20, 1, { 0, 0 }, &D_actor_207000_80151E60 },
+    { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 2, { 0, 0 }, gActor207000SlouchTaskDescs },
+    { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_20, 1, { 0, 0 }, gActor207000SucklercephTaskDescs },
     { 103, 421, AREA_RESOURCE_FILE_GROUP_BASE_30, 1, { 0, 0 }, D_actor_342100_80164B78 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -4360,8 +4359,8 @@ static void _shelterB3DumpingHoleEncounterPairSpawn(Task* waveTask)
         return;
     }
     waveTask->work = work;
-    work->enemy0   = enemySpawnFromTable(&D_actor_207000_80151E60, 1, 1, 0);
-    work->enemy1   = enemySpawnFromTable(&D_actor_207000_80151E60, 1, 1, 0);
+    work->enemy0   = enemySpawnFromTable(gActor207000SucklercephTaskDescs, 1, 1, 0);
+    work->enemy1   = enemySpawnFromTable(gActor207000SucklercephTaskDescs, 1, 1, 0);
     if (work->enemy0 == NULL && work->enemy1 == NULL) {
         taskKill(waveTask);
         return;
@@ -4473,7 +4472,7 @@ static const TaskFuncTable3 D_shelter_b3_dumping_hole_8017D664 = { {
     _shelterB3DumpingHoleEncounterWatchMadChaser,
 } };
 
-/// States of a slot task holding one enemy from `D_actor_207000_801575F0`: spawn it, after
+/// States of a slot task holding one enemy from `gActor207000SlouchTaskDescs`: spawn it, after
 /// a delay switch its palette and send it message 0x7DB, then wait for its hit
 /// points to run out.
 static const TaskFuncTable3 D_shelter_b3_dumping_hole_8017D670 = { {
@@ -4482,7 +4481,7 @@ static const TaskFuncTable3 D_shelter_b3_dumping_hole_8017D670 = { {
     _shelterB3DumpingHoleEncounterWatchSlouch,
 } };
 
-/// States of a slot task holding a pair of enemies from `D_actor_207000_80151E60`: spawn
+/// States of a slot task holding a pair of enemies from `gActor207000SucklercephTaskDescs`: spawn
 /// them, one idle frame, send the first message 0x7DB, send the second the
 /// same after a delay, then wait until both are gone.
 static const TaskFuncTable5 D_shelter_b3_dumping_hole_8017D67C = { {
@@ -4748,7 +4747,7 @@ static void _shelterB3DumpingHoleEncounterSpawnSlouch(Task* waveTask)
     if (work != NULL) {
         Enemy* enemy;
         waveTask->work = work;
-        enemy          = enemySpawnFromTable(&D_actor_207000_801575F0, SHELTER_B3_DUMPING_HOLE_SLOUCH_TASK_INDEX, 0, NULL);
+        enemy          = enemySpawnFromTable(gActor207000SlouchTaskDescs, SHELTER_B3_DUMPING_HOLE_SLOUCH_TASK_INDEX, 0, NULL);
         if (enemy != NULL) {
             _shelterB3DumpingHoleRegisterSingleEncounter(waveTask, work, enemy);
             return;

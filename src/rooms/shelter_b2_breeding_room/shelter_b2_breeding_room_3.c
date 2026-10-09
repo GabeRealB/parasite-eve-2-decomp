@@ -38,8 +38,6 @@
 
 #include "../../shared/room_visual_effects_flying_tasks.inc.c"
 
-extern TaskDesc D_actor_207000_801575F0;
-
 #include "../../shared/room_visual_effects_disc_data.inc.c"
 
 u8* D_shelter_b2_breeding_room_8018055C[1] = {
@@ -663,8 +661,8 @@ AreaResource D_shelter_b2_breeding_room_80183C04[3] = {
 
 AreaResource D_shelter_b2_breeding_room_80183C28[4] = {
     { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_04400_MAD_CHASER_TASK_ORDINARY, { 0, 0 }, gActor04400MadChaserTaskDescs },
-    { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &D_actor_207000_801575F0 },
-    { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &D_actor_207000_80151E60 },
+    { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor207000SlouchTaskDescs },
+    { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor207000SucklercephTaskDescs },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

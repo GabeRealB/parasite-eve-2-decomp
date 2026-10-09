@@ -63,7 +63,7 @@ gActor04400MadChaserTaskDescs = 0x80142604; // absolute:True owner=actor_104400
 gActor100400Tasks = 0x80147E48; // absolute:True owner=actor_100400
 D_actor_207200_8014E7A4 = 0x8014E7A4; // absolute:True owner=actor_207200
 gActor207200CreepingStrangerTaskDesc = 0x80153EC8; // absolute:True owner=actor_207200
-D_actor_207000_801575F0 = 0x801575F0; // absolute:True owner=actor_207000
+gActor207000SlouchTaskDescs = 0x801575F0; // absolute:True owner=actor_207000
 gScreenWaveTaskDesc = 0x80184724; // size:0x18 defined:True
 gScreenWaveRamp = 0x8018473C; // size:0x4 defined:True
 _gShelterB4ReservoirModel07220Skeleton = 0x80184740; // size:0x24 defined:True

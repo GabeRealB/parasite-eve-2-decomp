@@ -230,7 +230,7 @@ AreaResource D_shelter_b1_north_maintenance_walkway_80185814[2] = {
 };
 
 AreaResource D_shelter_b1_north_maintenance_walkway_8018582C[4] = {
-    { 70, 70, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_107000_8013F5F0 },
+    { 70, 70, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor107000SlouchTaskDescs },
     { 46, 46, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor204600SucklercephTaskDesc },
     { 47, 47, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor204600SkullStalkerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },

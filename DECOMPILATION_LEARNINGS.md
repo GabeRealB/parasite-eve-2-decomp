@@ -85956,7 +85956,7 @@ arg2  = func_actor_207000_8014E614(coord, &sp18);
 sp10.vz = 0;
 sp10.vy = 0;
 sp10.vx = 0;
-spawned = taskSpawnFromTable(&D_actor_207000_801575F0, 1, arg2, 0);
+spawned = taskSpawnFromTable(gActor207000SlouchTaskDescs, 1, arg2, 0);
 ```
 
 moved them to the block tail and gave the second `jal` the `sh 0x10` delay slot

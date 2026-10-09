@@ -4308,12 +4308,12 @@ objects = [
 [actors.overlays.actor_07000]
 label = "not shared with its other slot: the header dispatches into the middle of a function and splat will not split there"
 slots = [
-  { slot = 1, package = "actor_107000", id = 130 },
-  { slot = 2, package = "actor_207000", id = 180 },
+  { slot = 1, package = "actor_107000", id = 130, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor07000SucklercephTaskDescs = "gActor107000SucklercephTaskDescs", gActor07000SlouchTaskDescs = "gActor107000SlouchTaskDescs" } },
+  { slot = 2, package = "actor_207000", id = 180, defines = { PACKAGE_ALIASES = "" }, aliases = { gActor07000SucklercephTaskDescs = "gActor207000SucklercephTaskDescs", gActor07000SlouchTaskDescs = "gActor207000SlouchTaskDescs" } },
 ]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_07000/actor_07000", rodata = "0x4", text = "0xEC", data = "0x6924" },
+  { unit = "actor_07000", variant = true, rodata = "0x4", text = "0xEC", data = "0x6924" },
   { kind = "model", at = "0x6950", in_c = true },
   { kind = "modelSource", at = "0x79C8", in_c = true },
   { kind = "model", at = "0x8090", in_c = true },

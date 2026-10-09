@@ -72,11 +72,11 @@ gActor104600SkullStalkerTaskDesc = 0x801382BC; // absolute:True owner=actor_1046
 gActor00700RatTaskDesc = 0x80138C80; // absolute:True owner=actor_100700
 gActor00700MothTaskDesc = 0x801393C8; // absolute:True owner=actor_100700
 gActor103700BatTaskDesc = 0x80139DAC; // absolute:True owner=actor_103700
-D_actor_107000_80139E60 = 0x80139E60; // absolute:True owner=actor_107000
+gActor107000SucklercephTaskDescs = 0x80139E60; // absolute:True owner=actor_107000
 gActor02600MaggotCaterpillarBodyTask = 0x8013A8D4; // absolute:True owner=actor_102600
 D_actor_105500_8013A8DC = 0x8013A8DC; // absolute:True owner=actor_105500 shared=actors
 gActor01500MindSucklerTaskDesc = 0x8013BE28; // absolute:True owner=actor_101500
-D_actor_107000_8013F5F0 = 0x8013F5F0; // absolute:True owner=actor_107000
+gActor107000SlouchTaskDescs = 0x8013F5F0; // absolute:True owner=actor_107000
 gActor101600ScavengerTaskDesc = 0x801445DC; // absolute:True owner=actor_101600
 gActor102000PawnGolemTasks = 0x80147DF0; // absolute:True owner=actor_102000
 D_actor_207200_8014E7A4 = 0x8014E7A4; // absolute:True owner=actor_207200

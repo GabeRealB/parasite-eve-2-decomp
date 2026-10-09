@@ -5,6 +5,8 @@
 
 #include "common.h"
 
+#include "actors/task_tables.h"
+
 #include "gameplay/area_entry.h"
 #include "gameplay/collision.h"
 #include "gameplay/enemy.h"
@@ -56,7 +58,6 @@ typedef struct {
 } _Actor342400CullZone;
 STATIC_ASSERT_SIZEOF(_Actor342400CullZone, 0x4);
 
-extern TaskDesc D_actor_207000_801575F0; // absolute, spawned by _actor342400WaveSpawnSlouch
 // Message-table callbacks use the argument views required by this TU.
 
 extern TaskMessageEntry     D_actor_342400_8016BF48[2]; // stored into `Task::msgTable` by _actor342400WaveInitialize
@@ -775,7 +776,7 @@ static void _actor342400WaveSpawnSlouch(Task* waveTask)
     if (work != NULL) {
         // Attach the work before spawning so task teardown also handles failure.
         waveTask->work = work;
-        enemy          = enemySpawnFromTable(&D_actor_207000_801575F0, ACTOR_342400_WAVE_SLOUCH_HIDDEN_TASK, 0, NULL);
+        enemy          = enemySpawnFromTable(gActor207000SlouchTaskDescs, ACTOR_342400_WAVE_SLOUCH_HIDDEN_TASK, 0, NULL);
         if (enemy != NULL) {
             gMadChaserWaveSlots[(s16)(waveTask->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_LIVE;
             work->enemy                                                        = enemy;
