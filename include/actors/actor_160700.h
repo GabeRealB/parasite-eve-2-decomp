@@ -1,6 +1,23 @@
 #ifndef INCLUDE_ACTORS_ACTOR_160700_H
 #define INCLUDE_ACTORS_ACTOR_160700_H
 
+#include "main/task_types.h"
+
+/// Descriptor indices for Pierce Carradine and his carried model.
+enum {
+    ACTOR_160700_TASK_PIERCE        = 0,
+    ACTOR_160700_TASK_CARRIED_MODEL = 1,
+    ACTOR_160700_TASK_COUNT         = 2,
+};
+
+/// Spawn recipes for Pierce Carradine's meeting actor and its carried model.
+///
+/// Entry 0 creates the twenty-part paced walker at priority 96. Entry 1 creates
+/// its carried model at priority 192; the walker adopts that task and attaches
+/// its root to body part 4. There is no terminator. Keep this actor overlay and
+/// its model and animation resources loaded for the spawned tasks' lifetimes.
+extern TaskDesc gActor160700PierceCarradineTasks[ACTOR_160700_TASK_COUNT];
+
 /// Restarts placed actor 0's post-meeting animation when meeting progress is nonzero.
 ///
 /// Requires this actor package and the scene manager to be loaded. A missing

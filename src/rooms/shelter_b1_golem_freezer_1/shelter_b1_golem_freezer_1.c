@@ -10,7 +10,6 @@
 #include "common.h"
 
 #include "actors/actor_160700.h"
-#include "actors/task_tables.h"
 
 #include "gameplay/display.h"
 #include "gameplay/area.h"
@@ -293,7 +292,7 @@ AreaResource D_shelter_b1_golem_freezer_1_8017F128[1] = {
 };
 
 AreaResource D_shelter_b1_golem_freezer_1_8017F134[2] = {
-    { 143, 607, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_160700_801416A8 },
+    { 143, 607, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_160700_TASK_PIERCE, { 0, 0 }, gActor160700PierceCarradineTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

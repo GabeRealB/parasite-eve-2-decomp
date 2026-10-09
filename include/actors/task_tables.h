@@ -153,8 +153,6 @@ extern TaskDesc D_actor_143900_801413EC;
 
 extern TaskDesc D_actor_105100_80141464[];
 
-extern TaskDesc D_actor_160700_801416A8[];
-
 extern TaskDesc D_actor_146300_801427C8[];
 
 extern TaskDesc D_actor_461800_801437EC;
