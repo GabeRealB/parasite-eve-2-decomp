@@ -302,6 +302,12 @@ DOCUMENT = ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n
             '<style>body{margin:0}[hidden]{display:none!important}</style>\n</head>\n<body>\n%s\n</body>\n</html>\n')
 
 
+def brief(note: str) -> str:
+    """A traced load's note runs to a paragraph; the page has room for its first clause."""
+    note = (note or "").split(". ")[0]
+    return note if len(note) <= 72 else note[:71].rstrip() + "…"
+
+
 def page_data(db: sqlite3.Connection, pictures: str = "") -> str:
     """The graph as the page reads it: files by index, footprints, groups per loader."""
     import json
@@ -309,7 +315,7 @@ def page_data(db: sqlite3.Connection, pictures: str = "") -> str:
     index = {path: n for n, path in enumerate(files)}
     members = defaultdict(list)
     for r in db.execute("SELECT * FROM member"):
-        members[r["grp"]].append([index[r["file"]], r["page"], r["row"], r["note"], int("RELOCATE" in (r["mode"] or ""))])
+        members[r["grp"]].append([index[r["file"]], r["page"], r["row"], brief(r["note"]), int("RELOCATE" in (r["mode"] or ""))])
     loaders = defaultdict(list)
     for g in db.execute("SELECT * FROM grp ORDER BY loader, kind, id"):
         loaders[g["loader"]].append([g["kind"][0], g["condition"], g["evidence"], members[g["id"]]])
