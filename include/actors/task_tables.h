@@ -291,7 +291,15 @@ extern TaskDesc D_actor_213000_80157DE0[];
 
 extern TaskDesc D_actor_210700_801585CC;
 
-extern TaskDesc D_actor_443500_8015873C[];
+/// Spawn recipes for Pierce in shelter room 47 and his attached held model.
+///
+/// Entry 0 creates the twenty-part body without an automatic primitive buffer;
+/// its second spawn argument must point to the live owning `Enemy`. Entry 1
+/// creates the held model: first argument is the parent part index (Pierce uses
+/// 4), second argument is the live parent `Task*`. Both run at priority 192.
+/// The table has two entries and no terminator. Keep `actor_443500` loaded for
+/// the tasks' callbacks and borrowed model/animation resources.
+extern TaskDesc gActor443500PierceTaskDescs[2];
 
 extern TaskDesc D_actor_401300_80158A18;
 
