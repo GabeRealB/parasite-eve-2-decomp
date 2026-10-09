@@ -4589,3 +4589,667 @@ spk_128	Character sound bank 0x401D of actor_110600: two footstep cues on its wa
 spk_129	Desert Chaser sound bank 0x4001 as used around Dryfield Main Street, the breezeway and mine_mesa: clip sounds of the first-visit scene and footstep cues, several requesters unreached.	
 spk_13	Weapon sound bank of the M4A1 Hammer: the rifle round's fire sound, played per round in the burst; its entries 0 and 2 are empty with no use found.	
 spk_130	Sound bank 0x4034 of actor_205200's controller enemy in the Neo Ark and Shelter B6 rooms: sustained hum, MP-draining pulse, part-hit and wreck sounds.	
+spk_131	Stalker (actor_400600) body sound bank: left/right steps, landings, cry, arm-strike swing and grab bite, used for every Stalker that is not a water-entrance one.	
+spk_132	Stalker (actor_400600) water-entrance sound bank: the same step, landing, cry, strike and bite cues as the body bank, played only for spawn kind 1 (water entrance).	
+spk_133	Stranger (actor_401300) sound bank: walk/run footfalls, fall, hurt, death, leap, land, strike and charge-recoil cues; also its scripted death in actor_356100 and the forest zone scene.	
+spk_134	GOLEM Knight/Bishop sound set 1 bank (file 402201), loaded by actor_403900 in the shelter B2 pod access tunnel: steps, appear/vanish, fade, fall, strike and hold cues.	
+spk_135	GOLEM Knight/Bishop sound set 2 bank: steps, appear/vanish, fade, fall-impact and strike cues in set-2 rooms (acropolis promenade, neo ark shrine and power plant, shelter 1F airlock).	
+spk_136	GOLEM Knight/Bishop sound set 3 bank: steps, appear/vanish, fade, fall-impact and strike cues in set-3 rooms (shelter B1 sleeping quarters, B1 access tunnel).	
+spk_137	GOLEM Knight/Bishop sound set 4 bank: steps, appear/vanish, fade, fall-impact and strike cues in set-4 rooms (dryfield parking lot and others).	
+spk_138	actor_403000 sound bank: prowl/walk/turn clip cues, hurt, grab-rush, lunge, catch, drop, knockdown and two death sounds, plus four entries started by mine_cavern's second-stage cutscene.	
+spk_139	Burner (actor_403100) boss sound bank: footfalls, roars and cries, arm striking the balcony, flame breath, throw/drag impacts on the player; one entry closes its defeat scene (actor_335800).	
+spk_14	M4A1 bayonet weapon sound bank (weapon 26): burst round, thrust swing, blade hit, empty-chamber click and reload cue, played from the player's attack and reload states.	
+spk_140	Glutton sound bank used by actor_403200 and actor_444000: advancing steps, inhale, limb retract and swipe, debris throw, summon, collapse cues, and rain blob/heal chunk launch and landing.	
+spk_141	actor_405800 sound bank (bank id 0x4005, shared id with spk_88): walk and on-back crawl steps, landings, engage cry/grab, arm strike and hold bites.	
+spk_142	Brahman boss (actor_503500) sound bank: part death, ballistic and lingering shots, arm strike, pink/yellow/orange flash attack charges and strikes, death loop and phase transition.	
+spk_143	actor_510900 boss-fight sound bank: steps, hit reactions, shotgun response, backstep, slashes, dash, flame loop, shots, grenade throw and the lethal blow; one flame loop in its intro scene.	
+spk_144	Golem actor_521100 fight sound bank: walk-clip steps, guarded hit, stagger and flinch reactions, stance attack and swing, slash, and grab-counter and grab-throw cues.	
+spk_145	actor_560800 scripted-scene sound bank: eighteen unpositioned cues started one by one by the package's script callback (StartSoundCue 1-18) in room variant 1.	
+spk_146	Companion Kyle variant 1 bank (file 800101): his single handgun shot and hurt voice, used by actor_800100, when scavengers grab him in dryfield night rooms, and in mine_mesa's arrival scene.	
+spk_147	Companion Kyle variant 2 (MM1) bank (file 800102): grenade launcher shot, shell explosion and hurt voice; the hurt entry is also started by the observatory companion arrival scene.	
+spk_148	Companion Kyle variant 3 (M950) bank (file 800103): one shot sound per round of his 3-10 shot burst and his hurt voice; not resident with the other variant files.	
+spk_149	Companion Kyle variant 4 (M4A1 + Pyke) bank (file 800104): rifle burst shot, Pyke flame start/stop sound and hurt voice; not resident with the other variant files.	
+spk_15	M4A1 Pyke weapon sound bank (weapon 28): rifle burst round, flame start with its stop requests, empty-chamber click and reload cue.	
+spk_150	Companion actor_800200 sound bank: footsteps for several floor types, a directed-action voice and hurt sound; entry 9 is also started by companion scenes in actor_136100, actor_160600, junk yard.	
+spk_151	Stage ambience bank of map_dryfield_full: one looping outdoor ambience sample started on view loads when the area's music row asks for it; not in the other stage map files.	
+spk_152	Footstep bank of acropolis_square: walk, scripted-jump and run step sounds while the player stands on surface class 4 of the square.	
+spk_153	Acropolis square room sound bank: door sounds of warps 1, 2 and 7, the room cutscene's start/scene/after/end sounds, caption cue sounds and the siren sequence's blasts.	
+spk_154	Footstep bank of acropolis_east_elevator_hall: walk and run steps (same two samples) while the player is on surface class 0 or 3 of the hall.	
+spk_155	Acropolis east elevator hall room sound bank: arrival and departure sounds of the room's only warp and one three-sample sound started by the first-visit opening event.	
+spk_156	Footstep bank of acropolis_patio: walk, run and stair-climb step sounds on surface class 4 and the patio's stair flights.	
+spk_157	Acropolis patio room sound bank: door sounds of warps 1 and 2, the cafeteria door unlock, a caption sound, opening and follow-up scene sounds, and the Strangers' dormant loop (actor packages).	
+spk_158	Footstep bank of acropolis_cafeteria: walk, jump and run step sounds for surface classes 1, 2, 3 and 4 of the room.	
+spk_159	Acropolis cafeteria room sound bank: door sounds of warps 0, 1 and 2, a caption cue sound, the post-battle scene sound and the woman's (actor_202900) animation cue in room variant 1.	
+spk_16	M4A1 Javelin weapon sound bank (weapon 29): rifle burst round, guide beam sound, empty-chamber click and reload cue.	
+spk_160	Footstep bank of acropolis_plaza: walk, scripted-jump and run step sounds on surface classes 0 and 1 of the plaza grid.	
+spk_161	Acropolis plaza room sound bank: ambience loops and voices mixed frame by frame against the traversal movie, final-scene one-shots, and the officers' step sounds (actor_310100).	
+spk_162	Footstep bank of acropolis_security_room: walk, scripted-jump and run step sounds on surface class 4, the room's only class.	
+spk_163	Acropolis security room sound bank: door sounds of its one warp, monitor panel select/brighter/darker clicks, shutter unlock and release sounds, and the right-lock scene's movie loop.	
+spk_164	Footstep bank of acropolis_hallway: walk, scripted-jump and run step sounds while the player stands on surface class 1 or 4.	
+spk_165	Acropolis hallway room sound bank: arrival/departure sounds of warp endpoints 1-4 and two caption-cue sounds of the Blue Key caption.	
+spk_166	Footstep bank of acropolis_fountain: walk, jump and run step sounds on surface classes 4 and 5.	
+spk_167	Acropolis fountain room sound bank: the fountain water loop mixed per view, door sounds of warps 0-4, and caption cue sounds of CAP command 5.	
+spk_168	Footstep bank of acropolis_forked_road: walk and run step sounds on surface class 4, the room's only walkable class.	
+spk_169	Acropolis forked road room sound bank: fountain-exit door sounds, the leap-in sound of the scripted Caterpillars (actor_105500/102600) and the dormant Grinning Stranger's two random sounds.	
+spk_17	MP5A5 weapon sound bank (weapon 30): primary shot, secondary flash fire, empty-chamber click, reload start and reload load cues.	
+spk_170	Footstep bank of acropolis_observatory: walk, scripted-jump and run step sounds on surface class 1.	
+spk_171	Footstep bank of acropolis_promenade: walk, jump and run step sounds on surface classes 1, 2 and 4.	
+spk_172	Acropolis promenade room sound bank: door sounds of the sanctuary and bridge warps, two caption-cue one-shots and two sounds of the post-battle scene.	
+spk_173	Footstep bank of acropolis_sanctuary: walk, scripted-jump and run step sounds on surface classes 1 and 2.	
+spk_174	Acropolis sanctuary room sound bank: door sounds of the promenade and roof-garden warps and the two sounds of the room's automatic cutscene; the item-lid entries are not reached.	
+spk_175	Type-3 scene sound bank of acropolis_roof_garden: five sounds started by the arrival scene's event script after caption cues, all stopped when the scene is skipped.	
+spk_176	Footstep bank of acropolis_roof_garden: walk, scripted-jump and run step sounds on surface classes 1 and 2.	
+spk_177	Acropolis roof garden room sound bank: warp 0 door sounds, a caption sound, the view-mixed ambience, timed arrival-scene sounds, the view figure's cues (actor_110800) and Caterpillar drop-ins.	
+spk_178	Footstep bank of acropolis_bridge: walk, scripted-jump and run step sounds on surface classes 2 and 4.	
+spk_179	Acropolis bridge room sound bank: door sounds of warps 0 and 1 and the keypad's key beep, code-rejected and code-accepted sounds.	
+spk_18	MP5A5 P1 weapon sound bank (weapon 31): primary shot, secondary flash fire, empty-chamber click, reload start and reload load cues.	
+spk_180	Footstep bank of acropolis_fire_escape: walk and run step sounds on the floor and stair-climb steps on the two stair flights.	
+spk_181	Acropolis fire escape room sound bank: bridge door sounds, a view-levelled ambience loop, the flickering lamp's one-shot, and the telephone cutscene's start/scene/after/end sounds.	
+spk_182	Footstep bank of acropolis_helicopter_landing_pad: walk, run and scripted-stairs step sounds on surface classes 2 and 3.	
+spk_183	Helicopter landing pad room sound bank: room ambience until the No. 9 encounter, intro sound, lift travel, light sparks, and actor_510900's blast, light-break and grenade sounds in the fight.	
+spk_184	Footstep bank of acropolis_west_elevator_hall: walk, scripted-jump and run step sounds anywhere in the hall.	
+spk_185	Acropolis west elevator hall room sound bank: two arrival-scene sounds (by position the lift arriving and its door closing) and arrival/departure sounds of warp 2 to Acropolis Square.	
+spk_186	Footstep bank of mist_r18: walk, jump and run step entries requested on the player's animation cues; the use is recorded as open (mechanism only).	
+spk_187	mist_r18 room sound bank: two sounds started by the intro script during Eric Baldwin's clip 3, the second as his first held model is shown.	
+spk_188	Footstep bank of mist_parking: walk, scripted-jump and run step sounds on surface classes 1 and 3.	
+spk_189	MIST parking room sound bank: door fade sounds, warp 0 door sounds, the room command 8 cutscene's four sounds, the variant-2 arrival conversation's sounds and Pierce's steps (actor_113100).	
+spk_19	MP5A5 P2 weapon sound bank (weapon 32): primary shot, secondary flash fire, empty-chamber click, reload start and reload load cues.	
+spk_190	Footstep bank of mist_shooting_gallery: walk, scripted-jump and run step sounds on collision surface classes 1 and 2 (same four samples under two entry sets).	
+spk_191	MIST shooting gallery room sound bank: target appear/hit/fold/charge/attack/destroy sounds (actor_107600), door sounds, round-start sound and actor_215100's introduction scene sounds.	
+spk_192	Footstep bank of dryfield_gas_station: walk, scripted-jump and run step sounds on surface classes 2, 3 and 4.	
+spk_193	Dryfield gas station room sound bank: door sounds of two warps incl. a refused general-store door, the telephone cutscene's sounds, the arrival cutscene's loop and cues, and caption cue sounds.	
+spk_194	Footstep bank of dryfield_main_street: walk, scripted-jump and run step sounds on collision surface classes 2, 3 and 4.	
+spk_195	Dryfield main street room sound bank: door sounds of the street warps and four motel-room doors, locked-door rattle, motel door open/unlock events, caption cues and first-visit scene sounds.	
+spk_196	Footstep bank of dryfield_general_store: walk and run step sounds on surface class 1; the scripted-jump entries are not reached.	
+spk_197	Dryfield general store room sound bank: door sounds of its warp endpoints, the one-time gas-station door event, the underpass prompt and arrival, a caption cue and an automatic-scene sound.	
+spk_198	Footstep bank of dryfield_back_street: walk and run step sounds (the same two samples) on collision surface class 1.	
+spk_199	Dryfield back street room sound bank: door sounds of the general store and souvenir shop endpoints, the dilapidated house door's blocked sound and the view-mixed ambience loop.	
+spk_2	M93R weapon sound bank (weapon 2): round fired, empty-chamber click, reload start and reload load cues from the player's attack and reload states.	
+spk_20	Grenade pistol weapon sound bank (weapon 11, file 11001): launch and detonation of the fragmentation round, empty-chamber click, reload start and reload load cues.	
+spk_200	Footstep bank of dryfield_souvenir_shop: walk, scripted-jump and run step sounds on surface classes 1 and 2; the companion's +100 entries are past the bank.	
+spk_201	Dryfield souvenir shop room sound bank: the arrival and departure door sounds of the room's only endpoint (to the back street).	
+spk_202	Footstep bank of dryfield_warehouse: walk, scripted-jump and run step sounds on surface class 6, the room's only class.	
+spk_203	Dryfield warehouse room sound bank: warp 1 door sounds, two sounds of the Monkey Wrench key-item event and the room ambience mixed by view for the whole stay.	
+spk_204	Footstep bank of dryfield_dilapidated_house: walk, scripted-jump and run step sounds on surface classes 1 and 2.	
+spk_205	Dryfield dilapidated house room sound bank: arrival and departure door sounds of warp 0; its other filled entries have no starter found.	
+spk_206	Footstep bank of dryfield_motel_room_1: walk, scripted-jump and run step sounds on surface classes 1 and 2.	
+spk_207	Dryfield motel room 1 room sound bank: arrival and departure sounds of the room's only door; three other filled entries have no starter found.	
+spk_208	Footstep bank of dryfield_motel_room_2: walk, scripted-jump and run step sounds on surface classes 1 and 2.	
+spk_209	Dryfield motel room 2 room sound bank: arrival and departure sounds of the room's only warp (main street door); other filled entries have no starter found.	
+spk_21	Grenade pistol airburst-round sound bank (file 11002, weapon 11): launch and detonation of the airburst round, empty-chamber click, reload start and reload load cues.	
+spk_210	Footstep bank of dryfield_motel_room_3: walk, scripted-jump and run step sounds on surface classes 1 and 2.	
+spk_211	Dryfield motel room 3 room sound bank: arrival and departure sounds of the room's only warp (main street's room-3 door); other filled entries have no starter found.	
+spk_212	Footstep bank of dryfield_motel_room_4: walk, scripted-jump and run step sounds on surface classes 1 and 2.	
+spk_213	Dryfield motel room 4 room sound bank: arrival and departure sounds of the room's only warp (main street's room-4 door); other filled entries have no starter found.	
+spk_214	Footstep bank of dryfield_parking_lot: walk and run step sounds on surface classes 5 and 2, and scripted-jump steps on the two stair flights.	
+spk_215	Dryfield parking lot room sound bank: door sounds of the main street, motel lobby, toilet and saloon back-door warps, the motel lobby door unlock-and-open event and two caption cue sounds.	
+spk_216	Footstep bank of dryfield_toilet: walk, scripted-jump and run step sounds (same two samples) on surface classes 1 and 2.	
+spk_217	Dryfield toilet room sound bank: door sounds of the only warp, a caption cue sound, and the woman's looping sound started by actor_323300 and stopped by the room's event script.	
+spk_218	Footstep bank of dryfield_motel_lobby: walk, scripted-jump and run step sounds on surface class 1.	
+spk_219	Dryfield motel lobby room sound bank: arrival and departure sounds of the room's only warp (door to the parking lot); other filled entries have no starter found.	
+spk_22	Grenade pistol riot-round sound bank (file 11003, weapon 11): launch and detonation of the riot round, empty-chamber click, reload start and reload load cues.	
+spk_220	Footstep bank of dryfield_saloon_g_r: walk, scripted-jump and run step sounds on surface classes 1 and 2 of the saloon.	
+spk_221	Dryfield saloon G.R. room sound bank: door sounds of the parking-lot and kitchen warps and the unlock-then-open pair of the one-time parking-lot door event.	
+spk_222	Footstep bank of dryfield_g_r_kitchen: walk, scripted-jump and run step sounds on surface class 1 of the kitchen.	
+spk_223	Dryfield G.R. kitchen room sound bank: arrival/departure sounds shared by both doors and the unlock-and-open sequence of the water-tower door's first use.	
+spk_224	Footstep bank of dryfield_water_tower: walk, scripted-jump and run step sounds on surface class 2.	
+spk_225	Dryfield water tower room sound bank: door sounds of its warp slots, kitchen door unlock/open event, caption cues, and the timed mechanism run's start, running loop, end, drop and land sounds.	
+spk_226	Footstep bank of dryfield_water_tank: walk, scripted-jump and run step sounds on surface classes 3, 4 and 5.	
+spk_227	Dryfield water tank room sound bank: room and per-view ambiences, mechanism-scene and prop sounds, the streamed movie's two SFX, a prompt sound and the water tank scene's event-script sounds.	
+spk_228	Footstep bank of dryfield_breezeway: walk, scripted-jump and run step sounds on surface class 1.	
+spk_229	Dryfield breezeway room sound bank: door sounds incl. the refused factory door and its unlock event, a caption cue, the chaser's pursuit start (actor_400100), effect loop/burst and a cursor sound.	
+spk_23	MM1 fragmentation-round sound bank (file 11004, weapon 12): launch and detonation of the fragmentation round, empty-chamber click and reload load cue.	
+spk_230	Footstep bank of dryfield_factory: walk, scripted-jump and run step sounds on surface classes 2 and 3; the class-3 scripted-jump entries are empty and not reached.	
+spk_231	Dryfield factory room sound bank: door sounds of three warps, the car lift's raise/lower/turn and settle sounds, hatch open/close, panel confirm, caption cues and the driveway departure event.	
+spk_232	Footstep bank of dryfield_garage: walk, scripted-jump and run step sounds on surface class 1.	
+spk_233	Dryfield garage room sound bank: arrival and departure door sounds of warps 0 and 1; six other filled entries have no starter found.	
+spk_234	Footstep bank of dryfield_driveway: walk, scripted-jump and run step sounds on surface class 2.	
+spk_235	Dryfield driveway room sound bank: door sounds of warps 0 and 2, the first factory-transition event sound, the bat-encounter and wire-rope scene sounds and two caption cue sounds.	
+spk_236	Footstep bank of dryfield_junk_yard: walk, scripted-jump and run step sounds on surface class 1.	
+spk_237	Dryfield junk yard room sound bank: door sounds of warps 0, 1 and 2 and one unpositioned sound in the companion's final scene.	
+spk_238	Footstep bank of dryfield_trailer_coach: walk, scripted-jump and run steps on surface class 6; two of its samples are also voiced by room-bank entry 0x0D in the first story conversation.	
+spk_239	Dryfield trailer coach room sound bank: door sounds of both warps, the cutscene record's start/scene/after/end sounds and three sounds in the story conversations with Gary.	
+spk_24	MM1 airburst-round sound bank (file 11005, weapon 12): launch and detonation of the airburst round, empty-chamber click and reload load cue.	
+spk_240	Footstep bank of dryfield_motel_room_5: walk, scripted-jump and run step sounds on surface class 1; the class-2 entries 1-4 are empty in this bank.	
+spk_241	Dryfield motel room 5 room sound bank: arrival and departure door sounds of warp 0.	
+spk_242	Footstep bank of dryfield_motel_balcony: walk and run step sounds on two surface classes (0x51 and 0x2D entry sets); the 0x49-0x4C requests of the other classes find no entry.	
+spk_243	Dryfield motel balcony room sound bank: door sounds of warps 0-3, the unlock-then-open event of room 5's and the loft's doors, and two caption cue sounds.	
+spk_244	Footstep bank of dryfield_motel_room_6: walk, scripted-jump and run step sounds on three surface classes (entries 0x2D, 0x3D and 0x01 sets).	
+spk_245	Dryfield motel room 6 room sound bank: door sounds of warps 0 and 1, the room cutscene record's start/scene/after/end sounds and the movie SFX of actor_120500's Kyle scene.	
+spk_246	Type-1 (footstep) bank 0x121F of dryfield_motel_loft: no reached use found; its entries 0x35-0x38 have no requester recorded.	
+spk_247	Dryfield motel loft room sound bank: arrival and departure door sounds of the room's one warp endpoint; other filled entries have no starter found.	
+spk_248	Footstep bank of dryfield_water_hole: walk, run and scripted-jump step sounds on the room floor and on the 5-step stair flight; companion +100 entries are past the bank.	
+spk_249	Dryfield water hole room sound bank: door sounds of warps 0 and 1 (the Shelter door warp has none) and the locked sound played by room command 2 and caption cue 4.	
+spk_25	MM1 riot-round sound bank (file 11006, weapon 12): launch and detonation of the riot round, empty-chamber click and reload load cue.	
+spk_250	Footstep bank of dryfield_cellar: walk and run step sounds on any surface; the scripted-jump entries are empty and not reached (no stair trigger).	
+spk_251	Dryfield cellar room sound bank: arrival and departure sounds of the room's only warp and one centred sound for room-message selector 3 (trigger recorded as open).	
+spk_252	Footstep bank of dryfield_underpass: walk, scripted-jump and run step sounds on surface classes 3 and 4.	
+spk_253	Dryfield underpass room sound bank: door sounds of the cellar, water hole and general store warp slots and one caption cue sound of CAP commands 1 and 2.	
+spk_254	Footstep bank of dryfield_night_gas_station rooms 1-3: player walk/jump/run steps on surface classes 2, 3 and 4, plus the companion's +100 footstep entries.	
+spk_255	Night gas station room sound bank for rooms 1-3: door sounds of the main-street and general-store warps, caption and CAP-completion cue sounds and the Jerry can scene sound.	
+spk_256	Footstep bank of dryfield_night_gas_station room 4: walk, scripted-jump and run step sounds on surface classes 2, 3 and 4 of the room 4 grid.	
+spk_257	Night gas station room sound bank for room 4: door sounds of the two warps and caption / CAP-completion cue sounds of commands 15, 30, 31 and 32, incl. the cutscene loop entry.	
+spk_258	Footstep bank of dryfield_night_main_street: walk, scripted-jump and run step sounds on collision surface classes 2, 3 and 4.	
+spk_259	Night main street room sound bank: street and motel-room door sounds, locked-door rattle, motel door open/unlock events, caption cues, and unpositioned sounds of Gary's scenes (actor_136100).	
+spk_26	PA3 shotgun sound bank, first ammunition variant (file 11007, weapon 13): shot, pump, empty-chamber click and reload cues.	
+spk_260	Footstep bank of dryfield_night_general_store: player walk and run steps on surface classes 0/1 and 2, plus +100 entries for a companion's steps.	
+spk_261	Night general store room sound bank: door sounds of its warp endpoints, the one-time gas-station door event, underpass prompt and arrival, and a caption cue sound.	
+spk_262	Footstep bank of dryfield_night_back_street: player walk and run steps on surface class 1 and the companion's +100 step entries.	
+spk_263	Night back street room sound bank: door sounds of the general store and souvenir shop endpoints and the dilapidated house door's blocked sound; its ambience entry has no use found.	
+spk_264	Footstep bank of dryfield_night_souvenir_shop: player walk/jump/run steps on surface classes 1 and 2 and the companion's +100 entries for both classes.	
+spk_265	Night souvenir shop room sound bank: arrival and departure door sounds of the room's only endpoint (to the back street).	
+spk_266	Footstep bank of dryfield_night_warehouse: player walk/jump/run steps on surface class 6 and the +100 entries for Kyle's steps while he follows the player.	
+spk_267	Night warehouse room sound bank: arrival and departure door sounds of warp endpoint 1; the other entries (day bank's layout) have no use found.	
+spk_268	Footstep bank of dryfield_night_dilapidated_house: player walk/jump/run steps on surface classes 1 and 2 and the companion's +100 entries for both.	
+spk_269	Night dilapidated house room sound bank: warp 0 door sounds and the two-sound back-street door event on the first departure to the night back street.	
+spk_27	PA3 shotgun sound bank, second ammunition variant (file 11008, weapon 13): shot, pump, firefly impact sound, empty-chamber click and reload cues.	
+spk_270	Footstep bank of dryfield_night_motel_room_1: walk, scripted-jump and run step sounds on surface classes 1 and 2.	
+spk_271	Night motel room 1 room sound bank: arrival and departure sounds of the room's only warp; three other filled entries have no starter found.	
+spk_272	Footstep bank of dryfield_night_motel_room_2: walk, scripted-jump and run step sounds on surface classes 1 and 2.	
+spk_273	Night motel room 2 room sound bank: arrival and departure sounds of the room's only warp (from main street); other filled entries have no starter found.	
+spk_274	Footstep bank of dryfield_night_motel_room_3: walk, scripted-jump and run step sounds on surface classes 1 and 2.	
+spk_275	Night motel room 3 room sound bank: arrival and departure sounds of the room's only warp (main street's room-3 door); other filled entries have no starter found.	
+spk_276	Footstep bank of dryfield_night_motel_room_4: walk, scripted-jump and run step sounds on surface classes 1 and 2.	
+spk_277	Night motel room 4 room sound bank: arrival and departure sounds of the room's only warp (from night main street); other filled entries have no starter found.	
+spk_278	Footstep bank of dryfield_night_parking_lot: walk and run step sounds on surface classes 5 and 2, and scripted-jump steps on the room's stair flight.	
+spk_279	Night parking lot room sound bank: door sounds of the main street, motel lobby, toilet and saloon warps incl. a refused saloon door, the motel lobby door unlock/open event and caption cues.	
+spk_28	PA3 shotgun sound bank, third ammunition variant (file 11009, weapon 13): shot, pump, empty-chamber click and reload cues.	
+spk_280	Footstep bank of dryfield_night_toilet: walk, scripted-jump and run step sounds (same two samples) on surface classes 1 and 2.	
+spk_281	Night toilet room sound bank: door sounds of the only warp, a caption cue sound, and the landing sound of the Blood Sucklers that drop to the floor (requested by actor_104000).	
+spk_282	Footstep bank of dryfield_night_motel_lobby: walk, scripted-jump and run step sounds on surface classes 0/1 and, from a second record, class 2.	
+spk_283	Night motel lobby room sound bank: door sounds, the telephone cutscene's start/scene/after/end sounds, the cash register keypad's press/error/accept sounds and one caption cue sound.	
+spk_284	Footstep bank of dryfield_night_saloon_g_r: walk, scripted-jump and run step sounds on surface classes 1 and 2.	
+spk_285	Night saloon G.R. room sound bank: door sounds, the parking-lot door unlock/open event, the event-script sounds of the entry scene and talks with Kyle, and an encounter sound in variant 2.	
+spk_286	Footstep bank of dryfield_night_g_r_kitchen: walk, scripted-jump and run step sounds on surface class 1.	
+spk_287	Night G.R. kitchen room sound bank: arrival/departure sounds shared by both doors and the unlock-and-open sequence of the water-tower door's first use.	
+spk_288	Footstep bank of dryfield_night_water_tower: walk, scripted-jump and run step sounds on surface class 2.	
+spk_289	Night water tower room sound bank: door sounds of its warp slots, the kitchen door unlock/open event and two caption cue sounds; the breezeway blocked sound is not reached.	
+spk_29	SP12 shotgun sound bank, first ammunition variant (file 11010, weapon 14): shot, pump, empty-chamber click and reload cues.	
+spk_290	Footstep bank of dryfield_night_water_tank: walk, scripted-jump and run step sounds on surface classes 3, 4 and 5.	
+spk_291	Night water tank room sound bank: one stage sound of room action 3 and the three event-script sounds of the post-battle water-tank event run by actor_146300.	
+spk_292	Footstep bank of dryfield_night_breezeway: walk, scripted-jump and run step sounds on surface class 2.	
+spk_293	Night breezeway room sound bank: arrival and departure door sounds of warp 0 and the factory door; the blocked, caption and unlock entries of the day layout are not reached here.	
+spk_294	Footstep bank of dryfield_night_factory: walk, scripted-jump and run step sounds on surface classes 2 and 3.	
+spk_295	Night factory room sound bank: door sounds of three warps, the car lift's raise/lower/turn and settle sounds, hatch open/close, panel confirm and a caption cue sound.	
+spk_296	Footstep bank of dryfield_night_garage: walk, scripted-jump and run step sounds on surface class 1.	
+spk_297	Night garage room sound bank: arrival and departure door sounds of warp endpoints 1 and 2; the blocked sound and six other filled entries are never requested.	
+spk_298	Footstep bank of dryfield_night_driveway: walk, scripted-jump and run step sounds on surface class 2.	
+spk_299	Night driveway room sound bank: door sounds of warps 0 and 2, the first factory-transition event sound, the companion arrival scene's sound and one caption cue sound.	
+spk_3	M950 weapon sound bank (weapon 3): round fired, empty-chamber click and the two reload-clip cue sounds (start and load).	
+spk_30	SP12 shotgun sound bank, second ammunition variant (file 11011, weapon 14): shot, pump, firefly impact sound, empty-chamber click and reload cues.	
+spk_300	Footstep bank of dryfield_night_junk_yard: walk, scripted-jump and run step sounds on surface class 1.	
+spk_301	Night junk yard room sound bank: door sounds of its warps incl. a refused trailer-coach door, and the two Stalker encounter sounds (first fall with rumble, landing) played by actor_400600.	
+spk_302	Footstep bank of dryfield_night_trailer_coach: walk, scripted-jump and run steps on surface class 6; its samples are also voiced by room-bank entry 0x0A in the talk's story scene.	
+spk_303	Night trailer coach room sound bank: door sounds, the cutscene record's start/scene/after/end sounds, arrival and talk scene sounds with Gary, item-lid open/close and one caption cue.	
+spk_304	Footstep bank of dryfield_night_motel_room_5: walk, scripted-jump and run step sounds on surface classes 1 and 2.	
+spk_305	Night motel room 5 room sound bank: arrival and departure door sounds of warp 0.	
+spk_306	Footstep bank of dryfield_night_motel_balcony: walk and run step sounds on two surface classes (0x51 and 0x2D entry sets); the class-1 requests 0x49-0x4C find no entry.	
+spk_307	Night motel balcony room sound bank: door sounds of warps 0-3, the door unlock/open event, two caption cues, and the player's death sound when killed by the Burner (actor_403100).	
+spk_308	Footstep bank of dryfield_night_motel_room_6: walk, scripted-jump and run step sounds on three surface classes (entries 0x2D, 0x3D and 0x01 sets).	
+spk_309	Night motel room 6 room sound bank: door sounds of warps 0 and 1, the room cutscene record's start/scene/after/end sounds and one caption cue sound.	
+spk_31	SP12 shotgun sound bank, third ammunition variant (file 11012, weapon 14): shot, pump, empty-chamber click and reload cues.	
+spk_310	Footstep bank of dryfield_night_motel_loft: walk, jump and run step sounds started on the player's animation cues.	
+spk_311	Night motel loft room sound bank: door sounds of the one warp endpoint, a caption cue sound of CAP command 17 and two event-script sounds of the Stalker encounter.	
+spk_312	Footstep bank of dryfield_night_water_hole: player walk/run/jump steps on two surface records (one once the Shelter route is open) and the companion's +100 entries.	
+spk_313	Night water hole room sound bank: door sounds of warps 0-2 incl. the Shelter door, its departure and locked sounds, and an event-script sound of the post-Burner / ending scene (actor_146000).	
+spk_314	Footstep bank of dryfield_night_cellar: walk and run step sounds on the cellar floor.	
+spk_315	Night cellar room sound bank: arrival and departure sounds of the room's only warp; entries 3 and 4 have no starter found.	
+spk_316	Footstep bank of dryfield_night_underpass: walk, scripted-jump and run step sounds on surface classes 3 and 4.	
+spk_317	Night underpass room sound bank: door sounds of the cellar, water hole and general store warp slots and one caption cue sound of CAP commands 1 and 2.	
+spk_318	Footstep bank of mine_mesa: player walk/jump/run steps on surface class 2, two unpanned steps laid over the variant 1 run scene, and the companion's +100 entries (recorded as open).	
+spk_319	Mine mesa room sound bank: warp 1 arrival/departure and staged departure sounds, run and arrival scene sounds, and the falls of the player and the chaser (actor_400100) over the mesa's edge.	
+spk_32	AS12 shotgun Buckshot sound bank (file 11013, weapon 15): shot, empty-chamber click and the reload clip's load and final cue sounds.	
+spk_320	Footstep bank of mine_cavern: walk, scripted-jump and run step sounds on surface class 1; a timed step sequence using entries 0x39/0x3A is never run.	
+spk_321	Mine cavern room sound bank: door sounds of warps 0 and 1 incl. a refused exit, a caption cue sound, destroyed targets' positional fire loops, a target-hit sound and a second-stage cutscene sound.	
+spk_322	Footstep bank of mine_tunnel_entrance: walk, scripted-jump and run step sounds (same two samples) on surface class 2; eight other filled entries are not requested here.	
+spk_323	Mine tunnel entrance room sound bank: arrival and departure door sounds of its three warp endpoints (incl. the forked-tunnel and tunnel ends).	
+spk_324	Footstep bank of mine_tunnel: walk and run step sounds on surface class 1; twelve other filled entries are not requested by the room or its actors.	
+spk_325	Mine tunnel room sound bank: arrival and departure door sounds of warps 0 and 1.	
+spk_326	Footstep bank of mine_gorge: walk, scripted-jump and run step sounds on surface classes 2 and 3.	
+spk_327	Mine gorge room sound bank: door sounds of warps 0-2 incl. a refused exit, the bat encounter's sound, the oak-board cutscene's sound and one caption cue sound.	
+spk_328	Footstep bank of mine_refuge: walk, scripted-jump and run step sounds on surface class 1.	
+spk_329	Mine refuge room sound bank: door sounds, the telephone cutscene's four sounds, circuit panel open/close, switch, current loop, battery socket and circuit-complete sounds (actor_548100), caption cues.	
+spk_33	AS12 shotgun Firefly sound bank (file 11014, weapon 15): shot, Firefly impact, empty-chamber click and the reload clip's load and final cue sounds.	
+spk_330	Footstep bank of mine_forked_tunnel: walk, scripted-jump and run step sounds on surface class 1.	
+spk_331	Mine forked tunnel room sound bank: door sounds of the room's only warp and three sounds of the switch scene (one re-mixed across the view cut).	
+spk_332	Footstep bank of mine_secret_passage: walk, scripted-jump and run step sounds on two surface classes (one of them class 3).	
+spk_333	Mine secret passage room sound bank: door sounds of warp 0, the arrival sound from the Shelter B1 elevator hall and the exit-transit sound played with the fade when leaving for it.	
+spk_334	Footstep bank of shelter_b1_elevator_hall: walk, scripted-jump and run step sounds on the room's two floor materials (surface classes 1 and 2).	
+spk_335	Shelter B1 elevator hall room sound bank: mine-passage arrival and transit sounds, corridor door sounds incl. refused, elevator arrival and ride sounds, and the south walkway door sounds.	
+spk_336	Footstep bank of shelter_b1_south_maintenance_walkway: walk, scripted-jump and run step sounds on surface class 1.	
+spk_337	Shelter B1 south maintenance walkway room sound bank: door sounds of its two warp endpoints and the stage sounds of the first staged exits to the elevator hall and the storeroom.	
+spk_338	Footstep bank of shelter_b1_storeroom: walk, scripted-jump and run step sounds on surface class 1.	
+spk_339	Shelter B1 storeroom room sound bank: door sounds of its three doors (same two samples), a caption cue sound and the completion cue sound of CAP command 6.	
+spk_34	AS12 shotgun Slug sound bank (file 11015, weapon 15): shot, empty-chamber click and the reload clip's load and final cue sounds.	
+spk_340	Footstep bank of shelter_b1_north_maintenance_walkway: walk, scripted-jump and run step sounds on surface class 1.	
+spk_341	Shelter B1 north maintenance walkway room sound bank: door sounds of its two warp endpoints and the stage sounds of the first staged exits to the storeroom and the sleeping quarters.	
+spk_342	Footstep bank of shelter_b1_armory: walk, scripted-jump and run step sounds (same two samples) on surface class 1.	
+spk_343	Shelter B1 armory room sound bank: corridor, storeroom and inner door sounds, the storeroom door unlock event, and the card reader's card-refused and card-accepted sounds.	
+spk_344	Footstep bank of shelter_b1_sleeping_quarters: walk, scripted-jump and run step sounds (same two samples) on surface class 2.	
+spk_345	Shelter B1 sleeping quarters room sound bank: arrival and departure door sounds of warp endpoints 1 and 2.	
+spk_346	Footstep bank of shelter_b1_main_corridor: walk, scripted-jump and run step sounds on surface class 2; the companion's +100 entries are past the bank and rejected.	
+spk_347	Shelter B1 main corridor room sound bank: one departure and one arrival sound shared by all six doors, also used by the first-departure staged scenes, and two caption cue sounds.	
+spk_348	Footstep bank of shelter_b1_sterilization_room: walk, scripted-jump and run step sounds on surface classes 1 and 2.	
+spk_349	Shelter B1 sterilization room sound bank: door sounds, trap and escape sequence sounds, internal door open/close, telephone cutscene sounds, player hurt, item lid, and actor_160600's event scripts.	
+spk_35	M4A1 grenade launcher weapon sound bank (weapon 27, ammunition-dependent file): rifle shot, grenade launch, launch recovery cues, projectile explosion, empty-chamber click and reload cues.	
+spk_350	Footstep bank of shelter_b1_pod_access_tunnel: player walk, scripted-jump and run steps on surface class 2 and the companion's +100 entries.	
+spk_351	Shelter B1 pod access tunnel room sound bank: sterilization-room and R47 door sounds incl. refused, the staged first departure, gantry transit, pod ride to B2 and pod arrival sounds.	
+spk_352	Footstep bank of shelter_b1_control_room: walk, scripted-jump and run step sounds on two surface classes (0x59 and 0x15 entry sets).	
+spk_353	Shelter B1 control room room sound bank: door sounds of its two warp slots, incl. the blocked sound of the door to the B1 access tunnel.	
+spk_354	Footstep bank of shelter_b1_access_tunnel: walk, scripted-jump and run step sounds on surface class 1.	
+spk_355	Shelter B1 access tunnel room sound bank: control-room, golem-freezer, parking and transfer-tunnel door sounds, the control-room door's first opening and the staged first parking departure.	
+spk_356	Footstep bank of shelter_b1_underground_parking: walk, scripted-jump and run step sounds (same two samples) on surface class 1.	
+spk_357	Shelter B1 underground parking room sound bank: door sounds, selector panel button/apply sounds, card scene and departure sounds, the room cutscene's four sounds, alarm ambience loop, caption cue.	
+spk_358	Footstep bank of shelter_b1_golem_freezer_1: player walk, scripted-jump and run step sounds; its companion +100 entries are not reached (no companion scheduled).	
+spk_359	Shelter B1 golem freezer 1 room sound bank: arrival and departure door sounds of the room's only warp endpoint.	
+spk_360	Footstep bank of shelter_b2_pod_bottom: walk, scripted-jump and run step sounds on surface classes 1 and 3; the companion +100 entries are not reached.	
+spk_361	Shelter B2 pod bottom area bank serving as the boss actor_403600's sound set: drain, slam, volley, projectile launch/hit, swoop, swipe, rush, rumble loop, knock-back, charge and summon sounds.	
+spk_362	Footstep bank of shelter_b1_transfer_tunnel: walk, scripted-jump and run step sounds on surface class 1.	
+spk_363	Shelter B1 transfer tunnel room sound bank: arrival and departure sounds of the main-corridor door and the access-tunnel door.	
+spk_364	Footstep bank of shelter_b1_control_room_access_tunnel: walk, scripted-jump and run step sounds on surface class 1.	
+spk_365	Shelter B1 control room access tunnel room sound bank: arrival and departure sounds of the main-corridor door and the control-room door.	
+spk_366	Type-1 (footstep) bank 0x141A of shelter_b2_elevator: no reached use found; the bank is loaded with nothing to start its entries.	
+spk_367	Shelter B2 elevator room sound bank: two event-script sounds of the first-visit elevator scene (cab coming to rest, door opening; actor_142900); the warp's arrival entry is empty.	
+spk_368	Footstep bank of shelter_b2_elevator_hall: walk and run step sounds on the room's two floor materials (surface classes 1 and 2).	
+spk_369	Shelter B2 elevator hall room sound bank: main corridor, elevator and south walkway door sounds, the two doors' unlocking events and the elevator's ride sound from the floor menu.	
+spk_370	Footstep bank of shelter_b2_south_maintenance_walkway: walk, scripted-jump and run step sounds on surface class 1.	
+spk_371	Shelter B2 south maintenance walkway room sound bank: door sounds of its two endpoints, the operating-room door unlocking event and the staged first exit to the elevator hall.	
+spk_372	Footstep bank of shelter_b2_operating_room: walk, scripted-jump and run step sounds on two collision surface classes (0x09 and 0x5D entry sets).	
+spk_373	Shelter B2 operating room room sound bank: door sounds of warps 0-2, the north-door unlock event and the stage sounds of the staged first departures south and to the laboratory.	
+spk_374	Footstep bank of shelter_b2_north_maintenance_walkway: walk, scripted-jump and run step sounds on surface class 1.	
+spk_375	Shelter B2 north maintenance walkway room sound bank: door sounds, the operating-room door unlocking event, the staged first exit to the breeding room, a caption cue and the entry scene sound.	
+spk_376	Footstep bank of shelter_b2_laboratory: walk, scripted-jump and run step sounds on collision surface classes 1 and 2.	
+spk_377	Shelter B2 laboratory room sound bank: door sounds, corridor-door event, the room cutscene's sounds, ambience loop, item lid, and actor_143000's keypad key/enter/accepted/rejected and completion scene.	
+spk_378	Footstep bank of shelter_b2_breeding_room: walk, jump and run step sounds on three surface classes (incl. classes 3 and 4).	
+spk_379	Shelter B2 breeding room room sound bank: arrival and departure door sounds of warps 0 and 1 and the two sounds bracketing caption command 4's close-up (its cue and completion cue).	
+spk_38	Gunblade weapon sound bank, default ammunition file (weapon 23): shot, slash swing, blade contact, charged slash, empty-chamber click and reload cue.	
+spk_380	Footstep bank of shelter_b2_main_corridor: player walk, scripted-jump and run steps on surface class 2 and the companion's +100 entries.	
+spk_381	Shelter B2 main corridor room sound bank: shared door departure and arrival sounds, the staged first-departure scenes, a blocked-door sound, fade-warp arrival sound and one caption cue.	
+spk_382	Footstep bank of shelter_b2_septic_tank: player walk, scripted-jump and run steps on surface class 2 and the companion's +100 entries.	
+spk_383	Shelter B2 septic tank room sound bank: door sounds of warps 0 and 1, the one-time scene on first leaving for the B2 main corridor, and two cues of the diver's (actor_100400) introduction.	
+spk_384	Footstep bank of shelter_b2_pod_access_tunnel: player walk, scripted-jump and run steps on surface class 3 and the companion's +100 entries.	
+spk_385	Shelter B2 pod access tunnel room sound bank: door sounds incl. the R48 door's departure and blocked sounds, the staged first departure to the septic tank, pod arrival and ride-to-B1 sounds.	
+spk_386	Footstep bank of shelter_r36: walk, jump and run step sounds on surface class 5; requests for the classes no face has find no entry in this bank.	
+spk_387	Shelter R36 room sound bank: one event-script sound started once, late in the arrival scene at warp 1.	
+spk_388	Footstep bank of shelter_b3_dumping_hole: walk, scripted-jump and run step sounds (the bank's two samples) on surface class 4.	
+spk_389	Shelter B3 dumping hole room sound bank: arrival scene sounds, warp 1 door sounds, alert and blaze sounds of the burn controller (actor_342100), enemy appear sound (actor_207000), item lid.	
+spk_39	Gunblade Firefly ammunition sound bank (variant 1, weapon 23): the Firefly impact sound played at the first weapon contact point the tick after a shot.	
+spk_390	Footstep bank of shelter_b3_garbage_incinerator: walk and run step sounds on surface classes 0 and 3; the scripted-jump entries are empty and not reached.	
+spk_391	Shelter B3 garbage incinerator room sound bank: door sounds, lift move/stop/jolt, switch press, alert and blaze, exit doors closing/shut (actor_342000), caption cues, Glutton collapse request.	
+spk_392	Footstep bank of shelter_b3_incinerator_control_room: player walk/run steps on surface class 1, stair-flight steps, and the companion's +100 entries.	
+spk_393	Shelter B3 incinerator control room room sound bank: the room cutscene's start/scene/after/end sounds, one caption cue sound and the elevator-hall door's sounds.	
+spk_394	Footstep bank of shelter_b3_elevator_hall: player walk, jump and run steps on three surface records and a second +100 copy of them for a companion's steps.	
+spk_395	Shelter B3 elevator hall room sound bank: the elevator ride sound, arrival from the B2 elevator cab, control room door sounds and the door's first-opening event pair.	
+spk_396	Footstep bank of shelter_b4_lower_sewer: player walk, jump and run steps on surface classes 2, 3 and 5 and the companion's +100 entries.	
+spk_397	Shelter B4 lower sewer room sound bank: arrival and departure door sounds of warp endpoints 2 and 4; a third pair of entries has no use found.	
+spk_398	Footstep bank of shelter_b4_upper_sewer: player walk, jump and run steps on surface classes 3, 5 and one more, and the companion's +100 entries.	
+spk_399	Shelter B4 upper sewer room sound bank: door sounds of endpoints 1 and 4, the exit-transit sound to the reservoir, a caption cue with the view-13 sprite and the route-opening script's sound.	
+spk_4	P08 weapon sound bank (weapon 4): shot, empty-chamber click, reload start and reload load cues.	
+spk_40	Gunblade R. Slug ammunition sound bank (variant 2, weapon 23): loaded as the ammunition-dependent sound file when the R. Slug is selected; no entry-level use is recorded.	
+spk_400	Footstep bank of shelter_b4_reservoir: walk and run step sounds on the floor, on the stairs (class 3 flight record) and on surface class 5.	
+spk_401	Shelter B4 reservoir room sound bank: warp 0 door sounds, the exit-transit sound to the upper sewer, a caption cue sound and the water event's two successive sounds.	
+spk_402	Footstep bank of shelter_b4_water_supply: walk, run and third-base step sounds on two surface classes (0x3D and 0x25 entry sets), with filled +100 companion copies.	
+spk_403	Shelter B4 water supply room sound bank: reservoir door sounds, exit-transit to the upper sewer, the valve departure sound, arrival from the Dryfield night water hole and a caption cue.	
+spk_404	Footstep bank of shelter_r47: player walk/jump/run steps on surface classes 1 and 2 with their +100 companion copies, and scripted-jump steps of a third record.	
+spk_405	Shelter R47 room sound bank: ambience loop, door sounds, map terminal screen-on/page/loop sounds, the room cutscene's four sounds, a caption cue, and scene sounds of actor_143400 and Pierce.	
+spk_406	Footstep bank of shelter_r48: player walk, scripted-jump and run step sounds; the +100 companion entries are not reached.	
+spk_407	Shelter R48 room sound bank: the player's knock-back sound when an arm of actor_503500 hits, and two samples voiced by spk_142's yellow flash attack scripts across banks.	
+spk_408	Shelter R49 room sound bank: the three event-script sounds of the room's entry script (carried by actor_143900), one started together with the area music.	
+spk_409	Footstep bank of shelter_1f_parking_garage: walk, scripted-jump and run step sounds on the class-1 floor face.	
+spk_41	Player death sound bank (id 0x7001, file 20930): loaded on demand and played at the player by actor_402200, actor_403900, actor_510900 and actor_521100 when their grab or lethal attack kills.	
+spk_410	Shelter 1F parking garage room sound bank: the airlock door's leaving and arrival sounds, the vehicle bay arrival sound and the departure sound of the trip down to the underground parking.	
+spk_411	Footstep bank of shelter_1f_vehicular_airlock: walk, scripted-jump and run step sounds started on the player's animation cues.	
+spk_412	Shelter 1F vehicular airlock room sound bank: door sounds of endpoints 1 and 2, the first-time airlock and Bulwark departure event sounds and the arrival sound from the Bulwark.	
+spk_413	Footstep bank of shelter_1f_bulwark: walk, scripted-jump and run step sounds started on the player's animation cues.	
+spk_414	Shelter 1F bulwark room sound bank: arrival and first-time/ordinary departure sounds of the vehicular airlock side and of the heliport side.	
+spk_415	Footstep bank of shelter_1f_heliport: walk, scripted-jump and run step sounds on surface class 1.	
+spk_416	Shelter 1F heliport room sound bank: two ambience loops, the Bulwark door's arrival and departure sounds, and two sounds of the companion-request scenes (actor_161500).	
+spk_417	Footstep bank of shelter_1f_airlock: walk, scripted-jump and run step sounds (same two samples) on class-1 floor faces.	
+spk_418	Shelter 1F airlock room sound bank: the door's arrival sound (from the parking garage) and its leaving sound.	
+spk_419	Footstep bank of shelter_1f_guardroom: walk, scripted-jump and run step sounds started on the player's animation cues.	
+spk_420	Shelter 1F guardroom room sound bank: arrival and departure sounds of the room's only warp endpoint and one caption cue sound of caption command 2.	
+spk_421	Footstep bank of neo_ark_observatory: walk, run and scripted-jump steps on surface classes 2, 3 and one more; two samples are also voiced by room-bank entry 1 in the solo arrival scene.	
+spk_422	Neo Ark observatory room sound bank: warp 0 door sounds, the departure sound of room action 10, and event-script sounds of the solo and companion arrival scenes and second scene (actor_450200).	
+spk_423	Footstep bank of neo_ark_eve_access_tunnel: walk, scripted-jump and run step sounds started on the player's animation cues.	
+spk_424	Neo Ark EVE access tunnel room sound bank: a caption cue sound of the Shelter departure prompt and the to-elevator transit sound; the elevator arrival entry is empty.	
+spk_425	Footstep bank of neo_ark_eve_elevator: walk, scripted-jump and run step sounds on surface class 1.	
+spk_426	Neo Ark EVE elevator room sound bank: arrival and departure sounds of the room's only warp endpoint.	
+spk_427	Footstep bank of neo_ark_north_promenade: player walk, stair-climb and run step sounds on animation cues.	
+spk_428	Neo Ark north promenade room sound bank: arriving, leaving and refused-exit sounds of warp 1, the Forest Zone end.	
+spk_429	Footstep bank of neo_ark_forest_zone: player walk, stair-climb and run step sounds on animation cues.	
+spk_430	Neo Ark forest zone room sound bank: forest ambience, passage sounds of warps 1-3, a first-departure stage sound, the first-visit ambush sound and the scripted Stranger's death cues.	
+spk_431	Footstep bank of neo_ark_submarine_tunnel: walk, scripted-jump and run step sounds started on the player's animation cues.	
+spk_432	Neo Ark submarine tunnel room sound bank: one sound started by the first-entry script (actor_451100) after caption command 3; the ambience entry the room requests is empty.	
+spk_433	Footstep bank of neo_ark_pavilion: walk, scripted-jump and run step sounds started on the player's animation cues.	
+spk_434	Neo Ark pavilion room sound bank: two ambience scripts started once by the room task and the door sounds of warp endpoints 2 and 3.	
+spk_435	Footstep bank of neo_ark_island: player walk, stair-climb and run step sounds on two surface classes (one of them class 4).	
+spk_436	Neo Ark island room sound bank: two ambience scripts, passage sounds of warps 0 and 1 and the cue and completion-cue sounds of CAP command 1.	
+spk_437	Footstep bank of neo_ark_garden: player walk/jump/run steps, and +100 entries used positionally for a walker's foot cues in the arrival scene (not reached for a companion).	
+spk_438	Neo Ark garden room sound bank: two positional ambience loops, door sounds of the bridge and substation endpoints incl. a blocked sound, and two arrival-scene sounds.	
+spk_439	Footstep bank of neo_ark_power_plant_2: walk, scripted-jump and run step sounds on three surface records, one of them (class 2) set only by a stair trigger.	
+spk_440	Neo Ark power plant 2 room sound bank: the generator's (actor_105300) running, pulse, body-hit, part-hit and part-destroyed sounds and two generator-clear scene sounds.	
+spk_441	Footstep bank of neo_ark_power_plant_1: walk, scripted-jump and run step sounds on two surface classes (one of them class 5).	
+spk_442	Neo Ark power plant 1 room sound bank: the generator's (actor_105400) running, pulse and hit sounds, the shrine door sounds, generator-clear scene sounds and a post-clear view-change sound.	
+spk_443	Footstep bank of neo_ark_savanna_zone: player walk, stair-climb and run step sounds on two surface classes (one of them class 3).	
+spk_444	Neo Ark savanna zone room sound bank: passage sounds of the Shrine and South Promenade warps and the stage sound of the first-departure event to the South Promenade.	
+spk_445	Footstep bank of neo_ark_south_promenade: walk, scripted-jump and run step sounds started on the player's animation cues.	
+spk_446	Neo Ark south promenade room sound bank: arrival and departure door sounds of warp endpoint 1 (to the savanna zone).	
+spk_447	Footstep bank of neo_ark_altar: walk, scripted stair/jump and run step sounds on surface class 4.	
+spk_448	Neo Ark altar room sound bank: the four floor pads' correct-step and wrong-step sounds, the sequence 1 and sequence 2 solved sounds and the switch toggle sound.	
+spk_449	Footstep bank of neo_ark_shrine: walk and run step sounds on surface class 2.	
+spk_450	Neo Ark shrine room sound bank: Power Plant 1 and Savanna Zone door sounds incl. refused exit, tile slide, mechanism activate/revert, puzzle solved and the two props' fall sounds.	
+spk_451	Footstep bank of the Shelter B6 nursery: walk/run samples for surface class 1, with duplicate entries (+100) for the companion's steps; all eight filled entries are requested.	
+spk_452	Shelter B6 nursery area bank: positional room ambience, the telephone cutscene's start/scene/after/end sounds, and two sounds started by actor_450800's nursery scene scripts.	
+spk_453	Footstep bank of the Shelter B6 growth room: player walk/run steps on surface classes 1 and 2, plus +100 companion entries that all play the same two samples.	
+spk_454	Shelter B6 growth room area bank: random player and companion distress voices and a departure sound from actor_450900/actor_800300, plus the companion-death sound gameplay plays at game over.	
+spk_455	Footstep bank of the Shelter B6 corridor: player walk/run steps on surface classes 1 and 2 (six samples); it has no companion entries.	
+spk_456	Shelter B6 corridor area bank: warp arrival and departure sounds, the battle-end scene's six-voice sound, and the masked Eve body's (actor_205200) player-knockback sound.	
+spk_457	Footstep bank of the Shelter B6 training room: player walk/run steps on surface classes 1 and 2 (six samples).	
+spk_458	Shelter B6 training room area bank: warp/door sound, three defeat-scene script sounds, and the player-knockback sound started by the boss (actor_105100) and the masked Eve body (actor_205200).	
+spk_459	Footstep bank of neo_ark_r26: walk/run steps on the room's single class-1 floor face; the rows say it is not reached in the shipped flow.	
+spk_460	Footstep bank of the Neo Ark bridge: player walk/run steps on surface classes 3 and 4 (six samples).	
+spk_461	Neo Ark bridge area bank: arrival and departure sounds of both warps and two ambience layers the room task starts on every entry.	
+spk_462	Footstep bank of the Shelter 1F tent: player walk/run steps on surface class 1, the only class with footstep sounds there.	
+spk_463	Shelter 1F tent area bank: two room ambience scripts, the telephone cutscene's four sounds, and the arrival cutscene sounds started by actor_460200's script; entries 1 and 2 have no user found.	
+spk_464	Footstep bank of the Neo Ark woodland path: player steps on surface classes 2, 3 and 4; samples 4 and 5 are also played as the Horned Stranger's water steps through spk_465 entries 6 and 7.	
+spk_465	Neo Ark woodland path area bank: door sounds of both warps, and the Stranger's (actor_401300) water splash, water steps and withdraw leap; the splash request also reaches the forest zone.	
+spk_466	Footstep bank of the Neo Ark submarine gallery: player walk/run steps on surface class 4, carried by a single face of the grid.	
+spk_467	Neo Ark submarine gallery area bank: the departure-to-island/arrival sound and the Sea Diver's (actor_206100) attack loop, entrance, surfacing and dive-splash sounds.	
+spk_468	Footstep bank of the Neo Ark pyramid: player steps on surface class 3 and stair-climb steps (class 4 from the stair triggers); the class-4 run entries have no reached use.	
+spk_469	Neo Ark pyramid area bank: warp door sounds, the rotation puzzle's turn/stop/done sounds, and the maggot caterpillar's ambush-drop sound (actor_102600/202600).	
+spk_47	Pyrokinesis level-1 sound bank, loaded with the spell package (file50101) when the cast is armed in battle: ignition roar of the cast, plus a blast-hit sound whose callers are open.	
+spk_470	Footstep bank of the Neo Ark substation: player walk/run steps on surface classes 3 and 4 and the stair-climb step of class 2; plain class-2 walk/run entries are open.	
+spk_471	Neo Ark substation area bank: door sounds of the warp to and from the Garden and the positional ambience loop played while power plant 2 is not yet cleared.	
+spk_48	Pyrokinesis level-2 sound bank (file50102, single sample): the cast's ignition roar, plus a blast-hit sound whose callers are open.	
+spk_49	Pyrokinesis level-3 sound bank (file50103): ignition roars of the three bursts of the level-3 volley, plus a blast-hit sound whose callers are open.	
+spk_5	P229 weapon sound bank (weapon bank 5), loaded with the equipped weapon: silenced primary shot, flashlight-flash secondary fire, empty-chamber click and the two reload sounds.	
+spk_50	Combustion level-1 sound bank, loaded with the spell package (file50104) when the cast is armed in battle: the flame emitter's ignition whoosh; entries 0 and 1 have no requester.	
+spk_51	Combustion level-2 sound bank (file50105): ignition whoosh started by each flame emitter on its first frame; entries 0 and 1 have no requester.	
+spk_52	Combustion level-3 sound bank (file50106): ignition whoosh started by each flame emitter on its first frame; entries 0 and 1 have no requester.	
+spk_53	Inferno level-1 sound bank, loaded with the spell package (file50107) when the cast is armed in battle: the cast sound on the cast task's first frame.	
+spk_54	Inferno level-2 sound bank (file50108): the cast sound started once per cast by infernoCastTask.	
+spk_55	Inferno level-3 sound bank (file50109): the cast sound started once per cast by infernoCastTask.	
+spk_56	Necrosis level-1 sound bank (file50110, single sample), loaded when the cast is armed in battle: the launch sound of the cloud.	
+spk_57	Necrosis level-2 sound bank (file50111): the cloud's launch sound, started once per cast by necrosisCastTask.	
+spk_58	Necrosis level-3 sound bank (file50112): the cloud's launch sound, started once per cast by necrosisCastTask.	
+spk_59	Plasma level-1 sound bank, loaded with the spell package (file50113) after Plasma is armed: the cast sound started once per cast by plasmaCastTask.	
+spk_6	Mongoose revolver sound bank (weapon bank 9), loaded with the equipped weapon: the shot, empty-chamber click, the delayed reload sound with casings and the load-complete click.	
+spk_60	Plasma level-2 sound bank (file50114): the cast sound started once per cast by plasmaCastTask.	
+spk_61	Plasma level-3 sound bank (file50115): the cast sound started once per cast by plasmaCastTask.	
+spk_62	Apobiosis level-1 sound bank, loaded with the spell package (file50116) when the cast is armed in battle: the discharge sound on the cast's first frame.	
+spk_63	Apobiosis level-2 sound bank (file50117): the discharge sound started once per cast by apobiosisCastTask.	
+spk_64	Apobiosis level-3 sound bank (file50118): the discharge sound started once per cast by apobiosisCastTask.	
+spk_65	Metabolism level-1 sound bank, loaded with the spell package (file50119) when the cast is armed in battle: the cast sound played at the player.	
+spk_66	Metabolism level-2 sound bank (file50120): the cast sound started once per cast by metabolismCastTask at the player.	
+spk_67	Metabolism level-3 sound bank (file50121): the cast sound started once per cast by metabolismCastTask at the player.	
+spk_68	Healing level-1 sound bank (file50122): the aura's cast sound; besides the armed-cast load it is the standing PE file outside battle and is reloaded after each battle.	
+spk_69	Healing level-2 sound bank (file50123): the aura's cast sound; kept as the standing PE file outside battle and restored by the battle-result task.	
+spk_7	M4A1 weapon sound bank (weapon bank 16), loaded with the equipped weapon: per-round fire sound, empty-chamber click and the reload cue sound played twice; entries 0 and 2 have no requester.	
+spk_70	Healing level-3 sound bank (file50124): the aura's cast sound; kept as the standing PE file outside battle and restored by the battle-result task.	
+spk_71	Life Drain level-1 sound bank, loaded with the spell package (file50125) when the cast is armed: one cue for a drain that caught nothing and one for a drain that hit, chosen on frame 3.	
+spk_72	Life Drain level-2 sound bank (file50126): the miss cue or the hit cue of the cast, chosen on its third running frame by lifedrainCastTask.	
+spk_73	Life Drain level-3 sound bank (file50127): the miss cue or the hit cue of the cast, chosen on its third running frame by lifedrainCastTask.	
+spk_74	Antibody level-1 sound bank, loaded with the spell package (file50128) when the cast is armed in battle: the cast sound on the cast's first frame.	
+spk_75	Antibody level-2 sound bank (file50129): the cast sound started once per cast by antibodyCastTask.	
+spk_76	Antibody level-3 sound bank (file50130): the cast sound started once per cast by antibodyCastTask.	
+spk_77	Energy Shot level-1 sound bank, loaded with the spell package (file50131) when the cast is armed in battle: the cast sound on the cast's first frame.	
+spk_78	Energy Shot level-2 sound bank (file50132): the cast sound started once per cast by energyshotCastTask.	
+spk_79	Energy Shot level-3 sound bank (file50133): the cast sound started once per cast by energyshotCastTask.	
+spk_8	M249 weapon sound bank (weapon bank 17), loaded with the equipped weapon: per-round shot, empty-chamber click and the two reload cue sounds.	
+spk_80	Energy Ball level-1 sound bank (file50134): the sustained balls-out sound started and stopped by the cast task, and the impact burst when a ball touches an enemy body.	
+spk_81	Energy Ball level-2 sound bank (file50135): the sustained balls-out sound of the cast and the impact burst of a ball hitting an enemy body.	
+spk_82	Energy Ball level-3 sound bank (file50136): the sustained balls-out sound of the cast and the impact burst of a ball hitting an enemy body.	
+spk_83	Sound bank of the ofuda item package (file50146, attachment index 15), loaded when the item gameplay calls Flare (0x3A) is used in battle: the effect's burst sound, cut if the effect is cancelled.	
+spk_84	Sound bank of the flare package (file50149, attachment index 16), loaded when item 0x3B (called Pepper Spray in item_use) is armed in battle: the effect task's use sound, single sample.	
+spk_85	Sound bank of the pepper_spray package (file50152, attachment index 17), loaded after the item is armed: the effect task's use sound from the bank's only sample, stopped on cancel.	
+spk_86	Voice and effect bank (id 0x4003) of the actor_100300/200300 enemy: movement cues, flinch, hit and death voices, body fall, fireball charge and launch, drain strike and heal/recharge chime.	
+spk_87	Diver creature bank (id 0x4004) of the Bog Diver actors 100400/200400: swim, crawl, surface, dive, neck release, hurt voice, shot and discharge; the Sea Diver (actor_206100) uses its hurt and discharge entries.	
+spk_88	Bank (id 0x4005) of the ceiling-crawling ambush enemy actor_400500: arm-plant steps, drop and fall landings, posture change, arm strike and two grab sounds; the copy in file 100500 has no use found.	
+spk_89	Rat and moth sound bank (id 0x4007) of actors 100700/200700/300700: rat idle squeak, flinch, alert, post-bite retreat and death, moth flutter cue and death.	
+spk_9	Tonfa baton weapon sound bank (weapon bank 19), loaded with the equipped weapon: first swing, combo swing and the two contact sounds when a strike connects.	
+spk_90	Stranger family bank (id 0x400A): gait, alert, strike, landing and evasion cues plus hurt and death voices of actors 101900/301900/401000/401800; actor_311500 and actor_317000 borrow entries.	
+spk_91	Brute Mossback dry-room bank (id 0x400B, file 101101), queued by the first Mossback's init outside stage 3 area 32: footfalls, landing thud, rest, hit and death cries, punch, spit launch and impact.	
+spk_92	Brute Mossback water-room bank (id 0x404B, file 101102), queued instead of the dry bank only in stage 3 area 32 (Dryfield night water hole): wet versions of its cues plus a splash entry.	
+spk_93	Bone suckler bank (id 0x400C) of actors 101200/201200/301200/223600: footstep, burst and settle sounds, plus one-shots for motel room 1's opening scene; the Blood Suckler's request is rejected in most rooms.	
+spk_94	Bank (id 0x400F) of the perching, flying enemy actors 101500/201500/301500: alert loop, flight-start and flight loops re-requested every third tick, and the damage cry.	
+spk_95	Scavenger bank (id 0x4010) of actors 101600/201600/301600: hop and turn footfalls, body falls, three idle voices, hurt and death voices, grab bite and release sounds.	
+spk_96	Pawn GOLEM sound set 1 (bank 0x4014, file 102001): step cues, sword swing and fall sounds, loaded at spawn in three Shelter B1/B2 rooms where the actor's per-area table reads 1.	
+spk_97	Pawn GOLEM sound set 2 (bank 0x4014, file 102002): step cues, sword swing and fall sounds, loaded at spawn in the Neo Ark shrine and south promenade and in three Shelter rooms.	
+spk_98	Pawn GOLEM sound set 3 (bank 0x4014): same step, swing and fall cue layout as the other sets, but no reached use found - no room that places a golem has table value 3.	
+spk_99	Pawn GOLEM sound set 4 (bank 0x4014, file 102004): step cues, sword swing and fall sounds, loaded at spawn in Dryfield back street, mine mesa and the Neo Ark forest zone.	
+stage0_id1	456-second audio stream (stage 0, stream 1, sub-id 11) played by replay_bonus's credits task, cancelled by Start and finished at the end of the credits.	
+stalker_burst_arm_left	One-part arm model spawned hidden under the Stalker's body part 10 and swung out during the left-arm strike (actor_400500, 405800); actor_400600 uses two copies as both live arm blades.	named 'burst arm' but never used as a death chunk: it is the live strike arm shown during the attack, and in actor_400600 the same mesh serves as both the left and the right arm.
+stalker_burst_arm_right	One-part arm model spawned hidden under the Stalker's body part 7 and swung out during the right-arm (ceiling) strike in actor_400500 and actor_405800, then hidden again.	named 'burst arm' but never used as a death chunk: it is the extended arm drawn during the right-arm strike.
+stalker_burst_foot_right	Stalker death chunk: the fourth body chunk actor_400600 throws from body part 10 when killed by a blast; actor_405800 defines it but nothing references it there.	named 'foot right' but thrown from body part 10, the part the left arm hangs from; the code does not say what the mesh depicts and the part does not agree with the name.
+stalker_burst_hand_left	Stalker death chunk flung by EFFECT_BODY_CHUNK on a killing blast: from body part 16 in actor_400600 and from part 10 (the left arm part) in actor_405800.	
+stalker_burst_torso	Stalker death chunk flung from body part 13 by actor_405800 on a killing blast; actor_400600 defines it but no code there uses it.	
+stalker_effect	Stalker death chunk used exactly like the other body chunks on a killing blast: thrown from body part 2 in actor_400600 and from part 16 in actor_405800.	named 'effect' but it is a flung body-chunk mesh like the burst parts, not an effect; what it depicts is not stated.
+stinger_body	19-part Brain Stinger body model spawned per placement by actors 100300/200300 in their patrol rooms; also the body of the stationary 2.5x-scale boss actor_105100 in the Shelter B6 training room.	
+stranger_body	19-part Stranger body model: the cafeteria Stranger boss (actor_110600), the stationary Stranger on the Acropolis fire escape (actor_311500) and the Odd Stranger enemy (actor_401000).	
+stranger_burst_hand	3-part body piece flung by the bank-10 burst effect when a Stranger (actors 101900/301900/401000) dies bursting, released from body parts 9 and 12, or part 1 in the walking death.	
+sucklerceph_body	3-part Sucklerceph enemy body spawned by actors 104600/107000/204600/207000, swelling, then hidden on a burst death or squashed on a slump death; a hidden-spawn variant waits for an APPEAR command.	
+swat_member_1_body	19-part scripted figure placed once in acropolis_patio variant 1 by actor_312200: starts hidden, shown and hidden by the room's scenes, not lockable, with a sphere in the enemy-body list.	the code never identifies the figure as a SWAT member: it is a scripted body on the patio whose only sound is named STRANGER_DORMANT, and the rows leave what it depicts unsettled.
+swat_member_2_body	20-part view-parented scripted figure used by actors 110300, 110800 and 311900 in the east elevator hall, roof garden and security room, where it is the figure seen on the monitor's camera view.	
+tonfa_baton_animation_01450	Player animation bank for the Tonfa Baton (weapon 19): locomotion, aim, hit, PE and stair clips gameplay plays while it is equipped, plus first strike, combo strike and recovery clips.	
+tonfa_baton_model_010C8	One-part Tonfa Baton model spawned as the player's held weapon and posed every frame by the overlay's own model task, which flips it half a turn in the hand for a strike.	
+tonfa_baton_model_0136C	Second small one-part model (8 vertices) in the tonfa_baton overlay with a task descriptor at bank 7 index 111; no use found: nothing spawns that index.	
+txt_0	Specs-panel text of weapon 0x80, P08 (S. Magazine): five statistics rows then the scrolling description, read in place by gameplay's itemMenuInfoTask while the panel is open.	
+txt_1	Specs-panel text of weapon 0x81, the M93R: statistics rows and description drawn by itemMenuInfoTask while the weapon's Specs panel is open.	
+txt_10	Specs-panel text of weapon 0x8E, the AS12 shotgun: statistics rows and description read by itemMenuInfoTask while its Specs panel is open.	
+txt_100	Information-panel text of armour 0x62, Combat Armor (file 20503): metadata rows and description read by itemMenuInfoTask while the armour's panel is open.	
+txt_101	Information-panel text of armour 0x63, Assault Suit (file 20504), read by itemMenuInfoTask while that armour's panel is open.	
+txt_102	Information-panel text of armour 0x64, PASGT Vest (file 20505), read by itemMenuInfoTask while that armour's panel is open.	
+txt_103	Information-panel text of armour 0x65, Tactical Vest (file 20506), shown by itemMenuInfoTask while the armour's panel is open.	
+txt_104	Information-panel text of armour 0x66, EOD Suit (file 20507), shown by itemMenuInfoTask while the armour's panel is open.	
+txt_105	Information-panel text of armour 0x67, Turtle Vest (file 20508), shown by itemMenuInfoTask while the armour's panel is open.	
+txt_106	Information-panel text of armour 0x68, Chicken Plate (file 20509), shown by itemMenuInfoTask while the armour's panel is open.	
+txt_107	Information-panel text of armour 0x69, NBC Suit (file 20510), shown by itemMenuInfoTask while the armour's panel is open.	
+txt_108	Information-panel text of armour 0x6A, PsySuit (file 20511), shown by itemMenuInfoTask while the armour's panel is open.	
+txt_109	Information-panel text of armour 0x6B, Aya Special (file 20512), shown by itemMenuInfoTask while the armour's panel is open.	
+txt_11	Specs-panel text of weapon 0x8F, the M4A1 Rifle: statistics rows and description read by itemMenuInfoTask while its Specs panel is open.	
+txt_110	Information-panel text of armour 0x6C, Shoulder Holster (file 20513), shown by itemMenuInfoTask while the armour's panel is open.	
+txt_111	Information-panel text of armour 0x6D, Monk Robe (file 20514), shown by itemMenuInfoTask while the armour's panel is open.	
+txt_112	Parasite Energy Specs text for Pyrokinesis level 1 (file 20701): description drawn from the fifth line on while that energy's Specs panel is open; also stands for the unlearned energy.	
+txt_113	Parasite Energy Specs text for Pyrokinesis level 2 (file 20702), drawn from its fifth line on while the energy's Specs panel is open at that learned level.	
+txt_114	Parasite Energy Specs text for Pyrokinesis level 3 (file 20703), drawn from its fifth line on while the energy's Specs panel is open at that learned level.	
+txt_115	Parasite Energy Specs text for Combustion level 1 (file 20704), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_116	Parasite Energy Specs text for Combustion level 2 (file 20705), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_117	Parasite Energy Specs text for Combustion level 3 (file 20706), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_118	Parasite Energy Specs text for Inferno level 1 (file 20707), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_119	Parasite Energy Specs text for Inferno level 2 (file 20708), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_12	Specs-panel text of weapon 0x90, the M249: statistics rows and description read by itemMenuInfoTask while its Specs panel is open.	
+txt_120	Parasite Energy Specs text for Inferno level 3 (file 20709), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_121	Parasite Energy Specs text for Necrosis level 1 (file 20710), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_122	Parasite Energy Specs text for Necrosis level 2 (file 20711), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_123	Parasite Energy Specs text for Necrosis level 3 (file 20712), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_124	Parasite Energy Specs text for Plasma level 1 (file 20713), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_125	Parasite Energy Specs text for Plasma level 2 (file 20714), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_126	Parasite Energy Specs text for Plasma level 3 (file 20715), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_127	Parasite Energy Specs text for Apobiosis level 1 (file 20716), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_128	Parasite Energy Specs text for Apobiosis level 2 (file 20717), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_129	Parasite Energy Specs text for Apobiosis level 3 (file 20718), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_13	Specs-panel text of weapon 0x92, the Tonfa Baton: statistics rows and description read by itemMenuInfoTask while its Specs panel is open.	
+txt_130	Parasite Energy Specs text for Metabolism level 1 (file 20719), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_131	Parasite Energy Specs text for Metabolism level 2 (file 20720), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_132	Parasite Energy Specs text for Metabolism level 3 (file 20721), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_133	Parasite Energy Specs text for Healing level 1 (file 20722), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_134	Parasite Energy Specs text for Healing level 2 (file 20723), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_135	Parasite Energy Specs text for Healing level 3 (file 20724), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_136	Parasite Energy Specs text for Life Drain level 1 (file 20725), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_137	Parasite Energy Specs text for Life Drain level 2 (file 20726), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_138	Parasite Energy Specs text for Life Drain level 3 (file 20727), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_139	Parasite Energy Specs text for Antibody level 1 (file 20728), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_14	Specs-panel text of weapon 0x93, the M4A1 (+1): statistics rows and description read by itemMenuInfoTask while its Specs panel is open.	
+txt_140	Parasite Energy Specs text for Antibody level 2 (file 20729), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_141	Parasite Energy Specs text for Antibody level 3 (file 20730), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_142	Parasite Energy Specs text for Energy Shot level 1 (file 20731), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_143	Parasite Energy Specs text for Energy Shot level 2 (file 20732), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_144	Parasite Energy Specs text for Energy Shot level 3 (file 20733), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_145	Parasite Energy Specs text for Energy Ball level 1 (file 20734), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_146	Parasite Energy Specs text for Energy Ball level 2 (file 20735), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_147	Parasite Energy Specs text for Energy Ball level 3 (file 20736), drawn by the PE specifications task while that energy's Specs panel is open.	
+txt_148	Map Help text of objective 1 (file 20801, "I should check out the roof first..."), drawn by menuMapHelpTask; objective set in the Acropolis west elevator hall.	
+txt_149	Map Help text of objective 2 (file 20802, "Civilian evac."), drawn by menuMapHelpTask when Help is opened; objective set in the Acropolis east elevator hall.	
+txt_15	Specs-panel text of weapon 0x94, the M4A1 (+2): statistics rows and description read by itemMenuInfoTask while its Specs panel is open.	
+txt_150	Map Help text of objective 3 (file 20803, "I've never seen this kind of NMC."), shown on the map's Help panel; objective set by the Acropolis cafeteria.	
+txt_151	Map Help text of objective 4 (file 20804, "I have to contact MIST!"), shown on the map's Help panel; objective set by the Acropolis cafeteria.	
+txt_152	Map Help text of objective 5 (file 20805, "I should warn Rupert and then"), shown on the map's Help panel; objective set by the shared room cutscene task.	
+txt_153	Map Help text of objective 6 (file 20806, "That masked man knows"), shown on the map's Help panel; objective set by the Acropolis sanctuary.	
+txt_154	Map Help text of objective 7 (file 20807, "A bomb...here!?"), shown on the map's Help panel; objective set by the Acropolis roof garden and fire escape.	
+txt_155	Map Help text of objective 8 (file 20808, "I'd better follow him..."), shown on the map's Help panel; objective set at the Acropolis helicopter landing pad.	
+txt_156	Map Help text of objective 9 (file 20809, "Well, let's start with"), shown on the map's Help panel; objective set by dryfield_gas_station_3.	
+txt_157	Map Help text of objective 10 (file 20810, "That noise... Is someone in there?"), shown on the map's Help panel; objective set by the shared factory room action.	
+txt_158	Map Help text of objective 11 (file 20811, "The motel... I guess I could drop"), shown on the map's Help panel; objective set by actor_120300.	
+txt_159	Map Help text of objective 12 (file 20812, "Since I'm here I might as well"), shown on the map's Help panel; objective set by the shared motel balcony doors code.	
+txt_16	Specs-panel text of weapon 0x95, the Hypervelocity: statistics rows and description read by itemMenuInfoTask while its Specs panel is open.	
+txt_160	Map Help text of objective 13 (file 20813, "Douglas told me there was no"), shown on the map's Help panel; objective set by actor_120500.	
+txt_161	Map Help text of objective 14 (file 20814, "I should ask Mr. Douglas about"), shown on the map's Help panel; objective set at the Dryfield water tank.	
+txt_162	Map Help text of objective 15 (file 20815, "I can get to the empty house"), shown on the map's Help panel; objective set in the Dryfield trailer coach.	
+txt_163	Map Help text of objective 16 (file 20816, "What's going on in that"), shown on the map's Help panel; objective set by the shared Dryfield driveway blackout code.	
+txt_164	Map Help text of objective 17 (file 20817, "I hope my car's okay..."), shown on the map's Help panel; objective set in the night dilapidated house.	
+txt_165	Map Help text of objective 18 (file 20818, "Maybe I could borrow"), shown on the map's Help panel; objective set at the night gas station.	
+txt_166	Map Help text of objective 19 (file 20819, "The Bronco masterkey should"), shown on the map's Help panel; objective set in the night trailer coach.	
+txt_167	Map Help text of objective 20 (file 20820, "I have to find some sort of"), shown on the map's Help panel; objective set in the night motel lobby.	
+txt_168	Map Help text of objective 21 (file 20821, "I'm pretty sure I know where"), shown on the map's Help panel; objective set in the night motel loft.	
+txt_169	Map Help text of objective 22 (file 20822, "Mr. Douglas needs me to bring"), shown on the map's Help panel; objective set at the night gas station.	
+txt_17	Specs-panel text of weapon 0x96, the Gunblade: statistics rows and description read by itemMenuInfoTask while its Specs panel is open.	
+txt_170	Map Help text of objective 23 (file 20823, "I really am tired... I should take"), shown on the map's Help panel; objective set in the night garage.	
+txt_171	Map Help text of objective 24 (file 20824, "Mr. Douglas... Flint..."), shown on the map's Help panel; objective set by actor_335800.	
+txt_172	Map Help text of objective 25 (file 20825, "Watch out shelter,"), shown on the map's Help panel; objective set by actor_136100.	
+txt_173	Map Help text of objective 26 (file 20826, "Let's go to the shelter..."), shown on the map's Help panel; objective set by actor_136100.	
+txt_174	Map Help text of objective 27 (file 20827, "More will come if I don't hurry."), shown on the map's Help panel; objective set on the mine mesa.	
+txt_175	Map Help text of objective 28 (file 20828, "What about Madigan?"), shown on the map's Help panel; objective set on the mine mesa.	
+txt_176	Map Help text of objective 29 (file 20829, "Is this the shelter Kyle was"), shown on the map's Help panel; objective set in the Shelter B1 elevator hall.	
+txt_177	Map Help text of objective 30 (file 20830, "I...I know this place..."), shown on the map's Help panel; objective set in the Shelter B1 pod access tunnel.	
+txt_178	Map Help text of objective 31 (file 20831, "This Bowman sounds dangerous."), shown on the map's Help panel; objective set in the Shelter B2 breeding room.	
+txt_179	Map Help text of objective 32 (file 20832, "That creature disappeared above"), shown on the map's Help panel; objective set on the Shelter B2 north maintenance walkway.	
+txt_18	Specs-panel text of weapon 0x98, the M4A1 Hammer: statistics rows and description read by itemMenuInfoTask while its Specs panel is open.	
+txt_180	Map Help text of objective 33 (file 20833, "Where is this place?"), shown on the map's Help panel; objective set in the Shelter B3 dumping hole.	
+txt_181	Map Help text of objective 34 (file 20834, "I'd better get out of here, quick."); no reached use found: nothing in the source sets the current objective to 34.	
+txt_182	Map Help text of objective 35 (file 20835, "For now I should follow Kyle's"), shown on the map's Help panel; objective set in the Shelter B3 incinerator control room.	
+txt_183	Map Help text of objective 36 (file 20836, "I should go check out shelter"), shown on the map's Help panel; objective set in the Shelter B2 elevator.	
+txt_184	Map Help text of objective 37 (file 20837, "I hope Mr. Douglas is okay..."), shown on the map's Help panel; objective set at the night water hole.	
+txt_185	Map Help text of objective 38 (file 20838, "Let's check out the shelter again."), shown on the map's Help panel; objective set in the night trailer coach.	
+txt_186	Map Help text of objective 39 (file 20839, "I should answer the phone..."), shown on the map's Help panel; objective set by actor_143000.	
+txt_187	Map Help text of objective 40 (file 20840, "I'm worried about Pierce..."), shown on the map's Help panel; objective set in the Shelter B2 laboratory.	
+txt_188	Map Help text of objective 41 (file 20841, "Kyle..."), shown on the map's Help panel; objective set in the Shelter B2 laboratory.	
+txt_189	Map Help text of objective 42 (file 20842, "Kyle's got the right idea."), shown on the map's Help panel; objective set by shelter_r47.	
+txt_19	Specs-panel text of weapon 0x99, the M4A1 Bayonet: statistics rows and description read by itemMenuInfoTask while its Specs panel is open.	
+txt_190	Map Help text of objective 43 (file 20843, "Neo Ark..."), shown on the map's Help panel; objective set by shelter_r47.	
+txt_191	Map Help text of objective 44 (file 20844, "I feel a great power in Neo Ark."), shown on the map's Help panel; objective set in the Neo Ark observatory.	
+txt_192	Map Help text of objective 45 (file 20845, "A barrier... An impassable wall"), shown on the map's Help panel; objective set in the Neo Ark observatory.	
+txt_193	Map Help text of objective 46 (file 20846, "It disappeared!"), shown on the map's Help panel; objective set in Neo Ark power plant 2.	
+txt_194	Map Help text of objective 47 (file 20847, "That little girl..."), shown on the map's Help panel; objective set in the Shelter B6 corridor.	
+txt_195	Map Help text of objective 48 (file 20848, "That noise is frightening Eve."), shown on the map's Help panel; objective set in the Shelter B6 nursery.	
+txt_196	Map Help text of objective 49 (file 20849, "I've got a bad feeling about this..."), shown on the map's Help panel; objective set in the Shelter B6 nursery.	
+txt_197	Map Help text of objective 50 (file 20850, "I don't feel so good..."), shown on the map's Help panel; objective set by actor_450800.	
+txt_198	Map Help text of objective 51 (file 20851, "I'd better get Eve to a safe place."), shown on the map's Help panel; objective set in the Shelter B6 growth room.	
+txt_199	Map Help text of objective 52 (file 20852, "I can't leave Eve by herself..."), shown on the map's Help panel; objective set in the Neo Ark garden.	
+txt_2	Specs-panel text of weapon 0x82, the M950: statistics rows and description read by itemMenuInfoTask while its Specs panel is open.	
+txt_20	Specs-panel text of weapon 0x9A, the M4A1 Grenade: statistics rows and description read by itemMenuInfoTask while its Specs panel is open.	
+txt_200	Map Help text of objective 53 (file 20853, "Follow that man..."), shown on the map's Help panel; objective set in the Neo Ark submarine tunnel.	
+txt_201	Map Help text of objective 54 (file 20854, "Eve..."), shown on the map's Help panel; objective set in the Shelter 1F tent.	
+txt_202	Map Help text of objective 55 (file 20855, "Eve... Be strong..."), shown on the map's Help panel; objective set in the Shelter B1 pod access tunnel.	
+txt_203	Map Help text of objective 56 (file 20856, "Wait... Maybe Mr. Douglas knows"), set in the Dryfield breezeway; file 20857 carries the same chunk but objective 57 is never set.	
+txt_204	Map Help text of objective 58 (file 20858, "This just isn't my day. Maybe"), shown on the map's Help panel; objective set by actor_215100.	
+txt_205	Map Help text of objective 59 (file 20859, "Akropolis Tower... That's right"), shown on the map's Help panel; objective set in the MIST shooting gallery.	
+txt_206	Map Help text of objective 60 (file 20860, "Go to the desert, huh? Yes, boss."), shown on the map's Help panel; objective set in the MIST parking.	
+txt_207	Map Help text of objective 61 (file 20861, "Kyle... I can't believe he's gone."), shown on the map's Help panel; objective set in the mine cavern.	
+txt_21	Specs-panel text of weapon 0x9B, the M4A1 Pyke: statistics rows and description read by itemMenuInfoTask while its Specs panel is open.	
+txt_22	Specs-panel text of weapon 0x9C, the M4A1 Javelin: statistics rows and description read by itemMenuInfoTask while its Specs panel is open.	
+txt_23	Specs-panel text of weapon 0x9D, the MP5A5: statistics rows and description read by itemMenuInfoTask while its Specs panel is open.	
+txt_24	Specs-panel text of weapon 0x9E, the MP5A5 (+1): statistics rows and description read by itemMenuInfoTask while its Specs panel is open.	
+txt_25	Specs-panel text of weapon 0x9F, the MP5A5 (+2): statistics rows and description read by itemMenuInfoTask while its Specs panel is open.	
+txt_26	Information-panel text of key item 0x101, the Parthenon Key: description starting at line 5, read by itemMenuInfoTask while the key item's panel is open.	
+txt_27	Information-panel text of key item 0x102, the Micro Device, read by itemMenuInfoTask while the key item's panel is open.	
+txt_28	Information-panel text of key item 0x103, the Red Key, read by itemMenuInfoTask while the key item's panel is open.	
+txt_29	Information-panel text of key item 0x104, the Blue Key, read by itemMenuInfoTask while the key item's panel is open.	
+txt_3	Specs-panel text of weapon 0x83, the P08: statistics rows and description read by itemMenuInfoTask while its Specs panel is open.	
+txt_30	Information-panel text of key item 0x105, the Armory Cardkey, read by itemMenuInfoTask while the key item's panel is open.	
+txt_31	Information-panel text of key item 0x106, the MIST Badge, read by itemMenuInfoTask while the key item's panel is open.	
+txt_32	Information-panel text of key item 0x107, Mendel (Sept. issue), read by itemMenuInfoTask while the key item's panel is open.	
+txt_33	Information-panel text of key item 0x108, the Clipboard, read by itemMenuInfoTask while the key item's panel is open.	
+txt_34	Information-panel text of key item 0x109, the MIST Search Warrant, read by itemMenuInfoTask while the key item's panel is open.	
+txt_35	Information-panel text of key item 0x10A, the NMC Photo, read by itemMenuInfoTask while the key item's panel is open.	
+txt_36	Information-panel text of key item 0x10B, the Manual, read by itemMenuInfoTask while the key item's panel is open.	
+txt_37	Information-panel text of key item 0x10C, the Dryfield Map, read by itemMenuInfoTask while the key item's panel is open.	
+txt_38	Information-panel text of key item 0x10F, Motel Key No.6; the same chunk also serves the unnamed ids 0x10D and 0x10E, for which no requester was found.	
+txt_39	Information-panel text of key item 0x110, the Saloon Key, read by itemMenuInfoTask while the key item's panel is open.	
+txt_4	Specs-panel text of weapon 0x84, the P229: statistics rows and description read by itemMenuInfoTask while its Specs panel is open.	
+txt_40	Information-panel text of key item 0x111, the Monkey Wrench, read by itemMenuInfoTask while the key item's panel is open.	
+txt_41	Information-panel text of key item 0x112, the Lobby Key, read by itemMenuInfoTask while the key item's panel is open.	
+txt_42	Information-panel text of key item 0x113, the Bronco Masterkey, read by itemMenuInfoTask while the key item's panel is open.	
+txt_43	Information-panel text of key item 0x114, the Wire Rope, read by itemMenuInfoTask while the key item's panel is open.	
+txt_44	Information-panel text of key item 0x115, the Factory Key, read by itemMenuInfoTask while the key item's panel is open.	
+txt_45	Information-panel text of key item 0x116, the Truck Key, read by itemMenuInfoTask while the key item's panel is open.	
+txt_46	Information-panel text of key item 0x117, the Jerry Can, read by itemMenuInfoTask while the key item's panel is open.	
+txt_47	Information-panel text of key item 0x118, Gasoline, read by itemMenuInfoTask while the key item's panel is open.	
+txt_48	Information-panel text of key item 0x119, the Ice Bag, read by itemMenuInfoTask while the key item's panel is open.	
+txt_49	Information-panel text of key item 0x11A, the Bag of Water, read by itemMenuInfoTask while the key item's panel is open.	
+txt_5	Specs-panel text of weapon 0x88, the Mongoose: statistics rows and description read by itemMenuInfoTask while its Specs panel is open.	
+txt_50	Information-panel text of key item 0x11B, the Bottlecap Magnet, read by itemMenuInfoTask while the key item's panel is open.	
+txt_51	Information-panel text of key item 0x11E, the SUV Key, read by itemMenuInfoTask while the key item's panel is open.	
+txt_52	Information-panel text of key item 0x11F, the Oak Board, read by itemMenuInfoTask while the key item's panel is open.	
+txt_53	Information-panel text of the Jumper Plug, shared by key item ids 0x120 and 0x12C, read by itemMenuInfoTask while either one's panel is open.	
+txt_54	Information-panel text of key item 0x121, Bowman's Card, read by itemMenuInfoTask while the key item's panel is open.	
+txt_55	Information-panel text of key item 0x122, Yoshida's Card, read by itemMenuInfoTask while the key item's panel is open.	
+txt_56	Information-panel text of key item 0x123, the Electric Car Key, read by itemMenuInfoTask while the key item's panel is open.	
+txt_57	Information-panel text of key item 0x124, the Teddy Bear, read by itemMenuInfoTask while the key item's panel is open.	
+txt_58	Information-panel text of key item 0x125, Pierce's Memo, read by itemMenuInfoTask while the key item's panel is open.	
+txt_59	Blank key-item text (line breaks only) for the unnamed ids 0x126, 0x12A and 0x12B; no reached use found: none of these ids is in the collected-items list.	
+txt_6	Specs-panel text of weapon 0x8A, the Grenade Pistol: statistics rows and description read by itemMenuInfoTask while its Specs panel is open.	
+txt_60	Information-panel text of key item 0x127, Aeris (Sept. issue), read by itemMenuInfoTask while the key item's panel is open.	
+txt_61	Information-panel text of key item 0x128, Mr. Douglas's Letter, read by itemMenuInfoTask while the key item's panel is open.	
+txt_62	Blank text chunk (line breaks only) read as the information-panel text of key item 0x129, which has no name in its descriptor.	
+txt_63	Information-panel text of key item 0x12D, a second Micro Device id, read by itemMenuInfoTask while the key item's panel is open.	
+txt_64	Information-panel text of item 0x01, Recovery1 (file 20301), read by itemMenuInfoTask; the id comes from pickups, shop stock and battle rewards.	
+txt_65	Information-panel text of item 0x02, Recovery2 (file 20302), read by itemMenuInfoTask while the item's panel is open.	
+txt_66	Information-panel text of item 0x03, Recovery3 (file 20303), read by itemMenuInfoTask while the item's panel is open.	
+txt_67	Information-panel text of item 0x04, Stim (file 20304), read by itemMenuInfoTask while the item's panel is open.	
+txt_68	Information-panel text of item 0x05, Cola (file 20305), read by itemMenuInfoTask while the item's panel is open.	
+txt_69	Information-panel text of item 0x06, MP Boost1 (file 20306), read by itemMenuInfoTask while the item's panel is open.	
+txt_7	Specs-panel text of weapon 0x8B, the MM1: statistics rows and description read by itemMenuInfoTask while its Specs panel is open.	
+txt_70	Information-panel text of item 0x07, MP Boost2 (file 20307), read by itemMenuInfoTask while the item's panel is open.	
+txt_71	Information-panel text of item 0x08, Penicillin (file 20308), read by itemMenuInfoTask while the item's panel is open.	
+txt_72	Information-panel text of item 0x09, SMG Clip Holder (file 20309), read by itemMenuInfoTask while the item's panel is open.	
+txt_73	Information-panel text of item 0x0A, Rifle Clip Holder (file 20310), read by itemMenuInfoTask while the item's panel is open.	
+txt_74	Information-panel text of item 0x0B, Lipstick (file 20311), read by itemMenuInfoTask while the item's panel is open.	
+txt_75	Information-panel text of item 0x0C, Snail Magazine (file 20312), read by itemMenuInfoTask while the item's panel is open.	
+txt_76	Information-panel text of item 0x0D, Belt Pouch (file 20313), read by itemMenuInfoTask while the item's panel is open.	
+txt_77	Information-panel text of item 0x0E, MD Player (file 20314), read by itemMenuInfoTask while the item's panel is open.	
+txt_78	Item text of id 0x0F, Pyrokinesis level 1 as a shop row (file 20315); no reached use found: the shop offers that ability only from stock level 2 and the PE menu loads other files.	
+txt_79	One text chunk shared by eight Parasite Energy shop-row ids (Pyrokinesis 2-3, Combustion 1-2, Plasma 3, Apobiosis 1 and two more), shown in the shop's item information panel.	
+txt_8	Specs-panel text of weapon 0x8C, the PA3: statistics rows and description read by itemMenuInfoTask while its Specs panel is open.	
+txt_80	One text chunk shared by 26 Parasite Energy shop-row ids (Combustion 3, Inferno, Necrosis and others), shown in the shop's information panel; six ammunition ids that also map to it have no source.	
+txt_81	Information-panel text of item 0x2A, Antibody level 1 as a shop row (file 20342); the ammunition id 0xB0 (Paralizer, file 20417) that shares the chunk has no source found.	
+txt_82	Text chunk with no reached use found: it serves three empty item descriptors (0x33-0x35), ammunition 0xBD (Fuel) and, as one blank text, all 62 enemy-name files 20601-20662.	
+txt_83	One information-panel text shared by items 0x36-0x39 (Skull Crystal, Medicine Wheel, Holy Water, Ofuda; files 20354-20357), which come from pickups and shop stock.	
+txt_84	One information-panel text shared by item 0x3A Flare (file 20358) and item 0x41 Combat Light (file 20365), which come from pickups, shop stock and a battle reward.	
+txt_85	Information-panel text of item 0x3B, Pepper Spray (file 20359), read by itemMenuInfoTask while the item's panel is open.	
+txt_86	Information-panel text of item 0x3C, Protein Capsule (file 20360), read by itemMenuInfoTask while the item's panel is open.	
+txt_87	Information-panel text of item 0x3D, Ringer's Solution (file 20361), read by itemMenuInfoTask while the item's panel is open.	
+txt_88	Information-panel text of item 0x3E, Eau de Toilette (file 20362), read by itemMenuInfoTask while the item's panel is open.	
+txt_89	Information-panel text of item 0x3F, Hunter Goggles (file 20363), read by itemMenuInfoTask while the item's panel is open.	
+txt_9	Specs-panel text of weapon 0x8D, the SP12: statistics rows and description read by itemMenuInfoTask while its Specs panel is open.	
+txt_90	Information-panel text of item 0x40, GPS (file 20364), read by itemMenuInfoTask while the item's panel is open.	
+txt_91	One information-panel text shared by the five weapon attachment items 0x42-0x46 (Hammer, Pyke, Javelin, M203, M9; files 20366-20370), from shop stock and battle rewards.	
+txt_92	Information-panel text of ammunition 0xA0, 9mm P.B. (file 20401), read by itemMenuInfoTask; the id comes from pickups and shop stock.	
+txt_93	One information-panel text shared by ammunition 0xA1 9mm Hydra (file 20402) and 0xA2 9mm Spartan (file 20403).	
+txt_94	One information-panel text shared by ammunition 0xA6 44 Magnum (file 20407) and 0xA7 44 Maeda SP (file 20408).	
+txt_95	One information-panel text shared by ammunition 0xA9 Grenade, 0xAA Airburst and 0xAB Riot (files 20410-20412).	
+txt_96	One information-panel text shared by ammunition 0xAC Buckshot, 0xAD Firefly and 0xAE R. Slug (files 20413-20415).	
+txt_97	Information-panel text of ammunition 0xAF, 5.56 Rifle (file 20416), read by itemMenuInfoTask while the ammunition's panel is open.	
+txt_98	Information-panel text of armour 0x60, Leather Jacket (file 20501), the new-game armour, read by itemMenuInfoTask while its panel is open.	
+txt_99	Information-panel text of armour 0x61, Tactical Armor (file 20502), read by itemMenuInfoTask while the armour's panel is open.	
+unused_85_animation_003A0	Player animation bank of the unused weapon 6 (item 0x85): a full set of locomotion, aim, reload, hit, PE and stair clips, but not reached since no code grants the item.	
+unused_85_model_0016C	One-part held-weapon model of the unused weapon 6 (bank 7 descriptor 69), which gameplay would spawn in the player's hand; not reached because item 0x85 is never granted.	
+unused_86_animation_00004	Player animation bank of the codeless unused weapon 7 (item 0x86), one symbol shared by five unused packages; not reached: no code grants the item or equips weapon 7.	
+unused_87_animation_00004	Player animation bank of the codeless unused weapon 8 (item 0x87), same shared symbol as unused_86's bank; never used in play: nothing grants the item or equips weapon 8.	
+unused_89_animation_00004	Player animation bank of the codeless unused weapon 10 (item 0x89), same shared symbol as unused_86's bank; never used in play: nothing grants the item or equips weapon 10.	
+unused_91_animation_00004	Player animation bank of the codeless unused weapon 18 (item 0x91), same shared symbol as unused_86's bank; never used in play: nothing grants the item or equips weapon 18.	
+unused_97_animation_00004	Player animation bank of the codeless unused weapon 24 (item 0x97), same shared symbol as unused_86's bank; never used in play: nothing grants the item or equips weapon 24.	
+watcher_body	3-part rigid Watcher security turret body (actors 102100/202100), placed standing or patrolling with beam or gun weapons in Shelter B1 and Neo Ark power plant rooms; hidden and destroyed on death.	
+zebra_stalker_body	18-part Zebra Stalker enemy body (actor_400600), spawned cloaked in Dryfield night, mine and Shelter rooms, revealed semi-transparent on wake-up and replaced by chunk models on a blast death.	
+zebra_stalker_burst_foot_left	Chunk mesh defined in actor_400600 but with no use found: it is not one of the four chunks the Zebra Stalker throws on a blast death.	
+zebra_stalker_burst_hand_right	Chunk mesh defined in actor_400600 but with no use found: it is not one of the four chunks the Zebra Stalker throws on a blast death.	
+zebra_stalker_burst_head	First of the four death chunks actor_400600 throws when a Zebra Stalker is killed by a blast, spawned by EFFECT_BODY_CHUNK at body part 4.	
