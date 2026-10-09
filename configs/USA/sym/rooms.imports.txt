@@ -563,7 +563,7 @@ D_actor_443500_8014152C = 0x8014152C; // absolute:True owner=actor_443500
 D_actor_120300_80141B6C = 0x80141B6C; // absolute:True owner=actor_120300
 D_actor_443500_80141C1C = 0x80141C1C; // absolute:True owner=actor_443500
 D_actor_443500_80141D9C = 0x80141D9C; // absolute:True owner=actor_443500
-Actor04400_D107E4 = 0x80142604; // absolute:True owner=actor_104400
+gActor04400MadChaserTaskDescs = 0x80142604; // absolute:True owner=actor_104400
 D_actor_443500_80142A74 = 0x80142A74; // absolute:True owner=actor_443500
 D_actor_443500_80142C24 = 0x80142C24; // absolute:True owner=actor_443500
 D_actor_443500_801432FC = 0x801432FC; // absolute:True owner=actor_443500

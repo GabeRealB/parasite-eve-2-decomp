@@ -45,7 +45,7 @@ static void _madChaserDeathSettle(Task* task)
             _madChaserDeathBlendSettle(task, MAD_CHASER_DEATH_UPRIGHT_SETTLE_CLIP);
         }
     } else {
-        settleClip = gMadChaserSettleAnims[currentClip - 1];
+        settleClip = _gMadChaserSettleAnims[currentClip - 1];
         _madChaserDeathBlendSettle(task, settleClip);
     }
     _madChaserTickAnim(task);

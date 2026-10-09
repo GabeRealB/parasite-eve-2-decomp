@@ -33,7 +33,7 @@ static void _madChaserDeathRequestSettle(Task* task)
             work->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
         }
     } else {
-        settleClip            = gMadChaserSettleAnims[currentClip - 1];
+        settleClip            = _gMadChaserSettleAnims[currentClip - 1];
         work->animBlendFrames = MAD_CHASER_DEATH_SETTLE_BLEND_FRAMES;
         work->animRate        = ANIMATION_RATE_ONE;
         work->animId          = settleClip;

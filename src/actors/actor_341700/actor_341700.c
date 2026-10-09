@@ -57,13 +57,7 @@
 
 /// Psy-Q `RotMatrixY`, taking the angle as a `long`.
 
-extern EnemyParams   gMadChaserEnemyParams;  // the main enemy's `Enemy::param` record
-extern AnimationSet* gMadChaserAnimBank[21]; // animation bank handed to `animationInitContext`
-// Message-table callbacks use the argument views required by this TU.
-
-extern TaskMessageEntry gMadChaserMsgTable[3];   // stored into `Task::msgTable` by _madChaserSpawn
-extern u8               gMadChaserAnimStance[];  // per animation id (1-based): value for `stateScratch`
-extern u8               gMadChaserSettleAnims[]; // per animation id (1-based): the animation to follow it
+extern EnemyParams gMadChaserEnemyParams; // the main enemy's `Enemy::param` record
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
@@ -108,9 +102,12 @@ static void _madChaserShrinkDeathStart(Task* task);
 static void _madChaserShrinkDeathTurnTranslucent(Task* task);
 static void _madChaserShrinkDeathStartDespawn(Task* task);
 
-/// Six task-state handlers of the first enemy form, dispatched by
-/// `_madChaserTask` on `Task::state`.
-static const TaskFuncTable6 gMadChaserTaskStates = { {
+/// Task states of an ordinary Mad Chaser.
+///
+/// `Task::state` selects 0 spawn, 1 lurk, 2 dangle, 3 combat, 4 death, 5 despawn.
+/// The dispatcher copies all 6 non-NULL void(Task*) callbacks before the call.
+/// Their code and state-specific task storage must stay live through dispatch.
+static const TaskFuncTable6 _gMadChaserTaskStates = { {
     _madChaserSpawn,
     _madChaserLurkTick,
     _madChaserDangleFrame,
@@ -119,9 +116,13 @@ static const TaskFuncTable6 gMadChaserTaskStates = { {
     _madChaserDespawnState,
 } };
 
-/// Ten task-state handlers of the second enemy form, dispatched by
-/// `_madChaserHiddenTask` on `Task::state`.
-static const TaskFuncTable10 gMadChaserHiddenTaskStates = { {
+/// Task states of a Mad Chaser with scripted emergence and death.
+///
+/// `Task::state` selects 0 hidden spawn, 1 lurk, 2 dangle, 3 combat, 4 death, 5 despawn, 6
+/// emerge, 7 vanish, 8 drop death, 9 shrink death.
+/// The dispatcher copies all 10 non-NULL void(Task*) callbacks before the call.
+/// Their code and state-specific task storage must stay live through dispatch.
+static const TaskFuncTable10 _gMadChaserHiddenTaskStates = { {
     _madChaserSpawnHidden,
     _madChaserLurkTick,
     _madChaserDangleFrame,
@@ -134,9 +135,13 @@ static const TaskFuncTable10 gMadChaserHiddenTaskStates = { {
     _madChaserShrinkDeathTick,
 } };
 
-/// Eleven state handlers, indexed by `MadChaserWork::state`; copied to
-/// the stack before dispatch.
-static const TaskFuncTable11 gMadChaserCombatStates = { {
+/// Combat behaviors of the Mad Chaser.
+///
+/// `MadChaserWork::state` selects 0..2 enter alert, 3 walk, 4 leap, 5 alert, 6 light
+/// recoil, 7 heavy recoil, 8 status hold, 9 knockdown, 10 pull.
+/// The dispatcher copies every non-NULL void(Task*) callback before indexing;
+/// the selected index must be in range and the carrier must remain loaded.
+static const TaskFuncTable11 _gMadChaserCombatStates = { {
     _madChaserCombatToAlertState0,
     _madChaserCombatToAlertState1,
     _madChaserCombatToAlertState2,
@@ -150,8 +155,12 @@ static const TaskFuncTable11 gMadChaserCombatStates = { {
     _madChaserPullState,
 } };
 
-/// Sub-state handlers `_madChaserKnockdownState` dispatches by `subState`.
-static const TaskFuncTable3 gMadChaserKnockdownSteps = { {
+/// Phases of knockdown and stance-dependent recovery.
+///
+/// `MadChaserWork::subState` selects 0 start knockdown, 1 rise, 2 finish recovery.
+/// The dispatcher copies every non-NULL void(Task*) callback before indexing;
+/// the selected index must be in range and the carrier must remain loaded.
+static const TaskFuncTable3 _gMadChaserKnockdownSteps = { {
     _madChaserKnockdownStart,
     _madChaserKnockdownRise,
     _madChaserKnockdownEnd,
@@ -164,8 +173,12 @@ static const TaskFuncTable3 gMadChaserWalkSteps = { {
     _madChaserWalkFinish,
 } };
 
-/// Sub-state handlers `_madChaserLeapState` dispatches by `subState`.
-static const TaskFuncTable5 gMadChaserLeapSteps = { {
+/// Phases of the leap attack and return to walking.
+///
+/// `MadChaserWork::subState` selects 0 windup, 1 lunge, 2 turn away, 3 rebound, 4 land.
+/// The dispatcher copies every non-NULL void(Task*) callback before indexing;
+/// the selected index must be in range and the carrier must remain loaded.
+static const TaskFuncTable5 _gMadChaserLeapSteps = { {
     _madChaserStartLeap,
     _madChaserLeapAttack,
     _madChaserLeapTurnAway,
@@ -748,7 +761,11 @@ static AnimationSet _gActor341700Animation12EA4 = {
     { NULL, _gActor341700Animation12EA4Bank1, NULL, NULL, _gActor341700Animation12EA4Bank4, NULL, NULL, NULL },
 };
 
-AnimationSet* gMadChaserAnimBank[21] = {
+/// Loaded animation sets addressed directly by the one-based clip ID.
+///
+/// Entries 1..19 are playable; entries 0 and 20 are NULL, not clips. The
+/// animation context borrows the pointer table and all tracks until teardown.
+static AnimationSet* _gMadChaserAnimBank[21] = {
     NULL,
     &_gActor341700Animation0FCA8,
     &_gActor341700Animation0FE4C,
@@ -772,7 +789,13 @@ AnimationSet* gMadChaserAnimBank[21] = {
     NULL,
 };
 
-TaskMessageEntry gMadChaserMsgTable[3] = {
+/// Placement and scripted-command messages accepted by either Mad Chaser form.
+///
+/// PLACE borrows an ActorTransform; APPLY borrows an ActorCommand and queues
+/// it for the state machine. The third entry terminates lookup. Tasks borrow
+/// this table and its callbacks while the carrier is loaded. Both handlers
+/// return void; senders must ignore the dispatch result.
+static TaskMessageEntry _gMadChaserMsgTable[3] = {
     { ACTOR_MESSAGE_PLACE, _madChaserPlaceRoot },
     { ACTOR_COMMAND_MESSAGE_APPLY, _madChaserQueueCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -786,71 +809,63 @@ TaskDesc D_actor_341700_80174D70 = { { { TASK_BODY_COORD, 96 } }, taskKill, { .v
 
 TaskDesc D_actor_341700_80174D7C = { { { TASK_BODY_TMD, 96 } }, _madChaserHiddenTask, { .model = &_gActor341700MadChaserBody } };
 
-u8 gMadChaserAnimStance[20] = {
-    0,
-    1,
-    0,
-    1,
-    0,
-    1,
-    1,
-    1,
-    0,
-    0,
-    1,
-    1,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    1,
+/// Interrupted-clip stance used by recoil, knockdown and pull selection.
+///
+/// Index clipId - 1 for playable clips 1..19; values are MAD_CHASER_STANCE_LOW
+/// or MAD_CHASER_STANCE_UPRIGHT. The final zero byte is never selected by the
+/// known clip domain; its original storage role is unproven.
+static u8 _gMadChaserAnimStance[20] = {
+    MAD_CHASER_STANCE_LOW,
+    MAD_CHASER_STANCE_UPRIGHT,
+    MAD_CHASER_STANCE_LOW,
+    MAD_CHASER_STANCE_UPRIGHT,
+    MAD_CHASER_STANCE_LOW,
+    MAD_CHASER_STANCE_UPRIGHT,
+    MAD_CHASER_STANCE_UPRIGHT,
+    MAD_CHASER_STANCE_UPRIGHT,
+    MAD_CHASER_STANCE_LOW,
+    MAD_CHASER_STANCE_LOW,
+    MAD_CHASER_STANCE_UPRIGHT,
+    MAD_CHASER_STANCE_UPRIGHT,
+    MAD_CHASER_STANCE_LOW,
+    MAD_CHASER_STANCE_LOW,
+    MAD_CHASER_STANCE_LOW,
+    MAD_CHASER_STANCE_UPRIGHT,
+    MAD_CHASER_STANCE_LOW,
+    MAD_CHASER_STANCE_LOW,
+    MAD_CHASER_STANCE_UPRIGHT,
     0,
 };
 
-u8 gMadChaserSettleAnims[40] = {
-    5,
-    6,
-    5,
-    6,
-    5,
-    6,
-    6,
-    5,
-    5,
-    5,
-    6,
-    6,
-    5,
-    5,
-    5,
-    6,
-    5,
-    6,
-    5,
-    0,
-    2,
-    70,
-    1,
-    1,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    80,
-    0,
-    62,
-    200,
-    210,
-    1,
+/// Settle clip selected when death or a pull interrupts the current clip.
+///
+/// Index clipId - 1 for clips 1..19; each selects low clip 5 or upright clip 6.
+/// Clip 8 is overridden by the caller: low before the first leap, upright
+/// afterwards. The mapping and clip bank remain borrowed from the carrier.
+static u8 _gMadChaserSettleAnims[19] = {
+    MAD_CHASER_SETTLE_LOW_CLIP,
+    MAD_CHASER_SETTLE_UPRIGHT_CLIP,
+    MAD_CHASER_SETTLE_LOW_CLIP,
+    MAD_CHASER_SETTLE_UPRIGHT_CLIP,
+    MAD_CHASER_SETTLE_LOW_CLIP,
+    MAD_CHASER_SETTLE_UPRIGHT_CLIP,
+    MAD_CHASER_SETTLE_UPRIGHT_CLIP,
+    MAD_CHASER_SETTLE_LOW_CLIP,
+    MAD_CHASER_SETTLE_LOW_CLIP,
+    MAD_CHASER_SETTLE_LOW_CLIP,
+    MAD_CHASER_SETTLE_UPRIGHT_CLIP,
+    MAD_CHASER_SETTLE_UPRIGHT_CLIP,
+    MAD_CHASER_SETTLE_LOW_CLIP,
+    MAD_CHASER_SETTLE_LOW_CLIP,
+    MAD_CHASER_SETTLE_LOW_CLIP,
+    MAD_CHASER_SETTLE_UPRIGHT_CLIP,
+    MAD_CHASER_SETTLE_LOW_CLIP,
+    MAD_CHASER_SETTLE_UPRIGHT_CLIP,
+    MAD_CHASER_SETTLE_LOW_CLIP,
 };
+
+/// Unreferenced bytes before this package's prop geometry; their role is unproven.
+static u8 _gActor341700Unknown12F90[20] = { 2, 70, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 80, 0, 62, 200, 210, 1 };
 
 extern void* D_800678F0[1];
 
@@ -906,9 +921,13 @@ static __inline__ void _madChaserResetBehaviorStateS16(Task* task, s16 behaviorS
 
 #include "../../shared/mad_chaser_bodies.inc.c"
 
-/// Nine state handlers, indexed by `MadChaserWork::state`; copied to the
-/// stack before dispatch.
-static const TaskFuncTable9 gMadChaserDeathStates = { {
+/// Behaviors of ordinary death, including the alternate blast-burst path.
+///
+/// `MadChaserWork::state` selects 0 release the target, 1 settle, 2 wait for animation, 3
+/// start shrink, 4 turn translucent, 5 shrink with burn, 6 start despawn, 7 pause, 8 burst.
+/// The dispatcher copies every non-NULL void(Task*) callback before indexing;
+/// the selected index must be in range and the carrier must remain loaded.
+static const TaskFuncTable9 _gMadChaserDeathStates = { {
     _madChaserDeathReleaseTarget,
     _madChaserDeathSettle,
     _madChaserDeathWaitAnim,
@@ -955,8 +974,13 @@ static const TaskFuncTable3 gMadChaserLurkCrouchSteps = { {
     _madChaserLurkLookAround,
 } };
 
-/// Sub-state handlers `_madChaserLurkRiseState` dispatches by `subState`.
-static const TaskFuncTable3 gMadChaserLurkAlertSteps = { {
+/// Phases of the lurking alert and sidestep into combat.
+///
+/// `MadChaserWork::subState` selects 0 start alert, 1 start the sidestep, 2 sidestep into
+/// combat.
+/// The dispatcher copies every non-NULL void(Task*) callback before indexing;
+/// the selected index must be in range and the carrier must remain loaded.
+static const TaskFuncTable3 _gMadChaserLurkAlertSteps = { {
     _madChaserStartAlert,
     _madChaserLurkAlertStartSidestep,
     _madChaserLurkSidestepToCombat,
@@ -974,9 +998,13 @@ static const TaskFuncTable4 _gMadChaserLurkShiftSteps = { {
     _madChaserLurkSidestepLeft,
 } };
 
-/// Ten state handlers, indexed by `MadChaserWork::state`; copied to the
-/// stack before dispatch.
-static const TaskFuncTable10 gMadChaserEmergeStates = { {
+/// Behaviors of scripted placement and emergence.
+///
+/// `MadChaserWork::state` selects 0 place at the room spot, 1 backflip, 2 hop forward, 3
+/// creep, 4 arc back, 5 hop back, 6 back off, 7 high arc, 8 flip over, 9 creep.
+/// The dispatcher copies every non-NULL void(Task*) callback before indexing;
+/// the selected index must be in range and the carrier must remain loaded.
+static const TaskFuncTable10 _gMadChaserEmergeStates = { {
     _madChaserEmergeAtSpot,
     _madChaserEmergeBackflip,
     _madChaserEmergeHopForward,
@@ -989,8 +1017,13 @@ static const TaskFuncTable10 gMadChaserEmergeStates = { {
     _madChaserEmergeCreep9,
 } };
 
-/// Sub-state handlers `_madChaserPullState` dispatches by `subState`.
-static const TaskFuncTable6 gMadChaserPullSteps = { {
+/// Phases of a scripted pull toward the room capture point.
+///
+/// `MadChaserWork::subState` selects 0 start, 1 select reaction, 2 resist the pull, 3
+/// capture, 4 limp pull, 5 capture.
+/// The dispatcher copies every non-NULL void(Task*) callback before indexing;
+/// the selected index must be in range and the carrier must remain loaded.
+static const TaskFuncTable6 _gMadChaserPullSteps = { {
     _madChaserPullStart,
     _madChaserPullReact,
     _madChaserPulledStruggle,
@@ -999,9 +1032,13 @@ static const TaskFuncTable6 gMadChaserPullSteps = { {
     _madChaserPulledIn,
 } };
 
-/// Five state handlers, indexed by `MadChaserWork::state`; copied to
-/// the stack before dispatch.
-static const TaskFuncTable5 gMadChaserDropDeathStates = { {
+/// Behaviors of room-command death that leaves the body in place.
+///
+/// `MadChaserWork::state` selects 0 release rewards and alert ownership, 1 settle, 2 wait
+/// for animation, 3 unlink collision bodies, 4 hold the corpse.
+/// The dispatcher copies every non-NULL void(Task*) callback before indexing;
+/// the selected index must be in range and the carrier must remain loaded.
+static const TaskFuncTable5 _gMadChaserDropDeathStates = { {
     _madChaserDropDeathStart,
     _madChaserDeathRequestSettle,
     _madChaserCommandDeathWaitAnimBoundary,
@@ -1009,9 +1046,13 @@ static const TaskFuncTable5 gMadChaserDropDeathStates = { {
     _madChaserDropDeathHold,
 } };
 
-/// Seven state handlers, indexed by `MadChaserWork::state`; copied to
-/// the stack before dispatch.
-static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
+/// Behaviors of room-command death that shrinks and removes the body.
+///
+/// `MadChaserWork::state` selects 0 release rewards and alert ownership, 1 settle, 2 wait
+/// for animation, 3 start shrink, 4 turn translucent, 5 shrink, 6 start despawn.
+/// The dispatcher copies every non-NULL void(Task*) callback before indexing;
+/// the selected index must be in range and the carrier must remain loaded.
+static const TaskFuncTable7 _gMadChaserShrinkDeathStates = { {
     _madChaserShrinkDeathStart,
     _madChaserDeathRequestSettle,
     _madChaserCommandDeathWaitAnimBoundary,

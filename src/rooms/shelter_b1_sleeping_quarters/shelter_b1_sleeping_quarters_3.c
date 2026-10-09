@@ -1,3 +1,4 @@
+#include "actors/actor_04400.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
@@ -35,8 +36,6 @@
 #include "../../shared/room_visual_effects.inc.c"
 
 #include "../../shared/room_visual_effects_flying_tasks.inc.c"
-
-extern TaskDesc Actor04400_D107E4;
 
 #include "../../shared/room_visual_effects_disc_data.inc.c"
 
@@ -628,7 +627,7 @@ AreaResource D_shelter_b1_sleeping_quarters_80183E00[2] = {
 };
 
 AreaResource D_shelter_b1_sleeping_quarters_80183E18[3] = {
-    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &Actor04400_D107E4 },
+    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_04400_MAD_CHASER_TASK_ORDINARY, { 0, 0 }, gActor04400MadChaserTaskDescs },
     { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor207200CreepingStrangerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

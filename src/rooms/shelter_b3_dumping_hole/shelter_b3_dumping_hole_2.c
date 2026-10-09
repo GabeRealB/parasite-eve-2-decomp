@@ -12,6 +12,7 @@
 
 #include "shelter_b3_dumping_hole_private.h"
 
+#include "actors/actor_04400.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/display.h"
@@ -459,7 +460,6 @@ static u16      _gCapCaptionCaretTipY;
 static s32      _gCapCaptionCaretPulseLevel;
 static s32      _gCapCaptionCaretPulseFalling;
 static TaskDesc CapCaption_Data_801544FC;
-extern TaskDesc Actor04400_D107E4;
 extern TaskDesc D_actor_207000_801575F0;
 static TaskDesc CapCaption_Data_80154508;
 
@@ -2145,7 +2145,7 @@ AreaPlacement D_shelter_b3_dumping_hole_8018EB90[2] = {
 };
 
 AreaResource D_shelter_b3_dumping_hole_8018EBB0[5] = {
-    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 1, { 0, 0 }, &Actor04400_D107E4 },
+    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_04400_MAD_CHASER_TASK_SCRIPTED_NO_BUFFER, { 0, 0 }, gActor04400MadChaserTaskDescs },
     { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 2, { 0, 0 }, &D_actor_207000_801575F0 },
     { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_20, 1, { 0, 0 }, &D_actor_207000_80151E60 },
     { 103, 421, AREA_RESOURCE_FILE_GROUP_BASE_30, 1, { 0, 0 }, D_actor_342100_80164B78 },
@@ -4464,7 +4464,7 @@ static const TaskFuncTable4 D_shelter_b3_dumping_hole_8017D654 = { {
     _shelterB3DumpingHoleEncounterRun,
 } };
 
-/// States of a slot task holding one enemy from `Actor04400_D107E4`: spawn it, after
+/// States of a slot task holding one enemy from `gActor04400MadChaserTaskDescs`: spawn it, after
 /// a delay switch its palette and send it message 0x7DB, then wait for its hit
 /// points to run out.
 static const TaskFuncTable3 D_shelter_b3_dumping_hole_8017D664 = { {
@@ -4671,12 +4671,12 @@ static inline void _shelterB3DumpingHoleRegisterSingleEncounter(Task* waveTask, 
 /// the slot task without marking the row live. Success advances to reveal.
 static void _shelterB3DumpingHoleEncounterSpawnMadChaser(Task* waveTask)
 {
-    enum { SHELTER_B3_DUMPING_HOLE_MAD_CHASER_TASK_INDEX = 1 };
+    enum { SHELTER_B3_DUMPING_HOLE_MAD_CHASER_TASK_INDEX = ACTOR_04400_MAD_CHASER_TASK_SCRIPTED_NO_BUFFER };
     OverlayEncounterSingleWork* work = memCalloc(sizeof(*work), false);
     if (work != NULL) {
         Enemy* enemy;
         waveTask->work = work;
-        enemy          = enemySpawnFromTable(&Actor04400_D107E4, SHELTER_B3_DUMPING_HOLE_MAD_CHASER_TASK_INDEX, 0, NULL);
+        enemy          = enemySpawnFromTable(gActor04400MadChaserTaskDescs, SHELTER_B3_DUMPING_HOLE_MAD_CHASER_TASK_INDEX, 0, NULL);
         if (enemy != NULL) {
             _shelterB3DumpingHoleRegisterSingleEncounter(waveTask, work, enemy);
             return;

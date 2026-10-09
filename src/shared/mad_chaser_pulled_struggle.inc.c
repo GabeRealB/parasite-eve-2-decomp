@@ -32,7 +32,7 @@ static __inline__ void _madChaserPulledStruggleRequestSettle(Task* task, MadChas
             MadChaserWork* requestWork;
             s16            settleClip;
 
-            settleClip                   = gMadChaserSettleAnims[work->animId - 1];
+            settleClip                   = _gMadChaserSettleAnims[work->animId - 1];
             requestWork                  = task->work;
             requestWork->animBlendFrames = MAD_CHASER_PULL_SETTLE_BLEND_FRAMES;
             requestWork->animRate        = ANIMATION_RATE_ONE;

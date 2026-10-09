@@ -16,7 +16,7 @@ static void _madChaserKnockdownStart(Task* task)
     MadChaserWork* work;
 
     work               = task->work;
-    work->stateScratch = gMadChaserAnimStance[work->animId - 1];
+    work->stateScratch = _gMadChaserAnimStance[work->animId - 1];
     if (work->stateScratch == MAD_CHASER_KNOCKDOWN_UPRIGHT_STANCE) {
         MadChaserWork* requestWork = task->work;
 

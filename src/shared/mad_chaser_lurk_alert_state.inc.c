@@ -12,7 +12,7 @@ static void _madChaserLurkAlertState(Task* task)
     TaskFuncTable3 steps;
 
     work  = task->work;
-    steps = gMadChaserLurkAlertSteps;
+    steps = _gMadChaserLurkAlertSteps;
     if (_madChaserJoinAlert(task)) {
         work->busy = 0;
         return;

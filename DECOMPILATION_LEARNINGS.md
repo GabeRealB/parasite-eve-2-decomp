@@ -2207,7 +2207,7 @@ When a `%hi(table)` sits in a branch delay slot and its `%lo` is only used on
 the not-taken path, the instruction after the slot can look like its partner:
 in `Actor04400_Fn08908`, `lh 0x440($s0)` is `work->field_440`, and a symbol at
 `0x80140440` would make it read as `%lo`. The `lui` belongs to
-`Actor04400_D10828` (same 64K page), and GCC emits `lui %hi(table)` /
+`_gMadChaserSettleAnims` (same 64K page), and GCC emits `lui %hi(table)` /
 `lh 0x440($s0)` / `addiu %lo(table)`. Do not fake the pair with pointer
 arithmetic through a coincidental symbol.
 
@@ -4339,7 +4339,7 @@ the load's insn number and the scheduler never moves it back. Write the store
 that uses the shared constant first:
 
 ```c
-if (Actor04400_D10814[work->field_418 - 1] == 0) {
+if (_gMadChaserAnimStance[work->field_418 - 1] == 0) {
     work->field_426 = 4;      /* before field_41C/field_418, not after them */
     work->field_41C = 0x10;
     work->field_418 = 9;
@@ -104365,7 +104365,7 @@ line = LOCAL.parent(
 The wildcard only fires on splat's **generated** names, `D_<family>_<vram>`, and
 only for the unit being scanned. actor_341700's `D_actor_341700_80174D88` is
 rewritten to `D_LOCAL` and groups with actor_342400's `D_actor_342400_80173A84`;
-actor_104400's copy reads the *named* `Actor04400_D10814`, which the regex does
+actor_104400's copy reads the *named* `_gMadChaserAnimStance`, which the regex does
 not match at all, so it stays verbatim and the group splits in two.
 
 This is the same family as the other `find`-misses in this file (a differing
@@ -104378,7 +104378,7 @@ was an auto name.
 `similar` is unaffected — it drops operands, so it scored the twin 1.00 in
 `shape` and `fields`, and the BRIEF printed it. Porting `func_actor_342400_80169DA4`'s
 body (`src/actors/actor_342400/actor_342400_17.c`) with the two work fields
-renamed and `extern u8 Actor04400_D10814[]` added to `include/actors/actor_104400.h`
+renamed and `extern u8 _gMadChaserAnimStance[]` added to `include/actors/actor_104400.h`
 scored 100.00 with every penalty zero on the first build; the m2c seed reached
 the same score after only the struct field rename, so this function is cheap
 either way. Promotion is a separate question and `promote` cannot be driven by

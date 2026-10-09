@@ -11,6 +11,7 @@
 
 #include "shelter_b4_lower_sewer_private.h"
 
+#include "actors/actor_04400.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/display.h"
@@ -62,7 +63,6 @@ extern SVECTOR D_shelter_b4_lower_sewer_80181F14[];
 /// The second of those points, which the trail's per-frame state reaches
 /// through its own label rather than by indexing the pair.
 
-extern TaskDesc Actor04400_D107E4;
 extern TaskDesc D_actor_100400_80147E48;
 
 SVECTOR D_shelter_b4_lower_sewer_80181EA4[12] = {
@@ -369,7 +369,7 @@ WorldCollisionTrigger D_shelter_b4_lower_sewer_801837D4[12] = {
 };
 
 AreaResource D_shelter_b4_lower_sewer_80183B64[2] = {
-    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &Actor04400_D107E4 },
+    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_04400_MAD_CHASER_TASK_ORDINARY, { 0, 0 }, gActor04400MadChaserTaskDescs },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

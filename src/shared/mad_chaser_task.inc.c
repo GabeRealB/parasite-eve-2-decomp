@@ -10,6 +10,6 @@ static void _madChaserTask(Task* task)
 {
     TaskFuncTable6 states;
 
-    states = gMadChaserTaskStates;
+    states = _gMadChaserTaskStates;
     states.funcs[task->state](task);
 }

@@ -12,6 +12,6 @@ static void _madChaserLeapState(Task* task)
     TaskFuncTable5 leapSteps;
 
     work      = task->work;
-    leapSteps = gMadChaserLeapSteps;
+    leapSteps = _gMadChaserLeapSteps;
     leapSteps.funcs[(s16)work->subState](task);
 }

@@ -13,7 +13,7 @@ static __inline__ void _madChaserBindHiddenResources(Task* task, TmdObject* mode
         MAD_CHASER_HIDDEN_HIT_EFFECT_SPAN  = 320,
         MAD_CHASER_HIDDEN_HIT_EFFECT_COUNT = 2,
     };
-    task->msgTable             = gMadChaserMsgTable;
+    task->msgTable             = _gMadChaserMsgTable;
     model->lightMtx            = &work->lightMtx;
     model->colorMtx            = &work->colorMtx;
     enemy->param               = &gMadChaserEnemyParams;
@@ -22,7 +22,7 @@ static __inline__ void _madChaserBindHiddenResources(Task* task, TmdObject* mode
     work->effectArg.spawnArgLo = MAD_CHASER_HIDDEN_HIT_EFFECT_SPAN;
     work->effectArg.spawnArgHi = MAD_CHASER_HIDDEN_HIT_EFFECT_COUNT;
     enemy->hp = enemy->hpMax = gMadChaserEnemyParams.hpMax;
-    animationInitContext(&work->anim, (AnimationSet**)gMadChaserAnimBank, model, work->poses, work->slots);
+    animationInitContext(&work->anim, _gMadChaserAnimBank, model, work->poses, work->slots);
 }
 
 /// Initializes a Mad Chaser that waits for a scripted emerge command.

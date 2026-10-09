@@ -33,7 +33,7 @@ static __inline__ void _madChaserPulledLimpRequestSettle(Task* task, MadChaserWo
         } else {
             MadChaserWork* requestWork;
 
-            settleClip                   = gMadChaserSettleAnims[work->animId - 1];
+            settleClip                   = _gMadChaserSettleAnims[work->animId - 1];
             requestWork                  = task->work;
             requestWork->animBlendFrames = MAD_CHASER_PULL_SETTLE_BLEND_FRAMES;
             requestWork->animRate        = ANIMATION_RATE_ONE;

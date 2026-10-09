@@ -10,6 +10,6 @@ static void _madChaserHiddenTask(Task* task)
 {
     TaskFuncTable10 states;
 
-    states = gMadChaserHiddenTaskStates;
+    states = _gMadChaserHiddenTaskStates;
     states.funcs[task->state](task);
 }

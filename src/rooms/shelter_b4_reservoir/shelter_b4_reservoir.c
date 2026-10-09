@@ -11,6 +11,7 @@
 #include "common.h"
 #include "gte.h"
 
+#include "actors/actor_04400.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/companion_load.h"
@@ -234,7 +235,6 @@ extern WorldCollisionTrigger  D_shelter_b4_reservoir_80186AC0[8];
 extern WorldCollisionTrigger  D_shelter_b4_reservoir_80186D20[7];
 extern WorldCollisionTrigger  D_shelter_b4_reservoir_80186F34[9];
 extern WorldCoordRoomLights   D_shelter_b4_reservoir_80186AA8[1];
-extern TaskDesc               Actor04400_D107E4;
 extern TaskDesc               D_actor_100400_80147E48;
 extern TaskDesc               D_actor_207000_801575F0;
 
@@ -860,7 +860,7 @@ AreaResource D_shelter_b4_reservoir_801871E0[2] = {
 };
 
 AreaResource D_shelter_b4_reservoir_801871F8[4] = {
-    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &Actor04400_D107E4 },
+    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_04400_MAD_CHASER_TASK_ORDINARY, { 0, 0 }, gActor04400MadChaserTaskDescs },
     { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor207200CreepingStrangerTaskDesc },
     { 73, 73, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &D_actor_207200_8014E7A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },

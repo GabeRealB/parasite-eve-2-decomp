@@ -16,7 +16,7 @@ static void _madChaserEmergeTick(Task* task)
     TmdObject*      model     = task->extra.tmd;
     MadChaserWork*  work      = task->work;
     GfxCoord*       rootCoord = model->coords;
-    TaskFuncTable10 states    = gMadChaserEmergeStates;
+    TaskFuncTable10 states    = _gMadChaserEmergeStates;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:

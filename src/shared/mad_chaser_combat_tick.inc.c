@@ -23,7 +23,7 @@ static void _madChaserCombatTick(Task* task)
     TmdObject*      model     = task->extra.tmd;
     MadChaserWork*  work      = task->work;
     GfxCoord*       rootCoord = model->coords;
-    TaskFuncTable11 states    = gMadChaserCombatStates;
+    TaskFuncTable11 states    = _gMadChaserCombatStates;
     s32             spineYawBits;
 
     switch (gSceneCombatState.actorControl) {

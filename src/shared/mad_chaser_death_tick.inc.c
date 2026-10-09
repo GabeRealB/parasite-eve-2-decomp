@@ -13,7 +13,7 @@ static void _madChaserDeathTick(Task* task)
     TmdObject*     model  = task->extra.tmd;
     MadChaserWork* work   = task->work;
     GfxCoord*      root   = model->coords;
-    TaskFuncTable9 states = gMadChaserDeathStates;
+    TaskFuncTable9 states = _gMadChaserDeathStates;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:

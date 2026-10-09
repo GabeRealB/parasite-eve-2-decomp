@@ -1,3 +1,4 @@
+#include "actors/actor_04400.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
@@ -37,7 +38,6 @@
 
 #include "../../shared/room_visual_effects_flying_tasks.inc.c"
 
-extern TaskDesc Actor04400_D107E4;
 extern TaskDesc D_actor_207000_801575F0;
 
 #include "../../shared/room_visual_effects_disc_data.inc.c"
@@ -662,14 +662,14 @@ AreaResource D_shelter_b2_breeding_room_80183C04[3] = {
 };
 
 AreaResource D_shelter_b2_breeding_room_80183C28[4] = {
-    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &Actor04400_D107E4 },
+    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_04400_MAD_CHASER_TASK_ORDINARY, { 0, 0 }, gActor04400MadChaserTaskDescs },
     { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &D_actor_207000_801575F0 },
     { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &D_actor_207000_80151E60 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b2_breeding_room_80183C58[4] = {
-    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &Actor04400_D107E4 },
+    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_04400_MAD_CHASER_TASK_ORDINARY, { 0, 0 }, gActor04400MadChaserTaskDescs },
     { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor207200CreepingStrangerTaskDesc },
     { 73, 73, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &D_actor_207200_8014E7A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },

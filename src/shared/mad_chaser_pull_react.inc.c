@@ -22,7 +22,7 @@ static void _madChaserPullReact(Task* task)
     s32            audioPan;
 
     work = task->work;
-    if (gMadChaserAnimStance[work->animId - 1] == MAD_CHASER_STANCE_LOW) {
+    if (_gMadChaserAnimStance[work->animId - 1] == MAD_CHASER_STANCE_LOW) {
         work->animBlendFrames = MAD_CHASER_PULL_LIMP_BLEND_FRAMES;
         work->animRate        = ANIMATION_RATE_ONE;
         work->animId          = MAD_CHASER_PULL_LIMP_CLIP;

@@ -1,3 +1,4 @@
+#include "actors/actor_04400.h"
 #include "actors/actor_444000.h"
 
 #include <psyq/sys/types.h>
@@ -340,8 +341,6 @@ STATIC_ASSERT_SIZEOF(_Actor444000CommandStorage, 8);
 
 /// Shared 0x7DA payload buffer, also used by `_actor444000SummonState`.
 extern _Actor444000CommandStorage D_actor_444000_80161888;
-/// Gameplay's escort `TaskDesc` table; entry 3 is the pair this boss spawns.
-extern TaskDesc Actor04400_D107E4;
 
 extern AnimationSet* gGluttonCaughtAnimSets[];
 
@@ -6130,8 +6129,8 @@ static void _actor444000ChooseAttackState(Task* task)
 ///
 /// Requires live host/player models, initialized rigs, scratch, current-area
 /// placement 2 and four readable Mad Chaser descriptors starting at
-/// Actor04400_D107E4. Index 3 selects the hidden-model callback with an automatic
-/// primitive buffer. Successful spawns borrow placement 2's texture offsets;
+/// `gActor04400MadChaserTaskDescs`. Index 3 selects the hidden-model callback
+/// with an automatic primitive buffer. Successful spawns borrow placement 2's texture offsets;
 /// the encounter limits total spawns to eight and prohibits them at phase 6.
 /// Ticks 70/120 command slot 0/1 to emerge from phase-selected room spots with
 /// one of three random emergence moves. Player yaw uses 4096-unit angles.
@@ -6144,7 +6143,7 @@ static void _actor444000SummonState(Task* task)
         ACTOR_444000_FIRST_SUMMON_ORDER_TICK  = 70,
         ACTOR_444000_SECOND_SUMMON_ORDER_TICK = 120,
         ACTOR_444000_SUMMON_TEXTURE_PLACEMENT = 2,
-        ACTOR_444000_SUMMON_TASK_INDEX        = 3,
+        ACTOR_444000_SUMMON_TASK_INDEX        = ACTOR_04400_MAD_CHASER_TASK_SCRIPTED,
         ACTOR_444000_SUMMON_ARGUMENT          = 2,
         ACTOR_444000_SUMMON_CLIP              = 19,
         ACTOR_444000_SUMMON_IDLE_CLIP         = 1,
@@ -6189,7 +6188,7 @@ static void _actor444000SummonState(Task* task)
         }
         for (summonScratch->slot = 0; summonScratch->slot < ARRAY_SIZE(work->summons); summonScratch->slot++) {
             if (work->summons[summonScratch->slot] == NULL && (u8)work->summonsSpawned < ACTOR_444000_SUMMON_TOTAL_LIMIT && work->phase < ACTOR_444000_PHASE_LIFT) {
-                work->summons[summonScratch->slot] = enemySpawnFromTable(&Actor04400_D107E4, ACTOR_444000_SUMMON_TASK_INDEX, ACTOR_444000_SUMMON_ARGUMENT, NULL);
+                work->summons[summonScratch->slot] = enemySpawnFromTable(gActor04400MadChaserTaskDescs, ACTOR_444000_SUMMON_TASK_INDEX, ACTOR_444000_SUMMON_ARGUMENT, NULL);
                 if (work->summons[summonScratch->slot] != NULL) {
                     work->summonsSpawned++;
                     summonModel     = work->summons[summonScratch->slot]->task->extra.tmd;

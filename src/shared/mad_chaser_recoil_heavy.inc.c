@@ -22,7 +22,7 @@ static void _madChaserRecoilHeavy(Task* task)
     s32            audioPan;
 
     work               = task->work;
-    work->stateScratch = gMadChaserAnimStance[work->animId - 1];
+    work->stateScratch = _gMadChaserAnimStance[work->animId - 1];
     if (work->stateScratch == MAD_CHASER_STANCE_UPRIGHT) {
         requestWork                  = task->work;
         requestWork->animBlendFrames = MAD_CHASER_HEAVY_RECOIL_UPRIGHT_BLEND_FRAMES;

@@ -4,16 +4,16 @@
 D_actor_207000_80151E60 = 0x80151E60; // absolute:True owner=actor_207000
 D_actor_207000_801575F0 = 0x801575F0; // absolute:True owner=actor_207000
 gMadChaserWaveSlots = 0x8016BF58; // size:0x88 defined:True
-gMadChaserAnimStance = 0x80173A84; // size:0x14 defined:True
-gMadChaserSettleAnims = 0x80173A98; // size:0x14 defined:True
+_gMadChaserAnimStance = 0x80173A84; // size:0x14 defined:True
+_gMadChaserSettleAnims = 0x80173A98; // size:0x13 defined:True
 D_actor_342400_8016BFE0 = 0x8016BFE0; // size:0x30 defined:True
 D_actor_342400_80173A54 = 0x80173A54; // size:0x18 defined:True
 D_actor_342400_80173A6C = 0x80173A6C; // size:0xC defined:True
 D_actor_342400_80173A78 = 0x80173A78; // size:0xC defined:True
 D_actor_342400_8016C010 = 0x8016C010; // size:0x44 defined:True
 D_actor_342400_8016C054 = 0x8016C054; // size:0x30 defined:True
-gMadChaserAnimBank = 0x801739E8; // size:0x54 defined:True
-gMadChaserMsgTable = 0x80173A3C; // size:0x18 defined:True
+_gMadChaserAnimBank = 0x801739E8; // size:0x54 defined:True
+_gMadChaserMsgTable = 0x80173A3C; // size:0x18 defined:True
 D_actor_342400_8016BF48 = 0x8016BF48; // size:0x10 defined:True
 _gActor342400MadChaserBurstHeadSkeleton = 0x8016C084; // size:0x24 defined:True
 _gActor342400MadChaserBurstHeadPartVerts = 0x8016C0A8; // size:0x4 defined:True
@@ -300,3 +300,17 @@ _actor342400WaveSlouchTask = 0x80162824; // type:func
 _actor342400WavePairTask = 0x80162888; // type:func
 _actor342400WaveRun = 0x80162ab0; // type:func
 _actor342400SetEncounterRevealView = 0x801631dc; // type:func
+
+_gMadChaserTaskStates = 0x80161E68;
+_gMadChaserHiddenTaskStates = 0x80161E80;
+_gMadChaserCombatStates = 0x80161EA8;
+_gMadChaserKnockdownSteps = 0x80161ED4;
+_gMadChaserLeapSteps = 0x80161EEC;
+_gMadChaserDeathStates = 0x80161F50;
+_gMadChaserLurkAlertSteps = 0x80161FCC;
+_gMadChaserEmergeStates = 0x80161FE8;
+_gMadChaserPullSteps = 0x80162010;
+_gMadChaserDropDeathStates = 0x80162028;
+_gMadChaserShrinkDeathStates = 0x8016203C;
+
+_gActor342400Unknown11C8B = 0x80173AAB; // size:0x1 defined:True

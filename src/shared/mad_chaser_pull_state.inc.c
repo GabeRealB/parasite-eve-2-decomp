@@ -12,6 +12,6 @@ static void _madChaserPullState(Task* task)
     TaskFuncTable6 steps;
 
     work  = task->work;
-    steps = gMadChaserPullSteps;
+    steps = _gMadChaserPullSteps;
     steps.funcs[(s16)work->subState](task);
 }

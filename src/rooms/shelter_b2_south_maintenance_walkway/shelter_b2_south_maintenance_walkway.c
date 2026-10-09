@@ -9,6 +9,7 @@
 #include "common.h"
 #include "gte.h"
 
+#include "actors/actor_04400.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
@@ -108,8 +109,6 @@ static s32 _shelterB2SouthMaintenanceWalkwayIgnoreCommand(Task* task, s32 messag
 static s32 _shelterB2SouthMaintenanceWalkwayIgnoreAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
 enum { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
-extern TaskDesc Actor04400_D107E4;
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -333,7 +332,7 @@ AreaResource D_shelter_b2_south_maintenance_walkway_80183530[3] = {
 };
 
 AreaResource D_shelter_b2_south_maintenance_walkway_80183554[4] = {
-    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &Actor04400_D107E4 },
+    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_04400_MAD_CHASER_TASK_ORDINARY, { 0, 0 }, gActor04400MadChaserTaskDescs },
     { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor207200CreepingStrangerTaskDesc },
     { 73, 73, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &D_actor_207200_8014E7A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },

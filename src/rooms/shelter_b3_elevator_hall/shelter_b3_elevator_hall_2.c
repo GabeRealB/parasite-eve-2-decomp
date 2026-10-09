@@ -11,6 +11,7 @@
 
 #include "shelter_b3_elevator_hall_private.h"
 
+#include "actors/actor_04400.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/display.h"
@@ -49,8 +50,6 @@
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 #include "../../shared/room_events.h"
-
-extern TaskDesc Actor04400_D107E4;
 
 #include "../../shared/room_visual_effects_disc_data.inc.c"
 
@@ -349,7 +348,7 @@ WorldCollisionTrigger D_shelter_b3_elevator_hall_80184428[8] = {
 };
 
 AreaResource D_shelter_b3_elevator_hall_80184688[2] = {
-    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &Actor04400_D107E4 },
+    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_04400_MAD_CHASER_TASK_ORDINARY, { 0, 0 }, gActor04400MadChaserTaskDescs },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

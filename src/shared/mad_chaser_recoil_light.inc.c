@@ -36,7 +36,7 @@ static void _madChaserRecoilLight(Task* task)
     s32            audioPan;
 
     work               = task->work;
-    work->stateScratch = gMadChaserAnimStance[work->animId - 1];
+    work->stateScratch = _gMadChaserAnimStance[work->animId - 1];
     if (work->stateScratch == MAD_CHASER_STANCE_UPRIGHT) {
         _madChaserRecoilLightRequestClip(task, MAD_CHASER_LIGHT_RECOIL_UPRIGHT_CLIP);
         sndEvtRequestScriptStop(SOUND_MAD_CHASER_ALERT_CRY, SOUND_SCRIPT_STOP_KEEP_RELEASE);

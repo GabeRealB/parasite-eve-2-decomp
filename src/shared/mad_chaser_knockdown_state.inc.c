@@ -13,7 +13,7 @@ static void _madChaserKnockdownState(Task* task)
     TaskFuncTable3 steps;
 
     work  = task->work;
-    steps = gMadChaserKnockdownSteps;
+    steps = _gMadChaserKnockdownSteps;
     steps.funcs[(s16)work->subState](task);
     // The dispatched step may have selected a new behavior; still process this hit.
     if (work->stateScratch == MAD_CHASER_STANCE_UPRIGHT) {

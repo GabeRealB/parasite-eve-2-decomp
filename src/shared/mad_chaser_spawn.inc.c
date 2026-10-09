@@ -15,7 +15,7 @@ static __inline__ void _madChaserBindSpawnResources(Task* task, TmdObject* model
         MAD_CHASER_SPAWN_HIT_EFFECT_COUNT   = 2
     };
 
-    task->msgTable             = gMadChaserMsgTable;
+    task->msgTable             = _gMadChaserMsgTable;
     model->lightMtx            = &work->lightMtx;
     model->colorMtx            = &work->colorMtx;
     enemy->param               = &gMadChaserEnemyParams;
@@ -24,7 +24,7 @@ static __inline__ void _madChaserBindSpawnResources(Task* task, TmdObject* model
     work->effectArg.spawnArgLo = MAD_CHASER_SPAWN_HIT_EFFECT_LOW_ARG;
     work->effectArg.spawnArgHi = MAD_CHASER_SPAWN_HIT_EFFECT_COUNT;
     enemy->hp = enemy->hpMax = gMadChaserEnemyParams.hpMax;
-    animationInitContext(&work->anim, (AnimationSet**)gMadChaserAnimBank, model, work->poses, work->slots);
+    animationInitContext(&work->anim, _gMadChaserAnimBank, model, work->poses, work->slots);
 }
 
 /// Initializes an ordinary Mad Chaser in lurk or anchored dangle state.

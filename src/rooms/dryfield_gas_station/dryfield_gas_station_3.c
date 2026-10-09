@@ -1,3 +1,5 @@
+#include "actors/actor_04400.h"
+
 #include "types.h"
 
 #include "actors/task_tables.h"
@@ -127,7 +129,6 @@ extern WorldCollisionGrid    D_dryfield_gas_station_80183EA4[1];
 extern WorldCollisionTrigger D_dryfield_gas_station_80184350[11];
 extern WorldCollisionTrigger D_dryfield_gas_station_80184694[10];
 extern WorldCoordRoomLights  D_dryfield_gas_station_80184B48[1];
-extern TaskDesc              Actor04400_D107E4;
 static void                  _dryfieldGasStationArrivalCutsceneTask(Task* task);
 static void                  _screenFadeInTask(Task* task);
 static void                  _dryfieldGasStationRestorePlayerAndShow(void);
@@ -487,7 +488,7 @@ AreaResource D_dryfield_gas_station_8018498C[1] = {
 };
 
 AreaResource D_dryfield_gas_station_80184998[2] = {
-    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &Actor04400_D107E4 },
+    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_04400_MAD_CHASER_TASK_ORDINARY, { 0, 0 }, gActor04400MadChaserTaskDescs },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

@@ -95,6 +95,12 @@ enum {
     MAD_CHASER_LURK_LOOK_DISTANCE  = 5000
 };
 
+/// Settle clips returned by the per-carrier interrupted-clip mapping.
+enum {
+    MAD_CHASER_SETTLE_LOW_CLIP     = 5,
+    MAD_CHASER_SETTLE_UPRIGHT_CLIP = 6
+};
+
 /// Stance-table values saved for recoil recovery and pull selection.
 enum {
     MAD_CHASER_STANCE_LOW     = 0,
