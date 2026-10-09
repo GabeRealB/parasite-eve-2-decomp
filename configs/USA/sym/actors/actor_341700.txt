@@ -1,12 +1,11 @@
 // Overlay-local symbols for actor_341700.
 _gMadChaserAnimStance = 0x80174D88; // size:0x14 defined:True
 _gMadChaserSettleAnims = 0x80174D9C; // size:0x13 defined:True
-D_actor_341700_80175F7C = 0x80175F7C; // size:0x180 defined:True
-D_actor_341700_801760FC = 0x801760FC; // size:0x258 defined:True
-D_actor_341700_80176354 = 0x80176354; // size:0xC defined:True
-ActorContact_ScratchPosition = 0x80176360; // size:0x8 defined:True
-D_actor_341700_80174D7C = 0x80174D7C; // size:0xC defined:True
-D_actor_341700_80175F5C = 0x80175F5C; // size:0x20 defined:True
+_gActor341700PropSpriteOffsets = 0x80175F7C; // size:0x180 defined:True
+_gActor341700PropSpriteSchedule = 0x801760FC; // size:0x258 defined:True
+gActor341700PropTaskDesc = 0x80176354; // size:0xC defined:True
+_gActorContactLastPushCorrection = 0x80176360; // size:0x8 defined:True
+_gActor341700PropMessages = 0x80175F5C; // size:0x20 defined:True
 _gActor341700Model13558Skeleton = 0x80174DC4; // size:0x18C defined:True
 _gActor341700Model13558PartVerts = 0x80174F50; // size:0x2C defined:True
 _gActor341700Model13558Verts = 0x80174F7C; // size:0x288 defined:True
@@ -37,7 +36,7 @@ _gActor341700MadChaserBodyVerts = 0x8016EC10; // size:0x500 defined:True
 _gActor341700MadChaserBodyNormals = 0x8016F110; // size:0x670 defined:True
 _gActor341700MadChaserBodyStream = 0x8016F780; // size:0x20E4 defined:True
 _gActor341700MadChaserBody = 0x80171864; // size:0x24 defined:True
-D_actor_341700_80171888 = 0x80171888; // size:0x4 defined:True
+_gMadChaserAttacks = 0x80171888; // size:0x4 defined:True
 gMadChaserEnemyParams = 0x8017188C; // size:0x10 defined:True
 _gActor341700Animation0FCA8Bank1 = 0x8017189C; // size:0x48 defined:True
 _gActor341700Animation0FCA8Bank4 = 0x801718E4; // size:0x9C defined:True
@@ -136,9 +135,7 @@ _gActor341700Animation12EA4Indices = 0x80174CB0; // size:0x14 defined:True
 _gActor341700Animation12EA4 = 0x80174CC4; // size:0x28 defined:True
 _gMadChaserAnimBank = 0x80174CEC; // size:0x54 defined:True
 _gMadChaserMsgTable = 0x80174D40; // size:0x18 defined:True
-D_actor_341700_80174D58 = 0x80174D58; // size:0xC defined:True
-D_actor_341700_80174D64 = 0x80174D64; // size:0xC defined:True
-D_actor_341700_80174D70 = 0x80174D70; // size:0xC defined:True
+gActor341700MadChaserTaskDescs = 0x80174D58; // size:0x30 defined:True
 
 D_shelter_b3_garbage_incinerator_801874C4 = 0x801874C4; // absolute:True owner=shelter_b3_garbage_incinerator shared=rooms
 
@@ -301,3 +298,10 @@ _gMadChaserEmergeStates = 0x80161FA4;
 _gMadChaserPullSteps = 0x80161FCC;
 _gMadChaserDropDeathStates = 0x80161FE4;
 _gMadChaserShrinkDeathStates = 0x80161FF8;
+_gActor341700PropStateHandlers = 0x80162058;
+_gActor341700PropTaskHandlers = 0x80162064;
+_gMadChaserWalkSteps = 0x80161E9C; // size:0xC defined:True
+_gMadChaserAlertSteps = 0x80161EBC; // size:0x14 defined:True
+_gMadChaserLurkStates = 0x80161F48; // size:0x14 defined:True
+_gMadChaserLurkIdleSteps = 0x80161F70; // size:0xC defined:True
+_gMadChaserLurkLookSteps = 0x80161F7C; // size:0xC defined:True

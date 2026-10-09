@@ -1,3 +1,5 @@
+#include "actors/actor_341700.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/abs.h>
@@ -68,15 +70,13 @@ typedef struct {
 } _Actor341700PropWork;
 STATIC_ASSERT_SIZEOF(_Actor341700PropWork, 0x80);
 
-/// Whole-unit part of the last movement step `func_actor_341700_8016B804`
-/// applied, rounded away from zero when the step had a fraction.
-static SVECTOR ActorContact_ScratchPosition;
-
-extern SVECTOR D_actor_341700_80175F7C[];
-extern u8      D_actor_341700_801760FC[150][4];
-// Message-table callbacks use the argument views required by this TU.
-
-extern TaskMessageEntry D_actor_341700_80175F5C[4]; // stored into `Task::msgTable` by _actor341700PropInitialize
+/// Persistent record of this carrier's last grid-contact correction, in whole room units.
+///
+/// X/Z are the applied steps narrowed to s16: the arithmetic 16.16 integer
+/// part plus a unit in the correction's sign when fractional bits remain.
+/// Y records only the narrowed integer part and is not applied to translation.
+/// No grid hit retains the previous XYZ; `pad` is untouched. Lives until unload.
+static SVECTOR _gActorContactLastPushCorrection;
 
 /// Psy-Q `RotMatrixY`.
 
@@ -126,14 +126,25 @@ static TmdSource _gActor341700Model13558 = {
     _gActor341700Model13558Stream,
 };
 
-TaskMessageEntry D_actor_341700_80175F5C[4] = {
+/// Model visibility, scripted command and placement messages of the rising prop.
+///
+/// SET_MODEL_DRAW takes a scalar mode; APPLY borrows an ActorCommand and PLACE
+/// borrows an ActorTransform through synchronous dispatch. The fourth entry
+/// ends lookup. Tasks borrow this table and its s32-returning callbacks while
+/// the overlay is loaded; visibility returns 0, command and placement return 1.
+static TaskMessageEntry _gActor341700PropMessages[4] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor341700PropSetModelDrawMessage },
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor341700PropCommandMessage },
     { ACTOR_MESSAGE_PLACE, actorMsgPlace },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-SVECTOR D_actor_341700_80175F7C[48] = {
+/// World-space sprite offsets, in game units, for the prop's jolts and rise.
+///
+/// Jolt bursts select entries 35, 8, 25, 24 and 26. The frame schedule supplies
+/// other indices; zero ends a schedule row. Its late-rise reads extend into
+/// adjacent storage, whose interpretation as additional vectors is unproven.
+static SVECTOR _gActor341700PropSpriteOffsets[48] = {
     { 0, 0, 0, 0 },
     { 0, -2500, 3000, 0 },
     { 200, -2400, 2500, 0 },
@@ -184,13 +195,18 @@ SVECTOR D_actor_341700_80175F7C[48] = {
     { 0, 0, 0, 0 },
 };
 
-u8 D_actor_341700_801760FC[150][4] = {
+/// Four sprite-offset indices per rise frame, with zero ending each row.
+///
+/// Row 0 corresponds to frame 120; only rows 0..120 (frames 120..240) are used.
+/// All 150 rows are retained. Rows 104, 106 and 109 select 50, 58 and 52 beyond
+/// the 48-vector offset table; the meaning of those adjacent reads is unproven.
+static u8 _gActor341700PropSpriteSchedule[150][4] = {
 #include "assets/actor_341700_motion_142DC.inc"
 };
 
-TaskDesc D_actor_341700_80176354 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor341700PropTask, { .model = &_gActor341700Model13558 } };
+enum { ACTOR_341700_PROP_TASK_PRIORITY = 96 };
 
-static SVECTOR ActorContact_ScratchPosition;
+TaskDesc gActor341700PropTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_341700_PROP_TASK_PRIORITY } }, _actor341700PropTask, { .model = &_gActor341700Model13558 } };
 
 /// Returns this carrier's persistent last contact-push correction.
 ///
@@ -201,7 +217,7 @@ static SVECTOR ActorContact_ScratchPosition;
 /// lifetime; `pad` is unused.
 static inline SVECTOR* _actorContactGetLastPushStep(void)
 {
-    return &ActorContact_ScratchPosition;
+    return &_gActorContactLastPushCorrection;
 }
 
 static void _actor341700PropRiseState(Enemy* enemy, Task* task);
@@ -303,23 +319,23 @@ static void _actor341700PropRiseState(Enemy* enemy, Task* task)
             }
             switch ((work->stateFrame - ACTOR_341700_PROP_JOLT_FIRST_FRAME) % 8) {
                 case 0:
-                    spriteOffset = D_actor_341700_80175F7C[35];
+                    spriteOffset = _gActor341700PropSpriteOffsets[35];
                     shelterB3DumpingHoleSpawnActorSprite(task->extra.tmd->coords, &spriteOffset);
                     break;
                 case 1:
-                    spriteOffset = D_actor_341700_80175F7C[8];
+                    spriteOffset = _gActor341700PropSpriteOffsets[8];
                     shelterB3DumpingHoleSpawnActorSprite(task->extra.tmd->coords, &spriteOffset);
                     break;
                 case 2:
-                    spriteOffset = D_actor_341700_80175F7C[25];
+                    spriteOffset = _gActor341700PropSpriteOffsets[25];
                     shelterB3DumpingHoleSpawnActorSprite(task->extra.tmd->coords, &spriteOffset);
                     break;
                 case 4:
-                    spriteOffset = D_actor_341700_80175F7C[24];
+                    spriteOffset = _gActor341700PropSpriteOffsets[24];
                     shelterB3DumpingHoleSpawnActorSprite(task->extra.tmd->coords, &spriteOffset);
                     break;
                 case 5:
-                    spriteOffset = D_actor_341700_80175F7C[26];
+                    spriteOffset = _gActor341700PropSpriteOffsets[26];
                     shelterB3DumpingHoleSpawnActorSprite(task->extra.tmd->coords, &spriteOffset);
                     break;
             }
@@ -349,17 +365,17 @@ static void _actor341700PropRiseState(Enemy* enemy, Task* task)
     task->extra.tmd->coords[9].composeStamp  = GRAPHICS_COORD_DIRTY;
     task->extra.tmd->coords[10].composeStamp = GRAPHICS_COORD_DIRTY;
     // Each row selects world-space offsets; jitter uses the shared LCG stream.
-    for (spriteSlot = 0; spriteSlot < (s32)ARRAY_SIZE(D_actor_341700_801760FC[0]); spriteSlot++) {
+    for (spriteSlot = 0; spriteSlot < (s32)ARRAY_SIZE(_gActor341700PropSpriteSchedule[0]); spriteSlot++) {
         if (work->stateFrame > ACTOR_341700_PROP_SPRITE_LAST_FRAME) {
             return;
         }
         if (work->stateFrame < ACTOR_341700_PROP_SPRITE_FIRST_FRAME) {
             return;
         }
-        if (D_actor_341700_801760FC[work->stateFrame - ACTOR_341700_PROP_SPRITE_FIRST_FRAME][spriteSlot] == ACTOR_341700_PROP_SPRITE_ROW_END) {
+        if (_gActor341700PropSpriteSchedule[work->stateFrame - ACTOR_341700_PROP_SPRITE_FIRST_FRAME][spriteSlot] == ACTOR_341700_PROP_SPRITE_ROW_END) {
             return;
         }
-        spriteOffset    = D_actor_341700_80175F7C[D_actor_341700_801760FC[work->stateFrame - ACTOR_341700_PROP_SPRITE_FIRST_FRAME][spriteSlot]];
+        spriteOffset    = _gActor341700PropSpriteOffsets[_gActor341700PropSpriteSchedule[work->stateFrame - ACTOR_341700_PROP_SPRITE_FIRST_FRAME][spriteSlot]];
         nextRandomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         randomByte      = (nextRandomState >> 16) & 0xFF;
         jitter          = randomByte;
@@ -374,9 +390,12 @@ static void _actor341700PropRiseState(Enemy* enemy, Task* task)
     }
 }
 
-/// Three state handlers, indexed by `_Actor341700PropWork::state`; copied onto
-/// the stack before dispatch.
-static const EnemyTaskFuncTable3 D_actor_341700_80162058 = { {
+/// Hidden, shown and rise behaviors selected by the prop's work state.
+///
+/// `ACTOR_341700_PROP_STATE_*` selects 0 hidden, 1 shown, 2 rise. The running
+/// update copies all three non-NULL void(Enemy*, Task*) callbacks before dispatch.
+/// Keep the index in range and the overlay loaded; enemy/model/work belong to the task.
+static const EnemyTaskFuncTable3 _gActor341700PropStateHandlers = { {
     _actor341700PropHiddenState,
     _actor341700PropShownState,
     _actor341700PropRiseState,
@@ -392,7 +411,7 @@ static void _actor341700PropUpdate(Enemy* enemy, Task* task)
 {
     VECTOR                lightingPosition;
     _Actor341700PropWork* work          = task->work;
-    EnemyTaskFuncTable3   stateHandlers = D_actor_341700_80162058;
+    EnemyTaskFuncTable3   stateHandlers = _gActor341700PropStateHandlers;
 
     // Sample the moving part's translation after composing the full view chain.
     task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
@@ -424,10 +443,13 @@ static void _actor341700PropUpdate(Enemy* enemy, Task* task)
     }
 }
 
-/// Task-state handlers of the `_actor341700PropInitialize` task: set-up, the
-/// per-frame callback, teardown. `_actor341700PropTask` dispatches them
-/// on `Task::state`.
-static const EnemyTaskFuncTable3 D_actor_341700_80162064 = { {
+/// Lifecycle callbacks of the rising prop's enemy-backed task.
+///
+/// `Task::state` selects 0 initialize, 1 update, 2 destroy. Dispatch copies
+/// all three non-NULL void(Enemy*, Task*) callbacks and passes the enemy from
+/// the second spawn argument. Destruction releases the task and its enemy;
+/// both objects and the callback code must remain live until the selected call.
+static const EnemyTaskFuncTable3 _gActor341700PropTaskHandlers = { {
     _actor341700PropInitialize,
     _actor341700PropUpdate,
     enemyDestroy,
@@ -538,7 +560,7 @@ static void _actor341700PropInitialize(Enemy* enemy, Task* task)
     task->extra.tmd->coords->coord.t[0]   = 5000;
     task->extra.tmd->coords->coord.t[2]   = -6000;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    task->msgTable                        = D_actor_341700_80175F5C;
+    task->msgTable                        = _gActor341700PropMessages;
     enemy->field_4                        = &rootCoord->coord;
     enemy->field_48                       = 0;
     enemy->bodyPos.vx                     = 0;
@@ -606,6 +628,6 @@ static void _actor341700PropTask(Task* task)
 {
     EnemyTaskFuncTable3 taskHandlers;
 
-    taskHandlers = D_actor_341700_80162064;
+    taskHandlers = _gActor341700PropTaskHandlers;
     taskHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }

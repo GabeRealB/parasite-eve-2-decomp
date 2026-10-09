@@ -124801,7 +124801,7 @@ a switch-label question rather than an allocation or scheduling one.
 Two more leftovers from the same function, both about the frame:
 
 * `VECTOR lightingPosition;` has to be declared *before* the struct-copy table
-  (`EnemyTaskFuncTable3 stateHandlers = D_actor_341700_80162058;`). GCC hands out the
+  (`EnemyTaskFuncTable3 stateHandlers = _gActor341700PropStateHandlers;`). GCC hands out the
   local slots in declaration order, so the table came out at 0x10 and the vector
   at 0x20 where the target has them the other way round - a pure
   `sw t0,0x10(sp)` vs `0x20(sp)` diff, reported as `branch=4`.
@@ -138303,8 +138303,8 @@ A preplanned trial initialized the complete prefix explicitly:
 
 ```c
 i = 0;
-indices = D_actor_341700_801760FC;
-table = D_actor_341700_80175F7C;
+indices = _gActor341700PropSpriteSchedule;
+table = _gActor341700PropSpriteOffsets;
 vecPtr = &vec;
 for (; i < 4; i++) {
     /* Existing guards, draw and vector update. */

@@ -10,6 +10,7 @@
 #include "gte.h"
 
 #include "actors/actor.h"
+#include "actors/actor_341700.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
@@ -253,9 +254,6 @@ typedef struct {
     s16     rumblePeriod;   // Ticks between pad rumble scripts during the pull (phase 0: 0x14, 1: 0x10, otherwise 0xC)
 } _Actor403200DragScratch;
 STATIC_ASSERT_SIZEOF(_Actor403200DragScratch, 0x54);
-
-/// Gameplay's escort `TaskDesc` table; entry 3 is the pair this boss spawns.
-extern TaskDesc D_actor_341700_80174D58;
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
@@ -6172,7 +6170,7 @@ static void _actor403200SummonState(Task* hostTask)
             // Each successful spawn owns its task; the host keeps two borrowed handles.
             for (scratch->slot = 0; scratch->slot < ARRAY_SIZE(work->summons); scratch->slot++) {
                 if (work->summons[scratch->slot] == NULL && work->summonsAlive < ARRAY_SIZE(work->summons) && (u8)work->summonsSpawned < ACTOR_403200_SUMMON_SPAWN_LIMIT) {
-                    work->summons[scratch->slot] = enemySpawnFromTable(&D_actor_341700_80174D58, 3, 2, NULL);
+                    work->summons[scratch->slot] = enemySpawnFromTable(gActor341700MadChaserTaskDescs, ACTOR_341700_MAD_CHASER_TASK_SCRIPTED, 2, NULL);
                     if (work->summons[scratch->slot] != NULL) {
                         work->summonsSpawned++;
                         summonModel                    = work->summons[scratch->slot]->task->extra.tmd;

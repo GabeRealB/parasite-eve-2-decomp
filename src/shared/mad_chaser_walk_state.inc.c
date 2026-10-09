@@ -3,8 +3,12 @@
 // Bind MAD_CHASER_STEP_STATE to a declared void(Task*) callback before each
 // inclusion, then undefine it. The prior declaration establishes its linkage.
 // This object-like binding names only the definition; it evaluates no arguments
-// and performs no token construction. The carrier also supplies the three-entry
-// gMadChaserWalkSteps table and an s16(Task*) MAD_CHASER_WALK_INTERRUPT_HANDLER.
+// and performs no token construction. Bind MAD_CHASER_STEP_TABLE to a readable
+// TaskFuncTable3 value for the combat walk, lurk idle or lurk look instance.
+// Its three non-NULL void(Task*) callbacks must remain loaded through dispatch.
+// This object-like binding is evaluated once as the table copy; it constructs
+// no tokens. Undefine it after inclusion. The carrier also supplies an
+// s16(Task*) MAD_CHASER_WALK_INTERRUPT_HANDLER.
 
 /// Dispatches one Mad Chaser behavior step unless an interrupt takes over.
 ///
@@ -22,7 +26,7 @@
 static void MAD_CHASER_STEP_STATE(Task* task)
 {
     MadChaserWork* work         = task->work;
-    TaskFuncTable3 stepHandlers = gMadChaserWalkSteps;
+    TaskFuncTable3 stepHandlers = MAD_CHASER_STEP_TABLE;
 
     if (MAD_CHASER_WALK_INTERRUPT_HANDLER(task) == 0) {
         stepHandlers.funcs[(s16)work->subState](task);

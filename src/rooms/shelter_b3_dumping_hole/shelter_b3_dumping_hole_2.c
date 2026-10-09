@@ -13,6 +13,7 @@
 #include "shelter_b3_dumping_hole_private.h"
 
 #include "actors/actor_04400.h"
+#include "actors/actor_341700.h"
 #include "actors/actor_403200.h"
 #include "actors/task_tables.h"
 
@@ -622,7 +623,6 @@ static void _shelterB3DumpingHoleEncounterSlouchTask(Task* task);
 static void _shelterB3DumpingHoleEncounterPairTask(Task* task);
 
 extern TaskDesc D_actor_342100_80164B78[];
-extern TaskDesc D_actor_341700_80174D58;
 extern TaskDesc D_shelter_b3_dumping_hole_80188BC8[5];
 
 _ShelterB3DumpingHoleSpriteFrame D_shelter_b3_dumping_hole_801880B8[13] = {
@@ -2129,8 +2129,8 @@ AreaPlacement D_shelter_b3_dumping_hole_8018EAEC[5] = {
 AreaResource D_shelter_b3_dumping_hole_8018EB3C[5] = {
     { 32, 32, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor403200GluttonHostTaskDesc },
     { 103, 417, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_shelter_b3_dumping_hole_80188BC8 },
-    { 252, 417, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &D_actor_341700_80176354 },
-    { 44, 44, AREA_RESOURCE_FILE_GROUP_BASE_60, 2, { 0, 0 }, &D_actor_341700_80174D58 },
+    { 252, 417, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &gActor341700PropTaskDesc },
+    { 44, 44, AREA_RESOURCE_FILE_GROUP_BASE_60, ACTOR_341700_MAD_CHASER_TASK_KILL, { 0, 0 }, gActor341700MadChaserTaskDescs },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
