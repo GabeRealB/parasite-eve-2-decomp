@@ -18,10 +18,30 @@
 
 extern AreaVariant D_dryfield_night_factory_8018A70C[11];
 
-// dryfield_night_factory
-extern u8* D_dryfield_night_factory_80186F1C[];
+/// Logical-to-mapped view directories for night factory room selectors 1 and 2.
+///
+/// Both borrow `gViewIdentityMap`: logical views 1..19 select the same 1-based
+/// camera, image and sprite indices. The map overlay borrows this two-pointer
+/// directory while the night factory overlay remains loaded.
+extern u8* gDryfieldNightFactoryViewMaps[2];
 
-extern WorldCoordRoomLighting D_dryfield_night_factory_80186F24[];
+/// Model-lighting resources for night factory room selectors 1 and 2.
+///
+/// Both borrow the same point-light collection and minimum ambient colours
+/// for logical views 1..19. The records and their room-owned resources must
+/// remain loaded while coordinate setup or lighting queries use them.
+extern WorldCoordRoomLighting gDryfieldNightFactoryRoomLighting[2];
+
+/// Live collision mesh shared by the night factory's two room selectors.
+///
+/// The 2-by-4 XZ grid uses 4000-unit cells and biases (444, 222) in room
+/// coordinates. Its 72 faces index 28 normals and 170 vertices; the eight
+/// cell lists borrow a 288-halfword pool and end with
+/// `WORLD_COLLISION_GRID_CELL_END`. Activation binds the view coordinate.
+/// The barrier rewrites normals/faces 0..1 and vertices 0..7; the lift rewrites
+/// normals/faces 2..5 and vertices 8..15. The night overlay owns all storage,
+/// which must remain loaded while collision queries or factory tasks use it.
+extern WorldCollisionGrid gDryfieldNightFactoryCollisionGrid;
 
 extern WorldCollisionRoomResources D_dryfield_night_factory_80186F34[];
 

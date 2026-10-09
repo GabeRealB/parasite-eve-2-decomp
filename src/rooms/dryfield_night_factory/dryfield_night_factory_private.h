@@ -35,53 +35,173 @@ extern u8 gRoomEventActive;
 
 extern RoomEventReq gRoomEventReq;
 
-extern SpriteBatch D_dryfield_night_factory_80187EC0[2];
+/// Empty sprite-batch list retaining the decoded background in mapped view 1.
+///
+/// The zero-count first record precedes `SPRITE_BATCH_END`. The view retains
+/// this list's address in its empty source slot; it supplies no source sprites.
+/// Storage remains valid while the night factory overlay is loaded.
+extern SpriteBatch gDryfieldNightFactoryView1SpriteBatches[2];
 
-extern SpriteSource D_dryfield_night_factory_80187ED0[13];
+/// 13 mutable sprite rectangles for mapped view 2.
+///
+/// Positions are view-centred pixels; depths are unscaled sorting values.
+/// The view's batches select ranges in source elements, without a source
+/// terminator. Storage remains valid while the night factory overlay is loaded.
+extern SpriteSource gDryfieldNightFactoryView2SpriteSources[13];
 
-extern SpriteBatch D_dryfield_night_factory_80187FD4[6];
+/// Sprite ranges retaining the decoded background in mapped view 2.
+///
+/// The zero-count first record selects image strips; subsequent records cover
+/// all 13 elements of `gDryfieldNightFactoryView2SpriteSources` and end with `SPRITE_BATCH_END`.
+/// Storage remains valid while the night factory overlay is loaded.
+extern SpriteBatch gDryfieldNightFactoryView2SpriteBatches[6];
 
-extern SpriteSource D_dryfield_night_factory_80188004[12];
+/// 12 mutable sprite rectangles for mapped view 3.
+///
+/// Positions are view-centred pixels; depths are unscaled sorting values.
+/// The view's batches select ranges in source elements, without a source
+/// terminator. Storage remains valid while the night factory overlay is loaded.
+extern SpriteSource gDryfieldNightFactoryView3SpriteSources[12];
 
-extern SpriteBatch D_dryfield_night_factory_801880F4[5];
+/// Sprite ranges retaining the decoded background in mapped view 3.
+///
+/// The zero-count first record selects image strips; subsequent records cover
+/// all 12 elements of `gDryfieldNightFactoryView3SpriteSources` and end with `SPRITE_BATCH_END`.
+/// Storage remains valid while the night factory overlay is loaded.
+extern SpriteBatch gDryfieldNightFactoryView3SpriteBatches[5];
 
-extern SpriteSource D_dryfield_night_factory_8018811C[82];
+/// 82 mutable sprite rectangles for mapped view 4.
+///
+/// Positions are view-centred pixels; depths are unscaled sorting values.
+/// The view's batches select ranges in source elements, without a source
+/// terminator. Storage remains valid while the night factory overlay is loaded.
+extern SpriteSource gDryfieldNightFactoryView4SpriteSources[82];
 
-extern SpriteBatch D_dryfield_night_factory_80188784[7];
+/// Sprite ranges retaining the decoded background in mapped view 4.
+///
+/// The zero-count first record selects image strips; subsequent records cover
+/// all 82 elements of `gDryfieldNightFactoryView4SpriteSources` and end with `SPRITE_BATCH_END`.
+/// Storage remains valid while the night factory overlay is loaded.
+extern SpriteBatch gDryfieldNightFactoryView4SpriteBatches[7];
 
-extern SpriteBatch D_dryfield_night_factory_801887BC[2];
+/// Empty sprite-batch list retaining the decoded background in mapped view 5.
+///
+/// The zero-count first record precedes `SPRITE_BATCH_END`. The view retains
+/// this list's address in its empty source slot; it supplies no source sprites.
+/// Storage remains valid while the night factory overlay is loaded.
+extern SpriteBatch gDryfieldNightFactoryView5SpriteBatches[2];
 
-extern SpriteSource D_dryfield_night_factory_801887CC[32];
+/// 32 mutable sprite rectangles for mapped view 6.
+///
+/// Positions are view-centred pixels; depths are unscaled sorting values.
+/// The view's batches select ranges in source elements, without a source
+/// terminator. Storage remains valid while the night factory overlay is loaded.
+extern SpriteSource gDryfieldNightFactoryView6SpriteSources[32];
 
-extern SpriteBatch D_dryfield_night_factory_80188A4C[7];
+/// Sprite ranges retaining the decoded background in mapped view 6.
+///
+/// The zero-count first record selects image strips; subsequent records cover
+/// all 32 elements of `gDryfieldNightFactoryView6SpriteSources` and end with `SPRITE_BATCH_END`.
+/// Storage remains valid while the night factory overlay is loaded.
+extern SpriteBatch gDryfieldNightFactoryView6SpriteBatches[7];
 
-extern SpriteSource D_dryfield_night_factory_80188A84[39];
+/// 39 mutable sprite rectangles for mapped view 7.
+///
+/// Positions are view-centred pixels; depths are unscaled sorting values.
+/// The view's batches select ranges in source elements, without a source
+/// terminator. Storage remains valid while the night factory overlay is loaded.
+extern SpriteSource gDryfieldNightFactoryView7SpriteSources[39];
 
-extern SpriteBatch D_dryfield_night_factory_80188D90[8];
+/// Sprite ranges retaining the decoded background in mapped view 7.
+///
+/// The zero-count first record selects image strips; subsequent records cover
+/// all 39 elements of `gDryfieldNightFactoryView7SpriteSources` and end with `SPRITE_BATCH_END`.
+/// Storage remains valid while the night factory overlay is loaded.
+extern SpriteBatch gDryfieldNightFactoryView7SpriteBatches[8];
 
-extern SpriteSource D_dryfield_night_factory_80188DD0[12];
+/// 12 mutable sprite rectangles for mapped view 8.
+///
+/// Positions are view-centred pixels; depths are unscaled sorting values.
+/// The view's batches select ranges in source elements, without a source
+/// terminator. Storage remains valid while the night factory overlay is loaded.
+extern SpriteSource gDryfieldNightFactoryView8SpriteSources[12];
 
-extern SpriteBatch D_dryfield_night_factory_80188EC0[3];
+/// Sprite ranges retaining the decoded background in mapped view 8.
+///
+/// The zero-count first record selects image strips; subsequent records cover
+/// all 12 elements of `gDryfieldNightFactoryView8SpriteSources` and end with `SPRITE_BATCH_END`.
+/// Storage remains valid while the night factory overlay is loaded.
+extern SpriteBatch gDryfieldNightFactoryView8SpriteBatches[3];
 
-extern SpriteSource D_dryfield_night_factory_80188ED8[4];
+/// 4 mutable sprite rectangles for mapped view 9.
+///
+/// Positions are view-centred pixels; depths are unscaled sorting values.
+/// The view's batches select ranges in source elements, without a source
+/// terminator. Storage remains valid while the night factory overlay is loaded.
+extern SpriteSource gDryfieldNightFactoryView9SpriteSources[4];
 
-extern SpriteBatch D_dryfield_night_factory_80188F28[3];
+/// Sprite ranges retaining the decoded background in mapped view 9.
+///
+/// The zero-count first record selects image strips; subsequent records cover
+/// all 4 elements of `gDryfieldNightFactoryView9SpriteSources` and end with `SPRITE_BATCH_END`.
+/// Storage remains valid while the night factory overlay is loaded.
+extern SpriteBatch gDryfieldNightFactoryView9SpriteBatches[3];
 
-extern SpriteBatch D_dryfield_night_factory_80188F40[2];
+/// Empty sprite-batch list retaining the decoded background in mapped view 10.
+///
+/// The zero-count first record precedes `SPRITE_BATCH_END`. The view retains
+/// this list's address in its empty source slot; it supplies no source sprites.
+/// Storage remains valid while the night factory overlay is loaded.
+extern SpriteBatch gDryfieldNightFactoryView10SpriteBatches[2];
 
-extern SpriteBatch D_dryfield_night_factory_80188F50[2];
+/// Empty sprite-batch list retaining the decoded background in mapped view 11.
+///
+/// The zero-count first record precedes `SPRITE_BATCH_END`. The view retains
+/// this list's address in its empty source slot; it supplies no source sprites.
+/// Storage remains valid while the night factory overlay is loaded.
+extern SpriteBatch gDryfieldNightFactoryView11SpriteBatches[2];
 
-extern SpriteBatch D_dryfield_night_factory_80188F60[2];
+/// Empty sprite-batch list retaining the decoded background in mapped view 12.
+///
+/// The zero-count first record precedes `SPRITE_BATCH_END`. The view retains
+/// this list's address in its empty source slot; it supplies no source sprites.
+/// Storage remains valid while the night factory overlay is loaded.
+extern SpriteBatch gDryfieldNightFactoryView12SpriteBatches[2];
 
-extern SpriteBatch D_dryfield_night_factory_80188F70[2];
+/// Empty sprite-batch list retaining the decoded background in mapped view 13.
+///
+/// The zero-count first record precedes `SPRITE_BATCH_END`. The view retains
+/// this list's address in its empty source slot; it supplies no source sprites.
+/// Storage remains valid while the night factory overlay is loaded.
+extern SpriteBatch gDryfieldNightFactoryView13SpriteBatches[2];
 
-extern SpriteBatch D_dryfield_night_factory_80188F80[2];
+/// Empty sprite-batch list retaining the decoded background in mapped view 14.
+///
+/// The zero-count first record precedes `SPRITE_BATCH_END`. The view retains
+/// this list's address in its empty source slot; it supplies no source sprites.
+/// Storage remains valid while the night factory overlay is loaded.
+extern SpriteBatch gDryfieldNightFactoryView14SpriteBatches[2];
 
-extern SpriteSource D_dryfield_night_factory_80188F90[78];
+/// 78 mutable sprite rectangles for mapped view 15.
+///
+/// Positions are view-centred pixels; depths are unscaled sorting values.
+/// The view's batches select ranges in source elements, without a source
+/// terminator. Storage remains valid while the night factory overlay is loaded.
+extern SpriteSource gDryfieldNightFactoryView15SpriteSources[78];
 
-extern SpriteBatch D_dryfield_night_factory_801895A8[6];
+/// Sprite ranges retaining the decoded background in mapped view 15.
+///
+/// The zero-count first record selects image strips; subsequent records cover
+/// all 78 elements of `gDryfieldNightFactoryView15SpriteSources` and end with `SPRITE_BATCH_END`.
+/// Storage remains valid while the night factory overlay is loaded.
+extern SpriteBatch gDryfieldNightFactoryView15SpriteBatches[6];
 
-extern SpriteSource D_dryfield_night_factory_801895D8[32];
+/// 32 mutable sprite rectangles for mapped view 16.
+///
+/// Positions are view-centred pixels; depths are unscaled sorting values.
+/// The view's batches select ranges in source elements, without a source
+/// terminator. Storage remains valid while the night factory overlay is loaded.
+extern SpriteSource gDryfieldNightFactoryView16SpriteSources[32];
 
 extern SpriteBatch D_dryfield_night_factory_80189858[5];
 

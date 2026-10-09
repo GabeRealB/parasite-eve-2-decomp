@@ -25,7 +25,7 @@ void factoryBarrierCollision(Task* task)
     if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
         roomGrid = &gDryfieldFactoryCollisionGrid;
     } else {
-        roomGrid = &gFactoryNightGrid;
+        roomGrid = &gDryfieldNightFactoryCollisionGrid;
     }
     switch (task->state) {
         case FACTORY_BARRIER_STATE_RESTORE:

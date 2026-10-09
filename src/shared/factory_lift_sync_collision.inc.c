@@ -37,7 +37,7 @@ static void _factoryLiftSyncCollision(Task* task, s32 remapFaces, s32 useTurnedT
     if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
         roomGrid = &gDryfieldFactoryCollisionGrid;
     } else {
-        roomGrid = &gFactoryNightGrid;
+        roomGrid = &gDryfieldNightFactoryCollisionGrid;
     }
     if (useTurnedTemplate != 0) {
         templateGrid = &gFactoryLiftTurnedTemplate;
