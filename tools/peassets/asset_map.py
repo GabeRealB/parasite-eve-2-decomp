@@ -25,6 +25,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sqlite3
 import sys
 from collections import defaultdict
@@ -658,8 +659,15 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
                 continue
             if len(cells) < 8:
                 continue
-            key = cells[0].split()[0] if cells[0].split() and cells[0].split()[0] in catalogue else cells[0]
-            usage[key].append([path.stem] + cells[1:8])
+            # The asset field can name several assets, and ranges of them ("bs_41, bs_43..bs_49"): the use is each one's.
+            named = []
+            for token in re.findall(r"[A-Za-z0-9_]+(?:\.\.[A-Za-z0-9_]+)?", cells[0]):
+                first, _, last = token.partition("..")
+                a, b = re.fullmatch(r"(.*?)(\d+)", first), re.fullmatch(r"(.*?)(\d+)", last) if last else None
+                span = [f"{a[1]}{n}" for n in range(int(a[2]), int(b[2]) + 1)] if a and b and a[1] == b[1] and 0 <= int(b[2]) - int(a[2]) < 500 else [first]
+                named += [k for k in span if k in catalogue and k not in named]
+            for key in named or [cells[0]]:
+                usage[key].append([path.stem] + cells[1:8])
             by_overlay[path.stem][0 if cells[6] == "established" else 1] += 1
     # Movies and streamed audio are not chunks of the stage files; the extraction lists them.
     streams = {}
