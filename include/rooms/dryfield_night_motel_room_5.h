@@ -20,7 +20,12 @@ extern AreaVariant D_dryfield_night_motel_room_5_80181190[13];
 /// ambient minima. The mutable lights remain valid while this overlay is loaded.
 extern WorldCoordRoomLighting gDryfieldNightMotelRoom5RoomLighting[2];
 
-extern WorldCollisionRoomResources D_dryfield_night_motel_room_5_8017DA80[];
+/// Collision resources shared by the two variants of night motel room 5.
+///
+/// Indexed by the 1-based room minus one. Both entries borrow the same grid,
+/// eight view boundaries, eight action quads and two sight occluders. Setup
+/// binds and links mutable resources; keep this overlay loaded until unlinked.
+extern WorldCollisionRoomResources gDryfieldNightMotelRoom5RoomCollisionResources[2];
 
 /// Logical-view mappings for the two room variants of night motel room 5.
 ///
@@ -30,13 +35,38 @@ extern WorldCollisionRoomResources D_dryfield_night_motel_room_5_8017DA80[];
 /// overlay loaded while borrowing the maps; neither map has a terminator.
 extern u8* gDryfieldNightMotelRoom5RoomViewMaps[2];
 
-extern ViewCount D_dryfield_night_motel_room_5_8017DAB4[];
+/// Eleven logical views in each of night motel room 5's two room variants.
+///
+/// Indexed by room minus one; each signed element limits reverse searches
+/// through that room's view map. No terminator. Borrowed by the stage map
+/// while this room overlay is loaded.
+extern ViewCount gDryfieldNightMotelRoom5RoomViewCounts[2];
 
-extern DirectionWarpEntry D_dryfield_night_motel_room_5_8017DAB8[];
+/// The balcony doorway's single warp endpoint in night motel room 5.
+///
+/// Warp slot 1 places both actors at world (4350, 0, 2426), facing 3072 in
+/// a 4096-unit turn, and starts logical view 2. Arrival/departure use room-bank
+/// sound entries 2/1 and map marker 464; blocked departure is silent. The
+/// stage map borrows this nonterminated table while the room overlay is loaded.
+extern DirectionWarpEntry gDryfieldNightMotelRoom5WarpEntries[1];
 
-extern ViewCamera D_dryfield_night_motel_room_5_8017E060[];
+/// Eleven mapped camera slots shared by both variants of night motel room 5.
+///
+/// Indexed by mapped view minus one; the room maps select slots 1..11.
+/// Slots 7..11 repeat the transforms and projection distances of slots 2..6.
+/// Rotation uses Q12, translation is the negated world-space camera origin,
+/// and projection distance is in pixels. No terminator; queued camera tasks
+/// borrow a record until dispatch, requiring this overlay to stay loaded.
+extern ViewCamera gDryfieldNightMotelRoom5ViewCameras[11];
 
-extern SpriteView D_dryfield_night_motel_room_5_80180994[];
+/// Eleven mapped sprite views shared by both variants of night motel room 5.
+///
+/// Indexed by mapped view minus one; the room maps select slots 1..11.
+/// Every view retains decoded background strips; slot 1 has no source sprites.
+/// Slots 6 and 11 share clipping commands. Batches end at SPRITE_BATCH_END;
+/// source ranges stay within their own arrays. The stage map borrows these
+/// mutable records and lists while this room overlay remains loaded.
+extern SpriteView gDryfieldNightMotelRoom5SpriteViews[11];
 
 /// Collision policies and footstep cues indexed by room-local surface class 0..7.
 ///
