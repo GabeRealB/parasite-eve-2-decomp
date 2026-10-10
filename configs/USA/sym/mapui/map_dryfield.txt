@@ -23,7 +23,7 @@ D_dryfield_main_street_80184308 = 0x80184308; // absolute:True owner=dryfield_ma
 gDryfieldMainStreetSurfacePropertiesByClass = 0x801855EC; // absolute:True owner=dryfield_main_street shared=rooms
 dryfieldGeneralStoreRoomTask = 0x8017DF5C; // type:func absolute:True owner=dryfield_general_store
 D_dryfield_general_store_8017E670 = 0x8017E670; // absolute:True owner=dryfield_general_store shared=rooms
-gDryfieldGeneralStoreRoomViewMaps = 0x8017E680; // absolute:True owner=dryfield_general_store shared=rooms
+gDryfieldGeneralStoreRoomViewMaps = 0x8017E680; // absolute:True owner=dryfield_general_store
 D_dryfield_general_store_8017E684 = 0x8017E684; // absolute:True owner=dryfield_general_store
 gDryfieldGeneralStoreRoomLighting = 0x8017E688; // absolute:True owner=dryfield_general_store
 D_dryfield_general_store_8017E690 = 0x8017E690; // absolute:True owner=dryfield_general_store shared=rooms

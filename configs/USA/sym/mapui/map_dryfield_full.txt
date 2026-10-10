@@ -148,14 +148,14 @@ gDryfieldNightSaloonGRViewCameras = 0x80185B74; // absolute:True owner=dryfield_
 gDryfieldNightSaloonGRSpriteViews = 0x80187FC8; // absolute:True owner=dryfield_night_saloon_g_r
 gDryfieldNightSaloonGRSurfacePropertiesByClass = 0x80188F84; // absolute:True owner=dryfield_night_saloon_g_r shared=rooms
 dryfieldNightGRKitchenRoomTask = 0x8017D9A4; // type:func absolute:True owner=dryfield_night_g_r_kitchen shared=rooms
-D_dryfield_night_g_r_kitchen_8017E2BC = 0x8017E2BC; // absolute:True owner=dryfield_night_g_r_kitchen shared=rooms
-D_dryfield_night_g_r_kitchen_8017E2C4 = 0x8017E2C4; // absolute:True owner=dryfield_night_g_r_kitchen
-D_dryfield_night_g_r_kitchen_8017E2D4 = 0x8017E2D4; // absolute:True owner=dryfield_night_g_r_kitchen
-D_dryfield_night_g_r_kitchen_8017E2D8 = 0x8017E2D8; // absolute:True owner=dryfield_night_g_r_kitchen
-D_dryfield_night_g_r_kitchen_8017E2DC = 0x8017E2DC; // absolute:True owner=dryfield_night_g_r_kitchen shared=rooms
-D_dryfield_night_g_r_kitchen_8017E578 = 0x8017E578; // absolute:True owner=dryfield_night_g_r_kitchen
-D_dryfield_night_g_r_kitchen_8017E6A8 = 0x8017E6A8; // absolute:True owner=dryfield_night_g_r_kitchen shared=rooms
-D_dryfield_night_g_r_kitchen_8017EC04 = 0x8017EC04; // absolute:True owner=dryfield_night_g_r_kitchen
+gDryfieldNightGRKitchenRoomLighting = 0x8017E2BC; // absolute:True owner=dryfield_night_g_r_kitchen shared=rooms
+gDryfieldNightGRKitchenRoomCollisionResources = 0x8017E2C4; // absolute:True owner=dryfield_night_g_r_kitchen
+gDryfieldNightGRKitchenViewMaps = 0x8017E2D4; // absolute:True owner=dryfield_night_g_r_kitchen
+gDryfieldNightGRKitchenViewCounts = 0x8017E2D8; // absolute:True owner=dryfield_night_g_r_kitchen
+gDryfieldNightGRKitchenWarpEntries = 0x8017E2DC; // absolute:True owner=dryfield_night_g_r_kitchen shared=rooms
+gDryfieldNightGRKitchenViewCameras = 0x8017E578; // absolute:True owner=dryfield_night_g_r_kitchen
+gDryfieldNightGRKitchenSpriteViews = 0x8017E6A8; // absolute:True owner=dryfield_night_g_r_kitchen shared=rooms
+gDryfieldNightGRKitchenSurfacePropertiesByClass = 0x8017EC04; // absolute:True owner=dryfield_night_g_r_kitchen
 dryfieldNightWaterTowerRoomTask = 0x8017DB28; // type:func absolute:True owner=dryfield_night_water_tower shared=rooms
 gDryfieldNightWaterTowerRoomLighting = 0x8017E74C; // absolute:True owner=dryfield_night_water_tower
 gDryfieldNightWaterTowerCollisionRooms = 0x8017E754; // absolute:True owner=dryfield_night_water_tower shared=rooms
