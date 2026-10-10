@@ -1,175 +1,187 @@
-#include <psyq/sys/types.h>
+#include "mappic/mappic.h"
 
-#include "types.h"
+#include <psyq/libgpu.h>
 
-#include "main/tmd_types.h"
+#include "common.h"
 
-static TmdBone _gMappicS100MappicS202Model00CF8Skeleton[1] = {
+/// Identity transform and self-parented root for the Square shape.
+static TmdBone _gMappicS100SquareShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00CF8_skeleton.inc"
 };
 
-static u32 _gMappicS100MappicS202Model00CF8PartVerts[1] = {
+/// Vertex count of the Square shape's sole part (eight vertices).
+static u32 _gMappicS100SquareShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00CF8_partVerts.inc"
 };
 
-static SVECTOR _gMappicS100MappicS202Model00CF8Verts[8] = {
+/// Square's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS100SquareShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00CF8_verts.inc"
 };
 
-static u32 _gMappicS100MappicS202Model00CF8Stream[15] = {
+/// Three unlit quads' packed vertex byte offsets and white colour, followed by two group ends and the stream end.
+static u32 _gMappicS100SquareShapeStream[] = {
 #include "assets/mappic_s2_02_model_00CF8_stream.inc"
 };
 
-TmdSource D_mappic_s1_00_8012EFD8 = {
-    0,
-    72,
-    0,
-    1,
-    _gMappicS100MappicS202Model00CF8PartVerts,
-    _gMappicS100MappicS202Model00CF8Verts,
-    &_gMappicS100MappicS202Model00CF8Verts[8],
-    _gMappicS100MappicS202Model00CF8Skeleton,
-    _gMappicS100MappicS202Model00CF8Stream,
+TmdSource gMappicS100SquareShape = {
+    .bufferHalfBytes  = 3 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS100SquareShapeSkeleton),
+    .partVertexCounts = _gMappicS100SquareShapePartVerts,
+    .verts            = _gMappicS100SquareShapeVerts,
+    .normals          = &_gMappicS100SquareShapeVerts[ARRAY_SIZE(_gMappicS100SquareShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS100SquareShapeSkeleton,
+    .stream           = _gMappicS100SquareShapeStream,
 };
 
-static TmdBone _gMappicS100Model00174Skeleton[1] = {
+/// Identity transform and self-parented root for the East elevator hall shape.
+static TmdBone _gMappicS100EastElevatorHallShapeSkeleton[] = {
 #include "assets/mappic_s1_00_model_00174_skeleton.inc"
 };
 
-static u32 _gMappicS100Model00174PartVerts[1] = {
+/// Vertex count of the East elevator hall shape's sole part (sixteen vertices).
+static u32 _gMappicS100EastElevatorHallShapePartVerts[] = {
 #include "assets/mappic_s1_00_model_00174_partVerts.inc"
 };
 
-static SVECTOR _gMappicS100Model00174Verts[16] = {
+/// East elevator hall's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS100EastElevatorHallShapeVerts[] = {
 #include "assets/mappic_s1_00_model_00174_verts.inc"
 };
 
-static u32 _gMappicS100Model00174Stream[33] = {
+/// Two unlit triangles and six quads with packed vertex byte offsets and white colour, followed by two group ends and the stream end.
+static u32 _gMappicS100EastElevatorHallShapeStream[] = {
 #include "assets/mappic_s1_00_model_00174_stream.inc"
 };
 
-TmdSource D_mappic_s1_00_8012F128 = {
-    0,
-    184,
-    0,
-    1,
-    _gMappicS100Model00174PartVerts,
-    _gMappicS100Model00174Verts,
-    &_gMappicS100Model00174Verts[16],
-    _gMappicS100Model00174Skeleton,
-    _gMappicS100Model00174Stream,
+TmdSource gMappicS100EastElevatorHallShape = {
+    .bufferHalfBytes  = 2 * sizeof(POLY_F3) + 6 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS100EastElevatorHallShapeSkeleton),
+    .partVertexCounts = _gMappicS100EastElevatorHallShapePartVerts,
+    .verts            = _gMappicS100EastElevatorHallShapeVerts,
+    .normals          = &_gMappicS100EastElevatorHallShapeVerts[ARRAY_SIZE(_gMappicS100EastElevatorHallShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS100EastElevatorHallShapeSkeleton,
+    .stream           = _gMappicS100EastElevatorHallShapeStream,
 };
 
-static TmdBone _gMappicS100Model00294Skeleton[1] = {
+/// Identity transform and self-parented root for the Patio shape.
+static TmdBone _gMappicS100PatioShapeSkeleton[] = {
 #include "assets/mappic_s1_00_model_00294_skeleton.inc"
 };
 
-static u32 _gMappicS100Model00294PartVerts[1] = {
+/// Vertex count of the Patio shape's sole part (ten vertices).
+static u32 _gMappicS100PatioShapePartVerts[] = {
 #include "assets/mappic_s1_00_model_00294_partVerts.inc"
 };
 
-static SVECTOR _gMappicS100Model00294Verts[10] = {
+/// Patio's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS100PatioShapeVerts[] = {
 #include "assets/mappic_s1_00_model_00294_verts.inc"
 };
 
-static u32 _gMappicS100Model00294Stream[24] = {
+/// Two unlit triangles and three quads with packed vertex byte offsets and white colour, followed by two group ends and the stream end.
+static u32 _gMappicS100PatioShapeStream[] = {
 #include "assets/mappic_s1_00_model_00294_stream.inc"
 };
 
-TmdSource D_mappic_s1_00_8012F224 = {
-    0,
-    112,
-    0,
-    1,
-    _gMappicS100Model00294PartVerts,
-    _gMappicS100Model00294Verts,
-    &_gMappicS100Model00294Verts[10],
-    _gMappicS100Model00294Skeleton,
-    _gMappicS100Model00294Stream,
+TmdSource gMappicS100PatioShape = {
+    .bufferHalfBytes  = 2 * sizeof(POLY_F3) + 3 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS100PatioShapeSkeleton),
+    .partVertexCounts = _gMappicS100PatioShapePartVerts,
+    .verts            = _gMappicS100PatioShapeVerts,
+    .normals          = &_gMappicS100PatioShapeVerts[ARRAY_SIZE(_gMappicS100PatioShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS100PatioShapeSkeleton,
+    .stream           = _gMappicS100PatioShapeStream,
 };
 
-static TmdBone _gMappicS100MappicS400Model0005CSkeleton[1] = {
+/// Identity transform and self-parented root for the Cafeteria shape.
+static TmdBone _gMappicS100CafeteriaShapeSkeleton[] = {
 #include "assets/mappic_s4_00_model_0005C_skeleton.inc"
 };
 
-static u32 _gMappicS100MappicS400Model0005CPartVerts[1] = {
+/// Vertex count of the Cafeteria shape's sole part (six vertices).
+static u32 _gMappicS100CafeteriaShapePartVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_partVerts.inc"
 };
 
-static SVECTOR _gMappicS100MappicS400Model0005CVerts[6] = {
+/// Cafeteria's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS100CafeteriaShapeVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_verts.inc"
 };
 
-static u32 _gMappicS100MappicS400Model0005CStream[12] = {
+/// Two unlit quads' packed vertex byte offsets and white colour, followed by two group ends and the stream end.
+static u32 _gMappicS100CafeteriaShapeStream[] = {
 #include "assets/mappic_s4_00_model_0005C_stream.inc"
 };
 
-TmdSource D_mappic_s1_00_8012F2D0 = {
-    0,
-    48,
-    0,
-    1,
-    _gMappicS100MappicS400Model0005CPartVerts,
-    _gMappicS100MappicS400Model0005CVerts,
-    &_gMappicS100MappicS400Model0005CVerts[6],
-    _gMappicS100MappicS400Model0005CSkeleton,
-    _gMappicS100MappicS400Model0005CStream,
+TmdSource gMappicS100CafeteriaShape = {
+    .bufferHalfBytes  = 2 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS100CafeteriaShapeSkeleton),
+    .partVertexCounts = _gMappicS100CafeteriaShapePartVerts,
+    .verts            = _gMappicS100CafeteriaShapeVerts,
+    .normals          = &_gMappicS100CafeteriaShapeVerts[ARRAY_SIZE(_gMappicS100CafeteriaShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS100CafeteriaShapeSkeleton,
+    .stream           = _gMappicS100CafeteriaShapeStream,
 };
 
-static TmdBone _gMappicS100MappicS202Model00C48Skeleton[1] = {
+/// Identity transform and self-parented root for the Security room shape.
+static TmdBone _gMappicS100SecurityRoomShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00C48_skeleton.inc"
 };
 
-static u32 _gMappicS100MappicS202Model00C48PartVerts[1] = {
+/// Vertex count of the Security room shape's sole part (four vertices).
+static u32 _gMappicS100SecurityRoomShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_partVerts.inc"
 };
 
-static SVECTOR _gMappicS100MappicS202Model00C48Verts[4] = {
+/// Security room's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS100SecurityRoomShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_verts.inc"
 };
 
-static u32 _gMappicS100MappicS202Model00C48Stream[9] = {
+/// One unlit quad's packed vertex byte offsets and white colour, followed by two group ends and the stream end.
+static u32 _gMappicS100SecurityRoomShapeStream[] = {
 #include "assets/mappic_s2_02_model_00C48_stream.inc"
 };
 
-TmdSource D_mappic_s1_00_8012F360 = {
-    0,
-    24,
-    0,
-    1,
-    _gMappicS100MappicS202Model00C48PartVerts,
-    _gMappicS100MappicS202Model00C48Verts,
-    &_gMappicS100MappicS202Model00C48Verts[4],
-    _gMappicS100MappicS202Model00C48Skeleton,
-    _gMappicS100MappicS202Model00C48Stream,
+TmdSource gMappicS100SecurityRoomShape = {
+    .bufferHalfBytes  = sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS100SecurityRoomShapeSkeleton),
+    .partVertexCounts = _gMappicS100SecurityRoomShapePartVerts,
+    .verts            = _gMappicS100SecurityRoomShapeVerts,
+    .normals          = &_gMappicS100SecurityRoomShapeVerts[ARRAY_SIZE(_gMappicS100SecurityRoomShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS100SecurityRoomShapeSkeleton,
+    .stream           = _gMappicS100SecurityRoomShapeStream,
 };
 
-static TmdBone _gMappicS100MappicS202Model00C48004C0Skeleton[1] = {
+/// Identity transform and self-parented root for the Hallway shape.
+static TmdBone _gMappicS100HallwayShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00C48_004C0_skeleton.inc"
 };
 
-static u32 _gMappicS100MappicS202Model00C48004C0PartVerts[1] = {
+/// Vertex count of the Hallway shape's sole part (four vertices).
+static u32 _gMappicS100HallwayShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_004C0_partVerts.inc"
 };
 
-static SVECTOR _gMappicS100MappicS202Model00C48004C0Verts[4] = {
+/// Hallway's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS100HallwayShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_004C0_verts.inc"
 };
 
-static u32 _gMappicS100MappicS202Model00C48004C0Stream[9] = {
+/// One unlit quad's packed vertex byte offsets and white colour, followed by two group ends and the stream end.
+static u32 _gMappicS100HallwayShapeStream[] = {
 #include "assets/mappic_s2_02_model_00C48_004C0_stream.inc"
 };
 
-TmdSource D_mappic_s1_00_8012F3F0 = {
-    0,
-    24,
-    0,
-    1,
-    _gMappicS100MappicS202Model00C48004C0PartVerts,
-    _gMappicS100MappicS202Model00C48004C0Verts,
-    &_gMappicS100MappicS202Model00C48004C0Verts[4],
-    _gMappicS100MappicS202Model00C48004C0Skeleton,
-    _gMappicS100MappicS202Model00C48004C0Stream,
+TmdSource gMappicS100HallwayShape = {
+    .bufferHalfBytes  = sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS100HallwayShapeSkeleton),
+    .partVertexCounts = _gMappicS100HallwayShapePartVerts,
+    .verts            = _gMappicS100HallwayShapeVerts,
+    .normals          = &_gMappicS100HallwayShapeVerts[ARRAY_SIZE(_gMappicS100HallwayShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS100HallwayShapeSkeleton,
+    .stream           = _gMappicS100HallwayShapeStream,
 };
 
 static TmdBone _gMappicS100Model00564Skeleton[1] = {

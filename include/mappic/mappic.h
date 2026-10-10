@@ -4,17 +4,49 @@
 #include "main/tmd_types.h"
 
 // mappic_s1_00
-extern TmdSource D_mappic_s1_00_8012EFD8;
+/// Square's three-quad area fill on page 1 of the Acropolis map.
+///
+/// Eight vertices in the model X/Z plane are scaled by 2107/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s1_00 loaded during use.
+extern TmdSource gMappicS100SquareShape;
 
-extern TmdSource D_mappic_s1_00_8012F128;
+/// East elevator hall's area-fill mesh on page 1 of the Acropolis map.
+///
+/// Sixteen vertices in the model X/Z plane form two triangles and six quads;
+/// the map scales them by 2107/4096 and maps Z to inverted screen Y.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep mappic_s1_00 loaded during use.
+extern TmdSource gMappicS100EastElevatorHallShape;
 
-extern TmdSource D_mappic_s1_00_8012F224;
+/// Patio's area-fill mesh on page 1 of the Acropolis map.
+///
+/// Ten vertices in the model X/Z plane form two triangles and three quads;
+/// the map scales them by 2107/4096 and maps Z to inverted screen Y.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep mappic_s1_00 loaded during use.
+extern TmdSource gMappicS100PatioShape;
 
-extern TmdSource D_mappic_s1_00_8012F2D0;
+/// Cafeteria's two-quad area fill on page 1 of the Acropolis map.
+///
+/// Six vertices in the model X/Z plane are scaled by 2107/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s1_00 loaded during use.
+extern TmdSource gMappicS100CafeteriaShape;
 
-extern TmdSource D_mappic_s1_00_8012F360;
+/// Security room's area-fill quad on page 1 of the Acropolis map.
+///
+/// Four vertices in the model X/Z plane are scaled by 2107/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s1_00 loaded during use.
+extern TmdSource gMappicS100SecurityRoomShape;
 
-extern TmdSource D_mappic_s1_00_8012F3F0;
+/// Hallway's area-fill quad on page 1 of the Acropolis map.
+///
+/// Four vertices in the model X/Z plane are scaled by 2107/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s1_00 loaded during use.
+extern TmdSource gMappicS100HallwayShape;
 
 extern TmdSource D_mappic_s1_00_8012F4F4;
 
