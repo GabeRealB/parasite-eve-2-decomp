@@ -40,14 +40,14 @@ gDryfieldNightBackStreetViewCameras = 0x80180B58; // absolute:True owner=dryfiel
 gDryfieldNightBackStreetSpriteViews = 0x80180D34; // absolute:True owner=dryfield_night_back_street
 gDryfieldNightBackStreetSurfacePropertiesByClass = 0x8018161C; // absolute:True owner=dryfield_night_back_street shared=rooms
 dryfieldNightSouvenirShopRoomTask = 0x8017D65C; // type:func absolute:True owner=dryfield_night_souvenir_shop shared=rooms
-D_dryfield_night_souvenir_shop_8017E0E4 = 0x8017E0E4; // absolute:True owner=dryfield_night_souvenir_shop shared=rooms
+gDryfieldNightSouvenirShopRoomLighting = 0x8017E0E4; // absolute:True owner=dryfield_night_souvenir_shop shared=rooms
 D_dryfield_night_souvenir_shop_8017E0EC = 0x8017E0EC; // absolute:True owner=dryfield_night_souvenir_shop shared=rooms
-D_dryfield_night_souvenir_shop_8017E0FC = 0x8017E0FC; // absolute:True owner=dryfield_night_souvenir_shop
-D_dryfield_night_souvenir_shop_8017E100 = 0x8017E100; // absolute:True owner=dryfield_night_souvenir_shop shared=rooms
+gDryfieldNightSouvenirShopViewMaps = 0x8017E0FC; // absolute:True owner=dryfield_night_souvenir_shop
+gDryfieldNightSouvenirShopViewCounts = 0x8017E100; // absolute:True owner=dryfield_night_souvenir_shop shared=rooms
 D_dryfield_night_souvenir_shop_8017E104 = 0x8017E104; // absolute:True owner=dryfield_night_souvenir_shop
-D_dryfield_night_souvenir_shop_8017E628 = 0x8017E628; // absolute:True owner=dryfield_night_souvenir_shop
-D_dryfield_night_souvenir_shop_8017EF08 = 0x8017EF08; // absolute:True owner=dryfield_night_souvenir_shop shared=rooms
-D_dryfield_night_souvenir_shop_8017F6CC = 0x8017F6CC; // absolute:True owner=dryfield_night_souvenir_shop shared=rooms
+gDryfieldNightSouvenirShopViewCameras = 0x8017E628; // absolute:True owner=dryfield_night_souvenir_shop
+gDryfieldNightSouvenirShopSpriteViews = 0x8017EF08; // absolute:True owner=dryfield_night_souvenir_shop shared=rooms
+gDryfieldNightSouvenirShopSurfacePropertiesByClass = 0x8017F6CC; // absolute:True owner=dryfield_night_souvenir_shop shared=rooms
 dryfieldNightWarehouseRoomTask = 0x8017D65C; // type:func absolute:True owner=dryfield_night_warehouse shared=rooms
 D_dryfield_night_warehouse_8017E8E8 = 0x8017E8E8; // absolute:True owner=dryfield_night_warehouse
 D_dryfield_night_warehouse_8017E900 = 0x8017E900; // absolute:True owner=dryfield_night_warehouse shared=rooms
