@@ -605,7 +605,7 @@ static u32 _gAcropolisHelicopterLandingPadPerimeterLightViewMasks[ARRAY_SIZE(_gA
 };
 
 WorldCollisionRoomResources D_acropolis_helicopter_landing_pad_80184F10[1] = {
-    { &_gAcropolisHelicopterLandingPadCollisionGrid, _gAcropolisHelicopterLandingPadViewBoundaryTriggers, D_acropolis_helicopter_landing_pad_80185E7C, D_acropolis_helicopter_landing_pad_80186128 },
+    { &_gAcropolisHelicopterLandingPadCollisionGrid, _gAcropolisHelicopterLandingPadViewBoundaryTriggers, gAcropolisHelicopterLandingPadActionTriggers, gAcropolisHelicopterLandingPadSightOccluders },
 };
 
 enum { ACROPOLIS_HELICOPTER_LANDING_PAD_LOGICAL_VIEW_COUNT = 27 };

@@ -56,10 +56,6 @@
 
 #include "mapui/map_akropolis.h"
 
-/// Turn-to-heading task state: current unwrapped yaw and signed step.
-extern s32   D_acropolis_helicopter_landing_pad_80187F74;
-extern s32   D_acropolis_helicopter_landing_pad_80187F78;
-extern s16   D_acropolis_helicopter_landing_pad_80187F7C;
 extern Task* D_acropolis_helicopter_landing_pad_80187F80;
 
 /// Vibration programs paired with the departure timeline's screen shakes.
@@ -83,46 +79,132 @@ static const TaskFuncTable3 D_acropolis_helicopter_landing_pad_8017D5E4 = {
     { _acropolisHelicopterLandingPadInitRoom, acropolisHelicopterLandingPadUpdateEncounterPhase, taskKill },
 };
 
-extern SpriteDrawArea D_acropolis_helicopter_landing_pad_801875B0[2];
-extern SpriteDrawArea D_acropolis_helicopter_landing_pad_80187630[2];
-extern SpriteBatch    D_acropolis_helicopter_landing_pad_80187588[5];
-extern SpriteBatch    D_acropolis_helicopter_landing_pad_801875C4[2];
-extern SpriteBatch    D_acropolis_helicopter_landing_pad_801875D4[2];
-extern SpriteBatch    D_acropolis_helicopter_landing_pad_801875E4[2];
-extern SpriteBatch    D_acropolis_helicopter_landing_pad_801875F4[2];
-extern SpriteBatch    D_acropolis_helicopter_landing_pad_80187618[3];
-extern SpriteBatch    D_acropolis_helicopter_landing_pad_80187644[2];
-extern SpriteBatch    D_acropolis_helicopter_landing_pad_80187690[3];
-extern SpriteBatch    D_acropolis_helicopter_landing_pad_801876F8[3];
-extern SpriteBatch    D_acropolis_helicopter_landing_pad_80187710[2];
-extern SpriteBatch    D_acropolis_helicopter_landing_pad_80187720[2];
-extern SpriteBatch    D_acropolis_helicopter_landing_pad_801877A8[3];
-extern SpriteBatch    D_acropolis_helicopter_landing_pad_801877C0[2];
-extern SpriteBatch    D_acropolis_helicopter_landing_pad_801877D0[2];
-extern SpriteBatch    D_acropolis_helicopter_landing_pad_801877E0[2];
-extern SpriteBatch    D_acropolis_helicopter_landing_pad_801877F0[2];
-extern SpriteBatch    D_acropolis_helicopter_landing_pad_80187800[2];
-extern SpriteSource   D_acropolis_helicopter_landing_pad_8018736C[27];
-extern SpriteSource   D_acropolis_helicopter_landing_pad_80187604[1];
-extern SpriteSource   D_acropolis_helicopter_landing_pad_80187654[3];
-extern SpriteSource   D_acropolis_helicopter_landing_pad_801876A8[4];
-extern SpriteSource   D_acropolis_helicopter_landing_pad_80187730[6];
-
-WorldCollisionTrigger D_acropolis_helicopter_landing_pad_80185E7C[9] = {
-    { NULL, NULL, NULL, { -6528, -32, -6208, 0 }, { { -384, 0, -192, 0 }, { 384, 0, -192, 0 }, { -384, 0, 192, 0 }, { 384, 0, 192, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 429, WORLD_COLLISION_TRIGGER_ACTION_CALLBACK | 0x100, 0, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -5274, -131, -1840, 0 }, { { -800, 0, -688, 0 }, { 800, 0, -688, 0 }, { -800, 0, 688, 0 }, { 800, 0, 688, 0 } }, { 0, 4107, 0, 0 }, { 201, 0, -4091, 0 }, 1047, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1055, -128, -6657, 0 }, { { 73, 0, -1674, 0 }, { 1007, 0, -1340, 0 }, { -1006, 0, 1339, 0 }, { -73, 0, 1673, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, -4096, 0 }, 1673, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 0, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { -6650, 472, -5301, 0 }, { { -496, 0, -240, 0 }, { 496, 0, -240, 0 }, { -496, 0, 240, 0 }, { 496, 0, 240, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 550, WORLD_COLLISION_TRIGGER_ACTION_FACING | WORLD_COLLISION_TRIGGER_AUTOMATIC, 51, 128, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -6160, -128, -1824, 0 }, { { -560, 0, -848, 0 }, { 560, 0, -848, 0 }, { -560, 0, 848, 0 }, { 560, 0, 848, 0 } }, { 0, 4098, 0, 0 }, { 201, 0, -4091, 0 }, 1015, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 5648, -32, 1184, 0 }, { { -224, 0, -1344, 0 }, { 1440, 0, -1344, 0 }, { -224, 0, 1344, 0 }, { 1440, 0, 1344, 0 } }, { 0, 4117, 0, 0 }, { 4091, 0, 201, 0 }, 1966, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -800, -64, 5568, 0 }, { { 1760, 0, -864, 0 }, { 1760, 0, 1760, 0 }, { -1760, 0, -864, 0 }, { -1760, 0, 1760, 0 } }, { 0, 4111, 0, 0 }, { 0, 0, 4095, 0 }, 2482, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -5536, -64, 544, 0 }, { { 864, 0, 1472, 0 }, { -1984, 0, 1472, 0 }, { 864, 0, -1472, 0 }, { -1984, 0, -1472, 0 } }, { 0, 4101, 0, 0 }, { -4091, 0, -201, 0 }, 2468, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -6144, -64, -1824, 0 }, { { -560, 0, -848, 0 }, { 560, 0, -848, 0 }, { -560, 0, 848, 0 }, { 560, 0, 848, 0 } }, { 0, 4098, 0, 0 }, { -4052, 0, -601, 0 }, 1015, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Packed selectors carried by the landing pad's exit, stair and room-action regions.
+enum {
+    ACROPOLIS_HELICOPTER_LANDING_PAD_EXIT_CALLBACK_CONTROL    = WORLD_COLLISION_TRIGGER_ACTION_CALLBACK | (1 << 8),
+    ACROPOLIS_HELICOPTER_LANDING_PAD_TRIGGER_START_ENCOUNTER  = 0,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_TRIGGER_ENABLE_PLACEMENT = 1,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_STAIR_SURFACE_AND_STEPS  = (3 << 4) | 3,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_STAIR_FACING             = ACTOR_TRANSFORM_ANGLE_HALF_TURN / 16,
 };
 
-WorldCollisionOccluder D_acropolis_helicopter_landing_pad_80186128[2] = {
-    { NULL, NULL, { -256, -944, -240, 0 }, { { -5632, -1968, -5616, 0 }, { 5632, -1968, 5616, 0 }, { -5632, 1968, -5616, 0 }, { 5632, 1968, 5616, 0 } }, { 2897, 0, -2906, 0 }, 8192, 1, 0 },
-    { NULL, NULL, { 0, -896, 0, 0 }, { { 5616, -1920, -5632, 0 }, { -5616, -1920, 5632, 0 }, { 5616, 1920, -5632, 0 }, { -5616, 1920, 5632, 0 } }, { 2900, 0, 2892, 0 }, 8175, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
+WorldCollisionTrigger gAcropolisHelicopterLandingPadActionTriggers[9] = {
+    {
+        .origin       = { -6528, -32, -6208, 0 },
+        .vertices     = { { -384, 0, -192, 0 }, { 384, 0, -192, 0 }, { -384, 0, 192, 0 }, { 384, 0, 192, 0 } },
+        .normal       = { 0, 4095, 0, 0 },
+        .facingNormal = { 0, 0, -ONE, 0 },
+        .radius       = 429,
+        .control      = ACROPOLIS_HELICOPTER_LANDING_PAD_EXIT_CALLBACK_CONTROL,
+        .parameter0   = 0,
+        .parameter1   = 0,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+    },
+    {
+        .origin       = { -5274, -131, -1840, 0 },
+        .vertices     = { { -800, 0, -688, 0 }, { 800, 0, -688, 0 }, { -800, 0, 688, 0 }, { 800, 0, 688, 0 } },
+        .normal       = { 0, 4107, 0, 0 },
+        .facingNormal = { 201, 0, -4091, 0 },
+        .radius       = 1047,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = 4,
+        .parameter1   = 0,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+    },
+    {
+        .origin       = { 1055, -128, -6657, 0 },
+        .vertices     = { { 73, 0, -1674, 0 }, { 1007, 0, -1340, 0 }, { -1006, 0, 1339, 0 }, { -73, 0, 1673, 0 } },
+        .normal       = { 0, 4103, 0, 0 },
+        .facingNormal = { 0, 0, -ONE, 0 },
+        .radius       = 1673,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC,
+        .parameter0   = ACROPOLIS_HELICOPTER_LANDING_PAD_TRIGGER_START_ENCOUNTER,
+        .parameter1   = 0,
+        .flags        = WORLD_COLLISION_TRIGGER_QUAD,
+    },
+    {
+        .origin       = { -6650, 472, -5301, 0 },
+        .vertices     = { { -496, 0, -240, 0 }, { 496, 0, -240, 0 }, { -496, 0, 240, 0 }, { 496, 0, 240, 0 } },
+        .normal       = { 0, 4098, 0, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 550,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_FACING | WORLD_COLLISION_TRIGGER_AUTOMATIC,
+        .parameter0   = ACROPOLIS_HELICOPTER_LANDING_PAD_STAIR_SURFACE_AND_STEPS,
+        .parameter1   = ACROPOLIS_HELICOPTER_LANDING_PAD_STAIR_FACING,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+    },
+    {
+        .origin       = { -6160, -128, -1824, 0 },
+        .vertices     = { { -560, 0, -848, 0 }, { 560, 0, -848, 0 }, { -560, 0, 848, 0 }, { 560, 0, 848, 0 } },
+        .normal       = { 0, 4098, 0, 0 },
+        .facingNormal = { 201, 0, -4091, 0 },
+        .radius       = 1015,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC,
+        .parameter0   = ACROPOLIS_HELICOPTER_LANDING_PAD_TRIGGER_ENABLE_PLACEMENT,
+        .parameter1   = 0,
+        .flags        = WORLD_COLLISION_TRIGGER_QUAD,
+    },
+    {
+        .origin       = { 5648, -32, 1184, 0 },
+        .vertices     = { { -224, 0, -1344, 0 }, { 1440, 0, -1344, 0 }, { -224, 0, 1344, 0 }, { 1440, 0, 1344, 0 } },
+        .normal       = { 0, 4117, 0, 0 },
+        .facingNormal = { 4091, 0, 201, 0 },
+        .radius       = 1966,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = 6,
+        .parameter1   = 0,
+        .flags        = WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD,
+    },
+    {
+        .origin       = { -800, -64, 5568, 0 },
+        .vertices     = { { 1760, 0, -864, 0 }, { 1760, 0, 1760, 0 }, { -1760, 0, -864, 0 }, { -1760, 0, 1760, 0 } },
+        .normal       = { 0, 4111, 0, 0 },
+        .facingNormal = { 0, 0, 4095, 0 },
+        .radius       = 2482,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = 7,
+        .parameter1   = 0,
+        .flags        = WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD,
+    },
+    {
+        .origin       = { -5536, -64, 544, 0 },
+        .vertices     = { { 864, 0, 1472, 0 }, { -1984, 0, 1472, 0 }, { 864, 0, -1472, 0 }, { -1984, 0, -1472, 0 } },
+        .normal       = { 0, 4101, 0, 0 },
+        .facingNormal = { -4091, 0, -201, 0 },
+        .radius       = 2468,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = 8,
+        .parameter1   = 0,
+        .flags        = WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD,
+    },
+    {
+        .origin       = { -6144, -64, -1824, 0 },
+        .vertices     = { { -560, 0, -848, 0 }, { 560, 0, -848, 0 }, { -560, 0, 848, 0 }, { 560, 0, 848, 0 } },
+        .normal       = { 0, 4098, 0, 0 },
+        .facingNormal = { -4052, 0, -601, 0 },
+        .radius       = 1015,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = 10,
+        .parameter1   = 0,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST,
+    },
+};
+
+WorldCollisionOccluder gAcropolisHelicopterLandingPadSightOccluders[2] = {
+    {
+        .origin   = { -256, -944, -240, 0 },
+        .vertices = { { -5632, -1968, -5616, 0 }, { 5632, -1968, 5616, 0 }, { -5632, 1968, -5616, 0 }, { 5632, 1968, 5616, 0 } },
+        .normal   = { 2897, 0, -2906, 0 },
+        .radius   = 8192,
+        .flags    = 1,
+    },
+    {
+        .origin   = { 0, -896, 0, 0 },
+        .vertices = { { 5616, -1920, -5632, 0 }, { -5616, -1920, 5632, 0 }, { 5616, 1920, -5632, 0 }, { -5616, 1920, 5632, 0 } },
+        .normal   = { 2900, 0, 2892, 0 },
+        .radius   = 8175,
+        .flags    = 1 | WORLD_COLLISION_OCCLUDER_LAST,
+    },
 };
 
 AreaResource D_acropolis_helicopter_landing_pad_801861A0[2] = {
@@ -880,162 +962,240 @@ static SpriteDrawArea _gAcropolisHelicopterLandingPadView9DrawAreas[] = {
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_acropolis_helicopter_landing_pad_8018736C[27] = {
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -104, -64, 550, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -96, -40, 550, { .fields = { 40, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -88, -16, 525, { .fields = { 16, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -80, 8, 500, { .fields = { 0, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -72, 24, 500, { .fields = { 0, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, -64, 48, 450, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -56, 80, 425, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 24 } }, -48, 96, 400, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 16, 88, 375, { .fields = { 32, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 40, 80, 375, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 64, 72, 375, { .fields = { 56, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, 80, 64, 400, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, 104, 56, 400, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 120, 48, 425, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 96 } }, -64, -120, 2130, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 112 } }, -48, -120, 1812, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 128 } }, -32, -120, 1687, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 136 } }, -16, -120, 1450, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 16 } }, 96, 64, 250, { .fields = { 88, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 32 } }, 96, 32, 250, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 56 } }, 112, -24, 250, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 96 } }, 128, -120, 325, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 40 } }, 96, 80, 250, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 24, 48, 875, { .fields = { 0, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 40, 64, 800, { .fields = { 0, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 56, 80, 750, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 72, 96, 625, { .fields = { 24, 216 } }, 128, 128, 128, 0 },
+/// The 27 foreground texture rectangles for mapped view 10.
+///
+/// Positions are pixels relative to the view centre; depths are unscaled sorting values.
+/// Batches select source elements; these writable records live with the room overlay.
+static SpriteSource _gAcropolisHelicopterLandingPadView10SpriteSources[27] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -104, -64, 550, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, -96, -40, 550, { .fields = { 40, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, -88, -16, 525, { .fields = { 16, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 16 } }, -80, 8, 500, { .fields = { 0, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 24 } }, -72, 24, 500, { .fields = { 0, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 32 } }, -64, 48, 450, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 40, 16 } }, -56, 80, 425, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 24 } }, -48, 96, 400, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, 16, 88, 375, { .fields = { 32, 152 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, 40, 80, 375, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, 64, 72, 375, { .fields = { 56, 152 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 56 } }, 80, 64, 400, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 64 } }, 104, 56, 400, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 48 } }, 120, 48, 425, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 96 } }, -64, -120, 2130, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 112 } }, -48, -120, 1812, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 128 } }, -32, -120, 1687, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 136 } }, -16, -120, 1450, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 16 } }, 96, 64, 250, { .fields = { 88, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 32 } }, 96, 32, 250, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 48, 56 } }, 112, -24, 250, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 96 } }, 128, -120, 325, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 64, 40 } }, 96, 80, 250, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, 24, 48, 875, { .fields = { 0, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, 40, 64, 800, { .fields = { 0, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, 56, 80, 750, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, 72, 96, 625, { .fields = { 24, 216 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_helicopter_landing_pad_80187588[5] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 14, 0, 0, { 1, 0 } },
-    { 14, 9, 0, 0, { 2, 0 } },
-    { 23, 4, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Adds view 10's 27 source sprites in three ranges over decoded background strips.
+///
+/// Ranges are [0,14), [14,23) and [23,27); the final record ends the list.
+/// The nonzero serialized bytes in the first two ranges have no observed readers.
+static SpriteBatch _gAcropolisHelicopterLandingPadView10SpriteBatches[5] = {
+    { .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 14, .field_6 = { 1, 0 } },
+    { .firstSprite = 14, .spriteCount = 9, .field_6 = { 2, 0 } },
+    { .firstSprite = 23, .spriteCount = ARRAY_SIZE(_gAcropolisHelicopterLandingPadView10SpriteSources) - 23 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteDrawArea D_acropolis_helicopter_landing_pad_801875B0[2] = {
-    { { 3, 0, 99, 239 }, 2250 },
-    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
+/// Clips mapped view 10 to (3, 0, 99, 239) pixels until sorting depth 2250.
+///
+/// Coordinates are draw-buffer pixels; the second record terminates the list.
+static SpriteDrawArea _gAcropolisHelicopterLandingPadView10DrawAreas[2] = {
+    { .clipRect = { 3, 0, 99, 239 }, .restoreDepth = 2250 },
+    { .restoreDepth = SPRITE_DRAW_AREA_END },
 };
 
-SpriteBatch D_acropolis_helicopter_landing_pad_801875C4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Keeps decoded background strips without adding source sprites in mapped view 11.
+///
+/// The zero first count selects image strips; the second record ends the list.
+static SpriteBatch _gAcropolisHelicopterLandingPadView11SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_acropolis_helicopter_landing_pad_801875D4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Keeps decoded background strips without adding source sprites in mapped view 12.
+///
+/// The zero first count selects image strips; the second record ends the list.
+static SpriteBatch _gAcropolisHelicopterLandingPadView12SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_acropolis_helicopter_landing_pad_801875E4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Keeps decoded background strips without adding source sprites in mapped view 13.
+///
+/// The zero first count selects image strips; the second record ends the list.
+static SpriteBatch _gAcropolisHelicopterLandingPadView13SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_acropolis_helicopter_landing_pad_801875F4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Keeps decoded background strips without adding source sprites in mapped view 14.
+///
+/// The zero first count selects image strips; the second record ends the list.
+static SpriteBatch _gAcropolisHelicopterLandingPadView14SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_acropolis_helicopter_landing_pad_80187604[1] = {
-    { 143, 0x3FC0, { .fields = { 16, 136 } }, -16, -16, 1375, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+/// The foreground texture rectangle shared by mapped views 15 and 27.
+///
+/// Positions are pixels relative to the view centre; depths are unscaled sorting values.
+/// Batches select source elements; these writable records live with the room overlay.
+static SpriteSource _gAcropolisHelicopterLandingPadViews15And27SpriteSources[1] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 136 } }, -16, -16, 1375, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_helicopter_landing_pad_80187618[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 1, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Adds the shared source sprite over decoded background strips in mapped views 15 and 27.
+///
+/// Counts are source elements; the final record terminates the list.
+static SpriteBatch _gAcropolisHelicopterLandingPadViews15And27SpriteBatches[3] = {
+    { .spriteCount = 0 },
+    { .spriteCount = ARRAY_SIZE(_gAcropolisHelicopterLandingPadViews15And27SpriteSources) },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteDrawArea D_acropolis_helicopter_landing_pad_80187630[2] = {
-    { { 2, 1, 149, 238 }, 1125 },
-    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
+/// Clips mapped views 15 and 27 to (2, 1, 149, 238) pixels until sorting depth 1125.
+///
+/// Coordinates are draw-buffer pixels; the second record terminates the list.
+static SpriteDrawArea _gAcropolisHelicopterLandingPadViews15And27DrawAreas[2] = {
+    { .clipRect = { 2, 1, 149, 238 }, .restoreDepth = 1125 },
+    { .restoreDepth = SPRITE_DRAW_AREA_END },
 };
 
-SpriteBatch D_acropolis_helicopter_landing_pad_80187644[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Keeps decoded background strips without adding source sprites in mapped view 16.
+///
+/// The zero first count selects image strips; the second record ends the list.
+static SpriteBatch _gAcropolisHelicopterLandingPadView16SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_acropolis_helicopter_landing_pad_80187654[3] = {
-    { 143, 0x3FC0, { .fields = { 104, 136 } }, -160, -24, 400, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 120, 56 } }, -56, 56, 375, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 56 } }, 64, 64, 390, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
+/// The 3 foreground texture rectangles for mapped view 17.
+///
+/// Positions are pixels relative to the view centre; depths are unscaled sorting values.
+/// Batches select source elements; these writable records live with the room overlay.
+static SpriteSource _gAcropolisHelicopterLandingPadView17SpriteSources[3] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 104, 136 } }, -160, -24, 400, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 120, 56 } }, -56, 56, 375, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 64, 56 } }, 64, 64, 390, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_helicopter_landing_pad_80187690[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 3, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Adds all source sprites over decoded background strips in mapped view 17.
+///
+/// Counts are source elements; the final record terminates the list.
+static SpriteBatch _gAcropolisHelicopterLandingPadView17SpriteBatches[3] = {
+    { .spriteCount = 0 },
+    { .spriteCount = ARRAY_SIZE(_gAcropolisHelicopterLandingPadView17SpriteSources) },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_acropolis_helicopter_landing_pad_801876A8[4] = {
-    { 143, 0x3FC0, { .fields = { 120, 40 } }, -160, 40, 675, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 168, 40 } }, -160, 80, 450, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 152, 32 } }, 8, 88, 450, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 120, 40 } }, 40, 48, 675, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
+/// The 4 foreground texture rectangles for mapped view 18.
+///
+/// Positions are pixels relative to the view centre; depths are unscaled sorting values.
+/// Batches select source elements; these writable records live with the room overlay.
+static SpriteSource _gAcropolisHelicopterLandingPadView18SpriteSources[4] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 120, 40 } }, -160, 40, 675, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 168, 40 } }, -160, 80, 450, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 152, 32 } }, 8, 88, 450, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 120, 40 } }, 40, 48, 675, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_helicopter_landing_pad_801876F8[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 4, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Adds all source sprites over decoded background strips in mapped view 18.
+///
+/// Counts are source elements; the final record terminates the list.
+static SpriteBatch _gAcropolisHelicopterLandingPadView18SpriteBatches[3] = {
+    { .spriteCount = 0 },
+    { .spriteCount = ARRAY_SIZE(_gAcropolisHelicopterLandingPadView18SpriteSources) },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_acropolis_helicopter_landing_pad_80187710[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Keeps decoded background strips without adding source sprites in mapped view 19.
+///
+/// The zero first count selects image strips; the second record ends the list.
+static SpriteBatch _gAcropolisHelicopterLandingPadView19SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_acropolis_helicopter_landing_pad_80187720[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Keeps decoded background strips without adding source sprites in mapped view 20.
+///
+/// The zero first count selects image strips; the second record ends the list.
+static SpriteBatch _gAcropolisHelicopterLandingPadView20SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_acropolis_helicopter_landing_pad_80187730[6] = {
-    { 143, 0x3FC0, { .fields = { 72, 32 } }, -160, 88, 250, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 40 } }, -88, 80, 250, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -32, 72, 250, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 56 } }, 16, 64, 250, { .fields = { 72, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 64 } }, 72, 56, 250, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 72 } }, 128, 48, 250, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+/// The 6 foreground texture rectangles for mapped view 21.
+///
+/// Positions are pixels relative to the view centre; depths are unscaled sorting values.
+/// Batches select source elements; these writable records live with the room overlay.
+static SpriteSource _gAcropolisHelicopterLandingPadView21SpriteSources[6] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 72, 32 } }, -160, 88, 250, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 56, 40 } }, -88, 80, 250, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 48, 48 } }, -32, 72, 250, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 56, 56 } }, 16, 64, 250, { .fields = { 72, 136 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 56, 64 } }, 72, 56, 250, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 72 } }, 128, 48, 250, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_helicopter_landing_pad_801877A8[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 6, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Adds all source sprites over decoded background strips in mapped view 21.
+///
+/// Counts are source elements; the final record terminates the list.
+static SpriteBatch _gAcropolisHelicopterLandingPadView21SpriteBatches[3] = {
+    { .spriteCount = 0 },
+    { .spriteCount = ARRAY_SIZE(_gAcropolisHelicopterLandingPadView21SpriteSources) },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_acropolis_helicopter_landing_pad_801877C0[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Keeps decoded background strips without adding source sprites in mapped view 22.
+///
+/// The zero first count selects image strips; the second record ends the list.
+static SpriteBatch _gAcropolisHelicopterLandingPadView22SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_acropolis_helicopter_landing_pad_801877D0[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Keeps decoded background strips without adding source sprites in mapped view 23.
+///
+/// The zero first count selects image strips; the second record ends the list.
+static SpriteBatch _gAcropolisHelicopterLandingPadView23SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_acropolis_helicopter_landing_pad_801877E0[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Keeps decoded background strips without adding source sprites in mapped view 24.
+///
+/// The zero first count selects image strips; the second record ends the list.
+static SpriteBatch _gAcropolisHelicopterLandingPadView24SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_acropolis_helicopter_landing_pad_801877F0[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Keeps decoded background strips without adding source sprites in mapped view 25.
+///
+/// The zero first count selects image strips; the second record ends the list.
+static SpriteBatch _gAcropolisHelicopterLandingPadView25SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_acropolis_helicopter_landing_pad_80187800[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Keeps decoded background strips without adding source sprites in mapped view 26.
+///
+/// The zero first count selects image strips; the second record ends the list.
+static SpriteBatch _gAcropolisHelicopterLandingPadView26SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
 SpriteDrawArea D_acropolis_helicopter_landing_pad_80187810[2] = {
@@ -1043,7 +1203,7 @@ SpriteDrawArea D_acropolis_helicopter_landing_pad_80187810[2] = {
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteView D_acropolis_helicopter_landing_pad_80187824[27] = {
+SpriteView gAcropolisHelicopterLandingPadSpriteViews[27] = {
     { { .empty = _gAcropolisHelicopterLandingPadView1SpriteBatches }, _gAcropolisHelicopterLandingPadView1SpriteBatches, NULL },
     { { .elements = _gAcropolisHelicopterLandingPadView2SpriteSources }, _gAcropolisHelicopterLandingPadView2SpriteBatches, NULL },
     { { .empty = _gAcropolisHelicopterLandingPadView3SpriteBatches }, _gAcropolisHelicopterLandingPadView3SpriteBatches, _gAcropolisHelicopterLandingPadView3DrawAreas },
@@ -1053,54 +1213,54 @@ SpriteView D_acropolis_helicopter_landing_pad_80187824[27] = {
     { { .elements = _gAcropolisHelicopterLandingPadView7SpriteSources }, _gAcropolisHelicopterLandingPadView7SpriteBatches, _gAcropolisHelicopterLandingPadView7DrawAreas },
     { { .elements = _gAcropolisHelicopterLandingPadView8SpriteSources }, _gAcropolisHelicopterLandingPadView8SpriteBatches, _gAcropolisHelicopterLandingPadView8DrawAreas },
     { { .elements = _gAcropolisHelicopterLandingPadView9SpriteSources }, _gAcropolisHelicopterLandingPadView9SpriteBatches, _gAcropolisHelicopterLandingPadView9DrawAreas },
-    { { .elements = D_acropolis_helicopter_landing_pad_8018736C }, D_acropolis_helicopter_landing_pad_80187588, D_acropolis_helicopter_landing_pad_801875B0 },
-    { { .empty = D_acropolis_helicopter_landing_pad_801875C4 }, D_acropolis_helicopter_landing_pad_801875C4, NULL },
-    { { .empty = D_acropolis_helicopter_landing_pad_801875D4 }, D_acropolis_helicopter_landing_pad_801875D4, NULL },
-    { { .empty = D_acropolis_helicopter_landing_pad_801875E4 }, D_acropolis_helicopter_landing_pad_801875E4, NULL },
-    { { .empty = D_acropolis_helicopter_landing_pad_801875F4 }, D_acropolis_helicopter_landing_pad_801875F4, NULL },
-    { { .elements = D_acropolis_helicopter_landing_pad_80187604 }, D_acropolis_helicopter_landing_pad_80187618, D_acropolis_helicopter_landing_pad_80187630 },
-    { { .empty = D_acropolis_helicopter_landing_pad_80187644 }, D_acropolis_helicopter_landing_pad_80187644, NULL },
-    { { .elements = D_acropolis_helicopter_landing_pad_80187654 }, D_acropolis_helicopter_landing_pad_80187690, NULL },
-    { { .elements = D_acropolis_helicopter_landing_pad_801876A8 }, D_acropolis_helicopter_landing_pad_801876F8, NULL },
-    { { .empty = D_acropolis_helicopter_landing_pad_80187710 }, D_acropolis_helicopter_landing_pad_80187710, NULL },
-    { { .empty = D_acropolis_helicopter_landing_pad_80187720 }, D_acropolis_helicopter_landing_pad_80187720, NULL },
-    { { .elements = D_acropolis_helicopter_landing_pad_80187730 }, D_acropolis_helicopter_landing_pad_801877A8, NULL },
-    { { .empty = D_acropolis_helicopter_landing_pad_801877C0 }, D_acropolis_helicopter_landing_pad_801877C0, NULL },
-    { { .empty = D_acropolis_helicopter_landing_pad_801877D0 }, D_acropolis_helicopter_landing_pad_801877D0, NULL },
-    { { .empty = D_acropolis_helicopter_landing_pad_801877E0 }, D_acropolis_helicopter_landing_pad_801877E0, NULL },
-    { { .empty = D_acropolis_helicopter_landing_pad_801877F0 }, D_acropolis_helicopter_landing_pad_801877F0, NULL },
-    { { .empty = D_acropolis_helicopter_landing_pad_80187800 }, D_acropolis_helicopter_landing_pad_80187800, NULL },
-    { { .elements = D_acropolis_helicopter_landing_pad_80187604 }, D_acropolis_helicopter_landing_pad_80187618, D_acropolis_helicopter_landing_pad_80187630 },
+    { { .elements = _gAcropolisHelicopterLandingPadView10SpriteSources }, _gAcropolisHelicopterLandingPadView10SpriteBatches, _gAcropolisHelicopterLandingPadView10DrawAreas },
+    { { .empty = _gAcropolisHelicopterLandingPadView11SpriteBatches }, _gAcropolisHelicopterLandingPadView11SpriteBatches, NULL },
+    { { .empty = _gAcropolisHelicopterLandingPadView12SpriteBatches }, _gAcropolisHelicopterLandingPadView12SpriteBatches, NULL },
+    { { .empty = _gAcropolisHelicopterLandingPadView13SpriteBatches }, _gAcropolisHelicopterLandingPadView13SpriteBatches, NULL },
+    { { .empty = _gAcropolisHelicopterLandingPadView14SpriteBatches }, _gAcropolisHelicopterLandingPadView14SpriteBatches, NULL },
+    { { .elements = _gAcropolisHelicopterLandingPadViews15And27SpriteSources }, _gAcropolisHelicopterLandingPadViews15And27SpriteBatches, _gAcropolisHelicopterLandingPadViews15And27DrawAreas },
+    { { .empty = _gAcropolisHelicopterLandingPadView16SpriteBatches }, _gAcropolisHelicopterLandingPadView16SpriteBatches, NULL },
+    { { .elements = _gAcropolisHelicopterLandingPadView17SpriteSources }, _gAcropolisHelicopterLandingPadView17SpriteBatches, NULL },
+    { { .elements = _gAcropolisHelicopterLandingPadView18SpriteSources }, _gAcropolisHelicopterLandingPadView18SpriteBatches, NULL },
+    { { .empty = _gAcropolisHelicopterLandingPadView19SpriteBatches }, _gAcropolisHelicopterLandingPadView19SpriteBatches, NULL },
+    { { .empty = _gAcropolisHelicopterLandingPadView20SpriteBatches }, _gAcropolisHelicopterLandingPadView20SpriteBatches, NULL },
+    { { .elements = _gAcropolisHelicopterLandingPadView21SpriteSources }, _gAcropolisHelicopterLandingPadView21SpriteBatches, NULL },
+    { { .empty = _gAcropolisHelicopterLandingPadView22SpriteBatches }, _gAcropolisHelicopterLandingPadView22SpriteBatches, NULL },
+    { { .empty = _gAcropolisHelicopterLandingPadView23SpriteBatches }, _gAcropolisHelicopterLandingPadView23SpriteBatches, NULL },
+    { { .empty = _gAcropolisHelicopterLandingPadView24SpriteBatches }, _gAcropolisHelicopterLandingPadView24SpriteBatches, NULL },
+    { { .empty = _gAcropolisHelicopterLandingPadView25SpriteBatches }, _gAcropolisHelicopterLandingPadView25SpriteBatches, NULL },
+    { { .empty = _gAcropolisHelicopterLandingPadView26SpriteBatches }, _gAcropolisHelicopterLandingPadView26SpriteBatches, NULL },
+    { { .elements = _gAcropolisHelicopterLandingPadViews15And27SpriteSources }, _gAcropolisHelicopterLandingPadViews15And27SpriteBatches, _gAcropolisHelicopterLandingPadViews15And27DrawAreas },
 };
 
-ViewCamera D_acropolis_helicopter_landing_pad_80187968[27] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 1500, 0x7530, 2500 } }, 432 },
-    { { { { 2020, 0, 3563 }, { 2282, 3145, -1294 }, { -2735, 2624, 1551 } }, { 4724, 2583, 7606 } }, 257 },
-    { { { { 1448, 0, 3831 }, { 929, 3973, -351 }, { -3716, 994, 1405 } }, { 111, 1700, 7565 } }, 257 },
-    { { { { 683, 0, -4038 }, { -993, 3970, -168 }, { 3914, 1007, 662 } }, { 3525, 1700, 7067 } }, 257 },
-    { { { { 3492, 0, 2140 }, { 389, 4027, -636 }, { -2104, 745, 3434 } }, { -8514, 1700, 9737 } }, 257 },
-    { { { { 2030, 0, 3557 }, { 1121, 3887, -640 }, { -3375, 1291, 1927 } }, { -0x2868, 2310, 2157 } }, 257 },
-    { { { { -3041, 0, 2743 }, { 488, 4030, 541 }, { -2699, 729, -2993 } }, { -8208, 1268, -8598 } }, 230 },
-    { { { { -3740, 0, -1668 }, { -184, 4070, 413 }, { 1658, 452, -3717 } }, { 3618, 1700, -0x2D82 } }, 230 },
-    { { { { -1924, 0, -3615 }, { -627, 4033, 333 }, { 3560, 710, -1895 } }, { 9705, 1727, -8007 } }, 257 },
-    { { { { 3730, 0, -1690 }, { -618, 3812, -1364 }, { 1573, 1497, 3472 } }, { 7825, 2067, 3862 } }, 230 },
-    { { { { 1608, 0, 3767 }, { 2218, 3309, -947 }, { -3044, 2412, 1299 } }, { -3535, 9746, 3169 } }, 230 },
-    { { { { 1216, 0, -3911 }, { -2605, 3055, -810 }, { 2917, 2728, 907 } }, { 5463, 0x28FA, 2359 } }, 230 },
-    { { { { 1538, 0, -3795 }, { -2650, 2931, -1074 }, { 2717, 2860, 1101 } }, { 3937, 6355, 1314 } }, 257 },
-    { { { { 3507, 0, -2116 }, { -1885, 1858, -3125 }, { 960, 3650, 1591 } }, { -5011, 8020, -3917 } }, 230 },
-    { { { { 836, 0, 4009 }, { -1269, 3885, 264 }, { -3803, -1297, 793 } }, { 292, 673, 6887 } }, 207 },
-    { { { { 1453, 0, -3829 }, { -771, 4012, -292 }, { 3750, 824, 1423 } }, { -1784, 1471, 7126 } }, 207 },
-    { { { { 1155, 0, 3929 }, { -1737, 3673, 510 }, { -3524, -1811, 1035 } }, { 1062, 2444, 7359 } }, 207 },
-    { { { { -564, 0, 4056 }, { 503, 4064, 70 }, { -4025, 508, -559 } }, { 2521, 4108, 1483 } }, 230 },
-    { { { { 2575, 0, -3185 }, { -930, 3917, -752 }, { 3046, 1196, 2462 } }, { 3838, 4675, 2020 } }, 188 },
-    { { { { 2586, 0, -3176 }, { -638, 4012, -520 }, { 3111, 824, 2533 } }, { 2361, 4678, 1361 } }, 188 },
-    { { { { 3554, 0, 2035 }, { -1127, 3411, 1967 }, { -1695, -2267, 2959 } }, { -870, 2992, 6656 } }, 207 },
-    { { { { 3950, 0, 1082 }, { 504, 3625, -1839 }, { -958, 1906, 3496 } }, { -270, 4973, 6269 } }, 243 },
-    { { { { -4092, 0, 162 }, { 123, 2664, 3108 }, { -105, 3110, -2662 } }, { 839, 3802, 9054 } }, 230 },
-    { { { { 2856, 0, -2935 }, { 2818, 1144, 2742 }, { 820, -3932, 798 } }, { 2576, 5537, 2556 } }, 230 },
-    { { { { 522, 0, -4062 }, { -2349, 3341, -302 }, { 3314, 2368, 426 } }, { 8857, 2945, 2306 } }, 230 },
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 1000, 0x7530, -2000 } }, 432 },
-    { { { { 836, 0, 4009 }, { -1269, 3885, 264 }, { -3803, -1297, 793 } }, { 292, 673, 6887 } }, 207 },
+ViewCamera gAcropolisHelicopterLandingPadViewCameras[27] = {
+    { .transform = { .m = { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, .t = { 1500, 30000, 2500 } }, .screenDistance = 432 },
+    { .transform = { .m = { { 2020, 0, 3563 }, { 2282, 3145, -1294 }, { -2735, 2624, 1551 } }, .t = { 4724, 2583, 7606 } }, .screenDistance = 257 },
+    { .transform = { .m = { { 1448, 0, 3831 }, { 929, 3973, -351 }, { -3716, 994, 1405 } }, .t = { 111, 1700, 7565 } }, .screenDistance = 257 },
+    { .transform = { .m = { { 683, 0, -4038 }, { -993, 3970, -168 }, { 3914, 1007, 662 } }, .t = { 3525, 1700, 7067 } }, .screenDistance = 257 },
+    { .transform = { .m = { { 3492, 0, 2140 }, { 389, 4027, -636 }, { -2104, 745, 3434 } }, .t = { -8514, 1700, 9737 } }, .screenDistance = 257 },
+    { .transform = { .m = { { 2030, 0, 3557 }, { 1121, 3887, -640 }, { -3375, 1291, 1927 } }, .t = { -10344, 2310, 2157 } }, .screenDistance = 257 },
+    { .transform = { .m = { { -3041, 0, 2743 }, { 488, 4030, 541 }, { -2699, 729, -2993 } }, .t = { -8208, 1268, -8598 } }, .screenDistance = 230 },
+    { .transform = { .m = { { -3740, 0, -1668 }, { -184, 4070, 413 }, { 1658, 452, -3717 } }, .t = { 3618, 1700, -11650 } }, .screenDistance = 230 },
+    { .transform = { .m = { { -1924, 0, -3615 }, { -627, 4033, 333 }, { 3560, 710, -1895 } }, .t = { 9705, 1727, -8007 } }, .screenDistance = 257 },
+    { .transform = { .m = { { 3730, 0, -1690 }, { -618, 3812, -1364 }, { 1573, 1497, 3472 } }, .t = { 7825, 2067, 3862 } }, .screenDistance = 230 },
+    { .transform = { .m = { { 1608, 0, 3767 }, { 2218, 3309, -947 }, { -3044, 2412, 1299 } }, .t = { -3535, 9746, 3169 } }, .screenDistance = 230 },
+    { .transform = { .m = { { 1216, 0, -3911 }, { -2605, 3055, -810 }, { 2917, 2728, 907 } }, .t = { 5463, 10490, 2359 } }, .screenDistance = 230 },
+    { .transform = { .m = { { 1538, 0, -3795 }, { -2650, 2931, -1074 }, { 2717, 2860, 1101 } }, .t = { 3937, 6355, 1314 } }, .screenDistance = 257 },
+    { .transform = { .m = { { 3507, 0, -2116 }, { -1885, 1858, -3125 }, { 960, 3650, 1591 } }, .t = { -5011, 8020, -3917 } }, .screenDistance = 230 },
+    { .transform = { .m = { { 836, 0, 4009 }, { -1269, 3885, 264 }, { -3803, -1297, 793 } }, .t = { 292, 673, 6887 } }, .screenDistance = 207 },
+    { .transform = { .m = { { 1453, 0, -3829 }, { -771, 4012, -292 }, { 3750, 824, 1423 } }, .t = { -1784, 1471, 7126 } }, .screenDistance = 207 },
+    { .transform = { .m = { { 1155, 0, 3929 }, { -1737, 3673, 510 }, { -3524, -1811, 1035 } }, .t = { 1062, 2444, 7359 } }, .screenDistance = 207 },
+    { .transform = { .m = { { -564, 0, 4056 }, { 503, 4064, 70 }, { -4025, 508, -559 } }, .t = { 2521, 4108, 1483 } }, .screenDistance = 230 },
+    { .transform = { .m = { { 2575, 0, -3185 }, { -930, 3917, -752 }, { 3046, 1196, 2462 } }, .t = { 3838, 4675, 2020 } }, .screenDistance = 188 },
+    { .transform = { .m = { { 2586, 0, -3176 }, { -638, 4012, -520 }, { 3111, 824, 2533 } }, .t = { 2361, 4678, 1361 } }, .screenDistance = 188 },
+    { .transform = { .m = { { 3554, 0, 2035 }, { -1127, 3411, 1967 }, { -1695, -2267, 2959 } }, .t = { -870, 2992, 6656 } }, .screenDistance = 207 },
+    { .transform = { .m = { { 3950, 0, 1082 }, { 504, 3625, -1839 }, { -958, 1906, 3496 } }, .t = { -270, 4973, 6269 } }, .screenDistance = 243 },
+    { .transform = { .m = { { -4092, 0, 162 }, { 123, 2664, 3108 }, { -105, 3110, -2662 } }, .t = { 839, 3802, 9054 } }, .screenDistance = 230 },
+    { .transform = { .m = { { 2856, 0, -2935 }, { 2818, 1144, 2742 }, { 820, -3932, 798 } }, .t = { 2576, 5537, 2556 } }, .screenDistance = 230 },
+    { .transform = { .m = { { 522, 0, -4062 }, { -2349, 3341, -302 }, { 3314, 2368, 426 } }, .t = { 8857, 2945, 2306 } }, .screenDistance = 230 },
+    { .transform = { .m = { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, .t = { 1000, 30000, -2000 } }, .screenDistance = 432 },
+    { .transform = { .m = { { 836, 0, 4009 }, { -1269, 3885, 264 }, { -3803, -1297, 793 } }, .t = { 292, 673, 6887 } }, .screenDistance = 207 },
 };
 
 PadScriptCmd D_acropolis_helicopter_landing_pad_80187D34[2] = {
@@ -1290,15 +1450,27 @@ TmdSource gAcropolisHelicopterLandingPadModel0A8E8 = {
     _gAcropolisHelicopterLandingPadModel0A8E8Stream,
 };
 
-s32 D_acropolis_helicopter_landing_pad_80187F74 = 0;
+/// Current unwrapped yaw of the singleton player-turn task.
+///
+/// Angles use 4096 units per turn. Initialization selects the shorter path,
+/// possibly outside 0..4095; updates clamp at the target before narrowing to the player's yaw.
+static s32 _gAcropolisHelicopterLandingPadTurnYaw = 0;
 
-s32 D_acropolis_helicopter_landing_pad_80187F78 = 0;
+/// Signed yaw increment of the singleton player-turn task, in angle units per update.
+///
+/// Initialization chooses +256 or -256, with 4096 units per turn.
+/// The value persists through task completion and is replaced by the next turn.
+static s32 _gAcropolisHelicopterLandingPadTurnStep = 0;
 
-s16 D_acropolis_helicopter_landing_pad_80187F7C = 0;
+/// Q12 weight of the persistent player model-part pitch pulse.
+///
+/// Idle resets it to zero; rise and fall step by 400 and clamp to 0..4096.
+/// The signed halfword permits the falling update to test a negative intermediate.
+static s16 _gAcropolisHelicopterLandingPadPitchWeight = 0;
 
 Task* D_acropolis_helicopter_landing_pad_80187F80 = NULL;
 
-s32 D_acropolis_helicopter_landing_pad_80187F84 = 0;
+s32 gAcropolisHelicopterLandingPadPostEncounterPlacementEnabled = 0;
 
 SVECTOR ActorContact_ScratchPosition = { 0, 0, 0, 0 };
 
@@ -1616,44 +1788,44 @@ void acropolisHelicopterLandingPadTurnPlayerYawTask(Task* task)
 
     switch (task->state) {
         case ACROPOLIS_HELICOPTER_LANDING_PAD_TURN_INITIALIZE:
-            D_acropolis_helicopter_landing_pad_80187F74 = player->rotation.vy & ACTOR_TRANSFORM_ANGLE_MASK;
-            if (task->spawnArg1.value < D_acropolis_helicopter_landing_pad_80187F74) {
-                wrappedYaw = D_acropolis_helicopter_landing_pad_80187F74 - ACTOR_TRANSFORM_ANGLE_TURN;
+            _gAcropolisHelicopterLandingPadTurnYaw = player->rotation.vy & ACTOR_TRANSFORM_ANGLE_MASK;
+            if (task->spawnArg1.value < _gAcropolisHelicopterLandingPadTurnYaw) {
+                wrappedYaw = _gAcropolisHelicopterLandingPadTurnYaw - ACTOR_TRANSFORM_ANGLE_TURN;
             } else {
-                wrappedYaw = D_acropolis_helicopter_landing_pad_80187F74 + ACTOR_TRANSFORM_ANGLE_TURN;
+                wrappedYaw = _gAcropolisHelicopterLandingPadTurnYaw + ACTOR_TRANSFORM_ANGLE_TURN;
             }
             targetYaw  = task->spawnArg1.value;
-            currentYaw = D_acropolis_helicopter_landing_pad_80187F74;
+            currentYaw = _gAcropolisHelicopterLandingPadTurnYaw;
             // Compare both unwrapped paths before choosing the turn direction.
             ACROPOLIS_HELICOPTER_LANDING_PAD_COMPARE_YAW_DISTANCES(wrappedYaw, currentYaw, targetYaw, turnValue, currentDistance);
             if (turnValue) {
-                D_acropolis_helicopter_landing_pad_80187F74 = wrappedYaw;
+                _gAcropolisHelicopterLandingPadTurnYaw = wrappedYaw;
             }
-            if (task->spawnArg1.value > D_acropolis_helicopter_landing_pad_80187F74) {
-                D_acropolis_helicopter_landing_pad_80187F78 = ACROPOLIS_HELICOPTER_LANDING_PAD_TURN_STEP;
+            if (task->spawnArg1.value > _gAcropolisHelicopterLandingPadTurnYaw) {
+                _gAcropolisHelicopterLandingPadTurnStep = ACROPOLIS_HELICOPTER_LANDING_PAD_TURN_STEP;
             } else {
-                D_acropolis_helicopter_landing_pad_80187F78 = -ACROPOLIS_HELICOPTER_LANDING_PAD_TURN_STEP;
+                _gAcropolisHelicopterLandingPadTurnStep = -ACROPOLIS_HELICOPTER_LANDING_PAD_TURN_STEP;
             }
             task->state++;
             break;
         case ACROPOLIS_HELICOPTER_LANDING_PAD_TURN_UPDATE:
-            turnValue                                   = D_acropolis_helicopter_landing_pad_80187F74 + D_acropolis_helicopter_landing_pad_80187F78;
-            D_acropolis_helicopter_landing_pad_80187F74 = turnValue;
-            if (D_acropolis_helicopter_landing_pad_80187F78 > 0) {
+            turnValue                              = _gAcropolisHelicopterLandingPadTurnYaw + _gAcropolisHelicopterLandingPadTurnStep;
+            _gAcropolisHelicopterLandingPadTurnYaw = turnValue;
+            if (_gAcropolisHelicopterLandingPadTurnStep > 0) {
                 targetYaw = task->spawnArg1.value;
                 if (targetYaw < turnValue) {
-                    D_acropolis_helicopter_landing_pad_80187F74 = targetYaw;
+                    _gAcropolisHelicopterLandingPadTurnYaw = targetYaw;
                     taskKill(task);
                 }
             }
-            if (D_acropolis_helicopter_landing_pad_80187F78 < 0) {
-                if (D_acropolis_helicopter_landing_pad_80187F74 < task->spawnArg1.value) {
-                    D_acropolis_helicopter_landing_pad_80187F74 = task->spawnArg1.value;
+            if (_gAcropolisHelicopterLandingPadTurnStep < 0) {
+                if (_gAcropolisHelicopterLandingPadTurnYaw < task->spawnArg1.value) {
+                    _gAcropolisHelicopterLandingPadTurnYaw = task->spawnArg1.value;
                     taskKill(task);
                 }
             }
             // Keep the endpoint test strict: an exact arrival runs one more update.
-            player->rotation.vy = D_acropolis_helicopter_landing_pad_80187F74;
+            player->rotation.vy = _gAcropolisHelicopterLandingPadTurnYaw;
             break;
     }
 }
@@ -1681,22 +1853,22 @@ void acropolisHelicopterLandingPadPlayerPitchPulseTask(Task* task)
 
     switch (task->state) {
         case ACROPOLIS_HELICOPTER_LANDING_PAD_PITCH_IDLE:
-            D_acropolis_helicopter_landing_pad_80187F7C = 0;
+            _gAcropolisHelicopterLandingPadPitchWeight = 0;
             break;
         case ACROPOLIS_HELICOPTER_LANDING_PAD_PITCH_RISE:
-            _acropolisHelicopterLandingPadApplyPlayerPitchPulse(playerPart, D_acropolis_helicopter_landing_pad_80187F7C);
-            D_acropolis_helicopter_landing_pad_80187F7C += ACROPOLIS_HELICOPTER_LANDING_PAD_PITCH_WEIGHT_STEP;
-            if (D_acropolis_helicopter_landing_pad_80187F7C > ACROPOLIS_HELICOPTER_LANDING_PAD_PITCH_WEIGHT_ONE) {
-                D_acropolis_helicopter_landing_pad_80187F7C = ACROPOLIS_HELICOPTER_LANDING_PAD_PITCH_WEIGHT_ONE;
-                task->state                                 = ACROPOLIS_HELICOPTER_LANDING_PAD_PITCH_FALL;
+            _acropolisHelicopterLandingPadApplyPlayerPitchPulse(playerPart, _gAcropolisHelicopterLandingPadPitchWeight);
+            _gAcropolisHelicopterLandingPadPitchWeight += ACROPOLIS_HELICOPTER_LANDING_PAD_PITCH_WEIGHT_STEP;
+            if (_gAcropolisHelicopterLandingPadPitchWeight > ACROPOLIS_HELICOPTER_LANDING_PAD_PITCH_WEIGHT_ONE) {
+                _gAcropolisHelicopterLandingPadPitchWeight = ACROPOLIS_HELICOPTER_LANDING_PAD_PITCH_WEIGHT_ONE;
+                task->state                                = ACROPOLIS_HELICOPTER_LANDING_PAD_PITCH_FALL;
             }
             break;
         case ACROPOLIS_HELICOPTER_LANDING_PAD_PITCH_FALL:
-            _acropolisHelicopterLandingPadApplyPlayerPitchPulse(playerPart, D_acropolis_helicopter_landing_pad_80187F7C);
-            D_acropolis_helicopter_landing_pad_80187F7C -= ACROPOLIS_HELICOPTER_LANDING_PAD_PITCH_WEIGHT_STEP;
-            if (D_acropolis_helicopter_landing_pad_80187F7C < 0) {
-                D_acropolis_helicopter_landing_pad_80187F7C = 0;
-                task->state                                 = ACROPOLIS_HELICOPTER_LANDING_PAD_PITCH_IDLE;
+            _acropolisHelicopterLandingPadApplyPlayerPitchPulse(playerPart, _gAcropolisHelicopterLandingPadPitchWeight);
+            _gAcropolisHelicopterLandingPadPitchWeight -= ACROPOLIS_HELICOPTER_LANDING_PAD_PITCH_WEIGHT_STEP;
+            if (_gAcropolisHelicopterLandingPadPitchWeight < 0) {
+                _gAcropolisHelicopterLandingPadPitchWeight = 0;
+                task->state                                = ACROPOLIS_HELICOPTER_LANDING_PAD_PITCH_IDLE;
             }
             break;
     }
@@ -1740,17 +1912,17 @@ s32 acropolisHelicopterLandingPadRefuseKeyItemUse(Task* unusedTask, s32 unusedMe
 s32 acropolisHelicopterLandingPadHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
     enum {
-        ACROPOLIS_HELICOPTER_LANDING_PAD_ACTION_START_ENCOUNTER = 0,
-        ACROPOLIS_HELICOPTER_LANDING_PAD_ACTION_LATCH_PLACEMENT = 1,
-        ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_WAITING      = 0,
-        ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_STARTED      = 1,
-        ACROPOLIS_HELICOPTER_LANDING_PAD_PLACEMENT_TRIGGER      = 4,
-        ACROPOLIS_HELICOPTER_LANDING_PAD_KEY_ITEM_TRIGGER       = 8,
-        ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_MUSIC_ENTRY  = 1,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_ACTION_START_ENCOUNTER  = 0,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_ACTION_LATCH_PLACEMENT  = 1,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_WAITING       = 0,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_STARTED       = 1,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_PLACEMENT_TRIGGER       = 4,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_CAP_INTERACTION_TRIGGER = 8,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_MUSIC_ENTRY   = 1,
     };
     u8                     actionId;
     WorldCollisionTrigger* placementTrigger;
-    WorldCollisionTrigger* keyItemTrigger;
+    WorldCollisionTrigger* capInteractionTrigger;
 
     if ((request->actionId == ACROPOLIS_HELICOPTER_LANDING_PAD_ACTION_START_ENCOUNTER) && (gAcropolisHelicopterLandingPadEncounterPhase == ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_WAITING) && (gAcropolisHelicopterLandingPadEncounterReady != 0)) {
         // Swap the encounter triggers before normal play resumes.
@@ -1758,14 +1930,14 @@ s32 acropolisHelicopterLandingPadHandleRoomAction(Task* unusedTask, s32 unusedMe
         gStageSceneMusicEntry   = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_MUSIC_ENTRY;
         evsStartScriptWithSkip(D_acropolis_helicopter_landing_pad_80183A34, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_helicopter_landing_pad_80183FA4);
         gAcropolisHelicopterLandingPadEncounterPhase = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_STARTED;
-        placementTrigger                             = &D_acropolis_helicopter_landing_pad_80185E7C[ACROPOLIS_HELICOPTER_LANDING_PAD_PLACEMENT_TRIGGER];
-        keyItemTrigger                               = &D_acropolis_helicopter_landing_pad_80185E7C[ACROPOLIS_HELICOPTER_LANDING_PAD_KEY_ITEM_TRIGGER];
+        placementTrigger                             = &gAcropolisHelicopterLandingPadActionTriggers[ACROPOLIS_HELICOPTER_LANDING_PAD_PLACEMENT_TRIGGER];
+        capInteractionTrigger                        = &gAcropolisHelicopterLandingPadActionTriggers[ACROPOLIS_HELICOPTER_LANDING_PAD_CAP_INTERACTION_TRIGGER];
         placementTrigger->flags                     |= WORLD_COLLISION_TRIGGER_ENABLED;
-        keyItemTrigger->flags                       &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
+        capInteractionTrigger->flags                &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
     }
     actionId = request->actionId;
     if (actionId == ACROPOLIS_HELICOPTER_LANDING_PAD_ACTION_LATCH_PLACEMENT) {
-        D_acropolis_helicopter_landing_pad_80187F84 = actionId;
+        gAcropolisHelicopterLandingPadPostEncounterPlacementEnabled = actionId;
     }
     return 0;
 }
@@ -1809,7 +1981,7 @@ void acropolisHelicopterLandingPadStartReturnToMist(void)
 
 void acropolisHelicopterLandingPadPlacePlayerAfterEncounter(void)
 {
-    if (D_acropolis_helicopter_landing_pad_80187F84 != 0) {
+    if (gAcropolisHelicopterLandingPadPostEncounterPlacementEnabled != 0) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_PLACE, &gAcropolisHelicopterLandingPadPostEncounterPlayerPlacement, 0);
     }
 }
@@ -1955,12 +2127,12 @@ static void _acropolisHelicopterLandingPadInitRoom(Task* task)
 
     task->msgTable = D_acropolis_helicopter_landing_pad_80183710;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    D_acropolis_helicopter_landing_pad_80187F84  = 0;
-    gAcropolisHelicopterLandingPadEncounterReady = 0;
+    gAcropolisHelicopterLandingPadPostEncounterPlacementEnabled = 0;
+    gAcropolisHelicopterLandingPadEncounterReady                = 0;
     task->state++;
     evsStartScript(D_acropolis_helicopter_landing_pad_80183A04, EVENT_SCRIPT_HUD_KEEP);
     D_acropolis_helicopter_landing_pad_80187F80 = taskSpawnFromTable(gAcropolisHelicopterLandingPadScriptTasks, ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_PLAYER_PITCH, 0, 0);
-    placementTrigger                            = &D_acropolis_helicopter_landing_pad_80185E7C[ACROPOLIS_HELICOPTER_LANDING_PAD_PLACEMENT_TRIGGER];
+    placementTrigger                            = &gAcropolisHelicopterLandingPadActionTriggers[ACROPOLIS_HELICOPTER_LANDING_PAD_PLACEMENT_TRIGGER];
     placementTrigger->flags                    &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
 }
 

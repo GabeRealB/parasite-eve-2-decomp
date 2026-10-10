@@ -335,6 +335,6 @@ void acropolisHelicopterLandingPadUpdateEncounterPhase(Task* unusedTask)
         gAcropolisHelicopterLandingPadEncounterReady = 1;
     }
     if (gGameSession->eventState == 0) {
-        D_acropolis_helicopter_landing_pad_80187F84 = 0;
+        gAcropolisHelicopterLandingPadPostEncounterPlacementEnabled = 0;
     }
 }

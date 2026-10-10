@@ -43,14 +43,31 @@ extern s32 gAcropolisHelicopterLandingPadEncounterPhase;
 /// Room action 0 requires this gate and encounter phase 0.
 extern s32 gAcropolisHelicopterLandingPadEncounterReady;
 
-/// Latched by kind 1 of msg 0x3EF and cleared when the script task starts or
-/// `gGameSession->eventState` is 0; while set, a handler forwards msg 0x3E9
-/// to slot 3.
-extern s32 D_acropolis_helicopter_landing_pad_80187F84;
+/// Latched permission to apply the post-encounter player placement.
+///
+/// Room action 1 sets this signed word to 1. Room initialization and an idle
+/// event state clear it to 0. Placement callbacks test it without clearing it,
+/// so the normal and skipped script paths may apply the placement repeatedly.
+extern s32 gAcropolisHelicopterLandingPadPostEncounterPlacementEnabled;
 
-extern WorldCollisionTrigger D_acropolis_helicopter_landing_pad_80185E7C[9];
+/// Nine mutable action regions for the landing pad's single room.
+///
+/// Includes the fire-escape callback, CAP interactions, a three-step stair climb
+/// on surface class 3, and automatic room actions 0 (encounter) and 1 (placement).
+/// The last region carries LAST and remains part of the array. Room binding links
+/// and enables every region in view space. Setup disables placement region 4;
+/// starting the encounter enables it and disables CAP region 8. Origins, corner
+/// offsets and radii use room units; normals use 4096 per unit. Keep these records
+/// writable and loaded while linked or queried.
+extern WorldCollisionTrigger gAcropolisHelicopterLandingPadActionTriggers[9];
 
-extern WorldCollisionOccluder D_acropolis_helicopter_landing_pad_80186128[2];
+/// Two crossing room-space quads that occlude actor line-of-sight queries.
+///
+/// Room binding links and enables both records, stopping after the second one's
+/// LAST flag. Corners are offsets from each origin in room units; normals use
+/// 4096 per unit. The low flag bit is retained without an observed interpretation.
+/// The loaded room owns the writable records and their runtime links.
+extern WorldCollisionOccluder gAcropolisHelicopterLandingPadSightOccluders[2];
 
 /// The landing pad's authored collection of one directional and 22 point lights.
 ///

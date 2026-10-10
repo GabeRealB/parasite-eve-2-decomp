@@ -76,9 +76,22 @@ extern SVECTOR gAcropolisHelicopterLandingPadCollisionGridVerts[92];
 /// the room's cell lists keep referring to these same face slots.
 extern WorldCollisionGridFace gAcropolisHelicopterLandingPadCollisionGridFaces[37];
 
-extern SpriteView D_acropolis_helicopter_landing_pad_80187824[];
+/// Sprite sources, drawing batches and clipping lists for the landing pad's 27 views.
+///
+/// The Acropolis map's area-16 entry borrows this array at mapped view minus one.
+/// The room's identity map selects views 1..27; views 15 and 27 share their lists.
+/// Batch and clipping sentinels terminate the referenced lists, not this directory.
+/// All records belong to the loaded room overlay and must remain live while used.
+extern SpriteView gAcropolisHelicopterLandingPadSpriteViews[27];
 
-extern ViewCamera D_acropolis_helicopter_landing_pad_80187968[];
+/// Authored camera transforms and projection distances for the landing pad's 27 views.
+///
+/// The Acropolis map's area-16 entry borrows this array at mapped view minus one.
+/// Rotation coefficients have 12 fractional bits; translation is the negated
+/// camera origin in world units, applied before rotation. Projection distances
+/// are pixels. Views 15 and 27 have identical cameras. No terminator is stored;
+/// keep the room loaded until any queued camera application has completed.
+extern ViewCamera gAcropolisHelicopterLandingPadViewCameras[27];
 
 /// The landing pad's collision and footstep policies indexed by surface class (0..7).
 ///
