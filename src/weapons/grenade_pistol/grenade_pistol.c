@@ -1270,136 +1270,219 @@ static AnimationSet _gMm1PositiveTurnAnimation = {
     },
 };
 
-static AnimationPackedPose _gMm1Animation037DCBank1[3] = {
+/// Item-use translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gMm1ItemUseAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_037DC_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation037DCBank4[69] = {
+/// Item-use rotations for tracks 2..18, packed in signed 11/10/11-bit components at eight angle units per step.
+static const AnimationPackedRotation _gMm1ItemUseAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_037DC_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation037DCRecords[99] = {
+/// Keyframes and track stops for the MM1 item-use presentation.
+///
+/// Durations are whole normal-rate frames; pose offsets count u32 words.
+static const AnimationRecord _gMm1ItemUseAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_037DC_records.inc"
 };
 
-static u16 _gMm1Animation037DCIndices[20] = {
+/// Item-use track starts for tracks 0..18, followed by the exporter's retained final halfword.
+static const u16 _gMm1ItemUseAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_037DC_indices.inc"
 };
 
-static AnimationSet _gMm1Animation037DC = {
-    _gMm1Animation037DCRecords,
-    _gMm1Animation037DCIndices,
-    { NULL, _gMm1Animation037DCBank1, NULL, NULL, _gMm1Animation037DCBank4, NULL, NULL, NULL },
+/// Player item-use presentation, selected by MM1 bank slot 40.
+///
+/// Tracks 0 and 1 carry translation/rotation; 2..18 carry packed rotation.
+/// Keep the package loaded while slots or cached record pointers borrow the clip.
+static AnimationSet _gMm1ItemUseAnimation = {
+    .records           = _gMm1ItemUseAnimationRecords,
+    .trackStartIndices = _gMm1ItemUseAnimationIndices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1ItemUseAnimationBank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1ItemUseAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMm1Animation03F38Bank1[14] = {
+/// Stair-ascent translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gMm1StairAscentAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_03F38_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation03F38Bank4[156] = {
+/// Stair-ascent rotations for tracks 2..18, packed in signed 11/10/11-bit components at eight angle units per step.
+static const AnimationPackedRotation _gMm1StairAscentAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_03F38_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation03F38Records[253] = {
+/// Keyframes, footstep cues and track-local loop/stop controls for MM1 stair ascent.
+///
+/// Durations are whole normal-rate frames; pose offsets count u32 words,
+/// while control jumps select absolute record indices.
+static const AnimationRecord _gMm1StairAscentAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_03F38_records.inc"
 };
 
-static u16 _gMm1Animation03F38Indices[20] = {
+/// Stair-ascent track starts for tracks 0..18, followed by the exporter's retained final halfword.
+static const u16 _gMm1StairAscentAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_03F38_indices.inc"
 };
 
-static AnimationSet _gMm1Animation03F38 = {
-    _gMm1Animation03F38Records,
-    _gMm1Animation03F38Indices,
-    { NULL, _gMm1Animation03F38Bank1, NULL, NULL, _gMm1Animation03F38Bank4, NULL, NULL, NULL },
+/// Looping player stair ascent, selected by MM1 bank slot 36.
+///
+/// Track-1 footstep cues time the strides. Tracks 0 and 1 carry
+/// translation/rotation; 2..18 carry packed rotation. Keep the package loaded
+/// while slots or cached record pointers borrow the clip.
+static AnimationSet _gMm1StairAscentAnimation = {
+    .records           = _gMm1StairAscentAnimationRecords,
+    .trackStartIndices = _gMm1StairAscentAnimationIndices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1StairAscentAnimationBank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1StairAscentAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMm1Animation046C0Bank1[16] = {
+/// Stair-descent translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gMm1StairDescentAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_046C0_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation046C0Bank4[167] = {
+/// Stair-descent rotations for tracks 2..18, packed in signed 11/10/11-bit components at eight angle units per step.
+static const AnimationPackedRotation _gMm1StairDescentAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_046C0_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation046C0Records[247] = {
+/// Keyframes, footstep cues and track-local loop/stop controls for MM1 stair descent.
+///
+/// Durations are whole normal-rate frames; pose offsets count u32 words,
+/// while control jumps select absolute record indices.
+static const AnimationRecord _gMm1StairDescentAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_046C0_records.inc"
 };
 
-static u16 _gMm1Animation046C0Indices[20] = {
+/// Stair-descent track starts for tracks 0..18, followed by the exporter's retained final halfword.
+static const u16 _gMm1StairDescentAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_046C0_indices.inc"
 };
 
-static AnimationSet _gMm1Animation046C0 = {
-    _gMm1Animation046C0Records,
-    _gMm1Animation046C0Indices,
-    { NULL, _gMm1Animation046C0Bank1, NULL, NULL, _gMm1Animation046C0Bank4, NULL, NULL, NULL },
+/// Looping player stair descent, selected by MM1 bank slot 37.
+///
+/// Track-1 footstep cues time the strides. Tracks 0 and 1 carry
+/// translation/rotation; 2..18 carry packed rotation. Keep the package loaded
+/// while slots or cached record pointers borrow the clip.
+static AnimationSet _gMm1StairDescentAnimation = {
+    .records           = _gMm1StairDescentAnimationRecords,
+    .trackStartIndices = _gMm1StairDescentAnimationIndices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1StairDescentAnimationBank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1StairDescentAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMm1Animation04994Bank1[6] = {
+/// Odd-count stair-finish translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gMm1StairAscentFinishOddAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_04994_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation04994Bank4[52] = {
+/// Odd-count stair-finish rotations for tracks 2..18, packed in signed 11/10/11-bit components at eight angle units per step.
+static const AnimationPackedRotation _gMm1StairAscentFinishOddAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_04994_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation04994Records[91] = {
+/// Keyframes, a footstep cue and track stops for the MM1 odd-count stair-ascent finish.
+///
+/// Durations are whole normal-rate frames; pose offsets count u32 words.
+static const AnimationRecord _gMm1StairAscentFinishOddAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_04994_records.inc"
 };
 
-static u16 _gMm1Animation04994Indices[20] = {
+/// Odd-count stair-finish track starts for tracks 0..18, followed by the exporter's retained final halfword.
+static const u16 _gMm1StairAscentFinishOddAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_04994_indices.inc"
 };
 
-static AnimationSet _gMm1Animation04994 = {
-    _gMm1Animation04994Records,
-    _gMm1Animation04994Indices,
-    { NULL, _gMm1Animation04994Bank1, NULL, NULL, _gMm1Animation04994Bank4, NULL, NULL, NULL },
+/// Player stair-ascent finish for an odd initial step count, selected by MM1 bank slot 39.
+///
+/// Tracks 0 and 1 carry translation/rotation; 2..18 carry packed rotation.
+/// Keep the package loaded while slots or cached record pointers borrow the clip.
+static AnimationSet _gMm1StairAscentFinishOddAnimation = {
+    .records           = _gMm1StairAscentFinishOddAnimationRecords,
+    .trackStartIndices = _gMm1StairAscentFinishOddAnimationIndices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1StairAscentFinishOddAnimationBank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1StairAscentFinishOddAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMm1Animation04D24Bank1[7] = {
+/// Even-count stair-finish translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gMm1StairAscentFinishEvenAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_04D24_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation04D24Bank4[73] = {
+/// Even-count stair-finish rotations for tracks 2..18, packed in signed 11/10/11-bit components at eight angle units per step.
+static const AnimationPackedRotation _gMm1StairAscentFinishEvenAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_04D24_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation04D24Records[114] = {
+/// Keyframes, a footstep cue and track stops for the MM1 even-count stair-ascent finish.
+///
+/// Durations are whole normal-rate frames; pose offsets count u32 words.
+static const AnimationRecord _gMm1StairAscentFinishEvenAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_04D24_records.inc"
 };
 
-static u16 _gMm1Animation04D24Indices[20] = {
+/// Even-count stair-finish track starts for tracks 0..18, followed by the exporter's retained final halfword.
+static const u16 _gMm1StairAscentFinishEvenAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_04D24_indices.inc"
 };
 
-static AnimationSet _gMm1Animation04D24 = {
-    _gMm1Animation04D24Records,
-    _gMm1Animation04D24Indices,
-    { NULL, _gMm1Animation04D24Bank1, NULL, NULL, _gMm1Animation04D24Bank4, NULL, NULL, NULL },
+/// Player stair-ascent finish for an even initial step count, selected by MM1 bank slot 38.
+///
+/// Tracks 0 and 1 carry translation/rotation; 2..18 carry packed rotation.
+/// Keep the package loaded while slots or cached record pointers borrow the clip.
+static AnimationSet _gMm1StairAscentFinishEvenAnimation = {
+    .records           = _gMm1StairAscentFinishEvenAnimationRecords,
+    .trackStartIndices = _gMm1StairAscentFinishEvenAnimationIndices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1StairAscentFinishEvenAnimationBank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1StairAscentFinishEvenAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMm1Animation051ACBank1[9] = {
+/// Family-0 release translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gMm1ParasiteEnergyReleaseFamily0AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_051AC_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation051ACBank4[104] = {
+/// Family-0 release rotations for tracks 2..18, packed in signed 11/10/11-bit components at eight angle units per step.
+static const AnimationPackedRotation _gMm1ParasiteEnergyReleaseFamily0AnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_051AC_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation051ACRecords[139] = {
+/// Keyframes and track stops for the MM1 Parasite Energy family-0 release.
+///
+/// Durations are whole normal-rate frames; pose offsets count u32 words.
+static const AnimationRecord _gMm1ParasiteEnergyReleaseFamily0AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_051AC_records.inc"
 };
 
-static u16 _gMm1Animation051ACIndices[20] = {
+/// Family-0 release track starts for tracks 0..18, followed by the exporter's retained final halfword.
+static const u16 _gMm1ParasiteEnergyReleaseFamily0AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_051AC_indices.inc"
 };
 
-static AnimationSet _gMm1Animation051AC = {
-    _gMm1Animation051ACRecords,
-    _gMm1Animation051ACIndices,
-    { NULL, _gMm1Animation051ACBank1, NULL, NULL, _gMm1Animation051ACBank4, NULL, NULL, NULL },
+/// Player Parasite Energy family-0 release, selected by MM1 bank slot 26.
+///
+/// Begins the family-0 release/charge/cast sequence. Tracks 0 and 1 carry
+/// translation/rotation; 2..18 carry packed rotation. Keep the package loaded
+/// while slots or cached record pointers borrow the clip.
+static AnimationSet _gMm1ParasiteEnergyReleaseFamily0Animation = {
+    .records           = _gMm1ParasiteEnergyReleaseFamily0AnimationRecords,
+    .trackStartIndices = _gMm1ParasiteEnergyReleaseFamily0AnimationIndices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1ParasiteEnergyReleaseFamily0AnimationBank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1ParasiteEnergyReleaseFamily0AnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gMm1Animation053A8Bank1[3] = {
@@ -2001,7 +2084,7 @@ AnimationBank D_mm1_8012D184 = { { {
     &_gMm1Animation07EA8,
     &_gMm1Animation0913C,
     &_gMm1Animation08A20,
-    &_gMm1Animation051AC,
+    &_gMm1ParasiteEnergyReleaseFamily0Animation,
     &_gMm1Animation053A8,
     &_gMm1Animation05680,
     &_gMm1Animation05924,
@@ -2011,11 +2094,11 @@ AnimationBank D_mm1_8012D184 = { { {
     &_gMm1Animation09794,
     &_gMm1Animation095BC,
     &_gMm1Animation09794,
-    &_gMm1Animation03F38,
-    &_gMm1Animation046C0,
-    &_gMm1Animation04D24,
-    &_gMm1Animation04994,
-    &_gMm1Animation037DC,
+    &_gMm1StairAscentAnimation,
+    &_gMm1StairDescentAnimation,
+    &_gMm1StairAscentFinishEvenAnimation,
+    &_gMm1StairAscentFinishOddAnimation,
+    &_gMm1ItemUseAnimation,
     &_gMm1IdleAnimation,
     &_gMm1Animation09CF8,
     &_gMm1Animation09EEC,
