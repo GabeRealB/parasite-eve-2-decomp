@@ -11,13 +11,26 @@
 
 #include "main/task_types.h"
 
-extern WorldCoordRoomLights D_neo_ark_eve_access_tunnel_801802D4[1];
+/// The tunnel's light collection: five mutable point lights, no directional or cone lights.
+///
+/// Borrowed by room lighting while this overlay is loaded.
+extern WorldCoordRoomLights gNeoArkEveAccessTunnelRoomLights;
 
-extern WorldCollisionTrigger D_neo_ark_eve_access_tunnel_801802EC[6];
+/// Six directed view-boundary quads connecting views 5/4, 4/2 and 3/2 in both directions.
+///
+/// The last included record has LAST set; room setup binds and links this mutable pool.
+extern WorldCollisionTrigger gNeoArkEveAccessTunnelViewBoundaryTriggers[6];
 
-extern WorldCollisionTrigger D_neo_ark_eve_access_tunnel_801804B4[6];
+/// Six facing-sensitive interactions for the elevator, Shelter departure and tunnel parts.
+///
+/// Includes direct CAP 4 and room commands 6/7; the last included record has LAST set.
+/// Keep the mutable pool loaded until room teardown unlinks it.
+extern WorldCollisionTrigger gNeoArkEveAccessTunnelActionTriggers[6];
 
-extern WorldCollisionOccluder D_neo_ark_eve_access_tunnel_80180720[1];
+/// One room-space sight-blocking quad, also the LAST record of its mutable pool.
+///
+/// Keep it loaded until room teardown unlinks it.
+extern WorldCollisionOccluder gNeoArkEveAccessTunnelSightOccluders[1];
 
 extern TaskDesc D_neo_ark_eve_access_tunnel_8017EA88;
 

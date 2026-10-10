@@ -121023,11 +121023,11 @@ That one move took the score to 94.52% with `branch=0 reorder=0`, leaving only
 `insert=2 delete=2` — case 4's `gMcSaveData` stores, which were still
 `M2C_FIELD(&gMcSaveData, u8 *, 6)` pointer arithmetic. Reading the 100% sibling
 idiom (`src/gameplay/1A8.c`'s `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = (u8)Gp_WarpLoc.areaId;`) and
-using the `RoomEventMsg`/`McSaveData` struct fields instead fixed those and the
+using the `GameLoc`/`McSaveData` struct fields instead fixed those and the
 function:
 
 ```c
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_neo_ark_eve_access_tunnel_801807A0.warp;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = _gNeoArkEveAccessTunnelPendingElevatorDestination.loc.area;
 ```
 
 Diagnostic to reuse: the `.jump` dump prints `;; Start of basic block N` in

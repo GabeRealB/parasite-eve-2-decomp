@@ -34,6 +34,7 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/sound.h"
+#include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
 
@@ -45,14 +46,13 @@
 
 static s32 _roomVariantResolveShelter(RoomEventMsg* request, RoomEventMsg* reply);
 
-/// Scene id byte; the tunnel stamps 0x18 when it hands the save location off.
-
-/// Set when the tunnel's save is written to the memory card.
-
-/// Staging save location the room commits when the tunnel's save is taken:
-/// `field_2` / `field_4` / `field_1` hold what `neoArkEveAccessTunnelElevatorDepartureTask`
-/// later copies into `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area` / `warp` / `room`.
-extern RoomEventMsg D_neo_ark_eve_access_tunnel_801807A0;
+/// Resolved elevator destination awaiting confirmation and completion of its sound.
+///
+/// Only `loc.area`, `loc.warp` and `loc.room` are staged and committed to the live
+/// save; the other cell bytes are unused. Supports one pending departure and
+/// remains valid only while this room overlay is loaded. Keep this first BSS
+/// declaration before `gRoomDeparture`.
+static GameLoc _gNeoArkEveAccessTunnelPendingElevatorDestination;
 
 /// The staged event descriptor, read by the task spawned above.
 extern RoomDeparture gRoomDeparture;
@@ -78,12 +78,8 @@ enum {
     NEO_ARK_EVE_ACCESS_TUNNEL_CAP_COMPLETION_TASK       = 2,
 };
 
-extern AreaResource D_neo_ark_eve_access_tunnel_8018067C[2];
-extern AreaResource D_neo_ark_eve_access_tunnel_80180694[3];
-
-extern SpriteSource D_neo_ark_eve_access_tunnel_8017F18C[69];
-
-SpriteSource D_neo_ark_eve_access_tunnel_8017F18C[69] = {
+/// Texture rectangles and sorting depths for mapped view 2, selected by its batches.
+static SpriteSource _gNeoArkEveAccessTunnelView2SpriteSources[69] = {
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 48, 16, 0, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 48, 40, 761, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 16 } }, 48, 64, 837, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
@@ -155,7 +151,8 @@ SpriteSource D_neo_ark_eve_access_tunnel_8017F18C[69] = {
     { 143, 0x4000, { .fields = { 32, 8 } }, -150, 112, 566, { .fields = { 16, 248 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_eve_access_tunnel_8017F6F0[6] = {
+/// Mapped view 2's four sprite ranges after the decoded-backdrop marker, then END.
+static SpriteBatch _gNeoArkEveAccessTunnelView2SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 12, 0, 0, { 2, 0 } },
     { 12, 29, 0, 0, { 3, 0 } },
@@ -164,7 +161,8 @@ SpriteBatch D_neo_ark_eve_access_tunnel_8017F6F0[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_eve_access_tunnel_8017F720[48] = {
+/// Texture rectangles and sorting depths for mapped view 3, including part 0's destroyed scenery.
+static SpriteSource _gNeoArkEveAccessTunnelView3SpriteSources[48] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 64, 40, 540, { .fields = { 16, 200 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 64, 48, 544, { .fields = { 32, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 16 } }, 64, 56, 545, { .fields = { 16, 176 } }, 128, 128, 128, 0 },
@@ -215,7 +213,10 @@ SpriteSource D_neo_ark_eve_access_tunnel_8017F720[48] = {
     { 143, 0x3FC0, { .fields = { 64, 64 } }, -96, 0, 3603, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_eve_access_tunnel_8017FAE0[6] = {
+/// Mapped view 3's ranges; batch 4 shows part 0's destroyed scenery when unhidden.
+///
+/// The first zero-count record selects the decoded backdrop; the last is END.
+static SpriteBatch _gNeoArkEveAccessTunnelView3SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 27, 0, 0, { 3, 0 } },
     { 27, 3, 0, 0, { 0, 0 } },
@@ -224,7 +225,8 @@ SpriteBatch D_neo_ark_eve_access_tunnel_8017FAE0[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_eve_access_tunnel_8017FB10[34] = {
+/// Texture rectangles and sorting depths for mapped view 4, including part 1's destroyed scenery.
+static SpriteSource _gNeoArkEveAccessTunnelView4SpriteSources[34] = {
     { 143, 0x3FC0, { .fields = { 24, 80 } }, -40, -120, 1180, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 88 } }, -40, -40, 1180, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 40 } }, -16, 8, 1187, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
@@ -261,7 +263,10 @@ SpriteSource D_neo_ark_eve_access_tunnel_8017FB10[34] = {
     { 143, 0x3FC0, { .fields = { 64, 72 } }, -8, -56, 2500, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_eve_access_tunnel_8017FDB8[5] = {
+/// Mapped view 4's ranges; batch 3 shows part 1's destroyed scenery when unhidden.
+///
+/// The first zero-count record selects the decoded backdrop; the last is END.
+static SpriteBatch _gNeoArkEveAccessTunnelView4SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 12, 0, 0, { 1, 0 } },
     { 12, 21, 0, 0, { 2, 0 } },
@@ -269,7 +274,8 @@ SpriteBatch D_neo_ark_eve_access_tunnel_8017FDB8[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_eve_access_tunnel_8017FDE0[32] = {
+/// Texture rectangles and sorting depths for mapped view 5, including part 1's destroyed scenery.
+static SpriteSource _gNeoArkEveAccessTunnelView5SpriteSources[32] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, -8, 678, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -40, -8, 809, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 40 } }, -120, -120, 725, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
@@ -304,77 +310,107 @@ SpriteSource D_neo_ark_eve_access_tunnel_8017FDE0[32] = {
     { 143, 0x3FC0, { .fields = { 88, 96 } }, -24, -80, 1354, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_eve_access_tunnel_80180060[4] = {
+/// Mapped view 5's ranges; batch 2 shows part 1's destroyed scenery when unhidden.
+///
+/// The first zero-count record selects the decoded backdrop; the last is END.
+static SpriteBatch _gNeoArkEveAccessTunnelView5SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 31, 0, 0, { 1, 0 } },
     { 31, 1, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_eve_access_tunnel_80180080[2] = {
+/// Decoded-backdrop marker and END for mapped view 6, which has no source sprites.
+static SpriteBatch _gNeoArkEveAccessTunnelView6SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_eve_access_tunnel_80180090[2] = {
+/// Decoded-backdrop marker and END for mapped view 7, which has no source sprites.
+static SpriteBatch _gNeoArkEveAccessTunnelView7SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 SpriteView D_neo_ark_eve_access_tunnel_801800A0[7] = {
     { { .empty = D_neo_ark_eve_access_tunnel_8017F17C }, D_neo_ark_eve_access_tunnel_8017F17C, NULL },
-    { { .elements = D_neo_ark_eve_access_tunnel_8017F18C }, D_neo_ark_eve_access_tunnel_8017F6F0, NULL },
-    { { .elements = D_neo_ark_eve_access_tunnel_8017F720 }, D_neo_ark_eve_access_tunnel_8017FAE0, NULL },
-    { { .elements = D_neo_ark_eve_access_tunnel_8017FB10 }, D_neo_ark_eve_access_tunnel_8017FDB8, NULL },
-    { { .elements = D_neo_ark_eve_access_tunnel_8017FDE0 }, D_neo_ark_eve_access_tunnel_80180060, NULL },
-    { { .empty = D_neo_ark_eve_access_tunnel_80180080 }, D_neo_ark_eve_access_tunnel_80180080, NULL },
-    { { .empty = D_neo_ark_eve_access_tunnel_80180090 }, D_neo_ark_eve_access_tunnel_80180090, NULL },
+    { { .elements = _gNeoArkEveAccessTunnelView2SpriteSources }, _gNeoArkEveAccessTunnelView2SpriteBatches, NULL },
+    { { .elements = _gNeoArkEveAccessTunnelView3SpriteSources }, _gNeoArkEveAccessTunnelView3SpriteBatches, NULL },
+    { { .elements = _gNeoArkEveAccessTunnelView4SpriteSources }, _gNeoArkEveAccessTunnelView4SpriteBatches, NULL },
+    { { .elements = _gNeoArkEveAccessTunnelView5SpriteSources }, _gNeoArkEveAccessTunnelView5SpriteBatches, NULL },
+    { { .empty = _gNeoArkEveAccessTunnelView6SpriteBatches }, _gNeoArkEveAccessTunnelView6SpriteBatches, NULL },
+    { { .empty = _gNeoArkEveAccessTunnelView7SpriteBatches }, _gNeoArkEveAccessTunnelView7SpriteBatches, NULL },
 };
 
-WorldCoordPointLight D_neo_ark_eve_access_tunnel_801800F4[5] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -246, -254, 933 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1806, 1806, 1855 }, { 0, 0 } }, 600, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1061, -254, 1859 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1806, 1806, 1855 }, { 0, 0 } }, 600, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1241, -2216, 6212 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 3000, 6000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1241, -2216, 3555 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 3000, 6000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3268, -2216, 973 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 3000, 6000 },
+/// Five authored point lights for every tunnel view, with distances in world units.
+///
+/// Coordinate updates and shading queries mutate the transforms and attenuation;
+/// the room light collection borrows these only while the overlay is loaded.
+static WorldCoordPointLight _gNeoArkEveAccessTunnelPointLights[5] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -246, -254, 933 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1806, 1806, 1855 }, { 0, 0 } }, 600, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -1061, -254, 1859 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1806, 1806, 1855 }, { 0, 0 } }, 600, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -1241, -2216, 6212 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 3000, 6000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -1241, -2216, 3555 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 3000, 6000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -3268, -2216, 973 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 3000, 6000 },
 };
 
-WorldCoordRoomLights D_neo_ark_eve_access_tunnel_801802D4[1] = {
-    { 0, NULL, ARRAY_SIZE(D_neo_ark_eve_access_tunnel_801800F4), D_neo_ark_eve_access_tunnel_801800F4, 0, NULL },
+WorldCoordRoomLights gNeoArkEveAccessTunnelRoomLights = {
+    0,
+    NULL,
+    ARRAY_SIZE(_gNeoArkEveAccessTunnelPointLights),
+    _gNeoArkEveAccessTunnelPointLights,
+    0,
+    NULL,
 };
 
-WorldCollisionTrigger D_neo_ark_eve_access_tunnel_801802EC[6] = {
-    { NULL, NULL, NULL, { -1168, -1504, 4192, 0 }, { { 2032, -1904, 0, 0 }, { -2032, -1904, 0, 0 }, { 2032, 1904, 0, 0 }, { -2032, 1904, 0, 0 } }, { 0, 0, 4102, 0 }, { 0, 0, 4096, 0 }, 2780, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1200, -1505, 4304, 0 }, { { -2000, -1904, 16, 0 }, { 2000, -1904, -16, 0 }, { -2000, 1904, 16, 0 }, { 2000, 1904, -16, 0 } }, { -34, 0, -4095, 0 }, { 0, 0, 4096, 0 }, 2757, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1312, -1344, 2081, 0 }, { { 2032, -1904, 0, 0 }, { -2032, -1904, 0, 0 }, { 2032, 1904, 0, 0 }, { -2032, 1904, 0, 0 } }, { 0, 0, 4102, 0 }, { 0, 0, 4096, 0 }, 2780, 0, 4, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1280, -1281, 2176, 0 }, { { -2000, -1904, 16, 0 }, { 2000, -1904, -16, 0 }, { -2000, 1904, 16, 0 }, { 2000, 1904, -16, 0 } }, { -34, 0, -4095, 0 }, { 0, 0, 4096, 0 }, 2757, 0, 2, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -2016, -1376, 960, 0 }, { { -304, -1904, 2160, 0 }, { 304, -1904, -2160, 0 }, { -304, 1904, 2160, 0 }, { 304, 1904, -2160, 0 } }, { -4057, 0, -572, 0 }, { 0, 0, 4096, 0 }, 2884, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -2128, -1376, 1041, 0 }, { { 256, -1904, -1888, 0 }, { -256, -1904, 1888, 0 }, { 256, 1904, -1888, 0 }, { -256, 1904, 1888, 0 } }, { 4063, 0, 551, 0 }, { 0, 0, 4096, 0 }, 2684, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+WorldCollisionTrigger gNeoArkEveAccessTunnelViewBoundaryTriggers[6] = {
+    { NULL, NULL, NULL, { -1168, -1504, 4192, 0 }, { { 2032, -1904, 0, 0 }, { -2032, -1904, 0, 0 }, { 2032, 1904, 0, 0 }, { -2032, 1904, 0, 0 } }, { 0, 0, 4102, 0 }, { 0, 0, ONE, 0 }, 2780, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1200, -1505, 4304, 0 }, { { -2000, -1904, 16, 0 }, { 2000, -1904, -16, 0 }, { -2000, 1904, 16, 0 }, { 2000, 1904, -16, 0 } }, { -34, 0, -4095, 0 }, { 0, 0, ONE, 0 }, 2757, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1312, -1344, 2081, 0 }, { { 2032, -1904, 0, 0 }, { -2032, -1904, 0, 0 }, { 2032, 1904, 0, 0 }, { -2032, 1904, 0, 0 } }, { 0, 0, 4102, 0 }, { 0, 0, ONE, 0 }, 2780, 0, 4, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1280, -1281, 2176, 0 }, { { -2000, -1904, 16, 0 }, { 2000, -1904, -16, 0 }, { -2000, 1904, 16, 0 }, { 2000, 1904, -16, 0 } }, { -34, 0, -4095, 0 }, { 0, 0, ONE, 0 }, 2757, 0, 2, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -2016, -1376, 960, 0 }, { { -304, -1904, 2160, 0 }, { 304, -1904, -2160, 0 }, { -304, 1904, 2160, 0 }, { 304, 1904, -2160, 0 } }, { -4057, 0, -572, 0 }, { 0, 0, ONE, 0 }, 2884, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -2128, -1376, 1041, 0 }, { { 256, -1904, -1888, 0 }, { -256, -1904, 1888, 0 }, { 256, 1904, -1888, 0 }, { -256, 1904, 1888, 0 } }, { 4063, 0, 551, 0 }, { 0, 0, ONE, 0 }, 2684, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_neo_ark_eve_access_tunnel_801804B4[6] = {
-    { NULL, NULL, NULL, { -1600, -48, 4960, 0 }, { { -352, 0, -736, 0 }, { 352, 0, -736, 0 }, { -352, 0, 736, 0 }, { 352, 0, 736, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_WARP, 9, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -1040, -48, 736, 0 }, { { -848, 0, -608, 0 }, { 848, 0, -608, 0 }, { -848, 0, 608, 0 }, { 848, 0, 608, 0 } }, { 0, 4094, 0, 0 }, { 0, 0, 4096, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 10, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -1696, -64, 3840, 0 }, { { -352, 0, -544, 0 }, { 352, 0, -544, 0 }, { -352, 0, 544, 0 }, { 352, 0, 544, 0 } }, { 0, 4103, 0, 0 }, { 3405, 0, -2276, 0 }, 646, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4064, -64, 960, 0 }, { { -352, 0, -736, 0 }, { 352, 0, -736, 0 }, { -352, 0, 736, 0 }, { 352, 0, 736, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -1280, -64, 7024, 0 }, { { -608, 0, -336, 0 }, { 608, 0, -336, 0 }, { -608, 0, 336, 0 }, { 608, 0, 336, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, -4096, 0 }, 692, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -1024, -64, 736, 0 }, { { -848, 0, -608, 0 }, { 848, 0, -608, 0 }, { -848, 0, 608, 0 }, { 848, 0, 608, 0 } }, { 0, 4094, 0, 0 }, { -4096, 0, 0, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 10, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+enum {
+    // Warp parameter: departure descriptor in the high nibble, arrival in the low.
+    NEO_ARK_EVE_ACCESS_TUNNEL_ELEVATOR_WARP_SELECTORS  = (2 << 4) | 1,
+    NEO_ARK_EVE_ACCESS_TUNNEL_ACTION_SHELTER_DEPARTURE = 10,
+    NEO_ARK_EVE_ACCESS_TUNNEL_CAP_COMMAND_4            = 4,
+    NEO_ARK_EVE_ACCESS_TUNNEL_COMMAND_PART_0           = 6,
+    NEO_ARK_EVE_ACCESS_TUNNEL_COMMAND_PART_1           = 7,
 };
 
-AreaResource D_neo_ark_eve_access_tunnel_8018067C[2] = {
-    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
+WorldCollisionTrigger gNeoArkEveAccessTunnelActionTriggers[6] = {
+    { NULL, NULL, NULL, { -1600, -48, 4960, 0 }, { { -352, 0, -736, 0 }, { 352, 0, -736, 0 }, { -352, 0, 736, 0 }, { 352, 0, 736, 0 } }, { 0, 4095, 0, 0 }, { ONE, 0, 0, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_NEO_ARK_EVE_ELEVATOR, NEO_ARK_EVE_ACCESS_TUNNEL_ELEVATOR_WARP_SELECTORS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -1040, -48, 736, 0 }, { { -848, 0, -608, 0 }, { 848, 0, -608, 0 }, { -848, 0, 608, 0 }, { 848, 0, 608, 0 } }, { 0, 4094, 0, 0 }, { 0, 0, ONE, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_ROOM, NEO_ARK_EVE_ACCESS_TUNNEL_ACTION_SHELTER_DEPARTURE, GAME_AREA_SHELTER_B2_MAIN_CORRIDOR, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -1696, -64, 3840, 0 }, { { -352, 0, -544, 0 }, { 352, 0, -544, 0 }, { -352, 0, 544, 0 }, { 352, 0, 544, 0 } }, { 0, 4103, 0, 0 }, { 3405, 0, -2276, 0 }, 646, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_EVE_ACCESS_TUNNEL_CAP_COMMAND_4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4064, -64, 960, 0 }, { { -352, 0, -736, 0 }, { 352, 0, -736, 0 }, { -352, 0, 736, 0 }, { 352, 0, 736, 0 } }, { 0, 4095, 0, 0 }, { ONE, 0, 0, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_EVE_ACCESS_TUNNEL_COMMAND_PART_0, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -1280, -64, 7024, 0 }, { { -608, 0, -336, 0 }, { 608, 0, -336, 0 }, { -608, 0, 336, 0 }, { 608, 0, 336, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, -ONE, 0 }, 692, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_EVE_ACCESS_TUNNEL_COMMAND_PART_1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -1024, -64, 736, 0 }, { { -848, 0, -608, 0 }, { 848, 0, -608, 0 }, { -848, 0, 608, 0 }, { 848, 0, 608, 0 } }, { 0, 4094, 0, 0 }, { -ONE, 0, 0, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_ROOM, NEO_ARK_EVE_ACCESS_TUNNEL_ACTION_SHELTER_DEPARTURE, GAME_AREA_SHELTER_B2_MAIN_CORRIDOR, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+};
+
+enum {
+    NEO_ARK_EVE_ACCESS_TUNNEL_WATCHER_RESOURCE    = 21,
+    NEO_ARK_EVE_ACCESS_TUNNEL_CONTROLLER_RESOURCE = 52,
+};
+
+/// Variant 1's Watcher actor resource, followed by AREA_PLACEMENT_END.
+static AreaResource _gNeoArkEveAccessTunnelDefaultActorResources[2] = {
+    { NEO_ARK_EVE_ACCESS_TUNNEL_WATCHER_RESOURCE, NEO_ARK_EVE_ACCESS_TUNNEL_WATCHER_RESOURCE, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_neo_ark_eve_access_tunnel_80180694[3] = {
-    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
-    { 52, 52, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor205200ControllerPartTasks },
+/// Variant 11's Watcher and controller/part resources, followed by AREA_PLACEMENT_END.
+static AreaResource _gNeoArkEveAccessTunnelEncounterActorResources[3] = {
+    { NEO_ARK_EVE_ACCESS_TUNNEL_WATCHER_RESOURCE, NEO_ARK_EVE_ACCESS_TUNNEL_WATCHER_RESOURCE, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
+    { NEO_ARK_EVE_ACCESS_TUNNEL_CONTROLLER_RESOURCE, NEO_ARK_EVE_ACCESS_TUNNEL_CONTROLLER_RESOURCE, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor205200ControllerPartTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaVariant D_neo_ark_eve_access_tunnel_801806B8[13] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017B030, D_neo_ark_eve_access_tunnel_8018067C },
+    { D_map_neo_ark_8017B030, _gNeoArkEveAccessTunnelDefaultActorResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -384,44 +420,63 @@ AreaVariant D_neo_ark_eve_access_tunnel_801806B8[13] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_neo_ark_8017B080, D_neo_ark_eve_access_tunnel_80180694 },
+    { D_map_neo_ark_8017B080, _gNeoArkEveAccessTunnelEncounterActorResources },
     { NULL, NULL },
 };
 
-WorldCollisionOccluder D_neo_ark_eve_access_tunnel_80180720[1] = {
+WorldCollisionOccluder gNeoArkEveAccessTunnelSightOccluders[1] = {
     { NULL, NULL, { -3712, -1376, 3440, 0 }, { { -1664, 2368, 1296, 0 }, { 1664, 2368, -1296, 0 }, { -1664, -2368, 1296, 0 }, { 1664, -2368, -1296, 0 } }, { 2527, 0, 3244, 0 }, 3166, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCollisionFootstepSounds D_neo_ark_eve_access_tunnel_8018075C = {
-    0x10000059,
-    0x1000005B,
-    0x10000059,
+enum {
+    NEO_ARK_EVE_ACCESS_TUNNEL_FOOTSTEP_WALK = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x59,
+    NEO_ARK_EVE_ACCESS_TUNNEL_FOOTSTEP_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5B,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_eve_access_tunnel_80180768[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Loaded-bank footstep cue bases shared by surface classes 1 and 2.
+static WorldCollisionFootstepSounds _gNeoArkEveAccessTunnelFootstepSounds = {
+    .walk         = NEO_ARK_EVE_ACCESS_TUNNEL_FOOTSTEP_WALK,
+    .run          = NEO_ARK_EVE_ACCESS_TUNNEL_FOOTSTEP_RUN,
+    .scriptedJump = NEO_ARK_EVE_ACCESS_TUNNEL_FOOTSTEP_WALK,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_eve_access_tunnel_80180770[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_eve_access_tunnel_8018075C },
+/// Blocking, impact-enabled surface with pushback and no footsteps, for classes 0 and 3..7.
+static WorldCollisionSurfaceProperties _gNeoArkEveAccessTunnelSilentSurface = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    NULL,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_eve_access_tunnel_80180778[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_eve_access_tunnel_8018075C },
+/// Surface class 1's blocking, impact-enabled policy, pushback and footstep cues.
+static WorldCollisionSurfaceProperties _gNeoArkEveAccessTunnelSurfaceClass1 = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    &_gNeoArkEveAccessTunnelFootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_neo_ark_eve_access_tunnel_80180780[8] = {
-    D_neo_ark_eve_access_tunnel_80180768,
-    D_neo_ark_eve_access_tunnel_80180770,
-    D_neo_ark_eve_access_tunnel_80180778,
-    D_neo_ark_eve_access_tunnel_80180768,
-    D_neo_ark_eve_access_tunnel_80180768,
-    D_neo_ark_eve_access_tunnel_80180768,
-    D_neo_ark_eve_access_tunnel_80180768,
-    D_neo_ark_eve_access_tunnel_80180768,
+/// Surface class 2's separate record, with the same policy and cues as class 1.
+static WorldCollisionSurfaceProperties _gNeoArkEveAccessTunnelSurfaceClass2 = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    &_gNeoArkEveAccessTunnelFootstepSounds,
 };
 
-RoomEventMsg D_neo_ark_eve_access_tunnel_801807A0;
+WorldCollisionSurfaceProperties* gNeoArkEveAccessTunnelSurfaceProperties[8] = {
+    &_gNeoArkEveAccessTunnelSilentSurface,
+    &_gNeoArkEveAccessTunnelSurfaceClass1,
+    &_gNeoArkEveAccessTunnelSurfaceClass2,
+    &_gNeoArkEveAccessTunnelSilentSurface,
+    &_gNeoArkEveAccessTunnelSilentSurface,
+    &_gNeoArkEveAccessTunnelSilentSurface,
+    &_gNeoArkEveAccessTunnelSilentSurface,
+    &_gNeoArkEveAccessTunnelSilentSurface,
+};
 
 RoomDeparture gRoomDeparture;
 
@@ -430,10 +485,8 @@ RoomDeparture gRoomDeparture;
 
 #include "../../shared/room_event_departure_task.inc.c"
 
-/// The room task's three states: install the message table, adjust the views
-/// each frame, and end the task. `neoArkEveAccessTunnelRoomTask` runs
-/// them through a stack copy.
-static const TaskFuncTable3 D_neo_ark_eve_access_tunnel_8017D688 = {
+/// Room-task handlers for states 0 initialize, 1 update the view presentation, 2 teardown.
+static const TaskFuncTable3 _gNeoArkEveAccessTunnelRoomTaskHandlers = {
     _neoArkEveAccessTunnelInitializeRoom,
     _neoArkEveAccessTunnelUpdateRoom,
     taskKill,
@@ -549,9 +602,9 @@ void neoArkEveAccessTunnelElevatorDepartureTask(Task* task)
         case NEO_ARK_EVE_ACCESS_TUNNEL_DEPARTURE_COMMIT:
             // Commit only area, warp and room; the remaining saved location bytes stay live.
             gDisplayState.spriteVariant                                = 1;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_neo_ark_eve_access_tunnel_801807A0.warp;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_neo_ark_eve_access_tunnel_801807A0.field_4;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ((u8*)&D_neo_ark_eve_access_tunnel_801807A0.areaId)[1];
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = _gNeoArkEveAccessTunnelPendingElevatorDestination.loc.area;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = _gNeoArkEveAccessTunnelPendingElevatorDestination.loc.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = _gNeoArkEveAccessTunnelPendingElevatorDestination.loc.room;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             taskKill(task);
             break;
@@ -585,10 +638,10 @@ s32 neoArkEveAccessTunnelResolveTransition(Task* unusedTask, s32 unusedMessageId
                 default:
                     if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                         // Preserve the three resolved selectors for the deferred reload.
-                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent    = NEO_ARK_EVE_ACCESS_TUNNEL_ELEVATOR_SCENE_EVENT;
-                        D_neo_ark_eve_access_tunnel_801807A0.warp              = (u8)reply->areaId;
-                        D_neo_ark_eve_access_tunnel_801807A0.field_4           = reply->warp;
-                        ((u8*)&D_neo_ark_eve_access_tunnel_801807A0.areaId)[1] = reply->room;
+                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent        = NEO_ARK_EVE_ACCESS_TUNNEL_ELEVATOR_SCENE_EVENT;
+                        _gNeoArkEveAccessTunnelPendingElevatorDestination.loc.area = (u8)reply->areaId;
+                        _gNeoArkEveAccessTunnelPendingElevatorDestination.loc.warp = reply->warp;
+                        _gNeoArkEveAccessTunnelPendingElevatorDestination.loc.room = reply->room;
                         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                         taskSpawnFromTable(D_neo_ark_eve_access_tunnel_8017EAC4, NEO_ARK_EVE_ACCESS_TUNNEL_ELEVATOR_TASK, 0, 0);
                     }
@@ -736,6 +789,6 @@ void neoArkEveAccessTunnelRoomTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_neo_ark_eve_access_tunnel_8017D688;
+    handlers = _gNeoArkEveAccessTunnelRoomTaskHandlers;
     handlers.funcs[task->state](task);
 }

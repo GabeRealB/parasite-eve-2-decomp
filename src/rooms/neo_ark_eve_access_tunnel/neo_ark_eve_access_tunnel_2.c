@@ -91,11 +91,11 @@ SVECTOR D_neo_ark_eve_access_tunnel_8017EB48[6] = {
 };
 
 WorldCollisionRoomResources D_neo_ark_eve_access_tunnel_8017EB78[1] = {
-    { D_neo_ark_eve_access_tunnel_8017F05C, D_neo_ark_eve_access_tunnel_801802EC, D_neo_ark_eve_access_tunnel_801804B4, D_neo_ark_eve_access_tunnel_80180720 },
+    { D_neo_ark_eve_access_tunnel_8017F05C, gNeoArkEveAccessTunnelViewBoundaryTriggers, gNeoArkEveAccessTunnelActionTriggers, gNeoArkEveAccessTunnelSightOccluders },
 };
 
 WorldCoordRoomLighting D_neo_ark_eve_access_tunnel_8017EB88[1] = {
-    { D_neo_ark_eve_access_tunnel_801802D4, NULL },
+    { &gNeoArkEveAccessTunnelRoomLights, NULL },
 };
 
 u8* D_neo_ark_eve_access_tunnel_8017EB90[1] = {

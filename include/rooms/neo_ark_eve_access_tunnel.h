@@ -28,7 +28,12 @@ extern ViewCamera D_neo_ark_eve_access_tunnel_8017F080[];
 
 extern SpriteView D_neo_ark_eve_access_tunnel_801800A0[];
 
-extern WorldCollisionSurfaceProperties* D_neo_ark_eve_access_tunnel_80180780[];
+/// Collision policy and footstep records indexed by tunnel surface class 0..7.
+///
+/// Classes 1 and 2 have footstep cues; 0 and 3..7 share a silent record. Every
+/// class blocks probes, permits weapon impacts and applies pushback. The stage
+/// map borrows this table only while the tunnel overlay is loaded.
+extern WorldCollisionSurfaceProperties* gNeoArkEveAccessTunnelSurfaceProperties[8];
 
 /// Destruction states accepted by `neoArkEveAccessTunnelSetPartDestroyedSprites`.
 enum {

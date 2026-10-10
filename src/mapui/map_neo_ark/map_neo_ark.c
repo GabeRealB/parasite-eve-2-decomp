@@ -873,7 +873,7 @@ WorldCollisionSurfaceProperties** D_map_neo_ark_8017AE3C[33] = {
     D_shelter_1f_airlock_8017F84C,
     D_shelter_1f_guardroom_8017DFF4,
     gNeoArkObservatorySurfaceProperties,
-    D_neo_ark_eve_access_tunnel_80180780,
+    gNeoArkEveAccessTunnelSurfaceProperties,
     D_neo_ark_eve_elevator_8017DC30,
     D_neo_ark_north_promenade_801832EC,
     D_neo_ark_forest_zone_80182CE4,
