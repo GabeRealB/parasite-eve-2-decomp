@@ -700,7 +700,7 @@ static WorldCoordRoomLighting D_map_shelter_8017AE64[1] = {
 };
 
 static WorldCoordRoomLighting D_map_shelter_8017AE6C[1] = {
-    { &D_shelter_r37_8017DD44, NULL },
+    { &gShelterR37RoomLights, NULL },
 };
 
 static WorldCoordRoomLighting D_map_shelter_8017AE74[1] = {
@@ -830,7 +830,7 @@ DirectionWarpEntry* D_map_shelter_8017AF88[49] = {
     D_shelter_b2_septic_tank_80183574,
     D_shelter_b2_pod_access_tunnel_80183E30,
     D_shelter_r36_8017E9C4,
-    D_shelter_r37_8017D700,
+    gShelterR37WarpEntries,
     gShelter1fHeliportS4WarpEntries,
     D_shelter_b3_dumping_hole_8018B6A4,
     D_shelter_b3_garbage_incinerator_8018741C,
@@ -882,7 +882,7 @@ static ViewCount* D_map_shelter_8017B04C[49] = {
     D_shelter_b2_septic_tank_80183570,
     D_shelter_b2_pod_access_tunnel_80183E2C,
     D_shelter_r36_8017E9C0,
-    D_shelter_r37_8017D6FC,
+    gShelterR37ViewCounts,
     gShelter1fHeliportS4RoomViewCounts,
     gShelterB3DumpingHoleViewCounts,
     D_shelter_b3_garbage_incinerator_8018740C,
@@ -984,7 +984,7 @@ static WorldCollisionRoomResources D_map_shelter_8017B254[1] = {
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B264[1] = {
-    { &D_shelter_r37_8017D920, D_shelter_r37_8017DD5C, NULL, NULL },
+    { &gShelterR37RoomCollision, gShelterR37ViewBoundaryTriggers, NULL, NULL },
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B274[1] = {
@@ -1107,7 +1107,7 @@ static ViewCamera* D_map_shelter_8017B3BC[49] = {
     gShelterB2SepticTankViewCameras,
     gShelterB2PodAccessTunnelViewCameras,
     D_shelter_r36_8017EAD4,
-    D_shelter_r37_8017D944,
+    gShelterR37ViewCameras,
     gShelter1fHeliportS4ViewCameras,
     gShelterB3DumpingHoleViewCameras,
     D_shelter_b3_garbage_incinerator_801883AC,
@@ -1165,7 +1165,7 @@ static u8** _gMapShelterAreaViewMaps[49] = {
     gShelterB2SepticTankViewMaps,
     gShelterB2PodAccessTunnelRoomViewMaps,
     gShelterR36RoomViewMaps,
-    D_shelter_r37_8017D6F8,
+    gShelterR37ViewMaps,
     gShelter1fHeliportS4RoomViewMaps,
     gShelterB3DumpingHoleViewMaps,
     gShelterB3GarbageIncineratorViewMaps,
@@ -1223,7 +1223,7 @@ static SpriteView* _gMapShelterAreaSpriteViews[49] = {
     gShelterB2SepticTankSpriteViews,
     gShelterB2PodAccessTunnelSpriteViews,
     D_shelter_r36_8017F318,
-    D_shelter_r37_8017D9E0,
+    gShelterR37SpriteViews,
     gShelter1fHeliportS4SpriteViews,
     gShelterB3DumpingHoleSpriteViews,
     D_shelter_b3_garbage_incinerator_8018D100,
@@ -1277,7 +1277,7 @@ WorldCollisionSurfaceProperties** D_map_shelter_8017B614[49] = {
     gShelterB2SepticTankSurfacePropertiesByClass,
     gShelterB2PodAccessTunnelSurfacePropertiesByClass,
     gShelterR36SurfacePropertiesByClass,
-    D_shelter_r37_8017DED8,
+    gShelterR37SurfacePropertiesByClass,
     gShelter1fHeliportS4SurfacePropertiesByClass,
     gShelterB3DumpingHoleSurfacePropertiesByClass,
     gShelterB3GarbageIncineratorSurfaceProperties,

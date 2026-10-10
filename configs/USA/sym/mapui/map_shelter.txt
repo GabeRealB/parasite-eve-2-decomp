@@ -390,15 +390,15 @@ gShelterR36RoomLights = 0x8017F6DC; // absolute:True owner=shelter_r36 shared=ro
 D_shelter_r36_8017F6F4 = 0x8017F6F4; // absolute:True owner=shelter_r36 shared=rooms
 gShelterR36SurfacePropertiesByClass = 0x8017FAE4; // absolute:True owner=shelter_r36
 shelterR37RoomTask = 0x8017D678; // type:func absolute:True owner=shelter_r37 shared=rooms
-D_shelter_r37_8017D6F8 = 0x8017D6F8; // absolute:True owner=shelter_r37 shared=rooms
-D_shelter_r37_8017D6FC = 0x8017D6FC; // absolute:True owner=shelter_r37 shared=rooms
-D_shelter_r37_8017D700 = 0x8017D700; // absolute:True owner=shelter_r37 shared=rooms
-D_shelter_r37_8017D920 = 0x8017D920; // absolute:True owner=shelter_r37
-D_shelter_r37_8017D944 = 0x8017D944; // absolute:True owner=shelter_r37
-D_shelter_r37_8017D9E0 = 0x8017D9E0; // absolute:True owner=shelter_r37 shared=rooms
-D_shelter_r37_8017DD44 = 0x8017DD44; // absolute:True owner=shelter_r37 shared=rooms
-D_shelter_r37_8017DD5C = 0x8017DD5C; // absolute:True owner=shelter_r37
-D_shelter_r37_8017DED8 = 0x8017DED8; // absolute:True owner=shelter_r37
+gShelterR37ViewMaps = 0x8017D6F8; // absolute:True owner=shelter_r37 shared=rooms
+gShelterR37ViewCounts = 0x8017D6FC; // absolute:True owner=shelter_r37 shared=rooms
+gShelterR37WarpEntries = 0x8017D700; // absolute:True owner=shelter_r37 shared=rooms
+gShelterR37RoomCollision = 0x8017D920; // absolute:True owner=shelter_r37
+gShelterR37ViewCameras = 0x8017D944; // absolute:True owner=shelter_r37
+gShelterR37SpriteViews = 0x8017D9E0; // absolute:True owner=shelter_r37 shared=rooms
+gShelterR37RoomLights = 0x8017DD44; // absolute:True owner=shelter_r37 shared=rooms
+gShelterR37ViewBoundaryTriggers = 0x8017DD5C; // absolute:True owner=shelter_r37
+gShelterR37SurfacePropertiesByClass = 0x8017DED8; // absolute:True owner=shelter_r37
 shelter1fHeliportS4RoomTask = 0x8017D678; // type:func absolute:True owner=shelter_1f_heliport_s4 shared=rooms
 gShelter1fHeliportS4RoomViewMaps = 0x8017D6F8; // absolute:True owner=shelter_1f_heliport_s4 shared=rooms
 gShelter1fHeliportS4RoomViewCounts = 0x8017D6FC; // absolute:True owner=shelter_1f_heliport_s4 shared=rooms

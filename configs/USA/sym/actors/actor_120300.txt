@@ -211,7 +211,7 @@ D_dryfield_garage_80180204 = 0x80180204; // absolute:True owner=dryfield_garage
 
 gDryfieldGarageCollisionGridNormals = 0x8017DD6C; // absolute:True owner=dryfield_garage shared=rooms
 
-gDryfieldGarageCollisionGridVerts = 0x8017DEA4; // absolute:True owner=dryfield_garage shared=rooms
+gDryfieldGarageCollisionGridVerts = 0x8017DEA4; // absolute:True owner=dryfield_garage
 
 gDryfieldGarageCollisionGridFaces = 0x8017E1F4; // absolute:True owner=dryfield_garage shared=rooms
 _screenFadeOutTask = 0x80133B5C; // type:func
