@@ -62,11 +62,11 @@ mineForkedTunnelAreaObjectTask = 0x8017DBE4; // type:func absolute:True owner=mi
 mineForkedTunnelRoomTask = 0x8017E25C; // type:func absolute:True owner=mine_forked_tunnel
 gMineForkedTunnelModel01B48 = 0x801807B4; // absolute:True owner=mine_forked_tunnel
 gMineForkedTunnelRoomLighting = 0x80183634; // absolute:True owner=mine_forked_tunnel shared=rooms
-D_mine_forked_tunnel_8018363C = 0x8018363C; // absolute:True owner=mine_forked_tunnel shared=rooms
+gMineForkedTunnelRoomCollisionResources = 0x8018363C; // absolute:True owner=mine_forked_tunnel shared=rooms
 gMineForkedTunnelRoomViewMaps = 0x8018364C; // absolute:True owner=mine_forked_tunnel shared=rooms
-D_mine_forked_tunnel_80183650 = 0x80183650; // absolute:True owner=mine_forked_tunnel shared=rooms
-D_mine_forked_tunnel_80183654 = 0x80183654; // absolute:True owner=mine_forked_tunnel
-D_mine_forked_tunnel_80183D94 = 0x80183D94; // absolute:True owner=mine_forked_tunnel
+gMineForkedTunnelRoomViewCounts = 0x80183650; // absolute:True owner=mine_forked_tunnel shared=rooms
+gMineForkedTunnelWarpEntries = 0x80183654; // absolute:True owner=mine_forked_tunnel
+gMineForkedTunnelViewCameras = 0x80183D94; // absolute:True owner=mine_forked_tunnel
 gMineForkedTunnelSpriteViews = 0x80184D64; // absolute:True owner=mine_forked_tunnel
 gMineForkedTunnelSurfacePropertiesByClass = 0x801855C0; // absolute:True owner=mine_forked_tunnel
 mineSecretPassageRoomTask = 0x8017D970; // type:func absolute:True owner=mine_secret_passage shared=rooms
@@ -482,7 +482,7 @@ gShelterB4UpperSewerSurfacePropertiesByClass = 0x80188CFC; // absolute:True owne
 shelterB4ReservoirRoomTask = 0x8017E88C; // type:func absolute:True owner=shelter_b4_reservoir
 gShelterB4ReservoirRoomLighting = 0x801850E8; // absolute:True owner=shelter_b4_reservoir shared=rooms
 gShelterB4ReservoirRoomCollisionResources = 0x801850F8; // absolute:True owner=shelter_b4_reservoir
-gShelterB4ReservoirViewMaps = 0x80185118; // absolute:True owner=shelter_b4_reservoir shared=rooms
+gShelterB4ReservoirViewMaps = 0x80185118; // absolute:True owner=shelter_b4_reservoir
 gShelterB4ReservoirRoomViewCounts = 0x80185120; // absolute:True owner=shelter_b4_reservoir
 gShelterB4ReservoirWarpEntries = 0x80185124; // absolute:True owner=shelter_b4_reservoir
 gShelterB4ReservoirViewCameras = 0x80185ADC; // absolute:True owner=shelter_b4_reservoir

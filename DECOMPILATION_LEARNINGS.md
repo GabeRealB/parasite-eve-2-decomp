@@ -4883,7 +4883,7 @@ if (gameFlagGetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_SWITCH_USED) == 0) {
     ...fill placement...
     actorMsgPlaceEulerZyx(task, ACTOR_MESSAGE_PLACE, &placement, 0);
 } else {
-    actorMsgPlaceEulerZyx(task, ACTOR_MESSAGE_PLACE, &D_mine_forked_tunnel_80181BBC, 0);
+    actorMsgPlaceEulerZyx(task, ACTOR_MESSAGE_PLACE, &_gMineForkedTunnelAreaObjectParkedPlacement, 0);
 }
 ```
 
@@ -121208,7 +121208,7 @@ address pseudo at all - `(mem/s:SI (plus:SI (reg:SI 77 virtual_stack_vars)
 its `placement->` parameter moved the reads onto `$v1` and scored 100.000% with
 every penalty zero, in one build. The writes stayed direct.
 
-A related trap in the same function: `D_mine_forked_tunnel_80181BA4` is a
+A related trap in the same function: `_gMineForkedTunnelAreaObjectChildPlacement` is a
 `ActorTransform` in the overlay's sibling unit and was declared a `VECTOR` here,
 which is a `conflicting types for` error at build time and *identical bytes* if
 you fix it by spelling the reads `.pos.vx` - a symbol can be legitimately viewed
@@ -121233,7 +121233,7 @@ decides it: the same `lui` is stolen or refused depending on the home of the
 quantity it writes.
 
 **Symptom.** `_mineForkedTunnelApplyAreaObjectCommand`'s switch command 3 materialises
-`D_mine_forked_tunnel_80181BBC` (`lui`, `addiu`, five loads) in a block that
+`_gMineForkedTunnelAreaObjectParkedPlacement` (`lui`, `addiu`, five loads) in a block that
 opens with the destination pointer's load into `$v0`, and the branch into that
 block is the switch's fourth, so its delay slot is the one in question. At
 96.629% the object reads
@@ -121241,8 +121241,8 @@ block is the switch's fourth, so its delay slot is the one in question. At
 ```
 lw    v0,0x2c(s1)          /* sets $v0 in the thread */
 lw    s0,8(v0)
-lui   v0,%hi(D_..._80181BBC)   /* refused: $v0 was set ahead of it */
-lw    v1,%lo(D_..._80181BBC)(v0)
+lui   v0,%hi(_gMineForkedTunnelAreaObjectParkedPlacement)   /* refused: $v0 was set ahead of it */
+lw    v1,%lo(_gMineForkedTunnelAreaObjectParkedPlacement)(v0)
 ```
 
 where the target has `lui $v1` in the delay slot and `lw v0,%lo(...)($v1)` with

@@ -56,26 +56,6 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/actor_messages.h"
 
-/// The placement `_mineForkedTunnelInitAreaObject` uses instead when the
-/// `0x75` game flag is set: a complete `ActorTransform` sitting in the room's
-/// `.data`, offset (0x8CD, 0x3C4, 0x46B) with a half-turn about Y.
-extern ActorTransform D_mine_forked_tunnel_80181BBC;
-
-/// The `ActorTransform` the tunnel's pitch-animated object adopts: state 0
-/// (`_mineForkedTunnelAttachAreaObjectChild`) copies it onto the task's coordinate
-/// whole, and state 1 (`_mineForkedTunnelTiltAreaObjectChild`) then keeps its `pos`
-/// while taking the `rot` from the pitch table below. Position
-/// (0xB4, -0xEB, -0x30C), rotation zero.
-extern ActorTransform D_mine_forked_tunnel_80181BA4;
-
-/// The pitch curve `_mineForkedTunnelTiltAreaObjectChild` walks that object
-/// through, one `SVECTOR` per step of the counter it runs while
-/// `Task::spawnArg1` is 1: entries 0-15 are zero, then `vx` falls to -8 and
-/// climbs to 175 before settling at 173 (4096 is a full turn), so the object
-/// rises over the sequence and holds. The table is 54 entries, the counter's
-/// limit, so the last step lands on the settling value.
-extern SVECTOR D_mine_forked_tunnel_801819C4[54];
-
 /// Two-entry `TaskDesc` table `_mineForkedTunnelInitAreaObject` spawns the
 /// child part from; `taskSpawnFromTable` picks entry 1.
 extern TaskDesc D_mine_forked_tunnel_80181B74[];
@@ -95,9 +75,6 @@ typedef struct {
 } _MineForkedTunnelAreaObjectWork;
 STATIC_ASSERT_SIZEOF(_MineForkedTunnelAreaObjectWork, 0x48);
 
-extern WorldCollisionGrid D_mine_forked_tunnel_80181C5C;
-
-extern TaskDesc         D_mine_forked_tunnel_80183104[];
 extern TaskMessageEntry D_mine_forked_tunnel_80181C80[];
 extern EvsCommand       D_mine_forked_tunnel_801831AC[];
 extern EvsCommand       D_mine_forked_tunnel_801834F4[];
@@ -170,15 +147,21 @@ enum {
 /// Inventory request to use a collected key item in this room.
 enum { MINE_FORKED_TUNNEL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
-/// State table of the tunnel's area-object task, indexed by `Task::state`: set-up,
-/// the per-frame path walk, and the exit that releases the area object.
-static const TaskFuncTable3 D_mine_forked_tunnel_8017D5C4 = {
+/// Setup, motion/drawing and teardown handlers for the switch-controlled area object.
+///
+/// `Task::state` selects 0..2 without a bounds check. The dispatcher copies
+/// all three callbacks and runs them only while scene actor control is active.
+/// Teardown may release the task; callbacks require this room overlay loaded.
+static const TaskFuncTable3 _gMineForkedTunnelAreaObjectStateHandlers = {
     { _mineForkedTunnelInitAreaObject, _mineForkedTunnelTickAreaObject, _mineForkedTunnelExitAreaObject },
 };
 
-/// State table of the area object's pitch-animated child, indexed by `Task::state`:
-/// attach to the area object, walk the pitch curve, and `taskKill`.
-static const TaskFuncTable3 D_mine_forked_tunnel_8017D5D0 = {
+/// Attach, tilt and teardown handlers for the area object's child model.
+///
+/// `Task::state` selects 0..2 without a bounds check. The dispatcher copies
+/// all three callbacks and runs them only while scene actor control is active.
+/// Attachment borrows the live parent; teardown releases the child task.
+static const TaskFuncTable3 _gMineForkedTunnelAreaObjectChildStateHandlers = {
     { _mineForkedTunnelAttachAreaObjectChild, _mineForkedTunnelTiltAreaObjectChild, taskKill },
 };
 
@@ -201,10 +184,9 @@ static s32 _mineForkedTunnelBoardCommandMessage(Task* unusedTask, s32 unusedMess
 static void _mineForkedTunnelSwitchInteractionTask(Task* task);
 static void _mineForkedTunnelOakBoardPromptTask(Task* task);
 
-extern AnimationBankCopyRequest   D_mine_forked_tunnel_8018312C;
 static WorldCollisionGrid         _gMineForkedTunnelCollisionGrid;
-extern WorldCollisionTrigger      D_mine_forked_tunnel_80184F50[6];
-extern WorldCollisionTrigger      D_mine_forked_tunnel_80185118[6];
+static WorldCollisionTrigger      _gMineForkedTunnelViewBoundaryTriggers[6];
+static WorldCollisionTrigger      _gMineForkedTunnelActionTriggers[6];
 static WorldCoordRoomAmbientEntry _gMineForkedTunnelViewAmbientTable[8];
 static WorldCoordRoomLights       _gMineForkedTunnelRoomLights;
 
@@ -290,7 +272,12 @@ static SVECTOR _gMineForkedTunnelAreaObjectPositionPath[240] = {
 #include "assets/mine_forked_tunnel_motion_03C84.inc"
 };
 
-SVECTOR D_mine_forked_tunnel_801819C4[54] = {
+/// Parent-relative Euler rotations for the child model's 54-frame tilt.
+///
+/// Angles use 4096 units per turn; only pitch varies and fourth components
+/// are unused. A nonnegative task cursor samples every entry once while
+/// motion is enabled, then holds the last placement. Translation stays fixed.
+static SVECTOR _gMineForkedTunnelAreaObjectChildRotationPath[54] = {
 #include "assets/mine_forked_tunnel_motion_04404.inc"
 };
 
@@ -305,33 +292,80 @@ TaskMessageEntry D_mine_forked_tunnel_80181B8C[3] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-ActorTransform D_mine_forked_tunnel_80181BA4 = { { 180, -235, -780, 0 }, { 0, 0, 0, 0 } };
+/// Initial child-model placement relative to the area object's root coordinate.
+///
+/// XYZ uses integer game units and Euler angles use 4096 units per turn.
+/// Attachment uses the whole transform; tilt playback retains its translation
+/// and supplies rotations from the child path. Fourth components are unused.
+static ActorTransform _gMineForkedTunnelAreaObjectChildPlacement = {
+    .pos = { 180, -235, -780, 0 },
+    .rot = { 0, 0, 0, 0 },
+};
 
-ActorTransform D_mine_forked_tunnel_80181BBC = { { 2253, 964, 1131, 0 }, { 0, 2047, 0, 0 } };
+/// Final placement of the area object after the switch has been used.
+///
+/// Setup with a used switch and the park command apply this placement in the
+/// root's parent frame. XYZ uses integer game units; the Y angle is 2047 of
+/// 4096 units per turn. Fourth components are unused.
+static ActorTransform _gMineForkedTunnelAreaObjectParkedPlacement = {
+    .pos = { 2253, 964, 1131, 0 },
+    .rot = { 0, 2047, 0, 0 },
+};
 
-static SVECTOR _gMineForkedTunnelCollision0469CNormals[3] = {
+/// Authored cell dimensions of the area-object collision template, in game units.
+enum {
+    MINE_FORKED_TUNNEL_AREA_OBJECT_COLLISION_CELL_COUNT_X = 1,
+    MINE_FORKED_TUNNEL_AREA_OBJECT_COLLISION_CELL_COUNT_Z = 1,
+    MINE_FORKED_TUNNEL_AREA_OBJECT_COLLISION_CELL_SIZE    = 4000,
+};
+
+/// Room-space normals for the collision box's three exposed faces, at 4096 per unit.
+static SVECTOR _gMineForkedTunnelAreaObjectCollisionBoxNormals[MINE_FORKED_TUNNEL_AREA_OBJECT_COLLISION_FACE_COUNT] = {
 #include "assets/mine_forked_tunnel_collision_0469C_normals.inc"
 };
 
-static SVECTOR _gMineForkedTunnelCollision0469CVerts[8] = {
+/// Eight box corners in signed integer room-coordinate units, before the runtime offset.
+static SVECTOR _gMineForkedTunnelAreaObjectCollisionBoxVerts[MINE_FORKED_TUNNEL_AREA_OBJECT_COLLISION_VERTEX_COUNT] = {
 #include "assets/mine_forked_tunnel_collision_0469C_verts.inc"
 };
 
-static WorldCollisionGridFace _gMineForkedTunnelCollision0469CFaces[3] = {
+/// Three side quads indexing the template pools, all using room surface class zero.
+static WorldCollisionGridFace _gMineForkedTunnelAreaObjectCollisionBoxFaces[MINE_FORKED_TUNNEL_AREA_OBJECT_COLLISION_FACE_COUNT] = {
 #include "assets/mine_forked_tunnel_collision_0469C_faces.inc"
 };
 
-static s16 _gMineForkedTunnelCollision0469CCells[4] = {
+/// One packed cell list containing all three face IDs followed by the -1 terminator.
+static s16 _gMineForkedTunnelAreaObjectCollisionBoxCells[MINE_FORKED_TUNNEL_AREA_OBJECT_COLLISION_FACE_COUNT + 1] = {
 #include "assets/mine_forked_tunnel_collision_0469C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gMineForkedTunnelCollision0469CCells[i])
-static s16* _gMineForkedTunnelCollision0469CTable[1] = {
+// The generated include supplies halfword offsets into this template's cell list.
+#define GRID_CELL(i) (&_gMineForkedTunnelAreaObjectCollisionBoxCells[i])
+/// Single-cell directory retained with the authored collision-box grid.
+static s16* _gMineForkedTunnelAreaObjectCollisionBoxTable[MINE_FORKED_TUNNEL_AREA_OBJECT_COLLISION_CELL_COUNT_X * MINE_FORKED_TUNNEL_AREA_OBJECT_COLLISION_CELL_COUNT_Z] = {
 #include "assets/mine_forked_tunnel_collision_0469C_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_mine_forked_tunnel_80181C5C = { NULL, _gMineForkedTunnelCollision0469CNormals, _gMineForkedTunnelCollision0469CVerts, _gMineForkedTunnelCollision0469CFaces, _gMineForkedTunnelCollision0469CTable, -1747, -7643, 1, 1, 4000, 3 };
+/// Collision-box template for the switch-controlled area object.
+///
+/// Rebuilding copies three normals/faces and eight vertices into the room
+/// grid's reserved prefix, then offsets those vertices. This template is never
+/// activated or bound to a view coordinate; its authored cell directory remains
+/// part of the asset. Its pools stay live with this room overlay.
+static WorldCollisionGrid _gMineForkedTunnelAreaObjectCollisionBox = {
+    .viewCoord   = NULL,
+    .normals     = _gMineForkedTunnelAreaObjectCollisionBoxNormals,
+    .vertices    = _gMineForkedTunnelAreaObjectCollisionBoxVerts,
+    .faces       = _gMineForkedTunnelAreaObjectCollisionBoxFaces,
+    .cellFaceIds = _gMineForkedTunnelAreaObjectCollisionBoxTable,
+    .xBias       = -1747,
+    .zBias       = -7643,
+    .cellCountX  = MINE_FORKED_TUNNEL_AREA_OBJECT_COLLISION_CELL_COUNT_X,
+    .cellCountZ  = MINE_FORKED_TUNNEL_AREA_OBJECT_COLLISION_CELL_COUNT_Z,
+    .cellSize    = MINE_FORKED_TUNNEL_AREA_OBJECT_COLLISION_CELL_SIZE,
+    .faceCount   = ARRAY_SIZE(_gMineForkedTunnelAreaObjectCollisionBoxFaces),
+};
 
 TaskMessageEntry D_mine_forked_tunnel_80181C80[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _mineForkedTunnelResolveRoomVariant },
@@ -407,19 +441,35 @@ static AnimationSet _gMineForkedTunnelAnimation05B1C = {
     { NULL, _gMineForkedTunnelAnimation05B1CBank1, NULL, NULL, _gMineForkedTunnelAnimation05B1CBank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_mine_forked_tunnel_80183104[2] = {
+/// Bodyless interaction tasks: slot 0 operates the switch, slot 1 prompts for the oak board.
+///
+/// Both run at priority 192 with zero descriptor payloads. Spawning borrows
+/// callbacks from this room overlay; there is no terminator.
+static TaskDesc _gMineForkedTunnelInteractionTaskDescriptors[2] = {
     { { { TASK_BODY_NONE, 192 } }, _mineForkedTunnelSwitchInteractionTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _mineForkedTunnelOakBoardPromptTask, { .value = 0 } },
 };
 
-AnimationSet* D_mine_forked_tunnel_8018311C[4] = {
+/// Player animation-bank extension for the switch scene, occupying set slots 47..50.
+///
+/// Slot 47 is NULL; slots 48..50 borrow the three room-owned animation sets.
+/// The player copies these pointers, so their descriptors and packed data must
+/// stay loaded through playback. There is no terminator.
+static AnimationSet* _gMineForkedTunnelSwitchSceneAnimationSets[4] = {
     NULL,
     &_gMineForkedTunnelAnimation049C4,
     &_gMineForkedTunnelAnimation04C50,
     &_gMineForkedTunnelAnimation05B1C,
 };
 
-AnimationBankCopyRequest D_mine_forked_tunnel_8018312C = { { .sets = D_mine_forked_tunnel_8018311C }, ARRAY_SIZE(D_mine_forked_tunnel_8018311C) };
+/// Request to copy the switch scene's four set pointers into the player's bank extension.
+///
+/// The event script borrows this request until dispatch. The source includes
+/// a NULL slot and covers exactly the set table, without adjacent payload data.
+static AnimationBankCopyRequest _gMineForkedTunnelSwitchSceneAnimationBankCopy = {
+    .source    = { .sets = _gMineForkedTunnelSwitchSceneAnimationSets },
+    .wordCount = ARRAY_SIZE(_gMineForkedTunnelSwitchSceneAnimationSets),
+};
 
 AnimationPlayRequest D_mine_forked_tunnel_80183134 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
@@ -437,12 +487,20 @@ ActorCommand D_mine_forked_tunnel_801831A0 = { { .loc = { 4, 7 } }, MINE_FORKED_
 
 ActorCommand D_mine_forked_tunnel_801831A4 = { { .loc = { 4, 7 } }, MINE_FORKED_TUNNEL_AREA_OBJECT_COMMAND_START_PATH };
 
-ActorCommand D_mine_forked_tunnel_801831A8 = { { .loc = { 4, 7 } }, MINE_FORKED_TUNNEL_AREA_OBJECT_COMMAND_PARK };
+/// Parks and stops the area object at the end of either normal or skipped switch playback.
+///
+/// The receiver also rebuilds its collision box from the switch flag, leaving
+/// the child and both motion cursors unchanged. Scripts borrow this four-byte
+/// payload until dispatch; the receiver ignores its stage/area context.
+static ActorCommand _gMineForkedTunnelAreaObjectParkCommand = {
+    .context = { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_FORKED_TUNNEL } },
+    .command = MINE_FORKED_TUNNEL_AREA_OBJECT_COMMAND_PARK,
+};
 
 EvsCommand D_mine_forked_tunnel_801831AC[35] = {
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_forked_tunnel_8018312C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gMineForkedTunnelSwitchSceneAnimationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_forked_tunnel_8018315C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_forked_tunnel_80183184 } }, { .value = 0 } },
@@ -470,7 +528,7 @@ EvsCommand D_mine_forked_tunnel_801831AC[35] = {
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD }, { .value = 55 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_forked_tunnel_801831A8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD }, { .value = 55 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMineForkedTunnelAreaObjectParkCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54070006 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -483,7 +541,7 @@ EvsCommand D_mine_forked_tunnel_801834F4[12] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD }, { .value = 55 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_forked_tunnel_801831A8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD }, { .value = 55 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMineForkedTunnelAreaObjectParkCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54070006 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -508,18 +566,40 @@ WorldCoordRoomLighting gMineForkedTunnelRoomLighting[1] = {
     { &_gMineForkedTunnelRoomLights, _gMineForkedTunnelViewAmbientTable },
 };
 
-WorldCollisionRoomResources D_mine_forked_tunnel_8018363C[1] = {
-    { &_gMineForkedTunnelCollisionGrid, D_mine_forked_tunnel_80184F50, D_mine_forked_tunnel_80185118, NULL },
+WorldCollisionRoomResources gMineForkedTunnelRoomCollisionResources[1] = {
+    {
+        .grid                 = &_gMineForkedTunnelCollisionGrid,
+        .viewBoundaryTriggers = _gMineForkedTunnelViewBoundaryTriggers,
+        .actionTriggers       = _gMineForkedTunnelActionTriggers,
+        .occluders            = NULL,
+    },
 };
 
 u8* gMineForkedTunnelRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_mine_forked_tunnel_80183650[1] = { 7 };
+ViewCount gMineForkedTunnelRoomViewCounts[1] = { ARRAY_SIZE(gMineForkedTunnelViewCameras) };
 
-DirectionWarpEntry D_mine_forked_tunnel_80183654[1] = {
-    { { { .word = 2048 }, 2350, 0, 0x2904 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 2350, 0, 0x2904 }, { 0, 0, 0, 0 }, 0x54070002, 0x54070001, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+/// Room-owned warp sound requests; the endpoint has no blocked-transition sound.
+enum {
+    MINE_FORKED_TUNNEL_WARP_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_FORKED_TUNNEL, 2),
+    MINE_FORKED_TUNNEL_WARP_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_FORKED_TUNNEL, 1),
+};
+
+DirectionWarpEntry gMineForkedTunnelWarpEntries[1] = {
+    {
+        .player         = { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, 2350, 0, 10500 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, 2350, 0, 10500 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = MINE_FORKED_TUNNEL_WARP_ARRIVAL_SOUND,
+        .departureSound = MINE_FORKED_TUNNEL_WARP_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 3,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
 /// Room-space collision normals; the first three are reserved for the area-object box.
@@ -582,7 +662,7 @@ static WorldCollisionGrid _gMineForkedTunnelCollisionGrid = {
     .faceCount   = ARRAY_SIZE(_gMineForkedTunnelCollisionGridFaces),
 };
 
-ViewCamera D_mine_forked_tunnel_80183D94[7] = {
+ViewCamera gMineForkedTunnelViewCameras[7] = {
     { { { { 4095, 0, 0 }, { 0, 0, -4096 }, { 0, 4095, 0 } }, { -1500, 0x40CA, -5500 } }, 289 },
     { { { { 4001, 0, 872 }, { -228, 3952, 1049 }, { -842, -1074, 3861 } }, { -2676, -186, -4405 } }, 289 },
     { { { { 2839, 0, 2952 }, { 2773, 1402, -2667 }, { -1010, 3848, 972 } }, { -2889, 3366, -9548 } }, 269 },
@@ -905,7 +985,13 @@ static WorldCoordRoomLights _gMineForkedTunnelRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_mine_forked_tunnel_80184F50[6] = {
+/// Directed view boundaries for both directions of links 5/4, 4/2 and 2/3.
+///
+/// Coordinates are room-local game units and normals use 4096 per unit.
+/// Gameplay binds and enables all six mutable records, stopping after the
+/// LAST-marked final boundary. Links and hit latches require writable storage
+/// kept live until unlinked; views 1, 6 and 7 have no boundaries here.
+static WorldCollisionTrigger _gMineForkedTunnelViewBoundaryTriggers[6] = {
     { NULL, NULL, NULL, { 1572, -960, 2665, 0 }, { { -829, -3520, 1976, 0 }, { 830, -3520, -1975, 0 }, { -829, 3520, 1976, 0 }, { 830, 3520, -1975, 0 } }, { -3786, 0, -1590, 0 }, { 0, 0, 4096, 0 }, 4096, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 1440, -976, 2644, 0 }, { { 796, -3552, -1936, 0 }, { -795, -3552, 1937, 0 }, { 796, 3552, -1936, 0 }, { -795, 3552, 1937, 0 } }, { 3789, 0, 1556, 0 }, { 0, 0, 4096, 0 }, 4096, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 2272, -992, 6400, 0 }, { { 1536, -2864, 0, 0 }, { -1536, -2864, 0, 0 }, { 1536, 2864, 0, 0 }, { -1536, 2864, 0, 0 } }, { 0, 0, 4107, 0 }, { 0, 0, 4096, 0 }, 3248, 0, 2, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -914,8 +1000,18 @@ WorldCollisionTrigger D_mine_forked_tunnel_80184F50[6] = {
     { NULL, NULL, NULL, { 2336, -944, 9408, 0 }, { { 1536, -2976, 0, 0 }, { -1536, -2976, 0, 0 }, { 1536, 2976, 0, 0 }, { -1536, 2976, 0, 0 } }, { 0, 0, 4095, 0 }, { 0, 0, 4096, 0 }, 3347, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_mine_forked_tunnel_80185118[6] = {
-    { NULL, NULL, NULL, { 2240, -48, 0x2A10, 0 }, { { -1024, 0, -368, 0 }, { 1024, 0, -368, 0 }, { -1024, 0, 368, 0 }, { 1024, 0, 368, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, -4096, 0 }, 1086, WORLD_COLLISION_TRIGGER_ACTION_WARP, 3, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+/// Departure/arrival slot pair for the tunnel-to-entrance warp: local 1, destination 2.
+enum { MINE_FORKED_TUNNEL_ENTRANCE_WARP_ENDPOINTS = (1 << 4) | 2 };
+
+/// Facing interaction quads for the exit, switch, oak board and CAP command points.
+///
+/// The exit requests Tunnel Entrance using departure slot 1 and arrival slot 2.
+/// The switch sends room action 1; the board sends room command 2. Remaining
+/// records run CAP command 3 or 4. Gameplay binds/links all six writable
+/// room-space quads through the LAST-marked final record. Positions/radii use
+/// game units and normals use 4096 per unit; keep storage live until unlinked.
+static WorldCollisionTrigger _gMineForkedTunnelActionTriggers[6] = {
+    { NULL, NULL, NULL, { 2240, -48, 0x2A10, 0 }, { { -1024, 0, -368, 0 }, { 1024, 0, -368, 0 }, { -1024, 0, 368, 0 }, { 1024, 0, 368, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, -4096, 0 }, 1086, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_MINE_TUNNEL_ENTRANCE, MINE_FORKED_TUNNEL_ENTRANCE_WARP_ENDPOINTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 2208, -64, 9600, 0 }, { { -1024, 0, -368, 0 }, { 1024, 0, -368, 0 }, { -1024, 0, 368, 0 }, { 1024, 0, 368, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, 4096, 0 }, 1086, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 656, 896, 976, 0 }, { { -656, 0, -1088, 0 }, { 656, 0, -1088, 0 }, { -656, 0, 1088, 0 }, { 656, 0, 1088, 0 } }, { 0, 4105, 0, 0 }, { 4052, 0, 601, 0 }, 1267, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 1632, 896, 576, 0 }, { { -1024, 0, -368, 0 }, { 1024, 0, -368, 0 }, { -1024, 0, 368, 0 }, { 1024, 0, 368, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, 4096, 0 }, 1086, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
@@ -923,86 +1019,162 @@ WorldCollisionTrigger D_mine_forked_tunnel_80185118[6] = {
     { NULL, NULL, NULL, { 1584, 896, 1088, 0 }, { { -304, 0, -1136, 0 }, { 304, 0, -1136, 0 }, { -304, 0, 1136, 0 }, { 304, 0, 1136, 0 } }, { 0, 4112, 0, 0 }, { -4091, 0, 201, 0 }, 1173, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_mine_forked_tunnel_801852E0[1] = {
+/// Resource keys joining the encounter placements to their loading/spawn recipes.
+enum {
+    MINE_FORKED_TUNNEL_RESOURCE_MOTH         = 8,
+    MINE_FORKED_TUNNEL_RESOURCE_MIND_SUCKLER = 15,
+    MINE_FORKED_TUNNEL_RESOURCE_SCAVENGER    = 16,
+    MINE_FORKED_TUNNEL_RESOURCE_SCORPION     = 25,
+    MINE_FORKED_TUNNEL_RESOURCE_BAT          = 37,
+};
+
+/// Actor-specific placement modes; these equal values have different meanings.
+enum {
+    MINE_FORKED_TUNNEL_MIND_SUCKLER_WALL_NO_REPERCH = 2,
+    MINE_FORKED_TUNNEL_BAT_BACK_PERCH               = 2,
+};
+
+/// Empty encounter's resource list, containing only the end record.
+static AreaResource _gMineForkedTunnelEmptyResources[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_mine_forked_tunnel_801852EC[2] = {
-    { 16, 16, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor01600ScavengerTaskDesc },
+/// Scavenger loading/spawn recipe for variant 2, followed by the end record.
+///
+/// Resource key 16 selects base-group-20 file 16 and its sole task descriptor.
+/// Loading and spawning borrow this list while the room overlay is loaded.
+static AreaResource _gMineForkedTunnelScavengerResources[2] = {
+    { MINE_FORKED_TUNNEL_RESOURCE_SCAVENGER, 16, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor01600ScavengerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_mine_forked_tunnel_80185304[3] = {
-    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor02500Tasks },
-    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor300700MothTaskDesc },
+/// Scorpion and moth loading/spawn recipes for variant 3, followed by the end record.
+///
+/// Key 25 selects base-group-20 file 25 and descriptor 0 (the scorpion body);
+/// key 8 selects base-group-30 file 7 and the moth descriptor. Loading and
+/// spawning borrow this list while the room overlay is loaded.
+static AreaResource _gMineForkedTunnelScorpionAndMothResources[3] = {
+    { MINE_FORKED_TUNNEL_RESOURCE_SCORPION, 25, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor02500Tasks },
+    { MINE_FORKED_TUNNEL_RESOURCE_MOTH, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor300700MothTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_mine_forked_tunnel_80185328[3] = {
-    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor02500Tasks },
-    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
+/// Scorpion and Mind Suckler loading/spawn recipes for variant 4, followed by the end record.
+///
+/// Key 25 selects base-group-20 file 25 and descriptor 0 (the scorpion body);
+/// key 15 selects base-group-30 file 15 and the Mind Suckler descriptor.
+/// Loading and spawning borrow this list while the room overlay is loaded.
+static AreaResource _gMineForkedTunnelScorpionAndMindSucklerResources[3] = {
+    { MINE_FORKED_TUNNEL_RESOURCE_SCORPION, 25, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor02500Tasks },
+    { MINE_FORKED_TUNNEL_RESOURCE_MIND_SUCKLER, 15, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_mine_forked_tunnel_8018534C[2] = {
-    { 37, 37, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor103700BatTaskDesc },
+/// Bat loading/spawn recipe for variant 11, followed by the end record.
+///
+/// Resource key 37 selects base-group-10 file 37 and its sole task descriptor.
+/// Loading and spawning borrow this list while the room overlay is loaded.
+static AreaResource _gMineForkedTunnelBatResources[2] = {
+    { MINE_FORKED_TUNNEL_RESOURCE_BAT, 37, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor103700BatTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_mine_forked_tunnel_80185364[1] = {
+/// Empty encounter's placement list, containing only the end record.
+static AreaPlacement _gMineForkedTunnelEmptyPlacements[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_mine_forked_tunnel_80185374[5] = {
-    { 16, 0, 0, 1900, 225, 7900, 1900, 0, 2, 4, 0 },
-    { 16, 0, 0, 2640, 500, 6140, 2250, 0, 2, 4, 0 },
-    { 16, 0, 0, 1380, 1000, 630, 1580, 0, 2, 4, 0 },
-    { 16, 0, 0, 860, 1000, 800, 2650, 0, 2, 4, 0 },
+/// Four scavenger placements for variant 2, followed by the end record.
+///
+/// XYZ uses world game units and yaw uses 4096 units per turn. All use the
+/// base resource, actor variant/mode/row zero, texture offset 2 pages and
+/// CLUT offset 4 rows. Actors borrow these records while the room is loaded.
+static AreaPlacement _gMineForkedTunnelScavengerPlacements[5] = {
+    { MINE_FORKED_TUNNEL_RESOURCE_SCAVENGER, 0, 0, 1900, 225, 7900, 1900, 0, 2, 4, 0 },
+    { MINE_FORKED_TUNNEL_RESOURCE_SCAVENGER, 0, 0, 2640, 500, 6140, 2250, 0, 2, 4, 0 },
+    { MINE_FORKED_TUNNEL_RESOURCE_SCAVENGER, 0, 0, 1380, 1000, 630, 1580, 0, 2, 4, 0 },
+    { MINE_FORKED_TUNNEL_RESOURCE_SCAVENGER, 0, 0, 860, 1000, 800, 2650, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_mine_forked_tunnel_801853C4[11] = {
-    { 25, 0, 0, 2000, 550, 5650, 0, 0, 2, 4, 2 },
-    { 25, 0, 0, 2200, 1000, 2300, 0, 0, 2, 4, 2 },
-    { 8, 0, 0, 2300, -1300, 9300, 2048, 0, 4, 6, 3 },
-    { 8, 0, 0, 2500, -1400, 9100, 3072, 0, 4, 6, 3 },
-    { 8, 0, 0, 2000, -1300, 9400, 1024, 0, 4, 6, 3 },
-    { 8, 0, 0, 2000, -1000, 3950, 2750, 0, 4, 6, 3 },
-    { 8, 0, 0, 2100, -1000, 3700, 3072, 0, 4, 6, 3 },
-    { 8, 0, 0, 2000, -1200, 3600, 3500, 0, 4, 6, 3 },
-    { 8, 0, 0, 700, -800, 2250, 3500, 0, 4, 6, 3 },
-    { 8, 0, 0, 600, -900, 2400, 3800, 0, 4, 6, 3 },
+/// Two scorpion and eight moth placements for variant 3, followed by the end record.
+///
+/// XYZ uses world game units and yaw uses 4096 units per turn. Scorpions
+/// select movement-tuning row 2; moths select pursuit-speed row 3, both within
+/// eight-row tables. All use base files and actor variant/mode zero. Texture
+/// page/CLUT-row offsets are 2/4 for scorpions and 4/6 for moths. Actors borrow
+/// these records while the room is loaded.
+static AreaPlacement _gMineForkedTunnelScorpionAndMothPlacements[11] = {
+    { MINE_FORKED_TUNNEL_RESOURCE_SCORPION, 0, 0, 2000, 550, 5650, 0, 0, 2, 4, 2 },
+    { MINE_FORKED_TUNNEL_RESOURCE_SCORPION, 0, 0, 2200, 1000, 2300, 0, 0, 2, 4, 2 },
+    { MINE_FORKED_TUNNEL_RESOURCE_MOTH, 0, 0, 2300, -1300, 9300, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 4, 6, 3 },
+    { MINE_FORKED_TUNNEL_RESOURCE_MOTH, 0, 0, 2500, -1400, 9100, 3072, 0, 4, 6, 3 },
+    { MINE_FORKED_TUNNEL_RESOURCE_MOTH, 0, 0, 2000, -1300, 9400, 1024, 0, 4, 6, 3 },
+    { MINE_FORKED_TUNNEL_RESOURCE_MOTH, 0, 0, 2000, -1000, 3950, 2750, 0, 4, 6, 3 },
+    { MINE_FORKED_TUNNEL_RESOURCE_MOTH, 0, 0, 2100, -1000, 3700, 3072, 0, 4, 6, 3 },
+    { MINE_FORKED_TUNNEL_RESOURCE_MOTH, 0, 0, 2000, -1200, 3600, 3500, 0, 4, 6, 3 },
+    { MINE_FORKED_TUNNEL_RESOURCE_MOTH, 0, 0, 700, -800, 2250, 3500, 0, 4, 6, 3 },
+    { MINE_FORKED_TUNNEL_RESOURCE_MOTH, 0, 0, 600, -900, 2400, 3800, 0, 4, 6, 3 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_mine_forked_tunnel_80185474[6] = {
-    { 25, 0, 0, 2200, 900, 3500, 0, 0, 2, 4, 0 },
-    { 25, 0, 0, 2200, 1000, 2300, 0, 0, 2, 4, 0 },
-    { 15, 0, 2, 2500, -500, 3000, 1024, 0, 4, 6, 0 },
-    { 15, 0, 2, 1500, -500, 3000, 3072, 0, 4, 6, 0 },
-    { 15, 0, 2, 1500, -500, 6000, 3072, 0, 4, 6, 0 },
+/// Two scorpion and three Mind Suckler placements for variant 4, followed by the end record.
+///
+/// XYZ uses world game units and yaw uses 4096 units per turn. Mind Sucklers
+/// start on walls and cannot perch again during pursuit. All use base files,
+/// actor variant and tuning row zero. Texture page/CLUT-row offsets are 2/4
+/// for scorpions and 4/6 for Mind Sucklers. Actors borrow the loaded room's records.
+static AreaPlacement _gMineForkedTunnelScorpionAndMindSucklerPlacements[6] = {
+    { MINE_FORKED_TUNNEL_RESOURCE_SCORPION, 0, 0, 2200, 900, 3500, 0, 0, 2, 4, 0 },
+    { MINE_FORKED_TUNNEL_RESOURCE_SCORPION, 0, 0, 2200, 1000, 2300, 0, 0, 2, 4, 0 },
+    { MINE_FORKED_TUNNEL_RESOURCE_MIND_SUCKLER, 0, MINE_FORKED_TUNNEL_MIND_SUCKLER_WALL_NO_REPERCH, 2500, -500, 3000, 1024, 0, 4, 6, 0 },
+    { MINE_FORKED_TUNNEL_RESOURCE_MIND_SUCKLER, 0, MINE_FORKED_TUNNEL_MIND_SUCKLER_WALL_NO_REPERCH, 1500, -500, 3000, 3072, 0, 4, 6, 0 },
+    { MINE_FORKED_TUNNEL_RESOURCE_MIND_SUCKLER, 0, MINE_FORKED_TUNNEL_MIND_SUCKLER_WALL_NO_REPERCH, 1500, -500, 6000, 3072, 0, 4, 6, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_mine_forked_tunnel_801854D4[3] = {
-    { 37, 0, 2, 330, -500, 1700, 3072, 0, 2, 4, 0 },
-    { 37, 0, 2, 1100, -500, 380, 2048, 0, 2, 4, 0 },
+/// Two bat placements for variant 11, followed by the end record.
+///
+/// XYZ uses world game units and yaw uses 4096 units per turn. Both start
+/// perched with a backwards takeoff, using the base file, actor variant/row
+/// zero, texture offset 2 pages and CLUT offset 4 rows. Actors borrow these
+/// records while the room overlay is loaded.
+static AreaPlacement _gMineForkedTunnelBatPlacements[3] = {
+    { MINE_FORKED_TUNNEL_RESOURCE_BAT, 0, MINE_FORKED_TUNNEL_BAT_BACK_PERCH, 330, -500, 1700, 3072, 0, 2, 4, 0 },
+    { MINE_FORKED_TUNNEL_RESOURCE_BAT, 0, MINE_FORKED_TUNNEL_BAT_BACK_PERCH, 1100, -500, 380, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaVariant D_mine_forked_tunnel_80185504[12] = {
-    { NULL, NULL },
-    { D_mine_forked_tunnel_80185364, D_mine_forked_tunnel_801852E0 },
-    { D_mine_forked_tunnel_80185374, D_mine_forked_tunnel_801852EC },
-    { D_mine_forked_tunnel_801853C4, D_mine_forked_tunnel_80185304 },
-    { D_mine_forked_tunnel_80185474, D_mine_forked_tunnel_80185328 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_mine_forked_tunnel_801854D4, D_mine_forked_tunnel_8018534C },
+/// Saved placement-variant selectors populated by this room's encounter directory.
+enum {
+    MINE_FORKED_TUNNEL_VARIANT_EMPTY                       = 1,
+    MINE_FORKED_TUNNEL_VARIANT_SCAVENGERS                  = 2,
+    MINE_FORKED_TUNNEL_VARIANT_SCORPIONS_AND_MOTHS         = 3,
+    MINE_FORKED_TUNNEL_VARIANT_SCORPIONS_AND_MIND_SUCKLERS = 4,
+    MINE_FORKED_TUNNEL_VARIANT_BATS                        = 11,
+};
+
+AreaVariant gMineForkedTunnelAreaVariants[12] = {
+    [MINE_FORKED_TUNNEL_VARIANT_EMPTY] = {
+        .placements = _gMineForkedTunnelEmptyPlacements,
+        .resources  = _gMineForkedTunnelEmptyResources,
+    },
+    [MINE_FORKED_TUNNEL_VARIANT_SCAVENGERS] = {
+        .placements = _gMineForkedTunnelScavengerPlacements,
+        .resources  = _gMineForkedTunnelScavengerResources,
+    },
+    [MINE_FORKED_TUNNEL_VARIANT_SCORPIONS_AND_MOTHS] = {
+        .placements = _gMineForkedTunnelScorpionAndMothPlacements,
+        .resources  = _gMineForkedTunnelScorpionAndMothResources,
+    },
+    [MINE_FORKED_TUNNEL_VARIANT_SCORPIONS_AND_MIND_SUCKLERS] = {
+        .placements = _gMineForkedTunnelScorpionAndMindSucklerPlacements,
+        .resources  = _gMineForkedTunnelScorpionAndMindSucklerResources,
+    },
+    [MINE_FORKED_TUNNEL_VARIANT_BATS] = {
+        .placements = _gMineForkedTunnelBatPlacements,
+        .resources  = _gMineForkedTunnelBatResources,
+    },
 };
 
 /// Minimum ambient colours for the tunnel's seven logical views, preceded by their count.
@@ -1107,7 +1279,7 @@ static void _mineForkedTunnelInitAreaObject(Task* task)
         placement.rot.vz = _gMineForkedTunnelAreaObjectRotationPath[0].vz;
         actorMsgPlaceEulerZyx(task, ACTOR_MESSAGE_PLACE, &placement, 0);
     } else {
-        actorMsgPlaceEulerZyx(task, ACTOR_MESSAGE_PLACE, &D_mine_forked_tunnel_80181BBC, 0);
+        actorMsgPlaceEulerZyx(task, ACTOR_MESSAGE_PLACE, &_gMineForkedTunnelAreaObjectParkedPlacement, 0);
     }
 
     _mineForkedTunnelSetAreaObjectDrawMode(task, ACTOR_MESSAGE_SET_MODEL_DRAW, MINE_FORKED_TUNNEL_MODEL_DRAW_SHOW_AUTO, 0);
@@ -1236,7 +1408,7 @@ static s32 _mineForkedTunnelApplyAreaObjectCommand(Task* task, s32 messageId, co
             // Retained block shape preserves the target's placement loads.
             do {
                 case MINE_FORKED_TUNNEL_AREA_OBJECT_COMMAND_PARK:
-                    parkedPlacement = &D_mine_forked_tunnel_80181BBC;
+                    parkedPlacement = &_gMineForkedTunnelAreaObjectParkedPlacement;
                     coord           = task->extra.tmd->coords;
                     _mineForkedTunnelApplyAreaObjectPlacement(coord, parkedPlacement);
 
@@ -1258,13 +1430,13 @@ static void _mineForkedTunnelTiltAreaObjectChild(Task* task)
     ActorTransform placement;
     GfxCoord*      coord;
 
-    if (task->spawnArg1.value == MINE_FORKED_TUNNEL_AREA_OBJECT_MOTION_RUNNING && task->killCountdown < ARRAY_SIZE(D_mine_forked_tunnel_801819C4)) {
-        placement.pos.vx = D_mine_forked_tunnel_80181BA4.pos.vx;
-        placement.pos.vy = D_mine_forked_tunnel_80181BA4.pos.vy;
-        placement.pos.vz = D_mine_forked_tunnel_80181BA4.pos.vz;
-        placement.rot.vx = D_mine_forked_tunnel_801819C4[task->killCountdown].vx;
-        placement.rot.vy = D_mine_forked_tunnel_801819C4[task->killCountdown].vy;
-        placement.rot.vz = D_mine_forked_tunnel_801819C4[task->killCountdown].vz;
+    if (task->spawnArg1.value == MINE_FORKED_TUNNEL_AREA_OBJECT_MOTION_RUNNING && task->killCountdown < ARRAY_SIZE(_gMineForkedTunnelAreaObjectChildRotationPath)) {
+        placement.pos.vx = _gMineForkedTunnelAreaObjectChildPlacement.pos.vx;
+        placement.pos.vy = _gMineForkedTunnelAreaObjectChildPlacement.pos.vy;
+        placement.pos.vz = _gMineForkedTunnelAreaObjectChildPlacement.pos.vz;
+        placement.rot.vx = _gMineForkedTunnelAreaObjectChildRotationPath[task->killCountdown].vx;
+        placement.rot.vy = _gMineForkedTunnelAreaObjectChildRotationPath[task->killCountdown].vy;
+        placement.rot.vz = _gMineForkedTunnelAreaObjectChildRotationPath[task->killCountdown].vz;
 
         coord = task->extra.tmd->coords;
         _mineForkedTunnelApplyAreaObjectPlacement(coord, &placement);
@@ -1275,7 +1447,7 @@ static void _mineForkedTunnelTiltAreaObjectChild(Task* task)
 
 void mineForkedTunnelAreaObjectTask(Task* task)
 {
-    const TaskFuncTable3 stateHandlers = D_mine_forked_tunnel_8017D5C4;
+    const TaskFuncTable3 stateHandlers = _gMineForkedTunnelAreaObjectStateHandlers;
 
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         stateHandlers.funcs[task->state](task);
@@ -1362,7 +1534,7 @@ static s32 _mineForkedTunnelSetAreaObjectDrawMode(Task* task, s32 messageId, s32
 /// coordinate and lighting. The owning room overlay must remain loaded.
 static void _mineForkedTunnelAreaObjectChildTask(Task* task)
 {
-    const TaskFuncTable3 stateHandlers = D_mine_forked_tunnel_8017D5D0;
+    const TaskFuncTable3 stateHandlers = _gMineForkedTunnelAreaObjectChildStateHandlers;
 
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         stateHandlers.funcs[task->state](task);
@@ -1402,7 +1574,7 @@ static void _mineForkedTunnelAttachAreaObjectChild(Task* task)
     model->flags = model->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
 
     placementCoord = task->extra.tmd->coords;
-    _mineForkedTunnelApplyAreaObjectPlacement(placementCoord, &D_mine_forked_tunnel_80181BA4);
+    _mineForkedTunnelApplyAreaObjectPlacement(placementCoord, &_gMineForkedTunnelAreaObjectChildPlacement);
     task->state = task->state + 1;
 }
 
@@ -1425,7 +1597,7 @@ static void _mineForkedTunnelUpdateAreaObjectCollision(s32 switchUsed)
     s32                       entryIndex;
 
     roomGrid     = &_gMineForkedTunnelCollisionGrid;
-    templateGrid = &D_mine_forked_tunnel_80181C5C;
+    templateGrid = &_gMineForkedTunnelAreaObjectCollisionBox;
 
     // The room's cell lists already reserve these entries for the movable box.
     MINE_FORKED_TUNNEL_COPY_AREA_OBJECT_COLLISION_BOX(roomGrid, templateGrid, entryIndex);
@@ -1494,7 +1666,7 @@ static s32 _mineForkedTunnelBoardCommandMessage(Task* unusedTask, s32 unusedMess
         if (gameFlagGetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_152) == 0) {
             capRunCommandWithTransition(MINE_FORKED_TUNNEL_BOARD_FALLBACK_CAP_COMMAND);
         } else {
-            taskSpawnFromTable(D_mine_forked_tunnel_80183104, MINE_FORKED_TUNNEL_BOARD_PROMPT_DESCRIPTOR, 0, 0);
+            taskSpawnFromTable(_gMineForkedTunnelInteractionTaskDescriptors, MINE_FORKED_TUNNEL_BOARD_PROMPT_DESCRIPTOR, 0, 0);
         }
     }
     return 0;
@@ -1515,7 +1687,7 @@ static s32 _mineForkedTunnelHandleSwitchAction(Task* unusedTask, s32 messageId, 
     };
 
     if ((actionRequest->actionId == MINE_FORKED_TUNNEL_ACTION_USE_SWITCH) && (gameFlagGetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_SWITCH_USED) == 0)) {
-        taskSpawnFromTable(D_mine_forked_tunnel_80183104, MINE_FORKED_TUNNEL_SWITCH_INTERACTION_DESCRIPTOR, 0, 0);
+        taskSpawnFromTable(_gMineForkedTunnelInteractionTaskDescriptors, MINE_FORKED_TUNNEL_SWITCH_INTERACTION_DESCRIPTOR, 0, 0);
     }
     return 0;
 }

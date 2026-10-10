@@ -12,7 +12,13 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern AreaVariant D_mine_forked_tunnel_80185504[12];
+/// Encounter layouts indexed directly by the tunnel's saved placement variant, in 0..11.
+///
+/// Populated slots are 1 empty, 2 four scavengers, 3 two scorpions and eight
+/// moths, 4 two scorpions and three Mind Sucklers, and 11 two bats. Other slots
+/// contain two NULL pointers. Each populated slot borrows terminated placement
+/// and resource lists from this overlay; keep them loaded for loading and spawning.
+extern AreaVariant gMineForkedTunnelAreaVariants[12];
 
 extern TmdSource gMineForkedTunnelModel01B48;
 
@@ -23,7 +29,12 @@ extern TmdSource gMineForkedTunnelModel01B48;
 /// descriptor and its resources only while this room overlay remains loaded.
 extern WorldCoordRoomLighting gMineForkedTunnelRoomLighting[1];
 
-extern WorldCollisionRoomResources D_mine_forked_tunnel_8018363C[];
+/// Collision resources for the tunnel's single room, indexed by room ID minus one.
+///
+/// Borrows the mutable room grid, six view boundaries and six facing action
+/// quads, with no sight occluders. Gameplay binds and links these resources;
+/// keep this overlay loaded until the grid is retired and triggers unlinked.
+extern WorldCollisionRoomResources gMineForkedTunnelRoomCollisionResources[1];
 
 /// Logical-view map directory for the tunnel's single room, indexed by room ID minus one.
 ///
@@ -32,11 +43,28 @@ extern WorldCollisionRoomResources D_mine_forked_tunnel_8018363C[];
 /// valid domain; the shared map has a larger capacity and no terminator.
 extern u8* gMineForkedTunnelRoomViewMaps[1];
 
-extern ViewCount D_mine_forked_tunnel_80183650[];
+/// Logical-view count for the tunnel's single room, indexed by room ID minus one.
+///
+/// The seven entries in the room's identity map select cameras/images 1..7.
+/// There is no count header or terminator; the stage map borrows this array
+/// only while the room overlay is loaded.
+extern ViewCount gMineForkedTunnelRoomViewCounts[1];
 
-extern DirectionWarpEntry D_mine_forked_tunnel_80183654[];
+/// The tunnel's single departure/arrival endpoint, selected by 1-based warp slot 1.
+///
+/// Both arriving actors face a half-turn at (2350, 0, 10500) world units and
+/// the initial logical view is 3. The endpoint supplies arrival/departure
+/// sounds, no blocked sound, and no optional spawn, fade or map-marker flags.
+/// The stage map borrows it while this overlay is loaded; there is no terminator.
+extern DirectionWarpEntry gMineForkedTunnelWarpEntries[1];
 
-extern ViewCamera D_mine_forked_tunnel_80183D94[];
+/// Cameras for the tunnel's seven mapped views, indexed by mapped view minus one.
+///
+/// Each record holds a world-to-camera rotation at 4096 per unit, negated
+/// world-space origin and perspective distance in pixels. Logical views 1..7
+/// map directly to these records. The stage map borrows the array while this
+/// overlay is loaded; there is no count header or terminator.
+extern ViewCamera gMineForkedTunnelViewCameras[7];
 
 /// Sprite resources for the tunnel's seven mapped views, indexed by mapped view minus one.
 ///
