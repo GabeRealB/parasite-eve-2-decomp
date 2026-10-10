@@ -322,17 +322,17 @@ D_shelter_b2_north_maintenance_walkway_80186308 = 0x80186308; // absolute:True o
 D_shelter_b2_north_maintenance_walkway_80186360 = 0x80186360; // absolute:True owner=shelter_b2_north_maintenance_walkway shared=rooms
 shelterB2LaboratoryTask = 0x801804A4; // type:func absolute:True owner=shelter_b2_laboratory
 gShelterB2LaboratoryAcropolisSanctuaryModel090F0 = 0x801829E4; // absolute:True owner=shelter_b2_laboratory
-D_shelter_b2_laboratory_80182C08 = 0x80182C08; // absolute:True owner=shelter_b2_laboratory shared=rooms
+gShelterB2LaboratoryRoomViewMaps = 0x80182C08; // absolute:True owner=shelter_b2_laboratory shared=rooms
 D_shelter_b2_laboratory_80182C0C = 0x80182C0C; // absolute:True owner=shelter_b2_laboratory
 D_shelter_b2_laboratory_80182C10 = 0x80182C10; // absolute:True owner=shelter_b2_laboratory shared=rooms
-D_shelter_b2_laboratory_8018355C = 0x8018355C; // absolute:True owner=shelter_b2_laboratory
+gShelterB2LaboratoryCollisionGrid = 0x8018355C; // absolute:True owner=shelter_b2_laboratory
 D_shelter_b2_laboratory_80183580 = 0x80183580; // absolute:True owner=shelter_b2_laboratory
 D_shelter_b2_laboratory_801854D0 = 0x801854D0; // absolute:True owner=shelter_b2_laboratory
-D_shelter_b2_laboratory_80185944 = 0x80185944; // absolute:True owner=shelter_b2_laboratory
+gShelterB2LaboratoryRoomLights = 0x80185944; // absolute:True owner=shelter_b2_laboratory
 D_shelter_b2_laboratory_8018595C = 0x8018595C; // absolute:True owner=shelter_b2_laboratory
 D_shelter_b2_laboratory_80185D84 = 0x80185D84; // absolute:True owner=shelter_b2_laboratory
-D_shelter_b2_laboratory_801863B8 = 0x801863B8; // absolute:True owner=shelter_b2_laboratory
-D_shelter_b2_laboratory_80186468 = 0x80186468; // absolute:True owner=shelter_b2_laboratory
+gShelterB2LaboratoryViewAmbientTable = 0x801863B8; // absolute:True owner=shelter_b2_laboratory
+gShelterB2LaboratorySurfacePropertiesByClass = 0x80186468; // absolute:True owner=shelter_b2_laboratory
 shelterB2BreedingRoomAreaObjectTask = 0x8017D5F8; // type:func absolute:True owner=shelter_b2_breeding_room shared=rooms
 shelterB2BreedingRoomRoomTask = 0x8017D840; // type:func absolute:True owner=shelter_b2_breeding_room shared=rooms
 gShelterB2BreedingRoomModel02E04 = 0x801803F0; // absolute:True owner=shelter_b2_breeding_room

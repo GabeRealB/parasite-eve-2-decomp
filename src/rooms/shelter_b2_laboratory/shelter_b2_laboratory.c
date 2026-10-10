@@ -174,10 +174,6 @@ static void _shelterB2LaboratoryAmbienceTask(Task* task);
 static void _shelterB2LaboratoryConsoleKeypadTask(Task* task);
 static void _shelterB2LaboratoryFinishConsoleSceneTask(Task* task);
 
-extern WorldCollisionSurfaceProperties D_shelter_b2_laboratory_80186450[1];
-extern WorldCollisionSurfaceProperties D_shelter_b2_laboratory_80186458[1];
-extern WorldCollisionSurfaceProperties D_shelter_b2_laboratory_80186460[1];
-
 #include "../../shared/telephone_data.inc.c"
 
 static TmdBone _gShelterB2LaboratoryAcropolisSanctuaryModel090F0Skeleton[3] = {
@@ -313,7 +309,7 @@ SVECTOR D_shelter_b2_laboratory_80182AA0[45] = {
     { 3181, -1161, -3312, 0 },
 };
 
-u8* D_shelter_b2_laboratory_80182C08[1] = {
+u8* gShelterB2LaboratoryRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -324,29 +320,46 @@ DirectionWarpEntry D_shelter_b2_laboratory_80182C10[2] = {
     { { { .word = 2048 }, 6350, 0, 2900 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 6350, 0, 2900 }, { 0, 0, 0, 0 }, 0x541F0002, 0x541F0001, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gShelterB2LaboratoryCollision05F9CNormals[23] = {
+/// Room-space collision normals, with 4096 representing unit length.
+static SVECTOR _gShelterB2LaboratoryCollisionGridNormals[23] = {
 #include "assets/shelter_b2_laboratory_collision_05F9C_normals.inc"
 };
 
-static SVECTOR _gShelterB2LaboratoryCollision05F9CVerts[123] = {
+/// Collision mesh vertices in signed room-coordinate units.
+static SVECTOR _gShelterB2LaboratoryCollisionGridVerts[123] = {
 #include "assets/shelter_b2_laboratory_collision_05F9C_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB2LaboratoryCollision05F9CFaces[51] = {
+/// Indexed collision faces and their room-local surface classes.
+static WorldCollisionGridFace _gShelterB2LaboratoryCollisionGridFaces[51] = {
 #include "assets/shelter_b2_laboratory_collision_05F9C_faces.inc"
 };
 
-static s16 _gShelterB2LaboratoryCollision05F9CCells[220] = {
+/// Cell face-index lists, each ending with WORLD_COLLISION_GRID_CELL_END.
+static s16 _gShelterB2LaboratoryCollisionGridCells[220] = {
 #include "assets/shelter_b2_laboratory_collision_05F9C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB2LaboratoryCollision05F9CCells[i])
-static s16* _gShelterB2LaboratoryCollision05F9CTable[12] = {
+#define GRID_CELL(i) (&_gShelterB2LaboratoryCollisionGridCells[i])
+/// X-major 4-by-3 directory of face-index lists in the cell pool.
+static s16* _gShelterB2LaboratoryCollisionGridTable[12] = {
 #include "assets/shelter_b2_laboratory_collision_05F9C_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b2_laboratory_8018355C = { NULL, _gShelterB2LaboratoryCollision05F9CNormals, _gShelterB2LaboratoryCollision05F9CVerts, _gShelterB2LaboratoryCollision05F9CFaces, _gShelterB2LaboratoryCollision05F9CTable, 1411, 4736, 4, 3, 4000, 51 };
+WorldCollisionGrid gShelterB2LaboratoryCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB2LaboratoryCollisionGridNormals,
+    .vertices    = _gShelterB2LaboratoryCollisionGridVerts,
+    .faces       = _gShelterB2LaboratoryCollisionGridFaces,
+    .cellFaceIds = _gShelterB2LaboratoryCollisionGridTable,
+    .xBias       = 1411,
+    .zBias       = 4736,
+    .cellCountX  = 4,
+    .cellCountZ  = 3,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gShelterB2LaboratoryCollisionGridFaces),
+};
 
 ViewCamera D_shelter_b2_laboratory_80183580[15] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -6200, 0x7530, -1480 } }, 564 },
@@ -366,12 +379,14 @@ ViewCamera D_shelter_b2_laboratory_80183580[15] = {
     { { { { 862, 0, 4004 }, { 1204, 3906, -259 }, { -3818, 1231, 822 } }, { -6593, 1887, 2833 } }, 246 },
 };
 
-SpriteBatch D_shelter_b2_laboratory_8018379C[2] = {
+/// View 1's empty sprite list; its zero first count keeps decoded image strips.
+static SpriteBatch _gShelterB2LaboratoryView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_laboratory_801837AC[51] = {
+/// View 2's 51 texture rectangles, positioned in view pixels with unscaled OT depths.
+static SpriteSource _gShelterB2LaboratoryView2SpriteSources[51] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, -128, 40, 0, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 8 } }, -144, 16, 0, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 8 } }, -136, 24, 0, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
@@ -425,7 +440,8 @@ SpriteSource D_shelter_b2_laboratory_801837AC[51] = {
     { 143, 0x3FC0, { .fields = { 8, 24 } }, -88, -24, 1480, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b2_laboratory_80183BA8[5] = {
+/// View 2's image-strip selector and sprite ranges [0,19), [19,47), [47,51).
+static SpriteBatch _gShelterB2LaboratoryView2SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 19, 0, 0, { 1, 0 } },
     { 19, 28, 0, 0, { 2, 0 } },
@@ -433,7 +449,8 @@ SpriteBatch D_shelter_b2_laboratory_80183BA8[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_laboratory_80183BD0[20] = {
+/// View 3's 20 texture rectangles, positioned in view pixels with unscaled OT depths.
+static SpriteSource _gShelterB2LaboratoryView3SpriteSources[20] = {
     { 143, 0x3FC0, { .fields = { 16, 56 } }, 96, -80, 0, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 40 } }, 96, -24, 0, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 104, -24, 0, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
@@ -456,13 +473,15 @@ SpriteSource D_shelter_b2_laboratory_80183BD0[20] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 96, 104, 0, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b2_laboratory_80183D60[3] = {
+/// View 3's image-strip selector and one range covering its complete sprite array.
+static SpriteBatch _gShelterB2LaboratoryView3SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 20, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB2LaboratoryView3SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_laboratory_80183D78[30] = {
+/// View 4's 30 texture rectangles, positioned in view pixels with unscaled OT depths.
+static SpriteSource _gShelterB2LaboratoryView4SpriteSources[30] = {
     { 143, 0x3FC0, { .fields = { 16, 56 } }, 48, -40, 1397, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 56 } }, 64, -40, 1311, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 56 } }, 80, -40, 1267, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
@@ -495,7 +514,8 @@ SpriteSource D_shelter_b2_laboratory_80183D78[30] = {
     { 143, 0x3FC0, { .fields = { 16, 16 } }, -160, -16, 648, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b2_laboratory_80183FD0[5] = {
+/// View 4's image-strip selector and sprite ranges [0,4), [4,10), [10,30).
+static SpriteBatch _gShelterB2LaboratoryView4SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 4, 0, 0, { 1, 0 } },
     { 4, 6, 0, 0, { 2, 0 } },
@@ -503,7 +523,10 @@ SpriteBatch D_shelter_b2_laboratory_80183FD0[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_laboratory_80183FF8[23] = {
+/// View 5's 23 authored sprite rectangles in view pixels with unscaled OT depths.
+///
+/// Its batch selects 24 records; the intended storage boundary is unproven.
+static SpriteSource _gShelterB2LaboratoryView5SpriteSources[23] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, -32, 0, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, -24, 0, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, -16, 0, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
@@ -529,18 +552,24 @@ SpriteSource D_shelter_b2_laboratory_80183FF8[23] = {
     { 143, 0x3FC0, { .fields = { 16, 32 } }, 96, 16, 619, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b2_laboratory_801841C4[3] = {
+/// View 5's image-strip selector and retained range [0,24).
+///
+/// The associated source array declares 23 records; the extra record's role
+/// and intended storage boundary are unproven.
+static SpriteBatch _gShelterB2LaboratoryView5SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 24, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b2_laboratory_801841DC[2] = {
+/// View 6's empty sprite list; its zero first count keeps decoded image strips.
+static SpriteBatch _gShelterB2LaboratoryView6SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_laboratory_801841EC[99] = {
+/// View 7's 99 view-pixel sprite rectangles, including semitransparent sources.
+static SpriteSource _gShelterB2LaboratoryView7SpriteSources[99] = {
     { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, 64, 0, { .fields = { 64, 120 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
     { 143, 0x3FC0, { .fields = { 8, 40 } }, -136, 64, 0, { .fields = { 80, 80 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
     { 143, 0x3FC0, { .fields = { 32, 32 } }, -128, 72, 0, { .fields = { 32, 160 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
@@ -642,14 +671,16 @@ SpriteSource D_shelter_b2_laboratory_801841EC[99] = {
     { 142, 0x4000, { .fields = { 32, 16 } }, -160, -8, 619, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b2_laboratory_801849A8[4] = {
+/// View 7's image-strip selector and sprite ranges [0,47), [47,99).
+static SpriteBatch _gShelterB2LaboratoryView7SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 47, 0, 0, { 1, 0 } },
     { 47, 52, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_laboratory_801849C8[78] = {
+/// View 8's 78 view-pixel sprite rectangles, including semitransparent sources.
+static SpriteSource _gShelterB2LaboratoryView8SpriteSources[78] = {
     { 142, 0x3FC0, { .fields = { 80, 16 } }, -64, -32, 0, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 72, 16 } }, -56, -16, 0, { .fields = { 0, 48 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 64, 8 } }, -48, 0, 0, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
@@ -730,7 +761,8 @@ SpriteSource D_shelter_b2_laboratory_801849C8[78] = {
     { 143, 0x4000, { .fields = { 16, 24 } }, -80, -24, 1164, { .fields = { 72, 120 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteBatch D_shelter_b2_laboratory_80184FE0[6] = {
+/// View 8's image-strip selector and ranges [0,34), [34,47), [47,55), [55,78).
+static SpriteBatch _gShelterB2LaboratoryView8SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 34, 0, 0, { 3, 0 } },
     { 34, 13, 0, 0, { 0, 0 } },
@@ -739,7 +771,8 @@ SpriteBatch D_shelter_b2_laboratory_80184FE0[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_laboratory_80185010[16] = {
+/// View 9's 16 texture rectangles, positioned in view pixels with unscaled OT depths.
+static SpriteSource _gShelterB2LaboratoryView9SpriteSources[16] = {
     { 143, 0x3FC0, { .fields = { 40, 64 } }, -56, -16, 375, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 64 } }, -16, -16, 375, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, 56, 403, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
@@ -758,9 +791,10 @@ SpriteSource D_shelter_b2_laboratory_80185010[16] = {
     { 143, 0x3FC0, { .fields = { 40, 24 } }, 80, 96, 375, { .fields = { 48, 152 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b2_laboratory_80185150[3] = {
+/// View 9's image-strip selector and one range covering its complete sprite array.
+static SpriteBatch _gShelterB2LaboratoryView9SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 16, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB2LaboratoryView9SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
@@ -842,15 +876,15 @@ SpriteDrawArea D_shelter_b2_laboratory_801854BC[2] = {
 };
 
 SpriteView D_shelter_b2_laboratory_801854D0[15] = {
-    { { .empty = D_shelter_b2_laboratory_8018379C }, D_shelter_b2_laboratory_8018379C, NULL },
-    { { .elements = D_shelter_b2_laboratory_801837AC }, D_shelter_b2_laboratory_80183BA8, NULL },
-    { { .elements = D_shelter_b2_laboratory_80183BD0 }, D_shelter_b2_laboratory_80183D60, NULL },
-    { { .elements = D_shelter_b2_laboratory_80183D78 }, D_shelter_b2_laboratory_80183FD0, NULL },
-    { { .elements = D_shelter_b2_laboratory_80183FF8 }, D_shelter_b2_laboratory_801841C4, NULL },
-    { { .empty = D_shelter_b2_laboratory_801841DC }, D_shelter_b2_laboratory_801841DC, NULL },
-    { { .elements = D_shelter_b2_laboratory_801841EC }, D_shelter_b2_laboratory_801849A8, NULL },
-    { { .elements = D_shelter_b2_laboratory_801849C8 }, D_shelter_b2_laboratory_80184FE0, NULL },
-    { { .elements = D_shelter_b2_laboratory_80185010 }, D_shelter_b2_laboratory_80185150, NULL },
+    { { .empty = _gShelterB2LaboratoryView1SpriteBatches }, _gShelterB2LaboratoryView1SpriteBatches, NULL },
+    { { .elements = _gShelterB2LaboratoryView2SpriteSources }, _gShelterB2LaboratoryView2SpriteBatches, NULL },
+    { { .elements = _gShelterB2LaboratoryView3SpriteSources }, _gShelterB2LaboratoryView3SpriteBatches, NULL },
+    { { .elements = _gShelterB2LaboratoryView4SpriteSources }, _gShelterB2LaboratoryView4SpriteBatches, NULL },
+    { { .elements = _gShelterB2LaboratoryView5SpriteSources }, _gShelterB2LaboratoryView5SpriteBatches, NULL },
+    { { .empty = _gShelterB2LaboratoryView6SpriteBatches }, _gShelterB2LaboratoryView6SpriteBatches, NULL },
+    { { .elements = _gShelterB2LaboratoryView7SpriteSources }, _gShelterB2LaboratoryView7SpriteBatches, NULL },
+    { { .elements = _gShelterB2LaboratoryView8SpriteSources }, _gShelterB2LaboratoryView8SpriteBatches, NULL },
+    { { .elements = _gShelterB2LaboratoryView9SpriteSources }, _gShelterB2LaboratoryView9SpriteBatches, NULL },
     { { .empty = D_shelter_b2_laboratory_80185168 }, D_shelter_b2_laboratory_80185168, NULL },
     { { .empty = D_shelter_b2_laboratory_80185178 }, D_shelter_b2_laboratory_80185178, NULL },
     { { .empty = D_shelter_b2_laboratory_80185188 }, D_shelter_b2_laboratory_80185188, NULL },
@@ -859,20 +893,31 @@ SpriteView D_shelter_b2_laboratory_801854D0[15] = {
     { { .elements = D_shelter_b2_laboratory_801851B8 }, D_shelter_b2_laboratory_8018549C, D_shelter_b2_laboratory_801854BC },
 };
 
-WorldCoordPointLight D_shelter_b2_laboratory_80185584[10] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5547, -1204, 1082 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2071, 2222, 2201 }, { 0, 0 } }, 4000, 8000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6419, -1756, 3004 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 890, 1978, 1175 }, { 0, 0 } }, 1261, 1721 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2237, -2188, 1564 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1010, 2438, 694 }, { 0, 0 } }, 500, 1600 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2783, -1669, 5243 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3331, 3396, 3526 }, { 0, 0 } }, 1640, 2940 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9198, -3405, -364 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1826, 2022, 2062 }, { 0, 0 } }, 2739, 7039 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2D99, -2950, -1960 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1848, 2009, 2285 }, { 0, 0 } }, 1201, 2200 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 457, -3405, -852 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1569, 1642, 1699 }, { 0, 0 } }, 1979, 4319 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3290, -989, -1161 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1474, 1940, 1859 }, { 0, 0 } }, 700, 1199 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2B0A, -2989, -198 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 562, 1720, 1805 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2B0A, -3109, 2300 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 562, 1280, 1485 }, { 0, 0 } }, 500, 1500 },
+/// Ten authored point lights: Q12 RGB intensity and inner/outer radii in world units.
+///
+/// All contribute in every logical view. Coordinate caches, parents and
+/// attenuation remain writable while the room lighting collection is bound.
+static WorldCoordPointLight _gShelterB2LaboratoryPointLights[10] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5547, -1204, 1082 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2071, 2222, 2201 }, { 0, 0 } }, 4000, 8000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6419, -1756, 3004 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 890, 1978, 1175 }, { 0, 0 } }, 1261, 1721 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2237, -2188, 1564 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1010, 2438, 694 }, { 0, 0 } }, 500, 1600 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2783, -1669, 5243 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3331, 3396, 3526 }, { 0, 0 } }, 1640, 2940 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 9198, -3405, -364 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1826, 2022, 2062 }, { 0, 0 } }, 2739, 7039 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2D99, -2950, -1960 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1848, 2009, 2285 }, { 0, 0 } }, 1201, 2200 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 457, -3405, -852 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1569, 1642, 1699 }, { 0, 0 } }, 1979, 4319 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3290, -989, -1161 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1474, 1940, 1859 }, { 0, 0 } }, 700, 1199 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2B0A, -2989, -198 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 562, 1720, 1805 }, { 0, 0 } }, 500, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2B0A, -3109, 2300 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 562, 1280, 1485 }, { 0, 0 } }, 500, 1500 },
 };
 
-WorldCoordRoomLights D_shelter_b2_laboratory_80185944 = { 0, NULL, ARRAY_SIZE(D_shelter_b2_laboratory_80185584), D_shelter_b2_laboratory_80185584, 0, NULL };
+WorldCoordRoomLights gShelterB2LaboratoryRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gShelterB2LaboratoryPointLights),
+    .pointLights           = _gShelterB2LaboratoryPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
+};
 
 WorldCollisionTrigger D_shelter_b2_laboratory_8018595C[14] = {
     { NULL, NULL, NULL, { 5680, -1616, 1944, 0 }, { { 28, -3232, -2247, 0 }, { -47, -3232, 2228, 0 }, { 28, 3232, -2247, 0 }, { -47, 3232, 2228, 0 } }, { 4098, 0, 68, 0 }, { 0, 0, 4096, 0 }, 3924, 0, 4, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -937,8 +982,8 @@ AreaVariant D_shelter_b2_laboratory_80186360[11] = {
     { NULL, NULL },
 };
 
-WorldCoordRoomAmbientEntry D_shelter_b2_laboratory_801863B8[16] = {
-    { .viewCount = ARRAY_SIZE(D_shelter_b2_laboratory_801863B8) - 1 },
+WorldCoordRoomAmbientEntry gShelterB2LaboratoryViewAmbientTable[SHELTER_B2_LABORATORY_VIEW_COUNT + 1] = {
+    { .viewCount = ARRAY_SIZE(gShelterB2LaboratoryViewAmbientTable) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 952, 944, 999, 953 } },
@@ -956,39 +1001,64 @@ WorldCoordRoomAmbientEntry D_shelter_b2_laboratory_801863B8[16] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-WorldCollisionFootstepSounds D_shelter_b2_laboratory_80186438 = {
-    0x10000009,
-    0x1000000B,
-    0x10000009,
+/// Paired cue-2 bases in the loaded type-1 sound bank; cue 1 uses the next entry.
+enum {
+    SHELTER_B2_LABORATORY_CLASS_1_FOOTSTEP_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x09,
+    SHELTER_B2_LABORATORY_CLASS_1_FOOTSTEP_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x0B,
+    SHELTER_B2_LABORATORY_CLASS_2_FOOTSTEP_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x61,
+    SHELTER_B2_LABORATORY_CLASS_2_FOOTSTEP_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x63,
 };
 
-WorldCollisionFootstepSounds D_shelter_b2_laboratory_80186444 = {
-    0x10000061,
-    0x10000063,
-    0x10000061,
+/// Surface class 1's walk/run cue bases; stair climbing selects the walking pair.
+static WorldCollisionFootstepSounds _gShelterB2LaboratoryClass1FootstepSounds = {
+    .walk         = SHELTER_B2_LABORATORY_CLASS_1_FOOTSTEP_WALK_CUE_BASE,
+    .run          = SHELTER_B2_LABORATORY_CLASS_1_FOOTSTEP_RUN_CUE_BASE,
+    .scriptedJump = SHELTER_B2_LABORATORY_CLASS_1_FOOTSTEP_WALK_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b2_laboratory_80186450[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Surface class 2's walk/run cue bases; stair climbing selects the walking pair.
+static WorldCollisionFootstepSounds _gShelterB2LaboratoryClass2FootstepSounds = {
+    .walk         = SHELTER_B2_LABORATORY_CLASS_2_FOOTSTEP_WALK_CUE_BASE,
+    .run          = SHELTER_B2_LABORATORY_CLASS_2_FOOTSTEP_RUN_CUE_BASE,
+    .scriptedJump = SHELTER_B2_LABORATORY_CLASS_2_FOOTSTEP_WALK_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b2_laboratory_80186458[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b2_laboratory_80186438 },
+/// Blocking, impact-enabled surface policy without footsteps, shared by classes 0 and 3..7.
+static WorldCollisionSurfaceProperties _gShelterB2LaboratorySilentSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b2_laboratory_80186460[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b2_laboratory_80186444 },
+/// Surface class 1's blocking, impact-enabled policy with its walking and running cues.
+static WorldCollisionSurfaceProperties _gShelterB2LaboratoryClass1SurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB2LaboratoryClass1FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_b2_laboratory_80186468[8] = {
-    D_shelter_b2_laboratory_80186450,
-    D_shelter_b2_laboratory_80186458,
-    D_shelter_b2_laboratory_80186460,
-    D_shelter_b2_laboratory_80186450,
-    D_shelter_b2_laboratory_80186450,
-    D_shelter_b2_laboratory_80186450,
-    D_shelter_b2_laboratory_80186450,
-    D_shelter_b2_laboratory_80186450,
+/// Surface class 2's blocking, impact-enabled policy with its walking and running cues.
+static WorldCollisionSurfaceProperties _gShelterB2LaboratoryClass2SurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB2LaboratoryClass2FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gShelterB2LaboratorySurfacePropertiesByClass[SHELTER_B2_LABORATORY_SURFACE_CLASS_COUNT] = {
+    &_gShelterB2LaboratorySilentSurfaceProperties,
+    &_gShelterB2LaboratoryClass1SurfaceProperties,
+    &_gShelterB2LaboratoryClass2SurfaceProperties,
+    &_gShelterB2LaboratorySilentSurfaceProperties,
+    &_gShelterB2LaboratorySilentSurfaceProperties,
+    &_gShelterB2LaboratorySilentSurfaceProperties,
+    &_gShelterB2LaboratorySilentSurfaceProperties,
+    &_gShelterB2LaboratorySilentSurfaceProperties,
 };
 
 AreaApplyRec D_shelter_b2_laboratory_80186488[5] = {
