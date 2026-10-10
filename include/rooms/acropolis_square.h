@@ -20,11 +20,22 @@ extern AreaVariant D_acropolis_square_80185E50[3];
 // acropolis_square
 extern WorldCollisionRoomResources D_acropolis_square_80183B9C[];
 
-extern u8* D_acropolis_square_80183BAC[];
+/// Logical-view mapping for the square's single room, borrowed by the Akropolis map.
+///
+/// Room 1 uses `gViewIdentityMap`: logical views 1..15 select the same 1-based
+/// camera, image and sprite indices. The directory has no terminator; gameplay
+/// owns the shared byte map. Keep this room overlay loaded while using the directory.
+extern u8* gAcropolisSquareViewMaps[1];
 
 extern ViewCount D_acropolis_square_80183BB0[];
 
-extern WorldCoordRoomLighting D_acropolis_square_80183BB4[];
+/// Model lighting for the square's single room, borrowed by the Akropolis map.
+///
+/// Room 1 supplies sixteen mutable point lights, no directional or cone lights,
+/// and minimum ambient RGB of 16 for each of its fifteen logical views. RGB
+/// minima use 16 units per 8-bit colour level. The room overlay owns the record
+/// and referenced storage; keep it loaded while lighting uses them.
+extern WorldCoordRoomLighting gAcropolisSquareRoomLightingTable[1];
 
 extern DirectionWarpEntry D_acropolis_square_80183BBC[];
 
@@ -32,7 +43,13 @@ extern SpriteView D_acropolis_square_8018857C[];
 
 extern ViewCamera D_acropolis_square_80188630[];
 
-extern WorldCollisionSurfaceProperties* D_acropolis_square_80188868[];
+/// Collision and footstep policies indexed by the square's surface classes 0..7.
+///
+/// Every class blocks probes, permits weapon impacts and applies pushback.
+/// Class 4 supplies walking/running cue pairs, with scripted jumps reusing walking;
+/// classes 0..3 and 5..7 share a record with no footstep cues. The directory has
+/// no terminator and borrows room-owned records; keep the square overlay loaded.
+extern WorldCollisionSurfaceProperties* gAcropolisSquareSurfacePropertiesByClass[8];
 
 /// Starts the square's one-time siren scene and applies placement variant 2.
 ///

@@ -693,7 +693,7 @@ u16 D_map_akropolis_8017AA0C[14] = {
 };
 
 WorldCoordRoomLighting* D_map_akropolis_8017AA28[20] = {
-    D_acropolis_square_80183BB4,
+    gAcropolisSquareRoomLightingTable,
     gAcropolisEastElevatorHallRoomLightingTable,
     gAcropolisPatioRoomLightingTable,
     gAcropolisCafeteriaRoomLightingTable,
@@ -839,7 +839,7 @@ static ViewCamera* D_map_akropolis_8017ABC4[20] = {
 ViewCameraTable D_map_akropolis_8017AC14 = { D_map_akropolis_8017ABC4 };
 
 static u8** D_map_akropolis_8017AC18[20] = {
-    D_acropolis_square_80183BAC,
+    gAcropolisSquareViewMaps,
     gAcropolisEastElevatorHallViewMaps,
     gAcropolisPatioViewMaps,
     gAcropolisCafeteriaViewMaps,
@@ -864,7 +864,7 @@ static u8** D_map_akropolis_8017AC18[20] = {
 ViewIndexTable D_map_akropolis_8017AC68 = { D_map_akropolis_8017AC18 };
 
 WorldCollisionSurfaceProperties** D_map_akropolis_8017AC6C[20] = {
-    D_acropolis_square_80188868,
+    gAcropolisSquareSurfacePropertiesByClass,
     gAcropolisEastElevatorHallSurfacePropertiesByClass,
     gAcropolisPatioSurfacePropertiesByClass,
     gAcropolisCafeteriaSurfacePropertiesByClass,

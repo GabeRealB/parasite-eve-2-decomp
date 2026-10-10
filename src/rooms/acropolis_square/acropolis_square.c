@@ -133,11 +133,11 @@ static void _acropolisSquareScrollingBackdropTask(Task* task);
 static void _acropolisSquareCapViewSequenceTask(Task* task);
 static void _acropolisSquareControlScrollingBackdrop(s32 action);
 
-extern WorldCollisionGrid         D_acropolis_square_8018519C[1];
+static WorldCollisionGrid         _gAcropolisSquareCollisionGrid;
 extern WorldCollisionTrigger      D_acropolis_square_801851C0[16];
 extern WorldCollisionTrigger      D_acropolis_square_80185680[26];
-extern WorldCoordRoomAmbientEntry D_acropolis_square_80186480[16];
-extern WorldCoordRoomLights       D_acropolis_square_80186468[1];
+static WorldCoordRoomAmbientEntry _gAcropolisSquareAmbientTable[16];
+static WorldCoordRoomLights       _gAcropolisSquareRoomLights;
 
 #include "../../shared/planar_reflection_data.inc.c"
 
@@ -287,17 +287,17 @@ s16 D_acropolis_square_80183B68[24] = {
 s32 D_acropolis_square_80183B98 = 0;
 
 WorldCollisionRoomResources D_acropolis_square_80183B9C[1] = {
-    { D_acropolis_square_8018519C, D_acropolis_square_801851C0, D_acropolis_square_80185680, NULL },
+    { &_gAcropolisSquareCollisionGrid, D_acropolis_square_801851C0, D_acropolis_square_80185680, NULL },
 };
 
-u8* D_acropolis_square_80183BAC[1] = {
+u8* gAcropolisSquareViewMaps[1] = {
     gViewIdentityMap,
 };
 
 ViewCount D_acropolis_square_80183BB0[1] = { 15 };
 
-WorldCoordRoomLighting D_acropolis_square_80183BB4[1] = {
-    { D_acropolis_square_80186468, D_acropolis_square_80186480 },
+WorldCoordRoomLighting gAcropolisSquareRoomLightingTable[1] = {
+    { .lights = &_gAcropolisSquareRoomLights, .ambientTable = _gAcropolisSquareAmbientTable },
 };
 
 DirectionWarpEntry D_acropolis_square_80183BBC[7] = {
@@ -310,30 +310,50 @@ DirectionWarpEntry D_acropolis_square_80183BBC[7] = {
     { { { .word = 1024 }, -6510, -2136, 511 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -6510, -2136, 511 }, { 0, 0, 0, 0 }, 0x51010003, 0x51010002, 0x51010004, 15, DIRECTION_WARP_FLAG_NONE, 503 },
 };
 
-static SVECTOR _gAcropolisSquareCollision07BDCNormals[82] = {
+/// Room-space collision normals, with ONE (4096) for unit length.
+static SVECTOR _gAcropolisSquareCollisionGridNormals[] = {
 #include "assets/acropolis_square_collision_07BDC_normals.inc"
 };
 
-static SVECTOR _gAcropolisSquareCollision07BDCVerts[262] = {
+/// Collision vertices in signed room game coordinates.
+static SVECTOR _gAcropolisSquareCollisionGridVerts[] = {
 #include "assets/acropolis_square_collision_07BDC_verts.inc"
 };
 
-static WorldCollisionGridFace _gAcropolisSquareCollision07BDCFaces[115] = {
+/// Indexed collision quads: 90 in surface class 0 and 25 in class 4.
+static WorldCollisionGridFace _gAcropolisSquareCollisionGridFaces[] = {
 #include "assets/acropolis_square_collision_07BDC_faces.inc"
 };
 
-static s16 _gAcropolisSquareCollision07BDCCells[506] = {
+/// Packed cell face-index lists, each ending with WORLD_COLLISION_GRID_CELL_END.
+static s16 _gAcropolisSquareCollisionGridCells[] = {
 #include "assets/acropolis_square_collision_07BDC_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gAcropolisSquareCollision07BDCCells[i])
-static s16* _gAcropolisSquareCollision07BDCTable[16] = {
+#define GRID_CELL(i) (&_gAcropolisSquareCollisionGridCells[i])
+/// X-major 4-by-4 directory of face lists in `_gAcropolisSquareCollisionGridCells`.
+static s16* _gAcropolisSquareCollisionGridTable[] = {
 #include "assets/acropolis_square_collision_07BDC_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_acropolis_square_8018519C[1] = {
-    { NULL, _gAcropolisSquareCollision07BDCNormals, _gAcropolisSquareCollision07BDCVerts, _gAcropolisSquareCollision07BDCFaces, _gAcropolisSquareCollision07BDCTable, 7000, 8000, 4, 4, 4000, 115 },
+/// The square's collision mesh and its 4-by-4 spatial index in the room XZ plane.
+///
+/// Cells have 4000-unit sides and origin (-7000, -8000); the directory index is
+/// x * 4 + z. Room setup borrows this mutable record and binds its view coordinate.
+/// The record, mesh pools and face lists stay live while this overlay is loaded.
+static WorldCollisionGrid _gAcropolisSquareCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gAcropolisSquareCollisionGridNormals,
+    .vertices    = _gAcropolisSquareCollisionGridVerts,
+    .faces       = _gAcropolisSquareCollisionGridFaces,
+    .cellFaceIds = _gAcropolisSquareCollisionGridTable,
+    .xBias       = 7000,
+    .zBias       = 8000,
+    .cellCountX  = 4,
+    .cellCountZ  = 4,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gAcropolisSquareCollisionGridFaces),
 };
 
 WorldCollisionTrigger D_acropolis_square_801851C0[16] = {
@@ -677,12 +697,26 @@ static WorldCoordPointLight _gAcropolisSquarePointLights[] = {
     },
 };
 
-WorldCoordRoomLights D_acropolis_square_80186468[1] = {
-    { 0, NULL, ARRAY_SIZE(_gAcropolisSquarePointLights), _gAcropolisSquarePointLights, 0, NULL },
+/// The square's sixteen point lights, with no directional or cone lights.
+///
+/// The room-lighting table borrows this collection. Its light array stays mutable
+/// for coordinate composition and attenuation queries while the overlay is loaded.
+static WorldCoordRoomLights _gAcropolisSquareRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gAcropolisSquarePointLights),
+    .pointLights           = _gAcropolisSquarePointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
-WorldCoordRoomAmbientEntry D_acropolis_square_80186480[16] = {
-    { .viewCount = ARRAY_SIZE(D_acropolis_square_80186480) - 1 },
+/// Minimum ambient colours for the square's fifteen logical views.
+///
+/// Entry zero gives the following view count; entries 1..15 each supply RGB
+/// minima of 16 (one 8-bit colour level) and retained luma 16. Lighting borrows
+/// this table read-only; it stays live with the room overlay.
+static WorldCoordRoomAmbientEntry _gAcropolisSquareAmbientTable[16] = {
+    { .viewCount = ARRAY_SIZE(_gAcropolisSquareAmbientTable) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 16, 16, 16, 16 } },
@@ -700,17 +734,31 @@ WorldCoordRoomAmbientEntry D_acropolis_square_80186480[16] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-SpriteBatch D_acropolis_square_80186500[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Empty foreground list for logical view 1, retaining decoded background strips.
+///
+/// Keep both records: the zero-count header is skipped before the end marker
+/// is tested. The view also retains this list address in its empty source slot.
+static SpriteBatch _gAcropolisSquareView1SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_square_80186510[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Empty foreground list for logical view 2, retaining decoded background strips.
+///
+/// Keep both records: the zero-count header is skipped before the end marker
+/// is tested. The view also retains this list address in its empty source slot.
+static SpriteBatch _gAcropolisSquareView2SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-SpriteSource D_acropolis_square_80186520[73] = {
+/// 73 foreground texture rectangles for logical view 3.
+///
+/// Positions and sizes use pixels relative to the view centre; depth is the
+/// unscaled ordering-table sorting value. RGB 128 is neutral modulation and
+/// code flags are zero. The view and its batches borrow these source elements
+/// while the room overlay is loaded.
+static SpriteSource _gAcropolisSquareView3SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 40 } }, -160, -80, 2750, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, -40, 2750, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, 0, 2750, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
@@ -786,21 +834,32 @@ SpriteSource D_acropolis_square_80186520[73] = {
     { 143, 0x3FC0, { .fields = { 16, 32 } }, 24, -120, 2450, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_square_80186AD4[11] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 4, 0, 0, { 0, 0 } },
-    { 4, 3, 0, 0, { 5, 0 } },
-    { 7, 9, 0, 0, { 4, 0 } },
-    { 16, 11, 0, 0, { 6, 0 } },
-    { 27, 10, 0, 0, { 1, 0 } },
-    { 37, 6, 0, 0, { 7, 0 } },
-    { 43, 7, 0, 0, { 3, 0 } },
-    { 50, 14, 0, 0, { 8, 0 } },
-    { 64, 9, 0, 0, { 2, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Foreground sprite ranges for logical view 3, retaining decoded background strips.
+///
+/// The zero-count first record selects the background; the last record ends
+/// the list. Source indices and counts are in elements. Flags remain mutable
+/// while this overlay is loaded; the two serialized bytes retain unproven roles.
+static SpriteBatch _gAcropolisSquareView3SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = 0, .spriteCount = 4, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = 4, .spriteCount = 3, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 5, 0 } },
+    { .firstSprite = 7, .spriteCount = 9, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 4, 0 } },
+    { .firstSprite = 16, .spriteCount = 11, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 6, 0 } },
+    { .firstSprite = 27, .spriteCount = 10, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 1, 0 } },
+    { .firstSprite = 37, .spriteCount = 6, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 7, 0 } },
+    { .firstSprite = 43, .spriteCount = 7, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 3, 0 } },
+    { .firstSprite = 50, .spriteCount = 14, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 8, 0 } },
+    { .firstSprite = 64, .spriteCount = ARRAY_SIZE(_gAcropolisSquareView3SpriteSources) - 64, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 2, 0 } },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-SpriteSource D_acropolis_square_80186B2C[41] = {
+/// 41 foreground texture rectangles for logical view 4.
+///
+/// Positions and sizes use pixels relative to the view centre; depth is the
+/// unscaled ordering-table sorting value. RGB 128 is neutral modulation and
+/// code flags are zero. The view and its batches borrow these source elements
+/// while the room overlay is loaded.
+static SpriteSource _gAcropolisSquareView4SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 16, 64, 1337, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 24, 64, 1325, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 40 } }, -40, 64, 1175, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
@@ -844,15 +903,26 @@ SpriteSource D_acropolis_square_80186B2C[41] = {
     { 143, 0x3FC0, { .fields = { 32, 8 } }, 56, 40, 1712, { .fields = { 56, 16 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_square_80186E60[5] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 13, 0, 0, { 1, 0 } },
-    { 13, 9, 0, 0, { 2, 0 } },
-    { 22, 19, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Foreground sprite ranges for logical view 4, retaining decoded background strips.
+///
+/// The zero-count first record selects the background; the last record ends
+/// the list. Source indices and counts are in elements. Flags remain mutable
+/// while this overlay is loaded; the two serialized bytes retain unproven roles.
+static SpriteBatch _gAcropolisSquareView4SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = 0, .spriteCount = 13, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 1, 0 } },
+    { .firstSprite = 13, .spriteCount = 9, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 2, 0 } },
+    { .firstSprite = 22, .spriteCount = ARRAY_SIZE(_gAcropolisSquareView4SpriteSources) - 22, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-SpriteSource D_acropolis_square_80186E88[31] = {
+/// 31 foreground texture rectangles for logical view 5.
+///
+/// Positions and sizes use pixels relative to the view centre; depth is the
+/// unscaled ordering-table sorting value. RGB 128 is neutral modulation and
+/// code flags are zero. The view and its batches borrow these source elements
+/// while the room overlay is loaded.
+static SpriteSource _gAcropolisSquareView5SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 0, 80, 1118, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 40 } }, 56, 80, 1106, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 40 } }, 40, 80, 1112, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
@@ -886,15 +956,26 @@ SpriteSource D_acropolis_square_80186E88[31] = {
     { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 64, 1450, { .fields = { 72, 24 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_square_801870F4[5] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 12, 0, 0, { 1, 0 } },
-    { 12, 4, 0, 0, { 2, 0 } },
-    { 16, 15, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Foreground sprite ranges for logical view 5, retaining decoded background strips.
+///
+/// The zero-count first record selects the background; the last record ends
+/// the list. Source indices and counts are in elements. Flags remain mutable
+/// while this overlay is loaded; the two serialized bytes retain unproven roles.
+static SpriteBatch _gAcropolisSquareView5SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = 0, .spriteCount = 12, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 1, 0 } },
+    { .firstSprite = 12, .spriteCount = 4, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 2, 0 } },
+    { .firstSprite = 16, .spriteCount = ARRAY_SIZE(_gAcropolisSquareView5SpriteSources) - 16, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-SpriteSource D_acropolis_square_8018711C[91] = {
+/// 91 foreground texture rectangles for logical view 6.
+///
+/// Positions and sizes use pixels relative to the view centre; depth is the
+/// unscaled ordering-table sorting value. RGB 128 is neutral modulation and
+/// code flags are zero. The view and its batches borrow these source elements
+/// while the room overlay is loaded.
+static SpriteSource _gAcropolisSquareView6SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 136, 32, 1487, { .fields = { 40, 32 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 128, 40, 1500, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 40 } }, 144, 72, 1450, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
@@ -988,22 +1069,33 @@ SpriteSource D_acropolis_square_8018711C[91] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 8, 64, 1062, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_square_80187838[12] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 7, 0, 0, { 6, 0 } },
-    { 7, 8, 0, 0, { 1, 0 } },
-    { 15, 3, 0, 0, { 8, 0 } },
-    { 18, 7, 0, 0, { 0, 0 } },
-    { 25, 9, 0, 0, { 5, 0 } },
-    { 34, 14, 0, 0, { 2, 0 } },
-    { 48, 6, 0, 0, { 9, 0 } },
-    { 54, 15, 0, 0, { 4, 0 } },
-    { 69, 13, 0, 0, { 7, 0 } },
-    { 82, 9, 0, 0, { 3, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Foreground sprite ranges for logical view 6, retaining decoded background strips.
+///
+/// The zero-count first record selects the background; the last record ends
+/// the list. Source indices and counts are in elements. Flags remain mutable
+/// while this overlay is loaded; the two serialized bytes retain unproven roles.
+static SpriteBatch _gAcropolisSquareView6SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = 0, .spriteCount = 7, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 6, 0 } },
+    { .firstSprite = 7, .spriteCount = 8, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 1, 0 } },
+    { .firstSprite = 15, .spriteCount = 3, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 8, 0 } },
+    { .firstSprite = 18, .spriteCount = 7, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = 25, .spriteCount = 9, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 5, 0 } },
+    { .firstSprite = 34, .spriteCount = 14, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 2, 0 } },
+    { .firstSprite = 48, .spriteCount = 6, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 9, 0 } },
+    { .firstSprite = 54, .spriteCount = 15, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 4, 0 } },
+    { .firstSprite = 69, .spriteCount = 13, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 7, 0 } },
+    { .firstSprite = 82, .spriteCount = ARRAY_SIZE(_gAcropolisSquareView6SpriteSources) - 82, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 3, 0 } },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-SpriteSource D_acropolis_square_80187898[94] = {
+/// 94 foreground texture rectangles for logical view 7.
+///
+/// Positions and sizes use pixels relative to the view centre; depth is the
+/// unscaled ordering-table sorting value. RGB 128 is neutral modulation and
+/// code flags are zero. The view and its batches borrow these source elements
+/// while the room overlay is loaded.
+static SpriteSource _gAcropolisSquareView7SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 136, 24, 2050, { .fields = { 0, 216 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 32 } }, 112, 0, 2050, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 32 } }, 112, -32, 2050, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
@@ -1100,28 +1192,39 @@ SpriteSource D_acropolis_square_80187898[94] = {
     { 142, 0x3FC0, { .fields = { 40, 8 } }, 80, 56, 1305, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_square_80187FF0[18] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 8, 0, 0, { 13, 0 } },
-    { 8, 17, 0, 0, { 2, 0 } },
-    { 25, 7, 0, 0, { 9, 0 } },
-    { 32, 6, 0, 0, { 3, 0 } },
-    { 38, 3, 0, 0, { 11, 0 } },
-    { 41, 2, 0, 0, { 0, 0 } },
-    { 43, 4, 0, 0, { 12, 0 } },
-    { 47, 2, 0, 0, { 1, 0 } },
-    { 49, 4, 0, 0, { 8, 0 } },
-    { 53, 5, 0, 0, { 6, 0 } },
-    { 58, 3, 0, 0, { 15, 0 } },
-    { 61, 7, 0, 0, { 7, 0 } },
-    { 68, 6, 0, 0, { 10, 0 } },
-    { 74, 11, 0, 0, { 4, 0 } },
-    { 85, 3, 0, 0, { 14, 0 } },
-    { 88, 6, 0, 0, { 5, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Foreground sprite ranges for logical view 7, retaining decoded background strips.
+///
+/// The zero-count first record selects the background; the last record ends
+/// the list. Source indices and counts are in elements. Flags remain mutable
+/// while this overlay is loaded; the two serialized bytes retain unproven roles.
+static SpriteBatch _gAcropolisSquareView7SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = 0, .spriteCount = 8, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 13, 0 } },
+    { .firstSprite = 8, .spriteCount = 17, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 2, 0 } },
+    { .firstSprite = 25, .spriteCount = 7, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 9, 0 } },
+    { .firstSprite = 32, .spriteCount = 6, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 3, 0 } },
+    { .firstSprite = 38, .spriteCount = 3, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 11, 0 } },
+    { .firstSprite = 41, .spriteCount = 2, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = 43, .spriteCount = 4, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 12, 0 } },
+    { .firstSprite = 47, .spriteCount = 2, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 1, 0 } },
+    { .firstSprite = 49, .spriteCount = 4, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 8, 0 } },
+    { .firstSprite = 53, .spriteCount = 5, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 6, 0 } },
+    { .firstSprite = 58, .spriteCount = 3, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 15, 0 } },
+    { .firstSprite = 61, .spriteCount = 7, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 7, 0 } },
+    { .firstSprite = 68, .spriteCount = 6, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 10, 0 } },
+    { .firstSprite = 74, .spriteCount = 11, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 4, 0 } },
+    { .firstSprite = 85, .spriteCount = 3, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 14, 0 } },
+    { .firstSprite = 88, .spriteCount = ARRAY_SIZE(_gAcropolisSquareView7SpriteSources) - 88, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 5, 0 } },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-SpriteSource D_acropolis_square_80188080[53] = {
+/// 53 foreground texture rectangles for logical view 8.
+///
+/// Positions and sizes use pixels relative to the view centre; depth is the
+/// unscaled ordering-table sorting value. RGB 128 is neutral modulation and
+/// code flags are zero. The view and its batches borrow these source elements
+/// while the room overlay is loaded.
+static SpriteSource _gAcropolisSquareView8SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 32 } }, 96, 48, 1125, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 32 } }, 96, 80, 1075, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 40 } }, 104, 40, 1125, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
@@ -1177,40 +1280,61 @@ SpriteSource D_acropolis_square_80188080[53] = {
     { 143, 0x3FC0, { .fields = { 24, 24 } }, 96, -40, 3375, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_square_801884A4[13] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 9, 0, 0, { 1, 0 } },
-    { 9, 5, 0, 0, { 6, 0 } },
-    { 14, 4, 0, 0, { 2, 0 } },
-    { 18, 8, 0, 0, { 7, 0 } },
-    { 26, 3, 0, 0, { 5, 0 } },
-    { 29, 6, 0, 0, { 8, 0 } },
-    { 35, 5, 0, 0, { 4, 0 } },
-    { 40, 5, 0, 0, { 9, 0 } },
-    { 45, 3, 0, 0, { 0, 0 } },
-    { 48, 2, 0, 0, { 10, 0 } },
-    { 50, 3, 0, 0, { 3, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Foreground sprite ranges for logical view 8, retaining decoded background strips.
+///
+/// The zero-count first record selects the background; the last record ends
+/// the list. Source indices and counts are in elements. Flags remain mutable
+/// while this overlay is loaded; the two serialized bytes retain unproven roles.
+static SpriteBatch _gAcropolisSquareView8SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = 0, .spriteCount = 9, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 1, 0 } },
+    { .firstSprite = 9, .spriteCount = 5, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 6, 0 } },
+    { .firstSprite = 14, .spriteCount = 4, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 2, 0 } },
+    { .firstSprite = 18, .spriteCount = 8, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 7, 0 } },
+    { .firstSprite = 26, .spriteCount = 3, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 5, 0 } },
+    { .firstSprite = 29, .spriteCount = 6, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 8, 0 } },
+    { .firstSprite = 35, .spriteCount = 5, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 4, 0 } },
+    { .firstSprite = 40, .spriteCount = 5, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 9, 0 } },
+    { .firstSprite = 45, .spriteCount = 3, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = 48, .spriteCount = 2, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 10, 0 } },
+    { .firstSprite = 50, .spriteCount = ARRAY_SIZE(_gAcropolisSquareView8SpriteSources) - 50, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 3, 0 } },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_square_8018850C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Empty foreground list for logical view 9, retaining decoded background strips.
+///
+/// Keep both records: the zero-count header is skipped before the end marker
+/// is tested. The view also retains this list address in its empty source slot.
+static SpriteBatch _gAcropolisSquareView9SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_square_8018851C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Empty foreground list for logical view 10, retaining decoded background strips.
+///
+/// Keep both records: the zero-count header is skipped before the end marker
+/// is tested. The view also retains this list address in its empty source slot.
+static SpriteBatch _gAcropolisSquareView10SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_square_8018852C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Empty foreground list for logical view 11, retaining decoded background strips.
+///
+/// Keep both records: the zero-count header is skipped before the end marker
+/// is tested. The view also retains this list address in its empty source slot.
+static SpriteBatch _gAcropolisSquareView11SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_square_8018853C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Empty foreground list for logical view 12, retaining decoded background strips.
+///
+/// Keep both records: the zero-count header is skipped before the end marker
+/// is tested. The view also retains this list address in its empty source slot.
+static SpriteBatch _gAcropolisSquareView12SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
 SpriteBatch D_acropolis_square_8018854C[2] = {
@@ -1229,18 +1353,18 @@ SpriteBatch D_acropolis_square_8018856C[2] = {
 };
 
 SpriteView D_acropolis_square_8018857C[15] = {
-    { { .empty = D_acropolis_square_80186500 }, D_acropolis_square_80186500, NULL },
-    { { .empty = D_acropolis_square_80186510 }, D_acropolis_square_80186510, NULL },
-    { { .elements = D_acropolis_square_80186520 }, D_acropolis_square_80186AD4, NULL },
-    { { .elements = D_acropolis_square_80186B2C }, D_acropolis_square_80186E60, NULL },
-    { { .elements = D_acropolis_square_80186E88 }, D_acropolis_square_801870F4, NULL },
-    { { .elements = D_acropolis_square_8018711C }, D_acropolis_square_80187838, NULL },
-    { { .elements = D_acropolis_square_80187898 }, D_acropolis_square_80187FF0, NULL },
-    { { .elements = D_acropolis_square_80188080 }, D_acropolis_square_801884A4, NULL },
-    { { .empty = D_acropolis_square_8018850C }, D_acropolis_square_8018850C, NULL },
-    { { .empty = D_acropolis_square_8018851C }, D_acropolis_square_8018851C, NULL },
-    { { .empty = D_acropolis_square_8018852C }, D_acropolis_square_8018852C, NULL },
-    { { .empty = D_acropolis_square_8018853C }, D_acropolis_square_8018853C, NULL },
+    { { .empty = _gAcropolisSquareView1SpriteBatches }, _gAcropolisSquareView1SpriteBatches, NULL },
+    { { .empty = _gAcropolisSquareView2SpriteBatches }, _gAcropolisSquareView2SpriteBatches, NULL },
+    { { .elements = _gAcropolisSquareView3SpriteSources }, _gAcropolisSquareView3SpriteBatches, NULL },
+    { { .elements = _gAcropolisSquareView4SpriteSources }, _gAcropolisSquareView4SpriteBatches, NULL },
+    { { .elements = _gAcropolisSquareView5SpriteSources }, _gAcropolisSquareView5SpriteBatches, NULL },
+    { { .elements = _gAcropolisSquareView6SpriteSources }, _gAcropolisSquareView6SpriteBatches, NULL },
+    { { .elements = _gAcropolisSquareView7SpriteSources }, _gAcropolisSquareView7SpriteBatches, NULL },
+    { { .elements = _gAcropolisSquareView8SpriteSources }, _gAcropolisSquareView8SpriteBatches, NULL },
+    { { .empty = _gAcropolisSquareView9SpriteBatches }, _gAcropolisSquareView9SpriteBatches, NULL },
+    { { .empty = _gAcropolisSquareView10SpriteBatches }, _gAcropolisSquareView10SpriteBatches, NULL },
+    { { .empty = _gAcropolisSquareView11SpriteBatches }, _gAcropolisSquareView11SpriteBatches, NULL },
+    { { .empty = _gAcropolisSquareView12SpriteBatches }, _gAcropolisSquareView12SpriteBatches, NULL },
     { { .empty = D_acropolis_square_8018854C }, D_acropolis_square_8018854C, NULL },
     { { .empty = D_acropolis_square_8018855C }, D_acropolis_square_8018855C, NULL },
     { { .empty = D_acropolis_square_8018856C }, D_acropolis_square_8018856C, NULL },
@@ -1264,29 +1388,55 @@ ViewCamera D_acropolis_square_80188630[15] = {
     { { { { 1034, 0, -3963 }, { 258, 4087, 67 }, { 3954, -266, 1031 } }, { 7815, 3515, 1095 } }, 418 },
 };
 
-WorldCollisionFootstepSounds D_acropolis_square_8018884C = {
-    0x10000011,
-    0x10000013,
-    0x10000011,
+/// Loaded-bank script bases for paired walking and running animation cues.
+enum {
+    ACROPOLIS_SQUARE_FOOTSTEP_WALK = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x11,
+    ACROPOLIS_SQUARE_FOOTSTEP_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x13,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_square_80188858[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Footstep cue bases for surface class 4; scripted jumps reuse walking.
+///
+/// Cue 2 uses the base, cue 1 adds 1 and companion playback adds 100.
+/// The surface record borrows this storage while the room overlay is loaded.
+static WorldCollisionFootstepSounds _gAcropolisSquareFootstepSounds = {
+    .walk         = ACROPOLIS_SQUARE_FOOTSTEP_WALK,
+    .run          = ACROPOLIS_SQUARE_FOOTSTEP_RUN,
+    .scriptedJump = ACROPOLIS_SQUARE_FOOTSTEP_WALK,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_square_80188860[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_square_8018884C },
+/// Shared policy for classes 0..3 and 5..7: solid, impact-enabled and without footstep cues.
+///
+/// Grid contacts apply pushback. The first byte's role is unproven and retains
+/// zero. The surface-class directory borrows this record while the overlay is loaded.
+static WorldCollisionSurfaceProperties _gAcropolisSquareDefaultSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_acropolis_square_80188868[8] = {
-    D_acropolis_square_80188858,
-    D_acropolis_square_80188858,
-    D_acropolis_square_80188858,
-    D_acropolis_square_80188858,
-    D_acropolis_square_80188860,
-    D_acropolis_square_80188858,
-    D_acropolis_square_80188858,
-    D_acropolis_square_80188858,
+/// Class 4's solid, impact-enabled surface policy with paired footstep cues.
+///
+/// Grid contacts apply pushback. The first byte's role is unproven and retains
+/// zero. The surface-class directory borrows this record while the overlay is loaded.
+static WorldCollisionSurfaceProperties _gAcropolisSquareClass4SurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gAcropolisSquareFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gAcropolisSquareSurfacePropertiesByClass[8] = {
+    &_gAcropolisSquareDefaultSurfaceProperties,
+    &_gAcropolisSquareDefaultSurfaceProperties,
+    &_gAcropolisSquareDefaultSurfaceProperties,
+    &_gAcropolisSquareDefaultSurfaceProperties,
+    &_gAcropolisSquareClass4SurfaceProperties,
+    &_gAcropolisSquareDefaultSurfaceProperties,
+    &_gAcropolisSquareDefaultSurfaceProperties,
+    &_gAcropolisSquareDefaultSurfaceProperties,
 };
 
 AreaApplyRec D_acropolis_square_80188888[4] = {
