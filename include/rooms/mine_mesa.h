@@ -19,8 +19,12 @@
 /// spawned actors may retain placement pointers until they are released.
 extern AreaVariant gMineMesaAreaVariants[12];
 
-// mine_mesa
-extern WorldCollisionRoomResources D_mine_mesa_80186538[];
+/// Collision resources for Mine Mesa's single room, indexed by room minus one.
+///
+/// The stage-4 area-1 directory borrows the live grid, eight view boundaries,
+/// nineteen action triggers and two sight occluders. Lists are mutable and
+/// sentinel-terminated; all resources stay loaded until deactivated/unlinked.
+extern WorldCollisionRoomResources gMineMesaRoomCollisionResources[1];
 
 /// Logical-view maps for Mine Mesa's single room.
 ///
@@ -42,7 +46,12 @@ extern WorldCoordRoomLighting gMineMesaRoomLighting[1];
 /// views; the stage map borrows this signed count while the room is loaded.
 extern ViewCount gMineMesaRoomViewCounts[1];
 
-extern DirectionWarpEntry D_mine_mesa_80186558[];
+/// Two Mine Mesa warp endpoints, indexed by the area's 1-based warp ID minus one.
+///
+/// Entries use views 2 and 5 respectively; player and companion share each
+/// endpoint's world placement. Warp 2 selects area-bank arrival/departure cues.
+/// The Shelter map borrows the complete entries while this room stays loaded.
+extern DirectionWarpEntry gMineMesaWarpEntries[2];
 
 /// Cameras for Mine Mesa's eleven mapped views, indexed by mapped view minus one.
 ///

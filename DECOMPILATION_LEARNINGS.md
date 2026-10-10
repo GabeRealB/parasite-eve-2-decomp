@@ -89007,7 +89007,7 @@ survives as two compares.
 m2c takes the address of an element into a local pointer before touching it:
 
 ```c
-s32 *temp_a2 = &D_mine_mesa_80189B74[slotIndex];
+s32 *temp_a2 = &_gMineMesaWaveEnemies[slotIndex];
 temp_v0 = *temp_a2;
 if (...) { *temp_a2 = 0; ... }
 ```
@@ -89015,8 +89015,8 @@ if (...) { *temp_a2 = 0; ... }
 and the resulting object emits the index's scaling *before* the base symbol:
 
 ```
-sll    a2,a2,0x2                    |  lui    v0,%hi(D_mine_mesa_80189B74)
-lui    v0,%hi(D_mine_mesa_80189B74) |  addiu  v0,v0,%lo(D_mine_mesa_80189B74)
+sll    a2,a2,0x2                    |  lui    v0,%hi(_gMineMesaWaveEnemies)
+lui    v0,%hi(_gMineMesaWaveEnemies) |  addiu  v0,v0,%lo(_gMineMesaWaveEnemies)
 addiu  v0,v0,%lo(...)               |  sll    a2,a2,0x2
 addu   a2,a2,v0                     |  addu   a2,a2,v0
         (seed)                          (target)
@@ -89035,9 +89035,9 @@ needs it.
 ```c
 s32 _mineMesaEnemyWaveActorEventMsg(Task* task, s32 messageId, s32 slotIndex, s32 unused)
 {
-    if (D_mine_mesa_80189B74[slotIndex] != NULL && D_mine_mesa_80189B74[slotIndex]->hp <= 0) {
-        D_mine_mesa_80189B74[slotIndex] = NULL;
-        MineMesaRemaining          = (u16)MineMesaRemaining - 1;
+    if (_gMineMesaWaveEnemies[slotIndex] != NULL && _gMineMesaWaveEnemies[slotIndex]->hp <= 0) {
+        _gMineMesaWaveEnemies[slotIndex] = NULL;
+        _gMineMesaWaveKillsRemaining          = (u16)_gMineMesaWaveKillsRemaining - 1;
     }
     return 1;
 }
@@ -119100,8 +119100,8 @@ m2c renders a byte-offset address as an integer expression added to a symbol or
 pointer, and the C front end then scales it by whatever type it decides that
 operand has. `M2C_UNK` is `typedef s32 M2C_UNK` (`tools/m2c/m2c_macros.h`), so
 
-    extern M2C_UNK D_mine_mesa_80189A9C;
-    temp_a2 = (var_s0 * 0x18) + &D_mine_mesa_80189A9C;
+    extern M2C_UNK _gMineMesaWallEdges;
+    temp_a2 = (var_s0 * 0x18) + &_gMineMesaWallEdges;
 
 is not a 24-byte stride: the whole `var_s0 * 0x18` offset is multiplied by
 `sizeof (M2C_UNK)` = 4, and the emitted index is `sll 1; addu; sll 5`
