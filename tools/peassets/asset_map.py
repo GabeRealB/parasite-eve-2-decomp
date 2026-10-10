@@ -38,7 +38,7 @@ import asset_residency as residency  # noqa: E402
 import asset_schema  # noqa: E402
 
 TEMPLATE = Path(__file__).with_name("asset_map.html")
-SHOWN = ("x", "y", "w", "h", "bpp", "clips", "parent", "required", "source", "vram", "size", "notes")
+SHOWN = ("x", "y", "w", "h", "bpp", "clips", "parent", "required", "source", "vram", "size", "notes", "group")
 
 
 def spawn_bindings(assets: dict, unresolved: list | None = None) -> dict[tuple[str, str], set[int]]:

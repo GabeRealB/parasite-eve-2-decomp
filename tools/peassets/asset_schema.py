@@ -54,8 +54,10 @@ from typing import Any
 
 IDENTITY = ("sha1", "type")
 COMMON = ("deps", "variants")
-# `required` marks a package the decomp builds; `notes` is free text.
-BOOKKEEPING = ("required", "notes")
+# `required` marks a package the decomp builds; `notes` is free text; `group` files the asset under a subtree of
+# the extraction ("weapons/m4a1") instead of its type's directory.
+BOOKKEEPING = ("required", "notes", "group")
+GROUP = re.compile(r"[a-z0-9_]+(?:/[a-z0-9_]+)*")
 
 # Per type: fields read from the payload, and fields a person or review writes.
 SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
@@ -75,7 +77,7 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
 # (`source`, `vram`, `size`), and `include` / `layout` say how the build takes
 # it back in. One that is uploaded also has the rectangle of its upload record:
 # its size always, its position only when the record fixes one.
-EMBEDDED_FIELDS = ("source", "vram", "size", "ext", "type", "include", "layout", "deps", "notes")
+EMBEDDED_FIELDS = ("source", "vram", "size", "ext", "type", "include", "layout", "deps", "notes", "group")
 # An animation bank states how many clips it holds; `clip_names` names them by
 # index, as a review finds what each is.
 EMBEDDED_PAYLOAD: dict[str, tuple[str, ...]] = {"image": ("x", "y", "w", "h"), "clut": ("x", "y", "w", "h"),
@@ -282,6 +284,8 @@ def validate(assets: dict, embedded: dict) -> list[str]:
         for field in rec:
             if field not in allowed:
                 problems.append(f"{key}: a {kind} has no attribute {field!r}")
+        if "group" in rec and not (isinstance(rec["group"], str) and GROUP.fullmatch(rec["group"])):
+            problems.append(f"{key}: group {rec['group']!r} is not a path of lower-case names")
         for field in spec["payload"]:
             if field not in rec:
                 problems.append(f"{key}: a {kind} is missing {field!r}, which its payload states")

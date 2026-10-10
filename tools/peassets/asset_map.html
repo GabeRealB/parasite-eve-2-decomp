@@ -69,7 +69,7 @@ audio { height: 28px; max-width: 100%; } iframe { width: 100%; height: 320px; bo
   <nav class="nav">
     <header>
       <h1>PE2 Asset Map</h1>
-      <span class="seg"><button id="nav-o" aria-pressed="true">Overlays</button><button id="nav-a" aria-pressed="false">Assets</button><button id="nav-f" aria-pressed="false">Files</button><button id="nav-n" aria-pressed="false">Names (0)</button></span>
+      <span class="seg"><button id="nav-o" aria-pressed="true">Overlays</button><button id="nav-a" aria-pressed="false">Assets</button><button id="nav-f" aria-pressed="false">Files</button><button id="nav-n" aria-pressed="false">Names (0)</button><button id="nav-g" aria-pressed="false">Groups (0)</button></span><datalist id="grouplist"></datalist>
       <label for="scale" class="row">Scale<select id="scale"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
       <input id="filter" placeholder="filter by name or what it is; ? = name in question" autocomplete="off" spellcheck="false" aria-label="Filter the list">
     </header>
@@ -327,7 +327,14 @@ let navMode = "o", current = "";
 function drawNav() {
   const box = $("list"), raw = $("filter").value.trim().toLowerCase(), only = raw.startsWith("?"), q = raw.replace(/^\?\s*/, ""); box.replaceChildren();
   const hit = window.__hit = k => (!only || asked(k)) && (!q || k.toLowerCase().includes(q) || (D.notes[k] && D.notes[k][0].toLowerCase().includes(q)));
-  $("nav-o").setAttribute("aria-pressed", navMode === "o"); $("nav-a").setAttribute("aria-pressed", navMode === "a"); $("nav-f").setAttribute("aria-pressed", navMode === "f");
+  $("nav-o").setAttribute("aria-pressed", navMode === "o"); $("nav-a").setAttribute("aria-pressed", navMode === "a"); $("nav-f").setAttribute("aria-pressed", navMode === "f"); $("nav-g").setAttribute("aria-pressed", navMode === "g");
+  if (navMode === "g") {
+    // The groups as a tree of their path parts; each opens its members.
+    const rows = [...allGroups()].filter(([g]) => !q || g.includes(q)).sort((a, b) => a[0].localeCompare(b[0]));
+    box.append(h("a", { href: "#g.", class: current === "g." ? "cur" : "", text: "all groups, export and import" }));
+    for (const [g, list] of rows) box.append(h("a", { href: "#g." + g, class: current === "g." + g ? "cur" : "", style: `padding-left:${8 + 12 * (g.split("/").length - 1)}px` }, g, h("span", { class: "dim", text: ` (${list.length})` })));
+    if (!rows.length) box.append(h("p", { class: "dim", text: "no groups yet" }));
+    return; }
   if (navMode === "f") {
     // The disc as the stage archives hold it: stage, folder, file. A folder or file opens its chunks.
     const flink = (i, text) => h("a", { href: "#f." + i, class: current === "f." + i ? "cur" : "", title: (D.chunks[i] || []).map(c => c[1]).join(", ") }, text, proposed["file:" + D.files[i]] ? h("span", { class: "dim", text: " → " + proposed["file:" + D.files[i]] }) : null);
@@ -380,19 +387,68 @@ function nameInput(key) {
   box.addEventListener("input", check); box.addEventListener("change", () => { const v = box.value.trim(); if (!v || v === key.replace(/^file:.*\//, "")) setName(key, ""); else if (!check()) setName(key, v); else return; saveNames(); });
   check(); return h("span", { class: "renamebox" }, box, warn);
 }
+// ---- groups: an asset's group ("weapons/m4a1") files it under that subtree of the extraction ----
+// The asset table holds each asset's group (D.assets[key][1].group). This browser holds only what was changed here,
+// until the export is applied with tools/peassets/apply_groups.py and the map regenerated.
+let gedits = {}; try { gedits = JSON.parse(localStorage.getItem("asset-map-groups") || "{}") || {}; } catch (e) {}
+const GROUP_OK = /^[a-z0-9_]+(\/[a-z0-9_]+)*$/;
+const baseGroup = k => (D.assets[k] && D.assets[k][1].group) || "", groupOf = k => k in gedits ? gedits[k] : baseGroup(k);
+const setGroup = (k, g) => { if (!D.assets[k]) return; if (g === baseGroup(k)) delete gedits[k]; else gedits[k] = g; };
+const allGroups = () => { const m = new Map(); for (const k in D.assets) { const g = groupOf(k); if (g) (m.get(g) || m.set(g, []).get(g)).push(k); } return m; };
+const groupsTSV = () => Object.keys(gedits).sort().map(k => `${k}\t${gedits[k]}`).join("\n") + (Object.keys(gedits).length ? "\n" : "");
+const saveGroups = () => { for (const k in gedits) if (gedits[k] === baseGroup(k)) delete gedits[k]; try { localStorage.setItem("asset-map-groups", JSON.stringify(gedits)); } catch (e) {}
+  const b = $("nav-g"), u = Object.keys(gedits).length; if (b) b.textContent = `Groups (${allGroups().size}${u ? ", " + u + " unsaved" : ""})`;
+  const dl = $("grouplist"); if (dl && dl.replaceChildren) dl.replaceChildren(...[...allGroups().keys()].sort().map(g => h("option", { value: g }))); };
+function groupInput(key) {
+  const box = h("input", { class: "rename", list: "grouplist", placeholder: "group, e.g. weapons/m4a1", spellcheck: "false", autocomplete: "off", "aria-label": "group of " + key }), warn = h("span", { class: "flag" }); box.value = groupOf(key);
+  box.addEventListener("change", () => { const v = box.value.trim().replace(/^\/+|\/+$/g, ""); if (v && !GROUP_OK.test(v)) { warn.textContent = " lower-case names separated by /"; return; } warn.textContent = ""; setGroup(key, v); saveGroups(); });
+  return h("span", { class: "renamebox" }, box, warn);
+}
+// A batch: tick assets, type a group once, apply it to all of them.
+const picked = new Set();
+const tick = key => { const b = h("input", { type: "checkbox", "aria-label": "select " + key }); b.checked = picked.has(key); b.addEventListener("change", () => { b.checked ? picked.add(key) : picked.delete(key); }); b.dataset && (b.dataset.key = key); b._key = key; return b; };
+function batchBar(keys, redraw) {
+  const box = h("input", { class: "rename", list: "grouplist", placeholder: "group for the ticked assets", spellcheck: "false", autocomplete: "off", "aria-label": "group for the ticked assets" }), said = h("span", { class: "dim" });
+  const here = () => keys().filter(k => D.assets[k]);
+  const apply = h("button", { text: "set group of ticked", onclick: () => { const v = box.value.trim().replace(/^\/+|\/+$/g, ""), list = here().filter(k => picked.has(k)); if (v && !GROUP_OK.test(v)) { said.textContent = " lower-case names separated by /"; return; } if (!list.length) { said.textContent = " nothing ticked here"; return; } list.forEach(k => setGroup(k, v)); saveGroups(); redraw(); } });
+  const all = h("button", { text: "tick all here", onclick: () => { here().forEach(k => picked.add(k)); redraw(); } }), none = h("button", { text: "untick all", onclick: () => { here().forEach(k => picked.delete(k)); redraw(); } });
+  return h("div", { class: "row", style: "flex-wrap:wrap" }, box, apply, all, none, said);
+}
+// What an overlay owns: the chunks of its own files, what is cut out of its package, and the samples of its banks.
+function ownedBy(name) { const o = D.overlays[name], out = new Set(); if (!o) return [];
+  for (const f of o.own) for (const [, key] of D.chunks[f] || []) { if (D.assets[key] && D.assets[key][0] !== "pe2pkg") out.add(key); for (const s of (D.sampleIds || {})[key] || []) out.add(s); }
+  for (const [key, [, attrs]] of Object.entries(D.assets)) if (attrs.source === name + ".pe2pkg") out.add(key);
+  return [...out]; }
+const memberTable = (keys, withTick) => h("div", { class: "scrollx" }, h("table", { class: "wide" }, h("tr", {}, [...(withTick ? [""] : []), "Asset", "Kind", "What the uses show it is", "New name", "Group"].map(t => h("th", { text: t }))), keys.map(key => { const a = D.assets[key]; return h("tr", {}, withTick ? h("td", {}, tick(key)) : null, h("td", {}, link("a", key), qmark(key)), h("td", { class: "dim", text: (TYPE[a[0]] || a[0]).replace(/s$/, "") }), h("td", { text: D.notes[key] ? D.notes[key][0] : "" }), h("td", {}, nameInput(key)), h("td", {}, groupInput(key))); })));
+function showGroups(name) {
+  const box = $("subject"), groups = allGroups();
+  if (name) { const keys = [...groups].filter(([g]) => g === name || g.startsWith(name + "/")).flatMap(([, list]) => list).sort();
+    box.replaceChildren(h("header", {}, h("h2", { text: name }), h("div", { class: "crumbs", text: `group · ${keys.length} asset${keys.length === 1 ? "" : "s"}, sub-groups included · extracted under ${name}/` })),
+      batchBar(() => keys, () => showGroups(name)), keys.length ? capped(keys, 300, part => memberTable(part, true)) : h("p", { text: "No asset is in this group." })); return; }
+  const out = h("textarea", { class: "mono", rows: 10, readonly: "", spellcheck: "false", "aria-label": "the changed groups, one per line" }), inp = h("textarea", { class: "mono", rows: 5, spellcheck: "false", placeholder: "paste lines of: asset <tab> group", "aria-label": "groups to import" }), said = h("span", { class: "dim" });
+  out.value = groupsTSV(); const save = h("a", { class: "lnk", download: "asset_groups.tsv", text: "save as asset_groups.tsv" }); try { save.href = URL.createObjectURL(new Blob([out.value], { type: "text/tab-separated-values" })); } catch (e) { save.hidden = true; }
+  const copy = h("button", { text: "copy", onclick: () => { out.select && out.select(); (navigator.clipboard ? navigator.clipboard.writeText(out.value) : Promise.reject()).then(() => { said.textContent = " copied"; }, () => { said.textContent = " selected: copy it with the keyboard"; }); } });
+  const take = h("button", { text: "import", onclick: () => { let n = 0, bad = 0; for (const line of inp.value.split("\n")) { const [k, v] = line.split("\t").map(x => (x || "").trim()); if (!k) continue; if (!D.assets[k] || (v && !GROUP_OK.test(v))) { bad++; continue; } setGroup(k, v || ""); n++; } saveGroups(); showGroups(""); $("subject").append(h("p", { class: "dim", text: `${n} taken` + (bad ? `, ${bad} refused (no such asset, or not a group path)` : "") })); } });
+  let armed = false; const drop = h("button", { text: "discard changes", onclick: () => { if (!armed) { armed = true; drop.textContent = "really discard the changes made here?"; return; } gedits = {}; saveGroups(); showGroups(""); } });
+  const rows = [...groups].sort((a, b) => a[0].localeCompare(b[0])), grouped = rows.reduce((a, r) => a + r[1].length, 0);
+  box.replaceChildren(h("header", {}, h("h2", { text: `Groups (${rows.length})` }), h("div", { class: "crumbs", text: `${grouped} of ${Object.keys(D.assets).length} assets are in a group; the rest extract under their type's directory. ${Object.keys(gedits).length} changed here, kept in this browser until applied.` })),
+    sec("Changed here", "One line per changed asset: the asset, a tab, its group (nothing after the tab takes it out of its group). Save it and run tools/peassets/apply_groups.py on it; that writes the groups into the asset table.", out, h("div", { class: "row" }, copy, save, said)),
+    sec("Import", "Adds to the changes here.", inp, h("div", { class: "row" }, take, drop)),
+    sec(`All groups (${rows.length})`, "", rows.length ? h("table", {}, h("tr", {}, ["Group", "Assets"].map(t => h("th", { text: t }))), rows.map(([g, list]) => h("tr", {}, h("td", {}, h("a", { class: "lnk", href: "#g." + g, text: g })), h("td", { text: list.length })))) : h("p", { text: "None yet. Give an asset a group on its page, tick several in the Files view, or group everything an overlay owns from its page." })));
+}
 const fileBase = f => D.files[f].split("/").pop(), natural = (a, b) => D.files[a].localeCompare(D.files[b], undefined, { numeric: true });
 // The chunks of some disc files, one table per file, each chunk with what it is and a box for a new name.
 function chunkTables(fileIndexes) {
   return fileIndexes.map(f => { const chunks = D.chunks[f] || [], by = [...new Set((loadersOf.get(f) || []).map(l => l[0]))];
     return h("section", {}, h("h3", {}, D.files[f], " ", nameInput("file:" + D.files[f])), h("p", { class: "dim" }, by.length ? ["loaded by ", by.slice(0, 8).map((o, i) => [i ? ", " : "", link("o", o)]), by.length > 8 ? ` and ${by.length - 8} more` : ""] : "no load of it is in the graph"),
-      chunks.length ? h("div", { class: "scrollx" }, h("table", { class: "wide" }, h("tr", {}, ["#", "Chunk", "Kind", "What the uses show it is", "New name"].map(t => h("th", { text: t }))), chunks.map(([n, key]) => { const a = D.assets[key], pkg = a && a[0] === "pe2pkg"; return h("tr", {}, h("td", { text: n }), h("td", {}, a || D.overlays[key] ? link(pkg ? "o" : "a", key) : key, qmark(key)), h("td", { class: "dim", text: a ? (TYPE[a[0]] || a[0]).replace(/s$/, "") : "" }), h("td", { text: D.notes[key] ? D.notes[key][0] : "" }), h("td", {}, nameInput(key))); }))) : h("p", { class: "dim", text: "no chunk of it is catalogued" })); });
+      chunks.length ? h("div", { class: "scrollx" }, h("table", { class: "wide" }, h("tr", {}, ["", "#", "Chunk", "Kind", "What the uses show it is", "New name", "Group"].map(t => h("th", { text: t }))), chunks.map(([n, key]) => { const a = D.assets[key], pkg = a && a[0] === "pe2pkg"; return h("tr", {}, h("td", {}, a && !pkg ? tick(key) : null), h("td", { text: n }), h("td", {}, a || D.overlays[key] ? link(pkg ? "o" : "a", key) : key, qmark(key)), h("td", { class: "dim", text: a ? (TYPE[a[0]] || a[0]).replace(/s$/, "") : "" }), h("td", { text: D.notes[key] ? D.notes[key][0] : "" }), h("td", {}, nameInput(key)), h("td", {}, a && !pkg ? groupInput(key) : null)); }))) : h("p", { class: "dim", text: "no chunk of it is catalogued" })); });
 }
 const filesUnder = path => D.files.map((n, i) => [n, i]).filter(([n]) => n === path || n.startsWith(path + "/")).map(([, i]) => i).sort(natural);
 function showFiles(path) {
   const box = $("subject"), list = /^\d+$/.test(path) && D.files[+path] ? [+path] : filesUnder(path), title = list.length === 1 ? D.files[list[0]] : path, parts = title.split("/");
   if (!list.length) { box.replaceChildren(h("p", { text: `No disc file under ${path}.` })); return; }
   const head = h("header", {}, h("h2", { text: title }), h("div", { class: "crumbs" }, `stage ${parts[0]}`, parts.length > 2 || list.length > 1 && parts.length > 1 ? [" · folder ", D.overlays[parts[1]] ? link("o", parts[1]) : parts[1]] : "", ` · ${list.length} file${list.length === 1 ? "" : "s"}, ${list.reduce((a, f) => a + (D.chunks[f] || []).length, 0)} chunks`));
-  box.replaceChildren(head, h("p", { class: "dim", text: "The disc's files as the stage archives hold them, each with its chunks in stored order. A name typed here is kept in this browser and exported from Names; it renames nothing by itself." }), ...(list.length <= 60 ? chunkTables(list) : [capped(list, 60, part => h("div", {}, chunkTables(part)))]));
+  box.replaceChildren(head, h("p", { class: "dim", text: "The disc's files as the stage archives hold them, each with its chunks in stored order. A name typed here is kept in this browser and exported from Names; it renames nothing by itself. Tick chunks and set their group in one go below." }), batchBar(() => list.flatMap(f => (D.chunks[f] || []).map(c => c[1])).filter(k => D.assets[k] && D.assets[k][0] !== "pe2pkg"), () => showFiles(path)), ...(list.length <= 60 ? chunkTables(list) : [capped(list, 60, part => h("div", {}, chunkTables(part)))]));
 }
 function showNames() {
   const box = $("subject"), keys = Object.keys(proposed).sort(), out = h("textarea", { class: "mono", rows: 12, readonly: "", spellcheck: "false", "aria-label": "the proposed names, one per line" }), inp = h("textarea", { class: "mono", rows: 6, spellcheck: "false", placeholder: "paste lines of: current name <tab> new name", "aria-label": "names to import" }), said = h("span", { class: "dim" });
@@ -418,6 +474,9 @@ async function showOverlay(name) {
   const head = h("header", {}, h("h2", { text: name }), h("div", { class: "crumbs" }, o.family, o.addr ? ` · loads at 0x${o.addr.toString(16)}` : "", chain.length ? [" · under ", chain.map((c, i) => [i ? " › " : "", link("o", c)])] : ""));
   if (noteBox(name)) head.append(noteBox(name));
   if (name !== "main") head.append(h("div", { class: "row" }, "rename to ", nameInput(name)));
+  { const owned = ownedBy(name); if (owned.length) { const gb = h("input", { class: "rename", list: "grouplist", placeholder: "group, e.g. weapons/" + name, spellcheck: "false", autocomplete: "off", "aria-label": "group for everything this overlay owns" }), gs = h("span", { class: "dim" }), in0 = new Map(); owned.forEach(k => in0.set(groupOf(k), (in0.get(groupOf(k)) || 0) + 1));
+      gs.textContent = " now: " + [...in0].map(([g, n]) => `${n} in ${g || "no group"}`).join(", ");
+      head.append(h("div", { class: "row", style: "flex-wrap:wrap" }, `group all ${owned.length} assets it owns `, gb, h("button", { text: "apply", onclick: () => { const v = gb.value.trim().replace(/^\/+|\/+$/g, ""); if (v && !GROUP_OK.test(v)) { gs.textContent = " lower-case names separated by /"; return; } owned.forEach(k => setGroup(k, v)); saveGroups(); gs.textContent = ` ${owned.length} set to ${v || "no group"}`; } }), gs)); } }
   box.replaceChildren(head, h("p", { class: "dim", text: "reading pixels…" }));
   const ownFiles = o.own, borrowedFiles = reqs.filter(r => r[4][0] !== "own" && r[4][0] !== "none").flatMap(r => (r[4][2] || []).filter(Boolean).map(v => v[0]));
   await needFiles([...ownFiles.filter(() => !o.room), ...reqs.filter(r => r[4][0] === "own").flatMap(r => r[4][1]), ...borrowedFiles]); if (mine !== turn) return;
@@ -514,7 +573,7 @@ async function showAsset(key) {
   if (!files.length && attrs.source && placedIn.get(attrs.source)) files.push(...placedIn.get(attrs.source));   // inside a bundle that is a chunk
   const head = h("header", {}, h("h2", { text: key }), h("div", { class: "crumbs" }, (TYPE[type] || type.replace(/_/g, " ")).replace(/s$/, ""), attrs.source ? [" · inside ", D.overlays[attrs.source.replace(/\.pe2pkg$/, "")] ? link("o", attrs.source.replace(/\.pe2pkg$/, "")) : D.assets[attrs.source] ? link("a", attrs.source) : attrs.source] : ""));
   if (noteBox(key)) head.append(noteBox(key));
-  if (type !== "pe2pkg") head.append(h("div", { class: "row" }, "rename to ", nameInput(key)));
+  if (type !== "pe2pkg") head.append(h("div", { class: "row" }, "rename to ", nameInput(key)), h("div", { class: "row" }, "group ", groupInput(key), groupOf(key) ? h("a", { class: "lnk", href: "#g." + groupOf(key), text: "members" }) : null));
   if (type === "pe2img" || type === "image") { const pairs = D.pairs[key] || []; await Promise.all([need(key), ...pairs.filter(p => p[1]).map(p => need(p[1]))]); if (mine !== turn) return;
     const bpps = [].concat(attrs.bpp || 8);
     sections.push(sec(`As used (${pairs.length})`, pairs.length ? "Each way a model's faces read this image: a column of it, at a depth, through a palette row. The other columns are faded." : "No model's faces are known to read this image, so there is no palette to show it with.",
@@ -575,10 +634,10 @@ async function showAsset(key) {
 // ---- routing ----
 function route() {
   const hash = location.hash.slice(1), dot = hash.indexOf("."), kind = hash.slice(0, dot), name = hash.slice(dot + 1);
-  current = hash; $("nav-n").setAttribute("aria-pressed", kind === "n"); if (kind === "a") { showAsset(name); } else if (kind === "f" || kind === "d") { turn++; showFiles(name); } else if (kind === "n") { turn++; showNames(); } else { current = "o." + (D.overlays[name] ? name : "gameplay"); showOverlay(D.overlays[name] ? name : "gameplay"); }
+  current = hash; $("nav-n").setAttribute("aria-pressed", kind === "n"); if (kind === "a") { showAsset(name); } else if (kind === "f" || kind === "d") { turn++; showFiles(name); } else if (kind === "n") { turn++; showNames(); } else if (kind === "g") { turn++; showGroups(name); } else { current = "o." + (D.overlays[name] ? name : "gameplay"); showOverlay(D.overlays[name] ? name : "gameplay"); }
   markNav(); const m = document.querySelector("main"); if (m && m.scrollTo) m.scrollTo(0, 0);
 }
-$("nav-o").addEventListener("click", () => { navMode = "o"; drawNav(); }); $("nav-a").addEventListener("click", () => { navMode = "a"; drawNav(); }); $("nav-f").addEventListener("click", () => { navMode = "f"; drawNav(); }); $("nav-n").addEventListener("click", () => { location.hash = "n."; }); saveNames();
+$("nav-o").addEventListener("click", () => { navMode = "o"; drawNav(); }); $("nav-a").addEventListener("click", () => { navMode = "a"; drawNav(); }); $("nav-f").addEventListener("click", () => { navMode = "f"; drawNav(); }); $("nav-n").addEventListener("click", () => { location.hash = "n."; }); saveNames(); $("nav-g").addEventListener("click", () => { navMode = "g"; drawNav(); if (!/^g\./.test(current)) location.hash = "g."; }); saveGroups();
 $("scale").value = String(S); document.documentElement.style.setProperty("--scale", S);
 $("scale").addEventListener("change", e => { S = +e.target.value || 2; try { localStorage.setItem("asset-map-scale", S); } catch (x) {} document.documentElement.style.setProperty("--scale", S); route(); });
 $("filter").addEventListener("input", drawNav); window.addEventListener("hashchange", route); drawNav(); route();

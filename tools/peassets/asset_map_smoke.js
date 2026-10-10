@@ -23,7 +23,7 @@ eval(js + `
 ;(async () => {
   for (const subject of process.argv.slice(3)) {
     const [kind, ...rest] = subject.split("."), name = rest.join(".");
-    await (kind === "a" ? showAsset(name) : kind === "f" || kind === "d" ? showFiles(name) : kind === "n" ? showNames() : showOverlay(name));
+    await (kind === "a" ? showAsset(name) : kind === "f" || kind === "d" ? showFiles(name) : kind === "n" ? showNames() : kind === "g" ? showGroups(name) : showOverlay(name));
     const out = [];
     for (const s of document.getElementById("subject").children) { if (s.tag !== "section") continue; let tiles = 0, flagged = 0, rows = 0, shots = 0; const flags = [];
       walk(s, n => { if (/^tile( |$)/.test(n.className)) { tiles++; if (/miss/.test(n.className)) { flagged++; flags.push(n.textContent.slice(0, 150)); } } if (n.tag === "tr" || n.tag === "li") rows++; if (n.className === "shot") shots++; });
