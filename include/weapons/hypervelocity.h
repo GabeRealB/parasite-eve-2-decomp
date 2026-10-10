@@ -1,8 +1,20 @@
 #ifndef INCLUDE_WEAPONS_HYPERVELOCITY_H
 #define INCLUDE_WEAPONS_HYPERVELOCITY_H
 
+#include "gameplay/animation.h"
+
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+
+/// Native player animation bank for the equipped Hypervelocity.
+///
+/// Gameplay selects this bank at index 23 (character-1 base 1 plus weapon 22).
+/// The 47 base slots hold clip pointers or NULL; slots 0, 45 and 46 are NULL.
+/// The following 32 extension words start cleared and remain writable for
+/// scripted copies, which can include non-pointer payloads. Play only slots
+/// known to contain clips. The bank and its borrowed sets remain valid only
+/// while the Hypervelocity overlay stays loaded.
+extern AnimationBank gHypervelocityPlayerAnimationBank;
 
 /// Root body of the player's held Hypervelocity, supplied by bank-7 descriptor 0x55.
 ///
