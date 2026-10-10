@@ -94,16 +94,16 @@ static s32             D_map_akropolis_8017A9AC[4];
 static UiList          D_map_akropolis_8017A9C0;
 static UiObjectDesc    D_map_akropolis_8017A9E4;
 static TaskDesc        D_map_akropolis_8017AA00;
-static AreaObjectPlace D_map_akropolis_8017BE1C[6];
-static AreaObjectPlace D_map_akropolis_8017BE7C[2];
-static AreaObjectPlace D_map_akropolis_8017BE9C[5];
-static AreaObjectPlace D_map_akropolis_8017BEEC[1];
-static AreaObjectPlace D_map_akropolis_8017BEFC[2];
-static AreaObjectPlace D_map_akropolis_8017BF1C[4];
-static AreaObjectPlace D_map_akropolis_8017BF5C[2];
-static AreaObjectPlace D_map_akropolis_8017BF7C[2];
-static AreaObjectPlace D_map_akropolis_8017BF9C[3];
-static AreaObjectPlace D_map_akropolis_8017BFCC[2];
+static AreaObjectPlace _gMapAkropolisSquareObjectPlaces[6];
+static AreaObjectPlace _gMapAkropolisEastElevatorHallObjectPlaces[2];
+static AreaObjectPlace _gMapAkropolisCafeteriaObjectPlaces[5];
+static AreaObjectPlace _gMapAkropolisSecurityRoomObjectPlaces[1];
+static AreaObjectPlace _gMapAkropolisHallwayObjectPlaces[2];
+static AreaObjectPlace _gMapAkropolisFountainObjectPlaces[4];
+static AreaObjectPlace _gMapAkropolisForkedRoadObjectPlaces[2];
+static AreaObjectPlace _gMapAkropolisObservatoryObjectPlaces[2];
+static AreaObjectPlace _gMapAkropolisPromenadeObjectPlaces[3];
+static AreaObjectPlace _gMapAkropolisSanctuaryObjectPlaces[2];
 static AreaObjectPlace D_map_akropolis_8017BFEC[2];
 static AreaObjectPlace D_map_akropolis_8017C00C[2];
 static AreaObjectPlace D_map_akropolis_8017C02C[1];
@@ -351,53 +351,53 @@ s32 mapAkropolisWasDryfieldMapSelected(void)
     return D_map_akropolis_8017A9A8;
 }
 
-GfxImageSlot D_map_akropolis_8017A048[22] = {
-    { NULL, 0 },
-    GFX_IMAGE_SLOT(0x4AF80),
-    GFX_IMAGE_SLOT(0x4DB90),
-    GFX_IMAGE_SLOT(0x4D340),
-    GFX_IMAGE_SLOT(0x461C0),
-    GFX_IMAGE_SLOT(0x3C030),
-    GFX_IMAGE_SLOT(0x4E910),
-    GFX_IMAGE_SLOT(0x56FA0),
-    GFX_IMAGE_SLOT(0x50630),
-    GFX_IMAGE_SLOT(0x50660),
-    GFX_IMAGE_SLOT(0x51060),
-    GFX_IMAGE_SLOT(0x4EB10),
-    GFX_IMAGE_SLOT(0x4C9F0),
-    GFX_IMAGE_SLOT(0x4ED80),
-    GFX_IMAGE_SLOT(0x435E0),
-    GFX_IMAGE_SLOT(0x51250),
-    GFX_IMAGE_SLOT(0x4BC60),
-    GFX_IMAGE_SLOT(0x4F450),
-    GFX_IMAGE_SLOT(0x4F110),
-    GFX_IMAGE_SLOT(0x3A8E0),
-    GFX_IMAGE_SLOT(0x3FAD0),
-    GFX_IMAGE_SLOT(0x582D0),
+GfxImageSlot gMapAkropolisImageSlots[GAME_AREA_MIST_R21 + 1] = {
+    [0]                                          = { NULL, 0 },
+    [GAME_AREA_ACROPOLIS_SQUARE]                 = GFX_IMAGE_SLOT(0x4AF80),
+    [GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL]     = GFX_IMAGE_SLOT(0x4DB90),
+    [GAME_AREA_ACROPOLIS_PATIO]                  = GFX_IMAGE_SLOT(0x4D340),
+    [GAME_AREA_ACROPOLIS_CAFETERIA]              = GFX_IMAGE_SLOT(0x461C0),
+    [GAME_AREA_ACROPOLIS_PLAZA]                  = GFX_IMAGE_SLOT(0x3C030),
+    [GAME_AREA_ACROPOLIS_SECURITY_ROOM]          = GFX_IMAGE_SLOT(0x4E910),
+    [GAME_AREA_ACROPOLIS_HALLWAY]                = GFX_IMAGE_SLOT(0x56FA0),
+    [GAME_AREA_ACROPOLIS_FOUNTAIN]               = GFX_IMAGE_SLOT(0x50630),
+    [GAME_AREA_ACROPOLIS_FORKED_ROAD]            = GFX_IMAGE_SLOT(0x50660),
+    [GAME_AREA_ACROPOLIS_OBSERVATORY]            = GFX_IMAGE_SLOT(0x51060),
+    [GAME_AREA_ACROPOLIS_PROMENADE]              = GFX_IMAGE_SLOT(0x4EB10),
+    [GAME_AREA_ACROPOLIS_SANCTUARY]              = GFX_IMAGE_SLOT(0x4C9F0),
+    [GAME_AREA_ACROPOLIS_ROOF_GARDEN]            = GFX_IMAGE_SLOT(0x4ED80),
+    [GAME_AREA_ACROPOLIS_BRIDGE]                 = GFX_IMAGE_SLOT(0x435E0),
+    [GAME_AREA_ACROPOLIS_FIRE_ESCAPE]            = GFX_IMAGE_SLOT(0x51250),
+    [GAME_AREA_ACROPOLIS_HELICOPTER_LANDING_PAD] = GFX_IMAGE_SLOT(0x4BC60),
+    [GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL]     = GFX_IMAGE_SLOT(0x4F450),
+    [GAME_AREA_MIST_R18]                         = GFX_IMAGE_SLOT(0x4F110),
+    [GAME_AREA_MIST_PARKING]                     = GFX_IMAGE_SLOT(0x3A8E0),
+    [GAME_AREA_MIST_SHOOTING_GALLERY]            = GFX_IMAGE_SLOT(0x3FAD0),
+    [GAME_AREA_MIST_R21]                         = GFX_IMAGE_SLOT(0x582D0),
 };
 
-s32 D_map_akropolis_8017A0F8[21] = {
-    0,
-    0,
-    0,
-    0,
-    0,
-    0x2D000,
-    0x25200,
-    0,
-    0x18C00,
-    0x25200,
-    0x1B000,
-    0x28380,
-    0,
-    0,
-    0x21000,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
+s32 gMapAkropolisMovieWorkspaceBytesByArea[GAME_AREA_MIST_SHOOTING_GALLERY + 1] = {
+    [0]                                          = 0,
+    [GAME_AREA_ACROPOLIS_SQUARE]                 = 0,
+    [GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL]     = 0,
+    [GAME_AREA_ACROPOLIS_PATIO]                  = 0,
+    [GAME_AREA_ACROPOLIS_CAFETERIA]              = 0,
+    [GAME_AREA_ACROPOLIS_PLAZA]                  = 0x2D000,
+    [GAME_AREA_ACROPOLIS_SECURITY_ROOM]          = 0x25200,
+    [GAME_AREA_ACROPOLIS_HALLWAY]                = 0,
+    [GAME_AREA_ACROPOLIS_FOUNTAIN]               = 0x18C00,
+    [GAME_AREA_ACROPOLIS_FORKED_ROAD]            = 0x25200,
+    [GAME_AREA_ACROPOLIS_OBSERVATORY]            = 0x1B000,
+    [GAME_AREA_ACROPOLIS_PROMENADE]              = 0x28380,
+    [GAME_AREA_ACROPOLIS_SANCTUARY]              = 0,
+    [GAME_AREA_ACROPOLIS_ROOF_GARDEN]            = 0,
+    [GAME_AREA_ACROPOLIS_BRIDGE]                 = 0x21000,
+    [GAME_AREA_ACROPOLIS_FIRE_ESCAPE]            = 0,
+    [GAME_AREA_ACROPOLIS_HELICOPTER_LANDING_PAD] = 0,
+    [GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL]     = 0,
+    [GAME_AREA_MIST_R18]                         = 0,
+    [GAME_AREA_MIST_PARKING]                     = 0,
+    [GAME_AREA_MIST_SHOOTING_GALLERY]            = 0,
 };
 
 u8 D_map_akropolis_8017A14C[8] = { 0, 0x15, 0x15, 0xFF };
@@ -502,101 +502,236 @@ MenuMapAreaName D_map_akropolis_8017A3BC[21] = {
     { "" },
 };
 
-static AreaObjectSpawn D_map_akropolis_8017A65C[1] = {
+/// Initial saved object states used by this stage's placements.
+///
+/// Available objects can be collected; collected state suppresses pickup models.
+/// Replenishable ammunition grants a full stack and is not marked collected.
+enum {
+    MAP_AKROPOLIS_STATE_AVAILABLE     = 1,
+    MAP_AKROPOLIS_STATE_COLLECTED     = 2,
+    MAP_AKROPOLIS_STATE_REPLENISHABLE = 3,
+};
+
+/// Catalogue kinds and room-prop recipes in this stage's object tables.
+///
+/// The low-bank values are item catalogue IDs. The additional landing-pad
+/// pickup kind selects an empty catalogue slot and has no placement here.
+enum {
+    MAP_AKROPOLIS_KIND_RECOVERY_1                    = 0x1,
+    MAP_AKROPOLIS_KIND_RECOVERY_2                    = 0x2,
+    MAP_AKROPOLIS_KIND_STIM                          = 0x4,
+    MAP_AKROPOLIS_KIND_MP_BOOST_2                    = 0x7,
+    MAP_AKROPOLIS_KIND_PENICILLIN                    = 0x8,
+    MAP_AKROPOLIS_KIND_PROTEIN_CAPSULE               = 0x3C,
+    MAP_AKROPOLIS_KIND_TACTICAL_VEST                 = 0x65,
+    MAP_AKROPOLIS_KIND_GRENADE_PISTOL                = 0x8A,
+    MAP_AKROPOLIS_KIND_MP5A5                         = 0x9D,
+    MAP_AKROPOLIS_KIND_9MM_PARABELLUM                = 0xA0,
+    MAP_AKROPOLIS_KIND_GRENADE                       = 0xA9,
+    MAP_AKROPOLIS_KIND_MICRO_DEVICE                  = 0x102,
+    MAP_AKROPOLIS_KIND_HELICOPTER_LANDING_PAD_LIFT   = 0x204,
+    MAP_AKROPOLIS_KIND_SECURITY_ROOM_CONTAINER_LID   = 0x701,
+    MAP_AKROPOLIS_KIND_SANCTUARY_CONTAINER_LID       = 0x702,
+    MAP_AKROPOLIS_KIND_SQUARE_SAVE_POINT             = 0x801,
+    MAP_AKROPOLIS_KIND_HELICOPTER_LANDING_PAD_PICKUP = 0xA4,
+};
+
+/// Indices of this stage's saved two-bit object states (sixteen per word).
+enum {
+    MAP_AKROPOLIS_OBJECT_SLOT_SQUARE_AMMUNITION                = 0x1,
+    MAP_AKROPOLIS_OBJECT_SLOT_SQUARE_FIRST_RECOVERY_2          = 0xA,
+    MAP_AKROPOLIS_OBJECT_SLOT_SQUARE_SECOND_RECOVERY_2         = 0x17,
+    MAP_AKROPOLIS_OBJECT_SLOT_SQUARE_RECOVERY_1                = 0x1B,
+    MAP_AKROPOLIS_OBJECT_SLOT_SQUARE_SAVE_POINT                = 0x2E,
+    MAP_AKROPOLIS_OBJECT_SLOT_EAST_ELEVATOR_HALL_PARTHENON_KEY = 0x2,
+    MAP_AKROPOLIS_OBJECT_SLOT_CAFETERIA_MICRO_DEVICE           = 0x3,
+    MAP_AKROPOLIS_OBJECT_SLOT_CAFETERIA_MENDEL_JOURNAL         = 0x4,
+    MAP_AKROPOLIS_OBJECT_SLOT_CAFETERIA_STIM                   = 0x9,
+    MAP_AKROPOLIS_OBJECT_SLOT_CAFETERIA_RECOVERY_1             = 0x16,
+    MAP_AKROPOLIS_OBJECT_SLOT_HALLWAY_BLUE_KEY                 = 0xB,
+    MAP_AKROPOLIS_OBJECT_SLOT_FOUNTAIN_PROTEIN_CAPSULE         = 0xC,
+    MAP_AKROPOLIS_OBJECT_SLOT_FOUNTAIN_GRENADE_PISTOL          = 0xD,
+    MAP_AKROPOLIS_OBJECT_SLOT_FOUNTAIN_MP_BOOST_2              = 0xE,
+    MAP_AKROPOLIS_OBJECT_SLOT_FORKED_ROAD_PENICILLIN           = 0x18,
+    MAP_AKROPOLIS_OBJECT_SLOT_OBSERVATORY_TACTICAL_VEST        = 0x10,
+    MAP_AKROPOLIS_OBJECT_SLOT_PROMENADE_GRENADES               = 0x12,
+    MAP_AKROPOLIS_OBJECT_SLOT_PROMENADE_MP5A5                  = 0x15,
+    MAP_AKROPOLIS_OBJECT_SLOT_SANCTUARY_RED_KEY                = 0x1C,
+    MAP_AKROPOLIS_OBJECT_SLOT_HELICOPTER_LANDING_PAD_LIFT      = 0x28,
+};
+
+/// Execution priority of the placed-object model tasks.
+enum { MAP_AKROPOLIS_OBJECT_TASK_PRIORITY = 0x62 };
+
+/// Empty model-spawn list for the Square.
+///
+/// Contains only `AREA_OBJECT_SPAWN_END`. Its places still seed saved states
+/// and supply pickup metadata, but instantiate no model from this table.
+static AreaObjectSpawn _gMapAkropolisSquareObjectSpawns[1] = {
     { AREA_OBJECT_SPAWN_END },
 };
 
-static AreaObjectSpawn D_map_akropolis_8017A66C[1] = {
+/// Empty model-spawn list for the East elevator hall.
+///
+/// Contains only `AREA_OBJECT_SPAWN_END`. Its places still seed saved states
+/// and supply pickup metadata, but instantiate no model from this table.
+static AreaObjectSpawn _gMapAkropolisEastElevatorHallObjectSpawns[1] = {
     { AREA_OBJECT_SPAWN_END },
 };
 
-static AreaObjectSpawn D_map_akropolis_8017A67C[3] = {
-    { 4, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, acropolisCafeteriaStimPickupTask, { &gAcropolisCafeteriaModel0F7A4 } } },
-    { 0x107, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, acropolisCafeteriaMendelPickupTask, { &gAcropolisCafeteriaModel0FDFC } } },
+/// Stim and Mendel-journal model-spawn recipes for the Cafeteria.
+///
+/// Ended by `AREA_OBJECT_SPAWN_END`; the owning area pairs this table with
+/// its placement list. Callbacks and borrowed models require their room
+/// overlay to remain loaded for the spawned task.
+static AreaObjectSpawn _gMapAkropolisCafeteriaObjectSpawns[3] = {
+    { MAP_AKROPOLIS_KIND_STIM, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, acropolisCafeteriaStimPickupTask, { &gAcropolisCafeteriaModel0F7A4 } } },
+    { INVENTORY_COLLECTION_ID_MENDEL_JOURNAL, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, acropolisCafeteriaMendelPickupTask, { &gAcropolisCafeteriaModel0FDFC } } },
     { AREA_OBJECT_SPAWN_END },
 };
 
-static AreaObjectSpawn D_map_akropolis_8017A6AC[2] = {
-    { 0x701, { { { TASK_BODY_TMD, 0x62 } }, itemPickupContainerLidTask, { &gAcropolisSecurityRoomAcropolisSanctuaryModel090F0 } } },
+/// Container-lid model-spawn recipe for the Security room.
+///
+/// Ended by `AREA_OBJECT_SPAWN_END`; the owning area pairs this table with
+/// its placement list. Callbacks and borrowed models require their room
+/// overlay to remain loaded for the spawned task.
+/// The area's empty placement list selects none of these recipes.
+static AreaObjectSpawn _gMapAkropolisSecurityRoomObjectSpawns[2] = {
+    { MAP_AKROPOLIS_KIND_SECURITY_ROOM_CONTAINER_LID, { { { TASK_BODY_TMD, MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, itemPickupContainerLidTask, { &gAcropolisSecurityRoomAcropolisSanctuaryModel090F0 } } },
     { AREA_OBJECT_SPAWN_END },
 };
 
-static AreaObjectSpawn D_map_akropolis_8017A6CC[2] = {
-    { 0x104, { { { TASK_BODY_TMD, 0x62 } }, acropolisHallwayBlueKeyPickupTask, { &gAcropolisHallwayModel01AE0 } } },
+/// Blue-key model-spawn recipe for the Hallway.
+///
+/// Ended by `AREA_OBJECT_SPAWN_END`; the owning area pairs this table with
+/// its placement list. Callbacks and borrowed models require their room
+/// overlay to remain loaded for the spawned task.
+static AreaObjectSpawn _gMapAkropolisHallwayObjectSpawns[2] = {
+    { INVENTORY_COLLECTION_ID_BLUE_KEY, { { { TASK_BODY_TMD, MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, acropolisHallwayBlueKeyPickupTask, { &gAcropolisHallwayModel01AE0 } } },
     { AREA_OBJECT_SPAWN_END },
 };
 
-static AreaObjectSpawn D_map_akropolis_8017A6EC[1] = {
+/// Empty model-spawn list for the Fountain.
+///
+/// Contains only `AREA_OBJECT_SPAWN_END`. Its places still seed saved states
+/// and supply pickup metadata, but instantiate no model from this table.
+static AreaObjectSpawn _gMapAkropolisFountainObjectSpawns[1] = {
     { AREA_OBJECT_SPAWN_END },
 };
 
-static AreaObjectSpawn D_map_akropolis_8017A6FC[1] = {
+/// Empty model-spawn list for the Forked road.
+///
+/// Contains only `AREA_OBJECT_SPAWN_END`. Its places still seed saved states
+/// and supply pickup metadata, but instantiate no model from this table.
+static AreaObjectSpawn _gMapAkropolisForkedRoadObjectSpawns[1] = {
     { AREA_OBJECT_SPAWN_END },
 };
 
-static AreaObjectSpawn D_map_akropolis_8017A70C[1] = {
+/// Empty model-spawn list for the Observatory.
+///
+/// Contains only `AREA_OBJECT_SPAWN_END`. Its places still seed saved states
+/// and supply pickup metadata, but instantiate no model from this table.
+static AreaObjectSpawn _gMapAkropolisObservatoryObjectSpawns[1] = {
     { AREA_OBJECT_SPAWN_END },
 };
 
-static AreaObjectSpawn D_map_akropolis_8017A71C[1] = {
+/// Empty model-spawn list for the Promenade.
+///
+/// Contains only `AREA_OBJECT_SPAWN_END`. Its places still seed saved states
+/// and supply pickup metadata, but instantiate no model from this table.
+static AreaObjectSpawn _gMapAkropolisPromenadeObjectSpawns[1] = {
     { AREA_OBJECT_SPAWN_END },
 };
 
-static AreaObjectSpawn D_map_akropolis_8017A72C[3] = {
-    { 0x103, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, acropolisSanctuaryItemVisibilityTask, { &gAcropolisSanctuaryModel09584 } } },
-    { 0x702, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, itemPickupContainerLidTask, { &gAcropolisSanctuaryModel090F0 } } },
+/// Red-key and container-lid model-spawn recipes for the Sanctuary.
+///
+/// Ended by `AREA_OBJECT_SPAWN_END`; the owning area pairs this table with
+/// its placement list. Callbacks and borrowed models require their room
+/// overlay to remain loaded for the spawned task.
+/// Only the red key has a matching placement; the lid recipe is unselected.
+static AreaObjectSpawn _gMapAkropolisSanctuaryObjectSpawns[3] = {
+    { INVENTORY_COLLECTION_ID_RED_KEY, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, acropolisSanctuaryItemVisibilityTask, { &gAcropolisSanctuaryModel09584 } } },
+    { MAP_AKROPOLIS_KIND_SANCTUARY_CONTAINER_LID, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, itemPickupContainerLidTask, { &gAcropolisSanctuaryModel090F0 } } },
     { AREA_OBJECT_SPAWN_END },
 };
 
-static AreaObjectSpawn D_map_akropolis_8017A75C[2] = {
-    { 0x105, { { { TASK_BODY_TMD, 0x62 } }, acropolisRoofGardenPickupModelTask, { &gAcropolisRoofGardenModel09868 } } },
+/// Armory-cardkey model-spawn recipe for the Roof garden.
+///
+/// Ended by `AREA_OBJECT_SPAWN_END`; the owning area pairs this table with
+/// its placement list. Callbacks and borrowed models require their room
+/// overlay to remain loaded for the spawned task.
+static AreaObjectSpawn _gMapAkropolisRoofGardenObjectSpawns[2] = {
+    { INVENTORY_COLLECTION_ID_ARMORY_CARDKEY, { { { TASK_BODY_TMD, MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, acropolisRoofGardenPickupModelTask, { &gAcropolisRoofGardenModel09868 } } },
     { AREA_OBJECT_SPAWN_END },
 };
 
-static AreaObjectSpawn D_map_akropolis_8017A77C[1] = {
+/// Empty model-spawn list for the Fire escape.
+///
+/// Contains only `AREA_OBJECT_SPAWN_END`. Its places still seed saved states
+/// and supply pickup metadata, but instantiate no model from this table.
+static AreaObjectSpawn _gMapAkropolisFireEscapeObjectSpawns[1] = {
     { AREA_OBJECT_SPAWN_END },
 };
 
-static AreaObjectSpawn D_map_akropolis_8017A78C[1] = {
+/// Empty model-spawn list for the West elevator hall.
+///
+/// Contains only `AREA_OBJECT_SPAWN_END`; the paired placement list is also
+/// empty, so this area seeds no object state and instantiates no object model.
+static AreaObjectSpawn _gMapAkropolisWestElevatorHallObjectSpawns[1] = {
     { AREA_OBJECT_SPAWN_END },
 };
 
-static AreaObjectSpawn D_map_akropolis_8017A79C[1] = {
+/// Empty model-spawn list for MIST parking.
+///
+/// Contains only `AREA_OBJECT_SPAWN_END`. Its places still seed saved states
+/// and supply pickup metadata, but instantiate no model from this table.
+static AreaObjectSpawn _gMapAkropolisMistParkingObjectSpawns[1] = {
     { AREA_OBJECT_SPAWN_END },
 };
 
-static AreaObjectPlace D_map_akropolis_8017A7AC[2] = {
-    { 0x28, 0x204, 0, 1, -0x14DC, -0xB40, -0x76C },
-    { 0xFFFF },
+/// Lift state and model placement for the Helicopter landing pad.
+///
+/// Ended by `AREA_OBJECT_PLACE_END`; seeds two-bit saved states and supplies
+/// object identity. Model spawning additionally requires a matching kind in
+/// the area's spawn list. XYZ use room-coordinate units; yaw uses 4096 per turn.
+static AreaObjectPlace _gMapAkropolisHelicopterLandingPadObjectPlaces[2] = {
+    { MAP_AKROPOLIS_OBJECT_SLOT_HELICOPTER_LANDING_PAD_LIFT, MAP_AKROPOLIS_KIND_HELICOPTER_LANDING_PAD_LIFT, 0, MAP_AKROPOLIS_STATE_AVAILABLE, -0x14DC, -0xB40, -0x76C },
+    { AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectSpawn D_map_akropolis_8017A7CC[3] = {
-    { 0x204, { { { TASK_BODY_TMD, 0x62 } }, acropolisHelicopterLandingPadLiftTask, { &gAcropolisHelicopterLandingPadModel0547C } } },
-    { 0xA4, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, acropolisHelicopterLandingPadPickupModelTask, { &gAcropolisHelicopterLandingPadModel0A8E8 } } },
+/// Lift and additional pickup model-spawn recipes for the Helicopter landing pad.
+///
+/// Ended by `AREA_OBJECT_SPAWN_END`; the owning area pairs this table with
+/// its placement list. Callbacks and borrowed models require their room
+/// overlay to remain loaded for the spawned task.
+/// Only the lift has a matching placement; the pickup recipe is unselected.
+static AreaObjectSpawn _gMapAkropolisHelicopterLandingPadObjectSpawns[3] = {
+    { MAP_AKROPOLIS_KIND_HELICOPTER_LANDING_PAD_LIFT, { { { TASK_BODY_TMD, MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, acropolisHelicopterLandingPadLiftTask, { &gAcropolisHelicopterLandingPadModel0547C } } },
+    { MAP_AKROPOLIS_KIND_HELICOPTER_LANDING_PAD_PICKUP, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, acropolisHelicopterLandingPadPickupModelTask, { &gAcropolisHelicopterLandingPadModel0A8E8 } } },
     { AREA_OBJECT_SPAWN_END },
 };
 
 AreaObjectRoom D_map_akropolis_8017A7FC[22] = {
     { { NULL }, NULL },
-    { { D_map_akropolis_8017BE1C }, D_map_akropolis_8017A65C },
-    { { D_map_akropolis_8017BE7C }, D_map_akropolis_8017A66C },
+    { { _gMapAkropolisSquareObjectPlaces }, _gMapAkropolisSquareObjectSpawns },
+    { { _gMapAkropolisEastElevatorHallObjectPlaces }, _gMapAkropolisEastElevatorHallObjectSpawns },
     { { NULL }, NULL },
-    { { D_map_akropolis_8017BE9C }, D_map_akropolis_8017A67C },
+    { { _gMapAkropolisCafeteriaObjectPlaces }, _gMapAkropolisCafeteriaObjectSpawns },
     { { NULL }, NULL },
-    { { D_map_akropolis_8017BEEC }, D_map_akropolis_8017A6AC },
-    { { D_map_akropolis_8017BEFC }, D_map_akropolis_8017A6CC },
-    { { D_map_akropolis_8017BF1C }, D_map_akropolis_8017A6EC },
-    { { D_map_akropolis_8017BF5C }, D_map_akropolis_8017A6FC },
-    { { D_map_akropolis_8017BF7C }, D_map_akropolis_8017A70C },
-    { { D_map_akropolis_8017BF9C }, D_map_akropolis_8017A71C },
-    { { D_map_akropolis_8017BFCC }, D_map_akropolis_8017A72C },
-    { { D_map_akropolis_8017BFEC }, D_map_akropolis_8017A75C },
+    { { _gMapAkropolisSecurityRoomObjectPlaces }, _gMapAkropolisSecurityRoomObjectSpawns },
+    { { _gMapAkropolisHallwayObjectPlaces }, _gMapAkropolisHallwayObjectSpawns },
+    { { _gMapAkropolisFountainObjectPlaces }, _gMapAkropolisFountainObjectSpawns },
+    { { _gMapAkropolisForkedRoadObjectPlaces }, _gMapAkropolisForkedRoadObjectSpawns },
+    { { _gMapAkropolisObservatoryObjectPlaces }, _gMapAkropolisObservatoryObjectSpawns },
+    { { _gMapAkropolisPromenadeObjectPlaces }, _gMapAkropolisPromenadeObjectSpawns },
+    { { _gMapAkropolisSanctuaryObjectPlaces }, _gMapAkropolisSanctuaryObjectSpawns },
+    { { D_map_akropolis_8017BFEC }, _gMapAkropolisRoofGardenObjectSpawns },
     { { NULL }, NULL },
-    { { D_map_akropolis_8017C00C }, D_map_akropolis_8017A77C },
-    { { D_map_akropolis_8017A7AC }, D_map_akropolis_8017A7CC },
-    { { D_map_akropolis_8017C02C }, D_map_akropolis_8017A78C },
+    { { D_map_akropolis_8017C00C }, _gMapAkropolisFireEscapeObjectSpawns },
+    { { _gMapAkropolisHelicopterLandingPadObjectPlaces }, _gMapAkropolisHelicopterLandingPadObjectSpawns },
+    { { D_map_akropolis_8017C02C }, _gMapAkropolisWestElevatorHallObjectSpawns },
     { { NULL }, NULL },
-    { { D_map_akropolis_8017C03C }, D_map_akropolis_8017A79C },
+    { { D_map_akropolis_8017C03C }, _gMapAkropolisMistParkingObjectSpawns },
     { { NULL }, NULL },
     { { .sentinel = AREA_OBJECT_ROOM_END }, NULL },
 };
@@ -692,27 +827,27 @@ u16 D_map_akropolis_8017AA0C[14] = {
     0x1EA,
 };
 
-WorldCoordRoomLighting* D_map_akropolis_8017AA28[20] = {
-    gAcropolisSquareRoomLightingTable,
-    gAcropolisEastElevatorHallRoomLightingTable,
-    gAcropolisPatioRoomLightingTable,
-    gAcropolisCafeteriaRoomLightingTable,
-    gAcropolisPlazaRoomLightingTable,
-    gAcropolisSecurityRoomRoomLightingTable,
-    gAcropolisHallwayRoomLightingTable,
-    gAcropolisFountainRoomLightingTable,
-    gAcropolisForkedRoadRoomLightingTable,
-    gAcropolisObservatoryRoomLightingTable,
-    gAcropolisPromenadeRoomLightingTable,
-    gAcropolisSanctuaryRoomLightingTable,
-    gAcropolisRoofGardenRoomLightingTable,
-    gAcropolisBridgeRoomLightingTable,
-    gAcropolisFireEscapeRoomLightingTable,
-    gAcropolisHelicopterLandingPadRoomLightingTable,
-    gAcropolisWestElevatorHallRoomLightingTable,
-    gMistR18RoomLightingTable,
-    gMistParkingRoomLightingTable,
-    gMistShootingGalleryRoomLightingTable,
+WorldCoordRoomLighting* gMapAkropolisAreaRoomLightingTables[GAME_AREA_MIST_SHOOTING_GALLERY] = {
+    [GAME_AREA_ACROPOLIS_SQUARE - 1]                 = gAcropolisSquareRoomLightingTable,
+    [GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL - 1]     = gAcropolisEastElevatorHallRoomLightingTable,
+    [GAME_AREA_ACROPOLIS_PATIO - 1]                  = gAcropolisPatioRoomLightingTable,
+    [GAME_AREA_ACROPOLIS_CAFETERIA - 1]              = gAcropolisCafeteriaRoomLightingTable,
+    [GAME_AREA_ACROPOLIS_PLAZA - 1]                  = gAcropolisPlazaRoomLightingTable,
+    [GAME_AREA_ACROPOLIS_SECURITY_ROOM - 1]          = gAcropolisSecurityRoomRoomLightingTable,
+    [GAME_AREA_ACROPOLIS_HALLWAY - 1]                = gAcropolisHallwayRoomLightingTable,
+    [GAME_AREA_ACROPOLIS_FOUNTAIN - 1]               = gAcropolisFountainRoomLightingTable,
+    [GAME_AREA_ACROPOLIS_FORKED_ROAD - 1]            = gAcropolisForkedRoadRoomLightingTable,
+    [GAME_AREA_ACROPOLIS_OBSERVATORY - 1]            = gAcropolisObservatoryRoomLightingTable,
+    [GAME_AREA_ACROPOLIS_PROMENADE - 1]              = gAcropolisPromenadeRoomLightingTable,
+    [GAME_AREA_ACROPOLIS_SANCTUARY - 1]              = gAcropolisSanctuaryRoomLightingTable,
+    [GAME_AREA_ACROPOLIS_ROOF_GARDEN - 1]            = gAcropolisRoofGardenRoomLightingTable,
+    [GAME_AREA_ACROPOLIS_BRIDGE - 1]                 = gAcropolisBridgeRoomLightingTable,
+    [GAME_AREA_ACROPOLIS_FIRE_ESCAPE - 1]            = gAcropolisFireEscapeRoomLightingTable,
+    [GAME_AREA_ACROPOLIS_HELICOPTER_LANDING_PAD - 1] = gAcropolisHelicopterLandingPadRoomLightingTable,
+    [GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL - 1]     = gAcropolisWestElevatorHallRoomLightingTable,
+    [GAME_AREA_MIST_R18 - 1]                         = gMistR18RoomLightingTable,
+    [GAME_AREA_MIST_PARKING - 1]                     = gMistParkingRoomLightingTable,
+    [GAME_AREA_MIST_SHOOTING_GALLERY - 1]            = gMistShootingGalleryRoomLightingTable,
 };
 
 static WorldCollisionRoomResources* D_map_akropolis_8017AA78[20] = {
@@ -838,52 +973,57 @@ static ViewCamera* D_map_akropolis_8017ABC4[20] = {
 
 ViewCameraTable D_map_akropolis_8017AC14 = { D_map_akropolis_8017ABC4 };
 
-static u8** D_map_akropolis_8017AC18[20] = {
-    gAcropolisSquareViewMaps,
-    gAcropolisEastElevatorHallViewMaps,
-    gAcropolisPatioViewMaps,
-    gAcropolisCafeteriaViewMaps,
-    gAcropolisPlazaViewMaps,
-    gAcropolisSecurityRoomViewMaps,
-    gAcropolisHallwayViewMaps,
-    gAcropolisFountainViewMaps,
-    gAcropolisForkedRoadViewMaps,
-    gAcropolisObservatoryViewMaps,
-    gAcropolisPromenadeViewMaps,
-    gAcropolisSanctuaryViewMaps,
-    gAcropolisRoofGardenViewMaps,
-    gAcropolisBridgeViewMaps,
-    gAcropolisFireEscapeViewMaps,
-    gAcropolisHelicopterLandingPadViewMaps,
-    gAcropolisWestElevatorHallViewMaps,
-    gMistR18ViewMaps,
-    gMistParkingViewMaps,
-    gMistShootingGalleryViewMaps,
+/// Area directory of room-local logical-view maps for Acropolis and MIST.
+///
+/// Indexed by area - 1 for areas 1..20, then room - 1 and view - 1. No
+/// terminator or area-21 entry. Room pointers are borrowed while the selected
+/// room overlay is loaded; shared identity-map bytes belong to gameplay.
+static u8** _gMapAkropolisAreaViewMaps[GAME_AREA_MIST_SHOOTING_GALLERY] = {
+    [GAME_AREA_ACROPOLIS_SQUARE - 1]                 = gAcropolisSquareViewMaps,
+    [GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL - 1]     = gAcropolisEastElevatorHallViewMaps,
+    [GAME_AREA_ACROPOLIS_PATIO - 1]                  = gAcropolisPatioViewMaps,
+    [GAME_AREA_ACROPOLIS_CAFETERIA - 1]              = gAcropolisCafeteriaViewMaps,
+    [GAME_AREA_ACROPOLIS_PLAZA - 1]                  = gAcropolisPlazaViewMaps,
+    [GAME_AREA_ACROPOLIS_SECURITY_ROOM - 1]          = gAcropolisSecurityRoomViewMaps,
+    [GAME_AREA_ACROPOLIS_HALLWAY - 1]                = gAcropolisHallwayViewMaps,
+    [GAME_AREA_ACROPOLIS_FOUNTAIN - 1]               = gAcropolisFountainViewMaps,
+    [GAME_AREA_ACROPOLIS_FORKED_ROAD - 1]            = gAcropolisForkedRoadViewMaps,
+    [GAME_AREA_ACROPOLIS_OBSERVATORY - 1]            = gAcropolisObservatoryViewMaps,
+    [GAME_AREA_ACROPOLIS_PROMENADE - 1]              = gAcropolisPromenadeViewMaps,
+    [GAME_AREA_ACROPOLIS_SANCTUARY - 1]              = gAcropolisSanctuaryViewMaps,
+    [GAME_AREA_ACROPOLIS_ROOF_GARDEN - 1]            = gAcropolisRoofGardenViewMaps,
+    [GAME_AREA_ACROPOLIS_BRIDGE - 1]                 = gAcropolisBridgeViewMaps,
+    [GAME_AREA_ACROPOLIS_FIRE_ESCAPE - 1]            = gAcropolisFireEscapeViewMaps,
+    [GAME_AREA_ACROPOLIS_HELICOPTER_LANDING_PAD - 1] = gAcropolisHelicopterLandingPadViewMaps,
+    [GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL - 1]     = gAcropolisWestElevatorHallViewMaps,
+    [GAME_AREA_MIST_R18 - 1]                         = gMistR18ViewMaps,
+    [GAME_AREA_MIST_PARKING - 1]                     = gMistParkingViewMaps,
+    [GAME_AREA_MIST_SHOOTING_GALLERY - 1]            = gMistShootingGalleryViewMaps,
 };
 
-ViewIndexTable D_map_akropolis_8017AC68 = { D_map_akropolis_8017AC18 };
+ViewIndexTable gMapAkropolisViewIndexTable = { _gMapAkropolisAreaViewMaps };
 
-WorldCollisionSurfaceProperties** D_map_akropolis_8017AC6C[20] = {
-    gAcropolisSquareSurfacePropertiesByClass,
-    gAcropolisEastElevatorHallSurfacePropertiesByClass,
-    gAcropolisPatioSurfacePropertiesByClass,
-    gAcropolisCafeteriaSurfacePropertiesByClass,
-    gAcropolisPlazaSurfacePropertiesByClass,
-    gAcropolisSecurityRoomSurfacePropertiesByClass,
-    gAcropolisHallwaySurfacePropertiesByClass,
-    gAcropolisFountainSurfacePropertiesByClass,
-    gAcropolisForkedRoadSurfacePropertiesByClass,
-    gAcropolisObservatorySurfacePropertiesByClass,
-    gAcropolisPromenadeSurfacePropertiesByClass,
-    gAcropolisSanctuarySurfacePropertiesByClass,
-    gAcropolisRoofGardenSurfacePropertiesByClass,
-    gAcropolisBridgeSurfacePropertiesByClass,
-    gAcropolisFireEscapeSurfacePropertiesByClass,
-    gAcropolisHelicopterLandingPadSurfacePropertiesByClass,
-    gAcropolisWestElevatorHallSurfacePropertiesByClass,
-    gMistR18SurfacePropertiesByClass,
-    gMistParkingSurfacePropertiesByClass,
-    gMistShootingGallerySurfacePropertiesByClass,
+WorldCollisionSurfaceProperties** gMapAkropolisSurfacePropertiesByArea[GAME_AREA_MIST_SHOOTING_GALLERY] = {
+    [GAME_AREA_ACROPOLIS_SQUARE - 1]                 = gAcropolisSquareSurfacePropertiesByClass,
+    [GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL - 1]     = gAcropolisEastElevatorHallSurfacePropertiesByClass,
+    [GAME_AREA_ACROPOLIS_PATIO - 1]                  = gAcropolisPatioSurfacePropertiesByClass,
+    [GAME_AREA_ACROPOLIS_CAFETERIA - 1]              = gAcropolisCafeteriaSurfacePropertiesByClass,
+    [GAME_AREA_ACROPOLIS_PLAZA - 1]                  = gAcropolisPlazaSurfacePropertiesByClass,
+    [GAME_AREA_ACROPOLIS_SECURITY_ROOM - 1]          = gAcropolisSecurityRoomSurfacePropertiesByClass,
+    [GAME_AREA_ACROPOLIS_HALLWAY - 1]                = gAcropolisHallwaySurfacePropertiesByClass,
+    [GAME_AREA_ACROPOLIS_FOUNTAIN - 1]               = gAcropolisFountainSurfacePropertiesByClass,
+    [GAME_AREA_ACROPOLIS_FORKED_ROAD - 1]            = gAcropolisForkedRoadSurfacePropertiesByClass,
+    [GAME_AREA_ACROPOLIS_OBSERVATORY - 1]            = gAcropolisObservatorySurfacePropertiesByClass,
+    [GAME_AREA_ACROPOLIS_PROMENADE - 1]              = gAcropolisPromenadeSurfacePropertiesByClass,
+    [GAME_AREA_ACROPOLIS_SANCTUARY - 1]              = gAcropolisSanctuarySurfacePropertiesByClass,
+    [GAME_AREA_ACROPOLIS_ROOF_GARDEN - 1]            = gAcropolisRoofGardenSurfacePropertiesByClass,
+    [GAME_AREA_ACROPOLIS_BRIDGE - 1]                 = gAcropolisBridgeSurfacePropertiesByClass,
+    [GAME_AREA_ACROPOLIS_FIRE_ESCAPE - 1]            = gAcropolisFireEscapeSurfacePropertiesByClass,
+    [GAME_AREA_ACROPOLIS_HELICOPTER_LANDING_PAD - 1] = gAcropolisHelicopterLandingPadSurfacePropertiesByClass,
+    [GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL - 1]     = gAcropolisWestElevatorHallSurfacePropertiesByClass,
+    [GAME_AREA_MIST_R18 - 1]                         = gMistR18SurfacePropertiesByClass,
+    [GAME_AREA_MIST_PARKING - 1]                     = gMistParkingSurfacePropertiesByClass,
+    [GAME_AREA_MIST_SHOOTING_GALLERY - 1]            = gMistShootingGallerySurfacePropertiesByClass,
 };
 
 AreaPlacement D_map_akropolis_8017ACBC[2] = {
@@ -1353,63 +1493,113 @@ AreaPlacement D_map_akropolis_8017BDEC[3] = {
     { AREA_PLACEMENT_END },
 };
 
-static AreaObjectPlace D_map_akropolis_8017BE1C[6] = {
-    { 1, 0xA0, 0, 3 },
-    { 0xA, 2, 0, 1 },
-    { 0x17, 2, 0, 1 },
-    { 0x1B, 1, 0, 1 },
-    { 0x2E, 0x801, 0, 0x101, 0x18D9, -0xE74, 0x95C },
-    { 0xFFFF },
+/// Five object-state placements for the Square: ammunition, recovery items and a save point.
+///
+/// Ended by `AREA_OBJECT_PLACE_END`; seeds two-bit saved states and supplies
+/// object identity. Model spawning additionally requires a matching kind in
+/// the area's spawn list. XYZ use room-coordinate units; yaw uses 4096 per turn.
+/// Stored state bit 8 (0x100) has no established reader; its role is unproven.
+static AreaObjectPlace _gMapAkropolisSquareObjectPlaces[6] = {
+    { MAP_AKROPOLIS_OBJECT_SLOT_SQUARE_AMMUNITION, MAP_AKROPOLIS_KIND_9MM_PARABELLUM, 0, MAP_AKROPOLIS_STATE_REPLENISHABLE },
+    { MAP_AKROPOLIS_OBJECT_SLOT_SQUARE_FIRST_RECOVERY_2, MAP_AKROPOLIS_KIND_RECOVERY_2, 0, MAP_AKROPOLIS_STATE_AVAILABLE },
+    { MAP_AKROPOLIS_OBJECT_SLOT_SQUARE_SECOND_RECOVERY_2, MAP_AKROPOLIS_KIND_RECOVERY_2, 0, MAP_AKROPOLIS_STATE_AVAILABLE },
+    { MAP_AKROPOLIS_OBJECT_SLOT_SQUARE_RECOVERY_1, MAP_AKROPOLIS_KIND_RECOVERY_1, 0, MAP_AKROPOLIS_STATE_AVAILABLE },
+    { MAP_AKROPOLIS_OBJECT_SLOT_SQUARE_SAVE_POINT, MAP_AKROPOLIS_KIND_SQUARE_SAVE_POINT, 0, 0x100 | MAP_AKROPOLIS_STATE_AVAILABLE, 0x18D9, -0xE74, 0x95C },
+    { AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_akropolis_8017BE7C[2] = {
-    { 2, 0x101, 0, 0x201 },
-    { 0xFFFF },
+/// Parthenon-key state placement for the East elevator hall.
+///
+/// Ended by `AREA_OBJECT_PLACE_END`; seeds two-bit saved states and supplies
+/// object identity. Model spawning additionally requires a matching kind in
+/// the area's spawn list. XYZ use room-coordinate units; yaw uses 4096 per turn.
+/// The prompt flag collects the key immediately when its pickup UI opens.
+static AreaObjectPlace _gMapAkropolisEastElevatorHallObjectPlaces[2] = {
+    { MAP_AKROPOLIS_OBJECT_SLOT_EAST_ELEVATOR_HALL_PARTHENON_KEY, INVENTORY_COLLECTION_ID_PARTHENON_KEY, 0, AREA_OBJECT_PLACE_PROMPT | MAP_AKROPOLIS_STATE_AVAILABLE },
+    { AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_akropolis_8017BE9C[5] = {
-    { 3, 0x102, 0, 1 },
-    { 4, 0x107, 0, 1, -0x96A, -0x3F2, -0x8FC },
-    { 9, 4, 0, 1, 0x654, -0x672, 0xAC8 },
-    { 0x16, 1, 0, 1 },
-    { 0xFFFF },
+/// Four object-state placements for the Cafeteria: Micro Device, Mendel journal, Stim and Recovery1.
+///
+/// Ended by `AREA_OBJECT_PLACE_END`; seeds two-bit saved states and supplies
+/// object identity. Model spawning additionally requires a matching kind in
+/// the area's spawn list. XYZ use room-coordinate units; yaw uses 4096 per turn.
+static AreaObjectPlace _gMapAkropolisCafeteriaObjectPlaces[5] = {
+    { MAP_AKROPOLIS_OBJECT_SLOT_CAFETERIA_MICRO_DEVICE, MAP_AKROPOLIS_KIND_MICRO_DEVICE, 0, MAP_AKROPOLIS_STATE_AVAILABLE },
+    { MAP_AKROPOLIS_OBJECT_SLOT_CAFETERIA_MENDEL_JOURNAL, INVENTORY_COLLECTION_ID_MENDEL_JOURNAL, 0, MAP_AKROPOLIS_STATE_AVAILABLE, -0x96A, -0x3F2, -0x8FC },
+    { MAP_AKROPOLIS_OBJECT_SLOT_CAFETERIA_STIM, MAP_AKROPOLIS_KIND_STIM, 0, MAP_AKROPOLIS_STATE_AVAILABLE, 0x654, -0x672, 0xAC8 },
+    { MAP_AKROPOLIS_OBJECT_SLOT_CAFETERIA_RECOVERY_1, MAP_AKROPOLIS_KIND_RECOVERY_1, 0, MAP_AKROPOLIS_STATE_AVAILABLE },
+    { AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_akropolis_8017BEEC[1] = {
-    { 0xFFFF },
+/// Empty object-state placement list for the Security room.
+///
+/// Contains only `AREA_OBJECT_PLACE_END`, so seeds no state and spawns nothing.
+static AreaObjectPlace _gMapAkropolisSecurityRoomObjectPlaces[1] = {
+    { AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_akropolis_8017BEFC[2] = {
-    { 0xB, 0x104, 0, 1, 0x410, -0x960, -0x4D8 },
-    { 0xFFFF },
+/// Blue-key state and model placement for the Hallway.
+///
+/// Ended by `AREA_OBJECT_PLACE_END`; seeds two-bit saved states and supplies
+/// object identity. Model spawning additionally requires a matching kind in
+/// the area's spawn list. XYZ use room-coordinate units; yaw uses 4096 per turn.
+static AreaObjectPlace _gMapAkropolisHallwayObjectPlaces[2] = {
+    { MAP_AKROPOLIS_OBJECT_SLOT_HALLWAY_BLUE_KEY, INVENTORY_COLLECTION_ID_BLUE_KEY, 0, MAP_AKROPOLIS_STATE_AVAILABLE, 0x410, -0x960, -0x4D8 },
+    { AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_akropolis_8017BF1C[4] = {
-    { 0xC, 0x3C, 0, 1 },
-    { 0xD, 0x8A, 0, 1 },
-    { 0xE, 7, 0, 1 },
-    { 0xFFFF },
+/// Protein Capsule, Grenade Pistol and MP Boost2 state placements for the Fountain.
+///
+/// Ended by `AREA_OBJECT_PLACE_END`; seeds two-bit saved states and supplies
+/// object identity. Model spawning additionally requires a matching kind in
+/// the area's spawn list. XYZ use room-coordinate units; yaw uses 4096 per turn.
+static AreaObjectPlace _gMapAkropolisFountainObjectPlaces[4] = {
+    { MAP_AKROPOLIS_OBJECT_SLOT_FOUNTAIN_PROTEIN_CAPSULE, MAP_AKROPOLIS_KIND_PROTEIN_CAPSULE, 0, MAP_AKROPOLIS_STATE_AVAILABLE },
+    { MAP_AKROPOLIS_OBJECT_SLOT_FOUNTAIN_GRENADE_PISTOL, MAP_AKROPOLIS_KIND_GRENADE_PISTOL, 0, MAP_AKROPOLIS_STATE_AVAILABLE },
+    { MAP_AKROPOLIS_OBJECT_SLOT_FOUNTAIN_MP_BOOST_2, MAP_AKROPOLIS_KIND_MP_BOOST_2, 0, MAP_AKROPOLIS_STATE_AVAILABLE },
+    { AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_akropolis_8017BF5C[2] = {
-    { 0x18, 8, 0, 1 },
-    { 0xFFFF },
+/// Penicillin state placement for the Forked road.
+///
+/// Ended by `AREA_OBJECT_PLACE_END`; seeds two-bit saved states and supplies
+/// object identity. Model spawning additionally requires a matching kind in
+/// the area's spawn list. XYZ use room-coordinate units; yaw uses 4096 per turn.
+static AreaObjectPlace _gMapAkropolisForkedRoadObjectPlaces[2] = {
+    { MAP_AKROPOLIS_OBJECT_SLOT_FORKED_ROAD_PENICILLIN, MAP_AKROPOLIS_KIND_PENICILLIN, 0, MAP_AKROPOLIS_STATE_AVAILABLE },
+    { AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_akropolis_8017BF7C[2] = {
-    { 0x10, 0x65, 0, 1 },
-    { 0xFFFF },
+/// Tactical Vest state placement for the Observatory.
+///
+/// Ended by `AREA_OBJECT_PLACE_END`; seeds two-bit saved states and supplies
+/// object identity. Model spawning additionally requires a matching kind in
+/// the area's spawn list. XYZ use room-coordinate units; yaw uses 4096 per turn.
+static AreaObjectPlace _gMapAkropolisObservatoryObjectPlaces[2] = {
+    { MAP_AKROPOLIS_OBJECT_SLOT_OBSERVATORY_TACTICAL_VEST, MAP_AKROPOLIS_KIND_TACTICAL_VEST, 0, MAP_AKROPOLIS_STATE_AVAILABLE },
+    { AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_akropolis_8017BF9C[3] = {
-    { 0x12, 0xA9, 0, 1 },
-    { 0x15, 0x9D, 0, 1 },
-    { 0xFFFF },
+/// Grenade ammunition and MP5A5 state placements for the Promenade.
+///
+/// Ended by `AREA_OBJECT_PLACE_END`; seeds two-bit saved states and supplies
+/// object identity. Model spawning additionally requires a matching kind in
+/// the area's spawn list. XYZ use room-coordinate units; yaw uses 4096 per turn.
+static AreaObjectPlace _gMapAkropolisPromenadeObjectPlaces[3] = {
+    { MAP_AKROPOLIS_OBJECT_SLOT_PROMENADE_GRENADES, MAP_AKROPOLIS_KIND_GRENADE, 0, MAP_AKROPOLIS_STATE_AVAILABLE },
+    { MAP_AKROPOLIS_OBJECT_SLOT_PROMENADE_MP5A5, MAP_AKROPOLIS_KIND_MP5A5, 0, MAP_AKROPOLIS_STATE_AVAILABLE },
+    { AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_akropolis_8017BFCC[2] = {
-    { 0x1C, 0x103, 0, 1, -0x19C8, -0xA, -0x1F86, 0xFCE0 },
-    { 0xFFFF },
+/// Red-key state and model placement for the Sanctuary.
+///
+/// Ended by `AREA_OBJECT_PLACE_END`; seeds two-bit saved states and supplies
+/// object identity. Model spawning additionally requires a matching kind in
+/// the area's spawn list. XYZ use room-coordinate units; yaw uses 4096 per turn.
+static AreaObjectPlace _gMapAkropolisSanctuaryObjectPlaces[2] = {
+    { MAP_AKROPOLIS_OBJECT_SLOT_SANCTUARY_RED_KEY, INVENTORY_COLLECTION_ID_RED_KEY, 0, MAP_AKROPOLIS_STATE_AVAILABLE, -0x19C8, -0xA, -0x1F86, 0xFCE0 },
+    { AREA_OBJECT_PLACE_END },
 };
 
 static AreaObjectPlace D_map_akropolis_8017BFEC[2] = {

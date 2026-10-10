@@ -12,6 +12,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/gfx_types.h"
 #include "main/session_types.h"
 #include "main/stage_types.h"
@@ -43,11 +44,22 @@ s32 mapAkropolisOpenKeyItemMenu(s32 unused, s32 retainSelection);
 /// A fresh menu request clears it; opening another item's detail does not.
 s32 mapAkropolisWasDryfieldMapSelected(void);
 
-/// Image slots of each map, indexed by `Gfx_ImageSlotTables`.
-extern GfxImageSlot D_map_akropolis_8017A048[];
+/// Captured-frame and auxiliary-memory regions for Acropolis and MIST areas.
+///
+/// Indexed directly by area ID, 0..21; slot 0 is empty and cannot be used for
+/// frame transfer. Each nonempty extent ends at the resident image workspace,
+/// rather than measuring the captured frame. The map overlay must be loaded
+/// while selecting a slot; the selected arena is separate borrowed RAM.
+extern GfxImageSlot gMapAkropolisImageSlots[GAME_AREA_MIST_R21 + 1];
 
-/// Per-map tables `CdCmd_MapHeapSizes` indexes (maps without one have NULL there).
-extern s32 D_map_akropolis_8017A0F8[];
+/// Movie-workspace reservations in bytes for Acropolis and MIST areas.
+///
+/// Indexed directly by the live save's area ID, 0..20; zero requests no
+/// allocation. Only Plaza, Security room, Fountain, Forked road, Observatory,
+/// Promenade and Bridge reserve storage. Area 21 has no entry. These are total
+/// workspace requests, not decoded-frame sizes; the map overlay must be loaded
+/// when the CD subsystem reads them.
+extern s32 gMapAkropolisMovieWorkspaceBytesByArea[GAME_AREA_MIST_SHOOTING_GALLERY + 1];
 
 /// Per-map task id tables `Stage_MusicTables` and `Stage_CountdownMusicTables` index.
 extern StageMusicEntry D_map_akropolis_8017C1B4[];
@@ -82,11 +94,13 @@ extern TaskDesc D_map_akropolis_8017A8AC[];
 /// This stage's flag table for `menuMapGetMarkerState`.
 extern u16 D_map_akropolis_8017AA0C[];
 
-/// This stage's entries in `gWorldCoordRoomLightingTables`, `Gp_RoomObjTables`,
-/// `gSpriteAreaTables`, `Gp_WarpTables`, `Gp_ViewCountTables`, `Gp_ViewTables`,
-/// `gViewIndexTables` and `Gp_RoomParamTables`: each leads to one pointer per
-/// room into that room's package.
-extern WorldCoordRoomLighting* D_map_akropolis_8017AA28[];
+/// Per-area room-lighting arrays for Acropolis and MIST.
+///
+/// Indexed by area - 1 for areas 1..20, then room - 1 within the borrowed
+/// array. There is no terminator or area-21 entry. Each room overlay owns its
+/// descriptors and must remain loaded while they are read or updated; the
+/// map overlay owns only this area directory.
+extern WorldCoordRoomLighting* gMapAkropolisAreaRoomLightingTables[GAME_AREA_MIST_SHOOTING_GALLERY];
 
 extern WorldCollisionStageResources D_map_akropolis_8017AAC8;
 
@@ -98,9 +112,21 @@ extern ViewCountTable D_map_akropolis_8017ABC0;
 
 extern ViewCameraTable D_map_akropolis_8017AC14;
 
-extern ViewIndexTable D_map_akropolis_8017AC68;
+/// Logical-view mapping directory for Acropolis and MIST areas 1..20.
+///
+/// Maps area - 1, room - 1 and view - 1 to a 1-based camera/image/sprite index.
+/// Has no terminator or area-21 entry. The map overlay owns the area directory;
+/// selected room directories and writable maps require their room overlay to
+/// remain loaded. Shared identity maps instead belong to gameplay.
+extern ViewIndexTable gMapAkropolisViewIndexTable;
 
-extern WorldCollisionSurfaceProperties** D_map_akropolis_8017AC6C[];
+/// Per-area collision-surface policy directories for Acropolis and MIST.
+///
+/// Indexed by area - 1 for areas 1..20, then surface class 0..7, independently
+/// of the room variant. There is no terminator or area-21 entry. Each selected
+/// class must provide a record in its loaded room overlay; records and footstep
+/// tables remain borrowed for that overlay's lifetime.
+extern WorldCollisionSurfaceProperties** gMapAkropolisSurfacePropertiesByArea[GAME_AREA_MIST_SHOOTING_GALLERY];
 
 /// Area placement lists, each ended by an entry id of 0xFF. The rooms' area
 /// records point at them, one list per location.

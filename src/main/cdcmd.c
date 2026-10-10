@@ -73,7 +73,7 @@ static void _cdCmdResetRing(void);
 
 static s32* CdCmd_MapHeapSizes[] = {
     NULL,
-    D_map_akropolis_8017A0F8,
+    gMapAkropolisMovieWorkspaceBytesByArea,
     D_map_dryfield_80179B4C,
     NULL,
     NULL,

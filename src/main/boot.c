@@ -112,7 +112,7 @@ static void* Mem_UnusedDevKitEndPointer = D_80400000;
 
 static GfxImageSlot* Gfx_ImageSlotTables[] = {
     NULL,
-    D_map_akropolis_8017A048,
+    gMapAkropolisImageSlots,
     D_map_dryfield_80179A14,
     D_map_dryfield_full_801799A4,
     D_map_shelter_80179B40,
