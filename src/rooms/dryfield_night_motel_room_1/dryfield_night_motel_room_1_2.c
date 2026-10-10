@@ -19,6 +19,7 @@
 #include "gameplay/view.h"
 
 #include "main/coord.h"
+#include "main/sound_types.h"
 #include "main/task_types.h"
 
 #include "mapui/map_dryfield_full.h"
@@ -39,13 +40,11 @@ STATIC_ASSERT_SIZEOF(_DryfieldNightMotelRoom1SpotLightStorage, 432);
 extern SVECTOR D_dryfield_night_motel_room_1_8017DA54[];
 extern SVECTOR D_dryfield_night_motel_room_1_8017DA5C[];
 
-extern WorldCollisionGrid     D_dryfield_night_motel_room_1_8017E098[1];
+static WorldCollisionGrid     _gDryfieldNightMotelRoom1CollisionGrid;
 extern WorldCollisionOccluder D_dryfield_night_motel_room_1_801806C0[1];
 extern WorldCollisionTrigger  D_dryfield_night_motel_room_1_8017FF04[8];
 extern WorldCollisionTrigger  D_dryfield_night_motel_room_1_801804AC[7];
-extern WorldCoordRoomLights   D_dryfield_night_motel_room_1_80180494[1];
-
-extern _DryfieldNightMotelRoom1SpotLightStorage D_dryfield_night_motel_room_1_801802E4;
+static WorldCoordRoomLights   _gDryfieldNightMotelRoom1RoomLights;
 
 SVECTOR D_dryfield_night_motel_room_1_8017DA54[1] = {
     { 1920, -970, 470, 0 },
@@ -55,17 +54,22 @@ SVECTOR D_dryfield_night_motel_room_1_8017DA5C[1] = {
     { 2030, -2070, 6320, 0 },
 };
 
-WorldCoordRoomLighting D_dryfield_night_motel_room_1_8017DA64[2] = {
-    { D_dryfield_night_motel_room_1_80180494, NULL },
-    { D_dryfield_night_motel_room_1_80180494, NULL },
+WorldCoordRoomLighting gDryfieldNightMotelRoom1RoomLighting[2] = {
+    { .lights = &_gDryfieldNightMotelRoom1RoomLights, .ambientTable = NULL },
+    { .lights = &_gDryfieldNightMotelRoom1RoomLights, .ambientTable = NULL },
 };
 
 WorldCollisionRoomResources D_dryfield_night_motel_room_1_8017DA74[2] = {
-    { D_dryfield_night_motel_room_1_8017E098, D_dryfield_night_motel_room_1_8017FF04, D_dryfield_night_motel_room_1_801804AC, D_dryfield_night_motel_room_1_801806C0 },
-    { D_dryfield_night_motel_room_1_8017E098, D_dryfield_night_motel_room_1_8017FF04, D_dryfield_night_motel_room_1_801804AC, D_dryfield_night_motel_room_1_801806C0 },
+    { &_gDryfieldNightMotelRoom1CollisionGrid, D_dryfield_night_motel_room_1_8017FF04, D_dryfield_night_motel_room_1_801804AC, D_dryfield_night_motel_room_1_801806C0 },
+    { &_gDryfieldNightMotelRoom1CollisionGrid, D_dryfield_night_motel_room_1_8017FF04, D_dryfield_night_motel_room_1_801804AC, D_dryfield_night_motel_room_1_801806C0 },
 };
 
-u8 D_dryfield_night_motel_room_1_8017DA94[12] = {
+/// Maps logical views 1..9 to the room's 1-based camera, image and sprite indices.
+///
+/// The room directory borrows this writable byte array while the overlay is
+/// loaded. Its last three stored zeros are outside the nine-view search count
+/// and do not select valid camera or sprite records; this is not a terminated list.
+static u8 _gDryfieldNightMotelRoom1LogicalViewMap[12] = {
     1,
     9,
     8,
@@ -80,8 +84,8 @@ u8 D_dryfield_night_motel_room_1_8017DA94[12] = {
     0,
 };
 
-u8* D_dryfield_night_motel_room_1_8017DAA0[1] = {
-    D_dryfield_night_motel_room_1_8017DA94,
+u8* gDryfieldNightMotelRoom1ViewMaps[1] = {
+    _gDryfieldNightMotelRoom1LogicalViewMap,
 };
 
 ViewCount D_dryfield_night_motel_room_1_8017DAA4[1] = { 9 };
@@ -90,30 +94,59 @@ DirectionWarpEntry D_dryfield_night_motel_room_1_8017DAA8[1] = {
     { { { .word = 3072 }, 4369, 0, 3388 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4369, 0, 3388 }, { 0, 0, 0, 0 }, 0x530B0002, 0x530B0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 487 },
 };
 
-static SVECTOR _gDryfieldNightMotelRoom1Collision00AD8Normals[9] = {
+/// Cell counts along the room grid's X and Z axes.
+enum {
+    DRYFIELD_NIGHT_MOTEL_ROOM_1_COLLISION_GRID_CELLS_X = 2,
+    DRYFIELD_NIGHT_MOTEL_ROOM_1_COLLISION_GRID_CELLS_Z = 2,
+};
+
+/// Q12 room-space normal pool for the room collision mesh.
+static SVECTOR _gDryfieldNightMotelRoom1CollisionGridNormals[] = {
 #include "assets/dryfield_night_motel_room_1_collision_00AD8_normals.inc"
 };
 
-static SVECTOR _gDryfieldNightMotelRoom1Collision00AD8Verts[85] = {
+/// Room-space collision vertices in signed game-coordinate units.
+static SVECTOR _gDryfieldNightMotelRoom1CollisionGridVerts[] = {
 #include "assets/dryfield_night_motel_room_1_collision_00AD8_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldNightMotelRoom1Collision00AD8Faces[38] = {
+/// Indexed room collision quads, with room-local surface classes 0..3.
+static WorldCollisionGridFace _gDryfieldNightMotelRoom1CollisionGridFaces[] = {
 #include "assets/dryfield_night_motel_room_1_collision_00AD8_faces.inc"
 };
 
-static s16 _gDryfieldNightMotelRoom1Collision00AD8Cells[120] = {
+/// Four signed face-index lists, each ending at WORLD_COLLISION_GRID_CELL_END.
+///
+/// The final stored zero follows the last list's terminator and is not a face
+/// candidate. The whole serialized pool remains resident with the active grid.
+static s16 _gDryfieldNightMotelRoom1CollisionGridCells[] = {
 #include "assets/dryfield_night_motel_room_1_collision_00AD8_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightMotelRoom1Collision00AD8Cells[i])
-static s16* _gDryfieldNightMotelRoom1Collision00AD8Table[4] = {
+#define GRID_CELL(i) (&_gDryfieldNightMotelRoom1CollisionGridCells[i])
+/// X-major pointers into the four cell lists, indexed as x * cellCountZ + z.
+static s16* _gDryfieldNightMotelRoom1CollisionGridTable[DRYFIELD_NIGHT_MOTEL_ROOM_1_COLLISION_GRID_CELLS_X * DRYFIELD_NIGHT_MOTEL_ROOM_1_COLLISION_GRID_CELLS_Z] = {
 #include "assets/dryfield_night_motel_room_1_collision_00AD8_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_night_motel_room_1_8017E098[1] = {
-    { NULL, _gDryfieldNightMotelRoom1Collision00AD8Normals, _gDryfieldNightMotelRoom1Collision00AD8Verts, _gDryfieldNightMotelRoom1Collision00AD8Faces, _gDryfieldNightMotelRoom1Collision00AD8Table, -200, -200, 2, 2, 4000, 38 },
+/// Collision mesh and 2x2 spatial index shared by both room-resource records.
+///
+/// Cells are 4000 game units wide, starting at room X/Z (200, 200). Activation
+/// borrows this writable descriptor and its pools and binds the view coordinate;
+/// keep them loaded until the active grid is cleared or replaced.
+static WorldCollisionGrid _gDryfieldNightMotelRoom1CollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldNightMotelRoom1CollisionGridNormals,
+    .vertices    = _gDryfieldNightMotelRoom1CollisionGridVerts,
+    .faces       = _gDryfieldNightMotelRoom1CollisionGridFaces,
+    .cellFaceIds = _gDryfieldNightMotelRoom1CollisionGridTable,
+    .xBias       = -200,
+    .zBias       = -200,
+    .cellCountX  = DRYFIELD_NIGHT_MOTEL_ROOM_1_COLLISION_GRID_CELLS_X,
+    .cellCountZ  = DRYFIELD_NIGHT_MOTEL_ROOM_1_COLLISION_GRID_CELLS_Z,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldNightMotelRoom1CollisionGridFaces),
 };
 
 ViewCamera D_dryfield_night_motel_room_1_8017E0BC[9] = {
@@ -128,22 +161,39 @@ ViewCamera D_dryfield_night_motel_room_1_8017E0BC[9] = {
     { { { { 1324, 0, -3876 }, { -1721, 3669, -588 }, { 3472, 1819, 1186 } }, { -239, 2334, -1269 } }, 225 },
 };
 
-SpriteBatch D_dryfield_night_motel_room_1_8017E200[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 1's empty sprite list, retaining decoded-image background strips.
+///
+/// The zero-count first record selects strips; the following record ends the
+/// list. The view's retained source-slot address supplies no sprite elements.
+static SpriteBatch _gDryfieldNightMotelRoom1View1SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_dryfield_night_motel_room_1_8017E210[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 2's empty sprite list, retaining decoded-image background strips.
+///
+/// The zero-count first record selects strips; the following record ends the
+/// list. The view's retained source-slot address supplies no sprite elements.
+static SpriteBatch _gDryfieldNightMotelRoom1View2SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_dryfield_night_motel_room_1_8017E220[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 3's empty sprite list, retaining decoded-image background strips.
+///
+/// The zero-count first record selects strips; the following record ends the
+/// list. The view's retained source-slot address supplies no sprite elements.
+static SpriteBatch _gDryfieldNightMotelRoom1View3SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_dryfield_night_motel_room_1_8017E230[45] = {
+/// Mapped view 4's 45 texture rectangles and scene-sorting depths.
+///
+/// Positions and dimensions are pixels relative to the drawing origin;
+/// depths are unscaled ordering values. The view's batches cover this entire
+/// writable array, borrowed only while the room overlay is loaded.
+static SpriteSource _gDryfieldNightMotelRoom1View4SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, 64, 750, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 16 } }, -160, 48, 750, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 32 } }, -160, 16, 750, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
@@ -191,16 +241,26 @@ SpriteSource D_dryfield_night_motel_room_1_8017E230[45] = {
     { 142, 0x3FC0, { .fields = { 16, 24 } }, -32, -120, 1000, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_motel_room_1_8017E5B4[6] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 3, 0, 0, { 3, 0 } },
-    { 3, 21, 0, 0, { 0, 0 } },
-    { 24, 6, 0, 0, { 2, 0 } },
-    { 30, 15, 0, 0, { 1, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 4's four sprite ranges, preceded by a strip-background selector.
+///
+/// Ranges partition all 45 source elements; the last record ends traversal.
+/// All ranges start visible and included in cached packets. The stored
+/// `field_6` bytes retain serialized values whose purpose is unproven.
+static SpriteBatch _gDryfieldNightMotelRoom1View4SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 3, .field_6 = { 3, 0 } },
+    { .firstSprite = 3, .spriteCount = 21, .field_6 = { 0, 0 } },
+    { .firstSprite = 24, .spriteCount = 6, .field_6 = { 2, 0 } },
+    { .firstSprite = 30, .spriteCount = ARRAY_SIZE(_gDryfieldNightMotelRoom1View4SpriteSources) - 30, .field_6 = { 1, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_dryfield_night_motel_room_1_8017E5E4[81] = {
+/// Mapped view 5's 81 texture rectangles and scene-sorting depths.
+///
+/// Positions and dimensions are pixels relative to the drawing origin;
+/// depths are unscaled ordering values. The view's batches cover this entire
+/// writable array, borrowed only while the room overlay is loaded.
+static SpriteSource _gDryfieldNightMotelRoom1View5SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 40, 40 } }, -128, -120, 800, { .fields = { 40, 160 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 40 } }, -128, -80, 800, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 40 } }, -128, -40, 800, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
@@ -284,17 +344,27 @@ SpriteSource D_dryfield_night_motel_room_1_8017E5E4[81] = {
     { 142, 0x3FC0, { .fields = { 16, 40 } }, -96, 80, 375, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_motel_room_1_8017EC38[7] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 19, 0, 0, { 0, 0 } },
-    { 19, 31, 0, 0, { 3, 0 } },
-    { 50, 10, 0, 0, { 2, 0 } },
-    { 60, 5, 0, 0, { 4, 0 } },
-    { 65, 16, 0, 0, { 1, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 5's five sprite ranges, preceded by a strip-background selector.
+///
+/// Ranges partition all 81 source elements; the last record ends traversal.
+/// All ranges start visible and included in cached packets. The stored
+/// `field_6` bytes retain serialized values whose purpose is unproven.
+static SpriteBatch _gDryfieldNightMotelRoom1View5SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 19, .field_6 = { 0, 0 } },
+    { .firstSprite = 19, .spriteCount = 31, .field_6 = { 3, 0 } },
+    { .firstSprite = 50, .spriteCount = 10, .field_6 = { 2, 0 } },
+    { .firstSprite = 60, .spriteCount = 5, .field_6 = { 4, 0 } },
+    { .firstSprite = 65, .spriteCount = ARRAY_SIZE(_gDryfieldNightMotelRoom1View5SpriteSources) - 65, .field_6 = { 1, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_dryfield_night_motel_room_1_8017EC70[47] = {
+/// Mapped view 6's 47 texture rectangles and scene-sorting depths.
+///
+/// Positions and dimensions are pixels relative to the drawing origin;
+/// depths are unscaled ordering values. The view's batches cover this entire
+/// writable array, borrowed only while the room overlay is loaded.
+static SpriteSource _gDryfieldNightMotelRoom1View6SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, -120, 525, { .fields = { 16, 160 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, -80, 525, { .fields = { 24, 120 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, -40, 525, { .fields = { 8, 200 } }, 128, 128, 128, 0 },
@@ -344,20 +414,34 @@ SpriteSource D_dryfield_night_motel_room_1_8017EC70[47] = {
     { 142, 0x3FC0, { .fields = { 24, 8 } }, 72, 80, 425, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_motel_room_1_8017F01C[5] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 27, 0, 0, { 1, 0 } },
-    { 27, 14, 0, 0, { 2, 0 } },
-    { 41, 6, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 6's three sprite ranges, preceded by a strip-background selector.
+///
+/// Ranges partition all 47 source elements; the last record ends traversal.
+/// All ranges start visible and included in cached packets. The stored
+/// `field_6` bytes retain serialized values whose purpose is unproven.
+static SpriteBatch _gDryfieldNightMotelRoom1View6SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 27, .field_6 = { 1, 0 } },
+    { .firstSprite = 27, .spriteCount = 14, .field_6 = { 2, 0 } },
+    { .firstSprite = 41, .spriteCount = ARRAY_SIZE(_gDryfieldNightMotelRoom1View6SpriteSources) - 41, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_dryfield_night_motel_room_1_8017F044[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 7's empty sprite list, retaining decoded-image background strips.
+///
+/// The zero-count first record selects strips; the following record ends the
+/// list. The view's retained source-slot address supplies no sprite elements.
+static SpriteBatch _gDryfieldNightMotelRoom1View7SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_dryfield_night_motel_room_1_8017F054[111] = {
+/// Mapped view 8's 111 texture rectangles and scene-sorting depths.
+///
+/// Positions and dimensions are pixels relative to the drawing origin;
+/// depths are unscaled ordering values. The view's batches cover this entire
+/// writable array, borrowed only while the room overlay is loaded.
+static SpriteSource _gDryfieldNightMotelRoom1View8SpriteSources[] = {
     { 142, 0x3FC0, { .fields = { 8, 8 } }, 40, 56, 500, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 8 } }, -88, 64, 487, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 8 } }, -128, 72, 475, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
@@ -471,20 +555,30 @@ SpriteSource D_dryfield_night_motel_room_1_8017F054[111] = {
     { 143, 0x3FC0, { .fields = { 24, 32 } }, 48, -24, 1500, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_motel_room_1_8017F900[10] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 31, 0, 0, { 6, 0 } },
-    { 31, 33, 0, 0, { 1, 0 } },
-    { 64, 6, 0, 0, { 4, 0 } },
-    { 70, 28, 0, 0, { 0, 0 } },
-    { 98, 4, 0, 0, { 5, 0 } },
-    { 102, 5, 0, 0, { 3, 0 } },
-    { 107, 3, 0, 0, { 7, 0 } },
-    { 110, 1, 0, 0, { 2, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 8's eight sprite ranges, preceded by a strip-background selector.
+///
+/// Ranges partition all 111 source elements; the last record ends traversal.
+/// All ranges start visible and included in cached packets. The stored
+/// `field_6` bytes retain serialized values whose purpose is unproven.
+static SpriteBatch _gDryfieldNightMotelRoom1View8SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 31, .field_6 = { 6, 0 } },
+    { .firstSprite = 31, .spriteCount = 33, .field_6 = { 1, 0 } },
+    { .firstSprite = 64, .spriteCount = 6, .field_6 = { 4, 0 } },
+    { .firstSprite = 70, .spriteCount = 28, .field_6 = { 0, 0 } },
+    { .firstSprite = 98, .spriteCount = 4, .field_6 = { 5, 0 } },
+    { .firstSprite = 102, .spriteCount = 5, .field_6 = { 3, 0 } },
+    { .firstSprite = 107, .spriteCount = 3, .field_6 = { 7, 0 } },
+    { .firstSprite = 110, .spriteCount = ARRAY_SIZE(_gDryfieldNightMotelRoom1View8SpriteSources) - 110, .field_6 = { 2, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_dryfield_night_motel_room_1_8017F950[64] = {
+/// Mapped view 9's 64 texture rectangles and scene-sorting depths.
+///
+/// Positions and dimensions are pixels relative to the drawing origin;
+/// depths are unscaled ordering values. The view's batches cover this entire
+/// writable array, borrowed only while the room overlay is loaded.
+static SpriteSource _gDryfieldNightMotelRoom1View9SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -72, 96, 500, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 16 } }, -88, 104, 500, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 32, 16 } }, -72, 104, 500, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
@@ -551,28 +645,33 @@ SpriteSource D_dryfield_night_motel_room_1_8017F950[64] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -144, 16, 800, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_motel_room_1_8017FE50[9] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 4, 0, 0, { 3, 0 } },
-    { 4, 24, 0, 0, { 4, 0 } },
-    { 28, 4, 0, 0, { 1, 0 } },
-    { 32, 6, 0, 0, { 5, 0 } },
-    { 38, 4, 0, 0, { 0, 0 } },
-    { 42, 16, 0, 0, { 6, 0 } },
-    { 58, 6, 0, 0, { 2, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 9's seven sprite ranges, preceded by a strip-background selector.
+///
+/// Ranges partition all 64 source elements; the last record ends traversal.
+/// All ranges start visible and included in cached packets. The stored
+/// `field_6` bytes retain serialized values whose purpose is unproven.
+static SpriteBatch _gDryfieldNightMotelRoom1View9SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 4, .field_6 = { 3, 0 } },
+    { .firstSprite = 4, .spriteCount = 24, .field_6 = { 4, 0 } },
+    { .firstSprite = 28, .spriteCount = 4, .field_6 = { 1, 0 } },
+    { .firstSprite = 32, .spriteCount = 6, .field_6 = { 5, 0 } },
+    { .firstSprite = 38, .spriteCount = 4, .field_6 = { 0, 0 } },
+    { .firstSprite = 42, .spriteCount = 16, .field_6 = { 6, 0 } },
+    { .firstSprite = 58, .spriteCount = ARRAY_SIZE(_gDryfieldNightMotelRoom1View9SpriteSources) - 58, .field_6 = { 2, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
 SpriteView D_dryfield_night_motel_room_1_8017FE98[9] = {
-    { { .empty = D_dryfield_night_motel_room_1_8017E200 }, D_dryfield_night_motel_room_1_8017E200, NULL },
-    { { .empty = D_dryfield_night_motel_room_1_8017E210 }, D_dryfield_night_motel_room_1_8017E210, NULL },
-    { { .empty = D_dryfield_night_motel_room_1_8017E220 }, D_dryfield_night_motel_room_1_8017E220, NULL },
-    { { .elements = D_dryfield_night_motel_room_1_8017E230 }, D_dryfield_night_motel_room_1_8017E5B4, NULL },
-    { { .elements = D_dryfield_night_motel_room_1_8017E5E4 }, D_dryfield_night_motel_room_1_8017EC38, NULL },
-    { { .elements = D_dryfield_night_motel_room_1_8017EC70 }, D_dryfield_night_motel_room_1_8017F01C, NULL },
-    { { .empty = D_dryfield_night_motel_room_1_8017F044 }, D_dryfield_night_motel_room_1_8017F044, NULL },
-    { { .elements = D_dryfield_night_motel_room_1_8017F054 }, D_dryfield_night_motel_room_1_8017F900, NULL },
-    { { .elements = D_dryfield_night_motel_room_1_8017F950 }, D_dryfield_night_motel_room_1_8017FE50, NULL },
+    { { .empty = _gDryfieldNightMotelRoom1View1SpriteBatches }, _gDryfieldNightMotelRoom1View1SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightMotelRoom1View2SpriteBatches }, _gDryfieldNightMotelRoom1View2SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightMotelRoom1View3SpriteBatches }, _gDryfieldNightMotelRoom1View3SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightMotelRoom1View4SpriteSources }, _gDryfieldNightMotelRoom1View4SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightMotelRoom1View5SpriteSources }, _gDryfieldNightMotelRoom1View5SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightMotelRoom1View6SpriteSources }, _gDryfieldNightMotelRoom1View6SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightMotelRoom1View7SpriteBatches }, _gDryfieldNightMotelRoom1View7SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightMotelRoom1View8SpriteSources }, _gDryfieldNightMotelRoom1View8SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightMotelRoom1View9SpriteSources }, _gDryfieldNightMotelRoom1View9SpriteBatches, NULL },
 };
 
 WorldCollisionTrigger D_dryfield_night_motel_room_1_8017FF04[8] = {
@@ -647,11 +746,31 @@ static WorldCoordPointLight _gDryfieldNightMotelRoom1PointLights[] = {
     },
 };
 
-_DryfieldNightMotelRoom1SpotLightStorage D_dryfield_night_motel_room_1_801802E4 = {
-    {
-        { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { -4102, 0, -2 }, { -2, 0, 4102 }, { 0, 4101, 0 } }, { 2512, -2274, 2403 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1311, 1269, 1208 }, { 0, 0 } }, { -1, 4095, 0, 0 }, 2320, 3500, 932 },
+/// One model-shading cone light and retained bytes of unproven purpose.
+///
+/// The light contributes in every view. Lighting borrows and mutates only
+/// `coneLights`: position and falloff distances use world units, RGB uses Q12,
+/// and the full cone opening uses 4096 angle units per turn. The adjacent bytes
+/// are outside the live light count; their type and relationship are unproven.
+static _DryfieldNightMotelRoom1SpotLightStorage _gDryfieldNightMotelRoom1SpotLightStorage = {
+    .coneLights = {
+        {
+            .head = {
+                .transform = { .lighting = {
+                                   .composeStamp = GRAPHICS_COORD_DIRTY,
+                                   .local        = { { { -4102, 0, -2 }, { -2, 0, 4102 }, { 0, 4101, 0 } }, { 2512, -2274, 2403 } },
+                                   .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                                   .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                               } },
+                .color     = { 1311, 1269, 1208 },
+            },
+            .axis  = { -1, 4095, 0, 0 },
+            .inner = 2320,
+            .outer = 3500,
+            .angle = 932,
+        },
     },
-    {
+    .unknown_6C = {
         0x00,
         0x00,
         0x00,
@@ -979,8 +1098,18 @@ _DryfieldNightMotelRoom1SpotLightStorage D_dryfield_night_motel_room_1_801802E4 
     },
 };
 
-WorldCoordRoomLights D_dryfield_night_motel_room_1_80180494[1] = {
-    { 0, NULL, ARRAY_SIZE(_gDryfieldNightMotelRoom1PointLights), _gDryfieldNightMotelRoom1PointLights, ARRAY_SIZE(D_dryfield_night_motel_room_1_801802E4.coneLights), D_dryfield_night_motel_room_1_801802E4.coneLights },
+/// Four point lights and one cone light shared by both room lighting records.
+///
+/// No directional lights are authored. All five lights contribute in every
+/// view; coordinate binding and attenuation updates require writable storage.
+/// The collection and its borrowed arrays remain live with the loaded overlay.
+static WorldCoordRoomLights _gDryfieldNightMotelRoom1RoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gDryfieldNightMotelRoom1PointLights),
+    .pointLights           = _gDryfieldNightMotelRoom1PointLights,
+    .coneLightCount        = ARRAY_SIZE(_gDryfieldNightMotelRoom1SpotLightStorage.coneLights),
+    .coneLights            = _gDryfieldNightMotelRoom1SpotLightStorage.coneLights,
 };
 
 WorldCollisionTrigger D_dryfield_night_motel_room_1_801804AC[7] = {
@@ -1039,43 +1168,93 @@ AreaVariant D_dryfield_night_motel_room_1_8018075C[22] = {
     { D_map_dryfield_full_8017B798, D_dryfield_night_motel_room_1_80180744 },
 };
 
-WorldCollisionFootstepSounds D_dryfield_night_motel_room_1_8018080C = {
-    0x10000035,
-    0x10000037,
-    0x10000035,
+/// Cue-2 script bases in the loaded type-1 bank; cue 1 uses the following entry.
+enum {
+    DRYFIELD_NIGHT_MOTEL_ROOM_1_CLASS_1_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x35,
+    DRYFIELD_NIGHT_MOTEL_ROOM_1_CLASS_1_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x37,
+    DRYFIELD_NIGHT_MOTEL_ROOM_1_CLASS_2_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x01,
+    DRYFIELD_NIGHT_MOTEL_ROOM_1_CLASS_2_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x03,
 };
 
-WorldCollisionFootstepSounds D_dryfield_night_motel_room_1_80180818 = {
-    0x10000001,
-    0x10000003,
-    0x10000001,
+/// Footstep cue bases for room surface class 1.
+///
+/// Walking and scripted jumps share one pair; running selects the next pair.
+/// Playback adds one for cue 1 and 100 for companion entries. Surface records
+/// borrow these encoded requests while the room overlay is loaded.
+static WorldCollisionFootstepSounds _gDryfieldNightMotelRoom1Class1FootstepSounds = {
+    .walk         = DRYFIELD_NIGHT_MOTEL_ROOM_1_CLASS_1_WALK_SOUND,
+    .run          = DRYFIELD_NIGHT_MOTEL_ROOM_1_CLASS_1_RUN_SOUND,
+    .scriptedJump = DRYFIELD_NIGHT_MOTEL_ROOM_1_CLASS_1_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_motel_room_1_80180824[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Footstep cue bases for room surface class 2.
+///
+/// Walking and scripted jumps share one pair; running selects the next pair.
+/// Playback adds one for cue 1 and 100 for companion entries. Surface records
+/// borrow these encoded requests while the room overlay is loaded.
+static WorldCollisionFootstepSounds _gDryfieldNightMotelRoom1Class2FootstepSounds = {
+    .walk         = DRYFIELD_NIGHT_MOTEL_ROOM_1_CLASS_2_WALK_SOUND,
+    .run          = DRYFIELD_NIGHT_MOTEL_ROOM_1_CLASS_2_RUN_SOUND,
+    .scriptedJump = DRYFIELD_NIGHT_MOTEL_ROOM_1_CLASS_2_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_motel_room_1_8018082C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_motel_room_1_8018080C },
+/// Blocking, impact-enabled, silent collision policy for classes 0 and 4..7.
+///
+/// Grid contacts apply pushback. The retained `field_0` byte has no established
+/// interpretation; the class directory borrows this record while loaded.
+static WorldCollisionSurfaceProperties _gDryfieldNightMotelRoom1DefaultSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_motel_room_1_80180834[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_motel_room_1_80180818 },
+/// Blocking, impact-enabled collision policy with surface class 1's footstep cues.
+///
+/// Grid contacts apply pushback. The retained `field_0` byte has no established
+/// interpretation; the class directory borrows this record while loaded.
+static WorldCollisionSurfaceProperties _gDryfieldNightMotelRoom1Class1SurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldNightMotelRoom1Class1FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_motel_room_1_8018083C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Blocking, impact-enabled collision policy with surface class 2's footstep cues.
+///
+/// Grid contacts apply pushback. The retained `field_0` byte has no established
+/// interpretation; the class directory borrows this record while loaded.
+static WorldCollisionSurfaceProperties _gDryfieldNightMotelRoom1Class2SurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldNightMotelRoom1Class2FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_night_motel_room_1_80180844[8] = {
-    D_dryfield_night_motel_room_1_80180824,
-    D_dryfield_night_motel_room_1_8018082C,
-    D_dryfield_night_motel_room_1_80180834,
-    D_dryfield_night_motel_room_1_8018083C,
-    D_dryfield_night_motel_room_1_80180824,
-    D_dryfield_night_motel_room_1_80180824,
-    D_dryfield_night_motel_room_1_80180824,
-    D_dryfield_night_motel_room_1_80180824,
+/// Probe-transparent, impact-disabled, silent collision policy for surface class 3.
+///
+/// Grid contacts still apply pushback. The retained `field_0` byte has no
+/// established interpretation; the class directory borrows this record while loaded.
+static WorldCollisionSurfaceProperties _gDryfieldNightMotelRoom1Class3SurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
+};
+
+WorldCollisionSurfaceProperties* gDryfieldNightMotelRoom1SurfacePropertiesByClass[8] = {
+    &_gDryfieldNightMotelRoom1DefaultSurfaceProperties,
+    &_gDryfieldNightMotelRoom1Class1SurfaceProperties,
+    &_gDryfieldNightMotelRoom1Class2SurfaceProperties,
+    &_gDryfieldNightMotelRoom1Class3SurfaceProperties,
+    &_gDryfieldNightMotelRoom1DefaultSurfaceProperties,
+    &_gDryfieldNightMotelRoom1DefaultSurfaceProperties,
+    &_gDryfieldNightMotelRoom1DefaultSurfaceProperties,
+    &_gDryfieldNightMotelRoom1DefaultSurfaceProperties,
 };
 
 void dryfieldNightMotelRoom1DrawGlowsTask(Task* task)

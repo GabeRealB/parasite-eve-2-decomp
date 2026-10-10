@@ -76,14 +76,14 @@ gDryfieldNightDilapidatedHouseViewCameras = 0x80187D68; // absolute:True owner=d
 gDryfieldNightDilapidatedHouseSpriteViews = 0x8018921C; // absolute:True owner=dryfield_night_dilapidated_house
 gDryfieldNightDilapidatedHouseSurfacePropertiesByClass = 0x8018A0E4; // absolute:True owner=dryfield_night_dilapidated_house
 dryfieldNightMotelRoom1RoomTask = 0x8017D6DC; // type:func absolute:True owner=dryfield_night_motel_room_1
-D_dryfield_night_motel_room_1_8017DA64 = 0x8017DA64; // absolute:True owner=dryfield_night_motel_room_1 shared=rooms
+gDryfieldNightMotelRoom1RoomLighting = 0x8017DA64; // absolute:True owner=dryfield_night_motel_room_1 shared=rooms
 D_dryfield_night_motel_room_1_8017DA74 = 0x8017DA74; // absolute:True owner=dryfield_night_motel_room_1 shared=rooms
-D_dryfield_night_motel_room_1_8017DAA0 = 0x8017DAA0; // absolute:True owner=dryfield_night_motel_room_1 shared=rooms
+gDryfieldNightMotelRoom1ViewMaps = 0x8017DAA0; // absolute:True owner=dryfield_night_motel_room_1 shared=rooms
 D_dryfield_night_motel_room_1_8017DAA4 = 0x8017DAA4; // absolute:True owner=dryfield_night_motel_room_1 shared=rooms
 D_dryfield_night_motel_room_1_8017DAA8 = 0x8017DAA8; // absolute:True owner=dryfield_night_motel_room_1 shared=rooms
 D_dryfield_night_motel_room_1_8017E0BC = 0x8017E0BC; // absolute:True owner=dryfield_night_motel_room_1 shared=rooms
 D_dryfield_night_motel_room_1_8017FE98 = 0x8017FE98; // absolute:True owner=dryfield_night_motel_room_1
-D_dryfield_night_motel_room_1_80180844 = 0x80180844; // absolute:True owner=dryfield_night_motel_room_1 shared=rooms
+gDryfieldNightMotelRoom1SurfacePropertiesByClass = 0x80180844; // absolute:True owner=dryfield_night_motel_room_1 shared=rooms
 dryfieldNightMotelRoom2RoomTask = 0x8017D6BC; // type:func absolute:True owner=dryfield_night_motel_room_2 shared=rooms
 gDryfieldNightMotelRoom2RoomLighting = 0x8017DA5C; // absolute:True owner=dryfield_night_motel_room_2 shared=rooms
 D_dryfield_night_motel_room_2_8017DA64 = 0x8017DA64; // absolute:True owner=dryfield_night_motel_room_2 shared=rooms
