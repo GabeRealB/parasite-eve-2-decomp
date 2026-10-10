@@ -12,14 +12,25 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_shelter_b3_incinerator_control_room_80182610[11];
-
-/// Extents of the control room's logical-room, mapped-view and surface directories.
+/// Extents of the control room's resource directories and terminated collision arrays.
 enum {
     SHELTER_B3_INCINERATOR_CONTROL_ROOM_ROOM_COUNT          = 2,
     SHELTER_B3_INCINERATOR_CONTROL_ROOM_VIEW_COUNT          = 8,
     SHELTER_B3_INCINERATOR_CONTROL_ROOM_SURFACE_CLASS_COUNT = 8,
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_AREA_VARIANT_COUNT  = 11,
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_WARP_COUNT          = 4,
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_VIEW_BOUNDARY_COUNT = 4,
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_ROOM_1_ACTION_COUNT = 5,
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_ROOM_2_ACTION_COUNT = 6,
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_OCCLUDER_COUNT      = 1,
 };
+
+/// Placement layouts indexed by the saved area's variant byte, in 0..10.
+///
+/// Only variant 1 publishes tables: an empty placement list and the base
+/// actor-142600 scene resource. Slots 0 and 2..10 have neither table; there is
+/// no terminator. This directory and its borrowed tables require the room loaded.
+extern AreaVariant gShelterB3IncineratorControlRoomAreaVariants[SHELTER_B3_INCINERATOR_CONTROL_ROOM_AREA_VARIANT_COUNT];
 
 /// Logical-view maps for the control room's two logical rooms.
 ///
@@ -34,9 +45,23 @@ extern u8* gShelterB3IncineratorControlRoomViewMaps[SHELTER_B3_INCINERATOR_CONTR
 /// These limits require live room-overlay storage and do not size the shared map.
 extern ViewCount gShelterB3IncineratorControlRoomViewCounts[SHELTER_B3_INCINERATOR_CONTROL_ROOM_ROOM_COUNT];
 
-extern DirectionWarpEntry D_shelter_b3_incinerator_control_room_8018192C[];
+/// Four arrival/departure endpoints indexed by the 1-based warp ID minus one.
+///
+/// Slots 1 and 4 share the incinerator-side placement, with initial views 5 and
+/// 6; warp 4 also starts the arrival scene. Slot 2 serves the lower-sewer stair
+/// passage in view 3, and slot 3 the elevator-hall door in view 4. Positions use
+/// world units and yaw uses 4096 per turn. Entries are copied whole and have no
+/// terminator; keep the overlay loaded. Arrivals set a nonzero map marker to 1 (visited).
+extern DirectionWarpEntry gShelterB3IncineratorControlRoomWarpEntries[SHELTER_B3_INCINERATOR_CONTROL_ROOM_WARP_COUNT];
 
-extern WorldCollisionGrid D_shelter_b3_incinerator_control_room_80181CC0;
+/// Collision mesh and XZ cell index shared by both logical control-room rooms.
+///
+/// The 4-by-2 grid has 4000-world-unit cells and origin X/Z (-6742, -3500).
+/// Its private pools contain 27 vertices, ten normals and 19 quadrilateral
+/// faces with surface classes 0, 1 and 3. The X-major directory borrows signed
+/// face-index lists ending at -1; NULL cells are empty. Activation binds the
+/// view coordinate. Keep the record and all writable pools loaded while active.
+extern WorldCollisionGrid gShelterB3IncineratorControlRoomCollisionGrid;
 
 /// World-to-camera transforms and pixel projection distances for mapped views 1..8.
 ///
@@ -61,13 +86,38 @@ extern SpriteView gShelterB3IncineratorControlRoomSpriteViews[SHELTER_B3_INCINER
 /// minima because the map supplies no ambient table.
 extern WorldCoordRoomLights gShelterB3IncineratorControlRoomLights;
 
-extern WorldCollisionTrigger D_shelter_b3_incinerator_control_room_801824B8[];
+/// Directed view boundaries shared by both logical rooms: 4 to 5, 5 to 4, 3 to 4 and 4 to 3.
+///
+/// The fourth record carries LAST and is included in setup. Room binding supplies
+/// the view coordinate, links and enables the writable records. Positions and
+/// radii use world units; normals use 4096 per unit. Keep storage live until unlinked.
+extern WorldCollisionTrigger gShelterB3IncineratorControlRoomViewBoundaryTriggers[SHELTER_B3_INCINERATOR_CONTROL_ROOM_VIEW_BOUNDARY_COUNT];
 
-extern WorldCollisionTrigger D_shelter_b3_incinerator_control_room_80182668[];
+/// Logical-room-1 interactions: stair descent, sewer and hall exits, incinerator dialogue and telephone use.
+///
+/// Six stair steps use surface class 2 and yaw 1024. The automatic lower-sewer
+/// exit uses current endpoint 2 and destination endpoint 1; the hall exit uses
+/// endpoints 3 and 1. Telephone use sends room command 1. The fifth record carries
+/// LAST and is included. Room binding mutates links, flags and hit latches;
+/// keep the room loaded until unlinked. Positions/radii use world units,
+/// normals use 4096 per unit. The room selector is independent of layout variant.
+extern WorldCollisionTrigger gShelterB3IncineratorControlRoomRoom1ActionTriggers[SHELTER_B3_INCINERATOR_CONTROL_ROOM_ROOM_1_ACTION_COUNT];
 
-extern WorldCollisionTrigger D_shelter_b3_incinerator_control_room_801827E4[];
+/// Logical-room-2 interactions, replacing stair descent with CAP command 4 and adding a telephone region.
+///
+/// The sewer and hall exits retain endpoints 2/1 and 3/1. Two regions send
+/// telephone command 1; the last accepts nearby overlap or facing overlap and
+/// carries LAST. Incinerator-side interaction runs CAP command 5. All six
+/// records are bound, linked and enabled in place; keep storage live until
+/// unlinked. Positions/radii use world units, normals use 4096 per unit.
+extern WorldCollisionTrigger gShelterB3IncineratorControlRoomRoom2ActionTriggers[SHELTER_B3_INCINERATOR_CONTROL_ROOM_ROOM_2_ACTION_COUNT];
 
-extern WorldCollisionOccluder D_shelter_b3_incinerator_control_room_801829AC[];
+/// One line-of-sight blocking quad shared by both logical rooms.
+///
+/// LAST marks this included record. Setup links and enables it in place;
+/// keep the overlay loaded until unlinked. Origin/corners use world units
+/// and the plane normal uses 4096 per unit. The sight test does not use its radius.
+extern WorldCollisionOccluder gShelterB3IncineratorControlRoomOccluders[SHELTER_B3_INCINERATOR_CONTROL_ROOM_OCCLUDER_COUNT];
 
 /// Collision policies and footstep cues indexed by surface class 0..7.
 ///

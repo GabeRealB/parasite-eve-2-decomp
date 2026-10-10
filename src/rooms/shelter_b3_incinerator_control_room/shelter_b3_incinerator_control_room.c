@@ -60,9 +60,6 @@ static void _roomCutsceneSoundTask(Task* task);
 
 /// View saved when the cutscene starts and restored when it ends.
 
-/// Message table of the room's message task.
-extern TaskMessageEntry D_shelter_b3_incinerator_control_room_80181838[];
-
 #define TELEPHONE_TITLE_BYTES "Telephone\0\x14\xCF"
 #include "../../shared/telephone.h"
 
@@ -86,7 +83,13 @@ static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-TaskMessageEntry D_shelter_b3_incinerator_control_room_80181838[6] = {
+/// Synchronous message interface for the initialized control-room task.
+///
+/// Resolves room exits, refuses key items, ignores room actions, and handles
+/// telephone commands and sound cues. The sixth entry ends lookup, so unsupported
+/// IDs return zero. `Task::msgTable` borrows this table and its callbacks while
+/// the task is live; pointer payloads are borrowed only during dispatch.
+static TaskMessageEntry _gShelterB3IncineratorControlRoomMessageTable[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB3IncineratorControlRoomResolveRoomEvent },
     { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB3IncineratorControlRoomRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB3IncineratorControlRoomIgnoreRoomAction },
@@ -172,16 +175,16 @@ static inline void _shelterB3IncineratorControlRoomStartPanelScene(s32 capSlot)
         SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_AFTER_SCENE_SOUND = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM, 3),
     };
 
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp     = capSlot;
-    D_shelter_b3_incinerator_control_room_80182A58.view            = SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_VIEW;
-    D_shelter_b3_incinerator_control_room_80182A58.capSlot         = capSlot;
-    D_shelter_b3_incinerator_control_room_80182A58.capFile         = capSlot;
-    D_shelter_b3_incinerator_control_room_80182A58.skipScene       = SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_PLAY_SCENE;
-    D_shelter_b3_incinerator_control_room_80182A58.startSound      = SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_START_SOUND;
-    D_shelter_b3_incinerator_control_room_80182A58.endSound        = SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_END_SOUND;
-    D_shelter_b3_incinerator_control_room_80182A58.sceneSound      = SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_SCENE_SOUND;
-    D_shelter_b3_incinerator_control_room_80182A58.afterSceneSound = SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_AFTER_SCENE_SOUND;
-    taskSpawnFromTable(_gRoomCutsceneTaskDescs, SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_TASK, SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_FOLLOW_UP_COMMAND, &D_shelter_b3_incinerator_control_room_80182A58);
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp        = capSlot;
+    gShelterB3IncineratorControlRoomTelephoneCutscene.view            = SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_VIEW;
+    gShelterB3IncineratorControlRoomTelephoneCutscene.capSlot         = capSlot;
+    gShelterB3IncineratorControlRoomTelephoneCutscene.capFile         = capSlot;
+    gShelterB3IncineratorControlRoomTelephoneCutscene.skipScene       = SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_PLAY_SCENE;
+    gShelterB3IncineratorControlRoomTelephoneCutscene.startSound      = SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_START_SOUND;
+    gShelterB3IncineratorControlRoomTelephoneCutscene.endSound        = SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_END_SOUND;
+    gShelterB3IncineratorControlRoomTelephoneCutscene.sceneSound      = SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_SCENE_SOUND;
+    gShelterB3IncineratorControlRoomTelephoneCutscene.afterSceneSound = SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_AFTER_SCENE_SOUND;
+    taskSpawnFromTable(_gRoomCutsceneTaskDescs, SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_TASK, SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_FOLLOW_UP_COMMAND, &gShelterB3IncineratorControlRoomTelephoneCutscene);
 }
 
 /// Handles control-panel command 1, separating first-use dialogue from repeat-use scenes.
@@ -193,7 +196,6 @@ static inline void _shelterB3IncineratorControlRoomStartPanelScene(s32 capSlot)
 static s32 _shelterB3IncineratorControlRoomHandleCommand(Task* task, s32 messageId, s32 command, s32 unusedArg)
 {
     enum {
-        SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_COMMAND         = 1,
         SHELTER_B3_INCINERATOR_CONTROL_ROOM_FIRST_USE_CAP_COMMAND = 6,
     };
 
@@ -245,12 +247,12 @@ static void _shelterB3IncineratorControlRoomInitializeRoom(Task* task)
         SHELTER_B3_INCINERATOR_CONTROL_ROOM_ARRIVAL_OBJECTIVE   = 35,
     };
 
-    task->msgTable = D_shelter_b3_incinerator_control_room_80181838;
+    task->msgTable = _gShelterB3IncineratorControlRoomMessageTable;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
     if (gGameSession->location.loc.warp == SHELTER_B3_INCINERATOR_CONTROL_ROOM_INCINERATOR_ARRIVAL) {
         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_ARRIVAL_OBJECTIVE);
-        areaApplySavedUpdates(D_shelter_b3_incinerator_control_room_80182A40);
+        areaApplySavedUpdates(gShelterB3IncineratorControlRoomArrivalSavedUpdates);
         companionRestoreFullHp();
         evsStartScriptWithSkip(gActor142600IncineratorArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor142600IncineratorArrivalSkipScript);
     }
@@ -265,10 +267,12 @@ static void _shelterB3IncineratorControlRoomIdleRoom(Task* task)
     char unusedStackBytes[0x10];
 }
 
-/// States of the room's message task, run by
-/// `shelterB3IncineratorControlRoomTask`: install the message
-/// table and apply the warp-4 entry setup, idle, die.
-static const TaskFuncTable3 D_shelter_b3_incinerator_control_room_8017D6A4 = {
+/// State handlers for room setup, message-service idle and task release.
+///
+/// Indexed by task state 0..2 without a bounds check or terminator. Dispatch
+/// copies all three callback pointers to the stack before selecting one;
+/// keep the overlay loaded while the room task is live.
+static const TaskFuncTable3 _gShelterB3IncineratorControlRoomStateHandlers = {
     {
         _shelterB3IncineratorControlRoomInitializeRoom,
         _shelterB3IncineratorControlRoomIdleRoom,
@@ -280,6 +284,6 @@ void shelterB3IncineratorControlRoomTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_shelter_b3_incinerator_control_room_8017D6A4;
+    handlers = _gShelterB3IncineratorControlRoomStateHandlers;
     handlers.funcs[task->state](task);
 }

@@ -24,12 +24,14 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/gameflag_ids.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
+#include "main/sound_ids.h"
 #include "main/sound_types.h"
 #include "main/task_types.h"
 
@@ -92,36 +94,90 @@ ViewCount gShelterB3IncineratorControlRoomViewCounts[SHELTER_B3_INCINERATOR_CONT
     SHELTER_B3_INCINERATOR_CONTROL_ROOM_VIEW_COUNT,
 };
 
-DirectionWarpEntry D_shelter_b3_incinerator_control_room_8018192C[4] = {
-    { { { .word = 2048 }, -5333, 0, 2984 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -5333, 0, 2984 }, { 0, 0, 0, 0 }, 0x54290008, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 3072 }, 820, 0, -2540 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 820, 0, -3100 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_RESERVOIR_1BF },
-    { { { .word = 0 }, -6048, 0, -3020 }, { 0, 0, 0, 0 }, { { .word = 256 }, -5200, 0, -3020 }, { 0, 0, 0, 0 }, 0x54290006, 0x54290005, 0x54290007, 4, DIRECTION_WARP_FLAG_NONE, 459 },
-    { { { .word = 2048 }, -5333, 0, 2984 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -5333, 0, 2984 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+/// Endpoint sound cues from the loaded control-room sound bank.
+enum {
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_INCINERATOR_ARRIVAL_SOUND = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM, 8),
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_HALL_ARRIVAL_SOUND        = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM, 6),
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_HALL_DEPARTURE_SOUND      = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM, 5),
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_HALL_BLOCKED_SOUND        = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM, 7),
 };
 
-static SVECTOR _gShelterB3IncineratorControlRoomCollision04700Normals[10] = {
+DirectionWarpEntry gShelterB3IncineratorControlRoomWarpEntries[SHELTER_B3_INCINERATOR_CONTROL_ROOM_WARP_COUNT] = {
+    { .player         = { { .word = 2048 }, -5333, 0, 2984 },
+      .companion      = { { .word = 2048 }, -5333, 0, 2984 },
+      .arrivalSound   = SHELTER_B3_INCINERATOR_CONTROL_ROOM_INCINERATOR_ARRIVAL_SOUND,
+      .departureSound = DIRECTION_WARP_SOUND_NONE,
+      .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+      .initialView    = 5,
+      .flags          = DIRECTION_WARP_FLAG_NONE,
+      .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE },
+    { .player         = { { .word = 3072 }, 820, 0, -2540 },
+      .companion      = { { .word = 3072 }, 820, 0, -3100 },
+      .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+      .departureSound = DIRECTION_WARP_SOUND_NONE,
+      .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+      .initialView    = 3,
+      .flags          = DIRECTION_WARP_FLAG_NONE,
+      .mapFlagId      = GAME_FLAG_MAP_MARK_RESERVOIR_1BF },
+    { .player         = { { .word = 0 }, -6048, 0, -3020 },
+      .companion      = { { .word = 256 }, -5200, 0, -3020 },
+      .arrivalSound   = SHELTER_B3_INCINERATOR_CONTROL_ROOM_HALL_ARRIVAL_SOUND,
+      .departureSound = SHELTER_B3_INCINERATOR_CONTROL_ROOM_HALL_DEPARTURE_SOUND,
+      .blockedSound   = SHELTER_B3_INCINERATOR_CONTROL_ROOM_HALL_BLOCKED_SOUND,
+      .initialView    = 4,
+      .flags          = DIRECTION_WARP_FLAG_NONE,
+      .mapFlagId      = GAME_FLAG_MAP_MARK_B3_INCINERATOR_CONTROL_DOOR },
+    { .player         = { { .word = 2048 }, -5333, 0, 2984 },
+      .companion      = { { .word = 2048 }, -5333, 0, 2984 },
+      .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+      .departureSound = DIRECTION_WARP_SOUND_NONE,
+      .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+      .initialView    = 6,
+      .flags          = DIRECTION_WARP_FLAG_NONE,
+      .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE },
+};
+
+/// Room-space collision normals, with 4096 representing unit length.
+static SVECTOR _gShelterB3IncineratorControlRoomCollisionGridNormals[10] = {
 #include "assets/shelter_b3_incinerator_control_room_collision_04700_normals.inc"
 };
 
-static SVECTOR _gShelterB3IncineratorControlRoomCollision04700Verts[27] = {
+/// Collision vertices in signed world-coordinate units.
+static SVECTOR _gShelterB3IncineratorControlRoomCollisionGridVerts[27] = {
 #include "assets/shelter_b3_incinerator_control_room_collision_04700_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB3IncineratorControlRoomCollision04700Faces[19] = {
+/// Indexed collision quads using this room's surface classes 0, 1 and 3.
+static WorldCollisionGridFace _gShelterB3IncineratorControlRoomCollisionGridFaces[19] = {
 #include "assets/shelter_b3_incinerator_control_room_collision_04700_faces.inc"
 };
 
-static s16 _gShelterB3IncineratorControlRoomCollision04700Cells[68] = {
+/// Signed face-index lists ending at -1, retaining all 68 authored halfwords.
+static s16 _gShelterB3IncineratorControlRoomCollisionGridCells[68] = {
 #include "assets/shelter_b3_incinerator_control_room_collision_04700_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB3IncineratorControlRoomCollision04700Cells[i])
-static s16* _gShelterB3IncineratorControlRoomCollision04700Table[8] = {
+// Asset initializer binding: a halfword element offset in the signed face-index pool.
+#define GRID_CELL(i) (&_gShelterB3IncineratorControlRoomCollisionGridCells[i])
+/// X-major 4-by-2 cell directory; NULL cells contain no faces.
+static s16* _gShelterB3IncineratorControlRoomCollisionGridTable[8] = {
 #include "assets/shelter_b3_incinerator_control_room_collision_04700_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b3_incinerator_control_room_80181CC0 = { NULL, _gShelterB3IncineratorControlRoomCollision04700Normals, _gShelterB3IncineratorControlRoomCollision04700Verts, _gShelterB3IncineratorControlRoomCollision04700Faces, _gShelterB3IncineratorControlRoomCollision04700Table, 6742, 3500, 4, 2, 4000, 19 };
+WorldCollisionGrid gShelterB3IncineratorControlRoomCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB3IncineratorControlRoomCollisionGridNormals,
+    .vertices    = _gShelterB3IncineratorControlRoomCollisionGridVerts,
+    .faces       = _gShelterB3IncineratorControlRoomCollisionGridFaces,
+    .cellFaceIds = _gShelterB3IncineratorControlRoomCollisionGridTable,
+    .xBias       = 6742,
+    .zBias       = 3500,
+    .cellCountX  = 4,
+    .cellCountZ  = 2,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gShelterB3IncineratorControlRoomCollisionGridFaces),
+};
 
 ViewCamera gShelterB3IncineratorControlRoomViewCameras[SHELTER_B3_INCINERATOR_CONTROL_ROOM_VIEW_COUNT] = {
     { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 1000, 0x7530, 0 } }, 541 },
@@ -314,16 +370,63 @@ WorldCoordRoomLights gShelterB3IncineratorControlRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_shelter_b3_incinerator_control_room_801824B8[4] = {
-    { NULL, NULL, NULL, { -5537, -1536, 687, 0 }, { { -2101, -2016, -224, 0 }, { 2099, -2016, 222, 0 }, { -2101, 2016, -224, 0 }, { 2099, 2016, 222, 0 } }, { 435, 0, -4103, 0 }, { 0, 0, 4096, 0 }, 2918, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -5456, -1536, 592, 0 }, { { 2067, -2016, 219, 0 }, { -2069, -2016, -221, 0 }, { 2067, 2016, 219, 0 }, { -2069, 2016, -221, 0 } }, { -435, 0, 4078, 0 }, { 0, 0, 4096, 0 }, 2896, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -4305, -1248, -3633, 0 }, { { -318, -2016, -2024, 0 }, { 315, -2016, 2021, 0 }, { -318, 2016, -2024, 0 }, { 315, 2016, 2021, 0 } }, { 4050, 0, -635, 0 }, { 0, 0, 4096, 0 }, 2873, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -4145, -1280, -3648, 0 }, { { 298, -2016, 1911, 0 }, { -301, -2016, -1914, 0 }, { 298, 2016, 1911, 0 }, { -301, 2016, -1914, 0 } }, { -4053, 0, 633, 0 }, { 0, 0, 4096, 0 }, 2792, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+WorldCollisionTrigger gShelterB3IncineratorControlRoomViewBoundaryTriggers[SHELTER_B3_INCINERATOR_CONTROL_ROOM_VIEW_BOUNDARY_COUNT] = {
+    { .origin       = { -5537, -1536, 687, 0 },
+      .vertices     = { { -2101, -2016, -224, 0 }, { 2099, -2016, 222, 0 }, { -2101, 2016, -224, 0 }, { 2099, 2016, 222, 0 } },
+      .normal       = { 435, 0, -4103, 0 },
+      .facingNormal = { 0, 0, ONE, 0 },
+      .radius       = 2918,
+      .control      = 0,
+      .parameter0   = 4,
+      .parameter1   = 5,
+      .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY },
+    { .origin       = { -5456, -1536, 592, 0 },
+      .vertices     = { { 2067, -2016, 219, 0 }, { -2069, -2016, -221, 0 }, { 2067, 2016, 219, 0 }, { -2069, 2016, -221, 0 } },
+      .normal       = { -435, 0, 4078, 0 },
+      .facingNormal = { 0, 0, ONE, 0 },
+      .radius       = 2896,
+      .control      = 0,
+      .parameter0   = 5,
+      .parameter1   = 4,
+      .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY },
+    { .origin       = { -4305, -1248, -3633, 0 },
+      .vertices     = { { -318, -2016, -2024, 0 }, { 315, -2016, 2021, 0 }, { -318, 2016, -2024, 0 }, { 315, 2016, 2021, 0 } },
+      .normal       = { 4050, 0, -635, 0 },
+      .facingNormal = { 0, 0, ONE, 0 },
+      .radius       = 2873,
+      .control      = 0,
+      .parameter0   = 3,
+      .parameter1   = 4,
+      .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY },
+    { .origin       = { -4145, -1280, -3648, 0 },
+      .vertices     = { { 298, -2016, 1911, 0 }, { -301, -2016, -1914, 0 }, { 298, 2016, 1911, 0 }, { -301, 2016, -1914, 0 } },
+      .normal       = { -4053, 0, 633, 0 },
+      .facingNormal = { 0, 0, ONE, 0 },
+      .radius       = 2792,
+      .control      = 0,
+      .parameter0   = 4,
+      .parameter1   = 3,
+      .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST },
 };
 
-AreaResource D_shelter_b3_incinerator_control_room_801825E8[2] = {
-    { 101, 426, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor142600TaskDescriptors },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement key and decimal file number for base scene file 142600.
+enum {
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_SCENE_ENTRY_ID    = 101,
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_SCENE_FILE_NUMBER = 426,
+};
+
+/// Base actor-142600 scene resource for placement variant 1, followed by END.
+///
+/// Group base 10 and decimal file number 426 select file 142600 at low index 0.
+/// The loader queues it even though the placement list is empty; no placed actor
+/// is spawned. Its descriptor table belongs to the separately loaded actor package.
+static AreaResource _gShelterB3IncineratorControlRoomArrivalSceneResources[2] = {
+    { .entryId        = SHELTER_B3_INCINERATOR_CONTROL_ROOM_SCENE_ENTRY_ID,
+      .fileNumber     = SHELTER_B3_INCINERATOR_CONTROL_ROOM_SCENE_FILE_NUMBER,
+      .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR,
+      .taskIndex      = 0,
+      .taskTable      = gActor142600TaskDescriptors },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 /// Sentinel-only actor placement list for area layout variant 1.
@@ -334,9 +437,9 @@ static AreaPlacement _gShelterB3IncineratorControlRoomEmptyPlacements[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaVariant D_shelter_b3_incinerator_control_room_80182610[11] = {
+AreaVariant gShelterB3IncineratorControlRoomAreaVariants[SHELTER_B3_INCINERATOR_CONTROL_ROOM_AREA_VARIANT_COUNT] = {
     { NULL, NULL },
-    { _gShelterB3IncineratorControlRoomEmptyPlacements, D_shelter_b3_incinerator_control_room_801825E8 },
+    { _gShelterB3IncineratorControlRoomEmptyPlacements, _gShelterB3IncineratorControlRoomArrivalSceneResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -348,25 +451,126 @@ AreaVariant D_shelter_b3_incinerator_control_room_80182610[11] = {
     { NULL, NULL },
 };
 
-WorldCollisionTrigger D_shelter_b3_incinerator_control_room_80182668[5] = {
-    { NULL, NULL, NULL, { 1201, -48, -2720, 0 }, { { -400, 0, -1024, 0 }, { 400, 0, -1024, 0 }, { -400, 0, 1024, 0 }, { 400, 0, 1024, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 1093, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100, 38, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1792, -304, -2704, 0 }, { { 0, -2560, -1328, 0 }, { 0, 2560, -1328, 0 }, { 0, -2560, 1328, 0 }, { 0, 2560, 1328, 0 } }, { -4099, 0, 0, 0 }, { -4096, 0, 0, 0 }, 2873, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, 43, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -5903, -48, -3136, 0 }, { { 752, 0, -400, 0 }, { 752, 0, 400, 0 }, { -752, 0, -400, 0 }, { -752, 0, 400, 0 } }, { 0, 4115, 0, 0 }, { 0, 0, 4096, 0 }, 851, WORLD_COLLISION_TRIGGER_ACTION_WARP, 42, 49, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -5440, -64, 3136, 0 }, { { -1424, 0, -384, 0 }, { 1424, 0, -384, 0 }, { -1424, 0, 384, 0 }, { 1424, 0, 384, 0 } }, { 0, 4113, 0, 0 }, { 0, 0, -4096, 0 }, 1470, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4576, -64, -1584, 0 }, { { -400, 0, -752, 0 }, { 400, 0, -752, 0 }, { -400, 0, 752, 0 }, { 400, 0, 752, 0 } }, { 0, 4115, 0, 0 }, { -4096, 0, 0, 0 }, 851, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Packed stair selectors and room-local CAP commands carried by action triggers.
+enum {
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_STAIR_DESCEND           = 0x100,
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_STAIR_SURFACE_CLASS     = 2,
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_STAIR_STEPS             = 6,
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_STAIR_CAP_COMMAND       = 4,
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_INCINERATOR_CAP_COMMAND = 5,
 };
 
-WorldCollisionTrigger D_shelter_b3_incinerator_control_room_801827E4[6] = {
-    { NULL, NULL, NULL, { 720, -48, -2720, 0 }, { { -400, 0, -1024, 0 }, { 400, 0, -1024, 0 }, { -400, 0, 1024, 0 }, { 400, 0, 1024, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 1093, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1792, -304, -2704, 0 }, { { 0, -2560, -1328, 0 }, { 0, 2560, -1328, 0 }, { 0, -2560, 1328, 0 }, { 0, 2560, 1328, 0 } }, { -4099, 0, 0, 0 }, { -4096, 0, 0, 0 }, 2873, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, 43, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -5600, -48, -3136, 0 }, { { 1024, 0, -400, 0 }, { 1024, 0, 400, 0 }, { -1024, 0, -400, 0 }, { -1024, 0, 400, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 1093, WORLD_COLLISION_TRIGGER_ACTION_WARP, 42, 49, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4608, -64, -1504, 0 }, { { -400, 0, -1024, 0 }, { 400, 0, -1024, 0 }, { -400, 0, 1024, 0 }, { 400, 0, 1024, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 1093, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -5504, -64, 3168, 0 }, { { 1024, 0, -400, 0 }, { 1024, 0, 400, 0 }, { -1024, 0, -400, 0 }, { -1024, 0, 400, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -4096, 0 }, 1093, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4288, -64, -2080, 0 }, { { 832, 0, -1008, 0 }, { 832, 0, 1008, 0 }, { -832, 0, -1008, 0 }, { -832, 0, 1008, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, -4096, 0 }, 1305, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+WorldCollisionTrigger gShelterB3IncineratorControlRoomRoom1ActionTriggers[SHELTER_B3_INCINERATOR_CONTROL_ROOM_ROOM_1_ACTION_COUNT] = {
+    { .origin       = { 1201, -48, -2720, 0 },
+      .vertices     = { { -400, 0, -1024, 0 }, { 400, 0, -1024, 0 }, { -400, 0, 1024, 0 }, { 400, 0, 1024, 0 } },
+      .normal       = { 0, 4098, 0, 0 },
+      .facingNormal = { -ONE, 0, 0, 0 },
+      .radius       = 1093,
+      .control      = WORLD_COLLISION_TRIGGER_ACTION_FACING | SHELTER_B3_INCINERATOR_CONTROL_ROOM_STAIR_DESCEND,
+      .parameter0   = (SHELTER_B3_INCINERATOR_CONTROL_ROOM_STAIR_SURFACE_CLASS << 4) | SHELTER_B3_INCINERATOR_CONTROL_ROOM_STAIR_STEPS,
+      .parameter1   = (1024 >> 4),
+      .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin       = { 1792, -304, -2704, 0 },
+      .vertices     = { { 0, -2560, -1328, 0 }, { 0, 2560, -1328, 0 }, { 0, -2560, 1328, 0 }, { 0, 2560, 1328, 0 } },
+      .normal       = { -4099, 0, 0, 0 },
+      .facingNormal = { -ONE, 0, 0, 0 },
+      .radius       = 2873,
+      .control      = WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC,
+      .parameter0   = GAME_AREA_SHELTER_B4_LOWER_SEWER,
+      .parameter1   = (2 << 4) | 1,
+      .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin       = { -5903, -48, -3136, 0 },
+      .vertices     = { { 752, 0, -400, 0 }, { 752, 0, 400, 0 }, { -752, 0, -400, 0 }, { -752, 0, 400, 0 } },
+      .normal       = { 0, 4115, 0, 0 },
+      .facingNormal = { 0, 0, ONE, 0 },
+      .radius       = 851,
+      .control      = WORLD_COLLISION_TRIGGER_ACTION_WARP,
+      .parameter0   = GAME_AREA_SHELTER_B3_ELEVATOR_HALL,
+      .parameter1   = (3 << 4) | 1,
+      .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin       = { -5440, -64, 3136, 0 },
+      .vertices     = { { -1424, 0, -384, 0 }, { 1424, 0, -384, 0 }, { -1424, 0, 384, 0 }, { 1424, 0, 384, 0 } },
+      .normal       = { 0, 4113, 0, 0 },
+      .facingNormal = { 0, 0, -ONE, 0 },
+      .radius       = 1470,
+      .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+      .parameter0   = SHELTER_B3_INCINERATOR_CONTROL_ROOM_INCINERATOR_CAP_COMMAND,
+      .parameter1   = 0,
+      .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin       = { -4576, -64, -1584, 0 },
+      .vertices     = { { -400, 0, -752, 0 }, { 400, 0, -752, 0 }, { -400, 0, 752, 0 }, { 400, 0, 752, 0 } },
+      .normal       = { 0, 4115, 0, 0 },
+      .facingNormal = { -ONE, 0, 0, 0 },
+      .radius       = 851,
+      .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+      .parameter0   = SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_COMMAND,
+      .parameter1   = WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE,
+      .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST },
 };
 
-WorldCollisionOccluder D_shelter_b3_incinerator_control_room_801829AC[1] = {
-    { NULL, NULL, { -1312, -95, 368, 0 }, { { -2752, 4576, -2416, 0 }, { 2752, 4576, 2416, 0 }, { -2752, -4576, -2416, 0 }, { 2752, -4576, 2416, 0 } }, { -2705, 0, 3080, 0 }, 5860, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
+WorldCollisionTrigger gShelterB3IncineratorControlRoomRoom2ActionTriggers[SHELTER_B3_INCINERATOR_CONTROL_ROOM_ROOM_2_ACTION_COUNT] = {
+    { .origin       = { 720, -48, -2720, 0 },
+      .vertices     = { { -400, 0, -1024, 0 }, { 400, 0, -1024, 0 }, { -400, 0, 1024, 0 }, { 400, 0, 1024, 0 } },
+      .normal       = { 0, 4098, 0, 0 },
+      .facingNormal = { -ONE, 0, 0, 0 },
+      .radius       = 1093,
+      .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+      .parameter0   = SHELTER_B3_INCINERATOR_CONTROL_ROOM_STAIR_CAP_COMMAND,
+      .parameter1   = 0,
+      .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin       = { 1792, -304, -2704, 0 },
+      .vertices     = { { 0, -2560, -1328, 0 }, { 0, 2560, -1328, 0 }, { 0, -2560, 1328, 0 }, { 0, 2560, 1328, 0 } },
+      .normal       = { -4099, 0, 0, 0 },
+      .facingNormal = { -ONE, 0, 0, 0 },
+      .radius       = 2873,
+      .control      = WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC,
+      .parameter0   = GAME_AREA_SHELTER_B4_LOWER_SEWER,
+      .parameter1   = (2 << 4) | 1,
+      .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin       = { -5600, -48, -3136, 0 },
+      .vertices     = { { 1024, 0, -400, 0 }, { 1024, 0, 400, 0 }, { -1024, 0, -400, 0 }, { -1024, 0, 400, 0 } },
+      .normal       = { 0, 4098, 0, 0 },
+      .facingNormal = { 0, 0, ONE, 0 },
+      .radius       = 1093,
+      .control      = WORLD_COLLISION_TRIGGER_ACTION_WARP,
+      .parameter0   = GAME_AREA_SHELTER_B3_ELEVATOR_HALL,
+      .parameter1   = (3 << 4) | 1,
+      .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin       = { -4608, -64, -1504, 0 },
+      .vertices     = { { -400, 0, -1024, 0 }, { 400, 0, -1024, 0 }, { -400, 0, 1024, 0 }, { 400, 0, 1024, 0 } },
+      .normal       = { 0, 4098, 0, 0 },
+      .facingNormal = { -ONE, 0, 0, 0 },
+      .radius       = 1093,
+      .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+      .parameter0   = SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_COMMAND,
+      .parameter1   = WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE,
+      .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin       = { -5504, -64, 3168, 0 },
+      .vertices     = { { 1024, 0, -400, 0 }, { 1024, 0, 400, 0 }, { -1024, 0, -400, 0 }, { -1024, 0, 400, 0 } },
+      .normal       = { 0, 4098, 0, 0 },
+      .facingNormal = { 0, 0, -ONE, 0 },
+      .radius       = 1093,
+      .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+      .parameter0   = SHELTER_B3_INCINERATOR_CONTROL_ROOM_INCINERATOR_CAP_COMMAND,
+      .parameter1   = 0,
+      .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin       = { -4288, -64, -2080, 0 },
+      .vertices     = { { 832, 0, -1008, 0 }, { 832, 0, 1008, 0 }, { -832, 0, -1008, 0 }, { -832, 0, 1008, 0 } },
+      .normal       = { 0, 4104, 0, 0 },
+      .facingNormal = { 0, 0, -ONE, 0 },
+      .radius       = 1305,
+      .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+      .parameter0   = SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_COMMAND,
+      .parameter1   = WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE,
+      .flags        = WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST },
+};
+
+WorldCollisionOccluder gShelterB3IncineratorControlRoomOccluders[SHELTER_B3_INCINERATOR_CONTROL_ROOM_OCCLUDER_COUNT] = {
+    { .origin   = { -1312, -95, 368, 0 },
+      .vertices = { { -2752, 4576, -2416, 0 }, { 2752, 4576, 2416, 0 }, { -2752, -4576, -2416, 0 }, { 2752, -4576, 2416, 0 } },
+      .normal   = { -2705, 0, 3080, 0 },
+      .radius   = 5860,
+      .flags    = 1 | WORLD_COLLISION_OCCLUDER_LAST }, // Authored low bit is retained; the sight query does not interpret it.
 };
 
 /// Cue-2 bases in the loaded type-1 footstep bank.
@@ -457,17 +661,25 @@ WorldCollisionSurfaceProperties* gShelterB3IncineratorControlRoomSurfaceProperti
     &_gShelterB3IncineratorControlRoomSilentSurfaceProperties,
 };
 
-AreaApplyRec D_shelter_b3_incinerator_control_room_80182A40[5] = {
-    { 4, 39, 2, 0 },
-    { 4, 40, 2, 0 },
-    { 4, 43, 7, 33 },
-    { 4, 44, 7, 33 },
-    { 255, 0, 0, 0 },
+/// Placement variants and map-mark policy applied by the incinerator arrival.
+enum {
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_ARRIVAL_VARIANT                = 2,
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_SEWER_BOUNTY_NIGHTMARE_VARIANT = 7,
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_MAP_MARK_CLEAR                 = 0,
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_MAP_MARK_SET                   = 1,
+};
+
+AreaApplyRec gShelterB3IncineratorControlRoomArrivalSavedUpdates[5] = {
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_DUMPING_HOLE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_ARRIVAL_VARIANT, AREA_APPLY_MODE_ALWAYS | SHELTER_B3_INCINERATOR_CONTROL_ROOM_MAP_MARK_CLEAR },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, SHELTER_B3_INCINERATOR_CONTROL_ROOM_ARRIVAL_VARIANT, AREA_APPLY_MODE_ALWAYS | SHELTER_B3_INCINERATOR_CONTROL_ROOM_MAP_MARK_CLEAR },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_LOWER_SEWER, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SEWER_BOUNTY_NIGHTMARE_VARIANT, AREA_APPLY_MODE_BOUNTY_NIGHTMARE | SHELTER_B3_INCINERATOR_CONTROL_ROOM_MAP_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_UPPER_SEWER, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SEWER_BOUNTY_NIGHTMARE_VARIANT, AREA_APPLY_MODE_BOUNTY_NIGHTMARE | SHELTER_B3_INCINERATOR_CONTROL_ROOM_MAP_MARK_SET },
+    { AREA_APPLY_END, 0, 0, 0 },
 };
 
 Task* gRoomCutsceneSoundTask = NULL;
 
-RoomCutsceneRec D_shelter_b3_incinerator_control_room_80182A58;
+RoomCutsceneRec gShelterB3IncineratorControlRoomTelephoneCutscene;
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 static void _glowDrawDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);

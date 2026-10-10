@@ -62,13 +62,12 @@ u8* gShelterB3ElevatorHallViewMaps[1] = {
 
 ViewCount gShelterB3ElevatorHallRoomViewCounts[1] = { 7 };
 
-/// Arrival/departure cue IDs and the control-room door's optional map-marker nibble.
+/// Arrival/departure cue IDs for the control-room door and elevator.
 enum {
     SHELTER_B3_ELEVATOR_HALL_CONTROL_DOOR_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_ELEVATOR_HALL, 4),
     SHELTER_B3_ELEVATOR_HALL_CONTROL_DOOR_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_ELEVATOR_HALL, 3),
     SHELTER_B3_ELEVATOR_HALL_CONTROL_DOOR_BLOCKED_SOUND   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_ELEVATOR_HALL, 5),
     SHELTER_B3_ELEVATOR_HALL_ELEVATOR_ARRIVAL_SOUND       = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_ELEVATOR_HALL, 2),
-    SHELTER_B3_ELEVATOR_HALL_CONTROL_DOOR_MAP_FLAG        = 0x1CB,
 };
 
 DirectionWarpEntry gShelterB3ElevatorHallWarpEntries[3] = {
@@ -79,7 +78,7 @@ DirectionWarpEntry gShelterB3ElevatorHallWarpEntries[3] = {
       .blockedSound   = SHELTER_B3_ELEVATOR_HALL_CONTROL_DOOR_BLOCKED_SOUND,
       .initialView    = 2,
       .flags          = DIRECTION_WARP_FLAG_NONE,
-      .mapFlagId      = SHELTER_B3_ELEVATOR_HALL_CONTROL_DOOR_MAP_FLAG },
+      .mapFlagId      = GAME_FLAG_MAP_MARK_B3_INCINERATOR_CONTROL_DOOR },
     { .player         = { { .word = 3072 }, 6749, 0, -300 },
       .companion      = { { .word = 2304 }, 6400, 0, 500 },
       .arrivalSound   = DIRECTION_WARP_SOUND_NONE,

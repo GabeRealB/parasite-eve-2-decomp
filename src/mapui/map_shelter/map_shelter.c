@@ -585,7 +585,7 @@ TaskDesc D_map_shelter_8017AB30[] = {
 u16 D_map_shelter_8017AD88[30] = {
     0x1CD,
     0x1CC,
-    0x1CB,
+    GAME_FLAG_MAP_MARK_B3_INCINERATOR_CONTROL_DOOR,
     0x1CA,
     0x1C9,
     0x1C8,
@@ -834,7 +834,7 @@ DirectionWarpEntry* D_map_shelter_8017AF88[49] = {
     gShelter1fHeliportS4WarpEntries,
     D_shelter_b3_dumping_hole_8018B6A4,
     D_shelter_b3_garbage_incinerator_8018741C,
-    D_shelter_b3_incinerator_control_room_8018192C,
+    gShelterB3IncineratorControlRoomWarpEntries,
     gShelterB3ElevatorHallWarpEntries,
     D_shelter_b4_lower_sewer_80181FAC,
     D_shelter_b4_upper_sewer_80186598,
@@ -992,8 +992,8 @@ static WorldCollisionRoomResources D_map_shelter_8017B274[1] = {
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B284[2] = {
-    { &D_shelter_b3_incinerator_control_room_80181CC0, D_shelter_b3_incinerator_control_room_801824B8, D_shelter_b3_incinerator_control_room_80182668, D_shelter_b3_incinerator_control_room_801829AC },
-    { &D_shelter_b3_incinerator_control_room_80181CC0, D_shelter_b3_incinerator_control_room_801824B8, D_shelter_b3_incinerator_control_room_801827E4, D_shelter_b3_incinerator_control_room_801829AC },
+    { &gShelterB3IncineratorControlRoomCollisionGrid, gShelterB3IncineratorControlRoomViewBoundaryTriggers, gShelterB3IncineratorControlRoomRoom1ActionTriggers, gShelterB3IncineratorControlRoomOccluders },
+    { &gShelterB3IncineratorControlRoomCollisionGrid, gShelterB3IncineratorControlRoomViewBoundaryTriggers, gShelterB3IncineratorControlRoomRoom2ActionTriggers, gShelterB3IncineratorControlRoomOccluders },
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B2A4[1] = {

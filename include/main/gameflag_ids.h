@@ -1338,6 +1338,10 @@ enum {
     /// the table entry carries bit 0x800), 0 hides it. Shelter entry 6; cleared by
     /// actor_450900's event (0xAB set, 0x155 -> 8).
     GAME_FLAG_MAP_MARK_SHELTER_1C7 = 0x1C7,
+    /// Map marker for the door between the B3 incinerator control room and
+    /// elevator hall (0 hidden, 1 visited, 2 shown). Both arrival endpoints write
+    /// 1; a refused door attempt writes 2. This is separate from the unlock flag.
+    GAME_FLAG_MAP_MARK_B3_INCINERATOR_CONTROL_DOOR = 0x1CB,
     /// Map marker: listed in the stage map-marker tables read by menuMapGetMarkerState;
     /// _menuMapDrawFlagMarkers draws a marker icon while the value is 2 (alternate sprite when
     /// the table entry carries bit 0x800), 0 hides it. Shelter entry 0 (forced to the
