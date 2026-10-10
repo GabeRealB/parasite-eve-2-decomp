@@ -176,7 +176,7 @@ gStageCountdownMusicEntry = 0x80062735; // absolute:True
 gStageRoomMusicSequence = 0x80062737; // absolute:True
 gUiPromptObject = 0x80067694; // absolute:True
 gCdCmdQueue = 0x80068FA0; // absolute:True
-D_8006C338 = 0x8006C338; // absolute:True
+gFsResourceSlots = 0x8006C338; // absolute:True
 gGfxViewCoord = 0x80070F10; // absolute:True
 Gfx_ViewWorldMtx = 0x80070F34; // absolute:True
 gRandomLcgState = 0x80070F60; // absolute:True
@@ -624,7 +624,7 @@ D_8010D6F4 = 0x8010D6F4; // absolute:True size:0x134
 
 D_8010EAB4 = 0x8010EAB4; // absolute:True size:0x578
 
-Fs_ChunkOutputSizes = 0x8006D860; // absolute:True size:0xC
+gFsActorBufferWrittenBytes = 0x8006D860; // absolute:True size:0xC
 
 // The full dual-bank flag buffer; biased player-address immediates fall inside it.
 gGameFlagNibbleBanks = 0x80073980; // absolute:True size:0x200

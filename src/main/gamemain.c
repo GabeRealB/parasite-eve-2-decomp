@@ -304,8 +304,7 @@ static const u8 GameMain_PauseText[] = "PAUSE!";
 static inline s32 _gameMainPauseBlocked(void)
 {
     enum {
-        GAME_MAIN_HALT_SCENE_ERROR        = 8,
-        FILE_SYSTEM_CD_OPERATION_COMPLETE = 0xFF,
+        GAME_MAIN_HALT_SCENE_ERROR = 8,
     };
     s32 blocked;
 
@@ -314,7 +313,7 @@ static inline s32 _gameMainPauseBlocked(void)
         blocked = 1;
     } else if (gDisplayState.vsyncFlag == DISPLAY_VSYNC_TASK && gDisplayState.control.flags.flipMode == DISPLAY_FLIP_HOLD) {
         blocked = 1;
-    } else if (Fs_CdOpStatus != FILE_SYSTEM_CD_OPERATION_COMPLETE) {
+    } else if (gFsCdOperationStatus != FILE_SYSTEM_CD_OPERATION_COMPLETE) {
         blocked = 1;
     } else if (gpuExtIsDisplayEnabled() == 0) {
         blocked = 1;

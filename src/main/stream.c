@@ -256,7 +256,7 @@ static void _streamLoadMovieSlotState(u32 slotIndex)
     const StreamSlot* movieSlot;
 
     gCdCmdQueue.suppressMoviePresentation = false;
-    slotTable                             = Stream_Slots;
+    slotTable                             = gStreamSlots;
     D_8006AC12                            = 0;
     movieSlot                             = &slotTable[slotIndex & 0xFFFF];
     D_8006AC08                            = movieSlot->startSector;
@@ -282,7 +282,7 @@ s16 streamFindMovieSlot(const GameLocationKey* location, s32 subId, s32 requireV
     matchedSlotIndex   = 0;
     slotIndex          = matchedSlotIndex;
     hasMatch           = matchedSlotIndex;
-    slotTable          = Stream_Slots;
+    slotTable          = gStreamSlots;
     movieKind          = STREAM_KIND_MOVIE;
     requireViewStream &= 0xFFFF;
 
@@ -315,7 +315,7 @@ loop:
         }
     }
     slotIndex = slotIndex + 1;
-    if ((u32)(slotIndex & 0xFFFF) < ARRAY_SIZE(Stream_Slots)) {
+    if ((u32)(slotIndex & 0xFFFF) < ARRAY_SIZE(gStreamSlots)) {
         goto loop;
     }
 done:
@@ -342,7 +342,7 @@ s16 streamFindViewMovieSlot(const GameLocationKey* location)
     s32         shiftedSlotIndex;
 
     slotIndex = 0;
-    slotTable = Stream_Slots;
+    slotTable = gStreamSlots;
     movieKind = STREAM_KIND_MOVIE;
     while (1) {
         if (slotTable[slotIndex & 0xFFFF].kind == movieKind) {
@@ -362,7 +362,7 @@ s16 streamFindViewMovieSlot(const GameLocationKey* location)
             }
         }
         slotIndex = slotIndex + 1;
-        if ((u32)(slotIndex & 0xFFFF) >= ARRAY_SIZE(Stream_Slots)) {
+        if ((u32)(slotIndex & 0xFFFF) >= ARRAY_SIZE(gStreamSlots)) {
             break;
         }
     }
@@ -473,7 +473,7 @@ u32 streamPrepareMoviePlayback(u32 slotIndex)
         if (D_8006AC30.startSector == 0) {
             return STREAM_MOVIE_SETUP_INTER_UNAVAILABLE;
         }
-        D_8006AC08 = Stream_Slots[movieSlotIndex].source.interSectorOffset + D_8006AC30.startSector;
+        D_8006AC08 = gStreamSlots[movieSlotIndex].source.interSectorOffset + D_8006AC30.startSector;
     }
     if (D_8006AC14 != STREAM_MOVIE_DISPLAY_TEXTURE) {
         // Display movies use a resident layout independently of the current map.
@@ -1094,7 +1094,7 @@ void streamPresentMovieFrame(void)
 
 StreamSlot* streamGetSlot(u16 slotIndex)
 {
-    return &Stream_Slots[slotIndex];
+    return &gStreamSlots[slotIndex];
 }
 
 void streamPrepareMovieWorkspace(s16 preserveVramImages)
@@ -1142,16 +1142,16 @@ s16 streamHasLoadedViewMovie(void* unusedLocation)
     slotIndex      = 0;
     hasLoadedMovie = 0;
     while (1) {
-        if (Stream_Slots[slotIndex & 0xFFFF].kind == STREAM_KIND_MOVIE) {
-            if (Stream_Slots[slotIndex & 0xFFFF].key.parts.id < (u32)STREAM_VIEW_MOVIE_ID_LIMIT) {
-                if (Stream_Slots[slotIndex & 0xFFFF].startSector != 0) {
+        if (gStreamSlots[slotIndex & 0xFFFF].kind == STREAM_KIND_MOVIE) {
+            if (gStreamSlots[slotIndex & 0xFFFF].key.parts.id < (u32)STREAM_VIEW_MOVIE_ID_LIMIT) {
+                if (gStreamSlots[slotIndex & 0xFFFF].startSector != 0) {
                     hasLoadedMovie = 1;
                     break;
                 }
             }
         }
         slotIndex = slotIndex + 1;
-        if ((u32)(slotIndex & 0xFFFF) >= ARRAY_SIZE(Stream_Slots)) {
+        if ((u32)(slotIndex & 0xFFFF) >= ARRAY_SIZE(gStreamSlots)) {
             break;
         }
     }
@@ -1160,7 +1160,7 @@ s16 streamHasLoadedViewMovie(void* unusedLocation)
 
 u16 streamGetFrameLimit(u16 slotIndex)
 {
-    return Stream_Slots[slotIndex].data.movie.frameLimit;
+    return gStreamSlots[slotIndex].data.movie.frameLimit;
 }
 
 void streamInitMoviePlayback(u32 slotIndex)

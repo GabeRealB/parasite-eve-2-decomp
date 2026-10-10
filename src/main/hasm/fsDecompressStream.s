@@ -19,8 +19,8 @@
 .equ FILE_SYSTEM_STREAM_LZSS_LENGTH_BITS, 4
 .equ FILE_SYSTEM_STREAM_LZSS_MIN_MATCH_BYTES, 2
 /* Status values also declared beside the C interface in src/main/fs.h. */
-.equ FILE_SYSTEM_STREAM_DECODE_COMPLETE, 1
-.equ FILE_SYSTEM_STREAM_DECODE_SCRATCH_BUSY, 0xFFFF
+.equ FILE_SYSTEM_LZSS_DECODE_COMPLETE, 1
+.equ FILE_SYSTEM_LZSS_DECODE_SCRATCH_BUSY, 0xFFFF
 /* The initialized scratch-stack pointer's low halfword is its byte offset. */
 .equ FILE_SYSTEM_STREAM_LZSS_SCRATCH_BASE, 0x1F800000
 .equ FILE_SYSTEM_STREAM_LZSS_SCRATCH_CURSOR, 0x1F8003FC
@@ -44,8 +44,8 @@
     bnez       $a0, \resumeLabel
      lui       $a0, %hi(jtbl_Fs_DecompressChunk)
     lw         $a0, %lo(jtbl_Fs_DecompressChunk + \resumeOffset)($a0)
-    lui        $at, %hi(D5B498_8006D850)
-    sw         $a0, %lo(D5B498_8006D850)($at)
+    lui        $at, %hi(gFsLzssResumeAddress)
+    sw         $a0, %lo(gFsLzssResumeAddress)($at)
     j          .LfsStreamSaveState
 .endm
 
@@ -74,37 +74,37 @@ glabel fsDecompressStream
     /* 830 80010030 00010424 */  addiu      $a0, $zero, FILE_SYSTEM_STREAM_LZSS_WINDOW_BYTES
     /* 834 80010034 2230A400 */  sub        $a2, $a1, $a0 /* handwritten instruction */
     /* 838 80010038 0500C01C */  bgtz       $a2, .LfsStreamRestoreState
-    /* 83C 8001003C FFFF0434 */   ori       $a0, $zero, FILE_SYSTEM_STREAM_DECODE_SCRATCH_BUSY
-    /* 840 80010040 0780013C */  lui        $at, %hi(D5B498_8006D748)
-    /* 844 80010044 48D724A4 */  sh         $a0, %lo(D5B498_8006D748)($at)
+    /* 83C 8001003C FFFF0434 */   ori       $a0, $zero, FILE_SYSTEM_LZSS_DECODE_SCRATCH_BUSY
+    /* 840 80010040 0780013C */  lui        $at, %hi(gFsLzssDecodeStatus)
+    /* 844 80010044 48D724A4 */  sh         $a0, %lo(gFsLzssDecodeStatus)($at)
     /* 848 80010048 0800E003 */  jr         $ra
     /* 84C 8001004C 00000000 */   nop
   .LfsStreamRestoreState:
     /* Restore the bit reservoir and any token split across input intervals. */
-    /* 850 80010050 0780083C */  lui        $t0, %hi(Fs_ChunkReadPtr)
-    /* 854 80010054 2CC2088D */  lw         $t0, %lo(Fs_ChunkReadPtr)($t0)
+    /* 850 80010050 0780083C */  lui        $t0, %hi(gFsLzssInputCursor)
+    /* 854 80010054 2CC2088D */  lw         $t0, %lo(gFsLzssInputCursor)($t0)
     /* 858 80010058 0780183C */  lui        $t8, %hi(gFsLzssInputEnd)
     /* 85C 8001005C D4C4188F */  lw         $t8, %lo(gFsLzssInputEnd)($t8)
-    /* 860 80010060 0780093C */  lui        $t1, %hi(Fs_ChunkWritePtr)
-    /* 864 80010064 D8D4298D */  lw         $t1, %lo(Fs_ChunkWritePtr)($t1)
-    /* 868 80010068 07800A3C */  lui        $t2, %hi(D5B498_8006EBB0)
-    /* 86C 8001006C B0EB4A95 */  lhu        $t2, %lo(D5B498_8006EBB0)($t2)
-    /* 870 80010070 07800B3C */  lui        $t3, %hi(D5B498_8006EA1A)
-    /* 874 80010074 1AEA6B95 */  lhu        $t3, %lo(D5B498_8006EA1A)($t3)
-    /* 878 80010078 07800C3C */  lui        $t4, %hi(D5B498_8006D858)
-    /* 87C 8001007C 58D88C95 */  lhu        $t4, %lo(D5B498_8006D858)($t4)
-    /* 880 80010080 0780063C */  lui        $a2, %hi(D5B498_8006D85A)
-    /* 884 80010084 5AD8C694 */  lhu        $a2, %lo(D5B498_8006D85A)($a2)
+    /* 860 80010060 0780093C */  lui        $t1, %hi(gFsPayloadWriteCursor)
+    /* 864 80010064 D8D4298D */  lw         $t1, %lo(gFsPayloadWriteCursor)($t1)
+    /* 868 80010068 07800A3C */  lui        $t2, %hi(gFsLzssUnreadBitMask)
+    /* 86C 8001006C B0EB4A95 */  lhu        $t2, %lo(gFsLzssUnreadBitMask)($t2)
+    /* 870 80010070 07800B3C */  lui        $t3, %hi(gFsLzssInputByte)
+    /* 874 80010074 1AEA6B95 */  lhu        $t3, %lo(gFsLzssInputByte)($t3)
+    /* 878 80010078 07800C3C */  lui        $t4, %hi(gFsLzssRingWriteIndex)
+    /* 87C 8001007C 58D88C95 */  lhu        $t4, %lo(gFsLzssRingWriteIndex)($t4)
+    /* 880 80010080 0780063C */  lui        $a2, %hi(gFsLzssUnreadBitCount)
+    /* 884 80010084 5AD8C694 */  lhu        $a2, %lo(gFsLzssUnreadBitCount)($a2)
     /* 888 80010088 07800D3C */  lui        $t5, %hi(D_8006EA08)
     /* 88C 8001008C 08EAAD85 */  lh         $t5, %lo(D_8006EA08)($t5)
     /* 890 80010090 07800E3C */  lui        $t6, %hi(D_8006EA0A)
     /* 894 80010094 0AEACE85 */  lh         $t6, %lo(D_8006EA0A)($t6)
     /* 898 80010098 07800F3C */  lui        $t7, %hi(D_8006EA0C)
     /* 89C 8001009C 0CEAEF8D */  lw         $t7, %lo(D_8006EA0C)($t7)
-    /* 8A0 800100A0 0780043C */  lui        $a0, %hi(D5B498_8006D850)
-    /* 8A4 800100A4 50D8848C */  lw         $a0, %lo(D5B498_8006D850)($a0)
-    /* 8A8 800100A8 0780013C */  lui        $at, %hi(D5B498_8006D850)
-    /* 8AC 800100AC 50D820AC */  sw         $zero, %lo(D5B498_8006D850)($at)
+    /* 8A0 800100A0 0780043C */  lui        $a0, %hi(gFsLzssResumeAddress)
+    /* 8A4 800100A4 50D8848C */  lw         $a0, %lo(gFsLzssResumeAddress)($a0)
+    /* 8A8 800100A8 0780013C */  lui        $at, %hi(gFsLzssResumeAddress)
+    /* 8AC 800100AC 50D820AC */  sw         $zero, %lo(gFsLzssResumeAddress)($at)
     /* 8B0 800100B0 03008010 */  beqz       $a0, .LfsStreamReadTokenFlag
     /* 8B4 800100B4 00000000 */   nop
     /* 8B8 800100B8 08008000 */  jr         $a0
@@ -213,23 +213,23 @@ glabel fsDecompressStream
     /* B34 80010334 00000000 */   nop
     /* B38 80010338 30400008 */  j          .LfsStreamReadTokenFlag
   .LfsStreamComplete:
-    /* B3C 8001033C 01000424 */   addiu     $a0, $zero, FILE_SYSTEM_STREAM_DECODE_COMPLETE
-    /* B40 80010340 0780013C */  lui        $at, %hi(D5B498_8006D748)
-    /* B44 80010344 48D724A4 */  sh         $a0, %lo(D5B498_8006D748)($at)
+    /* B3C 8001033C 01000424 */   addiu     $a0, $zero, FILE_SYSTEM_LZSS_DECODE_COMPLETE
+    /* B40 80010340 0780013C */  lui        $at, %hi(gFsLzssDecodeStatus)
+    /* B44 80010344 48D724A4 */  sh         $a0, %lo(gFsLzssDecodeStatus)($at)
   .LfsStreamSaveState:
     /* Save the last loaded input byte as well as the unfinished token. */
-    /* B48 80010348 0780013C */  lui        $at, %hi(Fs_ChunkReadPtr)
-    /* B4C 8001034C 2CC228AC */  sw         $t0, %lo(Fs_ChunkReadPtr)($at)
-    /* B50 80010350 0780013C */  lui        $at, %hi(Fs_ChunkWritePtr)
-    /* B54 80010354 D8D429AC */  sw         $t1, %lo(Fs_ChunkWritePtr)($at)
-    /* B58 80010358 0780013C */  lui        $at, %hi(D5B498_8006EBB0)
-    /* B5C 8001035C B0EB2AA4 */  sh         $t2, %lo(D5B498_8006EBB0)($at)
-    /* B60 80010360 0780013C */  lui        $at, %hi(D5B498_8006EA1A)
-    /* B64 80010364 1AEA2BA4 */  sh         $t3, %lo(D5B498_8006EA1A)($at)
-    /* B68 80010368 0780013C */  lui        $at, %hi(D5B498_8006D858)
-    /* B6C 8001036C 58D82CA4 */  sh         $t4, %lo(D5B498_8006D858)($at)
-    /* B70 80010370 0780013C */  lui        $at, %hi(D5B498_8006D85A)
-    /* B74 80010374 5AD826A4 */  sh         $a2, %lo(D5B498_8006D85A)($at)
+    /* B48 80010348 0780013C */  lui        $at, %hi(gFsLzssInputCursor)
+    /* B4C 8001034C 2CC228AC */  sw         $t0, %lo(gFsLzssInputCursor)($at)
+    /* B50 80010350 0780013C */  lui        $at, %hi(gFsPayloadWriteCursor)
+    /* B54 80010354 D8D429AC */  sw         $t1, %lo(gFsPayloadWriteCursor)($at)
+    /* B58 80010358 0780013C */  lui        $at, %hi(gFsLzssUnreadBitMask)
+    /* B5C 8001035C B0EB2AA4 */  sh         $t2, %lo(gFsLzssUnreadBitMask)($at)
+    /* B60 80010360 0780013C */  lui        $at, %hi(gFsLzssInputByte)
+    /* B64 80010364 1AEA2BA4 */  sh         $t3, %lo(gFsLzssInputByte)($at)
+    /* B68 80010368 0780013C */  lui        $at, %hi(gFsLzssRingWriteIndex)
+    /* B6C 8001036C 58D82CA4 */  sh         $t4, %lo(gFsLzssRingWriteIndex)($at)
+    /* B70 80010370 0780013C */  lui        $at, %hi(gFsLzssUnreadBitCount)
+    /* B74 80010374 5AD826A4 */  sh         $a2, %lo(gFsLzssUnreadBitCount)($at)
     /* B78 80010378 0780013C */  lui        $at, %hi(D_8006EA08)
     /* B7C 8001037C 08EA2DA4 */  sh         $t5, %lo(D_8006EA08)($at)
     /* B80 80010380 0780013C */  lui        $at, %hi(D_8006EA0A)

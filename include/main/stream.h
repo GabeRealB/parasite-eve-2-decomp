@@ -8,7 +8,15 @@
 #include "main/session_types.h"
 #include "main/stream_types.h"
 
-extern StreamSlot Stream_Slots[15];
+/// Resident stream descriptors for the current folder or title movie selection.
+///
+/// Fifteen directory-order slots hold absolute start sectors; zero startSector
+/// marks an unavailable slot. Folder import copies up to its zero-key terminator
+/// without checking capacity, so input must contain at most fifteen records.
+/// Folder preparation invalidates start sectors only; title copies ten STAGE0
+/// descriptors into the prefix. Playback borrows records until the next import,
+/// invalidation or whole-table clear; this table owns no payload buffers.
+extern StreamSlot gStreamSlots[15];
 
 extern u16 D_8005EAEC;
 

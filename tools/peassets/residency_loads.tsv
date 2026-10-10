@@ -70,8 +70,8 @@ title	optional	attract demo = scene	801000,801100,801200 by demo scene - 1	0	0	C
 # uninitialised stack bytes (no switch case) and still queues.
 #
 # --- how fsLoadFile's arguments move an upload (src/main/fs.c) ---
-# fsLoadFile:427 stores imageXPageOffset in D5B498_8006C233 and imageYOffset in D5B498_8006C234 (both s8) and maps
-# loadMode to Fs_ChunkMode; _fsChunkReadyCallback:619 zeroes all three when the load completes.
+# fsLoadFile:427 stores imageXPageOffset in gFsImageXPageOffset and imageYOffset in gFsImageHeaderYShiftRows (both s8) and maps
+# loadMode to gFsChunkLoadPolicy; _fsChunkReadyCallback:619 zeroes all three when the load completes.
 #   CD_COMMAND_LOAD_DEFAULT 0 (and unknown values) -> chunk mode 0, everything loaded
 #   CD_COMMAND_LOAD_SEEK_ONLY 1       -> _fsSeekToSector only, nothing read or uploaded
 #   CD_COMMAND_LOAD_INIT_SOUND 2      -> chunk mode 1: sndScriptResetForArea, then the load ENDS at the first
@@ -103,8 +103,8 @@ title	optional	attract demo = scene	801000,801100,801200 by demo scene - 1	0	0	C
 # src/main/fs.c:1517 fsScanIsoDirectory(bootMode 1): at cold boot the ISO file INIT.BS (16 sectors, not a
 #   stage-zero file) is read as a background payload and MDEC-decoded as the startup image (boot.c:269, 274).
 # src/main/stage.c:1233..1261 _mdecStepSceneImageDecode: a streamed scene's payload, described by _gMdecSceneImageHeader, carries its own
-#   strip lists and image chunks; where its relocate flags are set the code itself sets Fs_ChunkMode = 2 with
-#   D5B498_8006C233 = -8 (strip lists) or D5B498_8006C234 = -3 (image chunks), the MENU profile's numbers, then
+#   strip lists and image chunks; where its relocate flags are set the code itself sets gFsChunkLoadPolicy = 2 with
+#   gFsImageXPageOffset = -8 (strip lists) or gFsImageHeaderYShiftRows = -3 (image chunks), the MENU profile's numbers, then
 #   resets them. The data comes from the stream, not from a stage-zero file.
 # src/main/stream.c:394 streamPollGameRestore: two MoveImage2 copies restore VRAM saved before a movie.
 # src/title/title.c:654 displayUploadBackgroundImage x2 after file 2 decodes; title.c:235 textUploadPalettes.
@@ -140,7 +140,7 @@ gameplay	optional	parasite energy spell = index, level	50101..50136 by spell ind
 gameplay	optional	stage	900001..900005 by stage	0	0	CD_COMMAND_LOAD_DEFAULT	src/gameplay/cd_loading.c:1119 loadingEnqueueStageResources	Group 90, hundreds 0, index = location.loc.stage (1..5): 900001 map_akropolis, 900002 map_dryfield, 900003 map_dryfield_full, 900004 map_shelter, 900005 map_neo_ark. Queued after CD_COMMAND_MOUNT_STAGE by loadingEnqueueStageResourcesTask (load_screen.c:444) only when the stage differs from session->loadedStage. replaces: the previous stage's map overlay. 900000 (same package as 900001) is not reachable with stage 1..5.
 gameplay	always		stage/(area*100+1)/0	0	0	CD_COMMAND_LOAD_DEFAULT	src/gameplay/load_screen.c:545 loadingEnqueueAreaAndCompanionResourcesTask	A room's base file: stage = location.loc.stage, folder = area * 100 + 1 (fileIdHundreds 1), index 0; queued on every area load, state 3 of Gp_LoadStateFns. replaces: the previous room's base file.
 gameplay	always		stage/(area*100+1)/mapped view	0	0	CD_COMMAND_LOAD_DEFAULT	src/gameplay/view_load.c:35 _loadingEnqueueViewFile	A room's view file: same folder, index = viewGetMappedIndex() = gViewIndexTables[stage-1]->viewMaps[area-1][room-1][view-1] (sprite_link.c:542). Queued by loadingBeginViewLoadTask when the CD queue is idle; the busy-queue path cancels and queues the same file from loadingEnqueueViewResourcesTask (cd_loading.c:826). Not queued when a scene payload supplies the image (mdecRequestSceneImageDecode). replaces: the previous view's file.
-gameplay	optional	menu: close (preview was loaded)	stage/(area*100+1)/mapped view	0	0	CD_COMMAND_LOAD_SKIP_BACKGROUND	src/gameplay/cd_loading.c:1049 loadingRestoreViewImageAndEnqueueResources	Reload of the current view file after a menu overwrote its resources: item menu close when gItemMenuRoomRestorePending == 1, set by map opening or a preview request with profile 1/2 (menu_root.c:575), and map menu close in stage 4 area 40, the B3 garbage incinerator (menu_actions.c:1183). Both callers pass skipBackground = 1; the retained background image is re-uploaded from D_8006C338 without the disc. replaces: item preview / map picture images.
+gameplay	optional	menu: close (preview was loaded)	stage/(area*100+1)/mapped view	0	0	CD_COMMAND_LOAD_SKIP_BACKGROUND	src/gameplay/cd_loading.c:1049 loadingRestoreViewImageAndEnqueueResources	Reload of the current view file after a menu overwrote its resources: item menu close when gItemMenuRoomRestorePending == 1, set by map opening or a preview request with profile 1/2 (menu_root.c:575), and map menu close in stage 4 area 40, the B3 garbage incinerator (menu_actions.c:1183). Both callers pass skipBackground = 1; the retained background image is re-uploaded from gFsResourceSlots without the disc. replaces: item preview / map picture images.
 gameplay	optional	event: gas station at night, room >= 4	3/101/22	0	0	CD_COMMAND_LOAD_DEFAULT	src/gameplay/load_screen.c:595 loadingPrepareAreaStateTask	Extra sound file (two spk chunks) of dryfield_night_gas_station, queued after the base file when stage 3 area 1 is entered at room 4 or above; preceded by sndScriptResetForArea.
 gameplay	optional	companion type = 1	800100	4	6	CD_COMMAND_LOAD_DEFAULT	src/gameplay/cd_loading.c:1151 companionEnqueueResources	Group 80, hundreds = companion type, index 0: the companion's base file (actor_800100). Queued with the room base file when companionSelectForArea (companion_load.c:200) finds the area in schedule D_801141F0 under GAME_FLAG_COMPANION_1_SCHEDULE and either the session's companion type is not 1 or its variant differs. replaces: the previously loaded companion (one companionType/companionVariant per session).
 gameplay	optional	companion type = 1, variant	800101..800105 by companion variant	4	6	CD_COMMAND_LOAD_DEFAULT	src/gameplay/cd_loading.c:1161 companionEnqueueResources	Second file queued with 800100 on the same path; index = area presence byte >> 4 from the schedule row, values 1..5 in the tables (17, 33, 49, 65, 81). Variant 5 loads 800105 and is then recorded as variant 3. replaces: the previous variant file.
@@ -172,7 +172,7 @@ gameplay	optional	menu: map	30101..30102, 30201..30203, 30301..30303, 30401..304
 gameplay	optional	menu: map help	20800..20861 by current objective	-8	-3	CD_COMMAND_LOAD_RELOCATE_IMAGES	src/gameplay/menu_actions.c:2040 menuMapHelpTask	Display resource (8, D_8010F13D); D_8010F13D = gameFlagGetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE) (menu_actions.c:1253), initial value 1. Text-only files. The range of the objective byte is unresolved; 20800..20861 is what exists.
 gameplay	optional	game over: player death	20930,20931	0	0	CD_COMMAND_LOAD_DEFAULT	src/gameplay/model_lighting.c:3021 playClockUpdateTask	Display resource (9, 0x1D + deathVariant), deathVariant = random 1 or 2: one of two spk files, queued when player HP reaches 0 outside an event and restartMode is not PRESERVE_DISPLAY.
 gameplay	optional	game over: companion death	20933,20934	0	0	CD_COMMAND_LOAD_DEFAULT	src/gameplay/model_lighting.c:3039 playClockUpdateTask	Display resource (9, 0x20 + deathVariant), deathVariant = random 1 or 2: one of two spk files, queued when companion type 1 reaches 0 HP outside an event.
-gameplay	optional	game over	40198,20900	0	0	CD_COMMAND_LOAD_DEFAULT	src/gameplay/scene_runtime.c:1384 _loadingStartRestartResources	Restart presentation when restartMode is not ENDING: group 4 hundreds 1 index 0x62 (40198, the restart MIDI; no chunks catalogued) then display resource (9, 0) = 20900 (aya_20900), at scene_runtime.c:1387. All D_8006C338 resource slots are retired first. replaces: every resident room resource.
+gameplay	optional	game over	40198,20900	0	0	CD_COMMAND_LOAD_DEFAULT	src/gameplay/scene_runtime.c:1384 _loadingStartRestartResources	Restart presentation when restartMode is not ENDING: group 4 hundreds 1 index 0x62 (40198, the restart MIDI; no chunks catalogued) then display resource (9, 0) = 20900 (aya_20900), at scene_runtime.c:1387. All gFsResourceSlots resource slots are retired first. replaces: every resident room resource.
 gameplay	optional	event: ending	21000	0	0	CD_COMMAND_LOAD_DEFAULT	src/gameplay/scene_runtime.c:1387 _loadingStartRestartResources	Restart presentation with restartMode == GAME_SESSION_RESTART_ENDING: display resource (10, 0) = replay_bonus, no MIDI file. replaces: every resident room resource.
 # --- Rules for the placement-driven actor loads (src/gameplay/area_cd.c); the edges themselves are already traced.
 # Called from the area load in two passes (load_screen.c:105 and :111), after the room base file, with the variant from areaGetVariant(live save location).
@@ -192,7 +192,7 @@ gameplay	optional	event: ending	21000	0	0	CD_COMMAND_LOAD_DEFAULT	src/gameplay/s
 # _attachmentEnqueueBattleSoundLoad (hud_sprites.c:1274) has no caller; attachmentSoundLoadStub (hud_sprites.c:1255) loads nothing, so the item-use paths for
 #   indices 46, 49, 52 (item_use.c:365, 372) queue no file from gameplay: 50146 (ofuda), 50149 (flare), 50152 (pepper_spray) and 50100 have no loader in src/gameplay.
 # itemMenuEnqueuePreviewLoad re-queues saved requests through _cdCmdEnqueueEntry (menu_armor.c:544); those are copies of requests already listed, not new files.
-# loadingUploadCachedViewImage / loadingRestoreViewImageAndEnqueueResources upload a view image retained in D_8006C338 with fsUploadImageChunk, without a file load.
+# loadingUploadCachedViewImage / loadingRestoreViewImageAndEnqueueResources upload a view image retained in gFsResourceSlots with fsUploadImageChunk, without a file load.
 # --- Gameplay loaders called from other packages (their lines belong to those loaders)
 # src/actors/actor_150400/actor_150400.c:448 calls loadingEnqueueCharacterResources(true): the costume file with CD_COMMAND_LOAD_IMAGES_ONLY, page 6.
 # src/rooms/acropolis_plaza/acropolis_plaza.c:3811 calls loadingEnqueueEquippedWeaponResources().
@@ -281,7 +281,7 @@ actor_150400	optional	costume	10200..10600 by costume	6	0	CD_COMMAND_LOAD_IMAGES
 # Uploads done without a file:
 # - actor_450200.c:1582 LoadImage of colours scaled in code; actor_121300.c:1144 LoadImage of embedded image data;
 #   replay_bonus.c:68 LoadImage of a strip from its own buffer.
-# - actor_560800.c:6174 and :6255 fsUploadImageChunk re-upload images already resident in D_8006C338 slots.
+# - actor_560800.c:6174 and :6255 fsUploadImageChunk re-upload images already resident in gFsResourceSlots slots.
 # - actor_503500_4.c MoveImage before the side-1 arm load (and 15 other MoveImage calls across actors/rooms): VRAM-to-VRAM copies.
 #
 # Unresolved / open:

@@ -137,8 +137,8 @@ gGameSession = 0x8005ED64; // absolute:True
 gPadCancelButtonMask = 0x8005ED74; // absolute:True
 gStageCountdownMusicEntry = 0x80062735; // absolute:True
 gCdCmdQueue = 0x80068FA0; // absolute:True
-D5B498_8006C234 = 0x8006C234; // absolute:True
-D_8006C338 = 0x8006C338; // absolute:True
+gFsImageHeaderYShiftRows = 0x8006C234; // absolute:True
+gFsResourceSlots = 0x8006C338; // absolute:True
 gGfxViewCoord = 0x80070F10; // absolute:True
 Gfx_ViewWorldMtx = 0x80070F34; // absolute:True
 gRandomLcgState = 0x80070F60; // absolute:True
@@ -459,7 +459,7 @@ gMapNeoArkCompanionDistressTicks = 0x8017A99C; // absolute:True owner=map_neo_ar
 
 gEffectBurstTaskDescriptors = 0x80114B34; // absolute:True size:0x48
 
-Fs_ChunkOutputSizes = 0x8006D860; // absolute:True size:0xC
+gFsActorBufferWrittenBytes = 0x8006D860; // absolute:True size:0xC
 
 // The full dual-bank flag buffer; biased player-address immediates fall inside it.
 gGameFlagNibbleBanks = 0x80073980; // absolute:True size:0x200

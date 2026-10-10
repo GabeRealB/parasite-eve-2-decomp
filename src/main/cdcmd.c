@@ -313,9 +313,6 @@ static void _cdCmdHandleFileLoad(void)
         CD_COMMAND_FILE_BUILD_DIRECTORY = 3,
         CD_COMMAND_FILE_READ_PAYLOAD    = 4,
         CD_COMMAND_FILE_WAIT_PAYLOAD    = 5,
-        CD_COMMAND_FILE_READ_RESUME     = 0x40,
-        CD_COMMAND_FILE_READ_RESTART    = 0x80,
-        CD_COMMAND_FILE_READ_COMPLETE   = 0xFF,
     };
     CdCmdQueue*   queue;
     CdCmdQueue*   completionQueue;
@@ -375,9 +372,9 @@ static void _cdCmdHandleFileLoad(void)
                 break;
             }
             fsAbortTimedOutOperation();
-            readStatus = Fs_CdOpStatus;
+            readStatus = gFsCdOperationStatus;
             switch (readStatus) {
-                case CD_COMMAND_FILE_READ_RESTART:
+                case FILE_SYSTEM_CD_OPERATION_RESTART_REQUEST:
                     switch (cdSyncPollCommand(0, 0)) {
                         case CD_SYNC_PENDING:
                             return;
@@ -392,7 +389,7 @@ static void _cdCmdHandleFileLoad(void)
                             break;
                     }
                     break;
-                case CD_COMMAND_FILE_READ_COMPLETE:
+                case FILE_SYSTEM_CD_OPERATION_COMPLETE:
                     CdSyncCallback(NULL);
                     CdReadyCallback(NULL);
                     queue->step = queue->step + 1;
@@ -400,7 +397,7 @@ static void _cdCmdHandleFileLoad(void)
                 // Additional resumption statuses; their producers are unproven.
                 case 0x10:
                 case 0x20:
-                case CD_COMMAND_FILE_READ_RESUME:
+                case FILE_SYSTEM_CD_OPERATION_RESUME_CHUNK:
                     switch (cdSyncPollCommand(0, 0)) {
                         case CD_SYNC_PENDING:
                             return;
@@ -445,9 +442,9 @@ static void _cdCmdHandleFileLoad(void)
                 break;
             }
             fsAbortTimedOutOperation();
-            readStatus = Fs_CdOpStatus;
+            readStatus = gFsCdOperationStatus;
             switch (readStatus) {
-                case CD_COMMAND_FILE_READ_RESTART:
+                case FILE_SYSTEM_CD_OPERATION_RESTART_REQUEST:
                     switch (cdSyncPollCommand(0, 0)) {
                         case CD_SYNC_PENDING:
                             return;
@@ -462,7 +459,7 @@ static void _cdCmdHandleFileLoad(void)
                             break;
                     }
                     break;
-                case CD_COMMAND_FILE_READ_COMPLETE:
+                case FILE_SYSTEM_CD_OPERATION_COMPLETE:
                     if (queue->imageLoadStatus != readStatus) {
                         break;
                     }
@@ -478,7 +475,7 @@ static void _cdCmdHandleFileLoad(void)
                 // Additional resumption statuses; their producers are unproven.
                 case 0x10:
                 case 0x20:
-                case CD_COMMAND_FILE_READ_RESUME:
+                case FILE_SYSTEM_CD_OPERATION_RESUME_CHUNK:
                     switch (cdSyncPollCommand(0, 0)) {
                         case CD_SYNC_PENDING:
                             return;
@@ -511,12 +508,9 @@ pollImageDecode:
 static void _cdCmdHandleStageMount(void)
 {
     enum {
-        CD_COMMAND_STAGE_MOUNT_READ    = 0,
-        CD_COMMAND_STAGE_MOUNT_WAIT    = 1,
-        CD_COMMAND_STAGE_MOUNT_BUILD   = 2,
-        CD_COMMAND_STAGE_READ_RESUME   = 0x40,
-        CD_COMMAND_STAGE_READ_RESTART  = 0x80,
-        CD_COMMAND_STAGE_READ_COMPLETE = 0xFF,
+        CD_COMMAND_STAGE_MOUNT_READ  = 0,
+        CD_COMMAND_STAGE_MOUNT_WAIT  = 1,
+        CD_COMMAND_STAGE_MOUNT_BUILD = 2,
     };
     CdCmdQueue* queue;
     s32         command;
@@ -557,9 +551,9 @@ static void _cdCmdHandleStageMount(void)
                         return;
                     }
                     fsAbortTimedOutOperation();
-                    readStatus = Fs_CdOpStatus;
+                    readStatus = gFsCdOperationStatus;
                     switch (readStatus) {
-                        case CD_COMMAND_STAGE_READ_RESTART:
+                        case FILE_SYSTEM_CD_OPERATION_RESTART_REQUEST:
                             switch (cdSyncPollCommand(0, 0)) {
                                 case CD_SYNC_RETRY:
                                     CdFlush();
@@ -574,7 +568,7 @@ static void _cdCmdHandleStageMount(void)
                                 default:
                                     return;
                             }
-                        case CD_COMMAND_STAGE_READ_COMPLETE:
+                        case FILE_SYSTEM_CD_OPERATION_COMPLETE:
                             CdSyncCallback(NULL);
                             CdReadyCallback(NULL);
                             queue->step = queue->step + 1;
@@ -582,7 +576,7 @@ static void _cdCmdHandleStageMount(void)
                         // The writers of these two additional resumption statuses are unproven.
                         case 0x10:
                         case 0x20:
-                        case CD_COMMAND_STAGE_READ_RESUME:
+                        case FILE_SYSTEM_CD_OPERATION_RESUME_CHUNK:
                             switch (cdSyncPollCommand(0, 0)) {
                                 case CD_SYNC_RETRY:
                                     CdFlush();
@@ -618,8 +612,8 @@ static void _cdCmdHandleStageMount(void)
             return;
         }
         case CD_COMMAND_READ_STAGE_HEADER:
-            readStatus = Fs_CdOpStatus;
-            if (readStatus == CD_COMMAND_STAGE_READ_COMPLETE) {
+            readStatus = gFsCdOperationStatus;
+            if (readStatus == FILE_SYSTEM_CD_OPERATION_COMPLETE) {
                 if (queue->busy != 0) {
                     queue->busy          = 0;
                     gDisplayState.cdBusy = DISPLAY_CD_IDLE;
@@ -627,7 +621,7 @@ static void _cdCmdHandleStageMount(void)
                 _cdCmdRetireHeadRequest(queue);
                 return;
             }
-            if (readStatus != CD_COMMAND_STAGE_READ_RESTART) {
+            if (readStatus != FILE_SYSTEM_CD_OPERATION_RESTART_REQUEST) {
                 return;
             }
             switch (cdSyncPollCommand(0, 0)) {

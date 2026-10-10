@@ -140,7 +140,7 @@ void waterDistortBandTask(Task* task)
     // Variant 3 uses the unloaded tail of actor arena 0; other views follow
     // the two refraction banks in actor arena 2. The dynamic split is in bytes.
     if (areaId == GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL && location->variant == 3) {
-        freeBytes   = WATER_DISTORT_ACTOR_ARENA_BYTES - Fs_ChunkOutputSizes[0];
+        freeBytes   = WATER_DISTORT_ACTOR_ARENA_BYTES - gFsActorBufferWrittenBytes[0];
         freeBytes  &= ~7;
         packetBytes = gFsActorBuffer0Base - (freeBytes - WATER_DISTORT_ACTOR_ARENA_BYTES);
         if (freeBytes < sizeof(POLY_FT4) * WATER_DISTORT_PACKETS_PER_BUFFER * 2) {

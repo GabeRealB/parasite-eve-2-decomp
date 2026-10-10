@@ -601,7 +601,7 @@ static void _titleIntroMovieTask(Task* task)
 
     switch (task->state) {
         case TITLE_INTRO_PREPARE:
-            memCopyBytes(Fs_Streams, Stream_Slots, sizeof(Fs_Streams));
+            memCopyBytes(gFsStage0StreamSlots, gStreamSlots, sizeof(gFsStage0StreamSlots));
             SetDispMask(0);
             streamPrepareMovieWorkspace(1);
             task->state++;

@@ -1188,10 +1188,10 @@ static void _actor361100StreamWaterTask(Task* task)
     ripple    = task->work;
     viewIdPtr = &gGameSession->location.loc.view;
     discCoord = task->extra.coordBody->coord;
-    if (Fs_ChunkOutputSizes[2] != ACTOR_361100_STREAM_NOT_STARTED) {
-        freeBytes   = ACTOR_361100_STREAM_WINDOW_BYTES - Fs_ChunkOutputSizes[2];
+    if (gFsActorBufferWrittenBytes[2] != ACTOR_361100_STREAM_NOT_STARTED) {
+        freeBytes   = ACTOR_361100_STREAM_WINDOW_BYTES - gFsActorBufferWrittenBytes[2];
         freeBytes  &= ~ACTOR_361100_STREAM_PACKET_ALIGNMENT_MASK;
-        streamWrite = gFsActorBuffer2Base + Fs_ChunkOutputSizes[2];
+        streamWrite = gFsActorBuffer2Base + gFsActorBufferWrittenBytes[2];
         // Seed a shallow disc before either water presentation can draw.
         if (task->state == 0) {
             ripple = memCalloc(sizeof(Actor403600Ripple), false);
@@ -1342,7 +1342,7 @@ static void _actor361100DrawStreamRefraction(Task* task)
     s32                     cosineSample;
     u16                     unusedFrameSlot; // Its shifted read emits no load; retained for the matched spill layout
 
-    freeBytes            = ACTOR_361100_REFRACTION_STREAM_BYTES - Fs_ChunkOutputSizes[2];
+    freeBytes            = ACTOR_361100_REFRACTION_STREAM_BYTES - gFsActorBufferWrittenBytes[2];
     freeBytes           &= -8;
     negativeWrittenBytes = freeBytes - ACTOR_361100_REFRACTION_STREAM_BYTES;
     packetBytes          = gFsActorBuffer2Base - negativeWrittenBytes;

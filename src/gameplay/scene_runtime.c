@@ -732,11 +732,11 @@ s16 streamSelectScene(u16 group, u16 id, u16 subId, u16 subId2)
 
     queue = &gCdCmdQueue;
     if (group == 0) {
-        slot      = Fs_Streams;
-        slotCount = ARRAY_SIZE(Fs_Streams);
+        slot      = gFsStage0StreamSlots;
+        slotCount = ARRAY_SIZE(gFsStage0StreamSlots);
     } else {
-        slot      = Stream_Slots;
-        slotCount = ARRAY_SIZE(Stream_Slots);
+        slot      = gStreamSlots;
+        slotCount = ARRAY_SIZE(gStreamSlots);
     }
 
     for (slotIndex = 0, slotFound = 0; slotIndex < slotCount; slotIndex++, slot++) {
@@ -851,7 +851,6 @@ void cdCmdHandleSceneAudio(void)
         CD_COMMAND_SCENE_AUDIO_WAIT_PLAYBACK = 7,
         CD_COMMAND_SCENE_AUDIO_WAIT_WAVES    = 8,
         CD_COMMAND_SCENE_AUDIO_SECTOR_BYTES  = 0x800,
-        CD_COMMAND_SCENE_AUDIO_READ_COMPLETE = 0xFF
     };
     s32         enabled;
     s32         savedRandSeed;
@@ -913,7 +912,7 @@ void cdCmdHandleSceneAudio(void)
                     break;
                 }
                 case CD_COMMAND_SCENE_AUDIO_WAIT_TIMING:
-                    if (Fs_CdOpStatus != CD_COMMAND_SCENE_AUDIO_READ_COMPLETE) {
+                    if (gFsCdOperationStatus != FILE_SYSTEM_CD_OPERATION_COMPLETE) {
                         break;
                     }
                     syncResult = cdSyncPollCommand(0, 0);
@@ -1360,11 +1359,11 @@ static void _loadingStartRestartResources(Task* task)
         // Retire resource-directory entries before queuing the restart presentation.
         gDisplayState.suppressDisconnectPause = 1;
         resourceIndex                         = 0;
-        resourceSlots                         = D_8006C338;
+        resourceSlots                         = gFsResourceSlots;
         do {
             resourceSlots[(u8)resourceIndex].kind = FILE_SYSTEM_RESOURCE_NONE;
             resourceIndex++;
-        } while ((u8)resourceIndex < ARRAY_SIZE(D_8006C338));
+        } while ((u8)resourceIndex < ARRAY_SIZE(gFsResourceSlots));
 
         displayResourceId = LOADING_ENDING_DISPLAY_RESOURCE;
         if (gGameSession->restartMode != GAME_SESSION_RESTART_ENDING) {

@@ -25,8 +25,8 @@
 .equ FILE_SYSTEM_IMAGE_LZSS_MIN_MATCH_BYTES, 2
 .equ FILE_SYSTEM_IMAGE_LZSS_INITIAL_WRITE_INDEX, 1
 /* Status values also declared beside the C interface in src/main/fs.h. */
-.equ FILE_SYSTEM_IMAGE_DECODE_COMPLETE, 1
-.equ FILE_SYSTEM_IMAGE_DECODE_SCRATCH_BUSY, 0xFFFF
+.equ FILE_SYSTEM_LZSS_DECODE_COMPLETE, 1
+.equ FILE_SYSTEM_LZSS_DECODE_SCRATCH_BUSY, 0xFFFF
 /* Low halfword of the initialized scratch-stack cursor is its byte offset. */
 .equ FILE_SYSTEM_IMAGE_LZSS_SCRATCH_BASE, 0x1F800000
 .equ FILE_SYSTEM_IMAGE_LZSS_SCRATCH_CURSOR, 0x1F8003FC
@@ -76,17 +76,17 @@ glabel fsDecompressImagePayload
     /* BA4 800103A4 00010424 */  addiu      $a0, $zero, FILE_SYSTEM_IMAGE_LZSS_WINDOW_BYTES
     /* BA8 800103A8 2230A400 */  sub        $a2, $a1, $a0 /* handwritten instruction */
     /* BAC 800103AC 0500C01C */  bgtz       $a2, .L800103C4
-    /* BB0 800103B0 FFFF0434 */   ori       $a0, $zero, FILE_SYSTEM_IMAGE_DECODE_SCRATCH_BUSY
-    /* BB4 800103B4 0780013C */  lui        $at, %hi(D5B498_8006D748)
-    /* BB8 800103B8 48D724A4 */  sh         $a0, %lo(D5B498_8006D748)($at)
+    /* BB0 800103B0 FFFF0434 */   ori       $a0, $zero, FILE_SYSTEM_LZSS_DECODE_SCRATCH_BUSY
+    /* BB4 800103B4 0780013C */  lui        $at, %hi(gFsLzssDecodeStatus)
+    /* BB8 800103B8 48D724A4 */  sh         $a0, %lo(gFsLzssDecodeStatus)($at)
     /* BBC 800103BC 0800E003 */  jr         $ra
     /* BC0 800103C0 00000000 */   nop
   .L800103C4:
     /* Start a new bit cursor over the existing, uncleared history ring. */
-    /* BC4 800103C4 0780083C */  lui        $t0, %hi(Fs_ChunkReadPtr)
-    /* BC8 800103C8 2CC2088D */  lw         $t0, %lo(Fs_ChunkReadPtr)($t0)
-    /* BCC 800103CC 0780093C */  lui        $t1, %hi(Fs_ChunkWritePtr)
-    /* BD0 800103D0 D8D4298D */  lw         $t1, %lo(Fs_ChunkWritePtr)($t1)
+    /* BC4 800103C4 0780083C */  lui        $t0, %hi(gFsLzssInputCursor)
+    /* BC8 800103C8 2CC2088D */  lw         $t0, %lo(gFsLzssInputCursor)($t0)
+    /* BCC 800103CC 0780093C */  lui        $t1, %hi(gFsPayloadWriteCursor)
+    /* BD0 800103D0 D8D4298D */  lw         $t1, %lo(gFsPayloadWriteCursor)($t1)
     /* BD4 800103D4 21500000 */  addu       $t2, $zero, $zero
     /* BD8 800103D8 21580000 */  addu       $t3, $zero, $zero
     /* BDC 800103DC 21300000 */  addu       $a2, $zero, $zero
@@ -170,9 +170,9 @@ glabel fsDecompressImagePayload
     /* D94 80010594 00000000 */   nop
   .L80010598:
     /* Completion is a status store; cursors remain at their caller-supplied bases. */
-    /* D98 80010598 01000424 */  addiu      $a0, $zero, FILE_SYSTEM_IMAGE_DECODE_COMPLETE
-    /* D9C 8001059C 0780013C */  lui        $at, %hi(D5B498_8006D748)
-    /* DA0 800105A0 48D724A4 */  sh         $a0, %lo(D5B498_8006D748)($at)
+    /* D98 80010598 01000424 */  addiu      $a0, $zero, FILE_SYSTEM_LZSS_DECODE_COMPLETE
+    /* D9C 8001059C 0780013C */  lui        $at, %hi(gFsLzssDecodeStatus)
+    /* DA0 800105A0 48D724A4 */  sh         $a0, %lo(gFsLzssDecodeStatus)($at)
     /* DA4 800105A4 0800E003 */  jr         $ra
     /* DA8 800105A8 00000000 */   nop
 endlabel fsDecompressImagePayload

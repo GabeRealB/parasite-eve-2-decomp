@@ -6,7 +6,7 @@ matching decomp (`fs.c`, `stream.c`, `cdstream.c`, `cdaudio.c`), and the
 extract tools under `tools/peassets/`.
 
 These are **not** normal stage file chunks (`.pe2pkg`, `.bs`, `.spk`, …). The
-game keeps only a small descriptor table in RAM (`Stream_Slots` / `Fs_Streams`)
+game keeps only a small descriptor table in RAM (`gStreamSlots` / `gFsStage0StreamSlots`)
 and **seeks the CD** to feed hardware (SPU or MDEC) in real time.
 
 | Area | Code / tools |
@@ -63,7 +63,7 @@ The named `control`, `source` and `data` unions in `StreamSlot` distinguish movi
 
 Runtime **absolutizes** `startSector` when loading:
 
-- STAGE0: `+= Fs_StageCdfSectors[0]`
+- STAGE0: `+= gFsStageCdfBaseSectors[0]`
 - Folder: `+= folder.sectorOffset + stage_cdf_base`
 
 Both movie and scene/audio offsets in a folder are relative to that folder's
@@ -74,8 +74,8 @@ the eighteen-entry serialized capacity does not enlarge the runtime table.
 
 ### 1.4 Runtime table
 
-`fsBuildFolderTables` copies non-empty entries into **`Stream_Slots[15]`**
-(BSS). Title may bulk-copy `Fs_Streams` → `Stream_Slots`. Lookup:
+`fsBuildFolderTables` copies non-empty entries into **`gStreamSlots[15]`**
+(BSS). Title may bulk-copy `gFsStage0StreamSlots` → `gStreamSlots`. Lookup:
 `streamFindMovieSlot` selects a loaded movie using the location key's view byte
 as stream ID, its room byte (or descriptor group 0 as a wildcard), and a 16-bit
 sub-ID. Its optional view-stream filter stops at a rejected room-specific match,
@@ -384,8 +384,8 @@ Extract policy (`extract.py` / `extract_movies.py`):
 
 Runtime absolutization of `startSector` (table load):
 
-- STAGE0: `startSector += Fs_StageCdfSectors[0]` (STAGE0.CDF LBA)
-- Folder: `startSector += folder.sectorOffset + Fs_StageCdfSectors[stage]`
+- STAGE0: `startSector += gFsStageCdfBaseSectors[0]` (STAGE0.CDF LBA)
+- Folder: `startSector += folder.sectorOffset + gFsStageCdfBaseSectors[stage]`
 
 Play init (`_streamLoadMovieSlotState` + `streamPrepareMoviePlayback`):
 
@@ -518,7 +518,7 @@ python3 tools/peassets/extract_movies.py --rom rom/USA --out assets/USA -j 16
 
 ```text
 Disc insert → ISO scan → INTER LBA + disc class flag
-Folder/HED load → Stream_Slots (all descriptors, including duals)
+Folder/HED load → gStreamSlots (all descriptors, including duals)
 Caller sets stream id (title: disc flag; in-game: session/event)
 streamFindMovieSlot(&key.loc, subId, 0) → slot
 CdCmd 0x61 + _streamLoadMovieSlotState

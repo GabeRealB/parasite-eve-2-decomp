@@ -128,11 +128,11 @@ The on-disc word at `0x4` is a sector count. The tool's
 × 0x800`; 7 sectors is `0x3800`). Pack derives it from the clean payload and
 `sector_len` via `format.pack_chunk_payload` — it is **not** a `stages.json`
 field. The loader adds the sector count to the header sector
-(`_gFsPayloadEndSector = Fs_ReqSector - 1 + sectorCount`).
+(`_gFsPayloadEndSector = gFsNextReadSector - 1 + sectorCount`).
 
 ### 3.3 Multi-sector payload layout and `sector_len`
 
-CD sector size is **`0x800`**. The loader maps each sector into `Fs_CdSector`
+CD sector size is **`0x800`**. The loader maps each sector into `gFsSectorBuffers.sector`
 and only treats bytes **below `sector_len`** as valid payload.
 
 `sector_len` is an **exclusive end offset** inside the sector buffer. It must
@@ -178,7 +178,7 @@ clean_len = first_cap + (n_sectors - 1) * cont_cap
 where `n_sectors` is derived from the on-disc blob (extract) or from the
 minimum sectors needed for the clean payload (pack).
 
-Runtime: `gFsLzssInputEnd = Fs_CdSector.bytes + sector_len` marks the decompress input boundary
+Runtime: `gFsLzssInputEnd = gFsSectorBuffers.sector.bytes + sector_len` marks the decompress input boundary
 (`src/main/fs.c`).
 
 ### 3.4 Extract vs pack
@@ -314,18 +314,19 @@ Then: sequential LZSS strips (see below)
 
 ### 6.2 Load path (`fs.c`)
 
-1. `fsBeginImageColumns` copies the table, including its terminator, into `Fs_WorkEntries`.
+1. `fsBeginImageColumns` copies the table, including its terminator, into `_gFsImageColumns`.
 2. Primes a 64-halfword by 32-row strip rectangle from the first column.
    High-VRAM columns or mode 2 apply the X-page shift; mode 2 adds 128 rows
    to the first column only.
-3. Sets remaining height `D5B498_8006ACD4 = 0x100` (unless single-column
+3. Sets remaining height `_gFsImageColumnRowsRemaining = 0x100` (unless single-column
    terminator special-cases `0x40` or `term_y & 0x7FFF` when `term_y & 0x8000`).
 4. Points the decompress cursor at `table + entry0.dataOffset` in bytes.
 5. `fsUploadImageStrips` loop:
-   - Decompress one strip into a scratch buffer (`0x1000` bytes).
-   - `LoadImage2` that strip to VRAM.
-   - `y += 0x20`, `ACD4 -= 0x20`.
-   - Re-init decompress state (`ADE1`) for the next strip.
+   - Decompress one strip into `_gFsImageUploadBuffer` (4480-byte capacity).
+   - `LoadImage2` 4096 bytes from that buffer to VRAM, retaining any unwritten tail.
+   - `y += 0x20`, `_gFsImageColumnRowsRemaining -= 0x20`.
+   - Set `_gFsStripDecodeResetPending` for the next strip's decoder reset;
+     the scratchpad history itself is not cleared.
    - When a column is finished, advance to the next column record for a new
      VRAM `x` / `y`, **without** seeking; the compressed stream continues.
 
@@ -1437,8 +1438,8 @@ Dependencies: see `requirements.txt` (includes **Pillow** for PNG).
   [`STREAM_FORMATS.md`](STREAM_FORMATS.md). A full `extract.py` run writes
   them (or re-run `extract_movies.py` / `extract_streams.py`). INTER movies
   mux XA as ALAC in the MP4.
-- Runtime image path has mode-dependent Y adjustments (`Fs_ChunkMode`,
-  `D5B498_8006C233/C234`) that do not affect off-line PNG export.
+- Runtime image path has mode-dependent Y adjustments (`gFsChunkLoadPolicy`,
+  `gFsImageXPageOffset`/`gFsImageHeaderYShiftRows`) that do not affect off-line PNG export.
 
 ---
 

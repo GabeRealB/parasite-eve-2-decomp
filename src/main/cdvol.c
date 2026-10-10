@@ -81,15 +81,11 @@ static inline void _cdVolApplyRegisterVolume(s16 registerVolume)
 void fsSoundBankReadyCallback(u8 interruptStatus, u8* unusedResult)
 {
     _FsSoundBankSectorHeader sectorHeader;
-    enum {
-        FILE_SYSTEM_SOUND_BANK_RESTART_REQUEST = 0x80,
-        FILE_SYSTEM_SOUND_BANK_COMPLETE        = 0xFF,
-    };
-    SndLoadState* loadState;
-    u32*          payloadWords;
-    s32           loadPhase;
-    s32           sectorPosition;
-    u8            errorCount;
+    SndLoadState*            loadState;
+    u32*                     payloadWords;
+    s32                      loadPhase;
+    s32                      sectorPosition;
+    u8                       errorCount;
 
     /// Reads a header and writes its absolute sector without consuming payload.
     ///
@@ -107,17 +103,17 @@ void fsSoundBankReadyCallback(u8 interruptStatus, u8* unusedResult)
     if (interruptStatus != CdlDiskError) {
         // Validate the absolute sector before consuming its sound-bank payload.
         FILE_SYSTEM_READ_SOUND_BANK_SECTOR_POSITION(sectorHeader, sectorPosition);
-        if (sectorPosition != Fs_ReqSector) {
-            errorCount      = Fs_CdErrorCount;
-            Fs_CdOpStatus   = FILE_SYSTEM_SOUND_BANK_RESTART_REQUEST;
-            Fs_CdErrorCount = errorCount + 1;
+        if (sectorPosition != gFsNextReadSector) {
+            errorCount           = gFsCdErrorCount;
+            gFsCdOperationStatus = FILE_SYSTEM_CD_OPERATION_RESTART_REQUEST;
+            gFsCdErrorCount      = errorCount + 1;
             CdControlF(CdlPause, NULL);
             CdReadyCallback(NULL);
             return;
         }
-        Fs_VBlank     = VSync(-1);
-        payloadWords  = loadState->sectorBuffer;
-        Fs_ReqSector += 1;
+        gFsCdProgressVBlank = VSync(-1);
+        payloadWords        = loadState->sectorBuffer;
+        gFsNextReadSector  += 1;
         CdGetSector(payloadWords, FS_SECTOR_WORD_SIZE);
         loadPhase = sndLoadFeedSector(payloadWords);
         if (loadPhase != SOUND_LOAD_RESULT_ERROR) {
@@ -127,14 +123,14 @@ void fsSoundBankReadyCallback(u8 interruptStatus, u8* unusedResult)
             // Stop sector delivery before binding the completed sequence.
             CdControlF(CdlPause, NULL);
             sndLoadInstallSequence(loadState);
-            Fs_CdOpStatus = FILE_SYSTEM_SOUND_BANK_COMPLETE;
+            gFsCdOperationStatus = FILE_SYSTEM_CD_OPERATION_COMPLETE;
             CdReadyCallback(NULL);
             return;
         }
     }
-    Fs_CdErrorCount += 1;
+    gFsCdErrorCount += 1;
     CdControlF(CdlPause, NULL);
-    Fs_CdOpStatus = FILE_SYSTEM_SOUND_BANK_RESTART_REQUEST;
+    gFsCdOperationStatus = FILE_SYSTEM_CD_OPERATION_RESTART_REQUEST;
     CdReadyCallback(NULL);
 #undef FILE_SYSTEM_READ_SOUND_BANK_SECTOR_POSITION
 }

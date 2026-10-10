@@ -49,7 +49,7 @@ remaining categories with full IDs at least 100000 (`10`, `20`, `30`, `40`,
 `80`, …) go through `_gFsStage0FullIdFiles` with
 `fileId = fileKey->fileGroup*10000 + fileKey->fileIdHundreds*100 + fileKey->fileIndex`.
 
-`D5B498_8006ADF4 = fileKey->fileGroup / 10` is the high “bank” digit used when looking
+`_gFsLoadBank = fileKey->fileGroup / 10` is the high “bank” digit used when looking
 those larger ids up.
 
 ---

@@ -42,10 +42,10 @@ static inline void _loadingUploadCurrentViewImage(void)
     u8 resourceSlotIndex;
 
     mappedViewIndex = viewGetMappedIndex();
-    for (resourceSlotIndex = 0; resourceSlotIndex < ARRAY_SIZE(D_8006C338); resourceSlotIndex++) {
-        if (D_8006C338[resourceSlotIndex].kind == FILE_SYSTEM_RESOURCE_IMAGE) {
+    for (resourceSlotIndex = 0; resourceSlotIndex < ARRAY_SIZE(gFsResourceSlots); resourceSlotIndex++) {
+        if (gFsResourceSlots[resourceSlotIndex].kind == FILE_SYSTEM_RESOURCE_IMAGE) {
             if (mappedViewIndex - 1 == resourceSlotIndex) {
-                while (fsUploadImageChunk(D_8006C338[resourceSlotIndex].data, LOADING_VIEW_IMAGE_IGNORE_GPU_TIME_LIMIT) != FILE_SYSTEM_IMAGE_UPLOAD_COMPLETE) {
+                while (fsUploadImageChunk(gFsResourceSlots[resourceSlotIndex].data, LOADING_VIEW_IMAGE_IGNORE_GPU_TIME_LIMIT) != FILE_SYSTEM_IMAGE_UPLOAD_COMPLETE) {
                 }
                 break;
             }

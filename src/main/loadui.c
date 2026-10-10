@@ -184,8 +184,6 @@ u8 loadUiPollDiskSwap(void)
         LOAD_UI_DISK_SWAP_MIDI_ALL_SEQUENCES  = 0,
         LOAD_UI_DISK_SWAP_MIDI_FADE_TICKS     = 8,
         LOAD_UI_DISK_SWAP_SCRIPT_STOP_CONTROL = 0x78,
-        LOAD_UI_DISK_SWAP_HED_READ_DONE       = 0xFF,
-        LOAD_UI_DISK_SWAP_HED_READ_RESTART    = 0x80,
     };
     CdCmdQueue* queue = &gCdCmdQueue;
 
@@ -253,8 +251,8 @@ u8 loadUiPollDiskSwap(void)
             // Directory discovery identifies the disc and starts an asynchronous HED read.
             fsScanIsoDirectory(0);
             if (Wip_SysFlags.discNumber != GAME_MAIN_DISC_UNKNOWN) {
-                while (Fs_CdOpStatus != LOAD_UI_DISK_SWAP_HED_READ_DONE) {
-                    if (Fs_CdOpStatus == LOAD_UI_DISK_SWAP_HED_READ_RESTART) {
+                while (gFsCdOperationStatus != FILE_SYSTEM_CD_OPERATION_COMPLETE) {
+                    if (gFsCdOperationStatus == FILE_SYSTEM_CD_OPERATION_RESTART_REQUEST) {
                         return LOAD_UI_DISK_SWAP_PENDING;
                     }
                     VSync(0);

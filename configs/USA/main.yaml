@@ -199,7 +199,7 @@ segments:
       - [0xe734, c, cdsync] # cdSync logical seek / pause / disc recovery / command completion
       - [0xf014, o, libcd/type] # CdDiskReady, CdGetDiskType
       - [0xf2c4, o, libc2/strncmp] # strncmp
-      - [0xf344, c, stream] # F344: Stream_Slots / CD stream decode helpers
+      - [0xf344, c, stream] # F344: gStreamSlots / CD stream decode helpers
       - [0x10c5c, o, libcd/cdread2] # CdRead2
       - [0x10d0c, o, libcd/c_004] # data_ready_callback, StGetBackloc
       - [0x10dfc, o, libcd/c_005] # StSetStream
@@ -400,7 +400,7 @@ segments:
       - [0x43f6c, o, libspu/s_wp] # SpuWritePartly
       - [0x43ffc, c, sndscript] # _SndScript / _SndVoice player
       - [0x46f00, c, cdaudio] # CdAudio phase machine / CD audio player
-      - [0x4853c, c, cdstream] # F344: Stream_Slots / CD stream decode helpers
+      - [0x4853c, c, cdstream] # F344: gStreamSlots / CD stream decode helpers
       - [0x4c500, o, libspu/s_si] # SpuSetIRQ
       - [0x4c640, o, libspu/s_sia] # SpuSetIRQAddr
       - [0x4c680, o, libspu/s_sic] # SpuSetIRQCallback

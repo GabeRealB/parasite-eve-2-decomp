@@ -150,6 +150,21 @@ typedef union {
 } FsSector;
 STATIC_ASSERT_SIZEOF(FsSector, FS_SECTOR_BYTE_SIZE);
 
+/// Shared sector storage for filesystem reads and CD audio transfers.
+///
+/// A two-sector CLUT keeps its opening sector while the next sector is read
+/// into `clutContinuation`; its compressed stream spans both. Strip decoding
+/// uses the same boundary to restart input at the primary sector. CD audio
+/// borrows the whole allocation: its opening SPU transfer reads 2048 bytes
+/// starting 16 bytes into `sector`, including the first 16 continuation bytes.
+/// Those trailing bytes retain earlier contents until a CLUT read replaces them.
+typedef struct {
+    FsSector sector;                                // Primary sector, reused for headers, directories and payloads
+    u8       clutContinuation[FS_SECTOR_BYTE_SIZE]; // Second CLUT sector; retained between reads
+} FsSectorBuffers;
+STATIC_ASSERT_SIZEOF(FsSectorBuffers, 2 * FS_SECTOR_BYTE_SIZE);
+STATIC_ASSERT(OFFSET_OF(FsSectorBuffers, clutContinuation) == FS_SECTOR_BYTE_SIZE, fs_sector_buffers_contiguous);
+
 /// One VRAM column of a strip-coded image.
 ///
 /// A type-1 image chunk, and each strip list a scene stream carries, opens with

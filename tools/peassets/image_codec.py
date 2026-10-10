@@ -7,10 +7,11 @@ Matches the main executable load path in ``fs.c``:
     Entries give VRAM column positions only. Compressed strips are **sequential**
     from the first entry's offset (later ``offset`` fields are not seeks).
 
-    Each strip is an independent LZSS block (dictionary reset between strips,
-    same as ``ADE1`` re-init in ``fsUploadImageStrips``). Strip size is always
+    Each strip ends with a zero-index token. ``_gFsStripDecodeResetPending``
+    resets bit/output state before the next strip, retaining runtime scratch
+    history; this converter uses a cleared dictionary. Strip size is always
     ``RECT(w=0x40, h=0x20)`` halfwords = ``0x1000`` bytes. Column height comes
-    from ``D5B498_8006ACD4`` (default ``0x100``).
+    from ``_gFsImageColumnRowsRemaining`` (default ``0x100``).
 
 **Type 2 – CLUT (``fsUploadImageChunk`` + ``fsDecompressImagePayload``)**
     ``FsImageChunk`` header (``u16 x, y, h, w`` then 8 unread bytes) then **LZSS**
@@ -65,11 +66,11 @@ def expand_bpp(bpp: BppSpec | None, n_cols: int) -> list[Bpp] | None:
         out.append(v)  # type: ignore[arg-type]
     return out
 
-STRIP_W_HW = 0x40  # Fs_ImageRect.w
-STRIP_H = 0x20  # Fs_ImageRect.h
+STRIP_W_HW = 0x40  # _gFsImageUploadRect.w
+STRIP_H = 0x20  # _gFsImageUploadRect.h
 STRIP_BYTES = STRIP_W_HW * STRIP_H * 2  # 0x1000
 TERM_X = 0xFFFF
-DEFAULT_ACD4 = 0x100  # D5B498_8006ACD4 default column height in pixels
+DEFAULT_ACD4 = 0x100  # _gFsImageColumnRowsRemaining default column height in pixels
 
 
 @dataclass
@@ -132,9 +133,9 @@ def parse_work_entries(data: bytes) -> tuple[list[WorkEntry], int]:
 
 
 def height_from_work_entries(entries: list[WorkEntry], term_y: int) -> int:
-    """Column height in pixels (``D5B498_8006ACD4`` rules from CopyWorkEntries)."""
+    """Column height in pixels (``_gFsImageColumnRowsRemaining`` rules from ``fsBeginImageColumns``)."""
     # Special height only when the second table slot is the terminator
-    # (single-column image). Multi-column always resets ACD4 to 0x100.
+    # (single-column image). Multi-column always starts with 256 remaining rows.
     if len(entries) == 1:
         if term_y == TERM_X:
             return 0x40
@@ -146,8 +147,9 @@ def height_from_work_entries(entries: list[WorkEntry], term_y: int) -> int:
 def iter_lzss_strips(stream: bytes) -> Iterator[bytes]:
     """Yield independent 0x1000-byte VRAM strips from a sequential LZSS stream.
 
-    Matches ``fsUploadImageStrips``: each strip ends with offset==0, then the
-    dictionary is re-inited (``ADE1``) before the next strip.
+    Each strip ends with offset==0, as in ``fsUploadImageStrips``. The runtime
+    resets decoder state through ``_gFsStripDecodeResetPending`` without
+    clearing history; this converter starts with a cleared dictionary.
     """
     ibcar = 0
     while ibcar < len(stream):

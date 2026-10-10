@@ -391,7 +391,7 @@ void loadingPrepareCharacterResourcesTask(Task* task)
         if (cdQueue->bootLoadActive != 0) {
             gameFlowEnsureLoadScreenImageStarted();
         }
-        memFillBytes(Stream_Slots, 0, sizeof(Stream_Slots));
+        memFillBytes(gStreamSlots, 0, sizeof(gStreamSlots));
         session  = gGameSession;
         liveSave = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         if (session->loadedCharacterId != liveSave->state.characterId || session->loadedConfigSet != gPlayerStatus.resourceVariant) {

@@ -14,9 +14,53 @@
 /// clear zeroes it in place rather than allocating another.
 extern CdCmdQueue gCdCmdQueue;
 
-extern u8 Fs_CdOpStatus;
+/// Byte states of the serialized filesystem seek/read operation.
+enum {
+    FILE_SYSTEM_CD_OPERATION_PENDING         = 0,
+    FILE_SYSTEM_CD_OPERATION_RESUME_CHUNK    = 0x40,
+    FILE_SYSTEM_CD_OPERATION_RESUMING_CHUNK  = 0x41,
+    FILE_SYSTEM_CD_OPERATION_RESTART_REQUEST = 0x80,
+    FILE_SYSTEM_CD_OPERATION_COMPLETE        = 0xFF,
+};
 
-extern StreamSlot Fs_Streams[0xa];
+/// Progress/recovery state of the active filesystem seek or read.
+///
+/// Uses `FILE_SYSTEM_CD_OPERATION_*` bytes: 0 pending, 0x40 resume requested,
+/// 0x41 waiting for resumed ReadN, 0x80 restart requested, 0xFF finished.
+/// BSS starts at pending; only finished permits completion handling. Request
+/// dispatch also accepts 0x10/0x20 for resumption, with no established producer.
+/// Shared with the sound-bank reader; callers serialize operations and poll it.
+extern u8 gFsCdOperationStatus;
+
+/// Borrowed STAGE0.HED stream descriptors with absolute disc start sectors.
+///
+/// Holds ten records. Each HED sector publishes from slot zero, retaining old
+/// later slots; input must fit ten records per sector and keep complete records
+/// within a sector. No active count is stored. Group-zero scene selection uses
+/// this table, and title playback copies its ten slots into `gStreamSlots`.
+/// Descriptor pointers remain valid only until the next HED import.
+extern StreamSlot gFsStage0StreamSlots[0xa];
+
+/// CDF chunk policies selected after the queued request's seek-only policy is removed.
+enum {
+    FILE_SYSTEM_CHUNK_LOAD_NORMAL          = 0,
+    FILE_SYSTEM_CHUNK_LOAD_INIT_SOUND      = 1,
+    FILE_SYSTEM_CHUNK_LOAD_RELOCATE_IMAGES = 2,
+    FILE_SYSTEM_CHUNK_LOAD_SKIP_BACKGROUND = 3,
+    FILE_SYSTEM_CHUNK_LOAD_IMAGES_ONLY     = 4,
+    FILE_SYSTEM_CHUNK_LOAD_SKIP_SOUND      = 5,
+};
+
+/// Active CDF load policy, also borrowed for scene-image relocation.
+///
+/// Values are 0 normal, 1 reset area sound and suppress package/raw/bundle
+/// loading, 2 relocate images, 3 omit background, 4 images only (also suppress
+/// package/raw/bundle and music), 5 omit music. The dispatcher retains other
+/// opcode behavior, including backgrounds in images-only mode. Relocation adds
+/// 128 rows to the first image column only, or one row to each complete image.
+/// Fresh requests select a policy; completion restores normal. Scene decoding
+/// temporarily selects relocation and restores normal after each image stream.
+extern u8 gFsChunkLoadPolicy;
 
 /// Published pointer to the fixed resident image workspace.
 ///
@@ -39,12 +83,31 @@ enum {
 /// The resident latch survives overlays; it does not report drive completion.
 extern u8 gCdCmdViewSeekPending;
 
-/// Bytes produced in each streaming destination; -1 means pending.
-extern s32 Fs_ChunkOutputSizes[3];
+/// Published package-output byte counts for the three actor buffer bases.
+///
+/// Indices 0/1/2 correspond to `Fs_ActorLoadBase0`, `gFsActorBuffer1Base` and
+/// `gFsActorBuffer2Base`. Package completion or a counted-sector end publishes
+/// the advanced write cursor minus the selected base. Banks 4/5 also mark other
+/// destinations -1; that sentinel means unavailable, not an in-progress count.
+/// Unselected entries retain old values (initially zero). These counts neither
+/// reserve the unused tail nor prove its capacity or GPU lifetime.
+extern s32 gFsActorBufferWrittenBytes[3];
 
-extern FsResourceSlot D_8006C338[50];
+/// Directory-order registry of the current CDF bundle's fifty resource slots.
+///
+/// Indices 0..49 preserve the bundle directory, including empty entries. Kind
+/// and borrowed destination are published before payload reading completes;
+/// wait for the load and keep destination storage alive before consuming it.
+/// Another bundle replaces all slots. Starting a folder invalidates kinds only,
+/// retaining addresses and releasing no payload storage.
+extern FsResourceSlot gFsResourceSlots[50];
 
-extern s8 D5B498_8006C234;
+/// Signed destination-row shift for complete image headers at source Y=245..255.
+///
+/// File loading truncates the request offset to s8; scene and actor uploads
+/// temporarily replace it. Other source rows ignore it. Relocation mode adds
+/// its separate one-row displacement. Serialized image operations share it.
+extern s8 gFsImageHeaderYShiftRows;
 
 /// Published byte base of actor-overlay slot 1 at 0x80131E20.
 ///
@@ -319,7 +382,7 @@ enum {
 /// filesystem buffers and cursors and require their format-specific setup.
 /// `payloadPhase` is a FILE_SYSTEM_PAYLOAD_* byte, not a file-load policy.
 /// Requires double-speed sector-header mode and serialized filesystem access.
-/// Poll `Fs_CdOpStatus` for 0xFF completion or 0x80 restart; no storage is owned
+/// Poll `gFsCdOperationStatus` for 0xFF completion or 0x80 restart; no storage is owned
 /// or released here. A preceding seek at `startSector` is reused.
 void fsStartPayloadRead(s32 startSector, s32 endSector, void* destination, u8 payloadPhase);
 

@@ -1340,13 +1340,13 @@ void capSelectLoadedFile(s32 dataResourceOrdinal)
     s32 dataResourceIndex;
 
     dataResourceIndex = 0;
-    for (resourceSlotIndex = 0; resourceSlotIndex < ARRAY_SIZE(D_8006C338); resourceSlotIndex++) {
-        if (D_8006C338[resourceSlotIndex].kind == FILE_SYSTEM_RESOURCE_DATA) {
+    for (resourceSlotIndex = 0; resourceSlotIndex < ARRAY_SIZE(gFsResourceSlots); resourceSlotIndex++) {
+        if (gFsResourceSlots[resourceSlotIndex].kind == FILE_SYSTEM_RESOURCE_DATA) {
             if (dataResourceIndex == dataResourceOrdinal) {
                 if (gDisplayState.debugMode != 0) {
                     func_80724714();
                 }
-                Gp_CapFile = D_8006C338[resourceSlotIndex].data;
+                Gp_CapFile = gFsResourceSlots[resourceSlotIndex].data;
                 capRelocateFile(Gp_CapFile);
                 break;
             }

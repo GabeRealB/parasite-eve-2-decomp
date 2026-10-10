@@ -90,31 +90,10 @@ STATIC_ASSERT_SIZEOF(_FsLoadRedirect, 0xC);
 /// Canary value at the end of the folder list.
 #define FS_CDF_FOLDER_CANARY 0
 
-/// Idle / finished value for `Fs_CdOpStatus`.
-#define FS_CD_STATUS_IDLE -1
-
 // Args used by _fsHandleCdError
 #define FS_ERROR_SOFT 0x0
 
 #define FS_ERROR_HARD 0x2
-
-/// Filesystem operation states used by the seek/read recovery paths.
-enum {
-    FILE_SYSTEM_CD_OPERATION_PENDING         = 0,
-    FILE_SYSTEM_CD_OPERATION_RESUME_CHUNK    = 0x40,
-    FILE_SYSTEM_CD_OPERATION_RESUMING_CHUNK  = 0x41,
-    FILE_SYSTEM_CD_OPERATION_RESTART_REQUEST = 0x80,
-};
-
-/// Chunk-load policies, distinct from the queued request's loadMode encoding.
-enum {
-    FILE_SYSTEM_CHUNK_LOAD_NORMAL          = 0,
-    FILE_SYSTEM_CHUNK_LOAD_INIT_SOUND      = 1,
-    FILE_SYSTEM_CHUNK_LOAD_RELOCATE_IMAGES = 2,
-    FILE_SYSTEM_CHUNK_LOAD_SKIP_BACKGROUND = 3,
-    FILE_SYSTEM_CHUNK_LOAD_IMAGES_ONLY     = 4,
-    FILE_SYSTEM_CHUNK_LOAD_SKIP_SOUND      = 5,
-};
 
 /// Storage capacities of the resident indexed and compact CDF lookup tables.
 enum {
@@ -152,18 +131,29 @@ static s32 _gFsStage0HeaderSector;
 /// it, using the drive's existing location when its start sector matches.
 static s32 _gFsPreparedSeekSector;
 
-static u16 D5B498_8006ACD4;
+/// Rows left in the current image column, decremented by each 32-row upload.
+///
+/// The signed countdown may cross zero for a partial final strip. Initial
+/// heights are 256, 64, or the single-column terminator's low 15 bits.
+static s16 _gFsImageColumnRowsRemaining;
 
-static RECT Fs_ImageRect;
+/// VRAM rectangle shared by complete-image and 64-halfword by 32-row strip uploads.
+static RECT _gFsImageUploadRect;
 
 /// Unreferenced.
 static u8 D_8006ACE0[8];
 
-static FsImageColumn Fs_WorkEntries[0x1F];
+/// Resident copy of the active image-column table, including its terminator.
+///
+/// Input contains 1..30 columns and a terminator, fitting all 31 records;
+/// the copy loop does not check capacity. Replaced when another image begins.
+static FsImageColumn _gFsImageColumns[0x1F];
 
-static u8 D5B498_8006ADE0;
+/// Index of the next column or terminator in `_gFsImageColumns` (1..30).
+static u8 _gFsNextImageColumnIndex;
 
-static u8 D5B498_8006ADE1;
+/// New-strip latch (0 resume the current decode, 1 reset before decoding a strip).
+static u8 _gFsStripDecodeResetPending;
 
 /// Cleared when a folder read is prepared; its role has no established consumer.
 static u8 D_8006ADE2;
@@ -174,7 +164,12 @@ static u8 D_8006ADE2;
 /// retaining the previous redirect unless a directory entry replaces it.
 static _FsLoadRedirect _gFsLoadRedirect;
 
-static u8 D5B498_8006ADF4;
+/// Full-ID STAGE0 load bank (`fileGroup / 10`), or zero for other file paths.
+///
+/// Selects image progress records and actor-buffer byte-count publication.
+/// Image users require 0..11; column progress alone has room for 0..15.
+/// Package banks 1/4/5 report actor buffer 0, bank 2 buffer 1, and 3/8 buffer 2.
+static u8 _gFsLoadBank;
 
 /// Byte offset of the next background-sector write in the resident image workspace.
 ///
@@ -291,11 +286,11 @@ static u8 D_8006C150[8];
 /// covers 51 entries; the complete serialized index domain remains unproven.
 static s32 _gFsFolderFileSectors[0x33];
 
-s32 Fs_ReqSector;
+s32 gFsNextReadSector;
 
-u8 Fs_CdOpStatus;
+u8 gFsCdOperationStatus;
 
-u8* Fs_ChunkReadPtr;
+const u8* gFsLzssInputCursor;
 
 /// Continuation-sector interpretation, retained in one byte between CD callbacks.
 ///
@@ -311,38 +306,43 @@ static u8 _gFsPayloadPhase;
 /// the request rather than taking the other payloads' chunk-resumption path.
 static u8 _gFsReadingPayload;
 
-u8 Fs_ChunkMode;
+u8 gFsChunkLoadPolicy;
 
-s8 D5B498_8006C233;
+s8 gFsImageXPageOffset;
 
-s8 D5B498_8006C234;
+s8 gFsImageHeaderYShiftRows;
 
 /// Referenced only by the table at the start of the image.
 u8 D_8006C238[0x100];
 
-FsResourceSlot D_8006C338[50];
+FsResourceSlot gFsResourceSlots[50];
 
-/// Per-slot image-load status bytes (indexed by `D5B498_8006ADF4`).
-static u8 D_8006C4C8[0xC];
+/// Accepted complete-image heights modulo 256, indexed by `_gFsLoadBank` (0..11).
+///
+/// Preparing an image clears its bank; accepted upload completion records the
+/// rectangle's height. No reader establishes any further status interpretation.
+static u8 _gFsAcceptedImageRowsByBank[0xC];
 
 const u8* gFsLzssInputEnd;
 
-FsSector Fs_CdSector;
+FsSectorBuffers gFsSectorBuffers;
 
-static u8 D_8006CCD8[0x800];
+u8* gFsPayloadWriteCursor;
 
-u8* Fs_ChunkWritePtr;
+/// Column transitions accepted since image setup, by load bank (0..15).
+///
+/// Zero names the initial column; advancing to another column increments the
+/// byte. The terminator is not counted. No external progress reader is known.
+static u8 _gFsImageColumnAdvancesByBank[0x10];
 
-static u8 D5B498_8006D4E0[0x10];
+StreamSlot gStreamSlots[15];
 
-StreamSlot Stream_Slots[15];
-
-u16 D5B498_8006D748;
+u16 gFsLzssDecodeStatus;
 
 /// Referenced only by the table at the start of the image.
 u8 D_8006D750[0x100];
 
-void* D5B498_8006D850;
+void* gFsLzssResumeAddress;
 
 /// Absolute next-sector threshold at which a counted payload is complete.
 ///
@@ -352,15 +352,14 @@ void* D5B498_8006D850;
 /// sector order, while the stored sector and direct-read interface remain s32.
 static s32 _gFsPayloadEndSector;
 
-u16 D5B498_8006D858;
+u16 gFsLzssRingWriteIndex;
 
-u16 D5B498_8006D85A;
+u16 gFsLzssUnreadBitCount;
 
 /// Unreferenced.
 static s32 D_8006D85C;
 
-/// Bytes produced in each streaming destination; -1 marks a pending destination.
-s32 Fs_ChunkOutputSizes[3];
+s32 gFsActorBufferWrittenBytes[3];
 
 /// Current chunk's file-end marker (0x01 another chunk, 0xFF last chunk).
 ///
@@ -369,9 +368,15 @@ s32 Fs_ChunkOutputSizes[3];
 /// next header or stop the file; it is distinct from the payload interpretation.
 static u8 _gFsChunkEndMarker;
 
-static u_long D5B498_8006D870[0x460];
+/// Word-aligned staging storage shared by complete-image and strip uploads.
+///
+/// Its 1120 words hold 4480 bytes; a strip transfers 4096 bytes. Decoding writes
+/// through a byte cursor and must fit this extent. GPU transfers must finish
+/// before reuse. No clear occurs between uploads: any unwritten tail is retained,
+/// including the final byte of some shortened palette streams.
+static u_long _gFsImageUploadBuffer[0x460];
 
-s32 Fs_StageCdfSectors[FS_CDF_STAGE_COUNT];
+s32 gFsStageCdfBaseSectors[FS_CDF_STAGE_COUNT];
 
 s16 D_8006EA08;
 
@@ -379,17 +384,20 @@ s16 D_8006EA0A;
 
 s32 D_8006EA0C;
 
-s32 Fs_VBlank;
+s32 gFsCdProgressVBlank;
 
-static s32 Fs_CurrSector;
+/// Absolute sector decoded from the most recent CDF/HED ready header.
+///
+/// Retained even on a position mismatch; no current reader is established.
+static s32 _gFsLastReceivedSector;
 
-u8 Fs_CdErrorCount;
+u8 gFsCdErrorCount;
 
-u16 D5B498_8006EA1A;
+u16 gFsLzssInputByte;
 
-StreamSlot Fs_Streams[0xa];
+StreamSlot gFsStage0StreamSlots[0xa];
 
-u16 D5B498_8006EBB0;
+u16 gFsLzssUnreadBitMask;
 
 #include "main/fs.h"
 
@@ -443,7 +451,7 @@ static s32 D_8005EBC0 = 0;
 /// Sets the VRAM rectangle and LZSS cursors for one complete image chunk.
 ///
 /// `imageChunk` must remain readable through decoding, with compressed bytes
-/// immediately after its header. Clears the selected image-status slot (0..11).
+/// immediately after its header. Clears the selected accepted-height bank (0..11).
 /// Source rows 245..255 receive the signed Y shift; mode 2 adds one row for
 /// every image. X and dimensions are unchanged. The output cursor borrows the
 /// resident decode buffer, which must fit the decoded payload. This neither
@@ -453,26 +461,25 @@ static inline void _fsPrepareImageChunkUpload(const FsImageChunk* imageChunk)
     enum {
         FILE_SYSTEM_IMAGE_CHUNK_SHIFT_FIRST_ROW = 245,
         FILE_SYSTEM_IMAGE_CHUNK_SHIFT_ROW_COUNT = 11,
-        FILE_SYSTEM_IMAGE_CHUNK_RELOCATION_MODE = 2,
     };
     s8                  yShiftRows;
     const FsImageChunk* rectangleHeader;
     u32                 applyHeaderYShift;
 
-    D_8006C4C8[D5B498_8006ADF4] = 0;
-    Fs_ImageRect.x              = imageChunk->x;
-    applyHeaderYShift           = (u32)(imageChunk->y - FILE_SYSTEM_IMAGE_CHUNK_SHIFT_FIRST_ROW) < FILE_SYSTEM_IMAGE_CHUNK_SHIFT_ROW_COUNT;
-    rectangleHeader             = imageChunk;
-    yShiftRows                  = applyHeaderYShift ? D5B498_8006C234 : 0;
-    if (Fs_ChunkMode == FILE_SYSTEM_IMAGE_CHUNK_RELOCATION_MODE) {
-        Fs_ImageRect.y = yShiftRows + (rectangleHeader->y + 1);
+    _gFsAcceptedImageRowsByBank[_gFsLoadBank] = 0;
+    _gFsImageUploadRect.x                     = imageChunk->x;
+    applyHeaderYShift                         = (u32)(imageChunk->y - FILE_SYSTEM_IMAGE_CHUNK_SHIFT_FIRST_ROW) < FILE_SYSTEM_IMAGE_CHUNK_SHIFT_ROW_COUNT;
+    rectangleHeader                           = imageChunk;
+    yShiftRows                                = applyHeaderYShift ? gFsImageHeaderYShiftRows : 0;
+    if (gFsChunkLoadPolicy == FILE_SYSTEM_CHUNK_LOAD_RELOCATE_IMAGES) {
+        _gFsImageUploadRect.y = yShiftRows + (rectangleHeader->y + 1);
     } else {
-        Fs_ImageRect.y = rectangleHeader->y + yShiftRows;
+        _gFsImageUploadRect.y = rectangleHeader->y + yShiftRows;
     }
-    Fs_ChunkReadPtr  = (u8*)(imageChunk + 1);
-    Fs_ImageRect.w   = rectangleHeader->w;
-    Fs_ChunkWritePtr = (u8*)D5B498_8006D870;
-    Fs_ImageRect.h   = rectangleHeader->h;
+    gFsLzssInputCursor    = (const u8*)(imageChunk + 1);
+    _gFsImageUploadRect.w = rectangleHeader->w;
+    gFsPayloadWriteCursor = (u8*)_gFsImageUploadBuffer;
+    _gFsImageUploadRect.h = rectangleHeader->h;
 }
 
 /// Clears the loading-screen phase and active latch without releasing buffers.
@@ -549,18 +556,18 @@ s32 fsLoadFile(const FsFileLoadKey* fileKey, s32 loadMode, s32 imageXPageOffset,
     /// Captures entryCount, directoryFileId, entryIndex and absoluteSector.
     /// absoluteSector must start at zero; a miss leaves it intact. entries must
     /// be a stable array/pointer expression, evaluated on each loop visit.
-#define FILE_SYSTEM_FIND_CATEGORY_SECTOR(entries)                                            \
-    {                                                                                        \
-        for (entryIndex = 0; entryIndex < (u32)entryCount; entryIndex++) {                   \
-            if ((entries)[entryIndex].idInCategory == directoryFileId) {                     \
-                absoluteSector = (entries)[entryIndex].sectorOffset + Fs_StageCdfSectors[0]; \
-                break;                                                                       \
-            }                                                                                \
-        }                                                                                    \
+#define FILE_SYSTEM_FIND_CATEGORY_SECTOR(entries)                                                \
+    {                                                                                            \
+        for (entryIndex = 0; entryIndex < (u32)entryCount; entryIndex++) {                       \
+            if ((entries)[entryIndex].idInCategory == directoryFileId) {                         \
+                absoluteSector = (entries)[entryIndex].sectorOffset + gFsStageCdfBaseSectors[0]; \
+                break;                                                                           \
+            }                                                                                    \
+        }                                                                                        \
     }
 
     absoluteSector              = 0;
-    D5B498_8006ADF4             = 0;
+    _gFsLoadBank                = 0;
     gCdCmdQueue.imageLoadStatus = CD_COMMAND_IMAGE_COMPLETE;
     loadPolicy                  = (u8)loadMode;
 
@@ -577,7 +584,7 @@ s32 fsLoadFile(const FsFileLoadKey* fileKey, s32 loadMode, s32 imageXPageOffset,
                 if (fileKey->fileIndex == 1) {
                     gDisplayState.videoMode = DISPLAY_VIDEO_NORMAL;
                 }
-                absoluteSector = _gFsStage0Category0Sectors[fileKey->fileIndex] + Fs_StageCdfSectors[0];
+                absoluteSector = _gFsStage0Category0Sectors[fileKey->fileIndex] + gFsStageCdfBaseSectors[0];
                 break;
 
             case 1:
@@ -599,7 +606,7 @@ s32 fsLoadFile(const FsFileLoadKey* fileKey, s32 loadMode, s32 imageXPageOffset,
                 break;
 
             case 4:
-                Fs_CdOpStatus = FS_CD_STATUS_IDLE;
+                gFsCdOperationStatus = FILE_SYSTEM_CD_OPERATION_COMPLETE;
                 if (fileKey->fileIdHundreds == 1) {
                     directoryFileId = fileKey->fileIdHundreds * FILE_SYSTEM_FILE_ID_HUNDREDS_SCALE + fileKey->fileIndex;
                     entryCount      = _gFsStage0Category4FileCount;
@@ -608,27 +615,27 @@ s32 fsLoadFile(const FsFileLoadKey* fileKey, s32 loadMode, s32 imageXPageOffset,
                         return 0;
                     }
                     _gFsUseSoundBankReader = true;
-                    Fs_ChunkMode           = FILE_SYSTEM_CHUNK_LOAD_NORMAL;
+                    gFsChunkLoadPolicy     = FILE_SYSTEM_CHUNK_LOAD_NORMAL;
                     _fsStartFileRead(absoluteSector);
                 }
                 return absoluteSector & FILE_SYSTEM_LOAD_RESULT_SECTOR_MASK;
 
             case 5:
-                absoluteSector = _gFsStage0Category5Sectors[fileKey->fileIndex] + Fs_StageCdfSectors[0];
+                absoluteSector = _gFsStage0Category5Sectors[fileKey->fileIndex] + gFsStageCdfBaseSectors[0];
                 break;
 
             case 0x5A:
-                absoluteSector = _gFsStage0Category90Sectors[fileKey->fileIndex] + Fs_StageCdfSectors[0];
+                absoluteSector = _gFsStage0Category90Sectors[fileKey->fileIndex] + gFsStageCdfBaseSectors[0];
                 break;
 
             default:
-                D5B498_8006ADF4 = fileKey->fileGroup / 10;
+                _gFsLoadBank    = fileKey->fileGroup / 10;
                 directoryFileId = (fileKey->fileGroup * FILE_SYSTEM_FILE_ID_GROUP_SCALE) + (fileKey->fileIdHundreds * FILE_SYSTEM_FILE_ID_HUNDREDS_SCALE) + fileKey->fileIndex;
-                if (D5B498_8006ADF4 != 0) {
+                if (_gFsLoadBank != 0) {
                     entryCount = _gFsStage0FullIdFileCount;
                     for (entryIndex = 0; entryIndex < (u32)entryCount; entryIndex++) {
                         if (_gFsStage0FullIdFiles[entryIndex].fileId == directoryFileId) {
-                            absoluteSector = _gFsStage0FullIdFiles[entryIndex].sectorOffset + Fs_StageCdfSectors[0];
+                            absoluteSector = _gFsStage0FullIdFiles[entryIndex].sectorOffset + gFsStageCdfBaseSectors[0];
                             if (fileKey->fileGroup == 8) {
                                 if ((u32)(fileKey->fileIdHundreds - 1) < 3U) {
                                     gGameSession->field_4E = 1;
@@ -641,39 +648,39 @@ s32 fsLoadFile(const FsFileLoadKey* fileKey, s32 loadMode, s32 imageXPageOffset,
                 break;
         }
     } else {
-        absoluteSector = _gFsFolderFileSectors[fileKey->fileIndex] + Fs_StageCdfSectors[fileKey->stage];
+        absoluteSector = _gFsFolderFileSectors[fileKey->fileIndex] + gFsStageCdfBaseSectors[fileKey->stage];
     }
 
     // Retain byte-sized image relocation options before dispatching the load policy.
-    D5B498_8006C234        = imageYOffset;
-    D5B498_8006C233        = imageXPageOffset;
-    _gFsUseSoundBankReader = false;
+    gFsImageHeaderYShiftRows = imageYOffset;
+    gFsImageXPageOffset      = imageXPageOffset;
+    _gFsUseSoundBankReader   = false;
     if (absoluteSector != 0) {
         switch (loadPolicy) {
             case CD_COMMAND_LOAD_DEFAULT:
-                Fs_ChunkMode = FILE_SYSTEM_CHUNK_LOAD_NORMAL;
+                gFsChunkLoadPolicy = FILE_SYSTEM_CHUNK_LOAD_NORMAL;
                 break;
             case CD_COMMAND_LOAD_SEEK_ONLY:
                 _fsSeekToSector(absoluteSector);
                 return absoluteSector & FILE_SYSTEM_LOAD_RESULT_SECTOR_MASK;
             case CD_COMMAND_LOAD_INIT_SOUND:
                 sndScriptResetForArea(gGameSession->location.loc.stage, gGameSession->location.loc.area);
-                Fs_ChunkMode = FILE_SYSTEM_CHUNK_LOAD_INIT_SOUND;
+                gFsChunkLoadPolicy = FILE_SYSTEM_CHUNK_LOAD_INIT_SOUND;
                 break;
             case CD_COMMAND_LOAD_RELOCATE_IMAGES:
-                Fs_ChunkMode = FILE_SYSTEM_CHUNK_LOAD_RELOCATE_IMAGES;
+                gFsChunkLoadPolicy = FILE_SYSTEM_CHUNK_LOAD_RELOCATE_IMAGES;
                 break;
             case CD_COMMAND_LOAD_SKIP_BACKGROUND:
-                Fs_ChunkMode = FILE_SYSTEM_CHUNK_LOAD_SKIP_BACKGROUND;
+                gFsChunkLoadPolicy = FILE_SYSTEM_CHUNK_LOAD_SKIP_BACKGROUND;
                 break;
             case CD_COMMAND_LOAD_IMAGES_ONLY:
-                Fs_ChunkMode = FILE_SYSTEM_CHUNK_LOAD_IMAGES_ONLY;
+                gFsChunkLoadPolicy = FILE_SYSTEM_CHUNK_LOAD_IMAGES_ONLY;
                 break;
             case CD_COMMAND_LOAD_SKIP_SOUND:
-                Fs_ChunkMode = FILE_SYSTEM_CHUNK_LOAD_SKIP_SOUND;
+                gFsChunkLoadPolicy = FILE_SYSTEM_CHUNK_LOAD_SKIP_SOUND;
                 break;
             default:
-                Fs_ChunkMode = FILE_SYSTEM_CHUNK_LOAD_NORMAL;
+                gFsChunkLoadPolicy = FILE_SYSTEM_CHUNK_LOAD_NORMAL;
                 break;
         }
         _fsStartFileRead(absoluteSector);
@@ -699,11 +706,11 @@ static void _fsChunkReadyCallback(u8 interruptStatus, u8* unusedResult)
     u8  loadComplete;
 
     if (interruptStatus != CdlDiskError) {
-        Fs_VBlank = VSync(-1);
+        gFsCdProgressVBlank = VSync(-1);
         CdGetSector(&sectorHeader, sizeof(sectorHeader) / sizeof(u32));
-        Fs_CurrSector = sectorPosition = CdPosToInt(&sectorHeader.location);
+        _gFsLastReceivedSector = sectorPosition = CdPosToInt(&sectorHeader.location);
 
-        if (sectorPosition != Fs_ReqSector) {
+        if (sectorPosition != gFsNextReadSector) {
             if ((_gFsReadingPayload != 0) && (_gFsPayloadPhase != FILE_SYSTEM_PAYLOAD_MUSIC)) {
                 _fsHandleCdError(FS_ERROR_HARD);
                 return;
@@ -712,7 +719,7 @@ static void _fsChunkReadyCallback(u8 interruptStatus, u8* unusedResult)
             return;
         }
 
-        Fs_ReqSector = sectorPosition + 1;
+        gFsNextReadSector = sectorPosition + 1;
         if (_gFsReadingPayload == 0) {
             loadComplete = _fsReadChunkHeaderSector();
         } else {
@@ -726,17 +733,17 @@ static void _fsChunkReadyCallback(u8 interruptStatus, u8* unusedResult)
     if (loadComplete != 0) {
         CdControlF(CdlPause, NULL);
         CdReadyCallback(NULL);
-        D5B498_8006C234 = 0;
-        D5B498_8006C233 = 0;
-        D5B498_8006ADF4 = 0;
-        Fs_ChunkMode    = FILE_SYSTEM_CHUNK_LOAD_NORMAL;
-        Fs_CdOpStatus   = FS_CD_STATUS_IDLE;
+        gFsImageHeaderYShiftRows = 0;
+        gFsImageXPageOffset      = 0;
+        _gFsLoadBank             = 0;
+        gFsChunkLoadPolicy       = FILE_SYSTEM_CHUNK_LOAD_NORMAL;
+        gFsCdOperationStatus     = FILE_SYSTEM_CD_OPERATION_COMPLETE;
     }
 }
 
 /// Reads a CDF chunk's opening sector and prepares its payload interpretation.
 ///
-/// `Fs_ReqSector` is already the next sector. Returns 1 to stop the whole load,
+/// `gFsNextReadSector` is already the next sector. Returns 1 to stop the whole load,
 /// otherwise 0. Header sector counts/valid-byte ends and RAM destinations must
 /// be valid for the opcode; raw destinations are word aligned. Bundle directories
 /// contain all fifty resource slots. Image tables/streams must satisfy their
@@ -749,35 +756,35 @@ static u8 _fsReadChunkHeaderSector(void)
     s32                     payloadStatus;
 
     // Set the exclusive sector end and the per-sector compressed-input boundary.
-    CdGetSector(&Fs_CdSector, FS_SECTOR_WORD_SIZE);
-    gFsLzssInputEnd      = Fs_CdSector.bytes;
-    chunkHeader          = &Fs_CdSector.chunk.header;
-    Fs_ChunkWritePtr     = chunkHeader->loadAddr;
-    _gFsPayloadEndSector = Fs_ReqSector - 1 + chunkHeader->sectorCount;
-    _gFsChunkEndMarker   = chunkHeader->endFlag;
-    gFsLzssInputEnd     += chunkHeader->sectorLen;
+    CdGetSector(&gFsSectorBuffers.sector, FS_SECTOR_WORD_SIZE);
+    gFsLzssInputEnd       = gFsSectorBuffers.sector.bytes;
+    chunkHeader           = &gFsSectorBuffers.sector.chunk.header;
+    gFsPayloadWriteCursor = chunkHeader->loadAddr;
+    _gFsPayloadEndSector  = gFsNextReadSector - 1 + chunkHeader->sectorCount;
+    _gFsChunkEndMarker    = chunkHeader->endFlag;
+    gFsLzssInputEnd      += chunkHeader->sectorLen;
 
-    switch (Fs_CdSector.chunk.header.type) {
+    switch (gFsSectorBuffers.sector.chunk.header.type) {
         case FILE_SYSTEM_CHUNK_PACKAGE:
-            if (Fs_ChunkWritePtr == NULL) {
+            if (gFsPayloadWriteCursor == NULL) {
                 break;
             }
-            if (Fs_ChunkMode == FILE_SYSTEM_CHUNK_LOAD_INIT_SOUND || Fs_ChunkMode == FILE_SYSTEM_CHUNK_LOAD_IMAGES_ONLY) {
+            if (gFsChunkLoadPolicy == FILE_SYSTEM_CHUNK_LOAD_INIT_SOUND || gFsChunkLoadPolicy == FILE_SYSTEM_CHUNK_LOAD_IMAGES_ONLY) {
                 _gFsPayloadPhase = FILE_SYSTEM_PAYLOAD_SKIP;
                 return 1;
             }
-            D5B498_8006EA1A = 0;
-            D5B498_8006EBB0 = 0;
-            D5B498_8006D858 = 1;
-            D5B498_8006D850 = 0;
-            D5B498_8006D748 = FILE_SYSTEM_STREAM_DECODE_NEEDS_INPUT;
-            Fs_ChunkReadPtr = Fs_CdSector.chunk.data.bytes;
+            gFsLzssInputByte      = 0;
+            gFsLzssUnreadBitMask  = 0;
+            gFsLzssRingWriteIndex = FILE_SYSTEM_LZSS_INITIAL_WRITE_INDEX;
+            gFsLzssResumeAddress  = NULL;
+            gFsLzssDecodeStatus   = FILE_SYSTEM_LZSS_DECODE_NEEDS_INPUT;
+            gFsLzssInputCursor    = gFsSectorBuffers.sector.chunk.data.bytes;
             fsDecompressStream();
-            if (D5B498_8006D748 == FILE_SYSTEM_STREAM_DECODE_SCRATCH_BUSY) {
+            if (gFsLzssDecodeStatus == FILE_SYSTEM_LZSS_DECODE_SCRATCH_BUSY) {
                 _fsHandleCdError(FS_ERROR_SOFT);
                 break;
             }
-            if (D5B498_8006D748 != FILE_SYSTEM_STREAM_DECODE_NEEDS_INPUT) {
+            if (gFsLzssDecodeStatus != FILE_SYSTEM_LZSS_DECODE_NEEDS_INPUT) {
                 if (_gFsChunkEndMarker == FILE_SYSTEM_CHUNK_LAST) {
                     _gFsPayloadPhase = FILE_SYSTEM_PAYLOAD_SKIP;
                     return 1;
@@ -789,7 +796,7 @@ static u8 _fsReadChunkHeaderSector(void)
             break;
 
         case FILE_SYSTEM_CHUNK_IMAGE:
-            fsBeginImageColumns((FsImageColumn*)Fs_CdSector.chunk.data.bytes);
+            fsBeginImageColumns((const FsImageColumn*)gFsSectorBuffers.sector.chunk.data.bytes);
             payloadStatus = fsUploadImageStrips(FILE_SYSTEM_IMAGE_STRIPS_CD_INPUT);
             if (payloadStatus == FILE_SYSTEM_IMAGE_STRIPS_TIMER_FAILED || payloadStatus == FILE_SYSTEM_IMAGE_STRIPS_RETRY) {
                 _fsHandleCdError(FS_ERROR_SOFT);
@@ -807,8 +814,8 @@ static u8 _fsReadChunkHeaderSector(void)
             break;
 
         case FILE_SYSTEM_CHUNK_CLUT:
-            if (_gFsPayloadEndSector == Fs_ReqSector) {
-                payloadStatus = fsUploadImageChunk((const FsImageChunk*)Fs_CdSector.chunk.data.bytes, 0);
+            if (_gFsPayloadEndSector == gFsNextReadSector) {
+                payloadStatus = fsUploadImageChunk((const FsImageChunk*)gFsSectorBuffers.sector.chunk.data.bytes, 0);
                 if (payloadStatus == FILE_SYSTEM_IMAGE_UPLOAD_TIMER_FAILED || payloadStatus == FILE_SYSTEM_IMAGE_UPLOAD_RETRY) {
                     _fsHandleCdError(FS_ERROR_SOFT);
                     break;
@@ -826,17 +833,17 @@ static u8 _fsReadChunkHeaderSector(void)
         case FILE_SYSTEM_CHUNK_RAW: {
             u32* sourceWords;
             u32* destinationWords;
-            if (Fs_ChunkMode == FILE_SYSTEM_CHUNK_LOAD_INIT_SOUND || Fs_ChunkMode == FILE_SYSTEM_CHUNK_LOAD_IMAGES_ONLY) {
+            if (gFsChunkLoadPolicy == FILE_SYSTEM_CHUNK_LOAD_INIT_SOUND || gFsChunkLoadPolicy == FILE_SYSTEM_CHUNK_LOAD_IMAGES_ONLY) {
                 _gFsPayloadPhase = FILE_SYSTEM_PAYLOAD_SKIP;
                 return 1;
             }
-            sourceWords      = (u32*)&Fs_CdSector.chunk.data.bytes[entryIndex];
-            destinationWords = (u32*)Fs_ChunkWritePtr;
-            for (entryIndex = 0; entryIndex < ARRAY_SIZE(Fs_CdSector.chunk.data.words); entryIndex++) {
+            sourceWords      = (u32*)&gFsSectorBuffers.sector.chunk.data.bytes[entryIndex];
+            destinationWords = (u32*)gFsPayloadWriteCursor;
+            for (entryIndex = 0; entryIndex < ARRAY_SIZE(gFsSectorBuffers.sector.chunk.data.words); entryIndex++) {
                 destinationWords[entryIndex] = sourceWords[entryIndex];
             }
-            Fs_ChunkWritePtr += sizeof(Fs_CdSector.chunk.data.bytes);
-            if ((u32)Fs_ReqSector >= (u32)_gFsPayloadEndSector) {
+            gFsPayloadWriteCursor += sizeof(gFsSectorBuffers.sector.chunk.data.bytes);
+            if ((u32)gFsNextReadSector >= (u32)_gFsPayloadEndSector) {
                 if (_gFsChunkEndMarker == FILE_SYSTEM_CHUNK_LAST) {
                     _gFsPayloadPhase = FILE_SYSTEM_PAYLOAD_SKIP;
                     return 1;
@@ -850,15 +857,15 @@ static u8 _fsReadChunkHeaderSector(void)
 
         case FILE_SYSTEM_CHUNK_BUNDLE: {
             _FsCdfResourceEntry* resourceEntry;
-            if (Fs_ChunkMode == FILE_SYSTEM_CHUNK_LOAD_INIT_SOUND || Fs_ChunkMode == FILE_SYSTEM_CHUNK_LOAD_IMAGES_ONLY) {
+            if (gFsChunkLoadPolicy == FILE_SYSTEM_CHUNK_LOAD_INIT_SOUND || gFsChunkLoadPolicy == FILE_SYSTEM_CHUNK_LOAD_IMAGES_ONLY) {
                 _gFsPayloadPhase = FILE_SYSTEM_PAYLOAD_SKIP;
                 return 1;
             }
-            resourceEntry = (_FsCdfResourceEntry*)Fs_CdSector.chunk.data.bytes;
+            resourceEntry = (_FsCdfResourceEntry*)gFsSectorBuffers.sector.chunk.data.bytes;
             // Publish resource destinations before streaming the bundle's payload.
-            for (entryIndex = 0; entryIndex < ARRAY_SIZE(D_8006C338); entryIndex++) {
-                D_8006C338[entryIndex].kind = resourceEntry->kind;
-                D_8006C338[entryIndex].data = resourceEntry->destination;
+            for (entryIndex = 0; entryIndex < ARRAY_SIZE(gFsResourceSlots); entryIndex++) {
+                gFsResourceSlots[entryIndex].kind = resourceEntry->kind;
+                gFsResourceSlots[entryIndex].data = resourceEntry->destination;
                 if (resourceEntry->redirectDestination != NULL) {
                     _gFsLoadRedirect.enabled               = true;
                     _gFsLoadRedirect.sectorsBeforeRedirect = resourceEntry->sectorsBeforeRedirect;
@@ -874,11 +881,11 @@ static u8 _fsReadChunkHeaderSector(void)
 
         case FILE_SYSTEM_CHUNK_BACKGROUND: {
             u8* backgroundBytes;
-            if (Fs_ChunkMode != FILE_SYSTEM_CHUNK_LOAD_SKIP_BACKGROUND) {
+            if (gFsChunkLoadPolicy != FILE_SYSTEM_CHUNK_LOAD_SKIP_BACKGROUND) {
                 mdecRequestImageVlcRebuild();
                 backgroundBytes = (u8*)gFsImageWorkspacePtr;
-                for (_gFsBackgroundWriteOffset = 0; _gFsBackgroundWriteOffset < sizeof(Fs_CdSector.chunk.data.bytes); _gFsBackgroundWriteOffset++) {
-                    backgroundBytes[_gFsBackgroundWriteOffset] = Fs_CdSector.chunk.data.bytes[_gFsBackgroundWriteOffset];
+                for (_gFsBackgroundWriteOffset = 0; _gFsBackgroundWriteOffset < sizeof(gFsSectorBuffers.sector.chunk.data.bytes); _gFsBackgroundWriteOffset++) {
+                    backgroundBytes[_gFsBackgroundWriteOffset] = gFsSectorBuffers.sector.chunk.data.bytes[_gFsBackgroundWriteOffset];
                 }
             }
             _gFsPayloadPhase   = FILE_SYSTEM_PAYLOAD_BACKGROUND;
@@ -887,13 +894,13 @@ static u8 _fsReadChunkHeaderSector(void)
         }
 
         case FILE_SYSTEM_CHUNK_MUSIC:
-            if (Fs_ChunkMode == FILE_SYSTEM_CHUNK_LOAD_IMAGES_ONLY || Fs_ChunkMode == FILE_SYSTEM_CHUNK_LOAD_SKIP_SOUND) {
+            if (gFsChunkLoadPolicy == FILE_SYSTEM_CHUNK_LOAD_IMAGES_ONLY || gFsChunkLoadPolicy == FILE_SYSTEM_CHUNK_LOAD_SKIP_SOUND) {
                 _gFsPayloadPhase   = FILE_SYSTEM_PAYLOAD_SKIP;
                 _gFsReadingPayload = true;
                 break;
             }
-            sndLoadBeginChunkLoad(0, Fs_CdSector.bytes);
-            payloadStatus = sndLoadFeedChunkSector(Fs_CdSector.bytes);
+            sndLoadBeginChunkLoad(0, gFsSectorBuffers.sector.bytes);
+            payloadStatus = sndLoadFeedChunkSector(gFsSectorBuffers.sector.bytes);
             if (payloadStatus == SOUND_LOAD_PHASE_DONE) {
                 if (_gFsChunkEndMarker == FILE_SYSTEM_CHUNK_LAST) {
                     _gFsPayloadPhase = FILE_SYSTEM_PAYLOAD_SKIP;
@@ -916,7 +923,7 @@ static u8 _fsReadChunkHeaderSector(void)
             break;
 
         default:
-            if (_gFsPayloadEndSector == Fs_ReqSector) {
+            if (_gFsPayloadEndSector == gFsNextReadSector) {
                 if (_gFsChunkEndMarker == FILE_SYSTEM_CHUNK_LAST) {
                     _gFsPayloadPhase = FILE_SYSTEM_PAYLOAD_SKIP;
                     return 1;
@@ -932,7 +939,7 @@ static u8 _fsReadChunkHeaderSector(void)
 
 /// Feeds one continuation sector to the selected payload reader.
 ///
-/// `Fs_ReqSector` already names the next sector, and `_gFsPayloadEndSector` is the
+/// `gFsNextReadSector` already names the next sector, and `_gFsPayloadEndSector` is the
 /// exclusive chunk end. Raw/bundle destinations need a whole writable sector;
 /// package output and image/background buffers must fit the decoded/copied data.
 /// Returns 1 when the load ends; otherwise switches back to headers at chunk
@@ -940,7 +947,7 @@ static u8 _fsReadChunkHeaderSector(void)
 /// chunk request. A CLUT continuation depends on the adjacent sector buffers.
 static u8 _fsReadChunkPayloadSector(void)
 {
-    // Values of the selected load slot minus one, and its output-size policy.
+    // Load bank minus one selects the actor-buffer byte-count publication policy.
     enum {
         FILE_SYSTEM_PACKAGE_OUTPUT_BASE0                   = 0,
         FILE_SYSTEM_PACKAGE_OUTPUT_BASE1                   = 1,
@@ -956,9 +963,9 @@ static u8 _fsReadChunkPayloadSector(void)
 
     switch (_gFsPayloadPhase) {
         case FILE_SYSTEM_PAYLOAD_RAW:
-            CdGetSector(Fs_ChunkWritePtr, FS_SECTOR_WORD_SIZE);
-            Fs_ChunkWritePtr += FS_SECTOR_BYTE_SIZE;
-            if ((u32)Fs_ReqSector >= (u32)_gFsPayloadEndSector) {
+            CdGetSector(gFsPayloadWriteCursor, FS_SECTOR_WORD_SIZE);
+            gFsPayloadWriteCursor += FS_SECTOR_BYTE_SIZE;
+            if ((u32)gFsNextReadSector >= (u32)_gFsPayloadEndSector) {
                 endMarker = _gFsChunkEndMarker;
                 if (endMarker == FILE_SYSTEM_CHUNK_LAST) {
                     _gFsPayloadPhase = endMarker;
@@ -968,34 +975,34 @@ static u8 _fsReadChunkPayloadSector(void)
             }
             break;
         case FILE_SYSTEM_PAYLOAD_PACKAGE:
-            CdGetSector(Fs_CdSector.bytes, FS_SECTOR_WORD_SIZE);
-            Fs_ChunkReadPtr = Fs_CdSector.bytes;
+            CdGetSector(gFsSectorBuffers.sector.bytes, FS_SECTOR_WORD_SIZE);
+            gFsLzssInputCursor = gFsSectorBuffers.sector.bytes;
             fsDecompressStream();
-            if (D5B498_8006D748 == FILE_SYSTEM_STREAM_DECODE_SCRATCH_BUSY) {
+            if (gFsLzssDecodeStatus == FILE_SYSTEM_LZSS_DECODE_SCRATCH_BUSY) {
                 _fsHandleCdError(FS_ERROR_SOFT);
-            } else if (D5B498_8006D748 != FILE_SYSTEM_STREAM_DECODE_NEEDS_INPUT || (u32)Fs_ReqSector >= (u32)_gFsPayloadEndSector) {
-                switch (D5B498_8006ADF4 - 1) {
+            } else if (gFsLzssDecodeStatus != FILE_SYSTEM_LZSS_DECODE_NEEDS_INPUT || (u32)gFsNextReadSector >= (u32)_gFsPayloadEndSector) {
+                switch (_gFsLoadBank - 1) {
                     case FILE_SYSTEM_PACKAGE_OUTPUT_BASE0:
-                        Fs_ChunkOutputSizes[0] = Fs_ChunkWritePtr - gFsActorBuffer0Base;
+                        gFsActorBufferWrittenBytes[0] = gFsPayloadWriteCursor - gFsActorBuffer0Base;
                         break;
                     case FILE_SYSTEM_PACKAGE_OUTPUT_BASE1:
-                        Fs_ChunkOutputSizes[1] = Fs_ChunkWritePtr - gFsActorBuffer1Base;
+                        gFsActorBufferWrittenBytes[1] = gFsPayloadWriteCursor - gFsActorBuffer1Base;
                         break;
                     case FILE_SYSTEM_PACKAGE_OUTPUT_BASE2:
                     case FILE_SYSTEM_PACKAGE_OUTPUT_BASE2_ALTERNATE:
-                        Fs_ChunkOutputSizes[2] = Fs_ChunkWritePtr - gFsActorBuffer2Base;
+                        gFsActorBufferWrittenBytes[2] = gFsPayloadWriteCursor - gFsActorBuffer2Base;
                         break;
                     case FILE_SYSTEM_PACKAGE_OUTPUT_BASE0_INVALIDATE_BASE1:
-                        outputSizes            = Fs_ChunkOutputSizes;
-                        outputSizes[1]         = FILE_SYSTEM_PACKAGE_OUTPUT_PENDING_BYTES;
-                        Fs_ChunkOutputSizes[0] = Fs_ChunkWritePtr - gFsActorBuffer0Base;
+                        outputSizes                   = gFsActorBufferWrittenBytes;
+                        outputSizes[1]                = FILE_SYSTEM_PACKAGE_OUTPUT_PENDING_BYTES;
+                        gFsActorBufferWrittenBytes[0] = gFsPayloadWriteCursor - gFsActorBuffer0Base;
                         break;
                     case FILE_SYSTEM_PACKAGE_OUTPUT_BASE0_INVALIDATE_OTHERS: {
                         s32* pendingOutputSizes;
-                        pendingOutputSizes     = Fs_ChunkOutputSizes;
-                        pendingOutputSizes[1]  = FILE_SYSTEM_PACKAGE_OUTPUT_PENDING_BYTES;
-                        pendingOutputSizes[2]  = FILE_SYSTEM_PACKAGE_OUTPUT_PENDING_BYTES;
-                        Fs_ChunkOutputSizes[0] = Fs_ChunkWritePtr - gFsActorBuffer0Base;
+                        pendingOutputSizes            = gFsActorBufferWrittenBytes;
+                        pendingOutputSizes[1]         = FILE_SYSTEM_PACKAGE_OUTPUT_PENDING_BYTES;
+                        pendingOutputSizes[2]         = FILE_SYSTEM_PACKAGE_OUTPUT_PENDING_BYTES;
+                        gFsActorBufferWrittenBytes[0] = gFsPayloadWriteCursor - gFsActorBuffer0Base;
                         break;
                     }
                 }
@@ -1008,14 +1015,14 @@ static u8 _fsReadChunkPayloadSector(void)
             }
             break;
         case FILE_SYSTEM_PAYLOAD_IMAGE:
-            CdGetSector(Fs_CdSector.bytes, FS_SECTOR_WORD_SIZE);
+            CdGetSector(gFsSectorBuffers.sector.bytes, FS_SECTOR_WORD_SIZE);
             payloadStatus = fsUploadImageStrips(FILE_SYSTEM_IMAGE_STRIPS_CD_INPUT);
             if (payloadStatus == FILE_SYSTEM_IMAGE_STRIPS_TIMER_FAILED) {
-                Fs_ReqSector--;
+                gFsNextReadSector--;
                 _fsHandleCdError(FS_ERROR_HARD);
             } else if (payloadStatus == FILE_SYSTEM_IMAGE_STRIPS_RETRY) {
                 _fsHandleCdError(FS_ERROR_SOFT);
-            } else if (payloadStatus == FILE_SYSTEM_IMAGE_STRIPS_COMPLETE || (u32)Fs_ReqSector >= (u32)_gFsPayloadEndSector) {
+            } else if (payloadStatus == FILE_SYSTEM_IMAGE_STRIPS_COMPLETE || (u32)gFsNextReadSector >= (u32)_gFsPayloadEndSector) {
                 endMarker = _gFsChunkEndMarker;
                 if (endMarker == FILE_SYSTEM_CHUNK_LAST) {
                     _gFsPayloadPhase = endMarker;
@@ -1025,11 +1032,11 @@ static u8 _fsReadChunkPayloadSector(void)
             }
             break;
         case FILE_SYSTEM_PAYLOAD_CLUT:
-            CdGetSector(D_8006CCD8, FS_SECTOR_WORD_SIZE);
+            CdGetSector(gFsSectorBuffers.clutContinuation, FS_SECTOR_WORD_SIZE);
             // The image header is the start of the previous sector's payload, contiguous with this continuation sector.
-            payloadStatus = fsUploadImageChunk((const FsImageChunk*)(D_8006CCD8 - sizeof(Fs_CdSector.chunk.data.bytes)), 0);
+            payloadStatus = fsUploadImageChunk((const FsImageChunk*)((const u8*)&gFsSectorBuffers + sizeof(gFsSectorBuffers.sector) - sizeof(gFsSectorBuffers.sector.chunk.data.bytes)), 0);
             if (payloadStatus == FILE_SYSTEM_IMAGE_UPLOAD_TIMER_FAILED) {
-                Fs_ReqSector--;
+                gFsNextReadSector--;
                 _fsHandleCdError(FS_ERROR_HARD);
             } else if (payloadStatus == FILE_SYSTEM_IMAGE_UPLOAD_RETRY) {
                 _fsHandleCdError(FS_ERROR_SOFT);
@@ -1043,9 +1050,9 @@ static u8 _fsReadChunkPayloadSector(void)
             }
             break;
         case FILE_SYSTEM_PAYLOAD_BUNDLE:
-            CdGetSector(Fs_ChunkWritePtr, FS_SECTOR_WORD_SIZE);
-            Fs_ChunkWritePtr += FS_SECTOR_BYTE_SIZE;
-            if ((u32)Fs_ReqSector >= (u32)_gFsPayloadEndSector) {
+            CdGetSector(gFsPayloadWriteCursor, FS_SECTOR_WORD_SIZE);
+            gFsPayloadWriteCursor += FS_SECTOR_BYTE_SIZE;
+            if ((u32)gFsNextReadSector >= (u32)_gFsPayloadEndSector) {
                 endMarker = _gFsChunkEndMarker;
                 if (endMarker == FILE_SYSTEM_CHUNK_LAST) {
                     _gFsPayloadPhase = endMarker;
@@ -1056,17 +1063,17 @@ static u8 _fsReadChunkPayloadSector(void)
             if (_gFsLoadRedirect.enabled != 0) {
                 _gFsLoadRedirect.sectorsRead++;
                 if (_gFsLoadRedirect.sectorsBeforeRedirect == _gFsLoadRedirect.sectorsRead) {
-                    Fs_ChunkWritePtr = _gFsLoadRedirect.destination;
+                    gFsPayloadWriteCursor = _gFsLoadRedirect.destination;
                 }
             }
             break;
         case FILE_SYSTEM_PAYLOAD_BACKGROUND:
-            if (Fs_ChunkMode != FILE_SYSTEM_CHUNK_LOAD_SKIP_BACKGROUND) {
+            if (gFsChunkLoadPolicy != FILE_SYSTEM_CHUNK_LOAD_SKIP_BACKGROUND) {
                 CdGetSector((u8*)gFsImageWorkspacePtr->strips + _gFsBackgroundWriteOffset, FS_SECTOR_WORD_SIZE);
                 _gFsBackgroundWriteOffset += FS_SECTOR_BYTE_SIZE;
             }
-            if ((u32)Fs_ReqSector >= (u32)_gFsPayloadEndSector) {
-                if (Fs_ChunkMode != FILE_SYSTEM_CHUNK_LOAD_SKIP_BACKGROUND) {
+            if ((u32)gFsNextReadSector >= (u32)_gFsPayloadEndSector) {
+                if (gFsChunkLoadPolicy != FILE_SYSTEM_CHUNK_LOAD_SKIP_BACKGROUND) {
                     mdecRequestImageDecode(gFsImageWorkspacePtr->strips[0]);
                 }
                 endMarker = _gFsChunkEndMarker;
@@ -1078,8 +1085,8 @@ static u8 _fsReadChunkPayloadSector(void)
             }
             break;
         case FILE_SYSTEM_PAYLOAD_MUSIC:
-            CdGetSector(Fs_CdSector.bytes, FS_SECTOR_WORD_SIZE);
-            payloadStatus = sndLoadFeedChunkSector(Fs_CdSector.bytes);
+            CdGetSector(gFsSectorBuffers.sector.bytes, FS_SECTOR_WORD_SIZE);
+            payloadStatus = sndLoadFeedChunkSector(gFsSectorBuffers.sector.bytes);
             if (payloadStatus == SOUND_LOAD_PHASE_DONE) {
                 endMarker = _gFsChunkEndMarker;
                 if (endMarker == FILE_SYSTEM_CHUNK_LAST) {
@@ -1092,7 +1099,7 @@ static u8 _fsReadChunkPayloadSector(void)
             }
             break;
         default:
-            if (_gFsPayloadEndSector == Fs_ReqSector) {
+            if (_gFsPayloadEndSector == gFsNextReadSector) {
                 if (_gFsChunkEndMarker == FILE_SYSTEM_CHUNK_LAST) {
                     return 1;
                 }
@@ -1118,13 +1125,13 @@ static inline void _fsStartPayloadRead(s32 startSector, s32 endSector, void* des
         cdSyncWaitForReadableDisc(true);
     }
 
-    Fs_CdOpStatus        = FILE_SYSTEM_CD_OPERATION_PENDING;
-    _gFsChunkEndMarker   = FILE_SYSTEM_CHUNK_LAST;
-    _gFsPayloadPhase     = payloadPhase;
-    Fs_ReqSector         = startSector;
-    _gFsPayloadEndSector = endSector;
-    Fs_ChunkWritePtr     = destination;
-    Fs_VBlank            = VSync(-1);
+    gFsCdOperationStatus  = FILE_SYSTEM_CD_OPERATION_PENDING;
+    _gFsChunkEndMarker    = FILE_SYSTEM_CHUNK_LAST;
+    _gFsPayloadPhase      = payloadPhase;
+    gFsNextReadSector     = startSector;
+    _gFsPayloadEndSector  = endSector;
+    gFsPayloadWriteCursor = destination;
+    gFsCdProgressVBlank   = VSync(-1);
     if (_gFsPreparedSeekSector == startSector) {
         CdControlF(CdlReadN, NULL);
         CdReadyCallback(_fsPayloadReadStartedCallback);
@@ -1142,13 +1149,13 @@ void fsStartStageFolderListRead(s32 stageIndex)
     s32 stageSector;
     u8* destination;
 
-    Fs_ChunkMode    = FILE_SYSTEM_CHUNK_LOAD_NORMAL;
-    D5B498_8006ADF4 = 0;
-    stageSector     = Fs_StageCdfSectors[(u8)stageIndex];
-    destination     = Fs_CdSector.bytes;
+    gFsChunkLoadPolicy = FILE_SYSTEM_CHUNK_LOAD_NORMAL;
+    _gFsLoadBank       = 0;
+    stageSector        = gFsStageCdfBaseSectors[(u8)stageIndex];
+    destination        = gFsSectorBuffers.sector.bytes;
 
     _fsStartPayloadRead(stageSector, stageSector, destination, FILE_SYSTEM_PAYLOAD_RAW);
-    Fs_VBlank = VSync(-1);
+    gFsCdProgressVBlank = VSync(-1);
 }
 
 void fsStartFolderDirectoryRead(s32 stageIndex, s32 fileGroup, s32 folderIndex)
@@ -1162,15 +1169,15 @@ void fsStartFolderDirectoryRead(s32 stageIndex, s32 fileGroup, s32 folderIndex)
     _gFsLoadRedirect.sectorsRead           = 0;
     _gFsLoadRedirect.sectorsBeforeRedirect = 0;
     _gFsLoadRedirect.destination           = NULL;
-    Fs_ChunkMode                           = FILE_SYSTEM_CHUNK_LOAD_NORMAL;
-    D5B498_8006ADF4                        = 0;
+    gFsChunkLoadPolicy                     = FILE_SYSTEM_CHUNK_LOAD_NORMAL;
+    _gFsLoadBank                           = 0;
 
-    for (slotIndex = 0; slotIndex < ARRAY_SIZE(D_8006C338); slotIndex++) {
-        D_8006C338[slotIndex].kind = FILE_SYSTEM_RESOURCE_NONE;
+    for (slotIndex = 0; slotIndex < ARRAY_SIZE(gFsResourceSlots); slotIndex++) {
+        gFsResourceSlots[slotIndex].kind = FILE_SYSTEM_RESOURCE_NONE;
     }
 
-    for (slotIndex = 0; slotIndex < ARRAY_SIZE(Stream_Slots); slotIndex++) {
-        Stream_Slots[slotIndex].startSector = 0;
+    for (slotIndex = 0; slotIndex < ARRAY_SIZE(gStreamSlots); slotIndex++) {
+        gStreamSlots[slotIndex].startSector = 0;
     }
 
     D_8006ADE2 = 0;
@@ -1179,10 +1186,10 @@ void fsStartFolderDirectoryRead(s32 stageIndex, s32 fileGroup, s32 folderIndex)
     slotIndex = 0;
     FILE_SYSTEM_FIND_FOLDER_INDEX(folderId, slotIndex);
 
-    Fs_VBlank = VSync(-1);
+    gFsCdProgressVBlank = VSync(-1);
 
-    directorySector = _gFsStageFolders[slotIndex].sectorOffset + Fs_StageCdfSectors[(u8)stageIndex];
-    _fsStartPayloadRead(directorySector, directorySector, Fs_CdSector.bytes, FILE_SYSTEM_PAYLOAD_RAW);
+    directorySector = _gFsStageFolders[slotIndex].sectorOffset + gFsStageCdfBaseSectors[(u8)stageIndex];
+    _fsStartPayloadRead(directorySector, directorySector, gFsSectorBuffers.sector.bytes, FILE_SYSTEM_PAYLOAD_RAW);
 }
 
 /// Copies all bytes of one stream descriptor into a distinct writable slot.
@@ -1202,7 +1209,7 @@ static inline void _fsCopyStreamSlot(StreamSlot* destination, const StreamSlot* 
 void fsBuildFolderTables(s32 stage, s32 fileGroup, s32 folderIndex)
 {
     enum { FILE_SYSTEM_FOLDER_STREAM_TABLE_OFFSET = 0x514 };
-    STATIC_ASSERT(sizeof(Fs_CdSector.fileList) <= FILE_SYSTEM_FOLDER_STREAM_TABLE_OFFSET, fs_file_list_precedes_stream_table);
+    STATIC_ASSERT(sizeof(gFsSectorBuffers.sector.fileList) <= FILE_SYSTEM_FOLDER_STREAM_TABLE_OFFSET, fs_file_list_precedes_stream_table);
     s32                 folderTableIndex;
     s32                 entryIndex;
     s32                 folderId;
@@ -1219,7 +1226,7 @@ void fsBuildFolderTables(s32 stage, s32 fileGroup, s32 folderIndex)
     folderId         = ((u8)fileGroup * 100) + (u8)folderIndex;
     FILE_SYSTEM_FIND_FOLDER_INDEX(folderId, folderTableIndex);
 
-    fileList    = Fs_CdSector.fileList;
+    fileList    = gFsSectorBuffers.sector.fileList;
     entryIndex  = 0;
     fileSectors = _gFsFolderFileSectors;
     {
@@ -1239,7 +1246,7 @@ void fsBuildFolderTables(s32 stage, s32 fileGroup, s32 folderIndex)
     // Streams use the area's room folder even when files came from another folder.
     folderTableIndex = 0;
     folderId         = ((u8)fileGroup * 100) + 1;
-    sourceStreams    = (StreamSlot*)(Fs_CdSector.bytes + FILE_SYSTEM_FOLDER_STREAM_TABLE_OFFSET);
+    sourceStreams    = (StreamSlot*)(gFsSectorBuffers.sector.bytes + FILE_SYSTEM_FOLDER_STREAM_TABLE_OFFSET);
     FILE_SYSTEM_FIND_FOLDER_INDEX(folderId, folderTableIndex);
 
     entryIndex = 0;
@@ -1248,11 +1255,11 @@ void fsBuildFolderTables(s32 stage, s32 fileGroup, s32 folderIndex)
         streamFolder              = folderTable + (folderTableIndex & 0xFFFF);
     }
     {
-        const s32* stageSectors = Fs_StageCdfSectors;
+        const s32* stageSectors = gFsStageCdfBaseSectors;
         stageBaseSector         = stageSectors + (u8)stage;
     }
     // Publish complete descriptors with absolute CD sectors.
-    destinationStreams = Stream_Slots;
+    destinationStreams = gStreamSlots;
     for (;;) {
         if (sourceStreams[entryIndex & 0xFFFF].key.word != STREAM_KEY_TERMINATOR) {
             sourceStreams[entryIndex & 0xFFFF].startSector += streamFolder->sectorOffset + *stageBaseSector;
@@ -1308,23 +1315,23 @@ static void _fsStage0HeaderReadyCallback(u8 interruptStatus, u8* unusedResult)
     sectorStreamIndex = 0;
     if (interruptStatus != CdlDiskError) {
         // Validate the disc position before consuming the sector payload.
-        Fs_VBlank = VSync(-1);
+        gFsCdProgressVBlank = VSync(-1);
         CdGetSector(&sectorHeader, sizeof(sectorHeader) / sizeof(u32));
 
-        Fs_CurrSector = absoluteSector = CdPosToInt(&sectorHeader.location);
-        if (absoluteSector != Fs_ReqSector) {
+        _gFsLastReceivedSector = absoluteSector = CdPosToInt(&sectorHeader.location);
+        if (absoluteSector != gFsNextReadSector) {
             _fsHandleCdError(FS_ERROR_SOFT);
             return;
         }
 
-        Fs_ReqSector += 1;
-        CdGetSector(Fs_CdSector.words, FS_SECTOR_WORD_SIZE);
+        gFsNextReadSector += 1;
+        CdGetSector(gFsSectorBuffers.sector.words, FS_SECTOR_WORD_SIZE);
 
         recordWordOffset = 0;
 
         while (true) {
-            sectorBuffer      = &Fs_CdSector;
-            streamTable       = Fs_Streams;
+            sectorBuffer      = &gFsSectorBuffers.sector;
+            streamTable       = gFsStage0StreamSlots;
             category0Sectors  = _gFsStage0Category0Sectors;
             category5Sectors  = _gFsStage0Category5Sectors;
             category90Sectors = _gFsStage0Category90Sectors;
@@ -1337,7 +1344,7 @@ static void _fsStage0HeaderReadyCallback(u8 interruptStatus, u8* unusedResult)
             fileId     = fileRecord->fileId;
             if (fileId == FS_CDF_STAGE0_CANARY) {
                 CdReadyCallback(NULL);
-                Fs_CdOpStatus = FS_CD_STATUS_IDLE;
+                gFsCdOperationStatus = FILE_SYSTEM_CD_OPERATION_COMPLETE;
                 CdControlF(CdlPause, NULL);
                 return;
             }
@@ -1346,7 +1353,7 @@ static void _fsStage0HeaderReadyCallback(u8 interruptStatus, u8* unusedResult)
                 // Remove the serialized stream marker and publish an absolute sector.
                 fileRecord->fileId &= FILE_SYSTEM_HED_STREAM_HEADER_MASK;
                 _fsCopyStreamSlot(&streamTable[(u16)sectorStreamIndex], (const StreamSlot*)fileRecord);
-                streamTable[(u16)sectorStreamIndex++].startSector += Fs_StageCdfSectors[0];
+                streamTable[(u16)sectorStreamIndex++].startSector += gFsStageCdfBaseSectors[0];
                 recordWordOffset                                  += sizeof(StreamSlot) / sizeof(u32);
             } else {
                 fileCategory = fileId / FILE_SYSTEM_HED_FILE_CATEGORY_SCALE;
@@ -1472,7 +1479,7 @@ static const char _gFsStartupBitstreamName[] = "INIT.BS";
 /// STAGE0.CDF base sector. Requires exclusive filesystem/CD state with sector
 /// headers enabled. Resets append counts without clearing table storage;
 /// `_fsStage0HeaderReadyCallback` imports records until the HED terminator.
-/// Returns before completion: `Fs_CdOpStatus` reports 0xFF done or 0x80 restart.
+/// Returns before completion: `gFsCdOperationStatus` reports 0xFF done or 0x80 restart.
 /// The final VBlank counter sample starts the read-timeout interval.
 static inline void _fsStartScannedStage0HeaderRead(void)
 {
@@ -1482,7 +1489,7 @@ static inline void _fsStartScannedStage0HeaderRead(void)
     CdlLOC headerLocation;
 
     // Appended tables start empty; indexed tables are overwritten by the HED.
-    Fs_CdOpStatus                = FILE_SYSTEM_CD_OPERATION_PENDING;
+    gFsCdOperationStatus         = FILE_SYSTEM_CD_OPERATION_PENDING;
     _gFsStage0FullIdFileCount    = 0;
     _gFsStage0Category2FileCount = 0;
     _gFsStage0Category4FileCount = 0;
@@ -1490,11 +1497,11 @@ static inline void _fsStartScannedStage0HeaderRead(void)
     _gFsStage0Category3FileCount = 0;
 
     // Publish the expected absolute sector before enabling its ready callback.
-    Fs_ReqSector = _gFsStage0HeaderSector;
+    gFsNextReadSector = _gFsStage0HeaderSector;
     CdIntToPos(_gFsStage0HeaderSector, &headerLocation);
     CdControlF(CdlReadN, &headerLocation.minute);
     CdReadyCallback(_fsStage0HeaderReadyCallback);
-    Fs_VBlank = VSync(FILE_SYSTEM_VSYNC_QUERY_COUNTER);
+    gFsCdProgressVBlank = VSync(FILE_SYSTEM_VSYNC_QUERY_COUNTER);
 }
 
 void fsScanIsoDirectory(s32 bootMode)
@@ -1526,9 +1533,9 @@ void fsScanIsoDirectory(s32 bootMode)
 
 // Recovery repeats directory discovery because the disc may have changed.
 restart:
-    _fsStartPayloadRead(FILE_SYSTEM_ISO_DIRECTORY_SECTOR, FILE_SYSTEM_ISO_DIRECTORY_SECTOR, Fs_CdSector.bytes, FILE_SYSTEM_PAYLOAD_RAW);
-    while (Fs_CdOpStatus != (u8)FS_CD_STATUS_IDLE) {
-        if (Fs_CdOpStatus == FILE_SYSTEM_CD_OPERATION_RESTART_REQUEST) {
+    _fsStartPayloadRead(FILE_SYSTEM_ISO_DIRECTORY_SECTOR, FILE_SYSTEM_ISO_DIRECTORY_SECTOR, gFsSectorBuffers.sector.bytes, FILE_SYSTEM_PAYLOAD_RAW);
+    while (gFsCdOperationStatus != FILE_SYSTEM_CD_OPERATION_COMPLETE) {
+        if (gFsCdOperationStatus == FILE_SYSTEM_CD_OPERATION_RESTART_REQUEST) {
             cdSyncWaitForCommandCompletion();
             goto restart;
         }
@@ -1536,12 +1543,12 @@ restart:
     }
 
     {
-        u8* directorySectorBytes = Fs_CdSector.bytes;
+        u8* directorySectorBytes = gFsSectorBuffers.sector.bytes;
 
         if (directorySectorBytes[0] != FILE_SYSTEM_ISO_BASE_RECORD_BYTES || directorySectorBytes[1] != 0) {
             _fsStartPayloadRead(FILE_SYSTEM_ISO_FALLBACK_DIRECTORY_SECTOR, FILE_SYSTEM_ISO_FALLBACK_DIRECTORY_SECTOR, directorySectorBytes, FILE_SYSTEM_PAYLOAD_RAW);
-            while (Fs_CdOpStatus != (u8)FS_CD_STATUS_IDLE) {
-                if (Fs_CdOpStatus == FILE_SYSTEM_CD_OPERATION_RESTART_REQUEST) {
+            while (gFsCdOperationStatus != FILE_SYSTEM_CD_OPERATION_COMPLETE) {
+                if (gFsCdOperationStatus == FILE_SYSTEM_CD_OPERATION_RESTART_REQUEST) {
                     cdSyncWaitForCommandCompletion();
                     goto restart;
                 }
@@ -1552,11 +1559,11 @@ restart:
 
     stageIndex = 0;
     do {
-        Fs_StageCdfSectors[stageIndex] = 0;
+        gFsStageCdfBaseSectors[stageIndex] = 0;
         stageIndex++;
-    } while (stageIndex < ARRAY_SIZE(Fs_StageCdfSectors));
+    } while (stageIndex < ARRAY_SIZE(gFsStageCdfBaseSectors));
 
-    directoryRecord         = Fs_CdSector.bytes;
+    directoryRecord         = gFsSectorBuffers.sector.bytes;
     directoryDone           = 0;
     D_8006AC30.field_4      = 0;
     Wip_SysFlags.discNumber = GAME_MAIN_DISC_UNKNOWN;
@@ -1591,7 +1598,7 @@ restart:
                         u8 stageDigit;
 
                         stageDigit = directoryRecord[FILE_SYSTEM_ISO_NAME_OFFSET - 1 + extensionOffset] - '0';
-                        Fs_StageCdfSectors[stageDigit] =
+                        gFsStageCdfBaseSectors[stageDigit] =
                             *(u16*)(directoryRecord + FILE_SYSTEM_ISO_EXTENT_LOW_OFFSET) + (*(u16*)(directoryRecord + FILE_SYSTEM_ISO_EXTENT_HIGH_OFFSET) << 16);
                     } else if (strncmp(_gFsStrExtension, (char*)extension, FILE_SYSTEM_ISO_EXTENSION_BYTES) == 0) {
                         D_8006AC30.startSector =
@@ -1617,10 +1624,10 @@ restart:
         }
     }
 
-    if (Fs_StageCdfSectors[1] != 0 || Fs_StageCdfSectors[2] != 0) {
+    if (gFsStageCdfBaseSectors[1] != 0 || gFsStageCdfBaseSectors[2] != 0) {
         Wip_SysFlags.discNumber = GAME_MAIN_DISC_1;
     }
-    if (Fs_StageCdfSectors[4] != 0 || Fs_StageCdfSectors[5] != 0) {
+    if (gFsStageCdfBaseSectors[4] != 0 || gFsStageCdfBaseSectors[5] != 0) {
         Wip_SysFlags.discNumber = GAME_MAIN_DISC_2;
     }
 
@@ -1629,20 +1636,20 @@ restart:
     // Startup alone requests the initial MDEC image; disc swaps omit it.
     if ((bootMode & 0xFF) != 0) {
         if (startupImageSector != 0) {
-            Fs_ChunkMode              = FILE_SYSTEM_CHUNK_LOAD_NORMAL;
+            gFsChunkLoadPolicy        = FILE_SYSTEM_CHUNK_LOAD_NORMAL;
             _gFsBackgroundWriteOffset = 0;
-            D5B498_8006EA1A           = 0;
-            D5B498_8006EBB0           = 0;
-            D5B498_8006D850           = NULL;
-            D5B498_8006D748           = FILE_SYSTEM_STREAM_DECODE_NEEDS_INPUT;
-            D5B498_8006D858           = 1;
-            gFsLzssInputEnd           = Fs_CdSector.bytes;
+            gFsLzssInputByte          = 0;
+            gFsLzssUnreadBitMask      = 0;
+            gFsLzssResumeAddress      = NULL;
+            gFsLzssDecodeStatus       = FILE_SYSTEM_LZSS_DECODE_NEEDS_INPUT;
+            gFsLzssRingWriteIndex     = FILE_SYSTEM_LZSS_INITIAL_WRITE_INDEX;
+            gFsLzssInputEnd           = gFsSectorBuffers.sector.bytes;
             gFsLzssInputEnd          += FS_SECTOR_BYTE_SIZE;
             mdecRequestImageVlcRebuild();
 
             _fsStartPayloadRead(startupImageSector, startupImageSector + startupImageSectorCount, NULL, FILE_SYSTEM_PAYLOAD_BACKGROUND);
-            while (Fs_CdOpStatus != (u8)FS_CD_STATUS_IDLE) {
-                if (Fs_CdOpStatus == FILE_SYSTEM_CD_OPERATION_RESTART_REQUEST) {
+            while (gFsCdOperationStatus != FILE_SYSTEM_CD_OPERATION_COMPLETE) {
+                if (gFsCdOperationStatus == FILE_SYSTEM_CD_OPERATION_RESTART_REQUEST) {
                     if (CdSync(1, NULL) == CdlDiskError) {
                         cdSyncWaitForReadableDisc(true);
                     }
@@ -1693,12 +1700,12 @@ u8 fsUploadImageChunk(const FsImageChunk* imageChunk, u8 ignoreGpuTimeLimit)
     _fsPrepareImageChunkUpload(imageChunk);
     fsDecompressImagePayload();
 
-    if (D5B498_8006D748 == FILE_SYSTEM_IMAGE_DECODE_SCRATCH_BUSY) {
+    if (gFsLzssDecodeStatus == FILE_SYSTEM_LZSS_DECODE_SCRATCH_BUSY) {
         _fsResumeDrawing(drawResumeAddress);
         return FILE_SYSTEM_IMAGE_UPLOAD_RETRY;
     }
 
-    LoadImage2(&Fs_ImageRect, D5B498_8006D870);
+    LoadImage2(&_gFsImageUploadRect, _gFsImageUploadBuffer);
 
     // An elapsed cutoff can reject the call even after the pixels reached VRAM.
     ignoreTimeLimitAfterUpload = ignoreGpuTimeLimit;
@@ -1715,7 +1722,7 @@ u8 fsUploadImageChunk(const FsImageChunk* imageChunk, u8 ignoreGpuTimeLimit)
         return FILE_SYSTEM_IMAGE_UPLOAD_RETRY;
     } while (0);
 
-    D_8006C4C8[D5B498_8006ADF4] = (u8)Fs_ImageRect.h;
+    _gFsAcceptedImageRowsByBank[_gFsLoadBank] = (u8)_gFsImageUploadRect.h;
     _fsResumeDrawing(drawResumeAddress);
     return FILE_SYSTEM_IMAGE_UPLOAD_COMPLETE;
 }
@@ -1735,10 +1742,10 @@ void fsBeginImageColumns(const FsImageColumn* table)
     column      = table;
     columnIndex = 0;
     while (1) {
-        Fs_WorkEntries[columnIndex].x          = column->x;
-        Fs_WorkEntries[columnIndex].y          = column->y;
-        Fs_WorkEntries[columnIndex].dataOffset = column->dataOffset;
-        if (Fs_WorkEntries[columnIndex].x == FILE_SYSTEM_IMAGE_COLUMN_END) {
+        _gFsImageColumns[columnIndex].x          = column->x;
+        _gFsImageColumns[columnIndex].y          = column->y;
+        _gFsImageColumns[columnIndex].dataOffset = column->dataOffset;
+        if (_gFsImageColumns[columnIndex].x == FILE_SYSTEM_IMAGE_COLUMN_END) {
             break;
         }
         column++;
@@ -1746,36 +1753,36 @@ void fsBeginImageColumns(const FsImageColumn* table)
     }
 
     // Relocate the initial strip; subsequent columns keep their recorded Y.
-    if ((Fs_WorkEntries[0].y >= (u32)FILE_SYSTEM_IMAGE_COLUMN_ROWS) || (Fs_ChunkMode == 2)) {
-        Fs_ImageRect.x = Fs_WorkEntries[0].x + D5B498_8006C233 * FILE_SYSTEM_IMAGE_COLUMN_WIDTH;
+    if ((_gFsImageColumns[0].y >= (u32)FILE_SYSTEM_IMAGE_COLUMN_ROWS) || (gFsChunkLoadPolicy == FILE_SYSTEM_CHUNK_LOAD_RELOCATE_IMAGES)) {
+        _gFsImageUploadRect.x = _gFsImageColumns[0].x + gFsImageXPageOffset * FILE_SYSTEM_IMAGE_COLUMN_WIDTH;
     } else {
-        Fs_ImageRect.x = Fs_WorkEntries[0].x;
+        _gFsImageUploadRect.x = _gFsImageColumns[0].x;
     }
 
-    if (Fs_ChunkMode == 2) {
-        Fs_ImageRect.y = Fs_WorkEntries[0].y + FILE_SYSTEM_IMAGE_COLUMN_RELOCATION_ROWS;
+    if (gFsChunkLoadPolicy == FILE_SYSTEM_CHUNK_LOAD_RELOCATE_IMAGES) {
+        _gFsImageUploadRect.y = _gFsImageColumns[0].y + FILE_SYSTEM_IMAGE_COLUMN_RELOCATION_ROWS;
     } else {
-        Fs_ImageRect.y = Fs_WorkEntries[0].y;
+        _gFsImageUploadRect.y = _gFsImageColumns[0].y;
     }
 
-    Fs_ImageRect.w  = FILE_SYSTEM_IMAGE_COLUMN_WIDTH;
-    Fs_ImageRect.h  = FILE_SYSTEM_IMAGE_COLUMN_STRIP_ROWS;
-    D5B498_8006ACD4 = FILE_SYSTEM_IMAGE_COLUMN_ROWS;
+    _gFsImageUploadRect.w        = FILE_SYSTEM_IMAGE_COLUMN_WIDTH;
+    _gFsImageUploadRect.h        = FILE_SYSTEM_IMAGE_COLUMN_STRIP_ROWS;
+    _gFsImageColumnRowsRemaining = FILE_SYSTEM_IMAGE_COLUMN_ROWS;
 
-    Fs_ChunkReadPtr = (u8*)table + Fs_WorkEntries[0].dataOffset;
+    gFsLzssInputCursor = (const u8*)table + _gFsImageColumns[0].dataOffset;
 
     // A terminator in the second record may set the single column's height.
-    if (Fs_WorkEntries[1].x == FILE_SYSTEM_IMAGE_COLUMN_END) {
-        if (Fs_WorkEntries[1].y == Fs_WorkEntries[1].x) {
-            D5B498_8006ACD4 = FILE_SYSTEM_IMAGE_COLUMN_SHORT_ROWS;
-        } else if (Fs_WorkEntries[1].y & FILE_SYSTEM_IMAGE_COLUMN_ROWS_GIVEN) {
-            D5B498_8006ACD4 = Fs_WorkEntries[1].y & FILE_SYSTEM_IMAGE_COLUMN_ROW_COUNT_MASK;
+    if (_gFsImageColumns[1].x == FILE_SYSTEM_IMAGE_COLUMN_END) {
+        if (_gFsImageColumns[1].y == _gFsImageColumns[1].x) {
+            _gFsImageColumnRowsRemaining = FILE_SYSTEM_IMAGE_COLUMN_SHORT_ROWS;
+        } else if (_gFsImageColumns[1].y & FILE_SYSTEM_IMAGE_COLUMN_ROWS_GIVEN) {
+            _gFsImageColumnRowsRemaining = _gFsImageColumns[1].y & FILE_SYSTEM_IMAGE_COLUMN_ROW_COUNT_MASK;
         }
     }
 
-    D5B498_8006ADE1                  = 1;
-    D5B498_8006ADE0                  = 1;
-    D5B498_8006D4E0[D5B498_8006ADF4] = 0;
+    _gFsStripDecodeResetPending                 = true;
+    _gFsNextImageColumnIndex                    = 1;
+    _gFsImageColumnAdvancesByBank[_gFsLoadBank] = 0;
 }
 
 /// Primes the next image strip's LZSS decode in the shared upload buffer.
@@ -1790,19 +1797,15 @@ void fsBeginImageColumns(const FsImageColumn* table)
 /// Does not read compressed bytes or start a GPU upload.
 static inline void _fsBeginStripDecode(void)
 {
-    enum {
-        FILE_SYSTEM_STRIP_LZSS_INITIAL_WRITE_INDEX = 1,
-    };
-
-    Fs_ChunkWritePtr = (u8*)D5B498_8006D870;
+    gFsPayloadWriteCursor = (u8*)_gFsImageUploadBuffer;
     // Reset the bit cursor and continuation without clearing history or pixels.
-    D5B498_8006D748 = FILE_SYSTEM_STREAM_DECODE_NEEDS_INPUT;
-    D5B498_8006EA1A = 0;
-    D5B498_8006EBB0 = 0;
-    D5B498_8006D850 = NULL;
-    D5B498_8006D85A = 0;
-    D5B498_8006D858 = FILE_SYSTEM_STRIP_LZSS_INITIAL_WRITE_INDEX;
-    D5B498_8006ADE1 = false;
+    gFsLzssDecodeStatus         = FILE_SYSTEM_LZSS_DECODE_NEEDS_INPUT;
+    gFsLzssInputByte            = 0;
+    gFsLzssUnreadBitMask        = 0;
+    gFsLzssResumeAddress        = NULL;
+    gFsLzssUnreadBitCount       = 0;
+    gFsLzssRingWriteIndex       = FILE_SYSTEM_LZSS_INITIAL_WRITE_INDEX;
+    _gFsStripDecodeResetPending = false;
 }
 
 u8 fsUploadImageStrips(s32 inputMode)
@@ -1817,7 +1820,7 @@ u8 fsUploadImageStrips(s32 inputMode)
     u_long*        drawBreakFailed;
     s32            residentInput;
     u8             zeroByteCount;
-    u8*            paddingCursor;
+    const u8*      paddingCursor;
     FsImageColumn* column;
     RECT*          columnRectangle;
 
@@ -1842,25 +1845,25 @@ u8 fsUploadImageStrips(s32 inputMode)
 
     for (;;) {
         // Each strip has an independent LZSS cursor; incomplete input resumes it.
-        if (D5B498_8006ADE1 != 0) {
+        if (_gFsStripDecodeResetPending != 0) {
             _fsBeginStripDecode();
         }
         fsDecompressStream();
-        if (D5B498_8006D748 == FILE_SYSTEM_STREAM_DECODE_SCRATCH_BUSY) {
+        if (gFsLzssDecodeStatus == FILE_SYSTEM_LZSS_DECODE_SCRATCH_BUSY) {
             _fsResumeDrawing(drawResumeAddress);
             return FILE_SYSTEM_IMAGE_STRIPS_RETRY;
         }
-        if (D5B498_8006D748 == FILE_SYSTEM_STREAM_DECODE_NEEDS_INPUT) {
+        if (gFsLzssDecodeStatus == FILE_SYSTEM_LZSS_DECODE_NEEDS_INPUT) {
             _fsResumeDrawing(drawResumeAddress);
             if ((u8)inputMode == 0) {
-                Fs_ChunkReadPtr = Fs_CdSector.bytes;
+                gFsLzssInputCursor = gFsSectorBuffers.sector.bytes;
                 if (GetRCnt(RCntCNT2) >= FILE_SYSTEM_STRIP_GPU_TIME_LIMIT_TICKS) {
                     return FILE_SYSTEM_IMAGE_STRIPS_RETRY;
                 }
             }
             return FILE_SYSTEM_IMAGE_STRIPS_NEEDS_INPUT;
         }
-        LoadImage2(&Fs_ImageRect, D5B498_8006D870);
+        LoadImage2(&_gFsImageUploadRect, _gFsImageUploadBuffer);
         residentInput = (u8)inputMode;
         do {
             while (IsIdleGPU(-1) != 0) {
@@ -1874,37 +1877,37 @@ u8 fsUploadImageStrips(s32 inputMode)
             ContinueDraw(NULL, drawResumeAddress);
             return FILE_SYSTEM_IMAGE_STRIPS_RETRY;
         } while (0);
-        D5B498_8006ADE1  = 1;
-        Fs_ImageRect.y  += FILE_SYSTEM_STRIP_ROWS;
-        D5B498_8006ACD4 -= FILE_SYSTEM_STRIP_ROWS;
-        if ((s16)D5B498_8006ACD4 <= 0) {
-            if (Fs_WorkEntries[D5B498_8006ADE0].x == FILE_SYSTEM_IMAGE_COLUMN_END) {
+        _gFsStripDecodeResetPending   = true;
+        _gFsImageUploadRect.y        += FILE_SYSTEM_STRIP_ROWS;
+        _gFsImageColumnRowsRemaining -= FILE_SYSTEM_STRIP_ROWS;
+        if (_gFsImageColumnRowsRemaining <= 0) {
+            if (_gFsImageColumns[_gFsNextImageColumnIndex].x == FILE_SYSTEM_IMAGE_COLUMN_END) {
                 _fsResumeDrawing(drawResumeAddress);
                 if ((u8)inputMode == 0) {
-                    Fs_ChunkReadPtr = Fs_CdSector.bytes;
+                    gFsLzssInputCursor = gFsSectorBuffers.sector.bytes;
                     if (GetRCnt(RCntCNT2) >= FILE_SYSTEM_STRIP_GPU_TIME_LIMIT_TICKS) {
                         return FILE_SYSTEM_IMAGE_STRIPS_RETRY;
                     }
                 }
                 return FILE_SYSTEM_IMAGE_STRIPS_COMPLETE;
             }
-            D5B498_8006D4E0[D5B498_8006ADF4]++;
-            column = &Fs_WorkEntries[D5B498_8006ADE0];
-            if (column->y >= (u32)FILE_SYSTEM_IMAGE_COLUMN_ROWS || Fs_ChunkMode == FILE_SYSTEM_CHUNK_LOAD_RELOCATE_IMAGES) {
-                Fs_ImageRect.x = column->x + D5B498_8006C233 * FILE_SYSTEM_STRIP_HALFWORDS;
+            _gFsImageColumnAdvancesByBank[_gFsLoadBank]++;
+            column = &_gFsImageColumns[_gFsNextImageColumnIndex];
+            if (column->y >= (u32)FILE_SYSTEM_IMAGE_COLUMN_ROWS || gFsChunkLoadPolicy == FILE_SYSTEM_CHUNK_LOAD_RELOCATE_IMAGES) {
+                _gFsImageUploadRect.x = column->x + gFsImageXPageOffset * FILE_SYSTEM_STRIP_HALFWORDS;
             } else {
-                Fs_ImageRect.x = column->x;
+                _gFsImageUploadRect.x = column->x;
             }
-            D5B498_8006ACD4    = FILE_SYSTEM_IMAGE_COLUMN_ROWS;
-            columnRectangle    = &Fs_ImageRect;
-            columnRectangle->y = Fs_WorkEntries[D5B498_8006ADE0].y;
-            columnRectangle->w = FILE_SYSTEM_STRIP_HALFWORDS;
-            columnRectangle->h = FILE_SYSTEM_STRIP_ROWS;
-            D5B498_8006ADE0++;
+            _gFsImageColumnRowsRemaining = FILE_SYSTEM_IMAGE_COLUMN_ROWS;
+            columnRectangle              = &_gFsImageUploadRect;
+            columnRectangle->y           = _gFsImageColumns[_gFsNextImageColumnIndex].y;
+            columnRectangle->w           = FILE_SYSTEM_STRIP_HALFWORDS;
+            columnRectangle->h           = FILE_SYSTEM_STRIP_ROWS;
+            _gFsNextImageColumnIndex++;
         }
         // A bounded zero scan separates strips without consuming the next token.
         zeroByteCount = 0;
-        paddingCursor = Fs_ChunkReadPtr;
+        paddingCursor = gFsLzssInputCursor;
         do {
             {
                 u8 paddingByte = *paddingCursor++;
@@ -1912,12 +1915,12 @@ u8 fsUploadImageStrips(s32 inputMode)
                     break;
                 }
             }
-            Fs_ChunkReadPtr++;
+            gFsLzssInputCursor++;
             zeroByteCount++;
-            if (Fs_ChunkReadPtr >= D_8006CCD8 || zeroByteCount >= (u32)FILE_SYSTEM_STRIP_MAX_ZERO_SCAN) {
+            if (gFsLzssInputCursor >= (const u8*)&gFsSectorBuffers + sizeof(gFsSectorBuffers.sector) || zeroByteCount >= (u32)FILE_SYSTEM_STRIP_MAX_ZERO_SCAN) {
                 _fsResumeDrawing(drawResumeAddress);
                 if ((u8)inputMode == 0) {
-                    Fs_ChunkReadPtr = D_8006CCD8 - sizeof(Fs_CdSector);
+                    gFsLzssInputCursor = (const u8*)&gFsSectorBuffers;
                     if (GetRCnt(RCntCNT2) >= FILE_SYSTEM_STRIP_GPU_TIME_LIMIT_TICKS) {
                         return FILE_SYSTEM_IMAGE_STRIPS_RETRY;
                     }
@@ -1925,7 +1928,7 @@ u8 fsUploadImageStrips(s32 inputMode)
                 return FILE_SYSTEM_IMAGE_STRIPS_NEEDS_INPUT;
             }
         } while (1);
-        D5B498_8006D748 = FILE_SYSTEM_STREAM_DECODE_NEEDS_INPUT;
+        gFsLzssDecodeStatus = FILE_SYSTEM_LZSS_DECODE_NEEDS_INPUT;
     }
 }
 
@@ -2005,12 +2008,12 @@ void fsResumeRequestedRead(void)
         _fsRecoverRequestedRead();
     }
 
-    CdIntToPos(Fs_ReqSector, &readLocation);
+    CdIntToPos(gFsNextReadSector, &readLocation);
     CdControlF(CdlReadN, &readLocation.minute);
-    if (Fs_CdOpStatus == FILE_SYSTEM_CD_OPERATION_RESUME_CHUNK) {
+    if (gFsCdOperationStatus == FILE_SYSTEM_CD_OPERATION_RESUME_CHUNK) {
         CdSyncCallback(_fsReadNSyncCallback);
-        Fs_VBlank      = VSync(-1);
-        Fs_CdOpStatus += 1;
+        gFsCdProgressVBlank   = VSync(-1);
+        gFsCdOperationStatus += 1;
     }
 }
 
@@ -2092,10 +2095,10 @@ static void _fsStartFileRead(s32 absoluteSector)
         cdSyncWaitForReadableDisc(true);
     }
 
-    Fs_CdOpStatus      = FILE_SYSTEM_CD_OPERATION_PENDING;
-    _gFsChunkEndMarker = FILE_SYSTEM_CHUNK_LAST;
-    Fs_ReqSector       = absoluteSector;
-    Fs_VBlank          = VSync(-1);
+    gFsCdOperationStatus = FILE_SYSTEM_CD_OPERATION_PENDING;
+    _gFsChunkEndMarker   = FILE_SYSTEM_CHUNK_LAST;
+    gFsNextReadSector    = absoluteSector;
+    gFsCdProgressVBlank  = VSync(-1);
     if (_gFsPreparedSeekSector == absoluteSector) {
         _gFsPreparedSeekSector = FILE_SYSTEM_SECTOR_UNSET;
         _gFsReadingPayload     = false;
@@ -2146,7 +2149,7 @@ static void _fsSeekToSector(s32 absoluteSector)
 {
     CdlLOC seekLocation;
 
-    Fs_CdOpStatus = FILE_SYSTEM_CD_OPERATION_PENDING;
+    gFsCdOperationStatus = FILE_SYSTEM_CD_OPERATION_PENDING;
     if (CdSync(1, NULL) == CdlDiskError) {
         cdSyncWaitForReadableDisc(true);
     }
@@ -2155,7 +2158,7 @@ static void _fsSeekToSector(s32 absoluteSector)
     CdIntToPos(absoluteSector, &seekLocation);
     CdControlF(CdlSeekL, &seekLocation.minute);
     CdSyncCallback(_fsSeekSyncCallback);
-    Fs_VBlank = VSync(-1);
+    gFsCdProgressVBlank = VSync(-1);
 }
 
 void fsInitFolderTable(s32 unusedStageIndex)
@@ -2164,7 +2167,7 @@ void fsInitFolderTable(s32 unusedStageIndex)
     FsCdfFolderListEntry* folderEntry;
 
     _gFsStageFolderCount = 0;
-    folderEntry          = Fs_CdSector.folderList.entries;
+    folderEntry          = gFsSectorBuffers.sector.folderList.entries;
 
     // The folder table fills the CDF's first sector, so the first folder
     // starts at sector 1. Each sector count places the folder after it.
@@ -2188,7 +2191,7 @@ void fsStartStage0HeaderRead(void)
     CdlLOC headerLocation;
 
     // Discard active append counts; indexed tables are overwritten by the HED.
-    Fs_CdOpStatus                = FILE_SYSTEM_CD_OPERATION_PENDING;
+    gFsCdOperationStatus         = FILE_SYSTEM_CD_OPERATION_PENDING;
     _gFsStage0FullIdFileCount    = 0;
     _gFsStage0Category2FileCount = 0;
     _gFsStage0Category4FileCount = 0;
@@ -2196,11 +2199,11 @@ void fsStartStage0HeaderRead(void)
     _gFsStage0Category3FileCount = 0;
 
     // Publish the expected sector before enabling its ready callback.
-    Fs_ReqSector = _gFsStage0HeaderSector;
+    gFsNextReadSector = _gFsStage0HeaderSector;
     CdIntToPos(_gFsStage0HeaderSector, &headerLocation);
     CdControlF(CdlReadN, &headerLocation.minute);
     CdReadyCallback(_fsStage0HeaderReadyCallback);
-    Fs_VBlank = VSync(-1);
+    gFsCdProgressVBlank = VSync(-1);
 }
 
 /// Selects sector processing after a chunk or sound-bank ReadN command starts.
@@ -2213,21 +2216,21 @@ void fsStartStage0HeaderRead(void)
 static void _fsReadNSyncCallback(u8 interruptStatus, u8* unusedResult)
 {
     if (interruptStatus != CdlDiskError) {
-        if (Fs_CdOpStatus == FILE_SYSTEM_CD_OPERATION_RESUMING_CHUNK) {
-            Fs_CdOpStatus      = FILE_SYSTEM_CD_OPERATION_PENDING;
-            _gFsReadingPayload = true;
+        if (gFsCdOperationStatus == FILE_SYSTEM_CD_OPERATION_RESUMING_CHUNK) {
+            gFsCdOperationStatus = FILE_SYSTEM_CD_OPERATION_PENDING;
+            _gFsReadingPayload   = true;
             CdReadyCallback(_fsChunkReadyCallback);
         } else if (_gFsUseSoundBankReader == false) {
             _gFsReadingPayload = false;
             CdReadyCallback(_fsChunkReadyCallback);
         } else {
-            sndLoadBeginSectorLoad(&Fs_CdSector);
+            sndLoadBeginSectorLoad(&gFsSectorBuffers.sector);
             CdReadyCallback(fsSoundBankReadyCallback);
         }
 
-        Fs_VBlank = VSync(-1);
+        gFsCdProgressVBlank = VSync(-1);
         CdSyncCallback(NULL);
-        Fs_CdErrorCount = 0;
+        gFsCdErrorCount = 0;
     } else {
         _fsHandleCdError(FS_ERROR_SOFT);
     }
@@ -2241,9 +2244,9 @@ static void _fsReadNSyncCallback(u8 interruptStatus, u8* unusedResult)
 static void _fsPayloadReadStartedCallback(u8 interruptStatus, u8* unusedResult)
 {
     if (interruptStatus != CdlDiskError) {
-        Fs_VBlank          = VSync(-1);
-        Fs_CdErrorCount    = 0;
-        _gFsReadingPayload = true;
+        gFsCdProgressVBlank = VSync(-1);
+        gFsCdErrorCount     = 0;
+        _gFsReadingPayload  = true;
         CdReadyCallback(_fsChunkReadyCallback);
         CdSyncCallback(NULL);
     } else {
@@ -2258,9 +2261,9 @@ static void _fsPayloadReadStartedCallback(u8 interruptStatus, u8* unusedResult)
 static void _fsSeekSyncCallback(u8 interruptStatus, u8* unusedResult)
 {
     if (interruptStatus == CdlComplete) {
-        Fs_CdOpStatus = FS_CD_STATUS_IDLE;
+        gFsCdOperationStatus = FILE_SYSTEM_CD_OPERATION_COMPLETE;
         CdSyncCallback(NULL);
-        Fs_CdErrorCount = 0;
+        gFsCdErrorCount = 0;
     } else {
         _fsHandleCdError(FS_ERROR_SOFT);
     }
@@ -2269,20 +2272,20 @@ static void _fsSeekSyncCallback(u8 interruptStatus, u8* unusedResult)
 /// Pauses a failed transfer and selects chunk resumption or request restart.
 ///
 /// `FS_ERROR_HARD` (2) retains sound-load state and selects resumption at
-/// `Fs_ReqSector`. All other values, normally `FS_ERROR_SOFT` (0), release that
+/// `gFsNextReadSector`. All other values, normally `FS_ERROR_SOFT` (0), release that
 /// state and select a fresh request. Every call increments the byte error count
 /// and removes both CD callbacks before pausing; it does not reissue a read.
 static void _fsHandleCdError(u8 recoveryMode)
 {
-    Fs_CdErrorCount += 1;
+    gFsCdErrorCount += 1;
     CdReadyCallback(NULL);
     CdSyncCallback(NULL);
 
     if (recoveryMode == FS_ERROR_HARD) {
-        Fs_CdOpStatus = FILE_SYSTEM_CD_OPERATION_RESUME_CHUNK;
+        gFsCdOperationStatus = FILE_SYSTEM_CD_OPERATION_RESUME_CHUNK;
     } else {
         sndLoadTeardown();
-        Fs_CdOpStatus = FILE_SYSTEM_CD_OPERATION_RESTART_REQUEST;
+        gFsCdOperationStatus = FILE_SYSTEM_CD_OPERATION_RESTART_REQUEST;
     }
 
     CdControlF(CdlPause, NULL);
@@ -2302,7 +2305,7 @@ static void _fsResumeDrawing(u_long* resumeAddress)
 
 u8* fsGetChunkPayload(void)
 {
-    return Fs_CdSector.chunk.data.bytes;
+    return gFsSectorBuffers.sector.chunk.data.bytes;
 }
 
 void fsAbortTimedOutOperation(void)
@@ -2310,16 +2313,16 @@ void fsAbortTimedOutOperation(void)
     enum { FILE_SYSTEM_READ_TIMEOUT_VBLANKS = 180 };
     u8 pauseResult[8];
 
-    if (Fs_CdOpStatus != FILE_SYSTEM_CD_OPERATION_PENDING && Fs_CdOpStatus != FILE_SYSTEM_CD_OPERATION_RESUMING_CHUNK) {
+    if (gFsCdOperationStatus != FILE_SYSTEM_CD_OPERATION_PENDING && gFsCdOperationStatus != FILE_SYSTEM_CD_OPERATION_RESUMING_CHUNK) {
         return;
     }
 
-    if (VSync(-1) <= Fs_VBlank + FILE_SYSTEM_READ_TIMEOUT_VBLANKS) {
+    if (VSync(-1) <= gFsCdProgressVBlank + FILE_SYSTEM_READ_TIMEOUT_VBLANKS) {
         return;
     }
 
-    Fs_VBlank     = VSync(-1);
-    Fs_CdOpStatus = FILE_SYSTEM_CD_OPERATION_RESTART_REQUEST;
+    gFsCdProgressVBlank  = VSync(-1);
+    gFsCdOperationStatus = FILE_SYSTEM_CD_OPERATION_RESTART_REQUEST;
     CdFlush();
     sndLoadTeardown();
     CdReadyCallback(NULL);
@@ -2344,7 +2347,7 @@ s32 fsGetRequiredStageDisc(void)
     u8 stage;
 
     stage = gGameSession->location.loc.stage;
-    if (Fs_StageCdfSectors[stage] == 0) {
+    if (gFsStageCdfBaseSectors[stage] == 0) {
         if (stage == GAME_STAGE_ACROPOLIS || stage == GAME_STAGE_DRYFIELD) {
             return GAME_MAIN_DISC_1;
         }

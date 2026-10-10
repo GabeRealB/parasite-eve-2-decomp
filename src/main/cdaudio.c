@@ -477,7 +477,7 @@ static s32 _cdAudioOpenDriver(void)
             streamParams->voiceL                = CD_STREAM_VOICE_NONE;
             streamParams->volume                = volume;
             streamParams->channelCount          = CD_AUDIO_INITIAL_CHANNEL_COUNT;
-            streamParams->sectorBuf             = &Fs_CdSector;
+            streamParams->sectorBuf             = &gFsSectorBuffers;
             streamParams->spuBase               = playerState->playback.spuBase;
             streamParams->startSector           = CdPosToInt(location);
             streamParams->doneCb                = _cdAudioStreamOpeningDoneCallback;
@@ -1056,7 +1056,7 @@ static void _cdAudioWaveSectorReadyCallback(u8 interruptStatus, u8* unusedResult
     FsSector*                      sector;
     const _CdAudioWaveLead*        waveLead;
 
-    sector       = &Fs_CdSector;
+    sector       = &gFsSectorBuffers.sector;
     driverStatus = &CdAudio_Ctl;
     if (driverStatus->waveLoadError != CD_AUDIO_WAVE_LOAD_ERROR_NONE) {
         return;
@@ -1531,7 +1531,7 @@ static void _cdAudioHeaderSectorReadyCallback(u8 interruptStatus, u8* unusedResu
 
     readyStatus = interruptStatus;
     if (readyStatus == CdlDataReady) {
-        sector = &Fs_CdSector;
+        sector = &gFsSectorBuffers.sector;
         CD_AUDIO_READ_HEADER_SECTOR_POSITION(sector, playback, sectorPosition);
         if (playback->baseSector != sectorPosition) {
             CdAudio_Ctl.headerReadError = CD_AUDIO_HEADER_READ_ERROR_WRONG_SECTOR;

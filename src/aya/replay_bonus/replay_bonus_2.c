@@ -1154,7 +1154,7 @@ static void _replayBonusSelectCreditsResource(s32 dataResourceIndex)
     slotIndex         = dataResourcesSeen;
     resourceKind      = FILE_SYSTEM_RESOURCE_DATA;
     do {
-        resourceSlot = &D_8006C338[slotIndex];
+        resourceSlot = &gFsResourceSlots[slotIndex];
         if (resourceSlot->kind == resourceKind) {
             if (dataResourcesSeen == dataResourceIndex) {
                 file                    = resourceSlot->data;
@@ -1165,7 +1165,7 @@ static void _replayBonusSelectCreditsResource(s32 dataResourceIndex)
             dataResourcesSeen++;
         }
         slotIndex++;
-    } while (slotIndex < ARRAY_SIZE(D_8006C338));
+    } while (slotIndex < ARRAY_SIZE(gFsResourceSlots));
 }
 
 /* The package's data, in address order. */

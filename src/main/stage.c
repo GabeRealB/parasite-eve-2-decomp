@@ -1266,8 +1266,8 @@ static void _mdecStepSceneImageDecode(void)
                 for (imageIndex = 0; imageIndex < ARRAY_SIZE(_gMdecSceneImageHeader->stripListOffsets); imageIndex++) {
                     if (_gMdecSceneImageHeader->stripListOffsets[imageIndex] != 0) {
                         if (_gMdecSceneImageHeader->relocateStripLists[imageIndex] != 0) {
-                            Fs_ChunkMode    = 2;
-                            D5B498_8006C233 = STREAM_SCENE_STRIP_X_SHIFT_PAGES;
+                            gFsChunkLoadPolicy  = FILE_SYSTEM_CHUNK_LOAD_RELOCATE_IMAGES;
+                            gFsImageXPageOffset = STREAM_SCENE_STRIP_X_SHIFT_PAGES;
                         }
                         fsBeginImageColumns((FsImageColumn*)(_gMdecScenePayloadBase + _gMdecSceneImageHeader->stripListOffsets[imageIndex]));
                         // Both upload polls are retained; a retry restarts this column stream.
@@ -1280,20 +1280,20 @@ static void _mdecStepSceneImageDecode(void)
                                 fsBeginImageColumns((FsImageColumn*)(_gMdecScenePayloadBase + _gMdecSceneImageHeader->stripListOffsets[imageIndex]));
                             }
                         }
-                        Fs_ChunkMode    = 0;
-                        D5B498_8006C233 = 0;
+                        gFsChunkLoadPolicy  = FILE_SYSTEM_CHUNK_LOAD_NORMAL;
+                        gFsImageXPageOffset = 0;
                     }
                 }
                 for (imageIndex = 0; imageIndex < ARRAY_SIZE(_gMdecSceneImageHeader->imageChunkOffsets); imageIndex++) {
                     if (_gMdecSceneImageHeader->imageChunkOffsets[imageIndex] != 0) {
                         if (_gMdecSceneImageHeader->relocateImageChunks[imageIndex] != 0) {
-                            Fs_ChunkMode    = 2;
-                            D5B498_8006C234 = STREAM_SCENE_CHUNK_Y_SHIFT_ROWS;
+                            gFsChunkLoadPolicy       = FILE_SYSTEM_CHUNK_LOAD_RELOCATE_IMAGES;
+                            gFsImageHeaderYShiftRows = STREAM_SCENE_CHUNK_Y_SHIFT_ROWS;
                         }
                         while (fsUploadImageChunk((const FsImageChunk*)(_gMdecScenePayloadBase + _gMdecSceneImageHeader->imageChunkOffsets[imageIndex]), 1)) {
                         }
-                        Fs_ChunkMode    = 0;
-                        D5B498_8006C234 = 0;
+                        gFsChunkLoadPolicy       = FILE_SYSTEM_CHUNK_LOAD_NORMAL;
+                        gFsImageHeaderYShiftRows = 0;
                     }
                 }
                 queue->imageLayout = FILE_SYSTEM_IMAGE_STRIPS;

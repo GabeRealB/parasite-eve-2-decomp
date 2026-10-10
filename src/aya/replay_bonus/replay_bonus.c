@@ -143,7 +143,7 @@ void replayBonusDecodePictureTask(Task* task)
             DecDCTReset(0);
             D_replay_bonus_8011925C = memMalloc((s16)D_replay_bonus_80119266 << REPLAY_BONUS_DOUBLE_STRIP_BYTES_SHIFT, true);
             decodedBitstream        = memMalloc(D_replay_bonus_80119264 * (s16)D_replay_bonus_80119266 * REPLAY_BONUS_PICTURE_PIXEL_BYTES, true);
-            bitstream               = D_8006C338[picture->resourceIndex].data;
+            bitstream               = gFsResourceSlots[picture->resourceIndex].data;
             D_replay_bonus_80119260 = decodedBitstream;
             decodedWordCount        = DecDCTBufSize(bitstream);
             vlcImageWidth           = D_replay_bonus_80119264;
@@ -151,7 +151,7 @@ void replayBonusDecodePictureTask(Task* task)
                 vlcImageWidth += FILE_SYSTEM_IMAGE_STRIP_WIDTH - 1;
             }
             DecDCTvlcSize2((decodedWordCount / (vlcImageWidth >> REPLAY_BONUS_STRIP_WIDTH_SHIFT)) + 2);
-            if ((DecDCTvlc2(D_8006C338[picture->resourceIndex].data, D_replay_bonus_80119260, picture->vlcTable) << 0x10) == 0) {
+            if ((DecDCTvlc2(gFsResourceSlots[picture->resourceIndex].data, D_replay_bonus_80119260, picture->vlcTable) << 0x10) == 0) {
                 task->state = REPLAY_BONUS_DECODE_START_MDEC;
                 return;
             }

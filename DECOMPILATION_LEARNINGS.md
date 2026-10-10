@@ -8505,8 +8505,8 @@ call path. A single `p` live across both arms pins `$s0` for the whole function
 and mismatches prologue/early stores (`_cdStreamCompleteOpeningRead` / `_gCdStreamRuntime.state`).
 
 **Also: capture a dest address before a call that you assign after.** Writing
-`Fs_ChunkWritePtr = (u8*)&Fs_CdSector` after `CdSync` materialises the address
-post-call. Pre-assigning `dest = (u8*)&Fs_CdSector` before `CdSync` puts the
+`gFsPayloadWriteCursor = (u8*)&gFsSectorBuffers.sector` after `CdSync` materialises the address
+post-call. Pre-assigning `dest = (u8*)&gFsSectorBuffers.sector` before `CdSync` puts the
 address in `$s1` and fills the call delay slot with `addiu s1, v0, %lo(...)`,
 which also forces `a1` for the call to be set earlier (matching the target
 prologue). `fsStartStageFolderListRead` is the example — same shape as `fsStartPayloadRead`
@@ -8904,7 +8904,7 @@ the walking `s0`:
 ds = &gDisplayState;          /* explicit: a3 first */
 for (; i < 50; i++) {
     out  = &Gp_CapFile;       /* hoist 1: lui s1, %hi */
-    slot = &D_8006C338[i];    /* hoist 2: lui v0 / addiu s0 */
+    slot = &gFsResourceSlots[i];    /* hoist 2: lui v0 / addiu s0 */
     ...
     Gp_CapFile = slot->data; /* sw %lo(Gp_CapFile)(s1) */
 }
@@ -12945,12 +12945,12 @@ pointer step matters.
 ## Dual-global update: read first to pin `a3`/`a2` order
 
 When a basic block loads the addresses of two globals into `$a3` then `$a2`
-(e.g. `Fs_CdErrorCount` then `Fs_CdOpStatus`) and stores to both around a
+(e.g. `gFsCdErrorCount` then `gFsCdOperationStatus`) and stores to both around a
 `jal`, a bare:
 
 ```c
-Fs_CdOpStatus = 0x80;
-Fs_CdErrorCount += 1;
+gFsCdOperationStatus = 0x80;
+gFsCdErrorCount += 1;
 CdControlF(CdlPause, NULL);
 ```
 
@@ -12963,9 +12963,9 @@ its address is materialised before the other store:
 ```c
 u8 errorCount;
 
-errorCount      = Fs_CdErrorCount; /* lui a3,%hi(ErrorCount) first */
-Fs_CdOpStatus   = 0x80;            /* lui a2,%hi(OpStatus) second */
-Fs_CdErrorCount = errorCount + 1;  /* delay-slot store of count */
+errorCount      = gFsCdErrorCount; /* lui a3,%hi(ErrorCount) first */
+gFsCdOperationStatus   = 0x80;            /* lui a2,%hi(OpStatus) second */
+gFsCdErrorCount = errorCount + 1;  /* delay-slot store of count */
 CdControlF(CdlPause, NULL);
 ```
 
@@ -16448,7 +16448,7 @@ loop:
     }
 ```
 
-`streamFindMovieSlot` is the pure example (search of `Stream_Slots`, mask of `subId`
+`streamFindMovieSlot` is the pure example (search of `gStreamSlots`, mask of `subId`
 against `StreamSlot::subId`).
 
 ## Place `return -1` after shared match labels
@@ -17320,23 +17320,23 @@ Inlining the `+ 1` into the call expression is enough to invite the rewrite.
 ## Materialize long-lived pointers before early-return guards
 
 When a function early-outs on a flag but still needs a global address for the
-whole body (e.g. `&Fs_CdSector` used after several `jal`s), assign that pointer
+whole body (e.g. `&gFsSectorBuffers.sector` used after several `jal`s), assign that pointer
 *before* the early-return checks. The target prologue then does:
 
 ```
 sw    s4, 0x20(sp)
-lui   s4, %hi(Fs_CdSector)
+lui   s4, %hi(gFsSectorBuffers)
 ... setup other s-regs ...
 lbu   v0, flag(s3)
 bnez  v0, early_out
- addiu s1, s4, %lo(Fs_CdSector)   /* delay */
+ addiu s1, s4, %lo(gFsSectorBuffers)   /* delay */
 ```
 
 Assigning the pointer only after the guards leaves `%hi` later, parks the raw
 `index` in `$s2`, and puts other bases in `$s0` — a register shuffle that looks
 like a large diff even when the body is otherwise identical.
 
-`_cdAudioWaveSectorReadyCallback` needs `sector = &Fs_CdSector` first, then the
+`_cdAudioWaveSectorReadyCallback` needs `sector = &gFsSectorBuffers.sector` first, then the
 `CdAudio_Ctl.waveLoadError` / `CdAudio_Tbl.waveLoadResult` guards, then `readyStatus = interruptStatus`.
 
 ## `volatile` struct pointer preserves independent field load order
@@ -18378,7 +18378,7 @@ CdSync example.
 
 ## Two near-identical status switches: fully inline the shared tails
 
-Two `switch (Fs_CdOpStatus)` blocks in one function (e.g. step 2 and step 5)
+Two `switch (gFsCdOperationStatus)` blocks in one function (e.g. step 2 and step 5)
 will cross-merge their `0x10/0x20/0x40` retry bodies when both go through a
 shared `handle_ret` / `flush_or_retry` label. The dispatch then jumps from
 case 5 into case 2's retry and the `slti` tree flips (`bnez` vs `beqz`).
@@ -19838,11 +19838,11 @@ register FsImageColumn* base asm("t0");
 register u32 ace_hi asm("a3");
 
 __asm__(
-    "lui %0, %%hi(Fs_WorkEntries)\n\t"
-    "addiu %1, %0, %%lo(Fs_WorkEntries)"
+    "lui %0, %%hi(_gFsImageColumns)\n\t"
+    "addiu %1, %0, %%lo(_gFsImageColumns)"
     : "=&r"(ace_hi), "=r"(base));
 /* … loop on a walking copy of base … */
-__asm__("lhu %0, %%lo(Fs_WorkEntries)(%1)" : "=r"(t) : "r"(ace_hi));
+__asm__("lhu %0, %%lo(_gFsImageColumns)(%1)" : "=r"(t) : "r"(ace_hi));
 ```
 
 Also: `s8_global * 64` (or `(s8)u8_global * 64`) emits `lb; sll 6`, while
@@ -20698,7 +20698,7 @@ D_flag = 0;
 folderId = ((u8)arg1 * 100) + (u8)arg2;
 ```
 
-`fsStartFolderDirectoryRead` (`D_8006ADE2` after the `Stream_Slots` clear loop).
+`fsStartFolderDirectoryRead` (`D_8006ADE2` after the `gStreamSlots` clear loop).
 
 ## Two-phase scratch alloc: unpinned load, then `register … asm("v1")` adjust
 
@@ -21632,7 +21632,7 @@ use `$t2`) without a union joining unrelated pointer types:
 const FsCdfFile* fileList;
 const _FsCdfFolder* streamFolder;
 
-fileList = Fs_CdSector.fileList;
+fileList = gFsSectorBuffers.sector.fileList;
 /* phase 1: walk fileList[entryIndex] */
 ...
 /* phase 2: locate the stream-side folder entry */
@@ -22577,9 +22577,9 @@ a later store to the same global often reuses `$s0` and omits the fresh
 
 ```
 lw   v1, 8(a0)
-lui  v0, %hi(Fs_ChunkWritePtr)   /* rematerialize */
+lui  v0, %hi(gFsPayloadWriteCursor)   /* rematerialize */
 j    ret0
-sw   v1, %lo(Fs_ChunkWritePtr)(v0)
+sw   v1, %lo(gFsPayloadWriteCursor)(v0)
 ```
 
 Killing `$s0` only shifts the CSE into `$s1`/`$s2`/…. Pure C cannot force `$v0`.
@@ -22594,9 +22594,9 @@ treats `.set\tnoreorder` as noreorder — a space leaves reorder mode and insert
     val = (u8*)blk->field_8;
     __asm__ volatile(
         ".set\tnoreorder\n\t"
-        "lui $2, %%hi(Fs_ChunkWritePtr)\n\t"
+        "lui $2, %%hi(gFsPayloadWriteCursor)\n\t"
         "j %1\n\t"
-        "sw %0, %%lo(Fs_ChunkWritePtr)($2)\n\t"
+        "sw %0, %%lo(gFsPayloadWriteCursor)($2)\n\t"
         ".set\treorder"
         :
         : "r"(val), "i"(&&ret0)
@@ -22671,7 +22671,7 @@ if (fileKey->fileIdHundreds == 1) {
         return 0;
     }
     _gFsUseSoundBankReader = 1;
-    Fs_ChunkMode    = 0;
+    gFsChunkLoadPolicy    = 0;
     _fsStartFileRead(absoluteSector);   /* often joins the setup_and_load ReadSector */
 }
 goto end_return;
@@ -22968,15 +22968,15 @@ When `register u8* entry asm("s0")` is reassigned after a short clear loop that
 joins both wait paths, GCC often emits the pinned form:
 
 ```
-lui   s0, %hi(Fs_CdSector)
-addiu s0, s0, %lo(Fs_CdSector)
+lui   s0, %hi(gFsSectorBuffers)
+addiu s0, s0, %lo(gFsSectorBuffers)
 ```
 
 The target rematerialises through `$v0` (same shape as `sndScriptStopMatching`):
 
 ```
-lui   v0, %hi(Fs_CdSector)
-addiu s0, v0, %lo(Fs_CdSector)
+lui   v0, %hi(gFsSectorBuffers)
+addiu s0, v0, %lo(gFsSectorBuffers)
 ```
 
 Force it:
@@ -22987,8 +22987,8 @@ register u8* entry asm("s0");
 {
     register s32 hi asm("v0");
     __asm__ volatile(
-        "lui %0, %%hi(Fs_CdSector)\n\t"
-        "addiu %1, %0, %%lo(Fs_CdSector)"
+        "lui %0, %%hi(gFsSectorBuffers)\n\t"
+        "addiu %1, %0, %%lo(gFsSectorBuffers)"
         : "=&r"(hi), "=r"(entry));
 }
 ```
@@ -23032,7 +23032,7 @@ Match the signed form used for `-8`:
 s32 t;
 t = -3;
 asm volatile("" : "+r"(t));   /* stop fold/hoist if needed */
-D5B498_8006C234 = t;          /* sb of low 8 bits; li stays -3 */
+gFsImageHeaderYShiftRows = t;          /* sb of low 8 bits; li stays -3 */
 ```
 
 
@@ -23040,6 +23040,7 @@ D5B498_8006C234 = t;          /* sb of low 8 bits; li stays -3 */
 
 When three loop-live globals need a fixed s-reg coloring for split-address
 form (e.g. target `s5=_gMdecSceneImageHeader`, `s7=Fs_ChunkMode`, `s6=D5B498_8006C233`)
+form (e.g. target `s5=Stage_CdEntry`, `s7=gFsChunkLoadPolicy`, `s6=gFsImageXPageOffset`)
 but natural allocation rotates them, pin and materialise with one asm block,
 then do every load/store through those his:
 
@@ -23053,6 +23054,10 @@ __asm__ volatile(
     "lui %1, %%hi(Fs_ChunkMode)\n\t"
     "lui %2, %%hi(D5B498_8006C233)\n\t"
     "lui %3, %%hi(_gMdecScenePayloadBase)"
+    "lui %0, %%hi(Stage_CdEntry)\n\t"
+    "lui %1, %%hi(gFsChunkLoadPolicy)\n\t"
+    "lui %2, %%hi(gFsImageXPageOffset)\n\t"
+    "lui %3, %%hi(Mdec_DecodeBase)"
     : "=&r"(hi368), "=&r"(hiMode), "=&r"(hi233), "=r"(hi364));
 /* loads: */  __asm__ volatile("lw %0, %%lo(_gMdecSceneImageHeader)(%1)" : "=r"(base) : "r"(hi368));
 /* stores with branch-delay `li`: use tab-noreorder */
@@ -23061,9 +23066,9 @@ __asm__ volatile(
     "nop\n\t"
     "beqz %0, 1f\n\t"
     "li $2, 2\n\t"
-    "sb $2, %%lo(Fs_ChunkMode)(%1)\n\t"
+    "sb $2, %%lo(gFsChunkLoadPolicy)(%1)\n\t"
     "li $2, -8\n\t"
-    "sb $2, %%lo(D5B498_8006C233)(%2)\n\t"
+    "sb $2, %%lo(gFsImageXPageOffset)(%2)\n\t"
     "1:\n\t"
     ".set\treorder"
     :
@@ -23172,21 +23177,21 @@ Found path (`slot*0x44 + base - 0x3C`) is pure C. `slotByVoice` is at offset
 
 ## _fsReadChunkHeaderSector: s0=ptr / s1=%hi for CdSector
 
-`_fsReadChunkHeaderSector` prologue must colour `&Fs_CdSector` as:
+`_fsReadChunkHeaderSector` prologue must colour `&gFsSectorBuffers.sector` as:
 
 ```
-lui  s1, %hi(Fs_CdSector)
-addiu s0, s1, %lo(Fs_CdSector)
+lui  s1, %hi(gFsSectorBuffers)
+addiu s0, s1, %lo(gFsSectorBuffers)
 ```
 
-with type later loaded via `lbu v1, %lo(Fs_CdSector)(s1)`. Pin `register FsSector *sec asm("s0")`, zero `register s32 s2 asm("s2")` early, and read type through the absolute `Fs_CdSector.chunk.type` (not `sec->chunk.type`) so GCC keeps the hi half in `$s1`.
+with type later loaded via `lbu v1, %lo(gFsSectorBuffers)(s1)`. Pin `register FsSector *sec asm("s0")`, zero `register s32 s2 asm("s2")` early, and read type through the absolute `gFsSectorBuffers.sector.chunk.header.type` (not `sec->chunk.header.type`) so GCC keeps the hi half in `$s1`.
 
 Also force loadAddr-before-size with:
 
 ```c
 void *loadAddr = sec->chunk.loadAddr;
 asm("");
-Fs_ChunkWritePtr = loadAddr;
+gFsPayloadWriteCursor = loadAddr;
 size = sec->chunk.size;
 ```
 
@@ -23203,12 +23208,12 @@ early `sw ra`. Pure C:
 register s32 s2 asm("s2");
 register FsSector *sec asm("s0");
 s2 = 0;
-sec = &Fs_CdSector; /* lui s1 / addiu s0,s1,%lo */
+sec = &gFsSectorBuffers.sector; /* lui s1 / addiu s0,s1,%lo */
 CdGetSector(sec->bytes, 0x200);
 ```
 
 Keep `$s1` live by later reading the absolute symbol
-`Fs_CdSector.chunk.type` (not `sec->chunk.type`).
+`gFsSectorBuffers.sector.chunk.header.type` (not `sec->chunk.header.type`).
 
 ### Setup: keep `a1` = `%hi(gFsLzssInputEnd)` across the field_2 update
 
@@ -23220,7 +23225,7 @@ Do the bulk in asm that **outputs** `a1`, then interleave type load in C:
 register s32 d4_hi asm("a1");
 /* asm: lui a1, … through endFlag store — do not clobber a1 */
 f2 = sec->chunk.field_2;
-type = Fs_CdSector.chunk.type; /* lbu %lo(s1) between lhu and addu */
+type = gFsSectorBuffers.sector.chunk.header.type; /* lbu %lo(s1) between lhu and addu */
 /* addu + sw via d4_hi */
 ```
 
@@ -25944,7 +25949,7 @@ Keep the raw return in an `s32` and write the independent setup first:
 ```c
 raw    = func();
 i      = 0;
-table  = D_8006C338;
+table  = gFsResourceSlots;
 target = (u8)raw - 1;
 ```
 
@@ -65861,9 +65866,9 @@ do {
             goto next_strip;
         }
     }
-    Fs_ChunkReadPtr++;
+    gFsLzssInputCursor++;
     count++;
-    if (Fs_ChunkReadPtr >= D_8006CCD8 || count >= 6U) {
+    if (gFsLzssInputCursor >= ((const u8*)&gFsSectorBuffers + sizeof(gFsSectorBuffers.sector)) || count >= 6U) {
         _fsResumeDrawing(ot);
         /* Conditional rewind and return remain inside this loop. */
     }
@@ -65873,7 +65878,7 @@ do {
 The patched GCC 2.8.1 `jump.c:duplicate_loop_exit_test` explicitly refuses to
 copy `NOTE_INSN_BLOCK_BEG` / `NOTE_INSN_BLOCK_END`. Without the local scope,
 `.jump` duplicated the byte test at entry and at the bottom. A goto-only scan
-avoided the duplicate but lost loop-invariant motion of `%hi(Fs_ChunkReadPtr)`.
+avoided the duplicate but lost loop-invariant motion of `%hi(gFsLzssInputCursor)`.
 The scoped structured loop retained one test and let `.loop` hoist both the
 read-pointer address and the buffer-end / rewind-address expressions. Explicit
 pre-loop rewind locals instead reversed the address derivation (start + 0x800
@@ -81086,7 +81091,7 @@ is not needed to explain a hoisted constant; `kind == 3` written inline
 produces it. `shelterB3DumpingHoleSelectCaptionResource` (rooms) has that inline
 form and is instruction-for-instruction identical to this target.
 
-Both are copies of one `FsResourceSlot` scan: walk `D_8006C338[0..49]`, take the
+Both are copies of one `FsResourceSlot` scan: walk `gFsResourceSlots[0..49]`, take the
 `dataResourceIndex`-th entry whose `kind == 3`, call the overlay's relocation helper on its
 `data`. `overlay_dup_index find` shows the four carriers, and `promote`
 refuses them — the body names its own overlay's globals and callee.
@@ -149458,7 +149463,7 @@ needs `case TASK_BODY_NONE:` listed with the default (three nodes).
 
 ### `streamFindMovieSlot`, not converted: what was established
 
-Written as a real loop with `Stream_Slots`, `STREAM_KIND_MOVIE` and
+Written as a real loop with `gStreamSlots`, `STREAM_KIND_MOVIE` and
 `(requireViewStream & 0xFFFF)` in place (no `slotTable`/`movieKind` locals),
 loop.c hoists exactly the image's three values in the image's order. The
 match block after the `return` is `find_and_verify_loops` moving

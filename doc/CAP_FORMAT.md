@@ -266,7 +266,7 @@ payload bytes is zero. Each descriptor holds a resource kind (0 empty, 2 image,
 of payload sectors written before a redirect, the resource's byte length, an
 absolute RAM destination, and an optional later write pointer. Retail bundles
 leave the redirect pair zero, and destinations are 16-byte aligned. `_fsReadChunkHeaderSector` publishes
-only the kind and destination as `FsResourceSlot` entries in `D_8006C338`,
+only the kind and destination as `FsResourceSlot` entries in `gFsResourceSlots`,
 before streaming the subsequent sectors into RAM. These resource kinds are
 distinct from the outer CDF chunk opcodes.
 

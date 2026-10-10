@@ -29,10 +29,10 @@ static inline void _capCaptionLoadResource(s16 texturePageX, s16 texturePageY, s
     dataOrdinal              = 0;
     _gCapCaptionTexturePageX = texturePageX;
     _gCapCaptionTexturePageY = texturePageY;
-    for (slotIndex = 0; slotIndex < ARRAY_SIZE(D_8006C338); slotIndex++) {
-        if (D_8006C338[slotIndex].kind == FILE_SYSTEM_RESOURCE_DATA) {
+    for (slotIndex = 0; slotIndex < ARRAY_SIZE(gFsResourceSlots); slotIndex++) {
+        if (gFsResourceSlots[slotIndex].kind == FILE_SYSTEM_RESOURCE_DATA) {
             if (dataOrdinal == dataResourceIndex) {
-                _capCaptionRelocateFile(D_8006C338[slotIndex].data);
+                _capCaptionRelocateFile(gFsResourceSlots[slotIndex].data);
                 break;
             }
             dataOrdinal++;

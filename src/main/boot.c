@@ -474,5 +474,5 @@ bool fsIsStageCdfAvailable(u32 stageIndex)
 {
     enum { FILE_SYSTEM_STAGE_CDF_ABSENT = 0 };
 
-    return Fs_StageCdfSectors[(u8)stageIndex] != FILE_SYSTEM_STAGE_CDF_ABSENT;
+    return gFsStageCdfBaseSectors[(u8)stageIndex] != FILE_SYSTEM_STAGE_CDF_ABSENT;
 }

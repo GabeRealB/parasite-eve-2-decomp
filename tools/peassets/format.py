@@ -173,7 +173,7 @@ class FileChunkHeader:
     chunk_type: FileChunkType
     end_flag: FileChunkEndFlag
     # Exclusive end offset within the CD sector buffer (usually 0x800).
-    # Loader: gFsLzssInputEnd = Fs_CdSector.bytes + sector_len.
+    # Loader: gFsLzssInputEnd = gFsSectorBuffers.sector.bytes + sector_len.
     sector_len: int
     chunk_size: int  # bytes, includes header
     # RAM dest for room_pkg / cap2 (Fs FileChunkHeader.loadAddr); 0 otherwise.

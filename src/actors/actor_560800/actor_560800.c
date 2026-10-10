@@ -6245,9 +6245,9 @@ static void _actor560800SwapSceneTextureStrip(void)
     sourceRect.w = ACTOR_560800_TEXTURE_STRIP_WIDTH_WORDS;
     sourceRect.h = ACTOR_560800_TEXTURE_STRIP_HEIGHT_ROWS;
     MoveImage(&sourceRect, ACTOR_560800_TEXTURE_STRIP_DESTINATION_X, ACTOR_560800_TEXTURE_STRIP_DESTINATION_Y);
-    D5B498_8006C234 = ACTOR_560800_REPLACEMENT_PALETTE_ROW_SHIFT;
-    fsUploadImageChunk(D_8006C338[ACTOR_560800_REPLACEMENT_IMAGE_SLOT].data, true);
-    D5B498_8006C234 = 0;
+    gFsImageHeaderYShiftRows = ACTOR_560800_REPLACEMENT_PALETTE_ROW_SHIFT;
+    fsUploadImageChunk(gFsResourceSlots[ACTOR_560800_REPLACEMENT_IMAGE_SLOT].data, true);
+    gFsImageHeaderYShiftRows = 0;
 }
 
 /// Posts Kyle's next scene cue, replacing any pending cue.
@@ -6326,9 +6326,9 @@ static void _actor560800ReplaceEveBodyTask(Task* task)
             sourceRect.w = ACTOR_560800_EVE_TEXTURE_WIDTH_WORDS;
             sourceRect.h = ACTOR_560800_EVE_TEXTURE_HEIGHT_ROWS;
             MoveImage(&sourceRect, ACTOR_560800_EVE_TEXTURE_DEST_X, ACTOR_560800_EVE_TEXTURE_DEST_Y);
-            D5B498_8006C234 = ACTOR_560800_EVE_PALETTE_ROW_SHIFT;
-            fsUploadImageChunk(D_8006C338[ACTOR_560800_EVE_IMAGE_SLOT].data, true);
-            D5B498_8006C234 = 0;
+            gFsImageHeaderYShiftRows = ACTOR_560800_EVE_PALETTE_ROW_SHIFT;
+            fsUploadImageChunk(gFsResourceSlots[ACTOR_560800_EVE_IMAGE_SLOT].data, true);
+            gFsImageHeaderYShiftRows = 0;
             taskKill(task);
             displayResumeGameLoop();
             work->eve = taskSpawnFromTableOnDefaultList(gActor560800CutsceneTaskDescriptors, ACTOR_560800_TASK_EVE_REPLACEMENT, 1, _gActor560800CutsceneTask);

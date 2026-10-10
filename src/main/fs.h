@@ -9,17 +9,42 @@
 #include "fs_types.h"
 #include "main/text.h"
 
-extern s32 Fs_ReqSector;
+/// Absolute CD sector expected by the next filesystem or sound-bank ready callback.
+///
+/// Read setup selects the start; accepting a sector advances it before payload
+/// processing. A retry can decrement it to repeat the sector. Recovery resumes
+/// at this cursor; it is not the last sector received or a CDF-relative offset.
+extern s32 gFsNextReadSector;
 
-extern s32 Fs_VBlank;
+/// VBlank counter sample for the current CD operation's timeout interval.
+///
+/// Starting/reissuing a read or accepting progress refreshes it with `VSync(-1)`.
+/// The timeout handler restarts pending/resuming operations after 180 VBlanks;
+/// it retains the original signed counter arithmetic and comparison.
+extern s32 gFsCdProgressVBlank;
 
-extern u8 Fs_ChunkMode;
+/// Modulo-256 count of errors since the last accepted read-start or seek completion.
+///
+/// Shared CDF and sound-bank callbacks increment it for drive/position errors;
+/// read-start/seek success clears it. It neither sets a retry limit nor saturates.
+extern u8 gFsCdErrorCount;
 
-extern u8 Fs_CdErrorCount;
+/// Absolute starting sectors of STAGE0.CDF through STAGE5.CDF on the scanned disc.
+///
+/// Zero marks an absent CDF. ISO discovery clears all six entries and publishes
+/// discovered LBAs; file/folder/stream offsets add the selected stage's base.
+/// Requests require stage indices 0..5 and a present file. Cached until a new
+/// disc-directory scan, with no ownership of the disc contents.
+extern s32 gFsStageCdfBaseSectors[FS_CDF_STAGE_COUNT];
 
-extern s32 Fs_StageCdfSectors[FS_CDF_STAGE_COUNT];
-
-extern FsSector Fs_CdSector;
+/// Resident two-sector scratch storage shared by filesystem and CD audio reads.
+///
+/// `sector` is overwritten by the next header/directory/chunk/payload read;
+/// `clutContinuation` retains its bytes until a two-sector CLUT replaces them.
+/// CLUT decoding spans both sectors. Audio borrows the whole allocation for
+/// its 16-byte-offset, 2048-byte SPU transfer, including the retained trailing
+/// 16 bytes. Finish CD/decode/SPU consumers before another operation reuses it.
+extern FsSectorBuffers gFsSectorBuffers;
 
 extern s16 Fs_BootLoadSlot;
 
@@ -35,7 +60,12 @@ extern BootLoadDestination Fs_LoadParams;
 
 extern s16 D5B498_8006ACC0;
 
-extern s8 D5B498_8006C233;
+/// Signed X displacement of relocated image columns, in 64-halfword VRAM pages.
+///
+/// Applied only when a column's recorded Y is at least 256 or relocation mode
+/// is selected. File loading narrows its request to s8; scene-image uploads
+/// temporarily replace it. Complete-image headers do not use this displacement.
+extern s8 gFsImageXPageOffset;
 
 /// Zeroes the entire resident CD state, including requests and buffer pointers.
 ///
@@ -128,12 +158,69 @@ u16 cdSyncPollPause(void);
 /// that recovery state. Requires serialized drive use; command calls block.
 s16 cdSyncPollDiscRecovery(void);
 
-/// Status halfwords reported through `D5B498_8006D748` by `fsDecompressStream`.
+/// Shared LZSS status halfwords and initial history cursor.
 enum {
-    FILE_SYSTEM_STREAM_DECODE_NEEDS_INPUT  = 0,
-    FILE_SYSTEM_STREAM_DECODE_COMPLETE     = 1,
-    FILE_SYSTEM_STREAM_DECODE_SCRATCH_BUSY = 0xFFFF,
+    FILE_SYSTEM_LZSS_DECODE_NEEDS_INPUT  = 0,
+    FILE_SYSTEM_LZSS_DECODE_COMPLETE     = 1,
+    FILE_SYSTEM_LZSS_DECODE_SCRATCH_BUSY = 0xFFFF,
+    FILE_SYSTEM_LZSS_INITIAL_WRITE_INDEX = 1,
 };
+
+/// Shared decoder result (0 unfinished, 1 end token, 0xFFFF scratch stack busy).
+///
+/// Callers seed zero before a stream. Suspension leaves it unchanged; the
+/// resumable and complete-image decoders both write completion or refusal.
+/// Scratch refusal must be cleared before resuming an unfinished stream.
+extern u16 gFsLzssDecodeStatus;
+
+/// Read-only compressed-byte cursor shared by both LZSS decoders.
+///
+/// The resumable decoder advances/saves it on suspension and completion; the
+/// complete-image decoder leaves the supplied base intact. Sources remain
+/// readable through their decode, including eager lookahead. The pointer itself
+/// is mutable; no decoder writes through it. Strip scanning also advances it.
+extern const u8* gFsLzssInputCursor;
+
+/// Next writable byte of a raw CDF payload or LZSS decoder destination.
+///
+/// Chunk setup selects borrowed RAM storage. Raw/bundle copies advance by bytes;
+/// stream decoding advances/saves it, while complete-image decoding retains
+/// its supplied base. The caller must establish writable capacity and preserve
+/// the storage through CD/decode/GPU completion; this cursor owns no allocation.
+extern u8* gFsPayloadWriteCursor;
+
+/// Saved interior program counter for an unfinished resumable LZSS token.
+///
+/// NULL starts at the next token flag. Otherwise the decoder restores its live
+/// state, clears this pointer, and jumps directly to it; it is not a C-callable
+/// callback. Keep the decoder code and saved state intact until completion.
+extern void* gFsLzssResumeAddress;
+
+/// Next write index (0..255) in the resumable decoder's scratchpad history ring.
+///
+/// Seed 1 for a new stream. Output advances it modulo 256; suspend/complete
+/// saves it. Stored at halfword width by the handwritten decoder.
+extern u16 gFsLzssRingWriteIndex;
+
+/// Number of unread bits (0..8) in the resumable decoder's loaded input byte.
+///
+/// Refills set 8 and token extraction subtracts consumed bits. A strip reset
+/// clears it; other new-stream paths clear the mask and refill before using it.
+/// Suspension preserves it, using halfword loads and stores.
+extern u16 gFsLzssUnreadBitCount;
+
+/// Last byte loaded by the resumable decoder, retained across input intervals.
+///
+/// Its value is 0..255, but assembly saves/restores a halfword. The cursor can
+/// already point at the next sector while this reservoir still supplies bits.
+/// New-stream setup clears it without clearing the scratchpad history.
+extern u16 gFsLzssInputByte;
+
+/// Low-bit mask of unread reservoir bits (0 or 2^n-1 for n=1..8).
+///
+/// Zero forces a byte refill; setup clears it, and suspension preserves it with
+/// the input byte/count. Stored at halfword width by the handwritten decoder.
+extern u16 gFsLzssUnreadBitMask;
 
 /// Exclusive byte boundary at which the sector-fed LZSS decoder suspends input.
 ///
@@ -146,7 +233,7 @@ extern const u8* gFsLzssInputEnd;
 
 /// Decodes an LZSS stream into RAM until its input boundary or end token.
 ///
-/// Set `Fs_ChunkReadPtr` to readable compressed bytes and `Fs_ChunkWritePtr` to
+/// Set `gFsLzssInputCursor` to readable compressed bytes and `gFsPayloadWriteCursor` to
 /// sufficient output storage. For sector-fed decoding, `gFsLzssInputEnd` is the
 /// exclusive end of the current nonempty input interval. Complete RAM streams
 /// may instead leave that boundary outside the addresses their cursor reaches.
@@ -158,9 +245,9 @@ extern const u8* gFsLzssInputEnd;
 /// when aligned. Complete RAM input needs one byte of readable lookahead; the
 /// boundary must not cause suspension before the end token is processed.
 ///
-/// Before a new stream, clear `D5B498_8006EBB0` (unread-bit mask),
-/// `D5B498_8006EA1A` (input byte), `D5B498_8006D850` (resume address) and
-/// `D5B498_8006D748` (status), and set `D5B498_8006D858` (ring write index) to 1.
+/// Before a new stream, clear `gFsLzssUnreadBitMask` (unread-bit mask),
+/// `gFsLzssInputByte` (input byte), `gFsLzssResumeAddress` (resume address) and
+/// `gFsLzssDecodeStatus` (status), and set `gFsLzssRingWriteIndex` (ring write index) to 1.
 /// Other saved token fields are initialized as decoding reaches them.
 /// Both byte cursors are saved on suspension or completion. On NEEDS_INPUT the
 /// last loaded byte and partial token are saved: supply the next nonempty input
@@ -176,16 +263,10 @@ extern const u8* gFsLzssInputEnd;
 /// References to unwritten ring slots require valid prior contents.
 void fsDecompressStream(void);
 
-/// Status halfwords produced by `fsDecompressImagePayload`.
-enum {
-    FILE_SYSTEM_IMAGE_DECODE_COMPLETE     = 1,
-    FILE_SYSTEM_IMAGE_DECODE_SCRATCH_BUSY = 0xFFFF,
-};
-
 /// Decodes one complete image/CLUT LZSS payload into caller-provided RAM.
 ///
-/// Set `Fs_ChunkReadPtr` to the compressed bytes after the image header and
-/// `Fs_ChunkWritePtr` to storage for the entire decoded payload. Input must
+/// Set `gFsLzssInputCursor` to the compressed bytes after the image header and
+/// `gFsPayloadWriteCursor` to storage for the entire decoded payload. Input must
 /// contain a zero-offset end token and allow one byte of lookahead; neither
 /// input nor output bounds are checked. Both global pointers are left intact.
 ///
@@ -193,13 +274,13 @@ enum {
 /// The ring is not cleared: references to unwritten slots require valid prior
 /// contents. The initialized scratch-stack cursor must have a byte offset
 /// greater than 256; otherwise no payload is read or written. Reports
-/// FILE_SYSTEM_IMAGE_DECODE_COMPLETE or FILE_SYSTEM_IMAGE_DECODE_SCRATCH_BUSY
-/// through `D5B498_8006D748`. Decoding is synchronous and does not upload to VRAM.
+/// FILE_SYSTEM_LZSS_DECODE_COMPLETE or FILE_SYSTEM_LZSS_DECODE_SCRATCH_BUSY
+/// through `gFsLzssDecodeStatus`. Decoding is synchronous and does not upload to VRAM.
 void fsDecompressImagePayload(void);
 
 /// Builds folder sector offsets from the mounted stage's first CDF sector.
 ///
-/// The caller must already have read that sector into `Fs_CdSector`.
+/// The caller must already have read that sector into `gFsSectorBuffers`.
 /// `unusedStageIndex` is ignored. Input ends at a zero sectorCount and must fit
 /// the 50-record runtime table; later folder requests require matching IDs.
 void fsInitFolderTable(s32 unusedStageIndex);
@@ -208,8 +289,8 @@ void fsInitFolderTable(s32 unusedStageIndex);
 ///
 /// Uses the low byte of `stageIndex`, which must be in 1..5 and name a CDF on
 /// the current disc. Requires serialized access in sector-header mode. Resets
-/// image load mode/slot state; starts one raw sector asynchronously. Poll
-/// `Fs_CdOpStatus` (0xFF done, 0x80 restart), then call `fsInitFolderTable`.
+/// chunk policy/load-bank state; starts one raw sector asynchronously. Poll
+/// `gFsCdOperationStatus` (0xFF done, 0x80 restart), then call `fsInitFolderTable`.
 void fsStartStageFolderListRead(s32 stageIndex);
 
 /// Starts rebuilding the STAGE0 file/stream tables from its HED asynchronously.
@@ -217,7 +298,7 @@ void fsStartStageFolderListRead(s32 stageIndex);
 /// Requires sector-header mode, the ISO scan's HED and STAGE0.CDF sectors,
 /// and no competing transfer.
 /// Resets append counts without clearing table storage, then reads until the
-/// HED terminator. Poll `Fs_CdOpStatus` for completion (0xFF) or restart (0x80).
+/// HED terminator. Poll `gFsCdOperationStatus` for completion (0xFF) or restart (0x80).
 /// Records must fit wholly within a sector and their destination table; indexed
 /// file IDs and compact sector offsets must fit their table/halfword domains.
 void fsStartStage0HeaderRead(void);
@@ -258,7 +339,7 @@ void cdSyncStopDisc(void);
 ///
 /// Returns GAME_MAIN_DISC_1 for stages 1/2, GAME_MAIN_DISC_2 for stages 4/5,
 /// and GAME_MAIN_DISC_UNKNOWN when available or when no disc is selected by
-/// those stage rules. Requires a stage index within `Fs_StageCdfSectors`.
+/// those stage rules. Requires a stage index within `gFsStageCdfBaseSectors`.
 s32 fsGetRequiredStageDisc(void);
 
 /// Finds the game files and disc number in the disc's ISO directory sector.
@@ -341,8 +422,8 @@ s32 fsLoadFile(const FsFileLoadKey* fileKey, s32 loadMode, s32 imageXPageOffset,
 /// Uses the arguments' low bytes: `stageIndex` must name a mounted stage CDF
 /// (1..5) and `fileGroup * 100 + folderIndex` must exist in its folder table.
 /// Clears resource kinds, stream start sectors and bundle redirect state without
-/// releasing storage. Starts one raw sector into `Fs_CdSector`; requires serialized
-/// sector-header reads. Poll `Fs_CdOpStatus` (0xFF done, 0x80 restart), then build
+/// releasing storage. Starts one raw sector into `gFsSectorBuffers`; requires serialized
+/// sector-header reads. Poll `gFsCdOperationStatus` (0xFF done, 0x80 restart), then build
 /// the file/stream tables with `fsBuildFolderTables`.
 void fsStartFolderDirectoryRead(s32 stageIndex, s32 fileGroup, s32 folderIndex);
 
@@ -405,7 +486,7 @@ void gameFlowStepLoadScreenPresentation(TextStream* primaryCaption, TextStream* 
 
 /// Validates and feeds whole CD sectors to the active sound-bank sequence load.
 ///
-/// Install after `sndLoadBeginSectorLoad`, with `Fs_ReqSector` set to the first
+/// Install after `sndLoadBeginSectorLoad`, with `gFsNextReadSector` set to the first
 /// absolute sector. The borrowed payload buffer must be word-aligned, writable
 /// for 2048 bytes and remain live until its SPU DMA finishes. Selects polling
 /// uploads. Every interrupt except CdlDiskError reads a 12-byte header then the
