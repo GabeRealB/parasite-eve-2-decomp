@@ -63973,14 +63973,14 @@ entry). Indexing the copy by row instead - a 2-D array, or as here an array of
 
 ```c
 typedef struct { u8 u; u8 v; } _OptionsKeyIconUv;
-typedef struct { _OptionsKeyIconUv icons[8]; } _OptionsKeyIconUvs;
-typedef union { TextDrawReq labelRequest; _OptionsKeyIconUvs iconUvs; } _OptionsKeyConfigStackSlot;
+static const _OptionsKeyIconUv _gOptionsKeyIconUvs[8];
+typedef union { TextDrawReq labelRequest; _OptionsKeyIconUv iconUvs[ARRAY_SIZE(_gOptionsKeyIconUvs)]; } _OptionsKeyConfigStackSlot;
 ...
 do {
-    finalBattleLabelAndIconSlot.iconUvs = Options_KeyIconUvs;   /* per-iteration copy: 1 insn + high */
+    __builtin_memcpy(&finalBattleLabelAndIconSlot.iconUvs, _gOptionsKeyIconUvs, sizeof(_gOptionsKeyIconUvs));   /* per-iteration copy: 1 insn + high */
     ...
-    iconSprite->u0 = finalBattleLabelAndIconSlot.iconUvs.icons[iconRowIndex].u;
-    iconSprite->v0 = finalBattleLabelAndIconSlot.iconUvs.icons[iconRowIndex].v;     /* +1 folds into the mem offset */
+    iconSprite->u0 = finalBattleLabelAndIconSlot.iconUvs[iconRowIndex].u;
+    iconSprite->v0 = finalBattleLabelAndIconSlot.iconUvs[iconRowIndex].v;     /* +1 folds into the mem offset */
     ...
 } while (++iconRowIndex < OPTIONS_KEY_ASSIGNMENT_ROWS);
 ```
