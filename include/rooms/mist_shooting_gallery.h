@@ -61,9 +61,21 @@ extern UiObjectDesc D_mist_shooting_gallery_80184F70;
 // mist_shooting_gallery
 extern WorldCollisionRoomResources D_mist_shooting_gallery_801853A8[];
 
-extern u8* D_mist_shooting_gallery_801853B8[];
+/// Logical-view mapping for the gallery's single room.
+///
+/// Indexed by the 1-based room ID minus one; only room 1 is valid. Its borrowed
+/// `gViewIdentityMap` maps logical views 1..18 to the same camera/image indices.
+/// The Acropolis map directory borrows this array while the gallery is loaded;
+/// the gameplay-owned byte map has its own larger capacity and no terminator.
+extern u8* gMistShootingGalleryViewMaps[1];
 
-extern ViewCount D_mist_shooting_gallery_801853BC[];
+/// Logical-view count searched by the gallery's reverse view lookup.
+///
+/// Indexed by the 1-based room ID minus one; room 1 has 18 views. The retained
+/// second element is zero, not a terminator or a second supported room. Counts
+/// are signed halfword element counts, independent of the identity map's capacity.
+/// The Acropolis map directory borrows this array while the gallery is loaded.
+extern ViewCount gMistShootingGalleryViewCounts[2];
 
 /// Light collection and per-view ambient minima for the gallery's single room.
 ///

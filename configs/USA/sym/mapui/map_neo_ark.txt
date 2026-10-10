@@ -299,7 +299,7 @@ D_neo_ark_submarine_gallery_801854FC = 0x801854FC; // absolute:True owner=neo_ar
 D_neo_ark_submarine_gallery_801858EC = 0x801858EC; // absolute:True owner=neo_ark_submarine_gallery shared=rooms
 neoArkR31RoomTask = 0x8017D990; // type:func absolute:True owner=neo_ark_r31 shared=rooms
 gNeoArkR31ViewMaps = 0x8017DA1C; // absolute:True owner=neo_ark_r31 shared=rooms
-D_neo_ark_r31_8017DA20 = 0x8017DA20; // absolute:True owner=neo_ark_r31 shared=rooms
+D_neo_ark_r31_8017DA20 = 0x8017DA20; // absolute:True owner=neo_ark_r31
 D_neo_ark_r31_8017DA24 = 0x8017DA24; // absolute:True owner=neo_ark_r31
 D_neo_ark_r31_8017DA5C = 0x8017DA5C; // absolute:True owner=neo_ark_r31 shared=rooms
 D_neo_ark_r31_8017DAF8 = 0x8017DAF8; // absolute:True owner=neo_ark_r31

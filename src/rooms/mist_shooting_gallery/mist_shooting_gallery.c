@@ -207,35 +207,35 @@ static void _mistShootingGalleryModeSplashTask(Task* task);
 static void _mistShootingGalleryClearMovieTask(Task* task);
 static void _mistShootingGalleryMovieSessionTask(Task* task);
 
-extern const char D_mist_shooting_gallery_8017D86C[22];
-extern const char D_mist_shooting_gallery_8017D884[19];
-extern const char D_mist_shooting_gallery_8017D898[14];
-extern const char D_mist_shooting_gallery_8017D8A8[26];
-extern const char D_mist_shooting_gallery_8017D8C4[24];
-extern const char D_mist_shooting_gallery_8017D8DC[17];
-extern const char D_mist_shooting_gallery_8017D8F0[23];
-extern const char D_mist_shooting_gallery_8017D908[17];
-extern const char D_mist_shooting_gallery_8017D91C[16];
-extern const char D_mist_shooting_gallery_8017D92C[15];
-extern const char D_mist_shooting_gallery_8017D93C[24];
-extern const char D_mist_shooting_gallery_8017D954[11];
-extern const char D_mist_shooting_gallery_8017D960[27];
-extern const char D_mist_shooting_gallery_8017D97C[11];
-extern const char D_mist_shooting_gallery_8017D988[17];
-extern const char D_mist_shooting_gallery_8017D99C[14];
-extern const char D_mist_shooting_gallery_8017D9AC[11];
-extern const char D_mist_shooting_gallery_8017D9B8[13];
-extern const char D_mist_shooting_gallery_8017D9C8[23];
-extern const char D_mist_shooting_gallery_8017D9E0[13];
-extern const char D_mist_shooting_gallery_8017D9F0[17];
-extern const char D_mist_shooting_gallery_8017DA04[16];
-extern const char D_mist_shooting_gallery_8017DA14[12];
-extern const char D_mist_shooting_gallery_8017DA20[20];
-extern const char D_mist_shooting_gallery_8017DA34[17];
-extern const char D_mist_shooting_gallery_8017DA48[19];
-extern const char D_mist_shooting_gallery_8017DA5C[24];
-extern const char D_mist_shooting_gallery_8017DA74[19];
-extern const char D_mist_shooting_gallery_8017DA88[27];
+static const char _gMistShootingGalleryJukeboxRow3HeavenSentKillerLabel[];
+static const char _gMistShootingGalleryJukeboxRow2EagerForBloodLabel[];
+static const char _gMistShootingGalleryJukeboxRow1CrazyKingLabel[];
+static const char _gMistShootingGalleryJukeboxRow3CrawlingWasteEmperorLabel[];
+static const char _gMistShootingGalleryJukeboxRow2PickUpTheGauntletLabel[];
+static const char _gMistShootingGalleryJukeboxRow3HuntersMoonLabel[];
+static const char _gMistShootingGalleryJukeboxRow2QuadrumanousLeaderLabel[];
+static const char _gMistShootingGalleryJukeboxRow3GenicReactorLabel[];
+static const char _gMistShootingGalleryJukeboxRow2RebelForcesLabel[];
+static const char _gMistShootingGalleryJukeboxRow1YellowRainLabel[];
+static const char _gMistShootingGalleryJukeboxRow3PickUpTheGauntletLabel[];
+static const char _gMistShootingGalleryJukeboxRow2AmbushLabel[];
+static const char _gMistShootingGalleryJukeboxRow4DarkVoiceOfTheHeartLabel[];
+static const char _gMistShootingGalleryJukeboxRow3RequiemLabel[];
+static const char _gMistShootingGalleryJukeboxRow2RockAndFireLabel[];
+static const char _gMistShootingGalleryJukeboxRow1GhostTownLabel[];
+static const char _gMistShootingGalleryJukeboxRow4SnooperLabel[];
+static const char _gMistShootingGalleryJukeboxRow3WildHuntLabel[];
+static const char _gMistShootingGalleryJukeboxRow2LightningOperationLabel[];
+static const char _gMistShootingGalleryJukeboxRow1LAMazeLabel[];
+static const char _gMistShootingGalleryJukeboxRow4GenicReactorLabel[];
+static const char _gMistShootingGalleryJukeboxRow3MentalAgonyLabel[];
+static const char _gMistShootingGalleryJukeboxRow2WishwashLabel[];
+static const char _gMistShootingGalleryJukeboxRow1CurseYourFateLabel[];
+static const char _gMistShootingGalleryJukeboxRow4KillingFieldLabel[];
+static const char _gMistShootingGalleryJukeboxRow3FoolsParadiseLabel[];
+static const char _gMistShootingGalleryJukeboxRow2GazingIntoTheVoidLabel[];
+static const char _gMistShootingGalleryJukeboxRow1ManMadeNatureLabel[];
+static const char _gMistShootingGalleryJukeboxRow4LazingAwayTheMorningLabel[];
 extern const char D_mist_shooting_gallery_8017DAA4[18];
 extern const char D_mist_shooting_gallery_8017DAB8[16];
 extern const char D_mist_shooting_gallery_8017DAC8[20];
@@ -766,68 +766,68 @@ static s16* _gMistShootingGalleryCollision07C38Table[1] = {
 WorldCollisionGrid D_mist_shooting_gallery_801851F8 = { NULL, _gMistShootingGalleryCollision07C38Normals, _gMistShootingGalleryCollision07C38Verts, _gMistShootingGalleryCollision07C38Faces, _gMistShootingGalleryCollision07C38Table, 6500, -3680, 1, 1, 4000, 1 };
 
 JukeboxTrack gJukeboxTracksAttach0[3] = {
-    { 20, D_mist_shooting_gallery_8017D898 },
-    { 23, D_mist_shooting_gallery_8017D884 },
-    { 49, D_mist_shooting_gallery_8017D86C },
+    { 20, _gMistShootingGalleryJukeboxRow1CrazyKingLabel },
+    { 23, _gMistShootingGalleryJukeboxRow2EagerForBloodLabel },
+    { 49, _gMistShootingGalleryJukeboxRow3HeavenSentKillerLabel },
 };
 
 JukeboxTrack gJukeboxTracksAttach1[3] = {
-    { 20, D_mist_shooting_gallery_8017D898 },
-    { 60, D_mist_shooting_gallery_8017D8C4 },
-    { 66, D_mist_shooting_gallery_8017D8A8 },
+    { 20, _gMistShootingGalleryJukeboxRow1CrazyKingLabel },
+    { 60, _gMistShootingGalleryJukeboxRow2PickUpTheGauntletLabel },
+    { 66, _gMistShootingGalleryJukeboxRow3CrawlingWasteEmperorLabel },
 };
 
 JukeboxTrack gJukeboxTracksAttach2[3] = {
-    { 20, D_mist_shooting_gallery_8017D898 },
-    { 22, D_mist_shooting_gallery_8017D8F0 },
-    { 74, D_mist_shooting_gallery_8017D8DC },
+    { 20, _gMistShootingGalleryJukeboxRow1CrazyKingLabel },
+    { 22, _gMistShootingGalleryJukeboxRow2QuadrumanousLeaderLabel },
+    { 74, _gMistShootingGalleryJukeboxRow3HuntersMoonLabel },
 };
 
 JukeboxTrack gJukeboxTracksAttach3[3] = {
-    { 67, D_mist_shooting_gallery_8017D92C },
-    { 82, D_mist_shooting_gallery_8017D91C },
-    { 93, D_mist_shooting_gallery_8017D908 },
+    { 67, _gMistShootingGalleryJukeboxRow1YellowRainLabel },
+    { 82, _gMistShootingGalleryJukeboxRow2RebelForcesLabel },
+    { 93, _gMistShootingGalleryJukeboxRow3GenicReactorLabel },
 };
 
 JukeboxTrack gJukeboxTracksAttach4[3] = {
-    { 20, D_mist_shooting_gallery_8017D898 },
-    { 21, D_mist_shooting_gallery_8017D954 },
-    { 60, D_mist_shooting_gallery_8017D93C },
+    { 20, _gMistShootingGalleryJukeboxRow1CrazyKingLabel },
+    { 21, _gMistShootingGalleryJukeboxRow2AmbushLabel },
+    { 60, _gMistShootingGalleryJukeboxRow3PickUpTheGauntletLabel },
 };
 
 JukeboxTrack gJukeboxTracks0[4] = {
-    { 41, D_mist_shooting_gallery_8017D99C },
-    { 45, D_mist_shooting_gallery_8017D988 },
-    { 58, D_mist_shooting_gallery_8017D97C },
-    { 61, D_mist_shooting_gallery_8017D960 },
+    { 41, _gMistShootingGalleryJukeboxRow1GhostTownLabel },
+    { 45, _gMistShootingGalleryJukeboxRow2RockAndFireLabel },
+    { 58, _gMistShootingGalleryJukeboxRow3RequiemLabel },
+    { 61, _gMistShootingGalleryJukeboxRow4DarkVoiceOfTheHeartLabel },
 };
 
 JukeboxTrack gJukeboxTracks1[4] = {
-    { 35, D_mist_shooting_gallery_8017D9E0 },
-    { 36, D_mist_shooting_gallery_8017D9C8 },
-    { 42, D_mist_shooting_gallery_8017D9B8 },
-    { 44, D_mist_shooting_gallery_8017D9AC },
+    { 35, _gMistShootingGalleryJukeboxRow1LAMazeLabel },
+    { 36, _gMistShootingGalleryJukeboxRow2LightningOperationLabel },
+    { 42, _gMistShootingGalleryJukeboxRow3WildHuntLabel },
+    { 44, _gMistShootingGalleryJukeboxRow4SnooperLabel },
 };
 
 JukeboxTrack gJukeboxTracks2[4] = {
-    { 31, D_mist_shooting_gallery_8017DA20 },
-    { 59, D_mist_shooting_gallery_8017DA14 },
-    { 89, D_mist_shooting_gallery_8017DA04 },
-    { 93, D_mist_shooting_gallery_8017D9F0 },
+    { 31, _gMistShootingGalleryJukeboxRow1CurseYourFateLabel },
+    { 59, _gMistShootingGalleryJukeboxRow2WishwashLabel },
+    { 89, _gMistShootingGalleryJukeboxRow3MentalAgonyLabel },
+    { 93, _gMistShootingGalleryJukeboxRow4GenicReactorLabel },
 };
 
 JukeboxTrack gJukeboxTracks3[4] = {
-    { 76, D_mist_shooting_gallery_8017DA74 },
-    { 77, D_mist_shooting_gallery_8017DA5C },
-    { 78, D_mist_shooting_gallery_8017DA48 },
-    { 83, D_mist_shooting_gallery_8017DA34 },
+    { 76, _gMistShootingGalleryJukeboxRow1ManMadeNatureLabel },
+    { 77, _gMistShootingGalleryJukeboxRow2GazingIntoTheVoidLabel },
+    { 78, _gMistShootingGalleryJukeboxRow3FoolsParadiseLabel },
+    { 83, _gMistShootingGalleryJukeboxRow4KillingFieldLabel },
 };
 
 JukeboxTrack gJukeboxTracks4[4] = {
     { 9, D_mist_shooting_gallery_8017DAC8 },
     { 43, D_mist_shooting_gallery_8017DAB8 },
     { 17, D_mist_shooting_gallery_8017DAA4 },
-    { 37, D_mist_shooting_gallery_8017DA88 },
+    { 37, _gMistShootingGalleryJukeboxRow4LazingAwayTheMorningLabel },
 };
 
 UiListRowCallback D_mist_shooting_gallery_80185334[1] = {
@@ -850,11 +850,12 @@ WorldCollisionRoomResources D_mist_shooting_gallery_801853A8[1] = {
     { &gMistShootingGalleryCollisionGrid, D_mist_shooting_gallery_8018BDE8, D_mist_shooting_gallery_8018C638, NULL },
 };
 
-u8* D_mist_shooting_gallery_801853B8[1] = {
+u8* gMistShootingGalleryViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_mist_shooting_gallery_801853BC[2] = { 18, 0 };
+enum { MIST_SHOOTING_GALLERY_LOGICAL_VIEW_COUNT = 18 };
+ViewCount gMistShootingGalleryViewCounts[2] = { MIST_SHOOTING_GALLERY_LOGICAL_VIEW_COUNT, 0 };
 
 WorldCoordRoomLighting gMistShootingGalleryRoomLightingTable[1] = {
     {
@@ -873,7 +874,14 @@ DirectionWarpEntry D_mist_shooting_gallery_801853C8[7] = {
     { { { .word = 0 }, -8000, 0, -720 }, { 0, 0, 0, 0 }, { { .word = 0 }, -8000, 0, -720 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 15, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-SVECTOR D_mist_shooting_gallery_80185550[45] = {
+/// Fixed world-space points for the gallery's view-selected light glows.
+///
+/// Capsules borrow adjacent pairs starting at even indices 0..28; discs borrow
+/// individual points 36..44. Points 2..3, 12..13 and 30..35 are retained but not
+/// selected by the current view cases. XYZ are signed room-coordinate units;
+/// the fourth halfword is unused. The drawers only read this 45-point table.
+/// Its section keeps the room's fixed data layout while making it read-only in C.
+static const SVECTOR _gMistShootingGalleryLightGlowPoints[45] __attribute__((section(".data"))) = {
     { -11000, -2930, 5580, 0 },
     { -11000, -2930, 4420, 0 },
     { -11000, -2930, 2580, 0 },
@@ -2077,42 +2085,67 @@ static const TaskFuncTable3 D_mist_shooting_gallery_8017D860 = {
     { _mistShootingGalleryInitRoomTask, _mistShootingGalleryUpdateRoomTask, taskKill },
 };
 
-/// The jukebox's track names ("1. Crazy King", ...), reached only through the
-/// track lists in `.data`.
-/// Numbered names the room lists. Nothing in the code refers to them: the
-/// room's data holds them in records that pair each with a small number.
-const char D_mist_shooting_gallery_8017D86C[] = "3. Heaven-sent Killer";
-const char D_mist_shooting_gallery_8017D884[] = "2. Eager For Blood";
-const char D_mist_shooting_gallery_8017D898[] = "1. Crazy King";
-const char D_mist_shooting_gallery_8017D8A8[] = "3. Crawling Waste Emperor";
-const char D_mist_shooting_gallery_8017D8C4[] = "2. Pick Up The Gauntlet";
-const char D_mist_shooting_gallery_8017D8DC[] = "3. Hunter's Moon";
-const char D_mist_shooting_gallery_8017D8F0[] = "2. Quadrumanous Leader";
-const char D_mist_shooting_gallery_8017D908[] = "3. Genic Reactor";
-const char D_mist_shooting_gallery_8017D91C[] = "2. Rebel Forces";
-const char D_mist_shooting_gallery_8017D92C[] = "1. Yellow Rain";
-const char D_mist_shooting_gallery_8017D93C[] = "3. Pick Up The Gauntlet";
-const char D_mist_shooting_gallery_8017D954[] = "2. Ambush!";
-const char D_mist_shooting_gallery_8017D960[] = "4. Dark Voice Of The Heart";
-const char D_mist_shooting_gallery_8017D97C[] = "3. Requiem";
-const char D_mist_shooting_gallery_8017D988[] = "2. Rock And Fire";
-const char D_mist_shooting_gallery_8017D99C[] = "1. Ghost Town";
-const char D_mist_shooting_gallery_8017D9AC[] = "4. Snooper";
-const char D_mist_shooting_gallery_8017D9B8[] = "3. Wild Hunt";
-const char D_mist_shooting_gallery_8017D9C8[] = "2. Lightning Operation";
-const char D_mist_shooting_gallery_8017D9E0[] = "1. L.A. Maze";
-const char D_mist_shooting_gallery_8017D9F0[] = "4. Genic Reactor";
-const char D_mist_shooting_gallery_8017DA04[] = "3. Mental Agony";
-const char D_mist_shooting_gallery_8017DA14[] = "2. Wishwash";
-const char D_mist_shooting_gallery_8017DA20[] = "1. Curse Your Fate!";
-const char D_mist_shooting_gallery_8017DA34[] = "4. Killing Field";
-const char D_mist_shooting_gallery_8017DA48[] = "3. Fool's Paradise";
-const char D_mist_shooting_gallery_8017DA5C[] = "2. Gazing into The Void";
-const char D_mist_shooting_gallery_8017DA74[] = "1. Man Made Nature";
-const char D_mist_shooting_gallery_8017DA88[] = "4. Lazing Away the Morning";
-const char D_mist_shooting_gallery_8017DAA4[] = "3. Out Of Phase 2";
-const char D_mist_shooting_gallery_8017DAB8[] = "2. The Vagrants";
-const char D_mist_shooting_gallery_8017DAC8[] = "1. Tower Rendezvous";
+/// Numbered jukebox row 3 label for MIDI sequence 49.
+static const char _gMistShootingGalleryJukeboxRow3HeavenSentKillerLabel[] = "3. Heaven-sent Killer";
+/// Numbered jukebox row 2 label for MIDI sequence 23.
+static const char _gMistShootingGalleryJukeboxRow2EagerForBloodLabel[] = "2. Eager For Blood";
+/// Numbered jukebox row 1 label for MIDI sequence 20.
+static const char _gMistShootingGalleryJukeboxRow1CrazyKingLabel[] = "1. Crazy King";
+/// Numbered jukebox row 3 label for MIDI sequence 66.
+static const char _gMistShootingGalleryJukeboxRow3CrawlingWasteEmperorLabel[] = "3. Crawling Waste Emperor";
+/// Numbered jukebox row 2 label for MIDI sequence 60.
+static const char _gMistShootingGalleryJukeboxRow2PickUpTheGauntletLabel[] = "2. Pick Up The Gauntlet";
+/// Numbered jukebox row 3 label for MIDI sequence 74.
+static const char _gMistShootingGalleryJukeboxRow3HuntersMoonLabel[] = "3. Hunter's Moon";
+/// Numbered jukebox row 2 label for MIDI sequence 22.
+static const char _gMistShootingGalleryJukeboxRow2QuadrumanousLeaderLabel[] = "2. Quadrumanous Leader";
+/// Numbered jukebox row 3 label for MIDI sequence 93.
+static const char _gMistShootingGalleryJukeboxRow3GenicReactorLabel[] = "3. Genic Reactor";
+/// Numbered jukebox row 2 label for MIDI sequence 82.
+static const char _gMistShootingGalleryJukeboxRow2RebelForcesLabel[] = "2. Rebel Forces";
+/// Numbered jukebox row 1 label for MIDI sequence 67.
+static const char _gMistShootingGalleryJukeboxRow1YellowRainLabel[] = "1. Yellow Rain";
+/// Numbered jukebox row 3 label for MIDI sequence 60.
+static const char _gMistShootingGalleryJukeboxRow3PickUpTheGauntletLabel[] = "3. Pick Up The Gauntlet";
+/// Numbered jukebox row 2 label for MIDI sequence 21.
+static const char _gMistShootingGalleryJukeboxRow2AmbushLabel[] = "2. Ambush!";
+/// Numbered jukebox row 4 label for MIDI sequence 61.
+static const char _gMistShootingGalleryJukeboxRow4DarkVoiceOfTheHeartLabel[] = "4. Dark Voice Of The Heart";
+/// Numbered jukebox row 3 label for MIDI sequence 58.
+static const char _gMistShootingGalleryJukeboxRow3RequiemLabel[] = "3. Requiem";
+/// Numbered jukebox row 2 label for MIDI sequence 45.
+static const char _gMistShootingGalleryJukeboxRow2RockAndFireLabel[] = "2. Rock And Fire";
+/// Numbered jukebox row 1 label for MIDI sequence 41.
+static const char _gMistShootingGalleryJukeboxRow1GhostTownLabel[] = "1. Ghost Town";
+/// Numbered jukebox row 4 label for MIDI sequence 44.
+static const char _gMistShootingGalleryJukeboxRow4SnooperLabel[] = "4. Snooper";
+/// Numbered jukebox row 3 label for MIDI sequence 42.
+static const char _gMistShootingGalleryJukeboxRow3WildHuntLabel[] = "3. Wild Hunt";
+/// Numbered jukebox row 2 label for MIDI sequence 36.
+static const char _gMistShootingGalleryJukeboxRow2LightningOperationLabel[] = "2. Lightning Operation";
+/// Numbered jukebox row 1 label for MIDI sequence 35.
+static const char _gMistShootingGalleryJukeboxRow1LAMazeLabel[] = "1. L.A. Maze";
+/// Numbered jukebox row 4 label for MIDI sequence 93.
+static const char _gMistShootingGalleryJukeboxRow4GenicReactorLabel[] = "4. Genic Reactor";
+/// Numbered jukebox row 3 label for MIDI sequence 89.
+static const char _gMistShootingGalleryJukeboxRow3MentalAgonyLabel[] = "3. Mental Agony";
+/// Numbered jukebox row 2 label for MIDI sequence 59.
+static const char _gMistShootingGalleryJukeboxRow2WishwashLabel[] = "2. Wishwash";
+/// Numbered jukebox row 1 label for MIDI sequence 31.
+static const char _gMistShootingGalleryJukeboxRow1CurseYourFateLabel[] = "1. Curse Your Fate!";
+/// Numbered jukebox row 4 label for MIDI sequence 83.
+static const char _gMistShootingGalleryJukeboxRow4KillingFieldLabel[] = "4. Killing Field";
+/// Numbered jukebox row 3 label for MIDI sequence 78.
+static const char _gMistShootingGalleryJukeboxRow3FoolsParadiseLabel[] = "3. Fool's Paradise";
+/// Numbered jukebox row 2 label for MIDI sequence 77.
+static const char _gMistShootingGalleryJukeboxRow2GazingIntoTheVoidLabel[] = "2. Gazing into The Void";
+/// Numbered jukebox row 1 label for MIDI sequence 76.
+static const char _gMistShootingGalleryJukeboxRow1ManMadeNatureLabel[] = "1. Man Made Nature";
+/// Numbered jukebox row 4 label for MIDI sequence 37.
+static const char _gMistShootingGalleryJukeboxRow4LazingAwayTheMorningLabel[] = "4. Lazing Away the Morning";
+const char        D_mist_shooting_gallery_8017DAA4[]                          = "3. Out Of Phase 2";
+const char        D_mist_shooting_gallery_8017DAB8[]                          = "2. The Vagrants";
+const char        D_mist_shooting_gallery_8017DAC8[]                          = "1. Tower Rendezvous";
 
 void mistShootingGalleryRoomTask(Task* task)
 {
@@ -2648,61 +2681,61 @@ void mistShootingGalleryDrawLightGlowsTask(Task* unused)
     mappedView = viewGetMappedIndex();
     switch (mappedView) {
         case 2:
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[0], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[8], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[10], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[0], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[8], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[10], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
             break;
         case 3:
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[4], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[6], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[14], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[16], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[18], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[4], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[6], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[14], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[16], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[18], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
             break;
         case 7:
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[14], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[16], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[18], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[20], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[14], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[16], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[18], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[20], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
             break;
         case 8:
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[24], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[24], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
             break;
         case 9:
         case 18:
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[20], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[22], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[26], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[28], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            glowDrawDisc(&D_mist_shooting_gallery_80185550[36], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&D_mist_shooting_gallery_80185550[44], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[20], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[22], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[26], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[28], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[36], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[44], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
             break;
         case 10:
-            glowDrawDisc(&D_mist_shooting_gallery_80185550[37], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&D_mist_shooting_gallery_80185550[39], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&D_mist_shooting_gallery_80185550[41], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&D_mist_shooting_gallery_80185550[43], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[37], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[39], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[41], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[43], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
             break;
         case 11:
-            glowDrawDisc(&D_mist_shooting_gallery_80185550[38], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&D_mist_shooting_gallery_80185550[39], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&D_mist_shooting_gallery_80185550[41], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&D_mist_shooting_gallery_80185550[42], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[38], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[39], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[41], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[42], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
             break;
         case 12:
-            glowDrawDisc(&D_mist_shooting_gallery_80185550[40], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&D_mist_shooting_gallery_80185550[41], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[40], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[41], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
             break;
         case 13:
-            glowDrawDisc(&D_mist_shooting_gallery_80185550[39], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[39], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
             break;
         case 14:
-            glowDrawDisc(&D_mist_shooting_gallery_80185550[36], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&D_mist_shooting_gallery_80185550[37], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&D_mist_shooting_gallery_80185550[39], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&D_mist_shooting_gallery_80185550[41], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&D_mist_shooting_gallery_80185550[43], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&D_mist_shooting_gallery_80185550[44], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[36], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[37], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[39], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[41], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[43], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[44], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
             break;
     }
 }

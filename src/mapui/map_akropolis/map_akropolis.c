@@ -808,7 +808,7 @@ static ViewCount* D_map_akropolis_8017AB70[20] = {
     gAcropolisWestElevatorHallViewCounts,
     gMistR18ViewCounts,
     D_mist_parking_801915C0,
-    D_mist_shooting_gallery_801853BC,
+    gMistShootingGalleryViewCounts,
 };
 
 ViewCountTable D_map_akropolis_8017ABC0 = { D_map_akropolis_8017AB70 };
@@ -858,7 +858,7 @@ static u8** D_map_akropolis_8017AC18[20] = {
     gAcropolisWestElevatorHallViewMaps,
     gMistR18ViewMaps,
     D_mist_parking_801915B0,
-    D_mist_shooting_gallery_801853B8,
+    gMistShootingGalleryViewMaps,
 };
 
 ViewIndexTable D_map_akropolis_8017AC68 = { D_map_akropolis_8017AC18 };

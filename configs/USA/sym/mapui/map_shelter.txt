@@ -403,7 +403,7 @@ shelter1fHeliportS4RoomTask = 0x8017D678; // type:func absolute:True owner=shelt
 D_shelter_1f_heliport_s4_8017D6F8 = 0x8017D6F8; // absolute:True owner=shelter_1f_heliport_s4 shared=rooms
 D_shelter_1f_heliport_s4_8017D6FC = 0x8017D6FC; // absolute:True owner=shelter_1f_heliport_s4 shared=rooms
 D_shelter_1f_heliport_s4_8017D700 = 0x8017D700; // absolute:True owner=shelter_1f_heliport_s4 shared=rooms
-D_shelter_1f_heliport_s4_8017D9C8 = 0x8017D9C8; // absolute:True owner=shelter_1f_heliport_s4 shared=rooms
+D_shelter_1f_heliport_s4_8017D9C8 = 0x8017D9C8; // absolute:True owner=shelter_1f_heliport_s4
 D_shelter_1f_heliport_s4_8017D9EC = 0x8017D9EC; // absolute:True owner=shelter_1f_heliport_s4
 D_shelter_1f_heliport_s4_8017DAF0 = 0x8017DAF0; // absolute:True owner=shelter_1f_heliport_s4 shared=rooms
 D_shelter_1f_heliport_s4_8017DE6C = 0x8017DE6C; // absolute:True owner=shelter_1f_heliport_s4
