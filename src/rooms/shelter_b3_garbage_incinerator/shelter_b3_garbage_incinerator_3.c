@@ -206,30 +206,51 @@ SVECTOR D_shelter_b3_garbage_incinerator_80187544[79] = {
     { 15640, -5050, -25500, 0 },
 };
 
-static SVECTOR _gShelterB3GarbageIncineratorCollision0ADC8Normals[29] = {
+/// Room-space collision normals; the first eight slots serve rebuilt walls.
+///
+/// A unit normal uses 4096. The writable pool lives with this overlay.
+static SVECTOR _gShelterB3GarbageIncineratorCollisionGridNormals[29] = {
 #include "assets/shelter_b3_garbage_incinerator_collision_0ADC8_normals.inc"
 };
 
-static SVECTOR _gShelterB3GarbageIncineratorCollision0ADC8Verts[84] = {
+/// Grid-local collision vertices in signed game units, with 32 wall slots first.
+///
+/// Lift and exit updates rebuild the leading wall vertices in place.
+static SVECTOR _gShelterB3GarbageIncineratorCollisionGridVerts[84] = {
 #include "assets/shelter_b3_garbage_incinerator_collision_0ADC8_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB3GarbageIncineratorCollision0ADC8Faces[64] = {
+/// Collision triangles and quads, with eight initially inactive wall slots first.
+///
+/// Faces index the vertex and normal pools; wall updates populate slots 0..7.
+static WorldCollisionGridFace _gShelterB3GarbageIncineratorCollisionGridFaces[64] = {
 #include "assets/shelter_b3_garbage_incinerator_collision_0ADC8_faces.inc"
 };
 
-static s16 _gShelterB3GarbageIncineratorCollision0ADC8Cells[604] = {
+/// Halfword face-index lists ending with `WORLD_COLLISION_GRID_CELL_END`.
+static s16 _gShelterB3GarbageIncineratorCollisionGridCells[604] = {
 #include "assets/shelter_b3_garbage_incinerator_collision_0ADC8_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB3GarbageIncineratorCollision0ADC8Cells[i])
-static s16* _gShelterB3GarbageIncineratorCollision0ADC8Table[35] = {
+#define GRID_CELL(i) (&_gShelterB3GarbageIncineratorCollisionGridCells[i])
+/// X-major cell pointers into the face-index pool for the 5 by 7 grid.
+static s16* _gShelterB3GarbageIncineratorCollisionGridTable[35] = {
 #include "assets/shelter_b3_garbage_incinerator_collision_0ADC8_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b3_garbage_incinerator_80188388[1] = {
-    { NULL, _gShelterB3GarbageIncineratorCollision0ADC8Normals, _gShelterB3GarbageIncineratorCollision0ADC8Verts, _gShelterB3GarbageIncineratorCollision0ADC8Faces, _gShelterB3GarbageIncineratorCollision0ADC8Table, 0, 0x6590, 5, 7, 4000, 64 },
+WorldCollisionGrid gShelterB3GarbageIncineratorCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB3GarbageIncineratorCollisionGridNormals,
+    .vertices    = _gShelterB3GarbageIncineratorCollisionGridVerts,
+    .faces       = _gShelterB3GarbageIncineratorCollisionGridFaces,
+    .cellFaceIds = _gShelterB3GarbageIncineratorCollisionGridTable,
+    .xBias       = 0,
+    .zBias       = 26000,
+    .cellCountX  = 5,
+    .cellCountZ  = 7,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gShelterB3GarbageIncineratorCollisionGridFaces),
 };
 
 ViewCamera D_shelter_b3_garbage_incinerator_801883AC[40] = {
@@ -1221,547 +1242,711 @@ static SpriteBatch _gShelterB3GarbageIncineratorView26SpriteBatches[3] = {
     { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteDrawArea D_shelter_b3_garbage_incinerator_8018AEE0[2] = {
-    { { 83, 0, 237, 239 }, 2875 },
-    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
+/// Drawing clip and full-screen restore for mapped incinerator view 26.
+///
+/// The rectangle uses draw-buffer pixels; unscaled ordering depth 2875
+/// restores full-screen drawing. The next record ends the list. Clipping applies
+/// to depth-sorted scene drawing as well as sprites; emission adds the active
+/// draw buffer's VRAM Y origin.
+/// Mapped view 35 borrows this same mutable list.
+static SpriteDrawArea _gShelterB3GarbageIncineratorView26SpriteDrawAreas[2] = {
+    { .clipRect = { 83, 0, 237, 239 }, .restoreDepth = 2875 },
+    { .restoreDepth = SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_shelter_b3_garbage_incinerator_8018AEF4[5] = {
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, 64, -40, 2200, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, 56, -40, 2250, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, 48, -32, 2300, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 104 } }, 72, -48, 2150, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 104 } }, 80, -48, 2100, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+/// Depth-sorted texture rectangles for mapped incinerator view 27.
+///
+/// The 5 elements use pixel positions relative to the view centre and
+/// unscaled ordering depths. The view's batches select their complete extent;
+/// cached packets snapshot geometry and texture state while this overlay is loaded.
+/// Mapped view 36 borrows this same mutable list.
+static SpriteSource _gShelterB3GarbageIncineratorView27SpriteSources[5] = {
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 88 } }, 64, -40, 2200, { .fields = { 112, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 88 } }, 56, -40, 2250, { .fields = { 112, 88 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 80 } }, 48, -32, 2300, { .fields = { 112, 176 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 104 } }, 72, -48, 2150, { .fields = { 120, 104 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 104 } }, 80, -48, 2100, { .fields = { 120, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b3_garbage_incinerator_8018AF58[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 5, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Complete sprite range over the backdrop of mapped incinerator view 27.
+///
+/// The zero first count keeps decoded image strips. The live batch selects
+/// every source element before the end marker; cached packets retain the
+/// range while the overlay and view are active.
+/// Mapped view 36 borrows this same mutable list.
+static SpriteBatch _gShelterB3GarbageIncineratorView27SpriteBatches[3] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gShelterB3GarbageIncineratorView27SpriteSources) },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteDrawArea D_shelter_b3_garbage_incinerator_8018AF70[2] = {
-    { { 85, 1, 234, 238 }, 4000 },
-    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
+/// Drawing clip and full-screen restore for mapped incinerator view 27.
+///
+/// The rectangle uses draw-buffer pixels; unscaled ordering depth 4000
+/// restores full-screen drawing. The next record ends the list. Clipping applies
+/// to depth-sorted scene drawing as well as sprites; emission adds the active
+/// draw buffer's VRAM Y origin.
+/// Mapped view 36 borrows this same mutable list.
+static SpriteDrawArea _gShelterB3GarbageIncineratorView27SpriteDrawAreas[2] = {
+    { .clipRect = { 85, 1, 234, 238 }, .restoreDepth = 4000 },
+    { .restoreDepth = SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_shelter_b3_garbage_incinerator_8018AF84[133] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, 16, 2050, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, 16, 1875, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -72, 24, 2500, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, 72, 750, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -152, 72, 750, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -80, 8, 2500, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -88, 8, 2175, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, 8, 1700, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -104, 8, 1400, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -96, 32, 1700, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -104, 32, 1400, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -112, 8, 1300, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -120, 8, 1150, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -112, 40, 1300, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -120, 40, 1150, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -128, 8, 1050, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -128, 48, 1050, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -136, 8, 925, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -136, 56, 925, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -144, 8, 875, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -144, 64, 875, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -152, 8, 750, { .fields = { 104, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -160, 8, 750, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -152, 40, 750, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -160, 40, 750, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 16, 16, 2712, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 24, 16, 2712, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 32, 16, 2050, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 40, 16, 2050, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 48, 24, 2075, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, 24, 1950, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 64, 16, 1600, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 72, 16, 1600, { .fields = { 80, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 64, 32, 1725, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 72, 32, 1600, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 80, 16, 1487, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 88, 16, 1487, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 80, 40, 1487, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 88, 40, 1487, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 96, 24, 1487, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 40 } }, 104, 24, 1487, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 32, -32, 2625, { .fields = { 120, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 24, -32, 2675, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 16, -24, 2725, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, 96, 925, { .fields = { 16, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 136, 48, 1450, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 128, 56, 1450, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 96, 56, 1450, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 72, 56, 1400, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 48, 56, 1400, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 136, 64, 1325, { .fields = { 64, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 104, 64, 1325, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 72, 64, 1300, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 40, 64, 1300, { .fields = { 56, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 16, 64, 1275, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -16, 64, 1275, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -48, 64, 1275, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 136, 72, 1250, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 112, 72, 1250, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 80, 72, 1225, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 48, 72, 1225, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 16, 72, 1187, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -8, 72, 1187, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -32, 72, 1187, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -56, 72, 1187, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -88, 72, 1162, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -112, 72, 1162, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -144, 72, 1162, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -160, 72, 1162, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -160, 80, 1075, { .fields = { 48, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -160, 88, 1000, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -160, 96, 925, { .fields = { 32, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, 104, 875, { .fields = { 40, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -160, 112, 825, { .fields = { 32, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -96, 80, 1075, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -80, 80, 1075, { .fields = { 48, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 80, 1075, { .fields = { 48, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 80, 1075, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 88, 1000, { .fields = { 48, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 88, 1000, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -80, 88, 1000, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -96, 88, 1000, { .fields = { 40, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -136, 104, 875, { .fields = { 32, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -112, 104, 875, { .fields = { 24, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -80, 104, 875, { .fields = { 24, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -48, 104, 875, { .fields = { 24, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -32, 80, 1075, { .fields = { 24, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -32, 88, 1000, { .fields = { 24, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 0, 80, 1100, { .fields = { 40, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 16, 80, 1100, { .fields = { 32, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -24, 96, 925, { .fields = { 24, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -128, 112, 825, { .fields = { 24, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -96, 112, 825, { .fields = { 24, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -64, 112, 825, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -32, 112, 825, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 0, 112, 825, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 32, 112, 825, { .fields = { 24, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 64, 112, 825, { .fields = { 24, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 96, 112, 825, { .fields = { 16, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 128, 112, 825, { .fields = { 16, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -16, 104, 875, { .fields = { 16, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 16, 104, 875, { .fields = { 16, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 48, 104, 875, { .fields = { 16, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 80, 104, 900, { .fields = { 16, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 112, 104, 900, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 144, 104, 900, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 8, 96, 950, { .fields = { 24, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 40, 96, 950, { .fields = { 16, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 72, 96, 950, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 104, 96, 950, { .fields = { 16, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 136, 96, 950, { .fields = { 16, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 128, 88, 1125, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 96, 88, 1125, { .fields = { 0, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 64, 88, 1125, { .fields = { 0, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 32, 88, 1000, { .fields = { 0, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 0, 88, 1000, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 144, 80, 1175, { .fields = { 16, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 120, 80, 1175, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 88, 80, 1100, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 64, 80, 1100, { .fields = { 0, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 40, 80, 1100, { .fields = { 0, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -136, 64, 1250, { .fields = { 0, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, 64, 1250, { .fields = { 0, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -112, 80, 1040, { .fields = { 8, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -128, 80, 1075, { .fields = { 8, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -128, 88, 1000, { .fields = { 8, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -112, 88, 1000, { .fields = { 8, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -112, 96, 925, { .fields = { 8, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -128, 96, 925, { .fields = { 8, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -96, 96, 925, { .fields = { 8, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -80, 96, 925, { .fields = { 8, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 96, 925, { .fields = { 0, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 96, 925, { .fields = { 0, 40 } }, 128, 128, 128, 0 },
+/// Depth-sorted texture rectangles for mapped incinerator view 28.
+///
+/// The 133 elements use pixel positions relative to the view centre and
+/// unscaled ordering depths. The view's batches select their complete extent;
+/// cached packets snapshot geometry and texture state while this overlay is loaded.
+/// Mapped view 37 borrows this same mutable list.
+static SpriteSource _gShelterB3GarbageIncineratorView28SpriteSources[133] = {
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 48, 16, 2050, { .fields = { 80, 80 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 56, 16, 1875, { .fields = { 80, 112 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, -72, 24, 2500, { .fields = { 80, 72 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, -160, 72, 750, { .fields = { 80, 104 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, -152, 72, 750, { .fields = { 80, 88 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 32 } }, -80, 8, 2500, { .fields = { 104, 72 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 48 } }, -88, 8, 2175, { .fields = { 112, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, -96, 8, 1700, { .fields = { 104, 232 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, -104, 8, 1400, { .fields = { 88, 160 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 32 } }, -96, 32, 1700, { .fields = { 104, 104 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 40 } }, -104, 32, 1400, { .fields = { 112, 176 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 32 } }, -112, 8, 1300, { .fields = { 104, 168 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 32 } }, -120, 8, 1150, { .fields = { 96, 72 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 40 } }, -112, 40, 1300, { .fields = { 112, 96 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 40 } }, -120, 40, 1150, { .fields = { 112, 136 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 40 } }, -128, 8, 1050, { .fields = { 112, 216 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 32 } }, -128, 48, 1050, { .fields = { 104, 40 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 48 } }, -136, 8, 925, { .fields = { 112, 48 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, -136, 56, 925, { .fields = { 96, 232 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 56 } }, -144, 8, 875, { .fields = { 120, 112 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 16 } }, -144, 64, 875, { .fields = { 80, 56 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 32 } }, -152, 8, 750, { .fields = { 104, 136 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 32 } }, -160, 8, 750, { .fields = { 104, 200 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 32 } }, -152, 40, 750, { .fields = { 96, 40 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 32 } }, -160, 40, 750, { .fields = { 96, 104 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 16 } }, 16, 16, 2712, { .fields = { 88, 224 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 16 } }, 24, 16, 2712, { .fields = { 88, 208 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 32, 16, 2050, { .fields = { 96, 160 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 40, 16, 2050, { .fields = { 96, 136 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 48, 24, 2075, { .fields = { 96, 184 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 56, 24, 1950, { .fields = { 96, 208 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 16 } }, 64, 16, 1600, { .fields = { 88, 240 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 16 } }, 72, 16, 1600, { .fields = { 80, 40 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 64, 32, 1725, { .fields = { 88, 64 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 72, 32, 1600, { .fields = { 88, 88 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 80, 16, 1487, { .fields = { 88, 112 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 88, 16, 1487, { .fields = { 88, 184 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 80, 40, 1487, { .fields = { 88, 40 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 88, 40, 1487, { .fields = { 88, 136 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 40 } }, 96, 24, 1487, { .fields = { 120, 216 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 56, 40 } }, 104, 24, 1487, { .fields = { 56, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 56 } }, 32, -32, 2625, { .fields = { 120, 56 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 56 } }, 24, -32, 2675, { .fields = { 120, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 48 } }, 16, -24, 2725, { .fields = { 120, 168 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, -32, 96, 925, { .fields = { 16, 248 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 24, 8 } }, 136, 48, 1450, { .fields = { 64, 144 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 128, 56, 1450, { .fields = { 56, 128 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 96, 56, 1450, { .fields = { 48, 40 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 24, 8 } }, 72, 56, 1400, { .fields = { 64, 120 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 24, 8 } }, 48, 56, 1400, { .fields = { 64, 152 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 24, 8 } }, 136, 64, 1325, { .fields = { 64, 136 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 104, 64, 1325, { .fields = { 56, 96 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 72, 64, 1300, { .fields = { 56, 176 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 40, 64, 1300, { .fields = { 56, 208 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 24, 8 } }, 16, 64, 1275, { .fields = { 64, 168 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -16, 64, 1275, { .fields = { 56, 200 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -48, 64, 1275, { .fields = { 56, 184 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 24, 8 } }, 136, 72, 1250, { .fields = { 64, 240 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 24, 8 } }, 112, 72, 1250, { .fields = { 64, 224 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 80, 72, 1225, { .fields = { 56, 160 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 48, 72, 1225, { .fields = { 56, 216 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 16, 72, 1187, { .fields = { 56, 248 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 24, 8 } }, -8, 72, 1187, { .fields = { 64, 232 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 24, 8 } }, -32, 72, 1187, { .fields = { 56, 80 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 24, 8 } }, -56, 72, 1187, { .fields = { 56, 48 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -88, 72, 1162, { .fields = { 48, 56 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 24, 8 } }, -112, 72, 1162, { .fields = { 56, 64 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -144, 72, 1162, { .fields = { 48, 72 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 8 } }, -160, 72, 1162, { .fields = { 64, 88 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -160, 80, 1075, { .fields = { 48, 104 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -160, 88, 1000, { .fields = { 48, 112 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -160, 96, 925, { .fields = { 32, 120 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 24, 8 } }, -160, 104, 875, { .fields = { 40, 136 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -160, 112, 825, { .fields = { 32, 88 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 8 } }, -96, 80, 1075, { .fields = { 48, 144 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 8 } }, -80, 80, 1075, { .fields = { 48, 152 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 8 } }, -64, 80, 1075, { .fields = { 48, 168 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 8 } }, -48, 80, 1075, { .fields = { 48, 224 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 8 } }, -48, 88, 1000, { .fields = { 48, 232 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 8 } }, -64, 88, 1000, { .fields = { 48, 240 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 8 } }, -80, 88, 1000, { .fields = { 40, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 8 } }, -96, 88, 1000, { .fields = { 40, 8 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 24, 8 } }, -136, 104, 875, { .fields = { 32, 16 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -112, 104, 875, { .fields = { 24, 24 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -80, 104, 875, { .fields = { 24, 32 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -48, 104, 875, { .fields = { 24, 48 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -32, 80, 1075, { .fields = { 24, 64 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -32, 88, 1000, { .fields = { 24, 80 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 8 } }, 0, 80, 1100, { .fields = { 40, 176 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 24, 8 } }, 16, 80, 1100, { .fields = { 32, 128 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -24, 96, 925, { .fields = { 24, 160 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -128, 112, 825, { .fields = { 24, 96 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -96, 112, 825, { .fields = { 24, 184 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -64, 112, 825, { .fields = { 24, 192 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -32, 112, 825, { .fields = { 8, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 0, 112, 825, { .fields = { 24, 208 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 32, 112, 825, { .fields = { 24, 216 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 64, 112, 825, { .fields = { 24, 200 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 96, 112, 825, { .fields = { 16, 40 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 128, 112, 825, { .fields = { 16, 72 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -16, 104, 875, { .fields = { 16, 144 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 16, 104, 875, { .fields = { 16, 56 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 48, 104, 875, { .fields = { 16, 112 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 80, 104, 900, { .fields = { 16, 104 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 112, 104, 900, { .fields = { 16, 152 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 8 } }, 144, 104, 900, { .fields = { 32, 168 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 8, 96, 950, { .fields = { 24, 248 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 40, 96, 950, { .fields = { 16, 232 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 72, 96, 950, { .fields = { 16, 240 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 104, 96, 950, { .fields = { 16, 224 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 24, 8 } }, 136, 96, 950, { .fields = { 16, 8 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 128, 88, 1125, { .fields = { 8, 136 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 96, 88, 1125, { .fields = { 0, 120 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 64, 88, 1125, { .fields = { 0, 16 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 32, 88, 1000, { .fields = { 0, 88 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 0, 88, 1000, { .fields = { 8, 176 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 8 } }, 144, 80, 1175, { .fields = { 16, 128 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 24, 8 } }, 120, 80, 1175, { .fields = { 8, 168 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 88, 80, 1100, { .fields = { 56, 192 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 24, 8 } }, 64, 80, 1100, { .fields = { 0, 32 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 24, 8 } }, 40, 80, 1100, { .fields = { 0, 48 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 24, 8 } }, -136, 64, 1250, { .fields = { 0, 24 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 24, 8 } }, -160, 64, 1250, { .fields = { 0, 80 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 8 } }, -112, 80, 1040, { .fields = { 8, 96 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 8 } }, -128, 80, 1075, { .fields = { 8, 200 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 8 } }, -128, 88, 1000, { .fields = { 8, 184 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 8 } }, -112, 88, 1000, { .fields = { 8, 192 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 8 } }, -112, 96, 925, { .fields = { 8, 160 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 8 } }, -128, 96, 925, { .fields = { 8, 208 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 8 } }, -96, 96, 925, { .fields = { 8, 216 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 8 } }, -80, 96, 925, { .fields = { 8, 64 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 8 } }, -64, 96, 925, { .fields = { 0, 8 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 8 } }, -48, 96, 925, { .fields = { 0, 40 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b3_garbage_incinerator_8018B9E8[5] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 41, 0, 0, { 1, 0 } },
-    { 41, 3, 0, 0, { 2, 0 } },
-    { 44, 89, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Source-element boundaries between mapped view 28's live sprite batches.
+enum {
+    SHELTER_B3_GARBAGE_INCINERATOR_VIEW28_SECOND_BATCH_FIRST_SPRITE = 41,
+    SHELTER_B3_GARBAGE_INCINERATOR_VIEW28_THIRD_BATCH_FIRST_SPRITE  = 44,
 };
 
-SpriteDrawArea D_shelter_b3_garbage_incinerator_8018BA10[2] = {
-    { { 98, 0, 222, 239 }, 4250 },
-    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
+/// Contiguous sprite ranges over the backdrop of mapped incinerator view 28.
+///
+/// The zero first count keeps decoded image strips. The live ranges partition
+/// all source elements, then the end marker stops traversal. Cached packet
+/// buffers retain these ranges while the overlay and view are active.
+/// Nonzero `SpriteBatch.field_6` bytes are retained; their role is unproven.
+/// Mapped view 37 borrows this same mutable list.
+static SpriteBatch _gShelterB3GarbageIncineratorView28SpriteBatches[5] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = SHELTER_B3_GARBAGE_INCINERATOR_VIEW28_SECOND_BATCH_FIRST_SPRITE, .field_6 = { 1, 0 } },
+    { .firstSprite = SHELTER_B3_GARBAGE_INCINERATOR_VIEW28_SECOND_BATCH_FIRST_SPRITE, .spriteCount = SHELTER_B3_GARBAGE_INCINERATOR_VIEW28_THIRD_BATCH_FIRST_SPRITE - SHELTER_B3_GARBAGE_INCINERATOR_VIEW28_SECOND_BATCH_FIRST_SPRITE, .field_6 = { 2, 0 } },
+    { .firstSprite = SHELTER_B3_GARBAGE_INCINERATOR_VIEW28_THIRD_BATCH_FIRST_SPRITE, .spriteCount = ARRAY_SIZE(_gShelterB3GarbageIncineratorView28SpriteSources) - SHELTER_B3_GARBAGE_INCINERATOR_VIEW28_THIRD_BATCH_FIRST_SPRITE },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b3_garbage_incinerator_8018BA24[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Drawing clip and full-screen restore for mapped incinerator view 28.
+///
+/// The rectangle uses draw-buffer pixels; unscaled ordering depth 4250
+/// restores full-screen drawing. The next record ends the list. Clipping applies
+/// to depth-sorted scene drawing as well as sprites; emission adds the active
+/// draw buffer's VRAM Y origin.
+/// Mapped view 37 borrows this same mutable list.
+static SpriteDrawArea _gShelterB3GarbageIncineratorView28SpriteDrawAreas[2] = {
+    { .clipRect = { 98, 0, 222, 239 }, .restoreDepth = 4250 },
+    { .restoreDepth = SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_shelter_b3_garbage_incinerator_8018BA34[34] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, -64, 712, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, 8, 825, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 40, 16, 937, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 40, 48, 937, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 56, 8, 917, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 96, -56, 775, { .fields = { 80, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 112, -56, 750, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 128, -48, 750, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 144, -48, 750, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 96, -16, 825, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 112, -16, 800, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 128, -8, 800, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 144, -8, 800, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 96, 24, 875, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 112, 24, 875, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 128, 32, 875, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 144, 32, 875, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 96, 64, 925, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 112, 64, 925, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 128, 72, 925, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 144, 72, 925, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, -56, 825, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 80, -64, 812, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 64, -64, 812, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 80, -24, 850, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 64, -24, 850, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 80, 16, 950, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 64, 16, 950, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 80, 56, 950, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 64, 56, 950, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 48, -32, 825, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 48, 16, 937, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 48, 48, 937, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 48, -64, 825, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
+/// Backdrop-only batch list for mapped incinerator view 29.
+///
+/// The zero first count keeps decoded image strips; the following end marker
+/// selects no source sprites. The source slot retains this list's address.
+static SpriteBatch _gShelterB3GarbageIncineratorView29SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b3_garbage_incinerator_8018BCDC[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 34, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Depth-sorted texture rectangles for mapped incinerator view 30.
+///
+/// The 34 elements use pixel positions relative to the view centre and
+/// unscaled ordering depths. The view's batches select their complete extent;
+/// cached packets snapshot geometry and texture state while this overlay is loaded.
+static SpriteSource _gShelterB3GarbageIncineratorView30SpriteSources[34] = {
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 56, -64, 712, { .fields = { 88, 248 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 48, 8, 825, { .fields = { 88, 240 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 32 } }, 40, 16, 937, { .fields = { 72, 192 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 40 } }, 40, 48, 937, { .fields = { 88, 80 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 40 } }, 56, 8, 917, { .fields = { 72, 120 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 96, -56, 775, { .fields = { 80, 40 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 112, -56, 750, { .fields = { 80, 120 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 128, -48, 750, { .fields = { 80, 160 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 144, -48, 750, { .fields = { 80, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 96, -16, 825, { .fields = { 64, 40 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 112, -16, 800, { .fields = { 64, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 128, -8, 800, { .fields = { 80, 200 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 144, -8, 800, { .fields = { 72, 80 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 96, 24, 875, { .fields = { 96, 200 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 112, 24, 875, { .fields = { 112, 120 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 128, 32, 875, { .fields = { 112, 160 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 144, 32, 875, { .fields = { 112, 80 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 24 } }, 96, 64, 925, { .fields = { 56, 216 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 24 } }, 112, 64, 925, { .fields = { 56, 192 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 16 } }, 128, 72, 925, { .fields = { 112, 240 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 16 } }, 144, 72, 925, { .fields = { 96, 240 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 56, -56, 825, { .fields = { 56, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 80, -64, 812, { .fields = { 112, 200 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 64, -64, 812, { .fields = { 96, 120 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 80, -24, 850, { .fields = { 96, 160 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 64, -24, 850, { .fields = { 96, 80 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 80, 16, 950, { .fields = { 96, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 64, 16, 950, { .fields = { 96, 40 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 32 } }, 80, 56, 950, { .fields = { 64, 160 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 32 } }, 64, 56, 950, { .fields = { 56, 112 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 48, -32, 825, { .fields = { 112, 40 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 32 } }, 48, 16, 937, { .fields = { 64, 80 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 48, 48, 937, { .fields = { 112, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 32 } }, 48, -64, 825, { .fields = { 72, 224 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteSource D_shelter_b3_garbage_incinerator_8018BCF4[40] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, -32, 820, { .fields = { 72, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, 24, 925, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 152, 88, 987, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 40, 40, 925, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 48, 24, 925, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 48, -32, 812, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 64, 8, 925, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, 32, 925, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 56, 56, 925, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 64, 56, 950, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 88, 72, 925, { .fields = { 48, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 88, 24, 912, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 88, -24, 762, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 88, -72, 750, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 104, -72, 750, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 104, -24, 762, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 104, 24, 912, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 104, 72, 925, { .fields = { 48, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 120, 80, 962, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 136, 80, 962, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 120, 32, 950, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 136, 32, 950, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 120, -16, 800, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 136, -16, 800, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 120, -64, 787, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 136, -64, 787, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 152, -56, 825, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 152, -8, 837, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 152, 40, 987, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 72, 64, 950, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 64, -56, 812, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 56, -56, 812, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 56, 8, 812, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 48, 0, 812, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 72, -80, 825, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 72, -32, 787, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 72, 16, 950, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 56, -88, 700, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 56, -24, 812, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 48, 48, 925, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
+/// Complete sprite range over the backdrop of mapped incinerator view 30.
+///
+/// The zero first count keeps decoded image strips. The live batch selects
+/// every source element before the end marker; cached packets retain the
+/// range while the overlay and view are active.
+static SpriteBatch _gShelterB3GarbageIncineratorView30SpriteBatches[3] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gShelterB3GarbageIncineratorView30SpriteSources) },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b3_garbage_incinerator_8018C014[4] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 40, 0, 0, { 1, 0 } },
-    { 40, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Depth-sorted texture rectangles for mapped incinerator view 31.
+///
+/// The 40 elements use pixel positions relative to the view centre and
+/// unscaled ordering depths. The view's batches select their complete extent;
+/// cached packets snapshot geometry and texture state while this overlay is loaded.
+static SpriteSource _gShelterB3GarbageIncineratorView31SpriteSources[40] = {
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 64, -32, 820, { .fields = { 72, 184 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 56, 24, 925, { .fields = { 80, 248 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 152, 88, 987, { .fields = { 80, 240 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 48 } }, 40, 40, 925, { .fields = { 72, 48 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 48, 24, 925, { .fields = { 56, 88 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 32 } }, 48, -32, 812, { .fields = { 56, 32 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 48 } }, 64, 8, 925, { .fields = { 88, 192 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 56, 32, 925, { .fields = { 56, 112 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 40 } }, 56, 56, 925, { .fields = { 64, 48 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 40 } }, 64, 56, 950, { .fields = { 72, 144 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 24 } }, 88, 72, 925, { .fields = { 48, 208 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 88, 24, 912, { .fields = { 72, 192 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 88, -24, 762, { .fields = { 80, 96 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 88, -72, 750, { .fields = { 80, 144 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 104, -72, 750, { .fields = { 64, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 104, -24, 762, { .fields = { 64, 96 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 104, 24, 912, { .fields = { 80, 48 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 24 } }, 104, 72, 925, { .fields = { 48, 232 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 16 } }, 120, 80, 962, { .fields = { 112, 240 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 16 } }, 136, 80, 962, { .fields = { 88, 240 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 120, 32, 950, { .fields = { 112, 144 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 136, 32, 950, { .fields = { 112, 192 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 120, -16, 800, { .fields = { 96, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 136, -16, 800, { .fields = { 112, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 120, -64, 787, { .fields = { 112, 48 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 136, -64, 787, { .fields = { 112, 96 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 48 } }, 152, -56, 825, { .fields = { 104, 48 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 48 } }, 152, -8, 837, { .fields = { 96, 48 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 48 } }, 152, 40, 987, { .fields = { 96, 192 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 32 } }, 72, 64, 950, { .fields = { 56, 144 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 64, -56, 812, { .fields = { 48, 32 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 32 } }, 56, -56, 812, { .fields = { 64, 208 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 16 } }, 56, 8, 812, { .fields = { 104, 240 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 48, 0, 812, { .fields = { 56, 64 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 72, -80, 825, { .fields = { 80, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 72, -32, 787, { .fields = { 96, 96 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 72, 16, 950, { .fields = { 96, 144 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 32 } }, 56, -88, 700, { .fields = { 56, 176 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 32 } }, 56, -24, 812, { .fields = { 48, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 48 } }, 48, 48, 925, { .fields = { 104, 192 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteSource D_shelter_b3_garbage_incinerator_8018C034[54] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -96, -120, 2875, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -88, -120, 3250, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -88, -112, 3125, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -88, -104, 2975, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -80, -104, 3187, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -80, -96, 3193, { .fields = { 96, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -80, -72, 3375, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -80, -64, 3350, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -72, -64, 3350, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -80, -56, 3418, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -88, -48, 3000, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -80, -48, 3500, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -88, -40, 2875, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -80, -40, 3450, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -88, -32, 2750, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -80, -32, 3125, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, -112, 2625, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, -88, 2625, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, -64, 2625, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -96, -40, 2625, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -72, -56, 3450, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, -120, 3125, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, -88, 3237, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -88, -64, 3250, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -88, -96, 2987, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 112, -24, 1583, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 104, -16, 1675, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 96, 8, 1687, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 136, 40, 1750, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 112, 48, 1750, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 88, 32, 1800, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 96, 16, 1800, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 96, 32, 1800, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 104, 16, 1787, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 104, 40, 1725, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 112, 24, 1750, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 112, 0, 1675, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 112, -48, 1575, { .fields = { 112, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 120, -40, 1575, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 120, -16, 1625, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 120, 8, 1625, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 120, 32, 1750, { .fields = { 112, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 152, 16, 1600, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 144, 8, 1600, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 136, 0, 1675, { .fields = { 120, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 128, -8, 1675, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 128, 32, 1750, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 128, -32, 1625, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 136, -24, 1575, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 144, -16, 1550, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 152, -8, 1525, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 104, -8, 1687, { .fields = { 104, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 104, -32, 1575, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 112, -16, 1675, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
+/// Complete sprite range over the backdrop of mapped incinerator view 31.
+///
+/// The zero first count keeps decoded image strips. The live batch selects
+/// every source element before the end marker; cached packets retain the
+/// range while the overlay and view are active.
+/// The following zero-count range begins one past the source array. Its
+/// predecessor retains byte 1 in `SpriteBatch.field_6[0]`; that role is unproven.
+static SpriteBatch _gShelterB3GarbageIncineratorView31SpriteBatches[4] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gShelterB3GarbageIncineratorView31SpriteSources), .field_6 = { 1, 0 } },
+    { .firstSprite = ARRAY_SIZE(_gShelterB3GarbageIncineratorView31SpriteSources), .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b3_garbage_incinerator_8018C46C[4] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 25, 0, 0, { 1, 0 } },
-    { 25, 29, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Depth-sorted texture rectangles for mapped incinerator view 32.
+///
+/// The 54 elements use pixel positions relative to the view centre and
+/// unscaled ordering depths. The view's batches select their complete extent;
+/// cached packets snapshot geometry and texture state while this overlay is loaded.
+static SpriteSource _gShelterB3GarbageIncineratorView32SpriteSources[54] = {
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, -96, -120, 2875, { .fields = { 104, 248 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, -88, -120, 3250, { .fields = { 96, 32 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, -88, -112, 3125, { .fields = { 96, 48 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, -88, -104, 2975, { .fields = { 96, 40 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, -80, -104, 3187, { .fields = { 96, 160 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, -80, -96, 3193, { .fields = { 96, 152 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, -80, -72, 3375, { .fields = { 96, 144 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, -80, -64, 3350, { .fields = { 96, 184 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, -72, -64, 3350, { .fields = { 96, 176 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, -80, -56, 3418, { .fields = { 96, 168 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, -88, -48, 3000, { .fields = { 96, 112 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, -80, -48, 3500, { .fields = { 96, 104 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, -88, -40, 2875, { .fields = { 96, 96 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, -80, -40, 3450, { .fields = { 96, 136 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, -88, -32, 2750, { .fields = { 96, 128 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, -80, -32, 3125, { .fields = { 96, 120 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, -96, -112, 2625, { .fields = { 104, 120 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, -96, -88, 2625, { .fields = { 104, 96 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, -96, -64, 2625, { .fields = { 104, 144 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 16 } }, -96, -40, 2625, { .fields = { 104, 216 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 32 } }, -72, -56, 3450, { .fields = { 120, 152 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 16 } }, -80, -120, 3125, { .fields = { 104, 200 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 16 } }, -80, -88, 3237, { .fields = { 96, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 16 } }, -88, -64, 3250, { .fields = { 104, 232 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 32 } }, -88, -96, 2987, { .fields = { 120, 120 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 112, -24, 1583, { .fields = { 96, 56 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 104, -16, 1675, { .fields = { 96, 64 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 96, 8, 1687, { .fields = { 96, 72 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 136, 40, 1750, { .fields = { 96, 88 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 112, 48, 1750, { .fields = { 96, 80 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 88, 32, 1800, { .fields = { 112, 96 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 16 } }, 96, 16, 1800, { .fields = { 96, 16 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 96, 32, 1800, { .fields = { 112, 120 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 104, 16, 1787, { .fields = { 112, 144 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 16 } }, 104, 40, 1725, { .fields = { 104, 184 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 112, 24, 1750, { .fields = { 112, 192 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 112, 0, 1675, { .fields = { 112, 168 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 112, -48, 1575, { .fields = { 112, 72 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 120, -40, 1575, { .fields = { 120, 216 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 120, -16, 1625, { .fields = { 112, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 120, 8, 1625, { .fields = { 112, 48 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 120, 32, 1750, { .fields = { 112, 24 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 32 } }, 152, 16, 1600, { .fields = { 120, 184 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 40 } }, 144, 8, 1600, { .fields = { 120, 80 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 40 } }, 136, 0, 1675, { .fields = { 120, 40 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 40 } }, 128, -8, 1675, { .fields = { 120, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 16 } }, 128, 32, 1750, { .fields = { 104, 168 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 128, -32, 1625, { .fields = { 104, 72 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 136, -24, 1575, { .fields = { 104, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 144, -16, 1550, { .fields = { 112, 216 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 152, -8, 1525, { .fields = { 104, 48 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 104, -8, 1687, { .fields = { 104, 24 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 16 } }, 104, -32, 1575, { .fields = { 112, 240 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 16 } }, 112, -16, 1675, { .fields = { 120, 240 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteDrawArea D_shelter_b3_garbage_incinerator_8018C48C[2] = {
-    { { 68, 0, 252, 239 }, 2500 },
-    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
+/// Source-element boundaries between mapped view 32's live sprite batches.
+enum {
+    SHELTER_B3_GARBAGE_INCINERATOR_VIEW32_SECOND_BATCH_FIRST_SPRITE = 25,
 };
 
-SpriteSource D_shelter_b3_garbage_incinerator_8018C4A0[41] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -64, -48, 2767, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 152, 24, 1500, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -128, 48, 1425, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -80, -64, 2000, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -96, -40, 1750, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -112, -32, 1500, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -128, -24, 1425, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -144, 0, 1350, { .fields = { 112, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -160, 0, 1350, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 80, -64, 2375, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 128, 0, 1750, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 144, -24, 1500, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 128, -48, 1750, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 112, -56, 2000, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 112, -16, 1875, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 96, -32, 2125, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -96, -64, 1750, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -112, -64, 1500, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -128, -64, 1425, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -144, -64, 1350, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -160, -64, 1350, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 96, -64, 2250, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 112, -64, 2000, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 128, -64, 1750, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 144, -64, 1500, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -160, 40, 1350, { .fields = { 16, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -96, 40, 1350, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -96, 48, 1325, { .fields = { 8, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -160, 48, 1325, { .fields = { 8, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 96, 40, 1350, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 128, 40, 1350, { .fields = { 48, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 96, 48, 1325, { .fields = { 48, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 128, 48, 1325, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 32, 40, 1350, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 64, 40, 1350, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 32, 48, 1325, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 64, 48, 1325, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -32, 40, 1350, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -32, 48, 1325, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 0, 40, 1350, { .fields = { 48, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 0, 48, 1325, { .fields = { 48, 176 } }, 128, 128, 128, 0 },
+/// Contiguous sprite ranges over the backdrop of mapped incinerator view 32.
+///
+/// The zero first count keeps decoded image strips. The live ranges partition
+/// all source elements, then the end marker stops traversal. Cached packet
+/// buffers retain these ranges while the overlay and view are active.
+/// Nonzero `SpriteBatch.field_6` bytes are retained; their role is unproven.
+static SpriteBatch _gShelterB3GarbageIncineratorView32SpriteBatches[4] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = SHELTER_B3_GARBAGE_INCINERATOR_VIEW32_SECOND_BATCH_FIRST_SPRITE, .field_6 = { 1, 0 } },
+    { .firstSprite = SHELTER_B3_GARBAGE_INCINERATOR_VIEW32_SECOND_BATCH_FIRST_SPRITE, .spriteCount = ARRAY_SIZE(_gShelterB3GarbageIncineratorView32SpriteSources) - SHELTER_B3_GARBAGE_INCINERATOR_VIEW32_SECOND_BATCH_FIRST_SPRITE },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b3_garbage_incinerator_8018C7D4[4] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 25, 0, 0, { 1, 0 } },
-    { 25, 16, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Drawing clip and full-screen restore for mapped incinerator view 32.
+///
+/// The rectangle uses draw-buffer pixels; unscaled ordering depth 2500
+/// restores full-screen drawing. The next record ends the list. Clipping applies
+/// to depth-sorted scene drawing as well as sprites; emission adds the active
+/// draw buffer's VRAM Y origin.
+static SpriteDrawArea _gShelterB3GarbageIncineratorView32SpriteDrawAreas[2] = {
+    { .clipRect = { 68, 0, 252, 239 }, .restoreDepth = 2500 },
+    { .restoreDepth = SPRITE_DRAW_AREA_END },
 };
 
-SpriteDrawArea D_shelter_b3_garbage_incinerator_8018C7F4[2] = {
-    { { 32, 1, 286, 169 }, 1337 },
-    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
+/// Depth-sorted texture rectangles for mapped incinerator view 33.
+///
+/// The 41 elements use pixel positions relative to the view centre and
+/// unscaled ordering depths. The view's batches select their complete extent;
+/// cached packets snapshot geometry and texture state while this overlay is loaded.
+static SpriteSource _gShelterB3GarbageIncineratorView33SpriteSources[41] = {
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, -64, -48, 2767, { .fields = { 72, 240 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 152, 24, 1500, { .fields = { 72, 216 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, -128, 48, 1425, { .fields = { 72, 224 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, -80, -64, 2000, { .fields = { 80, 96 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, -96, -40, 1750, { .fields = { 80, 48 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 56 } }, -112, -32, 1500, { .fields = { 96, 128 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 72 } }, -128, -24, 1425, { .fields = { 112, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 72 } }, -144, 0, 1350, { .fields = { 112, 72 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 72 } }, -160, 0, 1350, { .fields = { 112, 144 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 32 } }, 80, -64, 2375, { .fields = { 64, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 16 } }, 128, 0, 1750, { .fields = { 64, 96 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 144, -24, 1500, { .fields = { 96, 184 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 128, -48, 1750, { .fields = { 80, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 112, -56, 2000, { .fields = { 80, 184 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 16 } }, 112, -16, 1875, { .fields = { 64, 80 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 16 } }, 96, -32, 2125, { .fields = { 64, 112 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 24 } }, -96, -64, 1750, { .fields = { 96, 232 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 32 } }, -112, -64, 1500, { .fields = { 80, 224 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, -128, -64, 1425, { .fields = { 112, 216 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 64 } }, -144, -64, 1350, { .fields = { 96, 64 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 64 } }, -160, -64, 1350, { .fields = { 96, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 32 } }, 96, -64, 2250, { .fields = { 64, 32 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 8 } }, 112, -64, 2000, { .fields = { 64, 232 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 16 } }, 128, -64, 1750, { .fields = { 64, 64 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 144, -64, 1500, { .fields = { 80, 144 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 64, 8 } }, -160, 40, 1350, { .fields = { 16, 248 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 64, 8 } }, -96, 40, 1350, { .fields = { 0, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 64, 8 } }, -96, 48, 1325, { .fields = { 8, 240 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 64, 8 } }, -160, 48, 1325, { .fields = { 8, 216 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 96, 40, 1350, { .fields = { 40, 224 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 128, 40, 1350, { .fields = { 48, 208 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 96, 48, 1325, { .fields = { 48, 152 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 128, 48, 1325, { .fields = { 48, 160 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 32, 40, 1350, { .fields = { 48, 144 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 64, 40, 1350, { .fields = { 48, 128 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 32, 48, 1325, { .fields = { 48, 136 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 64, 48, 1325, { .fields = { 48, 192 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -32, 40, 1350, { .fields = { 48, 200 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -32, 48, 1325, { .fields = { 48, 184 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 0, 40, 1350, { .fields = { 48, 168 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 0, 48, 1325, { .fields = { 48, 176 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b3_garbage_incinerator_8018C808[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Source-element boundaries between mapped view 33's live sprite batches.
+enum {
+    SHELTER_B3_GARBAGE_INCINERATOR_VIEW33_SECOND_BATCH_FIRST_SPRITE = 25,
 };
 
-SpriteSource D_shelter_b3_garbage_incinerator_8018C818[36] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, -64, 712, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, 8, 825, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, 16, 937, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 40, 16, 937, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 40, 48, 937, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 48, 24, 937, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 56, 8, 917, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 96, -56, 775, { .fields = { 80, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 112, -56, 750, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 128, -48, 750, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 144, -48, 750, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 96, -16, 825, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 112, -16, 800, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 128, -8, 800, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 144, -8, 800, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 96, 24, 875, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 112, 24, 875, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 128, 32, 875, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 144, 32, 875, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 96, 64, 925, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 112, 64, 925, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 128, 72, 925, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 144, 72, 925, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, -56, 825, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 56, 48, 937, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 48, 48, 937, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 80, -64, 812, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 64, -64, 812, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 80, -24, 850, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 64, -24, 850, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 80, 16, 950, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 64, 16, 950, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 80, 56, 950, { .fields = { 56, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 64, 56, 950, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 48, -32, 825, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 48, -64, 825, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
+/// Contiguous sprite ranges over the backdrop of mapped incinerator view 33.
+///
+/// The zero first count keeps decoded image strips. The live ranges partition
+/// all source elements, then the end marker stops traversal. Cached packet
+/// buffers retain these ranges while the overlay and view are active.
+/// Nonzero `SpriteBatch.field_6` bytes are retained; their role is unproven.
+static SpriteBatch _gShelterB3GarbageIncineratorView33SpriteBatches[4] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = SHELTER_B3_GARBAGE_INCINERATOR_VIEW33_SECOND_BATCH_FIRST_SPRITE, .field_6 = { 1, 0 } },
+    { .firstSprite = SHELTER_B3_GARBAGE_INCINERATOR_VIEW33_SECOND_BATCH_FIRST_SPRITE, .spriteCount = ARRAY_SIZE(_gShelterB3GarbageIncineratorView33SpriteSources) - SHELTER_B3_GARBAGE_INCINERATOR_VIEW33_SECOND_BATCH_FIRST_SPRITE },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b3_garbage_incinerator_8018CAE8[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 36, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Drawing clip and full-screen restore for mapped incinerator view 33.
+///
+/// The rectangle uses draw-buffer pixels; unscaled ordering depth 1337
+/// restores full-screen drawing. The next record ends the list. Clipping applies
+/// to depth-sorted scene drawing as well as sprites; emission adds the active
+/// draw buffer's VRAM Y origin.
+static SpriteDrawArea _gShelterB3GarbageIncineratorView33SpriteDrawAreas[2] = {
+    { .clipRect = { 32, 1, 286, 169 }, .restoreDepth = 1337 },
+    { .restoreDepth = SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_shelter_b3_garbage_incinerator_8018CB00[53] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, -32, 820, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, 24, 925, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 152, 88, 987, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 40, 40, 925, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 48, 48, 925, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 48, 24, 925, { .fields = { 40, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 48, -32, 812, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 56, -24, 812, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 64, -24, 812, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 64, 8, 925, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, 32, 925, { .fields = { 48, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 56, 56, 925, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 64, 56, 950, { .fields = { 64, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 64, -104, 700, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 72, -104, 700, { .fields = { 40, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 80, -104, 700, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 72, -80, 750, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 80, -80, 750, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 72, -32, 787, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 80, -32, 787, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 72, 16, 950, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 80, 16, 950, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 88, 72, 925, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 88, 24, 912, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 88, -24, 762, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 88, -72, 750, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 88, -104, 712, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 104, -104, 712, { .fields = { 40, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 104, -72, 750, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 104, -24, 762, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 104, 24, 912, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 104, 72, 925, { .fields = { 32, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 120, 80, 962, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 136, 80, 962, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 120, 32, 950, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 136, 32, 950, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 120, -16, 800, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 136, -16, 800, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 120, -64, 787, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 136, -64, 787, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 120, -104, 750, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 136, -104, 750, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 152, -104, 787, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 152, -56, 825, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 152, -8, 837, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 152, 40, 987, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 72, 64, 950, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 64, -88, 700, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 64, -56, 812, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, -80, 700, { .fields = { 48, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 56, -56, 812, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 56, 8, 812, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 48, 0, 812, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
+/// Backdrop-only batch list for mapped incinerator view 34.
+///
+/// The zero first count keeps decoded image strips; the following end marker
+/// selects no source sprites. The source slot retains this list's address.
+static SpriteBatch _gShelterB3GarbageIncineratorView34SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b3_garbage_incinerator_8018CF24[4] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 53, 0, 0, { 1, 0 } },
-    { 53, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Depth-sorted texture rectangles for mapped incinerator view 38.
+///
+/// The 36 elements use pixel positions relative to the view centre and
+/// unscaled ordering depths. The view's batches select their complete extent;
+/// cached packets snapshot geometry and texture state while this overlay is loaded.
+static SpriteSource _gShelterB3GarbageIncineratorView38SpriteSources[36] = {
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 56, -64, 712, { .fields = { 80, 240 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 48, 8, 825, { .fields = { 88, 248 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 48, 16, 937, { .fields = { 88, 240 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 32 } }, 40, 16, 937, { .fields = { 72, 40 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 40 } }, 40, 48, 937, { .fields = { 88, 80 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 48, 24, 937, { .fields = { 64, 152 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 40 } }, 56, 8, 917, { .fields = { 88, 120 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 96, -56, 775, { .fields = { 80, 40 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 112, -56, 750, { .fields = { 88, 160 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 128, -48, 750, { .fields = { 80, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 144, -48, 750, { .fields = { 64, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 96, -16, 825, { .fields = { 80, 200 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 112, -16, 800, { .fields = { 72, 80 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 128, -8, 800, { .fields = { 72, 120 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 144, -8, 800, { .fields = { 72, 160 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 96, 24, 875, { .fields = { 112, 120 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 112, 24, 875, { .fields = { 112, 160 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 128, 32, 875, { .fields = { 112, 200 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 144, 32, 875, { .fields = { 112, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 24 } }, 96, 64, 925, { .fields = { 56, 128 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 24 } }, 112, 64, 925, { .fields = { 56, 104 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 16 } }, 128, 72, 925, { .fields = { 96, 240 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 16 } }, 144, 72, 925, { .fields = { 112, 240 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 56, -56, 825, { .fields = { 64, 176 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 32 } }, 56, 48, 937, { .fields = { 64, 72 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 40 } }, 48, 48, 937, { .fields = { 104, 160 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 80, -64, 812, { .fields = { 96, 200 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 64, -64, 812, { .fields = { 96, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 80, -24, 850, { .fields = { 96, 40 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 64, -24, 850, { .fields = { 96, 80 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 80, 16, 950, { .fields = { 96, 120 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 64, 16, 950, { .fields = { 112, 80 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 32 } }, 80, 56, 950, { .fields = { 56, 40 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 24 } }, 64, 56, 950, { .fields = { 64, 232 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 48, -32, 825, { .fields = { 112, 40 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 32 } }, 48, -64, 825, { .fields = { 72, 200 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteSource D_shelter_b3_garbage_incinerator_8018CF44[20] = {
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -160, 40, 1350, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -128, 40, 1350, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -96, 40, 1350, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -64, 40, 1350, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -32, 40, 1350, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 0, 40, 1350, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 32, 40, 1350, { .fields = { 96, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 64, 40, 1350, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 96, 40, 1350, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 128, 40, 1350, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -160, 48, 1325, { .fields = { 96, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -128, 48, 1325, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -96, 48, 1325, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -64, 48, 1325, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -32, 48, 1325, { .fields = { 96, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 0, 48, 1325, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 32, 48, 1325, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 64, 48, 1325, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 96, 48, 1325, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 128, 48, 1325, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
+/// Complete sprite range over the backdrop of mapped incinerator view 38.
+///
+/// The zero first count keeps decoded image strips. The live batch selects
+/// every source element before the end marker; cached packets retain the
+/// range while the overlay and view are active.
+static SpriteBatch _gShelterB3GarbageIncineratorView38SpriteBatches[3] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gShelterB3GarbageIncineratorView38SpriteSources) },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b3_garbage_incinerator_8018D0D4[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 20, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Depth-sorted texture rectangles for mapped incinerator view 39.
+///
+/// The 53 elements use pixel positions relative to the view centre and
+/// unscaled ordering depths. The view's batches select their complete extent;
+/// cached packets snapshot geometry and texture state while this overlay is loaded.
+static SpriteSource _gShelterB3GarbageIncineratorView39SpriteSources[53] = {
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 64, -32, 820, { .fields = { 56, 200 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 56, 24, 925, { .fields = { 72, 248 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 8 } }, 152, 88, 987, { .fields = { 72, 240 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 48 } }, 40, 40, 925, { .fields = { 72, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 48 } }, 48, 48, 925, { .fields = { 72, 144 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 48, 24, 925, { .fields = { 40, 24 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 32 } }, 48, -32, 812, { .fields = { 56, 136 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 32 } }, 56, -24, 812, { .fields = { 56, 168 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 32 } }, 64, -24, 812, { .fields = { 56, 32 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 48 } }, 64, 8, 925, { .fields = { 72, 96 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 56, 32, 925, { .fields = { 48, 152 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 40 } }, 56, 56, 925, { .fields = { 64, 176 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 40 } }, 64, 56, 950, { .fields = { 64, 136 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 16 } }, 64, -104, 700, { .fields = { 80, 240 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 72, -104, 700, { .fields = { 40, 152 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 80, -104, 700, { .fields = { 40, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 48 } }, 72, -80, 750, { .fields = { 72, 48 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 48 } }, 80, -80, 750, { .fields = { 64, 48 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 48 } }, 72, -32, 787, { .fields = { 72, 192 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 48 } }, 80, -32, 787, { .fields = { 64, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 48 } }, 72, 16, 950, { .fields = { 80, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 48 } }, 80, 16, 950, { .fields = { 104, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 24 } }, 88, 72, 925, { .fields = { 40, 224 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 88, 24, 912, { .fields = { 112, 192 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 88, -24, 762, { .fields = { 96, 96 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 88, -72, 750, { .fields = { 96, 48 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 32 } }, 88, -104, 712, { .fields = { 40, 96 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 32 } }, 104, -104, 712, { .fields = { 40, 64 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 104, -72, 750, { .fields = { 112, 48 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 104, -24, 762, { .fields = { 112, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 104, 24, 912, { .fields = { 112, 144 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 24 } }, 104, 72, 925, { .fields = { 32, 128 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 16 } }, 120, 80, 962, { .fields = { 112, 240 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 16 } }, 136, 80, 962, { .fields = { 88, 240 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 120, 32, 950, { .fields = { 112, 96 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 136, 32, 950, { .fields = { 96, 144 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 120, -16, 800, { .fields = { 80, 96 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 136, -16, 800, { .fields = { 80, 48 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 120, -64, 787, { .fields = { 80, 192 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 48 } }, 136, -64, 787, { .fields = { 80, 144 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 120, -104, 750, { .fields = { 56, 96 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 40 } }, 136, -104, 750, { .fields = { 56, 216 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 48 } }, 152, -104, 787, { .fields = { 96, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 48 } }, 152, -56, 825, { .fields = { 104, 192 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 48 } }, 152, -8, 837, { .fields = { 88, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 48 } }, 152, 40, 987, { .fields = { 96, 192 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 16, 32 } }, 72, 64, 950, { .fields = { 48, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 32 } }, 64, -88, 700, { .fields = { 56, 64 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 64, -56, 812, { .fields = { 48, 128 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 56, -80, 700, { .fields = { 48, 176 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 32 } }, 56, -56, 812, { .fields = { 48, 32 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 16 } }, 56, 8, 812, { .fields = { 104, 240 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 8, 24 } }, 48, 0, 812, { .fields = { 48, 200 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteDrawArea D_shelter_b3_garbage_incinerator_8018D0EC[2] = {
-    { { 1, 1, 318, 168 }, 1337 },
-    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
+/// Complete sprite range over the backdrop of mapped incinerator view 39.
+///
+/// The zero first count keeps decoded image strips. The live batch selects
+/// every source element before the end marker; cached packets retain the
+/// range while the overlay and view are active.
+/// The following zero-count range begins one past the source array. Its
+/// predecessor retains byte 1 in `SpriteBatch.field_6[0]`; that role is unproven.
+static SpriteBatch _gShelterB3GarbageIncineratorView39SpriteBatches[4] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gShelterB3GarbageIncineratorView39SpriteSources), .field_6 = { 1, 0 } },
+    { .firstSprite = ARRAY_SIZE(_gShelterB3GarbageIncineratorView39SpriteSources), .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
+};
+
+/// Depth-sorted texture rectangles for mapped incinerator view 40.
+///
+/// The 20 elements use pixel positions relative to the view centre and
+/// unscaled ordering depths. The view's batches select their complete extent;
+/// cached packets snapshot geometry and texture state while this overlay is loaded.
+static SpriteSource _gShelterB3GarbageIncineratorView40SpriteSources[20] = {
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -160, 40, 1350, { .fields = { 96, 104 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -128, 40, 1350, { .fields = { 96, 112 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -96, 40, 1350, { .fields = { 96, 96 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -64, 40, 1350, { .fields = { 96, 80 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -32, 40, 1350, { .fields = { 96, 88 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 0, 40, 1350, { .fields = { 96, 144 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 32, 40, 1350, { .fields = { 96, 152 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 64, 40, 1350, { .fields = { 96, 136 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 96, 40, 1350, { .fields = { 96, 120 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 128, 40, 1350, { .fields = { 96, 128 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -160, 48, 1325, { .fields = { 96, 24 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -128, 48, 1325, { .fields = { 96, 32 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -96, 48, 1325, { .fields = { 96, 16 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -64, 48, 1325, { .fields = { 96, 0 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, -32, 48, 1325, { .fields = { 96, 8 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 0, 48, 1325, { .fields = { 96, 64 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 32, 48, 1325, { .fields = { 96, 72 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 64, 48, 1325, { .fields = { 96, 56 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 96, 48, 1325, { .fields = { 96, 40 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_TEXTURE_PAGE, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_CLUT, { .fields = { 32, 8 } }, 128, 48, 1325, { .fields = { 96, 48 } }, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_B3_GARBAGE_INCINERATOR_VIEW_SPRITE_NEUTRAL_COLOR, 0 },
+};
+
+/// Complete sprite range over the backdrop of mapped incinerator view 40.
+///
+/// The zero first count keeps decoded image strips. The live batch selects
+/// every source element before the end marker; cached packets retain the
+/// range while the overlay and view are active.
+static SpriteBatch _gShelterB3GarbageIncineratorView40SpriteBatches[3] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gShelterB3GarbageIncineratorView40SpriteSources) },
+    { .firstSprite = SPRITE_BATCH_END },
+};
+
+/// Drawing clip and full-screen restore for mapped incinerator view 40.
+///
+/// The rectangle uses draw-buffer pixels; unscaled ordering depth 1337
+/// restores full-screen drawing. The next record ends the list. Clipping applies
+/// to depth-sorted scene drawing as well as sprites; emission adds the active
+/// draw buffer's VRAM Y origin.
+static SpriteDrawArea _gShelterB3GarbageIncineratorView40SpriteDrawAreas[2] = {
+    { .clipRect = { 1, 1, 318, 168 }, .restoreDepth = 1337 },
+    { .restoreDepth = SPRITE_DRAW_AREA_END },
 };
 
 SpriteView D_shelter_b3_garbage_incinerator_8018D100[40] = {
@@ -1790,21 +1975,21 @@ SpriteView D_shelter_b3_garbage_incinerator_8018D100[40] = {
     { { .empty = _gShelterB3GarbageIncineratorView23SpriteBatches }, _gShelterB3GarbageIncineratorView23SpriteBatches, NULL },
     { { .elements = _gShelterB3GarbageIncineratorView24SpriteSources }, _gShelterB3GarbageIncineratorView24SpriteBatches, _gShelterB3GarbageIncineratorView24SpriteDrawAreas },
     { { .elements = _gShelterB3GarbageIncineratorView25SpriteSources }, _gShelterB3GarbageIncineratorView25SpriteBatches, _gShelterB3GarbageIncineratorView25SpriteDrawAreas },
-    { { .elements = _gShelterB3GarbageIncineratorView26SpriteSources }, _gShelterB3GarbageIncineratorView26SpriteBatches, D_shelter_b3_garbage_incinerator_8018AEE0 },
-    { { .elements = D_shelter_b3_garbage_incinerator_8018AEF4 }, D_shelter_b3_garbage_incinerator_8018AF58, D_shelter_b3_garbage_incinerator_8018AF70 },
-    { { .elements = D_shelter_b3_garbage_incinerator_8018AF84 }, D_shelter_b3_garbage_incinerator_8018B9E8, D_shelter_b3_garbage_incinerator_8018BA10 },
-    { { .empty = D_shelter_b3_garbage_incinerator_8018BA24 }, D_shelter_b3_garbage_incinerator_8018BA24, NULL },
-    { { .elements = D_shelter_b3_garbage_incinerator_8018BA34 }, D_shelter_b3_garbage_incinerator_8018BCDC, NULL },
-    { { .elements = D_shelter_b3_garbage_incinerator_8018BCF4 }, D_shelter_b3_garbage_incinerator_8018C014, NULL },
-    { { .elements = D_shelter_b3_garbage_incinerator_8018C034 }, D_shelter_b3_garbage_incinerator_8018C46C, D_shelter_b3_garbage_incinerator_8018C48C },
-    { { .elements = D_shelter_b3_garbage_incinerator_8018C4A0 }, D_shelter_b3_garbage_incinerator_8018C7D4, D_shelter_b3_garbage_incinerator_8018C7F4 },
-    { { .empty = D_shelter_b3_garbage_incinerator_8018C808 }, D_shelter_b3_garbage_incinerator_8018C808, NULL },
-    { { .elements = _gShelterB3GarbageIncineratorView26SpriteSources }, _gShelterB3GarbageIncineratorView26SpriteBatches, D_shelter_b3_garbage_incinerator_8018AEE0 },
-    { { .elements = D_shelter_b3_garbage_incinerator_8018AEF4 }, D_shelter_b3_garbage_incinerator_8018AF58, D_shelter_b3_garbage_incinerator_8018AF70 },
-    { { .elements = D_shelter_b3_garbage_incinerator_8018AF84 }, D_shelter_b3_garbage_incinerator_8018B9E8, D_shelter_b3_garbage_incinerator_8018BA10 },
-    { { .elements = D_shelter_b3_garbage_incinerator_8018C818 }, D_shelter_b3_garbage_incinerator_8018CAE8, NULL },
-    { { .elements = D_shelter_b3_garbage_incinerator_8018CB00 }, D_shelter_b3_garbage_incinerator_8018CF24, NULL },
-    { { .elements = D_shelter_b3_garbage_incinerator_8018CF44 }, D_shelter_b3_garbage_incinerator_8018D0D4, D_shelter_b3_garbage_incinerator_8018D0EC },
+    { { .elements = _gShelterB3GarbageIncineratorView26SpriteSources }, _gShelterB3GarbageIncineratorView26SpriteBatches, _gShelterB3GarbageIncineratorView26SpriteDrawAreas },
+    { { .elements = _gShelterB3GarbageIncineratorView27SpriteSources }, _gShelterB3GarbageIncineratorView27SpriteBatches, _gShelterB3GarbageIncineratorView27SpriteDrawAreas },
+    { { .elements = _gShelterB3GarbageIncineratorView28SpriteSources }, _gShelterB3GarbageIncineratorView28SpriteBatches, _gShelterB3GarbageIncineratorView28SpriteDrawAreas },
+    { { .empty = _gShelterB3GarbageIncineratorView29SpriteBatches }, _gShelterB3GarbageIncineratorView29SpriteBatches, NULL },
+    { { .elements = _gShelterB3GarbageIncineratorView30SpriteSources }, _gShelterB3GarbageIncineratorView30SpriteBatches, NULL },
+    { { .elements = _gShelterB3GarbageIncineratorView31SpriteSources }, _gShelterB3GarbageIncineratorView31SpriteBatches, NULL },
+    { { .elements = _gShelterB3GarbageIncineratorView32SpriteSources }, _gShelterB3GarbageIncineratorView32SpriteBatches, _gShelterB3GarbageIncineratorView32SpriteDrawAreas },
+    { { .elements = _gShelterB3GarbageIncineratorView33SpriteSources }, _gShelterB3GarbageIncineratorView33SpriteBatches, _gShelterB3GarbageIncineratorView33SpriteDrawAreas },
+    { { .empty = _gShelterB3GarbageIncineratorView34SpriteBatches }, _gShelterB3GarbageIncineratorView34SpriteBatches, NULL },
+    { { .elements = _gShelterB3GarbageIncineratorView26SpriteSources }, _gShelterB3GarbageIncineratorView26SpriteBatches, _gShelterB3GarbageIncineratorView26SpriteDrawAreas },
+    { { .elements = _gShelterB3GarbageIncineratorView27SpriteSources }, _gShelterB3GarbageIncineratorView27SpriteBatches, _gShelterB3GarbageIncineratorView27SpriteDrawAreas },
+    { { .elements = _gShelterB3GarbageIncineratorView28SpriteSources }, _gShelterB3GarbageIncineratorView28SpriteBatches, _gShelterB3GarbageIncineratorView28SpriteDrawAreas },
+    { { .elements = _gShelterB3GarbageIncineratorView38SpriteSources }, _gShelterB3GarbageIncineratorView38SpriteBatches, NULL },
+    { { .elements = _gShelterB3GarbageIncineratorView39SpriteSources }, _gShelterB3GarbageIncineratorView39SpriteBatches, NULL },
+    { { .elements = _gShelterB3GarbageIncineratorView40SpriteSources }, _gShelterB3GarbageIncineratorView40SpriteBatches, _gShelterB3GarbageIncineratorView40SpriteDrawAreas },
 };
 
 /// Two neutral directional lights shared by incinerator rooms 1..3.

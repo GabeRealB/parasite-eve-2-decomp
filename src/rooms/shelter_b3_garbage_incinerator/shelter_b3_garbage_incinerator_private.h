@@ -21,7 +21,14 @@ extern TaskDesc D_shelter_b3_garbage_incinerator_801855E0;
 
 extern TaskDesc D_shelter_b3_garbage_incinerator_80185BA0;
 
-extern WorldCollisionGrid D_shelter_b3_garbage_incinerator_80188388[1];
+/// Collision mesh and 5 by 7 XZ cell index shared by incinerator rooms 1..7.
+///
+/// Cells are 4000 game units wide, with origin (0, -26000) on XZ. Room setup
+/// binds the descriptor to the current view coordinate. The overlay owns its
+/// writable pools: 29 normals, 84 vertices and 64 faces; lift/exit updates use
+/// the first eight normals/faces and first 32 vertices without changing cells.
+/// Keep the descriptor and its pools loaded while this grid is active.
+extern WorldCollisionGrid gShelterB3GarbageIncineratorCollisionGrid;
 
 /// Model-light collection shared by incinerator rooms 1..3.
 ///
