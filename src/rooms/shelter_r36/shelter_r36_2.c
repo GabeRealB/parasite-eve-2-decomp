@@ -32,7 +32,7 @@ static inline void _shelterR36HandoffMovieDisplay(s32 spawnWord)
 {
     enum { SHELTER_R36_MOVIE_PLAYER_TASK = 1 };
 
-    displaySpawnTaskFromTable(D_shelter_r36_8017E9A4, SHELTER_R36_MOVIE_PLAYER_TASK, spawnWord, 0);
+    displaySpawnTaskFromTable(gShelterR36MovieTasks, SHELTER_R36_MOVIE_PLAYER_TASK, spawnWord, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     viewQueueCurrentCameraAndPackets();
 }

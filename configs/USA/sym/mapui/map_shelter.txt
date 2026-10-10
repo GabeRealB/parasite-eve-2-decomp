@@ -381,13 +381,13 @@ gShelterB2PodAccessTunnelSpriteViews = 0x80184C6C; // absolute:True owner=shelte
 gShelterB2PodAccessTunnelSurfacePropertiesByClass = 0x801856D8; // absolute:True owner=shelter_b2_pod_access_tunnel shared=rooms
 shelterR36RoomTask = 0x8017D9DC; // type:func absolute:True owner=shelter_r36
 gShelterR36RoomViewMaps = 0x8017E9BC; // absolute:True owner=shelter_r36
-D_shelter_r36_8017E9C0 = 0x8017E9C0; // absolute:True owner=shelter_r36 shared=rooms
-D_shelter_r36_8017E9C4 = 0x8017E9C4; // absolute:True owner=shelter_r36
+gShelterR36ViewCounts = 0x8017E9C0; // absolute:True owner=shelter_r36 shared=rooms
+gShelterR36WarpEntries = 0x8017E9C4; // absolute:True owner=shelter_r36
 gShelterR36FloorCollisionGrid = 0x8017EAB0; // absolute:True owner=shelter_r36
-D_shelter_r36_8017EAD4 = 0x8017EAD4; // absolute:True owner=shelter_r36
-D_shelter_r36_8017F318 = 0x8017F318; // absolute:True owner=shelter_r36
+gShelterR36ViewCameras = 0x8017EAD4; // absolute:True owner=shelter_r36
+gShelterR36SpriteViews = 0x8017F318; // absolute:True owner=shelter_r36
 gShelterR36RoomLights = 0x8017F6DC; // absolute:True owner=shelter_r36 shared=rooms
-D_shelter_r36_8017F6F4 = 0x8017F6F4; // absolute:True owner=shelter_r36 shared=rooms
+gShelterR36ViewBoundaryTriggers = 0x8017F6F4; // absolute:True owner=shelter_r36 shared=rooms
 gShelterR36SurfacePropertiesByClass = 0x8017FAE4; // absolute:True owner=shelter_r36
 shelterR37RoomTask = 0x8017D678; // type:func absolute:True owner=shelter_r37 shared=rooms
 gShelterR37ViewMaps = 0x8017D6F8; // absolute:True owner=shelter_r37 shared=rooms
@@ -396,7 +396,7 @@ gShelterR37WarpEntries = 0x8017D700; // absolute:True owner=shelter_r37 shared=r
 gShelterR37RoomCollision = 0x8017D920; // absolute:True owner=shelter_r37
 gShelterR37ViewCameras = 0x8017D944; // absolute:True owner=shelter_r37
 gShelterR37SpriteViews = 0x8017D9E0; // absolute:True owner=shelter_r37 shared=rooms
-gShelterR37RoomLights = 0x8017DD44; // absolute:True owner=shelter_r37 shared=rooms
+gShelterR37RoomLights = 0x8017DD44; // absolute:True owner=shelter_r37
 gShelterR37ViewBoundaryTriggers = 0x8017DD5C; // absolute:True owner=shelter_r37
 gShelterR37SurfacePropertiesByClass = 0x8017DED8; // absolute:True owner=shelter_r37
 shelter1fHeliportS4RoomTask = 0x8017D678; // type:func absolute:True owner=shelter_1f_heliport_s4 shared=rooms

@@ -12,7 +12,13 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_shelter_r36_8017FA40[11];
+/// R36's placement layouts, indexed by variant 0..10.
+///
+/// Variant 1 borrows the two scripted-walker placements and their resource recipes;
+/// slots 0 and 2..10 are absent (both pointers NULL). Gameplay's stage-4 area-36
+/// record borrows this table and pairs it with the live saved placement state.
+/// Keep the room and actor overlays loaded while loading or using the layout.
+extern AreaVariant gShelterR36AreaVariants[11];
 
 /// R36's single room entry, mapping logical views to camera/image/sprite indices.
 ///
@@ -21,9 +27,19 @@ extern AreaVariant D_shelter_r36_8017FA40[11];
 /// capacity. The directory stays valid while this room overlay is loaded.
 extern u8* gShelterR36RoomViewMaps[1];
 
-extern ViewCount D_shelter_r36_8017E9C0[];
+/// Logical-view search count for R36's single room: eleven views.
+///
+/// Indexed by room - 1 (room 1 only), independently of `gViewIdentityMap`'s capacity.
+/// The map overlay borrows this count while R36 is loaded; there is no terminator.
+extern ViewCount gShelterR36ViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_r36_8017E9C4[];
+/// R36's scene and movie arrival endpoints, indexed by warp - 1 (warps 1..2).
+///
+/// Both place player and companion at the origin with half-turn yaw and select
+/// view 2, without sounds, option flags or a map marker. Warp 1 starts the arrival
+/// scene; warp 2 starts the movie ending. The stage map borrows these complete
+/// records while the room is loaded; the array has no terminator.
+extern DirectionWarpEntry gShelterR36WarpEntries[2];
 
 /// R36's class-1 floor quad and its 3 by 3 collision-cell index.
 ///
@@ -34,9 +50,23 @@ extern DirectionWarpEntry D_shelter_r36_8017E9C4[];
 /// and must remain loaded throughout collision queries.
 extern WorldCollisionGrid gShelterR36FloorCollisionGrid;
 
-extern ViewCamera D_shelter_r36_8017EAD4[];
+/// R36's eleven cameras, selected by mapped view index - 1 (views 1..11).
+///
+/// View 1 looks down from above; view 2 has its own camera and projection distance;
+/// views 3..11 share the same transform and distance. Rotation uses 4096 per unit,
+/// translation is the negated world-space origin, and perspective distance is in
+/// pixels. Queued camera tasks borrow these records until application, requiring
+/// the room overlay to stay loaded. The array has no terminator.
+extern ViewCamera gShelterR36ViewCameras[11];
 
-extern SpriteView D_shelter_r36_8017F318[];
+/// R36's eleven sprite descriptors, indexed by mapped view - 1 (views 1..11).
+///
+/// Views 2 and 3 borrow source sprites and batch ranges. View 1 and views 4..11
+/// retain their batch-list address in `sources.empty` and select no source sprites.
+/// Every view has a terminated batch list and NULL clipping areas. Descriptors
+/// and their mutable private arrays belong to the room and must stay loaded
+/// through packet allocation and drawing; this array itself has no terminator.
+extern SpriteView gShelterR36SpriteViews[11];
 
 /// R36's four directional and five point lights for model shading.
 ///
@@ -45,7 +75,14 @@ extern SpriteView D_shelter_r36_8017F318[];
 /// overlay and remain valid only while it is loaded.
 extern WorldCoordRoomLights gShelterR36RoomLights;
 
-extern WorldCollisionTrigger D_shelter_r36_8017F6F4[];
+/// Ten directed view boundaries for R36 room 1, including the final LAST record.
+///
+/// Pairs connect views 5/4, 2/4, 3/2 and two boundaries between 6/2. Origins and
+/// relative quad corners use whole room units; normals use 4096 per unit.
+/// Room setup binds, links and enables these writable records; collision latches
+/// hits and view handling consumes them. The map borrows this array while the
+/// room is loaded. LAST ends the scan and is part of the tenth live boundary.
+extern WorldCollisionTrigger gShelterR36ViewBoundaryTriggers[10];
 
 /// R36's collision and footstep policies, indexed by surface class 0..7.
 ///

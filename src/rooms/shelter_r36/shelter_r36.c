@@ -41,96 +41,240 @@
 #include "mapui/map_shelter.h"
 #include "../../shared/streamed_scene.h"
 
-extern EvsCommand D_shelter_r36_8017DF2C[];
-extern EvsCommand D_shelter_r36_8017E5A4[];
-extern EvsCommand D_shelter_r36_8017E664[];
 extern EvsCommand D_shelter_r36_8017E8BC[];
 
 /// The room's message table, installed on the room entry task.
 extern TaskMessageEntry D_shelter_r36_8017E97C[];
-
-/// The room's two event tasks, one per arrival warp.
-extern TaskDesc D_shelter_r36_8017DF14[];
 
 static s32 _shelterR36RejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
 static s32 _shelterR36ResolveRoomVariant(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* destination);
 static s32 _shelterR36IgnoreCommand(Task* task, s32 messageId, s32 command, s32 unused);
 static s32 _shelterR36IgnoreRoomAction(Task* task, s32 messageId, DirectionActionRequest* action, s32 unused);
 
-extern AnimationPlayRequest D_shelter_r36_8017DC10;
-extern AnimationPlayRequest D_shelter_r36_8017DC54;
-extern AnimationPlayRequest D_shelter_r36_8017DC7C;
-extern AnimationPlayRequest D_shelter_r36_8017DC90;
-extern AnimationPlayRequest D_shelter_r36_8017DCA4;
-extern AnimationPlayRequest D_shelter_r36_8017DCB8;
-extern AnimationPlayRequest D_shelter_r36_8017DCF4;
-extern AnimationPlayRequest D_shelter_r36_8017DD1C;
-extern AnimationPlayRequest D_shelter_r36_8017DD30;
-extern AnimationPlayRequest D_shelter_r36_8017DD44;
-extern AnimationPlayRequest D_shelter_r36_8017DD6C;
-extern AnimationPlayRequest D_shelter_r36_8017DD80;
-extern AnimationPlayRequest D_shelter_r36_8017DD94;
-extern AnimationPlayRequest D_shelter_r36_8017DDD0;
-extern ActorCommand         D_shelter_r36_8017DC24;
-extern ActorCommand         D_shelter_r36_8017DC28;
-static void                 _shelterR36ArrivalSceneTask(Task* task);
-static void                 _shelterR36ReloadForMovie(void);
-static void                 _shelterR36MovieEndingTask(Task* task);
-static void                 _shelterR36InitializeTask(Task* task);
-static void                 _shelterR36SelectCapFile(s32 capFileId);
+static void _shelterR36ArrivalSceneTask(Task* task);
+static void _shelterR36ReloadForMovie(void);
+static void _shelterR36MovieEndingTask(Task* task);
+static void _shelterR36InitializeTask(Task* task);
+static void _shelterR36SelectCapFile(s32 capFileId);
 
-AnimationPlayRequest D_shelter_r36_8017DC10 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// R36's placement indices, resource keys and scripted attachment choices.
+enum {
+    SHELTER_R36_FIRST_WALKER_PLACEMENT          = 0,
+    SHELTER_R36_SECOND_WALKER_PLACEMENT         = 1,
+    SHELTER_R36_FIRST_WALKER_RESOURCE           = 111,
+    SHELTER_R36_SECOND_WALKER_RESOURCE          = 112,
+    SHELTER_R36_SHOW_SECOND_WALKER_ATTACHMENT_2 = 0,
+    SHELTER_R36_SHOW_SECOND_WALKER_ATTACHMENT_1 = 1,
+    SHELTER_R36_ARRIVAL_SOUND                   = 0x54240001,
+    SHELTER_R36_MOVIE_LEAD_IN_MUSIC_EVENT       = 30,
+};
 
-ActorCommand D_shelter_r36_8017DC24 = { { .loc = { 4, 36 } }, 0 };
+/// Holds the arriving player in equipped-weapon clip 1 with collision disabled.
+///
+/// The event interpreter copies this request and replaces its bank index before
+/// synchronous dispatch. The selected weapon bank remains borrowed by playback.
+static AnimationPlayRequest _gShelterR36ArrivalPlayerAnimation = {
+    .source               = { .index = 1 },
+    .animationId          = 1,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-ActorCommand D_shelter_r36_8017DC28 = { { .loc = { 4, 36 } }, 1 };
+/// Shows only attachment 2 of the second scripted walker in the arrival scene.
+///
+/// The receiver ignores the Mine/Shelter R36 context and consumes the command
+/// synchronously. Both independently owned attachment tasks must be live.
+static ActorCommand _gShelterR36ShowSecondWalkerAttachment2Command = {
+    .context = { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R36 } },
+    .command = SHELTER_R36_SHOW_SECOND_WALKER_ATTACHMENT_2,
+};
+
+/// Shows only attachment 1 of the second scripted walker in the arrival scene.
+///
+/// The receiver ignores the Mine/Shelter R36 context and consumes the command
+/// synchronously. Both independently owned attachment tasks must be live.
+static ActorCommand _gShelterR36ShowSecondWalkerAttachment1Command = {
+    .context = { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R36 } },
+    .command = SHELTER_R36_SHOW_SECOND_WALKER_ATTACHMENT_1,
+};
 
 AnimationPlayRequest D_shelter_r36_8017DC2C[2] = {
     { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
     { { .index = 1 }, 2, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-AnimationPlayRequest D_shelter_r36_8017DC54 = { { .index = 1 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Arrival-scene clip 3 for the second scripted walker, restarting without interpolation.
+///
+/// Placement 1 consumes this request synchronously and borrows its own loaded
+/// clip data during playback; its handler ignores the bank and collision words.
+static AnimationPlayRequest _gShelterR36SecondWalkerAnimation3 = {
+    .source               = { .index = 1 },
+    .animationId          = 3,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_shelter_r36_8017DC68 = { { .index = 1 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_shelter_r36_8017DC7C = { { .index = 1 }, 5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Arrival-scene clip 5 for the second scripted walker, restarting without interpolation.
+///
+/// Placement 1 consumes this request synchronously and borrows its own loaded
+/// clip data during playback; its handler ignores the bank and collision words.
+static AnimationPlayRequest _gShelterR36SecondWalkerAnimation5 = {
+    .source               = { .index = 1 },
+    .animationId          = 5,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_shelter_r36_8017DC90 = { { .index = 1 }, 6, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Arrival-scene clip 6 for the second scripted walker, restarting without interpolation.
+///
+/// Placement 1 consumes this request synchronously and borrows its own loaded
+/// clip data during playback; its handler ignores the bank and collision words.
+static AnimationPlayRequest _gShelterR36SecondWalkerAnimation6 = {
+    .source               = { .index = 1 },
+    .animationId          = 6,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_shelter_r36_8017DCA4 = { { .index = 1 }, 7, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Arrival-scene clip 7 for the second scripted walker, restarting without interpolation.
+///
+/// Placement 1 consumes this request synchronously and borrows its own loaded
+/// clip data during playback; its handler ignores the bank and collision words.
+static AnimationPlayRequest _gShelterR36SecondWalkerAnimation7 = {
+    .source               = { .index = 1 },
+    .animationId          = 7,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_shelter_r36_8017DCB8 = { { .index = 1 }, 8, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Arrival-scene clip 8 for the second scripted walker, restarting without interpolation.
+///
+/// Placement 1 consumes this request synchronously and borrows its own loaded
+/// clip data during playback; its handler ignores the bank and collision words.
+static AnimationPlayRequest _gShelterR36SecondWalkerAnimation8 = {
+    .source               = { .index = 1 },
+    .animationId          = 8,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_shelter_r36_8017DCCC[2] = {
     { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
     { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-AnimationPlayRequest D_shelter_r36_8017DCF4 = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Arrival-scene clip 9 for the first scripted walker, restarting without interpolation.
+///
+/// Placement 0 consumes this request synchronously and borrows its own loaded
+/// clip data during playback; its handler ignores the bank and collision words.
+static AnimationPlayRequest _gShelterR36FirstWalkerAnimation9 = {
+    .source               = { .index = 1 },
+    .animationId          = 9,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_shelter_r36_8017DD08 = { { .index = 1 }, 10, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_shelter_r36_8017DD1C = { { .index = 1 }, 11, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Arrival-scene clip 11 for the first scripted walker, restarting without interpolation.
+///
+/// Placement 0 consumes this request synchronously and borrows its own loaded
+/// clip data during playback; its handler ignores the bank and collision words.
+static AnimationPlayRequest _gShelterR36FirstWalkerAnimation11 = {
+    .source               = { .index = 1 },
+    .animationId          = 11,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_shelter_r36_8017DD30 = { { .index = 1 }, 12, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Arrival-scene clip 12 for the first scripted walker, interpolating for 10 normal-rate frames.
+///
+/// Placement 0 consumes this request synchronously and borrows its own loaded
+/// clip data during playback; its handler ignores the bank and collision words.
+static AnimationPlayRequest _gShelterR36FirstWalkerAnimation12 = {
+    .source               = { .index = 1 },
+    .animationId          = 12,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 10,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_shelter_r36_8017DD44 = { { .index = 1 }, 13, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Arrival-scene clip 13 for the first scripted walker, restarting without interpolation.
+///
+/// Placement 0 consumes this request synchronously and borrows its own loaded
+/// clip data during playback; its handler ignores the bank and collision words.
+static AnimationPlayRequest _gShelterR36FirstWalkerAnimation13 = {
+    .source               = { .index = 1 },
+    .animationId          = 13,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_shelter_r36_8017DD58 = { { .index = 1 }, 14, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_shelter_r36_8017DD6C = { { .index = 1 }, 15, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Arrival-scene clip 15 for the first scripted walker, interpolating for 8 normal-rate frames.
+///
+/// Placement 0 consumes this request synchronously and borrows its own loaded
+/// clip data during playback; its handler ignores the bank and collision words.
+static AnimationPlayRequest _gShelterR36FirstWalkerAnimation15 = {
+    .source               = { .index = 1 },
+    .animationId          = 15,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 8,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_shelter_r36_8017DD80 = { { .index = 1 }, 16, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Arrival-scene clip 16 for the first scripted walker, interpolating for 8 normal-rate frames.
+///
+/// Placement 0 consumes this request synchronously and borrows its own loaded
+/// clip data during playback; its handler ignores the bank and collision words.
+static AnimationPlayRequest _gShelterR36FirstWalkerAnimation16 = {
+    .source               = { .index = 1 },
+    .animationId          = 16,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 8,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_shelter_r36_8017DD94 = { { .index = 1 }, 19, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Arrival-scene clip 19 for the first scripted walker, interpolating for 8 normal-rate frames.
+///
+/// Placement 0 consumes this request synchronously and borrows its own loaded
+/// clip data during playback; its handler ignores the bank and collision words.
+static AnimationPlayRequest _gShelterR36FirstWalkerAnimation19 = {
+    .source               = { .index = 1 },
+    .animationId          = 19,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 8,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_shelter_r36_8017DDA8[2] = {
     { { .index = 1 }, 20, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE },
     { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-AnimationPlayRequest D_shelter_r36_8017DDD0 = { { .index = 1 }, 10, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Arrival-scene clip 10 for the second scripted walker, restarting without interpolation.
+///
+/// Placement 1 consumes this request synchronously and borrows its own loaded
+/// clip data during playback; its handler ignores the bank and collision words.
+static AnimationPlayRequest _gShelterR36SecondWalkerAnimation10 = {
+    .source               = { .index = 1 },
+    .animationId          = 10,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_shelter_r36_8017DDE4[13] = {
     { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
@@ -148,74 +292,102 @@ AnimationPlayRequest D_shelter_r36_8017DDE4[13] = {
     { { .index = 1 }, 17, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-AnimationPlayRequest D_shelter_r36_8017DEE8 = { { .index = 1 }, 18, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Arrival-scene clip 18 for the first scripted walker, restarting without interpolation.
+///
+/// Placement 0 consumes this request synchronously and borrows its own loaded
+/// clip data during playback; its handler ignores the bank and collision words.
+static AnimationPlayRequest _gShelterR36FirstWalkerAnimation18 = {
+    .source               = { .index = 1 },
+    .animationId          = 18,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-ActorTransform D_shelter_r36_8017DEFC = { { 3270, -0x2710, -1630, 0 }, { 0, 0, 0, 0 } };
+/// Parks the player away from the arrival scene at (3270, -10000, -1630).
+///
+/// Coordinates are whole world units and all Euler angles are zero. The player
+/// placement message copies the transform synchronously and retains no pointer.
+static ActorTransform _gShelterR36ArrivalPlayerTransform = {
+    .pos = { 3270, -10000, -1630, 0 },
+    .rot = { 0, 0, 0, 0 },
+};
 
-TaskDesc D_shelter_r36_8017DF14[2] = {
+/// Zero-body task recipes for warp 1's arrival scene and warp 2's movie ending.
+///
+/// Indices 0 and 1 use priority 32 and receive zero spawn words. The controller
+/// borrows this two-entry table; its callbacks require the room's loaded resources.
+static TaskDesc _gShelterR36ArrivalTasks[2] = {
     { { { TASK_BODY_NONE, 32 } }, _shelterR36ArrivalSceneTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, _shelterR36MovieEndingTask, { .value = 0 } },
 };
 
-EvsCommand D_shelter_r36_8017DF2C[69] = {
+/// CAP-paced first-arrival choreography for both meeting-progress branches.
+///
+/// Holds and parks the player, animates placement 0 (first walker) and placement
+/// 1 (second walker), then fades and cleans up the scene. The controller chooses
+/// the accompanying CAP file and requests the ending or movie lead-in afterward.
+/// This 69-command stream ends with END; requests, callbacks and CAP/actor data
+/// must remain loaded until completion or `_gShelterR36ArrivalSkipScript` ends.
+static EvsCommand _gShelterR36ArrivalScript[69] = {
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 1 }, { .value = 5 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_r36_8017DC10 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_shelter_r36_8017DEFC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShelterR36ArrivalPlayerAnimation }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShelterR36ArrivalPlayerTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_shelter_r36_8017DCF4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_shelter_r36_8017DC7C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_r36_8017DC24 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_R36_FIRST_WALKER_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShelterR36FirstWalkerAnimation9 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_R36_SECOND_WALKER_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShelterR36SecondWalkerAnimation5 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_R36_SECOND_WALKER_PLACEMENT }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gShelterR36ShowSecondWalkerAttachment2Command } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_shelter_r36_8017DC90 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_R36_SECOND_WALKER_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShelterR36SecondWalkerAnimation6 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_shelter_r36_8017DEE8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_R36_FIRST_WALKER_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShelterR36FirstWalkerAnimation18 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 46 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_shelter_r36_8017DCF4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_R36_FIRST_WALKER_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShelterR36FirstWalkerAnimation9 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_shelter_r36_8017DC54 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_R36_SECOND_WALKER_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShelterR36SecondWalkerAnimation3 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_shelter_r36_8017DD1C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_R36_FIRST_WALKER_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShelterR36FirstWalkerAnimation11 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_shelter_r36_8017DDD0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_R36_SECOND_WALKER_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShelterR36SecondWalkerAnimation10 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_shelter_r36_8017DD94 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_shelter_r36_8017DD30 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_R36_FIRST_WALKER_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShelterR36FirstWalkerAnimation19 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_r36_8017DC28 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_R36_FIRST_WALKER_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShelterR36FirstWalkerAnimation12 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_R36_SECOND_WALKER_PLACEMENT }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gShelterR36ShowSecondWalkerAttachment1Command } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_shelter_r36_8017DCA4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_R36_SECOND_WALKER_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShelterR36SecondWalkerAnimation7 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_shelter_r36_8017DCB8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_R36_SECOND_WALKER_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShelterR36SecondWalkerAnimation8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_shelter_r36_8017DD30 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_R36_FIRST_WALKER_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShelterR36FirstWalkerAnimation12 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_shelter_r36_8017DD44 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_R36_FIRST_WALKER_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShelterR36FirstWalkerAnimation13 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54240001 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SHELTER_R36_ARRIVAL_SOUND }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_shelter_r36_8017DD6C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_R36_FIRST_WALKER_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShelterR36FirstWalkerAnimation15 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_shelter_r36_8017DD80 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_R36_FIRST_WALKER_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShelterR36FirstWalkerAnimation16 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 130 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 60 }, { .value = 5 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -229,7 +401,11 @@ EvsCommand D_shelter_r36_8017DF2C[69] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_shelter_r36_8017E5A4[8] = {
+/// Skip path that stops arrival music, cleans up the scene and disables drawing.
+///
+/// Its eight commands finish with END after cancelling the primary fade.
+/// It borrows the room's callbacks and is installed with `_gShelterR36ArrivalScript`.
+static EvsCommand _gShelterR36ArrivalSkipScript[8] = {
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -240,12 +416,18 @@ EvsCommand D_shelter_r36_8017E5A4[8] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_shelter_r36_8017E664[25] = {
-    { EVENT_SCRIPT_OPCODE_REQUEST_SCENE_MUSIC, { .value = 30 }, { .value = 1 }, { .value = 1 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+/// Follow-up CAP presentation that hides the walkers and reloads for the movie.
+///
+/// Selects loaded CAP files 1 then 2, playing command slot 1 from each. Its 25
+/// commands finish with END after requesting warp 2 and disabling input skipping.
+/// The interpreter borrows this stream, callbacks and loaded CAP data; both its
+/// normal path and the separately supplied skip stream request the same reload.
+static EvsCommand _gShelterR36MovieLeadInScript[25] = {
+    { EVENT_SCRIPT_OPCODE_REQUEST_SCENE_MUSIC, { .value = SHELTER_R36_MOVIE_LEAD_IN_MUSIC_EVENT }, { .value = 1 }, { .value = 1 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_R36_SECOND_WALKER_PLACEMENT }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_R36_FIRST_WALKER_PLACEMENT }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterR36SelectCapFile }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -256,7 +438,7 @@ EvsCommand D_shelter_r36_8017E664[25] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterR36SelectCapFile }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -287,7 +469,7 @@ TaskMessageEntry D_shelter_r36_8017E97C[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_shelter_r36_8017E9A4[2] = {
+TaskDesc gShelterR36MovieTasks[2] = {
     { { { TASK_BODY_NONE, 192 } }, shelterR36StartMovieTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, streamedScenePlay, { .value = 0 } },
 };
@@ -296,11 +478,11 @@ u8* gShelterR36RoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_r36_8017E9C0[1] = { 11 };
+ViewCount gShelterR36ViewCounts[1] = { 11 };
 
-DirectionWarpEntry D_shelter_r36_8017E9C4[2] = {
-    { { { .word = 2048 }, 0, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 0, 0, 0 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 2048 }, 0, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 0, 0, 0 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+DirectionWarpEntry gShelterR36WarpEntries[2] = {
+    { .player = { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, 0, 0, 0 }, .unknown_10 = { 0, 0, 0, 0 }, .companion = { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, 0, 0, 0 }, .unknown_24 = { 0, 0, 0, 0 }, .arrivalSound = DIRECTION_WARP_SOUND_NONE, .departureSound = DIRECTION_WARP_SOUND_NONE, .blockedSound = DIRECTION_WARP_SOUND_NONE, .initialView = 2, .flags = DIRECTION_WARP_FLAG_NONE, .mapFlagId = DIRECTION_WARP_MAP_FLAG_NONE },
+    { .player = { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, 0, 0, 0 }, .unknown_10 = { 0, 0, 0, 0 }, .companion = { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, 0, 0, 0 }, .unknown_24 = { 0, 0, 0, 0 }, .arrivalSound = DIRECTION_WARP_SOUND_NONE, .departureSound = DIRECTION_WARP_SOUND_NONE, .blockedSound = DIRECTION_WARP_SOUND_NONE, .initialView = 2, .flags = DIRECTION_WARP_FLAG_NONE, .mapFlagId = DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 enum {
@@ -351,18 +533,18 @@ WorldCollisionGrid gShelterR36FloorCollisionGrid = {
     .faceCount   = ARRAY_SIZE(_gShelterR36FloorCollisionGridFaces),
 };
 
-ViewCamera D_shelter_r36_8017EAD4[11] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x32C8, 0 } }, 257 },
-    { { { { -3897, 0, -1261 }, { 0, 4096, 0 }, { 1261, 0, -3897 } }, { 1260, 1300, -5690 } }, 680 },
-    { { { { 3982, 0, -955 }, { 108, 4069, 451 }, { 949, -463, 3957 } }, { 1470, 1070, 2380 } }, 257 },
-    { { { { 3982, 0, -955 }, { 108, 4069, 451 }, { 949, -463, 3957 } }, { 1470, 1070, 2380 } }, 257 },
-    { { { { 3982, 0, -955 }, { 108, 4069, 451 }, { 949, -463, 3957 } }, { 1470, 1070, 2380 } }, 257 },
-    { { { { 3982, 0, -955 }, { 108, 4069, 451 }, { 949, -463, 3957 } }, { 1470, 1070, 2380 } }, 257 },
-    { { { { 3982, 0, -955 }, { 108, 4069, 451 }, { 949, -463, 3957 } }, { 1470, 1070, 2380 } }, 257 },
-    { { { { 3982, 0, -955 }, { 108, 4069, 451 }, { 949, -463, 3957 } }, { 1470, 1070, 2380 } }, 257 },
-    { { { { 3982, 0, -955 }, { 108, 4069, 451 }, { 949, -463, 3957 } }, { 1470, 1070, 2380 } }, 257 },
-    { { { { 3982, 0, -955 }, { 108, 4069, 451 }, { 949, -463, 3957 } }, { 1470, 1070, 2380 } }, 257 },
-    { { { { 3982, 0, -955 }, { 108, 4069, 451 }, { 949, -463, 3957 } }, { 1470, 1070, 2380 } }, 257 },
+ViewCamera gShelterR36ViewCameras[11] = {
+    { .transform = { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x32C8, 0 } }, .screenDistance = 257 },
+    { .transform = { { { -3897, 0, -1261 }, { 0, 4096, 0 }, { 1261, 0, -3897 } }, { 1260, 1300, -5690 } }, .screenDistance = 680 },
+    { .transform = { { { 3982, 0, -955 }, { 108, 4069, 451 }, { 949, -463, 3957 } }, { 1470, 1070, 2380 } }, .screenDistance = 257 },
+    { .transform = { { { 3982, 0, -955 }, { 108, 4069, 451 }, { 949, -463, 3957 } }, { 1470, 1070, 2380 } }, .screenDistance = 257 },
+    { .transform = { { { 3982, 0, -955 }, { 108, 4069, 451 }, { 949, -463, 3957 } }, { 1470, 1070, 2380 } }, .screenDistance = 257 },
+    { .transform = { { { 3982, 0, -955 }, { 108, 4069, 451 }, { 949, -463, 3957 } }, { 1470, 1070, 2380 } }, .screenDistance = 257 },
+    { .transform = { { { 3982, 0, -955 }, { 108, 4069, 451 }, { 949, -463, 3957 } }, { 1470, 1070, 2380 } }, .screenDistance = 257 },
+    { .transform = { { { 3982, 0, -955 }, { 108, 4069, 451 }, { 949, -463, 3957 } }, { 1470, 1070, 2380 } }, .screenDistance = 257 },
+    { .transform = { { { 3982, 0, -955 }, { 108, 4069, 451 }, { 949, -463, 3957 } }, { 1470, 1070, 2380 } }, .screenDistance = 257 },
+    { .transform = { { { 3982, 0, -955 }, { 108, 4069, 451 }, { 949, -463, 3957 } }, { 1470, 1070, 2380 } }, .screenDistance = 257 },
+    { .transform = { { { 3982, 0, -955 }, { 108, 4069, 451 }, { 949, -463, 3957 } }, { 1470, 1070, 2380 } }, .screenDistance = 257 },
 };
 
 /// View 1 selects the decoded background with no source sprites, then ends the list.
@@ -544,7 +726,7 @@ static SpriteBatch _gShelterR36View11SpriteBatches[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_shelter_r36_8017F318[11] = {
+SpriteView gShelterR36SpriteViews[11] = {
     { { .empty = _gShelterR36View1SpriteBatches }, _gShelterR36View1SpriteBatches, NULL },
     { { .elements = _gShelterR36View2SpriteSources }, _gShelterR36View2SpriteBatches, NULL },
     { { .elements = _gShelterR36View3SpriteSources }, _gShelterR36View3SpriteBatches, NULL },
@@ -592,43 +774,56 @@ WorldCoordRoomLights gShelterR36RoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_shelter_r36_8017F6F4[10] = {
-    { NULL, NULL, NULL, { 5729, -1856, -3601, 0 }, { { 2395, -4896, -3, 0 }, { -2395, -4896, 3, 0 }, { 2395, 4896, -3, 0 }, { -2395, 4896, 3, 0 } }, { 5, 0, 4095, 0 }, { 0, 0, 4096, 0 }, 5442, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 5712, -2032, -3488, 0 }, { { -2373, -4816, -3, 0 }, { 2373, -4816, 3, 0 }, { -2373, 4816, -3, 0 }, { 2373, 4816, 3, 0 } }, { 5, 0, -4110, 0 }, { 0, 0, 4096, 0 }, 5345, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 5360, -1249, -0x2861, 0 }, { { -1333, -4816, -3, 0 }, { 1333, -4816, 3, 0 }, { -1333, 4816, -3, 0 }, { 1333, 4816, 3, 0 } }, { 9, 0, -4109, 0 }, { 0, 0, 4096, 0 }, 4990, 0, 2, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 5472, -1249, -0x28A1, 0 }, { { 1163, -4816, -3, 0 }, { -1163, -4816, 3, 0 }, { 1163, 4816, -3, 0 }, { -1163, 4816, 3, 0 } }, { 10, 0, 4097, 0 }, { 0, 0, 4096, 0 }, 4937, 0, 4, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 9985, -1120, -9360, 0 }, { { 3467, -4816, -179, 0 }, { -3467, -4816, 179, 0 }, { 3467, 4816, -179, 0 }, { -3467, 4816, 179, 0 } }, { 211, 0, 4092, 0 }, { 0, 0, 4096, 0 }, 5926, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 9935, -1120, -9248, 0 }, { { -3397, -4816, 173, 0 }, { 3397, -4816, -173, 0 }, { -3397, 4816, 173, 0 }, { 3397, 4816, -173, 0 } }, { -209, 0, -4090, 0 }, { 0, 0, 4096, 0 }, 5882, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x2E40, -1312, -0x2E71, 0 }, { { 491, -4816, -611, 0 }, { -491, -4816, 611, 0 }, { 491, 4816, -611, 0 }, { -491, 4816, 611, 0 } }, { 3194, 0, 2567, 0 }, { 0, 0, 4096, 0 }, 4857, 0, 6, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x2F50, -1376, -0x2F00, 0 }, { { -581, -4816, 733, 0 }, { 581, -4816, -733, 0 }, { -581, 4816, 733, 0 }, { 581, 4816, -733, 0 } }, { -3229, 0, -2559, 0 }, { 0, 0, 4096, 0 }, 4884, 0, 2, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x2EB0, -1376, -0x29A0, 0 }, { { 427, -4816, 701, 0 }, { -427, -4816, -701, 0 }, { 427, 4816, 701, 0 }, { -427, 4816, -701, 0 } }, { -3500, 0, 2131, 0 }, { 0, 0, 4096, 0 }, 4884, 0, 2, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x2DD0, -1408, -0x2A80, 0 }, { { -357, -4816, -547, 0 }, { 357, -4816, 547, 0 }, { -357, 4816, -547, 0 }, { 357, 4816, 547, 0 } }, { 3428, 0, -2240, 0 }, { 0, 0, 4096, 0 }, 4857, 0, 6, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+WorldCollisionTrigger gShelterR36ViewBoundaryTriggers[10] = {
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 5729, -1856, -3601, 0 }, .vertices = { { 2395, -4896, -3, 0 }, { -2395, -4896, 3, 0 }, { 2395, 4896, -3, 0 }, { -2395, 4896, 3, 0 } }, .normal = { 5, 0, 4095, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 5442, .control = 0, .parameter0 = 5, .parameter1 = 4, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 5712, -2032, -3488, 0 }, .vertices = { { -2373, -4816, -3, 0 }, { 2373, -4816, 3, 0 }, { -2373, 4816, -3, 0 }, { 2373, 4816, 3, 0 } }, .normal = { 5, 0, -4110, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 5345, .control = 0, .parameter0 = 4, .parameter1 = 5, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 5360, -1249, -0x2861, 0 }, .vertices = { { -1333, -4816, -3, 0 }, { 1333, -4816, 3, 0 }, { -1333, 4816, -3, 0 }, { 1333, 4816, 3, 0 } }, .normal = { 9, 0, -4109, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 4990, .control = 0, .parameter0 = 2, .parameter1 = 4, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 5472, -1249, -0x28A1, 0 }, .vertices = { { 1163, -4816, -3, 0 }, { -1163, -4816, 3, 0 }, { 1163, 4816, -3, 0 }, { -1163, 4816, 3, 0 } }, .normal = { 10, 0, 4097, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 4937, .control = 0, .parameter0 = 4, .parameter1 = 2, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 9985, -1120, -9360, 0 }, .vertices = { { 3467, -4816, -179, 0 }, { -3467, -4816, 179, 0 }, { 3467, 4816, -179, 0 }, { -3467, 4816, 179, 0 } }, .normal = { 211, 0, 4092, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 5926, .control = 0, .parameter0 = 3, .parameter1 = 2, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 9935, -1120, -9248, 0 }, .vertices = { { -3397, -4816, 173, 0 }, { 3397, -4816, -173, 0 }, { -3397, 4816, 173, 0 }, { 3397, 4816, -173, 0 } }, .normal = { -209, 0, -4090, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 5882, .control = 0, .parameter0 = 2, .parameter1 = 3, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 0x2E40, -1312, -0x2E71, 0 }, .vertices = { { 491, -4816, -611, 0 }, { -491, -4816, 611, 0 }, { 491, 4816, -611, 0 }, { -491, 4816, 611, 0 } }, .normal = { 3194, 0, 2567, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 4857, .control = 0, .parameter0 = 6, .parameter1 = 2, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 0x2F50, -1376, -0x2F00, 0 }, .vertices = { { -581, -4816, 733, 0 }, { 581, -4816, -733, 0 }, { -581, 4816, 733, 0 }, { 581, 4816, -733, 0 } }, .normal = { -3229, 0, -2559, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 4884, .control = 0, .parameter0 = 2, .parameter1 = 6, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 0x2EB0, -1376, -0x29A0, 0 }, .vertices = { { 427, -4816, 701, 0 }, { -427, -4816, -701, 0 }, { 427, 4816, 701, 0 }, { -427, 4816, -701, 0 } }, .normal = { -3500, 0, 2131, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 4884, .control = 0, .parameter0 = 2, .parameter1 = 6, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, .hit = 0 },
+    { .next = NULL, .prevLink = NULL, .coord = NULL, .origin = { 0x2DD0, -1408, -0x2A80, 0 }, .vertices = { { -357, -4816, -547, 0 }, { 357, -4816, 547, 0 }, { -357, 4816, -547, 0 }, { 357, 4816, 547, 0 } }, .normal = { 3428, 0, -2240, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 4857, .control = 0, .parameter0 = 6, .parameter1 = 2, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, .hit = 0 },
 };
 
-AreaResource D_shelter_r36_8017F9EC[3] = {
-    { 111, 439, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor143900ScriptedWalkerTaskDesc },
-    { 112, 601, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, gActor143900SecondScriptedWalkerTaskDescriptors },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Resource recipes for R36's first walker and second walker with attachments.
+///
+/// Keys 111/112 match the variant-1 placements; both use descriptor index 0.
+/// Files 143900 and 660100 select the first actor package and second model data.
+/// The third record terminates the resource walk with AREA_PLACEMENT_END.
+/// Loading and spawning borrow this table and the actor package's descriptors.
+static AreaResource _gShelterR36Variant1Resources[3] = {
+    { .entryId = SHELTER_R36_FIRST_WALKER_RESOURCE, .fileNumber = 439, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor143900ScriptedWalkerTaskDesc },
+    { .entryId = SHELTER_R36_SECOND_WALKER_RESOURCE, .fileNumber = 601, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_60, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = gActor143900SecondScriptedWalkerTaskDescriptors },
+    { .entryId = AREA_PLACEMENT_END, .fileNumber = 0, .fileGroupIndex = 0, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = NULL },
 };
 
-AreaPlacement D_shelter_r36_8017FA10[3] = {
-    { 111, 0, 0, 0, 0, 2850, 2048, 0, 0, 2, 0 },
-    { 112, 0, 0, 0, 0, 850, 0, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Variant 1's two scripted walkers, in the arrival script's placement order.
+///
+/// Placement 0 starts at Z 2850 with half-turn yaw; placement 1 at Z 850 with
+/// zero yaw. Coordinates are whole world units, with X/Y zero. Both select mode,
+/// variant and parameter row zero. Their texture offsets are (0, 2) and (2, 4).
+/// The final record is AREA_PLACEMENT_END. Live walkers borrow these placements
+/// until teardown, so the room overlay must remain loaded throughout their life.
+static AreaPlacement _gShelterR36Variant1Placements[3] = {
+    { .entryId = SHELTER_R36_FIRST_WALKER_RESOURCE, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 2850, .yaw = ACTOR_TRANSFORM_ANGLE_HALF_TURN, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = SHELTER_R36_SECOND_WALKER_RESOURCE, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 850, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 0, .rowIndex = 0 },
 };
 
-AreaVariant D_shelter_r36_8017FA40[11] = {
-    { NULL, NULL },
-    { D_shelter_r36_8017FA10, D_shelter_r36_8017F9EC },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gShelterR36AreaVariants[11] = {
+    { .placements = NULL, .resources = NULL },
+    { .placements = _gShelterR36Variant1Placements, .resources = _gShelterR36Variant1Resources },
+    { .placements = NULL, .resources = NULL },
+    { .placements = NULL, .resources = NULL },
+    { .placements = NULL, .resources = NULL },
+    { .placements = NULL, .resources = NULL },
+    { .placements = NULL, .resources = NULL },
+    { .placements = NULL, .resources = NULL },
+    { .placements = NULL, .resources = NULL },
+    { .placements = NULL, .resources = NULL },
+    { .placements = NULL, .resources = NULL },
 };
 
 /// Cue-2 bases in the loaded type-1 bank; cue 1 selects the following entry.
@@ -769,7 +964,7 @@ static void _shelterR36ArrivalSceneTask(Task* task)
                 sequenceSlot = SHELTER_R36_CAP_PROGRESS_SLOT;
             }
             capStartSequenceSlot(sequenceSlot, CAP_PLAYBACK_IN_PLACE, 0);
-            evsStartScriptWithSkip(D_shelter_r36_8017DF2C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_r36_8017E5A4);
+            evsStartScriptWithSkip(_gShelterR36ArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gShelterR36ArrivalSkipScript);
             task->state++;
             break;
         case SHELTER_R36_ARRIVAL_WAIT_SCENE:
@@ -786,7 +981,7 @@ static void _shelterR36ArrivalSceneTask(Task* task)
             }
             break;
         case SHELTER_R36_ARRIVAL_START_FOLLOW_UP:
-            evsStartScriptWithSkip(D_shelter_r36_8017E664, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_r36_8017E8BC);
+            evsStartScriptWithSkip(_gShelterR36MovieLeadInScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_r36_8017E8BC);
             taskKill(task);
             break;
     }
@@ -837,7 +1032,7 @@ static void _shelterR36MovieEndingTask(Task* task)
     switch (task->state) {
         case SHELTER_R36_MOVIE_ENDING_START:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            taskSpawnFromTable(D_shelter_r36_8017E9A4, SHELTER_R36_MOVIE_LAUNCH_TASK, 0, 0);
+            taskSpawnFromTable(gShelterR36MovieTasks, SHELTER_R36_MOVIE_LAUNCH_TASK, 0, 0);
             task->state++;
             break;
         case SHELTER_R36_MOVIE_ENDING_WAIT:
@@ -930,10 +1125,10 @@ static void _shelterR36InitializeTask(Task* task)
     task->msgTable = D_shelter_r36_8017E97C;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.warp == SHELTER_R36_SCENE_ARRIVAL) {
-        taskSpawnFromTable(D_shelter_r36_8017DF14, SHELTER_R36_ARRIVAL_SCENE_TASK, 0, 0);
+        taskSpawnFromTable(_gShelterR36ArrivalTasks, SHELTER_R36_ARRIVAL_SCENE_TASK, 0, 0);
     }
     if (gGameSession->location.loc.warp == SHELTER_R36_MOVIE_ARRIVAL) {
-        taskSpawnFromTable(D_shelter_r36_8017DF14, SHELTER_R36_MOVIE_ENDING_TASK, 0, 0);
+        taskSpawnFromTable(_gShelterR36ArrivalTasks, SHELTER_R36_MOVIE_ENDING_TASK, 0, 0);
     }
     task->state++;
 }
@@ -945,8 +1140,11 @@ static void _shelterR36MessageIdle(Task* task)
     char unusedStackFrame[0x10];
 }
 
-/// The room entry task's three states: set the room up, idle, end.
-static const TaskFuncTable3 D_shelter_r36_8017D5C4 = {
+/// Room-controller callbacks indexed by state: 0 initialize, 1 idle, 2 release.
+///
+/// Dispatch copies all three pointers before calling; state must be 0..2 and
+/// the callback code must remain loaded. There is no terminator or bounds check.
+static const TaskFuncTable3 _gShelterR36RoomTaskStates = {
     { _shelterR36InitializeTask, _shelterR36MessageIdle, taskKill },
 };
 
@@ -954,6 +1152,6 @@ void shelterR36RoomTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_shelter_r36_8017D5C4;
+    states = _gShelterR36RoomTaskStates;
     states.funcs[task->state](task);
 }
