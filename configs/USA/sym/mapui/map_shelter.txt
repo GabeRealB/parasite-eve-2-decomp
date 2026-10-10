@@ -436,7 +436,7 @@ gShelterB3IncineratorControlRoomViewMaps = 0x80181920; // absolute:True owner=sh
 gShelterB3IncineratorControlRoomViewCounts = 0x80181928; // absolute:True owner=shelter_b3_incinerator_control_room
 D_shelter_b3_incinerator_control_room_8018192C = 0x8018192C; // absolute:True owner=shelter_b3_incinerator_control_room
 D_shelter_b3_incinerator_control_room_80181CC0 = 0x80181CC0; // absolute:True owner=shelter_b3_incinerator_control_room
-gShelterB3IncineratorControlRoomViewCameras = 0x80181CE4; // absolute:True owner=shelter_b3_incinerator_control_room shared=rooms
+gShelterB3IncineratorControlRoomViewCameras = 0x80181CE4; // absolute:True owner=shelter_b3_incinerator_control_room
 gShelterB3IncineratorControlRoomSpriteViews = 0x80182140; // absolute:True owner=shelter_b3_incinerator_control_room shared=rooms
 gShelterB3IncineratorControlRoomLights = 0x801824A0; // absolute:True owner=shelter_b3_incinerator_control_room shared=rooms
 D_shelter_b3_incinerator_control_room_801824B8 = 0x801824B8; // absolute:True owner=shelter_b3_incinerator_control_room

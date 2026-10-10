@@ -41,9 +41,28 @@ extern ViewCount D_dryfield_night_water_hole_80180AA4[];
 
 extern DirectionWarpEntry D_dryfield_night_water_hole_80180AAC[];
 
-extern ViewCamera D_dryfield_night_water_hole_80180F74[];
+/// Number of mapped camera/image/sprite slots in the night water hole.
+enum { DRYFIELD_NIGHT_WATER_HOLE_MAPPED_VIEW_COUNT = 26 };
 
-extern SpriteView D_dryfield_night_water_hole_80182384[];
+/// Cameras for the night water hole's mapped views 1..26.
+///
+/// Indexed by the mapped byte from `gDryfieldNightWaterHoleViewMaps` minus one,
+/// independently of each room's logical-view count. Rotation uses ONE (4096)
+/// for unity, translation is the negated world-space camera origin in game
+/// units, and perspective distance is in pixels. There is no terminal record.
+/// The stage directory borrows this array while the room overlay is loaded;
+/// queued camera application requires the selected record to remain live.
+extern ViewCamera gDryfieldNightWaterHoleViewCameras[DRYFIELD_NIGHT_WATER_HOLE_MAPPED_VIEW_COUNT];
+
+/// Foreground sprite resources for the night water hole's mapped views 1..26.
+///
+/// Uses the same mapped index minus one as `gDryfieldNightWaterHoleViewCameras`.
+/// Views 3..6 and 13..16 select source rectangles; the other views have only
+/// zero-count and terminal batches. Every first count is zero, retaining the
+/// decoded image background, and every draw-area pointer is NULL. The array
+/// has no terminator. Its mutable batches and sources belong to this overlay
+/// and must stay loaded while allocating or linking cached sprite packets.
+extern SpriteView gDryfieldNightWaterHoleSpriteViews[DRYFIELD_NIGHT_WATER_HOLE_MAPPED_VIEW_COUNT];
 
 /// Active collision policies and footstep cues for this room's eight surface classes.
 ///

@@ -151,7 +151,7 @@ extern RoomDeparture gRoomDeparture;
 static void _dryfieldNightWaterHoleRoomIdle(Task* task);
 static void _dryfieldNightWaterHoleApplySurfaceOverrides(const _DryfieldNightWaterHoleSurfaceOverride* overrides);
 
-extern WorldCollisionGrid         D_dryfield_night_water_hole_80180F50[1];
+static WorldCollisionGrid         _gDryfieldNightWaterHoleCollisionGrid;
 extern WorldCollisionOccluder     D_dryfield_night_water_hole_80182D58[2];
 extern WorldCollisionTrigger      D_dryfield_night_water_hole_801824BC[12];
 extern WorldCollisionTrigger      D_dryfield_night_water_hole_8018284C[9];
@@ -294,10 +294,10 @@ SVECTOR D_dryfield_night_water_hole_801809D4[4] = {
 SVECTOR D_dryfield_night_water_hole_801809F4[2] = { 0 };
 
 WorldCollisionRoomResources D_dryfield_night_water_hole_80180A04[4] = {
-    { D_dryfield_night_water_hole_80180F50, D_dryfield_night_water_hole_801824BC, D_dryfield_night_water_hole_8018284C, D_dryfield_night_water_hole_80182D58 },
-    { D_dryfield_night_water_hole_80180F50, D_dryfield_night_water_hole_801824BC, D_dryfield_night_water_hole_80182AF8, D_dryfield_night_water_hole_80182D58 },
-    { D_dryfield_night_water_hole_80180F50, D_dryfield_night_water_hole_801824BC, D_dryfield_night_water_hole_8018284C, D_dryfield_night_water_hole_80182D58 },
-    { D_dryfield_night_water_hole_80180F50, D_dryfield_night_water_hole_801824BC, D_dryfield_night_water_hole_80182AF8, D_dryfield_night_water_hole_80182D58 },
+    { &_gDryfieldNightWaterHoleCollisionGrid, D_dryfield_night_water_hole_801824BC, D_dryfield_night_water_hole_8018284C, D_dryfield_night_water_hole_80182D58 },
+    { &_gDryfieldNightWaterHoleCollisionGrid, D_dryfield_night_water_hole_801824BC, D_dryfield_night_water_hole_80182AF8, D_dryfield_night_water_hole_80182D58 },
+    { &_gDryfieldNightWaterHoleCollisionGrid, D_dryfield_night_water_hole_801824BC, D_dryfield_night_water_hole_8018284C, D_dryfield_night_water_hole_80182D58 },
+    { &_gDryfieldNightWaterHoleCollisionGrid, D_dryfield_night_water_hole_801824BC, D_dryfield_night_water_hole_80182AF8, D_dryfield_night_water_hole_80182D58 },
 };
 
 WorldCoordRoomLighting gDryfieldNightWaterHoleRoomLighting[4] = {
@@ -400,34 +400,63 @@ DirectionWarpEntry D_dryfield_night_water_hole_80180AAC[3] = {
     { { { .word = 1024 }, 4680, 0, -954 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 4680, 0, -954 }, { 0, 0, 0, 0 }, 0x53200008, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_WATER },
 };
 
-static SVECTOR _gDryfieldNightWaterHoleCollision03990Normals[10] = {
+enum {
+    DRYFIELD_NIGHT_WATER_HOLE_GRID_CELL_COUNT_X = 6,
+    DRYFIELD_NIGHT_WATER_HOLE_GRID_CELL_COUNT_Z = 2,
+};
+
+/// Room-space collision normals, using ONE (4096) for unit length.
+static SVECTOR _gDryfieldNightWaterHoleCollisionGridNormals[10] = {
 #include "assets/dryfield_night_water_hole_collision_03990_normals.inc"
 };
 
-static SVECTOR _gDryfieldNightWaterHoleCollision03990Verts[54] = {
+/// Collision mesh vertices in signed integer room-coordinate units.
+static SVECTOR _gDryfieldNightWaterHoleCollisionGridVerts[54] = {
 #include "assets/dryfield_night_water_hole_collision_03990_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldNightWaterHoleCollision03990Faces[23] = {
+/// Indexed collision quads and their room-local surface classes.
+static WorldCollisionGridFace _gDryfieldNightWaterHoleCollisionGridFaces[23] = {
 #include "assets/dryfield_night_water_hole_collision_03990_faces.inc"
 };
 
-static s16 _gDryfieldNightWaterHoleCollision03990Cells[92] = {
+/// Twelve packed face-index lists, terminated by WORLD_COLLISION_GRID_CELL_END.
+///
+/// The cell table selects each list's start in halfwords. Retained zeros
+/// between some lists are outside the traversed face indices.
+static s16 _gDryfieldNightWaterHoleCollisionGridCells[92] = {
 #include "assets/dryfield_night_water_hole_collision_03990_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightWaterHoleCollision03990Cells[i])
-static s16* _gDryfieldNightWaterHoleCollision03990Table[12] = {
+// The generated table requires GRID_CELL(i) to address halfword i in the pool.
+#define GRID_CELL(i) (&_gDryfieldNightWaterHoleCollisionGridCells[i])
+/// X-major cell-list starts, indexed by x * cellCountZ + z.
+static s16* _gDryfieldNightWaterHoleCollisionGridTable[DRYFIELD_NIGHT_WATER_HOLE_GRID_CELL_COUNT_X * DRYFIELD_NIGHT_WATER_HOLE_GRID_CELL_COUNT_Z] = {
 #include "assets/dryfield_night_water_hole_collision_03990_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_night_water_hole_80180F50[1] = {
-    { NULL, _gDryfieldNightWaterHoleCollision03990Normals, _gDryfieldNightWaterHoleCollision03990Verts, _gDryfieldNightWaterHoleCollision03990Faces, _gDryfieldNightWaterHoleCollision03990Table, -4000, 5000, 6, 2, 4000, 23 },
+/// Collision mesh shared by the night water hole's four room selectors.
+///
+/// The 6-by-2 square-cell index has origin (4000, -5000) in room X/Z and
+/// 4000 game units per cell. Setup binds viewCoord to the live view before
+/// publishing the grid; this record and its pools must stay loaded while active.
+static WorldCollisionGrid _gDryfieldNightWaterHoleCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldNightWaterHoleCollisionGridNormals,
+    .vertices    = _gDryfieldNightWaterHoleCollisionGridVerts,
+    .faces       = _gDryfieldNightWaterHoleCollisionGridFaces,
+    .cellFaceIds = _gDryfieldNightWaterHoleCollisionGridTable,
+    .xBias       = -4000,
+    .zBias       = 5000,
+    .cellCountX  = DRYFIELD_NIGHT_WATER_HOLE_GRID_CELL_COUNT_X,
+    .cellCountZ  = DRYFIELD_NIGHT_WATER_HOLE_GRID_CELL_COUNT_Z,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldNightWaterHoleCollisionGridFaces),
 };
 
-ViewCamera D_dryfield_night_water_hole_80180F74[26] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -0x34B7, 0x78AD, 3935 } }, 329 },
+ViewCamera gDryfieldNightWaterHoleViewCameras[DRYFIELD_NIGHT_WATER_HOLE_MAPPED_VIEW_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -0x34B7, 0x78AD, 3935 } }, 329 },
     { { { { -1708, 0, 3722 }, { 704, 4022, 323 }, { -3655, 774, -1677 } }, { -7853, 1372, 107 } }, 230 },
     { { { { -1222, 0, -3909 }, { -357, 4078, 111 }, { 3892, 374, -1217 } }, { -4081, 1167, 312 } }, 230 },
     { { { { -1694, 0, -3728 }, { -261, 4085, 118 }, { 3719, 287, -1690 } }, { -7539, 1082, 155 } }, 243 },
@@ -437,7 +466,7 @@ ViewCamera D_dryfield_night_water_hole_80180F74[26] = {
     { { { { -1174, 0, -3924 }, { 17, 4095, -5 }, { 3924, -18, -1174 } }, { -0x4AF8, 1095, 2331 } }, 230 },
     { { { { -1174, 0, -3924 }, { 17, 4095, -5 }, { 3924, -18, -1174 } }, { -0x4AF8, 1095, 2331 } }, 230 },
     { { { { -856, 0, -4005 }, { -160, 4092, 34 }, { 4002, 163, -855 } }, { -0x3AA3, 1023, 2449 } }, 230 },
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -0x34B7, 0x8C35, 3935 } }, 329 },
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -0x34B7, 0x8C35, 3935 } }, 329 },
     { { { { -1708, 0, 3722 }, { 704, 4022, 323 }, { -3655, 774, -1677 } }, { -7853, 1372, 107 } }, 230 },
     { { { { -1222, 0, -3909 }, { -357, 4078, 111 }, { 3892, 374, -1217 } }, { -4081, 1167, 312 } }, 230 },
     { { { { -1694, 0, -3728 }, { -261, 4085, 118 }, { 3719, 287, -1690 } }, { -7539, 1082, 155 } }, 243 },
@@ -660,245 +689,352 @@ static SpriteBatch _gDryfieldNightWaterHoleView6Batches[5] = {
     { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_dryfield_night_water_hole_80181AE0[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 7's image-only batch list.
+///
+/// The zero-count first record retains decoded image strips; the second ends
+/// the list. Its retained address in sources.empty supplies no source elements.
+static SpriteBatch _gDryfieldNightWaterHoleView7Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_dryfield_night_water_hole_80181AF0[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 8's image-only batch list.
+///
+/// The zero-count first record retains decoded image strips; the second ends
+/// the list. Its retained address in sources.empty supplies no source elements.
+static SpriteBatch _gDryfieldNightWaterHoleView8Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_dryfield_night_water_hole_80181B00[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 9's image-only batch list.
+///
+/// The zero-count first record retains decoded image strips; the second ends
+/// the list. Its retained address in sources.empty supplies no source elements.
+static SpriteBatch _gDryfieldNightWaterHoleView9Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_dryfield_night_water_hole_80181B10[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 10's image-only batch list.
+///
+/// The zero-count first record retains decoded image strips; the second ends
+/// the list. Its retained address in sources.empty supplies no source elements.
+static SpriteBatch _gDryfieldNightWaterHoleView10Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_dryfield_night_water_hole_80181B20[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 11's image-only batch list.
+///
+/// The zero-count first record retains decoded image strips; the second ends
+/// the list. Its retained address in sources.empty supplies no source elements.
+static SpriteBatch _gDryfieldNightWaterHoleView11Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_dryfield_night_water_hole_80181B30[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 12's image-only batch list.
+///
+/// The zero-count first record retains decoded image strips; the second ends
+/// the list. Its retained address in sources.empty supplies no source elements.
+static SpriteBatch _gDryfieldNightWaterHoleView12Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_dryfield_night_water_hole_80181B40[21] = {
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -8, -72, 1375, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -24, -72, 1375, { .fields = { 56, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -48, -72, 1375, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 8, -24, 1375, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 32, -24, 1375, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -8, -24, 1375, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 32, -72, 1375, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 8, -72, 1375, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -16, -72, 2000, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 0, -72, 2000, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -32, -72, 2000, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -32, -24, 2000, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -88, -24, 2000, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -56, -72, 2000, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -56, -24, 2000, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -80, -72, 2000, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -16, -120, 875, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 0, -120, 875, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 16, -120, 875, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 16, -80, 875, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 0, -80, 875, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
+/// The 21 foreground sprite rectangles for mapped view 13.
+///
+/// Positions are pixels relative to the drawing origin; dimensions are pixels.
+/// Texture coordinates are texels and depth is an unscaled OT sorting value.
+/// Batches cover the complete array. Allocation snapshots texture and geometry
+/// into both frame buffers; cached linking still borrows these source depths.
+static SpriteSource _gDryfieldNightWaterHoleView13Sources[21] = {
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 48 } }, -8, -72, 1375, { .fields = { 112, 0 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 32 } }, -24, -72, 1375, { .fields = { 56, 40 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 16 } }, -48, -72, 1375, { .fields = { 104, 240 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 48 } }, 8, -24, 1375, { .fields = { 104, 144 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 32, 48 } }, 32, -24, 1375, { .fields = { 96, 96 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 48 } }, -8, -24, 1375, { .fields = { 112, 48 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 32, 48 } }, 32, -72, 1375, { .fields = { 80, 0 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 48 } }, 8, -72, 1375, { .fields = { 88, 48 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 24 } }, -16, -72, 2000, { .fields = { 72, 232 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 16 } }, 0, -72, 2000, { .fields = { 56, 168 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 48 } }, -32, -72, 2000, { .fields = { 88, 192 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 40 } }, -32, -24, 2000, { .fields = { 64, 0 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 32, 40 } }, -88, -24, 2000, { .fields = { 48, 128 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 48 } }, -56, -72, 2000, { .fields = { 104, 192 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 40 } }, -56, -24, 2000, { .fields = { 56, 88 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 48 } }, -80, -72, 2000, { .fields = { 80, 144 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 40 } }, -16, -120, 875, { .fields = { 72, 192 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 40 } }, 0, -120, 875, { .fields = { 72, 48 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 40 } }, 16, -120, 875, { .fields = { 80, 96 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 16 } }, 16, -80, 875, { .fields = { 56, 72 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 16 } }, 0, -80, 875, { .fields = { 88, 240 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_dryfield_night_water_hole_80181CE4[5] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 8, 0, 0, { 2, 0 } },
-    { 8, 8, 0, 0, { 0, 0 } },
-    { 16, 5, 0, 0, { 1, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 13's foreground ranges over source elements 0..7, 8..15 and 16..20.
+///
+/// A zero-count first record retains decoded image strips; SPRITE_BATCH_END
+/// ends the list. All ranges start visible and included in cached packets.
+/// The serialized field_6 bytes have no proven role and are retained intact.
+static SpriteBatch _gDryfieldNightWaterHoleView13Batches[5] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 8, .field_6 = { 2, 0 } },
+    { .firstSprite = 8, .spriteCount = 8 },
+    { .firstSprite = 16, .spriteCount = ARRAY_SIZE(_gDryfieldNightWaterHoleView13Sources) - 16, .field_6 = { 1, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_dryfield_night_water_hole_80181D0C[33] = {
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 24, 625, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -24, 625, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -72, 625, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 16, -120, 625, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 0, -120, 625, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -120, 625, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 32, -120, 625, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, 72, -120, 625, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 48, -120, 625, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, 72, -72, 625, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, 72, -24, 625, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, 72, 24, 625, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 48, 24, 625, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 48, -24, 625, { .fields = { 16, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 48, -72, 625, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, -120, -120, 1250, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, -72, -120, 1250, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -24, -120, 1250, { .fields = { 16, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -8, -120, 1250, { .fields = { 0, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 48 } }, 8, -120, 1250, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, 24, -112, 1250, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 40, -112, 1250, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 56, -112, 1250, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, -120, -72, 1250, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, -120, -24, 1250, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 24 } }, -120, 24, 1250, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -72, -72, 1250, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, -72, -24, 1250, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 24 } }, -72, 24, 1250, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -24, 24, 1250, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 48 } }, -24, -24, 1250, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -24, -72, 1250, { .fields = { 0, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -8, -72, 1250, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
+/// The 33 foreground sprite rectangles for mapped view 14.
+///
+/// Positions are pixels relative to the drawing origin; dimensions are pixels.
+/// Texture coordinates are texels and depth is an unscaled OT sorting value.
+/// Batches cover the complete array. Allocation snapshots texture and geometry
+/// into both frame buffers; cached linking still borrows these source depths.
+static SpriteSource _gDryfieldNightWaterHoleView14Sources[33] = {
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 48, 48 } }, 112, 24, 625, { .fields = { 80, 48 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 48, 48 } }, 112, -24, 625, { .fields = { 80, 0 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 48, 48 } }, 112, -72, 625, { .fields = { 32, 0 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_896, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 24 } }, 16, -120, 625, { .fields = { 80, 144 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 16 } }, 0, -120, 625, { .fields = { 112, 240 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 48, 48 } }, 112, -120, 625, { .fields = { 80, 96 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 48 } }, 32, -120, 625, { .fields = { 112, 192 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 40, 48 } }, 72, -120, 625, { .fields = { 72, 192 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 48 } }, 48, -120, 625, { .fields = { 56, 144 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 40, 48 } }, 72, -72, 625, { .fields = { 40, 48 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 40, 48 } }, 72, -24, 625, { .fields = { 40, 96 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 40, 48 } }, 72, 24, 625, { .fields = { 32, 192 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 48 } }, 48, 24, 625, { .fields = { 32, 144 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 48 } }, 48, -24, 625, { .fields = { 16, 48 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 48 } }, 48, -72, 625, { .fields = { 16, 96 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_896, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 48, 48 } }, -120, -120, 1250, { .fields = { 112, 0 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_896, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 48, 48 } }, -72, -120, 1250, { .fields = { 112, 144 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 48 } }, -24, -120, 1250, { .fields = { 16, 192 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 48 } }, -8, -120, 1250, { .fields = { 0, 48 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_896, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 48 } }, 8, -120, 1250, { .fields = { 112, 96 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_896, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 32 } }, 24, -112, 1250, { .fields = { 96, 144 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_896, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 24 } }, 40, -112, 1250, { .fields = { 80, 96 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 40, 16 } }, 56, -112, 1250, { .fields = { 72, 240 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_896, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 48, 48 } }, -120, -72, 1250, { .fields = { 96, 192 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_896, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 48, 48 } }, -120, -24, 1250, { .fields = { 80, 48 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_896, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 48, 24 } }, -120, 24, 1250, { .fields = { 48, 120 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 48, 48 } }, -72, -72, 1250, { .fields = { 80, 144 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_896, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 48, 48 } }, -72, -24, 1250, { .fields = { 64, 0 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_896, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 48, 24 } }, -72, 24, 1250, { .fields = { 48, 192 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 16 } }, -24, 24, 1250, { .fields = { 48, 240 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_896, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 48 } }, -24, -24, 1250, { .fields = { 96, 96 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 48 } }, -24, -72, 1250, { .fields = { 0, 96 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_896, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 24 } }, -8, -72, 1250, { .fields = { 80, 168 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_dryfield_night_water_hole_80181FA0[4] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 15, 0, 0, { 1, 0 } },
-    { 15, 18, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 14's foreground ranges over source elements 0..14 and 15..32.
+///
+/// A zero-count first record retains decoded image strips; SPRITE_BATCH_END
+/// ends the list. All ranges start visible and included in cached packets.
+/// The serialized field_6 bytes have no proven role and are retained intact.
+static SpriteBatch _gDryfieldNightWaterHoleView14Batches[4] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 15, .field_6 = { 1, 0 } },
+    { .firstSprite = 15, .spriteCount = ARRAY_SIZE(_gDryfieldNightWaterHoleView14Sources) - 15 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_dryfield_night_water_hole_80181FC0[18] = {
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -56, 24, 625, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -56, -24, 625, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -56, -72, 625, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -40, -120, 625, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -80, 24, 625, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -80, -24, 625, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -80, -72, 625, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -80, -112, 625, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 32 } }, -160, 24, 625, { .fields = { 16, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, -24, 625, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, -72, 625, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -160, -96, 625, { .fields = { 8, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -112, 24, 625, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -112, -24, 625, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -112, -72, 625, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -112, -104, 625, { .fields = { 48, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -24, -120, 625, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -56, -112, 625, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
+/// The 18 foreground sprite rectangles for mapped view 15.
+///
+/// Positions are pixels relative to the drawing origin; dimensions are pixels.
+/// Texture coordinates are texels and depth is an unscaled OT sorting value.
+/// Batches cover the complete array. Allocation snapshots texture and geometry
+/// into both frame buffers; cached linking still borrows these source depths.
+static SpriteSource _gDryfieldNightWaterHoleView15Sources[18] = {
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 48 } }, -56, 24, 625, { .fields = { 64, 0 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 48 } }, -56, -24, 625, { .fields = { 80, 144 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 48 } }, -56, -72, 625, { .fields = { 80, 192 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 32 } }, -40, -120, 625, { .fields = { 48, 0 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 40 } }, -80, 24, 625, { .fields = { 56, 128 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 48 } }, -80, -24, 625, { .fields = { 80, 48 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 48 } }, -80, -72, 625, { .fields = { 104, 48 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 40 } }, -80, -112, 625, { .fields = { 56, 88 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 48, 32 } }, -160, 24, 625, { .fields = { 16, 168 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 48, 48 } }, -160, -24, 625, { .fields = { 80, 0 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 48, 48 } }, -160, -72, 625, { .fields = { 80, 96 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 48, 24 } }, -160, -96, 625, { .fields = { 8, 88 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 32, 40 } }, -112, 24, 625, { .fields = { 48, 48 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 32, 48 } }, -112, -24, 625, { .fields = { 96, 144 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 32, 48 } }, -112, -72, 625, { .fields = { 96, 192 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 32, 32 } }, -112, -104, 625, { .fields = { 48, 208 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 32, 16 } }, -24, -120, 625, { .fields = { 96, 240 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 40 } }, -56, -112, 625, { .fields = { 64, 168 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_dryfield_night_water_hole_80182128[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 18, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 15's foreground ranges over source elements 0..17.
+///
+/// A zero-count first record retains decoded image strips; SPRITE_BATCH_END
+/// ends the list. All ranges start visible and included in cached packets.
+static SpriteBatch _gDryfieldNightWaterHoleView15Batches[3] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gDryfieldNightWaterHoleView15Sources) },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_dryfield_night_water_hole_80182140[19] = {
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 40, -32, 2000, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 40, -72, 2000, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 56, -72, 2000, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 72, -72, 2000, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 24, -72, 2000, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 24, -32, 2000, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 0, -32, 2000, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 0, -72, 2000, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 56, -32, 1375, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 56, -72, 1375, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 72, -32, 1375, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 88, -32, 1375, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 112, -32, 1375, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 112, -72, 1375, { .fields = { 80, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 88, -72, 1375, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 72, -72, 1375, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 32, -72, 1375, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 48, -16, 3000, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 56, -64, 3000, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
+/// The 19 foreground sprite rectangles for mapped view 16.
+///
+/// Positions are pixels relative to the drawing origin; dimensions are pixels.
+/// Texture coordinates are texels and depth is an unscaled OT sorting value.
+/// Batches cover the complete array. Allocation snapshots texture and geometry
+/// into both frame buffers; cached linking still borrows these source depths.
+static SpriteSource _gDryfieldNightWaterHoleView16Sources[19] = {
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 40 } }, 40, -32, 2000, { .fields = { 72, 80 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 40 } }, 40, -72, 2000, { .fields = { 80, 0 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 32 } }, 56, -72, 2000, { .fields = { 96, 224 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 8 } }, 72, -72, 2000, { .fields = { 72, 248 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 40 } }, 24, -72, 2000, { .fields = { 88, 120 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 40 } }, 24, -32, 2000, { .fields = { 88, 80 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 40 } }, 0, -32, 2000, { .fields = { 64, 160 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 40 } }, 0, -72, 2000, { .fields = { 64, 120 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 48 } }, 56, -32, 1375, { .fields = { 112, 192 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 40 } }, 56, -72, 1375, { .fields = { 104, 144 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 48 } }, 72, -32, 1375, { .fields = { 112, 0 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 48 } }, 88, -32, 1375, { .fields = { 104, 96 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 48 } }, 112, -32, 1375, { .fields = { 104, 48 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 40 } }, 112, -72, 1375, { .fields = { 80, 40 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 40 } }, 88, -72, 1375, { .fields = { 88, 184 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 40 } }, 72, -72, 1375, { .fields = { 96, 0 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 24, 24 } }, 32, -72, 1375, { .fields = { 72, 224 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 16, 16 } }, 48, -16, 3000, { .fields = { 112, 240 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_WATER_HOLE_SPRITE_PAGE_960, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_CLUT, { .fields = { 8, 48 } }, 56, -64, 3000, { .fields = { 120, 144 } }, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_WATER_HOLE_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_dryfield_night_water_hole_801822BC[5] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 8, 0, 0, { 1, 0 } },
-    { 8, 9, 0, 0, { 2, 0 } },
-    { 17, 2, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 16's foreground ranges over source elements 0..7, 8..16 and 17..18.
+///
+/// A zero-count first record retains decoded image strips; SPRITE_BATCH_END
+/// ends the list. All ranges start visible and included in cached packets.
+/// The serialized field_6 bytes have no proven role and are retained intact.
+static SpriteBatch _gDryfieldNightWaterHoleView16Batches[5] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 8, .field_6 = { 1, 0 } },
+    { .firstSprite = 8, .spriteCount = 9, .field_6 = { 2, 0 } },
+    { .firstSprite = 17, .spriteCount = ARRAY_SIZE(_gDryfieldNightWaterHoleView16Sources) - 17 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_dryfield_night_water_hole_801822E4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 17's image-only batch list.
+///
+/// The zero-count first record retains decoded image strips; the second ends
+/// the list. Its retained address in sources.empty supplies no source elements.
+static SpriteBatch _gDryfieldNightWaterHoleView17Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_dryfield_night_water_hole_801822F4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 18's image-only batch list.
+///
+/// The zero-count first record retains decoded image strips; the second ends
+/// the list. Its retained address in sources.empty supplies no source elements.
+static SpriteBatch _gDryfieldNightWaterHoleView18Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_dryfield_night_water_hole_80182304[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 19's image-only batch list.
+///
+/// The zero-count first record retains decoded image strips; the second ends
+/// the list. Its retained address in sources.empty supplies no source elements.
+static SpriteBatch _gDryfieldNightWaterHoleView19Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_dryfield_night_water_hole_80182314[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 20's image-only batch list.
+///
+/// The zero-count first record retains decoded image strips; the second ends
+/// the list. Its retained address in sources.empty supplies no source elements.
+static SpriteBatch _gDryfieldNightWaterHoleView20Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_dryfield_night_water_hole_80182324[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 21's image-only batch list.
+///
+/// The zero-count first record retains decoded image strips; the second ends
+/// the list. Its retained address in sources.empty supplies no source elements.
+static SpriteBatch _gDryfieldNightWaterHoleView21Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_dryfield_night_water_hole_80182334[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 22's image-only batch list.
+///
+/// The zero-count first record retains decoded image strips; the second ends
+/// the list. Its retained address in sources.empty supplies no source elements.
+static SpriteBatch _gDryfieldNightWaterHoleView22Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_dryfield_night_water_hole_80182344[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 23's image-only batch list.
+///
+/// The zero-count first record retains decoded image strips; the second ends
+/// the list. Its retained address in sources.empty supplies no source elements.
+static SpriteBatch _gDryfieldNightWaterHoleView23Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_dryfield_night_water_hole_80182354[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 24's image-only batch list.
+///
+/// The zero-count first record retains decoded image strips; the second ends
+/// the list. Its retained address in sources.empty supplies no source elements.
+static SpriteBatch _gDryfieldNightWaterHoleView24Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_dryfield_night_water_hole_80182364[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 25's image-only batch list.
+///
+/// The zero-count first record retains decoded image strips; the second ends
+/// the list. Its retained address in sources.empty supplies no source elements.
+static SpriteBatch _gDryfieldNightWaterHoleView25Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_dryfield_night_water_hole_80182374[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 26's image-only batch list.
+///
+/// The zero-count first record retains decoded image strips; the second ends
+/// the list. Its retained address in sources.empty supplies no source elements.
+static SpriteBatch _gDryfieldNightWaterHoleView26Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteView D_dryfield_night_water_hole_80182384[26] = {
-    { { .empty = _gDryfieldNightWaterHoleView1Batches }, _gDryfieldNightWaterHoleView1Batches, NULL },
-    { { .empty = _gDryfieldNightWaterHoleView2Batches }, _gDryfieldNightWaterHoleView2Batches, NULL },
-    { { .elements = _gDryfieldNightWaterHoleView3Sources }, _gDryfieldNightWaterHoleView3Batches, NULL },
-    { { .elements = _gDryfieldNightWaterHoleView4Sources }, _gDryfieldNightWaterHoleView4Batches, NULL },
-    { { .elements = _gDryfieldNightWaterHoleView5Sources }, _gDryfieldNightWaterHoleView5Batches, NULL },
-    { { .elements = _gDryfieldNightWaterHoleView6Sources }, _gDryfieldNightWaterHoleView6Batches, NULL },
-    { { .empty = D_dryfield_night_water_hole_80181AE0 }, D_dryfield_night_water_hole_80181AE0, NULL },
-    { { .empty = D_dryfield_night_water_hole_80181AF0 }, D_dryfield_night_water_hole_80181AF0, NULL },
-    { { .empty = D_dryfield_night_water_hole_80181B00 }, D_dryfield_night_water_hole_80181B00, NULL },
-    { { .empty = D_dryfield_night_water_hole_80181B10 }, D_dryfield_night_water_hole_80181B10, NULL },
-    { { .empty = D_dryfield_night_water_hole_80181B20 }, D_dryfield_night_water_hole_80181B20, NULL },
-    { { .empty = D_dryfield_night_water_hole_80181B30 }, D_dryfield_night_water_hole_80181B30, NULL },
-    { { .elements = D_dryfield_night_water_hole_80181B40 }, D_dryfield_night_water_hole_80181CE4, NULL },
-    { { .elements = D_dryfield_night_water_hole_80181D0C }, D_dryfield_night_water_hole_80181FA0, NULL },
-    { { .elements = D_dryfield_night_water_hole_80181FC0 }, D_dryfield_night_water_hole_80182128, NULL },
-    { { .elements = D_dryfield_night_water_hole_80182140 }, D_dryfield_night_water_hole_801822BC, NULL },
-    { { .empty = D_dryfield_night_water_hole_801822E4 }, D_dryfield_night_water_hole_801822E4, NULL },
-    { { .empty = D_dryfield_night_water_hole_801822F4 }, D_dryfield_night_water_hole_801822F4, NULL },
-    { { .empty = D_dryfield_night_water_hole_80182304 }, D_dryfield_night_water_hole_80182304, NULL },
-    { { .empty = D_dryfield_night_water_hole_80182314 }, D_dryfield_night_water_hole_80182314, NULL },
-    { { .empty = D_dryfield_night_water_hole_80182324 }, D_dryfield_night_water_hole_80182324, NULL },
-    { { .empty = D_dryfield_night_water_hole_80182334 }, D_dryfield_night_water_hole_80182334, NULL },
-    { { .empty = D_dryfield_night_water_hole_80182344 }, D_dryfield_night_water_hole_80182344, NULL },
-    { { .empty = D_dryfield_night_water_hole_80182354 }, D_dryfield_night_water_hole_80182354, NULL },
-    { { .empty = D_dryfield_night_water_hole_80182364 }, D_dryfield_night_water_hole_80182364, NULL },
-    { { .empty = D_dryfield_night_water_hole_80182374 }, D_dryfield_night_water_hole_80182374, NULL },
+SpriteView gDryfieldNightWaterHoleSpriteViews[DRYFIELD_NIGHT_WATER_HOLE_MAPPED_VIEW_COUNT] = {
+    { .sources = { .empty = _gDryfieldNightWaterHoleView1Batches }, .batches = _gDryfieldNightWaterHoleView1Batches, .drawAreas = NULL },
+    { .sources = { .empty = _gDryfieldNightWaterHoleView2Batches }, .batches = _gDryfieldNightWaterHoleView2Batches, .drawAreas = NULL },
+    { .sources = { .elements = _gDryfieldNightWaterHoleView3Sources }, .batches = _gDryfieldNightWaterHoleView3Batches, .drawAreas = NULL },
+    { .sources = { .elements = _gDryfieldNightWaterHoleView4Sources }, .batches = _gDryfieldNightWaterHoleView4Batches, .drawAreas = NULL },
+    { .sources = { .elements = _gDryfieldNightWaterHoleView5Sources }, .batches = _gDryfieldNightWaterHoleView5Batches, .drawAreas = NULL },
+    { .sources = { .elements = _gDryfieldNightWaterHoleView6Sources }, .batches = _gDryfieldNightWaterHoleView6Batches, .drawAreas = NULL },
+    { .sources = { .empty = _gDryfieldNightWaterHoleView7Batches }, .batches = _gDryfieldNightWaterHoleView7Batches, .drawAreas = NULL },
+    { .sources = { .empty = _gDryfieldNightWaterHoleView8Batches }, .batches = _gDryfieldNightWaterHoleView8Batches, .drawAreas = NULL },
+    { .sources = { .empty = _gDryfieldNightWaterHoleView9Batches }, .batches = _gDryfieldNightWaterHoleView9Batches, .drawAreas = NULL },
+    { .sources = { .empty = _gDryfieldNightWaterHoleView10Batches }, .batches = _gDryfieldNightWaterHoleView10Batches, .drawAreas = NULL },
+    { .sources = { .empty = _gDryfieldNightWaterHoleView11Batches }, .batches = _gDryfieldNightWaterHoleView11Batches, .drawAreas = NULL },
+    { .sources = { .empty = _gDryfieldNightWaterHoleView12Batches }, .batches = _gDryfieldNightWaterHoleView12Batches, .drawAreas = NULL },
+    { .sources = { .elements = _gDryfieldNightWaterHoleView13Sources }, .batches = _gDryfieldNightWaterHoleView13Batches, .drawAreas = NULL },
+    { .sources = { .elements = _gDryfieldNightWaterHoleView14Sources }, .batches = _gDryfieldNightWaterHoleView14Batches, .drawAreas = NULL },
+    { .sources = { .elements = _gDryfieldNightWaterHoleView15Sources }, .batches = _gDryfieldNightWaterHoleView15Batches, .drawAreas = NULL },
+    { .sources = { .elements = _gDryfieldNightWaterHoleView16Sources }, .batches = _gDryfieldNightWaterHoleView16Batches, .drawAreas = NULL },
+    { .sources = { .empty = _gDryfieldNightWaterHoleView17Batches }, .batches = _gDryfieldNightWaterHoleView17Batches, .drawAreas = NULL },
+    { .sources = { .empty = _gDryfieldNightWaterHoleView18Batches }, .batches = _gDryfieldNightWaterHoleView18Batches, .drawAreas = NULL },
+    { .sources = { .empty = _gDryfieldNightWaterHoleView19Batches }, .batches = _gDryfieldNightWaterHoleView19Batches, .drawAreas = NULL },
+    { .sources = { .empty = _gDryfieldNightWaterHoleView20Batches }, .batches = _gDryfieldNightWaterHoleView20Batches, .drawAreas = NULL },
+    { .sources = { .empty = _gDryfieldNightWaterHoleView21Batches }, .batches = _gDryfieldNightWaterHoleView21Batches, .drawAreas = NULL },
+    { .sources = { .empty = _gDryfieldNightWaterHoleView22Batches }, .batches = _gDryfieldNightWaterHoleView22Batches, .drawAreas = NULL },
+    { .sources = { .empty = _gDryfieldNightWaterHoleView23Batches }, .batches = _gDryfieldNightWaterHoleView23Batches, .drawAreas = NULL },
+    { .sources = { .empty = _gDryfieldNightWaterHoleView24Batches }, .batches = _gDryfieldNightWaterHoleView24Batches, .drawAreas = NULL },
+    { .sources = { .empty = _gDryfieldNightWaterHoleView25Batches }, .batches = _gDryfieldNightWaterHoleView25Batches, .drawAreas = NULL },
+    { .sources = { .empty = _gDryfieldNightWaterHoleView26Batches }, .batches = _gDryfieldNightWaterHoleView26Batches, .drawAreas = NULL },
 };
 
 WorldCollisionTrigger D_dryfield_night_water_hole_801824BC[12] = {
