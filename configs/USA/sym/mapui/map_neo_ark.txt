@@ -288,14 +288,14 @@ gNeoArkWoodlandPathSightOccluders = 0x801847D4; // absolute:True owner=neo_ark_w
 gNeoArkWoodlandPathSurfaceProperties = 0x80184910; // absolute:True owner=neo_ark_woodland_path
 neoArkSubmarineGalleryMessageTask = 0x8017EBCC; // type:func absolute:True owner=neo_ark_submarine_gallery
 gNeoArkSubmarineGalleryViewMaps = 0x80181A08; // absolute:True owner=neo_ark_submarine_gallery
-D_neo_ark_submarine_gallery_80181A0C = 0x80181A0C; // absolute:True owner=neo_ark_submarine_gallery
-D_neo_ark_submarine_gallery_80181A10 = 0x80181A10; // absolute:True owner=neo_ark_submarine_gallery
+gNeoArkSubmarineGalleryViewCounts = 0x80181A0C; // absolute:True owner=neo_ark_submarine_gallery
+gNeoArkSubmarineGalleryWarpEntries = 0x80181A10; // absolute:True owner=neo_ark_submarine_gallery
 gNeoArkSubmarineGalleryCollisionGrid = 0x8018239C; // absolute:True owner=neo_ark_submarine_gallery
 gNeoArkSubmarineGalleryViewCameras = 0x801823C0; // absolute:True owner=neo_ark_submarine_gallery shared=rooms
 gNeoArkSubmarineGallerySpriteViews = 0x80184D10; // absolute:True owner=neo_ark_submarine_gallery shared=rooms
 gNeoArkSubmarineGalleryRoomLights = 0x80185284; // absolute:True owner=neo_ark_submarine_gallery
-D_neo_ark_submarine_gallery_8018529C = 0x8018529C; // absolute:True owner=neo_ark_submarine_gallery
-D_neo_ark_submarine_gallery_801854FC = 0x801854FC; // absolute:True owner=neo_ark_submarine_gallery
+gNeoArkSubmarineGalleryViewBoundaryTriggers = 0x8018529C; // absolute:True owner=neo_ark_submarine_gallery
+gNeoArkSubmarineGalleryActionTriggers = 0x801854FC; // absolute:True owner=neo_ark_submarine_gallery
 gNeoArkSubmarineGallerySurfacePropertiesByClass = 0x801858EC; // absolute:True owner=neo_ark_submarine_gallery
 neoArkR31RoomTask = 0x8017D990; // type:func absolute:True owner=neo_ark_r31 shared=rooms
 gNeoArkR31ViewMaps = 0x8017DA1C; // absolute:True owner=neo_ark_r31 shared=rooms

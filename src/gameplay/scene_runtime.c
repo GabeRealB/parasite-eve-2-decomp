@@ -2192,8 +2192,8 @@ void sceneStartRoomTasks(void)
             taskSpawnFromTable(&D_neo_ark_r31_8017D9E8, 0, 0, 0);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SUBMARINE_GALLERY, 0, 0):
-            taskSpawnFromTable(&D_neo_ark_submarine_gallery_8018186C, SCENE_ROOM_WATER_REFRACTION_TASK_INDEX, 0, 0);
-            taskSpawnFromTable(&D_neo_ark_submarine_gallery_8018186C, SCENE_ROOM_WATER_DISTORTION_TASK_INDEX, 0, 0);
+            taskSpawnFromTable(gNeoArkSubmarineGalleryWaterTaskDescriptors, SCENE_ROOM_WATER_REFRACTION_TASK_INDEX, 0, 0);
+            taskSpawnFromTable(gNeoArkSubmarineGalleryWaterTaskDescriptors, SCENE_ROOM_WATER_DISTORTION_TASK_INDEX, 0, 0);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_WOODLAND_PATH, 0, 0):
             taskSpawnFromTable(&gNeoArkWoodlandPathWaterRefractionTaskDesc, 0, 0, 0);

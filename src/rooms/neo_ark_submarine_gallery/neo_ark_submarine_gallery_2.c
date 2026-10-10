@@ -17,6 +17,7 @@
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
+#include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effect_tasks.h"
@@ -37,6 +38,7 @@
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/sound_types.h"
+#include "main/sound_ids.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
@@ -58,11 +60,18 @@ enum { NEO_ARK_SUBMARINE_GALLERY_PRISM_FIRST_VERTEX = 32 };
 static void _neoArkSubmarineGalleryDrawLightPrism(const GfxCoord* coord, s16 firstVertex);
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
-TaskDesc D_neo_ark_submarine_gallery_8018186C = { { { TASK_BODY_NONE, 192 } }, waterRefractionTask, { .value = 0 } };
+enum {
+    NEO_ARK_SUBMARINE_GALLERY_WATER_TASK_PRIORITY     = 192,
+    NEO_ARK_SUBMARINE_GALLERY_DEPARTURE_TASK_PRIORITY = 32,
+    NEO_ARK_SUBMARINE_GALLERY_RED_DISC_TASK_PRIORITY  = 96,
+};
 
-TaskDesc D_neo_ark_submarine_gallery_80181878 = { { { TASK_BODY_NONE, 192 } }, waterDistortBandTask, { .value = 0 } };
+TaskDesc gNeoArkSubmarineGalleryWaterTaskDescriptors[2] = {
+    { { { TASK_BODY_NONE, NEO_ARK_SUBMARINE_GALLERY_WATER_TASK_PRIORITY } }, waterRefractionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, NEO_ARK_SUBMARINE_GALLERY_WATER_TASK_PRIORITY } }, waterDistortBandTask, { .value = 0 } },
+};
 
-TaskMessageEntry D_neo_ark_submarine_gallery_80181884[5] = {
+TaskMessageEntry gNeoArkSubmarineGalleryRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, neoArkSubmarineGalleryResolveRoomEvent },
     { ROOM_MESSAGE_USE_KEY_ITEM, neoArkSubmarineGalleryRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, neoArkSubmarineGalleryIgnoreRoomAction },
@@ -70,13 +79,11 @@ TaskMessageEntry D_neo_ark_submarine_gallery_80181884[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_neo_ark_submarine_gallery_801818AC = { { { TASK_BODY_NONE, 32 } }, neoArkSubmarineGalleryDepartToIslandTask, { .value = 0 } };
+TaskDesc gNeoArkSubmarineGalleryIslandDepartureTaskDesc = { { { TASK_BODY_NONE, NEO_ARK_SUBMARINE_GALLERY_DEPARTURE_TASK_PRIORITY } }, neoArkSubmarineGalleryDepartToIslandTask, { .value = 0 } };
 
-s16 D_neo_ark_submarine_gallery_801818B8 = 0;
+s16 gNeoArkSubmarineGallerySeaDiverAwaitingArrival = NEO_ARK_SUBMARINE_GALLERY_SEA_DIVER_ARRIVAL_NOT_PENDING;
 
-TaskDesc D_neo_ark_submarine_gallery_801818BC[1] = {
-    { { { TASK_BODY_COORD, 96 } }, neoArkSubmarineGalleryRedDiscTask, { .value = 0 } },
-};
+TaskDesc gNeoArkSubmarineGalleryRedDiscTaskDesc = { { { TASK_BODY_COORD, NEO_ARK_SUBMARINE_GALLERY_RED_DISC_TASK_PRIORITY } }, neoArkSubmarineGalleryRedDiscTask, { .value = 0 } };
 
 /// Fixed capsule endpoints, disc centres and prism corners for the gallery lights.
 ///
@@ -141,17 +148,31 @@ u8* gNeoArkSubmarineGalleryViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_neo_ark_submarine_gallery_80181A0C[1] = { 7 };
+ViewCount gNeoArkSubmarineGalleryViewCounts[1] = { NEO_ARK_SUBMARINE_GALLERY_VIEW_COUNT };
 
-DirectionWarpEntry D_neo_ark_submarine_gallery_80181A10[1] = {
-    { { { .word = 2304 }, 1300, 5000, 3100 }, { 0, 0, 0, 0 }, { { .word = 2304 }, 1300, 5000, 3100 }, { 0, 0, 0, 0 }, 0x551E0001, 0x551E0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_FADE_DEPARTURE, DIRECTION_WARP_MAP_FLAG_NONE },
+DirectionWarpEntry gNeoArkSubmarineGalleryWarpEntries[1] = {
+    {
+        .player         = { { .word = 2304 }, 1300, 5000, 3100 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 2304 }, 1300, 5000, 3100 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_NEO_ARK_SUB_GALLERY_TO_ISLAND,
+        .departureSound = SOUND_NEO_ARK_SUB_GALLERY_TO_ISLAND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_FADE_DEPARTURE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
-// Height override read by the shared waypoint actor.
-s16 D_neo_ark_submarine_gallery_80181A48 = 5000;
+s16 gNeoArkSubmarineGalleryDiverWaterY = 5000;
 
-// Retained data: Eight-point coordinate pool explicitly addressed by the following pointer table; no runtime owner found.
-SVECTOR D_neo_ark_submarine_gallery_80181A4C[8] = {
+/// Bog Diver patrol ring for spawn-argument ring selectors 0 and 3.
+///
+/// Two laps through four XZ positions in room units, at depth 1500 below the
+/// sampled water surface. Indices wrap 0..7; fourth halfwords are unused.
+/// The room lends these points to the actors for their loaded lifetimes.
+static SVECTOR _gNeoArkSubmarineGalleryDiverPatrolRing0[8] = {
     { 1000, 1500, 0, 0 },
     { -1000, 1500, 0, 0 },
     { 0, 1500, 1000, 0 },
@@ -162,8 +183,12 @@ SVECTOR D_neo_ark_submarine_gallery_80181A4C[8] = {
     { 0, 1500, -1000, 0 },
 };
 
-// Retained data: Eight-point coordinate pool explicitly addressed by the following pointer table; no runtime owner found.
-SVECTOR D_neo_ark_submarine_gallery_80181A8C[8] = {
+/// Bog Diver patrol ring for spawn-argument ring selector 1.
+///
+/// Two laps through four XZ positions in room units, starting at negative Z,
+/// with depth 1500 added to the sampled water surface. Wraps 0..7 without a
+/// terminator; fourth halfwords are unused. Borrowed for the actors' lifetimes.
+static SVECTOR _gNeoArkSubmarineGalleryDiverPatrolRing1[8] = {
     { 0, 1500, -1000, 0 },
     { 1000, 1500, 0, 0 },
     { -1000, 1500, 0, 0 },
@@ -174,8 +199,12 @@ SVECTOR D_neo_ark_submarine_gallery_80181A8C[8] = {
     { 0, 1500, 1000, 0 },
 };
 
-// Retained data: Eight-point coordinate pool explicitly addressed by the following pointer table; no runtime owner found.
-SVECTOR D_neo_ark_submarine_gallery_80181ACC[8] = {
+/// Bog Diver patrol ring for spawn-argument ring selector 2.
+///
+/// Two laps through four XZ positions in room units, starting at positive Z,
+/// with depth 1500 added to the sampled water surface. Wraps 0..7 without a
+/// terminator; fourth halfwords are unused. Borrowed for the actors' lifetimes.
+static SVECTOR _gNeoArkSubmarineGalleryDiverPatrolRing2[8] = {
     { 0, 1500, 1000, 0 },
     { 0, 1500, -1000, 0 },
     { 1000, 1500, 0, 0 },
@@ -186,22 +215,25 @@ SVECTOR D_neo_ark_submarine_gallery_80181ACC[8] = {
     { -1000, 1500, 0, 0 },
 };
 
-// Retained data: Four retained references to the preceding eight-point coordinate pools; no runtime owner found.
-SVECTOR* D_neo_ark_submarine_gallery_80181B0C[4] = {
-    D_neo_ark_submarine_gallery_80181A4C,
-    D_neo_ark_submarine_gallery_80181A8C,
-    D_neo_ark_submarine_gallery_80181ACC,
-    D_neo_ark_submarine_gallery_80181A4C,
+SVECTOR* gNeoArkSubmarineGalleryDiverPatrolRings[4] = {
+    _gNeoArkSubmarineGalleryDiverPatrolRing0,
+    _gNeoArkSubmarineGalleryDiverPatrolRing1,
+    _gNeoArkSubmarineGalleryDiverPatrolRing2,
+    _gNeoArkSubmarineGalleryDiverPatrolRing0,
 };
 
-// Retained data: Adjacent retained point data, ending with fourth halfword -1; no runtime owner found.
-SVECTOR D_neo_ark_submarine_gallery_80181B1C[6] = {
-    { 0, 0, 0, 0 },
-    { 1000, 1500, 0, 0 },
-    { -1000, 1500, 0, 0 },
-    { 0, 1500, 1000, 0 },
-    { 0, 1500, -1000, 0 },
-    { 0, 0, 0, -1 },
+enum {
+    NEO_ARK_SUBMARINE_GALLERY_SURFACE_SPOT_FREE = 0,
+    NEO_ARK_SUBMARINE_GALLERY_SURFACE_SPOT_END  = -1,
+};
+
+SVECTOR gNeoArkSubmarineGalleryDiverSurfaceSpots[6] = {
+    { 0, 0, 0, NEO_ARK_SUBMARINE_GALLERY_SURFACE_SPOT_FREE },
+    { 1000, 1500, 0, NEO_ARK_SUBMARINE_GALLERY_SURFACE_SPOT_FREE },
+    { -1000, 1500, 0, NEO_ARK_SUBMARINE_GALLERY_SURFACE_SPOT_FREE },
+    { 0, 1500, 1000, NEO_ARK_SUBMARINE_GALLERY_SURFACE_SPOT_FREE },
+    { 0, 1500, -1000, NEO_ARK_SUBMARINE_GALLERY_SURFACE_SPOT_FREE },
+    { 0, 0, 0, NEO_ARK_SUBMARINE_GALLERY_SURFACE_SPOT_END },
 };
 
 /// Room-space collision normals, with 4096 representing unit length.
@@ -915,7 +947,7 @@ WorldCoordRoomLights gNeoArkSubmarineGalleryRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_neo_ark_submarine_gallery_8018529C[8] = {
+WorldCollisionTrigger gNeoArkSubmarineGalleryViewBoundaryTriggers[8] = {
     { NULL, NULL, NULL, { 1901, 1952, -1890, 0 }, { { 1807, -3712, -1820, 0 }, { -1807, -3712, 1819, 0 }, { 1807, 3712, -1820, 0 }, { -1807, 3712, 1819, 0 } }, { 2912, 0, 2892, 0 }, { 0, 0, 4096, 0 }, 4492, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 1983, 1952, -1761, 0 }, { { -1813, -3712, 1813, 0 }, { 1813, -3712, -1814, 0 }, { -1813, 3712, 1813, 0 }, { 1813, 3712, -1814, 0 } }, { -2904, 0, -2903, 0 }, { 0, 0, 4096, 0 }, 4492, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 1854, 1888, 1791, 0 }, { { -1819, -3712, -1808, 0 }, { 1819, -3712, 1807, 0 }, { -1819, 3712, -1808, 0 }, { 1819, 3712, 1807, 0 } }, { 2893, 0, -2913, 0 }, { 0, 0, 4096, 0 }, 4492, 0, 5, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -926,17 +958,25 @@ WorldCollisionTrigger D_neo_ark_submarine_gallery_8018529C[8] = {
     { NULL, NULL, NULL, { -1825, 1792, -1920, 0 }, { { 1821, -3712, 1804, 0 }, { -1822, -3712, -1805, 0 }, { 1821, 3712, 1804, 0 }, { -1822, 3712, -1805, 0 } }, { -2890, 0, 2915, 0 }, { 0, 0, 4096, 0 }, 4492, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_neo_ark_submarine_gallery_801854FC[10] = {
-    { NULL, NULL, NULL, { 1567, 4944, 3199, 0 }, { { -1224, 0, 11, 0 }, { 479, 0, -1127, 0 }, { -478, 0, 1128, 0 }, { 1225, 0, -10, 0 } }, { 0, 4112, 0, 0 }, { -2440, 0, -3290, 0 }, 1221, WORLD_COLLISION_TRIGGER_ACTION_WARP, 14, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0, 4960, 0, 0 }, { { -6696, 0, 139, 0 }, { 127, 0, -6951, 0 }, { -126, 0, 6952, 0 }, { 6697, 0, -138, 0 } }, { 0, 4096, 0, 0 }, { -2440, 0, -3290, 0 }, 6945, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1200, 4928, 3520, 0 }, { { -1976, 0, 427, 0 }, { 1199, 0, -1511, 0 }, { -1230, 0, 1544, 0 }, { 2009, 0, -458, 0 } }, { 0, 4108, 0, 0 }, { -2106, 0, -3513, 0 }, 2048, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -33, 4928, -3488, 0 }, { { -2136, 0, -560, 0 }, { 2072, 0, -782, 0 }, { -2071, 0, 782, 0 }, { 2137, 0, 560, 0 } }, { 0, 4105, 0, 0 }, { 402, 0, 4076, 0 }, 2202, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3456, 4928, 1447, 0 }, { { -1077, 0, 626, 0 }, { 85, 0, -1461, 0 }, { -245, 0, 1605, 0 }, { 1237, 0, -769, 0 } }, { 0, 4111, 0, 0 }, { -3974, 0, -995, 0 }, 1619, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3871, 4896, -385, 0 }, { { -574, 0, 1224, 0 }, { -767, 0, -1157, 0 }, { 768, 0, 1158, 0 }, { 575, 0, -1222, 0 } }, { 0, 4104, 0, 0 }, { -4093, 0, 201, 0 }, 1384, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2656, 4928, -2273, 0 }, { { 332, 0, 1311, 0 }, { -1327, 0, -407, 0 }, { 1328, 0, 408, 0 }, { -331, 0, -1309, 0 } }, { 0, 4104, 0, 0 }, { -2898, 0, 2897, 0 }, 1384, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -2320, 4928, 3024, 0 }, { { 1644, 0, 1443, 0 }, { -2158, 0, -201, 0 }, { 2158, 0, 201, 0 }, { -1643, 0, -1442, 0 } }, { 0, 4108, 0, 0 }, { 3036, 0, -2752, 0 }, 2187, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3489, 4960, 735, 0 }, { { -286, 0, 2169, 0 }, { -1031, 0, -1906, 0 }, { 1032, 0, 1907, 0 }, { 287, 0, -2167, 0 } }, { 0, 4105, 0, 0 }, { 4053, 0, -602, 0 }, 2187, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3169, 4896, -1632, 0 }, { { -1575, 0, 924, 0 }, { 496, 0, -1725, 0 }, { -495, 0, 1725, 0 }, { 1575, 0, -923, 0 } }, { 0, 4102, 0, 0 }, { 3614, 0, 1930, 0 }, 1823, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+enum {
+    NEO_ARK_SUBMARINE_GALLERY_ISLAND_WARP_SLOTS           = (1 << 4) | 2,
+    NEO_ARK_SUBMARINE_GALLERY_TRIGGER_CHECK_DIVER_ARRIVAL = 2,
+    NEO_ARK_SUBMARINE_GALLERY_TRIGGER_CHECK_ROOM_STATE    = 3,
+    NEO_ARK_SUBMARINE_GALLERY_TRIGGER_CAP_COMMAND_1       = 1,
+    NEO_ARK_SUBMARINE_GALLERY_TRIGGER_CAP_COMMAND_7       = 7,
+};
+
+WorldCollisionTrigger gNeoArkSubmarineGalleryActionTriggers[10] = {
+    { NULL, NULL, NULL, { 1567, 4944, 3199, 0 }, { { -1224, 0, 11, 0 }, { 479, 0, -1127, 0 }, { -478, 0, 1128, 0 }, { 1225, 0, -10, 0 } }, { 0, 4112, 0, 0 }, { -2440, 0, -3290, 0 }, 1221, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_NEO_ARK_ISLAND, NEO_ARK_SUBMARINE_GALLERY_ISLAND_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0, 4960, 0, 0 }, { { -6696, 0, 139, 0 }, { 127, 0, -6951, 0 }, { -126, 0, 6952, 0 }, { 6697, 0, -138, 0 } }, { 0, 4096, 0, 0 }, { -2440, 0, -3290, 0 }, 6945, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SUBMARINE_GALLERY_TRIGGER_CHECK_ROOM_STATE, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1200, 4928, 3520, 0 }, { { -1976, 0, 427, 0 }, { 1199, 0, -1511, 0 }, { -1230, 0, 1544, 0 }, { 2009, 0, -458, 0 } }, { 0, 4108, 0, 0 }, { -2106, 0, -3513, 0 }, 2048, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SUBMARINE_GALLERY_TRIGGER_CAP_COMMAND_1, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -33, 4928, -3488, 0 }, { { -2136, 0, -560, 0 }, { 2072, 0, -782, 0 }, { -2071, 0, 782, 0 }, { 2137, 0, 560, 0 } }, { 0, 4105, 0, 0 }, { 402, 0, 4076, 0 }, 2202, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SUBMARINE_GALLERY_TRIGGER_CAP_COMMAND_7, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3456, 4928, 1447, 0 }, { { -1077, 0, 626, 0 }, { 85, 0, -1461, 0 }, { -245, 0, 1605, 0 }, { 1237, 0, -769, 0 } }, { 0, 4111, 0, 0 }, { -3974, 0, -995, 0 }, 1619, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SUBMARINE_GALLERY_TRIGGER_CHECK_DIVER_ARRIVAL, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3871, 4896, -385, 0 }, { { -574, 0, 1224, 0 }, { -767, 0, -1157, 0 }, { 768, 0, 1158, 0 }, { 575, 0, -1222, 0 } }, { 0, 4104, 0, 0 }, { -4093, 0, 201, 0 }, 1384, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SUBMARINE_GALLERY_TRIGGER_CHECK_DIVER_ARRIVAL, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2656, 4928, -2273, 0 }, { { 332, 0, 1311, 0 }, { -1327, 0, -407, 0 }, { 1328, 0, 408, 0 }, { -331, 0, -1309, 0 } }, { 0, 4104, 0, 0 }, { -2898, 0, 2897, 0 }, 1384, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SUBMARINE_GALLERY_TRIGGER_CHECK_DIVER_ARRIVAL, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -2320, 4928, 3024, 0 }, { { 1644, 0, 1443, 0 }, { -2158, 0, -201, 0 }, { 2158, 0, 201, 0 }, { -1643, 0, -1442, 0 } }, { 0, 4108, 0, 0 }, { 3036, 0, -2752, 0 }, 2187, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SUBMARINE_GALLERY_TRIGGER_CHECK_DIVER_ARRIVAL, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3489, 4960, 735, 0 }, { { -286, 0, 2169, 0 }, { -1031, 0, -1906, 0 }, { 1032, 0, 1907, 0 }, { 287, 0, -2167, 0 } }, { 0, 4105, 0, 0 }, { 4053, 0, -602, 0 }, 2187, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SUBMARINE_GALLERY_TRIGGER_CHECK_DIVER_ARRIVAL, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3169, 4896, -1632, 0 }, { { -1575, 0, 924, 0 }, { 496, 0, -1725, 0 }, { -495, 0, 1725, 0 }, { 1575, 0, -923, 0 } }, { 0, 4102, 0, 0 }, { 3614, 0, 1930, 0 }, 1823, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SUBMARINE_GALLERY_TRIGGER_CHECK_DIVER_ARRIVAL, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 enum {
@@ -955,26 +995,38 @@ static AreaResource _gNeoArkSubmarineGalleryVariant1Resources[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_neo_ark_submarine_gallery_80185818[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
+/// Bog Diver load/spawn recipe shared by the three patrol placements of variant 2.
+///
+/// Entry ID/file number 4 selects base-10 file 100400 and body descriptor 0.
+/// AREA_PLACEMENT_END terminates the list. Borrows the loaded actor task table.
+static AreaResource _gNeoArkSubmarineGalleryVariant2Resources[2] = {
+    { NEO_ARK_SUBMARINE_GALLERY_RESOURCE_WAYPOINT_ACTOR, NEO_ARK_SUBMARINE_GALLERY_RESOURCE_WAYPOINT_ACTOR, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_00400_BODY_TASK_INDEX, { 0, 0 }, gActor100400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_neo_ark_submarine_gallery_80185830[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
+/// Bog Diver load/spawn recipe for variant 3's wounded floating placement.
+///
+/// Entry ID/file number 4 selects base-10 file 100400 and body descriptor 0.
+/// AREA_PLACEMENT_END terminates the list. Borrows the loaded actor task table.
+static AreaResource _gNeoArkSubmarineGalleryVariant3Resources[2] = {
+    { NEO_ARK_SUBMARINE_GALLERY_RESOURCE_WAYPOINT_ACTOR, NEO_ARK_SUBMARINE_GALLERY_RESOURCE_WAYPOINT_ACTOR, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_00400_BODY_TASK_INDEX, { 0, 0 }, gActor100400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_neo_ark_submarine_gallery_80185848[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
+/// Bog Diver load/spawn recipe for variant 11's single patrol placement.
+///
+/// Entry ID/file number 4 selects base-10 file 100400 and body descriptor 0.
+/// AREA_PLACEMENT_END terminates the list. Borrows the loaded actor task table.
+static AreaResource _gNeoArkSubmarineGalleryVariant11Resources[2] = {
+    { NEO_ARK_SUBMARINE_GALLERY_RESOURCE_WAYPOINT_ACTOR, NEO_ARK_SUBMARINE_GALLERY_RESOURCE_WAYPOINT_ACTOR, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_00400_BODY_TASK_INDEX, { 0, 0 }, gActor100400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_neo_ark_submarine_gallery_80185860[13] = {
+AreaVariant gNeoArkSubmarineGalleryPlacementVariants[13] = {
     { NULL, NULL },
     { gMapNeoArkSubmarineGalleryVariant1Placements, _gNeoArkSubmarineGalleryVariant1Resources },
-    { gMapNeoArkSubmarineGalleryVariant2Placements, D_neo_ark_submarine_gallery_80185818 },
-    { gMapNeoArkSubmarineGalleryVariant3Placements, D_neo_ark_submarine_gallery_80185830 },
+    { gMapNeoArkSubmarineGalleryVariant2Placements, _gNeoArkSubmarineGalleryVariant2Resources },
+    { gMapNeoArkSubmarineGalleryVariant3Placements, _gNeoArkSubmarineGalleryVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -982,7 +1034,7 @@ AreaVariant D_neo_ark_submarine_gallery_80185860[13] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { gMapNeoArkSubmarineGalleryVariant11Placements, D_neo_ark_submarine_gallery_80185848 },
+    { gMapNeoArkSubmarineGalleryVariant11Placements, _gNeoArkSubmarineGalleryVariant11Resources },
     { NULL, NULL },
 };
 

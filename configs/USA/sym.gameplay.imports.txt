@@ -514,7 +514,7 @@ D_neo_ark_pavilion_8018384C = 0x8018384C; // absolute:True owner=neo_ark_pavilio
 
 D_neo_ark_r31_8017D9E8 = 0x8017D9E8; // absolute:True owner=neo_ark_r31
 
-D_neo_ark_submarine_gallery_8018186C = 0x8018186C; // absolute:True owner=neo_ark_submarine_gallery
+gNeoArkSubmarineGalleryWaterTaskDescriptors = 0x8018186C; // absolute:True owner=neo_ark_submarine_gallery
 
 D_neo_ark_submarine_tunnel_801810E4 = 0x801810E4; // absolute:True owner=neo_ark_submarine_tunnel
 
@@ -1585,7 +1585,7 @@ D_neo_ark_shrine_801866C8 = 0x801866C8; // absolute:True owner=neo_ark_shrine
 
 D_neo_ark_south_promenade_801808E4 = 0x801808E4; // absolute:True owner=neo_ark_south_promenade
 
-D_neo_ark_submarine_gallery_80185860 = 0x80185860; // absolute:True owner=neo_ark_submarine_gallery
+gNeoArkSubmarineGalleryPlacementVariants = 0x80185860; // absolute:True owner=neo_ark_submarine_gallery
 
 D_neo_ark_submarine_tunnel_80187470 = 0x80187470; // absolute:True owner=neo_ark_submarine_tunnel
 

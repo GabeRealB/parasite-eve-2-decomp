@@ -195,7 +195,7 @@ s32 neoArkSubmarineGalleryResolveRoomEvent(Task* unusedTask, s32 unusedMessageId
             D_neo_ark_submarine_gallery_80185924.warp                      = (u8)reply->areaId;
             D_neo_ark_submarine_gallery_80185924.field_4                   = reply->warp;
             ((u8*)&D_neo_ark_submarine_gallery_80185924)[STAGED_ROOM_BYTE] = reply->room;
-            taskSpawnFromTable(&D_neo_ark_submarine_gallery_801818AC, 0, 0, 0);
+            taskSpawnFromTable(&gNeoArkSubmarineGalleryIslandDepartureTaskDesc, 0, 0, 0);
         }
         return TRANSITION_DEFERRED;
     }
@@ -207,7 +207,6 @@ s32 neoArkSubmarineGalleryHandleCapCommand(Task* task, s32 messageId, s32 comman
     enum {
         NEO_ARK_SUBMARINE_GALLERY_COMMAND_CHECK_ENCOUNTER  = 2,
         NEO_ARK_SUBMARINE_GALLERY_COMMAND_CHECK_ROOM_STATE = 3,
-        NEO_ARK_SUBMARINE_GALLERY_ENCOUNTER_ACTIVE         = 1,
         NEO_ARK_SUBMARINE_GALLERY_CAP_ENCOUNTER_ACTIVE     = 2,
         NEO_ARK_SUBMARINE_GALLERY_CAP_ENCOUNTER_INACTIVE   = 4,
         NEO_ARK_SUBMARINE_GALLERY_CAP_FULL_DISC            = 5,
@@ -217,7 +216,7 @@ s32 neoArkSubmarineGalleryHandleCapCommand(Task* task, s32 messageId, s32 comman
 
     switch (commandIndex) {
         case NEO_ARK_SUBMARINE_GALLERY_COMMAND_CHECK_ENCOUNTER:
-            if (D_neo_ark_submarine_gallery_801818B8 == NEO_ARK_SUBMARINE_GALLERY_ENCOUNTER_ACTIVE) {
+            if (gNeoArkSubmarineGallerySeaDiverAwaitingArrival == NEO_ARK_SUBMARINE_GALLERY_SEA_DIVER_AWAITING_ARRIVAL) {
                 capSpawnEventIfIdle(NEO_ARK_SUBMARINE_GALLERY_CAP_ENCOUNTER_ACTIVE, CAP_EVENT_NO_FLAGS);
             } else {
                 capSpawnEventIfIdle(NEO_ARK_SUBMARINE_GALLERY_CAP_ENCOUNTER_INACTIVE, CAP_EVENT_NO_FLAGS);
@@ -247,10 +246,10 @@ s32 neoArkSubmarineGalleryIgnoreRoomAction(Task* task, s32 messageId, const Dire
 /// the coordinate-bodied red disc; other variants do not. Advances to idle.
 static void _neoArkSubmarineGalleryInitializeRoom(Task* task)
 {
-    task->msgTable = D_neo_ark_submarine_gallery_80181884;
+    task->msgTable = gNeoArkSubmarineGalleryRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == NEO_ARK_SUBMARINE_GALLERY_RED_DISC_VARIANT) {
-        taskSpawnFromTable(D_neo_ark_submarine_gallery_801818BC, 0, 0, 0);
+        taskSpawnFromTable(&gNeoArkSubmarineGalleryRedDiscTaskDesc, 0, 0, 0);
     }
     task->state = task->state + 1;
 }

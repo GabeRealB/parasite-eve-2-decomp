@@ -358,9 +358,9 @@ D_shelter_b4_upper_sewer_80186438 = 0x80186438; // absolute:True owner=shelter_b
 gNeoArkBridgeDiverPatrolRings = 0x801820BC; // absolute:True owner=neo_ark_bridge shared=rooms
 gNeoArkBridgeDiverSurfaceSpots = 0x801820CC; // absolute:True owner=neo_ark_bridge
 gNeoArkBridgeDiverWaterY = 0x80181FF8; // absolute:True owner=neo_ark_bridge
-D_neo_ark_submarine_gallery_80181B0C = 0x80181B0C; // absolute:True owner=neo_ark_submarine_gallery
-D_neo_ark_submarine_gallery_80181B1C = 0x80181B1C; // absolute:True owner=neo_ark_submarine_gallery shared=rooms
-D_neo_ark_submarine_gallery_80181A48 = 0x80181A48; // absolute:True owner=neo_ark_submarine_gallery
+gNeoArkSubmarineGalleryDiverPatrolRings = 0x80181B0C; // absolute:True owner=neo_ark_submarine_gallery
+gNeoArkSubmarineGalleryDiverSurfaceSpots = 0x80181B1C; // absolute:True owner=neo_ark_submarine_gallery shared=rooms
+gNeoArkSubmarineGalleryDiverWaterY = 0x80181A48; // absolute:True owner=neo_ark_submarine_gallery
 gNeoArkSubmarineTunnelDiverWaypointSets = 0x80181F94; // absolute:True owner=neo_ark_submarine_tunnel
 gNeoArkSubmarineTunnelDiverWaterY = 0x80181E90; // absolute:True owner=neo_ark_submarine_tunnel shared=rooms
 D_neo_ark_pavilion_80183A64 = 0x80183A64; // absolute:True owner=neo_ark_pavilion

@@ -605,7 +605,7 @@ AreaRecord D_8010D0AC[34] = {
     { gNeoArkBridgePlacementVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[26].state },
     { D_shelter_1f_tent_80184230, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[27].state },
     { D_neo_ark_woodland_path_8018471C, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[28].state },
-    { D_neo_ark_submarine_gallery_80185860, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[29].state },
+    { gNeoArkSubmarineGalleryPlacementVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[29].state },
     { D_neo_ark_r31_8017DBB8, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[30].state },
     { D_neo_ark_pyramid_80181728, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[31].state },
     { NULL, NULL },

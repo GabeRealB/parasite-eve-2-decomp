@@ -16,22 +16,65 @@
 
 #include "main/task_types.h"
 
-// Room data exported to the shared waypoint actor.
-extern SVECTOR* D_neo_ark_submarine_gallery_80181B0C[4];
+/// Four eight-point Bog Diver patrol rings selected by spawn-argument bits 4..5.
+///
+/// Slots 0 and 3 share a ring; slots 1 and 2 change its waypoint order. XZ uses
+/// room-coordinate units, and Y is depth below the sampled Diver water surface.
+/// Each ring wraps at index 7 without a terminator. Keep this overlay loaded
+/// throughout the borrowing actors' lifetimes.
+extern SVECTOR* gNeoArkSubmarineGalleryDiverPatrolRings[4];
 
-extern SVECTOR D_neo_ark_submarine_gallery_80181B1C[6];
+/// Writable emergence spots shared by the gallery's Bog Divers.
+///
+/// Entry 0 is the unsearched fallback; entries 1..4 supply candidate XZ in room
+/// units, and entry 5 terminates with `pad == -1`. `pad` is the shared claim
+/// mark (0 free, 1 claimed); the search preserves the actor's own Y rather than
+/// copying spot Y. Keep this overlay loaded until every claim is released.
+extern SVECTOR gNeoArkSubmarineGalleryDiverSurfaceSpots[6];
 
-extern s16 D_neo_ark_submarine_gallery_80181A48;
+/// Water-surface Y sampled at spawn by the gallery's Bog and Sea Divers.
+///
+/// Signed room-coordinate units, positive downward; the initial surface is
+/// 5000. Bog Diver patrol depth is added to this value. This room publishes no
+/// live controller for the height.
+extern s16 gNeoArkSubmarineGalleryDiverWaterY;
 
-extern s16 D_neo_ark_submarine_gallery_801818B8;
+/// Values of the Sea Diver's room-owned pre-arrival indication.
+enum {
+    NEO_ARK_SUBMARINE_GALLERY_SEA_DIVER_ARRIVAL_NOT_PENDING = 0,
+    NEO_ARK_SUBMARINE_GALLERY_SEA_DIVER_AWAITING_ARRIVAL    = 1,
+};
 
-extern TaskDesc D_neo_ark_submarine_gallery_801818BC[1];
+/// Whether the Sea Diver has spawned but has not reached its entrance arrival.
+///
+/// Starts at 0, becomes 1 after successful actor-work allocation, and returns to
+/// 0 at the first arrival-phase tick. The fight continues after that clear.
+/// Room command 2 selects CAP entry 2 while set and entry 4 otherwise. Storage
+/// belongs to this loaded room; actor destruction does not separately reset it.
+extern s16 gNeoArkSubmarineGallerySeaDiverAwaitingArrival;
+
+/// Coordinate-bodied red-disc spawn recipe, with execution priority 96.
+///
+/// Spawned during Sea Diver death and immediately in layout variant 4. Uses
+/// zero payload words; its callback and this room must remain loaded while live.
+extern TaskDesc gNeoArkSubmarineGalleryRedDiscTaskDesc;
 
 extern AreaApplyRec D_neo_ark_submarine_gallery_8018590C[4];
 
-extern TaskDesc D_neo_ark_submarine_gallery_8018186C;
+/// Bodyless water-refraction and band-distortion recipes, in slots 0 and 1.
+///
+/// Both have execution priority 192 and receive zero payload words. Gameplay
+/// starts both for this room; their callbacks borrow the loaded room's drawing
+/// resources. This is an indexed two-entry table with no terminator.
+extern TaskDesc gNeoArkSubmarineGalleryWaterTaskDescriptors[2];
 
-extern AreaVariant D_neo_ark_submarine_gallery_80185860[13];
+/// Placement/resource directory indexed by layout variant 0..12.
+///
+/// Slots 1, 2, 3 and 11 pair map-owned placements with room-owned resource
+/// recipes; all other slots are empty. Slot 1 loads Sea and Bog Divers, and the
+/// other populated slots load Bog Divers only. Keep both overlays loaded while
+/// loading, spawning or querying their borrowed tables.
+extern AreaVariant gNeoArkSubmarineGalleryPlacementVariants[13];
 
 /// Number of mapped camera and sprite views in the gallery.
 enum { NEO_ARK_SUBMARINE_GALLERY_VIEW_COUNT = 7 };
@@ -45,9 +88,19 @@ enum { NEO_ARK_SUBMARINE_GALLERY_SURFACE_CLASS_COUNT = 8 };
 /// The directory is borrowed while this overlay and gameplay remain loaded.
 extern u8* gNeoArkSubmarineGalleryViewMaps[1];
 
-extern ViewCount D_neo_ark_submarine_gallery_80181A0C[];
+/// Seven logical camera views for the gallery's single room.
+///
+/// Indexed by 1-based room minus one; bounds reverse searches of the room's
+/// identity view map. The Neo Ark map borrows this loaded room's count array.
+extern ViewCount gNeoArkSubmarineGalleryViewCounts[1];
 
-extern DirectionWarpEntry D_neo_ark_submarine_gallery_80181A10[];
+/// The gallery's single warp endpoint, indexed by 1-based warp minus one.
+///
+/// Arrivals place player and companion at (1300,5000,3100), yaw 2304 in
+/// 4096-unit turns, and view 2. Arrival and departure use the island-travel
+/// sound; departure requests a fade. The island trigger uses this endpoint
+/// for departure and island endpoint 2 for arrival. Borrowed while loaded.
+extern DirectionWarpEntry gNeoArkSubmarineGalleryWarpEntries[1];
 
 /// Collision mesh and 3-by-3 XZ cell index for the gallery.
 ///
@@ -75,9 +128,20 @@ extern SpriteView gNeoArkSubmarineGallerySpriteViews[NEO_ARK_SUBMARINE_GALLERY_V
 /// the borrowed light arrays; keep this overlay loaded throughout their use.
 extern WorldCoordRoomLights gNeoArkSubmarineGalleryRoomLights;
 
-extern WorldCollisionTrigger D_neo_ark_submarine_gallery_8018529C[];
+/// Eight directed camera boundaries connecting gallery views 2, 3, 4 and 5.
+///
+/// Room-space quads use game-coordinate units and Q12 normals. The last record
+/// carries LAST; setup binds coordinates, links and enables the writable records.
+/// Keep this overlay loaded until the view-boundary list has been unlinked.
+extern WorldCollisionTrigger gNeoArkSubmarineGalleryViewBoundaryTriggers[8];
 
-extern WorldCollisionTrigger D_neo_ark_submarine_gallery_801854FC[];
+/// Ten interaction quads for island departure and gallery CAP commands.
+///
+/// One requests island warp 2 from local endpoint 1; the others select room
+/// commands 2/3 or direct CAP entries 1/7. Positions use room units and normals
+/// use Q12. The last record carries LAST. Setup links and mutates these borrowed
+/// records; keep this overlay loaded until the action list has been unlinked.
+extern WorldCollisionTrigger gNeoArkSubmarineGalleryActionTriggers[10];
 
 /// Collision and footstep policies indexed by room-local surface class 0..7.
 ///

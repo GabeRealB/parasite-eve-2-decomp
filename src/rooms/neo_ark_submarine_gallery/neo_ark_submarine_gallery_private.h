@@ -8,9 +8,17 @@
 
 #include "main/task_types.h"
 
-extern TaskMessageEntry D_neo_ark_submarine_gallery_80181884[5];
+/// Room-message dispatch for transitions, key-item refusal, actions and CAP commands.
+///
+/// Four live callbacks followed by TASK_MESSAGE_TABLE_END/null. The room task
+/// borrows the table and callbacks for its lifetime in this loaded overlay.
+extern TaskMessageEntry gNeoArkSubmarineGalleryRoomMessages[5];
 
-extern TaskDesc D_neo_ark_submarine_gallery_801818AC;
+/// Bodyless island-departure confirmation recipe, with execution priority 32.
+///
+/// Spawned with zero payload words after the resolved destination has been
+/// staged in room storage; keep the room and its staged destination live.
+extern TaskDesc gNeoArkSubmarineGalleryIslandDepartureTaskDesc;
 
 // Callbacks referenced by the overlay's shared data tables.
 
@@ -42,7 +50,7 @@ s32 neoArkSubmarineGalleryResolveRoomEvent(Task* unusedTask, s32 unusedMessageId
 
 /// Selects a gallery CAP event for room commands 2 and 3.
 ///
-/// Command 2 selects an event by encounter activity; command 3 selects an event
+/// Command 2 selects an event by Sea Diver pre-arrival state; command 3 selects an event
 /// by full-disc variant, engaged battle or idle room, in that order.
 /// Starts the selected event only while CAP is idle. Other commands do nothing;
 /// returns zero in every case. The receiver, message ID and final word are unused.

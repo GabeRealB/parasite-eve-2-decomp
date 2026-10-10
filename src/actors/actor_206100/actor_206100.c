@@ -1539,8 +1539,8 @@ static void _actor206100Spawn(Task* task)
         enemyDestroy(enemy, task);
         return;
     }
-    D_neo_ark_submarine_gallery_801818B8 = 1;
-    work->waterLevel                     = D_neo_ark_submarine_gallery_80181A48;
+    gNeoArkSubmarineGallerySeaDiverAwaitingArrival = NEO_ARK_SUBMARINE_GALLERY_SEA_DIVER_AWAITING_ARRIVAL;
+    work->waterLevel                               = gNeoArkSubmarineGalleryDiverWaterY;
     for (slotIndex = 0; slotIndex < ARRAY_SIZE(D_actor_206100_80158CBC); slotIndex++) {
         D_actor_206100_80158CBC[slotIndex].enemy          = NULL;
         D_actor_206100_80158CBC[slotIndex].summonCooldown = 0;
@@ -2070,10 +2070,10 @@ static void _actor206100EntranceArrivalTick(Task* task)
     s16               splashY;
     s16               soundFrame;
 
-    work                                 = task->work;
-    D_neo_ark_submarine_gallery_801818B8 = 0;
-    rootCoord                            = task->extra.tmd->coords;
-    work->stateFrames                    = work->stateFrames + 1;
+    work                                           = task->work;
+    gNeoArkSubmarineGallerySeaDiverAwaitingArrival = NEO_ARK_SUBMARINE_GALLERY_SEA_DIVER_ARRIVAL_NOT_PENDING;
+    rootCoord                                      = task->extra.tmd->coords;
+    work->stateFrames                              = work->stateFrames + 1;
     if (work->stateFrames == ACTOR_206100_ENTRANCE_STOP_WAVE_TICK) {
         D_actor_206100_80158CCC.state = SCREEN_WAVE_RAMP_FINISHED;
     }
@@ -3533,7 +3533,7 @@ static void _actor206100DeathSinkTick(Task* task)
     work->goalY             = work->goalY + ACTOR_206100_DEATH_SINK_UNITS_PER_TICK;
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->stateFrames == ACTOR_206100_DEATH_ROOM_EFFECT_TICK) {
-        taskSpawnFromTable(D_neo_ark_submarine_gallery_801818BC, 0, 0, 0);
+        taskSpawnFromTable(&gNeoArkSubmarineGalleryRedDiscTaskDesc, 0, 0, 0);
     }
     if (work->stateFrames >= ACTOR_206100_DEATH_DESPAWN_TICK) {
         task->state           = ACTOR_206100_TASK_STATE_DESPAWN;
