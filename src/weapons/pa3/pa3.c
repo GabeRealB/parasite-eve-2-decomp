@@ -1506,136 +1506,220 @@ static AnimationSet _gSp12PeChargeFamily0Animation = {
     },
 };
 
-static AnimationPackedPose _gSp12Animation04458Bank1[6] = {
+/// Translation/rotation keyframes for `_gSp12PeCastFamily0Animation`, in model units and 1/4096 turns.
+///
+/// Read-only clip arrays retain their serialized placement in the package's data section.
+static const AnimationPackedPose _gSp12PeCastFamily0AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_04458_bank1.inc"
 };
 
-static AnimationPackedRotation _gSp12Animation04458Bank4[57] = {
+/// Rotation-only keyframes for `_gSp12PeCastFamily0Animation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gSp12PeCastFamily0AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_04458_bank4.inc"
 };
 
-static AnimationRecord _gSp12Animation04458Records[87] = {
+/// Keyframe durations and stop controls for `_gSp12PeCastFamily0Animation`'s nineteen part tracks.
+static const AnimationRecord _gSp12PeCastFamily0AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_04458_records.inc"
 };
 
-static u16 _gSp12Animation04458Indices[20] = {
+/// Record-array starts of `_gSp12PeCastFamily0Animation`'s nineteen model-part tracks.
+///
+/// Entries 0..18 are track starts; the serialized trailing zero halfword is retained.
+static const u16 _gSp12PeCastFamily0AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_04458_indices.inc"
 };
 
-static AnimationSet _gSp12Animation04458 = {
-    _gSp12Animation04458Records,
-    _gSp12Animation04458Indices,
-    { NULL, _gSp12Animation04458Bank1, NULL, NULL, _gSp12Animation04458Bank4, NULL, NULL, NULL },
+/// Parasite Energy cast for clip family 0, in SP12 bank slot 28.
+///
+/// Selected when `GameActor.actionArgument` is zero and the charge countdown ends.
+/// Restarts without blending and holds its final pose before normal control resumes.
+/// Borrowed nineteen-part tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gSp12PeCastFamily0Animation = {
+    .records           = _gSp12PeCastFamily0AnimationRecords,
+    .trackStartIndices = _gSp12PeCastFamily0AnimationIndices,
+    .poseBanks         = {
+        [SP12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gSp12PeCastFamily0AnimationBank1,
+        [SP12_ANIMATION_PACKED_ROTATION_BANK]      = _gSp12PeCastFamily0AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gSp12Animation046FCBank1[4] = {
+/// Translation/rotation keyframes for `_gSp12PeReleaseFamily1Animation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gSp12PeReleaseFamily1AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_046FC_bank1.inc"
 };
 
-static AnimationPackedRotation _gSp12Animation046FCBank4[55] = {
+/// Rotation-only keyframes for `_gSp12PeReleaseFamily1Animation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gSp12PeReleaseFamily1AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_046FC_bank4.inc"
 };
 
-static AnimationRecord _gSp12Animation046FCRecords[82] = {
+/// Keyframe durations and stop controls for `_gSp12PeReleaseFamily1Animation`'s nineteen part tracks.
+static const AnimationRecord _gSp12PeReleaseFamily1AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_046FC_records.inc"
 };
 
-static u16 _gSp12Animation046FCIndices[20] = {
+/// Record-array starts of `_gSp12PeReleaseFamily1Animation`'s nineteen model-part tracks.
+///
+/// Entries 0..18 are track starts; the serialized trailing zero halfword is retained.
+static const u16 _gSp12PeReleaseFamily1AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_046FC_indices.inc"
 };
 
-static AnimationSet _gSp12Animation046FC = {
-    _gSp12Animation046FCRecords,
-    _gSp12Animation046FCIndices,
-    { NULL, _gSp12Animation046FCBank1, NULL, NULL, _gSp12Animation046FCBank4, NULL, NULL, NULL },
+/// Parasite Energy action release for clip family 1, in SP12 bank slot 29.
+///
+/// Selected when `GameActor.actionArgument` is one; blends in over six normal-rate frames
+/// before the charge phase. Borrowed nineteen-part tracks and pose data must remain loaded.
+static AnimationSet _gSp12PeReleaseFamily1Animation = {
+    .records           = _gSp12PeReleaseFamily1AnimationRecords,
+    .trackStartIndices = _gSp12PeReleaseFamily1AnimationIndices,
+    .poseBanks         = {
+        [SP12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gSp12PeReleaseFamily1AnimationBank1,
+        [SP12_ANIMATION_PACKED_ROTATION_BANK]      = _gSp12PeReleaseFamily1AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gSp12Animation048FCBank1[3] = {
+/// Translation/rotation keyframes for `_gSp12PeChargeFamily1Animation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gSp12PeChargeFamily1AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_048FC_bank1.inc"
 };
 
-static AnimationPackedRotation _gSp12Animation048FCBank4[23] = {
+/// Rotation-only keyframes for `_gSp12PeChargeFamily1Animation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gSp12PeChargeFamily1AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_048FC_bank4.inc"
 };
 
-static AnimationRecord _gSp12Animation048FCRecords[76] = {
+/// Keyframe durations and loop/stop controls for `_gSp12PeChargeFamily1Animation`'s nineteen part tracks.
+static const AnimationRecord _gSp12PeChargeFamily1AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_048FC_records.inc"
 };
 
-static u16 _gSp12Animation048FCIndices[20] = {
+/// Record-array starts of `_gSp12PeChargeFamily1Animation`'s nineteen model-part tracks.
+///
+/// Entries 0..18 are track starts; the serialized trailing zero halfword is retained.
+static const u16 _gSp12PeChargeFamily1AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_048FC_indices.inc"
 };
 
-static AnimationSet _gSp12Animation048FC = {
-    _gSp12Animation048FCRecords,
-    _gSp12Animation048FCIndices,
-    { NULL, _gSp12Animation048FCBank1, NULL, NULL, _gSp12Animation048FCBank4, NULL, NULL, NULL },
+/// Looping Parasite Energy charge for clip family 1, in SP12 bank slot 30.
+///
+/// Selected when `GameActor.actionArgument` is one; restarts without blending and loops
+/// until the attachment countdown reaches zero. Borrowed tracks and pose data must remain loaded.
+static AnimationSet _gSp12PeChargeFamily1Animation = {
+    .records           = _gSp12PeChargeFamily1AnimationRecords,
+    .trackStartIndices = _gSp12PeChargeFamily1AnimationIndices,
+    .poseBanks         = {
+        [SP12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gSp12PeChargeFamily1AnimationBank1,
+        [SP12_ANIMATION_PACKED_ROTATION_BANK]      = _gSp12PeChargeFamily1AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gSp12Animation04C50Bank1[8] = {
+/// Translation/rotation keyframes for `_gSp12PeCastFamily1Animation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gSp12PeCastFamily1AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_04C50_bank1.inc"
 };
 
-static AnimationPackedRotation _gSp12Animation04C50Bank4[68] = {
+/// Rotation-only keyframes for `_gSp12PeCastFamily1Animation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gSp12PeCastFamily1AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_04C50_bank4.inc"
 };
 
-static AnimationRecord _gSp12Animation04C50Records[101] = {
+/// Keyframe durations and stop controls for `_gSp12PeCastFamily1Animation`'s nineteen part tracks.
+static const AnimationRecord _gSp12PeCastFamily1AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_04C50_records.inc"
 };
 
-static u16 _gSp12Animation04C50Indices[20] = {
+/// Record-array starts of `_gSp12PeCastFamily1Animation`'s nineteen model-part tracks.
+///
+/// Entries 0..18 are track starts; the serialized trailing zero halfword is retained.
+static const u16 _gSp12PeCastFamily1AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_04C50_indices.inc"
 };
 
-static AnimationSet _gSp12Animation04C50 = {
-    _gSp12Animation04C50Records,
-    _gSp12Animation04C50Indices,
-    { NULL, _gSp12Animation04C50Bank1, NULL, NULL, _gSp12Animation04C50Bank4, NULL, NULL, NULL },
+/// Parasite Energy cast for clip family 1, in SP12 bank slot 31.
+///
+/// Selected when `GameActor.actionArgument` is one and the charge countdown ends.
+/// Restarts without blending and holds its final pose before normal control resumes.
+/// Borrowed nineteen-part tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gSp12PeCastFamily1Animation = {
+    .records           = _gSp12PeCastFamily1AnimationRecords,
+    .trackStartIndices = _gSp12PeCastFamily1AnimationIndices,
+    .poseBanks         = {
+        [SP12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gSp12PeCastFamily1AnimationBank1,
+        [SP12_ANIMATION_PACKED_ROTATION_BANK]      = _gSp12PeCastFamily1AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gSp12Animation04F04Bank1[5] = {
+/// Translation/rotation keyframes for `_gSp12Part4HitReactionAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gSp12Part4HitReactionAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_04F04_bank1.inc"
 };
 
-static AnimationPackedRotation _gSp12Animation04F04Bank4[55] = {
+/// Rotation-only keyframes for `_gSp12Part4HitReactionAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gSp12Part4HitReactionAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_04F04_bank4.inc"
 };
 
-static AnimationRecord _gSp12Animation04F04Records[83] = {
+/// Keyframe durations and stop controls for `_gSp12Part4HitReactionAnimation`'s nineteen part tracks.
+static const AnimationRecord _gSp12Part4HitReactionAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_04F04_records.inc"
 };
 
-static u16 _gSp12Animation04F04Indices[20] = {
+/// Record-array starts of `_gSp12Part4HitReactionAnimation`'s nineteen model-part tracks.
+///
+/// Entries 0..18 are track starts; the serialized trailing zero halfword is retained.
+static const u16 _gSp12Part4HitReactionAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_04F04_indices.inc"
 };
 
-static AnimationSet _gSp12Animation04F04 = {
-    _gSp12Animation04F04Records,
-    _gSp12Animation04F04Indices,
-    { NULL, _gSp12Animation04F04Bank1, NULL, NULL, _gSp12Animation04F04Bank4, NULL, NULL, NULL },
+/// Player hit reaction for contact on model part 4, in SP12 bank slot 16.
+///
+/// Selected for `GameActor.hitRegion` one, the collision body attached to part 4.
+/// Blends child tracks 1..18 over three normal-rate frames and holds the final pose.
+/// Borrowed nineteen-part tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gSp12Part4HitReactionAnimation = {
+    .records           = _gSp12Part4HitReactionAnimationRecords,
+    .trackStartIndices = _gSp12Part4HitReactionAnimationIndices,
+    .poseBanks         = {
+        [SP12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gSp12Part4HitReactionAnimationBank1,
+        [SP12_ANIMATION_PACKED_ROTATION_BANK]      = _gSp12Part4HitReactionAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gSp12Animation05224Bank1[6] = {
+/// Translation/rotation keyframes for `_gSp12OtherBodyHitReactionAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gSp12OtherBodyHitReactionAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_05224_bank1.inc"
 };
 
-static AnimationPackedRotation _gSp12Animation05224Bank4[66] = {
+/// Rotation-only keyframes for `_gSp12OtherBodyHitReactionAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gSp12OtherBodyHitReactionAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_05224_bank4.inc"
 };
 
-static AnimationRecord _gSp12Animation05224Records[96] = {
+/// Keyframe durations and stop controls for `_gSp12OtherBodyHitReactionAnimation`'s nineteen part tracks.
+static const AnimationRecord _gSp12OtherBodyHitReactionAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_05224_records.inc"
 };
 
-static u16 _gSp12Animation05224Indices[20] = {
+/// Record-array starts of `_gSp12OtherBodyHitReactionAnimation`'s nineteen model-part tracks.
+///
+/// Entries 0..18 are track starts; the serialized trailing zero halfword is retained.
+static const u16 _gSp12OtherBodyHitReactionAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_05224_indices.inc"
 };
 
-static AnimationSet _gSp12Animation05224 = {
-    _gSp12Animation05224Records,
-    _gSp12Animation05224Indices,
-    { NULL, _gSp12Animation05224Bank1, NULL, NULL, _gSp12Animation05224Bank4, NULL, NULL, NULL },
+/// Player hit reaction for other body contacts, in SP12 bank slot 17.
+///
+/// Selected for a pending hit outside the model-part-4 region.
+/// Blends child tracks 1..18 over three normal-rate frames and holds the final pose.
+/// Borrowed nineteen-part tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gSp12OtherBodyHitReactionAnimation = {
+    .records           = _gSp12OtherBodyHitReactionAnimationRecords,
+    .trackStartIndices = _gSp12OtherBodyHitReactionAnimationIndices,
+    .poseBanks         = {
+        [SP12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gSp12OtherBodyHitReactionAnimationBank1,
+        [SP12_ANIMATION_PACKED_ROTATION_BANK]      = _gSp12OtherBodyHitReactionAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gSp12Animation059E8Bank1[18] = {
@@ -2073,8 +2157,8 @@ AnimationBank D_sp12_8012BCC8 = { { {
     &_gSp12Animation09B5C,
     &_gSp12Animation0BA44,
     &_gSp12Animation0BA44,
-    &_gSp12Animation04F04,
-    &_gSp12Animation05224,
+    &_gSp12Part4HitReactionAnimation,
+    &_gSp12OtherBodyHitReactionAnimation,
     &_gSp12Animation059E8,
     &_gSp12UnarmedWalkAnimation,
     &_gSp12Animation0BA44,
@@ -2085,10 +2169,10 @@ AnimationBank D_sp12_8012BCC8 = { { {
     &_gSp12Animation077F8,
     &_gSp12PeReleaseFamily0Animation,
     &_gSp12PeChargeFamily0Animation,
-    &_gSp12Animation04458,
-    &_gSp12Animation046FC,
-    &_gSp12Animation048FC,
-    &_gSp12Animation04C50,
+    &_gSp12PeCastFamily0Animation,
+    &_gSp12PeReleaseFamily1Animation,
+    &_gSp12PeChargeFamily1Animation,
+    &_gSp12PeCastFamily1Animation,
     &_gSp12Animation08394,
     &_gSp12Animation0856C,
     &_gSp12Animation08394,
