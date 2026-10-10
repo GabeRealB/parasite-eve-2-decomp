@@ -237,7 +237,7 @@ TaskDesc D_800678F4[] = {
     { { { TASK_BODY_TMD, 0x50 } }, playerActorWorkTask, { &gAya10400BodyModel } },
     { { { TASK_BODY_TMD, 0x50 } }, playerActorWorkTask, { &gAya10300BodyModel } },
     { { { TASK_BODY_TMD, 0x50 } }, playerActorWorkTask, { &gAya10200BodyModel } },
-    { { { TASK_BODY_TMD, 0x50 } }, playerActorWorkTask, { &D_aya_10500_8011C2E4 } },
+    { { { TASK_BODY_TMD, 0x50 } }, playerActorWorkTask, { &gAya10500BodyModel } },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &gAya10400Hand0Model } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &gAya10400FirstPairHand1Model } },

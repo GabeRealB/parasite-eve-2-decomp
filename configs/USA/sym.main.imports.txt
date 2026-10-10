@@ -163,7 +163,7 @@ gAya10300FirstPairHand1Model = 0x8011BA58; // absolute:True owner=aya_10300
 gAya10400SecondPairHand1Model = 0x8011BE10; // absolute:True owner=aya_10400
 gAya10300SecondPairHand1Model = 0x8011BE98; // absolute:True owner=aya_10300
 gAya10200BodyModel = 0x8011C210; // absolute:True owner=aya_10200
-D_aya_10500_8011C2E4 = 0x8011C2E4; // absolute:True owner=aya_10500
+gAya10500BodyModel = 0x8011C2E4; // absolute:True owner=aya_10500
 D_unused_85_8011D53C = 0x8011D53C; // absolute:True owner=unused_85
 D_p08_8011D924 = 0x8011D924; // absolute:True owner=p08
 D_mongoose_8011D934 = 0x8011D934; // absolute:True owner=mongoose

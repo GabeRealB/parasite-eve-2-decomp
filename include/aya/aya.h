@@ -144,6 +144,50 @@ extern GpuImageUpload* gAya10200MouthRestSequence[2];
 /// Selects the alternate mouth frame (mouth selector 1; command 4), identical here to the default.
 extern GpuImageUpload* gAya10200MouthAlternateSequence[2];
 
-extern TmdSource D_aya_10500_8011C2E4;
+/// Aya's nineteen-part player-body model for resource variant 4.
+///
+/// Objects borrow this record, its writable geometry and its command stream.
+/// Keep the package loaded until all referring models are released and queued
+/// GPU work finishes. Creation copies the read-only initial skeleton; the
+/// shared stream's draw-handler slots are resolved in place on first creation.
+extern TmdSource gAya10500BodyModel;
+
+/// Restores open eyes with one frame, then terminates (eye selector 1; reset command 0).
+///
+/// Variant 4's sequences hold read-only frame pointers to writable upload lists.
+/// Eye frames contain 50x16 8-bit texels (25x16 VRAM words), placed at texture
+/// U/V (0, 78), and advance every four actor ticks. Each upload list contains
+/// one copy and an operation terminator; playback rewrites its destination.
+/// Keep the package loaded through playback and GPU transfer completion.
+/// The final NULL stops playback and leaves the last frame's texels in place.
+extern GpuImageUpload* const gAya10500EyesRestSequence[2];
+
+/// Closes the eyes through open, half-closed and closed frames (eye selector 2; command 1).
+///
+/// Frame format, cadence and lifetime follow `gAya10500EyesRestSequence`.
+extern GpuImageUpload* const gAya10500EyesClosingSequence[4];
+
+/// Opens the eyes through closed, half-closed and open frames (eye selector 3; command 2).
+///
+/// Frame format, cadence and lifetime follow `gAya10500EyesRestSequence`.
+extern GpuImageUpload* const gAya10500EyesOpeningSequence[4];
+
+/// Blinks through open, half-closed, closed, half-closed and open (eye selector 4; command 3).
+///
+/// Frame format, cadence and lifetime follow `gAya10500EyesRestSequence`.
+extern GpuImageUpload* const gAya10500EyesBlinkSequence[6];
+
+/// Restores the resting mouth with one frame (mouth selector 2; reset command 0 or command 5).
+///
+/// Read-only frame pointers refer to writable uploads of 28x20 8-bit texels
+/// (14x20 VRAM words), placed at texture U/V (12, 104), with an eight-tick
+/// cadence. The final NULL stops playback and leaves the texels in place.
+/// Package residency and transfer lifetime follow `gAya10500EyesRestSequence`.
+extern GpuImageUpload* const gAya10500MouthRestSequence[2];
+
+/// Selects the alternate mouth frame (mouth selector 1; command 4), identical here to the resting mouth.
+///
+/// Frame format, cadence and lifetime follow `gAya10500MouthRestSequence`.
+extern GpuImageUpload* const gAya10500MouthAlternateSequence[2];
 
 #endif // INCLUDE_AYA_AYA_H

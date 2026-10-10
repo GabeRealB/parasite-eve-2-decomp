@@ -451,27 +451,27 @@ D_mp5a5_8012B3CC = 0x8012B3CC; // absolute:True owner=mp5a5
 gAya10400EyesRestSequence = 0x8011CC94; // absolute:True owner=aya_10400
 gAya10300EyesRestSequence = 0x8011CD1C; // absolute:True owner=aya_10300
 gAya10200EyesRestSequence = 0x8011D094; // absolute:True owner=aya_10200
-D_8011D168 = 0x8011D168; // absolute:True
+gAya10500EyesRestSequence = 0x8011D168; // absolute:True owner=aya_10500
 gAya10400EyesClosingSequence = 0x8011CC9C; // absolute:True owner=aya_10400
 gAya10300EyesClosingSequence = 0x8011CD24; // absolute:True owner=aya_10300
 gAya10200EyesClosingSequence = 0x8011D09C; // absolute:True owner=aya_10200
-D_8011D170 = 0x8011D170; // absolute:True
+gAya10500EyesClosingSequence = 0x8011D170; // absolute:True owner=aya_10500
 gAya10400EyesOpeningSequence = 0x8011CCAC; // absolute:True owner=aya_10400
 gAya10300EyesOpeningSequence = 0x8011CD34; // absolute:True owner=aya_10300
 gAya10200EyesOpeningSequence = 0x8011D0AC; // absolute:True owner=aya_10200
-D_8011D180 = 0x8011D180; // absolute:True
+gAya10500EyesOpeningSequence = 0x8011D180; // absolute:True owner=aya_10500
 D_aya_10400_8011CCBC = 0x8011CCBC; // absolute:True owner=aya_10400
 D_aya_10300_8011CD44 = 0x8011CD44; // absolute:True owner=aya_10300
 gAya10200EyesBlinkSequence = 0x8011D0BC; // absolute:True owner=aya_10200
-D_8011D190 = 0x8011D190; // absolute:True
+gAya10500EyesBlinkSequence = 0x8011D190; // absolute:True owner=aya_10500
 D_aya_10400_8011CCDC = 0x8011CCDC; // absolute:True owner=aya_10400
 D_aya_10300_8011CD64 = 0x8011CD64; // absolute:True owner=aya_10300
 gAya10200MouthAlternateSequence = 0x8011D0DC; // absolute:True owner=aya_10200
-D_8011D1B0 = 0x8011D1B0; // absolute:True
+gAya10500MouthAlternateSequence = 0x8011D1B0; // absolute:True owner=aya_10500
 D_aya_10400_8011CCD4 = 0x8011CCD4; // absolute:True owner=aya_10400
 D_aya_10300_8011CD5C = 0x8011CD5C; // absolute:True owner=aya_10300
 gAya10200MouthRestSequence = 0x8011D0D4; // absolute:True owner=aya_10200
-D_8011D1A8 = 0x8011D1A8; // absolute:True
+gAya10500MouthRestSequence = 0x8011D1A8; // absolute:True owner=aya_10500
 D_kyle_800101_801756D0 = 0x801756D0; // absolute:True owner=kyle_800101
 D_kyle_800102_801772E8 = 0x801772E8; // absolute:True owner=kyle_800102
 D_kyle_800103_8017567C = 0x8017567C; // absolute:True owner=kyle_800103

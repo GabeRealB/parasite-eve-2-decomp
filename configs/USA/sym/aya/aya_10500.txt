@@ -1,6 +1,19 @@
 // Overlay-local symbols for aya_10500 (file 10500).
-D_aya_10500_8011C2E4 = 0x8011C2E4; // model named by a task descriptor
+gAya10500BodyModel = 0x8011C2E4; // model named by a task descriptor
 D_aya_10500_80115B90 = 0x80115B90; // model named by a task descriptor
 D_aya_10500_80115FD0 = 0x80115FD0; // model named by a task descriptor
 D_aya_10500_801164C0 = 0x801164C0; // model named by a task descriptor
 D_aya_10500_80116900 = 0x80116900; // model named by a task descriptor
+_gAya10500EyesOpenUploads = 0x8011c628;
+_gAya10500EyesHalfClosedUploads = 0x8011c968;
+_gAya10500EyesClosedUploads = 0x8011cca8;
+_gAya10500MouthRestPixels = 0x8011ccc8;
+_gAya10500MouthRestUploads = 0x8011cef8;
+_gAya10500MouthAlternatePixels = 0x8011cf18;
+_gAya10500MouthAlternateUploads = 0x8011d148;
+gAya10500EyesRestSequence = 0x8011d168;
+gAya10500EyesClosingSequence = 0x8011d170;
+gAya10500EyesOpeningSequence = 0x8011d180;
+gAya10500EyesBlinkSequence = 0x8011d190;
+gAya10500MouthRestSequence = 0x8011d1a8;
+gAya10500MouthAlternateSequence = 0x8011d1b0;
