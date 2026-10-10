@@ -75,8 +75,6 @@
 
 extern RoomEventActiveBytes gRoomEventActive;
 
-extern WorldCollisionTrigger D_dryfield_night_saloon_g_r_801887DC[21];
-
 /// The event message and request the gate latched for the event task, and the
 /// flag saying one was latched this call.
 extern RoomEventMsg gRoomEventMsg;
@@ -98,26 +96,6 @@ extern EvsCommand D_dryfield_night_saloon_g_r_80184D2C[];
 extern EvsCommand D_dryfield_night_saloon_g_r_80183C94[];
 extern EvsCommand D_dryfield_night_saloon_g_r_801847A4[];
 
-/// The jukebox's track lists, one per game mode, each a run of track id and
-/// name pairs.
-extern JukeboxTrack D_dryfield_night_saloon_g_r_80184F0C[];
-extern JukeboxTrack D_dryfield_night_saloon_g_r_80184F24[];
-extern JukeboxTrack D_dryfield_night_saloon_g_r_80184F3C[];
-extern JukeboxTrack D_dryfield_night_saloon_g_r_80184F54[];
-extern JukeboxTrack D_dryfield_night_saloon_g_r_80184F6C[];
-extern JukeboxTrack D_dryfield_night_saloon_g_r_80184F84[];
-extern JukeboxTrack D_dryfield_night_saloon_g_r_80184FA4[];
-extern JukeboxTrack D_dryfield_night_saloon_g_r_80184FC4[];
-extern JukeboxTrack D_dryfield_night_saloon_g_r_80184FE4[];
-extern JukeboxTrack D_dryfield_night_saloon_g_r_80185004[];
-
-/// The jukebox menu's title, "SELECT". A stray 0x0D byte follows its
-/// terminator, so the block stays in assembly.
-static const char D_dryfield_night_saloon_g_r_8017D898[];
-
-/// The jukebox's track list.
-extern UiList D_dryfield_night_saloon_g_r_80185028;
-
 /// Descriptor of the jukebox menu panel, whose task is
 /// `_dryfieldNightSaloonGRJukeboxMenuTask`.
 extern UiObjectDesc gJukeboxPanelDesc;
@@ -134,12 +112,11 @@ static void _dryfieldNightSaloonGRJukeboxMenuTask(Task* task);
 
 static WorldCoordRoomLights _gDryfieldNightSaloonGRRoomLights;
 
-extern WorldCollisionGrid     D_dryfield_night_saloon_g_r_80185B50[1];
+static WorldCollisionGrid     _gDryfieldNightSaloonGRCollisionGrid;
 extern WorldCollisionOccluder D_dryfield_night_saloon_g_r_80188E18[2];
-extern WorldCollisionTrigger  D_dryfield_night_saloon_g_r_8018831C[16];
-extern WorldCollisionTrigger  D_dryfield_night_saloon_g_r_801887DC[21];
+static WorldCollisionTrigger  _gDryfieldNightSaloonGRViewBoundaryTriggers[16];
+static WorldCollisionTrigger  _gDryfieldNightSaloonGRActionTriggers[21];
 
-extern AnimationPlayRequest     D_dryfield_night_saloon_g_r_80183968;
 extern AnimationPlayRequest     D_dryfield_night_saloon_g_r_8018397C;
 extern AnimationPlayRequest     D_dryfield_night_saloon_g_r_80183990;
 extern AnimationPlayRequest     D_dryfield_night_saloon_g_r_801839B8;
@@ -180,15 +157,15 @@ static const char               _gDryfieldNightSaloonGRJukeboxRow1LaMazeLabel[13
 static const char               _gDryfieldNightSaloonGRJukeboxRow4GenicReactorLabel[17];
 static const char               _gDryfieldNightSaloonGRJukeboxRow3MentalAgonyLabel[16];
 static const char               _gDryfieldNightSaloonGRJukeboxRow2WishwashLabel[12];
-extern const char               D_dryfield_night_saloon_g_r_8017D7B4[20];
-extern const char               D_dryfield_night_saloon_g_r_8017D7C8[17];
-extern const char               D_dryfield_night_saloon_g_r_8017D7DC[19];
-extern const char               D_dryfield_night_saloon_g_r_8017D7F0[24];
-extern const char               D_dryfield_night_saloon_g_r_8017D808[19];
-extern const char               D_dryfield_night_saloon_g_r_8017D81C[27];
-extern const char               D_dryfield_night_saloon_g_r_8017D838[18];
-extern const char               D_dryfield_night_saloon_g_r_8017D84C[16];
-extern const char               D_dryfield_night_saloon_g_r_8017D85C[20];
+static const char               _gDryfieldNightSaloonGRJukeboxRow1CurseYourFateLabel[20];
+static const char               _gDryfieldNightSaloonGRJukeboxRow4KillingFieldLabel[17];
+static const char               _gDryfieldNightSaloonGRJukeboxRow3FoolsParadiseLabel[19];
+static const char               _gDryfieldNightSaloonGRJukeboxRow2GazingIntoTheVoidLabel[24];
+static const char               _gDryfieldNightSaloonGRJukeboxRow1ManMadeNatureLabel[19];
+static const char               _gDryfieldNightSaloonGRJukeboxRow4LazingAwayTheMorningLabel[27];
+static const char               _gDryfieldNightSaloonGRJukeboxRow3OutOfPhase2Label[18];
+static const char               _gDryfieldNightSaloonGRJukeboxRow2TheVagrantsLabel[16];
+static const char               _gDryfieldNightSaloonGRJukeboxRow1TowerRendezvousLabel[20];
 static void                     _dryfieldNightSaloonGRSetRoom(u8 roomId);
 
 static s32  _dryfieldNightSaloonGRRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg);
@@ -614,7 +591,24 @@ AnimationBankCopyRequest D_dryfield_night_saloon_g_r_8018394C = { { .sets = D_dr
 
 AnimationPlayRequest D_dryfield_night_saloon_g_r_80183954 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_dryfield_night_saloon_g_r_80183968 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
+enum {
+    DRYFIELD_NIGHT_SALOON_G_R_PLAYER_DIALOGUE_SET          = ANIMATION_BANK_BASE_SET_COUNT + 1,
+    DRYFIELD_NIGHT_SALOON_G_R_PLAYER_DIALOGUE_BLEND_FRAMES = 15,
+};
+
+/// Plays the player's first room-extension clip during the saloon dialogue scenes.
+///
+/// Clip 48 selects extension entry 1. Interpolates over 15 frames and requests
+/// disabled world collision. The event dispatcher copies this request and
+/// replaces source.index with the equipped weapon's bank before dispatch;
+/// its stored value 1 is unused. The extension data stays live with the room.
+static AnimationPlayRequest _gDryfieldNightSaloonGRPlayerDialogueClip48Request = {
+    .source               = { .index = 1 },
+    .animationId          = DRYFIELD_NIGHT_SALOON_G_R_PLAYER_DIALOGUE_SET,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_SALOON_G_R_PLAYER_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_dryfield_night_saloon_g_r_8018397C = { { .index = 1 }, 49, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -729,7 +723,7 @@ EvsCommand D_dryfield_night_saloon_g_r_80183C94[118] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 7 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_saloon_g_r_80183968 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C68 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -744,7 +738,7 @@ EvsCommand D_dryfield_night_saloon_g_r_80183C94[118] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_saloon_g_r_80183AA8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_saloon_g_r_80183968 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183B8C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183BA0 } }, { .value = 0 } },
@@ -792,7 +786,7 @@ EvsCommand D_dryfield_night_saloon_g_r_80183C94[118] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_saloon_g_r_80183AA8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_saloon_g_r_80183968 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183BC8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C18 } }, { .value = 0 } },
@@ -856,7 +850,7 @@ EvsCommand D_dryfield_night_saloon_g_r_801848DC[25] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C7C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_saloon_g_r_80183968 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gDryfieldNightSaloonGRKyleInitialPoseRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5312000A }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -884,7 +878,7 @@ EvsCommand D_dryfield_night_saloon_g_r_80184B34[21] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C7C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_saloon_g_r_80183968 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gDryfieldNightSaloonGRKyleInitialPoseRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 9 }, { .value = 0 } },
@@ -908,7 +902,7 @@ EvsCommand D_dryfield_night_saloon_g_r_80184D2C[20] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C7C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_saloon_g_r_80183968 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gDryfieldNightSaloonGRKyleInitialPoseRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5312000B }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -924,76 +918,169 @@ EvsCommand D_dryfield_night_saloon_g_r_80184D2C[20] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-JukeboxTrack D_dryfield_night_saloon_g_r_80184F0C[3] = {
-    { 20, _gDryfieldNightSaloonGRJukeboxRow1CrazyKingLabel },
-    { 23, _gDryfieldNightSaloonGRJukeboxRow2EagerForBloodLabel },
-    { 49, _gDryfieldNightSaloonGRJukeboxRow3HeavenSentKillerLabel },
+/// MIDI sequence IDs paired with the saloon's numbered jukebox labels.
+///
+/// The menu loads each ID as file 40100 + ID before starting MIDI playback.
+enum {
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_TOWER_RENDEZVOUS        = 9,
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_OUT_OF_PHASE_2          = 17,
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_CRAZY_KING              = 20,
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_AMBUSH                  = 21,
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_QUADRUMANOUS_LEADER     = 22,
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_EAGER_FOR_BLOOD         = 23,
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_CURSE_YOUR_FATE         = 31,
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_LA_MAZE                 = 35,
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_LIGHTNING_OPERATION     = 36,
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_LAZING_AWAY_THE_MORNING = 37,
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_GHOST_TOWN              = 41,
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_WILD_HUNT               = 42,
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_THE_VAGRANTS            = 43,
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_SNOOPER                 = 44,
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_ROCK_AND_FIRE           = 45,
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_HEAVEN_SENT_KILLER      = 49,
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_REQUIEM                 = 58,
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_WISHWASH                = 59,
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_PICK_UP_THE_GAUNTLET    = 60,
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_DARK_VOICE_OF_THE_HEART = 61,
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_CRAWLING_WASTE_EMPEROR  = 66,
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_YELLOW_RAIN             = 67,
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_HUNTERS_MOON            = 74,
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_MAN_MADE_NATURE         = 76,
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_GAZING_INTO_THE_VOID    = 77,
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_FOOLS_PARADISE          = 78,
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_REBEL_FORCES            = 82,
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_KILLING_FIELD           = 83,
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_MENTAL_AGONY            = 89,
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_GENIC_REACTOR           = 93,
 };
 
-JukeboxTrack D_dryfield_night_saloon_g_r_80184F24[3] = {
-    { 20, _gDryfieldNightSaloonGRJukeboxRow1CrazyKingLabel },
-    { 60, _gDryfieldNightSaloonGRJukeboxRow2PickUpTheGauntletLabel },
-    { 66, _gDryfieldNightSaloonGRJukeboxRow3CrawlingWasteEmperorLabel },
+/// Three training-mode jukebox rows for a cleared Replay save (gameMode 0).
+///
+/// IDs and NUL-terminated labels remain live with this overlay. The shared
+/// callback selects rows 0..2 when the training-mode predicate is true.
+static JukeboxTrack _gDryfieldNightSaloonGRJukeboxTrainingReplayTracks[] = {
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_CRAZY_KING, _gDryfieldNightSaloonGRJukeboxRow1CrazyKingLabel },
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_EAGER_FOR_BLOOD, _gDryfieldNightSaloonGRJukeboxRow2EagerForBloodLabel },
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_HEAVEN_SENT_KILLER, _gDryfieldNightSaloonGRJukeboxRow3HeavenSentKillerLabel },
 };
 
-JukeboxTrack D_dryfield_night_saloon_g_r_80184F3C[3] = {
-    { 20, _gDryfieldNightSaloonGRJukeboxRow1CrazyKingLabel },
-    { 22, _gDryfieldNightSaloonGRJukeboxRow2QuadrumanousLeaderLabel },
-    { 74, _gDryfieldNightSaloonGRJukeboxRow3HuntersMoonLabel },
+/// Three training-mode jukebox rows for a cleared Bounty save (gameMode 1).
+///
+/// Each row pairs a MIDI ID with its numbered NUL-terminated label; rows 0..2
+/// and their labels remain live with the overlay while the menu borrows them.
+static JukeboxTrack _gDryfieldNightSaloonGRJukeboxTrainingBountyTracks[] = {
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_CRAZY_KING, _gDryfieldNightSaloonGRJukeboxRow1CrazyKingLabel },
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_PICK_UP_THE_GAUNTLET, _gDryfieldNightSaloonGRJukeboxRow2PickUpTheGauntletLabel },
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_CRAWLING_WASTE_EMPEROR, _gDryfieldNightSaloonGRJukeboxRow3CrawlingWasteEmperorLabel },
 };
 
-JukeboxTrack D_dryfield_night_saloon_g_r_80184F54[3] = {
-    { 67, _gDryfieldNightSaloonGRJukeboxRow1YellowRainLabel },
-    { 82, _gDryfieldNightSaloonGRJukeboxRow2RebelForcesLabel },
-    { 93, _gDryfieldNightSaloonGRJukeboxRow3GenicReactorLabel },
+/// Three training-mode jukebox rows for a cleared Scavenger save (gameMode 2).
+///
+/// Each row pairs a MIDI ID with its numbered NUL-terminated label; rows 0..2
+/// and their labels remain live with the overlay while the menu borrows them.
+static JukeboxTrack _gDryfieldNightSaloonGRJukeboxTrainingScavengerTracks[] = {
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_CRAZY_KING, _gDryfieldNightSaloonGRJukeboxRow1CrazyKingLabel },
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_QUADRUMANOUS_LEADER, _gDryfieldNightSaloonGRJukeboxRow2QuadrumanousLeaderLabel },
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_HUNTERS_MOON, _gDryfieldNightSaloonGRJukeboxRow3HuntersMoonLabel },
 };
 
-JukeboxTrack D_dryfield_night_saloon_g_r_80184F6C[3] = {
-    { 20, _gDryfieldNightSaloonGRJukeboxRow1CrazyKingLabel },
-    { 21, _gDryfieldNightSaloonGRJukeboxRow2AmbushLabel },
-    { 60, _gDryfieldNightSaloonGRJukeboxRow3PickUpTheGauntletLabel },
+/// Three training-mode jukebox rows for a cleared Nightmare save (gameMode 3).
+///
+/// Each row pairs a MIDI ID with its numbered NUL-terminated label; rows 0..2
+/// and their labels remain live with the overlay while the menu borrows them.
+static JukeboxTrack _gDryfieldNightSaloonGRJukeboxTrainingNightmareTracks[] = {
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_YELLOW_RAIN, _gDryfieldNightSaloonGRJukeboxRow1YellowRainLabel },
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_REBEL_FORCES, _gDryfieldNightSaloonGRJukeboxRow2RebelForcesLabel },
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_GENIC_REACTOR, _gDryfieldNightSaloonGRJukeboxRow3GenicReactorLabel },
 };
 
-JukeboxTrack D_dryfield_night_saloon_g_r_80184F84[4] = {
-    { 41, _gDryfieldNightSaloonGRJukeboxRow1GhostTownLabel },
-    { 45, _gDryfieldNightSaloonGRJukeboxRow2RockAndFireLabel },
-    { 58, _gDryfieldNightSaloonGRJukeboxRow3RequiemLabel },
-    { 61, _gDryfieldNightSaloonGRJukeboxRow4DarkVoiceOfTheHeartLabel },
+/// Three training-mode jukebox rows before the save's first clear, ignoring gameMode.
+///
+/// Each row pairs a MIDI ID with its numbered NUL-terminated label; rows 0..2
+/// and their labels remain live with the overlay while the menu borrows them.
+static JukeboxTrack _gDryfieldNightSaloonGRJukeboxTrainingUnclearedTracks[] = {
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_CRAZY_KING, _gDryfieldNightSaloonGRJukeboxRow1CrazyKingLabel },
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_AMBUSH, _gDryfieldNightSaloonGRJukeboxRow2AmbushLabel },
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_PICK_UP_THE_GAUNTLET, _gDryfieldNightSaloonGRJukeboxRow3PickUpTheGauntletLabel },
 };
 
-JukeboxTrack D_dryfield_night_saloon_g_r_80184FA4[4] = {
-    { 35, _gDryfieldNightSaloonGRJukeboxRow1LaMazeLabel },
-    { 36, _gDryfieldNightSaloonGRJukeboxRow2LightningOperationLabel },
-    { 42, _gDryfieldNightSaloonGRJukeboxRow3WildHuntLabel },
-    { 44, _gDryfieldNightSaloonGRJukeboxRow4SnooperLabel },
+/// Four regular jukebox rows for a cleared Replay save (gameMode 0).
+///
+/// Each row pairs a MIDI ID with its numbered NUL-terminated label; rows 0..3
+/// and their labels remain live with the overlay while the menu borrows them.
+static JukeboxTrack _gDryfieldNightSaloonGRJukeboxRegularReplayTracks[] = {
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_GHOST_TOWN, _gDryfieldNightSaloonGRJukeboxRow1GhostTownLabel },
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_ROCK_AND_FIRE, _gDryfieldNightSaloonGRJukeboxRow2RockAndFireLabel },
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_REQUIEM, _gDryfieldNightSaloonGRJukeboxRow3RequiemLabel },
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_DARK_VOICE_OF_THE_HEART, _gDryfieldNightSaloonGRJukeboxRow4DarkVoiceOfTheHeartLabel },
 };
 
-JukeboxTrack D_dryfield_night_saloon_g_r_80184FC4[4] = {
-    { 31, D_dryfield_night_saloon_g_r_8017D7B4 },
-    { 59, _gDryfieldNightSaloonGRJukeboxRow2WishwashLabel },
-    { 89, _gDryfieldNightSaloonGRJukeboxRow3MentalAgonyLabel },
-    { 93, _gDryfieldNightSaloonGRJukeboxRow4GenicReactorLabel },
+/// Four regular jukebox rows for a cleared Bounty save (gameMode 1).
+///
+/// Each row pairs a MIDI ID with its numbered NUL-terminated label; rows 0..3
+/// and their labels remain live with the overlay while the menu borrows them.
+static JukeboxTrack _gDryfieldNightSaloonGRJukeboxRegularBountyTracks[] = {
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_LA_MAZE, _gDryfieldNightSaloonGRJukeboxRow1LaMazeLabel },
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_LIGHTNING_OPERATION, _gDryfieldNightSaloonGRJukeboxRow2LightningOperationLabel },
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_WILD_HUNT, _gDryfieldNightSaloonGRJukeboxRow3WildHuntLabel },
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_SNOOPER, _gDryfieldNightSaloonGRJukeboxRow4SnooperLabel },
 };
 
-JukeboxTrack D_dryfield_night_saloon_g_r_80184FE4[4] = {
-    { 76, D_dryfield_night_saloon_g_r_8017D808 },
-    { 77, D_dryfield_night_saloon_g_r_8017D7F0 },
-    { 78, D_dryfield_night_saloon_g_r_8017D7DC },
-    { 83, D_dryfield_night_saloon_g_r_8017D7C8 },
+/// Four regular jukebox rows for a cleared Scavenger save (gameMode 2).
+///
+/// Each row pairs a MIDI ID with its numbered NUL-terminated label; rows 0..3
+/// and their labels remain live with the overlay while the menu borrows them.
+static JukeboxTrack _gDryfieldNightSaloonGRJukeboxRegularScavengerTracks[] = {
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_CURSE_YOUR_FATE, _gDryfieldNightSaloonGRJukeboxRow1CurseYourFateLabel },
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_WISHWASH, _gDryfieldNightSaloonGRJukeboxRow2WishwashLabel },
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_MENTAL_AGONY, _gDryfieldNightSaloonGRJukeboxRow3MentalAgonyLabel },
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_GENIC_REACTOR, _gDryfieldNightSaloonGRJukeboxRow4GenicReactorLabel },
 };
 
-JukeboxTrack D_dryfield_night_saloon_g_r_80185004[4] = {
-    { 9, D_dryfield_night_saloon_g_r_8017D85C },
-    { 43, D_dryfield_night_saloon_g_r_8017D84C },
-    { 17, D_dryfield_night_saloon_g_r_8017D838 },
-    { 37, D_dryfield_night_saloon_g_r_8017D81C },
+/// Four regular jukebox rows for a cleared Nightmare save (gameMode 3).
+///
+/// Each row pairs a MIDI ID with its numbered NUL-terminated label; rows 0..3
+/// and their labels remain live with the overlay while the menu borrows them.
+static JukeboxTrack _gDryfieldNightSaloonGRJukeboxRegularNightmareTracks[] = {
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_MAN_MADE_NATURE, _gDryfieldNightSaloonGRJukeboxRow1ManMadeNatureLabel },
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_GAZING_INTO_THE_VOID, _gDryfieldNightSaloonGRJukeboxRow2GazingIntoTheVoidLabel },
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_FOOLS_PARADISE, _gDryfieldNightSaloonGRJukeboxRow3FoolsParadiseLabel },
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_KILLING_FIELD, _gDryfieldNightSaloonGRJukeboxRow4KillingFieldLabel },
 };
 
-UiListRowCallback D_dryfield_night_saloon_g_r_80185024[1] = {
+/// Four regular jukebox rows before the save's first clear, ignoring gameMode.
+///
+/// Each row pairs a MIDI ID with its numbered NUL-terminated label; rows 0..3
+/// and their labels remain live with the overlay while the menu borrows them.
+static JukeboxTrack _gDryfieldNightSaloonGRJukeboxRegularUnclearedTracks[] = {
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_TOWER_RENDEZVOUS, _gDryfieldNightSaloonGRJukeboxRow1TowerRendezvousLabel },
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_THE_VAGRANTS, _gDryfieldNightSaloonGRJukeboxRow2TheVagrantsLabel },
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_OUT_OF_PHASE_2, _gDryfieldNightSaloonGRJukeboxRow3OutOfPhase2Label },
+    { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SEQUENCE_LAZING_AWAY_THE_MORNING, _gDryfieldNightSaloonGRJukeboxRow4LazingAwayTheMorningLabel },
+};
+
+/// Shared row drawer used for every jukebox track, independent of item count.
+///
+/// The list enables USER_INTERFACE_LIST_SHARED_ROW_CALLBACK before dispatch,
+/// so all three/four reachable rows use entry zero. Borrowed for the menu's life.
+static UiListRowCallback _gDryfieldNightSaloonGRJukeboxRowCallbacks[] = {
     _jukeboxDrawRow,
 };
 
-UiList D_dryfield_night_saloon_g_r_80185028 = { D_dryfield_night_saloon_g_r_80185024, 1, { .unsignedValue = 1 }, 0, 17, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
+enum { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_ROW_HEIGHT_PIXELS = 17 };
+
+/// Mutable jukebox selection, scrolling and row-drawing state for the open panel.
+///
+/// Starts with one row; menu initialization sets three training or four regular
+/// rows, resets selection and scrolling, and enables the shared callback.
+/// Navigation clamps at either end. Row spacing is 17 panel-relative pixels.
+/// The overlay owns the singleton through the menu and host's closing delay.
+static UiList _gDryfieldNightSaloonGRJukeboxList = {
+    .rowCallbacks    = _gDryfieldNightSaloonGRJukeboxRowCallbacks,
+    .itemCount       = 1,
+    .visibleRowCount = { .unsignedValue = 1 },
+    .rowHeight       = DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_ROW_HEIGHT_PIXELS,
+};
 
 UiObjectDesc gJukeboxPanelDesc = { USER_INTERFACE_PANEL_TITLE_STYLE, { -112, -64, 224, 128 }, 48, 0, TASK_BODY_NONE, 192, _dryfieldNightSaloonGRJukeboxMenuTask, 0 };
 
@@ -1075,8 +1162,8 @@ WorldCoordRoomLighting gDryfieldNightSaloonGRRoomLighting[2] = {
 };
 
 WorldCollisionRoomResources D_dryfield_night_saloon_g_r_80185190[2] = {
-    { D_dryfield_night_saloon_g_r_80185B50, D_dryfield_night_saloon_g_r_8018831C, D_dryfield_night_saloon_g_r_801887DC, D_dryfield_night_saloon_g_r_80188E18 },
-    { D_dryfield_night_saloon_g_r_80185B50, D_dryfield_night_saloon_g_r_8018831C, D_dryfield_night_saloon_g_r_801887DC, D_dryfield_night_saloon_g_r_80188E18 },
+    { &_gDryfieldNightSaloonGRCollisionGrid, _gDryfieldNightSaloonGRViewBoundaryTriggers, _gDryfieldNightSaloonGRActionTriggers, D_dryfield_night_saloon_g_r_80188E18 },
+    { &_gDryfieldNightSaloonGRCollisionGrid, _gDryfieldNightSaloonGRViewBoundaryTriggers, _gDryfieldNightSaloonGRActionTriggers, D_dryfield_night_saloon_g_r_80188E18 },
 };
 
 u8* gDryfieldNightSaloonGRViewMaps[2] = {
@@ -1094,30 +1181,59 @@ DirectionWarpEntry D_dryfield_night_saloon_g_r_801851BC[2] = {
     { { { .word = 3072 }, 4665, 0, 4567 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4665, 0, 4567 }, { 0, 0, 0, 0 }, 0x53120004, 0x53120003, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_NONE, 478 },
 };
 
-static SVECTOR _gDryfieldNightSaloonGRCollision08590Normals[9] = {
+enum {
+    DRYFIELD_NIGHT_SALOON_G_R_COLLISION_CELL_COUNT_X = 3,
+    DRYFIELD_NIGHT_SALOON_G_R_COLLISION_CELL_COUNT_Z = 4,
+};
+
+/// Nine room-space collision-plane normals, with 4096 representing one unit.
+static SVECTOR _gDryfieldNightSaloonGRCollisionGridNormals[] = {
 #include "assets/dryfield_night_saloon_g_r_collision_08590_normals.inc"
 };
 
-static SVECTOR _gDryfieldNightSaloonGRCollision08590Verts[116] = {
+/// 116 collision-mesh vertices in signed room-local game coordinates.
+static SVECTOR _gDryfieldNightSaloonGRCollisionGridVerts[] = {
 #include "assets/dryfield_night_saloon_g_r_collision_08590_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldNightSaloonGRCollision08590Faces[61] = {
+/// 61 indexed collision quads referencing the grid's vertex and normal pools.
+static WorldCollisionGridFace _gDryfieldNightSaloonGRCollisionGridFaces[] = {
 #include "assets/dryfield_night_saloon_g_r_collision_08590_faces.inc"
 };
 
-static s16 _gDryfieldNightSaloonGRCollision08590Cells[280] = {
+/// Serialized cell face-index lists, each ending at WORLD_COLLISION_GRID_CELL_END.
+///
+/// Includes all 280 halfwords between the face pool and cell-pointer table;
+/// only the sentinel-terminated runs reached by the table are traversed.
+static s16 _gDryfieldNightSaloonGRCollisionGridCells[] = {
 #include "assets/dryfield_night_saloon_g_r_collision_08590_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightSaloonGRCollision08590Cells[i])
-static s16* _gDryfieldNightSaloonGRCollision08590Table[12] = {
+// The generated initializer supplies halfword offsets into this grid's cell pool.
+#define GRID_CELL(i) (&_gDryfieldNightSaloonGRCollisionGridCells[i])
+/// X-major 3-by-4 table of borrowed, sentinel-terminated cell face-index lists.
+static s16* _gDryfieldNightSaloonGRCollisionGridTable[DRYFIELD_NIGHT_SALOON_G_R_COLLISION_CELL_COUNT_X * DRYFIELD_NIGHT_SALOON_G_R_COLLISION_CELL_COUNT_Z] = {
 #include "assets/dryfield_night_saloon_g_r_collision_08590_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_night_saloon_g_r_80185B50[1] = {
-    { NULL, _gDryfieldNightSaloonGRCollision08590Normals, _gDryfieldNightSaloonGRCollision08590Verts, _gDryfieldNightSaloonGRCollision08590Faces, _gDryfieldNightSaloonGRCollision08590Table, 4500, 5400, 3, 4, 4000, 61 },
+/// Collision mesh and spatial index shared by both night-saloon room entries.
+///
+/// Room setup binds viewCoord to the current view. Positions use game units;
+/// the 4000-unit cells cover X from -4500 and Z from -5400 in a 3-by-4 grid.
+/// The descriptor and its borrowed pools remain live while the overlay is loaded.
+static WorldCollisionGrid _gDryfieldNightSaloonGRCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldNightSaloonGRCollisionGridNormals,
+    .vertices    = _gDryfieldNightSaloonGRCollisionGridVerts,
+    .faces       = _gDryfieldNightSaloonGRCollisionGridFaces,
+    .cellFaceIds = _gDryfieldNightSaloonGRCollisionGridTable,
+    .xBias       = 4500,
+    .zBias       = 5400,
+    .cellCountX  = DRYFIELD_NIGHT_SALOON_G_R_COLLISION_CELL_COUNT_X,
+    .cellCountZ  = DRYFIELD_NIGHT_SALOON_G_R_COLLISION_CELL_COUNT_Z,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldNightSaloonGRCollisionGridFaces),
 };
 
 ViewCamera gDryfieldNightSaloonGRViewCameras[DRYFIELD_NIGHT_SALOON_G_R_VIEW_COUNT] = {
@@ -1806,7 +1922,13 @@ static WorldCoordRoomLights _gDryfieldNightSaloonGRRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_dryfield_night_saloon_g_r_8018831C[16] = {
+/// Sixteen directed camera-switch quads shared by both night-saloon rooms.
+///
+/// parameter0/parameter1 are source/destination logical views 2..7. The last
+/// quad carries LAST and is included in setup. Room setup binds coordinates,
+/// links and enables these mutable records, which live with the room overlay.
+/// Origins, corners and radii use game units; normals use 4096 per unit.
+static WorldCollisionTrigger _gDryfieldNightSaloonGRViewBoundaryTriggers[16] = {
     { NULL, NULL, NULL, { 2633, -1376, -1224, 0 }, { { -2531, -2400, -372, 0 }, { 2524, -2400, 366, 0 }, { -2531, 2400, -372, 0 }, { 2524, 2400, 366, 0 } }, { 592, 0, -4063, 0 }, { 0, 0, 4096, 0 }, 3500, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 2782, -1248, -1346, 0 }, { { 2519, -2272, 364, 0 }, { -2534, -2272, -375, 0 }, { 2519, 2272, 364, 0 }, { -2534, 2272, -375, 0 } }, { -594, 0, 4058, 0 }, { 0, 0, 4096, 0 }, 3415, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 1685, -1152, -59, 0 }, { { 1038, -2176, 153, 0 }, { -1037, -2176, -153, 0 }, { 1038, 2176, 153, 0 }, { -1037, 2176, -153, 0 } }, { -603, 0, 4071, 0 }, { 0, 0, 4096, 0 }, 2415, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -1825,22 +1947,39 @@ WorldCollisionTrigger D_dryfield_night_saloon_g_r_8018831C[16] = {
     { NULL, NULL, NULL, { -2144, -1280, -353, 0 }, { { 1157, -2304, 194, 0 }, { -1157, -2304, -193, 0 }, { 1157, 2304, 194, 0 }, { -1157, 2304, -193, 0 } }, { -678, 0, 4044, 0 }, { 0, 0, 4096, 0 }, 2585, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_night_saloon_g_r_801887DC[21] = {
-    { NULL, NULL, NULL, { 2464, -48, -4720, 0 }, { { 624, 0, -272, 0 }, { 624, 0, 272, 0 }, { -624, 0, -272, 0 }, { -624, 0, 272, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, 4096, 0 }, 680, WORLD_COLLISION_TRIGGER_ACTION_WARP, 15, 20, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4480, -50, 4368, 0 }, { { -448, 0, -624, 0 }, { 448, 0, -624, 0 }, { -448, 0, 624, 0 }, { 448, 0, 624, 0 } }, { 0, 4117, 0, 0 }, { -4096, 0, 0, 0 }, 768, WORLD_COLLISION_TRIGGER_ACTION_WARP, 19, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3232, -64, 3392, 0 }, { { 624, 0, -880, 0 }, { 624, 0, 880, 0 }, { -624, 0, -880, 0 }, { -624, 0, 880, 0 } }, { 0, 4099, 0, 0 }, { 4076, 0, 401, 0 }, 1078, WORLD_COLLISION_TRIGGER_ACTION_CAP | WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE, 4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+/// Room-command and action keys stored in the interaction-trigger parameters.
+enum {
+    DRYFIELD_NIGHT_SALOON_G_R_TRIGGER_COMMAND_JUKEBOX      = 4,
+    DRYFIELD_NIGHT_SALOON_G_R_TRIGGER_ROOM_ENTRY_SCENE     = 7,
+    DRYFIELD_NIGHT_SALOON_G_R_TRIGGER_ROOM_RELEASE_BARRIER = 1,
+    DRYFIELD_NIGHT_SALOON_G_R_TRIGGER_ROOM_START_ENCOUNTER = 2,
+    DRYFIELD_NIGHT_SALOON_G_R_PARKING_LOT_WARP_SLOTS       = (1 << 4) | 4,
+    DRYFIELD_NIGHT_SALOON_G_R_KITCHEN_WARP_SLOTS           = (2 << 4) | 1,
+};
+
+/// Twenty-one interaction and transition quads shared by both night-saloon rooms.
+///
+/// Includes two exits, jukebox/dialogue and CAP interactions, five entry-scene
+/// regions and the encounter's barrier-release/start regions at indices 13/14.
+/// Index 13 is unlinked after barrier release. The last included record carries
+/// LAST; setup binds, links and enables all records. Storage remains mutable
+/// and live with the overlay. Geometry uses game units, normals 4096 per unit.
+static WorldCollisionTrigger _gDryfieldNightSaloonGRActionTriggers[21] = {
+    { NULL, NULL, NULL, { 2464, -48, -4720, 0 }, { { 624, 0, -272, 0 }, { 624, 0, 272, 0 }, { -624, 0, -272, 0 }, { -624, 0, 272, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, 4096, 0 }, 680, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_NIGHT_PARKING_LOT, DRYFIELD_NIGHT_SALOON_G_R_PARKING_LOT_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4480, -50, 4368, 0 }, { { -448, 0, -624, 0 }, { 448, 0, -624, 0 }, { -448, 0, 624, 0 }, { 448, 0, 624, 0 } }, { 0, 4117, 0, 0 }, { -4096, 0, 0, 0 }, 768, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_NIGHT_G_R_KITCHEN, DRYFIELD_NIGHT_SALOON_G_R_KITCHEN_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3232, -64, 3392, 0 }, { { 624, 0, -880, 0 }, { 624, 0, 880, 0 }, { -624, 0, -880, 0 }, { -624, 0, 880, 0 } }, { 0, 4099, 0, 0 }, { 4076, 0, 401, 0 }, 1078, WORLD_COLLISION_TRIGGER_ACTION_CAP | WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE, DRYFIELD_NIGHT_SALOON_G_R_TRIGGER_COMMAND_JUKEBOX, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -32, -64, 1728, 0 }, { { 2032, 0, -1392, 0 }, { 2032, 0, 1392, 0 }, { -2032, 0, -1392, 0 }, { -2032, 0, 1392, 0 } }, { 0, 4102, 0, 0 }, { 4076, 0, 401, 0 }, 2455, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 4048, -64, -4672, 0 }, { { 896, 0, -848, 0 }, { 896, 0, 848, 0 }, { -896, 0, -848, 0 }, { -896, 0, 848, 0 } }, { 0, 4101, 0, 0 }, { -1380, 0, 3856, 0 }, 1227, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 544, -64, 6432, 0 }, { { 464, 0, -272, 0 }, { 464, 0, 272, 0 }, { -464, 0, -272, 0 }, { -464, 0, 272, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, -4096, 0 }, 535, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1472, -64, -1152, 0 }, { { 1776, 0, -272, 0 }, { 1776, 0, 272, 0 }, { -1776, 0, -272, 0 }, { -1776, 0, 272, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, 4096, 0 }, 1796, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 7, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { -1632, -64, 288, 0 }, { { 1776, 0, -272, 0 }, { 1776, 0, 272, 0 }, { -1776, 0, -272, 0 }, { -1776, 0, 272, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, 4096, 0 }, 1796, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 7, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 4560, -64, 3456, 0 }, { { 1088, 0, -272, 0 }, { 1088, 0, 272, 0 }, { -1088, 0, -272, 0 }, { -1088, 0, 272, 0 } }, { 0, 4109, 0, 0 }, { 0, 0, 4096, 0 }, 1115, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 7, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 3424, -64, 4384, 0 }, { { 384, 0, -976, 0 }, { 384, 0, 976, 0 }, { -384, 0, -976, 0 }, { -384, 0, 976, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, 4096, 0 }, 1047, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 7, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 4688, -64, 5040, 0 }, { { 928, 0, -320, 0 }, { 928, 0, 320, 0 }, { -928, 0, -320, 0 }, { -928, 0, 320, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 981, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 7, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 1472, -64, -1152, 0 }, { { 1776, 0, -272, 0 }, { 1776, 0, 272, 0 }, { -1776, 0, -272, 0 }, { -1776, 0, 272, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, 4096, 0 }, 1796, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, DRYFIELD_NIGHT_SALOON_G_R_TRIGGER_ROOM_ENTRY_SCENE, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { -1632, -64, 288, 0 }, { { 1776, 0, -272, 0 }, { 1776, 0, 272, 0 }, { -1776, 0, -272, 0 }, { -1776, 0, 272, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, 4096, 0 }, 1796, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, DRYFIELD_NIGHT_SALOON_G_R_TRIGGER_ROOM_ENTRY_SCENE, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 4560, -64, 3456, 0 }, { { 1088, 0, -272, 0 }, { 1088, 0, 272, 0 }, { -1088, 0, -272, 0 }, { -1088, 0, 272, 0 } }, { 0, 4109, 0, 0 }, { 0, 0, 4096, 0 }, 1115, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, DRYFIELD_NIGHT_SALOON_G_R_TRIGGER_ROOM_ENTRY_SCENE, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 3424, -64, 4384, 0 }, { { 384, 0, -976, 0 }, { 384, 0, 976, 0 }, { -384, 0, -976, 0 }, { -384, 0, 976, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, 4096, 0 }, 1047, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, DRYFIELD_NIGHT_SALOON_G_R_TRIGGER_ROOM_ENTRY_SCENE, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 4688, -64, 5040, 0 }, { { 928, 0, -320, 0 }, { 928, 0, 320, 0 }, { -928, 0, -320, 0 }, { -928, 0, 320, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 981, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, DRYFIELD_NIGHT_SALOON_G_R_TRIGGER_ROOM_ENTRY_SCENE, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
     { NULL, NULL, NULL, { 2080, -64, 1328, 0 }, { { 880, 0, -1056, 0 }, { 880, 0, 1056, 0 }, { -880, 0, -1056, 0 }, { -880, 0, 1056, 0 } }, { 0, 4104, 0, 0 }, { -4092, 0, -202, 0 }, 1372, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 3968, -64, 1408, 0 }, { { 704, 0, -991, 0 }, { 704, 0, 992, 0 }, { -704, 0, -991, 0 }, { -704, 0, 992, 0 } }, { 0, 4099, 0, 0 }, { 4051, 0, 600, 0 }, 1214, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 224, -64, 4176, 0 }, { { 2768, 0, -1024, 0 }, { 2768, 0, 1024, 0 }, { -2768, 0, -1024, 0 }, { -2768, 0, 1024, 0 } }, { 0, 4111, 0, 0 }, { 0, 0, 4096, 0 }, 2941, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 320, -64, 5648, 0 }, { { 1232, 0, -464, 0 }, { 1232, 0, 464, 0 }, { -1232, 0, -464, 0 }, { -1232, 0, 464, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1311, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 2, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 224, -64, 4176, 0 }, { { 2768, 0, -1024, 0 }, { 2768, 0, 1024, 0 }, { -2768, 0, -1024, 0 }, { -2768, 0, 1024, 0 } }, { 0, 4111, 0, 0 }, { 0, 0, 4096, 0 }, 2941, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, DRYFIELD_NIGHT_SALOON_G_R_TRIGGER_ROOM_RELEASE_BARRIER, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 320, -64, 5648, 0 }, { { 1232, 0, -464, 0 }, { 1232, 0, 464, 0 }, { -1232, 0, -464, 0 }, { -1232, 0, 464, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1311, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, DRYFIELD_NIGHT_SALOON_G_R_TRIGGER_ROOM_START_ENCOUNTER, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
     { NULL, NULL, NULL, { -2336, -64, 3552, 0 }, { { 1296, 0, -336, 0 }, { 1296, 0, 688, 0 }, { -1296, 0, -688, 0 }, { -1296, 0, 336, 0 } }, { 0, 4105, 0, 0 }, { 601, 0, -4052, 0 }, 1465, WORLD_COLLISION_TRIGGER_ACTION_CAP, 18, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 4912, -64, 560, 0 }, { { 848, 0, -1216, 0 }, { 848, 0, 1216, 0 }, { -848, 0, -1216, 0 }, { -848, 0, 1216, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 1481, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 4352, -64, 192, 0 }, { { 848, 0, -528, 0 }, { 848, 0, 528, 0 }, { -848, 0, -528, 0 }, { -848, 0, 528, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, 4096, 0 }, 997, WORLD_COLLISION_TRIGGER_ACTION_CAP, 14, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
@@ -2116,36 +2255,51 @@ static const char _gDryfieldNightSaloonGRJukeboxRow4GenicReactorLabel[] = "4. Ge
 static const char _gDryfieldNightSaloonGRJukeboxRow3MentalAgonyLabel[] = "3. Mental Agony";
 /// NUL-terminated ASCII label for jukebox row 2, "Wishwash" (MIDI sequence 59).
 static const char _gDryfieldNightSaloonGRJukeboxRow2WishwashLabel[] = "2. Wishwash";
-const char        D_dryfield_night_saloon_g_r_8017D7B4[]            = "1. Curse Your Fate!";
-const char        D_dryfield_night_saloon_g_r_8017D7C8[]            = "4. Killing Field";
-const char        D_dryfield_night_saloon_g_r_8017D7DC[]            = "3. Fool's Paradise";
-const char        D_dryfield_night_saloon_g_r_8017D7F0[]            = "2. Gazing into The Void";
-const char        D_dryfield_night_saloon_g_r_8017D808[]            = "1. Man Made Nature";
-const char        D_dryfield_night_saloon_g_r_8017D81C[]            = "4. Lazing Away the Morning";
-const char        D_dryfield_night_saloon_g_r_8017D838[]            = "3. Out Of Phase 2";
-const char        D_dryfield_night_saloon_g_r_8017D84C[]            = "2. The Vagrants";
-const char        D_dryfield_night_saloon_g_r_8017D85C[]            = "1. Tower Rendezvous";
+/// NUL-terminated ASCII label for jukebox row 1, "Curse Your Fate!" (MIDI sequence 31).
+static const char _gDryfieldNightSaloonGRJukeboxRow1CurseYourFateLabel[] = "1. Curse Your Fate!";
+/// NUL-terminated ASCII label for jukebox row 4, "Killing Field" (MIDI sequence 83).
+static const char _gDryfieldNightSaloonGRJukeboxRow4KillingFieldLabel[] = "4. Killing Field";
+/// NUL-terminated ASCII label for jukebox row 3, "Fool's Paradise" (MIDI sequence 78).
+static const char _gDryfieldNightSaloonGRJukeboxRow3FoolsParadiseLabel[] = "3. Fool's Paradise";
+/// NUL-terminated ASCII label for jukebox row 2, "Gazing into The Void" (MIDI sequence 77).
+static const char _gDryfieldNightSaloonGRJukeboxRow2GazingIntoTheVoidLabel[] = "2. Gazing into The Void";
+/// NUL-terminated ASCII label for jukebox row 1, "Man Made Nature" (MIDI sequence 76).
+static const char _gDryfieldNightSaloonGRJukeboxRow1ManMadeNatureLabel[] = "1. Man Made Nature";
+/// NUL-terminated ASCII label for jukebox row 4, "Lazing Away the Morning" (MIDI sequence 37).
+static const char _gDryfieldNightSaloonGRJukeboxRow4LazingAwayTheMorningLabel[] = "4. Lazing Away the Morning";
+/// NUL-terminated ASCII label for jukebox row 3, "Out Of Phase 2" (MIDI sequence 17).
+static const char _gDryfieldNightSaloonGRJukeboxRow3OutOfPhase2Label[] = "3. Out Of Phase 2";
+/// NUL-terminated ASCII label for jukebox row 2, "The Vagrants" (MIDI sequence 43).
+static const char _gDryfieldNightSaloonGRJukeboxRow2TheVagrantsLabel[] = "2. The Vagrants";
+/// NUL-terminated ASCII label for jukebox row 1, "Tower Rendezvous" (MIDI sequence 9).
+static const char _gDryfieldNightSaloonGRJukeboxRow1TowerRendezvousLabel[] = "1. Tower Rendezvous";
 
-/// The jukebox's ten track lists: one per game mode, with list 4 standing in
-/// before the first clear, and the second five used outside the debug attach
-/// room.
+/// The saloon's ten jukebox lists, selected by training state and saved game mode.
+///
+/// Slots 0..4 contain three training rows and 5..9 four regular rows. Within
+/// each half, a cleared save selects gameMode 0 Replay, 1 Bounty, 2 Scavenger
+/// or 3 Nightmare; clearCount zero selects slot 4 regardless of gameMode.
+/// The shared row callback copies all ten pointers before reusing its stack
+/// union for the text request. This constant template itself holds only lists.
+/// The ordinary night-saloon context selects the regular half; the training
+/// predicate requires the M.I.S.T. gallery's alternate PE resource variant.
 static const JukeboxTrackLists _gJukeboxTrackLists = {
-    {
-        D_dryfield_night_saloon_g_r_80184F0C,
-        D_dryfield_night_saloon_g_r_80184F24,
-        D_dryfield_night_saloon_g_r_80184F3C,
-        D_dryfield_night_saloon_g_r_80184F54,
-        D_dryfield_night_saloon_g_r_80184F6C,
-        D_dryfield_night_saloon_g_r_80184F84,
-        D_dryfield_night_saloon_g_r_80184FA4,
-        D_dryfield_night_saloon_g_r_80184FC4,
-        D_dryfield_night_saloon_g_r_80184FE4,
-        D_dryfield_night_saloon_g_r_80185004,
+    .lists = {
+        _gDryfieldNightSaloonGRJukeboxTrainingReplayTracks,
+        _gDryfieldNightSaloonGRJukeboxTrainingBountyTracks,
+        _gDryfieldNightSaloonGRJukeboxTrainingScavengerTracks,
+        _gDryfieldNightSaloonGRJukeboxTrainingNightmareTracks,
+        _gDryfieldNightSaloonGRJukeboxTrainingUnclearedTracks,
+        _gDryfieldNightSaloonGRJukeboxRegularReplayTracks,
+        _gDryfieldNightSaloonGRJukeboxRegularBountyTracks,
+        _gDryfieldNightSaloonGRJukeboxRegularScavengerTracks,
+        _gDryfieldNightSaloonGRJukeboxRegularNightmareTracks,
+        _gDryfieldNightSaloonGRJukeboxRegularUnclearedTracks,
     },
 };
 
-/// "SELECT", followed by the non-zero padding the original toolchain left.
-static const char D_dryfield_night_saloon_g_r_8017D898[8] = "SELECT\0\x0D";
+/// NUL-terminated SELECT panel title, retaining an unread trailing 0x0D byte.
+static const char _gDryfieldNightSaloonGRJukeboxSelectLabel[8] = "SELECT\0\x0D";
 #include "../../shared/room_variants_saloon.inc.c"
 
 /// Refuses every key-item use in the night saloon.
@@ -2241,7 +2395,7 @@ static s32 _dryfieldNightSaloonGRRoomActionMessage(Task* task, s32 messageId, co
     roomVariant = gGameSession->location.loc.variant;
     if (roomVariant == DRYFIELD_NIGHT_SALOON_G_R_ENCOUNTER_VARIANT && gameFlagGetNibble(GAME_FLAG_NIGHT_SALOON_ENCOUNTER_DONE) == 0) {
         if (request->actionId == DRYFIELD_NIGHT_SALOON_G_R_ACTION_RELEASE_BARRIER) {
-            worldCollisionUnlinkTrigger(0, &D_dryfield_night_saloon_g_r_801887DC[DRYFIELD_NIGHT_SALOON_G_R_ENCOUNTER_BARRIER_TRIGGER]);
+            worldCollisionUnlinkTrigger(WORLD_COLLISION_TRIGGER_LIST_ACTION, &_gDryfieldNightSaloonGRActionTriggers[DRYFIELD_NIGHT_SALOON_G_R_ENCOUNTER_BARRIER_TRIGGER]);
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_SALOON_G_R, DRYFIELD_NIGHT_SALOON_G_R_ENCOUNTER_BARRIER_SOUND_CUE), 0, 0);
         } else if (request->actionId == roomVariant) {
             _dryfieldNightSaloonGRStartEncounterActors();
@@ -2333,8 +2487,8 @@ static void _dryfieldNightSaloonGRJukeboxMenuTask(Task* task)
         JUKEBOX_MENU_TRAINING_LOCKED           = 254,
         JUKEBOX_MENU_FIRST_NON_SEQUENCE_STATUS = 241,
         JUKEBOX_MENU_MAX_VISIBLE_ROWS          = 10,
-        JUKEBOX_MENU_NORMAL_ROWS               = ARRAY_SIZE(D_dryfield_night_saloon_g_r_80184F84),
-        JUKEBOX_MENU_TRAINING_ROWS             = ARRAY_SIZE(D_dryfield_night_saloon_g_r_80184F0C),
+        JUKEBOX_MENU_NORMAL_ROWS               = ARRAY_SIZE(_gDryfieldNightSaloonGRJukeboxRegularReplayTracks),
+        JUKEBOX_MENU_TRAINING_ROWS             = ARRAY_SIZE(_gDryfieldNightSaloonGRJukeboxTrainingReplayTracks),
         JUKEBOX_MENU_ALL_SEQUENCES             = 0,
         JUKEBOX_MUSIC_CDF_STAGE                = 0,
         JUKEBOX_MUSIC_FILE_GROUP               = 4
@@ -2368,10 +2522,10 @@ static void _dryfieldNightSaloonGRJukeboxMenuTask(Task* task)
     }
 
     object = task->spawnArg2.pointer;
-    list   = &D_dryfield_night_saloon_g_r_80185028;
+    list   = &_gDryfieldNightSaloonGRJukeboxList;
 
     object->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&object->panel, D_dryfield_night_saloon_g_r_8017D898);
+    uiDrawPanelLabel(&object->panel, _gDryfieldNightSaloonGRJukeboxSelectLabel);
     if (task->state == JUKEBOX_MENU_INITIALIZE) {
         task->spawnArg1.value = JUKEBOX_MENU_NO_SELECTION;
         if (attachmentIsTrainingMode() == 0) {
