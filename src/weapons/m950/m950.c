@@ -342,136 +342,226 @@ static AnimationSet _gM950PlayerRunAnimation = {
     .poseBanks         = { NULL, _gM950PlayerRunAnimationBank1, NULL, NULL, _gM950PlayerRunAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM950Animation032ECBank1[19] = {
+/// Left-turn translation/rotation keys for player tracks 0 and 1 in the M950 bank.
+///
+/// Translations use model units and Euler angles use 1/4096 turns. Read-only
+/// clip tables retain their serialized positions in .data.
+static const AnimationPackedPose _gM950PlayerTurnLeftAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_032EC_bank1.inc"
 };
 
-static AnimationPackedRotation _gM950Animation032ECBank4[169] = {
+/// Left-turn joint rotations for player tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM950PlayerTurnLeftAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_032EC_bank4.inc"
 };
 
-static AnimationRecord _gM950Animation032ECRecords[290] = {
+/// Left-turn keyframes and loop/stop controls for the M950 player's nineteen tracks.
+///
+/// Pose offsets count u32 words, jump targets count records and durations count normal-rate frames.
+static const AnimationRecord _gM950PlayerTurnLeftAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_032EC_records.inc"
 };
 
-static u16 _gM950Animation032ECIndices[20] = {
+/// Absolute left-turn record starts for player tracks 0..18, followed by a serialized zero halfword.
+///
+/// Tracks 0/1 use bank 1 and tracks 2..18 use bank 4; child playback uses tracks 1..18.
+static const u16 _gM950PlayerTurnLeftAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_032EC_indices.inc"
 };
 
-static AnimationSet _gM950Animation032EC = {
-    _gM950Animation032ECRecords,
-    _gM950Animation032ECIndices,
-    { NULL, _gM950Animation032ECBank1, NULL, NULL, _gM950Animation032ECBank4, NULL, NULL, NULL },
+/// Stationary left-turn clip at id 5 in the M950 player's native animation bank.
+///
+/// Also used for scripted turns with a negative yaw delta. All nineteen tracks
+/// loop; the M950 package must remain loaded while playback borrows the clip.
+static AnimationSet _gM950PlayerTurnLeftAnimation = {
+    .records           = _gM950PlayerTurnLeftAnimationRecords,
+    .trackStartIndices = _gM950PlayerTurnLeftAnimationIndices,
+    .poseBanks         = { [1] = _gM950PlayerTurnLeftAnimationBank1, [4] = _gM950PlayerTurnLeftAnimationBank4 },
 };
 
-static AnimationPackedPose _gM950Animation03B50Bank1[19] = {
+/// Right-turn translation/rotation keys for player tracks 0 and 1 in the M950 bank.
+///
+/// Translations use model units and Euler angles use 1/4096 turns. Read-only
+/// clip tables retain their serialized positions in .data.
+static const AnimationPackedPose _gM950PlayerTurnRightAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_03B50_bank1.inc"
 };
 
-static AnimationPackedRotation _gM950Animation03B50Bank4[170] = {
+/// Right-turn joint rotations for player tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM950PlayerTurnRightAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_03B50_bank4.inc"
 };
 
-static AnimationRecord _gM950Animation03B50Records[290] = {
+/// Right-turn keyframes and loop/stop controls for the M950 player's nineteen tracks.
+///
+/// Pose offsets count u32 words, jump targets count records and durations count normal-rate frames.
+static const AnimationRecord _gM950PlayerTurnRightAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_03B50_records.inc"
 };
 
-static u16 _gM950Animation03B50Indices[20] = {
+/// Absolute right-turn record starts for player tracks 0..18, followed by a serialized zero halfword.
+///
+/// Tracks 0/1 use bank 1 and tracks 2..18 use bank 4; child playback uses tracks 1..18.
+static const u16 _gM950PlayerTurnRightAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_03B50_indices.inc"
 };
 
-static AnimationSet _gM950Animation03B50 = {
-    _gM950Animation03B50Records,
-    _gM950Animation03B50Indices,
-    { NULL, _gM950Animation03B50Bank1, NULL, NULL, _gM950Animation03B50Bank4, NULL, NULL, NULL },
+/// Stationary right-turn clip at id 6 in the M950 player's native animation bank.
+///
+/// Also used for scripted turns with a nonnegative yaw delta. All nineteen tracks
+/// loop; the M950 package must remain loaded while playback borrows the clip.
+static AnimationSet _gM950PlayerTurnRightAnimation = {
+    .records           = _gM950PlayerTurnRightAnimationRecords,
+    .trackStartIndices = _gM950PlayerTurnRightAnimationIndices,
+    .poseBanks         = { [1] = _gM950PlayerTurnRightAnimationBank1, [4] = _gM950PlayerTurnRightAnimationBank4 },
 };
 
-static AnimationPackedPose _gM950Animation03E64Bank1[3] = {
+/// Item-use translation/rotation keys for player tracks 0 and 1 in the M950 bank.
+///
+/// Translations use model units and Euler angles use 1/4096 turns. Read-only
+/// clip tables retain their serialized positions in .data.
+static const AnimationPackedPose _gM950PlayerItemUseAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_03E64_bank1.inc"
 };
 
-static AnimationPackedRotation _gM950Animation03E64Bank4[69] = {
+/// Item-use joint rotations for player tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM950PlayerItemUseAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_03E64_bank4.inc"
 };
 
-static AnimationRecord _gM950Animation03E64Records[99] = {
+/// Item-use keyframes and terminal stop controls for the M950 player's nineteen tracks.
+///
+/// Pose offsets count u32 words and durations count normal-rate frames; this clip has no cue flags.
+static const AnimationRecord _gM950PlayerItemUseAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_03E64_records.inc"
 };
 
-static u16 _gM950Animation03E64Indices[20] = {
+/// Absolute item-use record starts for player tracks 0..18, followed by a serialized zero halfword.
+///
+/// Tracks 0/1 use bank 1 and tracks 2..18 use bank 4; child playback uses tracks 1..18.
+static const u16 _gM950PlayerItemUseAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_03E64_indices.inc"
 };
 
-static AnimationSet _gM950Animation03E64 = {
-    _gM950Animation03E64Records,
-    _gM950Animation03E64Indices,
-    { NULL, _gM950Animation03E64Bank1, NULL, NULL, _gM950Animation03E64Bank4, NULL, NULL, NULL },
+/// Item-use clip at id 40 in the M950 player's native animation bank.
+///
+/// Played during scripted item use before resuming aim locomotion. All nineteen
+/// tracks stop; the M950 package must remain loaded while playback borrows the clip.
+static AnimationSet _gM950PlayerItemUseAnimation = {
+    .records           = _gM950PlayerItemUseAnimationRecords,
+    .trackStartIndices = _gM950PlayerItemUseAnimationIndices,
+    .poseBanks         = { [1] = _gM950PlayerItemUseAnimationBank1, [4] = _gM950PlayerItemUseAnimationBank4 },
 };
 
-static AnimationPackedPose _gM950Animation045C0Bank1[14] = {
+/// Stair-ascent translation/rotation keys for player tracks 0 and 1 in the M950 bank.
+///
+/// Translations use model units and Euler angles use 1/4096 turns. Read-only
+/// clip tables retain their serialized positions in .data.
+static const AnimationPackedPose _gM950PlayerStairAscentAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_045C0_bank1.inc"
 };
 
-static AnimationPackedRotation _gM950Animation045C0Bank4[156] = {
+/// Stair-ascent joint rotations for player tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM950PlayerStairAscentAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_045C0_bank4.inc"
 };
 
-static AnimationRecord _gM950Animation045C0Records[253] = {
+/// Stair-ascent keyframes, loop/stop controls and alternating footstep cues on track 1.
+///
+/// Pose offsets count u32 words, jump targets count records and durations count normal-rate frames.
+static const AnimationRecord _gM950PlayerStairAscentAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_045C0_records.inc"
 };
 
-static u16 _gM950Animation045C0Indices[20] = {
+/// Absolute stair-ascent record starts for player tracks 0..18, followed by a serialized zero halfword.
+///
+/// Tracks 0/1 use bank 1 and tracks 2..18 use bank 4; child playback uses tracks 1..18.
+static const u16 _gM950PlayerStairAscentAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_045C0_indices.inc"
 };
 
-static AnimationSet _gM950Animation045C0 = {
-    _gM950Animation045C0Records,
-    _gM950Animation045C0Indices,
-    { NULL, _gM950Animation045C0Bank1, NULL, NULL, _gM950Animation045C0Bank4, NULL, NULL, NULL },
+/// Stair-ascent clip at id 36 in the M950 player's native animation bank.
+///
+/// All nineteen tracks loop; track 1's footstep cues gate each scripted stride.
+/// The M950 package must remain loaded while playback borrows the clip.
+static AnimationSet _gM950PlayerStairAscentAnimation = {
+    .records           = _gM950PlayerStairAscentAnimationRecords,
+    .trackStartIndices = _gM950PlayerStairAscentAnimationIndices,
+    .poseBanks         = { [1] = _gM950PlayerStairAscentAnimationBank1, [4] = _gM950PlayerStairAscentAnimationBank4 },
 };
 
-static AnimationPackedPose _gM950Animation04D48Bank1[16] = {
+/// Stair-descent translation/rotation keys for player tracks 0 and 1 in the M950 bank.
+///
+/// Translations use model units and Euler angles use 1/4096 turns. Read-only
+/// clip tables retain their serialized positions in .data.
+static const AnimationPackedPose _gM950PlayerStairDescentAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_04D48_bank1.inc"
 };
 
-static AnimationPackedRotation _gM950Animation04D48Bank4[167] = {
+/// Stair-descent joint rotations for player tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM950PlayerStairDescentAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_04D48_bank4.inc"
 };
 
-static AnimationRecord _gM950Animation04D48Records[247] = {
+/// Stair-descent keyframes, loop/stop controls and alternating footstep cues on track 1.
+///
+/// Pose offsets count u32 words, jump targets count records and durations count normal-rate frames.
+static const AnimationRecord _gM950PlayerStairDescentAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_04D48_records.inc"
 };
 
-static u16 _gM950Animation04D48Indices[20] = {
+/// Absolute stair-descent record starts for player tracks 0..18, followed by a serialized zero halfword.
+///
+/// Tracks 0/1 use bank 1 and tracks 2..18 use bank 4; child playback uses tracks 1..18.
+static const u16 _gM950PlayerStairDescentAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_04D48_indices.inc"
 };
 
-static AnimationSet _gM950Animation04D48 = {
-    _gM950Animation04D48Records,
-    _gM950Animation04D48Indices,
-    { NULL, _gM950Animation04D48Bank1, NULL, NULL, _gM950Animation04D48Bank4, NULL, NULL, NULL },
+/// Stair-descent clip at id 37 in the M950 player's native animation bank.
+///
+/// All nineteen tracks loop; track 1's footstep cues gate each scripted stride.
+/// The M950 package must remain loaded while playback borrows the clip.
+static AnimationSet _gM950PlayerStairDescentAnimation = {
+    .records           = _gM950PlayerStairDescentAnimationRecords,
+    .trackStartIndices = _gM950PlayerStairDescentAnimationIndices,
+    .poseBanks         = { [1] = _gM950PlayerStairDescentAnimationBank1, [4] = _gM950PlayerStairDescentAnimationBank4 },
 };
 
-static AnimationPackedPose _gM950Animation0501CBank1[6] = {
+/// Odd-step stair-finish translation/rotation keys for player tracks 0 and 1 in the M950 bank.
+///
+/// Translations use model units and Euler angles use 1/4096 turns. Read-only
+/// clip tables retain their serialized positions in .data.
+static const AnimationPackedPose _gM950PlayerStairAscentFinishOddAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_0501C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM950Animation0501CBank4[52] = {
+/// Odd-step stair-finish joint rotations for player tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM950PlayerStairAscentFinishOddAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_0501C_bank4.inc"
 };
 
-static AnimationRecord _gM950Animation0501CRecords[91] = {
+/// Odd-step stair-finish keyframes, terminal stops and one final footstep cue on track 1.
+///
+/// Pose offsets count u32 words and durations count normal-rate frames.
+static const AnimationRecord _gM950PlayerStairAscentFinishOddAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_0501C_records.inc"
 };
 
-static u16 _gM950Animation0501CIndices[20] = {
+/// Absolute odd-step stair-finish record starts for tracks 0..18, followed by a serialized zero halfword.
+///
+/// Tracks 0/1 use bank 1 and tracks 2..18 use bank 4; child playback uses tracks 1..18.
+static const u16 _gM950PlayerStairAscentFinishOddAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_0501C_indices.inc"
 };
 
-static AnimationSet _gM950Animation0501C = {
-    _gM950Animation0501CRecords,
-    _gM950Animation0501CIndices,
-    { NULL, _gM950Animation0501CBank1, NULL, NULL, _gM950Animation0501CBank4, NULL, NULL, NULL },
+/// Stair-ascent finish clip at id 39 for an odd step count in the M950 player bank.
+///
+/// All nineteen tracks stop; track 1 cues the final footstep. The M950 package
+/// must remain loaded while playback borrows the clip.
+static AnimationSet _gM950PlayerStairAscentFinishOddAnimation = {
+    .records           = _gM950PlayerStairAscentFinishOddAnimationRecords,
+    .trackStartIndices = _gM950PlayerStairAscentFinishOddAnimationIndices,
+    .poseBanks         = { [1] = _gM950PlayerStairAscentFinishOddAnimationBank1, [4] = _gM950PlayerStairAscentFinishOddAnimationBank4 },
 };
 
 static AnimationPackedPose _gM950Animation053ACBank1[7] = {
@@ -1030,8 +1120,8 @@ AnimationBank D_m950_8012BA78 = { { {
     &_gM950PlayerWalkAnimation,
     &_gM950PlayerBackwardWalkAnimation,
     &_gM950PlayerRunAnimation,
-    &_gM950Animation032EC,
-    &_gM950Animation03B50,
+    &_gM950PlayerTurnLeftAnimation,
+    &_gM950PlayerTurnRightAnimation,
     &_gM950Animation0E304,
     &_gM950Animation0E890,
     &_gM950Animation0B674,
@@ -1061,11 +1151,11 @@ AnimationBank D_m950_8012BA78 = { { {
     &_gM950Animation09E1C,
     &_gM950Animation09C44,
     &_gM950Animation09E1C,
-    &_gM950Animation045C0,
-    &_gM950Animation04D48,
+    &_gM950PlayerStairAscentAnimation,
+    &_gM950PlayerStairDescentAnimation,
     &_gM950Animation053AC,
-    &_gM950Animation0501C,
-    &_gM950Animation03E64,
+    &_gM950PlayerStairAscentFinishOddAnimation,
+    &_gM950PlayerItemUseAnimation,
     &_gM950PlayerIdleAnimation,
     &_gM950Animation0A380,
     &_gM950Animation0A574,
