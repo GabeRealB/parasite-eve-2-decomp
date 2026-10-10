@@ -66,7 +66,7 @@ extern TaskDesc D_neo_ark_shrine_80181E5C[];
 extern s32 D_neo_ark_shrine_80181E74;
 
 /// Per-slot group tables for the shrine's arrangement puzzle: five `s16` order
-/// indices per slot, `0xFF` terminated, into `D_neo_ark_shrine_8018686C`.
+/// indices per slot, `0xFF` terminated, into `gNeoArkShrinePuzzleCellTiles`.
 extern s16 D_neo_ark_shrine_801825EC[][5];
 
 extern NeoArkShrineTileOrigin D_neo_ark_shrine_8018252C[16];
@@ -393,12 +393,12 @@ static void _neoArkShrinePuzzleSessionTask(Task* task)
         case NEO_ARK_SHRINE_PUZZLE_SESSION_START:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
-            D_neo_ark_shrine_80186864 = taskSpawnFromTable(D_neo_ark_shrine_80182508, NEO_ARK_SHRINE_PUZZLE_CONTROLLER_ENTRY, 0, 0);
+            gNeoArkShrinePuzzleControllerTask = taskSpawnFromTable(D_neo_ark_shrine_80182508, NEO_ARK_SHRINE_PUZZLE_CONTROLLER_ENTRY, 0, 0);
             task->state++;
             return;
         case NEO_ARK_SHRINE_PUZZLE_SESSION_WAIT:
-            if (taskPollKill(D_neo_ark_shrine_80186864, &puzzleResult) != 0) {
-                D_neo_ark_shrine_80186864 = NULL;
+            if (taskPollKill(gNeoArkShrinePuzzleControllerTask, &puzzleResult) != 0) {
+                gNeoArkShrinePuzzleControllerTask = NULL;
                 taskKill(task);
             }
             return;
@@ -555,14 +555,14 @@ void neoArkShrineSlidePuzzleTile(Task* task)
         if (neighbourCell == NEO_ARK_SHRINE_NEIGHBOUR_END) {
             break;
         }
-        if (D_neo_ark_shrine_8018686C[neighbourCell] == NEO_ARK_SHRINE_PUZZLE_GAP_TILE) {
+        if (gNeoArkShrinePuzzleCellTiles[neighbourCell] == NEO_ARK_SHRINE_PUZZLE_GAP_TILE) {
             sndEvtRequestScriptStart(SOUND_NEO_ARK_SHRINE_TILE_SLIDE, 0, 0);
-            selectedCell                                                                          = work->selection;
-            selectedTile                                                                          = &D_neo_ark_shrine_8018686C[selectedCell];
-            tileNumber                                                                            = *selectedTile;
-            *selectedTile                                                                         = D_neo_ark_shrine_8018686C[D_neo_ark_shrine_801825EC[selectedCell][neighbourIndex]];
-            tileSlid                                                                              = 1;
-            D_neo_ark_shrine_8018686C[D_neo_ark_shrine_801825EC[work->selection][neighbourIndex]] = tileNumber;
+            selectedCell                                                                             = work->selection;
+            selectedTile                                                                             = &gNeoArkShrinePuzzleCellTiles[selectedCell];
+            tileNumber                                                                               = *selectedTile;
+            *selectedTile                                                                            = gNeoArkShrinePuzzleCellTiles[D_neo_ark_shrine_801825EC[selectedCell][neighbourIndex]];
+            tileSlid                                                                                 = 1;
+            gNeoArkShrinePuzzleCellTiles[D_neo_ark_shrine_801825EC[work->selection][neighbourIndex]] = tileNumber;
         }
     }
     // Only a successful slide can trigger arrangement-dependent room changes.
@@ -605,14 +605,14 @@ static inline void _neoArkShrineEasePuzzleTile(s32 tileNumber)
 {
     enum { NEO_ARK_SHRINE_PUZZLE_SNAP_PIXELS = 4 };
 
-    D_neo_ark_shrine_8018688C[tileNumber].x +=
-        (D_neo_ark_shrine_801868CC[tileNumber].x - D_neo_ark_shrine_8018688C[tileNumber].x) >> 1;
-    D_neo_ark_shrine_8018688C[tileNumber].y +=
-        (D_neo_ark_shrine_801868CC[tileNumber].y - D_neo_ark_shrine_8018688C[tileNumber].y) >> 1;
-    if (ABS(D_neo_ark_shrine_8018688C[tileNumber].x - D_neo_ark_shrine_801868CC[tileNumber].x) < NEO_ARK_SHRINE_PUZZLE_SNAP_PIXELS &&
-        ABS(D_neo_ark_shrine_8018688C[tileNumber].y - D_neo_ark_shrine_801868CC[tileNumber].y) < NEO_ARK_SHRINE_PUZZLE_SNAP_PIXELS) {
-        D_neo_ark_shrine_8018688C[tileNumber].x = D_neo_ark_shrine_801868CC[tileNumber].x;
-        D_neo_ark_shrine_8018688C[tileNumber].y = D_neo_ark_shrine_801868CC[tileNumber].y;
+    gNeoArkShrinePuzzleDrawnOrigins[tileNumber].x +=
+        (gNeoArkShrinePuzzleTargetOrigins[tileNumber].x - gNeoArkShrinePuzzleDrawnOrigins[tileNumber].x) >> 1;
+    gNeoArkShrinePuzzleDrawnOrigins[tileNumber].y +=
+        (gNeoArkShrinePuzzleTargetOrigins[tileNumber].y - gNeoArkShrinePuzzleDrawnOrigins[tileNumber].y) >> 1;
+    if (ABS(gNeoArkShrinePuzzleDrawnOrigins[tileNumber].x - gNeoArkShrinePuzzleTargetOrigins[tileNumber].x) < NEO_ARK_SHRINE_PUZZLE_SNAP_PIXELS &&
+        ABS(gNeoArkShrinePuzzleDrawnOrigins[tileNumber].y - gNeoArkShrinePuzzleTargetOrigins[tileNumber].y) < NEO_ARK_SHRINE_PUZZLE_SNAP_PIXELS) {
+        gNeoArkShrinePuzzleDrawnOrigins[tileNumber].x = gNeoArkShrinePuzzleTargetOrigins[tileNumber].x;
+        gNeoArkShrinePuzzleDrawnOrigins[tileNumber].y = gNeoArkShrinePuzzleTargetOrigins[tileNumber].y;
     }
 }
 
@@ -629,15 +629,15 @@ void neoArkShrineAnimateAndDrawPuzzle(void)
     POLY_FT4* tileQuad;
 
     // Convert the cell-to-tile board into per-tile animation targets.
-    for (cellIndex = 0; cellIndex < (s32)ARRAY_SIZE(D_neo_ark_shrine_8018686C); cellIndex++) {
-        tileNumber                              = D_neo_ark_shrine_8018686C[cellIndex];
-        D_neo_ark_shrine_801868CC[tileNumber].x = D_neo_ark_shrine_8018252C[cellIndex].x;
-        D_neo_ark_shrine_801868CC[tileNumber].y = D_neo_ark_shrine_8018252C[cellIndex].y;
+    for (cellIndex = 0; cellIndex < (s32)ARRAY_SIZE(gNeoArkShrinePuzzleCellTiles); cellIndex++) {
+        tileNumber                                     = gNeoArkShrinePuzzleCellTiles[cellIndex];
+        gNeoArkShrinePuzzleTargetOrigins[tileNumber].x = D_neo_ark_shrine_8018252C[cellIndex].x;
+        gNeoArkShrinePuzzleTargetOrigins[tileNumber].y = D_neo_ark_shrine_8018252C[cellIndex].y;
     }
 
     // Animate the gap too, but reserve packets only for visible tiles.
-    for (cellIndex = 0; cellIndex < (s32)ARRAY_SIZE(D_neo_ark_shrine_8018686C); cellIndex++) {
-        tileNumber = D_neo_ark_shrine_8018686C[cellIndex];
+    for (cellIndex = 0; cellIndex < (s32)ARRAY_SIZE(gNeoArkShrinePuzzleCellTiles); cellIndex++) {
+        tileNumber = gNeoArkShrinePuzzleCellTiles[cellIndex];
         _neoArkShrineEasePuzzleTile(tileNumber);
         if (tileNumber != NEO_ARK_SHRINE_PUZZLE_GAP_TILE) {
             tileQuad       = gGpuPrimCursor;
@@ -648,7 +648,7 @@ void neoArkShrineAnimateAndDrawPuzzle(void)
             tileQuad->tpage = NEO_ARK_SHRINE_PUZZLE_TPAGE;
             tileQuad->clut  = NEO_ARK_SHRINE_PUZZLE_CLUT;
             setShadeTex(tileQuad, true);
-            setXYWH(tileQuad, D_neo_ark_shrine_8018688C[tileNumber].x, D_neo_ark_shrine_8018688C[tileNumber].y,
+            setXYWH(tileQuad, gNeoArkShrinePuzzleDrawnOrigins[tileNumber].x, gNeoArkShrinePuzzleDrawnOrigins[tileNumber].y,
                     NEO_ARK_SHRINE_TILE_SIZE, NEO_ARK_SHRINE_TILE_SIZE);
             addPrim(&gGpuCurrentOt[NEO_ARK_SHRINE_PUZZLE_OT_TAG], tileQuad);
         }
@@ -695,27 +695,27 @@ static s16 _neoArkShrineCheckPuzzleArrangement(void)
 {
     s32 restoreRequest;
 
-    if (D_neo_ark_shrine_8018686C[0] == 9 && D_neo_ark_shrine_8018686C[1] == 10 &&
-        D_neo_ark_shrine_8018686C[2] == 11 && D_neo_ark_shrine_8018686C[3] == 12 &&
-        D_neo_ark_shrine_8018686C[15] == NEO_ARK_SHRINE_PUZZLE_GAP_TILE) {
+    if (gNeoArkShrinePuzzleCellTiles[0] == 9 && gNeoArkShrinePuzzleCellTiles[1] == 10 &&
+        gNeoArkShrinePuzzleCellTiles[2] == 11 && gNeoArkShrinePuzzleCellTiles[3] == 12 &&
+        gNeoArkShrinePuzzleCellTiles[15] == NEO_ARK_SHRINE_PUZZLE_GAP_TILE) {
         return NEO_ARK_SHRINE_PUZZLE_MATCH_ACTIVATE_LAYOUT;
     }
-    if (D_neo_ark_shrine_8018686C[0] == 12 && D_neo_ark_shrine_8018686C[1] == 11 &&
-        D_neo_ark_shrine_8018686C[2] == 10 && D_neo_ark_shrine_8018686C[3] == 9 &&
-        D_neo_ark_shrine_8018686C[15] == NEO_ARK_SHRINE_PUZZLE_GAP_TILE) {
+    if (gNeoArkShrinePuzzleCellTiles[0] == 12 && gNeoArkShrinePuzzleCellTiles[1] == 11 &&
+        gNeoArkShrinePuzzleCellTiles[2] == 10 && gNeoArkShrinePuzzleCellTiles[3] == 9 &&
+        gNeoArkShrinePuzzleCellTiles[15] == NEO_ARK_SHRINE_PUZZLE_GAP_TILE) {
         return NEO_ARK_SHRINE_PUZZLE_MATCH_ACTIVATE_LAYOUT;
     }
-    if (D_neo_ark_shrine_80186868 == true) {
+    if (gNeoArkShrinePuzzleLayoutActive == true) {
         return NEO_ARK_SHRINE_PUZZLE_MATCH_RESTORE_LAYOUT;
     }
-    if (D_neo_ark_shrine_8018686C[3] == 1 && D_neo_ark_shrine_8018686C[6] == 2 &&
-        D_neo_ark_shrine_8018686C[9] == 3 && D_neo_ark_shrine_8018686C[12] == 4 &&
-        D_neo_ark_shrine_8018686C[15] == NEO_ARK_SHRINE_PUZZLE_GAP_TILE) {
+    if (gNeoArkShrinePuzzleCellTiles[3] == 1 && gNeoArkShrinePuzzleCellTiles[6] == 2 &&
+        gNeoArkShrinePuzzleCellTiles[9] == 3 && gNeoArkShrinePuzzleCellTiles[12] == 4 &&
+        gNeoArkShrinePuzzleCellTiles[15] == NEO_ARK_SHRINE_PUZZLE_GAP_TILE) {
         return NEO_ARK_SHRINE_PUZZLE_MATCH_SOLVED;
     }
-    if (D_neo_ark_shrine_8018686C[3] == 4 && D_neo_ark_shrine_8018686C[6] == 3 &&
-        D_neo_ark_shrine_8018686C[9] == 2 && D_neo_ark_shrine_8018686C[12] == 1 &&
-        D_neo_ark_shrine_8018686C[15] == NEO_ARK_SHRINE_PUZZLE_GAP_TILE) {
+    if (gNeoArkShrinePuzzleCellTiles[3] == 4 && gNeoArkShrinePuzzleCellTiles[6] == 3 &&
+        gNeoArkShrinePuzzleCellTiles[9] == 2 && gNeoArkShrinePuzzleCellTiles[12] == 1 &&
+        gNeoArkShrinePuzzleCellTiles[15] == NEO_ARK_SHRINE_PUZZLE_GAP_TILE) {
         return NEO_ARK_SHRINE_PUZZLE_MATCH_SOLVED;
     }
     // Consume the pending restore only after the higher-priority pattern checks.
@@ -723,14 +723,14 @@ static s16 _neoArkShrineCheckPuzzleArrangement(void)
     if (restoreRequest == true) {
         _neoArkShrineRestorePuzzleLayout();
     }
-    if (D_neo_ark_shrine_8018686C[0] == 5 && D_neo_ark_shrine_8018686C[4] == 6 &&
-        D_neo_ark_shrine_8018686C[8] == 7 && D_neo_ark_shrine_8018686C[12] == 8 &&
-        D_neo_ark_shrine_8018686C[15] == NEO_ARK_SHRINE_PUZZLE_GAP_TILE) {
+    if (gNeoArkShrinePuzzleCellTiles[0] == 5 && gNeoArkShrinePuzzleCellTiles[4] == 6 &&
+        gNeoArkShrinePuzzleCellTiles[8] == 7 && gNeoArkShrinePuzzleCellTiles[12] == 8 &&
+        gNeoArkShrinePuzzleCellTiles[15] == NEO_ARK_SHRINE_PUZZLE_GAP_TILE) {
         return NEO_ARK_SHRINE_PUZZLE_MATCH_RELEASE_ENEMIES;
     }
-    if (D_neo_ark_shrine_8018686C[0] == 8 && D_neo_ark_shrine_8018686C[4] == 7 &&
-        D_neo_ark_shrine_8018686C[8] == 6 && D_neo_ark_shrine_8018686C[12] == 5 &&
-        D_neo_ark_shrine_8018686C[15] == NEO_ARK_SHRINE_PUZZLE_GAP_TILE) {
+    if (gNeoArkShrinePuzzleCellTiles[0] == 8 && gNeoArkShrinePuzzleCellTiles[4] == 7 &&
+        gNeoArkShrinePuzzleCellTiles[8] == 6 && gNeoArkShrinePuzzleCellTiles[12] == 5 &&
+        gNeoArkShrinePuzzleCellTiles[15] == NEO_ARK_SHRINE_PUZZLE_GAP_TILE) {
         return NEO_ARK_SHRINE_PUZZLE_MATCH_RELEASE_ENEMIES;
     }
     return NEO_ARK_SHRINE_PUZZLE_MATCH_NONE;

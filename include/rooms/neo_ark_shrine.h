@@ -13,8 +13,20 @@
 
 extern AreaVariant D_neo_ark_shrine_801866C8[13];
 
-// neo_ark_shrine
-extern WorldCollisionRoomResources D_neo_ark_shrine_80182724[];
+/// Number of room selectors and warp endpoints exported by the shrine.
+enum {
+    NEO_ARK_SHRINE_ROOM_COUNT = 6,
+    NEO_ARK_SHRINE_WARP_COUNT = 3,
+};
+
+/// Collision bindings for the shrine's six room selectors, indexed by room - 1.
+///
+/// Rooms 1/4 use the base layout, 2/5 the puzzle's active layout, and 3/6
+/// the enemy-release layout. Each pair shares its mutable grid and action
+/// triggers; all rooms share the view boundaries and sight occluders.
+/// Setup borrows and links the resources, which require this overlay loaded
+/// until the collision lists are cleared.
+extern WorldCollisionRoomResources gNeoArkShrineCollisionRooms[NEO_ARK_SHRINE_ROOM_COUNT];
 
 /// Lighting bindings for the shrine's six room selectors.
 ///
@@ -32,9 +44,20 @@ extern WorldCoordRoomLighting gNeoArkShrineRoomLighting[6];
 /// logical-view domain. Borrowed room storage requires this overlay loaded.
 extern u8* gNeoArkShrineViewMaps[6];
 
-extern ViewCount D_neo_ark_shrine_80182808[];
+/// Logical-view counts for room selectors 1..6, indexed by room - 1.
+///
+/// Every room exposes eighteen logical views through `gNeoArkShrineViewMaps`.
+/// Counts are signed halfwords; the map overlay borrows this room's storage.
+extern ViewCount gNeoArkShrineViewCounts[NEO_ARK_SHRINE_ROOM_COUNT];
 
-extern DirectionWarpEntry D_neo_ark_shrine_80182814[];
+/// Actor placements, sounds and initial views for shrine warp endpoints 1..3.
+///
+/// Indexed by endpoint - 1, with no terminator. Endpoints 1 and 2 serve the
+/// Power Plant 1 and Savanna Zone doors; endpoint 3 places both actors near
+/// the puzzle and has no sound or map-marker effect. Placements use world
+/// coordinates and yaw uses 4096 units per turn. Both actors share each
+/// endpoint's placement. These borrowed records require the shrine loaded.
+extern DirectionWarpEntry gNeoArkShrineWarpEntries[NEO_ARK_SHRINE_WARP_COUNT];
 
 /// Number of camera and sprite-resource entries addressed by the shrine's mapped views.
 enum { NEO_ARK_SHRINE_MAPPED_VIEW_COUNT = 18 };

@@ -38,6 +38,7 @@
 #include "gameplay/world_coords.h"
 
 #include "main/coord.h"
+#include "main/areas.h"
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/gameflag.h"
@@ -109,9 +110,9 @@ enum {
                                                                                                                \
         padScriptSpawnVariableMotorRamp(NEO_ARK_SHRINE_LAYOUT_RUMBLE_FRAMES,                                   \
                                         NEO_ARK_SHRINE_LAYOUT_RUMBLE_START, NEO_ARK_SHRINE_LAYOUT_RUMBLE_END); \
-        D_neo_ark_shrine_80186868 = (active);                                                                  \
-        prompt->mode              = ACTION_PROMPT_MODE_HIDDEN;                                                 \
-        prompt->cursorSpeed       = ACTION_PROMPT_SPEED_STOPPED;                                               \
+        gNeoArkShrinePuzzleLayoutActive = (active);                                                            \
+        prompt->mode                    = ACTION_PROMPT_MODE_HIDDEN;                                           \
+        prompt->cursorSpeed             = ACTION_PROMPT_SPEED_STOPPED;                                         \
         neoArkShrineDrawPuzzleFrame((task));                                                                   \
         work->timer = 0;                                                                                       \
         (task)->state++;                                                                                       \
@@ -179,8 +180,13 @@ static void _neoArkShrineWaitFirstPropLayoutRestore(Task* task);
 static void _neoArkShrineInitializeSecondFallingProp(Task* task);
 static void _neoArkShrineDropSecondProp(Task* task);
 
-/// State table of the shrine's cap script task, indexed by `Task::state`.
-static const TaskFuncTable16 D_neo_ark_shrine_8017D5D0 = {
+/// State handlers of the shrine's sliding-tile puzzle and its room outcomes.
+///
+/// Indexed by `Task::state` in 0..15 without a bounds check. States 0..6
+/// initialize the session, handle input/commands, close it and slide tiles;
+/// 7..8 activate the layout, 9..13 release enemies, and 14..15 restore the
+/// base layout. The dispatcher copies this complete 0x40-byte table by value.
+static const TaskFuncTable16 _gNeoArkShrinePuzzleStates = {
     {
         _neoArkShrineInitializePuzzle,
         _neoArkShrinePreparePuzzleCursor,
@@ -200,23 +206,30 @@ static const TaskFuncTable16 D_neo_ark_shrine_8017D5D0 = {
         _neoArkShrineWaitPuzzleLayoutRestoration,
     },
 };
-/// State table of the shrine's first falling prop, indexed by `Task::state`.
-static const TaskFuncTable4 D_neo_ark_shrine_8017D610 = {
+/// First falling prop's initialize, drop, restore-wait and kill state handlers.
+///
+/// The dispatcher copies the complete table and indexes `Task::state` in
+/// 0..3 without checking the bound. The landed prop stays live until the
+/// puzzle consumes its pending base-layout restore request.
+static const TaskFuncTable4 _gNeoArkShrineFirstPropStates = {
     { _neoArkShrineInitializeFirstFallingProp, _neoArkShrineDropFirstProp, _neoArkShrineWaitFirstPropLayoutRestore, taskKill },
 };
-/// State table of the shrine's second falling prop, indexed by `Task::state`.
-static const TaskFuncTable3 D_neo_ark_shrine_8017D620 = {
+/// Second falling prop's initialize, drop and kill state handlers.
+///
+/// The dispatcher copies the complete table and indexes `Task::state` in
+/// 0..2 without checking the bound. This prop has no restore-wait state.
+static const TaskFuncTable3 _gNeoArkShrineSecondPropStates = {
     { _neoArkShrineInitializeSecondFallingProp, _neoArkShrineDropSecondProp, taskKill },
 };
 
 static WorldCollisionGrid     _gNeoArkShrineBaseCollisionGrid;
-extern WorldCollisionGrid     D_neo_ark_shrine_801831D8[1];
-extern WorldCollisionGrid     D_neo_ark_shrine_80183698[1];
-extern WorldCollisionOccluder D_neo_ark_shrine_80186730[4];
-extern WorldCollisionTrigger  D_neo_ark_shrine_80185A80[14];
-extern WorldCollisionTrigger  D_neo_ark_shrine_80185EA8[9];
-extern WorldCollisionTrigger  D_neo_ark_shrine_80186154[8];
-extern WorldCollisionTrigger  D_neo_ark_shrine_801863B4[8];
+static WorldCollisionGrid     _gNeoArkShrineActiveCollisionGrid;
+static WorldCollisionGrid     _gNeoArkShrineEnemyReleaseCollisionGrid;
+static WorldCollisionOccluder _gNeoArkShrineSightOccluders[4];
+static WorldCollisionTrigger  _gNeoArkShrineViewBoundaryTriggers[14];
+static WorldCollisionTrigger  _gNeoArkShrineBaseActionTriggers[9];
+static WorldCollisionTrigger  _gNeoArkShrineActiveActionTriggers[8];
+static WorldCollisionTrigger  _gNeoArkShrineEnemyReleaseActionTriggers[8];
 static WorldCoordRoomLights   _gNeoArkShrineRoomLights;
 
 /// Seventeen fixed shrine flare centres in signed world-coordinate units.
@@ -246,13 +259,13 @@ static SVECTOR _gNeoArkShrineFlarePositions[] = {
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-WorldCollisionRoomResources D_neo_ark_shrine_80182724[6] = {
-    { &_gNeoArkShrineBaseCollisionGrid, D_neo_ark_shrine_80185A80, D_neo_ark_shrine_80185EA8, D_neo_ark_shrine_80186730 },
-    { D_neo_ark_shrine_801831D8, D_neo_ark_shrine_80185A80, D_neo_ark_shrine_80186154, D_neo_ark_shrine_80186730 },
-    { D_neo_ark_shrine_80183698, D_neo_ark_shrine_80185A80, D_neo_ark_shrine_801863B4, D_neo_ark_shrine_80186730 },
-    { &_gNeoArkShrineBaseCollisionGrid, D_neo_ark_shrine_80185A80, D_neo_ark_shrine_80185EA8, D_neo_ark_shrine_80186730 },
-    { D_neo_ark_shrine_801831D8, D_neo_ark_shrine_80185A80, D_neo_ark_shrine_80186154, D_neo_ark_shrine_80186730 },
-    { D_neo_ark_shrine_80183698, D_neo_ark_shrine_80185A80, D_neo_ark_shrine_801863B4, D_neo_ark_shrine_80186730 },
+WorldCollisionRoomResources gNeoArkShrineCollisionRooms[NEO_ARK_SHRINE_ROOM_COUNT] = {
+    { &_gNeoArkShrineBaseCollisionGrid, _gNeoArkShrineViewBoundaryTriggers, _gNeoArkShrineBaseActionTriggers, _gNeoArkShrineSightOccluders },
+    { &_gNeoArkShrineActiveCollisionGrid, _gNeoArkShrineViewBoundaryTriggers, _gNeoArkShrineActiveActionTriggers, _gNeoArkShrineSightOccluders },
+    { &_gNeoArkShrineEnemyReleaseCollisionGrid, _gNeoArkShrineViewBoundaryTriggers, _gNeoArkShrineEnemyReleaseActionTriggers, _gNeoArkShrineSightOccluders },
+    { &_gNeoArkShrineBaseCollisionGrid, _gNeoArkShrineViewBoundaryTriggers, _gNeoArkShrineBaseActionTriggers, _gNeoArkShrineSightOccluders },
+    { &_gNeoArkShrineActiveCollisionGrid, _gNeoArkShrineViewBoundaryTriggers, _gNeoArkShrineActiveActionTriggers, _gNeoArkShrineSightOccluders },
+    { &_gNeoArkShrineEnemyReleaseCollisionGrid, _gNeoArkShrineViewBoundaryTriggers, _gNeoArkShrineEnemyReleaseActionTriggers, _gNeoArkShrineSightOccluders },
 };
 
 WorldCoordRoomLighting gNeoArkShrineRoomLighting[6] = {
@@ -353,12 +366,61 @@ u8* gNeoArkShrineViewMaps[6] = {
     _gNeoArkShrineRoom4ViewMap,
 };
 
-ViewCount D_neo_ark_shrine_80182808[6] = { 18, 18, 18, 18, 18, 18 };
+ViewCount gNeoArkShrineViewCounts[NEO_ARK_SHRINE_ROOM_COUNT] = {
+    NEO_ARK_SHRINE_MAPPED_VIEW_COUNT,
+    NEO_ARK_SHRINE_MAPPED_VIEW_COUNT,
+    NEO_ARK_SHRINE_MAPPED_VIEW_COUNT,
+    NEO_ARK_SHRINE_MAPPED_VIEW_COUNT,
+    NEO_ARK_SHRINE_MAPPED_VIEW_COUNT,
+    NEO_ARK_SHRINE_MAPPED_VIEW_COUNT,
+};
 
-DirectionWarpEntry D_neo_ark_shrine_80182814[3] = {
-    { { { .word = 1024 }, 525, 0, 1200 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 525, 0, 1200 }, { 0, 0, 0, 0 }, 0x55150004, 0x55150003, 0x55150005, 9, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHRINE },
-    { { { .word = 3072 }, 0x32C8, 0, 1530 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x32C8, 0, 1530 }, { 0, 0, 0, 0 }, 0x55150002, 0x55150001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 2048 }, 6950, 0, -3700 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 6950, 0, -3700 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 10, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+/// Door sound events in the shrine's loaded area bank.
+enum {
+    NEO_ARK_SHRINE_POWER_PLANT_1_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SHRINE, 4),
+    NEO_ARK_SHRINE_POWER_PLANT_1_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SHRINE, 3),
+    NEO_ARK_SHRINE_POWER_PLANT_1_BLOCKED_SOUND   = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SHRINE, 5),
+    NEO_ARK_SHRINE_SAVANNA_ZONE_ARRIVAL_SOUND    = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SHRINE, 2),
+    NEO_ARK_SHRINE_SAVANNA_ZONE_DEPARTURE_SOUND  = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SHRINE, 1),
+};
+
+DirectionWarpEntry gNeoArkShrineWarpEntries[NEO_ARK_SHRINE_WARP_COUNT] = {
+    {
+        .player         = { { .word = 1024 }, 525, 0, 1200 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 1024 }, 525, 0, 1200 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = NEO_ARK_SHRINE_POWER_PLANT_1_ARRIVAL_SOUND,
+        .departureSound = NEO_ARK_SHRINE_POWER_PLANT_1_DEPARTURE_SOUND,
+        .blockedSound   = NEO_ARK_SHRINE_POWER_PLANT_1_BLOCKED_SOUND,
+        .initialView    = 9,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = GAME_FLAG_MAP_MARK_SHRINE,
+    },
+    {
+        .player         = { { .word = 3072 }, 13000, 0, 1530 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 3072 }, 13000, 0, 1530 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = NEO_ARK_SHRINE_SAVANNA_ZONE_ARRIVAL_SOUND,
+        .departureSound = NEO_ARK_SHRINE_SAVANNA_ZONE_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { { .word = 2048 }, 6950, 0, -3700 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 2048 }, 6950, 0, -3700 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = NEO_ARK_SHRINE_ROOM_VIEW,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
 /// Cell dimensions of the base-layout collision grid's X-major directory.
@@ -412,56 +474,107 @@ static WorldCollisionGrid _gNeoArkShrineBaseCollisionGrid = {
     .faceCount   = ARRAY_SIZE(_gNeoArkShrineBaseCollisionGridFaces),
 };
 
-static SVECTOR _gNeoArkShrineCollision05C18Normals[9] = {
+/// Cell dimensions of the active-layout collision grid's X-major directory.
+enum {
+    NEO_ARK_SHRINE_ACTIVE_COLLISION_CELLS_X = 4,
+    NEO_ARK_SHRINE_ACTIVE_COLLISION_CELLS_Z = 3,
+};
+
+/// Active-layout collision normals in room axes, with ONE for unit length.
+static SVECTOR _gNeoArkShrineActiveCollisionGridNormals[] = {
 #include "assets/neo_ark_shrine_collision_05C18_normals.inc"
 };
 
-static SVECTOR _gNeoArkShrineCollision05C18Verts[48] = {
+/// Active-layout collision vertices in signed room-coordinate units.
+static SVECTOR _gNeoArkShrineActiveCollisionGridVerts[] = {
 #include "assets/neo_ark_shrine_collision_05C18_verts.inc"
 };
 
-static WorldCollisionGridFace _gNeoArkShrineCollision05C18Faces[31] = {
+/// Active-layout indexed quads, selecting the shrine's surface classes 1 and 2.
+static WorldCollisionGridFace _gNeoArkShrineActiveCollisionGridFaces[] = {
 #include "assets/neo_ark_shrine_collision_05C18_faces.inc"
 };
 
-static s16 _gNeoArkShrineCollision05C18Cells[142] = {
+/// Packed active-layout face lists, each ending with WORLD_COLLISION_GRID_CELL_END.
+static s16 _gNeoArkShrineActiveCollisionGridCells[] = {
 #include "assets/neo_ark_shrine_collision_05C18_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkShrineCollision05C18Cells[i])
-static s16* _gNeoArkShrineCollision05C18Table[12] = {
+#define GRID_CELL(i) (&_gNeoArkShrineActiveCollisionGridCells[i])
+/// X-major directory of active-layout face lists, indexed as x * 3 + z.
+static s16* _gNeoArkShrineActiveCollisionGridTable[NEO_ARK_SHRINE_ACTIVE_COLLISION_CELLS_X * NEO_ARK_SHRINE_ACTIVE_COLLISION_CELLS_Z] = {
 #include "assets/neo_ark_shrine_collision_05C18_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_neo_ark_shrine_801831D8[1] = {
-    { NULL, _gNeoArkShrineCollision05C18Normals, _gNeoArkShrineCollision05C18Verts, _gNeoArkShrineCollision05C18Faces, _gNeoArkShrineCollision05C18Table, 0, 5000, 4, 3, 4000, 31 },
+/// Mutable collision mesh for the puzzle's active layout, used by room selectors 2 and 5.
+///
+/// Twelve 4000-unit cells begin at X = 0, Z = -5000. Activation borrows
+/// the room-owned pools and binds viewCoord to the active view coordinate.
+static WorldCollisionGrid _gNeoArkShrineActiveCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gNeoArkShrineActiveCollisionGridNormals,
+    .vertices    = _gNeoArkShrineActiveCollisionGridVerts,
+    .faces       = _gNeoArkShrineActiveCollisionGridFaces,
+    .cellFaceIds = _gNeoArkShrineActiveCollisionGridTable,
+    .xBias       = 0,
+    .zBias       = 5000,
+    .cellCountX  = NEO_ARK_SHRINE_ACTIVE_COLLISION_CELLS_X,
+    .cellCountZ  = NEO_ARK_SHRINE_ACTIVE_COLLISION_CELLS_Z,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gNeoArkShrineActiveCollisionGridFaces),
 };
 
-static SVECTOR _gNeoArkShrineCollision060D8Normals[9] = {
+/// Cell dimensions of the enemy-release collision grid's X-major directory.
+enum {
+    NEO_ARK_SHRINE_ENEMY_RELEASE_COLLISION_CELLS_X = 4,
+    NEO_ARK_SHRINE_ENEMY_RELEASE_COLLISION_CELLS_Z = 3,
+};
+
+/// Enemy-release collision normals in room axes, with ONE for unit length.
+static SVECTOR _gNeoArkShrineEnemyReleaseCollisionGridNormals[] = {
 #include "assets/neo_ark_shrine_collision_060D8_normals.inc"
 };
 
-static SVECTOR _gNeoArkShrineCollision060D8Verts[50] = {
+/// Enemy-release collision vertices in signed room-coordinate units.
+static SVECTOR _gNeoArkShrineEnemyReleaseCollisionGridVerts[] = {
 #include "assets/neo_ark_shrine_collision_060D8_verts.inc"
 };
 
-static WorldCollisionGridFace _gNeoArkShrineCollision060D8Faces[31] = {
+/// Enemy-release indexed quads, selecting the shrine's surface classes 1 and 2.
+static WorldCollisionGridFace _gNeoArkShrineEnemyReleaseCollisionGridFaces[] = {
 #include "assets/neo_ark_shrine_collision_060D8_faces.inc"
 };
 
-static s16 _gNeoArkShrineCollision060D8Cells[144] = {
+/// Packed enemy-release face lists, each ending with WORLD_COLLISION_GRID_CELL_END.
+static s16 _gNeoArkShrineEnemyReleaseCollisionGridCells[] = {
 #include "assets/neo_ark_shrine_collision_060D8_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkShrineCollision060D8Cells[i])
-static s16* _gNeoArkShrineCollision060D8Table[12] = {
+#define GRID_CELL(i) (&_gNeoArkShrineEnemyReleaseCollisionGridCells[i])
+/// X-major directory of enemy-release face lists, indexed as x * 3 + z.
+static s16* _gNeoArkShrineEnemyReleaseCollisionGridTable[NEO_ARK_SHRINE_ENEMY_RELEASE_COLLISION_CELLS_X * NEO_ARK_SHRINE_ENEMY_RELEASE_COLLISION_CELLS_Z] = {
 #include "assets/neo_ark_shrine_collision_060D8_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_neo_ark_shrine_80183698[1] = {
-    { NULL, _gNeoArkShrineCollision060D8Normals, _gNeoArkShrineCollision060D8Verts, _gNeoArkShrineCollision060D8Faces, _gNeoArkShrineCollision060D8Table, 0, 5000, 4, 3, 4000, 31 },
+/// Mutable collision mesh for the enemy-release layout, used by room selectors 3 and 6.
+///
+/// The puzzle publishes selector 6 after releasing enemies; the directory
+/// also retains selector 3. Twelve 4000-unit cells begin at X = 0, Z = -5000.
+/// Pools remain room-owned; activation binds viewCoord to the current view.
+static WorldCollisionGrid _gNeoArkShrineEnemyReleaseCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gNeoArkShrineEnemyReleaseCollisionGridNormals,
+    .vertices    = _gNeoArkShrineEnemyReleaseCollisionGridVerts,
+    .faces       = _gNeoArkShrineEnemyReleaseCollisionGridFaces,
+    .cellFaceIds = _gNeoArkShrineEnemyReleaseCollisionGridTable,
+    .xBias       = 0,
+    .zBias       = 5000,
+    .cellCountX  = NEO_ARK_SHRINE_ENEMY_RELEASE_COLLISION_CELLS_X,
+    .cellCountZ  = NEO_ARK_SHRINE_ENEMY_RELEASE_COLLISION_CELLS_Z,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gNeoArkShrineEnemyReleaseCollisionGridFaces),
 };
 
 ViewCamera gNeoArkShrineViewCameras[NEO_ARK_SHRINE_MAPPED_VIEW_COUNT] = {
@@ -1068,55 +1181,97 @@ static WorldCoordRoomLights _gNeoArkShrineRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_neo_ark_shrine_80185A80[14] = {
-    { NULL, NULL, NULL, { 7039, -2432, -2210, 0 }, { { 2687, -2832, -10, 0 }, { -2698, -2832, 1, 0 }, { 2687, 2832, -10, 0 }, { -2698, 2832, 1, 0 } }, { 8, 0, 4099, 0 }, { 0, 0, 4096, 0 }, 3907, 0, 4, 10, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 7087, -2401, -2096, 0 }, { { -2713, -2800, 14, 0 }, { 2705, -2800, -23, 0 }, { -2713, 2800, 14, 0 }, { 2705, 2800, -23, 0 } }, { -29, 0, -4099, 0 }, { 0, 0, 4096, 0 }, 3890, 0, 10, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 8224, -2369, 1312, 0 }, { { 0, -2832, 1984, 0 }, { 0, -2832, -1984, 0 }, { 0, 2832, 1984, 0 }, { 0, 2832, -1984, 0 } }, { -4112, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3453, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 8079, -2481, 1391, 0 }, { { 4, -2784, -1833, 0 }, { -3, -2784, 1834, 0 }, { 4, 2784, -1833, 0 }, { -3, 2784, 1834, 0 } }, { 4111, 0, 7, 0 }, { 0, 0, 4096, 0 }, 3328, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x28D1, -2416, 1408, 0 }, { { 208, -2880, -2032, 0 }, { -208, -2880, 2032, 0 }, { 208, 2880, -2032, 0 }, { -208, 2880, 2032, 0 } }, { 4088, 0, 418, 0 }, { 0, 0, 4096, 0 }, 3528, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x2960, -2416, 1504, 0 }, { { -224, -2816, 2144, 0 }, { 224, -2816, -2144, 0 }, { -224, 2816, 2144, 0 }, { 224, 2816, -2144, 0 } }, { -4074, 0, -426, 0 }, { 0, 0, 4096, 0 }, 3537, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 6767, -2545, 2671, 0 }, { { 1946, -2848, 68, 0 }, { -1945, -2848, -67, 0 }, { 1946, 2849, 68, 0 }, { -1945, 2849, -67, 0 } }, { -143, 0, 4108, 0 }, { 0, 0, 4096, 0 }, 3444, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 6751, -2496, 2751, 0 }, { { -1810, -2800, -67, 0 }, { 1810, -2800, 68, 0 }, { -1810, 2800, -67, 0 }, { 1810, 2800, 68, 0 } }, { 152, 0, -4106, 0 }, { 0, 0, 4096, 0 }, 3328, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1535, -2496, 5119, 0 }, { { 408, -2864, -2184, 0 }, { -418, -2864, 2174, 0 }, { 408, 2864, -2184, 0 }, { -418, 2864, 2174, 0 } }, { 4033, 0, 764, 0 }, { 0, 0, 4096, 0 }, 3620, 0, 6, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1630, -2480, 5215, 0 }, { { -415, -2848, 2178, 0 }, { 411, -2848, -2181, 0 }, { -415, 2848, 2178, 0 }, { 411, 2848, -2181, 0 } }, { -4028, 0, -764, 0 }, { 0, 0, 4096, 0 }, 3602, 0, 8, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1054, -2400, 2080, 0 }, { { -2215, -2928, 128, 0 }, { 2215, -2928, -129, 0 }, { -2215, 2928, 128, 0 }, { 2215, 2928, -129, 0 } }, { -238, 0, -4097, 0 }, { 0, 0, 4096, 0 }, 3665, 0, 9, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1086, -2384, 1984, 0 }, { { 2215, -2848, -129, 0 }, { -2215, -2848, 128, 0 }, { 2215, 2848, -129, 0 }, { -2215, 2848, 128, 0 } }, { 237, 0, 4092, 0 }, { 0, 0, 4096, 0 }, 3602, 0, 8, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 5631, -2368, 5472, 0 }, { { -71, -2848, 1942, 0 }, { 64, -2848, -1948, 0 }, { -71, 2849, 1942, 0 }, { 64, 2849, -1948, 0 } }, { -4109, 0, -143, 0 }, { 0, 0, 4096, 0 }, 3444, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 5535, -2464, 5472, 0 }, { { 65, -2848, -1947, 0 }, { -70, -2848, 1943, 0 }, { 65, 2849, -1947, 0 }, { -70, 2849, 1943, 0 } }, { 4107, 0, 141, 0 }, { 0, 0, 4096, 0 }, 3444, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Directed view boundaries shared by every shrine layout.
+///
+/// Seven reciprocal pairs connect logical views 2/3, 3/4, 4/5, 4/10, 5/6,
+/// 6/8 and 8/9. Positions/radii use room units and normals use ONE for unit
+/// length. Setup binds, links and enables all fourteen mutable records,
+/// including the final record marked WORLD_COLLISION_TRIGGER_LAST.
+static WorldCollisionTrigger _gNeoArkShrineViewBoundaryTriggers[] = {
+    { NULL, NULL, NULL, { 7039, -2432, -2210, 0 }, { { 2687, -2832, -10, 0 }, { -2698, -2832, 1, 0 }, { 2687, 2832, -10, 0 }, { -2698, 2832, 1, 0 } }, { 8, 0, 4099, 0 }, { 0, 0, ONE, 0 }, 3907, 0, 4, 10, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 7087, -2401, -2096, 0 }, { { -2713, -2800, 14, 0 }, { 2705, -2800, -23, 0 }, { -2713, 2800, 14, 0 }, { 2705, 2800, -23, 0 } }, { -29, 0, -4099, 0 }, { 0, 0, ONE, 0 }, 3890, 0, 10, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 8224, -2369, 1312, 0 }, { { 0, -2832, 1984, 0 }, { 0, -2832, -1984, 0 }, { 0, 2832, 1984, 0 }, { 0, 2832, -1984, 0 } }, { -4112, 0, 0, 0 }, { 0, 0, ONE, 0 }, 3453, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 8079, -2481, 1391, 0 }, { { 4, -2784, -1833, 0 }, { -3, -2784, 1834, 0 }, { 4, 2784, -1833, 0 }, { -3, 2784, 1834, 0 } }, { 4111, 0, 7, 0 }, { 0, 0, ONE, 0 }, 3328, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x28D1, -2416, 1408, 0 }, { { 208, -2880, -2032, 0 }, { -208, -2880, 2032, 0 }, { 208, 2880, -2032, 0 }, { -208, 2880, 2032, 0 } }, { 4088, 0, 418, 0 }, { 0, 0, ONE, 0 }, 3528, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x2960, -2416, 1504, 0 }, { { -224, -2816, 2144, 0 }, { 224, -2816, -2144, 0 }, { -224, 2816, 2144, 0 }, { 224, 2816, -2144, 0 } }, { -4074, 0, -426, 0 }, { 0, 0, ONE, 0 }, 3537, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 6767, -2545, 2671, 0 }, { { 1946, -2848, 68, 0 }, { -1945, -2848, -67, 0 }, { 1946, 2849, 68, 0 }, { -1945, 2849, -67, 0 } }, { -143, 0, 4108, 0 }, { 0, 0, ONE, 0 }, 3444, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 6751, -2496, 2751, 0 }, { { -1810, -2800, -67, 0 }, { 1810, -2800, 68, 0 }, { -1810, 2800, -67, 0 }, { 1810, 2800, 68, 0 } }, { 152, 0, -4106, 0 }, { 0, 0, ONE, 0 }, 3328, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1535, -2496, 5119, 0 }, { { 408, -2864, -2184, 0 }, { -418, -2864, 2174, 0 }, { 408, 2864, -2184, 0 }, { -418, 2864, 2174, 0 } }, { 4033, 0, 764, 0 }, { 0, 0, ONE, 0 }, 3620, 0, 6, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1630, -2480, 5215, 0 }, { { -415, -2848, 2178, 0 }, { 411, -2848, -2181, 0 }, { -415, 2848, 2178, 0 }, { 411, 2848, -2181, 0 } }, { -4028, 0, -764, 0 }, { 0, 0, ONE, 0 }, 3602, 0, 8, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1054, -2400, 2080, 0 }, { { -2215, -2928, 128, 0 }, { 2215, -2928, -129, 0 }, { -2215, 2928, 128, 0 }, { 2215, 2928, -129, 0 } }, { -238, 0, -4097, 0 }, { 0, 0, ONE, 0 }, 3665, 0, 9, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1086, -2384, 1984, 0 }, { { 2215, -2848, -129, 0 }, { -2215, -2848, 128, 0 }, { 2215, 2848, -129, 0 }, { -2215, 2848, 128, 0 } }, { 237, 0, 4092, 0 }, { 0, 0, ONE, 0 }, 3602, 0, 8, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 5631, -2368, 5472, 0 }, { { -71, -2848, 1942, 0 }, { 64, -2848, -1948, 0 }, { -71, 2849, 1942, 0 }, { 64, 2849, -1948, 0 } }, { -4109, 0, -143, 0 }, { 0, 0, ONE, 0 }, 3444, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 5535, -2464, 5472, 0 }, { { 65, -2848, -1947, 0 }, { -70, -2848, 1943, 0 }, { 65, 2849, -1947, 0 }, { -70, 2849, 1943, 0 } }, { 4107, 0, 141, 0 }, { 0, 0, ONE, 0 }, 3444, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_neo_ark_shrine_80185EA8[9] = {
-    { NULL, NULL, NULL, { 400, -48, 1088, 0 }, { { -496, 0, -768, 0 }, { 496, 0, -768, 0 }, { -496, 0, 768, 0 }, { 496, 0, 768, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 914, WORLD_COLLISION_TRIGGER_ACTION_WARP, 17, 17, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x3100, -48, 1504, 0 }, { { -496, 0, -1024, 0 }, { 496, 0, -1024, 0 }, { -496, 0, 1024, 0 }, { 496, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { -4096, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_WARP, 18, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 7008, -64, -4224, 0 }, { { -400, 0, -320, 0 }, { 400, 0, -320, 0 }, { -400, 0, 320, 0 }, { 400, 0, 320, 0 } }, { 0, 4095, 0, 0 }, { 151, 0, 4093, 0 }, 512, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1728, -64, 976, 0 }, { { -496, 0, -656, 0 }, { 496, 0, -656, 0 }, { -496, 0, 656, 0 }, { 496, 0, 656, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 822, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 6992, -64, 5616, 0 }, { { -1024, 0, -464, 0 }, { 1024, 0, -464, 0 }, { -1024, 0, 464, 0 }, { 1024, 0, 464, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -4096, 0 }, 1123, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5216, -64, -3840, 0 }, { { -496, 0, -1184, 0 }, { 496, 0, -1184, 0 }, { -496, 0, 1184, 0 }, { 496, 0, 1184, 0 } }, { 0, 4099, 0, 0 }, { 4096, 0, 0, 0 }, 1280, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 8864, -64, -3840, 0 }, { { -496, 0, -1184, 0 }, { 496, 0, -1184, 0 }, { -496, 0, 1184, 0 }, { 496, 0, 1184, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 1280, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5599, -64, -2273, 0 }, { { -954, 0, -858, 0 }, { -57, 0, -1282, 0 }, { 58, 0, 1283, 0 }, { 955, 0, 859, 0 } }, { 0, 4099, 0, 0 }, { 3513, 0, -2106, 0 }, 1280, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 8479, -64, -2048, 0 }, { { 368, 0, -1230, 0 }, { 1135, 0, -600, 0 }, { -1135, 0, 600, 0 }, { -368, 0, 1230, 0 } }, { 0, 4099, 0, 0 }, { -3290, 0, -2440, 0 }, 1280, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Shrine-specific action and command IDs and packed door endpoint selectors.
+///
+/// Warp selectors pack the shrine departure slot in the high nibble and the
+/// destination arrival slot in the low nibble. CAP command numbers address
+/// the loaded shrine command table; room-message command IDs use that
+/// handler's independent domain even where their numeric values agree.
+enum {
+    NEO_ARK_SHRINE_WARP_TO_POWER_PLANT_1 = (1 << 4) | 1,
+    NEO_ARK_SHRINE_WARP_TO_SAVANNA_ZONE  = (2 << 4) | 1,
+    NEO_ARK_SHRINE_ACTION_OPEN_PUZZLE    = 1,
+    NEO_ARK_SHRINE_COMMAND_POWER_PLANT_1 = 5,
+    NEO_ARK_SHRINE_COMMAND_OBJECT_EVENT  = 7,
+    NEO_ARK_SHRINE_CAP_COMMAND_6         = 6,
+    NEO_ARK_SHRINE_CAP_COMMAND_8         = 8,
+    NEO_ARK_SHRINE_CAP_COMMAND_10        = 10,
+    NEO_ARK_SHRINE_CAP_COMMAND_11        = 11,
 };
 
-WorldCollisionTrigger D_neo_ark_shrine_80186154[8] = {
-    { NULL, NULL, NULL, { 400, -48, 1344, 0 }, { { -496, 0, -1024, 0 }, { 496, 0, -1024, 0 }, { -496, 0, 1024, 0 }, { 496, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_WARP, 17, 17, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x3100, -48, 1504, 0 }, { { -496, 0, -1024, 0 }, { 496, 0, -1024, 0 }, { -496, 0, 1024, 0 }, { 496, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { -4096, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_WARP, 18, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 7024, -64, -4048, 0 }, { { -1152, 0, -560, 0 }, { 1152, 0, -560, 0 }, { -1152, 0, 560, 0 }, { 1152, 0, 560, 0 } }, { 0, 4114, 0, 0 }, { 601, 0, 4052, 0 }, 1280, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 7008, -64, 3680, 0 }, { { -1152, 0, -560, 0 }, { 1152, 0, -560, 0 }, { -1152, 0, 560, 0 }, { 1152, 0, 560, 0 } }, { 0, 4114, 0, 0 }, { -601, 0, -4052, 0 }, 1280, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5184, -64, -3696, 0 }, { { -496, 0, -1264, 0 }, { 496, 0, -1264, 0 }, { -496, 0, 1264, 0 }, { 496, 0, 1264, 0 } }, { 0, 4105, 0, 0 }, { 4096, 0, 0, 0 }, 1354, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 8864, -64, -3744, 0 }, { { -496, 0, -1248, 0 }, { 496, 0, -1248, 0 }, { -496, 0, 1248, 0 }, { 496, 0, 1248, 0 } }, { 0, 4097, 0, 0 }, { -4096, 0, 0, 0 }, 1342, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 8511, -64, -2153, 0 }, { { 249, 0, -1143, 0 }, { 1015, 0, -514, 0 }, { -1046, 0, 531, 0 }, { -216, 0, 1128, 0 } }, { 0, 4095, 0, 0 }, { -3035, 0, -2751, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5599, -64, -2209, 0 }, { { -941, 0, -913, 0 }, { -25, 0, -1293, 0 }, { 26, 0, 1422, 0 }, { 942, 0, 786, 0 } }, { 0, 4099, 0, 0 }, { 3166, 0, -2598, 0 }, 1419, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Facing-gated interaction quads for base-layout room selectors 1 and 4.
+///
+/// Includes both door warps, the puzzle action and six CAP interactions.
+/// Positions/radii are room units, normals use ONE, and setup owns the
+/// temporary links, coordinate bindings and hit latches. The ninth record
+/// carries WORLD_COLLISION_TRIGGER_LAST; storage stays borrowed until unlink.
+static WorldCollisionTrigger _gNeoArkShrineBaseActionTriggers[] = {
+    { NULL, NULL, NULL, { 400, -48, 1088, 0 }, { { -496, 0, -768, 0 }, { 496, 0, -768, 0 }, { -496, 0, 768, 0 }, { 496, 0, 768, 0 } }, { 0, 4097, 0, 0 }, { ONE, 0, 0, 0 }, 914, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_NEO_ARK_POWER_PLANT_1, NEO_ARK_SHRINE_WARP_TO_POWER_PLANT_1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x3100, -48, 1504, 0 }, { { -496, 0, -1024, 0 }, { 496, 0, -1024, 0 }, { -496, 0, 1024, 0 }, { 496, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { -ONE, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_NEO_ARK_SAVANNA_ZONE, NEO_ARK_SHRINE_WARP_TO_SAVANNA_ZONE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 7008, -64, -4224, 0 }, { { -400, 0, -320, 0 }, { 400, 0, -320, 0 }, { -400, 0, 320, 0 }, { 400, 0, 320, 0 } }, { 0, 4095, 0, 0 }, { 151, 0, 4093, 0 }, 512, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE, NEO_ARK_SHRINE_ACTION_OPEN_PUZZLE, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1728, -64, 976, 0 }, { { -496, 0, -656, 0 }, { 496, 0, -656, 0 }, { -496, 0, 656, 0 }, { 496, 0, 656, 0 } }, { 0, 4098, 0, 0 }, { -ONE, 0, 0, 0 }, 822, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SHRINE_COMMAND_POWER_PLANT_1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 6992, -64, 5616, 0 }, { { -1024, 0, -464, 0 }, { 1024, 0, -464, 0 }, { -1024, 0, 464, 0 }, { 1024, 0, 464, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -ONE, 0 }, 1123, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SHRINE_CAP_COMMAND_8, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5216, -64, -3840, 0 }, { { -496, 0, -1184, 0 }, { 496, 0, -1184, 0 }, { -496, 0, 1184, 0 }, { 496, 0, 1184, 0 } }, { 0, 4099, 0, 0 }, { ONE, 0, 0, 0 }, 1280, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SHRINE_CAP_COMMAND_10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 8864, -64, -3840, 0 }, { { -496, 0, -1184, 0 }, { 496, 0, -1184, 0 }, { -496, 0, 1184, 0 }, { 496, 0, 1184, 0 } }, { 0, 4099, 0, 0 }, { -ONE, 0, 0, 0 }, 1280, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SHRINE_CAP_COMMAND_10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5599, -64, -2273, 0 }, { { -954, 0, -858, 0 }, { -57, 0, -1282, 0 }, { 58, 0, 1283, 0 }, { 955, 0, 859, 0 } }, { 0, 4099, 0, 0 }, { 3513, 0, -2106, 0 }, 1280, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SHRINE_CAP_COMMAND_11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 8479, -64, -2048, 0 }, { { 368, 0, -1230, 0 }, { 1135, 0, -600, 0 }, { -1135, 0, 600, 0 }, { -368, 0, 1230, 0 } }, { 0, 4099, 0, 0 }, { -3290, 0, -2440, 0 }, 1280, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SHRINE_CAP_COMMAND_11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_neo_ark_shrine_801863B4[8] = {
-    { NULL, NULL, NULL, { 400, -48, 1344, 0 }, { { -496, 0, -1024, 0 }, { 496, 0, -1024, 0 }, { -496, 0, 1024, 0 }, { 496, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_WARP, 17, 17, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x3100, -48, 1504, 0 }, { { -496, 0, -1024, 0 }, { 496, 0, -1024, 0 }, { -496, 0, 1024, 0 }, { 496, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { -4096, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_WARP, 18, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 7024, -64, -4016, 0 }, { { -1152, 0, -560, 0 }, { 1152, 0, -560, 0 }, { -1152, 0, 560, 0 }, { 1152, 0, 560, 0 } }, { 0, 4114, 0, 0 }, { 601, 0, 4052, 0 }, 1280, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 7008, -64, -1248, 0 }, { { -1152, 0, -560, 0 }, { 1152, 0, -560, 0 }, { -1152, 0, 560, 0 }, { 1152, 0, 560, 0 } }, { 0, 4114, 0, 0 }, { 201, 0, -4092, 0 }, 1280, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5184, -64, -3856, 0 }, { { -496, 0, -1232, 0 }, { 496, 0, -1232, 0 }, { -496, 0, 1232, 0 }, { 496, 0, 1232, 0 } }, { 0, 4112, 0, 0 }, { 4096, 0, 0, 0 }, 1324, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 8960, -64, -3776, 0 }, { { -496, 0, -1280, 0 }, { 496, 0, -1280, 0 }, { -496, 0, 1280, 0 }, { 496, 0, 1280, 0 } }, { 0, 4113, 0, 0 }, { -4096, 0, 0, 0 }, 1372, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5631, -64, -2321, 0 }, { { -911, 0, -789, 0 }, { -14, 0, -1213, 0 }, { 15, 0, 1214, 0 }, { 912, 0, 790, 0 } }, { 0, 4113, 0, 0 }, { 3784, 0, -1567, 0 }, 1207, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 8399, -64, -2161, 0 }, { { 317, 0, -1041, 0 }, { 1052, 0, -375, 0 }, { -1051, 0, 376, 0 }, { -316, 0, 1042, 0 } }, { 0, 4098, 0, 0 }, { -3290, 0, -2440, 0 }, 1115, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Facing-gated interaction quads for active-layout room selectors 2 and 5.
+///
+/// Includes both door warps, the puzzle action and five CAP interactions;
+/// the central interaction routes the object-event command to the room.
+/// Positions/radii are room units and normals use ONE. Setup mutates links,
+/// coordinates and hits; the eighth record carries WORLD_COLLISION_TRIGGER_LAST.
+static WorldCollisionTrigger _gNeoArkShrineActiveActionTriggers[] = {
+    { NULL, NULL, NULL, { 400, -48, 1344, 0 }, { { -496, 0, -1024, 0 }, { 496, 0, -1024, 0 }, { -496, 0, 1024, 0 }, { 496, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { ONE, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_NEO_ARK_POWER_PLANT_1, NEO_ARK_SHRINE_WARP_TO_POWER_PLANT_1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x3100, -48, 1504, 0 }, { { -496, 0, -1024, 0 }, { 496, 0, -1024, 0 }, { -496, 0, 1024, 0 }, { 496, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { -ONE, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_NEO_ARK_SAVANNA_ZONE, NEO_ARK_SHRINE_WARP_TO_SAVANNA_ZONE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 7024, -64, -4048, 0 }, { { -1152, 0, -560, 0 }, { 1152, 0, -560, 0 }, { -1152, 0, 560, 0 }, { 1152, 0, 560, 0 } }, { 0, 4114, 0, 0 }, { 601, 0, 4052, 0 }, 1280, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE, NEO_ARK_SHRINE_ACTION_OPEN_PUZZLE, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 7008, -64, 3680, 0 }, { { -1152, 0, -560, 0 }, { 1152, 0, -560, 0 }, { -1152, 0, 560, 0 }, { 1152, 0, 560, 0 } }, { 0, 4114, 0, 0 }, { -601, 0, -4052, 0 }, 1280, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SHRINE_COMMAND_OBJECT_EVENT, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5184, -64, -3696, 0 }, { { -496, 0, -1264, 0 }, { 496, 0, -1264, 0 }, { -496, 0, 1264, 0 }, { 496, 0, 1264, 0 } }, { 0, 4105, 0, 0 }, { ONE, 0, 0, 0 }, 1354, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SHRINE_CAP_COMMAND_10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 8864, -64, -3744, 0 }, { { -496, 0, -1248, 0 }, { 496, 0, -1248, 0 }, { -496, 0, 1248, 0 }, { 496, 0, 1248, 0 } }, { 0, 4097, 0, 0 }, { -ONE, 0, 0, 0 }, 1342, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SHRINE_CAP_COMMAND_10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 8511, -64, -2153, 0 }, { { 249, 0, -1143, 0 }, { 1015, 0, -514, 0 }, { -1046, 0, 531, 0 }, { -216, 0, 1128, 0 } }, { 0, 4095, 0, 0 }, { -3035, 0, -2751, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SHRINE_CAP_COMMAND_11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5599, -64, -2209, 0 }, { { -941, 0, -913, 0 }, { -25, 0, -1293, 0 }, { 26, 0, 1422, 0 }, { 942, 0, 786, 0 } }, { 0, 4099, 0, 0 }, { 3166, 0, -2598, 0 }, 1419, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SHRINE_CAP_COMMAND_11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+};
+
+/// Facing-gated interaction quads for enemy-release room selectors 3 and 6.
+///
+/// Includes both door warps, the puzzle action and five CAP interactions;
+/// the central interaction now starts CAP command 6 directly. Positions/radii
+/// are room units and normals use ONE. Setup mutates links, coordinates and
+/// hits; the eighth record carries WORLD_COLLISION_TRIGGER_LAST.
+static WorldCollisionTrigger _gNeoArkShrineEnemyReleaseActionTriggers[] = {
+    { NULL, NULL, NULL, { 400, -48, 1344, 0 }, { { -496, 0, -1024, 0 }, { 496, 0, -1024, 0 }, { -496, 0, 1024, 0 }, { 496, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { ONE, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_NEO_ARK_POWER_PLANT_1, NEO_ARK_SHRINE_WARP_TO_POWER_PLANT_1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x3100, -48, 1504, 0 }, { { -496, 0, -1024, 0 }, { 496, 0, -1024, 0 }, { -496, 0, 1024, 0 }, { 496, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { -ONE, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_NEO_ARK_SAVANNA_ZONE, NEO_ARK_SHRINE_WARP_TO_SAVANNA_ZONE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 7024, -64, -4016, 0 }, { { -1152, 0, -560, 0 }, { 1152, 0, -560, 0 }, { -1152, 0, 560, 0 }, { 1152, 0, 560, 0 } }, { 0, 4114, 0, 0 }, { 601, 0, 4052, 0 }, 1280, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE, NEO_ARK_SHRINE_ACTION_OPEN_PUZZLE, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 7008, -64, -1248, 0 }, { { -1152, 0, -560, 0 }, { 1152, 0, -560, 0 }, { -1152, 0, 560, 0 }, { 1152, 0, 560, 0 } }, { 0, 4114, 0, 0 }, { 201, 0, -4092, 0 }, 1280, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SHRINE_CAP_COMMAND_6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5184, -64, -3856, 0 }, { { -496, 0, -1232, 0 }, { 496, 0, -1232, 0 }, { -496, 0, 1232, 0 }, { 496, 0, 1232, 0 } }, { 0, 4112, 0, 0 }, { ONE, 0, 0, 0 }, 1324, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SHRINE_CAP_COMMAND_10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 8960, -64, -3776, 0 }, { { -496, 0, -1280, 0 }, { 496, 0, -1280, 0 }, { -496, 0, 1280, 0 }, { 496, 0, 1280, 0 } }, { 0, 4113, 0, 0 }, { -ONE, 0, 0, 0 }, 1372, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SHRINE_CAP_COMMAND_10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5631, -64, -2321, 0 }, { { -911, 0, -789, 0 }, { -14, 0, -1213, 0 }, { 15, 0, 1214, 0 }, { 912, 0, 790, 0 } }, { 0, 4113, 0, 0 }, { 3784, 0, -1567, 0 }, 1207, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SHRINE_CAP_COMMAND_11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 8399, -64, -2161, 0 }, { { 317, 0, -1041, 0 }, { 1052, 0, -375, 0 }, { -1051, 0, 376, 0 }, { -316, 0, 1042, 0 } }, { 0, 4098, 0, 0 }, { -3290, 0, -2440, 0 }, 1115, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SHRINE_CAP_COMMAND_11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 /// Placement-entry keys for the shrine's enemy resources, independent of actor RAM slot.
@@ -1190,7 +1345,13 @@ AreaVariant D_neo_ark_shrine_801866C8[13] = {
     { NULL, NULL },
 };
 
-WorldCollisionOccluder D_neo_ark_shrine_80186730[4] = {
+/// Four line-of-sight blocking quads shared by every shrine layout.
+///
+/// Origins and corner offsets use signed room units; normals use ONE for
+/// unit length. Setup links and enables every mutable record, including
+/// the fourth marked WORLD_COLLISION_OCCLUDER_LAST. The authored low flag
+/// bit remains 1; its role is unproven. Storage stays borrowed until unlink.
+static WorldCollisionOccluder _gNeoArkShrineSightOccluders[] = {
     { NULL, NULL, { 2736, -2352, 2159, 0 }, { { -784, 3376, 1841, 0 }, { 784, 3376, -1840, 0 }, { -784, -3376, 1841, 0 }, { 784, -3376, -1840, 0 } }, { 3777, 0, 1608, 0 }, 3924, 1, 0 },
     { NULL, NULL, { 3119, -2080, -289, 0 }, { { 2728, 3376, 4275, 0 }, { -2727, 3376, -4275, 0 }, { 2728, -3376, 4275, 0 }, { -2727, -3376, -4275, 0 } }, { 3469, 0, -2214, 0 }, 6079, 1, 0 },
     { NULL, NULL, { 0x2800, -1888, -2288, 0 }, { { -1840, 3376, 2657, 0 }, { 1840, 3376, -2657, 0 }, { -1840, -3376, 2657, 0 }, { 1840, -3376, -2657, 0 } }, { 3371, 0, 2334, 0 }, 4664, 1, 0 },
@@ -1250,15 +1411,15 @@ WorldCollisionSurfaceProperties* gNeoArkShrineSurfaceProperties[8] = {
     &_gNeoArkShrineSurface0Properties,
 };
 
-Task* D_neo_ark_shrine_80186864 = NULL;
+Task* gNeoArkShrinePuzzleControllerTask = NULL;
 
-s16 D_neo_ark_shrine_80186868 = 0;
+s16 gNeoArkShrinePuzzleLayoutActive = false;
 
-s16 D_neo_ark_shrine_8018686C[16] = { 0 };
+s16 gNeoArkShrinePuzzleCellTiles[NEO_ARK_SHRINE_PUZZLE_CELL_COUNT] = { 0 };
 
-NeoArkShrineTileOrigin D_neo_ark_shrine_8018688C[16] = { 0 };
+NeoArkShrineTileOrigin gNeoArkShrinePuzzleDrawnOrigins[NEO_ARK_SHRINE_PUZZLE_TILE_COUNT] = { 0 };
 
-NeoArkShrineTileOrigin D_neo_ark_shrine_801868CC[16] = { 0 };
+NeoArkShrineTileOrigin gNeoArkShrinePuzzleTargetOrigins[NEO_ARK_SHRINE_PUZZLE_TILE_COUNT] = { 0 };
 
 #include "../../shared/action_prompt_move_cursors.inc.c"
 
@@ -1280,7 +1441,7 @@ void neoArkShrinePuzzleTask(Task* task)
 {
     TaskFuncTable16 states;
 
-    states = D_neo_ark_shrine_8017D5D0;
+    states = _gNeoArkShrinePuzzleStates;
     states.funcs[task->state](task);
 }
 
@@ -1288,7 +1449,7 @@ void neoArkShrineFirstFallingPropTask(Task* task)
 {
     TaskFuncTable4 states;
 
-    states = D_neo_ark_shrine_8017D610;
+    states = _gNeoArkShrineFirstPropStates;
     states.funcs[task->state](task);
 }
 
@@ -1296,7 +1457,7 @@ void neoArkShrineSecondFallingPropTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_neo_ark_shrine_8017D620;
+    states = _gNeoArkShrineSecondPropStates;
     states.funcs[task->state](task);
 }
 
@@ -1617,15 +1778,15 @@ void neoArkShrineResetPuzzle(void)
     s32 tileIndex;
     s32 cellIndex;
 
-    D_neo_ark_shrine_8018686A = false;
-    D_neo_ark_shrine_80186868 = false;
+    D_neo_ark_shrine_8018686A       = false;
+    gNeoArkShrinePuzzleLayoutActive = false;
     // Restore per-tile drawn positions before reseeding the cell-to-tile board.
-    for (tileIndex = 0; tileIndex < (s32)ARRAY_SIZE(D_neo_ark_shrine_8018688C); tileIndex++) {
-        D_neo_ark_shrine_8018688C[tileIndex].x = D_neo_ark_shrine_8018256C[tileIndex].x;
-        D_neo_ark_shrine_8018688C[tileIndex].y = D_neo_ark_shrine_8018256C[tileIndex].y;
+    for (tileIndex = 0; tileIndex < (s32)ARRAY_SIZE(gNeoArkShrinePuzzleDrawnOrigins); tileIndex++) {
+        gNeoArkShrinePuzzleDrawnOrigins[tileIndex].x = D_neo_ark_shrine_8018256C[tileIndex].x;
+        gNeoArkShrinePuzzleDrawnOrigins[tileIndex].y = D_neo_ark_shrine_8018256C[tileIndex].y;
     }
-    for (cellIndex = 0; cellIndex < (s32)ARRAY_SIZE(D_neo_ark_shrine_8018686C); cellIndex++) {
-        D_neo_ark_shrine_8018686C[cellIndex] = D_neo_ark_shrine_80182410[cellIndex];
+    for (cellIndex = 0; cellIndex < (s32)ARRAY_SIZE(gNeoArkShrinePuzzleCellTiles); cellIndex++) {
+        gNeoArkShrinePuzzleCellTiles[cellIndex] = D_neo_ark_shrine_80182410[cellIndex];
     }
 }
 

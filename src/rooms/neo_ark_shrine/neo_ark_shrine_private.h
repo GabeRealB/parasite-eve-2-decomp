@@ -53,22 +53,40 @@ extern ActionPromptHotspot D_neo_ark_shrine_80182430[];
 
 extern TaskDesc D_neo_ark_shrine_80182508[];
 
-/// Set by one of the cap script's two pad-lerp steps and cleared by the other;
-/// while it is set, the puzzle's step check reports kind 4.
-extern s16 D_neo_ark_shrine_80186868;
+/// Whether the puzzle has latched its active room layout (0 base, 1 active).
+///
+/// Activation sets this before the timed room-selector change; restoration
+/// and board reset clear it. A later tile move requests restoration while
+/// it equals 1 and the activating top-row pattern no longer matches.
+/// Stored as a signed halfword, independently of the pending restore request.
+extern s16 gNeoArkShrinePuzzleLayoutActive;
 
 /// Set by the cap script step that ends the prompt task. The puzzle's step
 /// check consumes it to switch the room's layout, and the first falling prop
 /// waits for it to clear.
 extern s16 D_neo_ark_shrine_8018686A;
 
-/// Current order index of each of the 16 slots. Read back through a `u16`
-/// pointer where the puzzle swaps two of them, which is why those accesses are
-/// unsigned while the rest are `s16`.
-extern s16 D_neo_ark_shrine_8018686C[16];
+/// Extents of the 4x4 board and its corresponding per-tile position arrays.
+enum {
+    NEO_ARK_SHRINE_PUZZLE_CELL_COUNT = 16,
+    NEO_ARK_SHRINE_PUZZLE_TILE_COUNT = NEO_ARK_SHRINE_PUZZLE_CELL_COUNT,
+};
 
-/// Drawn position of each puzzle tile, eased towards its target every frame.
-extern NeoArkShrineTileOrigin D_neo_ark_shrine_8018688C[16];
+/// Tile number occupying each board cell, in row-major order from the top left.
+///
+/// After reset this is a permutation of 0..15, with 0 the gap. Slides swap
+/// adjacent cells; values index per-tile origins and textures, while indices
+/// select board-cell origins and neighbours. Signed halfword storage remains
+/// writable for the loaded room; reset must precede drawing or tile moves.
+extern s16 gNeoArkShrinePuzzleCellTiles[NEO_ARK_SHRINE_PUZZLE_CELL_COUNT];
+
+/// Animated screen origin of each tile, indexed by tile number 0..15.
+///
+/// Signed pixel coordinates are relative to the display centre. Reset seeds
+/// all sixteen origins; drawing moves each halfway towards its target and
+/// snaps residuals below four pixels. Tile zero animates but emits no quad.
+/// Requires the room storage loaded throughout the puzzle session.
+extern NeoArkShrineTileOrigin gNeoArkShrinePuzzleDrawnOrigins[NEO_ARK_SHRINE_PUZZLE_TILE_COUNT];
 
 extern TaskDesc D_neo_ark_shrine_80182404[1];
 
@@ -76,9 +94,21 @@ extern u16 D_neo_ark_shrine_80182410[16];
 
 extern NeoArkShrineTileOrigin D_neo_ark_shrine_8018256C[16];
 
-extern Task* D_neo_ark_shrine_80186864;
+/// Live puzzle controller awaiting completion by the room's puzzle session.
+///
+/// NULL outside a session; successful spawning supplies the non-NULL task
+/// polled while waiting. The controller retains its owned puzzle work until
+/// exit dispatch, after which the session clears this handle without another
+/// dereference. Supports one session at a time and requires the room loaded.
+extern Task* gNeoArkShrinePuzzleControllerTask;
 
-extern NeoArkShrineTileOrigin D_neo_ark_shrine_801868CC[16];
+/// Destination screen origin of each tile, indexed by tile number 0..15.
+///
+/// Signed pixels relative to the display centre. Each drawing frame rebuilds
+/// all targets from the cell-to-tile board before easing the drawn origins,
+/// including tile zero. Reset initializes the board and drawn origins; these
+/// targets become valid on the next drawing frame. Storage is room-owned.
+extern NeoArkShrineTileOrigin gNeoArkShrinePuzzleTargetOrigins[NEO_ARK_SHRINE_PUZZLE_TILE_COUNT];
 
 /// Advances the shrine's tile animation by one frame and draws the puzzle.
 ///
