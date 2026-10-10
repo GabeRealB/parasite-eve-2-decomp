@@ -2724,7 +2724,7 @@ static void _actor503500UpdateBodyCollisionGrid(Task* task, s32 initializeFaces,
     s32                       elementIndex;
     const SVECTOR*            sourceVector;
     SVECTOR*                  destinationVector;
-    WorldCollisionGrid*       roomGrid = D_shelter_r48_80183EEC;
+    WorldCollisionGrid*       roomGrid = &gShelterR48CollisionGrid;
     const WorldCollisionGrid* bodyGrid = &gActor503500BossBodyCollisionGrid;
 
     if (initializeFaces != 0) {

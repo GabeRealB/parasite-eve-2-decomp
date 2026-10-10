@@ -789,7 +789,7 @@ WorldCoordRoomLighting* gMapShelterRoomLightingTables[49] = {
     [GAME_AREA_SHELTER_B4_RESERVOIR - 1]                  = gShelterB4ReservoirRoomLighting,
     [GAME_AREA_SHELTER_B4_WATER_SUPPLY - 1]               = D_map_shelter_8017AEB4,
     [GAME_AREA_SHELTER_R47 - 1]                           = D_map_shelter_8017AEBC,
-    [GAME_AREA_SHELTER_R48 - 1]                           = D_shelter_r48_80183014,
+    [GAME_AREA_SHELTER_R48 - 1]                           = gShelterR48RoomLighting,
     [GAME_AREA_SHELTER_R49 - 1]                           = D_shelter_r49_8017DA30,
 };
 
@@ -1176,7 +1176,7 @@ static u8** _gMapShelterAreaViewMaps[49] = {
     gShelterB4ReservoirViewMaps,
     D_shelter_b4_water_supply_8018273C,
     gShelterR47ViewMaps,
-    D_shelter_r48_8018302C,
+    gShelterR48ViewMaps,
     D_shelter_r49_8017DA28,
 };
 
@@ -1288,7 +1288,7 @@ WorldCollisionSurfaceProperties** D_map_shelter_8017B614[49] = {
     gShelterB4ReservoirSurfacePropertiesByClass,
     D_shelter_b4_water_supply_80184E14,
     gShelterR47SurfaceProperties,
-    D_shelter_r48_8018BE10,
+    gShelterR48SurfacePropertiesByClass,
     D_shelter_r49_8017DDF8,
 };
 

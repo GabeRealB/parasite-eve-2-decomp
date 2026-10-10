@@ -12,18 +12,36 @@
 
 #include "main/task_types.h"
 
-extern WorldCollisionGrid D_shelter_r48_80183EEC[1];
+/// Mutable arena collision grid, including Brahman's four body-face slots.
+///
+/// Owns 40 normals, 136 vertices and 83 faces indexed by a 5-by-7 XZ cell
+/// table. Coordinates and the 4000-unit cell size use room game units;
+/// normals use `ONE` for unit length. Activation binds the view coordinate.
+/// The boss rebuilds the first four faces/normals and eight vertices from
+/// model part 1, retaining the cell lists. The room and boss overlays must
+/// stay loaded while their resources are used.
+extern WorldCollisionGrid gShelterR48CollisionGrid;
 
 extern TaskDesc D_shelter_r48_80182FAC;
 
 extern AreaVariant D_shelter_r48_8018BC10[13];
 
 // shelter_r48
-extern WorldCoordRoomLighting D_shelter_r48_80183014[];
+/// Room-1 lighting: 57 point lights, one cone light and default ambient minima.
+///
+/// Indexed by room ID minus one; only room ID 1 is valid. Every authored
+/// light admits every view. The room owns the writable lights and their
+/// composition/attenuation state; borrowers require its overlay to stay loaded.
+extern WorldCoordRoomLighting gShelterR48RoomLighting[1];
 
 extern WorldCollisionRoomResources D_shelter_r48_8018301C[];
 
-extern u8* D_shelter_r48_8018302C[];
+/// Room-1 logical views map directly to camera, image and sprite indices 1..18.
+///
+/// Indexed by room ID minus one; only room ID 1 is valid. Borrows gameplay's
+/// `gViewIdentityMap`; the room's 18-view count limits lookups independently
+/// of that shared map's capacity. Both owning overlays must remain loaded.
+extern u8* gShelterR48ViewMaps[1];
 
 extern ViewCount D_shelter_r48_80183030[];
 
@@ -33,7 +51,13 @@ extern ViewCamera D_shelter_r48_80183F10[];
 
 extern SpriteView D_shelter_r48_80189FB4[];
 
-extern WorldCollisionSurfaceProperties* D_shelter_r48_8018BE10[];
+/// Eight collision-surface classes, indexed directly by class 0..7.
+///
+/// Class 1 passes probes, ignores weapon impacts and supplies footstep cues;
+/// every other class blocks probes, allows weapon impacts and has no cues.
+/// All classes apply pushback. Entries borrow single records owned by this
+/// room; their pointers must not outlive its loaded overlay.
+extern WorldCollisionSurfaceProperties* gShelterR48SurfacePropertiesByClass[8];
 
 /// Dispatches Shelter R48's room setup, idle and teardown states.
 ///
