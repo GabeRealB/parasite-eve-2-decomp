@@ -492,92 +492,158 @@ static AnimationSet _gKyle800101KyleMadiganStoppedAnimation = {
     },
 };
 
-static AnimationPackedPose _gKyle800101Animation08D3CBank1[10] = {
+/// Idle variation's translation/rotation keys for tracks 0 and 1, in integer coordinates and 1/4096 turns.
+static AnimationPackedPose _gKyle800101KyleMadiganIdleVariationAnimationBank1[] = {
 #include "assets/kyle_800101_animation_08D3C_bank1.inc"
 };
 
-static AnimationPackedRotation _gKyle800101Animation08D3CBank4[181] = {
+/// Idle variation's rotation-only keys for tracks 2..19, in eight-unit steps over 4096 units per turn.
+static AnimationPackedRotation _gKyle800101KyleMadiganIdleVariationAnimationBank4[] = {
 #include "assets/kyle_800101_animation_08D3C_bank4.inc"
 };
 
-static AnimationRecord _gKyle800101Animation08D3CRecords[284] = {
+/// Idle variation's keyframes and loop controls; durations count whole normal-rate frames.
+///
+/// Pose offsets count four-byte words; control jumps use absolute record indices.
+static AnimationRecord _gKyle800101KyleMadiganIdleVariationAnimationRecords[] = {
 #include "assets/kyle_800101_animation_08D3C_records.inc"
 };
 
-static u16 _gKyle800101Animation08D3CIndices[20] = {
+/// Absolute record-array starts for the idle variation's twenty model-part tracks.
+static u16 _gKyle800101KyleMadiganIdleVariationAnimationIndices[] = {
 #include "assets/kyle_800101_animation_08D3C_indices.inc"
 };
+STATIC_ASSERT(ARRAY_SIZE(_gKyle800101KyleMadiganIdleVariationAnimationIndices) == ARRAY_SIZE(_gKyle800101KyleMadiganBodySkeleton), kyle_800101_idle_variation_animation_tracks_match_body);
 
-static AnimationSet _gKyle800101Animation08D3C = {
-    _gKyle800101Animation08D3CRecords,
-    _gKyle800101Animation08D3CIndices,
-    { NULL, _gKyle800101Animation08D3CBank1, NULL, NULL, _gKyle800101Animation08D3CBank4, NULL, NULL, NULL },
+/// Kyle Madigan's looping idle variation for companion resource variant 1.
+///
+/// Bank set 23 plays after several idle decisions without following the player.
+/// Twenty tracks supply translation/rotation for parts 0 and 1 and rotation
+/// only for parts 2..19; child playback drives tracks 1..19.
+/// Playback borrows the data without changing it; keep this package loaded
+/// while any slot or cached record refers to the clip.
+static AnimationSet _gKyle800101KyleMadiganIdleVariationAnimation = {
+    .records           = _gKyle800101KyleMadiganIdleVariationAnimationRecords,
+    .trackStartIndices = _gKyle800101KyleMadiganIdleVariationAnimationIndices,
+    .poseBanks         = {
+        [KYLE_800101_ANIMATION_TRANSLATION_ROTATION_BANK] = _gKyle800101KyleMadiganIdleVariationAnimationBank1,
+        [KYLE_800101_ANIMATION_PACKED_ROTATION_BANK]      = _gKyle800101KyleMadiganIdleVariationAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gKyle800101Animation0920CBank1[9] = {
+/// Bank-set 32 translation/rotation keys for tracks 0 and 1, in integer coordinates and 1/4096 turns.
+static AnimationPackedPose _gKyle800101Animation0920CBank1[] = {
 #include "assets/kyle_800101_animation_0920C_bank1.inc"
 };
 
-static AnimationPackedRotation _gKyle800101Animation0920CBank4[113] = {
+/// Bank-set 32 rotation-only keys for tracks 2..19, in eight-unit steps over 4096 units per turn.
+static AnimationPackedRotation _gKyle800101Animation0920CBank4[] = {
 #include "assets/kyle_800101_animation_0920C_bank4.inc"
 };
 
-static AnimationRecord _gKyle800101Animation0920CRecords[148] = {
+/// Bank-set 32 keyframes and terminal stops; durations count whole normal-rate frames.
+///
+/// Pose offsets count four-byte words; each stop retains its track's final pose.
+static AnimationRecord _gKyle800101Animation0920CRecords[] = {
 #include "assets/kyle_800101_animation_0920C_records.inc"
 };
 
-static u16 _gKyle800101Animation0920CIndices[20] = {
+/// Absolute record-array starts for bank set 32's twenty model-part tracks.
+static u16 _gKyle800101Animation0920CIndices[] = {
 #include "assets/kyle_800101_animation_0920C_indices.inc"
 };
+STATIC_ASSERT(ARRAY_SIZE(_gKyle800101Animation0920CIndices) == ARRAY_SIZE(_gKyle800101KyleMadiganBodySkeleton), kyle_800101_set32_animation_tracks_match_body);
 
+/// Kyle Madigan's non-looping bank-set 32 clip for companion resource variant 1.
+///
+/// Twenty tracks supply translation/rotation for parts 0 and 1 and rotation
+/// only for parts 2..19. The visual role and a companion caller are unproven.
+/// Playback borrows the data without changing it; keep this package loaded
+/// while any slot or cached record refers to the clip.
 static AnimationSet _gKyle800101Animation0920C = {
-    _gKyle800101Animation0920CRecords,
-    _gKyle800101Animation0920CIndices,
-    { NULL, _gKyle800101Animation0920CBank1, NULL, NULL, _gKyle800101Animation0920CBank4, NULL, NULL, NULL },
+    .records           = _gKyle800101Animation0920CRecords,
+    .trackStartIndices = _gKyle800101Animation0920CIndices,
+    .poseBanks         = {
+        [KYLE_800101_ANIMATION_TRANSLATION_ROTATION_BANK] = _gKyle800101Animation0920CBank1,
+        [KYLE_800101_ANIMATION_PACKED_ROTATION_BANK]      = _gKyle800101Animation0920CBank4,
+    },
 };
 
-static AnimationPackedPose _gKyle800101Animation09764Bank1[8] = {
+/// Bank-set 33 translation/rotation keys for tracks 0 and 1, in integer coordinates and 1/4096 turns.
+static AnimationPackedPose _gKyle800101Animation09764Bank1[] = {
 #include "assets/kyle_800101_animation_09764_bank1.inc"
 };
 
-static AnimationPackedRotation _gKyle800101Animation09764Bank4[129] = {
+/// Bank-set 33 rotation-only keys for tracks 2..19, in eight-unit steps over 4096 units per turn.
+static AnimationPackedRotation _gKyle800101Animation09764Bank4[] = {
 #include "assets/kyle_800101_animation_09764_bank4.inc"
 };
 
-static AnimationRecord _gKyle800101Animation09764Records[169] = {
+/// Bank-set 33 keyframes and terminal stops; durations count whole normal-rate frames.
+///
+/// Pose offsets count four-byte words; each stop retains its track's final pose.
+static AnimationRecord _gKyle800101Animation09764Records[] = {
 #include "assets/kyle_800101_animation_09764_records.inc"
 };
 
-static u16 _gKyle800101Animation09764Indices[20] = {
+/// Absolute record-array starts for bank set 33's twenty model-part tracks.
+static u16 _gKyle800101Animation09764Indices[] = {
 #include "assets/kyle_800101_animation_09764_indices.inc"
 };
+STATIC_ASSERT(ARRAY_SIZE(_gKyle800101Animation09764Indices) == ARRAY_SIZE(_gKyle800101KyleMadiganBodySkeleton), kyle_800101_set33_animation_tracks_match_body);
 
+/// Kyle Madigan's non-looping bank-set 33 clip for companion resource variant 1.
+///
+/// Twenty tracks supply translation/rotation for parts 0 and 1 and rotation
+/// only for parts 2..19. The visual role and a companion caller are unproven.
+/// Playback borrows the data without changing it; keep this package loaded
+/// while any slot or cached record refers to the clip.
 static AnimationSet _gKyle800101Animation09764 = {
-    _gKyle800101Animation09764Records,
-    _gKyle800101Animation09764Indices,
-    { NULL, _gKyle800101Animation09764Bank1, NULL, NULL, _gKyle800101Animation09764Bank4, NULL, NULL, NULL },
+    .records           = _gKyle800101Animation09764Records,
+    .trackStartIndices = _gKyle800101Animation09764Indices,
+    .poseBanks         = {
+        [KYLE_800101_ANIMATION_TRANSLATION_ROTATION_BANK] = _gKyle800101Animation09764Bank1,
+        [KYLE_800101_ANIMATION_PACKED_ROTATION_BANK]      = _gKyle800101Animation09764Bank4,
+    },
 };
 
-static AnimationPackedPose _gKyle800101Animation09958Bank1[2] = {
+/// Combat hold's translation/rotation keys for tracks 0 and 1, in integer coordinates and 1/4096 turns.
+static AnimationPackedPose _gKyle800101KyleMadiganCombatHoldAnimationBank1[] = {
 #include "assets/kyle_800101_animation_09958_bank1.inc"
 };
 
-static AnimationPackedRotation _gKyle800101Animation09958Bank4[19] = {
+/// Combat hold's rotation-only keys for tracks 2..19, in eight-unit steps over 4096 units per turn.
+static AnimationPackedRotation _gKyle800101KyleMadiganCombatHoldAnimationBank4[] = {
 #include "assets/kyle_800101_animation_09958_bank4.inc"
 };
 
-static AnimationRecord _gKyle800101Animation09958Records[80] = {
+/// Combat hold's keyframes and loop controls; durations count whole normal-rate frames.
+///
+/// Pose offsets count four-byte words; control jumps use absolute record indices.
+static AnimationRecord _gKyle800101KyleMadiganCombatHoldAnimationRecords[] = {
 #include "assets/kyle_800101_animation_09958_records.inc"
 };
 
-static u16 _gKyle800101Animation09958Indices[20] = {
+/// Absolute record-array starts for the combat hold's twenty model-part tracks.
+static u16 _gKyle800101KyleMadiganCombatHoldAnimationIndices[] = {
 #include "assets/kyle_800101_animation_09958_indices.inc"
 };
+STATIC_ASSERT(ARRAY_SIZE(_gKyle800101KyleMadiganCombatHoldAnimationIndices) == ARRAY_SIZE(_gKyle800101KyleMadiganBodySkeleton), kyle_800101_combat_hold_animation_tracks_match_body);
 
-static AnimationSet _gKyle800101Animation09958 = {
-    _gKyle800101Animation09958Records,
-    _gKyle800101Animation09958Indices,
-    { NULL, _gKyle800101Animation09958Bank1, NULL, NULL, _gKyle800101Animation09958Bank4, NULL, NULL, NULL },
+/// Kyle Madigan's looping weapon-aim hold for companion resource variant 1.
+///
+/// Bank set 9 holds aim after combat entry and between attacks or movement.
+/// Twenty tracks supply translation/rotation for parts 0 and 1 and rotation
+/// only for parts 2..19; child playback drives tracks 1..19.
+/// Playback borrows the data without changing it; keep this package loaded
+/// while any slot or cached record refers to the clip.
+static AnimationSet _gKyle800101KyleMadiganCombatHoldAnimation = {
+    .records           = _gKyle800101KyleMadiganCombatHoldAnimationRecords,
+    .trackStartIndices = _gKyle800101KyleMadiganCombatHoldAnimationIndices,
+    .poseBanks         = {
+        [KYLE_800101_ANIMATION_TRANSLATION_ROTATION_BANK] = _gKyle800101KyleMadiganCombatHoldAnimationBank1,
+        [KYLE_800101_ANIMATION_PACKED_ROTATION_BANK]      = _gKyle800101KyleMadiganCombatHoldAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gKyle800101Animation09B48Bank1[2] = {
@@ -602,48 +668,82 @@ static AnimationSet _gKyle800101Animation09B48 = {
     { NULL, _gKyle800101Animation09B48Bank1, NULL, NULL, _gKyle800101Animation09B48Bank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gKyle800101Animation0A2C4Bank1[12] = {
+/// Bank-set 13 translation/rotation keys for tracks 0 and 1, in integer coordinates and 1/4096 turns.
+static AnimationPackedPose _gKyle800101Animation0A2C4Bank1[] = {
 #include "assets/kyle_800101_animation_0A2C4_bank1.inc"
 };
 
-static AnimationPackedRotation _gKyle800101Animation0A2C4Bank4[159] = {
+/// Bank-set 13 rotation-only keys for tracks 2..19, in eight-unit steps over 4096 units per turn.
+static AnimationPackedRotation _gKyle800101Animation0A2C4Bank4[] = {
 #include "assets/kyle_800101_animation_0A2C4_bank4.inc"
 };
 
-static AnimationRecord _gKyle800101Animation0A2C4Records[264] = {
+/// Bank-set 13 keyframes, cue bits and loop controls; durations count whole normal-rate frames.
+///
+/// Pose offsets count four-byte words; control jumps use absolute record indices.
+static AnimationRecord _gKyle800101Animation0A2C4Records[] = {
 #include "assets/kyle_800101_animation_0A2C4_records.inc"
 };
 
-static u16 _gKyle800101Animation0A2C4Indices[20] = {
+/// Absolute record-array starts for bank set 13's twenty model-part tracks.
+static u16 _gKyle800101Animation0A2C4Indices[] = {
 #include "assets/kyle_800101_animation_0A2C4_indices.inc"
 };
+STATIC_ASSERT(ARRAY_SIZE(_gKyle800101Animation0A2C4Indices) == ARRAY_SIZE(_gKyle800101KyleMadiganBodySkeleton), kyle_800101_set13_animation_tracks_match_body);
 
+/// Kyle Madigan's looping bank-set 13 clip for companion resource variant 1.
+///
+/// Twenty tracks supply translation/rotation for parts 0 and 1 and rotation
+/// only for parts 2..19. Track 1 carries cue bits 1 and 2; the companion role
+/// and a caller are unproven.
+/// Playback borrows the data without changing it; keep this package loaded
+/// while any slot or cached record refers to the clip.
 static AnimationSet _gKyle800101Animation0A2C4 = {
-    _gKyle800101Animation0A2C4Records,
-    _gKyle800101Animation0A2C4Indices,
-    { NULL, _gKyle800101Animation0A2C4Bank1, NULL, NULL, _gKyle800101Animation0A2C4Bank4, NULL, NULL, NULL },
+    .records           = _gKyle800101Animation0A2C4Records,
+    .trackStartIndices = _gKyle800101Animation0A2C4Indices,
+    .poseBanks         = {
+        [KYLE_800101_ANIMATION_TRANSLATION_ROTATION_BANK] = _gKyle800101Animation0A2C4Bank1,
+        [KYLE_800101_ANIMATION_PACKED_ROTATION_BANK]      = _gKyle800101Animation0A2C4Bank4,
+    },
 };
 
-static AnimationPackedPose _gKyle800101Animation0AC7CBank1[18] = {
+/// Approach translation/rotation keys for tracks 0 and 1, in integer coordinates and 1/4096 turns.
+static AnimationPackedPose _gKyle800101KyleMadiganApproachAnimationBank1[] = {
 #include "assets/kyle_800101_animation_0AC7C_bank1.inc"
 };
 
-static AnimationPackedRotation _gKyle800101Animation0AC7CBank4[234] = {
+/// Approach rotation-only keys for tracks 2..19, in eight-unit steps over 4096 units per turn.
+static AnimationPackedRotation _gKyle800101KyleMadiganApproachAnimationBank4[] = {
 #include "assets/kyle_800101_animation_0AC7C_bank4.inc"
 };
 
-static AnimationRecord _gKyle800101Animation0AC7CRecords[314] = {
+/// Approach keyframes, footstep cues and loop controls; durations count whole normal-rate frames.
+///
+/// Pose offsets count four-byte words; control jumps use absolute record indices.
+static AnimationRecord _gKyle800101KyleMadiganApproachAnimationRecords[] = {
 #include "assets/kyle_800101_animation_0AC7C_records.inc"
 };
 
-static u16 _gKyle800101Animation0AC7CIndices[20] = {
+/// Absolute record-array starts for the approach animation's twenty model-part tracks.
+static u16 _gKyle800101KyleMadiganApproachAnimationIndices[] = {
 #include "assets/kyle_800101_animation_0AC7C_indices.inc"
 };
+STATIC_ASSERT(ARRAY_SIZE(_gKyle800101KyleMadiganApproachAnimationIndices) == ARRAY_SIZE(_gKyle800101KyleMadiganBodySkeleton), kyle_800101_approach_animation_tracks_match_body);
 
-static AnimationSet _gKyle800101Animation0AC7C = {
-    _gKyle800101Animation0AC7CRecords,
-    _gKyle800101Animation0AC7CIndices,
-    { NULL, _gKyle800101Animation0AC7CBank1, NULL, NULL, _gKyle800101Animation0AC7CBank4, NULL, NULL, NULL },
+/// Kyle Madigan's looping armed approach run for companion resource variant 1.
+///
+/// Bank set 12 plays while running toward the target or player; track 1 carries
+/// the footstep cues. Twenty tracks supply translation/rotation for parts 0 and
+/// 1 and rotation only for parts 2..19; child playback drives tracks 1..19.
+/// Playback borrows the data without changing it; keep this package loaded
+/// while any slot or cached record refers to the clip.
+static AnimationSet _gKyle800101KyleMadiganApproachAnimation = {
+    .records           = _gKyle800101KyleMadiganApproachAnimationRecords,
+    .trackStartIndices = _gKyle800101KyleMadiganApproachAnimationIndices,
+    .poseBanks         = {
+        [KYLE_800101_ANIMATION_TRANSLATION_ROTATION_BANK] = _gKyle800101KyleMadiganApproachAnimationBank1,
+        [KYLE_800101_ANIMATION_PACKED_ROTATION_BANK]      = _gKyle800101KyleMadiganApproachAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gKyle800101Animation0B6F0Bank1[18] = {
@@ -810,10 +910,10 @@ AnimationBank D_kyle_800101_801756D0 = { { {
     &_gKyle800101KyleMadiganTurnRightAnimation,
     &_gKyle800101Animation0BD70,
     &_gKyle800101Animation0C24C,
-    &_gKyle800101Animation09958,
+    &_gKyle800101KyleMadiganCombatHoldAnimation,
     &_gKyle800101Animation0B968,
     &_gKyle800101KyleMadiganIdleAnimation,
-    &_gKyle800101Animation0AC7C,
+    &_gKyle800101KyleMadiganApproachAnimation,
     &_gKyle800101Animation0A2C4,
     &_gKyle800101Animation0B6F0,
     &_gKyle800101KyleMadiganIdleAnimation,
@@ -824,7 +924,7 @@ AnimationBank D_kyle_800101_801756D0 = { { {
     &_gKyle800101Animation0B6F0,
     &_gKyle800101KyleMadiganIdleAnimation,
     &_gKyle800101KyleMadiganIdleAnimation,
-    &_gKyle800101Animation08D3C,
+    &_gKyle800101KyleMadiganIdleVariationAnimation,
     &_gKyle800101KyleMadiganIdleAnimation,
     &_gKyle800101KyleMadiganIdleAnimation,
     NULL,
