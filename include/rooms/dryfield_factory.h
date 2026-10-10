@@ -63,9 +63,43 @@ extern TaskDesc gFactoryDaySpawnTable[8];
 /// remain loaded while its panel and cursor tasks run. No terminator is stored.
 extern TaskDesc gFactoryDayPanelDesc;
 
-extern ViewCamera D_dryfield_factory_80187C1C[];
+/// Number of mapped camera and sprite views in the daytime factory.
+enum { DRYFIELD_FACTORY_MAPPED_VIEW_COUNT = 19 };
 
-extern SpriteView D_dryfield_factory_801895B0[];
+/// Camera transforms and perspective distances for the daytime factory's mapped views.
+///
+/// Indexed by mapped view 1..19 minus one, independently of the logical view.
+/// Both room variants borrow this array through the daytime map directory.
+/// Camera translations use world coordinates; rotations use 4096 for 1.0,
+/// and screen distances are pixels. The factory overlay must stay loaded until
+/// a queued camera application has copied its selected record.
+extern ViewCamera gDryfieldFactoryViewCameras[DRYFIELD_FACTORY_MAPPED_VIEW_COUNT];
+
+/// Sprite resources for the daytime factory's mapped views.
+///
+/// Indexed by mapped view 1..19 minus one through the daytime map directory.
+/// All views preserve the decoded background and have no clipping areas;
+/// views 1, 4, 5, 10 and 12 have empty batch lists. Sources and batches are
+/// writable room-owned storage; the power scene toggles view 11's batch 1.
+/// Keep the map and factory overlays loaded while using these records or
+/// their referenced lists, including during cached sprite drawing.
+extern SpriteView gDryfieldFactorySpriteViews[DRYFIELD_FACTORY_MAPPED_VIEW_COUNT];
+
+/// Two-lane controller-vibration commands for a jammed daytime factory lift turn.
+///
+/// The binary motor plays segment 2 then stops. The variable motor plays
+/// segments 0 and 1 then stops. Both factory instances select this script in
+/// daytime Dryfield; the interpreter borrows it without writing it until the
+/// script task ends, so the daytime factory overlay must remain loaded.
+extern PadScriptCmd gDryfieldFactoryLiftJoltCommands[3];
+
+/// Timed controller-vibration segments used by the daytime lift's jam jolt.
+///
+/// Segment 0 holds variable intensity 255 for 8 eligible script frames;
+/// segment 1 ramps 150 toward 80 for 20; segment 2 holds the binary motor for
+/// 5. Intensities are bytes (0..255); the fourth stored byte is unread by the
+/// interpreter and its role is unproven. Borrowed for the jolt task's lifetime.
+extern PadScriptVibrationSegment gDryfieldFactoryLiftJoltSegments[3];
 
 /// Collision policies and footstep cues indexed by the daytime factory's surface class (0..7).
 ///

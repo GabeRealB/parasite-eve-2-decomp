@@ -329,8 +329,8 @@ static SVECTOR _gFactoryLampFirstGlowPosition = { 5910, -1308, 5649, 0 };
 static SVECTOR _gFactoryLampSecondGlowPosition = { 5910, -1404, 5649, 0 };
 
 WorldCollisionRoomResources D_dryfield_factory_80186F10[2] = {
-    { &gDryfieldFactoryCollisionGrid, D_dryfield_factory_80189694, D_dryfield_factory_80189ABC, NULL },
-    { &gDryfieldFactoryCollisionGrid, D_dryfield_factory_80189694, D_dryfield_factory_80189ABC, NULL },
+    { &gDryfieldFactoryCollisionGrid, gDryfieldFactoryViewBoundaryTriggers, gDryfieldFactoryActionTriggers, NULL },
+    { &gDryfieldFactoryCollisionGrid, gDryfieldFactoryViewBoundaryTriggers, gDryfieldFactoryActionTriggers, NULL },
 };
 
 /// Room-2 logical-view map used after the barrier is cleared.

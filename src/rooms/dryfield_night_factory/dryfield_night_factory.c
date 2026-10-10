@@ -69,22 +69,37 @@ static void _factoryLiftNotifyPanel(Task* panelTask);
 
 #include "../../shared/factory_lift_motion.inc.c"
 
-/// State handlers of the factory model task: set-up, the per-frame state and
-/// `taskKill`.
+/// Lift-model lifecycle handlers, indexed by `Task::state`.
+///
+/// Setup owns the motion work and spawns the hatch; run follows lift-position
+/// requests and updates the model and collision; teardown releases the task.
+/// Dispatch copies all three callbacks and requires a `FACTORY_TASK_STATE_` selector.
 static const TaskFuncTable3 _gFactoryLiftStates = {
-    { _factoryLiftInit, _factoryLiftUpdate, taskKill },
+    { [FACTORY_TASK_STATE_SETUP]    = _factoryLiftInit,
+      [FACTORY_TASK_STATE_RUN]      = _factoryLiftUpdate,
+      [FACTORY_TASK_STATE_TEARDOWN] = taskKill },
 };
 
-/// State handlers of the cutscene task: set-up, the cutscene sequence and
-/// `taskKill`.
+/// Hatch-model lifecycle handlers, indexed by `Task::state`.
+///
+/// Setup parents the hatch to the lift and owns its swing work; run dispatches
+/// the work's separate movement state; teardown releases the task and work.
+/// Dispatch copies all three callbacks and requires a `FACTORY_TASK_STATE_` selector.
 static const TaskFuncTable3 _gFactoryHatchTaskStates = {
-    { _factoryHatchInit, _factoryHatchUpdate, taskKill },
+    { [FACTORY_TASK_STATE_SETUP]    = _factoryHatchInit,
+      [FACTORY_TASK_STATE_RUN]      = _factoryHatchUpdate,
+      [FACTORY_TASK_STATE_TEARDOWN] = taskKill },
 };
 
-/// The cutscene sequence's handler table: the flag watcher of state 0 and the
-/// two movements it arms.
+/// Hatch watch/open/close handlers, indexed by `FactoryHatchWork::state`.
+///
+/// WATCH arms swings on hatch-flag edges and returns zero. A movement's
+/// nonzero result returns the dispatcher to WATCH. The complete table is
+/// copied each frame; the selector must be a `FACTORY_HATCH_STATE_` value.
 static const FactoryHatchStateFuncTable _gFactoryHatchStates = {
-    { _factoryHatchWatch, _factoryHatchOpen, _factoryHatchClose },
+    { [FACTORY_HATCH_STATE_WATCH] = _factoryHatchWatch,
+      [FACTORY_HATCH_STATE_OPEN]  = _factoryHatchOpen,
+      [FACTORY_HATCH_STATE_CLOSE] = _factoryHatchClose },
 };
 
 SpriteBatch D_dryfield_night_factory_80189A14[2] = {

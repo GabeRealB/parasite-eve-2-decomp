@@ -28,6 +28,7 @@
 #include "gameplay/world_coords.h"
 
 #include "main/coord.h"
+#include "main/areas.h"
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/gameflag.h"
@@ -134,7 +135,7 @@ WorldCollisionGrid gDryfieldFactoryCollisionGrid = {
     .faceCount   = ARRAY_SIZE(_gDryfieldFactoryCollisionGridFaces),
 };
 
-ViewCamera D_dryfield_factory_80187C1C[19] = {
+ViewCamera gDryfieldFactoryViewCameras[DRYFIELD_FACTORY_MAPPED_VIEW_COUNT] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -3057, 0x44F4, -6028 } }, 240 },
     { { { { 1147, 0, -3931 }, { -130, 4093, -37 }, { 3929, 135, 1147 } }, { -214, 1283, -1020 } }, 246 },
     { { { { 981, 0, 3976 }, { 62, 4095, -15 }, { -3976, 64, 981 } }, { -5724, 1309, -1020 } }, 246 },
@@ -301,322 +302,339 @@ static SpriteBatch _gDryfieldFactoryView10SpriteBatches[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_factory_80188368[1] = {
-    { 143, 0x3FC0, { .fields = { 80, 136 } }, -16, -72, 279, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+/// Texture rectangle and sorting depth for the power-scene sprite in mapped view 11.
+static SpriteSource _gDryfieldFactoryView11SpriteSources[1] = {
+    { 143, 0x3FC0, { .fields = { 80, 136 } }, -16, -72, 279, { .fields = { 48, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_dryfield_factory_8018837C[3] = {
+/// Image-preserving list for mapped view 11; the power scene toggles batch 1's hidden flag.
+static SpriteBatch _gDryfieldFactoryView11SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 1, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldFactoryView11SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_factory_80188394[2] = {
+/// Empty sprite list for mapped view 12; keeps the decoded background image.
+static SpriteBatch _gDryfieldFactoryView12SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_factory_801883A4[13] = {
-    { 143, 0x3FC0, { .fields = { 48, 80 } }, 104, 40, 300, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, 88, 40, 700, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 48 } }, -48, -32, 0x3847, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -48, 16, 1058, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -32, 16, 1021, { .fields = { 16, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -32, 32, 0x3318, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 56 } }, -8, 16, 0x2749, { .fields = { 32, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, -24, 8, 1150, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -40, 8, 1140, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 200 } }, -160, -120, 1037, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 200 } }, -136, -120, 1125, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 200 } }, -112, -120, 1162, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 200 } }, -96, -120, 1212, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped view 13, in batch-index order.
+static SpriteSource _gDryfieldFactoryView13SpriteSources[13] = {
+    { 143, 0x3FC0, { .fields = { 48, 80 } }, 104, 40, 300, { .fields = { 8, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 80 } }, 88, 40, 700, { .fields = { 40, 80 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 80, 48 } }, -48, -32, 0x3847, { .fields = { 88, 80 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, -48, 16, 1058, { .fields = { 72, 200 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -32, 16, 1021, { .fields = { 16, 128 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, -32, 32, 0x3318, { .fields = { 32, 160 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 56 } }, -8, 16, 0x2749, { .fields = { 32, 200 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 56 } }, -24, 8, 1150, { .fields = { 104, 200 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, -40, 8, 1140, { .fields = { 88, 200 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 200 } }, -160, -120, 1037, { .fields = { 64, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 200 } }, -136, -120, 1125, { .fields = { 88, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 200 } }, -112, -120, 1162, { .fields = { 112, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 200 } }, -96, -120, 1212, { .fields = { 56, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_dryfield_factory_801884A8[6] = {
+/// Sprite ranges for mapped view 13, after an image-preserving header and before the end marker.
+static SpriteBatch _gDryfieldFactoryView13SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 2, 0, 0, { 3, 0 } },
     { 2, 5, 0, 0, { 0, 0 } },
     { 7, 2, 0, 0, { 2, 0 } },
-    { 9, 4, 0, 0, { 1, 0 } },
+    { 9, ARRAY_SIZE(_gDryfieldFactoryView13SpriteSources) - 9, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_factory_801884D8[12] = {
-    { 143, 0x3FC0, { .fields = { 72, 240 } }, -160, -120, 0, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 88 } }, 72, 32, 0, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 200 } }, 120, -120, 2000, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 200 } }, 64, -120, 2000, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 80 } }, 96, -120, 2000, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 96, 56, 1150, { .fields = { 32, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 96, 40, 1157, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 96, 24, 1155, { .fields = { 8, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 96, 8, 1153, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 96, -8, 1147, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 96, -24, 1151, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 96, -40, 1150, { .fields = { 32, 224 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped view 14, in batch-index order.
+static SpriteSource _gDryfieldFactoryView14SpriteSources[12] = {
+    { 143, 0x3FC0, { .fields = { 72, 240 } }, -160, -120, 0, { .fields = { 56, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 88, 88 } }, 72, 32, 0, { .fields = { 24, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 200 } }, 120, -120, 2000, { .fields = { 112, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 200 } }, 64, -120, 2000, { .fields = { 24, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 80 } }, 96, -120, 2000, { .fields = { 88, 88 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 96, 56, 1150, { .fields = { 32, 200 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 96, 40, 1157, { .fields = { 32, 240 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 96, 24, 1155, { .fields = { 8, 200 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 96, 8, 1153, { .fields = { 80, 240 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 96, -8, 1147, { .fields = { 104, 240 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 96, -24, 1151, { .fields = { 56, 240 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 96, -40, 1150, { .fields = { 32, 224 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_dryfield_factory_801885C8[5] = {
+/// Sprite ranges for mapped view 14, after an image-preserving header and before the end marker.
+static SpriteBatch _gDryfieldFactoryView14SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 1, 0 } },
     { 1, 1, 0, 0, { 2, 0 } },
-    { 2, 10, 0, 0, { 0, 0 } },
+    { 2, ARRAY_SIZE(_gDryfieldFactoryView14SpriteSources) - 2, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_factory_801885F0[82] = {
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -152, 8, 1041, { .fields = { 40, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -152, 32, 1103, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -152, 56, 0, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -16, 8, 0, { .fields = { 8, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -16, 32, 978, { .fields = { 8, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -16, 48, 965, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -128, 8, 1130, { .fields = { 88, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -88, 8, 1106, { .fields = { 72, 104 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 16 } }, -56, 8, 0, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 32, 16 } }, -48, 24, 1031, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, -48, 40, 937, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 136, 8 } }, -152, 64, 0, { .fields = { 32, 248 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 16 } }, -128, 24, 1075, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 24 } }, -128, 40, 1086, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 16 } }, -88, 24, 1063, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 24 } }, -88, 40, 1004, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, -160, -72, 1487, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, -160, -48, 1475, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, -24, 1488, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, -128, -24, 1455, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, -128, -48, 1450, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, -128, -72, 1475, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, -96, -72, 0, { .fields = { 16, 128 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 16 } }, -96, -40, 1455, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -72, -24, 0, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -64, -24, 1500, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -88, -24, 1450, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 56, 16 } }, -160, -80, 1025, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 56, 16 } }, -104, -80, 954, { .fields = { 80, 24 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 64, 16 } }, -48, -80, 908, { .fields = { 88, 168 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 64, 16 } }, 16, -80, 839, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 56, 16 } }, 80, -80, 795, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 32 } }, 80, -64, 820, { .fields = { 0, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 104 } }, 128, -32, 0, { .fields = { 120, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 120, 0, 0, { .fields = { 104, 136 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 48, 16 } }, 80, -32, 883, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 48, 16 } }, 72, 0, 979, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 16 } }, 72, -16, 873, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 72, -64, 0, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 48, 16 } }, 72, 16, 986, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 112, 32, 0, { .fields = { 72, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 96 } }, 64, -64, 0, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 16 } }, 64, 32, 985, { .fields = { 0, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 24 } }, 64, 48, 986, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 136 } }, 16, -64, 0, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 24 } }, -48, -64, 1014, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 24 } }, -104, -64, 999, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 24 } }, -152, -64, 1053, { .fields = { 24, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -160, -64, 0, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 24 } }, -152, -40, 1092, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 32 } }, -104, -40, 1040, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 32 } }, -48, -40, 996, { .fields = { 0, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 24 } }, -48, -8, 1049, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 56, 24 } }, -104, -8, 1107, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 24 } }, -144, -16, 1150, { .fields = { 8, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -160, -16, 0, { .fields = { 72, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -160, 8, 0, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 24 } }, -136, 8, 1040, { .fields = { 64, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -128, 8, 1077, { .fields = { 24, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, -160, 32, 0, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 88, 8 } }, -160, 40, 0, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 24 } }, -104, 16, 1044, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 24 } }, -48, 16, 1064, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 56, 16 } }, -40, 40, 1039, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, -72, 40, 1078, { .fields = { 104, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 120, 24 } }, -160, 48, 0, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 56, 16 } }, -40, 56, 0, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 104, -40, 844, { .fields = { 32, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 104, -16, 0, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 96, 8, 908, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 72, 24, 1284, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 56, 0, 1350, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 56, -40, 0, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 64, -40, 1347, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 64, -8, 1255, { .fields = { 72, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 72, 8, 1250, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 72, -16, 1237, { .fields = { 24, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 72, -40, 1230, { .fields = { 8, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -16, 16, 1083, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -16, -24, 987, { .fields = { 56, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -16, -64, 884, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, -16, -120, 792, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped view 15, in batch-index order.
+static SpriteSource _gDryfieldFactoryView15SpriteSources[82] = {
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, -152, 8, 1041, { .fields = { 40, 24 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, -152, 32, 1103, { .fields = { 40, 80 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -152, 56, 0, { .fields = { 32, 160 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -16, 8, 0, { .fields = { 8, 160 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -16, 32, 978, { .fields = { 8, 184 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, -16, 48, 965, { .fields = { 40, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 16 } }, -128, 8, 1130, { .fields = { 88, 216 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 16 } }, -88, 8, 1106, { .fields = { 72, 104 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 141, 0x3FC0, { .fields = { 40, 16 } }, -56, 8, 0, { .fields = { 88, 144 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 141, 0x3FC0, { .fields = { 32, 16 } }, -48, 24, 1031, { .fields = { 120, 96 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, -48, 40, 937, { .fields = { 96, 192 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 141, 0x3FC0, { .fields = { 136, 8 } }, -152, 64, 0, { .fields = { 32, 248 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 141, 0x3FC0, { .fields = { 40, 16 } }, -128, 24, 1075, { .fields = { 120, 64 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 24 } }, -128, 40, 1086, { .fields = { 64, 80 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 141, 0x3FC0, { .fields = { 40, 16 } }, -88, 24, 1063, { .fields = { 120, 208 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 24 } }, -88, 40, 1004, { .fields = { 72, 120 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, -160, -72, 1487, { .fields = { 112, 120 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, -160, -48, 1475, { .fields = { 104, 144 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, -24, 1488, { .fields = { 40, 96 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 32 } }, -128, -24, 1455, { .fields = { 32, 168 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, -128, -48, 1450, { .fields = { 96, 56 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, -128, -72, 1475, { .fields = { 104, 168 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 32 } }, -96, -72, 0, { .fields = { 16, 128 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 141, 0x3FC0, { .fields = { 40, 16 } }, -96, -40, 1455, { .fields = { 80, 96 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -72, -24, 0, { .fields = { 48, 32 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -64, -24, 1500, { .fields = { 64, 64 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -88, -24, 1450, { .fields = { 56, 32 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 141, 0x3FC0, { .fields = { 56, 16 } }, -160, -80, 1025, { .fields = { 64, 80 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 141, 0x3FC0, { .fields = { 56, 16 } }, -104, -80, 954, { .fields = { 80, 24 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 141, 0x3FC0, { .fields = { 64, 16 } }, -48, -80, 908, { .fields = { 88, 168 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 141, 0x3FC0, { .fields = { 64, 16 } }, 16, -80, 839, { .fields = { 72, 128 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 141, 0x3FC0, { .fields = { 56, 16 } }, 80, -80, 795, { .fields = { 104, 192 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 32 } }, 80, -64, 820, { .fields = { 0, 200 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 104 } }, 128, -32, 0, { .fields = { 120, 136 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, 120, 0, 0, { .fields = { 104, 136 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 141, 0x3FC0, { .fields = { 48, 16 } }, 80, -32, 883, { .fields = { 112, 48 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 141, 0x3FC0, { .fields = { 48, 16 } }, 72, 0, 979, { .fields = { 120, 232 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 16 } }, 72, -16, 873, { .fields = { 32, 216 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 72, -64, 0, { .fields = { 104, 208 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 141, 0x3FC0, { .fields = { 48, 16 } }, 72, 16, 986, { .fields = { 120, 80 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 112, 32, 0, { .fields = { 72, 168 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 96 } }, 64, -64, 0, { .fields = { 112, 136 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 16 } }, 64, 32, 985, { .fields = { 0, 152 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 24 } }, 64, 48, 986, { .fields = { 88, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 136 } }, 16, -64, 0, { .fields = { 80, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 64, 24 } }, -48, -64, 1014, { .fields = { 32, 192 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 24 } }, -104, -64, 999, { .fields = { 48, 144 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 24 } }, -152, -64, 1053, { .fields = { 24, 104 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, -160, -64, 0, { .fields = { 72, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 24 } }, -152, -40, 1092, { .fields = { 56, 168 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 32 } }, -104, -40, 1040, { .fields = { 8, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 32 } }, -48, -40, 996, { .fields = { 0, 64 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 64, 24 } }, -48, -8, 1049, { .fields = { 32, 56 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 141, 0x3FC0, { .fields = { 56, 24 } }, -104, -8, 1107, { .fields = { 112, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 24 } }, -144, -16, 1150, { .fields = { 8, 128 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, -160, -16, 0, { .fields = { 72, 24 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, -160, 8, 0, { .fields = { 64, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 24 } }, -136, 8, 1040, { .fields = { 64, 24 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -128, 8, 1077, { .fields = { 24, 32 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 8 } }, -160, 32, 0, { .fields = { 56, 48 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 141, 0x3FC0, { .fields = { 88, 8 } }, -160, 40, 0, { .fields = { 72, 224 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 24 } }, -104, 16, 1044, { .fields = { 104, 96 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 64, 24 } }, -48, 16, 1064, { .fields = { 88, 32 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 141, 0x3FC0, { .fields = { 56, 16 } }, -40, 40, 1039, { .fields = { 96, 112 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 8 } }, -72, 40, 1078, { .fields = { 104, 24 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 120, 24 } }, -160, 48, 0, { .fields = { 40, 232 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 141, 0x3FC0, { .fields = { 56, 16 } }, -40, 56, 0, { .fields = { 64, 64 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 104, -40, 844, { .fields = { 32, 232 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 104, -16, 0, { .fields = { 112, 232 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 96, 8, 908, { .fields = { 40, 232 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, 72, 24, 1284, { .fields = { 56, 248 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 56, 0, 1350, { .fields = { 32, 96 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 56, -40, 0, { .fields = { 72, 48 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 64, -40, 1347, { .fields = { 64, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 64, -8, 1255, { .fields = { 72, 88 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 72, 8, 1250, { .fields = { 80, 240 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, 72, -16, 1237, { .fields = { 24, 168 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, 72, -40, 1230, { .fields = { 8, 24 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, -16, 16, 1083, { .fields = { 80, 192 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, -16, -24, 987, { .fields = { 56, 208 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, -16, -64, 884, { .fields = { 56, 128 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 56 } }, -16, -120, 792, { .fields = { 80, 136 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_dryfield_factory_80188C58[7] = {
+/// Sprite ranges for mapped view 15, after an image-preserving header and before the end marker.
+static SpriteBatch _gDryfieldFactoryView15SpriteBatches[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 16, 0, 0, { 0, 0 } },
     { 16, 11, 0, 0, { 3, 0 } },
     { 27, 40, 0, 0, { 2, 0 } },
     { 67, 11, 0, 0, { 4, 0 } },
-    { 78, 4, 0, 0, { 1, 0 } },
+    { 78, ARRAY_SIZE(_gDryfieldFactoryView15SpriteSources) - 78, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_factory_80188C90[32] = {
-    { 142, 0x3FC0, { .fields = { 96, 32 } }, -160, 88, 425, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 24 } }, -64, 96, 425, { .fields = { 40, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 128, 40 } }, 8, -24, 1416, { .fields = { 0, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 72 } }, 112, -88, 1750, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -48, -56, 1550, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -48, -88, 1432, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -16, -48, 1684, { .fields = { 16, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 8, -48, 0, { .fields = { 40, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 16, -48, 1750, { .fields = { 40, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, -16, -64, 1704, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 24 } }, 112, -120, 1143, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 24 } }, 112, -96, 1197, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 24 } }, 112, -72, 1244, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 24 } }, 112, -48, 1327, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 24 } }, 112, -24, 1301, { .fields = { 32, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 24 } }, 64, -24, 1386, { .fields = { 24, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 24 } }, 64, -48, 1294, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 24 } }, 64, -72, 1229, { .fields = { 40, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 24 } }, 64, -96, 1178, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 24 } }, 64, -120, 1123, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 24 } }, 8, -120, 1123, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 24 } }, 8, -96, 1243, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 24 } }, 8, -72, 1192, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 24 } }, 8, -48, 1302, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 24 } }, 8, -24, 1368, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, 120, -56, 1351, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, 120, -88, 1216, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, 120, -120, 1083, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 120, -24, 1383, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 56, 32 } }, -64, 88, 625, { .fields = { 56, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 96, 56 } }, -160, 64, 500, { .fields = { 32, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 56, 24 } }, -64, 64, 0, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped view 16, in batch-index order.
+static SpriteSource _gDryfieldFactoryView16SpriteSources[32] = {
+    { 142, 0x3FC0, { .fields = { 96, 32 } }, -160, 88, 425, { .fields = { 80, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 64, 24 } }, -64, 96, 425, { .fields = { 40, 56 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 128, 40 } }, 8, -24, 1416, { .fields = { 0, 168 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 72 } }, 112, -88, 1750, { .fields = { 88, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 40 } }, -48, -56, 1550, { .fields = { 96, 128 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -48, -88, 1432, { .fields = { 24, 208 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -16, -48, 1684, { .fields = { 16, 32 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 8, -48, 0, { .fields = { 40, 32 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 16, -48, 1750, { .fields = { 40, 128 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 16 } }, -16, -64, 1704, { .fields = { 80, 240 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 24 } }, 112, -120, 1143, { .fields = { 48, 200 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 24 } }, 112, -96, 1197, { .fields = { 64, 112 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 24 } }, 112, -72, 1244, { .fields = { 80, 176 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 24 } }, 112, -48, 1327, { .fields = { 64, 88 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 24 } }, 112, -24, 1301, { .fields = { 32, 176 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 24 } }, 64, -24, 1386, { .fields = { 24, 136 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 24 } }, 64, -48, 1294, { .fields = { 48, 224 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 24 } }, 64, -72, 1229, { .fields = { 40, 32 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 24 } }, 64, -96, 1178, { .fields = { 32, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 24 } }, 64, -120, 1123, { .fields = { 112, 88 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 24 } }, 8, -120, 1123, { .fields = { 104, 64 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 24 } }, 8, -96, 1243, { .fields = { 112, 128 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 24 } }, 8, -72, 1192, { .fields = { 96, 208 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 24 } }, 8, -48, 1302, { .fields = { 72, 152 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 24 } }, 8, -24, 1368, { .fields = { 88, 32 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 32 } }, 120, -56, 1351, { .fields = { 48, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 32 } }, 120, -88, 1216, { .fields = { 48, 32 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 32 } }, 120, -120, 1083, { .fields = { 56, 128 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 120, -24, 1383, { .fields = { 112, 208 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x4000, { .fields = { 56, 32 } }, -64, 88, 625, { .fields = { 56, 208 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x4000, { .fields = { 96, 56 } }, -160, 64, 500, { .fields = { 32, 72 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x4000, { .fields = { 56, 24 } }, -64, 64, 0, { .fields = { 96, 232 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_dryfield_factory_80188F10[7] = {
+/// Sprite ranges for mapped view 16, after an image-preserving header and before the end marker.
+static SpriteBatch _gDryfieldFactoryView16SpriteBatches[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 3, 0, 0, { 4, 0 } },
     { 3, 7, 0, 0, { 1, 0 } },
     { 10, 15, 0, 0, { 3, 0 } },
     { 25, 4, 0, 0, { 2, 0 } },
-    { 29, 3, 0, 0, { 0, 0 } },
+    { 29, ARRAY_SIZE(_gDryfieldFactoryView16SpriteSources) - 29, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_factory_80188F48[40] = {
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 56, 96, 500, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 56, -32, 2250, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -80, -48, 2377, { .fields = { 0, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -80, -32, 2425, { .fields = { 0, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -80, -16, 2375, { .fields = { 32, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -56, -16, 2375, { .fields = { 56, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -32, -16, 2475, { .fields = { 16, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -48, -32, 2450, { .fields = { 0, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -64, -8, 1935, { .fields = { 24, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -40, -8, 1935, { .fields = { 32, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -16, -8, 1935, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 8, -8, 1935, { .fields = { 32, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, -64, -88, 1833, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -64, -24, 1982, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 8, -24, 1848, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, 8, -88, 1740, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 40, -88, 1710, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 64 } }, -32, -88, 1791, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -8, -88, 1791, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -32, -24, 1911, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -8, -24, 1911, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, 56, -88, 1675, { .fields = { 16, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 56, -56, 1675, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 80, -56, 1675, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 80, -16, 1779, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 56, -16, 1779, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 16, -8, 1792, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 16, -40, 1719, { .fields = { 32, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 16, -88, 1638, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -128, 80, 1200, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, -160, 40, 1200, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, -160, 56, 1200, { .fields = { 16, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, -160, 72, 1200, { .fields = { 16, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, -160, 88, 1200, { .fields = { 16, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 8 } }, -160, 104, 1200, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, -144, 48, 1200, { .fields = { 16, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, -144, 64, 1200, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, -144, 80, 1200, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, -144, 96, 1200, { .fields = { 16, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 16 } }, -128, 64, 1200, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped view 17, in batch-index order.
+static SpriteSource _gDryfieldFactoryView17SpriteSources[40] = {
+    { 143, 0x3FC0, { .fields = { 32, 24 } }, 56, 96, 500, { .fields = { 0, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, 56, -32, 2250, { .fields = { 56, 144 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -80, -48, 2377, { .fields = { 0, 200 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -80, -32, 2425, { .fields = { 0, 144 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -80, -16, 2375, { .fields = { 32, 232 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -56, -16, 2375, { .fields = { 56, 232 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -32, -16, 2475, { .fields = { 16, 24 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -48, -32, 2450, { .fields = { 0, 232 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -64, -8, 1935, { .fields = { 24, 96 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -40, -8, 1935, { .fields = { 32, 200 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -16, -8, 1935, { .fields = { 32, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 8, -8, 1935, { .fields = { 32, 136 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 64 } }, -64, -88, 1833, { .fields = { 96, 128 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, -64, -24, 1982, { .fields = { 72, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, 8, -24, 1848, { .fields = { 80, 192 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 64 } }, 8, -88, 1740, { .fields = { 96, 64 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 40, -88, 1710, { .fields = { 80, 144 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 64 } }, -32, -88, 1791, { .fields = { 104, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, -8, -88, 1791, { .fields = { 112, 192 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, -32, -24, 1911, { .fields = { 72, 96 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -8, -24, 1911, { .fields = { 64, 48 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 32 } }, 56, -88, 1675, { .fields = { 16, 168 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, 56, -56, 1675, { .fields = { 56, 192 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 80, -56, 1675, { .fields = { 56, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 80, -16, 1779, { .fields = { 48, 40 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, 56, -16, 1779, { .fields = { 48, 96 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 16, -8, 1792, { .fields = { 32, 64 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 16, -40, 1719, { .fields = { 32, 32 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 16, -88, 1638, { .fields = { 80, 48 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x4000, { .fields = { 8, 8 } }, -128, 80, 1200, { .fields = { 64, 40 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x4000, { .fields = { 16, 16 } }, -160, 40, 1200, { .fields = { 96, 240 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x4000, { .fields = { 16, 16 } }, -160, 56, 1200, { .fields = { 16, 48 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x4000, { .fields = { 16, 16 } }, -160, 72, 1200, { .fields = { 16, 64 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x4000, { .fields = { 16, 16 } }, -160, 88, 1200, { .fields = { 16, 80 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x4000, { .fields = { 16, 8 } }, -160, 104, 1200, { .fields = { 56, 136 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x4000, { .fields = { 16, 16 } }, -144, 48, 1200, { .fields = { 16, 128 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x4000, { .fields = { 16, 16 } }, -144, 64, 1200, { .fields = { 48, 80 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x4000, { .fields = { 16, 16 } }, -144, 80, 1200, { .fields = { 80, 240 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x4000, { .fields = { 16, 16 } }, -144, 96, 1200, { .fields = { 16, 216 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x4000, { .fields = { 8, 16 } }, -128, 64, 1200, { .fields = { 96, 48 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_dryfield_factory_80189268[8] = {
+/// Sprite ranges for mapped view 17, after an image-preserving header and before the end marker.
+static SpriteBatch _gDryfieldFactoryView17SpriteBatches[8] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 1, 0 } },
     { 1, 7, 0, 0, { 4, 0 } },
     { 8, 4, 0, 0, { 3, 0 } },
     { 12, 14, 0, 0, { 5, 0 } },
     { 26, 3, 0, 0, { 2, 0 } },
-    { 29, 11, 0, 0, { 0, 0 } },
+    { 29, ARRAY_SIZE(_gDryfieldFactoryView17SpriteSources) - 29, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_factory_801892A8[17] = {
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -56, 40, 1300, { .fields = { 8, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, -56, 48, 1750, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, -56, 64, 1750, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 8, 1325, { .fields = { 40, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 8, 1325, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 16, 1312, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 16, 1320, { .fields = { 32, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 24, 1322, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 24, 1315, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 32, 1300, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 32, 1362, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 40, 1375, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 40, 1312, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -40, 40, 1275, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 32, 1282, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 24, 1287, { .fields = { 56, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 216 } }, -112, -120, 500, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped view 18, in batch-index order.
+static SpriteSource _gDryfieldFactoryView18SpriteSources[17] = {
+    { 143, 0x3FC0, { .fields = { 48, 8 } }, -56, 40, 1300, { .fields = { 8, 224 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 16 } }, -56, 48, 1750, { .fields = { 56, 216 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 16 } }, -56, 64, 1750, { .fields = { 80, 232 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 8, 1325, { .fields = { 40, 216 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 8, 1325, { .fields = { 48, 248 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 16, 1312, { .fields = { 40, 232 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 16, 1320, { .fields = { 32, 8 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 24, 1322, { .fields = { 40, 240 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 24, 1315, { .fields = { 32, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 32, 1300, { .fields = { 96, 248 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 32, 1362, { .fields = { 80, 248 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 40, 1375, { .fields = { 112, 248 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 40, 1312, { .fields = { 64, 248 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -40, 40, 1275, { .fields = { 104, 216 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 32, 1282, { .fields = { 56, 240 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 24, 1287, { .fields = { 56, 232 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 80, 216 } }, -112, -120, 500, { .fields = { 48, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_dryfield_factory_801893FC[6] = {
+/// Sprite ranges for mapped view 18, after an image-preserving header and before the end marker.
+static SpriteBatch _gDryfieldFactoryView18SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 3, 0, 0, { 3, 0 } },
     { 3, 10, 0, 0, { 0, 0 } },
     { 13, 3, 0, 0, { 2, 0 } },
-    { 16, 1, 0, 0, { 1, 0 } },
+    { 16, ARRAY_SIZE(_gDryfieldFactoryView18SpriteSources) - 16, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_factory_8018942C[17] = {
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -56, 40, 1300, { .fields = { 8, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, -56, 48, 1750, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, -56, 64, 1750, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 8, 1325, { .fields = { 40, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 8, 1325, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 16, 1312, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 16, 1320, { .fields = { 32, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 24, 1322, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 24, 1315, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 32, 1300, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 32, 1362, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 40, 1375, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 40, 1312, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -40, 40, 1275, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 32, 1282, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 24, 1287, { .fields = { 56, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 216 } }, -112, -120, 500, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped view 19, in batch-index order.
+static SpriteSource _gDryfieldFactoryView19SpriteSources[17] = {
+    { 143, 0x3FC0, { .fields = { 48, 8 } }, -56, 40, 1300, { .fields = { 8, 224 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 16 } }, -56, 48, 1750, { .fields = { 56, 216 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 16 } }, -56, 64, 1750, { .fields = { 80, 232 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 8, 1325, { .fields = { 40, 216 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 8, 1325, { .fields = { 48, 248 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 16, 1312, { .fields = { 40, 232 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 16, 1320, { .fields = { 32, 8 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 24, 1322, { .fields = { 40, 240 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 24, 1315, { .fields = { 32, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 32, 1300, { .fields = { 96, 248 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 32, 1362, { .fields = { 80, 248 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 40, 1375, { .fields = { 112, 248 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 40, 1312, { .fields = { 64, 248 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -40, 40, 1275, { .fields = { 104, 216 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 32, 1282, { .fields = { 56, 240 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 24, 1287, { .fields = { 56, 232 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 80, 216 } }, -112, -120, 500, { .fields = { 48, 0 } }, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_FACTORY_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_dryfield_factory_80189580[6] = {
+/// Sprite ranges for mapped view 19, after an image-preserving header and before the end marker.
+static SpriteBatch _gDryfieldFactoryView19SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 3, 0, 0, { 3, 0 } },
     { 3, 10, 0, 0, { 0, 0 } },
     { 13, 3, 0, 0, { 2, 0 } },
-    { 16, 1, 0, 0, { 1, 0 } },
+    { 16, ARRAY_SIZE(_gDryfieldFactoryView19SpriteSources) - 16, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_dryfield_factory_801895B0[19] = {
+SpriteView gDryfieldFactorySpriteViews[DRYFIELD_FACTORY_MAPPED_VIEW_COUNT] = {
     { { .empty = _gDryfieldFactoryView1SpriteBatches }, _gDryfieldFactoryView1SpriteBatches, NULL },
     { { .elements = _gDryfieldFactoryView2SpriteSources }, _gDryfieldFactoryView2SpriteBatches, NULL },
     { { .elements = _gDryfieldFactoryView3SpriteSources }, _gDryfieldFactoryView3SpriteBatches, NULL },
@@ -627,18 +645,18 @@ SpriteView D_dryfield_factory_801895B0[19] = {
     { { .elements = _gDryfieldFactoryView8SpriteSources }, _gDryfieldFactoryView8SpriteBatches, NULL },
     { { .elements = _gDryfieldFactoryView9SpriteSources }, _gDryfieldFactoryView9SpriteBatches, NULL },
     { { .empty = _gDryfieldFactoryView10SpriteBatches }, _gDryfieldFactoryView10SpriteBatches, NULL },
-    { { .elements = D_dryfield_factory_80188368 }, D_dryfield_factory_8018837C, NULL },
-    { { .empty = D_dryfield_factory_80188394 }, D_dryfield_factory_80188394, NULL },
-    { { .elements = D_dryfield_factory_801883A4 }, D_dryfield_factory_801884A8, NULL },
-    { { .elements = D_dryfield_factory_801884D8 }, D_dryfield_factory_801885C8, NULL },
-    { { .elements = D_dryfield_factory_801885F0 }, D_dryfield_factory_80188C58, NULL },
-    { { .elements = D_dryfield_factory_80188C90 }, D_dryfield_factory_80188F10, NULL },
-    { { .elements = D_dryfield_factory_80188F48 }, D_dryfield_factory_80189268, NULL },
-    { { .elements = D_dryfield_factory_801892A8 }, D_dryfield_factory_801893FC, NULL },
-    { { .elements = D_dryfield_factory_8018942C }, D_dryfield_factory_80189580, NULL },
+    { { .elements = _gDryfieldFactoryView11SpriteSources }, _gDryfieldFactoryView11SpriteBatches, NULL },
+    { { .empty = _gDryfieldFactoryView12SpriteBatches }, _gDryfieldFactoryView12SpriteBatches, NULL },
+    { { .elements = _gDryfieldFactoryView13SpriteSources }, _gDryfieldFactoryView13SpriteBatches, NULL },
+    { { .elements = _gDryfieldFactoryView14SpriteSources }, _gDryfieldFactoryView14SpriteBatches, NULL },
+    { { .elements = _gDryfieldFactoryView15SpriteSources }, _gDryfieldFactoryView15SpriteBatches, NULL },
+    { { .elements = _gDryfieldFactoryView16SpriteSources }, _gDryfieldFactoryView16SpriteBatches, NULL },
+    { { .elements = _gDryfieldFactoryView17SpriteSources }, _gDryfieldFactoryView17SpriteBatches, NULL },
+    { { .elements = _gDryfieldFactoryView18SpriteSources }, _gDryfieldFactoryView18SpriteBatches, NULL },
+    { { .elements = _gDryfieldFactoryView19SpriteSources }, _gDryfieldFactoryView19SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_dryfield_factory_80189694[14] = {
+WorldCollisionTrigger gDryfieldFactoryViewBoundaryTriggers[14] = {
     { NULL, NULL, NULL, { 3021, -2368, 1935, 0 }, { { -32, -2976, -2293, 0 }, { -32, 2976, -2293, 0 }, { 31, -2976, 2292, 0 }, { 31, 2976, 2292, 0 } }, { -4100, 0, 55, 0 }, { 0, 0, 4096, 0 }, 3753, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 2704, -2368, 1920, 0 }, { { 26, -2976, 2404, 0 }, { 26, 2976, 2404, 0 }, { -27, -2976, -2405, 0 }, { -27, 2976, -2405, 0 } }, { 4097, 0, -46, 0 }, { 0, 0, 4096, 0 }, 3822, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 1312, -2304, 5840, 0 }, { { 1616, -2976, 160, 0 }, { 1616, 2976, 160, 0 }, { -1616, -2976, -160, 0 }, { -1616, 2976, -160, 0 } }, { 405, 0, -4100, 0 }, { 0, 0, 4096, 0 }, 3386, 0, 4, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -655,17 +673,35 @@ WorldCollisionTrigger D_dryfield_factory_80189694[14] = {
     { NULL, NULL, NULL, { 5008, -2112, 4160, 0 }, { { -1600, -2976, 0, 0 }, { -1600, 2976, 0, 0 }, { 1600, -2976, 0, 0 }, { 1600, 2976, 0, 0 } }, { 0, 0, 4107, 0 }, { 0, 0, 4096, 0 }, 3376, 0, 6, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_factory_80189ABC[20] = {
-    { NULL, NULL, NULL, { 5344, -48, 1232, 0 }, { { -416, 0, -720, 0 }, { 416, 0, -720, 0 }, { -416, 0, 720, 0 }, { 416, 0, 720, 0 } }, { 0, 4101, 0, 0 }, { -4096, 0, 0, 0 }, 829, WORLD_COLLISION_TRIGGER_ACTION_WARP, 25, 17, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5744, -64, 0x2B50, 0 }, { { -672, 0, -928, 0 }, { 672, 0, -928, 0 }, { -672, 0, 928, 0 }, { 672, 0, 928, 0 } }, { 0, 4108, 0, 0 }, { -3857, 0, -1380, 0 }, 1144, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 464, -64, 512, 0 }, { { -688, 0, -672, 0 }, { 688, 0, -672, 0 }, { -688, 0, 672, 0 }, { 688, 0, 672, 0 } }, { 0, 4101, 0, 0 }, { 4096, 0, 0, 0 }, 960, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5856, -64, 5488, 0 }, { { -496, 0, -464, 0 }, { 496, 0, -464, 0 }, { -496, 0, 464, 0 }, { 496, 0, 464, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 677, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5904, -64, 3968, 0 }, { { -1264, 0, -416, 0 }, { 1264, 0, -416, 0 }, { -1264, 0, 416, 0 }, { 1264, 0, 416, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, -4096, 0 }, 1330, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5920, 0, 4816, 0 }, { { -1264, 0, -448, 0 }, { 1264, 0, -448, 0 }, { -1264, 0, 448, 0 }, { 1264, 0, 448, 0 } }, { 0, 4114, 0, 0 }, { 0, 0, 4096, 0 }, 1336, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 464, -48, 7424, 0 }, { { -448, 0, -848, 0 }, { 448, 0, -848, 0 }, { -448, 0, 848, 0 }, { 448, 0, 848, 0 } }, { 0, 4101, 0, 0 }, { 4096, 0, 0, 0 }, 957, WORLD_COLLISION_TRIGGER_ACTION_WARP, 22, 34, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5456, -48, 7056, 0 }, { { -512, 0, -928, 0 }, { 512, 0, -928, 0 }, { -512, 0, 928, 0 }, { 512, 0, 928, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 1055, WORLD_COLLISION_TRIGGER_ACTION_WARP, 24, 49, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1568, -64, 7104, 0 }, { { -368, 0, -720, 0 }, { 368, 0, -720, 0 }, { -368, 0, 720, 0 }, { 368, 0, 720, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 807, WORLD_COLLISION_TRIGGER_ACTION_CAP, 12, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3984, -64, 0x2850, 0 }, { { -320, 0, -1360, 0 }, { 320, 0, -1360, 0 }, { -320, 0, 1360, 0 }, { 320, 0, 1360, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 1396, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+/// Room message commands and the automatic action selected by these triggers.
+enum {
+    DRYFIELD_FACTORY_TRIGGER_CAP_SCENE          = 1,
+    DRYFIELD_FACTORY_TRIGGER_BARRIER_TRANSITION = 2,
+    DRYFIELD_FACTORY_TRIGGER_LAMP_SCENE         = 3,
+    DRYFIELD_FACTORY_TRIGGER_POWER_SCENE        = 5,
+    DRYFIELD_FACTORY_TRIGGER_PANEL_SESSION      = 6,
+    DRYFIELD_FACTORY_TRIGGER_HATCH_SCENE        = 12,
+    DRYFIELD_FACTORY_TRIGGER_AUTOMATIC_SCENE    = 1,
+};
+
+/// Packed 1-based departure/arrival slots for the three factory exits.
+enum {
+    DRYFIELD_FACTORY_DRIVEWAY_WARP_SLOTS  = (1 << 4) | 1,
+    DRYFIELD_FACTORY_BREEZEWAY_WARP_SLOTS = (2 << 4) | 2,
+    DRYFIELD_FACTORY_GARAGE_WARP_SLOTS    = (3 << 4) | 1,
+};
+
+WorldCollisionTrigger gDryfieldFactoryActionTriggers[20] = {
+    { NULL, NULL, NULL, { 5344, -48, 1232, 0 }, { { -416, 0, -720, 0 }, { 416, 0, -720, 0 }, { -416, 0, 720, 0 }, { 416, 0, 720, 0 } }, { 0, 4101, 0, 0 }, { -4096, 0, 0, 0 }, 829, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_DRIVEWAY, DRYFIELD_FACTORY_DRIVEWAY_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5744, -64, 0x2B50, 0 }, { { -672, 0, -928, 0 }, { 672, 0, -928, 0 }, { -672, 0, 928, 0 }, { 672, 0, 928, 0 } }, { 0, 4108, 0, 0 }, { -3857, 0, -1380, 0 }, 1144, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_FACTORY_TRIGGER_POWER_SCENE, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 464, -64, 512, 0 }, { { -688, 0, -672, 0 }, { 688, 0, -672, 0 }, { -688, 0, 672, 0 }, { 688, 0, 672, 0 } }, { 0, 4101, 0, 0 }, { 4096, 0, 0, 0 }, 960, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_FACTORY_TRIGGER_PANEL_SESSION, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5856, -64, 5488, 0 }, { { -496, 0, -464, 0 }, { 496, 0, -464, 0 }, { -496, 0, 464, 0 }, { 496, 0, 464, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 677, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_FACTORY_TRIGGER_LAMP_SCENE, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5904, -64, 3968, 0 }, { { -1264, 0, -416, 0 }, { 1264, 0, -416, 0 }, { -1264, 0, 416, 0 }, { 1264, 0, 416, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, -4096, 0 }, 1330, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_FACTORY_TRIGGER_CAP_SCENE, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5920, 0, 4816, 0 }, { { -1264, 0, -448, 0 }, { 1264, 0, -448, 0 }, { -1264, 0, 448, 0 }, { 1264, 0, 448, 0 } }, { 0, 4114, 0, 0 }, { 0, 0, 4096, 0 }, 1336, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_FACTORY_TRIGGER_BARRIER_TRANSITION, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 464, -48, 7424, 0 }, { { -448, 0, -848, 0 }, { 448, 0, -848, 0 }, { -448, 0, 848, 0 }, { 448, 0, 848, 0 } }, { 0, 4101, 0, 0 }, { 4096, 0, 0, 0 }, 957, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_BREEZEWAY, DRYFIELD_FACTORY_BREEZEWAY_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5456, -48, 7056, 0 }, { { -512, 0, -928, 0 }, { 512, 0, -928, 0 }, { -512, 0, 928, 0 }, { 512, 0, 928, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 1055, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_GARAGE, DRYFIELD_FACTORY_GARAGE_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1568, -64, 7104, 0 }, { { -368, 0, -720, 0 }, { 368, 0, -720, 0 }, { -368, 0, 720, 0 }, { 368, 0, 720, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 807, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_FACTORY_TRIGGER_HATCH_SCENE, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3984, -64, 0x2850, 0 }, { { -320, 0, -1360, 0 }, { 320, 0, -1360, 0 }, { -320, 0, 1360, 0 }, { 320, 0, 1360, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 1396, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, DRYFIELD_FACTORY_TRIGGER_AUTOMATIC_SCENE, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
     { NULL, NULL, NULL, { 3728, -64, 2528, 0 }, { { -448, 0, -656, 0 }, { 448, 0, -656, 0 }, { -448, 0, 656, 0 }, { 448, 0, 656, 0 } }, { 0, 4106, 0, 0 }, { -4096, 0, 0, 0 }, 794, WORLD_COLLISION_TRIGGER_ACTION_CAP, 15, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 4928, -64, 992, 0 }, { { -784, 0, -320, 0 }, { 784, 0, -320, 0 }, { -784, 0, 320, 0 }, { 784, 0, 320, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, 4096, 0 }, 846, WORLD_COLLISION_TRIGGER_ACTION_CAP, 17, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 3272, -64, 128, 0 }, { { -1592, 0, -32, 0 }, { 1064, 0, -32, 0 }, { -792, 0, 1280, 0 }, { 1064, 0, 1280, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 1664, WORLD_COLLISION_TRIGGER_ACTION_CAP, 16, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
@@ -792,9 +828,23 @@ WorldCollisionSurfaceProperties* gDryfieldFactorySurfaceClasses[8] = {
     &_gDryfieldFactorySolidSurface,
 };
 
-PadScriptCmd gFactoryDayJoltCmds[3] = { { 0x201, 1 }, { 0, 0x101 }, { 0, 0 } };
+enum {
+    DRYFIELD_FACTORY_JOLT_VARIABLE_PEAK_SEGMENT  = 0,
+    DRYFIELD_FACTORY_JOLT_VARIABLE_DECAY_SEGMENT = 1,
+    DRYFIELD_FACTORY_JOLT_BINARY_SEGMENT         = 2,
+};
 
-PadScriptVibrationSegment gFactoryDayJoltRecs[3] = { { 255, 255, 8, 1 }, { 150, 80, 20, 1 }, { 0, 0, 5, 0 } };
+PadScriptCmd gDryfieldFactoryLiftJoltCommands[3] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, DRYFIELD_FACTORY_JOLT_BINARY_SEGMENT), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, DRYFIELD_FACTORY_JOLT_VARIABLE_PEAK_SEGMENT) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, DRYFIELD_FACTORY_JOLT_VARIABLE_DECAY_SEGMENT) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+};
+
+PadScriptVibrationSegment gDryfieldFactoryLiftJoltSegments[3] = {
+    [DRYFIELD_FACTORY_JOLT_VARIABLE_PEAK_SEGMENT]  = { 255, 255, 8, 1 },
+    [DRYFIELD_FACTORY_JOLT_VARIABLE_DECAY_SEGMENT] = { 150, 80, 20, 1 },
+    [DRYFIELD_FACTORY_JOLT_BINARY_SEGMENT]         = { 0, 0, 5, 0 },
+};
 
 /// Snapshot of the accepted transition for the deferred room event.
 ///
@@ -823,32 +873,52 @@ RoomEventReq gRoomEventReq = { 0 };
 
 #include "../../shared/factory_panel_spawn.inc.c"
 
-/// State handlers of the room entry task, indexed by `Task::state`: the set-up
-/// tick, the idle tick and `taskKill`.
+/// Factory room-entry lifecycle handlers, indexed by `Task::state`.
+///
+/// Setup registers the room and owns the panel-task slot; run retains it for
+/// room messages; teardown releases the task and its work. Dispatch copies
+/// all three callbacks and requires a `FACTORY_TASK_STATE_` selector.
 static const TaskFuncTable3 _gFactoryEntryStates = {
-    { _factoryRoomInit, _factoryEntryIdle, taskKill },
+    { [FACTORY_TASK_STATE_SETUP]    = _factoryRoomInit,
+      [FACTORY_TASK_STATE_RUN]      = _factoryEntryIdle,
+      [FACTORY_TASK_STATE_TEARDOWN] = taskKill },
 };
 
 #include "../../shared/factory_ignore_message.inc.c"
 
 #include "../../shared/factory_command.inc.c"
 
-/// State handlers of the factory model task: set-up, the per-frame state and
-/// `taskKill`.
+/// Lift-model lifecycle handlers, indexed by `Task::state`.
+///
+/// Setup owns the motion work and spawns the hatch; run follows lift-position
+/// requests and updates the model and collision; teardown releases the task.
+/// Dispatch copies all three callbacks and requires a `FACTORY_TASK_STATE_` selector.
 static const TaskFuncTable3 _gFactoryLiftStates = {
-    { _factoryLiftInit, _factoryLiftUpdate, taskKill },
+    { [FACTORY_TASK_STATE_SETUP]    = _factoryLiftInit,
+      [FACTORY_TASK_STATE_RUN]      = _factoryLiftUpdate,
+      [FACTORY_TASK_STATE_TEARDOWN] = taskKill },
 };
 
-/// State handlers of the cutscene task: set-up, the cutscene sequence and
-/// `taskKill`.
+/// Hatch-model lifecycle handlers, indexed by `Task::state`.
+///
+/// Setup parents the hatch to the lift and owns its swing work; run dispatches
+/// the work's separate movement state; teardown releases the task and work.
+/// Dispatch copies all three callbacks and requires a `FACTORY_TASK_STATE_` selector.
 static const TaskFuncTable3 _gFactoryHatchTaskStates = {
-    { _factoryHatchInit, _factoryHatchUpdate, taskKill },
+    { [FACTORY_TASK_STATE_SETUP]    = _factoryHatchInit,
+      [FACTORY_TASK_STATE_RUN]      = _factoryHatchUpdate,
+      [FACTORY_TASK_STATE_TEARDOWN] = taskKill },
 };
 
-/// The cutscene sequence's handlers: the flag watcher of state 0 and the two
-/// movements it arms.
+/// Hatch watch/open/close handlers, indexed by `FactoryHatchWork::state`.
+///
+/// WATCH arms swings on hatch-flag edges and returns zero. A movement's
+/// nonzero result returns the dispatcher to WATCH. The complete table is
+/// copied each frame; the selector must be a `FACTORY_HATCH_STATE_` value.
 static const FactoryHatchStateFuncTable _gFactoryHatchStates = {
-    { _factoryHatchWatch, _factoryHatchOpen, _factoryHatchClose },
+    { [FACTORY_HATCH_STATE_WATCH] = _factoryHatchWatch,
+      [FACTORY_HATCH_STATE_OPEN]  = _factoryHatchOpen,
+      [FACTORY_HATCH_STATE_CLOSE] = _factoryHatchClose },
 };
 
 #include "../../shared/factory_sound_command.inc.c"

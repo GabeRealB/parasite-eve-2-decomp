@@ -922,10 +922,15 @@ SpriteBatch gDryfieldNightFactoryView18And19SpriteBatches[] = {
 
 #include "../../shared/room_event_task.inc.c"
 
-/// State handlers of the room entry task: set-up, an empty tick and
-/// `taskKill`.
+/// Factory room-entry lifecycle handlers, indexed by `Task::state`.
+///
+/// Setup registers the room and owns the panel-task slot; run retains it for
+/// room messages; teardown releases the task and its work. Dispatch copies
+/// all three callbacks and requires a `FACTORY_TASK_STATE_` selector.
 static const TaskFuncTable3 _gFactoryEntryStates = {
-    { _factoryRoomInit, _factoryEntryIdle, taskKill },
+    { [FACTORY_TASK_STATE_SETUP]    = _factoryRoomInit,
+      [FACTORY_TASK_STATE_RUN]      = _factoryEntryIdle,
+      [FACTORY_TASK_STATE_TEARDOWN] = taskKill },
 };
 
 #include "../../shared/factory_room_init.inc.c"

@@ -38,6 +38,16 @@
 
 #include "dryfield_time.h"
 
+/// Lifecycle slots in the room-entry, lift and hatch task handler tables.
+///
+/// Task state advances from setup to run; teardown calls `taskKill`.
+/// This selector is independent of the hatch work's movement state.
+enum {
+    FACTORY_TASK_STATE_SETUP = 0,
+    FACTORY_TASK_STATE_RUN,
+    FACTORY_TASK_STATE_TEARDOWN,
+};
+
 /// Values of `FactoryHatchWork::state`: the slot of the hatch's handler table
 /// that runs this frame.
 enum {
@@ -265,20 +275,39 @@ extern TaskMessageEntry gFactoryMsgTable[6];
 /// terminal entry is retained but is never spawned by the command handler.
 extern TaskDesc gFactoryPanelSessionDesc[2];
 #endif
-/// The spawn table and panel descriptor picked for this stage, and the slot
-/// holding the panel task.
+/// Borrowed eight-entry factory task descriptor table selected at room setup.
+///
+/// Runtime stage picks the day table for daytime Dryfield, the night table
+/// otherwise. Slots 0..7 are power, lamp, CAP, barrier transition, lift,
+/// barrier collision, hatch scene and hatch model. Room commands use 0..3 and
+/// 6; room setup uses 4..5. NULL before setup; keep the selected overlay and
+/// its callbacks and model resources loaded while spawning or running tasks.
 extern TaskDesc* gFactorySpawnTable;
+
+/// Borrowed operator-panel task descriptor selected at factory room setup.
+///
+/// Runtime stage picks the single day or night panel descriptor.
+/// The panel spawner reads entry 0 synchronously; NULL before room setup.
+/// Keep the selected overlay loaded while its panel task can run.
 extern TaskDesc* gFactoryPanelDesc;
-extern Task**    gFactoryPanelSlot;
+
+/// Room-owned one-pointer slot shared by the lift and panel-session poller.
+///
+/// Room setup allocates a zeroed `Task*`, stores the allocation in `Task::work`
+/// and publishes its address here; teardown releases that allocation. The
+/// lift borrows the slot in `spawnArg2.pointer`, and the poller writes and
+/// polls the panel task stored there. The allocation must outlive both users.
+/// Panel teardown leaves the stored pointer unchanged; it does not guarantee
+/// that a non-NULL value still denotes a live panel. NULL before room setup,
+/// and this global itself is not cleared when the room releases its work.
+extern Task** gFactoryPanelSlot;
 /* The room is built once per stage, day (stage 2) and night, from the same
  * source. Each build defines its own spawn table, collision grid, jolt script,
  * panel descriptor and view-sprite routines, and names the other build's by
  * address; the code picks between the two by stage. */
 extern TaskDesc                  gFactoryNightSpawnTable[];
 extern TaskDesc                  gFactoryNightPanelDesc[];
-extern PadScriptCmd              gFactoryDayJoltCmds[3];
 extern PadScriptCmd              gFactoryNightJoltCmds[3];
-extern PadScriptVibrationSegment gFactoryDayJoltRecs[3];
 extern PadScriptVibrationSegment gFactoryNightJoltRecs[3];
 
 /// Binds the factory glow callback definition to this carrier's exported task.

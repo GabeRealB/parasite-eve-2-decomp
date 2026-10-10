@@ -36,7 +36,7 @@ static s32 _factoryLiftJamTurnBack(Task* task)
             if (work->yaw.word < FACTORY_LIFT_JAM_YAW_BACK) {
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     sndEvtRequestStageScriptStart(SOUND_FACTORY_LIFT_JAM, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-                    padScriptSpawn(gFactoryDayJoltCmds, gFactoryDayJoltRecs);
+                    padScriptSpawn(gDryfieldFactoryLiftJoltCommands, gDryfieldFactoryLiftJoltSegments);
                 } else {
                     sndEvtRequestStageScriptStart(SOUND_NIGHT_FACTORY_LIFT_JAM, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                     padScriptSpawn(gFactoryNightJoltCmds, gFactoryNightJoltRecs);

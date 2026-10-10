@@ -13,9 +13,23 @@
 
 #include "main/task_types.h"
 
-extern WorldCollisionTrigger D_dryfield_factory_80189694[14];
+/// Directed camera-change quads shared by both daytime factory room variants.
+///
+/// Fourteen records form seven paired boundaries between logical views
+/// 2/3, 4/7, 7/8, 4/6, 8/9, 3/4 and 2/6. The LAST-marked final record is a
+/// live boundary. Room activation binds their coordinates and mutable list
+/// links; keep this overlay loaded until they have been unlinked.
+extern WorldCollisionTrigger gDryfieldFactoryViewBoundaryTriggers[14];
 
-extern WorldCollisionTrigger D_dryfield_factory_80189ABC[20];
+/// Interaction quads shared by both daytime factory room variants.
+///
+/// The twenty live records request driveway/breezeway/garage warps, room
+/// commands, CAP playback or an automatic room action. Geometry uses room
+/// coordinates, with 4096 per unit normal. The final record carries LAST;
+/// activation supplies the view coordinate, links and enables the records.
+/// Their hit latches and links are mutable and require this overlay to stay
+/// loaded until the action list is cleared.
+extern WorldCollisionTrigger gDryfieldFactoryActionTriggers[20];
 
 /// The daytime factory's shared collection of five mutable point lights, with no directional or cone lights.
 ///
