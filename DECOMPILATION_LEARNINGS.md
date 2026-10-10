@@ -81319,7 +81319,7 @@ Preprocessed SHA256:
 ## A lone `addiu r,r,-1` after a scan loop is the delay-slot writeback, not a source decrement
 
 `_actor136100CopyPlayerSceneAnimations` walks the null-terminated pointer table at
-`D_actor_136100_8013F180`, counts its live entries, and sends the table and
+`_gActor136100PlayerSceneAnimationSets`, counts its live entries, and sends the table and
 count as message `0x3F7`. The target's loop tail is:
 
 ```
@@ -81345,8 +81345,8 @@ long (32 vs 31, `insert=1`, everything else zero):
 
 ```c
 n = 0;                                  /* do/while: two -1, 96.8% */
-if (D_actor_136100_8013F180 != 0) {
-    do { n += 1; } while (D_actor_136100_8013F180[n & 0xFFFF] != 0);
+if (_gActor136100PlayerSceneAnimationSets != 0) {
+    do { n += 1; } while (_gActor136100PlayerSceneAnimationSets[n & 0xFFFF] != 0);
     n = n - 1;
 }
 ```
@@ -81356,7 +81356,7 @@ guard statement in front of it:
 
 ```c
 n = 0;
-while (D_actor_136100_8013F180[n & 0xFFFF] != 0) {
+while (_gActor136100PlayerSceneAnimationSets[n & 0xFFFF] != 0) {
     n += 1;
 }
 msg.wordCount = n & 0xFFFF;             /* one -1, 100% */

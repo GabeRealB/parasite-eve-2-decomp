@@ -372,7 +372,16 @@ extern TaskDesc gActor451100QuietWalkTaskDesc;
 /// while the spawned tasks use them.
 extern TaskDesc gActor135400FlintTaskDesc;
 
-extern TaskDesc D_actor_136100_80140744[];
+/// Gary Douglas night Main Street spawn recipes: body, unused, head, rifle, fade-in, fade-out.
+///
+/// All six slots have priority 192 and no terminator; never spawn unused slot 1.
+/// Slots 0, 2 and 3 create TMD bodies with manually allocated primitive buffers.
+/// Head/rifle argument 2 borrows a live parent coordinate; nonzero rifle argument
+/// 1 selects its attached pose. Fade slots 4/5 are bodyless and take an unsigned
+/// low-halfword intensity increment per tick in argument 1, normally 9.
+/// Keep actor_136100 and the night Main Street scene resources loaded while
+/// these tasks run; head and rifle initialization require the live body singleton.
+extern TaskDesc gActor136100SceneTaskDescriptors[6];
 
 /// First scripted walker TMD recipe, priority 192 with automatic model buffers.
 ///

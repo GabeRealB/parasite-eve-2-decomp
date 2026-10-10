@@ -1649,7 +1649,7 @@ AreaResource D_dryfield_night_main_street_801889B4[3] = {
 };
 
 AreaResource D_dryfield_night_main_street_801889D8[2] = {
-    { 106, 361, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_136100_80140744 },
+    { 106, 361, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor136100SceneTaskDescriptors },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

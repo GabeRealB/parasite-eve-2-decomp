@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -11,6 +13,7 @@
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/attachment_state.h"
+#include "gameplay/captions.h"
 #include "gameplay/attachments.h"
 #include "gameplay/actor_presentation.h"
 #include "gameplay/gameflag.h"
@@ -51,9 +54,15 @@ static void _screenFadeInTask(Task* task);
 #include "../../shared/screen_fade.h"
 #include "../../shared/actor_messages.h"
 
-extern ActorTransform D_actor_136100_8013F334[2];
-
-extern ActorTransform D_actor_136100_8013F304[2];
+/// Start placement and walk destination for a player's street-scene entrance.
+///
+/// Positions use the player's root-parent coordinate frame in game units;
+/// Euler angles use 4096 units per turn. Messages consume the records synchronously.
+typedef struct {
+    ActorTransform start;       // Placement applied before starting the walk
+    ActorTransform destination; // Walk target, also used by scene resets or follow-up staging
+} _Actor136100PlayerEntrance;
+STATIC_ASSERT_SIZEOF(_Actor136100PlayerEntrance, 2 * sizeof(ActorTransform));
 
 /// Which of its two scenes the actor stages, held in `_Actor136100Work::scene`.
 ///
@@ -187,55 +196,10 @@ typedef struct {
 } _Actor136100Work;
 STATIC_ASSERT_SIZEOF(_Actor136100Work, 0x4F0);
 
-/// Set by `_actor136100RestoreDisplay` when the cutscene wants the display
-/// back on; while it is non-zero the fade task kills itself instead of fading.
-extern u16 D_actor_136100_8013F17C;
-
-/// Next-animation table indexed by `playerAnimation` - 0x2F; negative entries end
-/// the chain, and live entries are sent as animation ids with 0x2F added.
-extern s16 D_actor_136100_8013F1EC[];
-
-/// Next animation indexed by `bodyAnimation`; negative entries skip the restart.
-extern s16 D_actor_136100_8013F1FC[];
-
-/// The actor's six-entry task table, spawned from by index: 0 is the actor
-/// itself, 2 and 3 the tasks kept in `headTask` / `rifleTask`, 4 the fade-in and
-/// 5 the fade-out.
-extern TaskDesc D_actor_136100_80140744[];
-
-extern ActorTransform D_actor_136100_8013F3C4;
-extern ActorTransform D_actor_136100_8013F3DC;
-
-extern AnimationSet*          D_actor_136100_8013F180[8];
-extern AnimationSet*          D_actor_136100_8013F1A0[13];
-extern AnimationSet*          D_actor_136100_8013F1D4[6];
-extern s16                    D_actor_136100_8013F218[];
-extern SVECTOR                D_actor_136100_8013F224[4];
-extern SVECTOR                D_actor_136100_8013F244[16];
-extern WorldCollisionGridFace D_actor_136100_8013F2C4[4];
-// Message-table callbacks use the argument views required by this TU.
-
-extern TaskMessageEntry D_actor_136100_8013F2F4[2];
-extern ActorTransform   D_actor_136100_8013F364;
-extern ActorTransform   D_actor_136100_8013F37C;
-extern ActorTransform   D_actor_136100_8013F394;
-extern ActorTransform   D_actor_136100_8013F3AC;
-extern ActorTransform   D_actor_136100_8013F3F4;
-extern ActorTransform   D_actor_136100_8013F40C;
-extern ActorTransform   D_actor_136100_8013F424;
-extern ActorTransform   D_actor_136100_8013F43C;
-extern ActorTransform   D_actor_136100_8013F454;
-extern EvsCommand       D_actor_136100_8013F46C[];
-extern EvsCommand       D_actor_136100_8013F784[];
-extern EvsCommand       D_actor_136100_8013F94C[];
-extern EvsCommand       D_actor_136100_8013FAE4[];
-extern EvsCommand       D_actor_136100_8013FC64[];
-extern EvsCommand       D_actor_136100_8013FD84[];
-extern EvsCommand       D_actor_136100_80140114[];
-extern EvsCommand       D_actor_136100_801402C4[];
-extern EvsCommand       D_actor_136100_801404EC[];
-extern EvsCommand       D_actor_136100_8014063C[];
-extern Task*            D_actor_136100_8014078C;
+extern EvsCommand D_actor_136100_8013F46C[];
+extern EvsCommand D_actor_136100_8013F784[];
+extern EvsCommand D_actor_136100_8013FD84[];
+extern EvsCommand D_actor_136100_80140114[];
 
 static void _actor136100UpdateAfterBurnerBodyRequest(Task* task);
 static void _actor136100UpdateBeforeBurnerBodyRequest(Task* task);
@@ -928,9 +892,37 @@ static AnimationSet _gActor136100Animation0D334 = {
     { NULL, _gActor136100Animation0D334Bank1, NULL, NULL, _gActor136100Animation0D334Bank4, NULL, NULL, NULL },
 };
 
-u16 D_actor_136100_8013F17C = 0;
+/// No follow-on clip after the current animation settles.
+enum { ACTOR_136100_ANIMATION_CHAIN_END = -1 };
 
-AnimationSet* D_actor_136100_8013F180[8] = {
+/// CAP command slots and restored views for Gary Douglas's follow-up talks.
+enum {
+    ACTOR_136100_CAP_AFTER_BURNER_FIRST_FOLLOW_UP   = 13,
+    ACTOR_136100_CAP_AFTER_BURNER_REPEAT_FOLLOW_UP  = 14,
+    ACTOR_136100_CAP_BEFORE_BURNER_FIRST_FOLLOW_UP  = 16,
+    ACTOR_136100_CAP_BEFORE_BURNER_REPEAT_FOLLOW_UP = 17,
+    ACTOR_136100_AFTER_BURNER_FOLLOW_UP_VIEW        = 7,
+    ACTOR_136100_BEFORE_BURNER_FOLLOW_UP_VIEW       = 4,
+};
+
+/// Exactly this argument requests the before-Burner skip's head-rotation reset.
+enum { ACTOR_136100_RESET_HEAD_ROTATION = 1 };
+
+/// Execution priority shared by this package's scene and model/fade tasks.
+enum { ACTOR_136100_TASK_PRIORITY = 192 };
+
+/// Sticky cancellation latch for this load of the street scene's fade-out.
+///
+/// Zero until display restoration sets it to 1; it is never cleared during the
+/// overlay's lifetime. Fade-out checks it after drawing and advancing its ramp.
+static u16 _gActor136100FadeOutCancelled = 0;
+
+/// Seven player scene clips followed by a NULL installation terminator.
+///
+/// Copied as borrowed set pointers into the selected weapon bank at
+/// `ANIMATION_BANK_BASE_SET_COUNT`, giving IDs 47..53. The terminator is not
+/// copied. Keep this overlay's descriptors and clip data loaded through playback.
+static AnimationSet* _gActor136100PlayerSceneAnimationSets[8] = {
     &_gActor136100Animation0B234,
     &_gActor136100Animation0B590,
     &_gActor136100Animation0B7EC,
@@ -941,7 +933,11 @@ AnimationSet* D_actor_136100_8013F180[8] = {
     NULL,
 };
 
-AnimationSet* D_actor_136100_8013F1A0[13] = {
+/// Default set table for Gary Douglas's body rig in both street scenes.
+///
+/// Slot 0 is unused; slots 1..12 hold loaded clips for driven tracks 1..19.
+/// The rig borrows this table and its descriptors while the actor is live.
+static AnimationSet* _gActor136100BodyAnimationSets[13] = {
     NULL,
     &_gActor136100Animation09414,
     &_gActor136100Animation09754,
@@ -957,7 +953,11 @@ AnimationSet* D_actor_136100_8013F1A0[13] = {
     &_gActor136100Animation0A100,
 };
 
-AnimationSet* D_actor_136100_8013F1D4[6] = {
+/// Six companion scene clips addressed by set indices 0..5.
+///
+/// Installation/playback borrows this table without a terminator. Keep its
+/// descriptors and clip data loaded while the companion plays these sets.
+static AnimationSet* _gActor136100CompanionAnimationSets[6] = {
     &_gActor136100Animation0C954,
     &_gActor136100Animation0CBE4,
     &_gActor136100Animation0D334,
@@ -966,93 +966,176 @@ AnimationSet* D_actor_136100_8013F1D4[6] = {
     &_gActor136100Animation0CD74,
 };
 
-s16 D_actor_136100_8013F1EC[8] = {
-    -1,
-    -1,
-    -1,
+/// Relative follow-on clip indices for player scene IDs 47..53.
+///
+/// Indexed by the current ID minus `ANIMATION_BANK_BASE_SET_COUNT`.
+/// `ACTOR_136100_ANIMATION_CHAIN_END` leaves the settled pose; nonnegative
+/// values are relative to the same extension base.
+static s16 _gActor136100PlayerSceneAnimationSuccessors[7] = {
+    ACTOR_136100_ANIMATION_CHAIN_END,
+    ACTOR_136100_ANIMATION_CHAIN_END,
+    ACTOR_136100_ANIMATION_CHAIN_END,
     4,
-    -1,
-    0,
+    ACTOR_136100_ANIMATION_CHAIN_END,
     0,
     0,
 };
 
-s16 D_actor_136100_8013F1FC[14] = {
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
+/// Follow-on body set indices corresponding to the thirteen-slot body table.
+///
+/// Slot 0 is unused by playback. `ACTOR_136100_ANIMATION_CHAIN_END` leaves
+/// the settled pose; nonnegative values select a loaded body set in 1..12.
+static s16 _gActor136100BodyAnimationSuccessors[13] = {
+    ACTOR_136100_ANIMATION_CHAIN_END,
+    ACTOR_136100_ANIMATION_CHAIN_END,
+    ACTOR_136100_ANIMATION_CHAIN_END,
+    ACTOR_136100_ANIMATION_CHAIN_END,
+    ACTOR_136100_ANIMATION_CHAIN_END,
     1,
-    -1,
+    ACTOR_136100_ANIMATION_CHAIN_END,
     8,
-    -1,
+    ACTOR_136100_ANIMATION_CHAIN_END,
     1,
-    -1,
+    ACTOR_136100_ANIMATION_CHAIN_END,
     1,
     1,
-    0,
 };
 
-s16 D_actor_136100_8013F218[6] = {
-    -1,
-    -1,
-    -1,
-    -1,
+/// Follow-on set indices for the six installed companion scene clips.
+///
+/// Indexed by the current clip in 0..5. Only clip 4 advances, to clip 1;
+/// `ACTOR_136100_ANIMATION_CHAIN_END` leaves every other clip's settled pose.
+static s16 _gActor136100CompanionAnimationSuccessors[6] = {
+    ACTOR_136100_ANIMATION_CHAIN_END,
+    ACTOR_136100_ANIMATION_CHAIN_END,
+    ACTOR_136100_ANIMATION_CHAIN_END,
+    ACTOR_136100_ANIMATION_CHAIN_END,
     1,
-    -1,
+    ACTOR_136100_ANIMATION_CHAIN_END,
 };
 
-SVECTOR D_actor_136100_8013F224[4] = {
+/// Replacement normals for the before-Burner street-scene collision enclosure.
+///
+/// Four axis normals in the Rooms2And3 grid frame, with 4096 per unit length.
+/// Overwrites only the live grid's first four normals; the other entries remain.
+static SVECTOR _gActor136100BeforeBurnerCollisionNormals[4] = {
 #include "assets/actor_136100_collision_0D404.inc"
 };
 
-SVECTOR D_actor_136100_8013F244[16] = {
+/// Replacement vertices for the before-Burner street-scene collision enclosure.
+///
+/// Sixteen Rooms2And3 grid-frame vertices in game units, spanning
+/// X -3000..-1800, Y -300..0, Z 7000..8400. Only the first sixteen live vertices
+/// are replaced; the remainder of the room pool remains intact.
+static SVECTOR _gActor136100BeforeBurnerCollisionVerts[16] = {
 #include "assets/actor_136100_collision_0D424.inc"
 };
 
-WorldCollisionGridFace D_actor_136100_8013F2C4[4] = {
+/// Four replacement quads enclosing the before-Burner street-scene space.
+///
+/// References replacement vertices 0..15 and normals 0..3 with room surface
+/// class 0. Only the first four live Rooms2And3 faces are replaced; the grid's
+/// existing face-index lists and remaining faces stay intact.
+static WorldCollisionGridFace _gActor136100BeforeBurnerCollisionFaces[4] = {
 #include "assets/actor_136100_collision_0D4A4.inc"
 };
 
-TaskMessageEntry D_actor_136100_8013F2F4[2] = {
+/// Placement and visibility messages for the scene body, head and rifle models.
+///
+/// No end marker: send only `ACTOR_MESSAGE_PLACE` with a borrowed
+/// `ActorTransform*`, or `ACTOR_MESSAGE_SET_MODEL_DRAW` with an integer
+/// (0 hide, nonzero show). Both ignore the second payload. Neither supplies a
+/// defined result, so direct, CAP and event-script senders must discard it.
+/// Placement reparents the model to the view, including an attached child.
+static TaskMessageEntry _gActor136100ModelMessages[2] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor136100SetModelDraw },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceInView },
 };
 
-// The following record is dereferenced through an indexed view of this base; keep the complete bounded pool.
-ActorTransform D_actor_136100_8013F304[2] = {
+/// Player start and walk destination for the after-Burner opening scene.
+///
+/// The scene reset also uses `destination`; both records use the player's
+/// root-parent frame and 4096 angle units per turn.
+static _Actor136100PlayerEntrance _gActor136100AfterBurnerPlayerEntrance = {
     { { -3500, 0, -3700, 0 }, { 0, -1024, 0, 0 } },
     { { -4800, 0, -4100, 0 }, { 0, -1024, 0, 0 } },
 };
 
-// The following record is dereferenced through an indexed view of this base; keep the complete bounded pool.
-ActorTransform D_actor_136100_8013F334[2] = {
+/// Player start and walk destination for the before-Burner opening scene.
+///
+/// Scene reset uses `start`; the first follow-up stages the player at
+/// `destination`. Both records use the player's root-parent frame and
+/// 4096 angle units per turn.
+static _Actor136100PlayerEntrance _gActor136100BeforeBurnerPlayerEntrance = {
     { { -3200, 0, 6500, 0 }, { 0, 910, 0, 0 } },
     { { -2520, 0, 7690, 0 }, { 0, 910, 0, 0 } },
 };
 
-ActorTransform D_actor_136100_8013F364 = { { -3300, 0, 6400, 0 }, { 0, 910, 0, 0 } };
+/// Player placement when leaving the before-Burner opening scene.
+///
+/// Position is in game units in the player's root-parent frame; Euler angles
+/// use 4096 units per turn. The placement is borrowed only during dispatch.
+static ActorTransform _gActor136100BeforeBurnerPlayerExitPlacement = { { -3300, 0, 6400, 0 }, { 0, 910, 0, 0 } };
 
-ActorTransform D_actor_136100_8013F37C = { { -5400, 0, -4100, 0 }, { 0, -1024, 0, 0 } };
+/// Player placement for the first after-Burner follow-up and its skip recovery.
+///
+/// Position is in game units in the player's root-parent frame; Euler angles
+/// use 4096 units per turn. The placement is borrowed only during dispatch.
+static ActorTransform _gActor136100AfterBurnerPlayerFollowUpPlacement = { { -5400, 0, -4100, 0 }, { 0, -1024, 0, 0 } };
 
-ActorTransform D_actor_136100_8013F394 = { { -6400, 0, -4000, 0 }, { 0, 1024, 0, 0 } };
+/// Gary Douglas's body placement after the Burner encounter.
+///
+/// Position is in game units in the view-parent frame; Euler angles
+/// use 4096 units per turn. The placement is borrowed only during dispatch.
+static ActorTransform _gActor136100AfterBurnerBodyPlacement = { { -6400, 0, -4000, 0 }, { 0, 1024, 0, 0 } };
 
-ActorTransform D_actor_136100_8013F3AC = { { -2600, 0, 7400, 0 }, { 0, 420, 0, 0 } };
+/// Gary Douglas's resting body placement before the Burner encounter.
+///
+/// Position is in game units in the view-parent frame; Euler angles
+/// use 4096 units per turn. The placement is borrowed only during dispatch.
+static ActorTransform _gActor136100BeforeBurnerBodyRestPlacement = { { -2600, 0, 7400, 0 }, { 0, 420, 0, 0 } };
 
-ActorTransform D_actor_136100_8013F3C4 = { { -1300, 0, 7000, 0 }, { 0, 420, 0, 0 } };
+/// First scripted body placement in the before-Burner opening scene.
+///
+/// Position is in game units in the view-parent frame; Euler angles
+/// use 4096 units per turn. The placement is borrowed only during dispatch.
+static ActorTransform _gActor136100BeforeBurnerBodyFirstPlacement = { { -1300, 0, 7000, 0 }, { 0, 420, 0, 0 } };
 
-ActorTransform D_actor_136100_8013F3DC = { { -1540, 0, 7600, 0 }, { 0, 420, 0, 0 } };
+/// Second body placement, also used for the before-Burner follow-up head turn.
+///
+/// Position is in game units in the view-parent frame; Euler angles
+/// use 4096 units per turn. The placement is borrowed only during dispatch.
+static ActorTransform _gActor136100BeforeBurnerBodySecondPlacement = { { -1540, 0, 7600, 0 }, { 0, 420, 0, 0 } };
 
-ActorTransform D_actor_136100_8013F3F4 = { { -5800, 0, -3200, 0 }, { 0, 1365, 0, 0 } };
+/// Companion placement used by after-Burner staging and placement resets.
+///
+/// Position is in game units in the companion's root-parent frame; Euler angles
+/// use 4096 units per turn. The placement is borrowed only during dispatch.
+static ActorTransform _gActor136100AfterBurnerCompanionPlacement = { { -5800, 0, -3200, 0 }, { 0, 1365, 0, 0 } };
 
-ActorTransform D_actor_136100_8013F40C = { { -2210, 0, 8000, 0 }, { 0, 2048, 0, 0 } };
+/// Companion resting placement used by before-Burner staging and resets.
+///
+/// Position is in game units in the companion's root-parent frame; Euler angles
+/// use 4096 units per turn. The placement is borrowed only during dispatch.
+static ActorTransform _gActor136100BeforeBurnerCompanionRestPlacement = { { -2210, 0, 8000, 0 }, { 0, 2048, 0, 0 } };
 
-ActorTransform D_actor_136100_8013F424 = { { -1000, 0, 7725, 0 }, { 0, 2048, 0, 0 } };
+/// First scripted companion placement in the before-Burner opening scene.
+///
+/// Position is in game units in the companion's root-parent frame; Euler angles
+/// use 4096 units per turn. The placement is borrowed only during dispatch.
+static ActorTransform _gActor136100BeforeBurnerCompanionFirstPlacement = { { -1000, 0, 7725, 0 }, { 0, 2048, 0, 0 } };
 
-ActorTransform D_actor_136100_8013F43C = { { -910, 0, 8130, 0 }, { 0, 2048, 0, 0 } };
+/// Second companion placement used by before-Burner opening and follow-up scenes.
+///
+/// Position is in game units in the companion's root-parent frame; Euler angles
+/// use 4096 units per turn. The placement is borrowed only during dispatch.
+static ActorTransform _gActor136100BeforeBurnerCompanionSecondPlacement = { { -910, 0, 8130, 0 }, { 0, 2048, 0, 0 } };
 
-ActorTransform D_actor_136100_8013F454 = { { -5800, -400, -4400, 0 }, { 1843, 0, 0, 0 } };
+/// Free-standing rifle placement after the Burner encounter.
+///
+/// Position is in game units in the view-parent frame; Euler angles
+/// use 4096 units per turn. The placement is borrowed only during dispatch.
+static ActorTransform _gActor136100AfterBurnerRiflePlacement = { { -5800, -400, -4400, 0 }, { 1843, 0, 0, 0 } };
 
 EvsCommand D_actor_136100_8013F46C[33] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 12 }, { .value = 0 } },
@@ -1112,8 +1195,14 @@ EvsCommand D_actor_136100_8013F784[19] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_136100_8013F94C[17] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 13 }, { .value = 0 } },
+/// First follow-up conversation with Gary Douglas after the Burner encounter.
+///
+/// Starts the first after-Burner CAP command and coordinates requests
+/// with CAP cues before releasing scripted player control. Requires the live
+/// scene singleton, player, installed scene clips and night Main Street CAP
+/// resources. Command storage and callback code stay borrowed until END.
+static EvsCommand _gActor136100AfterBurnerFirstFollowUpScript[17] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_136100_CAP_AFTER_BURNER_FIRST_FOLLOW_UP }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor136100ResetPlayerWeaponAnimation }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostPlayerRequest }, { .value = ACTOR_136100_PLAYER_AFTER_RESET_PLACEMENT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1128,31 +1217,42 @@ EvsCommand D_actor_136100_8013F94C[17] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostBodyRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostCompanionRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_136100_8013FAE4[16] = {
+/// Skip recovery for the first after-Burner follow-up conversation.
+///
+/// Restores equipment and scene poses under the primary fade, clears pending
+/// requests, restores the after-Burner follow-up view and releases scripted
+/// player control. The script and its callbacks must remain loaded until END.
+static EvsCommand _gActor136100AfterBurnerFirstFollowUpSkipScript[16] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_136100_8013F37C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .pointer = &_gActor136100AfterBurnerPlayerFollowUpPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor136100RestorePlayerEquipment }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor136100ResetPlayerWeaponAnimation }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor136100ResetBodyAnimation }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostPlayerRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostBodyRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostCompanionRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = ACTOR_136100_AFTER_BURNER_FOLLOW_UP_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_136100_8013FC64[12] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 14 }, { .value = 0 } },
+/// Short conversation used on later after-Burner interactions with Gary Douglas.
+///
+/// Starts the repeat after-Burner CAP command and coordinates requests
+/// with CAP cues before releasing scripted player control. Requires the live
+/// scene singleton, player, installed scene clips and night Main Street CAP
+/// resources. Command storage and callback code stay borrowed until END.
+static EvsCommand _gActor136100AfterBurnerRepeatFollowUpScript[12] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_136100_CAP_AFTER_BURNER_REPEAT_FOLLOW_UP }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostPlayerRequest }, { .value = ACTOR_136100_PLAYER_AFTER_BLEND_WEAPON }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1162,7 +1262,7 @@ EvsCommand D_actor_136100_8013FC64[12] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostBodyRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostCompanionRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -1228,11 +1328,17 @@ EvsCommand D_actor_136100_80140114[18] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_136100_801402C4[23] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 16 }, { .value = 0 } },
+/// First follow-up conversation with Gary Douglas before the Burner encounter.
+///
+/// Starts the first before-Burner CAP command and coordinates requests
+/// with CAP cues before releasing scripted player control. Requires the live
+/// scene singleton, player, installed scene clips and night Main Street CAP
+/// resources. Command storage and callback code stay borrowed until END.
+static EvsCommand _gActor136100BeforeBurnerFirstFollowUpScript[23] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_136100_CAP_BEFORE_BURNER_FIRST_FOLLOW_UP }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor136100ResetPlayerWeaponAnimation }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_136100_8013F334[1] } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .pointer = &_gActor136100BeforeBurnerPlayerEntrance.destination } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor136100RemovePlayerEquipment }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostPlayerRequest }, { .value = ACTOR_136100_PLAYER_BEFORE_RESET_SCENE_ANIMATION }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostBodyRequest }, { .value = ACTOR_136100_BODY_BEFORE_TURN_HEAD }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1250,29 +1356,40 @@ EvsCommand D_actor_136100_801402C4[23] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostBodyRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostCompanionRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_136100_801404EC[14] = {
+/// Skip recovery for the first before-Burner follow-up conversation.
+///
+/// Restores equipment and scene poses under the primary fade, clears pending
+/// requests, restores the before-Burner follow-up view and releases scripted
+/// player control. The script and its callbacks must remain loaded until END.
+static EvsCommand _gActor136100BeforeBurnerFirstFollowUpSkipScript[14] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostPlayerRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostBodyRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostCompanionRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor136100RestorePlayerEquipment }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor136100ResetBeforeBurnerScene }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor136100ResetBeforeBurnerScene }, { .value = ACTOR_136100_RESET_HEAD_ROTATION }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = ACTOR_136100_BEFORE_BURNER_FOLLOW_UP_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_136100_8014063C[11] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 17 }, { .value = 0 } },
+/// Short conversation used on later before-Burner interactions with Gary Douglas.
+///
+/// Starts the repeat before-Burner CAP command and coordinates requests
+/// with CAP cues before releasing scripted player control. Requires the live
+/// scene singleton, player, installed scene clips and night Main Street CAP
+/// resources. Command storage and callback code stay borrowed until END.
+static EvsCommand _gActor136100BeforeBurnerRepeatFollowUpScript[11] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_136100_CAP_BEFORE_BURNER_REPEAT_FOLLOW_UP }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostPlayerRequest }, { .value = ACTOR_136100_PLAYER_BEFORE_BLEND_WEAPON }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1281,20 +1398,26 @@ EvsCommand D_actor_136100_8014063C[11] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostBodyRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostCompanionRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskDesc D_actor_136100_80140744[6] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor136100SceneTask, { .model = &_gActor136100GaryDouglasBody } },
-    { { { TASK_BODY_NONE, 192 } }, NULL, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor136100HeadTask, { .model = &_gActor136100GaryDouglasHeadHat } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor136100RifleTask, { .model = &_gActor136100Actor120300Model082F8 } },
-    { { { TASK_BODY_NONE, 192 } }, _screenFadeInTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _actor136100FadeOutTask, { .value = 0 } },
+TaskDesc gActor136100SceneTaskDescriptors[6] = {
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_136100_TASK_PRIORITY } }, _actor136100SceneTask, { .model = &_gActor136100GaryDouglasBody } },
+    { { { TASK_BODY_NONE, ACTOR_136100_TASK_PRIORITY } }, NULL, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_136100_TASK_PRIORITY } }, _actor136100HeadTask, { .model = &_gActor136100GaryDouglasHeadHat } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_136100_TASK_PRIORITY } }, _actor136100RifleTask, { .model = &_gActor136100Actor120300Model082F8 } },
+    { { { TASK_BODY_NONE, ACTOR_136100_TASK_PRIORITY } }, _screenFadeInTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACTOR_136100_TASK_PRIORITY } }, _actor136100FadeOutTask, { .value = 0 } },
 };
 
-Task* D_actor_136100_8014078C = NULL;
+/// Borrowed singleton task running Gary Douglas's night Main Street scenes.
+///
+/// Published after body-work allocation and used by script callbacks and child
+/// initialization. It owns the body work and is the head/rifle teardown parent.
+/// Teardown does not clear this pointer; consumers require the task and overlay
+/// to remain live and must finish before the task is released.
+static Task* _gActor136100SceneTask = NULL;
 
 static void        _actor136100UpdateAfterBurnerPlayerRequest(Task* task);
 static inline void _actor136100ResetBodyTracks(Task* task, s32 setIndex);
@@ -1336,7 +1459,7 @@ static s32 _actor136100AdvancePlayerAnimation(Task* task)
     if (taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
         if ((u16)work->playerAnimation >= (u32)ANIMATION_BANK_BASE_SET_COUNT) {
             chainIndex     = (u16)work->playerAnimation - (u32)ANIMATION_BANK_BASE_SET_COUNT;
-            successorEntry = &D_actor_136100_8013F1EC[chainIndex];
+            successorEntry = &_gActor136100PlayerSceneAnimationSuccessors[chainIndex];
             selection      = *successorEntry;
             if (selection >= 0) {
                 nextAnimationId = (u16)*successorEntry + (u32)ANIMATION_BANK_BASE_SET_COUNT;
@@ -1386,8 +1509,8 @@ static s32 _actor136100TickBodyAnimation(Task* task)
     }
 checkSettled:
     if (settled) {
-        nextSetIndex = D_actor_136100_8013F1FC[(u16)work->bodyAnimation];
-        if (D_actor_136100_8013F1FC[(u16)work->bodyAnimation] >= 0) {
+        nextSetIndex = _gActor136100BodyAnimationSuccessors[(u16)work->bodyAnimation];
+        if (_gActor136100BodyAnimationSuccessors[(u16)work->bodyAnimation] >= 0) {
             setIndex                   = nextSetIndex;
             restartWork                = task->work;
             restartWork->bodyAnimation = setIndex;
@@ -1430,8 +1553,8 @@ static inline void _actor136100InitializeHead(Task* task)
         tmdAllocPrimitiveBuffer(model);
         model->lightMtx = &work->light;
         model->colorMtx = &work->color;
-        task->msgTable  = D_actor_136100_8013F2F4;
-        taskReparent(D_actor_136100_8014078C, task);
+        task->msgTable  = _gActor136100ModelMessages;
+        taskReparent(_gActor136100SceneTask, task);
     }
     place           = areaGetVariant(&gGameSession->location.loc)->placements;
     resourceEntryId = place->entryId;
@@ -1503,8 +1626,8 @@ static inline void _actor136100InitializeRifle(Task* task)
         tmdAllocPrimitiveBuffer(model);
         model->lightMtx = &work->light;
         model->colorMtx = &work->color;
-        task->msgTable  = D_actor_136100_8013F2F4;
-        taskReparent(D_actor_136100_8014078C, task);
+        task->msgTable  = _gActor136100ModelMessages;
+        taskReparent(_gActor136100SceneTask, task);
     }
     task->state += 1;
     if (task->spawnArg1.value != 0) {
@@ -1572,14 +1695,14 @@ static void _actor136100RifleTask(Task* task)
 /// Places the player at a scene entrance and starts its scripted walk.
 ///
 /// Requires live controller work and its borrowed player task. `path` contains
-/// two placements: the immediate start and the scripted-walk destination, in
+/// the immediate start placement and scripted-walk destination in
 /// the player's root-parent frame, with Euler angles in 4096 units per turn.
 /// Synchronous messages copy both records; the path need only survive the call.
 /// Clears the entrance delay and advances request step 0 to the walk wait.
-static inline void _actor136100BeginPlayerEntrance(_Actor136100Work* work, const ActorTransform path[2])
+static inline void _actor136100BeginPlayerEntrance(_Actor136100Work* work, const _Actor136100PlayerEntrance* path)
 {
-    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &path[0], 0);
-    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, &path[1], 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &path->start, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, &path->destination, 0);
     work->playerRequestFrames = 0;
     work->playerRequestStep++;
 }
@@ -1614,7 +1737,7 @@ static void _actor136100UpdateAfterBurnerPlayerRequest(Task* task)
         case ACTOR_136100_PLAYER_AFTER_ENTER:
             switch ((u16)work->playerRequestStep) {
                 case PLACE_AND_WALK:
-                    _actor136100BeginPlayerEntrance(work, D_actor_136100_8013F304);
+                    _actor136100BeginPlayerEntrance(work, &_gActor136100AfterBurnerPlayerEntrance);
                     return;
                 case WAIT_FOR_WALK:
                     if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
@@ -1638,7 +1761,7 @@ static void _actor136100UpdateAfterBurnerPlayerRequest(Task* task)
             ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(task, 52, ANIMATION_BLEND_INTERPOLATE, ACTOR_136100_ANIMATION_BLEND_FRAMES, request);
             break;
         case ACTOR_136100_PLAYER_AFTER_RESET_PLACEMENT:
-            TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_136100_8013F37C, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &_gActor136100AfterBurnerPlayerFollowUpPlacement, 0);
             ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(task, ANIMATION_BANK_BASE_SET_COUNT, ANIMATION_BLEND_RESET, 0, request);
             break;
         case ACTOR_136100_PLAYER_AFTER_BLEND_WEAPON:
@@ -1663,7 +1786,7 @@ static void _actor136100UpdateAfterBurnerPlayerRequest(Task* task)
         _Actor136100Work* animWork = (task)->work;                                                                    \
                                                                                                                       \
         if (animWork->companionTask != NULL) {                                                                        \
-            (record).source.sets          = D_actor_136100_8013F1D4;                                                  \
+            (record).source.sets          = _gActor136100CompanionAnimationSets;                                      \
             animWork->companionAnimation  = anim;                                                                     \
             (record).animationId          = anim;                                                                     \
             (record).blend                = (blendChoice);                                                            \
@@ -1823,7 +1946,7 @@ static inline void _actor136100PlayCompanionAnimation(Task* task, u16 setIndex, 
     AnimationPlayRequest request;
 
     if (work->companionTask != NULL) {
-        request.source.sets          = D_actor_136100_8013F1D4;
+        request.source.sets          = _gActor136100CompanionAnimationSets;
         work->companionAnimation     = setIndex;
         request.animationId          = setIndex;
         request.blend                = blendChoice;
@@ -1854,7 +1977,7 @@ static void _actor136100UpdateAfterBurnerCompanionRequest(Task* task)
 
     work = task->work;
     if (work->companionTask != NULL && taskMessageDispatch(work->companionTask, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
-        successorAnimation = D_actor_136100_8013F218[work->companionAnimation];
+        successorAnimation = _gActor136100CompanionAnimationSuccessors[work->companionAnimation];
         if (successorAnimation >= 0) {
             _actor136100PlayCompanionAnimation(task, successorAnimation, ANIMATION_BLEND_INTERPOLATE, ACTOR_136100_ANIMATION_BLEND_FRAMES);
         }
@@ -1891,7 +2014,7 @@ static void _actor136100UpdateAfterBurnerCompanionRequest(Task* task)
             }
             break;
         case ACTOR_136100_COMPANION_AFTER_RESET_PLACEMENT_AND_ANIMATION:
-            TASK_MESSAGE_DISPATCH_POINTER(work->companionTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_136100_8013F3F4, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->companionTask, GAME_ACTOR_MESSAGE_PLACE, &_gActor136100AfterBurnerCompanionPlacement, 0);
             _actor136100PlayCompanionAnimation(task, 0, ANIMATION_BLEND_RESET, 0);
             break;
     }
@@ -1932,7 +2055,7 @@ static void _actor136100UpdateBeforeBurnerPlayerRequest(Task* task)
             switch ((u16)work->playerRequestStep) {
                 case PLACE_AND_WALK:
                     taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO, 0);
-                    _actor136100BeginPlayerEntrance(work, D_actor_136100_8013F334);
+                    _actor136100BeginPlayerEntrance(work, &_gActor136100BeforeBurnerPlayerEntrance);
                     return;
                 case WAIT_FOR_WALK:
                     if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
@@ -1956,7 +2079,7 @@ static void _actor136100UpdateBeforeBurnerPlayerRequest(Task* task)
             ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(task, 53, ANIMATION_BLEND_INTERPOLATE, ACTOR_136100_ANIMATION_BLEND_FRAMES, request);
             break;
         case ACTOR_136100_PLAYER_BEFORE_EXIT:
-            TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_136100_8013F364, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &_gActor136100BeforeBurnerPlayerExitPlacement, 0);
             ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(task, ACTOR_136100_PLAYER_WEAPON_ANIMATION, ANIMATION_BLEND_RESET, 0, request);
             break;
         case ACTOR_136100_PLAYER_BEFORE_RESET_SCENE_ANIMATION:
@@ -1996,17 +2119,17 @@ static void _actor136100UpdateBeforeBurnerBodyRequest(Task* task)
         case ACTOR_136100_REQUEST_NONE:
             break;
         case ACTOR_136100_BODY_BEFORE_PLACE_FIRST:
-            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_actor_136100_8013F3C4, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &_gActor136100BeforeBurnerBodyFirstPlacement, 0);
             break;
         case ACTOR_136100_BODY_BEFORE_PLACE_SECOND:
-            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_actor_136100_8013F3DC, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &_gActor136100BeforeBurnerBodySecondPlacement, 0);
             break;
         case ACTOR_136100_BODY_BEFORE_BLEND_ANIMATION_4:
             _actor136100BlendBodyAnimation(task, 4);
             break;
         case ACTOR_136100_BODY_BEFORE_RESET_AND_PLACE:
             _actor136100ResetBodyTracks(task, ACTOR_136100_BODY_BEFORE_BURNER_START);
-            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_actor_136100_8013F3AC, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &_gActor136100BeforeBurnerBodyRestPlacement, 0);
             break;
         case ACTOR_136100_BODY_BEFORE_PLAY_ANIMATION_6_AND_SOUND:
             switch ((u16)work->bodyRequestStep) {
@@ -2028,7 +2151,7 @@ static void _actor136100UpdateBeforeBurnerBodyRequest(Task* task)
             // the player request the script posts just before it leaves at 0.
             switch ((u16)work->playerRequestStep) {
                 case BEGIN_REQUEST:
-                    TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_actor_136100_8013F3DC, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &_gActor136100BeforeBurnerBodySecondPlacement, 0);
                     work->headYaw = ACTOR_TRANSFORM_ANGLE_TURN;
                     work->playerRequestStep++;
                     return;
@@ -2070,7 +2193,7 @@ static void _actor136100UpdateBeforeBurnerCompanionRequest(Task* task)
 
     work = task->work;
     if (work->companionTask != NULL && taskMessageDispatch(work->companionTask, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
-        nextSetIndex = D_actor_136100_8013F218[work->companionAnimation];
+        nextSetIndex = _gActor136100CompanionAnimationSuccessors[work->companionAnimation];
         if (nextSetIndex >= 0) {
             _actor136100PlayCompanionAnimation(task, nextSetIndex, ANIMATION_BLEND_INTERPOLATE, ACTOR_136100_ANIMATION_BLEND_FRAMES);
         }
@@ -2079,13 +2202,13 @@ static void _actor136100UpdateBeforeBurnerCompanionRequest(Task* task)
         case ACTOR_136100_REQUEST_NONE:
             break;
         case ACTOR_136100_COMPANION_BEFORE_PLACE_FIRST:
-            TASK_MESSAGE_DISPATCH_POINTER(work->companionTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_136100_8013F424, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->companionTask, GAME_ACTOR_MESSAGE_PLACE, &_gActor136100BeforeBurnerCompanionFirstPlacement, 0);
             break;
         case ACTOR_136100_COMPANION_BEFORE_PLACE_SECOND:
-            TASK_MESSAGE_DISPATCH_POINTER(work->companionTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_136100_8013F43C, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->companionTask, GAME_ACTOR_MESSAGE_PLACE, &_gActor136100BeforeBurnerCompanionSecondPlacement, 0);
             break;
         case ACTOR_136100_COMPANION_BEFORE_RESET_PLACEMENT:
-            TASK_MESSAGE_DISPATCH_POINTER(work->companionTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_136100_8013F40C, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->companionTask, GAME_ACTOR_MESSAGE_PLACE, &_gActor136100BeforeBurnerCompanionRestPlacement, 0);
             break;
     }
     work->companionRequest = ACTOR_136100_REQUEST_NONE;
@@ -2108,14 +2231,14 @@ static void _actor136100ResetAfterBurnerScene(void)
     s32                  weaponId;
     s32                  bankIndex;
 
-    task                = D_actor_136100_8014078C;
+    task                = _gActor136100SceneTask;
     work                = task->work;
     work->playerRequest = ACTOR_136100_REQUEST_NONE;
     work->bodyRequest   = ACTOR_136100_REQUEST_NONE;
 
     _actor136100ResetBodyTracks(task, ACTOR_136100_BODY_AFTER_BURNER_START);
 
-    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_136100_8013F304[1], 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &_gActor136100AfterBurnerPlayerEntrance.destination, 0);
 
     // Re-read work after placement dispatch before caching the player clip.
     requestWork                  = task->work;
@@ -2148,16 +2271,16 @@ static void _actor136100ResetBeforeBurnerScene(s32 resetHeadRotation)
     s32                  weaponId;
     s32                  bankIndex;
 
-    task                = D_actor_136100_8014078C;
+    task                = _gActor136100SceneTask;
     work                = task->work;
     work->playerRequest = ACTOR_136100_REQUEST_NONE;
     work->bodyRequest   = ACTOR_136100_REQUEST_NONE;
 
-    TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_actor_136100_8013F3AC, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &_gActor136100BeforeBurnerBodyRestPlacement, 0);
 
     _actor136100ResetBodyTracks(task, ACTOR_136100_BODY_BEFORE_BURNER_START);
 
-    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, D_actor_136100_8013F334, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &_gActor136100BeforeBurnerPlayerEntrance.start, 0);
 
     // Re-read work after placement dispatch before caching the player clip.
     requestWork                  = task->work;
@@ -2171,7 +2294,7 @@ static void _actor136100ResetBeforeBurnerScene(s32 resetHeadRotation)
     request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
     TASK_MESSAGE_DISPATCH_POINTER(requestWork->playerTask, ANIMATION_MESSAGE_PLAY, &request, 0);
 
-    TASK_MESSAGE_DISPATCH_POINTER(work->companionTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_136100_8013F40C, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->companionTask, GAME_ACTOR_MESSAGE_PLACE, &_gActor136100BeforeBurnerCompanionRestPlacement, 0);
 
     if (resetHeadRotation == 1) {
         gfxRotMatrixY(&task->extra.tmd->coords[4].coord, 0, GRAPHICS_ROTATION_REPLACE);
@@ -2211,20 +2334,20 @@ static s16 _actor136100TryStartFollowUpScene(Task* task)
     if ((s8)sceneAction == ACTOR_136100_ROOM_ACTION_FOLLOW_UP_AFTER_BURNER && work->scene == ACTOR_136100_SCENE_AFTER_BURNER) {
         _actor136100CopyPlayerSceneAnimations(task);
         if (work->followUpSeen == 0) {
-            evsStartScriptWithSkip(D_actor_136100_8013F94C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_136100_8013FAE4);
+            evsStartScriptWithSkip(_gActor136100AfterBurnerFirstFollowUpScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gActor136100AfterBurnerFirstFollowUpSkipScript);
             work->followUpSeen++;
         } else {
-            evsStartScript(D_actor_136100_8013FC64, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+            evsStartScript(_gActor136100AfterBurnerRepeatFollowUpScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         }
         return 1;
     }
     if ((s8)sceneAction == ACTOR_136100_ROOM_ACTION_FOLLOW_UP_BEFORE_BURNER && work->scene == ACTOR_136100_SCENE_BEFORE_BURNER) {
         _actor136100CopyPlayerSceneAnimations(task);
         if (work->followUpSeen == 0) {
-            evsStartScriptWithSkip(D_actor_136100_801402C4, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_136100_801404EC);
+            evsStartScriptWithSkip(_gActor136100BeforeBurnerFirstFollowUpScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gActor136100BeforeBurnerFirstFollowUpSkipScript);
             work->followUpSeen++;
         } else {
-            evsStartScript(D_actor_136100_8014063C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+            evsStartScript(_gActor136100BeforeBurnerRepeatFollowUpScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         }
         return 1;
     }
@@ -2259,9 +2382,9 @@ static void _actor136100InitBody(Task* task)
     }
     work = allocatedWork;
     memFillBytes(work, 0, sizeof(*work));
-    work->playerTask        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    D_actor_136100_8014078C = task;
-    coord->parent           = &gGfxViewCoord;
+    work->playerTask       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    _gActor136100SceneTask = task;
+    coord->parent          = &gGfxViewCoord;
     tmdAllocPrimitiveBuffer(tmd);
     tmd->lightMtx = &work->light;
     tmd->colorMtx = &work->color;
@@ -2276,8 +2399,8 @@ static void _actor136100InitBody(Task* task)
         entryId = place->entryId;
     }
     tmdSetTextureOffsets(tmd, place->texturePageOffset, place->clutRowOffset);
-    animationInitContext(&work->rig.anim, D_actor_136100_8013F1A0, tmd, work->rig.poses, work->rig.slots);
-    task->msgTable = D_actor_136100_8013F2F4;
+    animationInitContext(&work->rig.anim, _gActor136100BodyAnimationSets, tmd, work->rig.poses, work->rig.slots);
+    task->msgTable = _gActor136100ModelMessages;
 }
 
 /// Classifies the latched room action selecting an opening street scene.
@@ -2315,7 +2438,7 @@ static inline s16 _actor136100ReadOpeningSceneCue(u16* triggerControl, u8* scene
         _Actor136100Work* animWork = (task)->work;                                                                    \
                                                                                                                       \
         if (animWork->companionTask != NULL) {                                                                        \
-            (record).source.sets          = D_actor_136100_8013F1D4;                                                  \
+            (record).source.sets          = _gActor136100CompanionAnimationSets;                                      \
             animWork->companionAnimation  = anim;                                                                     \
             (record).animationId          = anim;                                                                     \
             (record).blend                = ANIMATION_BLEND_RESET;                                                    \
@@ -2336,10 +2459,10 @@ static inline s16 _actor136100ReadOpeningSceneCue(u16* triggerControl, u8* scene
         s32               n;                                                                                     \
                                                                                                                  \
         n = 0;                                                                                                   \
-        while (D_actor_136100_8013F180[n & 0xFFFF] != 0) {                                                       \
+        while (_gActor136100PlayerSceneAnimationSets[n & 0xFFFF] != 0) {                                         \
             n += 1;                                                                                              \
         }                                                                                                        \
-        (record).source.sets = &D_actor_136100_8013F180[0];                                                      \
+        (record).source.sets = &_gActor136100PlayerSceneAnimationSets[0];                                        \
         (record).wordCount   = n & 0xFFFF;                                                                       \
         TASK_MESSAGE_DISPATCH_POINTER(msgWork->playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &(record), 0); \
     }
@@ -2422,18 +2545,18 @@ static void _actor136100SceneTask(Task* task)
             _actor136100InitBody(task);
             work           = task->work;
             work->scene    = gameFlagGetNibble(GAME_FLAG_BURNER_DEFEATED) == 0;
-            work->headTask = taskSpawnFromTable(D_actor_136100_80140744, ACTOR_136100_SCENE_HEAD_TASK, 0,
+            work->headTask = taskSpawnFromTable(gActor136100SceneTaskDescriptors, ACTOR_136100_SCENE_HEAD_TASK, 0,
                                                 task->extra.tmd->coords + ACTOR_136100_SCENE_HEAD_PART);
             if (work->scene == ACTOR_136100_SCENE_AFTER_BURNER) {
                 _actor136100ResetBodyTracks(task, ACTOR_136100_BODY_AFTER_BURNER_START);
-                work->rifleTask = taskSpawnFromTable(D_actor_136100_80140744, ACTOR_136100_SCENE_RIFLE_TASK, 0, &gGfxViewCoord);
+                work->rifleTask = taskSpawnFromTable(gActor136100SceneTaskDescriptors, ACTOR_136100_SCENE_RIFLE_TASK, 0, &gGfxViewCoord);
             } else {
                 _actor136100ResetBodyTracks(task, ACTOR_136100_BODY_BEFORE_BURNER_START);
-                work->rifleTask = taskSpawnFromTable(D_actor_136100_80140744, ACTOR_136100_SCENE_RIFLE_TASK, 1,
+                work->rifleTask = taskSpawnFromTable(gActor136100SceneTaskDescriptors, ACTOR_136100_SCENE_RIFLE_TASK, 1,
                                                      task->extra.tmd->coords + ACTOR_136100_SCENE_RIFLE_PART);
-                memCopyBytes(&D_actor_136100_8013F224, gDryfieldNightMainStreetRooms2And3CollisionGridNormals, sizeof(D_actor_136100_8013F224));
-                memCopyBytes(&D_actor_136100_8013F2C4, gDryfieldNightMainStreetRooms2And3CollisionGridFaces, sizeof(D_actor_136100_8013F2C4));
-                memCopyBytes(&D_actor_136100_8013F244, gDryfieldNightMainStreetRooms2And3CollisionGridVerts, sizeof(D_actor_136100_8013F244));
+                memCopyBytes(&_gActor136100BeforeBurnerCollisionNormals, gDryfieldNightMainStreetRooms2And3CollisionGridNormals, sizeof(_gActor136100BeforeBurnerCollisionNormals));
+                memCopyBytes(&_gActor136100BeforeBurnerCollisionFaces, gDryfieldNightMainStreetRooms2And3CollisionGridFaces, sizeof(_gActor136100BeforeBurnerCollisionFaces));
+                memCopyBytes(&_gActor136100BeforeBurnerCollisionVerts, gDryfieldNightMainStreetRooms2And3CollisionGridVerts, sizeof(_gActor136100BeforeBurnerCollisionVerts));
             }
             work->companionTask = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
             task->state++;
@@ -2444,11 +2567,11 @@ static void _actor136100SceneTask(Task* task)
                 taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
                 taskMessageDispatch(work->headTask, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
                 taskMessageDispatch(work->rifleTask, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
-                TASK_MESSAGE_DISPATCH_POINTER(work->rifleTask, ACTOR_MESSAGE_PLACE, &D_actor_136100_8013F454, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(work->rifleTask, ACTOR_MESSAGE_PLACE, &_gActor136100AfterBurnerRiflePlacement, 0);
                 if (work->companionTask != NULL) {
-                    TASK_MESSAGE_DISPATCH_POINTER(work->companionTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_136100_8013F3F4, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->companionTask, GAME_ACTOR_MESSAGE_PLACE, &_gActor136100AfterBurnerCompanionPlacement, 0);
                 }
-                TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_actor_136100_8013F394, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &_gActor136100AfterBurnerBodyPlacement, 0);
                 _actor136100ResetBodyTracks(task, ACTOR_136100_BODY_AFTER_BURNER_START);
                 ACTOR_136100_RESET_LINKED_ANIMATION(task, ACTOR_136100_SCENE_AFTER_COMPANION_CLIP, message.animation);
             } else {
@@ -2457,9 +2580,9 @@ static void _actor136100SceneTask(Task* task)
                 taskMessageDispatch(work->headTask, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
                 taskMessageDispatch(work->rifleTask, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
                 if (work->companionTask != NULL) {
-                    TASK_MESSAGE_DISPATCH_POINTER(work->companionTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_136100_8013F40C, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->companionTask, GAME_ACTOR_MESSAGE_PLACE, &_gActor136100BeforeBurnerCompanionRestPlacement, 0);
                 }
-                TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_actor_136100_8013F3AC, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &_gActor136100BeforeBurnerBodyRestPlacement, 0);
                 _actor136100ResetBodyTracks(task, ACTOR_136100_BODY_BEFORE_BURNER_START);
                 ACTOR_136100_RESET_LINKED_ANIMATION(task, ACTOR_136100_SCENE_BEFORE_COMPANION_CLIP, message.animation);
             }
@@ -2583,7 +2706,7 @@ static void _actor136100FadeOutTask(Task* task)
         case RAMP:
             fadeDrawOverlay(fade->r, fade->g, fade->r, GPU_BLEND_SUBTRACT);
             _actor136100StepFadeOut(fade, task);
-            if (D_actor_136100_8013F17C != 0) {
+            if (_gActor136100FadeOutCancelled != 0) {
                 taskKill(task);
                 return;
             }
@@ -2644,7 +2767,7 @@ static s32 _actor136100SetModelDraw(Task* task, s32 unusedMessageId, s32 visible
 /// requests and their step counters are untouched; this does not blend.
 static void _actor136100ResetBodyAnimation(void)
 {
-    _Actor136100Work* work = D_actor_136100_8014078C->work;
+    _Actor136100Work* work = _gActor136100SceneTask->work;
     SVECTOR           unused; // Unreferenced; removing it changes the compiled frame.
     s32               slotIndex;
 
@@ -2665,7 +2788,7 @@ static void _actor136100ResetBodyAnimation(void)
 /// commands for the controller's selected scene.
 static void _actor136100PostPlayerRequest(s16 request)
 {
-    _Actor136100Work* work = D_actor_136100_8014078C->work;
+    _Actor136100Work* work = _gActor136100SceneTask->work;
 
     work->playerRequest     = request;
     work->playerRequestStep = 0;
@@ -2679,7 +2802,7 @@ static void _actor136100PostPlayerRequest(s16 request)
 /// commands for the controller's selected scene.
 static void _actor136100PostBodyRequest(s16 request)
 {
-    _Actor136100Work* work = D_actor_136100_8014078C->work;
+    _Actor136100Work* work = _gActor136100SceneTask->work;
 
     work->bodyRequest     = request;
     work->bodyRequestStep = 0;
@@ -2693,7 +2816,7 @@ static void _actor136100PostBodyRequest(s16 request)
 /// `ACTOR_136100_COMPANION_BEFORE_*` commands for the selected scene.
 static void _actor136100PostCompanionRequest(s16 request)
 {
-    _Actor136100Work* work = D_actor_136100_8014078C->work;
+    _Actor136100Work* work = _gActor136100SceneTask->work;
 
     work->companionRequest     = request;
     work->companionRequestStep = 0;
@@ -2708,7 +2831,7 @@ static void _actor136100StartFadeIn(void)
     enum { FADE_TASK_INDEX    = 4,
            INTENSITY_PER_TICK = 9 };
 
-    taskSpawnFromTable(D_actor_136100_80140744, FADE_TASK_INDEX, INTENSITY_PER_TICK, NULL);
+    taskSpawnFromTable(gActor136100SceneTaskDescriptors, FADE_TASK_INDEX, INTENSITY_PER_TICK, NULL);
 }
 
 /// Starts the street scene's subtractive fade-out at nine intensity units per tick.
@@ -2721,7 +2844,7 @@ static void _actor136100StartFadeOut(void)
     enum { FADE_TASK_INDEX    = 5,
            INTENSITY_PER_TICK = 9 };
 
-    taskSpawnFromTable(D_actor_136100_80140744, FADE_TASK_INDEX, INTENSITY_PER_TICK, NULL);
+    taskSpawnFromTable(gActor136100SceneTaskDescriptors, FADE_TASK_INDEX, INTENSITY_PER_TICK, NULL);
 }
 
 /// Enables display output and latches cancellation of the scene's fade-out.
@@ -2730,7 +2853,7 @@ static void _actor136100StartFadeOut(void)
 /// its ramp. This does not clear the latch or synchronously destroy that task.
 static void _actor136100RestoreDisplay(void)
 {
-    D_actor_136100_8013F17C = 1;
+    _gActor136100FadeOutCancelled = 1;
     SetDispMask(1);
 }
 
@@ -2740,7 +2863,7 @@ static void _actor136100RestoreDisplay(void)
 /// down equipment; repeated calls do nothing until scene cleanup restores it.
 static void _actor136100RemovePlayerEquipment(void)
 {
-    _Actor136100Work* work = D_actor_136100_8014078C->work;
+    _Actor136100Work* work = _gActor136100SceneTask->work;
 
     if (work->playerEquipmentRemoved == 0) {
         work->playerEquipmentRemoved = 1;
@@ -2755,7 +2878,7 @@ static void _actor136100RemovePlayerEquipment(void)
 /// Repeated calls after restoration do nothing.
 static void _actor136100RestorePlayerEquipment(void)
 {
-    _Actor136100Work* work = D_actor_136100_8014078C->work;
+    _Actor136100Work* work = _gActor136100SceneTask->work;
 
     if (work->playerEquipmentRemoved != 0) {
         playerActorRestoreEquipment();
@@ -2801,10 +2924,10 @@ static void _actor136100CopyPlayerSceneAnimations(Task* task)
     u16                      setCount;
 
     setCount = 0;
-    while (D_actor_136100_8013F180[setCount] != NULL) {
+    while (_gActor136100PlayerSceneAnimationSets[setCount] != NULL) {
         setCount += 1;
     }
-    request.source.sets = &D_actor_136100_8013F180[0];
+    request.source.sets = &_gActor136100PlayerSceneAnimationSets[0];
     request.wordCount   = setCount;
     TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &request, 0);
 }
