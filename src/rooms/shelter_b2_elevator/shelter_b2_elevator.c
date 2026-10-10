@@ -389,7 +389,7 @@ WorldCollisionTrigger gShelterB2ElevatorActionTriggers[1] = {
 };
 
 AreaResource D_shelter_b2_elevator_8017E93C[2] = {
-    { 101, 429, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_142900_80137600 },
+    { 101, 429, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor142900TaskTable },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

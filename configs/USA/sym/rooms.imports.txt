@@ -535,7 +535,7 @@ gActor450900EntrySkipScript = 0x80136308; // absolute:True owner=actor_450900
 gActor142600IncineratorArrivalSkipScript = 0x80136804; // absolute:True owner=actor_142600
 D_actor_161500_80136CDC = 0x80136CDC; // absolute:True owner=actor_161500
 D_actor_146300_8013788C = 0x8013788C; // absolute:True owner=actor_146300
-D_actor_460200_80137890 = 0x80137890; // absolute:True owner=actor_460200 shared=actors
+D_actor_460200_80137890 = 0x80137890; // absolute:True owner=actor_460200
 D_actor_142900_801378D0 = 0x801378D0; // absolute:True owner=actor_142900
 D_actor_146300_80137C28 = 0x80137C28; // absolute:True owner=actor_146300 shared=actors
 D_actor_450200_80137EE4 = 0x80137EE4; // absolute:True owner=actor_450200

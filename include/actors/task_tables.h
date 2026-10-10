@@ -131,7 +131,13 @@ extern TaskDesc gActor102400Tasks[2];
 /// Keep actor_123200's callbacks and borrowed geometry loaded until teardown.
 extern TaskDesc gActor123200BoneSucklerTaskDesc;
 
-extern TaskDesc D_actor_142900_80137600[];
+/// Elevator scene spawn table: unused entry 0, vertical screen shake at entry 1.
+///
+/// Both entries are bodyless at priority 192, with unused spawn arguments and
+/// no terminator. Keep actor_142900 loaded while the shake task runs, with at
+/// most one live instance. The room loads this table with an empty placement
+/// list. Entry 0 retains a two-argument enemy callback; do not spawn it.
+extern TaskDesc gActor142900TaskTable[2];
 
 /// Slot export of `gActor04600SucklercephTaskDesc` from actor_104600, with the same descriptor contract.
 extern TaskDesc gActor104600SucklercephTaskDesc;
