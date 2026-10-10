@@ -64234,7 +64234,7 @@ Symptom, after adding a `rodata` cut and re-splitting an overlay:
 
 ```
 build/USA/src/actors/actor_521100/actor_521100_3.i:(.text+0xb7c):
-undefined reference to `D_actor_521100_80131E68'
+undefined reference to `_gActor521100AnmcWomanTaskStates'
 ```
 
 while the very symbol is right there in the function's own
@@ -107336,7 +107336,7 @@ source `base_2.c` `926d1d5e177295b8fb24e19513f5d9a133f0f5e8117685fa45e18332bd3db
 ## An `s16` table index is scaled by 2 and combine folds that scale into the mask *and* the shift: write `(X >> 16) & 7`, not `(X >> 15) & 7`
 
 `_actor521100TickEventFire` picks one of the eight `s16` slots of
-`D_actor_521100_8015F8BC` out of the high half of an LCG draw. The target is
+`gActor521100AnimationFireTables.tables.eventFireParts` out of the high half of an LCG draw. The target is
 
 ```
 srl  v0,v1,0xf
@@ -107372,7 +107372,7 @@ fixes it - the byte-offset spelling that "should" produce the target's
 What moves it is parking the table's base in a local *before* the LCG update:
 
 ```
-tbl = D_actor_521100_8015F8BC;
+tbl = gActor521100AnimationFireTables.tables.eventFireParts;
 gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
 part = tbl[(gRandomLcgState >> 16) & 7];
 ```
@@ -151370,7 +151370,7 @@ coord                         = task->extra.tmd->coords;
 head                          = SCRATCH_STACK_CURSOR(SVECTOR);
 vec                           = head - 1;
 SCRATCH_STACK_CURSOR(SVECTOR) = vec;          /* after the first read */
-clip                          = D_actor_521100_8015F894[work->animationId];
+clip                          = gActor521100AnimationFireTables.blendFrames[work->animationId];
 ...
 effectSpawn(EFFECT_NO9_GOLEM_SWING_TRAIL, task->extra.tmd->coords + 8, 0xC, NULL);
 ```

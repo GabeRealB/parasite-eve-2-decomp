@@ -815,7 +815,13 @@ extern TaskDesc gActor350700MaskedEveReverseWalkTaskDesc;
 /// model/animation resources loaded through teardown.
 extern TaskDesc gActor312200SwatMember1TaskDesc;
 
-extern TaskDesc D_actor_521100_8016A388[];
+/// Scripted ANMC-woman spawn recipes: 0 nineteen-part model, 1 periodic splatter emitter.
+///
+/// Both run at priority 192, with no terminator. Entry 0 skips automatic model
+/// buffers and borrows its Enemy through spawn argument 2. Entry 1 has no body;
+/// argument 1 selects the woman (0) or player (1), and argument 2 borrows the
+/// live woman task. Keep actor_521100 and the selected models loaded through use.
+extern TaskDesc gActor521100AnmcWomanTaskDescs[2];
 
 /// Scripted Grinning Stranger spawn recipe for the Akropolis patio.
 ///

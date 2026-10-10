@@ -2651,7 +2651,7 @@ static WorldCoordRoomLights _gDryfieldDilapidatedHouseRoomLights = {
 
 AreaResource D_dryfield_dilapidated_house_80189914[3] = {
     { 34, 211, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, gActor521100No9GolemTaskDescs },
-    { 29, 212, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, D_actor_521100_8016A388 },
+    { 29, 212, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, gActor521100AnmcWomanTaskDescs },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

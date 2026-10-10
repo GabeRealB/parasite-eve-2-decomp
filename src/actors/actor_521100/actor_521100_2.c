@@ -6,6 +6,7 @@
 #include "common.h"
 
 #include "actors/actor.h"
+#include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
@@ -122,22 +123,6 @@ STATIC_ASSERT_SIZEOF(_Actor521100AnmcWomanWork, 0x4B4);
 /// this singleton reference; animation and message handlers require the live task.
 static _Actor521100AnmcWomanWork* _gActor521100AnmcWomanWork;
 
-// Message-table callbacks use the argument views required by this TU.
-
-extern TaskMessageEntry D_actor_521100_8016A358[6];
-extern TaskDesc         D_actor_521100_8016A388[];
-extern AnimationSet*    D_actor_521100_8016A3A0[11];
-
-extern EffectSpawnArg D_actor_521100_8016A3CC;
-extern u16            D_actor_521100_8016A3D4;
-
-/// The task `_actor521100AnmcWomanTask` runs, stored by its create state
-/// `_actor521100AnmcWomanSpawn`.
-extern Task*    D_actor_521100_8016A3DC;
-extern Task*    D_actor_521100_8016A3E0;
-extern Task*    D_actor_521100_8016A3E4;
-extern GfxCoord D_actor_521100_8016A3E8;
-
 static void _actor521100AnmcWomanSpawn(Enemy* enemy, Task* task);
 static void _actor521100AnmcWomanUpdate(Task* task);
 static void _actor521100AnmcWomanFlattenState(Enemy* enemy, Task* task);
@@ -157,7 +142,7 @@ static s32  _actor521100AnmcWomanWalkTo(Task* task, s32 messageId, const ActorTr
 static void _actor521100AnmcWomanEffectTask(Task* task);
 static void _actor521100AnmcWomanTask(Task* task);
 
-AnimationSet* D_actor_521100_8015F73C[36] = {
+AnimationSet* gActor521100BodyAnimationSets[36] = {
     NULL,
     &gActor521100Animation10EAC,
     &gActor521100Animation11614,
@@ -196,7 +181,7 @@ AnimationSet* D_actor_521100_8015F73C[36] = {
     &gActor521100Animation27A78,
 };
 
-AnimationSet* D_actor_521100_8015F7CC[14] = {
+AnimationSet* gActor521100GrabPlayerAnimationSets[14] = {
     NULL,
     NULL,
     &gActor521100Animation27DB0,
@@ -213,48 +198,21 @@ AnimationSet* D_actor_521100_8015F7CC[14] = {
     &gActor521100Animation2D708,
 };
 
-EffectSpawnArg D_actor_521100_8015F804 = { NULL, 300, 1 };
+EffectSpawnArg gActor521100GrabKillEffectArg = { NULL, 300, 1 };
 
-Actor521100ThrowSpan D_actor_521100_8015F80C[2][17] = {
-    { { 2, -5 }, { 5, -10 }, { 9, -5 }, { 12, -33 }, { 14, -65 }, { 17, -40 }, { 23, -48 }, { 28, -24 }, { 30, 40 }, { 33, 170 }, { 34, 290 }, { 36, 220 }, { 38, 135 }, { 43, 60 }, { 52, 33 }, { 57, 2 }, { 69, 0 } },
-    { { 2, -5 }, { 5, -10 }, { 9, -5 }, { 11, -7 }, { 13, -40 }, { 14, -35 }, { 17, -33 }, { 23, -48 }, { 29, -23 }, { 31, 115 }, { 33, 160 }, { 34, 350 }, { 38, 175 }, { 57, 26 }, { 61, 36 }, { 69, 0 }, { 69, 0 } },
+Actor521100ThrowSpan gActor521100ThrowSpans[2][17] = {
+    { { 2, -5 }, { 5, -10 }, { 9, -5 }, { 12, -33 }, { 14, -65 }, { 17, -40 }, { 23, -48 }, { 28, -24 }, { 30, 40 }, { 33, 170 }, { 34, 290 }, { 36, 220 }, { 38, 135 }, { 43, 60 }, { 52, 33 }, { 57, 2 }, { ACTOR_521100_THROW_RELEASE_FRAME, 0 } },
+    { { 2, -5 }, { 5, -10 }, { 9, -5 }, { 11, -7 }, { 13, -40 }, { 14, -35 }, { 17, -33 }, { 23, -48 }, { 29, -23 }, { 31, 115 }, { 33, 160 }, { 34, 350 }, { 38, 175 }, { 57, 26 }, { 61, 36 }, { ACTOR_521100_THROW_RELEASE_FRAME, 0 }, { ACTOR_521100_THROW_RELEASE_FRAME, 0 } },
 };
 
-s16 D_actor_521100_8015F894[20] = {
-    0,
-    8,
-    0,
-    8,
-    0,
-    8,
-    8,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    3,
-    0,
-    3,
-    8,
-    0,
-    1,
+Actor521100AnimationFireTables gActor521100AnimationFireTables = {
+    .tables = {
+        .blendFrames    = { 0, 8, 0, 8, 0, 8, 8, 0, 0, 0, 0, 0, 0, 0, 3, 0, 3, 8, 0, 1 },
+        .eventFireParts = { 1, 4, 6, 10, 13, 14, 16, 17 },
+    },
 };
 
-s16 D_actor_521100_8015F8BC[8] = {
-    1,
-    4,
-    6,
-    10,
-    13,
-    14,
-    16,
-    17,
-};
-
-s16 D_actor_521100_8015F8CC[4] = {
+s16 gActor521100EventFireIntervals[4] = {
     0,
     7,
     14,
@@ -403,7 +361,12 @@ static AnimationSet _gActor521100Animation38510 = {
     { NULL, _gActor521100Animation38510Bank1, NULL, NULL, _gActor521100Animation38510Bank4, NULL, NULL, NULL },
 };
 
-TaskMessageEntry D_actor_521100_8016A358[6] = {
+/// Synchronous messages accepted by the scripted ANMC woman, followed by an end marker.
+///
+/// Five handlers borrow animation, placement, command and walk requests or a
+/// draw-flags word. They require her live published model task/work; dispatch
+/// borrows this table and its callbacks while the actor package is loaded.
+static TaskMessageEntry _gActor521100AnmcWomanMessages[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor521100AnmcWomanPlayAnim },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor521100AnmcWomanSetModelDrawFlags },
     { ACTOR_MESSAGE_PLACE, _footstepWalkPlace },
@@ -412,12 +375,16 @@ TaskMessageEntry D_actor_521100_8016A358[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_521100_8016A388[2] = {
+TaskDesc gActor521100AnmcWomanTaskDescs[2] = {
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor521100AnmcWomanTask, { .model = &_gActor521100AnmcWoman2Body } },
     { { { TASK_BODY_NONE, 192 } }, _actor521100AnmcWomanEffectTask, { .value = 0 } },
 };
 
-AnimationSet* D_actor_521100_8016A3A0[11] = {
+/// Scripted ANMC-woman clips: empty entry 0, then ten request-addressable sets.
+///
+/// Request numbers 0..9 select IDs 1..10; IDs 1 and 5..9 share the walk clip.
+/// The nineteen-part rig borrows the table and clips for its playback lifetime.
+static AnimationSet* _gActor521100AnmcWomanAnimationSets[11] = {
     NULL,
     &_gActor521100Animation36E34,
     &_gActor521100Animation372D8,
@@ -431,17 +398,41 @@ AnimationSet* D_actor_521100_8016A3A0[11] = {
     &_gActor521100Animation38510,
 };
 
-EffectSpawnArg D_actor_521100_8016A3CC = { NULL, 320, 1 };
+/// Mutable argument for periodic splatter at the ANMC woman or the player.
+///
+/// Each emission replaces the borrowed coordinate with the shared anchor.
+/// Low half 320 sets initial spray speed to 60 coordinate units per tick;
+/// high half 1 gives four active ticks of emission. The spawner retains no record pointer.
+static EffectSpawnArg _gActor521100AnmcWomanSplatterArg = { NULL, 320, 1 };
 
-u16 D_actor_521100_8016A3D4 = 5;
+/// Hit-effect recipe used by both periodic ANMC-woman emitters.
+static u16 _gActor521100AnmcWomanSplatterKind = EFFECT_HIT_KIND_SPLATTER;
 
-Task* D_actor_521100_8016A3DC;
+/// Borrowed singleton model task of the scripted ANMC woman.
+///
+/// Published after successful spawn and used by animation/draw messages.
+/// Teardown leaves it unchanged; consumers require the model task to remain live.
+static Task* _gActor521100AnmcWomanTask;
 
-Task* D_actor_521100_8016A3E0;
+/// Latest periodic emitter placed at the ANMC woman, or NULL after stop/timeout.
+///
+/// Starting another emitter overwrites the handle without killing its predecessor.
+/// The emitter borrows the woman's model task; command 3 kills the tracked task.
+static Task* _gActor521100AnmcWomanEffectTask;
 
-Task* D_actor_521100_8016A3E4;
+/// Latest periodic emitter placed at the player, or NULL after stop/timeout.
+///
+/// Starting another emitter overwrites the handle without killing its predecessor.
+/// The emitter requires live woman/player models; command 3 kills the tracked task.
+static Task* _gActor521100AnmcWomanPlayerEffectTask;
 
-GfxCoord D_actor_521100_8016A3E8;
+/// Shared borrowed coordinate anchor for both periodic splatter emitters.
+///
+/// Each emission copies the woman's part 1 or the player's root, preserving
+/// its parent, then offsets it in that parent's coordinate units and composes it.
+/// Spawned effects borrow this storage;
+/// the selected model hierarchy and actor package must remain loaded while used.
+static GfxCoord _gActor521100AnmcWomanSplatterCoord;
 
 s32 actor521100SetModelDrawFlags(Task* task, s32 messageId, s32 flags, s32 unusedArgument)
 {
@@ -512,7 +503,7 @@ s32 actor521100IsPresent(Task* task, s32 messageId, s32 unusedFirstArgument, s32
 /// the following animation update seeds slots 1..18 without advancing them.
 static inline void _actor521100AnmcWomanPrepareAnimation(TmdObject* model)
 {
-    animationBindModelContext(&_gActor521100AnmcWomanWork->rig.anim, D_actor_521100_8016A3A0, model, _gActor521100AnmcWomanWork->rig.poses);
+    animationBindModelContext(&_gActor521100AnmcWomanWork->rig.anim, _gActor521100AnmcWomanAnimationSets, model, _gActor521100AnmcWomanWork->rig.poses);
     _gActor521100AnmcWomanWork->st.animId = ACTOR_521100_ANMC_WOMAN_ANIM_WALK;
     _gActor521100AnmcWomanWork->st.state  = ACTOR_ENEMY_ANIM_RESET;
 }
@@ -558,11 +549,11 @@ static void _actor521100AnmcWomanSpawn(Enemy* enemy, Task* task)
     model->colorMtx                  = &_gActor521100AnmcWomanWork->color;
     lightSamplePosition.vx           = rootCoord->workm.t[0];
     lightSamplePosition.vy           = rootCoord->workm.t[1] - ACTOR_521100_ANMC_WOMAN_LIGHT_SAMPLE_Y_OFFSET;
-    D_actor_521100_8016A3DC          = task;
+    _gActor521100AnmcWomanTask       = task;
     lightSamplePosition.vz           = rootCoord->workm.t[2];
     worldCoordSetModelLighting(model, &lightSamplePosition, 0, ARRAY_SIZE(model->colorMtx->m[0]));
     _actor521100AnmcWomanPrepareAnimation(model);
-    task->msgTable = D_actor_521100_8016A358;
+    task->msgTable = _gActor521100AnmcWomanMessages;
     _actor521100AnmcWomanUpdate(task);
     task->state += 1;
 }
@@ -727,34 +718,36 @@ static void _actor521100AnmcWomanEffectTask(Task* task)
     if (!(task->state & (ACTOR_521100_ANMC_WOMAN_EFFECT_PERIOD_FRAMES - 1))) {
         // Copy the parent link with the local matrix before composing the effect anchor.
         if (task->spawnArg1.value == ACTOR_521100_ANMC_WOMAN_EFFECT_AT_WOMAN) {
-            D_actor_521100_8016A3E8             = womanTask->extra.tmd->coords[1];
-            D_actor_521100_8016A3E8.coord.t[2] += 0x32;
-            gRandomLcgState                     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            D_actor_521100_8016A3E8.coord.t[1] -= 0xFA + (s32)((gRandomLcgState >> 16) - ACTOR_521100_ANMC_WOMAN_EFFECT_RANDOM_CENTER) * 0xC8 / ACTOR_521100_ANMC_WOMAN_EFFECT_RANDOM_SCALE;
-            D_actor_521100_8016A3E8.coord.t[0] -= 0x32;
+            _gActor521100AnmcWomanSplatterCoord             = womanTask->extra.tmd->coords[1];
+            _gActor521100AnmcWomanSplatterCoord.coord.t[2] += 0x32;
+            gRandomLcgState                                 = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            _gActor521100AnmcWomanSplatterCoord.coord.t[1] -= 0xFA + (s32)((gRandomLcgState >> 16) - ACTOR_521100_ANMC_WOMAN_EFFECT_RANDOM_CENTER) * 0xC8 / ACTOR_521100_ANMC_WOMAN_EFFECT_RANDOM_SCALE;
+            _gActor521100AnmcWomanSplatterCoord.coord.t[0] -= 0x32;
         } else {
-            D_actor_521100_8016A3E8             = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords[0];
-            D_actor_521100_8016A3E8.coord.t[1] -= 0x384;
-            D_actor_521100_8016A3E8.coord.t[0] += 0x2BC;
+            _gActor521100AnmcWomanSplatterCoord             = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords[0];
+            _gActor521100AnmcWomanSplatterCoord.coord.t[1] -= 0x384;
+            _gActor521100AnmcWomanSplatterCoord.coord.t[0] += 0x2BC;
         }
-        D_actor_521100_8016A3E8.composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(&D_actor_521100_8016A3E8);
-        D_actor_521100_8016A3CC.coord = &D_actor_521100_8016A3E8;
-        effectSpawnHit(D_actor_521100_8016A3D4, &D_actor_521100_8016A3E8, NULL, &D_actor_521100_8016A3CC);
+        _gActor521100AnmcWomanSplatterCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(&_gActor521100AnmcWomanSplatterCoord);
+        _gActor521100AnmcWomanSplatterArg.coord = &_gActor521100AnmcWomanSplatterCoord;
+        effectSpawnHit(_gActor521100AnmcWomanSplatterKind, &_gActor521100AnmcWomanSplatterCoord, NULL, &_gActor521100AnmcWomanSplatterArg);
     }
     if (task->state >= ACTOR_521100_ANMC_WOMAN_EFFECT_END_FRAME) {
         taskKill(task);
         if (task->spawnArg1.value == ACTOR_521100_ANMC_WOMAN_EFFECT_AT_WOMAN) {
-            D_actor_521100_8016A3E0 = NULL;
+            _gActor521100AnmcWomanEffectTask = NULL;
         } else {
-            D_actor_521100_8016A3E4 = NULL;
+            _gActor521100AnmcWomanPlayerEffectTask = NULL;
         }
     }
     task->state++;
 }
-/// State table the overlay dispatches through, indexed by `Task::state`:
-/// create, update and flatten.
-static const EnemyTaskFuncTable3 D_actor_521100_80131E68 = { {
+/// ANMC-woman lifecycle callbacks indexed by task state (0 spawn, 1 update, 2 flatten).
+///
+/// Copied by value before dispatch, without a bounds check or terminator.
+/// Callbacks borrow the task and its Enemy; spawn establishes work for later states.
+static const EnemyTaskFuncTable3 _gActor521100AnmcWomanTaskStates = { {
     _actor521100AnmcWomanSpawn,
     _actor521100TickAnmcWoman,
     _actor521100AnmcWomanFlattenState,
@@ -778,7 +771,7 @@ static void _actor521100AnmcWomanTask(Task* task)
         u16 field_2;
     } unread;
 
-    stateHandlers              = D_actor_521100_80131E68;
+    stateHandlers              = _gActor521100AnmcWomanTaskStates;
     unread.field_0             = 2;
     unread.field_1             = 9;
     unread.field_2             = 1;
@@ -931,9 +924,9 @@ static s32 _actor521100AnmcWomanPlayAnim(Task* task, s32 messageId, const Animat
 {
     Task* dispatcher;
 
-    if (request->animationId + 1 < ARRAY_SIZE(D_actor_521100_8016A3A0)) {
+    if (request->animationId + 1 < ARRAY_SIZE(_gActor521100AnmcWomanAnimationSets)) {
         _gActor521100AnmcWomanWork->st.animId  = request->animationId + 1;
-        dispatcher                             = D_actor_521100_8016A3DC;
+        dispatcher                             = _gActor521100AnmcWomanTask;
         _gActor521100AnmcWomanWork->st.state   = ACTOR_ENEMY_ANIM_RESET;
         _gActor521100AnmcWomanWork->st.field_6 = 0;
         _actor521100AnmcWomanUpdate(dispatcher);
@@ -953,7 +946,7 @@ static s32 _actor521100AnmcWomanSetModelDrawFlags(Task* task, s32 messageId, s32
 {
     TmdObject* obj;
 
-    obj = D_actor_521100_8016A3DC->extra.tmd;
+    obj = _gActor521100AnmcWomanTask->extra.tmd;
     if (flags & ACTOR_MESSAGE_PAIR_SHOW) {
         obj->flags = 0;
     } else {
@@ -996,7 +989,7 @@ static s32 _actor521100AnmcWomanApplyCommand(Task* task, s32 messageId, const Ac
     };
     switch (command->command) {
         case ACTOR_521100_ANMC_WOMAN_COMMAND_EFFECT_WOMAN:
-            D_actor_521100_8016A3E0 = taskSpawnFromTable(D_actor_521100_8016A388, ACTOR_521100_ANMC_WOMAN_EFFECT_TASK_INDEX, ACTOR_521100_ANMC_WOMAN_EFFECT_WOMAN, task);
+            _gActor521100AnmcWomanEffectTask = taskSpawnFromTable(gActor521100AnmcWomanTaskDescs, ACTOR_521100_ANMC_WOMAN_EFFECT_TASK_INDEX, ACTOR_521100_ANMC_WOMAN_EFFECT_WOMAN, task);
             break;
 
         case ACTOR_521100_ANMC_WOMAN_COMMAND_FLATTEN:
@@ -1005,13 +998,13 @@ static s32 _actor521100AnmcWomanApplyCommand(Task* task, s32 messageId, const Ac
             break;
 
         case ACTOR_521100_ANMC_WOMAN_COMMAND_STOP_EFFECTS:
-            if (D_actor_521100_8016A3E0 != NULL) {
-                taskKill(D_actor_521100_8016A3E0);
-                D_actor_521100_8016A3E0 = NULL;
+            if (_gActor521100AnmcWomanEffectTask != NULL) {
+                taskKill(_gActor521100AnmcWomanEffectTask);
+                _gActor521100AnmcWomanEffectTask = NULL;
             }
-            if (D_actor_521100_8016A3E4 != NULL) {
-                taskKill(D_actor_521100_8016A3E4);
-                D_actor_521100_8016A3E4 = NULL;
+            if (_gActor521100AnmcWomanPlayerEffectTask != NULL) {
+                taskKill(_gActor521100AnmcWomanPlayerEffectTask);
+                _gActor521100AnmcWomanPlayerEffectTask = NULL;
             }
             // Resume ordinary update after both emitters have been stopped.
 
@@ -1020,7 +1013,7 @@ static s32 _actor521100AnmcWomanApplyCommand(Task* task, s32 messageId, const Ac
             break;
 
         case ACTOR_521100_ANMC_WOMAN_COMMAND_EFFECT_PLAYER:
-            D_actor_521100_8016A3E4 = taskSpawnFromTable(D_actor_521100_8016A388, ACTOR_521100_ANMC_WOMAN_EFFECT_TASK_INDEX, ACTOR_521100_ANMC_WOMAN_EFFECT_PLAYER, task);
+            _gActor521100AnmcWomanPlayerEffectTask = taskSpawnFromTable(gActor521100AnmcWomanTaskDescs, ACTOR_521100_ANMC_WOMAN_EFFECT_TASK_INDEX, ACTOR_521100_ANMC_WOMAN_EFFECT_PLAYER, task);
             break;
     }
     return 0;

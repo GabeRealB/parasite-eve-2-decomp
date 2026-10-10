@@ -211,19 +211,60 @@ extern AnimationSet gActor521100Animation2CCA8;
 
 extern AnimationSet gActor521100Animation2D708;
 
-extern AnimationSet* D_actor_521100_8015F73C[36];
+/// GOLEM body clips indexed by the rig's animation ID, with empty entries 0 and 12.
+///
+/// The initial clip is 21. Event requests add 20 for bank selector 0 or 29
+/// otherwise; the result must select a loaded entry in 1..35.
+/// The nineteen-part rig borrows this table and its clips while the package lives.
+extern AnimationSet* gActor521100BodyAnimationSets[36];
 
-extern AnimationSet* D_actor_521100_8015F7CC[14];
+/// Player clips for the GOLEM's seize, hold, throw, counterattack and kill.
+///
+/// Loaded IDs are 2..7 and 9..13; entries 0, 1 and 8 are empty. The player rig
+/// borrows this package bank after a replace-and-play request, so its playback
+/// must finish before the package's animation storage is unloaded.
+extern AnimationSet* gActor521100GrabPlayerAnimationSets[14];
 
-extern EffectSpawnArg D_actor_521100_8015F804;
+/// Mutable hit-effect argument for the grab's player-kill puff.
+///
+/// The spawner borrows and caches the player's model coordinate on first use.
+/// The low half (300) is unused by the weapon-puff recipe; the high half (1)
+/// requests one additional puff for primary fire. The record owns no coordinate.
+extern EffectSpawnArg gActor521100GrabKillEffectArg;
 
-extern s16 D_actor_521100_8015F894[20];
+/// Shared halfword storage for native GOLEM clip blends and event-fire part choices.
+///
+/// Native clip IDs 0..20 read `blendFrames`. Its last value is also the first
+/// fire-part choice: animation 20 blends for one frame and fire can select part 1.
+/// `tables.eventFireParts` supplies all eight fire choices after the twenty
+/// native blend durations, sharing that first choice with clip 20's duration.
+typedef union {
+    struct {
+        s16 blendFrames[20];   // Blend durations in normal-rate frames for native clip IDs 0..19
+        s16 eventFireParts[8]; // Coordinate indices into the nineteen-part body model, selected uniformly
+    } tables;
+    s16 blendFrames[21];       // Native clip durations, including the shared fire-part halfword at ID 20
+} Actor521100AnimationFireTables;
+STATIC_ASSERT_SIZEOF(Actor521100AnimationFireTables, 0x38);
 
-extern s16 D_actor_521100_8015F8BC[8];
+/// GOLEM clip blends and fire choices sharing the animation-20/first-part halfword.
+extern Actor521100AnimationFireTables gActor521100AnimationFireTables;
 
-extern s16 D_actor_521100_8015F8CC[4];
+/// Event-fire burst intervals in frames, indexed by burn stage 0..3 (0, 7, 14, 28).
+///
+/// Stage 0 disables fire in the caller; stages 1..3 emit at these intervals.
+extern s16 gActor521100EventFireIntervals[4];
 
-extern Actor521100ThrowSpan D_actor_521100_8015F80C[2][17];
+/// Frame at which the throw stops carrying the player and begins the released clip.
+enum { ACTOR_521100_THROW_RELEASE_FRAME = 69 };
+
+/// Per-frame throw travel spans, indexed by seizure side (0 behind, 1 front).
+///
+/// Each row has ascending exclusive end frames and ends at
+/// `ACTOR_521100_THROW_RELEASE_FRAME`; the front row's repeated final span is
+/// unused. A frame before release selects the first span whose end is later.
+/// Its signed step moves the player along the GOLEM root's local X axis.
+extern Actor521100ThrowSpan gActor521100ThrowSpans[2][17];
 
 /// Activation message of the Dryfield No. 9 GOLEM; both payload words are ignored.
 enum { ACTOR_521100_MESSAGE_ACTIVATE = 2007 };

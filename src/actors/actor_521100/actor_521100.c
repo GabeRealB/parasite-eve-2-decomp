@@ -1737,7 +1737,7 @@ static void _actor521100SpawnBody(Enemy* enemy, Task* task)
     work->hitEffectArg.coord      = &task->extra.tmd->coords[3];
     work->hitEffectArg.spawnArgLo = 0x400;
     work->hitEffectArg.spawnArgHi = 3;
-    animationInitContext(&work->rig.anim, D_actor_521100_8015F73C, bodyModel, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, gActor521100BodyAnimationSets, bodyModel, work->rig.poses, work->rig.slots);
     work->animationId       = ACTOR_521100_ANIM_SPAWN;
     work->seededAnimationId = ACTOR_521100_ANIM_SPAWN;
     slotIndex               = 1;
@@ -2384,7 +2384,7 @@ static void _actor521100SlashAttack(Task* task)
     previousScratchTop            = SCRATCH_STACK_CURSOR(SVECTOR);
     impactOffset                  = previousScratchTop - 1;
     SCRATCH_STACK_CURSOR(SVECTOR) = impactOffset;
-    blendFrames                   = D_actor_521100_8015F894[work->animationId];
+    blendFrames                   = gActor521100AnimationFireTables.blendFrames[work->animationId];
 
     cueFrame = work->animationFrame;
     if (cueFrame == blendFrames + ACTOR_521100_SLASH_TRAIL_FRAME) {
@@ -2464,7 +2464,7 @@ static void _actor521100LongSlashAttack(Task* task)
     previousScratchTop            = SCRATCH_STACK_CURSOR(SVECTOR);
     impactOffset                  = previousScratchTop - 1;
     SCRATCH_STACK_CURSOR(SVECTOR) = impactOffset;
-    blendFrames                   = D_actor_521100_8015F894[work->animationId];
+    blendFrames                   = gActor521100AnimationFireTables.blendFrames[work->animationId];
     rootCoord                     = task->extra.tmd->coords;
 
     turnLimit = 0;
@@ -2554,7 +2554,7 @@ static void _actor521100StanceAttack(Task* task)
 
     switch (work->attackStep) {
         case ACTOR_521100_STANCE_ENTER:
-            if (work->animationFrame >= D_actor_521100_8015F894[work->animationId] + ACTOR_521100_STANCE_COMMIT_FRAME) {
+            if (work->animationFrame >= gActor521100AnimationFireTables.blendFrames[work->animationId] + ACTOR_521100_STANCE_COMMIT_FRAME) {
                 u16* waitFrameTable = D_actor_521100_8015F5D4;
                 work->animationId   = ACTOR_521100_ANIM_STANCE_HOLD;
                 work->attackStep    = ACTOR_521100_STANCE_HOLD;
@@ -2651,7 +2651,7 @@ static void _actor521100StanceAttack(Task* task)
 /// dispatch. Expands to a braced statement block.
 #define ACTOR_521100_PLAY_GRAB_PLAYER_ANIMATION(playerAnimationId)                                              \
     {                                                                                                           \
-        scratch->playerAnim.source.sets          = D_actor_521100_8015F7CC;                                     \
+        scratch->playerAnim.source.sets          = gActor521100GrabPlayerAnimationSets;                         \
         scratch->playerAnim.animationId          = (playerAnimationId);                                         \
         scratch->playerAnim.blend                = ANIMATION_BLEND_RESET;                                       \
         scratch->playerAnim.blendFrames          = 0;                                                           \
@@ -2690,7 +2690,6 @@ static void _actor521100GrabState(Task* task)
         ACTOR_521100_PLAYER_ANIM_THROW_BACK       = 0xA,
         ACTOR_521100_PLAYER_ANIM_RELEASED         = 0xB,
         ACTOR_521100_PLAYER_ANIM_COUNTER_FINISH   = 4,
-        ACTOR_521100_THROW_RELEASE_FRAME          = 69,
         ACTOR_521100_HOLD_MAX_FRAMES              = 151,
         ACTOR_521100_HOLD_DAMAGE_PERIOD           = 32,
         ACTOR_521100_GRAB_DAMAGE_ROW              = 3,
@@ -2848,9 +2847,9 @@ static void _actor521100GrabState(Task* task)
             }
             if (work->animationFrame < ACTOR_521100_THROW_RELEASE_FRAME) {
                 // Carry the playerTask by the step of the span this frame of the throw falls in.
-                for (spanIndex = 0; spanIndex < ARRAY_SIZE(D_actor_521100_8015F80C[0]); spanIndex++) {
-                    if (work->animationFrame < D_actor_521100_8015F80C[work->grabFromFront][spanIndex].endFrame) {
-                        scratch->localOffset.vx = D_actor_521100_8015F80C[work->grabFromFront][spanIndex].sidewaysStep;
+                for (spanIndex = 0; spanIndex < ARRAY_SIZE(gActor521100ThrowSpans[0]); spanIndex++) {
+                    if (work->animationFrame < gActor521100ThrowSpans[work->grabFromFront][spanIndex].endFrame) {
+                        scratch->localOffset.vx = gActor521100ThrowSpans[work->grabFromFront][spanIndex].sidewaysStep;
                         break;
                     }
                 }
@@ -2937,7 +2936,7 @@ static void _actor521100GrabState(Task* task)
                 scratch->localOffset.vy               = -0x96;
                 scratch->localOffset.vz               = 0xC8;
                 effectSpawnHit(EFFECT_HIT_KIND_WEAPON_PUFF, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords + 4, &scratch->localOffset,
-                               &D_actor_521100_8015F804);
+                               &gActor521100GrabKillEffectArg);
                 padScriptSpawnVariableMotorRamp(0xA, 0xFF, 8);
                 taskMessageDispatch(playerTask, ACTOR_521100_PLAYER_ENTER_SCRIPTED_ATTACK, 0, 0);
                 gPlayerStatus.hp = 0;
@@ -3340,13 +3339,13 @@ static void _actor521100TickEventFire(Task* task)
     work               = task->work;
     burstFrames        = work->stateCounter + 1;
     work->stateCounter = burstFrames;
-    if ((s16)burstFrames >= D_actor_521100_8015F8CC[work->eventBurnStage]) {
+    if ((s16)burstFrames >= gActor521100EventFireIntervals[work->eventBurnStage]) {
         work->stateCounter = 0U;
         effectSpawnHit(EFFECT_HIT_KIND_BLAST, &task->extra.tmd->coords[3], NULL, &work->hitEffectArg);
         if (work->eventBurnStage == ACTOR_521100_FIRE_FULL) {
-            fireParts       = D_actor_521100_8015F8BC;
+            fireParts       = gActor521100AnimationFireTables.tables.eventFireParts;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            partIndex       = fireParts[(gRandomLcgState >> 16) & (ARRAY_SIZE(D_actor_521100_8015F8BC) - 1)];
+            partIndex       = fireParts[(gRandomLcgState >> 16) & (ARRAY_SIZE(gActor521100AnimationFireTables.tables.eventFireParts) - 1)];
             effectSpawnHit(EFFECT_HIT_KIND_BLAST, &task->extra.tmd->coords[partIndex], NULL, &work->hitEffectArg);
         }
     }
@@ -3648,7 +3647,6 @@ static void _actor521100StepRootPosition(Task* task)
 /// ticking. Native clip ids below 21 use the blend table; other clips use zero.
 static void _actor521100TickAnimation(Task* task)
 {
-    enum { ACTOR_521100_NATIVE_BLEND_LIMIT = 21 };
     Actor521100Work* work;
     s32              slotIndex;
     s32              blendFrames;
@@ -3658,8 +3656,8 @@ static void _actor521100TickAnimation(Task* task)
     if (work->animationId != work->seededAnimationId) {
         work->seededAnimationId = work->animationId;
         work->animationFrame    = 0;
-        if (work->animationId < ACTOR_521100_NATIVE_BLEND_LIMIT) {
-            blendFrames = D_actor_521100_8015F894[work->animationId];
+        if (work->animationId < ARRAY_SIZE(gActor521100AnimationFireTables.blendFrames)) {
+            blendFrames = gActor521100AnimationFireTables.blendFrames[work->animationId];
         }
         slotIndex = 1;
         do {
