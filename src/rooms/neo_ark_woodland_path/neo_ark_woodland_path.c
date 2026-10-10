@@ -58,12 +58,6 @@ static s32 _neoArkWoodlandPathForwardActorEvent(Task* task, s32 messageId, s32 h
 
 enum { NEO_ARK_WOODLAND_PATH_ROAMER_ABSENT = -1 };
 
-extern WorldCollisionSurfaceProperties D_neo_ark_woodland_path_801848E8[1];
-extern WorldCollisionSurfaceProperties D_neo_ark_woodland_path_801848F0[1];
-extern WorldCollisionSurfaceProperties D_neo_ark_woodland_path_801848F8[1];
-extern WorldCollisionSurfaceProperties D_neo_ark_woodland_path_80184900[1];
-extern WorldCollisionSurfaceProperties D_neo_ark_woodland_path_80184908[1];
-
 TaskDesc D_neo_ark_woodland_path_80181638 = { { { TASK_BODY_NONE, 192 } }, waterRefractionTask, { .value = 0 } };
 
 TaskDesc D_neo_ark_woodland_path_80181644 = { { { TASK_BODY_NONE, 192 } }, waterDistortBandTask, { .value = 0 } };
@@ -81,7 +75,7 @@ Task* D_neo_ark_woodland_path_80181680 = NULL;
 
 SVECTOR D_neo_ark_woodland_path_80181684[2] = { 0 };
 
-u8* D_neo_ark_woodland_path_80181694[1] = {
+u8* gNeoArkWoodlandPathViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -92,29 +86,46 @@ DirectionWarpEntry D_neo_ark_woodland_path_8018169C[2] = {
     { { { .word = 0 }, -5000, 0, -6680 }, { 0, 0, 0, 0 }, { { .word = 0 }, -5000, 0, -6680 }, { 0, 0, 0, 0 }, 0x551D0004, 0x551D0003, DIRECTION_WARP_SOUND_NONE, 10, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gNeoArkWoodlandPathCollision0479CNormals[17] = {
+/// Room-space face normals, with ONE representing unit length.
+static SVECTOR _gNeoArkWoodlandPathCollisionGridNormals[17] = {
 #include "assets/neo_ark_woodland_path_collision_0479C_normals.inc"
 };
 
-static SVECTOR _gNeoArkWoodlandPathCollision0479CVerts[75] = {
+/// Collision vertex pool in signed room-coordinate units.
+static SVECTOR _gNeoArkWoodlandPathCollisionGridVerts[75] = {
 #include "assets/neo_ark_woodland_path_collision_0479C_verts.inc"
 };
 
-static WorldCollisionGridFace _gNeoArkWoodlandPathCollision0479CFaces[35] = {
+/// Indexed collision quads carrying room-local surface classes 0..4.
+static WorldCollisionGridFace _gNeoArkWoodlandPathCollisionGridFaces[35] = {
 #include "assets/neo_ark_woodland_path_collision_0479C_faces.inc"
 };
 
-static s16 _gNeoArkWoodlandPathCollision0479CCells[190] = {
+/// Packed cell face-index lists, each ending with WORLD_COLLISION_GRID_CELL_END.
+static s16 _gNeoArkWoodlandPathCollisionGridCells[190] = {
 #include "assets/neo_ark_woodland_path_collision_0479C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkWoodlandPathCollision0479CCells[i])
-static s16* _gNeoArkWoodlandPathCollision0479CTable[20] = {
+#define GRID_CELL(i) (&_gNeoArkWoodlandPathCollisionGridCells[i])
+/// X-major directory of 4-by-5 collision cells; NULL marks an empty cell.
+static s16* _gNeoArkWoodlandPathCollisionGridTable[20] = {
 #include "assets/neo_ark_woodland_path_collision_0479C_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_neo_ark_woodland_path_80181D5C = { NULL, _gNeoArkWoodlandPathCollision0479CNormals, _gNeoArkWoodlandPathCollision0479CVerts, _gNeoArkWoodlandPathCollision0479CFaces, _gNeoArkWoodlandPathCollision0479CTable, 7600, 7000, 4, 5, 4000, 35 };
+WorldCollisionGrid gNeoArkWoodlandPathCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gNeoArkWoodlandPathCollisionGridNormals,
+    .vertices    = _gNeoArkWoodlandPathCollisionGridVerts,
+    .faces       = _gNeoArkWoodlandPathCollisionGridFaces,
+    .cellFaceIds = _gNeoArkWoodlandPathCollisionGridTable,
+    .xBias       = 7600,
+    .zBias       = 7000,
+    .cellCountX  = 4,
+    .cellCountZ  = 5,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gNeoArkWoodlandPathCollisionGridFaces),
+};
 
 ViewCamera D_neo_ark_woodland_path_80181D80[10] = {
     { { { { 4095, 0, 0 }, { 0, 0, -4096 }, { 0, 4095, 0 } }, { 1610, 0x7530, -1510 } }, 329 },
@@ -129,134 +140,141 @@ ViewCamera D_neo_ark_woodland_path_80181D80[10] = {
     { { { { -4024, 0, 764 }, { -94, 4064, -496 }, { -758, -505, -3993 } }, { 4210, 517, 1415 } }, 230 },
 };
 
-SpriteBatch D_neo_ark_woodland_path_80181EE8[2] = {
+/// View 1 keeps the decoded background and selects no source sprites.
+static SpriteBatch _gNeoArkWoodlandPathView1SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_woodland_path_80181EF8[25] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, 72, 837, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, 88, 954, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 152, 112, 575, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 232 } }, -160, -120, 820, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 224 } }, -96, -112, 858, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 200 } }, -80, -96, 880, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 104 } }, -64, -88, 948, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, 16, 903, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -64, 32, 913, { .fields = { 8, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, -48, -80, 987, { .fields = { 24, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -40, -56, 987, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -32, -32, 987, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -48, 56, 926, { .fields = { 40, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -40, 80, 963, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 80, -120, 250, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, 104, -120, 250, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 64 } }, 120, -120, 233, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 32 } }, 128, -56, 222, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 32 } }, 136, -24, 215, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, 144, 8, 211, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 72, 56, 750, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 88, 48, 717, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 56 } }, 104, 48, 610, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 64 } }, 136, 48, 514, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -128, 112, 800, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths over the decoded background in view 2.
+static SpriteSource _gNeoArkWoodlandPathView2SpriteSources[] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 64, 72, 837, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -32, 88, 954, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 152, 112, 575, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 64, 232 } }, -160, -120, 820, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 224 } }, -96, -112, 858, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 200 } }, -80, -96, 880, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 104 } }, -64, -88, 948, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -64, 16, 903, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 72 } }, -64, 32, 913, { .fields = { 8, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 88 } }, -48, -80, 987, { .fields = { 24, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 64 } }, -40, -56, 987, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -32, -32, 987, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, -48, 56, 926, { .fields = { 40, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -40, 80, 963, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 16 } }, 80, -120, 250, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 16, 32 } }, 104, -120, 250, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 40, 64 } }, 120, -120, 233, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 32, 32 } }, 128, -56, 222, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 24, 32 } }, 136, -24, 215, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 16, 40 } }, 144, 8, 211, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 72, 56, 750, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, 88, 48, 717, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 32, 56 } }, 104, 48, 610, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 24, 64 } }, 136, 48, 514, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -128, 112, 800, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_woodland_path_801820EC[3] = {
+/// View 2 draws one complete source range while retaining the decoded background.
+static SpriteBatch _gNeoArkWoodlandPathView2SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 25, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gNeoArkWoodlandPathView2SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_woodland_path_80182104[11] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 16, -88, 944, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, -72, 983, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 48, 814, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 16, -120, 918, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 40, -120, 933, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 72 } }, 72, -56, 855, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, 64, -120, 914, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, 80, 16, 796, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 112 } }, 96, -120, 717, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 112 } }, 96, 0, 712, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 232 } }, 120, -120, 648, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths over the decoded background in view 3.
+static SpriteSource _gNeoArkWoodlandPathView3SpriteSources[] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 16, -88, 944, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 56, -72, 983, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 72, 48, 814, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, 16, -120, 918, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, 40, -120, 933, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 72 } }, 72, -56, 855, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 64 } }, 64, -120, 914, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 88 } }, 80, 16, 796, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 112 } }, 96, -120, 717, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 112 } }, 96, 0, 712, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 232 } }, 120, -120, 648, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_woodland_path_801821E0[3] = {
+/// View 3 draws one complete source range while retaining the decoded background.
+static SpriteBatch _gNeoArkWoodlandPathView3SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 11, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gNeoArkWoodlandPathView3SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_woodland_path_801821F8[65] = {
-    { 141, 0x3FC0, { .fields = { 8, 8 } }, 88, 96, 1148, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 64 } }, 40, -120, 1075, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 56 } }, 56, -120, 0x61A7, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 216 } }, 72, -120, 1076, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 64, -40, 1101, { .fields = { 24, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 240 } }, 96, -120, 1050, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 192 } }, -40, -120, 1362, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 184 } }, -16, -120, 1412, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 24, 88 } }, -8, -120, 1406, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 64 } }, 16, -120, 1425, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 32, 128 } }, -72, -120, 1234, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 224 } }, -88, -120, 1000, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 200 } }, -104, -120, 975, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -136, -16, 947, { .fields = { 8, 216 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 32, 104 } }, -136, -120, 947, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 24, 48 } }, -152, 24, 947, { .fields = { 72, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -160, 56, 947, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 72 } }, -160, -120, 947, { .fields = { 40, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 224 } }, -136, -120, 825, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 40 } }, -120, 72, 825, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 24, 24 } }, -160, -120, 825, { .fields = { 32, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 56 } }, -160, -88, 576, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 104 } }, -144, -8, 825, { .fields = { 72, 104 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 56 } }, -160, 0, 750, { .fields = { 40, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -152, 72, 750, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 64 } }, -160, 56, 700, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 80 } }, -144, 40, 700, { .fields = { 48, 88 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 32, 56 } }, -128, 64, 700, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 24 } }, -96, 96, 700, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 24, 24 } }, -104, 56, 829, { .fields = { 0, 48 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 24, 24 } }, -128, 56, 829, { .fields = { 0, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -152, 64, 829, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 24 } }, -144, 56, 829, { .fields = { 8, 72 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 24 } }, -136, 56, 829, { .fields = { 16, 72 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 24 } }, -96, 40, 858, { .fields = { 16, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, 40, 853, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 24 } }, -72, 32, 925, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -56, 32, 925, { .fields = { 32, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -48, 40, 925, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 200 } }, -160, -120, 917, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 192 } }, -144, -120, 940, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 184 } }, -128, -120, 965, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 160 } }, -112, -104, 996, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 104 } }, -88, -48, 1025, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 88 } }, -72, -40, 923, { .fields = { 64, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -16, -64, 1225, { .fields = { 40, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -80, -24, 1225, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -56, 8, 1225, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 56 } }, -24, -96, 1225, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 24, 128 } }, -48, -120, 1225, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 24, 128 } }, -72, -120, 1225, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 96 } }, -96, -120, 1225, { .fields = { 16, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -96, -16, 1050, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 120 } }, -112, -120, 1225, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 8, 8 } }, -16, 48, 975, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -64, 56, 975, { .fields = { 32, 248 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 8, 24 } }, -24, 48, 975, { .fields = { 40, 144 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 8, 56 } }, -32, -120, 975, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 8, 24 } }, -24, -120, 975, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 16 } }, -56, 48, 975, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 16 } }, -48, 48, 975, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 8, 56 } }, -40, 16, 975, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 8, 80 } }, -40, -64, 975, { .fields = { 24, 56 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 8, 80 } }, -32, -64, 975, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 8, 56 } }, -32, 16, 975, { .fields = { 32, 136 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths over the decoded background in view 4.
+static SpriteSource _gNeoArkWoodlandPathView4SpriteSources[] = {
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 8, 8 } }, 88, 96, 1148, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 16, 64 } }, 40, -120, 1075, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 16, 56 } }, 56, -120, 0x61A7, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 216 } }, 72, -120, 1076, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 64, -40, 1101, { .fields = { 24, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 64, 240 } }, 96, -120, 1050, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 24, 192 } }, -40, -120, 1362, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 8, 184 } }, -16, -120, 1412, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 24, 88 } }, -8, -120, 1406, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 24, 64 } }, 16, -120, 1425, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 32, 128 } }, -72, -120, 1234, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 224 } }, -88, -120, 1000, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 16, 200 } }, -104, -120, 975, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -136, -16, 947, { .fields = { 8, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 32, 104 } }, -136, -120, 947, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 24, 48 } }, -152, 24, 947, { .fields = { 72, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -160, 56, 947, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 24, 72 } }, -160, -120, 947, { .fields = { 40, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 224 } }, -136, -120, 825, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 16, 40 } }, -120, 72, 825, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 24, 24 } }, -160, -120, 825, { .fields = { 32, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 16, 56 } }, -160, -88, 576, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 8, 104 } }, -144, -8, 825, { .fields = { 72, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 16, 56 } }, -160, 0, 750, { .fields = { 40, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -152, 72, 750, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 16, 64 } }, -160, 56, 700, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 16, 80 } }, -144, 40, 700, { .fields = { 48, 88 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 32, 56 } }, -128, 64, 700, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 16, 24 } }, -96, 96, 700, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 24, 24 } }, -104, 56, 829, { .fields = { 0, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 24, 24 } }, -128, 56, 829, { .fields = { 0, 24 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -152, 64, 829, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 8, 24 } }, -144, 56, 829, { .fields = { 8, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 8, 24 } }, -136, 56, 829, { .fields = { 16, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 16, 24 } }, -96, 40, 858, { .fields = { 16, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -80, 40, 853, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 16, 24 } }, -72, 32, 925, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -56, 32, 925, { .fields = { 32, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -48, 40, 925, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 16, 200 } }, -160, -120, 917, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 16, 192 } }, -144, -120, 940, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 16, 184 } }, -128, -120, 965, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 24, 160 } }, -112, -104, 996, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 16, 104 } }, -88, -48, 1025, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 8, 88 } }, -72, -40, 923, { .fields = { 64, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -16, -64, 1225, { .fields = { 40, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -80, -24, 1225, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -56, 8, 1225, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 8, 56 } }, -24, -96, 1225, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 24, 128 } }, -48, -120, 1225, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 24, 128 } }, -72, -120, 1225, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 24, 96 } }, -96, -120, 1225, { .fields = { 16, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -96, -16, 1050, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 16, 120 } }, -112, -120, 1225, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 8, 8 } }, -16, 48, 975, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, -64, 56, 975, { .fields = { 32, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 8, 24 } }, -24, 48, 975, { .fields = { 40, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 8, 56 } }, -32, -120, 975, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 8, 24 } }, -24, -120, 975, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 8, 16 } }, -56, 48, 975, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 8, 16 } }, -48, 48, 975, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 8, 56 } }, -40, 16, 975, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 8, 80 } }, -40, -64, 975, { .fields = { 24, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 8, 80 } }, -32, -64, 975, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 8, 56 } }, -32, 16, 975, { .fields = { 32, 136 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_woodland_path_8018270C[11] = {
+/// View 4 partitions every source into nine ranges over the decoded background.
+static SpriteBatch _gNeoArkWoodlandPathView4SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 6, 0, 0, { 7, 0 } },
     { 6, 12, 0, 0, { 2, 0 } },
@@ -266,92 +284,94 @@ SpriteBatch D_neo_ark_woodland_path_8018270C[11] = {
     { 34, 5, 0, 0, { 4, 0 } },
     { 39, 6, 0, 0, { 8, 0 } },
     { 45, 9, 0, 0, { 3, 0 } },
-    { 54, 11, 0, 0, { 0, 0 } },
+    { 54, ARRAY_SIZE(_gNeoArkWoodlandPathView4SpriteSources) - 54, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_woodland_path_80182764[78] = {
-    { 141, 0x3FC0, { .fields = { 24, 72 } }, 16, -120, 0x61A7, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 120 } }, 40, -120, 1321, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 176 } }, 56, -120, 1354, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 208 } }, 72, -120, 1300, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 24, 8 } }, 112, 88, 1300, { .fields = { 0, 96 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 8 } }, 56, 16, 1000, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 8 } }, 48, 72, 1000, { .fields = { 16, 24 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 32, 88 } }, 128, 24, 1000, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 64, 96 } }, 64, 16, 1000, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 24 } }, 56, 64, 1000, { .fields = { 16, 216 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 8 } }, 48, 72, 750, { .fields = { 8, 64 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 24 } }, 56, 64, 750, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 24 } }, 64, 40, 875, { .fields = { 0, 24 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 32 } }, 80, 32, 875, { .fields = { 24, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 96, 16, 875, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 32, 88 } }, 128, 24, 750, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, 88, 64, 750, { .fields = { 48, 208 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 24, 40 } }, 64, 64, 750, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 8 } }, -48, 112, 305, { .fields = { 8, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 32 } }, 24, 88, 125, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 32, 32 } }, 64, 88, 125, { .fields = { 24, 224 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 24 } }, 96, 96, 125, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 16 } }, 112, 104, 125, { .fields = { 24, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, 128, 88, 125, { .fields = { 24, 224 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 40 } }, 144, 80, 125, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -32, 104, 302, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 16 } }, -16, 104, 125, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 16 } }, 0, 104, 125, { .fields = { 8, 240 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 16 } }, 16, 104, 125, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 24, 96 } }, 96, -104, 1050, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 32, 32 } }, 96, -8, 1001, { .fields = { 16, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, 104, 24, 1050, { .fields = { 0, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, 16, -72, 1925, { .fields = { 0, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -48, 40, 1444, { .fields = { 40, 248 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 8, 8 } }, -104, 72, 1353, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 24, 72 } }, -144, -120, 1399, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 112 } }, -120, -120, 1395, { .fields = { 16, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 40, 192 } }, -104, -120, 1383, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 184 } }, -64, -120, 1444, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 112 } }, -48, -120, 1510, { .fields = { 0, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 112 } }, -32, -120, 1371, { .fields = { 32, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 80 } }, -16, -120, 1947, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 64 } }, 0, -120, 1925, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 8, 24 } }, 8, -88, 1925, { .fields = { 16, 72 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 8, 32 } }, -112, 48, 1383, { .fields = { 32, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 56 } }, -56, -80, 1694, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 48 } }, -48, -40, 1694, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 136 } }, -40, -88, 1694, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 32 } }, -24, 16, 1889, { .fields = { 0, 224 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 8, 16 } }, -16, 24, 1889, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 8, 8 } }, -80, -48, 1275, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 8, 8 } }, -128, -24, 1250, { .fields = { 24, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 56 } }, -120, 8, 1250, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 8, 104 } }, -120, -96, 1250, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 8, 80 } }, -112, -88, 1250, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 8, 32 } }, -104, -56, 1294, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 40 } }, -96, -72, 1275, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 8, 40 } }, -88, -80, 1275, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 8 } }, -144, -64, 1250, { .fields = { 8, 248 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 16, 8 } }, -152, -32, 1250, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 16, 8 } }, -136, -32, 1250, { .fields = { 16, 32 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 8, 8 } }, -64, 24, 1183, { .fields = { 24, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 32 } }, -160, 40, 228, { .fields = { 8, 224 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 8, 24 } }, -144, 48, 1125, { .fields = { 40, 72 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 24, 32 } }, -136, 40, 1125, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 40, 32 } }, -112, 32, 1125, { .fields = { 8, 184 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 16, 24 } }, -72, 32, 1125, { .fields = { 16, 104 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 16, 16 } }, -56, 40, 1125, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 16, 8 } }, -104, 64, 1125, { .fields = { 0, 80 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 16, 8 } }, -96, 24, 1125, { .fields = { 0, 56 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 16, 8 } }, -80, 24, 1125, { .fields = { 0, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 112 } }, -160, -64, 1525, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 112 } }, -144, -64, 1525, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 112 } }, -128, -64, 1550, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 112 } }, -112, -64, 1575, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 112 } }, -96, -64, 1632, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 112 } }, -80, -64, 1755, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 112 } }, -64, -64, 1942, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths over the decoded background in view 5.
+static SpriteSource _gNeoArkWoodlandPathView5SpriteSources[] = {
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 24, 72 } }, 16, -120, 0x61A7, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 16, 120 } }, 40, -120, 1321, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 16, 176 } }, 56, -120, 1354, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 88, 208 } }, 72, -120, 1300, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 24, 8 } }, 112, 88, 1300, { .fields = { 0, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 8, 8 } }, 56, 16, 1000, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 8, 8 } }, 48, 72, 1000, { .fields = { 16, 24 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 32, 88 } }, 128, 24, 1000, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 64, 96 } }, 64, 16, 1000, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 8, 24 } }, 56, 64, 1000, { .fields = { 16, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 8, 8 } }, 48, 72, 750, { .fields = { 8, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 8, 24 } }, 56, 64, 750, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 16, 24 } }, 64, 40, 875, { .fields = { 0, 24 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 16, 32 } }, 80, 32, 875, { .fields = { 24, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 48 } }, 96, 16, 875, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 32, 88 } }, 128, 24, 750, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 48 } }, 88, 64, 750, { .fields = { 48, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 24, 40 } }, 64, 64, 750, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 16, 8 } }, -48, 112, 305, { .fields = { 8, 128 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 40, 32 } }, 24, 88, 125, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 32, 32 } }, 64, 88, 125, { .fields = { 24, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 16, 24 } }, 96, 96, 125, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 16, 16 } }, 112, 104, 125, { .fields = { 24, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 16, 32 } }, 128, 88, 125, { .fields = { 24, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 16, 40 } }, 144, 80, 125, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 16, 16 } }, -32, 104, 302, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 16, 16 } }, -16, 104, 125, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 16, 16 } }, 0, 104, 125, { .fields = { 8, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 8, 16 } }, 16, 104, 125, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 24, 96 } }, 96, -104, 1050, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 32, 32 } }, 96, -8, 1001, { .fields = { 16, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 56 } }, 104, 24, 1050, { .fields = { 0, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, 16, -72, 1925, { .fields = { 0, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, -48, 40, 1444, { .fields = { 40, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 8, 8 } }, -104, 72, 1353, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 24, 72 } }, -144, -120, 1399, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 256), { .fields = { 16, 112 } }, -120, -120, 1395, { .fields = { 16, 112 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 40, 192 } }, -104, -120, 1383, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 256), { .fields = { 16, 184 } }, -64, -120, 1444, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 256), { .fields = { 16, 112 } }, -48, -120, 1510, { .fields = { 0, 112 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 256), { .fields = { 16, 112 } }, -32, -120, 1371, { .fields = { 32, 112 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 256), { .fields = { 16, 80 } }, -16, -120, 1947, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 8, 64 } }, 0, -120, 1925, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 8, 24 } }, 8, -88, 1925, { .fields = { 16, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 8, 32 } }, -112, 48, 1383, { .fields = { 32, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 8, 56 } }, -56, -80, 1694, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 8, 48 } }, -48, -40, 1694, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 256), { .fields = { 16, 136 } }, -40, -88, 1694, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 256), { .fields = { 8, 32 } }, -24, 16, 1889, { .fields = { 0, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 8, 16 } }, -16, 24, 1889, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 8, 8 } }, -80, -48, 1275, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 8, 8 } }, -128, -24, 1250, { .fields = { 24, 128 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 256), { .fields = { 16, 56 } }, -120, 8, 1250, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 8, 104 } }, -120, -96, 1250, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 8, 80 } }, -112, -88, 1250, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 8, 32 } }, -104, -56, 1294, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 8, 40 } }, -96, -72, 1275, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 8, 40 } }, -88, -80, 1275, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 24, 8 } }, -144, -64, 1250, { .fields = { 8, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 16, 8 } }, -152, -32, 1250, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 16, 8 } }, -136, -32, 1250, { .fields = { 16, 32 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 8, 8 } }, -64, 24, 1183, { .fields = { 24, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 256), { .fields = { 16, 32 } }, -160, 40, 228, { .fields = { 8, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 8, 24 } }, -144, 48, 1125, { .fields = { 40, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 24, 32 } }, -136, 40, 1125, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 40, 32 } }, -112, 32, 1125, { .fields = { 8, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 16, 24 } }, -72, 32, 1125, { .fields = { 16, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 16, 16 } }, -56, 40, 1125, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 16, 8 } }, -104, 64, 1125, { .fields = { 0, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 16, 8 } }, -96, 24, 1125, { .fields = { 0, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 16, 8 } }, -80, 24, 1125, { .fields = { 0, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 256), { .fields = { 16, 112 } }, -160, -64, 1525, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 256), { .fields = { 16, 112 } }, -144, -64, 1525, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 256), { .fields = { 16, 112 } }, -128, -64, 1550, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 256), { .fields = { 16, 112 } }, -112, -64, 1575, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 256), { .fields = { 16, 112 } }, -96, -64, 1632, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 256), { .fields = { 16, 112 } }, -80, -64, 1755, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 256), { .fields = { 16, 112 } }, -64, -64, 1942, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_woodland_path_80182D7C[12] = {
+/// View 5 partitions every source into ten ranges over the decoded background.
+static SpriteBatch _gNeoArkWoodlandPathView5SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 5, 0, 0, { 6, 0 } },
     { 5, 5, 0, 0, { 1, 0 } },
@@ -362,135 +382,139 @@ SpriteBatch D_neo_ark_woodland_path_80182D7C[12] = {
     { 45, 5, 0, 0, { 9, 0 } },
     { 50, 11, 0, 0, { 4, 0 } },
     { 61, 10, 0, 0, { 7, 0 } },
-    { 71, 7, 0, 0, { 3, 0 } },
+    { 71, ARRAY_SIZE(_gNeoArkWoodlandPathView5SpriteSources) - 71, 0, 0, { 3, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_woodland_path_80182DDC[47] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -88, -120, 1063, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 128, 24, 995, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 176 } }, -160, -120, 1058, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 168 } }, -120, -120, 1070, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -88, -16, 1052, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, -80, 0, 1061, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -64, 0, 1053, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 24, 8, 1219, { .fields = { 32, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 48 } }, 40, -8, 1062, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 64 } }, 64, -16, 1211, { .fields = { 72, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 64 } }, 88, -8, 1056, { .fields = { 48, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, 112, -8, 1133, { .fields = { 16, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 168 } }, 72, -120, 1224, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 176 } }, 88, -120, 1054, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 168 } }, 112, -120, 1218, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 160 } }, 144, -120, 1408, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 184 } }, 56, -120, 1316, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 168 } }, 40, -120, 1498, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, 16, -16, 1559, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 0, -8, 1798, { .fields = { 16, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -16, -8, 1885, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 24, -120, 1535, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 16, -104, 1550, { .fields = { 40, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 0, -104, 1729, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 128, -8, 1257, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 160 } }, 80, -120, 1304, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 16, -104, 1546, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 120 } }, 32, -120, 1448, { .fields = { 0, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 120 } }, 56, -120, 1448, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 112 } }, 72, -120, 1448, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 120, -120, 1324, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 120, -80, 1302, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 32 } }, 120, -40, 1307, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 40, 8 } }, -144, 64, 537, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 56, 8 } }, -160, 72, 525, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 56, 8 } }, -160, 80, 500, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 48, 8 } }, -160, 88, 475, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 24, 8 } }, -152, 96, 450, { .fields = { 40, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 8 } }, 112, 48, 650, { .fields = { 32, 208 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 48, 8 } }, 104, 56, 625, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 56, 8 } }, 104, 64, 600, { .fields = { 72, 8 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 24, 8 } }, 136, 72, 600, { .fields = { 104, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, 128, 80, 612, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, 136, 80, 605, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, 144, 80, 605, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 40, 32 } }, -160, 80, 450, { .fields = { 40, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 24, 16 } }, 128, 64, 575, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths over the decoded background in view 6.
+static SpriteSource _gNeoArkWoodlandPathView6SpriteSources[] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -88, -120, 1063, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 128, 24, 995, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 176 } }, -160, -120, 1058, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 168 } }, -120, -120, 1070, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 64 } }, -88, -16, 1052, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 16, 32 } }, -80, 0, 1061, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -64, 0, 1053, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 24, 8, 1219, { .fields = { 32, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 24, 48 } }, 40, -8, 1062, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 64 } }, 64, -16, 1211, { .fields = { 72, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 64 } }, 88, -8, 1056, { .fields = { 48, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, 112, -8, 1133, { .fields = { 16, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 168 } }, 72, -120, 1224, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 176 } }, 88, -120, 1054, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 32, 168 } }, 112, -120, 1218, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 16, 160 } }, 144, -120, 1408, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 184 } }, 56, -120, 1316, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 16, 168 } }, 40, -120, 1498, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 24, 40 } }, 16, -16, 1559, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, 0, -8, 1798, { .fields = { 16, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 16, 24 } }, -16, -8, 1885, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 72 } }, 24, -120, 1535, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 64 } }, 16, -104, 1550, { .fields = { 40, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 0, -104, 1729, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 128, -8, 1257, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 40, 160 } }, 80, -120, 1304, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 72 } }, 16, -104, 1546, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 24, 120 } }, 32, -120, 1448, { .fields = { 0, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 16, 120 } }, 56, -120, 1448, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 8, 112 } }, 72, -120, 1448, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, 120, -120, 1324, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, 120, -80, 1302, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 40, 32 } }, 120, -40, 1307, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 256), { .fields = { 40, 8 } }, -144, 64, 537, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 56, 8 } }, -160, 72, 525, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 56, 8 } }, -160, 80, 500, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 48, 8 } }, -160, 88, 475, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 256), { .fields = { 24, 8 } }, -152, 96, 450, { .fields = { 40, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 256), { .fields = { 16, 8 } }, 112, 48, 650, { .fields = { 32, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 48, 8 } }, 104, 56, 625, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 56, 8 } }, 104, 64, 600, { .fields = { 72, 8 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 24, 8 } }, 136, 72, 600, { .fields = { 104, 16 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, 128, 80, 612, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, 136, 80, 605, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, 144, 80, 605, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 256), { .fields = { 40, 32 } }, -160, 80, 450, { .fields = { 40, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 256), { .fields = { 24, 16 } }, 128, 64, 575, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_woodland_path_80183188[7] = {
+/// View 6 partitions every source into five ranges over the decoded background.
+static SpriteBatch _gNeoArkWoodlandPathView6SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 12, 0, 0, { 0, 0 } },
     { 12, 12, 0, 0, { 3, 0 } },
     { 24, 9, 0, 0, { 2, 0 } },
     { 33, 9, 0, 0, { 4, 0 } },
-    { 42, 5, 0, 0, { 1, 0 } },
+    { 42, ARRAY_SIZE(_gNeoArkWoodlandPathView6SpriteSources) - 42, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_woodland_path_801831C0[55] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, -120, 1100, { .fields = { 8, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -96, -40, 882, { .fields = { 0, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 88, -40, 750, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -16, 0, 1946, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 160 } }, -160, -120, 808, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 80 } }, -152, -120, 981, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 56 } }, -152, -16, 928, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 160 } }, -120, -120, 856, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 80 } }, -104, -120, 823, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, -40, 919, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 56 } }, -104, -16, 1175, { .fields = { 8, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 80 } }, -88, -40, 988, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 56 } }, -64, -16, 1099, { .fields = { 24, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 56 } }, -48, -16, 1466, { .fields = { 16, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 48 } }, -32, -16, 1913, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 72 } }, -40, -120, 1027, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 24, 32 } }, -24, -120, 1055, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 32 } }, -24, -88, 1053, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 96 } }, 120, -120, 750, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 56 } }, 136, -16, 907, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 64 } }, 120, -24, 750, { .fields = { 32, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 80 } }, 72, -120, 1100, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 80 } }, 96, -40, 750, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 48 } }, 112, -8, 750, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 32 } }, 80, 8, 1100, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 72, 16, 1100, { .fields = { 56, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 64 } }, 48, -120, 1100, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 144 } }, -160, -120, 1234, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 136 } }, -112, -120, 1313, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 96 } }, -48, -104, 1250, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, -104, 16, 1279, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 136, -32, 536, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 88 } }, 96, -120, 525, { .fields = { 0, 144 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 48, 48 } }, 48, -120, 516, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 48 } }, 120, -32, 533, { .fields = { 120, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 32 } }, 112, 16, 1042, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -160, 96, 475, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 24, 8 } }, -128, 48, 731, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 40, 8 } }, -144, 56, 646, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 40, 8 } }, -152, 64, 622, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 40, 8 } }, -160, 72, 589, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 16, 8 } }, -160, 80, 550, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 8 } }, -160, 88, 500, { .fields = { 8, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 40, 8 } }, 112, 56, 622, { .fields = { 32, 248 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 48, 8 } }, 112, 64, 572, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 48, 8 } }, 112, 72, 575, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 40, 8 } }, 120, 80, 525, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 32, 8 } }, 128, 88, 500, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 8 } }, 136, 96, 475, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -144, 88, 588, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -136, 88, 583, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -128, 88, 593, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 32, 24 } }, -144, 64, 564, { .fields = { 24, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 32, 24 } }, 128, 72, 565, { .fields = { 0, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 32, 8 } }, 128, 96, 575, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths over the decoded background in view 7.
+static SpriteSource _gNeoArkWoodlandPathView7SpriteSources[] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 40, -120, 1100, { .fields = { 8, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -96, -40, 882, { .fields = { 0, 136 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 88, -40, 750, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -16, 0, 1946, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 160 } }, -160, -120, 808, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 32, 80 } }, -152, -120, 981, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 32, 56 } }, -152, -16, 928, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 160 } }, -120, -120, 856, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 80 } }, -104, -120, 823, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -64, -40, 919, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 16, 56 } }, -104, -16, 1175, { .fields = { 8, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 24, 80 } }, -88, -40, 988, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 16, 56 } }, -64, -16, 1099, { .fields = { 24, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 16, 56 } }, -48, -16, 1466, { .fields = { 16, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 16, 48 } }, -32, -16, 1913, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 16, 72 } }, -40, -120, 1027, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 24, 32 } }, -24, -120, 1055, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 16, 32 } }, -24, -88, 1053, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 96 } }, 120, -120, 750, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 24, 56 } }, 136, -16, 907, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 16, 64 } }, 120, -24, 750, { .fields = { 32, 152 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 48, 80 } }, 72, -120, 1100, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 16, 80 } }, 96, -40, 750, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 8, 48 } }, 112, -8, 750, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 16, 32 } }, 80, 8, 1100, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 72, 16, 1100, { .fields = { 56, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 24, 64 } }, 48, -120, 1100, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 48, 144 } }, -160, -120, 1234, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 136 } }, -112, -120, 1313, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 96 } }, -48, -104, 1250, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 16, 32 } }, -104, 16, 1279, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 136, -32, 536, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 64, 88 } }, 96, -120, 525, { .fields = { 0, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 48, 48 } }, 48, -120, 516, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 255), { .fields = { 16, 48 } }, 120, -32, 533, { .fields = { 120, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 48, 32 } }, 112, 16, 1042, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, -160, 96, 475, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 24, 8 } }, -128, 48, 731, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 40, 8 } }, -144, 56, 646, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 40, 8 } }, -152, 64, 622, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 40, 8 } }, -160, 72, 589, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 16, 8 } }, -160, 80, 550, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 16, 8 } }, -160, 88, 500, { .fields = { 8, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 256), { .fields = { 40, 8 } }, 112, 56, 622, { .fields = { 32, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 832, 0), getClut(0, 256), { .fields = { 48, 8 } }, 112, 64, 572, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 256), { .fields = { 48, 8 } }, 112, 72, 575, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 40, 8 } }, 120, 80, 525, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 256), { .fields = { 32, 8 } }, 128, 88, 500, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 24, 8 } }, 136, 96, 475, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, -144, 88, 588, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, -136, 88, 583, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, -128, 88, 593, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 32, 24 } }, -144, 64, 564, { .fields = { 24, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 256), { .fields = { 32, 24 } }, 128, 72, 565, { .fields = { 0, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 256), { .fields = { 32, 8 } }, 128, 96, 575, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_woodland_path_8018360C[7] = {
+/// View 7 partitions every source into five ranges over the decoded background.
+static SpriteBatch _gNeoArkWoodlandPathView7SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 27, 0, 0, { 0, 0 } },
     { 27, 4, 0, 0, { 3, 0 } },
     { 31, 5, 0, 0, { 2, 0 } },
     { 36, 13, 0, 0, { 4, 0 } },
-    { 49, 6, 0, 0, { 1, 0 } },
+    { 49, ARRAY_SIZE(_gNeoArkWoodlandPathView7SpriteSources) - 49, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
@@ -602,29 +626,37 @@ SpriteBatch D_neo_ark_woodland_path_80183C44[5] = {
 };
 
 SpriteView D_neo_ark_woodland_path_80183C6C[10] = {
-    { { .empty = D_neo_ark_woodland_path_80181EE8 }, D_neo_ark_woodland_path_80181EE8, NULL },
-    { { .elements = D_neo_ark_woodland_path_80181EF8 }, D_neo_ark_woodland_path_801820EC, NULL },
-    { { .elements = D_neo_ark_woodland_path_80182104 }, D_neo_ark_woodland_path_801821E0, NULL },
-    { { .elements = D_neo_ark_woodland_path_801821F8 }, D_neo_ark_woodland_path_8018270C, NULL },
-    { { .elements = D_neo_ark_woodland_path_80182764 }, D_neo_ark_woodland_path_80182D7C, NULL },
-    { { .elements = D_neo_ark_woodland_path_80182DDC }, D_neo_ark_woodland_path_80183188, NULL },
-    { { .elements = D_neo_ark_woodland_path_801831C0 }, D_neo_ark_woodland_path_8018360C, NULL },
+    { { .empty = _gNeoArkWoodlandPathView1SpriteBatches }, _gNeoArkWoodlandPathView1SpriteBatches, NULL },
+    { { .elements = _gNeoArkWoodlandPathView2SpriteSources }, _gNeoArkWoodlandPathView2SpriteBatches, NULL },
+    { { .elements = _gNeoArkWoodlandPathView3SpriteSources }, _gNeoArkWoodlandPathView3SpriteBatches, NULL },
+    { { .elements = _gNeoArkWoodlandPathView4SpriteSources }, _gNeoArkWoodlandPathView4SpriteBatches, NULL },
+    { { .elements = _gNeoArkWoodlandPathView5SpriteSources }, _gNeoArkWoodlandPathView5SpriteBatches, NULL },
+    { { .elements = _gNeoArkWoodlandPathView6SpriteSources }, _gNeoArkWoodlandPathView6SpriteBatches, NULL },
+    { { .elements = _gNeoArkWoodlandPathView7SpriteSources }, _gNeoArkWoodlandPathView7SpriteBatches, NULL },
     { { .elements = D_neo_ark_woodland_path_80183644 }, D_neo_ark_woodland_path_801838C4, NULL },
     { { .elements = D_neo_ark_woodland_path_801838F4 }, D_neo_ark_woodland_path_80183AFC, NULL },
     { { .elements = D_neo_ark_woodland_path_80183B2C }, D_neo_ark_woodland_path_80183C44, NULL },
 };
 
-WorldCoordPointLight D_neo_ark_woodland_path_80183CE4[7] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5800, -1500, -5200 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 500, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6300, -1500, -2400 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 500, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3700, -1500, -5200 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 500, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2800, -1500, -5200 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 500, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1000, -1500, -5200 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 500, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6300, -1500, 1400 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 500, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -5000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 0x186A0, 0x186A0 },
+/// Six local point lights and one broad full-strength point light for the path.
+static WorldCoordPointLight _gNeoArkWoodlandPathPointLights[] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5800, -1500, -5200 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 500, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6300, -1500, -2400 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 500, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3700, -1500, -5200 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 500, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -2800, -1500, -5200 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 500, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -1000, -1500, -5200 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 500, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6300, -1500, 1400 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 500, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -5000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 0x186A0, 0x186A0 },
 };
 
-WorldCoordRoomLights D_neo_ark_woodland_path_80183F84 = { 0, NULL, ARRAY_SIZE(D_neo_ark_woodland_path_80183CE4), D_neo_ark_woodland_path_80183CE4, 0, NULL };
+WorldCoordRoomLights gNeoArkWoodlandPathRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gNeoArkWoodlandPathPointLights),
+    .pointLights           = _gNeoArkWoodlandPathPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
+};
 
 WorldCollisionTrigger D_neo_ark_woodland_path_80183F9C[16] = {
     { NULL, NULL, NULL, { -3969, -2048, 7647, 0 }, { { 3476, -3712, -1, 0 }, { -3475, -3712, 2, 0 }, { 3476, 3712, -1, 0 }, { -3475, 3712, 2, 0 } }, { 1, 0, 4099, 0 }, { 0, 0, 4096, 0 }, 5068, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -691,8 +723,8 @@ AreaVariant D_neo_ark_woodland_path_8018471C[12] = {
     { NULL, NULL },
 };
 
-WorldCoordRoomAmbientEntry D_neo_ark_woodland_path_8018477C[11] = {
-    { .viewCount = ARRAY_SIZE(D_neo_ark_woodland_path_8018477C) - 1 },
+WorldCoordRoomAmbientEntry gNeoArkWoodlandPathRoomAmbientByView[11] = {
+    { .viewCount = ARRAY_SIZE(gNeoArkWoodlandPathRoomAmbientByView) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 16, 16, 16, 16 } },
@@ -712,53 +744,92 @@ WorldCollisionOccluder D_neo_ark_woodland_path_801847D4[4] = {
     { NULL, NULL, { 3136, -1568, -7872, 0 }, { { -6656, 3616, 2240, 0 }, { 6656, 3616, -2240, 0 }, { -6656, -3616, 2240, 0 }, { 6656, -3616, -2240, 0 } }, { 1308, 0, 3889, 0 }, 7898, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCollisionFootstepSounds D_neo_ark_woodland_path_801848C4 = {
-    0x10000039,
-    0x1000003B,
-    0x10000039,
+// Cue-2 bases in the loaded sound bank; cue 1 uses the following script.
+enum {
+    NEO_ARK_WOODLAND_PATH_CLASS2_WALK_SOUND = 0x10000035,
+    NEO_ARK_WOODLAND_PATH_CLASS2_RUN_SOUND  = 0x10000037,
+    NEO_ARK_WOODLAND_PATH_CLASS3_WALK_SOUND = 0x10000025,
+    NEO_ARK_WOODLAND_PATH_CLASS3_RUN_SOUND  = 0x10000027,
+    NEO_ARK_WOODLAND_PATH_CLASS3_JUMP_SOUND = 0x10000029,
+    NEO_ARK_WOODLAND_PATH_CLASS4_WALK_SOUND = 0x10000039,
+    NEO_ARK_WOODLAND_PATH_CLASS4_RUN_SOUND  = 0x1000003B,
 };
 
-WorldCollisionFootstepSounds D_neo_ark_woodland_path_801848D0 = {
-    0x10000035,
-    0x10000037,
-    0x10000035,
+/// Class 4 walk and run cue bases; scripted jumps reuse walking cues.
+static WorldCollisionFootstepSounds _gNeoArkWoodlandPathClass4FootstepSounds = {
+    .walk         = NEO_ARK_WOODLAND_PATH_CLASS4_WALK_SOUND,
+    .run          = NEO_ARK_WOODLAND_PATH_CLASS4_RUN_SOUND,
+    .scriptedJump = NEO_ARK_WOODLAND_PATH_CLASS4_WALK_SOUND,
 };
 
-WorldCollisionFootstepSounds D_neo_ark_woodland_path_801848DC = {
-    0x10000025,
-    0x10000027,
-    0x10000029,
+/// Class 2 walk and run cue bases; scripted jumps reuse walking cues.
+static WorldCollisionFootstepSounds _gNeoArkWoodlandPathClass2FootstepSounds = {
+    .walk         = NEO_ARK_WOODLAND_PATH_CLASS2_WALK_SOUND,
+    .run          = NEO_ARK_WOODLAND_PATH_CLASS2_RUN_SOUND,
+    .scriptedJump = NEO_ARK_WOODLAND_PATH_CLASS2_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_woodland_path_801848E8[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Class 3 has separate walk, run and scripted-jump cue bases.
+static WorldCollisionFootstepSounds _gNeoArkWoodlandPathClass3FootstepSounds = {
+    .walk         = NEO_ARK_WOODLAND_PATH_CLASS3_WALK_SOUND,
+    .run          = NEO_ARK_WOODLAND_PATH_CLASS3_RUN_SOUND,
+    .scriptedJump = NEO_ARK_WOODLAND_PATH_CLASS3_JUMP_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_woodland_path_801848F0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Blocking surface without footstep cues, shared by classes 0 and 5..7.
+static WorldCollisionSurfaceProperties _gNeoArkWoodlandPathDefaultSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_woodland_path_801848F8[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_woodland_path_801848D0 },
+/// Class 1's distinct blocking record has no footstep cues.
+static WorldCollisionSurfaceProperties _gNeoArkWoodlandPathSurfaceClass1 = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_woodland_path_80184900[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_woodland_path_801848DC },
+/// Class 2 blocks probes and uses its walk/run cues for footsteps.
+static WorldCollisionSurfaceProperties _gNeoArkWoodlandPathSurfaceClass2 = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gNeoArkWoodlandPathClass2FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_woodland_path_80184908[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_woodland_path_801848C4 },
+/// Class 3 blocks probes and selects three distinct footstep cue bases.
+static WorldCollisionSurfaceProperties _gNeoArkWoodlandPathSurfaceClass3 = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gNeoArkWoodlandPathClass3FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_neo_ark_woodland_path_80184910[8] = {
-    D_neo_ark_woodland_path_801848E8,
-    D_neo_ark_woodland_path_801848F0,
-    D_neo_ark_woodland_path_801848F8,
-    D_neo_ark_woodland_path_80184900,
-    D_neo_ark_woodland_path_80184908,
-    D_neo_ark_woodland_path_801848E8,
-    D_neo_ark_woodland_path_801848E8,
-    D_neo_ark_woodland_path_801848E8,
+/// Class 4 blocks probes and uses its walk/run cues for footsteps.
+static WorldCollisionSurfaceProperties _gNeoArkWoodlandPathSurfaceClass4 = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gNeoArkWoodlandPathClass4FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gNeoArkWoodlandPathSurfaceProperties[8] = {
+    &_gNeoArkWoodlandPathDefaultSurface,
+    &_gNeoArkWoodlandPathSurfaceClass1,
+    &_gNeoArkWoodlandPathSurfaceClass2,
+    &_gNeoArkWoodlandPathSurfaceClass3,
+    &_gNeoArkWoodlandPathSurfaceClass4,
+    &_gNeoArkWoodlandPathDefaultSurface,
+    &_gNeoArkWoodlandPathDefaultSurface,
+    &_gNeoArkWoodlandPathDefaultSurface,
 };
 
 static void _neoArkWoodlandPathInitRoomTask(Task* task);

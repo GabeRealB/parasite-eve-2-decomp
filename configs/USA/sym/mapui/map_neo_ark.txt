@@ -274,18 +274,18 @@ D_shelter_1f_tent_80183A94 = 0x80183A94; // absolute:True owner=shelter_1f_tent
 D_shelter_1f_tent_80183CF4 = 0x80183CF4; // absolute:True owner=shelter_1f_tent
 D_shelter_1f_tent_801842B4 = 0x801842B4; // absolute:True owner=shelter_1f_tent shared=rooms
 neoArkWoodlandPathRoomTask = 0x8017E9B0; // type:func absolute:True owner=neo_ark_woodland_path
-D_neo_ark_woodland_path_80181694 = 0x80181694; // absolute:True owner=neo_ark_woodland_path
+gNeoArkWoodlandPathViewMaps = 0x80181694; // absolute:True owner=neo_ark_woodland_path
 D_neo_ark_woodland_path_80181698 = 0x80181698; // absolute:True owner=neo_ark_woodland_path
 D_neo_ark_woodland_path_8018169C = 0x8018169C; // absolute:True owner=neo_ark_woodland_path
-D_neo_ark_woodland_path_80181D5C = 0x80181D5C; // absolute:True owner=neo_ark_woodland_path
+gNeoArkWoodlandPathCollisionGrid = 0x80181D5C; // absolute:True owner=neo_ark_woodland_path
 D_neo_ark_woodland_path_80181D80 = 0x80181D80; // absolute:True owner=neo_ark_woodland_path
 D_neo_ark_woodland_path_80183C6C = 0x80183C6C; // absolute:True owner=neo_ark_woodland_path shared=rooms
-D_neo_ark_woodland_path_80183F84 = 0x80183F84; // absolute:True owner=neo_ark_woodland_path shared=rooms
+gNeoArkWoodlandPathRoomLights = 0x80183F84; // absolute:True owner=neo_ark_woodland_path shared=rooms
 D_neo_ark_woodland_path_80183F9C = 0x80183F9C; // absolute:True owner=neo_ark_woodland_path shared=rooms
 D_neo_ark_woodland_path_8018445C = 0x8018445C; // absolute:True owner=neo_ark_woodland_path
-D_neo_ark_woodland_path_8018477C = 0x8018477C; // absolute:True owner=neo_ark_woodland_path shared=rooms
+gNeoArkWoodlandPathRoomAmbientByView = 0x8018477C; // absolute:True owner=neo_ark_woodland_path shared=rooms
 D_neo_ark_woodland_path_801847D4 = 0x801847D4; // absolute:True owner=neo_ark_woodland_path shared=rooms
-D_neo_ark_woodland_path_80184910 = 0x80184910; // absolute:True owner=neo_ark_woodland_path shared=rooms
+gNeoArkWoodlandPathSurfaceProperties = 0x80184910; // absolute:True owner=neo_ark_woodland_path shared=rooms
 neoArkSubmarineGalleryMessageTask = 0x8017EBCC; // type:func absolute:True owner=neo_ark_submarine_gallery
 gNeoArkSubmarineGalleryViewMaps = 0x80181A08; // absolute:True owner=neo_ark_submarine_gallery
 D_neo_ark_submarine_gallery_80181A0C = 0x80181A0C; // absolute:True owner=neo_ark_submarine_gallery

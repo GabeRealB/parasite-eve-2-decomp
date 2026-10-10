@@ -16,30 +16,55 @@ extern TaskDesc D_neo_ark_woodland_path_80181638;
 
 extern AreaVariant D_neo_ark_woodland_path_8018471C[12];
 
-// neo_ark_woodland_path
-extern u8* D_neo_ark_woodland_path_80181694[];
+/// Logical-view map for the woodland path's single room.
+///
+/// Room 1 borrows `gViewIdentityMap`: logical views 1..10 select the same
+/// 1-based camera, image and sprite indices. The room directory has no terminator
+/// and remains valid while this overlay is loaded.
+extern u8* gNeoArkWoodlandPathViewMaps[1];
 
 extern ViewCount D_neo_ark_woodland_path_80181698[];
 
 extern DirectionWarpEntry D_neo_ark_woodland_path_8018169C[];
 
-extern WorldCollisionGrid D_neo_ark_woodland_path_80181D5C;
+/// Woodland path collision mesh and its 4-by-5 XZ cell index.
+///
+/// The room owns 35 faces, 75 vertices, 17 normals and the cell lists. Cells
+/// have 4000-unit sides, with X/Z origins at -7600/-7000 in room coordinates.
+/// Activation binds the view transform; all mesh storage must remain loaded.
+extern WorldCollisionGrid gNeoArkWoodlandPathCollisionGrid;
 
 extern ViewCamera D_neo_ark_woodland_path_80181D80[];
 
 extern SpriteView D_neo_ark_woodland_path_80183C6C[];
 
-extern WorldCoordRoomLights D_neo_ark_woodland_path_80183F84;
+/// Woodland path model lighting from seven point sources in every view.
+///
+/// Six white Q12 sources fade between radii 500 and 3000 world units; the
+/// seventh stores equal inner/outer radius settings of 100000. There are no
+/// directional or cone sources. Coordinate caches and attenuation are writable
+/// and live with the room overlay.
+extern WorldCoordRoomLights gNeoArkWoodlandPathRoomLights;
 
 extern WorldCollisionTrigger D_neo_ark_woodland_path_80183F9C[];
 
 extern WorldCollisionTrigger D_neo_ark_woodland_path_8018445C[];
 
-extern WorldCoordRoomAmbientEntry D_neo_ark_woodland_path_8018477C[];
+/// Minimum ambient RGB levels for woodland path logical views 1..10.
+///
+/// Entry zero holds the view count; entries 1..10 hold signed levels in units
+/// of 1/16 of an 8-bit colour level, plus retained brightness. Lighting borrows
+/// the table only while the room overlay is loaded.
+extern WorldCoordRoomAmbientEntry gNeoArkWoodlandPathRoomAmbientByView[11];
 
 extern WorldCollisionOccluder D_neo_ark_woodland_path_801847D4[];
 
-extern WorldCollisionSurfaceProperties* D_neo_ark_woodland_path_80184910[];
+/// Woodland path collision and footstep policies indexed by surface class 0..7.
+///
+/// Every class blocks probes, permits weapon impacts and applies pushback.
+/// Classes 2..4 supply footstep cues; classes 0, 1 and 5..7 have none. Slots
+/// 5..7 reuse class 0's record. The directory and records live with this overlay.
+extern WorldCollisionSurfaceProperties* gNeoArkWoodlandPathSurfaceProperties[8];
 
 /// Advances and draws an expanding, fading water-surface ripple.
 ///

@@ -556,7 +556,7 @@ static WorldCoordRoomLighting D_map_neo_ark_8017A9DC[1] = {
 };
 
 static WorldCoordRoomLighting D_map_neo_ark_8017A9E4[1] = {
-    { &D_neo_ark_woodland_path_80183F84, D_neo_ark_woodland_path_8018477C },
+    { &gNeoArkWoodlandPathRoomLights, gNeoArkWoodlandPathRoomAmbientByView },
 };
 
 static WorldCoordRoomLighting D_map_neo_ark_8017A9EC[1] = {
@@ -702,7 +702,7 @@ static WorldCollisionRoomResources D_map_neo_ark_8017ABDC[1] = {
 };
 
 static WorldCollisionRoomResources D_map_neo_ark_8017ABEC[1] = {
-    { &D_neo_ark_woodland_path_80181D5C, D_neo_ark_woodland_path_80183F9C, D_neo_ark_woodland_path_8018445C, D_neo_ark_woodland_path_801847D4 },
+    { &gNeoArkWoodlandPathCollisionGrid, D_neo_ark_woodland_path_80183F9C, D_neo_ark_woodland_path_8018445C, D_neo_ark_woodland_path_801847D4 },
 };
 
 static WorldCollisionRoomResources D_map_neo_ark_8017ABFC[1] = {
@@ -818,7 +818,7 @@ static u8** D_map_neo_ark_8017AD2C[33] = {
     gNeoArkR26ViewMaps,
     gNeoArkBridgeViewMaps,
     D_shelter_1f_tent_80181D44,
-    D_neo_ark_woodland_path_80181694,
+    gNeoArkWoodlandPathViewMaps,
     gNeoArkSubmarineGalleryViewMaps,
     gNeoArkR31ViewMaps,
     gNeoArkPyramidViewMaps,
@@ -894,7 +894,7 @@ WorldCollisionSurfaceProperties** D_map_neo_ark_8017AE3C[33] = {
     gNeoArkR26SurfaceProperties,
     gNeoArkBridgeSurfaceProperties,
     D_shelter_1f_tent_801842B4,
-    D_neo_ark_woodland_path_80184910,
+    gNeoArkWoodlandPathSurfaceProperties,
     gNeoArkSubmarineGallerySurfacePropertiesByClass,
     gNeoArkR31SurfacePropertiesByClass,
     gNeoArkPyramidSurfaceProperties,
