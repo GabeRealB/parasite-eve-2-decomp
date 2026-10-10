@@ -404,7 +404,7 @@ AreaVariant D_dryfield_night_warehouse_8017FB98[12] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017B4A8, _gDryfieldNightWarehouseVariant11Resources },
+    { gMapDryfieldFullWarehouseVariant11Placements, _gDryfieldNightWarehouseVariant11Resources },
 };
 
 /// Surface class 6's walk, run and scripted-jump cue bases in the loaded type-1 bank.

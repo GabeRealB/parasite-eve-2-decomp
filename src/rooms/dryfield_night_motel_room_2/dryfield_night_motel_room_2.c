@@ -1232,8 +1232,8 @@ static AreaResource _gDryfieldNightMotelRoom2Variant21Resources[3] = {
 AreaVariant D_dryfield_night_motel_room_2_801809A0[22] = {
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017B7D8, _gDryfieldNightMotelRoom2Variant2Resources },
-    { D_map_dryfield_full_8017B858, _gDryfieldNightMotelRoom2Variant3Resources },
+    { gMapDryfieldFullMotelRoom2Variant2Placements, _gDryfieldNightMotelRoom2Variant2Resources },
+    { gMapDryfieldFullMotelRoom2Variant3Placements, _gDryfieldNightMotelRoom2Variant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -1251,7 +1251,7 @@ AreaVariant D_dryfield_night_motel_room_2_801809A0[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017B8C8, _gDryfieldNightMotelRoom2Variant21Resources },
+    { gMapDryfieldFullMotelRoom2Variant21Placements, _gDryfieldNightMotelRoom2Variant21Resources },
 };
 
 /// Cue-2 bases in the loaded type-1 sound bank; cue 1 selects the next entry.

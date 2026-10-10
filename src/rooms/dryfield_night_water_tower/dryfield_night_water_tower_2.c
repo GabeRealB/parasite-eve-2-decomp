@@ -1398,7 +1398,7 @@ static AreaResource _gDryfieldNightWaterTowerVariant21Resources[] = {
 
 AreaVariant D_dryfield_night_water_tower_80182B5C[22] = {
     { NULL, NULL },
-    { D_map_dryfield_full_8017C0B8, _gDryfieldNightWaterTowerVariant1Resources },
+    { gMapDryfieldFullWaterTowerVariant1Placements, _gDryfieldNightWaterTowerVariant1Resources },
     { D_map_dryfield_full_8017C158, _gDryfieldNightWaterTowerVariant2Resources },
     { NULL, NULL },
     { NULL, NULL },

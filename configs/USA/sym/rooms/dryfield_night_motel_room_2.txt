@@ -50,9 +50,9 @@ gActor04000BloodSucklerTaskDesc = 0x8013E500; // absolute:True owner=actor_10400
 gActor101600ScavengerTaskDesc = 0x801445DC; // absolute:True owner=actor_101600
 gActor00700MothTaskDesc = 0x801513C8; // absolute:True owner=actor_200700
 gActor204000BloodSucklerTaskDesc = 0x80156500; // absolute:True owner=actor_204000
-D_map_dryfield_full_8017B7D8 = 0x8017B7D8; // absolute:True owner=map_dryfield_full
-D_map_dryfield_full_8017B858 = 0x8017B858; // absolute:True owner=map_dryfield_full
-D_map_dryfield_full_8017B8C8 = 0x8017B8C8; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullMotelRoom2Variant2Placements = 0x8017B7D8; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullMotelRoom2Variant3Placements = 0x8017B858; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullMotelRoom2Variant21Placements = 0x8017B8C8; // absolute:True owner=map_dryfield_full
 
 dryfieldNightMotelRoom2DrawFlaresTask = 0x8017D990; // type:func
 glowDrawFlareClipped = 0x8017D714; // type:func

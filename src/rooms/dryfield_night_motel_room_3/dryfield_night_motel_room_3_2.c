@@ -1411,8 +1411,8 @@ AreaResource D_dryfield_night_motel_room_3_80180D00[3] = {
 
 AreaVariant D_dryfield_night_motel_room_3_80180D24[13] = {
     { NULL, NULL },
-    { D_map_dryfield_full_8017B938, D_dryfield_night_motel_room_3_80180CDC },
-    { D_map_dryfield_full_8017B998, D_dryfield_night_motel_room_3_80180D00 },
+    { gMapDryfieldFullMotelRoom3Variant1Placements, D_dryfield_night_motel_room_3_80180CDC },
+    { gMapDryfieldFullMotelRoom3Variant2Placements, D_dryfield_night_motel_room_3_80180D00 },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

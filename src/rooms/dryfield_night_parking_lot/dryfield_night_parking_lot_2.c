@@ -692,15 +692,12 @@ static AreaResource _gDryfieldNightParkingLotVariant21Resources[2] = {
 AreaVariant D_dryfield_night_parking_lot_80181438[22] = {
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017BAB8, _gDryfieldNightParkingLotVariant2Resources },
-    { D_map_dryfield_full_8017BB28, _gDryfieldNightParkingLotVariant3Resources },
-    { D_map_dryfield_full_8017BB78, _gDryfieldNightParkingLotVariant4Resources },
+    { gMapDryfieldFullParkingLotVariant2Placements, _gDryfieldNightParkingLotVariant2Resources },
+    { gMapDryfieldFullParkingLotVariant3Placements, _gDryfieldNightParkingLotVariant3Resources },
+    { gMapDryfieldFullParkingLotVariant4Placements, _gDryfieldNightParkingLotVariant4Resources },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017BBE8, _gDryfieldNightParkingLotVariant7Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+    { gMapDryfieldFullParkingLotVariant7Placements, _gDryfieldNightParkingLotVariant7Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -711,7 +708,10 @@ AreaVariant D_dryfield_night_parking_lot_80181438[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017BC08, _gDryfieldNightParkingLotVariant21Resources },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { gMapDryfieldFullParkingLotVariant21Placements, _gDryfieldNightParkingLotVariant21Resources },
 };
 
 /// Cue-2 script bases in the loaded type-1 bank; cue 1 selects base + 1.

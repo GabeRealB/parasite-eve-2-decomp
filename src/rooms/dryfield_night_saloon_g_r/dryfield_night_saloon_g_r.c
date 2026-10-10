@@ -2363,9 +2363,9 @@ static AreaResource _gDryfieldNightSaloonGRVariant3Resources[] = {
 
 AreaVariant D_dryfield_night_saloon_g_r_80188EE4[13] = {
     { NULL, NULL },
-    { D_map_dryfield_full_8017BE58, D_dryfield_night_saloon_g_r_80188E90 },
-    { D_map_dryfield_full_8017BE78, _gDryfieldNightSaloonGRVariant2Resources },
-    { D_map_dryfield_full_8017BEA8, _gDryfieldNightSaloonGRVariant3Resources },
+    { gMapDryfieldFullSaloonGRVariant1Placements, D_dryfield_night_saloon_g_r_80188E90 },
+    { gMapDryfieldFullSaloonGRVariant2Placements, _gDryfieldNightSaloonGRVariant2Resources },
+    { gMapDryfieldFullSaloonGRVariant3Placements, _gDryfieldNightSaloonGRVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

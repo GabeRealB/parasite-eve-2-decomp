@@ -55,9 +55,9 @@ gDryfieldNightDilapidatedHouseSurfacePropertiesByClass = 0x8018A0E4; // size:0x2
 gActor102500Tasks = 0x801379A8; // absolute:True owner=actor_102500
 gActor101600ScavengerTaskDesc = 0x801445DC; // absolute:True owner=actor_101600
 gActor204000BloodSucklerTaskDesc = 0x80156500; // absolute:True owner=actor_204000
-D_map_dryfield_full_8017B558 = 0x8017B558; // absolute:True owner=map_dryfield_full
-D_map_dryfield_full_8017B5D8 = 0x8017B5D8; // absolute:True owner=map_dryfield_full
-D_map_dryfield_full_8017B648 = 0x8017B648; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullDilapidatedHouseVariant3Placements = 0x8017B558; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullDilapidatedHouseVariant4Placements = 0x8017B5D8; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullDilapidatedHouseVariant21Placements = 0x8017B648; // absolute:True owner=map_dryfield_full
 gRoomEventActive = 0x8018A10C; // size:0x4 defined:True
 gRoomEventReq = 0x8018A110; // size:0x14 defined:True
 gRoomEventTaskDesc = 0x8017E6F4; // size:0xC defined:True

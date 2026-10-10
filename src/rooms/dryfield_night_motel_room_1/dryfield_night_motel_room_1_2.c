@@ -1139,8 +1139,8 @@ AreaResource D_dryfield_night_motel_room_1_80180744[2] = {
 
 AreaVariant D_dryfield_night_motel_room_1_8018075C[22] = {
     { NULL, NULL },
-    { D_map_dryfield_full_8017B6A8, D_dryfield_night_motel_room_1_801806FC },
-    { D_map_dryfield_full_8017B708, D_dryfield_night_motel_room_1_80180720 },
+    { gMapDryfieldFullMotelRoom1Variant1Placements, D_dryfield_night_motel_room_1_801806FC },
+    { gMapDryfieldFullMotelRoom1Variant2Placements, D_dryfield_night_motel_room_1_80180720 },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -1159,7 +1159,7 @@ AreaVariant D_dryfield_night_motel_room_1_8018075C[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017B798, D_dryfield_night_motel_room_1_80180744 },
+    { gMapDryfieldFullMotelRoom1Variant21Placements, D_dryfield_night_motel_room_1_80180744 },
 };
 
 /// Cue-2 script bases in the loaded type-1 bank; cue 1 uses the following entry.

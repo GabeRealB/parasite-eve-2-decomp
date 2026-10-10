@@ -119,7 +119,7 @@ static inline u16 _loadingPollAreaResourcePasses(void)
 
 ViewCountTable*               Gp_ViewCountTables[5]            = { &D_map_akropolis_8017ABC0, &D_map_dryfield_8017AA28, &D_map_dryfield_full_8017A93C, &D_map_shelter_8017B110, &D_map_neo_ark_8017AB88 };
 ViewIndexTable*               gViewIndexTables[5]              = { &gMapAkropolisViewIndexTable, &gMapDryfieldViewIndexTable, &gMapDryfieldFullViewIndexTable, &gMapShelterViewIndexTable, &gMapNeoArkViewIndexTable };
-SpriteAreaTable*              gSpriteAreaTables[5]             = { &D_map_akropolis_8017AB1C, &gMapDryfieldSpriteAreaTable, &D_map_dryfield_full_8017ABAC, &gMapShelterSpriteAreaTable, &D_map_neo_ark_8017AE38 };
+SpriteAreaTable*              gSpriteAreaTables[5]             = { &D_map_akropolis_8017AB1C, &gMapDryfieldSpriteAreaTable, &gMapDryfieldFullSpriteAreaTable, &gMapShelterSpriteAreaTable, &D_map_neo_ark_8017AE38 };
 WorldCollisionStageResources* Gp_RoomObjTables[5]              = { &D_map_akropolis_8017AAC8, &D_map_dryfield_8017AAC4, &D_map_dryfield_full_8017A9D8, &D_map_shelter_8017B3B8, &D_map_neo_ark_8017ACA0 };
 DirectionWarpEntry**          Gp_WarpTables[5]                 = { D_map_akropolis_8017AB20, D_map_dryfield_8017A8F8, D_map_dryfield_full_8017A80C, D_map_shelter_8017AF88, D_map_neo_ark_8017AA80 };
 WorldCoordRoomLighting**      gWorldCoordRoomLightingTables[5] = {

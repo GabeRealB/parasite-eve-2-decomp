@@ -550,17 +550,17 @@ static AreaResource _gDryfieldNightToiletVariant11Resources[2] = {
 
 AreaVariant D_dryfield_night_toilet_8017F354[12] = {
     { NULL, NULL },
-    { D_map_dryfield_full_8017BCC8, _gDryfieldNightToiletVariant1Resources },
+    { gMapDryfieldFullToiletVariant1Placements, _gDryfieldNightToiletVariant1Resources },
     { NULL, NULL },
-    { D_map_dryfield_full_8017BD38, _gDryfieldNightToiletVariant3Resources },
-    { NULL, NULL },
-    { NULL, NULL },
+    { gMapDryfieldFullToiletVariant3Placements, _gDryfieldNightToiletVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017BDF8, _gDryfieldNightToiletVariant11Resources },
+    { NULL, NULL },
+    { NULL, NULL },
+    { gMapDryfieldFullToiletVariant11Placements, _gDryfieldNightToiletVariant11Resources },
 };
 
 /// Cue-2 footstep bases in the loaded type-1 sound bank.

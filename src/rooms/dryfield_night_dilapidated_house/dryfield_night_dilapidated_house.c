@@ -93,8 +93,8 @@ AreaVariant D_dryfield_night_dilapidated_house_80189FA4[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017B558, D_dryfield_night_dilapidated_house_80189F44 },
-    { D_map_dryfield_full_8017B5D8, D_dryfield_night_dilapidated_house_80189F68 },
+    { gMapDryfieldFullDilapidatedHouseVariant3Placements, D_dryfield_night_dilapidated_house_80189F44 },
+    { gMapDryfieldFullDilapidatedHouseVariant4Placements, D_dryfield_night_dilapidated_house_80189F68 },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -111,7 +111,7 @@ AreaVariant D_dryfield_night_dilapidated_house_80189FA4[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017B648, D_dryfield_night_dilapidated_house_80189F8C },
+    { gMapDryfieldFullDilapidatedHouseVariant21Placements, D_dryfield_night_dilapidated_house_80189F8C },
 };
 
 WorldCoordRoomAmbientEntry gDryfieldNightDilapidatedHouseAmbientByView[12] = {
