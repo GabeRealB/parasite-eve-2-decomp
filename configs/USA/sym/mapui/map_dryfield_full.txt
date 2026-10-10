@@ -180,7 +180,7 @@ D_dryfield_night_breezeway_8017E6EC = 0x8017E6EC; // absolute:True owner=dryfiel
 gDryfieldNightBreezewayViewMaps = 0x8017E6FC; // absolute:True owner=dryfield_night_breezeway
 gDryfieldNightBreezewayViewCounts = 0x8017E700; // absolute:True owner=dryfield_night_breezeway shared=rooms
 D_dryfield_night_breezeway_8017E704 = 0x8017E704; // absolute:True owner=dryfield_night_breezeway shared=rooms
-gDryfieldNightBreezewayViewCameras = 0x8017EBE8; // absolute:True owner=dryfield_night_breezeway shared=rooms
+gDryfieldNightBreezewayViewCameras = 0x8017EBE8; // absolute:True owner=dryfield_night_breezeway
 gDryfieldNightBreezewaySpriteViews = 0x8017FD10; // absolute:True owner=dryfield_night_breezeway
 gDryfieldNightBreezewaySurfacePropertiesByClass = 0x801804B8; // absolute:True owner=dryfield_night_breezeway
 dryfieldNightFactoryEntryTask = 0x801809F4; // type:func absolute:True owner=dryfield_night_factory

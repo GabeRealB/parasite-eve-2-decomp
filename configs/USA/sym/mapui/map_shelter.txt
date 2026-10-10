@@ -383,7 +383,7 @@ shelterR36RoomTask = 0x8017D9DC; // type:func absolute:True owner=shelter_r36
 D_shelter_r36_8017E9BC = 0x8017E9BC; // absolute:True owner=shelter_r36 shared=rooms
 D_shelter_r36_8017E9C0 = 0x8017E9C0; // absolute:True owner=shelter_r36 shared=rooms
 D_shelter_r36_8017E9C4 = 0x8017E9C4; // absolute:True owner=shelter_r36
-D_shelter_r36_8017EAB0 = 0x8017EAB0; // absolute:True owner=shelter_r36 shared=rooms
+D_shelter_r36_8017EAB0 = 0x8017EAB0; // absolute:True owner=shelter_r36
 D_shelter_r36_8017EAD4 = 0x8017EAD4; // absolute:True owner=shelter_r36
 D_shelter_r36_8017F318 = 0x8017F318; // absolute:True owner=shelter_r36
 D_shelter_r36_8017F6DC = 0x8017F6DC; // absolute:True owner=shelter_r36 shared=rooms
