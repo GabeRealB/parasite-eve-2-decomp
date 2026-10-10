@@ -414,136 +414,230 @@ static AnimationSet _gP229PlayerRunAnimation = {
     },
 };
 
-static AnimationPackedPose _gP229Animation03E34Bank1[19] = {
+/// Translation/rotation poses for `_gP229PlayerTurnLeftAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gP229PlayerTurnLeftAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_03E34_bank1.inc"
 };
 
-static AnimationPackedRotation _gP229Animation03E34Bank4[169] = {
+/// Rotation-only poses for `_gP229PlayerTurnLeftAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gP229PlayerTurnLeftAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_03E34_bank4.inc"
 };
 
-static AnimationRecord _gP229Animation03E34Records[290] = {
+/// Keyframe durations and loop controls for `_gP229PlayerTurnLeftAnimation`'s nineteen part tracks.
+static const AnimationRecord _gP229PlayerTurnLeftAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_03E34_records.inc"
 };
 
-static u16 _gP229Animation03E34Indices[20] = {
+/// Absolute record starts for `_gP229PlayerTurnLeftAnimation`'s model-part tracks 0..18.
+///
+/// The final serialized halfword is retained after the nineteen track starts;
+/// it is outside the playback track range.
+static const u16 _gP229PlayerTurnLeftAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_03E34_indices.inc"
 };
 
-static AnimationSet _gP229Animation03E34 = {
-    _gP229Animation03E34Records,
-    _gP229Animation03E34Indices,
-    { NULL, _gP229Animation03E34Bank1, NULL, NULL, _gP229Animation03E34Bank4, NULL, NULL, NULL },
+/// Leftward player turn with the P229, selected by native-bank set 5.
+///
+/// Stationary left input and negative scripted yaw changes select this loop.
+/// Tracks 0 and 1 carry translation/rotation; tracks 2..18 carry rotation only.
+/// The package must remain loaded during player playback.
+static AnimationSet _gP229PlayerTurnLeftAnimation = {
+    .records           = _gP229PlayerTurnLeftAnimationRecords,
+    .trackStartIndices = _gP229PlayerTurnLeftAnimationIndices,
+    .poseBanks         = {
+        [P229_ANIMATION_TRANSLATION_ROTATION_BANK] = _gP229PlayerTurnLeftAnimationBank1,
+        [P229_ANIMATION_PACKED_ROTATION_BANK]      = _gP229PlayerTurnLeftAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gP229Animation04698Bank1[19] = {
+/// Translation/rotation poses for `_gP229PlayerTurnRightAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gP229PlayerTurnRightAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_04698_bank1.inc"
 };
 
-static AnimationPackedRotation _gP229Animation04698Bank4[170] = {
+/// Rotation-only poses for `_gP229PlayerTurnRightAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gP229PlayerTurnRightAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_04698_bank4.inc"
 };
 
-static AnimationRecord _gP229Animation04698Records[290] = {
+/// Keyframe durations and loop controls for `_gP229PlayerTurnRightAnimation`'s nineteen part tracks.
+static const AnimationRecord _gP229PlayerTurnRightAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_04698_records.inc"
 };
 
-static u16 _gP229Animation04698Indices[20] = {
+/// Absolute record starts for `_gP229PlayerTurnRightAnimation`'s model-part tracks 0..18.
+///
+/// The final serialized halfword is retained after the nineteen track starts;
+/// it is outside the playback track range.
+static const u16 _gP229PlayerTurnRightAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_04698_indices.inc"
 };
 
-static AnimationSet _gP229Animation04698 = {
-    _gP229Animation04698Records,
-    _gP229Animation04698Indices,
-    { NULL, _gP229Animation04698Bank1, NULL, NULL, _gP229Animation04698Bank4, NULL, NULL, NULL },
+/// Rightward player turn with the P229, selected by native-bank set 6.
+///
+/// Stationary right input and nonnegative scripted yaw changes select this loop.
+/// Tracks 0 and 1 carry translation/rotation; tracks 2..18 carry rotation only.
+/// The package must remain loaded during player playback.
+static AnimationSet _gP229PlayerTurnRightAnimation = {
+    .records           = _gP229PlayerTurnRightAnimationRecords,
+    .trackStartIndices = _gP229PlayerTurnRightAnimationIndices,
+    .poseBanks         = {
+        [P229_ANIMATION_TRANSLATION_ROTATION_BANK] = _gP229PlayerTurnRightAnimationBank1,
+        [P229_ANIMATION_PACKED_ROTATION_BANK]      = _gP229PlayerTurnRightAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gP229Animation049ACBank1[3] = {
+/// Translation/rotation poses for `_gP229PlayerItemUseAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gP229PlayerItemUseAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_049AC_bank1.inc"
 };
 
-static AnimationPackedRotation _gP229Animation049ACBank4[69] = {
+/// Rotation-only poses for `_gP229PlayerItemUseAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gP229PlayerItemUseAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_049AC_bank4.inc"
 };
 
-static AnimationRecord _gP229Animation049ACRecords[99] = {
+/// Keyframe durations and stop controls for `_gP229PlayerItemUseAnimation`'s nineteen part tracks.
+static const AnimationRecord _gP229PlayerItemUseAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_049AC_records.inc"
 };
 
-static u16 _gP229Animation049ACIndices[20] = {
+/// Absolute record starts for `_gP229PlayerItemUseAnimation`'s model-part tracks 0..18.
+///
+/// The final serialized halfword is retained after the nineteen track starts;
+/// it is outside the playback track range.
+static const u16 _gP229PlayerItemUseAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_049AC_indices.inc"
 };
 
-static AnimationSet _gP229Animation049AC = {
-    _gP229Animation049ACRecords,
-    _gP229Animation049ACIndices,
-    { NULL, _gP229Animation049ACBank1, NULL, NULL, _gP229Animation049ACBank4, NULL, NULL, NULL },
+/// Player item-use gesture with the P229 bank, selected by native-bank set 40.
+///
+/// The scripted item-use state blends into this non-looping clip before returning
+/// to aim locomotion; the clip itself does not apply an item. Tracks 0 and 1
+/// carry translation/rotation; tracks 2..18 carry rotation only.
+/// The package must remain loaded during player playback.
+static AnimationSet _gP229PlayerItemUseAnimation = {
+    .records           = _gP229PlayerItemUseAnimationRecords,
+    .trackStartIndices = _gP229PlayerItemUseAnimationIndices,
+    .poseBanks         = {
+        [P229_ANIMATION_TRANSLATION_ROTATION_BANK] = _gP229PlayerItemUseAnimationBank1,
+        [P229_ANIMATION_PACKED_ROTATION_BANK]      = _gP229PlayerItemUseAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gP229Animation05108Bank1[14] = {
+/// Translation/rotation poses for `_gP229PlayerStairAscentAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gP229PlayerStairAscentAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_05108_bank1.inc"
 };
 
-static AnimationPackedRotation _gP229Animation05108Bank4[156] = {
+/// Rotation-only poses for `_gP229PlayerStairAscentAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gP229PlayerStairAscentAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_05108_bank4.inc"
 };
 
-static AnimationRecord _gP229Animation05108Records[253] = {
+/// Keyframe durations, footstep cues and loop controls for `_gP229PlayerStairAscentAnimation`'s nineteen part tracks.
+static const AnimationRecord _gP229PlayerStairAscentAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_05108_records.inc"
 };
 
-static u16 _gP229Animation05108Indices[20] = {
+/// Absolute record starts for `_gP229PlayerStairAscentAnimation`'s model-part tracks 0..18.
+///
+/// The final serialized halfword is retained after the nineteen track starts;
+/// it is outside the playback track range.
+static const u16 _gP229PlayerStairAscentAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_05108_indices.inc"
 };
 
-static AnimationSet _gP229Animation05108 = {
-    _gP229Animation05108Records,
-    _gP229Animation05108Indices,
-    { NULL, _gP229Animation05108Bank1, NULL, NULL, _gP229Animation05108Bank4, NULL, NULL, NULL },
+/// Player stair-ascent loop with the P229 bank, selected by native-bank set 36.
+///
+/// A zero stair-direction request selects ascent. Track 1's footstep cues gate
+/// the scripted strides while the flight continues. Tracks 0 and 1 carry
+/// translation/rotation; tracks 2..18 carry rotation only.
+/// The package must remain loaded during player playback.
+static AnimationSet _gP229PlayerStairAscentAnimation = {
+    .records           = _gP229PlayerStairAscentAnimationRecords,
+    .trackStartIndices = _gP229PlayerStairAscentAnimationIndices,
+    .poseBanks         = {
+        [P229_ANIMATION_TRANSLATION_ROTATION_BANK] = _gP229PlayerStairAscentAnimationBank1,
+        [P229_ANIMATION_PACKED_ROTATION_BANK]      = _gP229PlayerStairAscentAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gP229Animation05890Bank1[16] = {
+/// Translation/rotation poses for `_gP229PlayerStairDescentAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gP229PlayerStairDescentAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_05890_bank1.inc"
 };
 
-static AnimationPackedRotation _gP229Animation05890Bank4[167] = {
+/// Rotation-only poses for `_gP229PlayerStairDescentAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gP229PlayerStairDescentAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_05890_bank4.inc"
 };
 
-static AnimationRecord _gP229Animation05890Records[247] = {
+/// Keyframe durations, footstep cues and loop controls for `_gP229PlayerStairDescentAnimation`'s nineteen part tracks.
+static const AnimationRecord _gP229PlayerStairDescentAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_05890_records.inc"
 };
 
-static u16 _gP229Animation05890Indices[20] = {
+/// Absolute record starts for `_gP229PlayerStairDescentAnimation`'s model-part tracks 0..18.
+///
+/// The final serialized halfword is retained after the nineteen track starts;
+/// it is outside the playback track range.
+static const u16 _gP229PlayerStairDescentAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_05890_indices.inc"
 };
 
-static AnimationSet _gP229Animation05890 = {
-    _gP229Animation05890Records,
-    _gP229Animation05890Indices,
-    { NULL, _gP229Animation05890Bank1, NULL, NULL, _gP229Animation05890Bank4, NULL, NULL, NULL },
+/// Player stair-descent loop with the P229 bank, selected by native-bank set 37.
+///
+/// A nonzero stair-direction request selects descent. Track 1's footstep cues
+/// gate the scripted strides through the final step. Tracks 0 and 1 carry
+/// translation/rotation; tracks 2..18 carry rotation only.
+/// The package must remain loaded during player playback.
+static AnimationSet _gP229PlayerStairDescentAnimation = {
+    .records           = _gP229PlayerStairDescentAnimationRecords,
+    .trackStartIndices = _gP229PlayerStairDescentAnimationIndices,
+    .poseBanks         = {
+        [P229_ANIMATION_TRANSLATION_ROTATION_BANK] = _gP229PlayerStairDescentAnimationBank1,
+        [P229_ANIMATION_PACKED_ROTATION_BANK]      = _gP229PlayerStairDescentAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gP229Animation05B64Bank1[6] = {
+/// Translation/rotation poses for `_gP229PlayerStairAscentFinishOddAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gP229PlayerStairAscentFinishOddAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_05B64_bank1.inc"
 };
 
-static AnimationPackedRotation _gP229Animation05B64Bank4[52] = {
+/// Rotation-only poses for `_gP229PlayerStairAscentFinishOddAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gP229PlayerStairAscentFinishOddAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_05B64_bank4.inc"
 };
 
-static AnimationRecord _gP229Animation05B64Records[91] = {
+/// Keyframe durations, the final footstep cue and stop controls for `_gP229PlayerStairAscentFinishOddAnimation`'s nineteen part tracks.
+static const AnimationRecord _gP229PlayerStairAscentFinishOddAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_05B64_records.inc"
 };
 
-static u16 _gP229Animation05B64Indices[20] = {
+/// Absolute record starts for `_gP229PlayerStairAscentFinishOddAnimation`'s model-part tracks 0..18.
+///
+/// The final serialized halfword is retained after the nineteen track starts;
+/// it is outside the playback track range.
+static const u16 _gP229PlayerStairAscentFinishOddAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_05B64_indices.inc"
 };
 
-static AnimationSet _gP229Animation05B64 = {
-    _gP229Animation05B64Records,
-    _gP229Animation05B64Indices,
-    { NULL, _gP229Animation05B64Bank1, NULL, NULL, _gP229Animation05B64Bank4, NULL, NULL, NULL },
+/// Player stair-ascent finish for an odd initial step count, in native-bank set 39.
+///
+/// This non-looping P229-bank clip completes the level stride at the top of
+/// the flight, with a footstep cue on track 1. Tracks 0 and 1 carry
+/// translation/rotation; tracks 2..18 carry rotation only.
+/// The package must remain loaded during player playback.
+static AnimationSet _gP229PlayerStairAscentFinishOddAnimation = {
+    .records           = _gP229PlayerStairAscentFinishOddAnimationRecords,
+    .trackStartIndices = _gP229PlayerStairAscentFinishOddAnimationIndices,
+    .poseBanks         = {
+        [P229_ANIMATION_TRANSLATION_ROTATION_BANK] = _gP229PlayerStairAscentFinishOddAnimationBank1,
+        [P229_ANIMATION_PACKED_ROTATION_BANK]      = _gP229PlayerStairAscentFinishOddAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gP229Animation05EF4Bank1[7] = {
@@ -1102,8 +1196,8 @@ AnimationBank D_p229_8012B51C = { { {
     &_gP229PlayerWalkAnimation,
     &_gP229PlayerBackwardWalkAnimation,
     &_gP229PlayerRunAnimation,
-    &_gP229Animation03E34,
-    &_gP229Animation04698,
+    &_gP229PlayerTurnLeftAnimation,
+    &_gP229PlayerTurnRightAnimation,
     &_gP229Animation0DD68,
     &_gP229Animation0E334,
     &_gP229Animation0B718,
@@ -1133,11 +1227,11 @@ AnimationBank D_p229_8012B51C = { { {
     &_gP229Animation0A964,
     &_gP229Animation0A78C,
     &_gP229Animation0A964,
-    &_gP229Animation05108,
-    &_gP229Animation05890,
+    &_gP229PlayerStairAscentAnimation,
+    &_gP229PlayerStairDescentAnimation,
     &_gP229Animation05EF4,
-    &_gP229Animation05B64,
-    &_gP229Animation049AC,
+    &_gP229PlayerStairAscentFinishOddAnimation,
+    &_gP229PlayerItemUseAnimation,
     &_gP229PlayerIdleAnimation,
     &_gP229Animation0AEC8,
     &_gP229Animation0B0BC,
