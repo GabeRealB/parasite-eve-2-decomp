@@ -12,6 +12,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/gfx_types.h"
 #include "main/stage_types.h"
 #include "main/task_types.h"
@@ -25,7 +26,16 @@
 /// its purpose here is unproven. No bounds or empty-slot checks are performed.
 extern GfxImageSlot gMapShelterImageSlotsByArea[50];
 
-extern StageMusicEntry D_map_shelter_8017BE28[];
+/// Number of scene columns in each Mine/Shelter area-music row.
+enum { MAP_SHELTER_MUSIC_COLUMN_COUNT = 12 };
+
+/// Area music for Mine/Shelter, in flat rows of twelve scene columns.
+///
+/// Index is area ID * `MAP_SHELTER_MUSIC_COLUMN_COUNT` + column: areas 0..49,
+/// columns 0..11. Row zero retains its twelve no-sequence entries. No row enables
+/// the stage ambient loop. There is no terminator or bounds check. Keep this map
+/// overlay loaded throughout selection and any music task borrowing the table.
+extern StageMusicEntry gMapShelterAreaMusicEntries[(GAME_AREA_SHELTER_R49 + 1) * MAP_SHELTER_MUSIC_COLUMN_COUNT];
 
 extern StageMusicEntry D_map_shelter_8017C2D8[];
 
@@ -47,8 +57,14 @@ extern MenuMapIcon D_map_shelter_8017A1F0[];
 /// This stage's `Gp_MapNameTables` entry: the room names, indexed by room - 1.
 extern MenuMapAreaName D_map_shelter_8017A268[];
 
-/// This stage's `Gp_Bit2Banks` room table, ended by `AREA_OBJECT_ROOM_END`.
-extern AreaObjectRoom D_map_shelter_8017A998[];
+/// Mine/Shelter's object placements and spawn recipes, indexed directly by area.
+///
+/// Entries 1..49 select areas; entry 0 is empty and entry 50 ends flag seeding
+/// with `AREA_OBJECT_ROOM_END`. Place and spawn lists use their own end markers.
+/// Empty spawn lists retain pickup metadata without creating models. Areas 41
+/// and 45 have place lists but NULL spawn pointers. Keep this map overlay loaded
+/// for lookup and borrowed room/actor callbacks and models loaded while in use.
+extern AreaObjectRoom gMapShelterObjectRooms[GAME_AREA_SHELTER_R49 + 2];
 
 /// This stage's `D_8010FABC` entry: the task each room starts, keyed by
 /// `GP_TASK_LOC_KEY` and ended by flags of 0xFFFF.
@@ -77,7 +93,14 @@ extern ViewCountTable D_map_shelter_8017B110;
 
 extern WorldCollisionStageResources D_map_shelter_8017B3B8;
 
-extern ViewCameraTable D_map_shelter_8017B480;
+/// Mine/Shelter's camera directory for 49 areas.
+///
+/// Area and mapped-camera indices are one-based with separate extents. All area
+/// entries are populated; camera arrays have no terminator or count header.
+/// The map owns the directory and borrows room-owned mutable camera arrays.
+/// Keep the map and selected room overlays loaded through lookup, and the camera
+/// record readable until any queued camera task applies it.
+extern ViewCameraTable gMapShelterViewCameraTable;
 
 /// Mine/Shelter's directory of logical-view maps for 49 areas.
 ///

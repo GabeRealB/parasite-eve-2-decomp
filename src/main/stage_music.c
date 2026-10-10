@@ -132,7 +132,7 @@ static StageMusicEntry* Stage_MusicTables[]    = {
     D_map_akropolis_8017C1B4,
     gMapDryfieldAreaMusicEntries,
     gMapDryfieldFullAreaMusicEntries,
-    D_map_shelter_8017BE28,
+    gMapShelterAreaMusicEntries,
     gMapNeoArkAreaMusicEntries,
 };
 static StageMusicEntry* Stage_CountdownMusicTables[] = {

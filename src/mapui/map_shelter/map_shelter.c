@@ -11,6 +11,7 @@
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/item_menu.h"
+#include "gameplay/items.h"
 #include "gameplay/map.h"
 #include "gameplay/message.h"
 #include "gameplay/room.h"
@@ -139,28 +140,27 @@
  * placement lists.
  */
 
-/// The overlay's own flagged item and enemy placement lists, which the
-/// `AreaObjectRoom` table names before they are defined.
-static AreaObjectPlace D_map_shelter_8017B6D8[2];
-static AreaObjectPlace D_map_shelter_8017B6F8[3];
-static AreaObjectPlace D_map_shelter_8017B728[5];
-static AreaObjectPlace D_map_shelter_8017B778[3];
-static AreaObjectPlace D_map_shelter_8017B7A8[3];
-static AreaObjectPlace D_map_shelter_8017B7D8[2];
-static AreaObjectPlace D_map_shelter_8017B7F8[5];
-static AreaObjectPlace D_map_shelter_8017B848[2];
-static AreaObjectPlace D_map_shelter_8017B868[3];
-static AreaObjectPlace D_map_shelter_8017B898[15];
-static AreaObjectPlace D_map_shelter_8017B988[1];
-static AreaObjectPlace D_map_shelter_8017B998[2];
-static AreaObjectPlace D_map_shelter_8017B9B8[3];
-static AreaObjectPlace D_map_shelter_8017B9E8[3];
-static AreaObjectPlace D_map_shelter_8017BA18[5];
-static AreaObjectPlace D_map_shelter_8017BA68[4];
-static AreaObjectPlace D_map_shelter_8017BAA8[2];
-static AreaObjectPlace D_map_shelter_8017BAC8[2];
-static AreaObjectPlace D_map_shelter_8017BAE8[4];
-static AreaObjectPlace D_map_shelter_8017BB28[3];
+// Forward declarations of the map-owned place lists referenced by the area directory.
+static AreaObjectPlace _gMapShelterMineMesaObjectPlaces[2];
+static AreaObjectPlace _gMapShelterMineCavernObjectPlaces[3];
+static AreaObjectPlace _gMapShelterMineRefugeObjectPlaces[5];
+static AreaObjectPlace _gMapShelterMineForkedTunnelObjectPlaces[3];
+static AreaObjectPlace _gMapShelterB1StoreroomObjectPlaces[3];
+static AreaObjectPlace _gMapShelterB1NorthMaintenanceWalkwayObjectPlaces[2];
+static AreaObjectPlace _gMapShelterB1ArmoryObjectPlaces[5];
+static AreaObjectPlace _gMapShelterB1SleepingQuartersObjectPlaces[2];
+static AreaObjectPlace _gMapShelterB1SterilizationRoomObjectPlaces[3];
+static AreaObjectPlace _gMapShelterB1UndergroundParkingObjectPlaces[15];
+static AreaObjectPlace _gMapShelterB1GolemFreezer1ObjectPlaces[1];
+static AreaObjectPlace _gMapShelterB2ElevatorObjectPlaces[2];
+static AreaObjectPlace _gMapShelterB2OperatingRoomObjectPlaces[3];
+static AreaObjectPlace _gMapShelterB2LaboratoryObjectPlaces[3];
+static AreaObjectPlace _gMapShelterB2BreedingRoomObjectPlaces[5];
+static AreaObjectPlace _gMapShelterB3DumpingHoleObjectPlaces[4];
+static AreaObjectPlace _gMapShelterB3IncineratorControlRoomObjectPlaces[2];
+static AreaObjectPlace _gMapShelterB4ReservoirObjectPlaces[2];
+static AreaObjectPlace _gMapShelterR47ObjectPlaces[4];
+static AreaObjectPlace _gMapShelterR48ObjectPlaces[3];
 
 #include "../../shared/room_variants_shelter.inc.c"
 #undef ROOM_VARIANT_RESOLVE_SHELTER
@@ -431,6 +431,125 @@ MenuMapAreaName D_map_shelter_8017A268[49] = {
     { "Oval Office\x81\x69morning\x81\x6A" },
 };
 
+/// Initial two-bit object states used by this stage's placements.
+///
+/// State 3 publishes a full ammunition stack and is retained after collection.
+/// The separate prompt bit selects immediate pickup. Stored bit 8 has no reader;
+/// retain it without assigning a purpose.
+enum {
+    MAP_SHELTER_STATE_INACTIVE            = 0,
+    MAP_SHELTER_STATE_AVAILABLE           = 1,
+    MAP_SHELTER_STATE_REPLENISHABLE       = 3,
+    MAP_SHELTER_OBJECT_STATE_UNREAD_BIT_8 = 0x100,
+};
+
+/// Catalogue kinds and room-specific prop/UI kinds in the object lists.
+///
+/// Banks 0 and 1 publish catalogue ids, bank 2 selects scripted models, bank 7
+/// selects an item-box inventory and bank 8 selects save-point UI. The breeding
+/// room model uses kind 0x129, whose catalogue entry is empty; its identity is
+/// unproven beyond the model hidden when its object state is 2.
+enum {
+    MAP_SHELTER_KIND_STIM                                = 0x4,
+    MAP_SHELTER_KIND_COLA                                = 0x5,
+    MAP_SHELTER_KIND_MP_BOOST_2                          = 0x7,
+    MAP_SHELTER_KIND_BELT_POUCH                          = 0xD,
+    MAP_SHELTER_KIND_MEDICINE_WHEEL                      = 0x37,
+    MAP_SHELTER_KIND_RINGERS_SOLUTION                    = 0x3D,
+    MAP_SHELTER_KIND_EAU_DE_TOILETTE                     = 0x3E,
+    MAP_SHELTER_KIND_P229                                = 0x84,
+    MAP_SHELTER_KIND_SP12                                = 0x8D,
+    MAP_SHELTER_KIND_9MM_PARABELLUM                      = 0xA0,
+    MAP_SHELTER_KIND_9MM_HYDRA                           = 0xA1,
+    MAP_SHELTER_KIND_GRENADE                             = 0xA9,
+    MAP_SHELTER_KIND_BUCKSHOT                            = 0xAC,
+    MAP_SHELTER_KIND_556_RIFLE_ROUND                     = 0xAF,
+    MAP_SHELTER_KIND_JUMPER_PLUG_120                     = 0x120,
+    MAP_SHELTER_KIND_YOSHIDAS_CARD                       = 0x122,
+    MAP_SHELTER_KIND_ELECTRIC_CAR_KEY                    = 0x123,
+    MAP_SHELTER_KIND_PIERCE_MEMO                         = 0x125,
+    MAP_SHELTER_KIND_AERIS_MAGAZINE                      = 0x127,
+    MAP_SHELTER_KIND_BREEDING_ROOM_MODEL                 = 0x129,
+    MAP_SHELTER_KIND_JUMPER_PLUG_12C                     = 0x12C,
+    MAP_SHELTER_KIND_MICRO_DEVICE                        = 0x12D,
+    MAP_SHELTER_KIND_R48_FIRST_SLIDER                    = 0x20B,
+    MAP_SHELTER_KIND_R48_SECOND_SLIDER                   = 0x20C,
+    MAP_SHELTER_KIND_FORKED_TUNNEL_PROP                  = 0x20D,
+    MAP_SHELTER_KIND_ITEM_BOX_3                          = 0x703,
+    MAP_SHELTER_KIND_ITEM_BOX_4                          = 0x704,
+    MAP_SHELTER_KIND_ITEM_BOX_5                          = 0x705,
+    MAP_SHELTER_KIND_ITEM_BOX_6                          = 0x706,
+    MAP_SHELTER_KIND_STERILIZATION_ROOM_ITEM_BOX         = 0x708,
+    MAP_SHELTER_KIND_LABORATORY_ITEM_BOX                 = 0x70A,
+    MAP_SHELTER_KIND_REFUGE_SAVE_POINT                   = 0x807,
+    MAP_SHELTER_KIND_STERILIZATION_ROOM_SAVE_POINT       = 0x808,
+    MAP_SHELTER_KIND_UNDERGROUND_PARKING_SAVE_POINT      = 0x809,
+    MAP_SHELTER_KIND_LABORATORY_SAVE_POINT               = 0x80A,
+    MAP_SHELTER_KIND_INCINERATOR_CONTROL_ROOM_SAVE_POINT = 0x80B,
+    MAP_SHELTER_KIND_R47_SAVE_POINT                      = 0x80C,
+};
+
+/// Stage-local indices of the 52 object states seeded by these place lists.
+///
+/// Each selects one of 64 two-bit slots in the resident Mine/Shelter bank.
+enum {
+    MAP_SHELTER_OBJECT_SLOT_MINE_FORKED_TUNNEL_OAK_BOARD              = 0x1,
+    MAP_SHELTER_OBJECT_SLOT_B1_NORTH_MAINTENANCE_WALKWAY_BOWMANS_CARD = 0x2,
+    MAP_SHELTER_OBJECT_SLOT_B2_ELEVATOR_YOSHIDAS_CARD                 = 0x3,
+    MAP_SHELTER_OBJECT_SLOT_MINE_REFUGE_JUMPER_PLUG_120               = 0x4,
+    MAP_SHELTER_OBJECT_SLOT_MINE_REFUGE_JUMPER_PLUG_12C               = 0x5,
+    MAP_SHELTER_OBJECT_SLOT_MINE_CAVERN_JUMPER_PLUG_12C               = 0x6,
+    MAP_SHELTER_OBJECT_SLOT_R47_MICRO_DEVICE                          = 0x7,
+    MAP_SHELTER_OBJECT_SLOT_MINE_CAVERN_P229                          = 0x8,
+    MAP_SHELTER_OBJECT_SLOT_B1_UNDERGROUND_PARKING_BOWMANS_CARD       = 0x9,
+    MAP_SHELTER_OBJECT_SLOT_B1_UNDERGROUND_PARKING_YOSHIDAS_CARD      = 0xA,
+    MAP_SHELTER_OBJECT_SLOT_B1_UNDERGROUND_PARKING_ELECTRIC_CAR_KEY   = 0xB,
+    MAP_SHELTER_OBJECT_SLOT_MINE_REFUGE_9MM_PARABELLUM                = 0xC,
+    MAP_SHELTER_OBJECT_SLOT_B1_STOREROOM_9MM_PARABELLUM               = 0xD,
+    MAP_SHELTER_OBJECT_SLOT_B1_ARMORY_SP12                            = 0xF,
+    MAP_SHELTER_OBJECT_SLOT_B1_ARMORY_9MM_PARABELLUM                  = 0x11,
+    MAP_SHELTER_OBJECT_SLOT_B1_ARMORY_9MM_HYDRA                       = 0x12,
+    MAP_SHELTER_OBJECT_SLOT_B1_ARMORY_BUCKSHOT                        = 0x13,
+    MAP_SHELTER_OBJECT_SLOT_B1_SLEEPING_QUARTERS_AERIS_MAGAZINE       = 0x14,
+    MAP_SHELTER_OBJECT_SLOT_B1_UNDERGROUND_PARKING_556_RIFLE_ROUND    = 0x15,
+    MAP_SHELTER_OBJECT_SLOT_B2_OPERATING_ROOM_RINGERS_SOLUTION        = 0x16,
+    MAP_SHELTER_OBJECT_SLOT_B2_BREEDING_ROOM_STIM                     = 0x17,
+    MAP_SHELTER_OBJECT_SLOT_B2_BREEDING_ROOM_MODEL                    = 0x18,
+    MAP_SHELTER_OBJECT_SLOT_B2_BREEDING_ROOM_9MM_PARABELLUM           = 0x19,
+    MAP_SHELTER_OBJECT_SLOT_B3_DUMPING_HOLE_MEDICINE_WHEEL            = 0x1A,
+    MAP_SHELTER_OBJECT_SLOT_MINE_MESA_ITEM_BOX_5                      = 0x1B,
+    MAP_SHELTER_OBJECT_SLOT_B1_STERILIZATION_ROOM_ITEM_BOX            = 0x1C,
+    MAP_SHELTER_OBJECT_SLOT_B1_UNDERGROUND_PARKING_GRENADE            = 0x1D,
+    MAP_SHELTER_OBJECT_SLOT_B2_LABORATORY_ITEM_BOX                    = 0x1E,
+    MAP_SHELTER_OBJECT_SLOT_B3_DUMPING_HOLE_9MM_HYDRA                 = 0x1F,
+    MAP_SHELTER_OBJECT_SLOT_R48_FIRST_SLIDER                          = 0x20,
+    MAP_SHELTER_OBJECT_SLOT_R48_SECOND_SLIDER                         = 0x21,
+    MAP_SHELTER_OBJECT_SLOT_R47_PIERCE_MEMO                           = 0x22,
+    MAP_SHELTER_OBJECT_SLOT_B1_UNDERGROUND_PARKING_ITEM_BOX_3         = 0x23,
+    MAP_SHELTER_OBJECT_SLOT_B1_UNDERGROUND_PARKING_ITEM_BOX_4         = 0x24,
+    MAP_SHELTER_OBJECT_SLOT_B1_UNDERGROUND_PARKING_ITEM_BOX_5         = 0x25,
+    MAP_SHELTER_OBJECT_SLOT_B1_UNDERGROUND_PARKING_ITEM_BOX_6         = 0x26,
+    MAP_SHELTER_OBJECT_SLOT_B1_UNDERGROUND_PARKING_9MM_PARABELLUM     = 0x27,
+    MAP_SHELTER_OBJECT_SLOT_B1_UNDERGROUND_PARKING_9MM_HYDRA          = 0x28,
+    MAP_SHELTER_OBJECT_SLOT_B1_UNDERGROUND_PARKING_BUCKSHOT           = 0x29,
+    MAP_SHELTER_OBJECT_SLOT_R47_SAVE_POINT                            = 0x2A,
+    MAP_SHELTER_OBJECT_SLOT_B3_INCINERATOR_CONTROL_ROOM_SAVE_POINT    = 0x2B,
+    MAP_SHELTER_OBJECT_SLOT_B2_LABORATORY_SAVE_POINT                  = 0x2C,
+    MAP_SHELTER_OBJECT_SLOT_B1_UNDERGROUND_PARKING_SAVE_POINT         = 0x2D,
+    MAP_SHELTER_OBJECT_SLOT_B1_STERILIZATION_ROOM_SAVE_POINT          = 0x2E,
+    MAP_SHELTER_OBJECT_SLOT_MINE_REFUGE_SAVE_POINT                    = 0x2F,
+    MAP_SHELTER_OBJECT_SLOT_B3_DUMPING_HOLE_9MM_PARABELLUM            = 0x30,
+    MAP_SHELTER_OBJECT_SLOT_B4_RESERVOIR_MP_BOOST_2                   = 0x31,
+    MAP_SHELTER_OBJECT_SLOT_B1_STOREROOM_RINGERS_SOLUTION             = 0x32,
+    MAP_SHELTER_OBJECT_SLOT_B2_OPERATING_ROOM_EAU_DE_TOILETTE         = 0x33,
+    MAP_SHELTER_OBJECT_SLOT_B2_BREEDING_ROOM_COLA                     = 0x34,
+    MAP_SHELTER_OBJECT_SLOT_B1_UNDERGROUND_PARKING_BELT_POUCH         = 0x35,
+    MAP_SHELTER_OBJECT_SLOT_MINE_FORKED_TUNNEL_PROP                   = 0x37,
+};
+
+/// Execution priority of this stage's generic placed-model tasks.
+enum { MAP_SHELTER_OBJECT_TASK_PRIORITY = 0x62 };
+
 /// Empty generic spawn list shared by areas with flag-only object placements.
 ///
 /// The single terminator keeps the spawn pointer non-NULL and stops every kind
@@ -440,98 +559,137 @@ static AreaObjectSpawn _gMapShelterEmptyObjectSpawns[1] = {
     { .kind = AREA_OBJECT_SPAWN_END },
 };
 
-static AreaObjectSpawn D_map_shelter_8017A898[2] = {
-    { 0x20D, { { { TASK_BODY_TMD, 0x62 } }, mineForkedTunnelAreaObjectTask, { &gMineForkedTunnelModel01B48 } } },
-    { AREA_OBJECT_SPAWN_END },
+/// Spawn recipe for the Forked tunnel's scripted prop.
+///
+/// Matches the paired place list by kind and ends with `AREA_OBJECT_SPAWN_END`.
+/// Tasks own their enemy/model allocations; borrowed callbacks and model sources
+/// must remain loaded until the spawned tasks finish.
+static AreaObjectSpawn _gMapShelterMineForkedTunnelObjectSpawns[2] = {
+    { .kind = MAP_SHELTER_KIND_FORKED_TUNNEL_PROP, .taskDesc = { { { TASK_BODY_TMD, MAP_SHELTER_OBJECT_TASK_PRIORITY } }, mineForkedTunnelAreaObjectTask, { &gMineForkedTunnelModel01B48 } } },
+    { .kind = AREA_OBJECT_SPAWN_END },
 };
 
-static AreaObjectSpawn D_map_shelter_8017A8B8[2] = {
-    { 0x127, { { { TASK_BODY_TMD, 0x62 } }, shelterB1SleepingQuartersAreaObjectTask, { &gShelterB1SleepingQuartersModel02DFC } } },
-    { AREA_OBJECT_SPAWN_END },
+/// Spawn recipe for the Sleeping quarters' collectable magazine model.
+///
+/// Matches the paired place list by kind and ends with `AREA_OBJECT_SPAWN_END`.
+/// Tasks own their enemy/model allocations; borrowed callbacks and model sources
+/// must remain loaded until the spawned tasks finish.
+static AreaObjectSpawn _gMapShelterB1SleepingQuartersObjectSpawns[2] = {
+    { .kind = MAP_SHELTER_KIND_AERIS_MAGAZINE, .taskDesc = { { { TASK_BODY_TMD, MAP_SHELTER_OBJECT_TASK_PRIORITY } }, shelterB1SleepingQuartersAreaObjectTask, { &gShelterB1SleepingQuartersModel02DFC } } },
+    { .kind = AREA_OBJECT_SPAWN_END },
 };
 
-static AreaObjectSpawn D_map_shelter_8017A8D8[2] = {
-    { 0x70A, { { { TASK_BODY_TMD, 0x62 } }, itemPickupContainerLidTask, { &gShelterB2LaboratoryAcropolisSanctuaryModel090F0 } } },
-    { AREA_OBJECT_SPAWN_END },
+/// Spawn recipe for the Laboratory's item-box lid.
+///
+/// Matches the paired place list by kind and ends with `AREA_OBJECT_SPAWN_END`.
+/// Tasks own their enemy/model allocations; borrowed callbacks and model sources
+/// must remain loaded until the spawned tasks finish.
+static AreaObjectSpawn _gMapShelterB2LaboratoryObjectSpawns[2] = {
+    { .kind = MAP_SHELTER_KIND_LABORATORY_ITEM_BOX, .taskDesc = { { { TASK_BODY_TMD, MAP_SHELTER_OBJECT_TASK_PRIORITY } }, itemPickupContainerLidTask, { &gShelterB2LaboratoryAcropolisSanctuaryModel090F0 } } },
+    { .kind = AREA_OBJECT_SPAWN_END },
 };
 
-static AreaObjectSpawn D_map_shelter_8017A8F8[2] = {
-    { 0x129, { { { TASK_BODY_TMD, 0x62 } }, shelterB2BreedingRoomAreaObjectTask, { &gShelterB2BreedingRoomModel02E04 } } },
-    { AREA_OBJECT_SPAWN_END },
+/// Spawn recipe for the Breeding room's state-controlled model.
+///
+/// Matches the paired place list by kind and ends with `AREA_OBJECT_SPAWN_END`.
+/// Tasks own their enemy/model allocations; borrowed callbacks and model sources
+/// must remain loaded until the spawned tasks finish.
+static AreaObjectSpawn _gMapShelterB2BreedingRoomObjectSpawns[2] = {
+    { .kind = MAP_SHELTER_KIND_BREEDING_ROOM_MODEL, .taskDesc = { { { TASK_BODY_TMD, MAP_SHELTER_OBJECT_TASK_PRIORITY } }, shelterB2BreedingRoomAreaObjectTask, { &gShelterB2BreedingRoomModel02E04 } } },
+    { .kind = AREA_OBJECT_SPAWN_END },
 };
 
-static AreaObjectSpawn D_map_shelter_8017A918[2] = {
-    { 0x37, { { { TASK_BODY_TMD, 0x62 } }, itemPickupContainerLidTask, { &gShelterB3DumpingHoleAcropolisSanctuaryModel090F0 } } },
-    { AREA_OBJECT_SPAWN_END },
+/// Spawn recipe for the Dumping hole's Medicine Wheel container lid.
+///
+/// Matches the paired place list by kind and ends with `AREA_OBJECT_SPAWN_END`.
+/// Tasks own their enemy/model allocations; borrowed callbacks and model sources
+/// must remain loaded until the spawned tasks finish.
+static AreaObjectSpawn _gMapShelterB3DumpingHoleObjectSpawns[2] = {
+    { .kind = MAP_SHELTER_KIND_MEDICINE_WHEEL, .taskDesc = { { { TASK_BODY_TMD, MAP_SHELTER_OBJECT_TASK_PRIORITY } }, itemPickupContainerLidTask, { &gShelterB3DumpingHoleAcropolisSanctuaryModel090F0 } } },
+    { .kind = AREA_OBJECT_SPAWN_END },
 };
 
-static AreaObjectSpawn D_map_shelter_8017A938[3] = {
-    { 0x20B, { { { TASK_BODY_TMD, 0x62 } }, actor503500SliderTask, { &gActor503500Model14DA0 } } },
-    { 0x20C, { { { TASK_BODY_TMD, 0x62 } }, actor503500SliderTask, { &gActor503500Model15820 } } },
-    { AREA_OBJECT_SPAWN_END },
+/// Spawn recipes for the two R48 intro slider models.
+///
+/// Matches the paired place list by kind and ends with `AREA_OBJECT_SPAWN_END`.
+/// Tasks own their enemy/model allocations; borrowed callbacks and model sources
+/// must remain loaded until the spawned tasks finish.
+static AreaObjectSpawn _gMapShelterR48ObjectSpawns[3] = {
+    { .kind = MAP_SHELTER_KIND_R48_FIRST_SLIDER, .taskDesc = { { { TASK_BODY_TMD, MAP_SHELTER_OBJECT_TASK_PRIORITY } }, actor503500SliderTask, { &gActor503500Model14DA0 } } },
+    { .kind = MAP_SHELTER_KIND_R48_SECOND_SLIDER, .taskDesc = { { { TASK_BODY_TMD, MAP_SHELTER_OBJECT_TASK_PRIORITY } }, actor503500SliderTask, { &gActor503500Model15820 } } },
+    { .kind = AREA_OBJECT_SPAWN_END },
 };
 
-static AreaObjectSpawn D_map_shelter_8017A968[1] = {
-    { AREA_OBJECT_SPAWN_END },
+/// Empty model-spawn list for the Underground parking placements.
+///
+/// Contains only `AREA_OBJECT_SPAWN_END`; these placements still seed flags
+/// and supply pickup metadata, but this table creates no models.
+static AreaObjectSpawn _gMapShelterB1UndergroundParkingObjectSpawns[1] = {
+    { .kind = AREA_OBJECT_SPAWN_END },
 };
 
-static AreaObjectSpawn D_map_shelter_8017A978[2] = {
-    { 0x708, { { { TASK_BODY_TMD, 0x62 } }, itemPickupContainerLidTask, { &gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0 } } },
-    { AREA_OBJECT_SPAWN_END },
+/// Spawn recipe for the Sterilization room's item-box lid.
+///
+/// Matches the paired place list by kind and ends with `AREA_OBJECT_SPAWN_END`.
+/// Tasks own their enemy/model allocations; borrowed callbacks and model sources
+/// must remain loaded until the spawned tasks finish.
+static AreaObjectSpawn _gMapShelterB1SterilizationRoomObjectSpawns[2] = {
+    { .kind = MAP_SHELTER_KIND_STERILIZATION_ROOM_ITEM_BOX, .taskDesc = { { { TASK_BODY_TMD, MAP_SHELTER_OBJECT_TASK_PRIORITY } }, itemPickupContainerLidTask, { &gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0 } } },
+    { .kind = AREA_OBJECT_SPAWN_END },
 };
 
-AreaObjectRoom D_map_shelter_8017A998[51] = {
-    { { NULL }, NULL },
-    { { D_map_shelter_8017B6D8 }, _gMapShelterEmptyObjectSpawns },
-    { { D_map_shelter_8017B6F8 }, _gMapShelterEmptyObjectSpawns },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { D_map_shelter_8017B728 }, _gMapShelterEmptyObjectSpawns },
-    { { D_map_shelter_8017B778 }, D_map_shelter_8017A898 },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { D_map_shelter_8017B7A8 }, _gMapShelterEmptyObjectSpawns },
-    { { D_map_shelter_8017B7D8 }, _gMapShelterEmptyObjectSpawns },
-    { { D_map_shelter_8017B7F8 }, _gMapShelterEmptyObjectSpawns },
-    { { D_map_shelter_8017B848 }, D_map_shelter_8017A8B8 },
-    { { NULL }, NULL },
-    { { D_map_shelter_8017B868 }, D_map_shelter_8017A978 },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { D_map_shelter_8017B898 }, D_map_shelter_8017A968 },
-    { { D_map_shelter_8017B988 }, _gMapShelterEmptyObjectSpawns },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { D_map_shelter_8017B998 }, _gMapShelterEmptyObjectSpawns },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { D_map_shelter_8017B9B8 }, _gMapShelterEmptyObjectSpawns },
-    { { NULL }, NULL },
-    { { D_map_shelter_8017B9E8 }, D_map_shelter_8017A8D8 },
-    { { D_map_shelter_8017BA18 }, D_map_shelter_8017A8F8 },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { D_map_shelter_8017BA68 }, D_map_shelter_8017A918 },
-    { { NULL }, NULL },
-    { { D_map_shelter_8017BAA8 }, NULL },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { NULL }, NULL },
-    { { D_map_shelter_8017BAC8 }, NULL },
-    { { NULL }, NULL },
-    { { D_map_shelter_8017BAE8 }, _gMapShelterEmptyObjectSpawns },
-    { { D_map_shelter_8017BB28 }, D_map_shelter_8017A938 },
-    { { NULL }, NULL },
-    { { .sentinel = AREA_OBJECT_ROOM_END }, NULL },
+AreaObjectRoom gMapShelterObjectRooms[GAME_AREA_SHELTER_R49 + 2] = {
+    [0]                                               = { .places = { .list = NULL }, .spawns = NULL },
+    [GAME_AREA_MINE_MESA]                             = { .places = { .list = _gMapShelterMineMesaObjectPlaces }, .spawns = _gMapShelterEmptyObjectSpawns },
+    [GAME_AREA_MINE_CAVERN]                           = { .places = { .list = _gMapShelterMineCavernObjectPlaces }, .spawns = _gMapShelterEmptyObjectSpawns },
+    [GAME_AREA_MINE_TUNNEL_ENTRANCE]                  = { .places = { .list = NULL }, .spawns = NULL },
+    [GAME_AREA_MINE_TUNNEL]                           = { .places = { .list = NULL }, .spawns = NULL },
+    [GAME_AREA_MINE_GORGE]                            = { .places = { .list = NULL }, .spawns = NULL },
+    [GAME_AREA_MINE_REFUGE]                           = { .places = { .list = _gMapShelterMineRefugeObjectPlaces }, .spawns = _gMapShelterEmptyObjectSpawns },
+    [GAME_AREA_MINE_FORKED_TUNNEL]                    = { .places = { .list = _gMapShelterMineForkedTunnelObjectPlaces }, .spawns = _gMapShelterMineForkedTunnelObjectSpawns },
+    [GAME_AREA_MINE_SECRET_PASSAGE]                   = { .places = { .list = NULL }, .spawns = NULL },
+    [GAME_AREA_SHELTER_B1_ELEVATOR_HALL]              = { .places = { .list = NULL }, .spawns = NULL },
+    [GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY]  = { .places = { .list = NULL }, .spawns = NULL },
+    [GAME_AREA_SHELTER_B1_STOREROOM]                  = { .places = { .list = _gMapShelterB1StoreroomObjectPlaces }, .spawns = _gMapShelterEmptyObjectSpawns },
+    [GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY]  = { .places = { .list = _gMapShelterB1NorthMaintenanceWalkwayObjectPlaces }, .spawns = _gMapShelterEmptyObjectSpawns },
+    [GAME_AREA_SHELTER_B1_ARMORY]                     = { .places = { .list = _gMapShelterB1ArmoryObjectPlaces }, .spawns = _gMapShelterEmptyObjectSpawns },
+    [GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS]          = { .places = { .list = _gMapShelterB1SleepingQuartersObjectPlaces }, .spawns = _gMapShelterB1SleepingQuartersObjectSpawns },
+    [GAME_AREA_SHELTER_B1_MAIN_CORRIDOR]              = { .places = { .list = NULL }, .spawns = NULL },
+    [GAME_AREA_SHELTER_B1_STERILIZATION_ROOM]         = { .places = { .list = _gMapShelterB1SterilizationRoomObjectPlaces }, .spawns = _gMapShelterB1SterilizationRoomObjectSpawns },
+    [GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL]          = { .places = { .list = NULL }, .spawns = NULL },
+    [GAME_AREA_SHELTER_B1_CONTROL_ROOM]               = { .places = { .list = NULL }, .spawns = NULL },
+    [GAME_AREA_SHELTER_B1_ACCESS_TUNNEL]              = { .places = { .list = NULL }, .spawns = NULL },
+    [GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING]        = { .places = { .list = _gMapShelterB1UndergroundParkingObjectPlaces }, .spawns = _gMapShelterB1UndergroundParkingObjectSpawns },
+    [GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1]            = { .places = { .list = _gMapShelterB1GolemFreezer1ObjectPlaces }, .spawns = _gMapShelterEmptyObjectSpawns },
+    [GAME_AREA_SHELTER_B2_POD_BOTTOM]                 = { .places = { .list = NULL }, .spawns = NULL },
+    [GAME_AREA_SHELTER_B1_POD_SERVICE_GANTRY]         = { .places = { .list = NULL }, .spawns = NULL },
+    [GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL]            = { .places = { .list = NULL }, .spawns = NULL },
+    [GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL] = { .places = { .list = NULL }, .spawns = NULL },
+    [GAME_AREA_SHELTER_B2_ELEVATOR]                   = { .places = { .list = _gMapShelterB2ElevatorObjectPlaces }, .spawns = _gMapShelterEmptyObjectSpawns },
+    [GAME_AREA_SHELTER_B2_ELEVATOR_HALL]              = { .places = { .list = NULL }, .spawns = NULL },
+    [GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY]  = { .places = { .list = NULL }, .spawns = NULL },
+    [GAME_AREA_SHELTER_B2_OPERATING_ROOM]             = { .places = { .list = _gMapShelterB2OperatingRoomObjectPlaces }, .spawns = _gMapShelterEmptyObjectSpawns },
+    [GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY]  = { .places = { .list = NULL }, .spawns = NULL },
+    [GAME_AREA_SHELTER_B2_LABORATORY]                 = { .places = { .list = _gMapShelterB2LaboratoryObjectPlaces }, .spawns = _gMapShelterB2LaboratoryObjectSpawns },
+    [GAME_AREA_SHELTER_B2_BREEDING_ROOM]              = { .places = { .list = _gMapShelterB2BreedingRoomObjectPlaces }, .spawns = _gMapShelterB2BreedingRoomObjectSpawns },
+    [GAME_AREA_SHELTER_B2_MAIN_CORRIDOR]              = { .places = { .list = NULL }, .spawns = NULL },
+    [GAME_AREA_SHELTER_B2_SEPTIC_TANK]                = { .places = { .list = NULL }, .spawns = NULL },
+    [GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL]          = { .places = { .list = NULL }, .spawns = NULL },
+    [GAME_AREA_SHELTER_R36]                           = { .places = { .list = NULL }, .spawns = NULL },
+    [GAME_AREA_SHELTER_R37]                           = { .places = { .list = NULL }, .spawns = NULL },
+    [GAME_AREA_SHELTER_1F_HELIPORT_S4]                = { .places = { .list = NULL }, .spawns = NULL },
+    [GAME_AREA_SHELTER_B3_DUMPING_HOLE]               = { .places = { .list = _gMapShelterB3DumpingHoleObjectPlaces }, .spawns = _gMapShelterB3DumpingHoleObjectSpawns },
+    [GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR]        = { .places = { .list = NULL }, .spawns = NULL },
+    [GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM]   = { .places = { .list = _gMapShelterB3IncineratorControlRoomObjectPlaces }, .spawns = NULL },
+    [GAME_AREA_SHELTER_B3_ELEVATOR_HALL]              = { .places = { .list = NULL }, .spawns = NULL },
+    [GAME_AREA_SHELTER_B4_LOWER_SEWER]                = { .places = { .list = NULL }, .spawns = NULL },
+    [GAME_AREA_SHELTER_B4_UPPER_SEWER]                = { .places = { .list = NULL }, .spawns = NULL },
+    [GAME_AREA_SHELTER_B4_RESERVOIR]                  = { .places = { .list = _gMapShelterB4ReservoirObjectPlaces }, .spawns = NULL },
+    [GAME_AREA_SHELTER_B4_WATER_SUPPLY]               = { .places = { .list = NULL }, .spawns = NULL },
+    [GAME_AREA_SHELTER_R47]                           = { .places = { .list = _gMapShelterR47ObjectPlaces }, .spawns = _gMapShelterEmptyObjectSpawns },
+    [GAME_AREA_SHELTER_R48]                           = { .places = { .list = _gMapShelterR48ObjectPlaces }, .spawns = _gMapShelterR48ObjectSpawns },
+    [GAME_AREA_SHELTER_R49]                           = { .places = { .list = NULL }, .spawns = NULL },
+    [GAME_AREA_SHELTER_R49 + 1]                       = { .places = { .sentinel = AREA_OBJECT_ROOM_END }, .spawns = NULL },
 };
 
 TaskDesc D_map_shelter_8017AB30[] = {
@@ -1192,59 +1350,65 @@ static WorldCollisionRoomResources* D_map_shelter_8017B2F4[49] = {
 
 WorldCollisionStageResources D_map_shelter_8017B3B8 = { D_map_shelter_8017B2F4 };
 
-static ViewCamera* D_map_shelter_8017B3BC[49] = {
-    gMineMesaViewCameras,
-    gMineCavernViewCameras,
-    gMineTunnelEntranceViewCameras,
-    gMineTunnelViewCameras,
-    gMineGorgeViewCameras,
-    gMineRefugeViewCameras,
-    gMineForkedTunnelViewCameras,
-    gMineSecretPassageViewCameras,
-    gShelterB1ElevatorHallViewCameras,
-    gShelterB1SouthMaintenanceWalkwayViewCameras,
-    gShelterB1StoreroomViewCameras,
-    gShelterB1NorthMaintenanceWalkwayViewCameras,
-    gShelterB1ArmoryViewCameras,
-    gShelterB1SleepingQuartersViewCameras,
-    gShelterB1MainCorridorViewCameras,
-    gShelterB1SterilizationRoomViewCameras,
-    gShelterB1PodAccessTunnelViewCameras,
-    gShelterB1ControlRoomViewCameras,
-    gShelterB1AccessTunnelViewCameras,
-    gShelterB1UndergroundParkingViewCameras,
-    gShelterB1GolemFreezer1ViewCameras,
-    gShelterB2PodBottomViewCameras,
-    gShelterB1PodServiceGantryViewCameras,
-    gShelterB1TransferTunnelViewCameras,
-    gShelterB1ControlRoomAccessTunnelViewCameras,
-    gShelterB2ElevatorViewCameras,
-    gShelterB2ElevatorHallViewCameras,
-    gShelterB2SouthMaintenanceWalkwayViewCameras,
-    gShelterB2OperatingRoomViewCameras,
-    gShelterB2NorthMaintenanceWalkwayViewCameras,
-    gShelterB2LaboratoryViewCameras,
-    gShelterB2BreedingRoomViewCameras,
-    gShelterB2MainCorridorViewCameras,
-    gShelterB2SepticTankViewCameras,
-    gShelterB2PodAccessTunnelViewCameras,
-    gShelterR36ViewCameras,
-    gShelterR37ViewCameras,
-    gShelter1fHeliportS4ViewCameras,
-    gShelterB3DumpingHoleViewCameras,
-    gShelterB3GarbageIncineratorCameras,
-    gShelterB3IncineratorControlRoomViewCameras,
-    gShelterB3ElevatorHallViewCameras,
-    gShelterB4LowerSewerViewCameras,
-    gShelterB4UpperSewerViewCameras,
-    gShelterB4ReservoirViewCameras,
-    gShelterB4WaterSupplyViewCameras,
-    gShelterR47ViewCameras,
-    gShelterR48ViewCameras,
-    gShelterR49ViewCameras,
+/// Borrowed camera arrays for all 49 Mine/Shelter areas.
+///
+/// Indexed by area - 1, then mapped camera index - 1; neither level has a
+/// terminator. Each room's array supplies its own camera extent, independent of
+/// logical-view counts. Keep the map directory and selected room overlay loaded;
+/// queued camera tasks borrow the selected record until they apply it.
+static ViewCamera* _gMapShelterAreaViewCameras[GAME_AREA_SHELTER_R49] = {
+    [GAME_AREA_MINE_MESA - 1]                             = gMineMesaViewCameras,
+    [GAME_AREA_MINE_CAVERN - 1]                           = gMineCavernViewCameras,
+    [GAME_AREA_MINE_TUNNEL_ENTRANCE - 1]                  = gMineTunnelEntranceViewCameras,
+    [GAME_AREA_MINE_TUNNEL - 1]                           = gMineTunnelViewCameras,
+    [GAME_AREA_MINE_GORGE - 1]                            = gMineGorgeViewCameras,
+    [GAME_AREA_MINE_REFUGE - 1]                           = gMineRefugeViewCameras,
+    [GAME_AREA_MINE_FORKED_TUNNEL - 1]                    = gMineForkedTunnelViewCameras,
+    [GAME_AREA_MINE_SECRET_PASSAGE - 1]                   = gMineSecretPassageViewCameras,
+    [GAME_AREA_SHELTER_B1_ELEVATOR_HALL - 1]              = gShelterB1ElevatorHallViewCameras,
+    [GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY - 1]  = gShelterB1SouthMaintenanceWalkwayViewCameras,
+    [GAME_AREA_SHELTER_B1_STOREROOM - 1]                  = gShelterB1StoreroomViewCameras,
+    [GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY - 1]  = gShelterB1NorthMaintenanceWalkwayViewCameras,
+    [GAME_AREA_SHELTER_B1_ARMORY - 1]                     = gShelterB1ArmoryViewCameras,
+    [GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS - 1]          = gShelterB1SleepingQuartersViewCameras,
+    [GAME_AREA_SHELTER_B1_MAIN_CORRIDOR - 1]              = gShelterB1MainCorridorViewCameras,
+    [GAME_AREA_SHELTER_B1_STERILIZATION_ROOM - 1]         = gShelterB1SterilizationRoomViewCameras,
+    [GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL - 1]          = gShelterB1PodAccessTunnelViewCameras,
+    [GAME_AREA_SHELTER_B1_CONTROL_ROOM - 1]               = gShelterB1ControlRoomViewCameras,
+    [GAME_AREA_SHELTER_B1_ACCESS_TUNNEL - 1]              = gShelterB1AccessTunnelViewCameras,
+    [GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING - 1]        = gShelterB1UndergroundParkingViewCameras,
+    [GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1 - 1]            = gShelterB1GolemFreezer1ViewCameras,
+    [GAME_AREA_SHELTER_B2_POD_BOTTOM - 1]                 = gShelterB2PodBottomViewCameras,
+    [GAME_AREA_SHELTER_B1_POD_SERVICE_GANTRY - 1]         = gShelterB1PodServiceGantryViewCameras,
+    [GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL - 1]            = gShelterB1TransferTunnelViewCameras,
+    [GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL - 1] = gShelterB1ControlRoomAccessTunnelViewCameras,
+    [GAME_AREA_SHELTER_B2_ELEVATOR - 1]                   = gShelterB2ElevatorViewCameras,
+    [GAME_AREA_SHELTER_B2_ELEVATOR_HALL - 1]              = gShelterB2ElevatorHallViewCameras,
+    [GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY - 1]  = gShelterB2SouthMaintenanceWalkwayViewCameras,
+    [GAME_AREA_SHELTER_B2_OPERATING_ROOM - 1]             = gShelterB2OperatingRoomViewCameras,
+    [GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY - 1]  = gShelterB2NorthMaintenanceWalkwayViewCameras,
+    [GAME_AREA_SHELTER_B2_LABORATORY - 1]                 = gShelterB2LaboratoryViewCameras,
+    [GAME_AREA_SHELTER_B2_BREEDING_ROOM - 1]              = gShelterB2BreedingRoomViewCameras,
+    [GAME_AREA_SHELTER_B2_MAIN_CORRIDOR - 1]              = gShelterB2MainCorridorViewCameras,
+    [GAME_AREA_SHELTER_B2_SEPTIC_TANK - 1]                = gShelterB2SepticTankViewCameras,
+    [GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL - 1]          = gShelterB2PodAccessTunnelViewCameras,
+    [GAME_AREA_SHELTER_R36 - 1]                           = gShelterR36ViewCameras,
+    [GAME_AREA_SHELTER_R37 - 1]                           = gShelterR37ViewCameras,
+    [GAME_AREA_SHELTER_1F_HELIPORT_S4 - 1]                = gShelter1fHeliportS4ViewCameras,
+    [GAME_AREA_SHELTER_B3_DUMPING_HOLE - 1]               = gShelterB3DumpingHoleViewCameras,
+    [GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR - 1]        = gShelterB3GarbageIncineratorCameras,
+    [GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM - 1]   = gShelterB3IncineratorControlRoomViewCameras,
+    [GAME_AREA_SHELTER_B3_ELEVATOR_HALL - 1]              = gShelterB3ElevatorHallViewCameras,
+    [GAME_AREA_SHELTER_B4_LOWER_SEWER - 1]                = gShelterB4LowerSewerViewCameras,
+    [GAME_AREA_SHELTER_B4_UPPER_SEWER - 1]                = gShelterB4UpperSewerViewCameras,
+    [GAME_AREA_SHELTER_B4_RESERVOIR - 1]                  = gShelterB4ReservoirViewCameras,
+    [GAME_AREA_SHELTER_B4_WATER_SUPPLY - 1]               = gShelterB4WaterSupplyViewCameras,
+    [GAME_AREA_SHELTER_R47 - 1]                           = gShelterR47ViewCameras,
+    [GAME_AREA_SHELTER_R48 - 1]                           = gShelterR48ViewCameras,
+    [GAME_AREA_SHELTER_R49 - 1]                           = gShelterR49ViewCameras,
 };
 
-ViewCameraTable D_map_shelter_8017B480 = { D_map_shelter_8017B3BC };
+ViewCameraTable gMapShelterViewCameraTable = { .cameras = _gMapShelterAreaViewCameras };
 
 /// 49 area entries borrowing room-local logical-view map directories.
 ///
@@ -1414,136 +1578,243 @@ WorldCollisionSurfaceProperties** gMapShelterSurfacePropertiesByArea[49] = {
     [GAME_AREA_SHELTER_R49 - 1]                           = gShelterR49SurfacePropertiesByClass,
 };
 
-static AreaObjectPlace D_map_shelter_8017B6D8[2] = {
-    { 0x1B, 0x705, 0, 1 },
-    { 0xFFFF },
+/// 1 object-state placement for Mine Mesa.
+///
+/// Ended by `AREA_OBJECT_PLACE_END`; seeds saved two-bit flags and supplies
+/// pickup identity. A model is created only when the paired spawn table has
+/// its kind. XYZ use room-coordinate units; yaw uses 4096 units per turn.
+static AreaObjectPlace _gMapShelterMineMesaObjectPlaces[2] = {
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_MINE_MESA_ITEM_BOX_5, .kind = MAP_SHELTER_KIND_ITEM_BOX_5, .state = MAP_SHELTER_STATE_AVAILABLE },
+    { .flagIndex = AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_shelter_8017B6F8[3] = {
-    { 6, 0x12C, 0, 0x201 },
-    { 8, 0x84, 0, 1 },
-    { 0xFFFF },
+/// 2 object-state placements for Mine Cavern.
+///
+/// Ended by `AREA_OBJECT_PLACE_END`; seeds saved two-bit flags and supplies
+/// pickup identity. A model is created only when the paired spawn table has
+/// its kind. XYZ use room-coordinate units; yaw uses 4096 units per turn.
+/// Prompt-marked entries collect immediately when their pickup panel opens.
+static AreaObjectPlace _gMapShelterMineCavernObjectPlaces[3] = {
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_MINE_CAVERN_JUMPER_PLUG_12C, .kind = MAP_SHELTER_KIND_JUMPER_PLUG_12C, .state = MAP_SHELTER_STATE_AVAILABLE | AREA_OBJECT_PLACE_PROMPT },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_MINE_CAVERN_P229, .kind = MAP_SHELTER_KIND_P229, .state = MAP_SHELTER_STATE_AVAILABLE },
+    { .flagIndex = AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_shelter_8017B728[5] = {
-    { 0xC, 0xA0, 0, 3 },
-    { 0x2F, 0x807, 0, 1 },
-    { 4, 0x120, 0, 1 },
-    { 5, 0x12C, 0, 1 },
-    { 0xFFFF },
+/// 4 object-state placements for Mine Refuge.
+///
+/// Ended by `AREA_OBJECT_PLACE_END`; seeds saved two-bit flags and supplies
+/// pickup identity. A model is created only when the paired spawn table has
+/// its kind. XYZ use room-coordinate units; yaw uses 4096 units per turn.
+static AreaObjectPlace _gMapShelterMineRefugeObjectPlaces[5] = {
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_MINE_REFUGE_9MM_PARABELLUM, .kind = MAP_SHELTER_KIND_9MM_PARABELLUM, .state = MAP_SHELTER_STATE_REPLENISHABLE },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_MINE_REFUGE_SAVE_POINT, .kind = MAP_SHELTER_KIND_REFUGE_SAVE_POINT, .state = MAP_SHELTER_STATE_AVAILABLE },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_MINE_REFUGE_JUMPER_PLUG_120, .kind = MAP_SHELTER_KIND_JUMPER_PLUG_120, .state = MAP_SHELTER_STATE_AVAILABLE },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_MINE_REFUGE_JUMPER_PLUG_12C, .kind = MAP_SHELTER_KIND_JUMPER_PLUG_12C, .state = MAP_SHELTER_STATE_AVAILABLE },
+    { .flagIndex = AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_shelter_8017B778[3] = {
-    { 1, 0x11F, 0, 0x201 },
-    { 0x37, 0x20D, 0, 0x201 },
-    { 0xFFFF },
+/// 2 object-state placements for Mine Forked Tunnel.
+///
+/// Ended by `AREA_OBJECT_PLACE_END`; seeds saved two-bit flags and supplies
+/// pickup identity. A model is created only when the paired spawn table has
+/// its kind. XYZ use room-coordinate units; yaw uses 4096 units per turn.
+/// Prompt-marked entries collect immediately when their pickup panel opens.
+static AreaObjectPlace _gMapShelterMineForkedTunnelObjectPlaces[3] = {
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_MINE_FORKED_TUNNEL_OAK_BOARD, .kind = INVENTORY_COLLECTION_ID_OAK_BOARD, .state = MAP_SHELTER_STATE_AVAILABLE | AREA_OBJECT_PLACE_PROMPT },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_MINE_FORKED_TUNNEL_PROP, .kind = MAP_SHELTER_KIND_FORKED_TUNNEL_PROP, .state = MAP_SHELTER_STATE_AVAILABLE | AREA_OBJECT_PLACE_PROMPT },
+    { .flagIndex = AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_shelter_8017B7A8[3] = {
-    { 0xD, 0xA0, 0, 3 },
-    { 0x32, 0x3D, 0, 1 },
-    { 0xFFFF },
+/// 2 object-state placements for Shelter B1 Storeroom.
+///
+/// Ended by `AREA_OBJECT_PLACE_END`; seeds saved two-bit flags and supplies
+/// pickup identity. A model is created only when the paired spawn table has
+/// its kind. XYZ use room-coordinate units; yaw uses 4096 units per turn.
+static AreaObjectPlace _gMapShelterB1StoreroomObjectPlaces[3] = {
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B1_STOREROOM_9MM_PARABELLUM, .kind = MAP_SHELTER_KIND_9MM_PARABELLUM, .state = MAP_SHELTER_STATE_REPLENISHABLE },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B1_STOREROOM_RINGERS_SOLUTION, .kind = MAP_SHELTER_KIND_RINGERS_SOLUTION, .state = MAP_SHELTER_STATE_AVAILABLE },
+    { .flagIndex = AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_shelter_8017B7D8[2] = {
-    { 2, 0x121, 0, 0x201 },
-    { 0xFFFF },
+/// 1 object-state placement for Shelter B1 North Maintenance Walkway.
+///
+/// Ended by `AREA_OBJECT_PLACE_END`; seeds saved two-bit flags and supplies
+/// pickup identity. A model is created only when the paired spawn table has
+/// its kind. XYZ use room-coordinate units; yaw uses 4096 units per turn.
+/// Prompt-marked entries collect immediately when their pickup panel opens.
+static AreaObjectPlace _gMapShelterB1NorthMaintenanceWalkwayObjectPlaces[2] = {
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B1_NORTH_MAINTENANCE_WALKWAY_BOWMANS_CARD, .kind = INVENTORY_COLLECTION_ID_BOWMANS_CARD, .state = MAP_SHELTER_STATE_AVAILABLE | AREA_OBJECT_PLACE_PROMPT },
+    { .flagIndex = AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_shelter_8017B7F8[5] = {
-    { 0xF, 0x8D, 0, 1 },
-    { 0x11, 0xA0, 0, 3 },
-    { 0x12, 0xA1, 0, 3 },
-    { 0x13, 0xAC, 0, 3 },
-    { 0xFFFF },
+/// 4 object-state placements for Shelter B1 Armory.
+///
+/// Ended by `AREA_OBJECT_PLACE_END`; seeds saved two-bit flags and supplies
+/// pickup identity. A model is created only when the paired spawn table has
+/// its kind. XYZ use room-coordinate units; yaw uses 4096 units per turn.
+static AreaObjectPlace _gMapShelterB1ArmoryObjectPlaces[5] = {
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B1_ARMORY_SP12, .kind = MAP_SHELTER_KIND_SP12, .state = MAP_SHELTER_STATE_AVAILABLE },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B1_ARMORY_9MM_PARABELLUM, .kind = MAP_SHELTER_KIND_9MM_PARABELLUM, .state = MAP_SHELTER_STATE_REPLENISHABLE },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B1_ARMORY_9MM_HYDRA, .kind = MAP_SHELTER_KIND_9MM_HYDRA, .state = MAP_SHELTER_STATE_REPLENISHABLE },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B1_ARMORY_BUCKSHOT, .kind = MAP_SHELTER_KIND_BUCKSHOT, .state = MAP_SHELTER_STATE_REPLENISHABLE },
+    { .flagIndex = AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_shelter_8017B848[2] = {
-    { 0x14, 0x127, 0, 1, 0x12C, -0x258, 0xC80, 0xD10 },
-    { 0xFFFF },
+/// 1 object-state placement for Shelter B1 Sleeping Quarters.
+///
+/// Ended by `AREA_OBJECT_PLACE_END`; seeds saved two-bit flags and supplies
+/// pickup identity. A model is created only when the paired spawn table has
+/// its kind. XYZ use room-coordinate units; yaw uses 4096 units per turn.
+static AreaObjectPlace _gMapShelterB1SleepingQuartersObjectPlaces[2] = {
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B1_SLEEPING_QUARTERS_AERIS_MAGAZINE, .kind = MAP_SHELTER_KIND_AERIS_MAGAZINE, .state = MAP_SHELTER_STATE_AVAILABLE, .x = 300, .y = -600, .z = 3200, .yaw = 0xD10 },
+    { .flagIndex = AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_shelter_8017B868[3] = {
-    { 0x1C, 0x708, 0, 1, 0x1418, 0, 0x32DD, 0x800 },
-    { 0x2E, 0x808, 0, 1 },
-    { 0xFFFF },
+/// 2 object-state placements for Shelter B1 Sterilization Room.
+///
+/// Ended by `AREA_OBJECT_PLACE_END`; seeds saved two-bit flags and supplies
+/// pickup identity. A model is created only when the paired spawn table has
+/// its kind. XYZ use room-coordinate units; yaw uses 4096 units per turn.
+static AreaObjectPlace _gMapShelterB1SterilizationRoomObjectPlaces[3] = {
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B1_STERILIZATION_ROOM_ITEM_BOX, .kind = MAP_SHELTER_KIND_STERILIZATION_ROOM_ITEM_BOX, .state = MAP_SHELTER_STATE_AVAILABLE, .x = 5144, .y = 0, .z = 13021, .yaw = 0x800 },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B1_STERILIZATION_ROOM_SAVE_POINT, .kind = MAP_SHELTER_KIND_STERILIZATION_ROOM_SAVE_POINT, .state = MAP_SHELTER_STATE_AVAILABLE },
+    { .flagIndex = AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_shelter_8017B898[15] = {
-    { 9, 0x121, 0, 0x201 },
-    { 0xA, 0x122, 0, 0x201 },
-    { 0xB, 0x123, 0, 0x201 },
-    { 0x2D, 0x809, 0, 1 },
-    { 0x23, 0x703, 0, 0, -0x640, 0, -0x117F, 0x400 },
-    { 0x24, 0x704, 0, 0, -0x640, 4, -0xC36, 0x400 },
-    { 0x25, 0x705, 0, 0, -0x640, 3, -0x619, 0x400 },
-    { 0x26, 0x706, 0, 0, 0xD57, 0, -0xCAD, 0xC58 },
-    { 0x27, 0xA0, 0, 3 },
-    { 0x28, 0xA1, 0, 3 },
-    { 0x29, 0xAC, 0, 3 },
-    { 0x1D, 0xA9, 0, 3 },
-    { 0x15, 0xAF, 0, 3 },
-    { 0x35, 0xD, 0, 1 },
-    { 0xFFFF },
+/// 14 object-state placements for Shelter B1 Underground Parking.
+///
+/// Ended by `AREA_OBJECT_PLACE_END`; seeds saved two-bit flags and supplies
+/// pickup identity. A model is created only when the paired spawn table has
+/// its kind. XYZ use room-coordinate units; yaw uses 4096 units per turn.
+/// Prompt-marked entries collect immediately when their pickup panel opens.
+static AreaObjectPlace _gMapShelterB1UndergroundParkingObjectPlaces[15] = {
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B1_UNDERGROUND_PARKING_BOWMANS_CARD, .kind = INVENTORY_COLLECTION_ID_BOWMANS_CARD, .state = MAP_SHELTER_STATE_AVAILABLE | AREA_OBJECT_PLACE_PROMPT },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B1_UNDERGROUND_PARKING_YOSHIDAS_CARD, .kind = MAP_SHELTER_KIND_YOSHIDAS_CARD, .state = MAP_SHELTER_STATE_AVAILABLE | AREA_OBJECT_PLACE_PROMPT },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B1_UNDERGROUND_PARKING_ELECTRIC_CAR_KEY, .kind = MAP_SHELTER_KIND_ELECTRIC_CAR_KEY, .state = MAP_SHELTER_STATE_AVAILABLE | AREA_OBJECT_PLACE_PROMPT },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B1_UNDERGROUND_PARKING_SAVE_POINT, .kind = MAP_SHELTER_KIND_UNDERGROUND_PARKING_SAVE_POINT, .state = MAP_SHELTER_STATE_AVAILABLE },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B1_UNDERGROUND_PARKING_ITEM_BOX_3, .kind = MAP_SHELTER_KIND_ITEM_BOX_3, .state = MAP_SHELTER_STATE_INACTIVE, .x = -1600, .y = 0, .z = -4479, .yaw = 0x400 },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B1_UNDERGROUND_PARKING_ITEM_BOX_4, .kind = MAP_SHELTER_KIND_ITEM_BOX_4, .state = MAP_SHELTER_STATE_INACTIVE, .x = -1600, .y = 4, .z = -3126, .yaw = 0x400 },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B1_UNDERGROUND_PARKING_ITEM_BOX_5, .kind = MAP_SHELTER_KIND_ITEM_BOX_5, .state = MAP_SHELTER_STATE_INACTIVE, .x = -1600, .y = 3, .z = -1561, .yaw = 0x400 },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B1_UNDERGROUND_PARKING_ITEM_BOX_6, .kind = MAP_SHELTER_KIND_ITEM_BOX_6, .state = MAP_SHELTER_STATE_INACTIVE, .x = 3415, .y = 0, .z = -3245, .yaw = 0xC58 },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B1_UNDERGROUND_PARKING_9MM_PARABELLUM, .kind = MAP_SHELTER_KIND_9MM_PARABELLUM, .state = MAP_SHELTER_STATE_REPLENISHABLE },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B1_UNDERGROUND_PARKING_9MM_HYDRA, .kind = MAP_SHELTER_KIND_9MM_HYDRA, .state = MAP_SHELTER_STATE_REPLENISHABLE },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B1_UNDERGROUND_PARKING_BUCKSHOT, .kind = MAP_SHELTER_KIND_BUCKSHOT, .state = MAP_SHELTER_STATE_REPLENISHABLE },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B1_UNDERGROUND_PARKING_GRENADE, .kind = MAP_SHELTER_KIND_GRENADE, .state = MAP_SHELTER_STATE_REPLENISHABLE },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B1_UNDERGROUND_PARKING_556_RIFLE_ROUND, .kind = MAP_SHELTER_KIND_556_RIFLE_ROUND, .state = MAP_SHELTER_STATE_REPLENISHABLE },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B1_UNDERGROUND_PARKING_BELT_POUCH, .kind = MAP_SHELTER_KIND_BELT_POUCH, .state = MAP_SHELTER_STATE_AVAILABLE },
+    { .flagIndex = AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_shelter_8017B988[1] = {
-    { 0xFFFF },
+/// Empty place list for Shelter B1 Golem Freezer 1.
+///
+/// Contains only `AREA_OBJECT_PLACE_END`; seeds no flags and spawns no objects.
+static AreaObjectPlace _gMapShelterB1GolemFreezer1ObjectPlaces[1] = {
+    { .flagIndex = AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_shelter_8017B998[2] = {
-    { 3, 0x122, 0, 0x201 },
-    { 0xFFFF },
+/// 1 object-state placement for Shelter B2 Elevator.
+///
+/// Ended by `AREA_OBJECT_PLACE_END`; seeds saved two-bit flags and supplies
+/// pickup identity. A model is created only when the paired spawn table has
+/// its kind. XYZ use room-coordinate units; yaw uses 4096 units per turn.
+/// Prompt-marked entries collect immediately when their pickup panel opens.
+static AreaObjectPlace _gMapShelterB2ElevatorObjectPlaces[2] = {
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B2_ELEVATOR_YOSHIDAS_CARD, .kind = MAP_SHELTER_KIND_YOSHIDAS_CARD, .state = MAP_SHELTER_STATE_AVAILABLE | AREA_OBJECT_PLACE_PROMPT },
+    { .flagIndex = AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_shelter_8017B9B8[3] = {
-    { 0x16, 0x3D, 0, 1 },
-    { 0x33, 0x3E, 0, 1 },
-    { 0xFFFF },
+/// 2 object-state placements for Shelter B2 Operating Room.
+///
+/// Ended by `AREA_OBJECT_PLACE_END`; seeds saved two-bit flags and supplies
+/// pickup identity. A model is created only when the paired spawn table has
+/// its kind. XYZ use room-coordinate units; yaw uses 4096 units per turn.
+static AreaObjectPlace _gMapShelterB2OperatingRoomObjectPlaces[3] = {
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B2_OPERATING_ROOM_RINGERS_SOLUTION, .kind = MAP_SHELTER_KIND_RINGERS_SOLUTION, .state = MAP_SHELTER_STATE_AVAILABLE },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B2_OPERATING_ROOM_EAU_DE_TOILETTE, .kind = MAP_SHELTER_KIND_EAU_DE_TOILETTE, .state = MAP_SHELTER_STATE_AVAILABLE },
+    { .flagIndex = AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_shelter_8017B9E8[3] = {
-    { 0x1E, 0x70A, 0, 1, 0xC86, 0, 0x1217, 0x988 },
-    { 0x2C, 0x80A, 0, 1 },
-    { 0xFFFF },
+/// 2 object-state placements for Shelter B2 Laboratory.
+///
+/// Ended by `AREA_OBJECT_PLACE_END`; seeds saved two-bit flags and supplies
+/// pickup identity. A model is created only when the paired spawn table has
+/// its kind. XYZ use room-coordinate units; yaw uses 4096 units per turn.
+static AreaObjectPlace _gMapShelterB2LaboratoryObjectPlaces[3] = {
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B2_LABORATORY_ITEM_BOX, .kind = MAP_SHELTER_KIND_LABORATORY_ITEM_BOX, .state = MAP_SHELTER_STATE_AVAILABLE, .x = 3206, .y = 0, .z = 4631, .yaw = 0x988 },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B2_LABORATORY_SAVE_POINT, .kind = MAP_SHELTER_KIND_LABORATORY_SAVE_POINT, .state = MAP_SHELTER_STATE_AVAILABLE },
+    { .flagIndex = AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_shelter_8017BA18[5] = {
-    { 0x18, 0x129, 0, 1, 0x834, -0x352, -0xA28, 0x600 },
-    { 0x19, 0xA0, 0, 3 },
-    { 0x17, 4, 0, 1 },
-    { 0x34, 5, 0, 1 },
-    { 0xFFFF },
+/// 4 object-state placements for Shelter B2 Breeding Room.
+///
+/// Ended by `AREA_OBJECT_PLACE_END`; seeds saved two-bit flags and supplies
+/// pickup identity. A model is created only when the paired spawn table has
+/// its kind. XYZ use room-coordinate units; yaw uses 4096 units per turn.
+static AreaObjectPlace _gMapShelterB2BreedingRoomObjectPlaces[5] = {
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B2_BREEDING_ROOM_MODEL, .kind = MAP_SHELTER_KIND_BREEDING_ROOM_MODEL, .state = MAP_SHELTER_STATE_AVAILABLE, .x = 2100, .y = -850, .z = -2600, .yaw = 0x600 },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B2_BREEDING_ROOM_9MM_PARABELLUM, .kind = MAP_SHELTER_KIND_9MM_PARABELLUM, .state = MAP_SHELTER_STATE_REPLENISHABLE },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B2_BREEDING_ROOM_STIM, .kind = MAP_SHELTER_KIND_STIM, .state = MAP_SHELTER_STATE_AVAILABLE },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B2_BREEDING_ROOM_COLA, .kind = MAP_SHELTER_KIND_COLA, .state = MAP_SHELTER_STATE_AVAILABLE },
+    { .flagIndex = AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_shelter_8017BA68[4] = {
-    { 0x1A, 0x37, 0, 0x101, 0xD7A, 0, -0x17C0, 0x3C0 },
-    { 0x1F, 0xA1, 0, 3 },
-    { 0x30, 0xA0, 0, 3 },
-    { 0xFFFF },
+/// 3 object-state placements for Shelter B3 Dumping Hole.
+///
+/// Ended by `AREA_OBJECT_PLACE_END`; seeds saved two-bit flags and supplies
+/// pickup identity. A model is created only when the paired spawn table has
+/// its kind. XYZ use room-coordinate units; yaw uses 4096 units per turn.
+/// Stored state bit 8 is retained with no established reader or purpose.
+static AreaObjectPlace _gMapShelterB3DumpingHoleObjectPlaces[4] = {
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B3_DUMPING_HOLE_MEDICINE_WHEEL, .kind = MAP_SHELTER_KIND_MEDICINE_WHEEL, .state = MAP_SHELTER_STATE_AVAILABLE | MAP_SHELTER_OBJECT_STATE_UNREAD_BIT_8, .x = 3450, .y = 0, .z = -6080, .yaw = 0x3C0 },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B3_DUMPING_HOLE_9MM_HYDRA, .kind = MAP_SHELTER_KIND_9MM_HYDRA, .state = MAP_SHELTER_STATE_REPLENISHABLE },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B3_DUMPING_HOLE_9MM_PARABELLUM, .kind = MAP_SHELTER_KIND_9MM_PARABELLUM, .state = MAP_SHELTER_STATE_REPLENISHABLE },
+    { .flagIndex = AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_shelter_8017BAA8[2] = {
-    { 0x2B, 0x80B, 0, 1 },
-    { 0xFFFF },
+/// 1 object-state placement for Shelter B3 Incinerator Control Room.
+///
+/// Ended by `AREA_OBJECT_PLACE_END`; seeds saved two-bit flags and supplies
+/// pickup identity. A model is created only when the paired spawn table has
+/// its kind. XYZ use room-coordinate units; yaw uses 4096 units per turn.
+/// The area directory retains a NULL spawn pointer for this list.
+static AreaObjectPlace _gMapShelterB3IncineratorControlRoomObjectPlaces[2] = {
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B3_INCINERATOR_CONTROL_ROOM_SAVE_POINT, .kind = MAP_SHELTER_KIND_INCINERATOR_CONTROL_ROOM_SAVE_POINT, .state = MAP_SHELTER_STATE_AVAILABLE },
+    { .flagIndex = AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_shelter_8017BAC8[2] = {
-    { 0x31, 7, 0, 1 },
-    { 0xFFFF },
+/// 1 object-state placement for Shelter B4 Reservoir.
+///
+/// Ended by `AREA_OBJECT_PLACE_END`; seeds saved two-bit flags and supplies
+/// pickup identity. A model is created only when the paired spawn table has
+/// its kind. XYZ use room-coordinate units; yaw uses 4096 units per turn.
+/// The area directory retains a NULL spawn pointer for this list.
+static AreaObjectPlace _gMapShelterB4ReservoirObjectPlaces[2] = {
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_B4_RESERVOIR_MP_BOOST_2, .kind = MAP_SHELTER_KIND_MP_BOOST_2, .state = MAP_SHELTER_STATE_AVAILABLE },
+    { .flagIndex = AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_shelter_8017BAE8[4] = {
-    { 7, 0x12D, 0, 0x201 },
-    { 0x22, 0x125, 0, 0x200 },
-    { 0x2A, 0x80C, 0, 1 },
-    { 0xFFFF },
+/// 3 object-state placements for Shelter R47.
+///
+/// Ended by `AREA_OBJECT_PLACE_END`; seeds saved two-bit flags and supplies
+/// pickup identity. A model is created only when the paired spawn table has
+/// its kind. XYZ use room-coordinate units; yaw uses 4096 units per turn.
+/// Prompt-marked entries collect immediately when their pickup panel opens.
+static AreaObjectPlace _gMapShelterR47ObjectPlaces[4] = {
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_R47_MICRO_DEVICE, .kind = MAP_SHELTER_KIND_MICRO_DEVICE, .state = MAP_SHELTER_STATE_AVAILABLE | AREA_OBJECT_PLACE_PROMPT },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_R47_PIERCE_MEMO, .kind = MAP_SHELTER_KIND_PIERCE_MEMO, .state = MAP_SHELTER_STATE_INACTIVE | AREA_OBJECT_PLACE_PROMPT },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_R47_SAVE_POINT, .kind = MAP_SHELTER_KIND_R47_SAVE_POINT, .state = MAP_SHELTER_STATE_AVAILABLE },
+    { .flagIndex = AREA_OBJECT_PLACE_END },
 };
 
-static AreaObjectPlace D_map_shelter_8017BB28[3] = {
-    { 0x20, 0x20B, 0, 1 },
-    { 0x21, 0x20C, 0, 1 },
-    { 0xFFFF },
+/// 2 object-state placements for Shelter R48.
+///
+/// Ended by `AREA_OBJECT_PLACE_END`; seeds saved two-bit flags and supplies
+/// pickup identity. A model is created only when the paired spawn table has
+/// its kind. XYZ use room-coordinate units; yaw uses 4096 units per turn.
+static AreaObjectPlace _gMapShelterR48ObjectPlaces[3] = {
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_R48_FIRST_SLIDER, .kind = MAP_SHELTER_KIND_R48_FIRST_SLIDER, .state = MAP_SHELTER_STATE_AVAILABLE },
+    { .flagIndex = MAP_SHELTER_OBJECT_SLOT_R48_SECOND_SLIDER, .kind = MAP_SHELTER_KIND_R48_SECOND_SLIDER, .state = MAP_SHELTER_STATE_AVAILABLE },
+    { .flagIndex = AREA_OBJECT_PLACE_END },
 };
 
 InventoryBattleReward D_map_shelter_8017BB58[47] = {
@@ -1612,607 +1883,657 @@ InventoryBattleReward D_map_shelter_8017BD8C[13] = {
     { INVENTORY_BATTLE_REWARD_LIST_END },
 };
 
-StageMusicEntry D_map_shelter_8017BE28[600] = {
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x3C, 1 },
-    { 0x3D, 0 },
-    { 0x3D, 0 },
-    { 0xFF, 0 },
-    { 0x3D, 0 },
-    { 0x3D, 0 },
-    { 0x3D, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x3E, 1 },
-    { 0x3D, 0 },
-    { 0xFF, 0 },
-    { 0x3D, 0 },
-    { 0x3D, 0 },
-    { 0x3D, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x3D, 0 },
-    { 0x3D, 0 },
-    { 0x3D, 0 },
-    { 0xFF, 0 },
-    { 0x3D, 0 },
-    { 0x3D, 0 },
-    { 0x3D, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x3D, 0 },
-    { 0x3D, 0 },
-    { 0xFF, 0 },
-    { 0x3D, 0 },
-    { 0x3D, 0 },
-    { 0x3D, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x3D, 0 },
-    { 0x3D, 0 },
-    { 0xFF, 0 },
-    { 0x3D, 0 },
-    { 0x3D, 0 },
-    { 0x3D, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x3D, 3 },
-    { 0x3D, 0 },
-    { 0x3D, 0 },
-    { 0x3D, 3 },
-    { 0x3D, 0 },
-    { 0x3D, 0 },
-    { 0x3D, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x3D, 0 },
-    { 0x3D, 0 },
-    { 0xFF, 0 },
-    { 0x3D, 0 },
-    { 0x3D, 0 },
-    { 0x3D, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x37, 3 },
-    { 0x37, 3 },
-    { 0x37, 3 },
-    { 0x37, 3 },
-    { 0x37, 3 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x41, 0 },
-    { 0xFF, 0 },
-    { 0x47, 0 },
-    { 0x26, 0 },
-    { 0x4B, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x41, 0 },
-    { 0xFF, 0 },
-    { 0x47, 0 },
-    { 0x26, 0 },
-    { 0x4B, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x41, 0 },
-    { 0xFF, 0 },
-    { 0x47, 0 },
-    { 0x26, 0 },
-    { 0x4B, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x41, 0 },
-    { 0xFF, 0 },
-    { 0x47, 0 },
-    { 0x26, 0 },
-    { 0x4B, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x41, 0 },
-    { 0xFF, 0 },
-    { 0x47, 0 },
-    { 0x26, 0 },
-    { 0x4B, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x41, 0 },
-    { 0xFF, 0 },
-    { 0x47, 0 },
-    { 0x26, 0 },
-    { 0x4B, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x41, 0 },
-    { 0xFF, 0 },
-    { 0x47, 0 },
-    { 0x26, 0 },
-    { 0x4B, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x41, 0 },
-    { 0x43, 1 },
-    { 0x47, 0 },
-    { 0x26, 0 },
-    { 0x4B, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x41, 0 },
-    { 0x41, 0 },
-    { 0x47, 0 },
-    { 0x26, 0 },
-    { 0x4B, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0x5D, 1 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x41, 0 },
-    { 0x41, 0 },
-    { 0x47, 0 },
-    { 0x26, 0 },
-    { 0x4B, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x41, 0 },
-    { 0x41, 0 },
-    { 0x47, 0 },
-    { 0x26, 0 },
-    { 0x4B, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x41, 0 },
-    { 0x41, 0 },
-    { 0x47, 0 },
-    { 0x26, 0 },
-    { 0x4B, 0 },
-    { 0xFF, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x41, 0 },
-    { 0x41, 0 },
-    { 0x47, 0 },
-    { 0x26, 0 },
-    { 0x4B, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x41, 0 },
-    { 0x41, 0 },
-    { 0x47, 0 },
-    { 0x26, 0 },
-    { 0x4B, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5F, 1 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x41, 0 },
-    { 0x41, 0 },
-    { 0x47, 0 },
-    { 0x26, 0 },
-    { 0x4B, 0 },
-    { 0x52, 0 },
-    { 0x5A, 1 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x41, 0 },
-    { 0x41, 0 },
-    { 0x47, 0 },
-    { 0x26, 0 },
-    { 0x4B, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x41, 0 },
-    { 0x41, 0 },
-    { 0x47, 0 },
-    { 0x26, 0 },
-    { 0x4B, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x41, 0 },
-    { 0x41, 0 },
-    { 0x47, 0 },
-    { 0x26, 0 },
-    { 0x4B, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x41, 0 },
-    { 0x41, 0 },
-    { 0x47, 0 },
-    { 0x26, 0 },
-    { 0x4B, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x41, 0 },
-    { 0x41, 0 },
-    { 0x47, 0 },
-    { 0x26, 0 },
-    { 0x4B, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x41, 0 },
-    { 0x41, 0 },
-    { 0x47, 0 },
-    { 0x26, 0 },
-    { 0x4B, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x41, 0 },
-    { 0x41, 0 },
-    { 0x47, 0 },
-    { 0x26, 0 },
-    { 0x4B, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x41, 0 },
-    { 0x41, 0 },
-    { 0x47, 0 },
-    { 0x26, 0 },
-    { 0x4B, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x3F, 0 },
-    { 0x3F, 0 },
-    { 0x3F, 0 },
-    { 0x26, 0 },
-    { 0x3F, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x41, 0 },
-    { 0x41, 0 },
-    { 0x47, 0 },
-    { 0x26, 0 },
-    { 0x4B, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x41, 0 },
-    { 0x41, 0 },
-    { 0x47, 0 },
-    { 0x26, 0 },
-    { 0x4B, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x41, 0 },
-    { 0x41, 0 },
-    { 0x47, 0 },
-    { 0x26, 0 },
-    { 0x4B, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x60, 1 },
-    { 0x61, 1 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x42, 1 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x4A, 1 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x50, 1 },
-    { 0x48, 3 },
-    { 0x48, 3 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x48, 0 },
-    { 0xFF, 0 },
-    { 0x48, 0 },
-    { 0x48, 0 },
-    { 0x48, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x48, 0 },
-    { 0xFF, 0 },
-    { 0x48, 0 },
-    { 0x48, 0 },
-    { 0x48, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x48, 0 },
-    { 0xFF, 0 },
-    { 0x48, 0 },
-    { 0x48, 0 },
-    { 0x48, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x2F, 0 },
-    { 0xFF, 0 },
-    { 0x2F, 0 },
-    { 0x2F, 0 },
-    { 0x2F, 0 },
-    { 0x52, 0 },
-    { 0x59, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x3B, 0 },
-    { 0xFF, 0 },
-    { 0x3B, 1 },
-    { 0x3B, 1 },
-    { 0xFF, 0 },
-    { 0x52, 0 },
-    { 0xFF, 0 },
-    { 0x5D, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x5E, 1 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x51, 1 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
+StageMusicEntry gMapShelterAreaMusicEntries[(GAME_AREA_SHELTER_R49 + 1) * MAP_SHELTER_MUSIC_COLUMN_COUNT] = {
+    // Area 0.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_MINE_MESA.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3C, .startMode = STAGE_MUSIC_START_DEFERRED },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_MINE_CAVERN.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3E, .startMode = STAGE_MUSIC_START_DEFERRED },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_MINE_TUNNEL_ENTRANCE.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_MINE_TUNNEL.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_MINE_GORGE.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_MINE_REFUGE.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_NEVER },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_NEVER },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_MINE_FORKED_TUNNEL.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_MINE_SECRET_PASSAGE.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x37, .startMode = STAGE_MUSIC_START_NEVER },
+    { .sequenceId = 0x37, .startMode = STAGE_MUSIC_START_NEVER },
+    { .sequenceId = 0x37, .startMode = STAGE_MUSIC_START_NEVER },
+    { .sequenceId = 0x37, .startMode = STAGE_MUSIC_START_NEVER },
+    { .sequenceId = 0x37, .startMode = STAGE_MUSIC_START_NEVER },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B1_ELEVATOR_HALL.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x47, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x26, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x4B, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x47, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x26, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x4B, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B1_STOREROOM.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x47, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x26, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x4B, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x47, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x26, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x4B, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B1_ARMORY.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x47, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x26, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x4B, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x47, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x26, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x4B, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B1_MAIN_CORRIDOR.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x47, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x26, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x4B, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B1_STERILIZATION_ROOM.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x43, .startMode = STAGE_MUSIC_START_DEFERRED },
+    { .sequenceId = 0x47, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x26, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x4B, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x47, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x26, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x4B, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_DEFERRED },
+    // Area GAME_AREA_SHELTER_B1_CONTROL_ROOM.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x47, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x26, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x4B, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B1_ACCESS_TUNNEL.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x47, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x26, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x4B, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x47, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x26, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x4B, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x47, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x26, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x4B, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B2_POD_BOTTOM.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x47, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x26, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x4B, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5F, .startMode = STAGE_MUSIC_START_DEFERRED },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B1_POD_SERVICE_GANTRY.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x47, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x26, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x4B, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5A, .startMode = STAGE_MUSIC_START_DEFERRED },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x47, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x26, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x4B, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x47, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x26, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x4B, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B2_ELEVATOR.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x47, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x26, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x4B, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B2_ELEVATOR_HALL.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x47, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x26, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x4B, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x47, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x26, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x4B, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B2_OPERATING_ROOM.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x47, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x26, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x4B, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x47, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x26, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x4B, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B2_LABORATORY.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x47, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x26, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x4B, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B2_BREEDING_ROOM.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3F, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3F, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3F, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x26, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3F, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B2_MAIN_CORRIDOR.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x47, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x26, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x4B, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B2_SEPTIC_TANK.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x47, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x26, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x4B, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x41, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x47, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x26, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x4B, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_R36.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x60, .startMode = STAGE_MUSIC_START_DEFERRED },
+    { .sequenceId = 0x61, .startMode = STAGE_MUSIC_START_DEFERRED },
+    // Area GAME_AREA_SHELTER_R37.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_1F_HELIPORT_S4.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B3_DUMPING_HOLE.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x42, .startMode = STAGE_MUSIC_START_DEFERRED },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x4A, .startMode = STAGE_MUSIC_START_DEFERRED },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x50, .startMode = STAGE_MUSIC_START_DEFERRED },
+    { .sequenceId = 0x48, .startMode = STAGE_MUSIC_START_NEVER },
+    { .sequenceId = 0x48, .startMode = STAGE_MUSIC_START_NEVER },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B3_ELEVATOR_HALL.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B4_LOWER_SEWER.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x48, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x48, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x48, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x48, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B4_UPPER_SEWER.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x48, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x48, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x48, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x48, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B4_RESERVOIR.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x48, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x48, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x48, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x48, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_B4_WATER_SUPPLY.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x2F, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x2F, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x2F, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x2F, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x59, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_R47.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3B, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x3B, .startMode = STAGE_MUSIC_START_DEFERRED },
+    { .sequenceId = 0x3B, .startMode = STAGE_MUSIC_START_DEFERRED },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x52, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5D, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_R48.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x5E, .startMode = STAGE_MUSIC_START_DEFERRED },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    // Area GAME_AREA_SHELTER_R49.
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = 0x51, .startMode = STAGE_MUSIC_START_DEFERRED },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { .sequenceId = STAGE_MUSIC_NO_SEQUENCE, .startMode = STAGE_MUSIC_START_WHEN_VIEW_READY },
 };
 
 StageMusicEntry D_map_shelter_8017C2D8[20] = {
