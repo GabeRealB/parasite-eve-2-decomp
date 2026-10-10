@@ -10,6 +10,8 @@
 
 #include "shelter_b1_sterilization_room_private.h"
 
+#include "actors/actor_160600.h"
+
 #include "gameplay/animation.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/attachment_state.h"
@@ -88,13 +90,6 @@ extern WorldCollisionGrid D_shelter_b1_sterilization_room_80184F28;
 extern AnimationPlayRequest                       D_shelter_b1_sterilization_room_80188624;
 extern ActorTransform                             D_shelter_b1_sterilization_room_80188668[];
 extern _ShelterB1SterilizationRoomDoorDestination D_shelter_b1_sterilization_room_80188728[];
-
-/// Area records `_roomCutsceneTask` applies when it
-/// advances game flag nibble 0 from 2 to 3 in one particular view.
-
-extern EvsCommand D_actor_160600_80135AC0[];
-extern EvsCommand D_actor_160600_80135D78[];
-extern EvsCommand D_actor_160600_80136258[];
 
 #define TELEPHONE_TITLE_BYTES "Telephone\0\0 "
 #include "../../shared/telephone.h"
@@ -501,12 +496,12 @@ static void _shelterB1SterilizationRoomInitializeState(Task* task)
             gameFlagSetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, COMPANION_REMARK_PRESENT);
             gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE, ENTRY_EVENT_WITH_COMPANION);
             gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, COMPANION_EVENT_SCHEDULE);
-            evsStartScriptWithSkip(D_actor_160600_80135D78, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_160600_80136258);
+            evsStartScriptWithSkip(gActor160600SceneWithCompanionScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor160600SceneSkipScript);
             areaSetPlacementVariant(&gGameSession->location.loc, COMPANION_PLACEMENT_VARIANT, AREA_VARIANT_RESET_ALWAYS);
         } else {
             gameFlagSetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, COMPANION_REMARK_ABSENT);
             gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE, ENTRY_EVENT_WITHOUT_COMPANION);
-            evsStartScriptWithSkip(D_actor_160600_80135AC0, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_160600_80136258);
+            evsStartScriptWithSkip(gActor160600SceneWithoutCompanionScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor160600SceneSkipScript);
         }
     }
     _shelterB1SterilizationRoomInitializeActorObstacle(0);

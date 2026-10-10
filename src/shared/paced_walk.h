@@ -12,6 +12,13 @@
  * fragments again for each further walker with the library names defined to
  * that walker's own.
  *
+ * Carriers of the spawn/frame fragments define their own private AnimationSet*
+ * _gPacedWalkAnimBank[16] (NULL slot 0, playable clips 1..15), terminated
+ * TaskMessageEntry _gPacedWalkMsgTable[6], and u8 _gPacedWalkSmokePartIndices
+ * with at least eleven entries. The frame samples only indices 0..10; each
+ * value must address a model coordinate. Define them before the fragments
+ * that use them and keep the tables and assets loaded through task teardown.
+ *
  * A walker that keeps a work block of its own type and carries only the slot
  * tick, the slot reset, the blended reseed or the placement handler names that
  * type through PACED_WALK_WORK_T before including this header. actor_161500

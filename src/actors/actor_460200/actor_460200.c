@@ -112,11 +112,6 @@ static s32 _pacedWalkSetSoldierCModelDraw(Task* task, s32 messageId, s32 flags, 
 
 static s32 _pacedWalkSetPairModelDraw(Task* task, s32 messageId, s32 requestFlags, s32 unusedArg);
 
-extern TaskMessageEntry gPacedWalkMsgTable[6];
-extern AnimationSet*    gPacedWalkAnimBank[16];
-
-extern u8 gPacedWalkEffectParts[];
-
 extern EvsCommand D_actor_460200_80137AA0[];
 extern EvsCommand D_actor_460200_80137BA8[];
 extern EvsCommand D_actor_460200_80137CB0[];
@@ -1407,7 +1402,8 @@ static AnimationSet _gActor460200Animation0DE08 = {
     { NULL, _gActor460200Animation0DE08Bank1, NULL, NULL, _gActor460200Animation0DE08Bank4, NULL, NULL, NULL },
 };
 
-TaskMessageEntry gPacedWalkMsgTable[6] = {
+/// Soldier A's terminated paced-walk message table, borrowed until task teardown.
+static TaskMessageEntry _gPacedWalkMsgTable[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _pacedWalkPlayAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, PACED_WALK_SET_PAIR_MODEL_DRAW },
     { ACTOR_MESSAGE_PLACE, PACED_WALK_PLACE },
@@ -1418,7 +1414,10 @@ TaskMessageEntry gPacedWalkMsgTable[6] = {
 
 TaskDesc gActor460200SoldierATaskDesc = { { { TASK_BODY_TMD, ACTOR_460200_SOLDIER_TASK_PRIORITY } }, _actor460200SoldierATask, { .model = &_gActor460200SoldierABody } };
 
-AnimationSet* gPacedWalkAnimBank[16] = {
+/// Soldier A's borrowed animation bank: NULL slot 0 and playable clips 1..15.
+///
+/// The bank and its twenty-part sets must remain loaded while the rig uses them.
+static AnimationSet* _gPacedWalkAnimBank[16] = {
     NULL,
     &_gActor460200Animation0BBB0,
     &_gActor460200Animation0BE48,
@@ -1437,7 +1436,11 @@ AnimationSet* gPacedWalkAnimBank[16] = {
     &_gActor460200Animation0DE08,
 };
 
-u8 gPacedWalkEffectParts[12] = {
+/// Soldier A's smoke coordinate choices, sampled from the first eleven entries.
+///
+/// Those entries address non-root model parts 1..19. The final zero byte is
+/// not sampled; its role is unproven and its storage is preserved.
+static u8 _gPacedWalkSmokePartIndices[12] = {
     1,
     3,
     5,

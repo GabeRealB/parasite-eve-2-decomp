@@ -52,7 +52,7 @@ static void _pacedWalkFrame(Enemy* unusedEnemy, Task* task)
 
     model     = task->extra.tmd;
     rootCoord = model->coords;
-    smokePart = &task->extra.tmd->coords[gPacedWalkEffectParts[(rand() * PACED_WALK_EFFECT_PART_COUNT) >> 15]];
+    smokePart = &task->extra.tmd->coords[_gPacedWalkSmokePartIndices[(rand() * PACED_WALK_EFFECT_PART_COUNT) >> 15]];
     work      = task->work;
     // Sample lighting before the update; the shadow uses its resulting root cache.
     _actorRenderLightPacedWalkerRoot(model, rootCoord);

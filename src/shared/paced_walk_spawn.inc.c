@@ -58,10 +58,10 @@ static void _pacedWalkSpawn(Enemy* enemy, Task* task)
     work->st.animId                  = PACED_WALK_ANIM_SPAWN;
     work->enemy                      = enemy;
     _pacedWalkInitializeModelLighting(model, work, rootCoord);
-    animationInitContext(&work->rig.anim, (AnimationSet**)gPacedWalkAnimBank, model,
+    animationInitContext(&work->rig.anim, _gPacedWalkAnimBank, model,
                          work->rig.poses, work->rig.slots);
     work->st.state = ACTOR_ENEMY_ANIM_RESET;
-    task->msgTable = gPacedWalkMsgTable;
+    task->msgTable = _gPacedWalkMsgTable;
     PACED_WALK_UPDATE(task);
     task->state++;
 }
