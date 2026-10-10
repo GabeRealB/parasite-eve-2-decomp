@@ -212,146 +212,221 @@ TmdSource gKyle800103KyleMadiganHandLeft = {
     .stream              = _gKyle800103KyleMadiganHandLeftStream,
 };
 
-static TmdBone _gKyle800103Model06038Skeleton[1] = {
+/// Identity rest transform for the M950's single root, copied into each model.
+static TmdBone _gKyle800103KyleMadiganM950Skeleton[] = {
 #include "assets/kyle_800103_model_06038_skeleton.inc"
 };
 
-static u32 _gKyle800103Model06038PartVerts[1] = {
+/// Vertex count for the single part-local weapon group (36 vertices).
+static u32 _gKyle800103KyleMadiganM950PartVerts[] = {
 #include "assets/kyle_800103_model_06038_partVerts.inc"
 };
 
-static SVECTOR _gKyle800103Model06038Verts[36] = {
+/// M950 vertices in integer coordinates local to the weapon root.
+static SVECTOR _gKyle800103KyleMadiganM950Verts[] = {
 #include "assets/kyle_800103_model_06038_verts.inc"
 };
 
-static SVECTOR _gKyle800103Model06038Normals[36] = {
+/// Weapon lighting normals with twelve fractional bits, indexed independently of vertices.
+static SVECTOR _gKyle800103KyleMadiganM950Normals[] = {
 #include "assets/kyle_800103_model_06038_normals.inc"
 };
 
-static u32 _gKyle800103Model06038Stream[229] = {
+/// Writable draw commands for four textured Gouraud triangles and twenty-eight quads.
+///
+/// One skeletal group and an empty final group end in `TMD_STREAM_END`.
+/// First model creation resolves the command handler slots in place.
+static u32 _gKyle800103KyleMadiganM950Stream[] = {
 #include "assets/kyle_800103_model_06038_stream.inc"
 };
 
-TmdSource D_kyle_800103_8016DE3C = {
-    0,
-    1616,
-    0,
-    1,
-    _gKyle800103Model06038PartVerts,
-    _gKyle800103Model06038Verts,
-    _gKyle800103Model06038Normals,
-    _gKyle800103Model06038Skeleton,
-    _gKyle800103Model06038Stream,
+TmdSource gKyle800103KyleMadiganM950 = {
+    .handlersResolved = false,
+    .bufferHalfBytes  = (4 * sizeof(POLY_GT3)) + (28 * sizeof(POLY_GT4)),
+    // All faces transform directly from the single weapon part.
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gKyle800103KyleMadiganM950Skeleton),
+    .partVertexCounts    = _gKyle800103KyleMadiganM950PartVerts,
+    .verts               = _gKyle800103KyleMadiganM950Verts,
+    .normals             = _gKyle800103KyleMadiganM950Normals,
+    .skeleton            = _gKyle800103KyleMadiganM950Skeleton,
+    .stream              = _gKyle800103KyleMadiganM950Stream,
 };
 
-static AnimationPackedPose _gKyle800103Animation065F8Bank1[2] = {
+/// Encoding selectors indexing the private clips' pose banks.
+enum {
+    KYLE_800103_ANIMATION_TRANSLATION_ROTATION_BANK = 1,
+    KYLE_800103_ANIMATION_PACKED_ROTATION_BANK      = 4
+};
+
+/// Encoding-1 translation/rotation poses for the idle clip's parts 0 and 1.
+static AnimationPackedPose _gKyle800103KyleMadiganIdleAnimationBank1[] = {
 #include "assets/kyle_800103_animation_065F8_bank1.inc"
 };
 
-static AnimationPackedRotation _gKyle800103Animation065F8Bank4[24] = {
+/// Encoding-4 packed rotations for the idle clip's parts 2..19.
+static AnimationPackedRotation _gKyle800103KyleMadiganIdleAnimationBank4[] = {
 #include "assets/kyle_800103_animation_065F8_bank4.inc"
 };
 
-static AnimationRecord _gKyle800103Animation065F8Records[90] = {
+/// Idle keyframes and loop/stop controls; keyframe durations count whole playback frames.
+static AnimationRecord _gKyle800103KyleMadiganIdleAnimationRecords[] = {
 #include "assets/kyle_800103_animation_065F8_records.inc"
 };
 
-static u16 _gKyle800103Animation065F8Indices[20] = {
+/// Absolute first-record indices for the idle clip's twenty model-part tracks.
+static u16 _gKyle800103KyleMadiganIdleAnimationIndices[] = {
 #include "assets/kyle_800103_animation_065F8_indices.inc"
 };
 
-static AnimationSet _gKyle800103Animation065F8 = {
-    _gKyle800103Animation065F8Records,
-    _gKyle800103Animation065F8Indices,
-    { NULL, _gKyle800103Animation065F8Bank1, NULL, NULL, _gKyle800103Animation065F8Bank4, NULL, NULL, NULL },
+/// Kyle Madigan's looping standing idle for companion resource variant 3.
+///
+/// Twenty part tracks; native playback uses parts 1..19. Banks 1 and 4 supply
+/// translation/rotation for parts 0..1 and packed rotation for parts 2..19.
+/// Keep this package loaded while playback or cached record pointers use it.
+static AnimationSet _gKyle800103KyleMadiganIdleAnimation = {
+    .records           = _gKyle800103KyleMadiganIdleAnimationRecords,
+    .trackStartIndices = _gKyle800103KyleMadiganIdleAnimationIndices,
+    .poseBanks         = {
+        [KYLE_800103_ANIMATION_TRANSLATION_ROTATION_BANK] = _gKyle800103KyleMadiganIdleAnimationBank1,
+        [KYLE_800103_ANIMATION_PACKED_ROTATION_BANK]      = _gKyle800103KyleMadiganIdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gKyle800103Animation06E78Bank1[11] = {
+/// Encoding-1 translation/rotation poses for the walk clip's parts 0 and 1.
+static AnimationPackedPose _gKyle800103KyleMadiganWalkAnimationBank1[] = {
 #include "assets/kyle_800103_animation_06E78_bank1.inc"
 };
 
-static AnimationPackedRotation _gKyle800103Animation06E78Bank4[201] = {
+/// Encoding-4 packed rotations for the walk clip's parts 2..19.
+static AnimationPackedRotation _gKyle800103KyleMadiganWalkAnimationBank4[] = {
 #include "assets/kyle_800103_animation_06E78_bank4.inc"
 };
 
-static AnimationRecord _gKyle800103Animation06E78Records[290] = {
+/// Walk keyframes, cue bits and loop/stop controls; keyframe durations count whole playback frames.
+static AnimationRecord _gKyle800103KyleMadiganWalkAnimationRecords[] = {
 #include "assets/kyle_800103_animation_06E78_records.inc"
 };
 
-static u16 _gKyle800103Animation06E78Indices[20] = {
+/// Absolute first-record indices for the walk clip's twenty model-part tracks.
+static u16 _gKyle800103KyleMadiganWalkAnimationIndices[] = {
 #include "assets/kyle_800103_animation_06E78_indices.inc"
 };
 
-static AnimationSet _gKyle800103Animation06E78 = {
-    _gKyle800103Animation06E78Records,
-    _gKyle800103Animation06E78Indices,
-    { NULL, _gKyle800103Animation06E78Bank1, NULL, NULL, _gKyle800103Animation06E78Bank4, NULL, NULL, NULL },
+/// Kyle Madigan's looping walk for companion resource variant 3, with or without his weapon.
+///
+/// Twenty part tracks; native playback uses parts 1..19. Banks 1 and 4 supply
+/// translation/rotation for parts 0..1 and packed rotation for parts 2..19.
+/// Keep this package loaded while playback or cached record pointers use it.
+static AnimationSet _gKyle800103KyleMadiganWalkAnimation = {
+    .records           = _gKyle800103KyleMadiganWalkAnimationRecords,
+    .trackStartIndices = _gKyle800103KyleMadiganWalkAnimationIndices,
+    .poseBanks         = {
+        [KYLE_800103_ANIMATION_TRANSLATION_ROTATION_BANK] = _gKyle800103KyleMadiganWalkAnimationBank1,
+        [KYLE_800103_ANIMATION_PACKED_ROTATION_BANK]      = _gKyle800103KyleMadiganWalkAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gKyle800103Animation076E4Bank1[15] = {
+/// Encoding-1 translation/rotation poses for the left-turn clip's parts 0 and 1.
+static AnimationPackedPose _gKyle800103KyleMadiganTurnLeftAnimationBank1[] = {
 #include "assets/kyle_800103_animation_076E4_bank1.inc"
 };
 
-static AnimationPackedRotation _gKyle800103Animation076E4Bank4[171] = {
+/// Encoding-4 packed rotations for the left-turn clip's parts 2..19.
+static AnimationPackedRotation _gKyle800103KyleMadiganTurnLeftAnimationBank4[] = {
 #include "assets/kyle_800103_animation_076E4_bank4.inc"
 };
 
-static AnimationRecord _gKyle800103Animation076E4Records[303] = {
+/// Left-turn keyframes and loop/stop controls; keyframe durations count whole playback frames.
+static AnimationRecord _gKyle800103KyleMadiganTurnLeftAnimationRecords[] = {
 #include "assets/kyle_800103_animation_076E4_records.inc"
 };
 
-static u16 _gKyle800103Animation076E4Indices[20] = {
+/// Absolute first-record indices for the left-turn clip's twenty model-part tracks.
+static u16 _gKyle800103KyleMadiganTurnLeftAnimationIndices[] = {
 #include "assets/kyle_800103_animation_076E4_indices.inc"
 };
 
-static AnimationSet _gKyle800103Animation076E4 = {
-    _gKyle800103Animation076E4Records,
-    _gKyle800103Animation076E4Indices,
-    { NULL, _gKyle800103Animation076E4Bank1, NULL, NULL, _gKyle800103Animation076E4Bank4, NULL, NULL, NULL },
+/// Kyle Madigan's looping negative-yaw turn for companion resource variant 3.
+///
+/// Twenty part tracks; native playback uses parts 1..19. Banks 1 and 4 supply
+/// translation/rotation for parts 0..1 and packed rotation for parts 2..19.
+/// Keep this package loaded while playback or cached record pointers use it.
+static AnimationSet _gKyle800103KyleMadiganTurnLeftAnimation = {
+    .records           = _gKyle800103KyleMadiganTurnLeftAnimationRecords,
+    .trackStartIndices = _gKyle800103KyleMadiganTurnLeftAnimationIndices,
+    .poseBanks         = {
+        [KYLE_800103_ANIMATION_TRANSLATION_ROTATION_BANK] = _gKyle800103KyleMadiganTurnLeftAnimationBank1,
+        [KYLE_800103_ANIMATION_PACKED_ROTATION_BANK]      = _gKyle800103KyleMadiganTurnLeftAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gKyle800103Animation07FB8Bank1[16] = {
+/// Encoding-1 translation/rotation poses for the right-turn clip's parts 0 and 1.
+static AnimationPackedPose _gKyle800103KyleMadiganTurnRightAnimationBank1[] = {
 #include "assets/kyle_800103_animation_07FB8_bank1.inc"
 };
 
-static AnimationPackedRotation _gKyle800103Animation07FB8Bank4[182] = {
+/// Encoding-4 packed rotations for the right-turn clip's parts 2..19.
+static AnimationPackedRotation _gKyle800103KyleMadiganTurnRightAnimationBank4[] = {
 #include "assets/kyle_800103_animation_07FB8_bank4.inc"
 };
 
-static AnimationRecord _gKyle800103Animation07FB8Records[315] = {
+/// Right-turn keyframes and loop/stop controls; keyframe durations count whole playback frames.
+static AnimationRecord _gKyle800103KyleMadiganTurnRightAnimationRecords[] = {
 #include "assets/kyle_800103_animation_07FB8_records.inc"
 };
 
-static u16 _gKyle800103Animation07FB8Indices[20] = {
+/// Absolute first-record indices for the right-turn clip's twenty model-part tracks.
+static u16 _gKyle800103KyleMadiganTurnRightAnimationIndices[] = {
 #include "assets/kyle_800103_animation_07FB8_indices.inc"
 };
 
-static AnimationSet _gKyle800103Animation07FB8 = {
-    _gKyle800103Animation07FB8Records,
-    _gKyle800103Animation07FB8Indices,
-    { NULL, _gKyle800103Animation07FB8Bank1, NULL, NULL, _gKyle800103Animation07FB8Bank4, NULL, NULL, NULL },
+/// Kyle Madigan's looping positive-yaw turn for companion resource variant 3.
+///
+/// Twenty part tracks; native playback uses parts 1..19. Banks 1 and 4 supply
+/// translation/rotation for parts 0..1 and packed rotation for parts 2..19.
+/// Keep this package loaded while playback or cached record pointers use it.
+static AnimationSet _gKyle800103KyleMadiganTurnRightAnimation = {
+    .records           = _gKyle800103KyleMadiganTurnRightAnimationRecords,
+    .trackStartIndices = _gKyle800103KyleMadiganTurnRightAnimationIndices,
+    .poseBanks         = {
+        [KYLE_800103_ANIMATION_TRANSLATION_ROTATION_BANK] = _gKyle800103KyleMadiganTurnRightAnimationBank1,
+        [KYLE_800103_ANIMATION_PACKED_ROTATION_BANK]      = _gKyle800103KyleMadiganTurnRightAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gKyle800103Animation08478Bank1[7] = {
+/// Encoding-1 translation/rotation poses for the part-4 hit clip's parts 0 and 1.
+static AnimationPackedPose _gKyle800103KyleMadiganDamagePart4AnimationBank1[] = {
 #include "assets/kyle_800103_animation_08478_bank1.inc"
 };
 
-static AnimationPackedRotation _gKyle800103Animation08478Bank4[105] = {
+/// Encoding-4 packed rotations for the part-4 hit clip's parts 2..19.
+static AnimationPackedRotation _gKyle800103KyleMadiganDamagePart4AnimationBank4[] = {
 #include "assets/kyle_800103_animation_08478_bank4.inc"
 };
 
-static AnimationRecord _gKyle800103Animation08478Records[158] = {
+/// Part-4 hit keyframes and stop controls; keyframe durations count whole playback frames.
+static AnimationRecord _gKyle800103KyleMadiganDamagePart4AnimationRecords[] = {
 #include "assets/kyle_800103_animation_08478_records.inc"
 };
 
-static u16 _gKyle800103Animation08478Indices[20] = {
+/// Absolute first-record indices for the part-4 hit clip's twenty model-part tracks.
+static u16 _gKyle800103KyleMadiganDamagePart4AnimationIndices[] = {
 #include "assets/kyle_800103_animation_08478_indices.inc"
 };
 
-static AnimationSet _gKyle800103Animation08478 = {
-    _gKyle800103Animation08478Records,
-    _gKyle800103Animation08478Indices,
-    { NULL, _gKyle800103Animation08478Bank1, NULL, NULL, _gKyle800103Animation08478Bank4, NULL, NULL, NULL },
+/// Kyle Madigan's hit reaction for body part 4 in companion resource variant 3.
+///
+/// Twenty part tracks end in stop controls; native playback uses parts 1..19.
+/// Banks 1 and 4 supply translation/rotation for parts 0..1 and packed rotation
+/// for parts 2..19. Keep the package loaded while playback or cached records use it.
+static AnimationSet _gKyle800103KyleMadiganDamagePart4Animation = {
+    .records           = _gKyle800103KyleMadiganDamagePart4AnimationRecords,
+    .trackStartIndices = _gKyle800103KyleMadiganDamagePart4AnimationIndices,
+    .poseBanks         = {
+        [KYLE_800103_ANIMATION_TRANSLATION_ROTATION_BANK] = _gKyle800103KyleMadiganDamagePart4AnimationBank1,
+        [KYLE_800103_ANIMATION_PACKED_ROTATION_BANK]      = _gKyle800103KyleMadiganDamagePart4AnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gKyle800103Animation08A1CBank1[10] = {
@@ -664,31 +739,31 @@ static AnimationSet _gKyle800103Animation0DBE4 = {
 
 AnimationBank D_kyle_800103_8017567C = { { {
     NULL,
-    &_gKyle800103Animation065F8,
-    &_gKyle800103Animation06E78,
+    &_gKyle800103KyleMadiganIdleAnimation,
+    &_gKyle800103KyleMadiganWalkAnimation,
     &_gKyle800103Animation0DBE4,
     &_gKyle800103Animation0D47C,
-    &_gKyle800103Animation076E4,
-    &_gKyle800103Animation07FB8,
+    &_gKyle800103KyleMadiganTurnLeftAnimation,
+    &_gKyle800103KyleMadiganTurnRightAnimation,
     &_gKyle800103Animation0C56C,
     &_gKyle800103Animation0CA78,
     &_gKyle800103Animation0A3B0,
     &_gKyle800103Animation0C0D4,
-    &_gKyle800103Animation065F8,
+    &_gKyle800103KyleMadiganIdleAnimation,
     &_gKyle800103Animation0B55C,
     &_gKyle800103Animation0AB4C,
     &_gKyle800103Animation0BE4C,
-    &_gKyle800103Animation065F8,
-    &_gKyle800103Animation08478,
+    &_gKyle800103KyleMadiganIdleAnimation,
+    &_gKyle800103KyleMadiganDamagePart4Animation,
     &_gKyle800103Animation08A1C,
     &_gKyle800103Animation08F8C,
-    &_gKyle800103Animation06E78,
+    &_gKyle800103KyleMadiganWalkAnimation,
     &_gKyle800103Animation0BE4C,
-    &_gKyle800103Animation065F8,
-    &_gKyle800103Animation065F8,
+    &_gKyle800103KyleMadiganIdleAnimation,
+    &_gKyle800103KyleMadiganIdleAnimation,
     &_gKyle800103Animation09798,
-    &_gKyle800103Animation065F8,
-    &_gKyle800103Animation065F8,
+    &_gKyle800103KyleMadiganIdleAnimation,
+    &_gKyle800103KyleMadiganIdleAnimation,
     NULL,
     NULL,
     NULL,
@@ -699,11 +774,11 @@ AnimationBank D_kyle_800103_8017567C = { { {
     &_gKyle800103Animation0A1C0,
     &_gKyle800103Animation0C56C,
     &_gKyle800103Animation0CA78,
-    &_gKyle800103Animation065F8,
-    &_gKyle800103Animation065F8,
-    &_gKyle800103Animation065F8,
-    &_gKyle800103Animation065F8,
-    &_gKyle800103Animation065F8,
+    &_gKyle800103KyleMadiganIdleAnimation,
+    &_gKyle800103KyleMadiganIdleAnimation,
+    &_gKyle800103KyleMadiganIdleAnimation,
+    &_gKyle800103KyleMadiganIdleAnimation,
+    &_gKyle800103KyleMadiganIdleAnimation,
     NULL,
     NULL,
     NULL,

@@ -142,7 +142,12 @@ extern TmdSource gKyle800102KyleMadiganHandLeftFirstPair;
 /// model using this source has been released.
 extern TmdSource gKyle800101KyleMadiganGun;
 
-extern TmdSource D_kyle_800103_8016DE3C;
+/// Kyle Madigan's one-part M950 model for companion resource variant 3.
+///
+/// Parent its root to the companion's left-hand model. Borrows this package's
+/// geometry and writable command stream; keep the package loaded until every
+/// model using this source has been released.
+extern TmdSource gKyle800103KyleMadiganM950;
 
 /// Kyle Madigan's one-part left hand in attachment pair 1 for resource variant 2.
 ///

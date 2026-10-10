@@ -402,7 +402,7 @@ TaskDesc D_800678F4[] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { .model = &gKyle800101KyleMadiganGun } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { .model = &gKyle800102KyleMadiganMm1 } },
-    { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_kyle_800103_8016DE3C } },
+    { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { .model = &gKyle800103KyleMadiganM950 } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_kyle_800104_8016E568 } },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_TMD, 0x50 } }, acropolisCafeteriaLoosePropTask, { &gAcropolisCafeteriaModel07CA8 } },
