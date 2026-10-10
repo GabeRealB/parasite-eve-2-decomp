@@ -1,8 +1,22 @@
 #ifndef INCLUDE_WEAPONS_GRENADE_PISTOL_H
 #define INCLUDE_WEAPONS_GRENADE_PISTOL_H
 
+#include "gameplay/animation.h"
+
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+
+/// Player motion bank used while the Grenade Pistol is equipped.
+///
+/// Gameplay selects bank index 12: character-1 base 1 plus weapon 11. Base
+/// slots 1..44 reference 36 distinct clips for movement, reactions, attacks
+/// and other player actions; base slots 0, 45 and 46 are NULL. The 32 extension
+/// words at indices 47..78 start cleared and remain writable for scripted
+/// copies, which may include non-pointer payloads. Play only entries known
+/// to contain valid clip pointers. Keep the Grenade Pistol overlay loaded
+/// while playback borrows its bank or native clips; copied clips require
+/// their source overlays to remain loaded as well.
+extern AnimationBank gGrenadePistolPlayerAnimationBank;
 
 /// Single-part held Grenade Pistol model attached to the player's weapon hand.
 ///
