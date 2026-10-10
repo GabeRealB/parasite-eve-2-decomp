@@ -9,6 +9,10 @@
 #include "common.h"
 #include "gte.h"
 
+// Keep these first declarations before the cached handles to preserve BSS order.
+static GfxCoord _gGunbladeTrailNearHistory[8];
+static GfxCoord _gGunbladeTrailFarHistory[8];
+
 #include "gunblade_private.h"
 
 #include "gameplay/display.h"
@@ -109,10 +113,10 @@ void gunbladeTrailTask(Task* task)
                 farEndpoint.coord.t[2]   = farOffset->vz;
                 farEndpoint.composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(&farEndpoint);
-                for (historyIndex = 0; historyIndex < ARRAY_SIZE(gBladeTrailBase); historyIndex++) {
-                    historyFrame = &gBladeTrailBase[historyIndex];
+                for (historyIndex = 0; historyIndex < ARRAY_SIZE(_gGunbladeTrailNearHistory); historyIndex++) {
+                    historyFrame = &_gGunbladeTrailNearHistory[historyIndex];
                     _gunbladeStoreTrailFrame(historyFrame, nearCoord);
-                    historyFrame = &gBladeTrailTip[historyIndex];
+                    historyFrame = &_gGunbladeTrailFarHistory[historyIndex];
                     _gunbladeStoreTrailFrame(historyFrame, &farEndpoint);
                 }
                 return;
@@ -126,20 +130,20 @@ void gunbladeTrailTask(Task* task)
                 farEndpoint.coord.t[2]   = D_gunblade_8011E70C.vz;
                 farEndpoint.composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(&farEndpoint);
-                historyFrame = &gBladeTrailBase[effectWork->age & (ARRAY_SIZE(gBladeTrailBase) - 1)];
+                historyFrame = &_gGunbladeTrailNearHistory[effectWork->age & (ARRAY_SIZE(_gGunbladeTrailNearHistory) - 1)];
                 _gunbladeStoreTrailFrame(historyFrame, nearCoord);
-                historyFrame = &gBladeTrailTip[effectWork->age & (ARRAY_SIZE(gBladeTrailBase) - 1)];
+                historyFrame = &_gGunbladeTrailFarHistory[effectWork->age & (ARRAY_SIZE(_gGunbladeTrailNearHistory) - 1)];
                 _gunbladeStoreTrailFrame(historyFrame, &farEndpoint);
-                for (historyIndex = 0; historyIndex < ARRAY_SIZE(gBladeTrailBase); historyIndex++) {
-                    historyFrame               = &gBladeTrailBase[historyIndex];
+                for (historyIndex = 0; historyIndex < ARRAY_SIZE(_gGunbladeTrailNearHistory); historyIndex++) {
+                    historyFrame               = &_gGunbladeTrailNearHistory[historyIndex];
                     historyFrame->composeStamp = GRAPHICS_COORD_DIRTY;
                     actorRenderComposeCoord(historyFrame);
-                    historyFrame               = &gBladeTrailTip[historyIndex];
+                    historyFrame               = &_gGunbladeTrailFarHistory[historyIndex];
                     historyFrame->composeStamp = GRAPHICS_COORD_DIRTY;
                     actorRenderComposeCoord(historyFrame);
                 }
                 if (effectWork->age < GUNBLADE_TRAIL_CHARGE_START_TICKS) {
-                    _bladeTrailDraw(effectWork->age & (ARRAY_SIZE(gBladeTrailBase) - 1), BLADE_TRAIL_TINT_BLUE_WHITE);
+                    _bladeTrailDraw(effectWork->age & (ARRAY_SIZE(_gGunbladeTrailNearHistory) - 1), BLADE_TRAIL_TINT_BLUE_WHITE);
                     return;
                 }
                 // Post a deferred charge once the ribbon changes tint; repeated requests remain a counter.
@@ -150,7 +154,7 @@ void gunbladeTrailTask(Task* task)
                         taskReparent(task, flashWork->task);
                     }
                 }
-                _bladeTrailDraw(effectWork->age & (ARRAY_SIZE(gBladeTrailBase) - 1), BLADE_TRAIL_TINT_YELLOW_WHITE);
+                _bladeTrailDraw(effectWork->age & (ARRAY_SIZE(_gGunbladeTrailNearHistory) - 1), BLADE_TRAIL_TINT_YELLOW_WHITE);
                 keepTask = effectWork->age < GUNBLADE_TRAIL_LIFETIME_TICKS;
                 break;
             default:
@@ -163,7 +167,11 @@ void gunbladeTrailTask(Task* task)
     }
 }
 
+#define BLADE_TRAIL_BASE_HISTORY _gGunbladeTrailNearHistory
+#define BLADE_TRAIL_TIP_HISTORY  _gGunbladeTrailFarHistory
 #include "../../shared/blade_trail_draw.inc.c"
+#undef BLADE_TRAIL_BASE_HISTORY
+#undef BLADE_TRAIL_TIP_HISTORY
 
 enum {
     GUNBLADE_FLASH_AMMUNITION_BUCKSHOT       = 13,
@@ -337,124 +345,167 @@ void gunbladeRequestChargeFlash(s32 ammunitionIndex)
     }
 }
 
-static TmdBone _gGunbladeModel017FCSkeleton[1] = {
+/// Initial identity transform of the held Gunblade's single self-parented part.
+static TmdBone _gGunbladeModelSkeleton[] = {
 #include "assets/gunblade_model_017FC_skeleton.inc"
 };
 
-static u32 _gGunbladeModel017FCPartVerts[1] = {
+/// Vertex count of the held Gunblade's single part (41 vertices).
+static u32 _gGunbladeModelPartVerts[] = {
 #include "assets/gunblade_model_017FC_partVerts.inc"
 };
 
-static SVECTOR _gGunbladeModel017FCVerts[41] = {
+/// Held Gunblade vertices in signed integer part-local coordinates.
+static SVECTOR _gGunbladeModelVerts[] = {
 #include "assets/gunblade_model_017FC_verts.inc"
 };
 
-static SVECTOR _gGunbladeModel017FCNormals[39] = {
+/// Held Gunblade lighting normals, indexed separately from vertices.
+static SVECTOR _gGunbladeModelNormals[] = {
 #include "assets/gunblade_model_017FC_normals.inc"
 };
 
-static u32 _gGunbladeModel017FCStream[317] = {
+/// Held Gunblade's 317-word textured-triangle/quad stream; creation patches draw slots.
+static u32 _gGunbladeModelStream[] = {
 #include "assets/gunblade_model_017FC_stream.inc"
 };
 
-TmdSource D_gunblade_8011EEB0 = {
-    0,
-    2224,
-    0,
-    1,
-    _gGunbladeModel017FCPartVerts,
-    _gGunbladeModel017FCVerts,
-    _gGunbladeModel017FCNormals,
-    _gGunbladeModel017FCSkeleton,
-    _gGunbladeModel017FCStream,
+enum {
+    GUNBLADE_MODEL_HANDLERS_UNRESOLVED = 0,
+    GUNBLADE_MODEL_BUFFER_HALF_BYTES   = 14 * sizeof(POLY_GT3) + 32 * sizeof(POLY_GT4)
 };
 
-static AnimationPackedPose _gGunbladeAnimation01EA4Bank1[2] = {
+TmdSource gGunbladeModel = {
+    GUNBLADE_MODEL_HANDLERS_UNRESOLVED,
+    GUNBLADE_MODEL_BUFFER_HALF_BYTES,
+    0,
+    ARRAY_SIZE(_gGunbladeModelSkeleton),
+    _gGunbladeModelPartVerts,
+    _gGunbladeModelVerts,
+    _gGunbladeModelNormals,
+    _gGunbladeModelSkeleton,
+    _gGunbladeModelStream,
+};
+
+/// Two translation/Euler poses for the standing-idle clip; offsets count four-byte words.
+static AnimationPackedPose _gGunbladeIdleAnimationBank1[] = {
 #include "assets/gunblade_animation_01EA4_bank1.inc"
 };
 
-static AnimationPackedRotation _gGunbladeAnimation01EA4Bank4[8] = {
+/// Eight packed Euler rotations for the standing-idle clip, in eight-angle-unit steps.
+static AnimationPackedRotation _gGunbladeIdleAnimationBank4[] = {
 #include "assets/gunblade_animation_01EA4_bank4.inc"
 };
 
-static AnimationRecord _gGunbladeAnimation01EA4Records[76] = {
+/// Standing-idle track keyframes and loop/stop controls; durations count normal-rate frames.
+static AnimationRecord _gGunbladeIdleAnimationRecords[] = {
 #include "assets/gunblade_animation_01EA4_records.inc"
 };
 
-static u16 _gGunbladeAnimation01EA4Indices[20] = {
+/// Standing-idle's 20-entry player track-start table; entry 19 repeats entry 0.
+static u16 _gGunbladeIdleAnimationIndices[] = {
 #include "assets/gunblade_animation_01EA4_indices.inc"
 };
 
-static AnimationSet _gGunbladeAnimation01EA4 = {
-    _gGunbladeAnimation01EA4Records,
-    _gGunbladeAnimation01EA4Indices,
-    { NULL, _gGunbladeAnimation01EA4Bank1, NULL, NULL, _gGunbladeAnimation01EA4Bank4, NULL, NULL, NULL },
+/// Player standing-idle pose with the Gunblade equipped.
+///
+/// Native bank slots 1, 21, 22 and 41 share this clip. Its 20 track starts
+/// address player model parts, independently of the one-part weapon model.
+/// Playback borrows these overlay-owned arrays while Gunblade remains loaded.
+static AnimationSet _gGunbladeIdleAnimation = {
+    _gGunbladeIdleAnimationRecords,
+    _gGunbladeIdleAnimationIndices,
+    { NULL, _gGunbladeIdleAnimationBank1, NULL, NULL, _gGunbladeIdleAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gGunbladeAnimation02548Bank1[12] = {
+/// Twelve translation/Euler poses for the forward-walk clip, addressed in four-byte words.
+static AnimationPackedPose _gGunbladeWalkAnimationBank1[] = {
 #include "assets/gunblade_animation_02548_bank1.inc"
 };
 
-static AnimationPackedRotation _gGunbladeAnimation02548Bank4[151] = {
+/// 151 packed Euler rotations for the forward-walk clip, in eight-angle-unit steps.
+static AnimationPackedRotation _gGunbladeWalkAnimationBank4[] = {
 #include "assets/gunblade_animation_02548_bank4.inc"
 };
 
-static AnimationRecord _gGunbladeAnimation02548Records[218] = {
+/// Forward-walk track keyframes and loop/stop controls; durations count normal-rate frames.
+static AnimationRecord _gGunbladeWalkAnimationRecords[] = {
 #include "assets/gunblade_animation_02548_records.inc"
 };
 
-static u16 _gGunbladeAnimation02548Indices[20] = {
+/// Forward-walk's 20-entry player track-start table; entry 19 repeats entry 0.
+static u16 _gGunbladeWalkAnimationIndices[] = {
 #include "assets/gunblade_animation_02548_indices.inc"
 };
 
-static AnimationSet _gGunbladeAnimation02548 = {
-    _gGunbladeAnimation02548Records,
-    _gGunbladeAnimation02548Indices,
-    { NULL, _gGunbladeAnimation02548Bank1, NULL, NULL, _gGunbladeAnimation02548Bank4, NULL, NULL, NULL },
+/// Player forward-walk clip supplied by the Gunblade animation bank.
+///
+/// Shared by native slots 2 (held weapon) and 19 (no held weapon task).
+/// Player playback borrows these arrays for the loaded overlay's lifetime.
+static AnimationSet _gGunbladeWalkAnimation = {
+    _gGunbladeWalkAnimationRecords,
+    _gGunbladeWalkAnimationIndices,
+    { NULL, _gGunbladeWalkAnimationBank1, NULL, NULL, _gGunbladeWalkAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gGunbladeAnimation02DA8Bank1[19] = {
+/// Nineteen translation/Euler poses for negative turning, addressed in four-byte words.
+static AnimationPackedPose _gGunbladeNegativeTurnAnimationBank1[] = {
 #include "assets/gunblade_animation_02DA8_bank1.inc"
 };
 
-static AnimationPackedRotation _gGunbladeAnimation02DA8Bank4[169] = {
+/// 169 packed Euler rotations for negative turning, in eight-angle-unit steps.
+static AnimationPackedRotation _gGunbladeNegativeTurnAnimationBank4[] = {
 #include "assets/gunblade_animation_02DA8_bank4.inc"
 };
 
-static AnimationRecord _gGunbladeAnimation02DA8Records[290] = {
+/// Negative-turn keyframes and loop/stop controls; durations count normal-rate frames.
+static AnimationRecord _gGunbladeNegativeTurnAnimationRecords[] = {
 #include "assets/gunblade_animation_02DA8_records.inc"
 };
 
-static u16 _gGunbladeAnimation02DA8Indices[20] = {
+/// Negative-turn's 20-entry player track-start table; entry 19 repeats entry 0.
+static u16 _gGunbladeNegativeTurnAnimationIndices[] = {
 #include "assets/gunblade_animation_02DA8_indices.inc"
 };
 
-static AnimationSet _gGunbladeAnimation02DA8 = {
-    _gGunbladeAnimation02DA8Records,
-    _gGunbladeAnimation02DA8Indices,
-    { NULL, _gGunbladeAnimation02DA8Bank1, NULL, NULL, _gGunbladeAnimation02DA8Bank4, NULL, NULL, NULL },
+/// Player stationary negative-turn clip with the Gunblade equipped.
+///
+/// Native slot 5 is selected by left input (turn sign -1). Player playback
+/// borrows these arrays for the loaded overlay's lifetime.
+static AnimationSet _gGunbladeNegativeTurnAnimation = {
+    _gGunbladeNegativeTurnAnimationRecords,
+    _gGunbladeNegativeTurnAnimationIndices,
+    { NULL, _gGunbladeNegativeTurnAnimationBank1, NULL, NULL, _gGunbladeNegativeTurnAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gGunbladeAnimation0360CBank1[19] = {
+/// Nineteen translation/Euler poses for positive turning, addressed in four-byte words.
+static AnimationPackedPose _gGunbladePositiveTurnAnimationBank1[] = {
 #include "assets/gunblade_animation_0360C_bank1.inc"
 };
 
-static AnimationPackedRotation _gGunbladeAnimation0360CBank4[170] = {
+/// 170 packed Euler rotations for positive turning, in eight-angle-unit steps.
+static AnimationPackedRotation _gGunbladePositiveTurnAnimationBank4[] = {
 #include "assets/gunblade_animation_0360C_bank4.inc"
 };
 
-static AnimationRecord _gGunbladeAnimation0360CRecords[290] = {
+/// Positive-turn keyframes and loop/stop controls; durations count normal-rate frames.
+static AnimationRecord _gGunbladePositiveTurnAnimationRecords[] = {
 #include "assets/gunblade_animation_0360C_records.inc"
 };
 
-static u16 _gGunbladeAnimation0360CIndices[20] = {
+/// Positive-turn's 20-entry player track-start table; entry 19 repeats entry 0.
+static u16 _gGunbladePositiveTurnAnimationIndices[] = {
 #include "assets/gunblade_animation_0360C_indices.inc"
 };
 
-static AnimationSet _gGunbladeAnimation0360C = {
-    _gGunbladeAnimation0360CRecords,
-    _gGunbladeAnimation0360CIndices,
-    { NULL, _gGunbladeAnimation0360CBank1, NULL, NULL, _gGunbladeAnimation0360CBank4, NULL, NULL, NULL },
+/// Player stationary positive-turn clip with the Gunblade equipped.
+///
+/// Native slot 6 is selected by right input (turn sign +1). Player playback
+/// borrows these arrays for the loaded overlay's lifetime.
+static AnimationSet _gGunbladePositiveTurnAnimation = {
+    _gGunbladePositiveTurnAnimationRecords,
+    _gGunbladePositiveTurnAnimationIndices,
+    { NULL, _gGunbladePositiveTurnAnimationBank1, NULL, NULL, _gGunbladePositiveTurnAnimationBank4, NULL, NULL, NULL },
 };
 
 static AnimationPackedPose _gGunbladeAnimation03920Bank1[3] = {
@@ -1163,12 +1214,12 @@ static AnimationSet _gGunbladeAnimation10F20 = {
 
 AnimationBank D_gunblade_8012E108 = { { {
     NULL,
-    &_gGunbladeAnimation01EA4,
-    &_gGunbladeAnimation02548,
+    &_gGunbladeIdleAnimation,
+    &_gGunbladeWalkAnimation,
     &_gGunbladeAnimation107EC,
     &_gGunbladeAnimation10F20,
-    &_gGunbladeAnimation02DA8,
-    &_gGunbladeAnimation0360C,
+    &_gGunbladeNegativeTurnAnimation,
+    &_gGunbladePositiveTurnAnimation,
     &_gGunbladeAnimation0F6F0,
     &_gGunbladeAnimation1004C,
     &_gGunbladeAnimation0A68C,
@@ -1181,10 +1232,10 @@ AnimationBank D_gunblade_8012E108 = { { {
     &_gGunbladeAnimation06270,
     &_gGunbladeAnimation06590,
     &_gGunbladeAnimation06D54,
-    &_gGunbladeAnimation02548,
+    &_gGunbladeWalkAnimation,
     &_gGunbladeAnimation0C9C0,
-    &_gGunbladeAnimation01EA4,
-    &_gGunbladeAnimation01EA4,
+    &_gGunbladeIdleAnimation,
+    &_gGunbladeIdleAnimation,
     &_gGunbladeAnimation07FEC,
     &_gGunbladeAnimation09280,
     &_gGunbladeAnimation08B64,
@@ -1203,7 +1254,7 @@ AnimationBank D_gunblade_8012E108 = { { {
     &_gGunbladeAnimation04E68,
     &_gGunbladeAnimation04AD8,
     &_gGunbladeAnimation03920,
-    &_gGunbladeAnimation01EA4,
+    &_gGunbladeIdleAnimation,
     &_gGunbladeAnimation09E3C,
     &_gGunbladeAnimation0A030,
     &_gGunbladeAnimation0A4B0,
@@ -1252,6 +1303,19 @@ EffectWork* D_gunblade_8012E248 = NULL;
 /// the trails that follow.
 static s32 s_unused_8012E24C[2] = { 0, 0 };
 
-/// The eight-segment beam trails, one array per end of the blade.
-GfxCoord gBladeTrailBase[8] = { 0 };
-GfxCoord gBladeTrailTip[8]  = { 0 };
+/// Eight retained world-coordinate snapshots of the Gunblade ribbon's near endpoint.
+///
+/// Seeded at local (0, 96, 128), then overwritten at age modulo eight.
+/// Each local matrix retains the endpoint under the persistent view parent;
+/// recomposition refreshes its view-space cache before drawing seven segments.
+/// The ribbon reads only the cache's translation, in game-coordinate units.
+/// Shared by all trail tasks in this loaded Gunblade overlay; reseeded on entry.
+static GfxCoord _gGunbladeTrailNearHistory[8] = { 0 };
+
+/// Eight retained world-coordinate snapshots of the Gunblade ribbon's far endpoint.
+///
+/// Local (0, 96, 896), paired slot-for-slot with the near-end history.
+/// Retained under the view parent and recomposed for drawing; only translation
+/// is meaningful, since the temporary endpoint's rotation is not initialized.
+/// All trail tasks share this overlay-owned ring and reseed it on entry.
+static GfxCoord _gGunbladeTrailFarHistory[8] = { 0 };

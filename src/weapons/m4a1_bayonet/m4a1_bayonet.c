@@ -160,7 +160,11 @@ void m4a1BayonetTrailTask(Task* task)
     }
 }
 
+#define BLADE_TRAIL_BASE_HISTORY gBladeTrailBase
+#define BLADE_TRAIL_TIP_HISTORY  gBladeTrailTip
 #include "../../shared/blade_trail_draw.inc.c"
+#undef BLADE_TRAIL_BASE_HISTORY
+#undef BLADE_TRAIL_TIP_HISTORY
 
 static TmdBone _gM4a1BayonetModel01130Skeleton[1] = {
 #include "assets/m4a1_bayonet_model_01130_skeleton.inc"

@@ -205,7 +205,11 @@ void tonfaBatonSwingTrailTask(Task* task)
     }
 }
 
+#define BLADE_TRAIL_BASE_HISTORY gBladeTrailBase
+#define BLADE_TRAIL_TIP_HISTORY  gBladeTrailTip
 #include "../../shared/blade_trail_draw.inc.c"
+#undef BLADE_TRAIL_BASE_HISTORY
+#undef BLADE_TRAIL_TIP_HISTORY
 
 /// Starts the attached baton model's pose updates and installs default teardown.
 ///

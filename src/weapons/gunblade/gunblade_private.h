@@ -5,14 +5,7 @@
 
 #include "gameplay/effects.h"
 
-#include "main/coord.h"
 #include "main/task_types.h"
-
-/// The eight-segment beam trails, one array per end of the blade. Every entry
-/// is parented to `gGfxViewCoord`.
-extern GfxCoord gBladeTrailBase[8];
-
-extern GfxCoord gBladeTrailTip[8];
 
 /// The running beam task and its `EffectWork`, cached on entry to state 0 so
 /// `gunbladeRequestChargeFlash` can reach them from outside the task. The work

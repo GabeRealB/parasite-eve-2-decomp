@@ -1,5 +1,10 @@
 /* Part of the blade trail library; see blade_trail.h. */
 
+// Each carrier binds BLADE_TRAIL_BASE_HISTORY and BLADE_TRAIL_TIP_HISTORY to
+// its two GfxCoord[8] rings immediately around this inclusion, then undefines
+// them. These array identifiers have no side effects; their order determines
+// the quad's corners. The rings need not denote anatomically named blade ends.
+
 /// Colours the newer and older edges of a blade-trail quad with one packed tint.
 ///
 /// `quad` borrows one writable `POLY_G4`: vertices 0/1 are the newer base/tip
@@ -69,23 +74,23 @@ static void _bladeTrailDraw(s16 newestSlot, s16 packedTint)
     scratch = SCRATCH_STACK_RESERVE_BLOCK(BladeTrailScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    for (segment = 0; segment < ARRAY_SIZE(gBladeTrailBase) - 1; segment++) {
+    for (segment = 0; segment < ARRAY_SIZE(BLADE_TRAIL_BASE_HISTORY) - 1; segment++) {
         // Join successive recorded poses, retaining the low signed coordinate halves.
         unwrappedSlot               = newestSlot - segment;
-        newerSlot                   = unwrappedSlot & (ARRAY_SIZE(gBladeTrailBase) - 1);
-        olderSlot                   = (unwrappedSlot - 1) & (ARRAY_SIZE(gBladeTrailTip) - 1);
-        baseCoord                   = &gBladeTrailBase[newerSlot];
+        newerSlot                   = unwrappedSlot & (ARRAY_SIZE(BLADE_TRAIL_BASE_HISTORY) - 1);
+        olderSlot                   = (unwrappedSlot - 1) & (ARRAY_SIZE(BLADE_TRAIL_TIP_HISTORY) - 1);
+        baseCoord                   = &BLADE_TRAIL_BASE_HISTORY[newerSlot];
         scratch->worldCorners[0].vx = baseCoord->workm.t[0];
         scratch->worldCorners[0].vy = baseCoord->workm.t[1];
-        tipCoord                    = &gBladeTrailTip[newerSlot];
+        tipCoord                    = &BLADE_TRAIL_TIP_HISTORY[newerSlot];
         scratch->worldCorners[0].vz = baseCoord->workm.t[2];
         scratch->worldCorners[1].vx = tipCoord->workm.t[0];
         scratch->worldCorners[1].vy = tipCoord->workm.t[1];
-        baseCoord                   = &gBladeTrailBase[olderSlot];
+        baseCoord                   = &BLADE_TRAIL_BASE_HISTORY[olderSlot];
         scratch->worldCorners[1].vz = tipCoord->workm.t[2];
         scratch->worldCorners[2].vx = baseCoord->workm.t[0];
         scratch->worldCorners[2].vy = baseCoord->workm.t[1];
-        tipCoord                    = &gBladeTrailTip[olderSlot];
+        tipCoord                    = &BLADE_TRAIL_TIP_HISTORY[olderSlot];
         scratch->worldCorners[2].vz = baseCoord->workm.t[2];
         scratch->worldCorners[3].vx = tipCoord->workm.t[0];
         scratch->worldCorners[3].vy = tipCoord->workm.t[1];

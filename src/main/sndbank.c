@@ -318,7 +318,7 @@ TaskDesc D_800678F4[] = {
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_m4a1_8011DEC4 } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_m4a1_8011DEC4 } },
     { { { TASK_BODY_TMD, 0x50 } }, hypervelocityWeaponModelTask, { &gHypervelocityRootModel } },
-    { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_gunblade_8011EEB0 } },
+    { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &gGunbladeModel } },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_m4a1_hammer_8011F778 } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_m4a1_bayonet_8011E9FC } },

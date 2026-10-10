@@ -1,5 +1,5 @@
 // Overlay-local symbols for Gunblade (file 10323).
-D_gunblade_8011EEB0 = 0x8011EEB0; // model named by a task descriptor
+gGunbladeModel = 0x8011EEB0; // model named by a task descriptor
 
 gunbladeTrailTask = 0x8011D1E4; // type:func
 

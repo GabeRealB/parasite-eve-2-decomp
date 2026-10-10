@@ -101,7 +101,14 @@ extern TmdSource D_m4a1_grenade_8011EA2C;
 
 extern TmdSource D_mp5a5_8011EAFC;
 
-extern TmdSource D_gunblade_8011EEB0;
+/// Held Gunblade geometry and initial one-part pose.
+///
+/// Model objects borrow this record and its arrays while the Gunblade overlay
+/// remains loaded. Creation resolves the writable command stream in place and
+/// copies its initial skeleton. Each primitive-buffer half has 2224 bytes,
+/// entirely for directly transformed primitives; player animation uses a
+/// separate bank and rig.
+extern TmdSource gGunbladeModel;
 
 extern TmdSource D_m4a1_pyke_8011F56C;
 
