@@ -13,8 +13,12 @@
 
 extern AreaVariant D_dryfield_main_street_80184F20[13];
 
-// dryfield_main_street
-extern WorldCollisionRoomResources D_dryfield_main_street_80181BBC[];
+/// Collision resources for Main Street's single room, indexed by room ID minus one.
+///
+/// Room 1 borrows the mutable grid, 26 view boundaries and ten action triggers,
+/// with no sight occluders. Activation binds the geometry to the current view.
+/// Keep this overlay loaded until its grid is retired and its triggers unlinked.
+extern WorldCollisionRoomResources gDryfieldMainStreetRoomCollisionResources[1];
 
 /// Logical-view map directory for Main Street's single room.
 ///
@@ -24,7 +28,12 @@ extern WorldCollisionRoomResources D_dryfield_main_street_80181BBC[];
 /// while the Main Street overlay is loaded.
 extern u8* gDryfieldMainStreetRoomViewMaps[1];
 
-extern ViewCount D_dryfield_main_street_80181BD0[];
+/// Reverse-lookup view count for Main Street's single room.
+///
+/// Room 1 searches all thirteen identity-map entries. Cameras and sprite views
+/// cover the same indices; the map itself has a separate, larger capacity.
+/// The Dryfield map borrows this array while the room overlay is loaded.
+extern ViewCount gDryfieldMainStreetRoomViewCounts[1];
 
 /// Lighting directory for Main Street's single room.
 ///
@@ -33,11 +42,30 @@ extern ViewCount D_dryfield_main_street_80181BD0[];
 /// remain valid only while the Main Street overlay is loaded.
 extern WorldCoordRoomLighting gDryfieldMainStreetRoomLighting[1];
 
-extern DirectionWarpEntry D_dryfield_main_street_80181BDC[];
+/// Main Street's seven arrival/departure endpoints, indexed by warp ID minus one.
+///
+/// Slots 1..7 lead to Gas Station, Motel Room 1, Parking Lot, Motel Rooms 2..4,
+/// and Driveway, respectively. Player and companion share each arrival pose;
+/// XYZ uses room units and yaw uses 4096 per turn. Each endpoint supplies its
+/// arrival view, area-bank sounds and map-marker flag. There is no terminator.
+/// Warp handling copies a complete entry while this room overlay is loaded.
+extern DirectionWarpEntry gDryfieldMainStreetWarpEntries[7];
 
-extern ViewCamera D_dryfield_main_street_80182CC0[];
+/// Main Street's thirteen cameras, indexed by mapped view minus one.
+///
+/// The identity map makes logical views 1..13 select the same array indices.
+/// Rotations use ONE (4096), translations are negated room-space camera origins,
+/// and projection distances use pixels. No count or terminator is stored here.
+/// Queued camera application requires this overlay until the record is consumed.
+extern ViewCamera gDryfieldMainStreetViewCameras[13];
 
-extern SpriteView D_dryfield_main_street_80184308[];
+/// Sprite resources for Main Street's thirteen mapped views, indexed by view minus one.
+///
+/// Views 1, 8, 9, 11 and 12 use empty batch lists and decoded background strips;
+/// the remaining views supply mutable depth-sorted sources. Every batch list
+/// ends with SPRITE_BATCH_END, and no view uses a clipping list. The Dryfield
+/// map borrows this directory and its storage while the room overlay is loaded.
+extern SpriteView gDryfieldMainStreetSpriteViews[13];
 
 /// Main Street's collision and footstep policies, indexed by surface class 0..7.
 ///

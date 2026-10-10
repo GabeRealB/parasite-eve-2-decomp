@@ -55,6 +55,7 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/sound.h"
+#include "main/sound_ids.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
@@ -107,9 +108,6 @@ extern s32 D_dryfield_main_street_80180ED0;
 extern EvsCommand D_dryfield_main_street_80181624[];
 extern EvsCommand D_dryfield_main_street_80181A14[];
 
-/// Descriptor of the task `_dryfieldMainStreetSpawnPlayerHeadAimTask` spawns.
-extern TaskDesc D_dryfield_main_street_8018156C[];
-
 /// The room effect mode of each view, indexed by view - 1.
 extern u16 D_dryfield_main_street_80181B94[];
 
@@ -131,29 +129,20 @@ extern RoomEventStartStorage gMainStreetEventSpawned;
 /// The request the event gate latched for its event task.
 extern RoomEventReq gRoomEventReq;
 
-/// Set by the event gate when its last call latched a request and spawned the
-/// event task; every call clears it first.
-
-/// The task `_dryfieldMainStreetSpawnPlayerHeadAimTask` spawned, until it is killed
-/// or forgotten.
-extern Task* D_dryfield_main_street_80185630;
+static Task* _gDryfieldMainStreetPlayerHeadAimTask;
 
 static void _dryfieldMainStreetInitialize(Task* task);
 static void _dryfieldMainStreetIdle(Task* task);
 static void _dryfieldMainStreetForgetPlayerHeadAimTask(s32 unusedArg);
 
 static WorldCollisionGrid    _gDryfieldMainStreetCollisionGrid;
-extern WorldCollisionTrigger D_dryfield_main_street_801843A4[26];
-extern WorldCollisionTrigger D_dryfield_main_street_80184B5C[10];
+static WorldCollisionTrigger _gDryfieldMainStreetViewBoundaryTriggers[26];
+static WorldCollisionTrigger _gDryfieldMainStreetActionTriggers[10];
 static WorldCoordRoomLights  _gDryfieldMainStreetLights;
 
-extern AnimationPlayRequest D_dryfield_main_street_801815AC;
-extern AnimationPlayRequest D_dryfield_main_street_801815C0;
-extern AnimationPlayRequest D_dryfield_main_street_801815D4;
-extern ActorTransform       D_dryfield_main_street_801815E8;
-static void                 _dryfieldMainStreetBeginFirstVisitBattle(s32 unusedBattleArg);
-static void                 _dryfieldMainStreetSpawnPlayerHeadAimTask(void);
-static void                 _dryfieldMainStreetSetPlayerHeadAim(s32 command);
+static void _dryfieldMainStreetBeginFirstVisitBattle(s32 unusedBattleArg);
+static void _dryfieldMainStreetSpawnPlayerHeadAimTask(void);
+static void _dryfieldMainStreetSetPlayerHeadAim(s32 command);
 
 static s32  _dryfieldMainStreetRejectKeyItemUse(Task* receiver, s32 messageId, s32 itemId, s32 unusedArg);
 static s32  _dryfieldMainStreetStartFirstVisitCutscene(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
@@ -230,72 +219,150 @@ static AnimationSet _gDryfieldMainStreetAnimation03F84 = {
     { NULL, _gDryfieldMainStreetAnimation03F84Bank1, NULL, NULL, _gDryfieldMainStreetAnimation03F84Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_dryfield_main_street_8018156C[2] = {
-    { { { TASK_BODY_NONE, 192 } }, _dryfieldMainStreetTurnPlayerTowardAreaActorTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _dryfieldMainStreetPlayerHeadAimTask, { .value = 0 } },
+enum { DRYFIELD_MAIN_STREET_CUTSCENE_TASK_PRIORITY = 192 };
+
+/// Bodyless first-visit scene helpers: slot 0 turns the player, slot 1 aims their head.
+///
+/// Both run at priority 192 and borrow the live player and placement-zero actor.
+/// Only slot 1 is spawned here; the descriptor is read synchronously at spawn.
+static TaskDesc _gDryfieldMainStreetCutsceneTaskDescriptors[2] = {
+    { .header   = { .fields = { TASK_BODY_NONE, DRYFIELD_MAIN_STREET_CUTSCENE_TASK_PRIORITY } },
+      .callback = _dryfieldMainStreetTurnPlayerTowardAreaActorTask,
+      .data     = { .value = 0 } },
+    { .header   = { .fields = { TASK_BODY_NONE, DRYFIELD_MAIN_STREET_CUTSCENE_TASK_PRIORITY } },
+      .callback = _dryfieldMainStreetPlayerHeadAimTask,
+      .data     = { .value = 0 } },
 };
 
-/// Player clips for extended ids 47-49; NULL at id 47, which nothing plays.
+/// First-visit player clips installed at bank indices 47..49, with NULL at 47.
 ///
-/// The room's first-visit cutscene script sends the player the copy request.
-/// `D_dryfield_main_street_80181590` copies four words starting here into the
-/// player's bank, which is one word past the end of this array: the read runs
-/// on through the first word of `D_dryfield_main_street_80181590`, that
-/// request's own source pointer. That overrun is the original's and is kept as
-/// it is: the request carries a literal count larger than the table, while the
-/// table was stored with only its own entries. The script then plays id 48 and,
-/// twenty frames later, id 49; its remaining plays, and the one in its skip
-/// script, are base-bank clips. Id 50, which receives the source pointer, is
-/// never played.
-AnimationSet* D_dryfield_main_street_80181584[3] = { NULL, &_gDryfieldMainStreetAnimation03BF0, &_gDryfieldMainStreetAnimation03F84 };
+/// The four-word copy also reads the following request's source-pointer word,
+/// one word past this array, into unused bank index 50. Preserve that authored
+/// overread and adjacency. Playback borrows these sets while the room is loaded;
+/// the scene plays 48 followed by 49 after twenty ticks, and never plays 47 or 50.
+static AnimationSet* _gDryfieldMainStreetPlayerAnimationBankExtension[3] = { NULL, &_gDryfieldMainStreetAnimation03BF0, &_gDryfieldMainStreetAnimation03F84 };
 
-// Installs the player's clips; the count is four, not the three entries of its source.
-AnimationBankCopyRequest D_dryfield_main_street_80181590 = { { .sets = D_dryfield_main_street_80181584 }, 4 };
+/// Authored transfer length, including the word after the three set pointers.
+enum { DRYFIELD_MAIN_STREET_ANIMATION_COPY_WORD_COUNT = 4 };
+
+/// Installs the first-visit clips in the equipped player's writable bank extension.
+///
+/// Dispatch consumes the request and four source words synchronously. Its source
+/// pointer is also the fourth transferred word; keep it immediately after the
+/// set array. The copied clips require this room overlay through playback.
+static AnimationBankCopyRequest _gDryfieldMainStreetPlayerAnimationBankCopy = {
+    .source    = { .sets = _gDryfieldMainStreetPlayerAnimationBankExtension },
+    .wordCount = DRYFIELD_MAIN_STREET_ANIMATION_COPY_WORD_COUNT,
+};
 
 AnimationPlayRequest D_dryfield_main_street_80181598 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_dryfield_main_street_801815AC = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Opening player clip 48, blended over ten frames with grid participation disabled.
+///
+/// The event script resolves the equipped bank in a copy of this request.
+/// Requires the room's installed animation extension through playback.
+static AnimationPlayRequest _gDryfieldMainStreetPlayerClip48Request = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 1,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 10,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_dryfield_main_street_801815C0 = { { .index = 1 }, 49, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Second player clip 49, blended over twenty frames with grid participation disabled.
+///
+/// The event script resolves the equipped bank in a copy of this request.
+/// Requires the room's installed animation extension through playback.
+static AnimationPlayRequest _gDryfieldMainStreetPlayerClip49Request = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 2,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 20,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_dryfield_main_street_801815D4 = { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+enum { DRYFIELD_MAIN_STREET_PLAYER_SCENE_BASE_CLIP = 9 };
 
-ActorTransform D_dryfield_main_street_801815E8 = { { -2237, 0, -2100, 0 }, { 0, 0, 0, 0 } };
+/// Base-bank player clip 9 shared by the first-visit scene and its skip continuation.
+///
+/// Blends over ten frames and disables grid participation. The event script
+/// resolves the equipped bank in a copy; the base clip does not use room sets.
+static AnimationPlayRequest _gDryfieldMainStreetPlayerClip9Request = {
+    .source               = { .index = 1 },
+    .animationId          = DRYFIELD_MAIN_STREET_PLAYER_SCENE_BASE_CLIP,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 10,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
+
+/// Player placement shared by the first-visit scene and its skip continuation.
+///
+/// XYZ uses room coordinates and all Euler angles are zero (4096 per turn).
+/// The player consumes XYZ and all three angles synchronously during dispatch.
+static ActorTransform _gDryfieldMainStreetFirstVisitPlayerPlacement = {
+    .pos = { -2237, 0, -2100, 0 },
+    .rot = { 0, 0, 0, 0 },
+};
 
 // Retained parameter record; layout follows the adjacent script arguments.
 ActorTransform D_dryfield_main_street_80181600 = { { -3000, 0, 6000, 0 }, { 0, 0, 0, 0 } };
 
-ActorCommand D_dryfield_main_street_80181618 = { { .loc = { 2, 2 } }, 1 };
+/// Cutscene-chaser selectors in the Dryfield/Main Street command namespace.
+enum {
+    DRYFIELD_MAIN_STREET_CHASER_PLAY_CLIP13 = 1,
+    DRYFIELD_MAIN_STREET_CHASER_HIDE        = 2,
+    DRYFIELD_MAIN_STREET_CHASER_PLAY_CLIP14 = 3,
+};
 
-ActorCommand D_dryfield_main_street_8018161C = { { .loc = { 2, 2 } }, 2 };
+/// Starts the cutscene chaser's clip 13 when the player has been placed.
+///
+/// Borrowed by the scene's synchronous broadcast; other actors receive it too.
+static ActorCommand _gDryfieldMainStreetChaserPlayClip13Command = {
+    .context = { .loc = { GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MAIN_STREET } },
+    .command = DRYFIELD_MAIN_STREET_CHASER_PLAY_CLIP13,
+};
 
-ActorCommand D_dryfield_main_street_80181620 = { { .loc = { 2, 2 } }, 3 };
+/// Hides the cutscene chaser at normal or skipped first-visit scene completion.
+///
+/// Borrowed by the scene's synchronous broadcast in the Main Street namespace.
+static ActorCommand _gDryfieldMainStreetChaserHideCommand = {
+    .context = { .loc = { GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MAIN_STREET } },
+    .command = DRYFIELD_MAIN_STREET_CHASER_HIDE,
+};
+
+/// Starts the cutscene chaser's clip 14 and its timed dust and sound cues.
+///
+/// Borrowed by the scene's synchronous broadcast in the Main Street namespace.
+static ActorCommand _gDryfieldMainStreetChaserPlayClip14Command = {
+    .context = { .loc = { GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MAIN_STREET } },
+    .command = DRYFIELD_MAIN_STREET_CHASER_PLAY_CLIP14,
+};
 
 EvsCommand D_dryfield_main_street_80181624[42] = {
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5202000F }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_main_street_80181590 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_main_street_801815AC }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldMainStreetPlayerAnimationBankCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldMainStreetPlayerClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_main_street_801815C0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldMainStreetPlayerClip49Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1021 }, { .value = 48 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_main_street_801815E8 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_dryfield_main_street_80181618 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldMainStreetFirstVisitPlayerPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &_gDryfieldMainStreetChaserPlayClip13Command } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldMainStreetSpawnPlayerHeadAimTask }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldMainStreetSetPlayerHeadAim }, { .value = DRYFIELD_MAIN_STREET_HEAD_AIM_ENABLE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_main_street_801815D4 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldMainStreetPlayerClip9Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_dryfield_main_street_80181620 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &_gDryfieldMainStreetChaserPlayClip14Command } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 12 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_main_street_801815D4 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldMainStreetPlayerClip9Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -308,7 +375,7 @@ EvsCommand D_dryfield_main_street_80181624[42] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldMainStreetBeginFirstVisitBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldMainStreetSetPlayerHeadAim }, { .value = DRYFIELD_MAIN_STREET_HEAD_AIM_STOP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_dryfield_main_street_8018161C } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &_gDryfieldMainStreetChaserHideCommand } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -321,9 +388,9 @@ EvsCommand D_dryfield_main_street_80181A14[16] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_main_street_801815E8 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_main_street_801815D4 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_dryfield_main_street_8018161C } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldMainStreetFirstVisitPlayerPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldMainStreetPlayerClip9Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &_gDryfieldMainStreetChaserHideCommand } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldMainStreetSetPlayerHeadAim }, { .value = DRYFIELD_MAIN_STREET_HEAD_AIM_STOP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -350,28 +417,112 @@ SVECTOR D_dryfield_main_street_80181BA4 = { -850, -1320, 9770, 0 };
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-WorldCollisionRoomResources D_dryfield_main_street_80181BBC[1] = {
-    { &_gDryfieldMainStreetCollisionGrid, D_dryfield_main_street_801843A4, D_dryfield_main_street_80184B5C, NULL },
+WorldCollisionRoomResources gDryfieldMainStreetRoomCollisionResources[1] = {
+    { .grid                 = &_gDryfieldMainStreetCollisionGrid,
+      .viewBoundaryTriggers = _gDryfieldMainStreetViewBoundaryTriggers,
+      .actionTriggers       = _gDryfieldMainStreetActionTriggers,
+      .occluders            = NULL },
 };
 
 u8* gDryfieldMainStreetRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_dryfield_main_street_80181BD0[1] = { 13 };
+ViewCount gDryfieldMainStreetRoomViewCounts[1] = { ARRAY_SIZE(gDryfieldMainStreetViewCameras) };
 
 WorldCoordRoomLighting gDryfieldMainStreetRoomLighting[1] = {
     { .lights = &_gDryfieldMainStreetLights, .ambientTable = NULL },
 };
 
-DirectionWarpEntry D_dryfield_main_street_80181BDC[7] = {
-    { { { .word = 3072 }, -450, 0, -3435 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -450, 0, -3435 }, { 0, 0, 0, 0 }, 0x52020002, 0x52020001, DIRECTION_WARP_SOUND_NONE, 13, DIRECTION_WARP_FLAG_NONE, 488 },
-    { { { .word = 1024 }, -6588, 0, -2500 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -6588, 0, -2500 }, { 0, 0, 0, 0 }, 0x52020006, 0x52020005, 0x52020009, 7, DIRECTION_WARP_FLAG_NONE, 487 },
-    { { { .word = 1024 }, -6673, 0, 2155 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -6673, 0, 2155 }, { 0, 0, 0, 0 }, 0x52020004, 0x52020003, 0x52020007, 6, DIRECTION_WARP_FLAG_NONE, 486 },
-    { { { .word = 1024 }, -6588, 0, 5900 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -6588, 0, 5900 }, { 0, 0, 0, 0 }, 0x52020006, 0x52020005, 0x52020009, 5, DIRECTION_WARP_FLAG_NONE, 485 },
-    { { { .word = 1024 }, -6652, 0, 0x2956 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -6652, 0, 0x2956 }, { 0, 0, 0, 0 }, 0x52020006, 0x52020005, 0x52020009, 5, DIRECTION_WARP_FLAG_NONE, 484 },
-    { { { .word = 2048 }, -3478, 0, 0x29B5 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -3478, 0, 0x29B5 }, { 0, 0, 0, 0 }, 0x52020006, 0x52020005, 0x52020009, 4, DIRECTION_WARP_FLAG_NONE, 483 },
-    { { { .word = 3072 }, -488, 0, 8495 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -488, 0, 8495 }, { 0, 0, 0, 0 }, 0x52020002, 0x52020001, DIRECTION_WARP_SOUND_NONE, 9, DIRECTION_WARP_FLAG_NONE, 482 },
+/// One-based endpoint slots and their map-marker flags.
+enum {
+    DRYFIELD_MAIN_STREET_WARP_GAS_STATION     = 1,
+    DRYFIELD_MAIN_STREET_WARP_MOTEL_ROOM1     = 2,
+    DRYFIELD_MAIN_STREET_WARP_PARKING_LOT     = 3,
+    DRYFIELD_MAIN_STREET_WARP_MOTEL_ROOM2     = 4,
+    DRYFIELD_MAIN_STREET_WARP_MOTEL_ROOM3     = 5,
+    DRYFIELD_MAIN_STREET_WARP_MOTEL_ROOM4     = 6,
+    DRYFIELD_MAIN_STREET_WARP_DRIVEWAY        = 7,
+    DRYFIELD_MAIN_STREET_GAS_STATION_MAP_FLAG = 488,
+    DRYFIELD_MAIN_STREET_MOTEL_ROOM1_MAP_FLAG = 487,
+    DRYFIELD_MAIN_STREET_PARKING_LOT_MAP_FLAG = 486,
+    DRYFIELD_MAIN_STREET_MOTEL_ROOM2_MAP_FLAG = 485,
+    DRYFIELD_MAIN_STREET_MOTEL_ROOM3_MAP_FLAG = 484,
+    DRYFIELD_MAIN_STREET_MOTEL_ROOM4_MAP_FLAG = 483,
+    DRYFIELD_MAIN_STREET_DRIVEWAY_MAP_FLAG    = 482,
+};
+
+DirectionWarpEntry gDryfieldMainStreetWarpEntries[7] = {
+    { .player         = { { .word = 3 * ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -450, 0, -3435 },
+      .unknown_10     = { 0, 0, 0, 0 },
+      .companion      = { { .word = 3 * ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -450, 0, -3435 },
+      .unknown_24     = { 0, 0, 0, 0 },
+      .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MAIN_STREET, 2),
+      .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MAIN_STREET, 1),
+      .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+      .initialView    = 13,
+      .flags          = DIRECTION_WARP_FLAG_NONE,
+      .mapFlagId      = DRYFIELD_MAIN_STREET_GAS_STATION_MAP_FLAG },
+    { .player         = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -6588, 0, -2500 },
+      .unknown_10     = { 0, 0, 0, 0 },
+      .companion      = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -6588, 0, -2500 },
+      .unknown_24     = { 0, 0, 0, 0 },
+      .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MAIN_STREET, 6),
+      .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MAIN_STREET, 5),
+      .blockedSound   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MAIN_STREET, 9),
+      .initialView    = 7,
+      .flags          = DIRECTION_WARP_FLAG_NONE,
+      .mapFlagId      = DRYFIELD_MAIN_STREET_MOTEL_ROOM1_MAP_FLAG },
+    { .player         = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -6673, 0, 2155 },
+      .unknown_10     = { 0, 0, 0, 0 },
+      .companion      = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -6673, 0, 2155 },
+      .unknown_24     = { 0, 0, 0, 0 },
+      .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MAIN_STREET, 4),
+      .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MAIN_STREET, 3),
+      .blockedSound   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MAIN_STREET, 7),
+      .initialView    = 6,
+      .flags          = DIRECTION_WARP_FLAG_NONE,
+      .mapFlagId      = DRYFIELD_MAIN_STREET_PARKING_LOT_MAP_FLAG },
+    { .player         = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -6588, 0, 5900 },
+      .unknown_10     = { 0, 0, 0, 0 },
+      .companion      = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -6588, 0, 5900 },
+      .unknown_24     = { 0, 0, 0, 0 },
+      .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MAIN_STREET, 6),
+      .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MAIN_STREET, 5),
+      .blockedSound   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MAIN_STREET, 9),
+      .initialView    = 5,
+      .flags          = DIRECTION_WARP_FLAG_NONE,
+      .mapFlagId      = DRYFIELD_MAIN_STREET_MOTEL_ROOM2_MAP_FLAG },
+    { .player         = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -6652, 0, 0x2956 },
+      .unknown_10     = { 0, 0, 0, 0 },
+      .companion      = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -6652, 0, 0x2956 },
+      .unknown_24     = { 0, 0, 0, 0 },
+      .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MAIN_STREET, 6),
+      .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MAIN_STREET, 5),
+      .blockedSound   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MAIN_STREET, 9),
+      .initialView    = 5,
+      .flags          = DIRECTION_WARP_FLAG_NONE,
+      .mapFlagId      = DRYFIELD_MAIN_STREET_MOTEL_ROOM3_MAP_FLAG },
+    { .player         = { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, -3478, 0, 0x29B5 },
+      .unknown_10     = { 0, 0, 0, 0 },
+      .companion      = { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, -3478, 0, 0x29B5 },
+      .unknown_24     = { 0, 0, 0, 0 },
+      .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MAIN_STREET, 6),
+      .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MAIN_STREET, 5),
+      .blockedSound   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MAIN_STREET, 9),
+      .initialView    = 4,
+      .flags          = DIRECTION_WARP_FLAG_NONE,
+      .mapFlagId      = DRYFIELD_MAIN_STREET_MOTEL_ROOM4_MAP_FLAG },
+    { .player         = { { .word = 3 * ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -488, 0, 8495 },
+      .unknown_10     = { 0, 0, 0, 0 },
+      .companion      = { { .word = 3 * ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -488, 0, 8495 },
+      .unknown_24     = { 0, 0, 0, 0 },
+      .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MAIN_STREET, 2),
+      .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MAIN_STREET, 1),
+      .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+      .initialView    = 9,
+      .flags          = DIRECTION_WARP_FLAG_NONE,
+      .mapFlagId      = DRYFIELD_MAIN_STREET_DRIVEWAY_MAP_FLAG },
 };
 
 /// Collision face normals in room space, with ONE (4096) for unit length.
@@ -420,8 +571,8 @@ static WorldCollisionGrid _gDryfieldMainStreetCollisionGrid = {
     .faceCount   = ARRAY_SIZE(_gDryfieldMainStreetCollisionGridFaces),
 };
 
-ViewCamera D_dryfield_main_street_80182CC0[13] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 4112, 0x6D60, -2748 } }, 289 },
+ViewCamera gDryfieldMainStreetViewCameras[13] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 4112, 0x6D60, -2748 } }, 289 },
     { { { { -3906, 0, 1231 }, { 39, 4093, 125 }, { -1231, 131, -3904 } }, { 1214, 1299, -3483 } }, 230 },
     { { { { 3809, 0, 1504 }, { 102, 4086, -259 }, { -1500, 279, 3800 } }, { 1205, 1259, 2882 } }, 230 },
     { { { { 3962, 0, 1037 }, { 65, 4087, -250 }, { -1035, 258, 3954 } }, { 1414, 1228, -1924 } }, 230 },
@@ -447,6 +598,7 @@ static SpriteBatch _gDryfieldMainStreetView1SpriteBatches[2] = {
 
 /// Encoded 8-bit sprite pages, palette row 255 and neutral RGB modulation.
 enum {
+    DRYFIELD_MAIN_STREET_SPRITE_PAGE_832           = getTPage(1, 0, 832, 0),
     DRYFIELD_MAIN_STREET_SPRITE_PAGE_896           = getTPage(1, 0, 896, 0),
     DRYFIELD_MAIN_STREET_SPRITE_PAGE_960           = getTPage(1, 0, 960, 0),
     DRYFIELD_MAIN_STREET_SPRITE_CLUT               = getClut(0, 255),
@@ -733,113 +885,148 @@ static SpriteBatch _gDryfieldMainStreetView7SpriteBatches[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_main_street_80183D6C[2] = {
+/// View 8's empty sprite list, retaining decoded background strips.
+///
+/// The zero-count range selects no sources; SPRITE_BATCH_END ends the list.
+/// This view stores the batch address in both its empty-source and batch slots.
+static SpriteBatch _gDryfieldMainStreetView8SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_main_street_80183D7C[2] = {
+/// View 9's empty sprite list, retaining decoded background strips.
+///
+/// The zero-count range selects no sources; SPRITE_BATCH_END ends the list.
+/// This view stores the batch address in both its empty-source and batch slots.
+static SpriteBatch _gDryfieldMainStreetView9SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_main_street_80183D8C[12] = {
-    { 141, 0x3FC0, { .fields = { 8, 96 } }, 80, -40, 1977, { .fields = { 88, 8 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 96 } }, 72, -40, 2058, { .fields = { 80, 8 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 88 } }, 64, -32, 2142, { .fields = { 72, 16 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 88 } }, 56, -32, 2238, { .fields = { 64, 16 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 88 } }, 48, -32, 2343, { .fields = { 56, 16 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 80 } }, 40, -24, 2453, { .fields = { 48, 24 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 80 } }, 32, -24, 2579, { .fields = { 40, 24 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 72 } }, 24, -16, 2713, { .fields = { 32, 32 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 72 } }, 16, -16, 2869, { .fields = { 24, 32 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 72 } }, 8, -16, 3043, { .fields = { 16, 32 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 64 } }, 0, -8, 3231, { .fields = { 8, 40 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 64 } }, -8, -8, 3454, { .fields = { 0, 40 } }, 128, 128, 128, 0 },
+/// View 10's twelve mutable sprite rectangles, selected as one complete range.
+///
+/// Positions and dimensions use pixels, UVs use texels, and depth is an unscaled
+/// sorting value. Textures use the 8-bit page at (832, 0) and palette row 255.
+/// RGB is neutral for direct drawing; cached packets initially use raw texture.
+static SpriteSource _gDryfieldMainStreetView10SpriteSources[12] = {
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_832, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 96 } }, 80, -40, 1977, { .fields = { 88, 8 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_832, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 96 } }, 72, -40, 2058, { .fields = { 80, 8 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_832, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 88 } }, 64, -32, 2142, { .fields = { 72, 16 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_832, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 88 } }, 56, -32, 2238, { .fields = { 64, 16 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_832, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 88 } }, 48, -32, 2343, { .fields = { 56, 16 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_832, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 80 } }, 40, -24, 2453, { .fields = { 48, 24 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_832, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 80 } }, 32, -24, 2579, { .fields = { 40, 24 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_832, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 72 } }, 24, -16, 2713, { .fields = { 32, 32 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_832, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 72 } }, 16, -16, 2869, { .fields = { 24, 32 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_832, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 72 } }, 8, -16, 3043, { .fields = { 16, 32 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_832, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 64 } }, 0, -8, 3231, { .fields = { 8, 40 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_832, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 64 } }, -8, -8, 3454, { .fields = { 0, 40 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_dryfield_main_street_80183E7C[3] = {
+/// View 10's complete sprite range, preceded by the background-strip selector.
+///
+/// All twelve sources initially participate in cached drawing. The list ends
+/// with SPRITE_BATCH_END; the two trailing authored bytes have unproven roles.
+static SpriteBatch _gDryfieldMainStreetView10SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 12, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldMainStreetView10SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_main_street_80183E94[2] = {
+/// View 11's empty sprite list, retaining decoded background strips.
+///
+/// The zero-count range selects no sources; SPRITE_BATCH_END ends the list.
+/// This view stores the batch address in both its empty-source and batch slots.
+static SpriteBatch _gDryfieldMainStreetView11SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_main_street_80183EA4[2] = {
+/// View 12's empty sprite list, retaining decoded background strips.
+///
+/// The zero-count range selects no sources; SPRITE_BATCH_END ends the list.
+/// This view stores the batch address in both its empty-source and batch slots.
+static SpriteBatch _gDryfieldMainStreetView12SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_main_street_80183EB4[53] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -152, -48, 1675, { .fields = { 56, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, -24, 1675, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -96, 0, 1675, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, 8, 1675, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -152, 32, 1675, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -64, 32, 1675, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 104 } }, -144, -64, 1675, { .fields = { 0, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, -128, -48, 1675, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -128, -32, 1675, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, -128, -8, 1675, { .fields = { 40, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 16 } }, -128, 8, 1675, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 96 } }, -56, -56, 1675, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -48, 24, 1675, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -80, -32, 1675, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -160, -32, 1675, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, -160, -8, 1675, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, -40, -48, 1675, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 16 } }, -40, -32, 1675, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, -40, -8, 1675, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 16 } }, -40, 8, 1675, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 96 } }, 24, -56, 1675, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 56, -48, 1675, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 56, -32, 1675, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 56, -8, 1675, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 56, 8, 1675, { .fields = { 64, 16 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 96 } }, 104, -56, 1675, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 128, -48, 1675, { .fields = { 80, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 128, -24, 1675, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, 136, -8, 1675, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, 136, 8, 1675, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 208 } }, -160, -88, 701, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 184 } }, -152, -64, 753, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 184 } }, -136, -64, 803, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 168 } }, -120, -56, 857, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 136 } }, -112, -40, 899, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 128 } }, -104, -40, 937, { .fields = { 16, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 128 } }, -96, -40, 1005, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 120 } }, -88, -40, 1078, { .fields = { 24, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 112 } }, -80, -40, 1155, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 96 } }, -72, -40, 1179, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 168 } }, -72, -120, 1625, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 160 } }, -16, -120, 1641, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 24, 1675, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -88, 24, 1675, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -72, 24, 1675, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -40, 16, 1682, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -24, 16, 1675, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -16, 8, 1674, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 0, 16, 1682, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 16, 8, 1675, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 40, 16, 1675, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 128, 16, 1682, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 144, 16, 1675, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
+/// View 13's 53 mutable sprite rectangles, selected by four consecutive ranges.
+///
+/// Positions and dimensions use pixels, UVs use texels, and depth is an unscaled
+/// sorting value. Textures use 8-bit pages at (896, 0)/(960, 0), palette row 255.
+/// RGB is neutral for direct drawing; cached packets initially use raw texture.
+static SpriteSource _gDryfieldMainStreetView13SpriteSources[53] = {
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 8 } }, -152, -48, 1675, { .fields = { 56, 208 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 8 } }, -104, -24, 1675, { .fields = { 56, 176 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 8 } }, -96, 0, 1675, { .fields = { 56, 168 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 8 } }, -160, 8, 1675, { .fields = { 56, 184 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 8 } }, -152, 32, 1675, { .fields = { 56, 200 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 8 } }, -64, 32, 1675, { .fields = { 56, 192 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 104 } }, -144, -64, 1675, { .fields = { 0, 112 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 72, 8 } }, -128, -48, 1675, { .fields = { 40, 48 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 16 } }, -128, -32, 1675, { .fields = { 64, 192 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 72, 8 } }, -128, -8, 1675, { .fields = { 40, 40 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 72, 16 } }, -128, 8, 1675, { .fields = { 72, 216 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 96 } }, -56, -56, 1675, { .fields = { 112, 96 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 16 } }, -48, 24, 1675, { .fields = { 112, 184 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 24, 16 } }, -80, -32, 1675, { .fields = { 104, 240 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 16 } }, -160, -32, 1675, { .fields = { 96, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 8 } }, -160, -8, 1675, { .fields = { 96, 56 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 64, 8 } }, -40, -48, 1675, { .fields = { 48, 72 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 64, 16 } }, -40, -32, 1675, { .fields = { 64, 192 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 64, 8 } }, -40, -8, 1675, { .fields = { 48, 64 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 64, 16 } }, -40, 8, 1675, { .fields = { 80, 232 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 24, 96 } }, 24, -56, 1675, { .fields = { 32, 160 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 48, 8 } }, 56, -48, 1675, { .fields = { 64, 32 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 48, 8 } }, 56, -32, 1675, { .fields = { 80, 208 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 48, 8 } }, 56, -8, 1675, { .fields = { 96, 248 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 48, 8 } }, 56, 8, 1675, { .fields = { 64, 16 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 24, 96 } }, 104, -56, 1675, { .fields = { 112, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 32, 8 } }, 128, -48, 1675, { .fields = { 80, 24 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 24, 8 } }, 128, -24, 1675, { .fields = { 56, 248 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 24, 8 } }, 136, -8, 1675, { .fields = { 88, 88 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 24, 8 } }, 136, 8, 1675, { .fields = { 88, 80 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 208 } }, -160, -88, 701, { .fields = { 120, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 184 } }, -152, -64, 753, { .fields = { 104, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 184 } }, -136, -64, 803, { .fields = { 88, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 168 } }, -120, -56, 857, { .fields = { 56, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 136 } }, -112, -40, 899, { .fields = { 24, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 128 } }, -104, -40, 937, { .fields = { 16, 128 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 128 } }, -96, -40, 1005, { .fields = { 16, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 120 } }, -88, -40, 1078, { .fields = { 24, 136 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 112 } }, -80, -40, 1155, { .fields = { 8, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_896, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 96 } }, -72, -40, 1179, { .fields = { 120, 96 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 24, 168 } }, -72, -120, 1625, { .fields = { 64, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 24, 160 } }, -16, -120, 1641, { .fields = { 32, 0 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 8 } }, 32, 24, 1675, { .fields = { 112, 200 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 16 } }, -88, 24, 1675, { .fields = { 64, 232 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 32, 24 } }, -72, 24, 1675, { .fields = { 64, 208 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 24 } }, -40, 16, 1682, { .fields = { 64, 168 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 16 } }, -24, 16, 1675, { .fields = { 80, 168 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 32 } }, -16, 8, 1674, { .fields = { 112, 208 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 24 } }, 0, 16, 1682, { .fields = { 80, 232 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 32 } }, 16, 8, 1675, { .fields = { 96, 184 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 24 } }, 40, 16, 1675, { .fields = { 96, 216 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 16, 24 } }, 128, 16, 1682, { .fields = { 80, 184 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_MAIN_STREET_SPRITE_PAGE_960, DRYFIELD_MAIN_STREET_SPRITE_CLUT, { .fields = { 8, 16 } }, 144, 16, 1675, { .fields = { 96, 240 } }, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_MAIN_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_dryfield_main_street_801842D8[6] = {
+/// View 13's four sprite ranges covering all 53 sources in order.
+///
+/// The leading zero count retains background strips; SPRITE_BATCH_END ends
+/// the list. All ranges initially participate in cached drawing. The final
+/// two bytes retain authored values whose role is unproven.
+static SpriteBatch _gDryfieldMainStreetView13SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 30, 0, 0, { 3, 0 } },
     { 30, 10, 0, 0, { 0, 0 } },
     { 40, 2, 0, 0, { 2, 0 } },
-    { 42, 11, 0, 0, { 1, 0 } },
+    { 42, ARRAY_SIZE(_gDryfieldMainStreetView13SpriteSources) - 42, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_dryfield_main_street_80184308[13] = {
+SpriteView gDryfieldMainStreetSpriteViews[13] = {
     { { .empty = _gDryfieldMainStreetView1SpriteBatches }, _gDryfieldMainStreetView1SpriteBatches, NULL },
     { { .elements = _gDryfieldMainStreetView2SpriteSources }, _gDryfieldMainStreetView2SpriteBatches, NULL },
     { { .elements = _gDryfieldMainStreetView3SpriteSources }, _gDryfieldMainStreetView3SpriteBatches, NULL },
@@ -847,102 +1034,158 @@ SpriteView D_dryfield_main_street_80184308[13] = {
     { { .elements = _gDryfieldMainStreetView5SpriteSources }, _gDryfieldMainStreetView5SpriteBatches, NULL },
     { { .elements = _gDryfieldMainStreetView6SpriteSources }, _gDryfieldMainStreetView6SpriteBatches, NULL },
     { { .elements = _gDryfieldMainStreetView7SpriteSources }, _gDryfieldMainStreetView7SpriteBatches, NULL },
-    { { .empty = D_dryfield_main_street_80183D6C }, D_dryfield_main_street_80183D6C, NULL },
-    { { .empty = D_dryfield_main_street_80183D7C }, D_dryfield_main_street_80183D7C, NULL },
-    { { .elements = D_dryfield_main_street_80183D8C }, D_dryfield_main_street_80183E7C, NULL },
-    { { .empty = D_dryfield_main_street_80183E94 }, D_dryfield_main_street_80183E94, NULL },
-    { { .empty = D_dryfield_main_street_80183EA4 }, D_dryfield_main_street_80183EA4, NULL },
-    { { .elements = D_dryfield_main_street_80183EB4 }, D_dryfield_main_street_801842D8, NULL },
+    { { .empty = _gDryfieldMainStreetView8SpriteBatches }, _gDryfieldMainStreetView8SpriteBatches, NULL },
+    { { .empty = _gDryfieldMainStreetView9SpriteBatches }, _gDryfieldMainStreetView9SpriteBatches, NULL },
+    { { .elements = _gDryfieldMainStreetView10SpriteSources }, _gDryfieldMainStreetView10SpriteBatches, NULL },
+    { { .empty = _gDryfieldMainStreetView11SpriteBatches }, _gDryfieldMainStreetView11SpriteBatches, NULL },
+    { { .empty = _gDryfieldMainStreetView12SpriteBatches }, _gDryfieldMainStreetView12SpriteBatches, NULL },
+    { { .elements = _gDryfieldMainStreetView13SpriteSources }, _gDryfieldMainStreetView13SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_dryfield_main_street_801843A4[26] = {
-    { NULL, NULL, NULL, { -2385, -3392, 351, 0 }, { { -2863, -4416, -165, 0 }, { 2863, -4416, 165, 0 }, { -2863, 4416, -165, 0 }, { 2863, 4416, 165, 0 } }, { 236, 0, -4102, 0 }, { 0, 0, 4096, 0 }, 5246, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -2337, -3376, 239, 0 }, { { 2868, -4400, 137, 0 }, { -2867, -4400, -136, 0 }, { 2868, 4400, 137, 0 }, { -2867, 4400, -136, 0 } }, { -195, 0, 4092, 0 }, { 0, 0, 4096, 0 }, 5246, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -3665, -3232, 5071, 0 }, { { -1383, -4256, 519, 0 }, { 1381, -4256, -521, 0 }, { -1383, 4256, 519, 0 }, { 1381, 4256, -521, 0 } }, { -1447, 0, -3843, 0 }, { 0, 0, 4096, 0 }, 4492, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -3764, -3216, 4924, 0 }, { { 1447, -4240, -514, 0 }, { -1449, -4240, 512, 0 }, { 1447, 4240, -514, 0 }, { -1449, 4240, 512, 0 } }, { 1368, 0, 3863, 0 }, { 0, 0, 4096, 0 }, 4492, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -6177, -3200, 5327, 0 }, { { 980, -4224, 41, 0 }, { -979, -4224, -40, 0 }, { 980, 4224, 41, 0 }, { -979, 4224, -40, 0 } }, { -171, 0, 4095, 0 }, { 0, 0, 4096, 0 }, 4314, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -6210, -3280, 5598, 0 }, { { -979, -4304, 7, 0 }, { 980, -4304, -7, 0 }, { -979, 4304, 7, 0 }, { 980, 4304, -7, 0 } }, { -30, 0, -4117, 0 }, { 0, 0, 4096, 0 }, 4404, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -5988, -3552, -292, 0 }, { { -959, -4576, 198, 0 }, { 960, -4576, -198, 0 }, { -959, 4576, 198, 0 }, { 960, 4576, -198, 0 } }, { -829, 0, -4015, 0 }, { 0, 0, 4096, 0 }, 4664, 0, 7, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -6051, -3536, -452, 0 }, { { 949, -4560, -244, 0 }, { -949, -4560, 245, 0 }, { 949, 4560, -244, 0 }, { -949, 4560, 245, 0 } }, { 1025, 0, 3983, 0 }, { 0, 0, 4096, 0 }, 4636, 0, 6, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -5216, -3488, -2833, 0 }, { { -8, -4224, -2308, 0 }, { 8, -4224, 2308, 0 }, { -8, 4224, -2308, 0 }, { 8, 4224, 2308, 0 } }, { 4105, 0, -15, 0 }, { 0, 0, 4096, 0 }, 4802, 0, 2, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -5072, -3488, -2960, 0 }, { { 8, -4224, 2292, 0 }, { -8, -4224, -2292, 0 }, { 8, 4224, 2292, 0 }, { -8, 4224, -2292, 0 } }, { -4102, 0, 14, 0 }, { 0, 0, 4096, 0 }, 4802, 0, 7, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -5312, -2848, 0x28E0, 0 }, { { 235, -4224, -1330, 0 }, { -240, -4224, 1325, 0 }, { 235, 4224, -1330, 0 }, { -240, 4224, 1325, 0 } }, { 4031, 0, 720, 0 }, { 0, 0, 4096, 0 }, 4434, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -5216, -3008, 0x2940, 0 }, { { -239, -4224, 1326, 0 }, { 236, -4224, -1329, 0 }, { -239, 4224, 1326, 0 }, { 236, 4224, -1329, 0 } }, { -4033, 0, -722, 0 }, { 0, 0, 4096, 0 }, 4434, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1314, -3296, 4926, 0 }, { { 1314, -4256, 675, 0 }, { -1313, -4256, -675, 0 }, { 1314, 4256, 675, 0 }, { -1313, 4256, -675, 0 } }, { -1878, 0, 3651, 0 }, { 0, 0, 4096, 0 }, 4492, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1076, -3264, 5229, 0 }, { { -1235, -4256, -651, 0 }, { 1236, -4256, 651, 0 }, { -1235, 4256, -651, 0 }, { 1236, 4256, 651, 0 } }, { 1912, 0, -3632, 0 }, { 0, 0, 4096, 0 }, 4463, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -5056, -3232, 2256, 0 }, { { 24, -4224, 2036, 0 }, { -24, -4224, -2036, 0 }, { 24, 4224, 2036, 0 }, { -24, 4224, -2036, 0 } }, { -4105, 0, 48, 0 }, { 0, 0, 4096, 0 }, 4664, 0, 6, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -5216, -2944, 2272, 0 }, { { -24, -4224, -2100, 0 }, { 24, -4224, 2100, 0 }, { -24, 4224, -2100, 0 }, { 24, 4224, 2100, 0 } }, { 4111, 0, -47, 0 }, { 0, 0, 4096, 0 }, 4692, 0, 3, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -5248, -2912, 6816, 0 }, { { -24, -4224, -1844, 0 }, { 24, -4224, 1844, 0 }, { -24, 4224, -1844, 0 }, { 24, 4224, 1844, 0 } }, { 4101, 0, -54, 0 }, { 0, 0, 4096, 0 }, 4608, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -5040, -3008, 6912, 0 }, { { -24, -4224, 1844, 0 }, { 24, -4224, -1844, 0 }, { -24, 4224, 1844, 0 }, { 24, 4224, -1844, 0 } }, { -4103, 0, -54, 0 }, { 0, 0, 4096, 0 }, 4608, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -384, -2624, 7537, 0 }, { { -1800, -4416, 722, 0 }, { 1793, -4416, -730, 0 }, { -1800, 4416, 722, 0 }, { 1793, 4416, -730, 0 } }, { -1542, 0, -3815, 0 }, { 0, 0, 4096, 0 }, 4802, 0, 4, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -448, -2816, 7328, 0 }, { { 1841, -4416, -751, 0 }, { -1852, -4416, 741, 0 }, { 1841, 4416, -751, 0 }, { -1852, 4416, 741, 0 } }, { 1537, 0, 3806, 0 }, { 0, 0, 4096, 0 }, 4830, 0, 9, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -2465, -2944, 9983, 0 }, { { 211, -4416, -1982, 0 }, { -215, -4416, 1978, 0 }, { 211, 4416, -1982, 0 }, { -215, 4416, 1978, 0 } }, { 4081, 0, 438, 0 }, { 0, 0, 4096, 0 }, 4830, 0, 9, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -2370, -2976, 0x27BE, 0 }, { { -217, -4416, 1976, 0 }, { 209, -4416, -1985, 0 }, { -217, 4416, 1976, 0 }, { 209, 4416, -1985, 0 } }, { -4083, 0, -440, 0 }, { 0, 0, 4096, 0 }, 4830, 0, 4, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 62, -3264, -1955, 0 }, { { -2049, -4416, -351, 0 }, { 2050, -4416, 351, 0 }, { -2049, 4416, -351, 0 }, { 2050, 4416, 351, 0 } }, { 694, 0, -4055, 0 }, { 0, 0, 4096, 0 }, 4857, 0, 13, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -192, -3264, -2146, 0 }, { { 1607, -4416, 267, 0 }, { -1607, -4416, -266, 0 }, { 1607, 4416, 267, 0 }, { -1607, 4416, -266, 0 } }, { -671, 0, 4041, 0 }, { 0, 0, 4096, 0 }, 4692, 0, 2, 13, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1602, -3296, -4498, 0 }, { { -133, -4416, 2152, 0 }, { 134, -4416, -2152, 0 }, { -133, 4416, 2152, 0 }, { 134, 4416, -2152, 0 } }, { -4099, 0, -255, 0 }, { 0, 0, 4096, 0 }, 4910, 0, 2, 13, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1793, -3360, -4513, 0 }, { { 139, -4416, -2237, 0 }, { -139, -4416, 2238, 0 }, { 139, 4416, -2237, 0 }, { -139, 4416, 2238, 0 } }, { 4090, 0, 253, 0 }, { 0, 0, 4096, 0 }, 4937, 0, 13, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Main Street's 26 mutable view-boundary quads, including the final LAST record.
+///
+/// Parameter bytes select source and destination logical views in 2..13.
+/// Setup binds room-space geometry to the current view and links every record.
+/// Normals use ONE (4096); positions and radii use whole room-coordinate units.
+static WorldCollisionTrigger _gDryfieldMainStreetViewBoundaryTriggers[26] = {
+    { NULL, NULL, NULL, { -2385, -3392, 351, 0 }, { { -2863, -4416, -165, 0 }, { 2863, -4416, 165, 0 }, { -2863, 4416, -165, 0 }, { 2863, 4416, 165, 0 } }, { 236, 0, -4102, 0 }, { 0, 0, ONE, 0 }, 5246, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -2337, -3376, 239, 0 }, { { 2868, -4400, 137, 0 }, { -2867, -4400, -136, 0 }, { 2868, 4400, 137, 0 }, { -2867, 4400, -136, 0 } }, { -195, 0, 4092, 0 }, { 0, 0, ONE, 0 }, 5246, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -3665, -3232, 5071, 0 }, { { -1383, -4256, 519, 0 }, { 1381, -4256, -521, 0 }, { -1383, 4256, 519, 0 }, { 1381, 4256, -521, 0 } }, { -1447, 0, -3843, 0 }, { 0, 0, ONE, 0 }, 4492, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -3764, -3216, 4924, 0 }, { { 1447, -4240, -514, 0 }, { -1449, -4240, 512, 0 }, { 1447, 4240, -514, 0 }, { -1449, 4240, 512, 0 } }, { 1368, 0, 3863, 0 }, { 0, 0, ONE, 0 }, 4492, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -6177, -3200, 5327, 0 }, { { 980, -4224, 41, 0 }, { -979, -4224, -40, 0 }, { 980, 4224, 41, 0 }, { -979, 4224, -40, 0 } }, { -171, 0, 4095, 0 }, { 0, 0, ONE, 0 }, 4314, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -6210, -3280, 5598, 0 }, { { -979, -4304, 7, 0 }, { 980, -4304, -7, 0 }, { -979, 4304, 7, 0 }, { 980, 4304, -7, 0 } }, { -30, 0, -4117, 0 }, { 0, 0, ONE, 0 }, 4404, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -5988, -3552, -292, 0 }, { { -959, -4576, 198, 0 }, { 960, -4576, -198, 0 }, { -959, 4576, 198, 0 }, { 960, 4576, -198, 0 } }, { -829, 0, -4015, 0 }, { 0, 0, ONE, 0 }, 4664, 0, 7, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -6051, -3536, -452, 0 }, { { 949, -4560, -244, 0 }, { -949, -4560, 245, 0 }, { 949, 4560, -244, 0 }, { -949, 4560, 245, 0 } }, { 1025, 0, 3983, 0 }, { 0, 0, ONE, 0 }, 4636, 0, 6, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -5216, -3488, -2833, 0 }, { { -8, -4224, -2308, 0 }, { 8, -4224, 2308, 0 }, { -8, 4224, -2308, 0 }, { 8, 4224, 2308, 0 } }, { 4105, 0, -15, 0 }, { 0, 0, ONE, 0 }, 4802, 0, 2, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -5072, -3488, -2960, 0 }, { { 8, -4224, 2292, 0 }, { -8, -4224, -2292, 0 }, { 8, 4224, 2292, 0 }, { -8, 4224, -2292, 0 } }, { -4102, 0, 14, 0 }, { 0, 0, ONE, 0 }, 4802, 0, 7, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -5312, -2848, 0x28E0, 0 }, { { 235, -4224, -1330, 0 }, { -240, -4224, 1325, 0 }, { 235, 4224, -1330, 0 }, { -240, 4224, 1325, 0 } }, { 4031, 0, 720, 0 }, { 0, 0, ONE, 0 }, 4434, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -5216, -3008, 0x2940, 0 }, { { -239, -4224, 1326, 0 }, { 236, -4224, -1329, 0 }, { -239, 4224, 1326, 0 }, { 236, 4224, -1329, 0 } }, { -4033, 0, -722, 0 }, { 0, 0, ONE, 0 }, 4434, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1314, -3296, 4926, 0 }, { { 1314, -4256, 675, 0 }, { -1313, -4256, -675, 0 }, { 1314, 4256, 675, 0 }, { -1313, 4256, -675, 0 } }, { -1878, 0, 3651, 0 }, { 0, 0, ONE, 0 }, 4492, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1076, -3264, 5229, 0 }, { { -1235, -4256, -651, 0 }, { 1236, -4256, 651, 0 }, { -1235, 4256, -651, 0 }, { 1236, 4256, 651, 0 } }, { 1912, 0, -3632, 0 }, { 0, 0, ONE, 0 }, 4463, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -5056, -3232, 2256, 0 }, { { 24, -4224, 2036, 0 }, { -24, -4224, -2036, 0 }, { 24, 4224, 2036, 0 }, { -24, 4224, -2036, 0 } }, { -4105, 0, 48, 0 }, { 0, 0, ONE, 0 }, 4664, 0, 6, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -5216, -2944, 2272, 0 }, { { -24, -4224, -2100, 0 }, { 24, -4224, 2100, 0 }, { -24, 4224, -2100, 0 }, { 24, 4224, 2100, 0 } }, { 4111, 0, -47, 0 }, { 0, 0, ONE, 0 }, 4692, 0, 3, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -5248, -2912, 6816, 0 }, { { -24, -4224, -1844, 0 }, { 24, -4224, 1844, 0 }, { -24, 4224, -1844, 0 }, { 24, 4224, 1844, 0 } }, { 4101, 0, -54, 0 }, { 0, 0, ONE, 0 }, 4608, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -5040, -3008, 6912, 0 }, { { -24, -4224, 1844, 0 }, { 24, -4224, -1844, 0 }, { -24, 4224, 1844, 0 }, { 24, 4224, -1844, 0 } }, { -4103, 0, -54, 0 }, { 0, 0, ONE, 0 }, 4608, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -384, -2624, 7537, 0 }, { { -1800, -4416, 722, 0 }, { 1793, -4416, -730, 0 }, { -1800, 4416, 722, 0 }, { 1793, 4416, -730, 0 } }, { -1542, 0, -3815, 0 }, { 0, 0, ONE, 0 }, 4802, 0, 4, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -448, -2816, 7328, 0 }, { { 1841, -4416, -751, 0 }, { -1852, -4416, 741, 0 }, { 1841, 4416, -751, 0 }, { -1852, 4416, 741, 0 } }, { 1537, 0, 3806, 0 }, { 0, 0, ONE, 0 }, 4830, 0, 9, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -2465, -2944, 9983, 0 }, { { 211, -4416, -1982, 0 }, { -215, -4416, 1978, 0 }, { 211, 4416, -1982, 0 }, { -215, 4416, 1978, 0 } }, { 4081, 0, 438, 0 }, { 0, 0, ONE, 0 }, 4830, 0, 9, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -2370, -2976, 0x27BE, 0 }, { { -217, -4416, 1976, 0 }, { 209, -4416, -1985, 0 }, { -217, 4416, 1976, 0 }, { 209, 4416, -1985, 0 } }, { -4083, 0, -440, 0 }, { 0, 0, ONE, 0 }, 4830, 0, 4, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 62, -3264, -1955, 0 }, { { -2049, -4416, -351, 0 }, { 2050, -4416, 351, 0 }, { -2049, 4416, -351, 0 }, { 2050, 4416, 351, 0 } }, { 694, 0, -4055, 0 }, { 0, 0, ONE, 0 }, 4857, 0, 13, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -192, -3264, -2146, 0 }, { { 1607, -4416, 267, 0 }, { -1607, -4416, -266, 0 }, { 1607, 4416, 267, 0 }, { -1607, 4416, -266, 0 } }, { -671, 0, 4041, 0 }, { 0, 0, ONE, 0 }, 4692, 0, 2, 13, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1602, -3296, -4498, 0 }, { { -133, -4416, 2152, 0 }, { 134, -4416, -2152, 0 }, { -133, 4416, 2152, 0 }, { 134, 4416, -2152, 0 } }, { -4099, 0, -255, 0 }, { 0, 0, ONE, 0 }, 4910, 0, 2, 13, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1793, -3360, -4513, 0 }, { { 139, -4416, -2237, 0 }, { -139, -4416, 2238, 0 }, { 139, 4416, -2237, 0 }, { -139, 4416, 2238, 0 } }, { 4090, 0, 253, 0 }, { 0, 0, ONE, 0 }, 4937, 0, 13, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_main_street_80184B5C[10] = {
-    { NULL, NULL, NULL, { -384, 0, -3392, 0 }, { { -416, 0, -1024, 0 }, { 416, 0, -1024, 0 }, { -416, 0, 1024, 0 }, { 416, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_WARP, 1, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -6912, -48, -2672, 0 }, { { -416, 0, -848, 0 }, { 416, 0, -848, 0 }, { -416, 0, 848, 0 }, { 416, 0, 848, 0 } }, { 0, 4105, 0, 0 }, { 4096, 0, 0, 0 }, 942, WORLD_COLLISION_TRIGGER_ACTION_WARP, 11, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -6848, -48, 2016, 0 }, { { -416, 0, -1024, 0 }, { 416, 0, -1024, 0 }, { -416, 0, 1024, 0 }, { 416, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_WARP, 15, 49, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -6848, -48, 5824, 0 }, { { -416, 0, -1024, 0 }, { 416, 0, -1024, 0 }, { -416, 0, 1024, 0 }, { 416, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_WARP, 12, 65, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -6816, -48, 0x2870, 0 }, { { -416, 0, -848, 0 }, { 416, 0, -848, 0 }, { -416, 0, 848, 0 }, { 416, 0, 848, 0 } }, { 0, 4105, 0, 0 }, { 4096, 0, 0, 0 }, 942, WORLD_COLLISION_TRIGGER_ACTION_WARP, 13, 81, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3536, -48, 0x2A00, 0 }, { { 816, 0, -416, 0 }, { 816, 0, 416, 0 }, { -816, 0, -416, 0 }, { -816, 0, 416, 0 } }, { 0, 4114, 0, 0 }, { 0, 0, -4096, 0 }, 914, WORLD_COLLISION_TRIGGER_ACTION_WARP, 14, 97, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -800, -64, 0x2880, 0 }, { { 1024, 0, -960, 0 }, { 1024, 0, 960, 0 }, { -1024, 0, -960, 0 }, { -1024, 0, 960, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1402, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -257, -48, 8703, 0 }, { { -415, 0, -511, 0 }, { 417, 0, -511, 0 }, { -416, 0, 512, 0 }, { 416, 0, 512, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 658, WORLD_COLLISION_TRIGGER_ACTION_WARP, 25, 115, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 320, -64, -1520, 0 }, { { -2880, 0, -880, 0 }, { 2880, 0, -624, 0 }, { -2880, 0, 624, 0 }, { 2880, 0, 880, 0 } }, { 0, 4102, 0, 0 }, { -4096, 0, 0, 0 }, 3007, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { -2144, -64, -3952, 0 }, { { -640, 0, -3136, 0 }, { 544, 0, -3104, 0 }, { -544, 0, 3104, 0 }, { 640, 0, 3136, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 3197, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Room commands selected by Main Street's non-warp triggers.
+enum {
+    DRYFIELD_MAIN_STREET_TRIGGER_TALK_COMMAND      = 1,
+    DRYFIELD_MAIN_STREET_TRIGGER_FIRST_VISIT_SCENE = 1,
 };
 
-AreaResource D_dryfield_main_street_80184E54[3] = {
-    { 101, 230, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor323000DesertChaserTaskDesc },
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Seven departures, one room talk action and two automatic first-visit scene regions.
+///
+/// Setup binds and links all ten mutable room-space quads, including LAST.
+/// Warp parameters pack the one-based local endpoint and destination arrival
+/// slots into high/low nibbles. The CAP action sends room command 1; both
+/// automatic regions send room action 1. Normals use ONE, geometry uses room units.
+static WorldCollisionTrigger _gDryfieldMainStreetActionTriggers[10] = {
+    { NULL, NULL, NULL, { -384, 0, -3392, 0 }, { { -416, 0, -1024, 0 }, { 416, 0, -1024, 0 }, { -416, 0, 1024, 0 }, { 416, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -ONE, 0, 0, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_GAS_STATION, (DRYFIELD_MAIN_STREET_WARP_GAS_STATION << 4) | 2, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -6912, -48, -2672, 0 }, { { -416, 0, -848, 0 }, { 416, 0, -848, 0 }, { -416, 0, 848, 0 }, { 416, 0, 848, 0 } }, { 0, 4105, 0, 0 }, { ONE, 0, 0, 0 }, 942, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_MOTEL_ROOM_1, (DRYFIELD_MAIN_STREET_WARP_MOTEL_ROOM1 << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -6848, -48, 2016, 0 }, { { -416, 0, -1024, 0 }, { 416, 0, -1024, 0 }, { -416, 0, 1024, 0 }, { 416, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { ONE, 0, 0, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_PARKING_LOT, (DRYFIELD_MAIN_STREET_WARP_PARKING_LOT << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -6848, -48, 5824, 0 }, { { -416, 0, -1024, 0 }, { 416, 0, -1024, 0 }, { -416, 0, 1024, 0 }, { 416, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { ONE, 0, 0, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_MOTEL_ROOM_2, (DRYFIELD_MAIN_STREET_WARP_MOTEL_ROOM2 << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -6816, -48, 0x2870, 0 }, { { -416, 0, -848, 0 }, { 416, 0, -848, 0 }, { -416, 0, 848, 0 }, { 416, 0, 848, 0 } }, { 0, 4105, 0, 0 }, { ONE, 0, 0, 0 }, 942, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_MOTEL_ROOM_3, (DRYFIELD_MAIN_STREET_WARP_MOTEL_ROOM3 << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3536, -48, 0x2A00, 0 }, { { 816, 0, -416, 0 }, { 816, 0, 416, 0 }, { -816, 0, -416, 0 }, { -816, 0, 416, 0 } }, { 0, 4114, 0, 0 }, { 0, 0, -ONE, 0 }, 914, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_MOTEL_ROOM_4, (DRYFIELD_MAIN_STREET_WARP_MOTEL_ROOM4 << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -800, -64, 0x2880, 0 }, { { 1024, 0, -960, 0 }, { 1024, 0, 960, 0 }, { -1024, 0, -960, 0 }, { -1024, 0, 960, 0 } }, { 0, 4095, 0, 0 }, { -ONE, 0, 0, 0 }, 1402, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_MAIN_STREET_TRIGGER_TALK_COMMAND, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -257, -48, 8703, 0 }, { { -415, 0, -511, 0 }, { 417, 0, -511, 0 }, { -416, 0, 512, 0 }, { 416, 0, 512, 0 } }, { 0, 4099, 0, 0 }, { -ONE, 0, 0, 0 }, 658, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_DRIVEWAY, (DRYFIELD_MAIN_STREET_WARP_DRIVEWAY << 4) | 3, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 320, -64, -1520, 0 }, { { -2880, 0, -880, 0 }, { 2880, 0, -624, 0 }, { -2880, 0, 624, 0 }, { 2880, 0, 880, 0 } }, { 0, 4102, 0, 0 }, { -ONE, 0, 0, 0 }, 3007, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, DRYFIELD_MAIN_STREET_TRIGGER_FIRST_VISIT_SCENE, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { -2144, -64, -3952, 0 }, { { -640, 0, -3136, 0 }, { 544, 0, -3104, 0 }, { -544, 0, 3104, 0 }, { 640, 0, 3136, 0 } }, { 0, 4099, 0, 0 }, { -ONE, 0, 0, 0 }, 3197, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, DRYFIELD_MAIN_STREET_TRIGGER_FIRST_VISIT_SCENE, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_dryfield_main_street_80184E78[2] = {
-    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement resource IDs shared by Main Street's area variants.
+enum {
+    DRYFIELD_MAIN_STREET_CUTSCENE_CHASER_ENTRY = 101,
+    DRYFIELD_MAIN_STREET_CHASER_ENTRY          = 1,
+    DRYFIELD_MAIN_STREET_SCORPION_ENTRY        = 25,
+    DRYFIELD_MAIN_STREET_PAWN_GOLEM_ENTRY      = 20,
+    DRYFIELD_MAIN_STREET_ROOK_GOLEM_ENTRY      = 23,
 };
 
-AreaResource D_dryfield_main_street_80184E90[2] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 1's cutscene and regular Desert Chaser resources, ending at AREA_PLACEMENT_END.
+///
+/// Loads files 323000 and 400100 for entries 101 and 1; each uses descriptor 0.
+/// Placements are borrowed from the Dryfield map. Resource recipes and task
+/// callbacks require their room and actor overlays during loading and spawning.
+static AreaResource _gDryfieldMainStreetVariant1Resources[3] = {
+    { .entryId = DRYFIELD_MAIN_STREET_CUTSCENE_CHASER_ENTRY, .fileNumber = 230, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_30, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor323000DesertChaserTaskDesc },
+    { .entryId = DRYFIELD_MAIN_STREET_CHASER_ENTRY, .fileNumber = 1, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor00100DesertChaserTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_dryfield_main_street_80184EA8[3] = {
-    { 20, 20, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102000PawnGolemTasks },
-    { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor202300RookGolemTasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 2's scorpion resource, shared by six map-owned placements.
+///
+/// Entry 25 loads file 102500 and spawns descriptor 0; AREA_PLACEMENT_END ends
+/// the recipes. Keep the room/map records live through loading and spawning,
+/// and the actor overlay through task execution.
+static AreaResource _gDryfieldMainStreetVariant2Resources[2] = {
+    { .entryId = DRYFIELD_MAIN_STREET_SCORPION_ENTRY, .fileNumber = 25, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = gActor102500Tasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_dryfield_main_street_80184ECC[3] = {
-    { 101, 230, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor323000DesertChaserTaskDesc },
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 3's regular Desert Chaser resource, shared by two map-owned placements.
+///
+/// Entry 1 loads file 400100 and spawns descriptor 0; AREA_PLACEMENT_END ends
+/// the recipes. Keep the room/map records live through loading and spawning,
+/// and the actor overlay through task execution.
+static AreaResource _gDryfieldMainStreetVariant3Resources[2] = {
+    { .entryId = DRYFIELD_MAIN_STREET_CHASER_ENTRY, .fileNumber = 1, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor00100DesertChaserTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_dryfield_main_street_80184EF0[3] = {
-    { 101, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
-    { 1, 0, 0, -1638, 0, 4280, -1012, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Variant 7's Pawn and Rook GOLEM resources for two map-owned placements.
+///
+/// Entries 20 and 23 load files 102000 and 202300 and spawn descriptor 0.
+/// AREA_PLACEMENT_END ends the recipes. Keep room/map records live through
+/// loading and spawning, and both actor overlays through task execution.
+static AreaResource _gDryfieldMainStreetVariant7Resources[3] = {
+    { .entryId = DRYFIELD_MAIN_STREET_PAWN_GOLEM_ENTRY, .fileNumber = 20, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = gActor102000PawnGolemTasks },
+    { .entryId = DRYFIELD_MAIN_STREET_ROOK_GOLEM_ENTRY, .fileNumber = 23, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = gActor202300RookGolemTasks },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+/// Variant 10's cutscene and regular Desert Chaser resources for room-owned placements.
+///
+/// Entries 101 and 1 load files 323000 and 400100 and spawn descriptor 0.
+/// AREA_PLACEMENT_END ends the recipes. Storage is distinct from variant 1's;
+/// records and actor overlays must remain live during loading and spawning.
+static AreaResource _gDryfieldMainStreetVariant10Resources[3] = {
+    { .entryId = DRYFIELD_MAIN_STREET_CUTSCENE_CHASER_ENTRY, .fileNumber = 230, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_30, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor323000DesertChaserTaskDesc },
+    { .entryId = DRYFIELD_MAIN_STREET_CHASER_ENTRY, .fileNumber = 1, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor00100DesertChaserTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+/// Variant 10's cutscene chaser at the origin and regular chaser on Main Street.
+///
+/// Positions use room units and yaw uses 4096 per turn. Both select base files,
+/// actor variant/mode/row zero, unchanged texture pages and CLUT rows shifted by
+/// two. AREA_PLACEMENT_END ends the table; actors borrow records while live.
+static AreaPlacement _gDryfieldMainStreetVariant10Placements[3] = {
+    { .entryId = DRYFIELD_MAIN_STREET_CUTSCENE_CHASER_ENTRY, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = DRYFIELD_MAIN_STREET_CHASER_ENTRY, .variant = 0, .mode = 0, .x = -1638, .y = 0, .z = 4280, .yaw = -1012, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_dryfield_main_street_80184F20[13] = {
     { NULL, NULL },
-    { D_map_dryfield_8017AD44, D_dryfield_main_street_80184E54 },
-    { D_map_dryfield_8017AD74, D_dryfield_main_street_80184E78 },
-    { D_map_dryfield_8017ADE4, D_dryfield_main_street_80184E90 },
+    { D_map_dryfield_8017AD44, _gDryfieldMainStreetVariant1Resources },
+    { D_map_dryfield_8017AD74, _gDryfieldMainStreetVariant2Resources },
+    { D_map_dryfield_8017ADE4, _gDryfieldMainStreetVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_8017AE14, D_dryfield_main_street_80184EA8 },
+    { D_map_dryfield_8017AE14, _gDryfieldMainStreetVariant7Resources },
     { NULL, NULL },
     { NULL, NULL },
-    { D_dryfield_main_street_80184EF0, D_dryfield_main_street_80184ECC },
+    { _gDryfieldMainStreetVariant10Placements, _gDryfieldMainStreetVariant10Resources },
     { NULL, NULL },
     { NULL, NULL },
 };
@@ -1109,7 +1352,13 @@ static RoomEventMsg _gRoomEventMsg = { 0 };
 
 RoomEventActiveBytes gRoomEventActive = { 0, { 3, 190, 28 } };
 
-Task* D_dryfield_main_street_80185630 = NULL;
+/// Retained, non-owning handle for the first-visit scene's player head aiming.
+///
+/// Spawn replaces it, including with NULL on failure. Script stop kills the task
+/// and clears it; scene-start reset only forgets it and leaves any task alive.
+/// A non-NULL handle must still be live when controlled; task teardown alone does
+/// not clear this slot. Keep the room loaded while the task can be dispatched.
+static Task* _gDryfieldMainStreetPlayerHeadAimTask = NULL;
 
 RoomLatchedEventStorage gRoomEventLatched = { { 0 }, { 0 } };
 
@@ -1280,7 +1529,7 @@ static void _dryfieldMainStreetSpawnPlayerHeadAimTask(void)
 {
     enum { DRYFIELD_MAIN_STREET_HEAD_AIM_TASK_INDEX = 1 };
 
-    D_dryfield_main_street_80185630 = taskSpawnFromTable(D_dryfield_main_street_8018156C, DRYFIELD_MAIN_STREET_HEAD_AIM_TASK_INDEX, 0, NULL);
+    _gDryfieldMainStreetPlayerHeadAimTask = taskSpawnFromTable(_gDryfieldMainStreetCutsceneTaskDescriptors, DRYFIELD_MAIN_STREET_HEAD_AIM_TASK_INDEX, 0, NULL);
 }
 
 /// Enables, disables or stops the retained player head-aim task.
@@ -1290,7 +1539,7 @@ static void _dryfieldMainStreetSpawnPlayerHeadAimTask(void)
 /// to stop; the retained handle must refer to a live task when non-NULL.
 static void _dryfieldMainStreetSetPlayerHeadAim(s32 command)
 {
-    Task* headAimTask = D_dryfield_main_street_80185630;
+    Task* headAimTask = _gDryfieldMainStreetPlayerHeadAimTask;
 
     if (headAimTask == NULL) {
         return;
@@ -1301,8 +1550,8 @@ static void _dryfieldMainStreetSetPlayerHeadAim(s32 command)
             headAimTask->spawnArg1.value = command;
             break;
         default:
-            taskKill(D_dryfield_main_street_80185630);
-            D_dryfield_main_street_80185630 = NULL;
+            taskKill(_gDryfieldMainStreetPlayerHeadAimTask);
+            _gDryfieldMainStreetPlayerHeadAimTask = NULL;
             break;
     }
 }
@@ -1367,7 +1616,7 @@ static void _dryfieldMainStreetPlayerHeadAimTask(Task* task)
 /// the unused argument register.
 static void _dryfieldMainStreetForgetPlayerHeadAimTask(s32 unusedArg)
 {
-    D_dryfield_main_street_80185630 = NULL;
+    _gDryfieldMainStreetPlayerHeadAimTask = NULL;
 }
 
 /// Samples one smoke position from three successive LCG draws in X/Y/Z order.
