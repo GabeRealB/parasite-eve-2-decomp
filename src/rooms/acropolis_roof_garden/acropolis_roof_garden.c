@@ -77,12 +77,6 @@ extern EvsCommand       D_acropolis_roof_garden_80184B08[];
 /// the effect task's first-frame burst.
 extern SVECTOR D_acropolis_roof_garden_80184BF8[10];
 
-/// Per-variant mask of camera views the ambient sprite is visible from,
-/// indexed by the low nibble of `Task::spawnArg1`.
-extern u16 D_acropolis_roof_garden_80184C48[];
-
-extern s16 D_acropolis_roof_garden_80184C5C[];
-
 /// Volume the ambience task last handed the sound driver.
 extern s32 D_acropolis_roof_garden_80186E94;
 
@@ -125,7 +119,7 @@ extern WorldCollisionGrid     D_acropolis_roof_garden_801854A4[1];
 extern WorldCollisionOccluder D_acropolis_roof_garden_80186D14[2];
 extern WorldCollisionTrigger  D_acropolis_roof_garden_801854C8[6];
 extern WorldCollisionTrigger  D_acropolis_roof_garden_80185690[7];
-extern WorldCoordRoomLights   D_acropolis_roof_garden_80186BDC[1];
+static WorldCoordRoomLights   _gAcropolisRoofGardenRoomLights;
 
 extern AnimationPlayRequest     D_acropolis_roof_garden_80184ACC;
 extern AnimationPlayRequest     D_acropolis_roof_garden_80184AE0;
@@ -446,21 +440,40 @@ SVECTOR D_acropolis_roof_garden_80184BF8[10] = {
     { -6470, -548, -2250, 0 },
 };
 
-u16 D_acropolis_roof_garden_80184C48[10] = {
-    2,
-    2,
-    4,
-    2,
-    2,
-    4,
-    4,
-    12,
-    16,
-    24,
+/// Logical-view bits used by the roof garden's placed light glows.
+enum {
+    ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_2 = 1 << (2 - 1),
+    ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_3 = 1 << (3 - 1),
+    ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_4 = 1 << (4 - 1),
+    ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_5 = 1 << (5 - 1),
 };
 
-s16 D_acropolis_roof_garden_80184C5C[24] = {
-    -4096,
+/// Visible logical views for each of the ten placed light glows.
+///
+/// Index 0..9 is the light index in the spawn argument's low nibble; bit
+/// `view - 1` permits drawing in logical views 1..7. The flare's first ray
+/// also fetches entry 8 through its retained pre-array sine lookup.
+static u16 _gAcropolisRoofGardenLightViewMasks[10] = {
+    ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_2,
+    ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_2,
+    ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_3,
+    ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_2,
+    ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_2,
+    ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_3,
+    ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_3,
+    ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_3 | ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_4,
+    ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_5,
+    ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_4 | ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_5,
+};
+
+/// Signed sine samples for the roof garden's circular flare geometry.
+///
+/// A turn has sixteen samples, beginning at -ONE; X reads four samples
+/// ahead of Y. Samples have twelve fractional bits. Indices 0..22 are used;
+/// the stored value 591 at index 23 has an unproven role. The first ray's
+/// index -2 fetches the preceding light-view mask 8, rather than a sine sample.
+static s16 _gAcropolisRoofGardenFlareSineSamples[24] = {
+    -ONE,
     -3784,
     -2896,
     -1567,
@@ -468,7 +481,7 @@ s16 D_acropolis_roof_garden_80184C5C[24] = {
     1567,
     2896,
     3784,
-    4096,
+    ONE,
     3784,
     2896,
     1567,
@@ -476,7 +489,7 @@ s16 D_acropolis_roof_garden_80184C5C[24] = {
     -1567,
     -2896,
     -3784,
-    -4096,
+    -ONE,
     -3784,
     -2896,
     -1567,
@@ -490,14 +503,14 @@ WorldCollisionRoomResources D_acropolis_roof_garden_80184C8C[1] = {
     { D_acropolis_roof_garden_801854A4, D_acropolis_roof_garden_801854C8, D_acropolis_roof_garden_80185690, D_acropolis_roof_garden_80186D14 },
 };
 
-u8* D_acropolis_roof_garden_80184C9C[1] = {
+u8* gAcropolisRoofGardenViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_acropolis_roof_garden_80184CA0[1] = { 7 };
+ViewCount gAcropolisRoofGardenViewCounts[1] = { ACROPOLIS_ROOF_GARDEN_VIEW_COUNT };
 
-WorldCoordRoomLighting D_acropolis_roof_garden_80184CA4[1] = {
-    { D_acropolis_roof_garden_80186BDC, NULL },
+WorldCoordRoomLighting gAcropolisRoofGardenRoomLightingTable[1] = {
+    { .lights = &_gAcropolisRoofGardenRoomLights, .ambientTable = NULL },
 };
 
 DirectionWarpEntry D_acropolis_roof_garden_80184CAC[2] = {
@@ -550,146 +563,217 @@ WorldCollisionTrigger D_acropolis_roof_garden_80185690[7] = {
     { NULL, NULL, NULL, { -4640, -64, -7104, 0 }, { { -1296, 0, -208, 0 }, { 1296, 0, -208, 0 }, { -1296, 0, 208, 0 }, { 1296, 0, 208, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, 4096, 0 }, 1311, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 2, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_acropolis_roof_garden_801858A4[3] = {
-    { 110, 108, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, VIEW_FIGURE_TASK_BODY, { 0, 0 }, gActor110800ViewFigureTasks },
-    { 55, 55, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor205500MaggotCaterpillarTasks },
+/// Placement-entry keys and decimal file numbers used by the resource lists.
+///
+/// Entry keys match the placement tables. File numbers select actor libraries
+/// together with the base-10 or base-20 file-group selector in each resource.
+enum {
+    ACROPOLIS_ROOF_GARDEN_RESOURCE_ENTRY_VIEW_FIGURE = 110,
+    ACROPOLIS_ROOF_GARDEN_RESOURCE_ENTRY_MAGGOT      = 55,
+    ACROPOLIS_ROOF_GARDEN_RESOURCE_ENTRY_CATERPILLAR = 26,
+    ACROPOLIS_ROOF_GARDEN_RESOURCE_ENTRY_MOTH        = 8,
+    ACROPOLIS_ROOF_GARDEN_RESOURCE_FILE_VIEW_FIGURE  = 108,
+    ACROPOLIS_ROOF_GARDEN_RESOURCE_FILE_MAGGOT       = 55,
+    ACROPOLIS_ROOF_GARDEN_RESOURCE_FILE_CATERPILLAR  = 26,
+    ACROPOLIS_ROOF_GARDEN_RESOURCE_FILE_MOTH         = 7,
+};
+
+/// Figure and room-bound Maggot resources for roof-garden placement variant 1.
+///
+/// Entry 110 loads actor file 110800 and spawns its view-parented figure;
+/// entry 55 loads room-bound Maggot file 205500. `AREA_PLACEMENT_END` ends
+/// the list. Placements and task recipes are borrowed while their overlays live.
+static AreaResource _gAcropolisRoofGardenVariant1Resources[3] = {
+    { ACROPOLIS_ROOF_GARDEN_RESOURCE_ENTRY_VIEW_FIGURE, ACROPOLIS_ROOF_GARDEN_RESOURCE_FILE_VIEW_FIGURE, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, VIEW_FIGURE_TASK_BODY, { 0, 0 }, gActor110800ViewFigureTasks },
+    { ACROPOLIS_ROOF_GARDEN_RESOURCE_ENTRY_MAGGOT, ACROPOLIS_ROOF_GARDEN_RESOURCE_FILE_MAGGOT, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor205500MaggotCaterpillarTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_acropolis_roof_garden_801858C8[3] = {
-    { 55, 55, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor105500MaggotCaterpillarTasks },
-    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor00700MothTaskDesc },
+/// Regular Maggot and Moth resources for roof-garden placement variant 2.
+///
+/// Entry 55 loads Maggot file 105500; entry 8 loads Moth file 200700.
+/// `AREA_PLACEMENT_END` ends the list. Placement entry IDs select these
+/// borrowed task recipes during loading and spawning.
+static AreaResource _gAcropolisRoofGardenVariant2Resources[3] = {
+    { ACROPOLIS_ROOF_GARDEN_RESOURCE_ENTRY_MAGGOT, ACROPOLIS_ROOF_GARDEN_RESOURCE_FILE_MAGGOT, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor105500MaggotCaterpillarTasks },
+    { ACROPOLIS_ROOF_GARDEN_RESOURCE_ENTRY_MOTH, ACROPOLIS_ROOF_GARDEN_RESOURCE_FILE_MOTH, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor00700MothTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_acropolis_roof_garden_801858EC[3] = {
-    { 110, 108, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, VIEW_FIGURE_TASK_BODY, { 0, 0 }, gActor110800ViewFigureTasks },
-    { 26, 26, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor202600MaggotCaterpillarBodyTask },
+/// Figure and room-bound Caterpillar resources for roof-garden placement variant 7.
+///
+/// Entry 110 loads actor file 110800 and spawns its view-parented figure;
+/// entry 26 loads room-bound Caterpillar file 202600. `AREA_PLACEMENT_END`
+/// ends the list. The room overlay owns the resource list and borrows task recipes.
+static AreaResource _gAcropolisRoofGardenVariant7Resources[3] = {
+    { ACROPOLIS_ROOF_GARDEN_RESOURCE_ENTRY_VIEW_FIGURE, ACROPOLIS_ROOF_GARDEN_RESOURCE_FILE_VIEW_FIGURE, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, VIEW_FIGURE_TASK_BODY, { 0, 0 }, gActor110800ViewFigureTasks },
+    { ACROPOLIS_ROOF_GARDEN_RESOURCE_ENTRY_CATERPILLAR, ACROPOLIS_ROOF_GARDEN_RESOURCE_FILE_CATERPILLAR, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor202600MaggotCaterpillarBodyTask },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_acropolis_roof_garden_80185910[3] = {
-    { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor02600MaggotCaterpillarBodyTask },
-    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor00700MothTaskDesc },
+/// Regular Caterpillar and Moth resources for roof-garden placement variant 8.
+///
+/// Entry 26 loads Caterpillar file 102600; entry 8 loads Moth file 200700.
+/// `AREA_PLACEMENT_END` ends the list. The room overlay owns this list and
+/// borrows the loaded actor overlays' task recipes.
+static AreaResource _gAcropolisRoofGardenVariant8Resources[3] = {
+    { ACROPOLIS_ROOF_GARDEN_RESOURCE_ENTRY_CATERPILLAR, ACROPOLIS_ROOF_GARDEN_RESOURCE_FILE_CATERPILLAR, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor02600MaggotCaterpillarBodyTask },
+    { ACROPOLIS_ROOF_GARDEN_RESOURCE_ENTRY_MOTH, ACROPOLIS_ROOF_GARDEN_RESOURCE_FILE_MOTH, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor00700MothTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaVariant D_acropolis_roof_garden_80185934[12] = {
     { NULL, NULL },
-    { D_map_akropolis_8017BABC, D_acropolis_roof_garden_801858A4 },
-    { D_map_akropolis_8017BB1C, D_acropolis_roof_garden_801858C8 },
+    { D_map_akropolis_8017BABC, _gAcropolisRoofGardenVariant1Resources },
+    { D_map_akropolis_8017BB1C, _gAcropolisRoofGardenVariant2Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_akropolis_8017BB9C, D_acropolis_roof_garden_801858EC },
-    { D_map_akropolis_8017BBFC, D_acropolis_roof_garden_80185910 },
+    { D_map_akropolis_8017BB9C, _gAcropolisRoofGardenVariant7Resources },
+    { D_map_akropolis_8017BBFC, _gAcropolisRoofGardenVariant8Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
 };
 
-SpriteBatch D_acropolis_roof_garden_80185994[2] = {
+/// Texture bindings and colour-command values shared by the view sprite sources.
+///
+/// Both pages use 8-bit texels at VRAM Y zero; the CLUT is row 255, X zero.
+/// Neutral RGB is 128, and zero code flags request opaque colour modulation.
+enum {
+    ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1 = getTPage(1, GPU_BLEND_AVERAGE, 896, 0),
+    ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2 = getTPage(1, GPU_BLEND_AVERAGE, 960, 0),
+    ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT           = getClut(0, 255),
+    ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB    = 128,
+    ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE         = 0,
+};
+
+/// Empty sprite list for mapped roof-garden view 1.
+///
+/// The zero first count keeps decoded image strips; the next record ends the
+/// list. The view retains this address as its empty source slot. Overlay-owned.
+static SpriteBatch _gAcropolisRoofGardenView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_roof_garden_801859A4[26] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -40, 40, 729, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, 40, 765, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -160, 40, 701, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -152, 40, 698, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -136, 40, 661, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -120, 40, 653, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -104, 64, 658, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -96, 40, 650, { .fields = { 72, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -72, 56, 645, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -56, 56, 652, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -48, 40, 686, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -24, 40, 751, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -16, 40, 839, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -8, 40, 883, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 0, 40, 950, { .fields = { 104, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 8, 48, 1072, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 88, 40, 1011, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 96, 40, 817, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 104, 40, 667, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 112, 40, 551, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, 120, 40, 473, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 128, 104, 453, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 128, 40, 421, { .fields = { 96, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 136, 48, 388, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 144, 64, 362, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 152, 96, 352, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
+/// Sprite rectangles and sorting depths for mapped roof-garden view 2.
+///
+/// 26 writable elements use pixel positions/sizes and unscaled sorting
+/// depths. `_gAcropolisRoofGardenView2SpriteBatches` selects their ranges;
+/// source storage belongs to the loaded room overlay.
+static SpriteSource _gAcropolisRoofGardenView2SpriteSources[26] = {
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, -40, 40, 729, { .fields = { 96, 208 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, -32, 40, 765, { .fields = { 104, 40 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 40 } }, -160, 40, 701, { .fields = { 104, 0 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 16, 16 } }, -152, 40, 698, { .fields = { 88, 160 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 16, 48 } }, -136, 40, 661, { .fields = { 104, 48 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 24 } }, -120, 40, 653, { .fields = { 80, 0 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 24 } }, -104, 64, 658, { .fields = { 104, 232 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 32, 16 } }, -96, 40, 650, { .fields = { 72, 176 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 16, 40 } }, -72, 56, 645, { .fields = { 96, 96 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 32 } }, -56, 56, 652, { .fields = { 104, 168 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 24 } }, -48, 40, 686, { .fields = { 96, 48 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 48 } }, -24, 40, 751, { .fields = { 112, 96 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 40 } }, -16, 40, 839, { .fields = { 112, 144 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 32 } }, -8, 40, 883, { .fields = { 104, 200 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 32 } }, 0, 40, 950, { .fields = { 104, 136 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 24 } }, 8, 48, 1072, { .fields = { 96, 72 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 32 } }, 88, 40, 1011, { .fields = { 112, 224 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 48 } }, 96, 40, 817, { .fields = { 112, 0 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 56 } }, 104, 40, 667, { .fields = { 120, 200 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 64 } }, 112, 40, 551, { .fields = { 120, 80 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 80 } }, 120, 40, 473, { .fields = { 120, 0 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 16 } }, 128, 104, 453, { .fields = { 96, 192 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 24 } }, 128, 40, 421, { .fields = { 96, 24 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 40 } }, 136, 48, 388, { .fields = { 112, 184 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 56 } }, 144, 64, 362, { .fields = { 120, 144 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 24 } }, 152, 96, 352, { .fields = { 96, 136 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_acropolis_roof_garden_80185BAC[3] = {
+/// Sprite ranges for mapped roof-garden view 2.
+///
+/// Ranges cover all 26 source elements. The zero first count keeps
+/// decoded image strips; `SPRITE_BATCH_END` terminates the list.
+/// These writable records belong to the loaded room overlay.
+static SpriteBatch _gAcropolisRoofGardenView2SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 26, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gAcropolisRoofGardenView2SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_roof_garden_80185BC4[57] = {
-    { 142, 0x3FC0, { .fields = { 8, 40 } }, 32, 56, 563, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, 40, 48, 551, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 32 } }, 40, 80, 563, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 48, 40, 518, { .fields = { 24, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 24 } }, 56, 48, 499, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 64, 48, 479, { .fields = { 0, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 40 } }, 72, 48, 456, { .fields = { 104, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, 80, 424, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 88, 104, 471, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 96, 80, 417, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 80, 48, 418, { .fields = { 16, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 88, 48, 403, { .fields = { 24, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, 96, 56, 412, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 40 } }, 104, 56, 401, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 24 } }, 112, 64, 392, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 24 } }, 120, 64, 377, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 32 } }, 128, 64, 346, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, 136, 64, 326, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 32 } }, 136, 88, 349, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 88, 104, 480, { .fields = { 24, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 32, 72, 561, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 40, 56, 558, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 48, 40, 599, { .fields = { 0, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, 72, 608, { .fields = { 16, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 64 } }, 64, 40, 557, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 88 } }, 136, 16, 560, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 48, -120, 855, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 40 } }, 32, -96, 920, { .fields = { 40, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 40 } }, 32, -56, 1272, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 40 } }, 88, -120, 1111, { .fields = { 8, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 32 } }, 88, -40, 1225, { .fields = { 0, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, 112, -8, 1250, { .fields = { 8, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 72, -16, 1275, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, 88, -80, 1111, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 32 } }, 112, -72, 1109, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, 136, -80, 1112, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 56 } }, -16, 16, 1104, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 144 } }, -112, -64, 1064, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 120 } }, -56, -48, 1149, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 48 } }, 80, 16, 1285, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 112, 40, 1204, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -8, -8, 1563, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 88 } }, 8, -32, 1580, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, 32, 0, 1639, { .fields = { 24, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -160, 48, 600, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -144, 40, 650, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, -128, 48, 700, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -112, 40, 750, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, -96, 40, 800, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -80, 40, 850, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -64, 32, 900, { .fields = { 8, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, -48, 32, 950, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, -24, 32, 1050, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, 0, 32, 1100, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 24, 32, 1100, { .fields = { 8, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, 32, 40, 1100, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 40, 48, 1100, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
+/// Sprite rectangles and sorting depths for mapped roof-garden view 3.
+///
+/// 57 writable elements use pixel positions/sizes and unscaled sorting
+/// depths. `_gAcropolisRoofGardenView3SpriteBatches` selects their ranges;
+/// source storage belongs to the loaded room overlay.
+static SpriteSource _gAcropolisRoofGardenView3SpriteSources[57] = {
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 40 } }, 32, 56, 563, { .fields = { 96, 56 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 16 } }, 40, 48, 551, { .fields = { 104, 96 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 32 } }, 40, 80, 563, { .fields = { 56, 80 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 56 } }, 48, 40, 518, { .fields = { 24, 56 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 24 } }, 56, 48, 499, { .fields = { 120, 232 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 24 } }, 64, 48, 479, { .fields = { 0, 96 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 40 } }, 72, 48, 456, { .fields = { 104, 56 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 40 } }, 80, 80, 424, { .fields = { 64, 216 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 16 } }, 88, 104, 471, { .fields = { 32, 240 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 40 } }, 96, 80, 417, { .fields = { 72, 216 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 16 } }, 80, 48, 418, { .fields = { 16, 104 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 16 } }, 88, 48, 403, { .fields = { 24, 240 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 16 } }, 96, 56, 412, { .fields = { 80, 120 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 40 } }, 104, 56, 401, { .fields = { 96, 96 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 24 } }, 112, 64, 392, { .fields = { 120, 96 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 24 } }, 120, 64, 377, { .fields = { 112, 96 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 32 } }, 128, 64, 346, { .fields = { 64, 80 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 8 } }, 136, 64, 326, { .fields = { 48, 112 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 32 } }, 136, 88, 349, { .fields = { 48, 192 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 88, 104, 480, { .fields = { 24, 112 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 24 } }, 32, 72, 561, { .fields = { 80, 232 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 24 } }, 40, 56, 558, { .fields = { 64, 120 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 16, 24 } }, 48, 40, 599, { .fields = { 0, 232 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 24 } }, 56, 72, 608, { .fields = { 16, 232 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 72, 64 } }, 64, 40, 557, { .fields = { 104, 120 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 88 } }, 136, 16, 560, { .fields = { 104, 144 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 40, 24 } }, 48, -120, 855, { .fields = { 88, 232 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 56, 40 } }, 32, -96, 920, { .fields = { 40, 40 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 56, 40 } }, 32, -56, 1272, { .fields = { 40, 0 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 72, 40 } }, 88, -120, 1111, { .fields = { 8, 120 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 72, 32 } }, 88, -40, 1225, { .fields = { 0, 224 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 40, 8 } }, 112, -8, 1250, { .fields = { 8, 112 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 16, 8 } }, 72, -16, 1275, { .fields = { 48, 184 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 40 } }, 88, -80, 1111, { .fields = { 96, 184 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 32 } }, 112, -72, 1109, { .fields = { 96, 224 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 40 } }, 136, -80, 1112, { .fields = { 112, 56 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 64, 56 } }, -16, 16, 1104, { .fields = { 96, 0 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 56, 144 } }, -112, -64, 1064, { .fields = { 72, 0 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 40, 120 } }, -56, -48, 1149, { .fields = { 32, 0 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 32, 48 } }, 80, 16, 1285, { .fields = { 120, 184 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 32, 24 } }, 112, 40, 1204, { .fields = { 32, 160 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 16, 64 } }, -8, -8, 1563, { .fields = { 48, 192 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 88 } }, 8, -32, 1580, { .fields = { 80, 144 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 56 } }, 32, 0, 1639, { .fields = { 24, 184 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 16, 72 } }, -160, 48, 600, { .fields = { 64, 144 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 16, 72 } }, -144, 40, 650, { .fields = { 48, 120 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 16, 32 } }, -128, 48, 700, { .fields = { 64, 160 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 16, 16 } }, -112, 40, 750, { .fields = { 40, 80 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 16, 40 } }, -96, 40, 800, { .fields = { 80, 176 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 16, 16 } }, -80, 40, 850, { .fields = { 40, 96 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 16, 48 } }, -64, 32, 900, { .fields = { 8, 56 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 40 } }, -48, 32, 950, { .fields = { 72, 216 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 40 } }, -24, 32, 1050, { .fields = { 72, 80 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 40 } }, 0, 32, 1100, { .fields = { 80, 136 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 16 } }, 24, 32, 1100, { .fields = { 8, 104 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 16 } }, 32, 40, 1100, { .fields = { 88, 120 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 16 } }, 40, 48, 1100, { .fields = { 40, 240 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_acropolis_roof_garden_80186038[9] = {
+/// Sprite ranges for mapped roof-garden view 3.
+///
+/// Ranges cover all 57 source elements. The zero first count keeps
+/// decoded image strips; `SPRITE_BATCH_END` terminates the list.
+/// These writable records belong to the loaded room overlay.
+static SpriteBatch _gAcropolisRoofGardenView3SpriteBatches[9] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 19, 0, 0, { 3, 0 } },
     { 19, 7, 0, 0, { 4, 0 } },
@@ -697,119 +781,149 @@ SpriteBatch D_acropolis_roof_garden_80186038[9] = {
     { 36, 3, 0, 0, { 5, 0 } },
     { 39, 2, 0, 0, { 0, 0 } },
     { 41, 3, 0, 0, { 6, 0 } },
-    { 44, 13, 0, 0, { 2, 0 } },
+    { 44, ARRAY_SIZE(_gAcropolisRoofGardenView3SpriteSources) - 44, 0, 0, { 2, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_roof_garden_80186080[21] = {
-    { 143, 0x3FC0, { .fields = { 32, 104 } }, -160, -96, 462, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -128, -56, 462, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 104 } }, -160, 16, 472, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 112 } }, -40, 8, 525, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -8, 88, 500, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 88 } }, -120, 32, 522, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 88 } }, -80, 32, 522, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 88, 64, 664, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 96 } }, 96, 0, 624, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 136, 8, 663, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 48 } }, 136, 48, 599, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, -24, 966, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 96 } }, -40, -48, 1008, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -48, -48, 1105, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 152 } }, -32, -96, 974, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 96 } }, 8, -48, 963, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -96, -16, 1550, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -104, -8, 1500, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -112, -8, 1450, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -120, -8, 1400, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -128, 24, 1350, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
+/// Sprite rectangles and sorting depths for mapped roof-garden view 4.
+///
+/// 21 writable elements use pixel positions/sizes and unscaled sorting
+/// depths. `_gAcropolisRoofGardenView4SpriteBatches` selects their ranges;
+/// source storage belongs to the loaded room overlay.
+static SpriteSource _gAcropolisRoofGardenView4SpriteSources[21] = {
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 32, 104 } }, -160, -96, 462, { .fields = { 56, 112 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 16 } }, -128, -56, 462, { .fields = { 48, 240 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 40, 104 } }, -160, 16, 472, { .fields = { 88, 152 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 32, 112 } }, -40, 8, 525, { .fields = { 56, 0 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 24 } }, -8, 88, 500, { .fields = { 56, 216 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 40, 88 } }, -120, 32, 522, { .fields = { 104, 0 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 40, 88 } }, -80, 32, 522, { .fields = { 104, 88 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 16 } }, 88, 64, 664, { .fields = { 32, 240 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 40, 96 } }, 96, 0, 624, { .fields = { 16, 96 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 16 } }, 136, 8, 663, { .fields = { 40, 240 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 48 } }, 136, 48, 599, { .fields = { 112, 176 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 40, -24, 966, { .fields = { 24, 192 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 96 } }, -40, -48, 1008, { .fields = { 16, 0 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 80 } }, -48, -48, 1105, { .fields = { 8, 176 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 40, 152 } }, -32, -96, 974, { .fields = { 88, 0 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 32, 96 } }, 8, -48, 963, { .fields = { 24, 0 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 40 } }, -96, -16, 1550, { .fields = { 64, 216 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 48 } }, -104, -8, 1500, { .fields = { 40, 192 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 48 } }, -112, -8, 1450, { .fields = { 32, 192 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 48 } }, -120, -8, 1400, { .fields = { 48, 192 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 16 } }, -128, 24, 1350, { .fields = { 56, 240 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_acropolis_roof_garden_80186224[6] = {
+/// Sprite ranges for mapped roof-garden view 4.
+///
+/// Ranges cover all 21 source elements. The zero first count keeps
+/// decoded image strips; `SPRITE_BATCH_END` terminates the list.
+/// These writable records belong to the loaded room overlay.
+static SpriteBatch _gAcropolisRoofGardenView4SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 3, 0 } },
     { 7, 4, 0, 0, { 0, 0 } },
     { 11, 5, 0, 0, { 2, 0 } },
-    { 16, 5, 0, 0, { 1, 0 } },
+    { 16, ARRAY_SIZE(_gAcropolisRoofGardenView4SpriteSources) - 16, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_roof_garden_80186254[47] = {
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -48, -32, 950, { .fields = { 32, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -8, -40, 1019, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 48 } }, -64, -80, 875, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -8, -80, 909, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 0, -104, 923, { .fields = { 32, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 40 } }, -56, -120, 667, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 72 } }, -160, 48, 153, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -88, 88, 296, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 24 } }, -56, 96, 294, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 0, 88, 298, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 24, 96, 298, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 56, 88, 302, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 80, 104, 299, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, -120, 1294, { .fields = { 48, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, -120, 1265, { .fields = { 48, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, -120, 1302, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, -120, 1240, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, -120, 1256, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, -120, 1184, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 88, -120, 1118, { .fields = { 48, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 96, -120, 1109, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, -112, 1316, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, -112, 1284, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, -112, 1281, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, -112, 1275, { .fields = { 48, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, -112, 1229, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, -112, 1209, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 88, -112, 1147, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 96, -112, 1048, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, -104, 1307, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, -104, 1300, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, -104, 1276, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, -104, 1258, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, -104, 1258, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 88, -104, 1189, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 96, -104, 1085, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, -96, 1287, { .fields = { 64, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, -96, 1268, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, -96, 1240, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 88, -96, 1196, { .fields = { 56, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 96, -96, 1081, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 104, -96, 1069, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, -88, 1267, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, -88, 1199, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 88, -88, 1174, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 96, -88, 1070, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 104, -88, 1054, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
+/// Sprite rectangles and sorting depths for mapped roof-garden view 5.
+///
+/// 47 writable elements use pixel positions/sizes and unscaled sorting
+/// depths. `_gAcropolisRoofGardenView5SpriteBatches` selects their ranges;
+/// source storage belongs to the loaded room overlay.
+static SpriteSource _gAcropolisRoofGardenView5SpriteSources[47] = {
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 40, 16 } }, -48, -32, 950, { .fields = { 32, 112 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 32, 32 } }, -8, -40, 1019, { .fields = { 48, 192 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 56, 48 } }, -64, -80, 875, { .fields = { 72, 72 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 40, 40 } }, -8, -80, 909, { .fields = { 88, 160 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 40, 24 } }, 0, -104, 923, { .fields = { 32, 72 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 56, 40 } }, -56, -120, 667, { .fields = { 72, 120 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 72, 72 } }, -160, 48, 153, { .fields = { 56, 0 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 16, 32 } }, -88, 88, 296, { .fields = { 72, 160 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 56, 24 } }, -56, 96, 294, { .fields = { 40, 232 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 32 } }, 0, 88, 298, { .fields = { 80, 200 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 32, 24 } }, 24, 96, 298, { .fields = { 96, 232 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 32 } }, 56, 88, 302, { .fields = { 104, 200 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 16 } }, 80, 104, 299, { .fields = { 48, 96 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 40, -120, 1294, { .fields = { 48, 24 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 48, -120, 1265, { .fields = { 48, 16 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 56, -120, 1302, { .fields = { 48, 40 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 64, -120, 1240, { .fields = { 48, 32 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 72, -120, 1256, { .fields = { 56, 224 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 80, -120, 1184, { .fields = { 56, 184 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 88, -120, 1118, { .fields = { 48, 8 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 96, -120, 1109, { .fields = { 48, 0 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 40, -112, 1316, { .fields = { 48, 144 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 48, -112, 1284, { .fields = { 48, 136 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 56, -112, 1281, { .fields = { 48, 160 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 64, -112, 1275, { .fields = { 48, 152 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 72, -112, 1229, { .fields = { 48, 56 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 80, -112, 1209, { .fields = { 48, 48 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 88, -112, 1147, { .fields = { 48, 128 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 96, -112, 1048, { .fields = { 48, 64 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 48, -104, 1307, { .fields = { 64, 160 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 56, -104, 1300, { .fields = { 64, 152 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 64, -104, 1276, { .fields = { 64, 176 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 72, -104, 1258, { .fields = { 64, 168 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 80, -104, 1258, { .fields = { 64, 144 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 88, -104, 1189, { .fields = { 72, 224 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 96, -104, 1085, { .fields = { 80, 192 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 64, -96, 1287, { .fields = { 64, 136 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 72, -96, 1268, { .fields = { 64, 128 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 80, -96, 1240, { .fields = { 56, 160 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 88, -96, 1196, { .fields = { 56, 152 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 96, -96, 1081, { .fields = { 56, 176 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 104, -96, 1069, { .fields = { 56, 168 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 72, -88, 1267, { .fields = { 56, 144 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 80, -88, 1199, { .fields = { 64, 224 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 88, -88, 1174, { .fields = { 64, 184 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 96, -88, 1070, { .fields = { 56, 136 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
+    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 104, -88, 1054, { .fields = { 56, 128 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_acropolis_roof_garden_80186600[5] = {
+/// Sprite ranges for mapped roof-garden view 5.
+///
+/// Ranges cover all 47 source elements. The zero first count keeps
+/// decoded image strips; `SPRITE_BATCH_END` terminates the list.
+/// These writable records belong to the loaded room overlay.
+static SpriteBatch _gAcropolisRoofGardenView5SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 6, 0, 0, { 1, 0 } },
     { 6, 7, 0, 0, { 2, 0 } },
-    { 13, 34, 0, 0, { 0, 0 } },
+    { 13, ARRAY_SIZE(_gAcropolisRoofGardenView5SpriteSources) - 13, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_roof_garden_80186628[2] = {
+/// Empty sprite list for mapped roof-garden view 6.
+///
+/// The zero first count keeps decoded image strips; the next record ends
+/// the list. Its address also occupies the view's empty source slot.
+/// Storage belongs to the loaded room overlay.
+static SpriteBatch _gAcropolisRoofGardenView6SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_roof_garden_80186638[2] = {
+/// Empty sprite list for mapped roof-garden view 7.
+///
+/// The zero first count keeps decoded image strips; the next record ends
+/// the list. Its address also occupies the view's empty source slot.
+/// Storage belongs to the loaded room overlay.
+static SpriteBatch _gAcropolisRoofGardenView7SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_acropolis_roof_garden_80186648[7] = {
-    { { .empty = D_acropolis_roof_garden_80185994 }, D_acropolis_roof_garden_80185994, NULL },
-    { { .elements = D_acropolis_roof_garden_801859A4 }, D_acropolis_roof_garden_80185BAC, NULL },
-    { { .elements = D_acropolis_roof_garden_80185BC4 }, D_acropolis_roof_garden_80186038, NULL },
-    { { .elements = D_acropolis_roof_garden_80186080 }, D_acropolis_roof_garden_80186224, NULL },
-    { { .elements = D_acropolis_roof_garden_80186254 }, D_acropolis_roof_garden_80186600, NULL },
-    { { .empty = D_acropolis_roof_garden_80186628 }, D_acropolis_roof_garden_80186628, NULL },
-    { { .empty = D_acropolis_roof_garden_80186638 }, D_acropolis_roof_garden_80186638, NULL },
+SpriteView gAcropolisRoofGardenSpriteViews[ACROPOLIS_ROOF_GARDEN_VIEW_COUNT] = {
+    { { .empty = _gAcropolisRoofGardenView1SpriteBatches }, _gAcropolisRoofGardenView1SpriteBatches, NULL },
+    { { .elements = _gAcropolisRoofGardenView2SpriteSources }, _gAcropolisRoofGardenView2SpriteBatches, NULL },
+    { { .elements = _gAcropolisRoofGardenView3SpriteSources }, _gAcropolisRoofGardenView3SpriteBatches, NULL },
+    { { .elements = _gAcropolisRoofGardenView4SpriteSources }, _gAcropolisRoofGardenView4SpriteBatches, NULL },
+    { { .elements = _gAcropolisRoofGardenView5SpriteSources }, _gAcropolisRoofGardenView5SpriteBatches, NULL },
+    { { .empty = _gAcropolisRoofGardenView6SpriteBatches }, _gAcropolisRoofGardenView6SpriteBatches, NULL },
+    { { .empty = _gAcropolisRoofGardenView7SpriteBatches }, _gAcropolisRoofGardenView7SpriteBatches, NULL },
 };
 
 /// Authored point lights for model shading throughout the roof garden.
@@ -1031,12 +1145,21 @@ static WorldCoordPointLight _gAcropolisRoofGardenPointLights[] = {
     },
 };
 
-WorldCoordRoomLights D_acropolis_roof_garden_80186BDC[1] = {
-    { 0, NULL, ARRAY_SIZE(_gAcropolisRoofGardenPointLights), _gAcropolisRoofGardenPointLights, 0, NULL },
+/// Fourteen point lights used to shade models throughout roof-garden room 1.
+///
+/// No directional or cone lights are supplied. The collection borrows the
+/// overlay's mutable point-light array, whose coordinates lighting composes.
+static WorldCoordRoomLights _gAcropolisRoofGardenRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gAcropolisRoofGardenPointLights),
+    .pointLights           = _gAcropolisRoofGardenPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
-ViewCamera D_acropolis_roof_garden_80186BF4[8] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 5600, 0x7530, 5960 } }, 589 },
+ViewCamera gAcropolisRoofGardenViewCameras[8] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 5600, 0x7530, 5960 } }, 589 },
     { { { { -3911, 0, -1216 }, { 204, 4037, -656 }, { 1199, -687, -3855 } }, { 7887, 505, 6331 } }, 230 },
     { { { { 3788, 0, -1557 }, { 186, 4066, 454 }, { 1545, -491, 3761 } }, { 7879, 656, 0x29A1 } }, 230 },
     { { { { 3851, 0, -1394 }, { -208, 4049, -576 }, { 1379, 612, 3807 } }, { 5932, 1317, 8463 } }, 230 },
@@ -1051,33 +1174,58 @@ WorldCollisionOccluder D_acropolis_roof_garden_80186D14[2] = {
     { NULL, NULL, { -4576, -496, -4400, 0 }, { { -576, 928, 0, 0 }, { 576, 928, 0, 0 }, { -576, -928, 0, 0 }, { 576, -928, 0, 0 } }, { 0, 0, 4111, 0 }, 1086, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCollisionFootstepSounds D_acropolis_roof_garden_80186D8C = {
-    0x1000001D,
-    0x1000001F,
-    0x1000001D,
+/// Cue-2 script bases in the currently loaded type-1 sound bank.
+enum {
+    ACROPOLIS_ROOF_GARDEN_FOOTSTEP_WALK = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x1D,
+    ACROPOLIS_ROOF_GARDEN_FOOTSTEP_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x1F,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_roof_garden_80186D98[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Shared walking, running and scripted-jump cues for surface classes 1 and 2.
+///
+/// Cue 1 adds one to each base; companion playback adds 100. Scripted jumps
+/// use the walking pair. The surface records borrow this overlay-owned record.
+static WorldCollisionFootstepSounds _gAcropolisRoofGardenFootstepSounds = {
+    .walk         = ACROPOLIS_ROOF_GARDEN_FOOTSTEP_WALK,
+    .run          = ACROPOLIS_ROOF_GARDEN_FOOTSTEP_RUN,
+    .scriptedJump = ACROPOLIS_ROOF_GARDEN_FOOTSTEP_WALK,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_roof_garden_80186DA0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_roof_garden_80186D8C },
+/// Blocking, impact-enabled, pushback surfaces without footstep cues (classes 0, 3..7).
+static WorldCollisionSurfaceProperties _gAcropolisRoofGardenSilentSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_roof_garden_80186DA8[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_roof_garden_80186D8C },
+/// Blocking, impact-enabled, pushback surface class 1 with the room's footstep cues.
+static WorldCollisionSurfaceProperties _gAcropolisRoofGardenSurfaceClass1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gAcropolisRoofGardenFootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_acropolis_roof_garden_80186DB0[8] = {
-    D_acropolis_roof_garden_80186D98,
-    D_acropolis_roof_garden_80186DA0,
-    D_acropolis_roof_garden_80186DA8,
-    D_acropolis_roof_garden_80186D98,
-    D_acropolis_roof_garden_80186D98,
-    D_acropolis_roof_garden_80186D98,
-    D_acropolis_roof_garden_80186D98,
-    D_acropolis_roof_garden_80186D98,
+/// Blocking, impact-enabled, pushback surface class 2 with the room's footstep cues.
+static WorldCollisionSurfaceProperties _gAcropolisRoofGardenSurfaceClass2Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gAcropolisRoofGardenFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gAcropolisRoofGardenSurfacePropertiesByClass[8] = {
+    &_gAcropolisRoofGardenSilentSurfaceProperties,
+    &_gAcropolisRoofGardenSurfaceClass1Properties,
+    &_gAcropolisRoofGardenSurfaceClass2Properties,
+    &_gAcropolisRoofGardenSilentSurfaceProperties,
+    &_gAcropolisRoofGardenSilentSurfaceProperties,
+    &_gAcropolisRoofGardenSilentSurfaceProperties,
+    &_gAcropolisRoofGardenSilentSurfaceProperties,
+    &_gAcropolisRoofGardenSilentSurfaceProperties,
 };
 
 static TmdBone _gAcropolisRoofGardenModel09868Skeleton[1] = {
@@ -1574,7 +1722,7 @@ void acropolisRoofGardenLightGlowTask(Task* task)
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
-        if ((D_acropolis_roof_garden_80184C48[task->spawnArg1.value & ACROPOLIS_ROOF_GARDEN_LIGHT_INDEX_MASK] >> (gGameSession->location.loc.view - 1)) & 1) {
+        if ((_gAcropolisRoofGardenLightViewMasks[task->spawnArg1.value & ACROPOLIS_ROOF_GARDEN_LIGHT_INDEX_MASK] >> (gGameSession->location.loc.view - 1)) & 1) {
             actorRenderComposeCoord(coord);
             projection = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
             if (task->state == ACROPOLIS_ROOF_GARDEN_LIGHT_INITIALIZE) {
@@ -1732,56 +1880,56 @@ void acropolisRoofGardenFlareTask(Task* task)
                 quad           = gGpuPrimCursor;
                 gGpuPrimCursor = quad + 1;
                 ACROPOLIS_ROOF_GARDEN_INIT_FLARE_QUAD(quad, (intensity * (green ^ 1)) >> 1, (green * intensity) >> 1);
-                quad->x0 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 4]) >> GLOW_TRIG_SHIFT);
-                quad->y0 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex]) >> GLOW_TRIG_SHIFT);
-                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 5]) >> GLOW_TRIG_SHIFT);
-                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 1]) >> GLOW_TRIG_SHIFT);
+                quad->x0 = projection->screenPos.vx + ((projection->outerRadius * _gAcropolisRoofGardenFlareSineSamples[partIndex + 4]) >> GLOW_TRIG_SHIFT);
+                quad->y0 = projection->screenPos.vy + ((projection->outerRadius * _gAcropolisRoofGardenFlareSineSamples[partIndex]) >> GLOW_TRIG_SHIFT);
+                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * _gAcropolisRoofGardenFlareSineSamples[partIndex + 5]) >> GLOW_TRIG_SHIFT);
+                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * _gAcropolisRoofGardenFlareSineSamples[partIndex + 1]) >> GLOW_TRIG_SHIFT);
                 quad->x2 = projection->screenPos.vx;
                 quad->y2 = projection->screenPos.vy;
-                quad->x3 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 6]) >> GLOW_TRIG_SHIFT);
-                quad->y3 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 2]) >> GLOW_TRIG_SHIFT);
+                quad->x3 = projection->screenPos.vx + ((projection->outerRadius * _gAcropolisRoofGardenFlareSineSamples[partIndex + 6]) >> GLOW_TRIG_SHIFT);
+                quad->y3 = projection->screenPos.vy + ((projection->outerRadius * _gAcropolisRoofGardenFlareSineSamples[partIndex + 2]) >> GLOW_TRIG_SHIFT);
                 _acropolisRoofGardenQueueFlare(quad, &projection->otz);
 
                 quad           = gGpuPrimCursor;
                 gGpuPrimCursor = quad + 1;
                 ACROPOLIS_ROOF_GARDEN_INIT_FLARE_QUAD(quad, intensity * (green ^ 1), green * intensity);
-                quad->x0 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 4]) >> (GLOW_TRIG_SHIFT + 1));
-                quad->y0 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex]) >> (GLOW_TRIG_SHIFT + 1));
-                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 5]) >> (GLOW_TRIG_SHIFT + 1));
-                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 1]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->x0 = projection->screenPos.vx + ((projection->outerRadius * _gAcropolisRoofGardenFlareSineSamples[partIndex + 4]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y0 = projection->screenPos.vy + ((projection->outerRadius * _gAcropolisRoofGardenFlareSineSamples[partIndex]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * _gAcropolisRoofGardenFlareSineSamples[partIndex + 5]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * _gAcropolisRoofGardenFlareSineSamples[partIndex + 1]) >> (GLOW_TRIG_SHIFT + 1));
                 quad->x2 = projection->screenPos.vx;
                 quad->y2 = projection->screenPos.vy;
-                quad->x3 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 6]) >> (GLOW_TRIG_SHIFT + 1));
-                quad->y3 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 2]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->x3 = projection->screenPos.vx + ((projection->outerRadius * _gAcropolisRoofGardenFlareSineSamples[partIndex + 6]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y3 = projection->screenPos.vy + ((projection->outerRadius * _gAcropolisRoofGardenFlareSineSamples[partIndex + 2]) >> (GLOW_TRIG_SHIFT + 1));
                 _acropolisRoofGardenQueueFlare(quad, &projection->otz);
             }
-            // The first ray retains a Y-sample lookup at index -2.
+            // The first ray fetches light-view mask 8 (16) through sine index -2.
             halfIntensity = intensity >> 1;
             for (partIndex = 2; partIndex < ACROPOLIS_ROOF_GARDEN_FLARE_CIRCLE_STEPS; partIndex += 8) {
                 quad           = gGpuPrimCursor;
                 gGpuPrimCursor = quad + 1;
                 ACROPOLIS_ROOF_GARDEN_INIT_FLARE_QUAD(quad, halfIntensity * (green ^ 1), green * halfIntensity);
-                quad->x0 = projection->screenPos.vx + ((projection->innerRadius * D_acropolis_roof_garden_80184C5C[partIndex]) >> GLOW_TRIG_SHIFT);
-                quad->y0 = projection->screenPos.vy + ((projection->innerRadius * D_acropolis_roof_garden_80184C5C[partIndex - 4]) >> GLOW_TRIG_SHIFT);
-                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 4]) >> (GLOW_TRIG_SHIFT - 1));
-                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex]) >> (GLOW_TRIG_SHIFT - 1));
+                quad->x0 = projection->screenPos.vx + ((projection->innerRadius * _gAcropolisRoofGardenFlareSineSamples[partIndex]) >> GLOW_TRIG_SHIFT);
+                quad->y0 = projection->screenPos.vy + ((projection->innerRadius * _gAcropolisRoofGardenFlareSineSamples[partIndex - 4]) >> GLOW_TRIG_SHIFT);
+                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * _gAcropolisRoofGardenFlareSineSamples[partIndex + 4]) >> (GLOW_TRIG_SHIFT - 1));
+                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * _gAcropolisRoofGardenFlareSineSamples[partIndex]) >> (GLOW_TRIG_SHIFT - 1));
                 quad->x2 = projection->screenPos.vx;
                 quad->y2 = projection->screenPos.vy;
-                quad->x3 = projection->screenPos.vx + ((projection->innerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 8]) >> GLOW_TRIG_SHIFT);
-                quad->y3 = projection->screenPos.vy + ((projection->innerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 4]) >> GLOW_TRIG_SHIFT);
+                quad->x3 = projection->screenPos.vx + ((projection->innerRadius * _gAcropolisRoofGardenFlareSineSamples[partIndex + 8]) >> GLOW_TRIG_SHIFT);
+                quad->y3 = projection->screenPos.vy + ((projection->innerRadius * _gAcropolisRoofGardenFlareSineSamples[partIndex + 4]) >> GLOW_TRIG_SHIFT);
                 _acropolisRoofGardenQueueFlare(quad, &projection->otz);
 
                 quad           = gGpuPrimCursor;
                 gGpuPrimCursor = quad + 1;
                 ACROPOLIS_ROOF_GARDEN_INIT_FLARE_QUAD(quad, halfIntensity * (green ^ 1), green * halfIntensity);
-                quad->x0 = projection->screenPos.vx + ((projection->innerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 4]) >> (GLOW_TRIG_SHIFT + 1));
-                quad->y0 = projection->screenPos.vy + ((projection->innerRadius * D_acropolis_roof_garden_80184C5C[partIndex]) >> (GLOW_TRIG_SHIFT + 1));
-                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 8]) >> GLOW_TRIG_SHIFT);
-                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 4]) >> GLOW_TRIG_SHIFT);
+                quad->x0 = projection->screenPos.vx + ((projection->innerRadius * _gAcropolisRoofGardenFlareSineSamples[partIndex + 4]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y0 = projection->screenPos.vy + ((projection->innerRadius * _gAcropolisRoofGardenFlareSineSamples[partIndex]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * _gAcropolisRoofGardenFlareSineSamples[partIndex + 8]) >> GLOW_TRIG_SHIFT);
+                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * _gAcropolisRoofGardenFlareSineSamples[partIndex + 4]) >> GLOW_TRIG_SHIFT);
                 quad->x2 = projection->screenPos.vx;
                 quad->y2 = projection->screenPos.vy;
-                quad->x3 = projection->screenPos.vx + ((projection->innerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 12]) >> (GLOW_TRIG_SHIFT + 1));
-                quad->y3 = projection->screenPos.vy + ((projection->innerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 8]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->x3 = projection->screenPos.vx + ((projection->innerRadius * _gAcropolisRoofGardenFlareSineSamples[partIndex + 12]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y3 = projection->screenPos.vy + ((projection->innerRadius * _gAcropolisRoofGardenFlareSineSamples[partIndex + 8]) >> (GLOW_TRIG_SHIFT + 1));
                 _acropolisRoofGardenQueueFlare(quad, &projection->otz);
             }
         } else {

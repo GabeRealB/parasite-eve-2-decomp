@@ -19,19 +19,49 @@ extern TmdSource gAcropolisRoofGardenModel09868;
 // acropolis_roof_garden
 extern WorldCollisionRoomResources D_acropolis_roof_garden_80184C8C[];
 
-extern u8* D_acropolis_roof_garden_80184C9C[];
+/// Number of logical views in the roof garden's single room.
+enum { ACROPOLIS_ROOF_GARDEN_VIEW_COUNT = 7 };
 
-extern ViewCount D_acropolis_roof_garden_80184CA0[];
+/// Logical-to-mapped view directory for roof-garden room 1.
+///
+/// Borrows `gViewIdentityMap`: logical views 1..7 select the same camera,
+/// image and sprite indices. The directory lives with the loaded room overlay.
+extern u8* gAcropolisRoofGardenViewMaps[1];
 
-extern WorldCoordRoomLighting D_acropolis_roof_garden_80184CA4[];
+/// Reverse-lookup view count for roof-garden room 1, in logical-view elements.
+///
+/// Seven entries of the borrowed identity map are searched; this count does
+/// not describe the camera array's capacity. Storage lives with the overlay.
+extern ViewCount gAcropolisRoofGardenViewCounts[1];
+
+/// Model-shading lights and ambient policy for roof-garden room 1.
+///
+/// Borrows fourteen mutable point lights and uses the default ambient minima.
+/// The descriptor and its light collection stay live while the overlay is loaded.
+extern WorldCoordRoomLighting gAcropolisRoofGardenRoomLightingTable[1];
 
 extern DirectionWarpEntry D_acropolis_roof_garden_80184CAC[];
 
-extern SpriteView D_acropolis_roof_garden_80186648[];
+/// Sprite overlays for mapped roof-garden views 1..7, indexed by view minus one.
+///
+/// Views 2..5 borrow source rectangles and range lists; views 1, 6 and 7 have
+/// empty lists. Every view keeps decoded image strips and has no clip list.
+/// Descriptors and their mutable arrays live with the loaded room overlay.
+extern SpriteView gAcropolisRoofGardenSpriteViews[ACROPOLIS_ROOF_GARDEN_VIEW_COUNT];
 
-extern ViewCamera D_acropolis_roof_garden_80186BF4[];
+/// Camera transforms and pixel projection distances for the roof garden.
+///
+/// Mapped views 1..7 select entries 0..6. Entry 7 is retained authored storage;
+/// its use is unproven. Rotation has 12 fractional bits and translation is
+/// the negated world-space camera origin. Storage lives with the room overlay.
+extern ViewCamera gAcropolisRoofGardenViewCameras[8];
 
-extern WorldCollisionSurfaceProperties* D_acropolis_roof_garden_80186DB0[];
+/// Collision and footstep policies indexed by roof-garden surface class 0..7.
+///
+/// Every class blocks probes, allows weapon impacts and applies pushback.
+/// Classes 1 and 2 share footstep cues; the other classes are silent.
+/// The directory and borrowed records live with the loaded room overlay.
+extern WorldCollisionSurfaceProperties* gAcropolisRoofGardenSurfacePropertiesByClass[8];
 
 /// Places the roof garden's ten light glows and emits its view-dependent red flares.
 ///
