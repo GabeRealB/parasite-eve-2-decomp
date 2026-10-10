@@ -55,6 +55,7 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/sound.h"
+#include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
@@ -69,6 +70,13 @@
 #include "../../shared/water_effects.h"
 #include "../../shared/room_events.h"
 
+/// Fixed room-space geometry selected by the septic tank's mapped view.
+typedef struct {
+    SVECTOR beamEnds[35][2]; // Consecutive endpoint pairs, each borrowed by one beam draw
+    SVECTOR discCenters[3];  // Indicator centres (0 green, 1 upper red, 2 left red)
+} _ShelterB2SepticTankGlowPoints;
+STATIC_ASSERT_SIZEOF(_ShelterB2SepticTankGlowPoints, 0x248);
+
 static void _waterDrawSpin(const GfxCoord* coord, s16 textureColumn, s16 radiusScale, s16 spinAngle);
 static void _waterDrawTile(const GfxCoord* coord, s16 frameIndex, s16 radiusScale);
 
@@ -79,13 +87,6 @@ extern EvsCommand       D_shelter_b2_septic_tank_8018310C[];
 
 /// Tasks the room's first task state spawns.
 extern TaskDesc D_shelter_b2_septic_tank_801832C0[];
-
-extern SVECTOR D_shelter_b2_septic_tank_80183314[];
-extern SVECTOR D_shelter_b2_septic_tank_80183344[];
-extern SVECTOR D_shelter_b2_septic_tank_80183374[];
-extern SVECTOR D_shelter_b2_septic_tank_80183514[];
-extern SVECTOR D_shelter_b2_septic_tank_80183524[];
-extern SVECTOR D_shelter_b2_septic_tank_80183534[];
 
 extern u8 D_shelter_b2_septic_tank_80187045;
 
@@ -254,100 +255,58 @@ static RoomWaterSurface _gShelterB2SepticTankSecondWaterWaveSurfaces[] = {
     { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
 
-SVECTOR D_shelter_b2_septic_tank_80183314[6] = {
-    { -813, -33, -0x31FC, 0 },
-    { -813, -33, -0x3022, 0 },
-    { -813, -33, -0x29AC, 0 },
-    { -813, -33, -0x27DA, 0 },
-    { -813, -33, -8572, 0 },
-    { -813, -33, -8114, 0 },
-};
-
-SVECTOR D_shelter_b2_septic_tank_80183344[6] = {
-    { -813, -33, -6503, 0 },
-    { -813, -33, -6051, 0 },
-    { -813, -33, -4335, 0 },
-    { -813, -33, -3968, 0 },
-    { -813, -33, -2372, 0 },
-    { -813, -33, -1929, 0 },
-};
-
-SVECTOR D_shelter_b2_septic_tank_80183374[52] = {
-    { -1941, -33, -404, 0 },
-    { -1941, -33, 38, 0 },
-    { 813, -33, -0x31FC, 0 },
-    { 813, -33, -0x3022, 0 },
-    { 813, -33, -0x29AC, 0 },
-    { 813, -33, -0x27DA, 0 },
-    { 813, -33, -8572, 0 },
-    { 813, -33, -8114, 0 },
-    { 813, -33, -6503, 0 },
-    { 813, -33, -6051, 0 },
-    { 813, -33, -4335, 0 },
-    { 813, -33, -3968, 0 },
-    { 813, -33, -2372, 0 },
-    { 813, -33, -1929, 0 },
-    { 1962, -33, -404, 0 },
-    { 1962, -33, 38, 0 },
-    { -3238, -3345, -0x32B1, 0 },
-    { -3238, -3345, -0x2F8D, 0 },
-    { -3238, -3345, -0x2CF9, 0 },
-    { -3238, -3345, -0x29D5, 0 },
-    { -3238, -3345, -9590, 0 },
-    { -3238, -3345, -8678, 0 },
-    { -3238, -3345, -7933, 0 },
-    { -3238, -3345, -7018, 0 },
-    { -3238, -3345, -5910, 0 },
-    { -3238, -3345, -5104, 0 },
-    { -3238, -3345, -4443, 0 },
-    { -3238, -3345, -3639, 0 },
-    { -3238, -3345, -2527, 0 },
-    { -3238, -3345, -1613, 0 },
-    { -3238, -3345, -868, 0 },
-    { -3238, -3345, 42, 0 },
-    { 3238, -3345, -0x32B1, 0 },
-    { 3238, -3345, -0x2F8D, 0 },
-    { 3238, -3345, -0x2CF9, 0 },
-    { 3238, -3345, -0x29D5, 0 },
-    { 3238, -3345, -9590, 0 },
-    { 3238, -3345, -8678, 0 },
-    { 3238, -3345, -7933, 0 },
-    { 3238, -3345, -7018, 0 },
-    { 3238, -3345, -5910, 0 },
-    { 3238, -3345, -5104, 0 },
-    { 3238, -3345, -4443, 0 },
-    { 3238, -3345, -3639, 0 },
-    { 3238, -3345, -2527, 0 },
-    { 3238, -3345, -1613, 0 },
-    { 3238, -3345, -868, 0 },
-    { 3238, -3345, 42, 0 },
-    { -2971, -2126, -0x352D, 0 },
-    { -2223, -2126, -0x352D, 0 },
-    { 2153, -2126, -0x352D, 0 },
-    { 2891, -2126, -0x352D, 0 },
-};
-
-SVECTOR D_shelter_b2_septic_tank_80183514[2] = {
-    { -2739, -2387, 577, 0 },
-    { -1999, -2387, 577, 0 },
-};
-
-SVECTOR D_shelter_b2_septic_tank_80183524[2] = {
-    { 1527, -2387, 577, 0 },
-    { 2265, -2387, 577, 0 },
-};
-
-SVECTOR D_shelter_b2_septic_tank_80183534[5] = {
-    { -368, -2420, -105, 0 },
-    { 370, -2420, -105, 0 },
-    { 29, -3157, -0x34E8, 0 },
-    { 407, -4428, -0x34E8, 0 },
-    { -2557, -2725, -0x34E8, 0 },
+/// Authored world-space beam endpoint pairs and indicator-disc centres.
+///
+/// Coordinates are signed game units, borrowed only during glow drawing.
+/// Each mapped view selects a subset of the pairs and coloured discs.
+static _ShelterB2SepticTankGlowPoints _gShelterB2SepticTankGlowPoints = {
+    {
+        { { -813, -33, -0x31FC, 0 }, { -813, -33, -0x3022, 0 } },
+        { { -813, -33, -0x29AC, 0 }, { -813, -33, -0x27DA, 0 } },
+        { { -813, -33, -8572, 0 }, { -813, -33, -8114, 0 } },
+        { { -813, -33, -6503, 0 }, { -813, -33, -6051, 0 } },
+        { { -813, -33, -4335, 0 }, { -813, -33, -3968, 0 } },
+        { { -813, -33, -2372, 0 }, { -813, -33, -1929, 0 } },
+        { { -1941, -33, -404, 0 }, { -1941, -33, 38, 0 } },
+        { { 813, -33, -0x31FC, 0 }, { 813, -33, -0x3022, 0 } },
+        { { 813, -33, -0x29AC, 0 }, { 813, -33, -0x27DA, 0 } },
+        { { 813, -33, -8572, 0 }, { 813, -33, -8114, 0 } },
+        { { 813, -33, -6503, 0 }, { 813, -33, -6051, 0 } },
+        { { 813, -33, -4335, 0 }, { 813, -33, -3968, 0 } },
+        { { 813, -33, -2372, 0 }, { 813, -33, -1929, 0 } },
+        { { 1962, -33, -404, 0 }, { 1962, -33, 38, 0 } },
+        { { -3238, -3345, -0x32B1, 0 }, { -3238, -3345, -0x2F8D, 0 } },
+        { { -3238, -3345, -0x2CF9, 0 }, { -3238, -3345, -0x29D5, 0 } },
+        { { -3238, -3345, -9590, 0 }, { -3238, -3345, -8678, 0 } },
+        { { -3238, -3345, -7933, 0 }, { -3238, -3345, -7018, 0 } },
+        { { -3238, -3345, -5910, 0 }, { -3238, -3345, -5104, 0 } },
+        { { -3238, -3345, -4443, 0 }, { -3238, -3345, -3639, 0 } },
+        { { -3238, -3345, -2527, 0 }, { -3238, -3345, -1613, 0 } },
+        { { -3238, -3345, -868, 0 }, { -3238, -3345, 42, 0 } },
+        { { 3238, -3345, -0x32B1, 0 }, { 3238, -3345, -0x2F8D, 0 } },
+        { { 3238, -3345, -0x2CF9, 0 }, { 3238, -3345, -0x29D5, 0 } },
+        { { 3238, -3345, -9590, 0 }, { 3238, -3345, -8678, 0 } },
+        { { 3238, -3345, -7933, 0 }, { 3238, -3345, -7018, 0 } },
+        { { 3238, -3345, -5910, 0 }, { 3238, -3345, -5104, 0 } },
+        { { 3238, -3345, -4443, 0 }, { 3238, -3345, -3639, 0 } },
+        { { 3238, -3345, -2527, 0 }, { 3238, -3345, -1613, 0 } },
+        { { 3238, -3345, -868, 0 }, { 3238, -3345, 42, 0 } },
+        { { -2971, -2126, -0x352D, 0 }, { -2223, -2126, -0x352D, 0 } },
+        { { 2153, -2126, -0x352D, 0 }, { 2891, -2126, -0x352D, 0 } },
+        { { -2739, -2387, 577, 0 }, { -1999, -2387, 577, 0 } },
+        { { 1527, -2387, 577, 0 }, { 2265, -2387, 577, 0 } },
+        { { -368, -2420, -105, 0 }, { 370, -2420, -105, 0 } },
+    },
+    {
+        { 29, -3157, -0x34E8, 0 },
+        { 407, -4428, -0x34E8, 0 },
+        { -2557, -2725, -0x34E8, 0 },
+    },
 };
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-u8* D_shelter_b2_septic_tank_8018356C[1] = {
+u8* gShelterB2SepticTankViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -418,32 +377,38 @@ SVECTOR D_shelter_b2_septic_tank_801836B4[12] = {
     { 0, 0, 0, -1 },
 };
 
-static SVECTOR _gShelterB2SepticTankCollision0684CNormals[18] = {
+/// Room-space face normals, with 4096 representing unit length.
+static SVECTOR _gShelterB2SepticTankCollisionGridNormals[18] = {
 #include "assets/shelter_b2_septic_tank_collision_0684C_normals.inc"
 };
 
-static SVECTOR _gShelterB2SepticTankCollision0684CVerts[82] = {
+/// Collision-mesh positions in signed room-space game units.
+static SVECTOR _gShelterB2SepticTankCollisionGridVerts[82] = {
 #include "assets/shelter_b2_septic_tank_collision_0684C_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB2SepticTankCollision0684CFaces[31] = {
+/// Indexed collision triangles and quads with room-local surface classes.
+static WorldCollisionGridFace _gShelterB2SepticTankCollisionGridFaces[31] = {
 #include "assets/shelter_b2_septic_tank_collision_0684C_faces.inc"
 };
 
-static s16 _gShelterB2SepticTankCollision0684CCells[270] = {
+/// Signed face-index lists, each ending with WORLD_COLLISION_GRID_CELL_END.
+static s16 _gShelterB2SepticTankCollisionGridCells[270] = {
 #include "assets/shelter_b2_septic_tank_collision_0684C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB2SepticTankCollision0684CCells[i])
-static s16* _gShelterB2SepticTankCollision0684CTable[18] = {
+/// Asset-table binding: a constant halfword-element index into the room cell lists.
+#define GRID_CELL(i) (&_gShelterB2SepticTankCollisionGridCells[i])
+/// X-major cell directory: three rows of six terminated face-index lists.
+static s16* _gShelterB2SepticTankCollisionGridTable[18] = {
 #include "assets/shelter_b2_septic_tank_collision_0684C_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b2_septic_tank_80183E0C = { NULL, _gShelterB2SepticTankCollision0684CNormals, _gShelterB2SepticTankCollision0684CVerts, _gShelterB2SepticTankCollision0684CFaces, _gShelterB2SepticTankCollision0684CTable, 5374, 0x47A9, 3, 6, 4000, 31 };
+WorldCollisionGrid gShelterB2SepticTankCollisionGrid = { NULL, _gShelterB2SepticTankCollisionGridNormals, _gShelterB2SepticTankCollisionGridVerts, _gShelterB2SepticTankCollisionGridFaces, _gShelterB2SepticTankCollisionGridTable, 5374, 0x47A9, 3, 6, 4000, ARRAY_SIZE(_gShelterB2SepticTankCollisionGridFaces) };
 
-ViewCamera D_shelter_b2_septic_tank_80183E30[6] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 34, 0x510F, 6334 } }, 230 },
+ViewCamera gShelterB2SepticTankViewCameras[6] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 34, 0x510F, 6334 } }, 230 },
     { { { { -4042, 0, -661 }, { -25, 4093, 153 }, { 661, 155, -4039 } }, { 821, 1121, 8316 } }, 275 },
     { { { { -4032, 0, -719 }, { 3, 4095, -19 }, { 719, -19, -4032 } }, { 792, 1135, 3708 } }, 269 },
     { { { { 4049, 0, -613 }, { -63, 4074, -418 }, { 609, 422, 4028 } }, { 750, 1507, 9189 } }, 269 },
@@ -451,98 +416,114 @@ ViewCamera D_shelter_b2_septic_tank_80183E30[6] = {
     { { { { -4024, 0, 763 }, { -152, 4013, -804 }, { -748, -819, -3942 } }, { 1196, 493, 5408 } }, 297 },
 };
 
-SpriteBatch D_shelter_b2_septic_tank_80183F08[2] = {
+// Packed GPU addresses and neutral modulation for the view's 8-bit source rectangles.
+enum {
+    SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896 = getTPage(1, GPU_BLEND_AVERAGE, 896, 0),
+    SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960 = getTPage(1, GPU_BLEND_AVERAGE, 960, 0),
+    SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT     = getClut(0, 255),
+    SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL  = 128
+};
+
+/// Empty sprite list for mapped view 1, preserving decoded background strips.
+static SpriteBatch _gShelterB2SepticTankView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_septic_tank_80183F18[83] = {
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 40, 112, 525, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 40, 104, 535, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 40, 96, 534, { .fields = { 96, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 40, 88, 574, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 40, 80, 794, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 40, 72, 890, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 40, 64, 937, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 40, 56, 1000, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 40, 48, 1048, { .fields = { 104, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 40, 40, 1092, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -160, 112, 674, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -160, 104, 662, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -144, 104, 667, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -160, 96, 678, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -144, 96, 662, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -128, 88, 666, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -152, 88, 670, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -56, 32, 1335, { .fields = { 104, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -56, 40, 1314, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -72, 40, 1247, { .fields = { 112, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -56, 48, 1264, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -80, 48, 1217, { .fields = { 104, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -96, 56, 1039, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -72, 56, 1108, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -136, 80, 734, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -112, 80, 858, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -120, 72, 799, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -96, 72, 947, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -112, 64, 879, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -80, 64, 1036, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 56, 72, 1000, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 56, 64, 1025, { .fields = { 80, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 48, 56, 1037, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 48, 48, 1176, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 48, 40, 1460, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -96, 64, 1408, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -96, 56, 1050, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -96, 48, 1125, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -96, 40, 1370, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -112, 112, 895, { .fields = { 56, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -64, 112, 895, { .fields = { 88, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -24, 112, 911, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -104, 104, 936, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -64, 104, 936, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -24, 104, 936, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -96, 96, 983, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -56, 96, 983, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -16, 96, 983, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -88, 88, 1036, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -48, 88, 1036, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -16, 88, 1036, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -80, 80, 1099, { .fields = { 72, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -48, 80, 1083, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -8, 80, 1099, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -64, 72, 1173, { .fields = { 64, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -32, 72, 1173, { .fields = { 64, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 0, 72, 1157, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -56, 64, 1247, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -16, 64, 1247, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -48, 56, 1340, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -8, 56, 1340, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -40, 48, 1428, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 0, 48, 1444, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -40, 40, 1564, { .fields = { 32, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 0, 40, 1386, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 8, 112, 788, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 8, 104, 818, { .fields = { 40, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 8, 96, 864, { .fields = { 32, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 16, 88, 936, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 16, 80, 996, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 16, 72, 1057, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 16, 64, 1141, { .fields = { 40, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 24, 56, 1242, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 24, 48, 1363, { .fields = { 48, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -152, 112, 783, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -144, 104, 816, { .fields = { 0, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -136, 96, 869, { .fields = { 0, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -120, 88, 931, { .fields = { 8, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -104, 80, 992, { .fields = { 16, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -96, 72, 1056, { .fields = { 16, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -80, 64, 1130, { .fields = { 24, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -72, 56, 1238, { .fields = { 16, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -56, 48, 1235, { .fields = { 32, 176 } }, 128, 128, 128, 0 },
+/// Foreground texture rectangles and sorting depths for mapped view 2.
+///
+/// Positions and sizes are pixels; UVs are texels within the encoded page.
+/// The view's batches select all 83 elements without a source terminator.
+static SpriteSource _gShelterB2SepticTankView2SpriteSources[83] = {
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 40, 112, 525, { .fields = { 96, 64 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 40, 104, 535, { .fields = { 96, 72 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 40, 96, 534, { .fields = { 96, 8 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 40, 88, 574, { .fields = { 96, 16 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 40, 80, 794, { .fields = { 96, 0 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 40, 72, 890, { .fields = { 104, 160 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 40, 64, 937, { .fields = { 88, 120 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 40, 56, 1000, { .fields = { 104, 48 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 40, 48, 1048, { .fields = { 104, 56 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 40, 40, 1092, { .fields = { 104, 40 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -160, 112, 674, { .fields = { 88, 32 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -160, 104, 662, { .fields = { 112, 88 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -144, 104, 667, { .fields = { 104, 144 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -160, 96, 678, { .fields = { 112, 80 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -144, 96, 662, { .fields = { 96, 112 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -128, 88, 666, { .fields = { 96, 96 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -152, 88, 670, { .fields = { 104, 128 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -56, 32, 1335, { .fields = { 104, 24 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -56, 40, 1314, { .fields = { 112, 120 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -72, 40, 1247, { .fields = { 112, 152 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -56, 48, 1264, { .fields = { 112, 136 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -80, 48, 1217, { .fields = { 104, 176 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -96, 56, 1039, { .fields = { 104, 232 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -72, 56, 1108, { .fields = { 104, 168 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -136, 80, 734, { .fields = { 104, 200 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -112, 80, 858, { .fields = { 104, 184 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -120, 72, 799, { .fields = { 104, 208 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -96, 72, 947, { .fields = { 104, 216 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -112, 64, 879, { .fields = { 96, 240 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -80, 64, 1036, { .fields = { 112, 224 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 56, 72, 1000, { .fields = { 88, 80 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 56, 64, 1025, { .fields = { 80, 40 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 48, 56, 1037, { .fields = { 96, 248 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 48, 48, 1176, { .fields = { 80, 136 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 48, 40, 1460, { .fields = { 80, 88 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -96, 64, 1408, { .fields = { 96, 224 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -96, 56, 1050, { .fields = { 104, 192 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -96, 48, 1125, { .fields = { 72, 152 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, -96, 40, 1370, { .fields = { 56, 48 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, -112, 112, 895, { .fields = { 56, 24 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -64, 112, 895, { .fields = { 88, 104 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -24, 112, 911, { .fields = { 64, 144 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -104, 104, 936, { .fields = { 64, 208 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -64, 104, 936, { .fields = { 64, 128 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -24, 104, 936, { .fields = { 64, 176 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -96, 96, 983, { .fields = { 64, 160 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -56, 96, 983, { .fields = { 64, 192 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -16, 96, 983, { .fields = { 64, 248 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -88, 88, 1036, { .fields = { 64, 184 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -48, 88, 1036, { .fields = { 72, 216 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -16, 88, 1036, { .fields = { 64, 200 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -80, 80, 1099, { .fields = { 72, 168 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -48, 80, 1083, { .fields = { 64, 232 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -8, 80, 1099, { .fields = { 64, 0 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -64, 72, 1173, { .fields = { 64, 8 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -32, 72, 1173, { .fields = { 64, 16 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 0, 72, 1157, { .fields = { 72, 64 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -56, 64, 1247, { .fields = { 56, 72 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -16, 64, 1247, { .fields = { 56, 96 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -48, 56, 1340, { .fields = { 56, 112 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -8, 56, 1340, { .fields = { 56, 224 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -40, 48, 1428, { .fields = { 56, 240 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 0, 48, 1444, { .fields = { 56, 80 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -40, 40, 1564, { .fields = { 32, 152 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 0, 40, 1386, { .fields = { 56, 32 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, 8, 112, 788, { .fields = { 32, 40 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, 8, 104, 818, { .fields = { 40, 104 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, 8, 96, 864, { .fields = { 32, 136 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, 16, 88, 936, { .fields = { 64, 56 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, 16, 80, 996, { .fields = { 40, 88 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, 16, 72, 1057, { .fields = { 32, 168 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 16, 64, 1141, { .fields = { 40, 64 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 24, 56, 1242, { .fields = { 64, 120 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 24, 48, 1363, { .fields = { 48, 216 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 64, 8 } }, -152, 112, 783, { .fields = { 0, 0 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 64, 8 } }, -144, 104, 816, { .fields = { 0, 8 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 64, 8 } }, -136, 96, 869, { .fields = { 0, 16 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 56, 8 } }, -120, 88, 931, { .fields = { 8, 56 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, -104, 80, 992, { .fields = { 16, 120 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, -96, 72, 1056, { .fields = { 16, 128 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -80, 64, 1130, { .fields = { 24, 144 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, -72, 56, 1238, { .fields = { 16, 160 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -56, 48, 1235, { .fields = { 32, 176 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
 };
 
-SpriteBatch D_shelter_b2_septic_tank_80184594[6] = {
+/// Four foreground ranges for mapped view 2, after a zero-count background selector.
+///
+/// Ranges partition all 83 sources; SPRITE_BATCH_END terminates the list.
+static SpriteBatch _gShelterB2SepticTankView2SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 30, 0, 0, { 3, 0 } },
     { 30, 9, 0, 0, { 0, 0 } },
@@ -551,137 +532,144 @@ SpriteBatch D_shelter_b2_septic_tank_80184594[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_septic_tank_801845C4[127] = {
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 64, 64, 1575, { .fields = { 120, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 56, 64, 1575, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 72, 72, 1575, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 80, 80, 1575, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 88, 88, 1575, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 96, 96, 1575, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 104, 96, 1575, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 48, 112, 666, { .fields = { 88, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 48, 104, 709, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 48, 96, 760, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 48, 88, 819, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 48, 80, 890, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 48, 72, 979, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 48, 64, 1098, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 48, 56, 1200, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 48, 48, 1392, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 48, 40, 1632, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 48, 32, 1964, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 48, 24, 2363, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -8, 24, 2528, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -8, 32, 2382, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -24, 32, 1928, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -16, 40, 1953, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 40, 1632, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -32, 48, 1589, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -56, 48, 1367, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -48, 56, 1351, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 56, 1216, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -56, 64, 1226, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -80, 64, 1053, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -72, 72, 1113, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -96, 72, 951, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -88, 80, 956, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -112, 80, 915, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -96, 88, 895, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -120, 88, 844, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -112, 96, 800, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -136, 96, 801, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -120, 104, 754, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -152, 104, 759, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -136, 112, 717, { .fields = { 56, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, 112, 700, { .fields = { 80, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 48, 24, 2070, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -16, 24, 2139, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -160, 80, 1278, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -160, 72, 1164, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -160, 64, 1165, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -160, 56, 1165, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -120, 56, 0, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -112, 40, 0, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -136, 48, 1352, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, 48, 1240, { .fields = { 72, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, 40, 1224, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -136, 40, 1352, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -120, 32, 0, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -80, 24, 1988, { .fields = { 72, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -80, 16, 4569, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -104, 32, 1605, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -104, 40, 1604, { .fields = { 64, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -104, 48, 1604, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -104, 56, 1604, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -80, 32, 1988, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -80, 40, 1988, { .fields = { 72, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -80, 48, 1987, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -80, 56, 0, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -96, 112, 917, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 0, 24, 2631, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 0, 32, 2384, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -32, 112, 917, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -80, 104, 966, { .fields = { 32, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -24, 104, 966, { .fields = { 32, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -72, 96, 1023, { .fields = { 16, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -16, 96, 1039, { .fields = { 32, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -64, 88, 1090, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -8, 88, 1090, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -56, 80, 1170, { .fields = { 32, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -8, 80, 1170, { .fields = { 40, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -48, 72, 1267, { .fields = { 32, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 0, 72, 1267, { .fields = { 40, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -40, 64, 1386, { .fields = { 48, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 0, 64, 1386, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -24, 56, 1538, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 8, 56, 1538, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -16, 48, 1736, { .fields = { 40, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 16, 48, 1736, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -8, 40, 1991, { .fields = { 24, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -128, 112, 890, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -112, 104, 927, { .fields = { 24, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -8, 24, 2636, { .fields = { 40, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -8, 32, 2269, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -24, 40, 1982, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -32, 48, 1710, { .fields = { 40, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -48, 56, 1505, { .fields = { 24, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -56, 64, 1352, { .fields = { 24, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -72, 72, 1231, { .fields = { 32, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -80, 80, 1138, { .fields = { 8, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -96, 88, 1052, { .fields = { 8, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -104, 96, 991, { .fields = { 0, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 24, 64, 2472, { .fields = { 32, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 32, 32, 2175, { .fields = { 24, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 32, 40, 1987, { .fields = { 24, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 32, 48, 1696, { .fields = { 24, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 32, 56, 1489, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 32, 64, 1352, { .fields = { 16, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 24, 72, 1231, { .fields = { 8, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 24, 80, 1140, { .fields = { 8, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 24, 88, 1036, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 24, 96, 991, { .fields = { 16, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 16, 104, 933, { .fields = { 0, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 16, 112, 896, { .fields = { 0, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 128, 72, 1446, { .fields = { 0, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 128, 64, 1500, { .fields = { 8, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 128, 56, 1372, { .fields = { 8, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 128, 48, 1372, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 128, 40, 1372, { .fields = { 32, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 128, 32, 1372, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 128, 24, 1373, { .fields = { 8, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 104, 24, 0, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 112, 40, 1750, { .fields = { 16, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 112, 48, 1750, { .fields = { 16, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 112, 32, 1750, { .fields = { 16, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 112, 24, 1766, { .fields = { 16, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 104, 16, 1776, { .fields = { 8, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 104, 8, 1767, { .fields = { 8, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 104, 0, 4276, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 112, 64, 0, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 112, 56, 1940, { .fields = { 8, 24 } }, 128, 128, 128, 0 },
+/// Foreground texture rectangles and sorting depths for mapped view 3.
+///
+/// Positions and sizes are pixels; UVs are texels within the encoded page.
+/// The view's batches select all 127 elements without a source terminator.
+static SpriteSource _gShelterB2SepticTankView3SpriteSources[127] = {
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 8, 24 } }, 64, 64, 1575, { .fields = { 120, 56 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 8, 16 } }, 56, 64, 1575, { .fields = { 120, 168 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 8, 24 } }, 72, 72, 1575, { .fields = { 120, 80 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 8, 24 } }, 80, 80, 1575, { .fields = { 120, 104 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 8, 16 } }, 88, 88, 1575, { .fields = { 120, 184 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 8, 16 } }, 96, 96, 1575, { .fields = { 120, 152 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 8, 24 } }, 104, 96, 1575, { .fields = { 120, 128 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 48, 112, 666, { .fields = { 88, 24 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 48, 104, 709, { .fields = { 96, 96 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 48, 96, 760, { .fields = { 96, 104 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 48, 88, 819, { .fields = { 96, 16 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 48, 80, 890, { .fields = { 96, 56 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 48, 72, 979, { .fields = { 96, 32 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 48, 64, 1098, { .fields = { 112, 248 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 48, 56, 1200, { .fields = { 104, 112 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 48, 48, 1392, { .fields = { 96, 232 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 48, 40, 1632, { .fields = { 80, 104 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 48, 32, 1964, { .fields = { 80, 120 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 48, 24, 2363, { .fields = { 104, 80 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -8, 24, 2528, { .fields = { 104, 88 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -8, 32, 2382, { .fields = { 104, 64 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -24, 32, 1928, { .fields = { 104, 72 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -16, 40, 1953, { .fields = { 104, 128 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -40, 40, 1632, { .fields = { 96, 136 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -32, 48, 1589, { .fields = { 104, 224 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -56, 48, 1367, { .fields = { 96, 120 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -48, 56, 1351, { .fields = { 96, 160 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -64, 56, 1216, { .fields = { 104, 168 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -56, 64, 1226, { .fields = { 96, 144 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -80, 64, 1053, { .fields = { 88, 200 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -72, 72, 1113, { .fields = { 96, 192 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -96, 72, 951, { .fields = { 96, 40 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -88, 80, 956, { .fields = { 96, 48 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -112, 80, 915, { .fields = { 96, 184 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -96, 88, 895, { .fields = { 88, 208 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -120, 88, 844, { .fields = { 96, 216 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -112, 96, 800, { .fields = { 88, 176 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -136, 96, 801, { .fields = { 88, 240 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -120, 104, 754, { .fields = { 80, 0 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -152, 104, 759, { .fields = { 72, 224 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -136, 112, 717, { .fields = { 56, 16 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -160, 112, 700, { .fields = { 80, 8 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 16 } }, 48, 24, 2070, { .fields = { 104, 0 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 16 } }, -16, 24, 2139, { .fields = { 112, 232 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -160, 80, 1278, { .fields = { 72, 248 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -160, 72, 1164, { .fields = { 56, 32 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -160, 64, 1165, { .fields = { 64, 128 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -160, 56, 1165, { .fields = { 64, 168 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -120, 56, 0, { .fields = { 88, 88 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 8, 16 } }, -112, 40, 0, { .fields = { 120, 216 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -136, 48, 1352, { .fields = { 80, 112 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -160, 48, 1240, { .fields = { 72, 56 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -160, 40, 1224, { .fields = { 72, 216 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -136, 40, 1352, { .fields = { 72, 232 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -120, 32, 0, { .fields = { 80, 48 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -80, 24, 1988, { .fields = { 72, 136 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -80, 16, 4569, { .fields = { 72, 96 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -104, 32, 1605, { .fields = { 72, 40 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -104, 40, 1604, { .fields = { 64, 24 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -104, 48, 1604, { .fields = { 80, 64 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -104, 56, 1604, { .fields = { 80, 72 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -80, 32, 1988, { .fields = { 80, 80 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -80, 40, 1988, { .fields = { 72, 184 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -80, 48, 1987, { .fields = { 72, 192 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -80, 56, 0, { .fields = { 72, 144 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 64, 8 } }, -96, 112, 917, { .fields = { 32, 160 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, 0, 24, 2631, { .fields = { 72, 152 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, 0, 32, 2384, { .fields = { 32, 48 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 56, 8 } }, -32, 112, 917, { .fields = { 32, 240 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 56, 8 } }, -80, 104, 966, { .fields = { 32, 176 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, -24, 104, 966, { .fields = { 32, 8 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 56, 8 } }, -72, 96, 1023, { .fields = { 16, 224 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -16, 96, 1039, { .fields = { 32, 232 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 56, 8 } }, -64, 88, 1090, { .fields = { 24, 0 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -8, 88, 1090, { .fields = { 48, 200 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, -56, 80, 1170, { .fields = { 32, 104 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -8, 80, 1170, { .fields = { 40, 64 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, -48, 72, 1267, { .fields = { 32, 72 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 0, 72, 1267, { .fields = { 40, 40 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -40, 64, 1386, { .fields = { 48, 208 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 0, 64, 1386, { .fields = { 48, 112 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -24, 56, 1538, { .fields = { 48, 120 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 8, 56, 1538, { .fields = { 40, 192 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -16, 48, 1736, { .fields = { 40, 144 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 16, 48, 1736, { .fields = { 48, 56 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, -8, 40, 1991, { .fields = { 24, 184 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 56, 8 } }, -128, 112, 890, { .fields = { 16, 152 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, -112, 104, 927, { .fields = { 24, 96 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -8, 24, 2636, { .fields = { 40, 168 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -8, 32, 2269, { .fields = { 48, 248 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -24, 40, 1982, { .fields = { 32, 216 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -32, 48, 1710, { .fields = { 40, 136 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -48, 56, 1505, { .fields = { 24, 24 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -56, 64, 1352, { .fields = { 24, 128 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, -72, 72, 1231, { .fields = { 32, 80 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, -80, 80, 1138, { .fields = { 8, 32 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, -96, 88, 1052, { .fields = { 8, 88 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, -104, 96, 991, { .fields = { 0, 56 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 8, 8 } }, 24, 64, 2472, { .fields = { 32, 136 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 32, 32, 2175, { .fields = { 24, 112 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 32, 40, 1987, { .fields = { 24, 120 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 32, 48, 1696, { .fields = { 24, 200 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 32, 56, 1489, { .fields = { 24, 208 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 32, 64, 1352, { .fields = { 16, 144 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 24, 72, 1231, { .fields = { 8, 40 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 24, 80, 1140, { .fields = { 8, 64 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 24, 88, 1036, { .fields = { 56, 88 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 24, 96, 991, { .fields = { 16, 248 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, 16, 104, 933, { .fields = { 0, 168 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, 16, 112, 896, { .fields = { 0, 192 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 128, 72, 1446, { .fields = { 0, 72 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 128, 64, 1500, { .fields = { 8, 8 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 128, 56, 1372, { .fields = { 8, 16 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 128, 48, 1372, { .fields = { 8, 136 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 128, 40, 1372, { .fields = { 32, 16 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 128, 32, 1372, { .fields = { 8, 80 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 128, 24, 1373, { .fields = { 8, 104 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 8, 56 } }, 104, 24, 0, { .fields = { 120, 0 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 112, 40, 1750, { .fields = { 16, 48 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 112, 48, 1750, { .fields = { 16, 160 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 112, 32, 1750, { .fields = { 16, 176 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 112, 24, 1766, { .fields = { 16, 216 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 104, 16, 1776, { .fields = { 8, 232 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 104, 8, 1767, { .fields = { 8, 240 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 104, 0, 4276, { .fields = { 0, 0 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 16 } }, 112, 64, 0, { .fields = { 112, 200 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 112, 56, 1940, { .fields = { 8, 24 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
 };
 
-SpriteBatch D_shelter_b2_septic_tank_80184FB0[10] = {
+/// Eight foreground ranges for mapped view 3, after a zero-count background selector.
+///
+/// Ranges partition all 127 sources; SPRITE_BATCH_END terminates the list.
+static SpriteBatch _gShelterB2SepticTankView3SpriteBatches[10] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 6, 0 } },
     { 7, 35, 0, 0, { 1, 0 } },
@@ -694,154 +682,161 @@ SpriteBatch D_shelter_b2_septic_tank_80184FB0[10] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_septic_tank_80185000[144] = {
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -56, 48, 3599, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -56, 64, 0, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -64, 88, 3202, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -64, 48, 1612, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -72, 48, 1691, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -72, 96, 1065, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -80, 96, 1102, { .fields = { 112, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -88, 72, 1603, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -88, 104, 1110, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -104, 112, 1111, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -104, 80, 1640, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, 72, 1650, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, 64, 1613, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -72, 112, 676, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 104, 714, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -64, 96, 756, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -64, 88, 804, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -64, 80, 858, { .fields = { 88, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -64, 72, 922, { .fields = { 88, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -64, 64, 1000, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -56, 56, 1242, { .fields = { 96, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -56, 48, 1233, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -56, 40, 1328, { .fields = { 96, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -56, 32, 1325, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -56, 24, 1687, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -56, 16, 1923, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -88, 16, 2027, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -88, 8, 2385, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -88, 24, 2014, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 136, 72, 1302, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 128, 64, 1285, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 128, 56, 1250, { .fields = { 80, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 128, 48, 1246, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 128, 40, 1243, { .fields = { 64, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 128, 24, 3770, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 128, 8, 3764, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 96, 0, 4069, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 96, 16, 1574, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 64, 0, 1985, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 64, 16, 1994, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 64, 24, 2000, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 96, 24, 1594, { .fields = { 72, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 96, 32, 1567, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 64, 32, 2118, { .fields = { 56, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 88, 40, 1683, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 96, 48, 1710, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -80, 8, 2377, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -40, 16, 2086, { .fields = { 48, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -40, 8, 2406, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -80, 16, 2008, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 0, 16, 2086, { .fields = { 40, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 0, 8, 2481, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -24, 112, 784, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, 32, 112, 784, { .fields = { 32, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, 24, 104, 826, { .fields = { 32, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -24, 104, 826, { .fields = { 32, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 24, 96, 872, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -24, 96, 856, { .fields = { 32, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -24, 88, 908, { .fields = { 32, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 24, 88, 908, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 16, 80, 968, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -24, 80, 968, { .fields = { 40, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -24, 72, 1037, { .fields = { 32, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 16, 72, 1037, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 8, 64, 1117, { .fields = { 24, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -32, 64, 1117, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -32, 56, 1212, { .fields = { 24, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 8, 56, 1212, { .fields = { 40, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 0, 48, 1325, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -32, 48, 1325, { .fields = { 32, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -8, 40, 1464, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -32, 40, 1464, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -8, 32, 1636, { .fields = { 32, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -32, 32, 1636, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -32, 24, 1873, { .fields = { 8, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 8, 8, 4590, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -32, 8, 4772, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 16 } }, -88, 8, 4772, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 72, 112, 807, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 64, 104, 832, { .fields = { 0, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 56, 96, 884, { .fields = { 0, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 48, 88, 944, { .fields = { 0, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 48, 80, 993, { .fields = { 8, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, 40, 72, 1063, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, 32, 64, 1149, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, 24, 56, 1241, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, 16, 48, 1367, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 8, 40, 1513, { .fields = { 24, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 8, 32, 1666, { .fields = { 8, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 0, 24, 1908, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 0, 16, 2069, { .fields = { 16, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -152, 64, 1488, { .fields = { 0, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -152, 56, 1354, { .fields = { 16, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -152, 48, 1335, { .fields = { 24, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -128, 40, 1881, { .fields = { 8, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -128, 32, 1748, { .fields = { 16, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -128, 24, 1743, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -128, 16, 1771, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -128, 8, 1782, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -152, 40, 1324, { .fields = { 8, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -152, 32, 1368, { .fields = { 0, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -152, 24, 1364, { .fields = { 0, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -160, 48, 1085, { .fields = { 120, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -160, 8, 1157, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -48, 16, 2022, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -48, 24, 1874, { .fields = { 8, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -48, 32, 1658, { .fields = { 8, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -48, 40, 1479, { .fields = { 8, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -48, 48, 1337, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -48, 56, 1222, { .fields = { 16, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, -48, 64, 1128, { .fields = { 120, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, -48, 72, 1058, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, -48, 80, 976, { .fields = { 104, 16 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, -56, 88, 937, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, -56, 96, 877, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, -56, 104, 817, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, -56, 112, 787, { .fields = { 104, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 96, 112, 811, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, 96, 104, 833, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, 128, 112, 724, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 120, 104, 762, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, 88, 96, 865, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 112, 96, 804, { .fields = { 120, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, 96, 88, 852, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 80, 88, 937, { .fields = { 120, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 72, 80, 1004, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, 88, 80, 906, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 80, 72, 970, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, 56, 72, 1087, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 56, 64, 1153, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 72, 64, 1043, { .fields = { 120, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 64, 56, 1130, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 40, 56, 1267, { .fields = { 16, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, 48, 48, 1297, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, 24, 48, 1448, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 24, 40, 1566, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 40, 40, 1360, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, 32, 32, 1474, { .fields = { 104, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, 8, 32, 1786, { .fields = { 104, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 8, 24, 1991, { .fields = { 112, 8 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 24, 24, 1691, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 8, 16, 2024, { .fields = { 104, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 24, 0, 2461, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 24, 16, 2172, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
+/// Foreground texture rectangles and sorting depths for mapped view 4.
+///
+/// Positions and sizes are pixels; UVs are texels within the encoded page.
+/// The view's batches select all 144 elements without a source terminator.
+static SpriteSource _gShelterB2SepticTankView4SpriteSources[144] = {
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 8, 16 } }, -56, 48, 3599, { .fields = { 112, 112 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 8, 56 } }, -56, 64, 0, { .fields = { 120, 0 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 8, 32 } }, -64, 88, 3202, { .fields = { 120, 144 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 8, 24 } }, -64, 48, 1612, { .fields = { 120, 232 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 8, 32 } }, -72, 48, 1691, { .fields = { 120, 176 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 8, 24 } }, -72, 96, 1065, { .fields = { 120, 208 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 8, 24 } }, -80, 96, 1102, { .fields = { 112, 24 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 8, 16 } }, -88, 72, 1603, { .fields = { 112, 128 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 8, 16 } }, -88, 104, 1110, { .fields = { 112, 48 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -104, 112, 1111, { .fields = { 64, 232 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 8, 16 } }, -104, 80, 1640, { .fields = { 112, 80 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 8, 24 } }, -96, 72, 1650, { .fields = { 112, 0 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 8, 16 } }, -80, 64, 1613, { .fields = { 112, 64 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -72, 112, 676, { .fields = { 64, 128 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -64, 104, 714, { .fields = { 80, 232 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -64, 96, 756, { .fields = { 72, 120 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -64, 88, 804, { .fields = { 88, 128 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -64, 80, 858, { .fields = { 88, 16 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -64, 72, 922, { .fields = { 88, 56 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -64, 64, 1000, { .fields = { 88, 112 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -56, 56, 1242, { .fields = { 96, 8 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -56, 48, 1233, { .fields = { 96, 48 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -56, 40, 1328, { .fields = { 96, 24 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -56, 32, 1325, { .fields = { 96, 0 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -56, 24, 1687, { .fields = { 96, 120 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -56, 16, 1923, { .fields = { 96, 80 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -88, 16, 2027, { .fields = { 56, 112 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -88, 8, 2385, { .fields = { 48, 224 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -88, 24, 2014, { .fields = { 80, 72 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 136, 72, 1302, { .fields = { 88, 88 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 128, 64, 1285, { .fields = { 80, 64 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 128, 56, 1250, { .fields = { 80, 40 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 128, 48, 1246, { .fields = { 64, 0 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 128, 40, 1243, { .fields = { 64, 8 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 16 } }, 128, 24, 3770, { .fields = { 88, 192 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 16 } }, 128, 8, 3764, { .fields = { 88, 208 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 16 } }, 96, 0, 4069, { .fields = { 96, 224 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 96, 16, 1574, { .fields = { 72, 224 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 16 } }, 64, 0, 1985, { .fields = { 88, 240 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 64, 16, 1994, { .fields = { 80, 136 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 64, 24, 2000, { .fields = { 64, 80 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 96, 24, 1594, { .fields = { 72, 24 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 96, 32, 1567, { .fields = { 64, 88 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 64, 32, 2118, { .fields = { 56, 16 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 88, 40, 1683, { .fields = { 56, 32 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 96, 48, 1710, { .fields = { 88, 32 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -80, 8, 2377, { .fields = { 48, 96 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -40, 16, 2086, { .fields = { 48, 104 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -40, 8, 2406, { .fields = { 48, 56 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -80, 16, 2008, { .fields = { 48, 192 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, 0, 16, 2086, { .fields = { 40, 200 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, 0, 8, 2481, { .fields = { 32, 40 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 56, 8 } }, -24, 112, 784, { .fields = { 32, 240 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 56, 8 } }, 32, 112, 784, { .fields = { 32, 248 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 56, 8 } }, 24, 104, 826, { .fields = { 32, 208 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, -24, 104, 826, { .fields = { 32, 72 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, 24, 96, 872, { .fields = { 32, 64 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, -24, 96, 856, { .fields = { 32, 136 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, -24, 88, 908, { .fields = { 32, 176 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, 24, 88, 908, { .fields = { 32, 168 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, 16, 80, 968, { .fields = { 32, 160 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -24, 80, 968, { .fields = { 40, 184 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -24, 72, 1037, { .fields = { 32, 24 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, 16, 72, 1037, { .fields = { 32, 48 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, 8, 64, 1117, { .fields = { 24, 80 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -32, 64, 1117, { .fields = { 24, 0 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -32, 56, 1212, { .fields = { 24, 8 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 8, 56, 1212, { .fields = { 40, 120 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 0, 48, 1325, { .fields = { 32, 216 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -32, 48, 1325, { .fields = { 32, 128 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -8, 40, 1464, { .fields = { 32, 144 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -32, 40, 1464, { .fields = { 64, 216 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -8, 32, 1636, { .fields = { 32, 88 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -32, 32, 1636, { .fields = { 40, 232 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, -32, 24, 1873, { .fields = { 8, 16 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 16 } }, 8, 8, 4590, { .fields = { 80, 176 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 16 } }, -32, 8, 4772, { .fields = { 80, 160 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 56, 16 } }, -88, 8, 4772, { .fields = { 64, 144 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, 72, 112, 807, { .fields = { 16, 152 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, 64, 104, 832, { .fields = { 0, 192 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, 56, 96, 884, { .fields = { 0, 104 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, 48, 88, 944, { .fields = { 0, 96 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, 48, 80, 993, { .fields = { 8, 224 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, 40, 72, 1063, { .fields = { 120, 208 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, 32, 64, 1149, { .fields = { 120, 248 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, 24, 56, 1241, { .fields = { 120, 240 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, 16, 48, 1367, { .fields = { 120, 216 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 8, 40, 1513, { .fields = { 24, 32 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 8, 32, 1666, { .fields = { 8, 64 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 0, 24, 1908, { .fields = { 8, 48 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 0, 16, 2069, { .fields = { 16, 184 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -152, 64, 1488, { .fields = { 0, 24 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -152, 56, 1354, { .fields = { 16, 56 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -152, 48, 1335, { .fields = { 24, 112 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -128, 40, 1881, { .fields = { 8, 40 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -128, 32, 1748, { .fields = { 16, 120 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -128, 24, 1743, { .fields = { 8, 144 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -128, 16, 1771, { .fields = { 8, 168 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -128, 8, 1782, { .fields = { 8, 136 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -152, 40, 1324, { .fields = { 8, 160 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -152, 32, 1368, { .fields = { 0, 8 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -152, 24, 1364, { .fields = { 0, 32 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 8, 48 } }, -160, 48, 1085, { .fields = { 120, 56 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 8, 40 } }, -160, 8, 1157, { .fields = { 120, 104 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -48, 16, 2022, { .fields = { 8, 176 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -48, 24, 1874, { .fields = { 8, 72 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -48, 32, 1658, { .fields = { 8, 88 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -48, 40, 1479, { .fields = { 8, 128 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -48, 48, 1337, { .fields = { 0, 0 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -48, 56, 1222, { .fields = { 16, 200 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -48, 64, 1128, { .fields = { 120, 56 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -48, 72, 1058, { .fields = { 120, 112 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -48, 80, 976, { .fields = { 104, 16 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -56, 88, 937, { .fields = { 104, 120 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -56, 96, 877, { .fields = { 104, 200 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -56, 104, 817, { .fields = { 104, 184 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -56, 112, 787, { .fields = { 104, 152 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 96, 112, 811, { .fields = { 112, 232 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 96, 104, 833, { .fields = { 112, 48 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 128, 112, 724, { .fields = { 112, 40 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 120, 104, 762, { .fields = { 72, 48 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 88, 96, 865, { .fields = { 112, 64 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 112, 96, 804, { .fields = { 120, 88 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 96, 88, 852, { .fields = { 112, 80 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 80, 88, 937, { .fields = { 120, 72 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 72, 80, 1004, { .fields = { 120, 128 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 88, 80, 906, { .fields = { 104, 96 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 80, 72, 970, { .fields = { 120, 168 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 56, 72, 1087, { .fields = { 104, 0 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 56, 64, 1153, { .fields = { 120, 144 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 72, 64, 1043, { .fields = { 120, 136 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 64, 56, 1130, { .fields = { 8, 80 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 40, 56, 1267, { .fields = { 16, 232 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 48, 48, 1297, { .fields = { 112, 224 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 24, 48, 1448, { .fields = { 112, 176 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 24, 40, 1566, { .fields = { 112, 104 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 40, 40, 1360, { .fields = { 104, 72 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 32, 32, 1474, { .fields = { 104, 32 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 8, 32, 1786, { .fields = { 104, 24 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 8, 24, 1991, { .fields = { 112, 8 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 24, 24, 1691, { .fields = { 120, 160 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 8, 16, 2024, { .fields = { 104, 56 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 16 } }, 24, 0, 2461, { .fields = { 88, 96 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_896, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 24, 16, 2172, { .fields = { 96, 192 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
 };
 
-SpriteBatch D_shelter_b2_septic_tank_80185B40[11] = {
+/// Nine foreground ranges for mapped view 4, after a zero-count background selector.
+///
+/// Ranges partition all 144 sources; SPRITE_BATCH_END terminates the list.
+static SpriteBatch _gShelterB2SepticTankView4SpriteBatches[11] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 13, 0, 0, { 0, 0 } },
     { 13, 16, 0, 0, { 5, 0 } },
@@ -855,185 +850,197 @@ SpriteBatch D_shelter_b2_septic_tank_80185B40[11] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_septic_tank_80185B98[143] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 152, 112, 810, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 136, 112, 887, { .fields = { 112, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 144, 104, 885, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 128, 104, 915, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 120, 96, 952, { .fields = { 112, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 136, 96, 915, { .fields = { 112, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -8, 112, 842, { .fields = { 104, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -16, 104, 869, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -8, 96, 899, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -16, 88, 898, { .fields = { 104, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -32, 80, 916, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -32, 96, 939, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 128, 88, 946, { .fields = { 96, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 120, 80, 980, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 112, 88, 985, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 104, 80, 1026, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -80, 112, 903, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -104, 112, 876, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -104, 104, 837, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -80, 104, 849, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -56, 104, 914, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -56, 96, 870, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -80, 96, 851, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -104, 96, 931, { .fields = { 104, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -104, 88, 1042, { .fields = { 104, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -104, 80, 1057, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -104, 72, 1050, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -104, 64, 1040, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -104, 56, 1116, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -104, 48, 1161, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -104, 40, 1196, { .fields = { 104, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -104, 32, 1204, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -104, 24, 1238, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 88, 883, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -64, 88, 878, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -80, 88, 0, { .fields = { 96, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 88, 72, 1076, { .fields = { 88, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 112, 72, 1016, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 104, 64, 1046, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 88, 64, 1105, { .fields = { 88, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 88, 56, 1086, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 88, 48, 1117, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 104, 56, 1121, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 120, 56, 1162, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 144, 48, 1213, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 112, 48, 1129, { .fields = { 88, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 128, 48, 1156, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 128, 40, 1260, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 112, 40, 1177, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 104, 32, 1308, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 120, 32, 1316, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 96, 24, 1406, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 72, 16, 0, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 88, 16, 1480, { .fields = { 88, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 104, 16, 1316, { .fields = { 72, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 72, 8, 1580, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 96, 8, 1490, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 72, 0, 1553, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 72, -8, 1525, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 120, 24, 1325, { .fields = { 88, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 120, 112, 939, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 112, 104, 961, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 104, 96, 991, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 96, 88, 1486, { .fields = { 64, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 88, 80, 1062, { .fields = { 64, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 80, 72, 1088, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 80, 64, 1140, { .fields = { 72, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 0, 112, 932, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -8, 104, 1561, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -8, 96, 1006, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -8, 88, 1025, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 0, 80, 1060, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -88, 96, 999, { .fields = { 56, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -88, 88, 1020, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -56, 88, 986, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -56, 80, 1056, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -24, 80, 1021, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 32, 112, 928, { .fields = { 40, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 80, 112, 928, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 72, 104, 957, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 32, 104, 957, { .fields = { 48, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 24, 96, 987, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 56, 96, 987, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 56, 88, 1020, { .fields = { 48, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 16, 88, 1020, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 48, 80, 1056, { .fields = { 40, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 16, 80, 1056, { .fields = { 48, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 32, 72, 1062, { .fields = { 32, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -16, 72, 1062, { .fields = { 24, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -56, 72, 1062, { .fields = { 32, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -16, 64, 1135, { .fields = { 24, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -56, 64, 1135, { .fields = { 24, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -40, 56, 1180, { .fields = { 24, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -96, 40, 1275, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -56, 40, 1228, { .fields = { 24, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -8, 40, 1234, { .fields = { 24, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -96, 32, 1302, { .fields = { 40, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -64, 32, 1326, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -16, 32, 1341, { .fields = { 16, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 80, 32, 1325, { .fields = { 32, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 112, 32, 1293, { .fields = { 48, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -72, 24, 1312, { .fields = { 16, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -24, 24, 1397, { .fields = { 16, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 24, 24, 1389, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 16, 16, 1469, { .fields = { 16, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -32, 16, 1428, { .fields = { 8, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 8, 8, 1479, { .fields = { 8, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 112, 40, 1202, { .fields = { 24, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 88, 40, 1234, { .fields = { 32, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 96, 24, 1373, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 72, 24, 1389, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 88, 16, 1413, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 64, 16, 1429, { .fields = { 24, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 80, 8, 1468, { .fields = { 32, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 56, 8, 1516, { .fields = { 24, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -96, 48, 1213, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -72, 48, 1229, { .fields = { 16, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -96, 56, 1164, { .fields = { 24, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -72, 56, 1180, { .fields = { 56, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 64, 40, 1282, { .fields = { 16, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 40, 40, 1282, { .fields = { 16, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 56, 32, 1325, { .fields = { 8, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 32, 32, 1341, { .fields = { 8, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 56, 56, 1180, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 80, 56, 1200, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 8, 56, 1180, { .fields = { 0, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 32, 56, 1180, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 24, 48, 1229, { .fields = { 0, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 0, 48, 1229, { .fields = { 8, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 48, 48, 1229, { .fields = { 8, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 72, 48, 1245, { .fields = { 0, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -24, 48, 1229, { .fields = { 0, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -48, 48, 1229, { .fields = { 0, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 56, 64, 1135, { .fields = { 0, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 32, 64, 1135, { .fields = { 0, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -88, 64, 1119, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -72, 64, 1135, { .fields = { 16, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -88, 72, 1078, { .fields = { 8, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -72, 72, 1094, { .fields = { 8, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -72, 80, 1056, { .fields = { 8, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -88, 80, 1040, { .fields = { 8, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 96, 48, 1226, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 112, 48, 1180, { .fields = { 0, 32 } }, 128, 128, 128, 0 },
+/// Foreground texture rectangles and sorting depths for mapped view 5.
+///
+/// Positions and sizes are pixels; UVs are texels within the encoded page.
+/// The view's batches select all 143 elements without a source terminator.
+static SpriteSource _gShelterB2SepticTankView5SpriteSources[143] = {
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 8, 8 } }, 152, 112, 810, { .fields = { 96, 224 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 136, 112, 887, { .fields = { 112, 24 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 144, 104, 885, { .fields = { 112, 0 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 128, 104, 915, { .fields = { 112, 64 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 120, 96, 952, { .fields = { 112, 16 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 136, 96, 915, { .fields = { 112, 8 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -8, 112, 842, { .fields = { 104, 32 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -16, 104, 869, { .fields = { 104, 40 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -8, 96, 899, { .fields = { 112, 48 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -16, 88, 898, { .fields = { 104, 56 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -32, 80, 916, { .fields = { 96, 96 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -32, 96, 939, { .fields = { 104, 72 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 128, 88, 946, { .fields = { 96, 24 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 120, 80, 980, { .fields = { 112, 88 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 112, 88, 985, { .fields = { 112, 80 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 104, 80, 1026, { .fields = { 112, 104 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -80, 112, 903, { .fields = { 104, 112 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -104, 112, 876, { .fields = { 104, 120 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -104, 104, 837, { .fields = { 104, 128 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -80, 104, 849, { .fields = { 104, 168 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -56, 104, 914, { .fields = { 104, 144 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -56, 96, 870, { .fields = { 104, 208 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -80, 96, 851, { .fields = { 104, 160 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -104, 96, 931, { .fields = { 104, 152 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -104, 88, 1042, { .fields = { 104, 176 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -104, 80, 1057, { .fields = { 104, 184 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -104, 72, 1050, { .fields = { 104, 192 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -104, 64, 1040, { .fields = { 104, 200 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -104, 56, 1116, { .fields = { 104, 240 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -104, 48, 1161, { .fields = { 104, 216 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -104, 40, 1196, { .fields = { 104, 136 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -104, 32, 1204, { .fields = { 104, 232 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -104, 24, 1238, { .fields = { 104, 224 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -40, 88, 883, { .fields = { 104, 248 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -64, 88, 878, { .fields = { 88, 0 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -80, 88, 0, { .fields = { 96, 8 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 88, 72, 1076, { .fields = { 88, 16 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 112, 72, 1016, { .fields = { 96, 88 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 104, 64, 1046, { .fields = { 88, 48 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 88, 64, 1105, { .fields = { 88, 72 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 88, 56, 1086, { .fields = { 96, 80 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 88, 48, 1117, { .fields = { 88, 64 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 104, 56, 1121, { .fields = { 96, 104 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 120, 56, 1162, { .fields = { 80, 32 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 144, 48, 1213, { .fields = { 88, 40 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 112, 48, 1129, { .fields = { 88, 56 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 128, 48, 1156, { .fields = { 88, 136 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 128, 40, 1260, { .fields = { 72, 112 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 112, 40, 1177, { .fields = { 88, 128 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 104, 32, 1308, { .fields = { 88, 120 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 120, 32, 1316, { .fields = { 72, 144 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 96, 24, 1406, { .fields = { 80, 152 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 72, 16, 0, { .fields = { 88, 160 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 88, 16, 1480, { .fields = { 88, 168 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 104, 16, 1316, { .fields = { 72, 176 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 72, 8, 1580, { .fields = { 80, 184 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 96, 8, 1490, { .fields = { 88, 192 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 72, 0, 1553, { .fields = { 72, 200 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 72, -8, 1525, { .fields = { 88, 208 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 120, 24, 1325, { .fields = { 88, 216 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 120, 112, 939, { .fields = { 72, 232 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 112, 104, 961, { .fields = { 72, 240 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 104, 96, 991, { .fields = { 72, 248 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 96, 88, 1486, { .fields = { 64, 8 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 88, 80, 1062, { .fields = { 64, 24 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 80, 72, 1088, { .fields = { 64, 80 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 80, 64, 1140, { .fields = { 72, 88 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 0, 112, 932, { .fields = { 64, 96 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -8, 104, 1561, { .fields = { 56, 104 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -8, 96, 1006, { .fields = { 64, 224 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -8, 88, 1025, { .fields = { 64, 0 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 0, 80, 1060, { .fields = { 72, 64 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -88, 96, 999, { .fields = { 56, 40 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -88, 88, 1020, { .fields = { 56, 160 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -56, 88, 986, { .fields = { 64, 56 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -56, 80, 1056, { .fields = { 56, 48 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -24, 80, 1021, { .fields = { 64, 72 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, 32, 112, 928, { .fields = { 40, 120 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, 80, 112, 928, { .fields = { 48, 128 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, 72, 104, 957, { .fields = { 48, 136 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, 32, 104, 957, { .fields = { 48, 216 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 24, 96, 987, { .fields = { 56, 168 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, 56, 96, 987, { .fields = { 8, 48 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, 56, 88, 1020, { .fields = { 48, 208 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, 16, 88, 1020, { .fields = { 48, 192 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, 48, 80, 1056, { .fields = { 40, 32 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 16, 80, 1056, { .fields = { 48, 152 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, 32, 72, 1062, { .fields = { 32, 184 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, -16, 72, 1062, { .fields = { 24, 64 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -56, 72, 1062, { .fields = { 32, 200 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, -16, 64, 1135, { .fields = { 24, 112 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -56, 64, 1135, { .fields = { 24, 8 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, -40, 56, 1180, { .fields = { 24, 176 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 40, 8 } }, -96, 40, 1275, { .fields = { 32, 144 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, -56, 40, 1228, { .fields = { 24, 232 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, -8, 40, 1234, { .fields = { 24, 240 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -96, 32, 1302, { .fields = { 40, 248 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, -64, 32, 1326, { .fields = { 16, 0 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, -16, 32, 1341, { .fields = { 16, 80 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, 80, 32, 1325, { .fields = { 32, 24 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 112, 32, 1293, { .fields = { 48, 88 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, -72, 24, 1312, { .fields = { 16, 72 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, -24, 24, 1397, { .fields = { 16, 56 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, 24, 24, 1389, { .fields = { 16, 96 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, 16, 16, 1469, { .fields = { 16, 224 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, -32, 16, 1428, { .fields = { 8, 16 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 48, 8 } }, 8, 8, 1479, { .fields = { 8, 40 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 112, 40, 1202, { .fields = { 24, 88 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 88, 40, 1234, { .fields = { 32, 104 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 96, 24, 1373, { .fields = { 24, 208 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 72, 24, 1389, { .fields = { 32, 168 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 88, 16, 1413, { .fields = { 32, 160 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 64, 16, 1429, { .fields = { 24, 128 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 80, 8, 1468, { .fields = { 32, 136 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 56, 8, 1516, { .fields = { 24, 152 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -96, 48, 1213, { .fields = { 24, 192 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -72, 48, 1229, { .fields = { 16, 248 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -96, 56, 1164, { .fields = { 24, 216 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 32, 8 } }, -72, 56, 1180, { .fields = { 56, 16 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 64, 40, 1282, { .fields = { 16, 120 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 40, 40, 1282, { .fields = { 16, 32 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 56, 32, 1325, { .fields = { 8, 24 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 32, 32, 1341, { .fields = { 8, 104 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 56, 56, 1180, { .fields = { 8, 136 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 80, 56, 1200, { .fields = { 8, 144 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 8, 56, 1180, { .fields = { 0, 8 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 32, 56, 1180, { .fields = { 8, 168 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 24, 48, 1229, { .fields = { 0, 152 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 0, 48, 1229, { .fields = { 8, 200 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 48, 48, 1229, { .fields = { 8, 184 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 72, 48, 1245, { .fields = { 0, 64 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -24, 48, 1229, { .fields = { 0, 88 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, -48, 48, 1229, { .fields = { 0, 112 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 56, 64, 1135, { .fields = { 0, 128 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 24, 8 } }, 32, 64, 1135, { .fields = { 0, 216 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -88, 64, 1119, { .fields = { 8, 176 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -72, 64, 1135, { .fields = { 16, 160 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -88, 72, 1078, { .fields = { 8, 208 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -72, 72, 1094, { .fields = { 8, 192 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -72, 80, 1056, { .fields = { 8, 232 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, -88, 80, 1040, { .fields = { 8, 240 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 96, 48, 1226, { .fields = { 0, 0 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
+    { SHELTER_B2_SEPTIC_TANK_SPRITE_PAGE_960, SHELTER_B2_SEPTIC_TANK_SPRITE_CLUT, { .fields = { 16, 8 } }, 112, 48, 1180, { .fields = { 0, 32 } }, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, SHELTER_B2_SEPTIC_TANK_SPRITE_NEUTRAL, 0 },
 };
 
-SpriteBatch D_shelter_b2_septic_tank_801866C4[4] = {
+/// Two foreground ranges for mapped view 5, after a zero-count background selector.
+///
+/// Ranges partition all 143 sources; SPRITE_BATCH_END terminates the list.
+static SpriteBatch _gShelterB2SepticTankView5SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 60, 0, 0, { 1, 0 } },
     { 60, 83, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b2_septic_tank_801866E4[2] = {
+/// Empty sprite list for mapped view 6, preserving decoded background strips.
+static SpriteBatch _gShelterB2SepticTankView6SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_shelter_b2_septic_tank_801866F4[6] = {
-    { { .empty = D_shelter_b2_septic_tank_80183F08 }, D_shelter_b2_septic_tank_80183F08, NULL },
-    { { .elements = D_shelter_b2_septic_tank_80183F18 }, D_shelter_b2_septic_tank_80184594, NULL },
-    { { .elements = D_shelter_b2_septic_tank_801845C4 }, D_shelter_b2_septic_tank_80184FB0, NULL },
-    { { .elements = D_shelter_b2_septic_tank_80185000 }, D_shelter_b2_septic_tank_80185B40, NULL },
-    { { .elements = D_shelter_b2_septic_tank_80185B98 }, D_shelter_b2_septic_tank_801866C4, NULL },
-    { { .empty = D_shelter_b2_septic_tank_801866E4 }, D_shelter_b2_septic_tank_801866E4, NULL },
+SpriteView gShelterB2SepticTankSpriteViews[6] = {
+    { { .empty = _gShelterB2SepticTankView1SpriteBatches }, _gShelterB2SepticTankView1SpriteBatches, NULL },
+    { { .elements = _gShelterB2SepticTankView2SpriteSources }, _gShelterB2SepticTankView2SpriteBatches, NULL },
+    { { .elements = _gShelterB2SepticTankView3SpriteSources }, _gShelterB2SepticTankView3SpriteBatches, NULL },
+    { { .elements = _gShelterB2SepticTankView4SpriteSources }, _gShelterB2SepticTankView4SpriteBatches, NULL },
+    { { .elements = _gShelterB2SepticTankView5SpriteSources }, _gShelterB2SepticTankView5SpriteBatches, NULL },
+    { { .empty = _gShelterB2SepticTankView6SpriteBatches }, _gShelterB2SepticTankView6SpriteBatches, NULL },
 };
 
-WorldCoordPointLight D_shelter_b2_septic_tank_8018673C[8] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 20, -41, -4221 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 941, 2662 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 44, -41, -6238 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 961, 2502 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -21, -41, -8592 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 1121, 2522 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 31, -41, -0x28AE } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 921, 2502 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -18, -41, -0x3112 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 1061, 2542 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -499, -7288 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2846, 2876, 2873 }, { 0, 0 } }, 1501, 0x359B },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -1441, -388 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3038, 1650, 1695 }, { 0, 0 } }, 1961, 4841 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 78, -41, -2140 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 861, 4123 },
+/// Eight authored room-space point lights, enabled in every view.
+///
+/// RGB uses 12 fractional bits; falloff distances use integer game units.
+/// Composition and queries update the transform caches and attenuation.
+static WorldCoordPointLight _gShelterB2SepticTankPointLights[8] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 20, -41, -4221 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 941, 2662 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 44, -41, -6238 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 961, 2502 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -21, -41, -8592 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 1121, 2522 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 31, -41, -0x28AE } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 921, 2502 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -18, -41, -0x3112 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 1061, 2542 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -499, -7288 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2846, 2876, 2873 }, { 0, 0 } }, 1501, 0x359B },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -1441, -388 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3038, 1650, 1695 }, { 0, 0 } }, 1961, 4841 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 78, -41, -2140 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 861, 4123 },
 };
 
-WorldCoordRoomLights D_shelter_b2_septic_tank_80186A3C = { 0, NULL, ARRAY_SIZE(D_shelter_b2_septic_tank_8018673C), D_shelter_b2_septic_tank_8018673C, 0, NULL };
+WorldCoordRoomLights gShelterB2SepticTankRoomLights = { 0, NULL, ARRAY_SIZE(_gShelterB2SepticTankPointLights), _gShelterB2SepticTankPointLights, 0, NULL };
 
 WorldCollisionTrigger D_shelter_b2_septic_tank_80186A54[6] = {
     { NULL, NULL, NULL, { -48, -1872, -1809, 0 }, { { 2576, -3904, -176, 0 }, { -2576, -3904, 176, 0 }, { 2576, 3904, -176, 0 }, { -2576, 3904, 176, 0 } }, { 279, 0, 4095, 0 }, { 0, 0, 4096, 0 }, 4664, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -1147,33 +1154,39 @@ AreaVariant D_shelter_b2_septic_tank_80186F40[22] = {
     { D_shelter_b2_septic_tank_80186F00, D_shelter_b2_septic_tank_80186DDC },
 };
 
-WorldCollisionFootstepSounds D_shelter_b2_septic_tank_80186FF0 = {
-    0x10000059,
-    0x1000005B,
-    0x10000059,
+// Cue-2 entries in the currently loaded type-1 bank; cue 1 uses the next entry.
+enum {
+    SHELTER_B2_SEPTIC_TANK_WALK_FOOTSTEP = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x59,
+    SHELTER_B2_SEPTIC_TANK_RUN_FOOTSTEP  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5B
 };
 
-WorldCollisionSurfaceProperties D_shelter_b2_septic_tank_80186FFC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Class-2 paired footstep requests: walking and scripted jumps share cue bases.
+///
+/// Running uses its own pair; companion playback adds 100 to each entry.
+static WorldCollisionFootstepSounds _gShelterB2SepticTankClass2FootstepSounds = {
+    SHELTER_B2_SEPTIC_TANK_WALK_FOOTSTEP,
+    SHELTER_B2_SEPTIC_TANK_RUN_FOOTSTEP,
+    SHELTER_B2_SEPTIC_TANK_WALK_FOOTSTEP,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b2_septic_tank_80187004[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
-};
+/// Silent blocking surface used by classes 0 and 3..7, with impacts and pushback.
+static WorldCollisionSurfaceProperties _gShelterB2SepticTankDefaultSurface = { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL };
 
-WorldCollisionSurfaceProperties D_shelter_b2_septic_tank_8018700C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b2_septic_tank_80186FF0 },
-};
+/// Silent class-1 surface passing probes and ignoring impacts, with grid pushback.
+static WorldCollisionSurfaceProperties _gShelterB2SepticTankProbePassSurface = { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL };
 
-WorldCollisionSurfaceProperties* D_shelter_b2_septic_tank_80187014[8] = {
-    D_shelter_b2_septic_tank_80186FFC,
-    D_shelter_b2_septic_tank_80187004,
-    D_shelter_b2_septic_tank_8018700C,
-    D_shelter_b2_septic_tank_80186FFC,
-    D_shelter_b2_septic_tank_80186FFC,
-    D_shelter_b2_septic_tank_80186FFC,
-    D_shelter_b2_septic_tank_80186FFC,
-    D_shelter_b2_septic_tank_80186FFC,
+/// Class-2 blocking surface with paired footstep cues, weapon impacts and pushback.
+static WorldCollisionSurfaceProperties _gShelterB2SepticTankClass2Surface = { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &_gShelterB2SepticTankClass2FootstepSounds };
+
+WorldCollisionSurfaceProperties* gShelterB2SepticTankSurfacePropertiesByClass[8] = {
+    &_gShelterB2SepticTankDefaultSurface,
+    &_gShelterB2SepticTankProbePassSurface,
+    &_gShelterB2SepticTankClass2Surface,
+    &_gShelterB2SepticTankDefaultSurface,
+    &_gShelterB2SepticTankDefaultSurface,
+    &_gShelterB2SepticTankDefaultSurface,
+    &_gShelterB2SepticTankDefaultSurface,
+    &_gShelterB2SepticTankDefaultSurface,
 };
 
 RoomFadeStorage gRoomEventFade = { 0 };
@@ -1580,81 +1593,81 @@ void shelterB2SepticTankGlowTask(Task* task)
         case SHELTER_B2_SEPTIC_TANK_GLOW_DRAW:
             switch (viewGetMappedIndex() & SHELTER_B2_SEPTIC_TANK_MAPPED_VIEW_MASK) {
                 case 2: {
-                    const SVECTOR* worldPoints = D_shelter_b2_septic_tank_80183314;
-                    _glowDrawBeam(&worldPoints[0], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[2], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[14], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[16], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[60], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[62], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBitDisc(&worldPoints[70], SHELTER_B2_SEPTIC_TANK_DISC_RADIUS_SCALE, SHELTER_B2_SEPTIC_TANK_GLOW_GREEN);
-                    _glowDrawBitDisc(&worldPoints[72], SHELTER_B2_SEPTIC_TANK_DISC_RADIUS_SCALE, SHELTER_B2_SEPTIC_TANK_GLOW_RED);
+                    const SVECTOR(*beamEnds)[2] = _gShelterB2SepticTankGlowPoints.beamEnds;
+                    _glowDrawBeam(beamEnds[0], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[1], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[7], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[8], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[30], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[31], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBitDisc(&_gShelterB2SepticTankGlowPoints.discCenters[0], SHELTER_B2_SEPTIC_TANK_DISC_RADIUS_SCALE, SHELTER_B2_SEPTIC_TANK_GLOW_GREEN);
+                    _glowDrawBitDisc(&_gShelterB2SepticTankGlowPoints.discCenters[2], SHELTER_B2_SEPTIC_TANK_DISC_RADIUS_SCALE, SHELTER_B2_SEPTIC_TANK_GLOW_RED);
                     break;
                 }
                 case 3: {
-                    const SVECTOR* worldPoints = D_shelter_b2_septic_tank_80183314;
-                    _glowDrawBeam(&worldPoints[0], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[2], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[4], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[6], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[14], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[16], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[18], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[20], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[28], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[30], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[44], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[46], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[48], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[60], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[62], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBitDisc(&worldPoints[70], SHELTER_B2_SEPTIC_TANK_DISC_RADIUS_SCALE, SHELTER_B2_SEPTIC_TANK_GLOW_GREEN);
-                    _glowDrawBitDisc(&worldPoints[71], SHELTER_B2_SEPTIC_TANK_DISC_RADIUS_SCALE, SHELTER_B2_SEPTIC_TANK_GLOW_RED);
-                    _glowDrawBitDisc(&worldPoints[72], SHELTER_B2_SEPTIC_TANK_DISC_RADIUS_SCALE, SHELTER_B2_SEPTIC_TANK_GLOW_RED);
+                    const SVECTOR(*beamEnds)[2] = _gShelterB2SepticTankGlowPoints.beamEnds;
+                    _glowDrawBeam(beamEnds[0], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[1], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[2], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[3], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[7], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[8], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[9], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[10], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[14], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[15], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[22], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[23], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[24], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[30], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[31], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBitDisc(&_gShelterB2SepticTankGlowPoints.discCenters[0], SHELTER_B2_SEPTIC_TANK_DISC_RADIUS_SCALE, SHELTER_B2_SEPTIC_TANK_GLOW_GREEN);
+                    _glowDrawBitDisc(&_gShelterB2SepticTankGlowPoints.discCenters[1], SHELTER_B2_SEPTIC_TANK_DISC_RADIUS_SCALE, SHELTER_B2_SEPTIC_TANK_GLOW_RED);
+                    _glowDrawBitDisc(&_gShelterB2SepticTankGlowPoints.discCenters[2], SHELTER_B2_SEPTIC_TANK_DISC_RADIUS_SCALE, SHELTER_B2_SEPTIC_TANK_GLOW_RED);
                     break;
                 }
                 case 4: {
-                    const SVECTOR* worldPoints = D_shelter_b2_septic_tank_80183344;
-                    _glowDrawBeam(&worldPoints[0], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[2], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[4], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[6], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[14], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[16], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[18], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[20], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[34], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[36], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[48], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[50], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[52], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(D_shelter_b2_septic_tank_80183514, SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(D_shelter_b2_septic_tank_80183524, SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(D_shelter_b2_septic_tank_80183534, SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_RED);
+                    const SVECTOR(*beamEnds)[2] = &_gShelterB2SepticTankGlowPoints.beamEnds[3];
+                    _glowDrawBeam(beamEnds[0], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[1], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[2], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[3], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[7], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[8], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[9], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[10], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[17], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[18], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[24], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[25], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[26], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(_gShelterB2SepticTankGlowPoints.beamEnds[32], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(_gShelterB2SepticTankGlowPoints.beamEnds[33], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(_gShelterB2SepticTankGlowPoints.beamEnds[34], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_RED);
                     break;
                 }
                 case 5: {
-                    const SVECTOR* worldPoints = D_shelter_b2_septic_tank_80183374;
-                    _glowDrawBeam(&worldPoints[0], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[14], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(D_shelter_b2_septic_tank_80183514, SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(D_shelter_b2_septic_tank_80183524, SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(D_shelter_b2_septic_tank_80183534, SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_RED);
+                    const SVECTOR(*beamEnds)[2] = &_gShelterB2SepticTankGlowPoints.beamEnds[6];
+                    _glowDrawBeam(beamEnds[0], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[7], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(_gShelterB2SepticTankGlowPoints.beamEnds[32], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(_gShelterB2SepticTankGlowPoints.beamEnds[33], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(_gShelterB2SepticTankGlowPoints.beamEnds[34], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_RED);
                     break;
                 }
                 case 6: {
-                    const SVECTOR* worldPoints = D_shelter_b2_septic_tank_80183314;
-                    _glowDrawBeam(&worldPoints[0], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[2], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[4], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[14], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[28], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[30], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[60], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBeam(&worldPoints[62], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
-                    _glowDrawBitDisc(&worldPoints[70], SHELTER_B2_SEPTIC_TANK_DISC_RADIUS_SCALE, SHELTER_B2_SEPTIC_TANK_GLOW_GREEN);
-                    _glowDrawBitDisc(&worldPoints[71], SHELTER_B2_SEPTIC_TANK_DISC_RADIUS_SCALE, SHELTER_B2_SEPTIC_TANK_GLOW_RED);
-                    _glowDrawBitDisc(&worldPoints[72], SHELTER_B2_SEPTIC_TANK_DISC_RADIUS_SCALE, SHELTER_B2_SEPTIC_TANK_GLOW_RED);
+                    const SVECTOR(*beamEnds)[2] = _gShelterB2SepticTankGlowPoints.beamEnds;
+                    _glowDrawBeam(beamEnds[0], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[1], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[2], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[7], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[14], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[15], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[30], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBeam(beamEnds[31], SHELTER_B2_SEPTIC_TANK_BEAM_RADIUS_SCALE, 0, SHELTER_B2_SEPTIC_TANK_GLOW_WHITE);
+                    _glowDrawBitDisc(&_gShelterB2SepticTankGlowPoints.discCenters[0], SHELTER_B2_SEPTIC_TANK_DISC_RADIUS_SCALE, SHELTER_B2_SEPTIC_TANK_GLOW_GREEN);
+                    _glowDrawBitDisc(&_gShelterB2SepticTankGlowPoints.discCenters[1], SHELTER_B2_SEPTIC_TANK_DISC_RADIUS_SCALE, SHELTER_B2_SEPTIC_TANK_GLOW_RED);
+                    _glowDrawBitDisc(&_gShelterB2SepticTankGlowPoints.discCenters[2], SHELTER_B2_SEPTIC_TANK_DISC_RADIUS_SCALE, SHELTER_B2_SEPTIC_TANK_GLOW_RED);
                     break;
                 }
             }

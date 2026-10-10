@@ -360,16 +360,16 @@ D_shelter_b2_main_corridor_80188BFC = 0x80188BFC; // absolute:True owner=shelter
 D_shelter_b2_main_corridor_801893EC = 0x801893EC; // absolute:True owner=shelter_b2_main_corridor
 gShelterB2MainCorridorSurfacePropertiesByClass = 0x80189624; // absolute:True owner=shelter_b2_main_corridor
 shelterB2SepticTankRoomTask = 0x8017DB10; // type:func absolute:True owner=shelter_b2_septic_tank shared=rooms
-D_shelter_b2_septic_tank_8018356C = 0x8018356C; // absolute:True owner=shelter_b2_septic_tank
+gShelterB2SepticTankViewMaps = 0x8018356C; // absolute:True owner=shelter_b2_septic_tank
 D_shelter_b2_septic_tank_80183570 = 0x80183570; // absolute:True owner=shelter_b2_septic_tank
 D_shelter_b2_septic_tank_80183574 = 0x80183574; // absolute:True owner=shelter_b2_septic_tank
-D_shelter_b2_septic_tank_80183E0C = 0x80183E0C; // absolute:True owner=shelter_b2_septic_tank shared=rooms
-D_shelter_b2_septic_tank_80183E30 = 0x80183E30; // absolute:True owner=shelter_b2_septic_tank shared=rooms
-D_shelter_b2_septic_tank_801866F4 = 0x801866F4; // absolute:True owner=shelter_b2_septic_tank shared=rooms
-D_shelter_b2_septic_tank_80186A3C = 0x80186A3C; // absolute:True owner=shelter_b2_septic_tank
+gShelterB2SepticTankCollisionGrid = 0x80183E0C; // absolute:True owner=shelter_b2_septic_tank shared=rooms
+gShelterB2SepticTankViewCameras = 0x80183E30; // absolute:True owner=shelter_b2_septic_tank shared=rooms
+gShelterB2SepticTankSpriteViews = 0x801866F4; // absolute:True owner=shelter_b2_septic_tank shared=rooms
+gShelterB2SepticTankRoomLights = 0x80186A3C; // absolute:True owner=shelter_b2_septic_tank
 D_shelter_b2_septic_tank_80186A54 = 0x80186A54; // absolute:True owner=shelter_b2_septic_tank
 D_shelter_b2_septic_tank_80186C1C = 0x80186C1C; // absolute:True owner=shelter_b2_septic_tank
-D_shelter_b2_septic_tank_80187014 = 0x80187014; // absolute:True owner=shelter_b2_septic_tank
+gShelterB2SepticTankSurfacePropertiesByClass = 0x80187014; // absolute:True owner=shelter_b2_septic_tank
 shelterB2PodAccessTunnelRoomTask = 0x8017DC14; // type:func absolute:True owner=shelter_b2_pod_access_tunnel
 D_shelter_b2_pod_access_tunnel_80183DEC = 0x80183DEC; // absolute:True owner=shelter_b2_pod_access_tunnel shared=rooms
 gShelterB2PodAccessTunnelRoomLighting = 0x80183E0C; // absolute:True owner=shelter_b2_pod_access_tunnel shared=rooms

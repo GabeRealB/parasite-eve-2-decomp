@@ -692,7 +692,7 @@ static WorldCoordRoomLighting D_map_shelter_8017AE54[1] = {
 };
 
 static WorldCoordRoomLighting D_map_shelter_8017AE5C[1] = {
-    { &D_shelter_b2_septic_tank_80186A3C, NULL },
+    { &gShelterB2SepticTankRoomLights, NULL },
 };
 
 static WorldCoordRoomLighting D_map_shelter_8017AE64[1] = {
@@ -976,7 +976,7 @@ static WorldCollisionRoomResources D_map_shelter_8017B234[1] = {
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B244[1] = {
-    { &D_shelter_b2_septic_tank_80183E0C, D_shelter_b2_septic_tank_80186A54, D_shelter_b2_septic_tank_80186C1C, NULL },
+    { &gShelterB2SepticTankCollisionGrid, D_shelter_b2_septic_tank_80186A54, D_shelter_b2_septic_tank_80186C1C, NULL },
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B254[1] = {
@@ -1104,7 +1104,7 @@ static ViewCamera* D_map_shelter_8017B3BC[49] = {
     D_shelter_b2_laboratory_80183580,
     D_shelter_b2_breeding_room_80181118,
     D_shelter_b2_main_corridor_80184464,
-    D_shelter_b2_septic_tank_80183E30,
+    gShelterB2SepticTankViewCameras,
     gShelterB2PodAccessTunnelViewCameras,
     D_shelter_r36_8017EAD4,
     D_shelter_r37_8017D944,
@@ -1162,7 +1162,7 @@ static u8** _gMapShelterAreaViewMaps[49] = {
     gShelterB2LaboratoryRoomViewMaps,
     gShelterB2BreedingRoomRoomViewMaps,
     gShelterB2MainCorridorViewMaps,
-    D_shelter_b2_septic_tank_8018356C,
+    gShelterB2SepticTankViewMaps,
     gShelterB2PodAccessTunnelRoomViewMaps,
     D_shelter_r36_8017E9BC,
     D_shelter_r37_8017D6F8,
@@ -1220,7 +1220,7 @@ static SpriteView* _gMapShelterAreaSpriteViews[49] = {
     D_shelter_b2_laboratory_801854D0,
     D_shelter_b2_breeding_room_801833D4,
     D_shelter_b2_main_corridor_80188848,
-    D_shelter_b2_septic_tank_801866F4,
+    gShelterB2SepticTankSpriteViews,
     gShelterB2PodAccessTunnelSpriteViews,
     D_shelter_r36_8017F318,
     D_shelter_r37_8017D9E0,
@@ -1274,7 +1274,7 @@ WorldCollisionSurfaceProperties** D_map_shelter_8017B614[49] = {
     gShelterB2LaboratorySurfacePropertiesByClass,
     gShelterB2BreedingRoomSurfacePropertiesByClass,
     gShelterB2MainCorridorSurfacePropertiesByClass,
-    D_shelter_b2_septic_tank_80187014,
+    gShelterB2SepticTankSurfacePropertiesByClass,
     gShelterB2PodAccessTunnelSurfacePropertiesByClass,
     D_shelter_r36_8017FAE4,
     D_shelter_r37_8017DED8,

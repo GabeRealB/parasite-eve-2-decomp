@@ -25,26 +25,59 @@ extern s16 gShelterB2SepticTankWaterY;
 
 extern AreaVariant D_shelter_b2_septic_tank_80186F40[22];
 
-// shelter_b2_septic_tank
-extern u8* D_shelter_b2_septic_tank_8018356C[];
+/// Logical-view map directory for the septic tank's single room.
+///
+/// Room index zero borrows `gViewIdentityMap`: logical views 1..6 select
+/// camera, image and sprite indices 1..6. There is no terminator. The
+/// directory requires the room loaded; gameplay owns the mapped bytes.
+extern u8* gShelterB2SepticTankViewMaps[1];
 
 extern ViewCount D_shelter_b2_septic_tank_80183570[];
 
 extern DirectionWarpEntry D_shelter_b2_septic_tank_80183574[];
 
-extern WorldCollisionGrid D_shelter_b2_septic_tank_80183E0C;
+/// The septic tank's room-space collision mesh and 3-by-6 XZ cell index.
+///
+/// Cells are 4000 game units wide; the origin is (-5374, -18345) on X/Z.
+/// The 31 faces borrow the room's vertex, normal and terminated cell pools.
+/// Activation binds the descriptor to the current view; keep the room loaded
+/// while collision queries use the grid.
+extern WorldCollisionGrid gShelterB2SepticTankCollisionGrid;
 
-extern ViewCamera D_shelter_b2_septic_tank_80183E30[];
+/// Six authored cameras for the septic tank's mapped views 1..6.
+///
+/// Indexed by mapped view minus one, with no terminator. Transforms use
+/// signed world units and 4096 for unit rotation; projection distances are
+/// pixels. Queued camera requests borrow these records until application.
+extern ViewCamera gShelterB2SepticTankViewCameras[6];
 
-extern SpriteView D_shelter_b2_septic_tank_801866F4[];
+/// Foreground sprite resources for the septic tank's mapped views 1..6.
+///
+/// Indexed by mapped view minus one, with no descriptor terminator. Views
+/// 2..5 select source rectangles and terminated batch lists. Views 1 and 6
+/// retain empty batch addresses in the source slot. All six keep decoded
+/// background strips and have no clipping list. Keep the descriptors and
+/// their lists loaded throughout packet allocation and drawing.
+extern SpriteView gShelterB2SepticTankSpriteViews[6];
 
-extern WorldCoordRoomLights D_shelter_b2_septic_tank_80186A3C;
+/// The septic tank's eight point lights for model shading in every view.
+///
+/// Directional and cone arrays are absent. Point-light nodes remain writable
+/// for parenting, composition and attenuation updates; keep the collection
+/// and its array in the loaded room overlay while lighting uses them.
+extern WorldCoordRoomLights gShelterB2SepticTankRoomLights;
 
 extern WorldCollisionTrigger D_shelter_b2_septic_tank_80186A54[];
 
 extern WorldCollisionTrigger D_shelter_b2_septic_tank_80186C1C[];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b2_septic_tank_80187014[];
+/// Collision and footstep records indexed by septic-tank surface class 0..7.
+///
+/// All eight pointers are populated, with no terminator. Class 1 passes
+/// probes and ignores weapon impacts; every other class blocks probes and
+/// allows impacts. Only class 2 has footstep cues. All classes apply grid
+/// pushback. Records and cue storage require the room overlay loaded.
+extern WorldCollisionSurfaceProperties* gShelterB2SepticTankSurfacePropertiesByClass[8];
 
 /// Runs room initialization, encounter monitoring or teardown for the septic tank.
 ///
