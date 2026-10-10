@@ -534,7 +534,7 @@ DirectionWarpEntry* D_map_dryfield_full_8017A80C[38] = {
 };
 
 static ViewCount* D_map_dryfield_full_8017A8A4[38] = {
-    D_dryfield_night_gas_station_80189E80,
+    gDryfieldNightGasStationViewCounts,
     D_dryfield_night_main_street_80182308,
     D_dryfield_night_general_store_8017E848,
     NULL,
@@ -620,7 +620,7 @@ static WorldCollisionRoomResources* D_map_dryfield_full_8017A940[38] = {
 WorldCollisionStageResources D_map_dryfield_full_8017A9D8 = { D_map_dryfield_full_8017A940 };
 
 static ViewCamera* D_map_dryfield_full_8017A9DC[38] = {
-    D_dryfield_night_gas_station_8018B780,
+    gDryfieldNightGasStationViewCameras,
     D_dryfield_night_main_street_80184564,
     D_dryfield_night_general_store_8017F4A8,
     NULL,
@@ -706,7 +706,7 @@ static u8** D_map_dryfield_full_8017AA78[38] = {
 ViewIndexTable D_map_dryfield_full_8017AB10 = { D_map_dryfield_full_8017AA78 };
 
 static SpriteView* D_map_dryfield_full_8017AB14[38] = {
-    D_dryfield_night_gas_station_8018F6C4,
+    gDryfieldNightGasStationSpriteViews,
     D_dryfield_night_main_street_801875E4,
     D_dryfield_night_general_store_80184278,
     NULL,

@@ -29,13 +29,31 @@ extern WorldCollisionRoomResources D_dryfield_night_gas_station_80189DD0[];
 /// room overlay and must remain live while the map and view systems use them.
 extern u8* gDryfieldNightGasStationViewMaps[4];
 
-extern ViewCount D_dryfield_night_gas_station_80189E80[];
+/// Logical-view search limits for room variants 1..4, indexed by room - 1.
+///
+/// Each room has 21 logical views, independently of aliases in its view map.
+/// These signed element counts have no terminator and belong to the loaded
+/// room overlay; they do not count the maps' retained trailing bytes.
+extern ViewCount gDryfieldNightGasStationViewCounts[4];
 
 extern DirectionWarpEntry D_dryfield_night_gas_station_80189E88[];
 
-extern ViewCamera D_dryfield_night_gas_station_8018B780[];
+/// Cameras shared by all four room variants, indexed by mapped view minus one.
+///
+/// Mapped indices are 1..21. Rotation uses ONE (4096) for unit scale;
+/// translation is the negated world-space camera origin, and perspective
+/// distance is in pixels. The table has no terminator. The map and view systems
+/// borrow it while this room overlay is loaded.
+extern ViewCamera gDryfieldNightGasStationViewCameras[21];
 
-extern SpriteView D_dryfield_night_gas_station_8018F6C4[];
+/// Background sprite resources shared by the four rooms, indexed by mapped view minus one.
+///
+/// Mapped indices are 1..21; there is no descriptor terminator or clipping list.
+/// Every view's first zero-count batch selects decoded background image strips.
+/// Empty views retain their batch-list address in the source slot without
+/// dereferencing it as sprites. Sources and batches belong to the loaded room
+/// overlay; cutscene effects and saved balcony damage change batch visibility.
+extern SpriteView gDryfieldNightGasStationSpriteViews[21];
 
 /// Collision policies and footstep cue sets indexed by surface class 0..7.
 ///
