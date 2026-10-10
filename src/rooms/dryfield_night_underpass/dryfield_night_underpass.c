@@ -48,8 +48,6 @@ static s32 _underpassSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey,
 
 extern TaskDesc         gUnderpassSwitchTaskDesc[];
 extern TaskMessageEntry D_dryfield_night_underpass_8017DCF0[];
-extern SVECTOR          D_dryfield_night_underpass_8017DD20[8];
-extern s16              D_dryfield_night_underpass_8017DD60[8];
 
 enum { DRYFIELD_NIGHT_UNDERPASS_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
@@ -57,7 +55,7 @@ static s32  _dryfieldNightUnderpassRejectKeyItemUse(Task* unusedTask, s32 messag
 static s32  _dryfieldNightUnderpassIgnoreRoomAction(Task* unusedTask, s32 messageId, const DirectionActionRequest* request, s32 unused);
 static void _dryfieldNightUnderpassIdleTask(Task* unusedTask);
 
-extern WorldCollisionGrid     D_dryfield_night_underpass_8017E6D4[1];
+static WorldCollisionGrid     _gDryfieldNightUnderpassCollisionGrid;
 extern WorldCollisionOccluder D_dryfield_night_underpass_8017FBE0[3];
 extern WorldCollisionTrigger  D_dryfield_night_underpass_8017F558[16];
 extern WorldCollisionTrigger  D_dryfield_night_underpass_8017FA18[6];
@@ -78,7 +76,11 @@ TaskMessageEntry D_dryfield_night_underpass_8017DCF0[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-SVECTOR D_dryfield_night_underpass_8017DD20[8] = {
+/// Eight ceiling-lamp flare centres in signed world-coordinate units.
+///
+/// Each element pairs with the same index in `_gDryfieldNightUnderpassFlareViewMasks`.
+/// The fourth SVECTOR component is unused by projection.
+static SVECTOR _gDryfieldNightUnderpassFlarePositions[8] = {
     { 0x4588, -3480, -1500, 0 },
     { 0x3B60, -3480, -6000, 0 },
     { 0x4588, -3480, -8700, 0 },
@@ -89,24 +91,28 @@ SVECTOR D_dryfield_night_underpass_8017DD20[8] = {
     { 500, -3480, -9700, 0 },
 };
 
-s16 D_dryfield_night_underpass_8017DD60[8] = {
-    2052,
-    8,
-    536,
-    528,
-    16,
-    64,
-    32,
-    160,
+/// Logical-view visibility bits for the corresponding ceiling-lamp flare centres.
+///
+/// Bit n selects logical view n directly, before room-view mapping.
+/// Signed halfword storage preserves the flare task's signed load and promotion.
+static s16 _gDryfieldNightUnderpassFlareViewMasks[ARRAY_SIZE(_gDryfieldNightUnderpassFlarePositions)] = {
+    (1 << 2) | (1 << 11),
+    (1 << 3),
+    (1 << 3) | (1 << 4) | (1 << 9),
+    (1 << 4) | (1 << 9),
+    (1 << 4),
+    (1 << 6),
+    (1 << 5),
+    (1 << 5) | (1 << 7),
 };
 
 WorldCollisionRoomResources D_dryfield_night_underpass_8017DD70[6] = {
-    { D_dryfield_night_underpass_8017E6D4, D_dryfield_night_underpass_8017F558, D_dryfield_night_underpass_8017FA18, D_dryfield_night_underpass_8017FBE0 },
-    { D_dryfield_night_underpass_8017E6D4, D_dryfield_night_underpass_8017F558, D_dryfield_night_underpass_8017FA18, D_dryfield_night_underpass_8017FBE0 },
-    { D_dryfield_night_underpass_8017E6D4, D_dryfield_night_underpass_8017F558, D_dryfield_night_underpass_8017FA18, D_dryfield_night_underpass_8017FBE0 },
-    { D_dryfield_night_underpass_8017E6D4, D_dryfield_night_underpass_8017F558, D_dryfield_night_underpass_8017FA18, D_dryfield_night_underpass_8017FBE0 },
-    { D_dryfield_night_underpass_8017E6D4, D_dryfield_night_underpass_8017F558, D_dryfield_night_underpass_8017FA18, D_dryfield_night_underpass_8017FBE0 },
-    { D_dryfield_night_underpass_8017E6D4, D_dryfield_night_underpass_8017F558, D_dryfield_night_underpass_8017FA18, D_dryfield_night_underpass_8017FBE0 },
+    { &_gDryfieldNightUnderpassCollisionGrid, D_dryfield_night_underpass_8017F558, D_dryfield_night_underpass_8017FA18, D_dryfield_night_underpass_8017FBE0 },
+    { &_gDryfieldNightUnderpassCollisionGrid, D_dryfield_night_underpass_8017F558, D_dryfield_night_underpass_8017FA18, D_dryfield_night_underpass_8017FBE0 },
+    { &_gDryfieldNightUnderpassCollisionGrid, D_dryfield_night_underpass_8017F558, D_dryfield_night_underpass_8017FA18, D_dryfield_night_underpass_8017FBE0 },
+    { &_gDryfieldNightUnderpassCollisionGrid, D_dryfield_night_underpass_8017F558, D_dryfield_night_underpass_8017FA18, D_dryfield_night_underpass_8017FBE0 },
+    { &_gDryfieldNightUnderpassCollisionGrid, D_dryfield_night_underpass_8017F558, D_dryfield_night_underpass_8017FA18, D_dryfield_night_underpass_8017FBE0 },
+    { &_gDryfieldNightUnderpassCollisionGrid, D_dryfield_night_underpass_8017F558, D_dryfield_night_underpass_8017FA18, D_dryfield_night_underpass_8017FBE0 },
 };
 
 WorldCoordRoomLighting gDryfieldNightUnderpassRoomLighting[6] = {
@@ -230,34 +236,57 @@ DirectionWarpEntry D_dryfield_night_underpass_8017DE60[3] = {
     { { { .word = 2048 }, 1212, -1000, -7543 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 1212, -1000, -7543 }, { 0, 0, 0, 0 }, 0x53260001, 0x53260001, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_FADE_DEPARTURE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gDryfieldNightUnderpassCollision01114Normals[12] = {
+/// Twelve room-space collision normals, with 4096 representing unit length.
+static SVECTOR _gDryfieldNightUnderpassCollisionGridNormals[12] = {
 #include "assets/dryfield_night_underpass_collision_01114_normals.inc"
 };
 
-static SVECTOR _gDryfieldNightUnderpassCollision01114Verts[70] = {
+/// Seventy mesh vertices in signed room-coordinate units.
+static SVECTOR _gDryfieldNightUnderpassCollisionGridVerts[70] = {
 #include "assets/dryfield_night_underpass_collision_01114_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldNightUnderpassCollision01114Faces[46] = {
+/// Forty-six collision faces using surface classes 0, 2, 3 and 4.
+static WorldCollisionGridFace _gDryfieldNightUnderpassCollisionGridFaces[46] = {
 #include "assets/dryfield_night_underpass_collision_01114_faces.inc"
 };
 
-static s16 _gDryfieldNightUnderpassCollision01114Cells[346] = {
+/// Twenty-four signed face-index lists, each ending in WORLD_COLLISION_GRID_CELL_END.
+///
+/// The 346-halfword asset span also retains unused zeros between lists.
+static s16 _gDryfieldNightUnderpassCollisionGridCells[346] = {
 #include "assets/dryfield_night_underpass_collision_01114_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightUnderpassCollision01114Cells[i])
-static s16* _gDryfieldNightUnderpassCollision01114Table[24] = {
+// The generated table supplies halfword offsets into this grid's cell-list pool.
+#define GRID_CELL(i) (&_gDryfieldNightUnderpassCollisionGridCells[i])
+/// The six-by-four X-major directory of cell face-index lists.
+static s16* _gDryfieldNightUnderpassCollisionGridTable[24] = {
 #include "assets/dryfield_night_underpass_collision_01114_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_night_underpass_8017E6D4[1] = {
-    { NULL, _gDryfieldNightUnderpassCollision01114Normals, _gDryfieldNightUnderpassCollision01114Verts, _gDryfieldNightUnderpassCollision01114Faces, _gDryfieldNightUnderpassCollision01114Table, 3000, 0x32C8, 6, 4, 4000, 46 },
+/// The collision mesh shared by nighttime underpass rooms 1..6.
+///
+/// The XZ grid starts at (-3000, -13000), with six-by-four 4000-unit cells.
+/// Activation binds the mutable descriptor to the live view coordinate;
+/// descriptor and pools remain valid only while this overlay is loaded.
+static WorldCollisionGrid _gDryfieldNightUnderpassCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldNightUnderpassCollisionGridNormals,
+    .vertices    = _gDryfieldNightUnderpassCollisionGridVerts,
+    .faces       = _gDryfieldNightUnderpassCollisionGridFaces,
+    .cellFaceIds = _gDryfieldNightUnderpassCollisionGridTable,
+    .xBias       = 3000,
+    .zBias       = 13000,
+    .cellCountX  = 6,
+    .cellCountZ  = 4,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldNightUnderpassCollisionGridFaces),
 };
 
-ViewCamera D_dryfield_night_underpass_8017E6F8[26] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -7864, 0x6671, 5100 } }, 329 },
+ViewCamera gDryfieldNightUnderpassViewCameras[DRYFIELD_NIGHT_UNDERPASS_MAPPED_VIEW_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -7864, 0x6671, 5100 } }, 329 },
     { { { { 3875, 0, 1325 }, { -149, 4069, 437 }, { -1316, -461, 3851 } }, { -0x4463, 1654, 7373 } }, 230 },
     { { { { -4007, 0, 848 }, { -132, 4045, -626 }, { -837, -639, -3958 } }, { -0x42CB, 1690, 3166 } }, 230 },
     { { { { 998, 0, -3972 }, { 996, 3964, 250 }, { 3845, -1027, 966 } }, { -6656, 1455, 9182 } }, 230 },
@@ -453,153 +482,203 @@ static SpriteBatch _gDryfieldNightUnderpassView10SpriteBatches[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_underpass_8017EF30[2] = {
+/// Mapped view 11's empty sprite list, retaining decoded background strips.
+static SpriteBatch _gDryfieldNightUnderpassView11SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_underpass_8017EF40[2] = {
+/// Mapped view 12's empty sprite list, retaining decoded background strips.
+static SpriteBatch _gDryfieldNightUnderpassView12SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_underpass_8017EF50[16] = {
-    { 143, 0x3FC0, { .fields = { 40, 56 } }, 48, -120, 1016, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 72, 80, 964, { .fields = { 32, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 56 } }, 88, -120, 1000, { .fields = { 88, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 56 } }, 128, -120, 1000, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 56 } }, 88, 24, 975, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 56 } }, 128, 24, 975, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, 88, -24, 975, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 128, -24, 975, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 128, -64, 975, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 88, -64, 975, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 96, 80, 975, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 128, 80, 975, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 64, 32, 993, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 56, -64, 1005, { .fields = { 24, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 56, -24, 1032, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 56, 8, 1014, { .fields = { 24, 160 } }, 128, 128, 128, 0 },
+/// 16 texture rectangles and sorting depths for mapped view 13.
+///
+/// Positions are relative to the view centre and sizes are pixels; UV is in texels.
+/// Depth is the unscaled value quantized into the frame's ordering table.
+/// Storage remains writable for the room-sprite interface.
+static SpriteSource _gDryfieldNightUnderpassView13SpriteSources[16] = {
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 40, 56 } }, 48, -120, 1016, { .fields = { 88, 0 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 24, 40 } }, 72, 80, 964, { .fields = { 32, 80 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 40, 56 } }, 88, -120, 1000, { .fields = { 88, 56 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 32, 56 } }, 128, -120, 1000, { .fields = { 96, 168 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 40, 56 } }, 88, 24, 975, { .fields = { 56, 112 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 32, 56 } }, 128, 24, 975, { .fields = { 96, 112 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 40, 48 } }, 88, -24, 975, { .fields = { 56, 168 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 32, 48 } }, 128, -24, 975, { .fields = { 56, 48 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 32, 40 } }, 128, -64, 975, { .fields = { 64, 216 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 40, 40 } }, 88, -64, 975, { .fields = { 24, 0 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 32, 40 } }, 96, 80, 975, { .fields = { 32, 216 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 32, 40 } }, 128, 80, 975, { .fields = { 24, 40 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 24, 48 } }, 64, 32, 993, { .fields = { 64, 0 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 32, 40 } }, 56, -64, 1005, { .fields = { 24, 120 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 32, 32 } }, 56, -24, 1032, { .fields = { 96, 224 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 32, 24 } }, 56, 8, 1014, { .fields = { 24, 160 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_dryfield_night_underpass_8017F090[3] = {
+/// Mapped view 13's complete source range after a decoded-background selector.
+///
+/// The zero-count first record retains background strips; the end marker
+/// follows the single range covering every source element.
+static SpriteBatch _gDryfieldNightUnderpassView13SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 16, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldNightUnderpassView13SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_underpass_8017F0A8[11] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -96, 96, 2125, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -16, -24, 2129, { .fields = { 24, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 0, 56, 1860, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -16, 48, 2000, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 32 } }, -16, 16, 2058, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 48 } }, -96, -72, 2125, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -96, -120, 2125, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 120 } }, -96, -24, 2125, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 80 } }, -160, 40, 2125, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 80 } }, -160, -120, 2125, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 80 } }, -160, -40, 2125, { .fields = { 0, 120 } }, 128, 128, 128, 0 },
+/// 11 texture rectangles and sorting depths for mapped view 14.
+///
+/// Positions are relative to the view centre and sizes are pixels; UV is in texels.
+/// Depth is the unscaled value quantized into the frame's ordering table.
+/// Storage remains writable for the room-sprite interface.
+static SpriteSource _gDryfieldNightUnderpassView14SpriteSources[11] = {
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 8, 8 } }, -96, 96, 2125, { .fields = { 120, 248 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 24, 40 } }, -16, -24, 2129, { .fields = { 24, 80 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_896, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 16, 24 } }, 0, 56, 1860, { .fields = { 112, 112 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 16, 32 } }, -16, 48, 2000, { .fields = { 8, 80 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_896, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 24, 32 } }, -16, 16, 2058, { .fields = { 112, 80 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_896, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 88, 48 } }, -96, -72, 2125, { .fields = { 120, 200 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 48, 48 } }, -96, -120, 2125, { .fields = { 80, 200 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 80, 120 } }, -96, -24, 2125, { .fields = { 48, 0 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 64, 80 } }, -160, 40, 2125, { .fields = { 64, 120 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_896, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 64, 80 } }, -160, -120, 2125, { .fields = { 112, 0 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 64, 80 } }, -160, -40, 2125, { .fields = { 0, 120 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_dryfield_night_underpass_8017F184[3] = {
+/// Mapped view 14's complete source range after a decoded-background selector.
+///
+/// The zero-count first record retains background strips; the end marker
+/// follows the single range covering every source element.
+static SpriteBatch _gDryfieldNightUnderpassView14SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 11, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldNightUnderpassView14SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_underpass_8017F19C[10] = {
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -104, -120, 910, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -112, -48, 913, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -104, -96, 995, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -120, 8, 901, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -128, 56, 896, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 72 } }, -160, -120, 897, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 56 } }, -160, -48, 897, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, -160, 8, 897, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -160, 56, 897, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -160, 96, 897, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
+/// 10 texture rectangles and sorting depths for mapped view 15.
+///
+/// Positions are relative to the view centre and sizes are pixels; UV is in texels.
+/// Depth is the unscaled value quantized into the frame's ordering table.
+/// Storage remains writable for the room-sprite interface.
+static SpriteSource _gDryfieldNightUnderpassView15SpriteSources[10] = {
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 8, 24 } }, -104, -120, 910, { .fields = { 72, 72 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 16, 56 } }, -112, -48, 913, { .fields = { 112, 128 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 16, 48 } }, -104, -96, 995, { .fields = { 112, 184 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 16, 48 } }, -120, 8, 901, { .fields = { 96, 176 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 16, 40 } }, -128, 56, 896, { .fields = { 80, 216 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 56, 72 } }, -160, -120, 897, { .fields = { 72, 0 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 48, 56 } }, -160, -48, 897, { .fields = { 80, 72 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 40, 48 } }, -160, 8, 897, { .fields = { 72, 128 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 32, 40 } }, -160, 56, 897, { .fields = { 64, 176 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 32, 24 } }, -160, 96, 897, { .fields = { 96, 232 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_dryfield_night_underpass_8017F264[4] = {
+/// Mapped view 15's complete source range and empty trailing range.
+///
+/// The zero-count first record retains background strips; the trailing range
+/// begins one past the sources and has no elements. Byte `field_6[0]` is 1
+/// on the populated range; its role is unproven and the stored value is retained.
+static SpriteBatch _gDryfieldNightUnderpassView15SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 10, 0, 0, { 1, 0 } },
-    { 10, 0, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldNightUnderpassView15SpriteSources), 0, 0, { 1, 0 } },
+    { ARRAY_SIZE(_gDryfieldNightUnderpassView15SpriteSources), 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_underpass_8017F284[2] = {
+/// Mapped view 16's empty sprite list, retaining decoded background strips.
+static SpriteBatch _gDryfieldNightUnderpassView16SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_underpass_8017F294[2] = {
+/// Mapped view 17's empty sprite list, retaining decoded background strips.
+static SpriteBatch _gDryfieldNightUnderpassView17SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_underpass_8017F2A4[2] = {
+/// Mapped view 18's empty sprite list, retaining decoded background strips.
+static SpriteBatch _gDryfieldNightUnderpassView18SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_underpass_8017F2B4[11] = {
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -72, -112, 1325, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 56 } }, -120, -120, 1325, { .fields = { 24, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 56 } }, -160, -120, 1325, { .fields = { 32, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -56, -16, 1197, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -56, -64, 1250, { .fields = { 8, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -56, 24, 1162, { .fields = { 8, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -56, 56, 1133, { .fields = { 8, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 80 } }, -112, -64, 1175, { .fields = { 72, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 80 } }, -160, -64, 1175, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 88 } }, -112, 16, 1125, { .fields = { 72, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 88 } }, -160, 16, 1125, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+/// 11 texture rectangles and sorting depths for mapped view 19.
+///
+/// Positions are relative to the view centre and sizes are pixels; UV is in texels.
+/// Depth is the unscaled value quantized into the frame's ordering table.
+/// Storage remains writable for the room-sprite interface.
+static SpriteSource _gDryfieldNightUnderpassView19SpriteSources[11] = {
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 32, 48 } }, -72, -112, 1325, { .fields = { 40, 192 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 48, 56 } }, -120, -120, 1325, { .fields = { 24, 136 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 40, 56 } }, -160, -120, 1325, { .fields = { 32, 80 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 32, 40 } }, -56, -16, 1197, { .fields = { 0, 0 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 32, 48 } }, -56, -64, 1250, { .fields = { 8, 192 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 24, 32 } }, -56, 24, 1162, { .fields = { 8, 72 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 24, 32 } }, -56, 56, 1133, { .fields = { 8, 40 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 56, 80 } }, -112, -64, 1175, { .fields = { 72, 176 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 48, 80 } }, -160, -64, 1175, { .fields = { 32, 0 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 56, 88 } }, -112, 16, 1125, { .fields = { 72, 88 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_UNDERPASS_SPRITE_TPAGE_960, DRYFIELD_NIGHT_UNDERPASS_SPRITE_CLUT, { .fields = { 48, 88 } }, -160, 16, 1125, { .fields = { 80, 0 } }, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_UNDERPASS_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_dryfield_night_underpass_8017F390[4] = {
+/// Mapped view 19's complete source range after two empty records.
+///
+/// The zero-count first record retains background strips. The second has
+/// `field_6[0]` set to 1; its role is unproven and the stored value is retained.
+/// The third record covers every source element before the end marker.
+static SpriteBatch _gDryfieldNightUnderpassView19SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 0, 0, 0, { 1, 0 } },
-    { 0, 11, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldNightUnderpassView19SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_underpass_8017F3B0[2] = {
+/// Mapped view 20's empty sprite list, retaining decoded background strips.
+static SpriteBatch _gDryfieldNightUnderpassView20SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_underpass_8017F3C0[2] = {
+/// Mapped view 21's empty sprite list, retaining decoded background strips.
+static SpriteBatch _gDryfieldNightUnderpassView21SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_underpass_8017F3D0[2] = {
+/// Mapped view 22's empty sprite list, retaining decoded background strips.
+static SpriteBatch _gDryfieldNightUnderpassView22SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_underpass_8017F3E0[2] = {
+/// Mapped view 23's empty sprite list, retaining decoded background strips.
+static SpriteBatch _gDryfieldNightUnderpassView23SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_underpass_8017F3F0[2] = {
+/// Mapped view 24's empty sprite list, retaining decoded background strips.
+static SpriteBatch _gDryfieldNightUnderpassView24SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_underpass_8017F400[2] = {
+/// Mapped view 25's empty sprite list, retaining decoded background strips.
+static SpriteBatch _gDryfieldNightUnderpassView25SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_underpass_8017F410[2] = {
+/// Mapped view 26's empty sprite list, retaining decoded background strips.
+static SpriteBatch _gDryfieldNightUnderpassView26SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_dryfield_night_underpass_8017F420[26] = {
+SpriteView gDryfieldNightUnderpassSpriteViews[DRYFIELD_NIGHT_UNDERPASS_MAPPED_VIEW_COUNT] = {
     { { .empty = _gDryfieldNightUnderpassView1SpriteBatches }, _gDryfieldNightUnderpassView1SpriteBatches, NULL },
     { { .empty = _gDryfieldNightUnderpassView2SpriteBatches }, _gDryfieldNightUnderpassView2SpriteBatches, NULL },
     { { .elements = _gDryfieldNightUnderpassView3SpriteSources }, _gDryfieldNightUnderpassView3SpriteBatches, NULL },
@@ -610,22 +689,22 @@ SpriteView D_dryfield_night_underpass_8017F420[26] = {
     { { .empty = _gDryfieldNightUnderpassView8SpriteBatches }, _gDryfieldNightUnderpassView8SpriteBatches, NULL },
     { { .elements = _gDryfieldNightUnderpassView9SpriteSources }, _gDryfieldNightUnderpassView9SpriteBatches, NULL },
     { { .empty = _gDryfieldNightUnderpassView10SpriteBatches }, _gDryfieldNightUnderpassView10SpriteBatches, NULL },
-    { { .empty = D_dryfield_night_underpass_8017EF30 }, D_dryfield_night_underpass_8017EF30, NULL },
-    { { .empty = D_dryfield_night_underpass_8017EF40 }, D_dryfield_night_underpass_8017EF40, NULL },
-    { { .elements = D_dryfield_night_underpass_8017EF50 }, D_dryfield_night_underpass_8017F090, NULL },
-    { { .elements = D_dryfield_night_underpass_8017F0A8 }, D_dryfield_night_underpass_8017F184, NULL },
-    { { .elements = D_dryfield_night_underpass_8017F19C }, D_dryfield_night_underpass_8017F264, NULL },
-    { { .empty = D_dryfield_night_underpass_8017F284 }, D_dryfield_night_underpass_8017F284, NULL },
-    { { .empty = D_dryfield_night_underpass_8017F294 }, D_dryfield_night_underpass_8017F294, NULL },
-    { { .empty = D_dryfield_night_underpass_8017F2A4 }, D_dryfield_night_underpass_8017F2A4, NULL },
-    { { .elements = D_dryfield_night_underpass_8017F2B4 }, D_dryfield_night_underpass_8017F390, NULL },
-    { { .empty = D_dryfield_night_underpass_8017F3B0 }, D_dryfield_night_underpass_8017F3B0, NULL },
-    { { .empty = D_dryfield_night_underpass_8017F3C0 }, D_dryfield_night_underpass_8017F3C0, NULL },
-    { { .empty = D_dryfield_night_underpass_8017F3D0 }, D_dryfield_night_underpass_8017F3D0, NULL },
-    { { .empty = D_dryfield_night_underpass_8017F3E0 }, D_dryfield_night_underpass_8017F3E0, NULL },
-    { { .empty = D_dryfield_night_underpass_8017F3F0 }, D_dryfield_night_underpass_8017F3F0, NULL },
-    { { .empty = D_dryfield_night_underpass_8017F400 }, D_dryfield_night_underpass_8017F400, NULL },
-    { { .empty = D_dryfield_night_underpass_8017F410 }, D_dryfield_night_underpass_8017F410, NULL },
+    { { .empty = _gDryfieldNightUnderpassView11SpriteBatches }, _gDryfieldNightUnderpassView11SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightUnderpassView12SpriteBatches }, _gDryfieldNightUnderpassView12SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightUnderpassView13SpriteSources }, _gDryfieldNightUnderpassView13SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightUnderpassView14SpriteSources }, _gDryfieldNightUnderpassView14SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightUnderpassView15SpriteSources }, _gDryfieldNightUnderpassView15SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightUnderpassView16SpriteBatches }, _gDryfieldNightUnderpassView16SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightUnderpassView17SpriteBatches }, _gDryfieldNightUnderpassView17SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightUnderpassView18SpriteBatches }, _gDryfieldNightUnderpassView18SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightUnderpassView19SpriteSources }, _gDryfieldNightUnderpassView19SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightUnderpassView20SpriteBatches }, _gDryfieldNightUnderpassView20SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightUnderpassView21SpriteBatches }, _gDryfieldNightUnderpassView21SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightUnderpassView22SpriteBatches }, _gDryfieldNightUnderpassView22SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightUnderpassView23SpriteBatches }, _gDryfieldNightUnderpassView23SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightUnderpassView24SpriteBatches }, _gDryfieldNightUnderpassView24SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightUnderpassView25SpriteBatches }, _gDryfieldNightUnderpassView25SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightUnderpassView26SpriteBatches }, _gDryfieldNightUnderpassView26SpriteBatches, NULL },
 };
 
 WorldCollisionTrigger D_dryfield_night_underpass_8017F558[16] = {
@@ -705,14 +784,44 @@ static WorldCoordRoomLights _gDryfieldNightUnderpassDimRoomLights = {
     .pointLights     = _gDryfieldNightUnderpassDimPointLights,
 };
 
-AreaResource D_dryfield_night_underpass_80180264[2] = {
-    { 5, 5, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor400500TaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement keys and decimal file numbers for the first two encounter variants.
+enum {
+    DRYFIELD_NIGHT_UNDERPASS_GRAY_STALKER_RESOURCE_ID = 5,
+    DRYFIELD_NIGHT_UNDERPASS_GRAY_STALKER_FILE_NUMBER = 5,
+    DRYFIELD_NIGHT_UNDERPASS_SCAVENGER_RESOURCE_ID    = 16,
+    DRYFIELD_NIGHT_UNDERPASS_SCAVENGER_FILE_NUMBER    = 16,
 };
 
-AreaResource D_dryfield_night_underpass_8018027C[2] = {
-    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101600ScavengerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 1's Gray Stalker load and spawn recipe, followed by the resource terminator.
+///
+/// Placement key 5 selects actor_400500 (stage-zero file 400500) and descriptor 0.
+/// The recipe borrows this room overlay; its task descriptor and model borrow
+/// the actor overlay, which must stay loaded throughout the spawned actor's life.
+static AreaResource _gDryfieldNightUnderpassGrayStalkerResources[2] = {
+    {
+        .entryId        = DRYFIELD_NIGHT_UNDERPASS_GRAY_STALKER_RESOURCE_ID,
+        .fileNumber     = DRYFIELD_NIGHT_UNDERPASS_GRAY_STALKER_FILE_NUMBER,
+        .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40,
+        .taskIndex      = 0,
+        .taskTable      = &gActor400500TaskDesc,
+    },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+/// Variant 2's Scavenger load and spawn recipe, followed by the resource terminator.
+///
+/// Placement key 16 selects actor_101600 (stage-zero file 101600) and descriptor 0.
+/// All five authored Scavenger placements share this entry. Keep this room
+/// loaded while using the recipe and the actor overlay loaded while actors live.
+static AreaResource _gDryfieldNightUnderpassScavengerResources[2] = {
+    {
+        .entryId        = DRYFIELD_NIGHT_UNDERPASS_SCAVENGER_RESOURCE_ID,
+        .fileNumber     = DRYFIELD_NIGHT_UNDERPASS_SCAVENGER_FILE_NUMBER,
+        .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR,
+        .taskIndex      = 0,
+        .taskTable      = &gActor101600ScavengerTaskDesc,
+    },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaResource D_dryfield_night_underpass_80180294[2] = {
@@ -732,8 +841,8 @@ AreaResource D_dryfield_night_underpass_801802C4[2] = {
 
 AreaVariant D_dryfield_night_underpass_801802DC[12] = {
     { NULL, NULL },
-    { D_map_dryfield_full_8017CF58, D_dryfield_night_underpass_80180264 },
-    { D_map_dryfield_full_8017CF78, D_dryfield_night_underpass_8018027C },
+    { D_map_dryfield_full_8017CF58, _gDryfieldNightUnderpassGrayStalkerResources },
+    { D_map_dryfield_full_8017CF78, _gDryfieldNightUnderpassScavengerResources },
     { D_map_dryfield_full_8017CFD8, D_dryfield_night_underpass_80180294 },
     { NULL, NULL },
     { NULL, NULL },
@@ -894,9 +1003,9 @@ void dryfieldNightUnderpassDrawFlaresTask(Task* unusedTask)
     if (gameFlagGetNibble(GAME_FLAG_053) == 0) {
         // Each position's mask uses the view ID directly as its bit index.
         flareIndex     = 0;
-        flarePosition  = D_dryfield_night_underpass_8017DD20;
-        flareViewMasks = D_dryfield_night_underpass_8017DD60;
-        for (; flareIndex < (s32)ARRAY_SIZE(D_dryfield_night_underpass_8017DD20); flarePosition++, flareIndex++, flareViewMasks++) {
+        flarePosition  = _gDryfieldNightUnderpassFlarePositions;
+        flareViewMasks = _gDryfieldNightUnderpassFlareViewMasks;
+        for (; flareIndex < (s32)ARRAY_SIZE(_gDryfieldNightUnderpassFlarePositions); flarePosition++, flareIndex++, flareViewMasks++) {
             if (viewMask & *flareViewMasks) {
                 _glowDrawFlare(flarePosition, DRYFIELD_NIGHT_UNDERPASS_FLARE_TEXTURE_INDEX, DRYFIELD_NIGHT_UNDERPASS_FLARE_RADIUS_SCALE);
             }

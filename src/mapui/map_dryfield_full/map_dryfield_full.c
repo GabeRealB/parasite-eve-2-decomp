@@ -657,7 +657,7 @@ static ViewCamera* D_map_dryfield_full_8017A9DC[38] = {
     NULL,
     NULL,
     NULL,
-    D_dryfield_night_underpass_8017E6F8,
+    gDryfieldNightUnderpassViewCameras,
 };
 
 ViewCameraTable D_map_dryfield_full_8017AA74 = { D_map_dryfield_full_8017A9DC };
@@ -743,7 +743,7 @@ static SpriteView* D_map_dryfield_full_8017AB14[38] = {
     NULL,
     NULL,
     NULL,
-    D_dryfield_night_underpass_8017F420,
+    gDryfieldNightUnderpassSpriteViews,
 };
 
 SpriteAreaTable D_map_dryfield_full_8017ABAC = { D_map_dryfield_full_8017AB14 };

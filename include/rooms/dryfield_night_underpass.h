@@ -35,9 +35,25 @@ extern ViewCount D_dryfield_night_underpass_8017DE54[];
 
 extern DirectionWarpEntry D_dryfield_night_underpass_8017DE60[];
 
-extern ViewCamera D_dryfield_night_underpass_8017E6F8[];
+/// Number of mapped camera/image/sprite slots in the nighttime underpass.
+enum { DRYFIELD_NIGHT_UNDERPASS_MAPPED_VIEW_COUNT = 26 };
 
-extern SpriteView D_dryfield_night_underpass_8017F420[];
+/// Cameras for nighttime underpass mapped view indices 1..26.
+///
+/// Index by `viewGetMappedIndex() - 1`, after the room's logical-view mapping.
+/// Rotations use Q12, translations are negated world-space camera origins,
+/// and projection distances are pixels. The table has no terminator;
+/// keep this overlay loaded until a queued camera application has finished.
+extern ViewCamera gDryfieldNightUnderpassViewCameras[DRYFIELD_NIGHT_UNDERPASS_MAPPED_VIEW_COUNT];
+
+/// Sprite descriptors for nighttime underpass mapped view indices 1..26.
+///
+/// Index by `viewGetMappedIndex() - 1`. Each batch list keeps decoded background
+/// strips and ends in SPRITE_BATCH_END; views 3, 4, 5, 9, 13, 14, 15 and 19
+/// additionally select source sprites. All draw-area pointers are NULL.
+/// Descriptors and their mutable source/batch arrays borrow this overlay's
+/// lifetime and must stay loaded during packet allocation and drawing.
+extern SpriteView gDryfieldNightUnderpassSpriteViews[DRYFIELD_NIGHT_UNDERPASS_MAPPED_VIEW_COUNT];
 
 /// Nighttime underpass collision policies indexed directly by surface class 0..7.
 ///
