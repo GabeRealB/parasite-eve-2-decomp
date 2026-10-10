@@ -2,6 +2,14 @@
 #define INCLUDE_WEAPONS_M4A1_PYKE_H
 
 #include "main/task_types.h"
+#include "main/tmd_types.h"
+
+/// Equipped M4A1 rifle with the Pyke flamethrower attachment.
+///
+/// A single model part is attached beneath the player's weapon-hand task.
+/// Model instances borrow this overlay's geometry and stream; keep the package
+/// loaded until they are released. Creation resolves stream handlers in place.
+extern TmdSource gM4a1PykeWeaponModel;
 
 /// Mutable nozzle requests in `Task::spawnArg1.value`.
 enum {

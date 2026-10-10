@@ -336,146 +336,246 @@ void m4a1PykeAttackState(Task* playerTask)
     SCRATCH_STACK_RELEASE_BLOCK(GfxCoord);
 }
 
-static TmdBone _gM4a1PykeModel01BCCSkeleton[1] = {
+/// Initial identity transform and self-parented root of the equipped weapon.
+///
+/// Read-only pose and count tables retain their overlay positions in .data.
+static const TmdBone _gM4a1PykeWeaponModelSkeleton[1] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_model_01BCC_skeleton.inc"
 };
 
-static u32 _gM4a1PykeModel01BCCPartVerts[1] = {
+/// Part-local vertex counts in skeleton order; the sole part owns all 74 vertices.
+static const u32 _gM4a1PykeWeaponModelPartVerts[ARRAY_SIZE(_gM4a1PykeWeaponModelSkeleton)] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_model_01BCC_partVerts.inc"
 };
 
-static SVECTOR _gM4a1PykeModel01BCCVerts[74] = {
+/// Equipped weapon vertices in integer coordinates local to its single part.
+static SVECTOR _gM4a1PykeWeaponModelVerts[74] = {
 #include "assets/m4a1_pyke_model_01BCC_verts.inc"
 };
 
-static SVECTOR _gM4a1PykeModel01BCCNormals[64] = {
+/// Weapon lighting normals with twelve fractional bits, indexed separately from vertices.
+static SVECTOR _gM4a1PykeWeaponModelNormals[64] = {
 #include "assets/m4a1_pyke_model_01BCC_normals.inc"
 };
 
-static u32 _gM4a1PykeModel01BCCStream[504] = {
+/// Writable commands for two Gouraud textured triangles and 69 textured quads.
+///
+/// Creation resolves handler slots in place. The skeletal group is followed
+/// by an empty final group and `TMD_STREAM_END`.
+static u32 _gM4a1PykeWeaponModelStream[504] = {
 #include "assets/m4a1_pyke_model_01BCC_stream.inc"
 };
 
-TmdSource D_m4a1_pyke_8011F56C = {
-    0,
-    3668,
-    0,
-    1,
-    _gM4a1PykeModel01BCCPartVerts,
-    _gM4a1PykeModel01BCCVerts,
-    _gM4a1PykeModel01BCCNormals,
-    _gM4a1PykeModel01BCCSkeleton,
-    _gM4a1PykeModel01BCCStream,
+TmdSource gM4a1PykeWeaponModel = {
+    .handlersResolved    = false,
+    .bufferHalfBytes     = (2 * sizeof(POLY_GT3)) + (69 * sizeof(POLY_GT4)),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gM4a1PykeWeaponModelSkeleton),
+    .partVertexCounts    = _gM4a1PykeWeaponModelPartVerts,
+    .verts               = _gM4a1PykeWeaponModelVerts,
+    .normals             = _gM4a1PykeWeaponModelNormals,
+    .skeleton            = _gM4a1PykeWeaponModelSkeleton,
+    .stream              = _gM4a1PykeWeaponModelStream,
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation02560Bank1[2] = {
+/// Translation-and-rotation poses for the player's idle pose in the Pyke bank.
+///
+/// Encoding 1 uses integer local translations and 4096 angle units per turn.
+/// Read-only clip arrays retain their overlay positions in .data.
+static const AnimationPackedPose _gM4a1PykeIdleAnimationBank1[2] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_02560_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation02560Bank4[8] = {
+/// Packed Euler rotations for the player's idle pose in the Pyke bank.
+///
+/// Encoding 4 stores 11/10/11 signed components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeIdleAnimationBank4[8] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_02560_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation02560Records[76] = {
+/// Keyframe durations and loop/stop controls for the player's idle pose.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gM4a1PykeIdleAnimationRecords[76] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_02560_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation02560Indices[20] = {
+/// Absolute starting record indices for the player's idle pose tracks.
+///
+/// Native playback uses tracks 0..18; the twentieth stored index is zero.
+static const u16 _gM4a1PykeIdleAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_02560_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation02560 = {
-    _gM4a1PykeAnimation02560Records,
-    _gM4a1PykeAnimation02560Indices,
-    { NULL, _gM4a1PykeAnimation02560Bank1, NULL, NULL, _gM4a1PykeAnimation02560Bank4, NULL, NULL, NULL },
+/// Player idle pose supplied by the M4A1 Pyke animation bank.
+///
+/// Native-bank sets 1, 21, 22 and 41 share this pose.
+/// Borrows nineteen part tracks and their pose banks from this overlay; keep
+/// the package loaded throughout playback. The weapon model is a separate asset.
+static AnimationSet _gM4a1PykeIdleAnimation = {
+    .records           = _gM4a1PykeIdleAnimationRecords,
+    .trackStartIndices = _gM4a1PykeIdleAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1PykeIdleAnimationBank1, NULL, NULL, _gM4a1PykeIdleAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation02C04Bank1[12] = {
+/// Translation-and-rotation poses for the player's unarmed forward walk in the Pyke bank.
+///
+/// Encoding 1 uses integer local translations and 4096 angle units per turn.
+/// Read-only clip arrays retain their overlay positions in .data.
+static const AnimationPackedPose _gM4a1PykeUnarmedWalkAnimationBank1[12] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_02C04_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation02C04Bank4[151] = {
+/// Packed Euler rotations for the player's unarmed forward walk in the Pyke bank.
+///
+/// Encoding 4 stores 11/10/11 signed components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeUnarmedWalkAnimationBank4[151] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_02C04_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation02C04Records[218] = {
+/// Keyframe durations and loop/stop controls for the player's unarmed forward walk.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gM4a1PykeUnarmedWalkAnimationRecords[218] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_02C04_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation02C04Indices[20] = {
+/// Absolute starting record indices for the player's unarmed forward walk tracks.
+///
+/// Native playback uses tracks 0..18; the twentieth stored index is zero.
+static const u16 _gM4a1PykeUnarmedWalkAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_02C04_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation02C04 = {
-    _gM4a1PykeAnimation02C04Records,
-    _gM4a1PykeAnimation02C04Indices,
-    { NULL, _gM4a1PykeAnimation02C04Bank1, NULL, NULL, _gM4a1PykeAnimation02C04Bank4, NULL, NULL, NULL },
+/// Player unarmed forward walk supplied by the M4A1 Pyke animation bank.
+///
+/// Native-bank set 19 is selected while the weapon model is absent.
+/// Borrows nineteen part tracks and their pose banks from this overlay; keep
+/// the package loaded throughout playback. The weapon model is a separate asset.
+static AnimationSet _gM4a1PykeUnarmedWalkAnimation = {
+    .records           = _gM4a1PykeUnarmedWalkAnimationRecords,
+    .trackStartIndices = _gM4a1PykeUnarmedWalkAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1PykeUnarmedWalkAnimationBank1, NULL, NULL, _gM4a1PykeUnarmedWalkAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation03464Bank1[19] = {
+/// Translation-and-rotation poses for the player's stationary left turn in the Pyke bank.
+///
+/// Encoding 1 uses integer local translations and 4096 angle units per turn.
+/// Read-only clip arrays retain their overlay positions in .data.
+static const AnimationPackedPose _gM4a1PykeTurnLeftAnimationBank1[19] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_03464_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation03464Bank4[169] = {
+/// Packed Euler rotations for the player's stationary left turn in the Pyke bank.
+///
+/// Encoding 4 stores 11/10/11 signed components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeTurnLeftAnimationBank4[169] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_03464_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation03464Records[290] = {
+/// Keyframe durations and loop/stop controls for the player's stationary left turn.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gM4a1PykeTurnLeftAnimationRecords[290] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_03464_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation03464Indices[20] = {
+/// Absolute starting record indices for the player's stationary left turn tracks.
+///
+/// Native playback uses tracks 0..18; the twentieth stored index is zero.
+static const u16 _gM4a1PykeTurnLeftAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_03464_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation03464 = {
-    _gM4a1PykeAnimation03464Records,
-    _gM4a1PykeAnimation03464Indices,
-    { NULL, _gM4a1PykeAnimation03464Bank1, NULL, NULL, _gM4a1PykeAnimation03464Bank4, NULL, NULL, NULL },
+/// Player stationary left turn supplied by the M4A1 Pyke animation bank.
+///
+/// Native-bank set 5 accompanies negative heading steps.
+/// Borrows nineteen part tracks and their pose banks from this overlay; keep
+/// the package loaded throughout playback. The weapon model is a separate asset.
+static AnimationSet _gM4a1PykeTurnLeftAnimation = {
+    .records           = _gM4a1PykeTurnLeftAnimationRecords,
+    .trackStartIndices = _gM4a1PykeTurnLeftAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1PykeTurnLeftAnimationBank1, NULL, NULL, _gM4a1PykeTurnLeftAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation03CC8Bank1[19] = {
+/// Translation-and-rotation poses for the player's stationary right turn in the Pyke bank.
+///
+/// Encoding 1 uses integer local translations and 4096 angle units per turn.
+/// Read-only clip arrays retain their overlay positions in .data.
+static const AnimationPackedPose _gM4a1PykeTurnRightAnimationBank1[19] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_03CC8_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation03CC8Bank4[170] = {
+/// Packed Euler rotations for the player's stationary right turn in the Pyke bank.
+///
+/// Encoding 4 stores 11/10/11 signed components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeTurnRightAnimationBank4[170] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_03CC8_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation03CC8Records[290] = {
+/// Keyframe durations and loop/stop controls for the player's stationary right turn.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gM4a1PykeTurnRightAnimationRecords[290] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_03CC8_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation03CC8Indices[20] = {
+/// Absolute starting record indices for the player's stationary right turn tracks.
+///
+/// Native playback uses tracks 0..18; the twentieth stored index is zero.
+static const u16 _gM4a1PykeTurnRightAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_03CC8_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation03CC8 = {
-    _gM4a1PykeAnimation03CC8Records,
-    _gM4a1PykeAnimation03CC8Indices,
-    { NULL, _gM4a1PykeAnimation03CC8Bank1, NULL, NULL, _gM4a1PykeAnimation03CC8Bank4, NULL, NULL, NULL },
+/// Player stationary right turn supplied by the M4A1 Pyke animation bank.
+///
+/// Native-bank set 6 accompanies positive heading steps.
+/// Borrows nineteen part tracks and their pose banks from this overlay; keep
+/// the package loaded throughout playback. The weapon model is a separate asset.
+static AnimationSet _gM4a1PykeTurnRightAnimation = {
+    .records           = _gM4a1PykeTurnRightAnimationRecords,
+    .trackStartIndices = _gM4a1PykeTurnRightAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1PykeTurnRightAnimationBank1, NULL, NULL, _gM4a1PykeTurnRightAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation03FDCBank1[3] = {
+/// Translation-and-rotation poses for the player's item-use motion in the Pyke bank.
+///
+/// Encoding 1 uses integer local translations and 4096 angle units per turn.
+/// Read-only clip arrays retain their overlay positions in .data.
+static const AnimationPackedPose _gM4a1PykeItemUseAnimationBank1[3] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_03FDC_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation03FDCBank4[69] = {
+/// Packed Euler rotations for the player's item-use motion in the Pyke bank.
+///
+/// Encoding 4 stores 11/10/11 signed components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeItemUseAnimationBank4[69] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_03FDC_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation03FDCRecords[99] = {
+/// Keyframe durations and stop controls for the player's item-use motion.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gM4a1PykeItemUseAnimationRecords[99] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_03FDC_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation03FDCIndices[20] = {
+/// Absolute starting record indices for the player's item-use motion tracks.
+///
+/// Native playback uses tracks 0..18; the twentieth stored index is zero.
+static const u16 _gM4a1PykeItemUseAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_03FDC_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation03FDC = {
-    _gM4a1PykeAnimation03FDCRecords,
-    _gM4a1PykeAnimation03FDCIndices,
-    { NULL, _gM4a1PykeAnimation03FDCBank1, NULL, NULL, _gM4a1PykeAnimation03FDCBank4, NULL, NULL, NULL },
+/// Player item-use motion supplied by the M4A1 Pyke animation bank.
+///
+/// Native-bank set 40 plays once before aim locomotion resumes.
+/// Borrows nineteen part tracks and their pose banks from this overlay; keep
+/// the package loaded throughout playback. The weapon model is a separate asset.
+static AnimationSet _gM4a1PykeItemUseAnimation = {
+    .records           = _gM4a1PykeItemUseAnimationRecords,
+    .trackStartIndices = _gM4a1PykeItemUseAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1PykeItemUseAnimationBank1, NULL, NULL, _gM4a1PykeItemUseAnimationBank4, NULL, NULL, NULL },
 };
 
 static AnimationPackedPose _gM4a1PykeAnimation04738Bank1[14] = {
@@ -1206,12 +1306,12 @@ static AnimationSet _gM4a1PykeAnimation10318 = {
 
 AnimationBank D_m4a1_pyke_8012D500 = { { {
     NULL,
-    &_gM4a1PykeAnimation02560,
+    &_gM4a1PykeIdleAnimation,
     &_gM4a1PykeAnimation0F1A4,
     &_gM4a1PykeAnimation0F944,
     &_gM4a1PykeAnimation10318,
-    &_gM4a1PykeAnimation03464,
-    &_gM4a1PykeAnimation03CC8,
+    &_gM4a1PykeTurnLeftAnimation,
+    &_gM4a1PykeTurnRightAnimation,
     &_gM4a1PykeAnimation0E374,
     &_gM4a1PykeAnimation0E8EC,
     &_gM4a1PykeAnimation0AD44,
@@ -1224,10 +1324,10 @@ AnimationBank D_m4a1_pyke_8012D500 = { { {
     &_gM4a1PykeAnimation0692C,
     &_gM4a1PykeAnimation06C4C,
     &_gM4a1PykeAnimation07410,
-    &_gM4a1PykeAnimation02C04,
+    &_gM4a1PykeUnarmedWalkAnimation,
     &_gM4a1PykeAnimation0CEC8,
-    &_gM4a1PykeAnimation02560,
-    &_gM4a1PykeAnimation02560,
+    &_gM4a1PykeIdleAnimation,
+    &_gM4a1PykeIdleAnimation,
     &_gM4a1PykeAnimation086A8,
     &_gM4a1PykeAnimation0993C,
     &_gM4a1PykeAnimation09220,
@@ -1245,8 +1345,8 @@ AnimationBank D_m4a1_pyke_8012D500 = { { {
     &_gM4a1PykeAnimation04EC0,
     &_gM4a1PykeAnimation05524,
     &_gM4a1PykeAnimation05194,
-    &_gM4a1PykeAnimation03FDC,
-    &_gM4a1PykeAnimation02560,
+    &_gM4a1PykeItemUseAnimation,
+    &_gM4a1PykeIdleAnimation,
     &_gM4a1PykeAnimation0A4F8,
     &_gM4a1PykeAnimation0A6EC,
     &_gM4a1PykeAnimation0AB6C,

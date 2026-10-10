@@ -62,6 +62,8 @@
 
 #include "weapons/m4a1_javelin.h"
 
+#include "weapons/m4a1_pyke.h"
+
 #include "weapons/tonfa_baton.h"
 
 #include "weapons/weapon.h"
@@ -331,7 +333,7 @@ TaskDesc D_800678F4[] = {
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &gM4a1HammerModel } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_m4a1_bayonet_8011E9FC } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &gM4a1GrenadeWeaponModel } },
-    { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_m4a1_pyke_8011F56C } },
+    { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &gM4a1PykeWeaponModel } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &gM4a1JavelinWeaponModel } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_mp5a5_8011EAFC } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_mp5a5_8011EAFC } },
