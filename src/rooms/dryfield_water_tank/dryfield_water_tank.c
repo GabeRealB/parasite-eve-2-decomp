@@ -62,7 +62,7 @@ Task* D_dryfield_water_tank_80188D4C;
 #include "overlay.h"
 #include "../../shared/screen_fade.h"
 
-extern WorldCoordRoomAmbientEntry D_dryfield_water_tank_80188C58[11];
+static WorldCoordRoomAmbientEntry _gDryfieldWaterTankViewAmbientColors[11];
 
 /// Phases of the prop's slide, held in `_DryfieldWaterTankPropSceneWork::slidePhase`.
 enum {
@@ -108,10 +108,10 @@ static void _dryfieldWaterTankSyncMechanismSprites(void);
 
 extern AreaResource D_dryfield_water_tank_80188BCC[2];
 
-extern WorldCollisionGrid    D_dryfield_water_tank_80186EBC[1];
+static WorldCollisionGrid    _gDryfieldWaterTankRoomCollisionGrid;
 extern WorldCollisionTrigger D_dryfield_water_tank_80187FF8[4];
 extern WorldCollisionTrigger D_dryfield_water_tank_80188920[9];
-extern WorldCoordRoomLights  D_dryfield_water_tank_80188908[1];
+static WorldCoordRoomLights  _gDryfieldWaterTankRoomLights;
 
 /// Player clips for extended ids 47-65; NULL at id 47, which no request
 /// selects.
@@ -449,17 +449,17 @@ u16 D_dryfield_water_tank_801868CC[10] = {
 };
 
 WorldCollisionRoomResources D_dryfield_water_tank_801868E0[1] = {
-    { D_dryfield_water_tank_80186EBC, D_dryfield_water_tank_80187FF8, D_dryfield_water_tank_80188920, NULL },
+    { &_gDryfieldWaterTankRoomCollisionGrid, D_dryfield_water_tank_80187FF8, D_dryfield_water_tank_80188920, NULL },
 };
 
-u8* D_dryfield_water_tank_801868F0[1] = {
+u8* gDryfieldWaterTankRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
 ViewCount D_dryfield_water_tank_801868F4[2] = { 10, 0 };
 
-WorldCoordRoomLighting D_dryfield_water_tank_801868F8[1] = {
-    { D_dryfield_water_tank_80188908, D_dryfield_water_tank_80188C58 },
+WorldCoordRoomLighting gDryfieldWaterTankRoomLighting[1] = {
+    { .lights = &_gDryfieldWaterTankRoomLights, .ambientTable = _gDryfieldWaterTankViewAmbientColors },
 };
 
 DirectionWarpEntry D_dryfield_water_tank_80186900[2] = {
@@ -467,30 +467,49 @@ DirectionWarpEntry D_dryfield_water_tank_80186900[2] = {
     { { { .word = 2560 }, 870, -0x4010, 934 }, { 0, 0, 0, 0 }, { { .word = 2560 }, 870, -0x4010, 934 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gDryfieldWaterTankCollision098FCNormals[14] = {
+/// Room-space Q12 unit normals indexed by the room collision faces.
+static SVECTOR _gDryfieldWaterTankRoomCollisionGridNormals[14] = {
 #include "assets/dryfield_water_tank_collision_098FC_normals.inc"
 };
 
-static SVECTOR _gDryfieldWaterTankCollision098FCVerts[70] = {
+/// Room collision vertices in signed game-coordinate units.
+static SVECTOR _gDryfieldWaterTankRoomCollisionGridVerts[70] = {
 #include "assets/dryfield_water_tank_collision_098FC_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldWaterTankCollision098FCFaces[36] = {
+/// Room collision quads indexing the vertex/normal pools and surface classes 0, 1, 3..5.
+static WorldCollisionGridFace _gDryfieldWaterTankRoomCollisionGridFaces[36] = {
 #include "assets/dryfield_water_tank_collision_098FC_faces.inc"
 };
 
-static s16 _gDryfieldWaterTankCollision098FCCells[118] = {
+/// Four packed face-index lists, each ending in `WORLD_COLLISION_GRID_CELL_END`.
+static s16 _gDryfieldWaterTankRoomCollisionGridCells[118] = {
 #include "assets/dryfield_water_tank_collision_098FC_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldWaterTankCollision098FCCells[i])
-static s16* _gDryfieldWaterTankCollision098FCTable[4] = {
+#define GRID_CELL(i) (&_gDryfieldWaterTankRoomCollisionGridCells[i])
+/// X-major pointers to the room grid's four cell lists, with a Z stride of two.
+static s16* _gDryfieldWaterTankRoomCollisionGridTable[4] = {
 #include "assets/dryfield_water_tank_collision_098FC_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_water_tank_80186EBC[1] = {
-    { NULL, _gDryfieldWaterTankCollision098FCNormals, _gDryfieldWaterTankCollision098FCVerts, _gDryfieldWaterTankCollision098FCFaces, _gDryfieldWaterTankCollision098FCTable, 3500, 3300, 2, 2, 4000, 36 },
+/// Room 1's collision mesh, indexed by a 2x2 XZ grid of 4000-unit cells.
+///
+/// Activation borrows the current view coordinate. The room owns the mesh and
+/// cell lists for its loaded lifetime; its origin is X=-3500, Z=-3300.
+static WorldCollisionGrid _gDryfieldWaterTankRoomCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldWaterTankRoomCollisionGridNormals,
+    .vertices    = _gDryfieldWaterTankRoomCollisionGridVerts,
+    .faces       = _gDryfieldWaterTankRoomCollisionGridFaces,
+    .cellFaceIds = _gDryfieldWaterTankRoomCollisionGridTable,
+    .xBias       = 3500,
+    .zBias       = 3300,
+    .cellCountX  = 2,
+    .cellCountZ  = 2,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldWaterTankRoomCollisionGridFaces),
 };
 
 ViewCamera D_dryfield_water_tank_80186EE0[10] = {
@@ -506,12 +525,14 @@ ViewCamera D_dryfield_water_tank_80186EE0[10] = {
     { { { { -2401, 0, 3317 }, { 3202, 1072, 2318 }, { -868, 3953, -628 } }, { 572, 0x42B6, 1557 } }, 380 },
 };
 
-SpriteBatch D_dryfield_water_tank_80187048[2] = {
+/// View 1's empty sprite list; the zero-count header keeps decoded background strips.
+static SpriteBatch _gDryfieldWaterTankView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_water_tank_80187058[31] = {
+/// View 2's 31 textured foreground rectangles, in view-centred pixels and OT depth units.
+static SpriteSource _gDryfieldWaterTankView2SpriteSources[31] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -104, -120, 3693, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 48 } }, -96, -120, 1131, { .fields = { 56, 208 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 56 } }, -88, -120, 1028, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
@@ -545,14 +566,20 @@ SpriteSource D_dryfield_water_tank_80187058[31] = {
     { 143, 0x3FC0, { .fields = { 16, 32 } }, 128, 0, 875, { .fields = { 32, 112 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_water_tank_801872C4[4] = {
+/// View 2's sprite ranges [0,16) and [16,31), following the background header.
+///
+/// The final record terminates the list; source ranges count elements, not bytes.
+static SpriteBatch _gDryfieldWaterTankView2SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 16, 0, 0, { 1, 0 } },
-    { 16, 15, 0, 0, { 0, 0 } },
+    { 16, ARRAY_SIZE(_gDryfieldWaterTankView2SpriteSources) - 16, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_water_tank_801872E4[88] = {
+/// View 3's 88 foreground rectangles, including its final post-operation sprite.
+///
+/// Positions are view-centred pixels; depth is an unscaled OT sorting value.
+static SpriteSource _gDryfieldWaterTankView3SpriteSources[88] = {
     { 143, 0x3FC0, { .fields = { 8, 64 } }, -96, -120, 1275, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 64 } }, -88, -120, 1250, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 64 } }, -80, -120, 1125, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
@@ -643,15 +670,20 @@ SpriteSource D_dryfield_water_tank_801872E4[88] = {
     { 143, 0x4000, { .fields = { 32, 56 } }, -48, -40, 1125, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_water_tank_801879C4[5] = {
+/// View 3's ranges [0,50), [50,87) and [87,88), following the background header.
+///
+/// Batch 3 is hidden before the tank mechanism is operated and shown afterwards.
+/// Cached packet allocation retains all 88 sources regardless of visibility.
+static SpriteBatch _gDryfieldWaterTankView3SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 50, 0, 0, { 1, 0 } },
     { 50, 37, 0, 0, { 2, 0 } },
-    { 87, 1, 0, 0, { 0, 0 } },
+    { 87, ARRAY_SIZE(_gDryfieldWaterTankView3SpriteSources) - 87, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_water_tank_801879EC[10] = {
+/// View 4's ten foreground rectangles, in view-centred pixels and OT depth units.
+static SpriteSource _gDryfieldWaterTankView4SpriteSources[10] = {
     { 143, 0x3FC0, { .fields = { 16, 48 } }, 32, 8, 625, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 16 } }, 48, 8, 625, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 16 } }, 64, 8, 625, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
@@ -664,13 +696,15 @@ SpriteSource D_dryfield_water_tank_801879EC[10] = {
     { 143, 0x3FC0, { .fields = { 16, 24 } }, 64, 96, 625, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_water_tank_80187AB4[3] = {
+/// View 4's complete foreground range, between the background header and end record.
+static SpriteBatch _gDryfieldWaterTankView4SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 10, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldWaterTankView4SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_water_tank_80187ACC[25] = {
+/// View 5's 25 foreground rectangles, in view-centred pixels and OT depth units.
+static SpriteSource _gDryfieldWaterTankView5SpriteSources[25] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -144, -24, 500, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -144, 32, 500, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 104 } }, -136, -24, 500, { .fields = { 104, 136 } }, 128, 128, 128, 0 },
@@ -698,23 +732,29 @@ SpriteSource D_dryfield_water_tank_80187ACC[25] = {
     { 143, 0x3FC0, { .fields = { 16, 16 } }, 144, 40, 500, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_water_tank_80187CC0[3] = {
+/// View 5's complete foreground range, between the background header and end record.
+static SpriteBatch _gDryfieldWaterTankView5SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 25, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldWaterTankView5SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_water_tank_80187CD8[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-SpriteBatch D_dryfield_water_tank_80187CE8[2] = {
+/// View 6's empty sprite list; the zero-count header keeps decoded background strips.
+static SpriteBatch _gDryfieldWaterTankView6SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_water_tank_80187CF8[1] = {
+/// View 7's empty sprite list; the zero-count header keeps decoded background strips.
+static SpriteBatch _gDryfieldWaterTankView7SpriteBatches[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+};
+
+/// View 8's pre-operation mechanism sprite: an 88x240-pixel rectangle at depth 375.
+///
+/// Its drawing batch is shown before the mechanism is operated and hidden afterwards.
+static SpriteSource _gDryfieldWaterTankView8SpriteSources[1] = {
     { 143, 0x3FC0, { .fields = { 88, 240 } }, -40, -120, 375, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
 };
 
@@ -769,14 +809,14 @@ SpriteBatch D_dryfield_water_tank_80187F70[2] = {
 };
 
 SpriteView D_dryfield_water_tank_80187F80[10] = {
-    { { .empty = D_dryfield_water_tank_80187048 }, D_dryfield_water_tank_80187048, NULL },
-    { { .elements = D_dryfield_water_tank_80187058 }, D_dryfield_water_tank_801872C4, NULL },
-    { { .elements = D_dryfield_water_tank_801872E4 }, D_dryfield_water_tank_801879C4, NULL },
-    { { .elements = D_dryfield_water_tank_801879EC }, D_dryfield_water_tank_80187AB4, NULL },
-    { { .elements = D_dryfield_water_tank_80187ACC }, D_dryfield_water_tank_80187CC0, NULL },
-    { { .empty = D_dryfield_water_tank_80187CD8 }, D_dryfield_water_tank_80187CD8, NULL },
-    { { .empty = D_dryfield_water_tank_80187CE8 }, D_dryfield_water_tank_80187CE8, NULL },
-    { { .elements = D_dryfield_water_tank_80187CF8 }, D_dryfield_water_tank_80187D0C, NULL },
+    { { .empty = _gDryfieldWaterTankView1SpriteBatches }, _gDryfieldWaterTankView1SpriteBatches, NULL },
+    { { .elements = _gDryfieldWaterTankView2SpriteSources }, _gDryfieldWaterTankView2SpriteBatches, NULL },
+    { { .elements = _gDryfieldWaterTankView3SpriteSources }, _gDryfieldWaterTankView3SpriteBatches, NULL },
+    { { .elements = _gDryfieldWaterTankView4SpriteSources }, _gDryfieldWaterTankView4SpriteBatches, NULL },
+    { { .elements = _gDryfieldWaterTankView5SpriteSources }, _gDryfieldWaterTankView5SpriteBatches, NULL },
+    { { .empty = _gDryfieldWaterTankView6SpriteBatches }, _gDryfieldWaterTankView6SpriteBatches, NULL },
+    { { .empty = _gDryfieldWaterTankView7SpriteBatches }, _gDryfieldWaterTankView7SpriteBatches, NULL },
+    { { .elements = _gDryfieldWaterTankView8SpriteSources }, D_dryfield_water_tank_80187D0C, NULL },
     { { .elements = D_dryfield_water_tank_80187D24 }, D_dryfield_water_tank_80187F40, NULL },
     { { .empty = D_dryfield_water_tank_80187F70 }, D_dryfield_water_tank_80187F70, NULL },
 };
@@ -788,32 +828,43 @@ WorldCollisionTrigger D_dryfield_water_tank_80187FF8[4] = {
     { NULL, NULL, NULL, { 544, -0x3330, -2336, 0 }, { { 0, -1904, -1024, 0 }, { 0, -1904, 1024, 0 }, { 0, 1904, -1024, 0 }, { 0, 1904, 1024, 0 } }, { 4098, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2157, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCoordPointLight D_dryfield_water_tank_80188128[21] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3000, -0x36B0, -1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1000, -0x36B0, -3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1000, -0x36B0, -3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2000, -0x36B0, -2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -0x36B0, -3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2000, -0x36B0, -2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3000, -0x36B0, -1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3000, -0x36B0, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3000, -0x36B0, 1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1028, 1028 }, { 0, 0 } }, 1000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1500, -0x36B0, 1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1028, 1028 }, { 0, 0 } }, 1000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1000, -0x36B0, 2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1028, 1028 }, { 0, 0 } }, 1000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -0x36B0, 2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1028, 1028 }, { 0, 0 } }, 1000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1000, -0x36B0, 2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1028, 1028 }, { 0, 0 } }, 1000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1500, -0x36B0, 1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1028, 1028 }, { 0, 0 } }, 1000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3000, -0x36B0, 1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1028, 1028 }, { 0, 0 } }, 1000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3000, -0x36B0, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 61, -0x4650, 1039 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1960, -0x4650, 520 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2340, -0x4718, -1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 582, -0x4650, -880 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -0x4CCC, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 3000 },
+/// Room 1's 21 white Q12 point lights, contributing in every view.
+///
+/// Positions and falloff radii use world units: full strength within 1000,
+/// fading to zero at 3000. Gameplay updates their parents, composition caches
+/// and attenuation while the room overlay remains loaded.
+static WorldCoordPointLight _gDryfieldWaterTankRoomPointLights[21] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3000, -0x36B0, -1000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -1000, -0x36B0, -3000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1000, -0x36B0, -3000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -2000, -0x36B0, -2000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -0x36B0, -3000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2000, -0x36B0, -2000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -3000, -0x36B0, -1000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3000, -0x36B0, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3000, -0x36B0, 1000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1028, 1028 }, { 0, 0 } }, 1000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1500, -0x36B0, 1500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1028, 1028 }, { 0, 0 } }, 1000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1000, -0x36B0, 2000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1028, 1028 }, { 0, 0 } }, 1000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -0x36B0, 2000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1028, 1028 }, { 0, 0 } }, 1000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -1000, -0x36B0, 2000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1028, 1028 }, { 0, 0 } }, 1000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -1500, -0x36B0, 1500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1028, 1028 }, { 0, 0 } }, 1000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -3000, -0x36B0, 1000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1028, 1028 }, { 0, 0 } }, 1000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -3000, -0x36B0, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 61, -0x4650, 1039 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1960, -0x4650, 520 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2340, -0x4718, -1000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 582, -0x4650, -880 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -0x4CCC, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1000, 3000 },
 };
 
-WorldCoordRoomLights D_dryfield_water_tank_80188908[1] = {
-    { 0, NULL, ARRAY_SIZE(D_dryfield_water_tank_80188128), D_dryfield_water_tank_80188128, 0, NULL },
+/// Room 1's authored light collection, containing point lights only.
+static WorldCoordRoomLights _gDryfieldWaterTankRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gDryfieldWaterTankRoomPointLights),
+    .pointLights           = _gDryfieldWaterTankRoomPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 WorldCollisionTrigger D_dryfield_water_tank_80188920[9] = {
@@ -853,8 +904,12 @@ AreaVariant D_dryfield_water_tank_80188BF0[13] = {
     { NULL, NULL },
 };
 
-WorldCoordRoomAmbientEntry D_dryfield_water_tank_80188C58[11] = {
-    { .viewCount = ARRAY_SIZE(D_dryfield_water_tank_80188C58) - 1 },
+/// Header and minimum ambient RGB/luma levels for logical views 1..10.
+///
+/// Entry zero counts the ten colour entries. Levels use 16 units per 8-bit
+/// colour level; views 5/6 use 1500, view 7 uses 2000, and the others use 16.
+static WorldCoordRoomAmbientEntry _gDryfieldWaterTankViewAmbientColors[11] = {
+    { .viewCount = ARRAY_SIZE(_gDryfieldWaterTankViewAmbientColors) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 16, 16, 16, 16 } },
@@ -867,53 +922,102 @@ WorldCoordRoomAmbientEntry D_dryfield_water_tank_80188C58[11] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-WorldCollisionFootstepSounds D_dryfield_water_tank_80188CB0 = {
-    0x10000035,
-    0x10000037,
-    0x10000035,
+// Cue-2 requests into the loaded type-1 bank; cue 1 selects the following entry.
+enum {
+    DRYFIELD_WATER_TANK_CLASS3_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x35,
+    DRYFIELD_WATER_TANK_CLASS3_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x37,
+    DRYFIELD_WATER_TANK_CLASS4_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x45,
+    DRYFIELD_WATER_TANK_CLASS4_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x47,
+    DRYFIELD_WATER_TANK_CLASS5_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x15,
+    DRYFIELD_WATER_TANK_CLASS5_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x17,
+    DRYFIELD_WATER_TANK_CLASS5_JUMP_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x19,
 };
 
-WorldCollisionFootstepSounds D_dryfield_water_tank_80188CBC = {
-    0x10000045,
-    0x10000047,
-    0x10000045,
+/// Class 3's footstep cue bases; walking and scripted jumps share entries 0x35/0x36.
+///
+/// Running selects entries 0x37/0x38 in the loaded type-1 bank.
+static WorldCollisionFootstepSounds _gDryfieldWaterTankClass3FootstepSounds = {
+    .walk         = DRYFIELD_WATER_TANK_CLASS3_WALK_CUE_BASE,
+    .run          = DRYFIELD_WATER_TANK_CLASS3_RUN_CUE_BASE,
+    .scriptedJump = DRYFIELD_WATER_TANK_CLASS3_WALK_CUE_BASE,
 };
 
-WorldCollisionFootstepSounds D_dryfield_water_tank_80188CC8 = {
-    0x10000015,
-    0x10000017,
-    0x10000019,
+/// Class 4's footstep cue bases; walking and scripted jumps share entries 0x45/0x46.
+///
+/// Running selects entries 0x47/0x48 in the loaded type-1 bank.
+static WorldCollisionFootstepSounds _gDryfieldWaterTankClass4FootstepSounds = {
+    .walk         = DRYFIELD_WATER_TANK_CLASS4_WALK_CUE_BASE,
+    .run          = DRYFIELD_WATER_TANK_CLASS4_RUN_CUE_BASE,
+    .scriptedJump = DRYFIELD_WATER_TANK_CLASS4_WALK_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_water_tank_80188CD4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Class 5's separate walking, running and scripted-jump footstep cue bases.
+///
+/// Requests entries 0x15/0x16, 0x17/0x18 and 0x19/0x1A in the loaded type-1 bank.
+static WorldCollisionFootstepSounds _gDryfieldWaterTankClass5FootstepSounds = {
+    .walk         = DRYFIELD_WATER_TANK_CLASS5_WALK_CUE_BASE,
+    .run          = DRYFIELD_WATER_TANK_CLASS5_RUN_CUE_BASE,
+    .scriptedJump = DRYFIELD_WATER_TANK_CLASS5_JUMP_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_water_tank_80188CDC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Silent, probe-blocking surface shared by classes 0, 2, 6 and 7.
+///
+/// Weapon impacts and pushback remain enabled.
+static WorldCollisionSurfaceProperties _gDryfieldWaterTankSilentBlockingSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_water_tank_80188CE4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_water_tank_80188CB0 },
+/// Class 1's silent surface, passing probes and suppressing weapon impacts.
+///
+/// Pushback remains enabled independently of probe passage.
+static WorldCollisionSurfaceProperties _gDryfieldWaterTankProbePassThroughSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_water_tank_80188CEC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_water_tank_80188CBC },
+/// Class 3's blocking surface with footstep cues, weapon impacts and pushback.
+static WorldCollisionSurfaceProperties _gDryfieldWaterTankClass3SurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldWaterTankClass3FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_water_tank_80188CF4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_water_tank_80188CC8 },
+/// Class 4's blocking surface with footstep cues, weapon impacts and pushback.
+static WorldCollisionSurfaceProperties _gDryfieldWaterTankClass4SurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldWaterTankClass4FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_water_tank_80188CFC[8] = {
-    D_dryfield_water_tank_80188CD4,
-    D_dryfield_water_tank_80188CDC,
-    D_dryfield_water_tank_80188CD4,
-    D_dryfield_water_tank_80188CE4,
-    D_dryfield_water_tank_80188CEC,
-    D_dryfield_water_tank_80188CF4,
-    D_dryfield_water_tank_80188CD4,
-    D_dryfield_water_tank_80188CD4,
+/// Class 5's blocking surface with footstep cues, weapon impacts and pushback.
+static WorldCollisionSurfaceProperties _gDryfieldWaterTankClass5SurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldWaterTankClass5FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gDryfieldWaterTankSurfacePropertiesByClass[8] = {
+    &_gDryfieldWaterTankSilentBlockingSurface,
+    &_gDryfieldWaterTankProbePassThroughSurface,
+    &_gDryfieldWaterTankSilentBlockingSurface,
+    &_gDryfieldWaterTankClass3SurfaceProperties,
+    &_gDryfieldWaterTankClass4SurfaceProperties,
+    &_gDryfieldWaterTankClass5SurfaceProperties,
+    &_gDryfieldWaterTankSilentBlockingSurface,
+    &_gDryfieldWaterTankSilentBlockingSurface,
 };
 
 AreaApplyRec D_dryfield_water_tank_80188D1C[10] = {

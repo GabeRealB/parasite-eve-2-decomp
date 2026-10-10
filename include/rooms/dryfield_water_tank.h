@@ -16,11 +16,20 @@ extern AreaVariant D_dryfield_water_tank_80188BF0[13];
 // dryfield_water_tank
 extern WorldCollisionRoomResources D_dryfield_water_tank_801868E0[];
 
-extern u8* D_dryfield_water_tank_801868F0[];
+/// Room 1's logical-view map, mapping views 1..10 to the same sprite/camera indices.
+///
+/// Indexed by room minus one; the single entry borrows `gViewIdentityMap`.
+/// The map overlay borrows this directory while the water-tank overlay is loaded.
+extern u8* gDryfieldWaterTankRoomViewMaps[1];
 
 extern ViewCount D_dryfield_water_tank_801868F4[];
 
-extern WorldCoordRoomLighting D_dryfield_water_tank_801868F8[];
+/// Room 1's authored light collection and ten per-view ambient minima.
+///
+/// Indexed by room minus one. The collection's 21 point lights are writable
+/// during coordinate composition and shading; all borrowed room data must
+/// remain loaded while lighting uses it.
+extern WorldCoordRoomLighting gDryfieldWaterTankRoomLighting[1];
 
 extern DirectionWarpEntry D_dryfield_water_tank_80186900[];
 
@@ -28,7 +37,13 @@ extern ViewCamera D_dryfield_water_tank_80186EE0[];
 
 extern SpriteView D_dryfield_water_tank_80187F80[];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_water_tank_80188CFC[];
+/// Collision and footstep policies indexed by surface class 0..7.
+///
+/// Classes 0, 2, 6 and 7 share a silent blocking record. Class 1 passes probes
+/// and suppresses weapon impacts; classes 3..5 select their own footstep cues.
+/// Every class applies pushback. The map overlay borrows this directory and
+/// its records only while the water-tank overlay is loaded.
+extern WorldCollisionSurfaceProperties* gDryfieldWaterTankSurfacePropertiesByClass[8];
 
 /// Updates the ambient-effect gate for the current water-tank camera view.
 ///
