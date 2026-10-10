@@ -1701,136 +1701,225 @@ static AnimationSet _gMm1Part4HitReactionAnimation = {
     },
 };
 
-static AnimationPackedPose _gMm1Animation0644CBank1[6] = {
+/// Other-body hit-reaction translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gMm1OtherBodyHitReactionAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_0644C_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation0644CBank4[66] = {
+/// Other-body hit-reaction rotations for tracks 2..18, packed in signed 11/10/11-bit components at eight angle units per step.
+static const AnimationPackedRotation _gMm1OtherBodyHitReactionAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_0644C_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation0644CRecords[96] = {
+/// Keyframes and track stops for the MM1 other-body hit-reaction animation.
+///
+/// Durations are whole normal-rate frames; pose offsets count u32 words.
+static const AnimationRecord _gMm1OtherBodyHitReactionAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_0644C_records.inc"
 };
 
-static u16 _gMm1Animation0644CIndices[20] = {
+/// Other-body hit-reaction track starts for tracks 0..18, followed by the retained final export halfword.
+static const u16 _gMm1OtherBodyHitReactionAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_0644C_indices.inc"
 };
 
-static AnimationSet _gMm1Animation0644C = {
-    _gMm1Animation0644CRecords,
-    _gMm1Animation0644CIndices,
-    { NULL, _gMm1Animation0644CBank1, NULL, NULL, _gMm1Animation0644CBank4, NULL, NULL, NULL },
+/// Player hit reaction for contacts outside the model-part-4 collision body, selected by MM1 bank slot 17.
+///
+/// Blends child tracks over three normal-rate frames, then holds their final poses.
+/// Tracks 0 and 1 carry translation/rotation; 2..18 carry packed rotation.
+/// Keep the package loaded while slots or cached record pointers borrow the clip.
+static AnimationSet _gMm1OtherBodyHitReactionAnimation = {
+    .records           = _gMm1OtherBodyHitReactionAnimationRecords,
+    .trackStartIndices = _gMm1OtherBodyHitReactionAnimationIndices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1OtherBodyHitReactionAnimationBank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1OtherBodyHitReactionAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMm1Animation06C10Bank1[18] = {
+/// Death translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gMm1DeathAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_06C10_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation06C10Bank4[184] = {
+/// Death rotations for tracks 2..18, packed in signed 11/10/11-bit components at eight angle units per step.
+static const AnimationPackedRotation _gMm1DeathAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_06C10_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation06C10Records[239] = {
+/// Keyframes and track stops for the MM1 death animation.
+///
+/// Durations are whole normal-rate frames; pose offsets count u32 words.
+static const AnimationRecord _gMm1DeathAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_06C10_records.inc"
 };
 
-static u16 _gMm1Animation06C10Indices[20] = {
+/// Death track starts for tracks 0..18, followed by the retained final export halfword.
+static const u16 _gMm1DeathAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_06C10_indices.inc"
 };
 
-static AnimationSet _gMm1Animation06C10 = {
-    _gMm1Animation06C10Records,
-    _gMm1Animation06C10Indices,
-    { NULL, _gMm1Animation06C10Bank1, NULL, NULL, _gMm1Animation06C10Bank4, NULL, NULL, NULL },
+/// Player death animation, selected by MM1 bank slot 18.
+///
+/// Plays at zero HP with movement and turning disabled, then holds its final poses.
+/// Tracks 0 and 1 carry translation/rotation; 2..18 carry packed rotation.
+/// Keep the package loaded while slots or cached record pointers borrow the clip.
+static AnimationSet _gMm1DeathAnimation = {
+    .records           = _gMm1DeathAnimationRecords,
+    .trackStartIndices = _gMm1DeathAnimationIndices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1DeathAnimationBank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1DeathAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMm1Animation07EA8Bank1[29] = {
+/// Healthy-idle translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gMm1HealthyIdleAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_07EA8_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation07EA8Bank4[450] = {
+/// Healthy-idle rotations for tracks 2..18, packed in signed 11/10/11-bit components at eight angle units per step.
+static const AnimationPackedRotation _gMm1HealthyIdleAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_07EA8_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation07EA8Records[633] = {
+/// Keyframes, repeat jumps and retained track stops for the MM1 healthy-idle loop.
+///
+/// Durations are whole normal-rate frames; pose offsets count u32 words and jump targets count records.
+static const AnimationRecord _gMm1HealthyIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_07EA8_records.inc"
 };
 
-static u16 _gMm1Animation07EA8Indices[20] = {
+/// Healthy-idle track starts for tracks 0..18, followed by the retained final export halfword.
+static const u16 _gMm1HealthyIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_07EA8_indices.inc"
 };
 
-static AnimationSet _gMm1Animation07EA8 = {
-    _gMm1Animation07EA8Records,
-    _gMm1Animation07EA8Indices,
-    { NULL, _gMm1Animation07EA8Bank1, NULL, NULL, _gMm1Animation07EA8Bank4, NULL, NULL, NULL },
+/// Player idle loop above half maximum HP, selected by MM1 bank slot 23.
+///
+/// Starts after 300 direction-free idle ticks and blends in over five normal-rate frames.
+/// The HP threshold rounds down to a whole point.
+/// Tracks 0 and 1 carry translation/rotation; 2..18 carry packed rotation.
+/// Keep the package loaded while slots or cached record pointers borrow the clip.
+static AnimationSet _gMm1HealthyIdleAnimation = {
+    .records           = _gMm1HealthyIdleAnimationRecords,
+    .trackStartIndices = _gMm1HealthyIdleAnimationIndices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1HealthyIdleAnimationBank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1HealthyIdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMm1Animation08A20Bank1[12] = {
+/// Critical-idle translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gMm1CriticalIdleAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_08A20_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation08A20Bank4[266] = {
+/// Critical-idle rotations for tracks 2..18, packed in signed 11/10/11-bit components at eight angle units per step.
+static const AnimationPackedRotation _gMm1CriticalIdleAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_08A20_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation08A20Records[412] = {
+/// Keyframes, repeat jumps and retained track stops for the MM1 critical-idle loop.
+///
+/// Durations are whole normal-rate frames; pose offsets count u32 words and jump targets count records.
+static const AnimationRecord _gMm1CriticalIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_08A20_records.inc"
 };
 
-static u16 _gMm1Animation08A20Indices[20] = {
+/// Critical-idle track starts for tracks 0..18, followed by the retained final export halfword.
+static const u16 _gMm1CriticalIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_08A20_indices.inc"
 };
 
-static AnimationSet _gMm1Animation08A20 = {
-    _gMm1Animation08A20Records,
-    _gMm1Animation08A20Indices,
-    { NULL, _gMm1Animation08A20Bank1, NULL, NULL, _gMm1Animation08A20Bank4, NULL, NULL, NULL },
+/// Player idle loop at or below quarter maximum HP, selected by MM1 bank slot 25.
+///
+/// Starts after 300 direction-free idle ticks with a five-frame blend.
+/// Paralysis also selects this clip with a six-frame blend for all child tracks.
+/// The HP threshold rounds down to a whole point.
+/// Tracks 0 and 1 carry translation/rotation; 2..18 carry packed rotation.
+/// Keep the package loaded while slots or cached record pointers borrow the clip.
+static AnimationSet _gMm1CriticalIdleAnimation = {
+    .records           = _gMm1CriticalIdleAnimationRecords,
+    .trackStartIndices = _gMm1CriticalIdleAnimationIndices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1CriticalIdleAnimationBank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1CriticalIdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMm1Animation0913CBank1[9] = {
+/// Injured-idle translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gMm1InjuredIdleAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_0913C_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation0913CBank4[144] = {
+/// Injured-idle rotations for tracks 2..18, packed in signed 11/10/11-bit components at eight angle units per step.
+static const AnimationPackedRotation _gMm1InjuredIdleAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_0913C_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation0913CRecords[264] = {
+/// Keyframes, repeat jumps and retained track stops for the MM1 injured-idle loop.
+///
+/// Durations are whole normal-rate frames; pose offsets count u32 words and jump targets count records.
+static const AnimationRecord _gMm1InjuredIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_0913C_records.inc"
 };
 
-static u16 _gMm1Animation0913CIndices[20] = {
+/// Injured-idle track starts for tracks 0..18, followed by the retained final export halfword.
+static const u16 _gMm1InjuredIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_0913C_indices.inc"
 };
 
-static AnimationSet _gMm1Animation0913C = {
-    _gMm1Animation0913CRecords,
-    _gMm1Animation0913CIndices,
-    { NULL, _gMm1Animation0913CBank1, NULL, NULL, _gMm1Animation0913CBank4, NULL, NULL, NULL },
+/// Player idle loop above quarter and at or below half maximum HP, selected by MM1 bank slot 24.
+///
+/// Starts after 300 direction-free idle ticks and blends in over five normal-rate frames.
+/// Both HP thresholds round down to whole points.
+/// Tracks 0 and 1 carry translation/rotation; 2..18 carry packed rotation.
+/// Keep the package loaded while slots or cached record pointers borrow the clip.
+static AnimationSet _gMm1InjuredIdleAnimation = {
+    .records           = _gMm1InjuredIdleAnimationRecords,
+    .trackStartIndices = _gMm1InjuredIdleAnimationIndices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1InjuredIdleAnimationBank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1InjuredIdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMm1Animation095BCBank1[6] = {
+/// Scripted-presentation entry translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gMm1ScriptedPresentationEntryAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_095BC_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation095BCBank4[107] = {
+/// Scripted-presentation entry rotations for tracks 2..18, packed in signed 11/10/11-bit components at eight angle units per step.
+static const AnimationPackedRotation _gMm1ScriptedPresentationEntryAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_095BC_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation095BCRecords[143] = {
+/// Keyframes and track stops for the MM1 scripted-presentation entry animation.
+///
+/// Durations are whole normal-rate frames; pose offsets count u32 words.
+static const AnimationRecord _gMm1ScriptedPresentationEntryAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_095BC_records.inc"
 };
 
-static u16 _gMm1Animation095BCIndices[20] = {
+/// Scripted-presentation entry track starts for tracks 0..18, followed by the retained final export halfword.
+static const u16 _gMm1ScriptedPresentationEntryAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_095BC_indices.inc"
 };
 
-static AnimationSet _gMm1Animation095BC = {
-    _gMm1Animation095BCRecords,
-    _gMm1Animation095BCIndices,
-    { NULL, _gMm1Animation095BCBank1, NULL, NULL, _gMm1Animation095BCBank4, NULL, NULL, NULL },
+/// Player scripted-presentation entry animation, selected by MM1 bank slots 32 and 34.
+///
+/// A zero presentation selector plays slot 32 before a CAP weapon event or conversation.
+/// Plays once and holds its final poses; the specific visible gesture is unproven.
+/// Tracks 0 and 1 carry translation/rotation; 2..18 carry packed rotation.
+/// Keep the package loaded while slots or cached record pointers borrow the clip.
+static AnimationSet _gMm1ScriptedPresentationEntryAnimation = {
+    .records           = _gMm1ScriptedPresentationEntryAnimationRecords,
+    .trackStartIndices = _gMm1ScriptedPresentationEntryAnimationIndices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1ScriptedPresentationEntryAnimationBank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1ScriptedPresentationEntryAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gMm1Animation09794Bank1[3] = {
@@ -2159,24 +2248,24 @@ AnimationBank D_mm1_8012D184 = { { {
     &_gMm1Animation0CE20,
     &_gMm1Animation0CE20,
     &_gMm1Part4HitReactionAnimation,
-    &_gMm1Animation0644C,
-    &_gMm1Animation06C10,
+    &_gMm1OtherBodyHitReactionAnimation,
+    &_gMm1DeathAnimation,
     &_gMm1UnarmedWalkAnimation,
     &_gMm1Animation0CE20,
     &_gMm1IdleAnimation,
     &_gMm1IdleAnimation,
-    &_gMm1Animation07EA8,
-    &_gMm1Animation0913C,
-    &_gMm1Animation08A20,
+    &_gMm1HealthyIdleAnimation,
+    &_gMm1InjuredIdleAnimation,
+    &_gMm1CriticalIdleAnimation,
     &_gMm1ParasiteEnergyReleaseFamily0Animation,
     &_gMm1ParasiteEnergyChargeFamily0Animation,
     &_gMm1ParasiteEnergyCastFamily0Animation,
     &_gMm1ParasiteEnergyReleaseFamily1Animation,
     &_gMm1ParasiteEnergyChargeFamily1Animation,
     &_gMm1ParasiteEnergyCastFamily1Animation,
-    &_gMm1Animation095BC,
+    &_gMm1ScriptedPresentationEntryAnimation,
     &_gMm1Animation09794,
-    &_gMm1Animation095BC,
+    &_gMm1ScriptedPresentationEntryAnimation,
     &_gMm1Animation09794,
     &_gMm1StairAscentAnimation,
     &_gMm1StairDescentAnimation,
