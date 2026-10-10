@@ -447,13 +447,13 @@ static AreaResource _gShelter1fAirlockBishopResources[2] = {
 
 AreaVariant D_shelter_1f_airlock_8017F758[12] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017AFD0, _gShelter1fAirlockKnightResources },
+    { gMapNeoArkAirlockKnightPlacements, _gShelter1fAirlockKnightResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_neo_ark_8017AFF0, _gShelter1fAirlockBishopResources },
+    { gMapNeoArkAirlockBishopPlacements, _gShelter1fAirlockBishopResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

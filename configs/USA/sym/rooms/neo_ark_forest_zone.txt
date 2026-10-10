@@ -63,12 +63,11 @@ gActor401300HornedStrangerTaskDesc = 0x80158A18; // absolute:True owner=actor_40
 gActor205600PawnGolemTasks = 0x801602C0; // absolute:True owner=actor_205600
 gActor356100HornedStrangerTaskDesc = 0x80173294; // absolute:True owner=actor_356100
 gActor302000PawnGolemTasks = 0x80177DF0; // absolute:True owner=actor_302000
-D_map_neo_ark_8017B190 = 0x8017B190; // absolute:True owner=map_neo_ark
-D_map_neo_ark_8017B1C0 = 0x8017B1C0; // absolute:True owner=map_neo_ark
-D_map_neo_ark_8017B1F0 = 0x8017B1F0; // absolute:True owner=map_neo_ark
-D_map_neo_ark_8017B210 = 0x8017B210; // absolute:True owner=map_neo_ark
-D_map_neo_ark_8017B2C0 = 0x8017B2C0; // absolute:True owner=map_neo_ark
-D_map_neo_ark_8017B300 = 0x8017B300; // absolute:True owner=map_neo_ark
+gMapNeoArkForestZoneVariant1Placements = 0x8017B190; // absolute:True owner=map_neo_ark
+gMapNeoArkForestZoneVariant2Placements = 0x8017B1C0; // absolute:True owner=map_neo_ark
+gMapNeoArkForestZoneVariant3And4Placements = 0x8017B1F0; // absolute:True owner=map_neo_ark
+gMapNeoArkForestZoneVariant5Placements = 0x8017B2C0; // absolute:True owner=map_neo_ark
+gMapNeoArkForestZoneVariant11Placements = 0x8017B300; // absolute:True owner=map_neo_ark
 gRoomEventStagedMsg = 0x80182E38; // size:0x8 defined:True
 D_neo_ark_forest_zone_80182E40 = 0x80182E40; // size:0x1 defined:True
 D_neo_ark_forest_zone_80182E41 = 0x80182E41; // size:0x1 defined:True

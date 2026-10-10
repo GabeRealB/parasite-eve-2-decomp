@@ -38,9 +38,9 @@ gNeoArkNorthPromenadeSurfaceProperties = 0x801832EC; // size:0x20 defined:True
 gActor102000PawnGolemTasks = 0x80147DF0; // absolute:True owner=actor_102000
 gActor100300Tasks = 0x80148110; // absolute:True owner=actor_100300 shared=actors
 gActor105600PawnGolemTasks = 0x801482C0; // absolute:True owner=actor_105600
-D_map_neo_ark_8017B0F0 = 0x8017B0F0; // absolute:True owner=map_neo_ark
-D_map_neo_ark_8017B120 = 0x8017B120; // absolute:True owner=map_neo_ark
-D_map_neo_ark_8017B160 = 0x8017B160; // absolute:True owner=map_neo_ark
+gMapNeoArkNorthPromenadeVariant2Placements = 0x8017B0F0; // absolute:True owner=map_neo_ark
+gMapNeoArkNorthPromenadeVariant3Placements = 0x8017B120; // absolute:True owner=map_neo_ark
+gMapNeoArkNorthPromenadeVariant11Placements = 0x8017B160; // absolute:True owner=map_neo_ark
 _gRoomVisualEffectsTwinTrailEndpointOffsets = 0x80181DA4; // size:0x10 defined:True
 D_neo_ark_north_promenade_80181D68 = 0x80181D68; // size:0x28 defined:True
 _gRoomVisualEffectsHaloShades = 0x80181D90; // size:0x14 defined:True

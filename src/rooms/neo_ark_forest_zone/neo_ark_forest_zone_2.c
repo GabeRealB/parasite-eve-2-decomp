@@ -527,17 +527,17 @@ AreaPlacement D_neo_ark_forest_zone_80182948[2] = {
 
 AreaVariant D_neo_ark_forest_zone_80182968[13] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017B190, _gNeoArkForestZoneVariant1Resources },
-    { D_map_neo_ark_8017B1C0, _gNeoArkForestZoneVariant2Resources },
-    { D_map_neo_ark_8017B1F0, _gNeoArkForestZoneVariant3Resources },
-    { D_map_neo_ark_8017B210, _gNeoArkForestZoneVariant4Resources },
-    { D_map_neo_ark_8017B2C0, _gNeoArkForestZoneVariant5Resources },
+    { gMapNeoArkForestZoneVariant1Placements, _gNeoArkForestZoneVariant1Resources },
+    { gMapNeoArkForestZoneVariant2Placements, _gNeoArkForestZoneVariant2Resources },
+    { gMapNeoArkForestZoneVariant3And4Placements, _gNeoArkForestZoneVariant3Resources },
+    { &gMapNeoArkForestZoneVariant3And4Placements[MAP_NEO_ARK_FOREST_ZONE_VARIANT4_PLACEMENT_START], _gNeoArkForestZoneVariant4Resources },
+    { gMapNeoArkForestZoneVariant5Placements, _gNeoArkForestZoneVariant5Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { D_neo_ark_forest_zone_80182948, D_neo_ark_forest_zone_80182930 },
-    { D_map_neo_ark_8017B300, _gNeoArkForestZoneVariant11Resources },
+    { gMapNeoArkForestZoneVariant11Placements, _gNeoArkForestZoneVariant11Resources },
     { NULL, NULL },
 };
 

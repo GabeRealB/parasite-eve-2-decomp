@@ -551,8 +551,8 @@ static AreaResource _gShelter1fHeliportVariant2Resources[3] = {
 
 AreaVariant D_shelter_1f_heliport_80182BF4[13] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017AF30, _gShelter1fHeliportVariant1Resources },
-    { D_map_neo_ark_8017AF80, _gShelter1fHeliportVariant2Resources },
+    { gMapNeoArkHeliportVariant1Placements, _gShelter1fHeliportVariant1Resources },
+    { gMapNeoArkHeliportVariant2Placements, _gShelter1fHeliportVariant2Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

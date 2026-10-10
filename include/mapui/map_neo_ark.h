@@ -133,7 +133,7 @@ extern u16 D_map_neo_ark_8017A9A0[];
 extern WorldCoordRoomLighting* gMapNeoArkRoomLightingTables[33];
 
 /// This stage's entries in `Gp_WarpTables`, `Gp_ViewCountTables`,
-/// `Gp_RoomObjTables`, `Gp_ViewTables` and `gSpriteAreaTables`: each leads to
+/// `Gp_RoomObjTables` and `Gp_ViewTables`: each leads to
 /// one pointer per room, into that room's package or, for some rooms, at a
 /// record this overlay holds itself.
 extern DirectionWarpEntry* D_map_neo_ark_8017AA80[];
@@ -153,7 +153,14 @@ extern ViewCameraTable D_map_neo_ark_8017AD28;
 /// are separate, and none of these directories has a terminator.
 extern ViewIndexTable gMapNeoArkViewIndexTable;
 
-extern SpriteAreaTable D_map_neo_ark_8017AE38;
+/// Sprite-view directory for the Shelter/Neo Ark stage (stage 5).
+///
+/// Select area - 1 for IDs 1..33, then the mapped one-based view minus one.
+/// Every area slot is populated; there is one directory record and no sprite
+/// variant slots, counts or terminators. The map owns the pointer directory
+/// and borrows mutable view/source/batch resources from the selected room.
+/// Keep both overlays loaded while allocating, updating or drawing sprites.
+extern SpriteAreaTable gMapNeoArkSpriteAreaTable;
 
 /// Collision and footstep property directories for the 33 Shelter/Neo Ark areas.
 ///
@@ -186,68 +193,283 @@ extern AreaPlacement gMapNeoArkVehicularAirlockDefaultPlacements[3];
 /// this map overlay to remain loaded.
 extern AreaPlacement gMapNeoArkBulwarkDefaultPlacements[3];
 
-/// Area placement lists, each ended by an entry id of 0xFF. The rooms' area
-/// records point at them, one list per location; one location's list runs on
-/// into the next one's.
-extern AreaPlacement D_map_neo_ark_8017AF30[];
+/// Jodie and three Soldier B placements for Heliport variant 1.
+///
+/// Two soldiers carry rifles (mode 1); the last is unarmed (mode 0).
+/// Ends with `AREA_PLACEMENT_END`; record order supplies saved placement indices.
+/// XYZ use world units and yaw uses 4096 units per turn. Signed texture-page
+/// offsets count 64-word VRAM columns and CLUT offsets count rows. All records
+/// select base files (fileIdLow 0). Keep the map overlay loaded while loading,
+/// spawning or retaining actor references.
+extern AreaPlacement gMapNeoArkHeliportVariant1Placements[5];
 
-extern AreaPlacement D_map_neo_ark_8017AF80[];
+/// Rupert and three Soldier B placements for Heliport variant 2.
+///
+/// Two soldiers carry rifles (mode 1); the last is unarmed (mode 0).
+/// Ends with `AREA_PLACEMENT_END`; record order supplies saved placement indices.
+/// XYZ use world units and yaw uses 4096 units per turn. Signed texture-page
+/// offsets count 64-word VRAM columns and CLUT offsets count rows. All records
+/// select base files (fileIdLow 0). Keep the map overlay loaded while loading,
+/// spawning or retaining actor references.
+extern AreaPlacement gMapNeoArkHeliportVariant2Placements[5];
 
-extern AreaPlacement D_map_neo_ark_8017AFD0[];
+/// One Knight GOLEM for Airlock placement variant 1.
+///
+/// Ends with `AREA_PLACEMENT_END`; record order supplies saved placement indices.
+/// XYZ use world units and yaw uses 4096 units per turn. Signed texture-page
+/// offsets count 64-word VRAM columns and CLUT offsets count rows. All records
+/// select base files (fileIdLow 0). Keep the map overlay loaded while loading,
+/// spawning or retaining actor references.
+extern AreaPlacement gMapNeoArkAirlockKnightPlacements[2];
 
-extern AreaPlacement D_map_neo_ark_8017AFF0[];
+/// One Bishop GOLEM for Airlock placement variant 7.
+///
+/// Ends with `AREA_PLACEMENT_END`; record order supplies saved placement indices.
+/// XYZ use world units and yaw uses 4096 units per turn. Signed texture-page
+/// offsets count 64-word VRAM columns and CLUT offsets count rows. All records
+/// select base files (fileIdLow 0). Keep the map overlay loaded while loading,
+/// spawning or retaining actor references.
+extern AreaPlacement gMapNeoArkAirlockBishopPlacements[2];
 
-extern AreaPlacement D_map_neo_ark_8017B010[];
+/// A bodyless scene-stop placement for Observatory variant 1.
+///
+/// Entry 101 selects a bodyless task that kills itself; it creates no model.
+/// Ends with `AREA_PLACEMENT_END`. Keep the map overlay loaded during use.
+extern AreaPlacement gMapNeoArkObservatoryDefaultPlacements[2];
 
-extern AreaPlacement D_map_neo_ark_8017B030[];
+/// Four Watchers for EVE Access Tunnel placement variant 1.
+///
+/// Weapon variants 2/3 select beam tuning; roll is zero. Sight row 6 gives 7000 world units.
+/// Ends with `AREA_PLACEMENT_END`; record order supplies saved placement indices.
+/// XYZ use world units and yaw uses 4096 units per turn. Signed texture-page
+/// offsets count 64-word VRAM columns and CLUT offsets count rows. All records
+/// select base files (fileIdLow 0). Keep the map overlay loaded while loading,
+/// spawning or retaining actor references.
+extern AreaPlacement gMapNeoArkEveAccessTunnelDefaultPlacements[5];
 
-extern AreaPlacement D_map_neo_ark_8017B080[];
+/// An encounter controller and five Watchers for EVE Access Tunnel variant 11.
+///
+/// Weapon variants 1/2/3 select beam tuning; roll is zero. Sight row 6 gives 7000 world units.
+/// Ends with `AREA_PLACEMENT_END`; record order supplies saved placement indices.
+/// XYZ use world units and yaw uses 4096 units per turn. Signed texture-page
+/// offsets count 64-word VRAM columns and CLUT offsets count rows. All records
+/// select base files (fileIdLow 0). Keep the map overlay loaded while loading,
+/// spawning or retaining actor references.
+extern AreaPlacement gMapNeoArkEveAccessTunnelEncounterPlacements[7];
 
-extern AreaPlacement D_map_neo_ark_8017B0F0[];
+/// Two Stingers on separate patrol routes for North Promenade variant 2.
+///
+/// Modes 0/1 select the room's two routes; variant 0 permits lock-on.
+/// Ends with `AREA_PLACEMENT_END`; record order supplies saved placement indices.
+/// XYZ use world units and yaw uses 4096 units per turn. Signed texture-page
+/// offsets count 64-word VRAM columns and CLUT offsets count rows. All records
+/// select base files (fileIdLow 0). Keep the map overlay loaded while loading,
+/// spawning or retaining actor references.
+extern AreaPlacement gMapNeoArkNorthPromenadeVariant2Placements[3];
 
-extern AreaPlacement D_map_neo_ark_8017B120[];
+/// An idle Pawn GOLEM and two patrolling Pawns for North Promenade variant 3.
+///
+/// The patrolling Pawns use 5000-world-unit legs (variant 5, mode 1).
+/// Ends with `AREA_PLACEMENT_END`; record order supplies saved placement indices.
+/// XYZ use world units and yaw uses 4096 units per turn. Signed texture-page
+/// offsets count 64-word VRAM columns and CLUT offsets count rows. All records
+/// select base files (fileIdLow 0). Keep the map overlay loaded while loading,
+/// spawning or retaining actor references.
+extern AreaPlacement gMapNeoArkNorthPromenadeVariant3Placements[4];
 
-extern AreaPlacement D_map_neo_ark_8017B160[];
+/// A patrolling Pawn GOLEM and an idle Pawn for North Promenade variant 11.
+///
+/// The first Pawn uses 4000-world-unit patrol legs (variant 4, mode 1).
+/// Ends with `AREA_PLACEMENT_END`; record order supplies saved placement indices.
+/// XYZ use world units and yaw uses 4096 units per turn. Signed texture-page
+/// offsets count 64-word VRAM columns and CLUT offsets count rows. All records
+/// select base files (fileIdLow 0). Keep the map overlay loaded while loading,
+/// spawning or retaining actor references.
+extern AreaPlacement gMapNeoArkNorthPromenadeVariant11Placements[3];
 
-extern AreaPlacement D_map_neo_ark_8017B190[];
+/// Two reusable Horned Stranger pool actors for Forest Zone variant 1.
+///
+/// Entry IDs 13/10 bind the room's two separate Horned Stranger packages.
+/// Ends with `AREA_PLACEMENT_END`; record order supplies saved placement indices.
+/// XYZ use world units and yaw uses 4096 units per turn. Signed texture-page
+/// offsets count 64-word VRAM columns and CLUT offsets count rows. All records
+/// select base files (fileIdLow 0). Keep the map overlay loaded while loading,
+/// spawning or retaining actor references.
+extern AreaPlacement gMapNeoArkForestZoneVariant1Placements[3];
 
-extern AreaPlacement D_map_neo_ark_8017B1C0[];
+/// Two reusable Horned Stranger pool actors for Forest Zone variant 2.
+///
+/// Ends with `AREA_PLACEMENT_END`; record order supplies saved placement indices.
+/// XYZ use world units and yaw uses 4096 units per turn. Signed texture-page
+/// offsets count 64-word VRAM columns and CLUT offsets count rows. All records
+/// select base files (fileIdLow 0). Keep the map overlay loaded while loading,
+/// spawning or retaining actor references.
+extern AreaPlacement gMapNeoArkForestZoneVariant2Placements[3];
 
-extern AreaPlacement D_map_neo_ark_8017B1F0[];
+/// Element at which Forest Zone variant 4 begins in the shared placement stream.
+enum { MAP_NEO_ARK_FOREST_ZONE_VARIANT4_PLACEMENT_START = 2 };
 
-extern AreaPlacement D_map_neo_ark_8017B210[];
+/// Shared placement stream for Forest Zone variants 3 and 4.
+///
+/// Variant 3 starts at element 0: two reusable Horned Strangers, followed by
+/// ten entry-38 Beetle records that its resource table does not match.
+/// Variant 4 starts at `MAP_NEO_ARK_FOREST_ZONE_VARIANT4_PLACEMENT_START`
+/// and spawns those ten Beetles with its own zero-based placement indices.
+/// Both walks end at element 12; the unmatched records still advance variant
+/// 3's placement cursor. All fileIdLow values are zero, so they queue no
+/// additional files. Preserve this order for saved placement keys.
+/// XYZ use world units and yaw uses 4096 units per turn. Texture-page offsets
+/// count 64-word VRAM columns and CLUT offsets count rows. Keep the map loaded
+/// while loading, spawning or retaining actor references.
+extern AreaPlacement gMapNeoArkForestZoneVariant3And4Placements[13];
 
-extern AreaPlacement D_map_neo_ark_8017B2C0[];
+/// A patrolling Pawn GOLEM and two wounded Horned Strangers for Forest Zone variant 5.
+///
+/// The Pawn patrols 2000-world-unit legs; Stranger variant 32 selects wounded behavior.
+/// Ends with `AREA_PLACEMENT_END`; record order supplies saved placement indices.
+/// XYZ use world units and yaw uses 4096 units per turn. Signed texture-page
+/// offsets count 64-word VRAM columns and CLUT offsets count rows. All records
+/// select base files (fileIdLow 0). Keep the map overlay loaded while loading,
+/// spawning or retaining actor references.
+extern AreaPlacement gMapNeoArkForestZoneVariant5Placements[4];
 
-extern AreaPlacement D_map_neo_ark_8017B300[];
+/// Two patrolling Pawn GOLEMs for Forest Zone placement variant 11.
+///
+/// Patrol legs are 5000 and 3000 world units (variants 5/3, mode 1).
+/// Ends with `AREA_PLACEMENT_END`; record order supplies saved placement indices.
+/// XYZ use world units and yaw uses 4096 units per turn. Signed texture-page
+/// offsets count 64-word VRAM columns and CLUT offsets count rows. All records
+/// select base files (fileIdLow 0). Keep the map overlay loaded while loading,
+/// spawning or retaining actor references.
+extern AreaPlacement gMapNeoArkForestZoneVariant11Placements[3];
 
-extern AreaPlacement D_map_neo_ark_8017B330[];
+/// Introduction and continuation Bog Divers for Submarine Tunnel variant 1.
+///
+/// Modes 2/50 select the introduction/continuation tunnel behavior.
+/// Ends with `AREA_PLACEMENT_END`; record order supplies saved placement indices.
+/// XYZ use world units and yaw uses 4096 units per turn. Signed texture-page
+/// offsets count 64-word VRAM columns and CLUT offsets count rows. All records
+/// select base files (fileIdLow 0). Keep the map overlay loaded while loading,
+/// spawning or retaining actor references.
+extern AreaPlacement gMapNeoArkSubmarineTunnelVariant1Placements[3];
 
-extern AreaPlacement D_map_neo_ark_8017B360[];
+/// Two alternate-palette Amoebas for Submarine Tunnel placement variant 2.
+///
+/// Mode bit 0 selects alternate combat parameters and adds one CLUT row.
+/// Ends with `AREA_PLACEMENT_END`; record order supplies saved placement indices.
+/// XYZ use world units and yaw uses 4096 units per turn. Signed texture-page
+/// offsets count 64-word VRAM columns and CLUT offsets count rows. All records
+/// select base files (fileIdLow 0). Keep the map overlay loaded while loading,
+/// spawning or retaining actor references.
+extern AreaPlacement gMapNeoArkSubmarineTunnelVariant2Placements[3];
 
-extern AreaPlacement D_map_neo_ark_8017B390[];
+/// Aya and No. 9 walkers for Submarine Tunnel placement variant 3.
+///
+/// Ends with `AREA_PLACEMENT_END`; record order supplies saved placement indices.
+/// XYZ use world units and yaw uses 4096 units per turn. Signed texture-page
+/// offsets count 64-word VRAM columns and CLUT offsets count rows. All records
+/// select base files (fileIdLow 0). Keep the map overlay loaded while loading,
+/// spawning or retaining actor references.
+extern AreaPlacement gMapNeoArkSubmarineTunnelVariant3Placements[3];
 
-extern AreaPlacement D_map_neo_ark_8017B3C0[];
+/// Terminator-only actor placements for Submarine Tunnel variant 4.
+///
+/// Paired with an empty resource list; the present variant spawns no actors.
+/// Ends with `AREA_PLACEMENT_END`. Keep the map overlay loaded during use.
+extern AreaPlacement gMapNeoArkSubmarineTunnelVariant4Placements[1];
 
-extern AreaPlacement D_map_neo_ark_8017B3D0[];
+/// Three water-mode Bog Divers for Pavilion placement variant 1.
+///
+/// Mode bits 4..5 select waypoint rings 0/1/2; shot-speed row 1 selects 200 units per tick.
+/// Ends with `AREA_PLACEMENT_END`; record order supplies saved placement indices.
+/// XYZ use world units and yaw uses 4096 units per turn. Signed texture-page
+/// offsets count 64-word VRAM columns and CLUT offsets count rows. All records
+/// select base files (fileIdLow 0). Keep the map overlay loaded while loading,
+/// spawning or retaining actor references.
+extern AreaPlacement gMapNeoArkPavilionVariant1Placements[4];
 
-extern AreaPlacement D_map_neo_ark_8017B410[];
+/// Two water-mode Bog Divers and three Black Beetles for Pavilion variant 2.
+///
+/// Divers use waypoint rings 0/1 and shot-speed row 3 (220 units per tick).
+/// Ends with `AREA_PLACEMENT_END`; record order supplies saved placement indices.
+/// XYZ use world units and yaw uses 4096 units per turn. Signed texture-page
+/// offsets count 64-word VRAM columns and CLUT offsets count rows. All records
+/// select base files (fileIdLow 0). Keep the map overlay loaded while loading,
+/// spawning or retaining actor references.
+extern AreaPlacement gMapNeoArkPavilionVariant2Placements[6];
 
-extern AreaPlacement D_map_neo_ark_8017B470[];
+/// Three water-mode Bog Divers for Pavilion placement variant 3.
+///
+/// Divers use waypoint rings 0/1/2 and shot-speed row 3 (220 units per tick).
+/// Ends with `AREA_PLACEMENT_END`; record order supplies saved placement indices.
+/// XYZ use world units and yaw uses 4096 units per turn. Signed texture-page
+/// offsets count 64-word VRAM columns and CLUT offsets count rows. All records
+/// select base files (fileIdLow 0). Keep the map overlay loaded while loading,
+/// spawning or retaining actor references.
+extern AreaPlacement gMapNeoArkPavilionVariant3Placements[4];
 
-extern AreaPlacement D_map_neo_ark_8017B4B0[];
+/// A water-mode Bog Diver and a Mossback for Pavilion placement variant 4.
+///
+/// The Diver uses waypoint ring 0 and shot-speed row 6 (270 units per tick).
+/// Ends with `AREA_PLACEMENT_END`; record order supplies saved placement indices.
+/// XYZ use world units and yaw uses 4096 units per turn. Signed texture-page
+/// offsets count 64-word VRAM columns and CLUT offsets count rows. All records
+/// select base files (fileIdLow 0). Keep the map overlay loaded while loading,
+/// spawning or retaining actor references.
+extern AreaPlacement gMapNeoArkPavilionVariant4Placements[3];
 
-extern AreaPlacement D_map_neo_ark_8017B4E0[];
+/// One grounded and three floating wounded Bog Divers for Pavilion variant 5.
+///
+/// Ends with `AREA_PLACEMENT_END`; record order supplies saved placement indices.
+/// XYZ use world units and yaw uses 4096 units per turn. Signed texture-page
+/// offsets count 64-word VRAM columns and CLUT offsets count rows. All records
+/// select base files (fileIdLow 0). Keep the map overlay loaded while loading,
+/// spawning or retaining actor references.
+extern AreaPlacement gMapNeoArkPavilionVariant5Placements[5];
 
-extern AreaPlacement D_map_neo_ark_8017B530[];
+/// A patrolling grenade-launcher Rook GOLEM for Pavilion variant 11.
+///
+/// Variant 3 and mode 1 select 3000-world-unit patrol legs.
+/// Ends with `AREA_PLACEMENT_END`; record order supplies saved placement indices.
+/// XYZ use world units and yaw uses 4096 units per turn. Signed texture-page
+/// offsets count 64-word VRAM columns and CLUT offsets count rows. All records
+/// select base files (fileIdLow 0). Keep the map overlay loaded while loading,
+/// spawning or retaining actor references.
+extern AreaPlacement gMapNeoArkPavilionVariant11Placements[2];
 
-extern AreaPlacement D_map_neo_ark_8017B550[];
+/// Three water-mode Bog Divers for Island placement variant 1.
+///
+/// Mode bits 4..5 select waypoint rings 0/1/2; shot-speed row 1 selects 200 units per tick.
+/// Ends with `AREA_PLACEMENT_END`; record order supplies saved placement indices.
+/// XYZ use world units and yaw uses 4096 units per turn. Signed texture-page
+/// offsets count 64-word VRAM columns and CLUT offsets count rows. All records
+/// select base files (fileIdLow 0). Keep the map overlay loaded while loading,
+/// spawning or retaining actor references.
+extern AreaPlacement gMapNeoArkIslandVariant1Placements[4];
 
-extern AreaPlacement D_map_neo_ark_8017B590[];
+/// Two Mossbacks for Island placement variant 2.
+///
+/// Ends with `AREA_PLACEMENT_END`; record order supplies saved placement indices.
+/// XYZ use world units and yaw uses 4096 units per turn. Signed texture-page
+/// offsets count 64-word VRAM columns and CLUT offsets count rows. All records
+/// select base files (fileIdLow 0). Keep the map overlay loaded while loading,
+/// spawning or retaining actor references.
+extern AreaPlacement gMapNeoArkIslandVariant2Placements[3];
 
-extern AreaPlacement D_map_neo_ark_8017B5C0[];
+/// Two grounded and one floating wounded Bog Divers for Island variant 3.
+///
+/// Ends with `AREA_PLACEMENT_END`; record order supplies saved placement indices.
+/// XYZ use world units and yaw uses 4096 units per turn. Signed texture-page
+/// offsets count 64-word VRAM columns and CLUT offsets count rows. All records
+/// select base files (fileIdLow 0). Keep the map overlay loaded while loading,
+/// spawning or retaining actor references.
+extern AreaPlacement gMapNeoArkIslandVariant3Placements[4];
 
-extern AreaPlacement D_map_neo_ark_8017B600[];
+/// Terminator-only actor placements for Island variant 4.
+///
+/// Paired with an empty resource list; the present variant spawns no actors.
+/// Ends with `AREA_PLACEMENT_END`. Keep the map overlay loaded during use.
+extern AreaPlacement gMapNeoArkIslandVariant4Placements[1];
 
 extern AreaPlacement D_map_neo_ark_8017B610[];
 

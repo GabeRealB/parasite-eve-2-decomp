@@ -39,8 +39,8 @@ _gShelter1fAirlockFloorSurfaceProperties = 0x8017F844; // size:0x8 defined:True
 gShelter1fAirlockSurfaceProperties = 0x8017F84C; // size:0x20 defined:True
 gActor403900GolemTaskDesc = 0x801540E0; // absolute:True owner=actor_403900
 gActor402200GolemTaskDesc = 0x80154188; // absolute:True owner=actor_402200
-D_map_neo_ark_8017AFD0 = 0x8017AFD0; // absolute:True owner=map_neo_ark
-D_map_neo_ark_8017AFF0 = 0x8017AFF0; // absolute:True owner=map_neo_ark
+gMapNeoArkAirlockKnightPlacements = 0x8017AFD0; // absolute:True owner=map_neo_ark
+gMapNeoArkAirlockBishopPlacements = 0x8017AFF0; // absolute:True owner=map_neo_ark
 
 shelter1fAirlockDrawViewGlowsTask = 0x8017D6D0; // type:func
 _glowDrawFactorDisc = 0x8017E0F0; // type:func

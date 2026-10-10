@@ -1386,10 +1386,10 @@ static AreaResource _gNeoArkSubmarineTunnelVariant4Resources[] = {
 
 AreaVariant D_neo_ark_submarine_tunnel_80187470[13] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017B330, _gNeoArkSubmarineTunnelVariant1Resources },
-    { D_map_neo_ark_8017B360, _gNeoArkSubmarineTunnelVariant2Resources },
-    { D_map_neo_ark_8017B390, _gNeoArkSubmarineTunnelVariant3Resources },
-    { D_map_neo_ark_8017B3C0, _gNeoArkSubmarineTunnelVariant4Resources },
+    { gMapNeoArkSubmarineTunnelVariant1Placements, _gNeoArkSubmarineTunnelVariant1Resources },
+    { gMapNeoArkSubmarineTunnelVariant2Placements, _gNeoArkSubmarineTunnelVariant2Resources },
+    { gMapNeoArkSubmarineTunnelVariant3Placements, _gNeoArkSubmarineTunnelVariant3Resources },
+    { gMapNeoArkSubmarineTunnelVariant4Placements, _gNeoArkSubmarineTunnelVariant4Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

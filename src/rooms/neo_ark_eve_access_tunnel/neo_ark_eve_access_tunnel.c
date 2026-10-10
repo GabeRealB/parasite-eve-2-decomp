@@ -410,7 +410,7 @@ static AreaResource _gNeoArkEveAccessTunnelEncounterActorResources[3] = {
 
 AreaVariant D_neo_ark_eve_access_tunnel_801806B8[13] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017B030, _gNeoArkEveAccessTunnelDefaultActorResources },
+    { gMapNeoArkEveAccessTunnelDefaultPlacements, _gNeoArkEveAccessTunnelDefaultActorResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -420,7 +420,7 @@ AreaVariant D_neo_ark_eve_access_tunnel_801806B8[13] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_neo_ark_8017B080, _gNeoArkEveAccessTunnelEncounterActorResources },
+    { gMapNeoArkEveAccessTunnelEncounterPlacements, _gNeoArkEveAccessTunnelEncounterActorResources },
     { NULL, NULL },
 };
 

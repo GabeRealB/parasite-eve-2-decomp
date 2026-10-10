@@ -1110,17 +1110,17 @@ AreaResource D_neo_ark_pavilion_801876AC[2] = {
 
 AreaVariant D_neo_ark_pavilion_801876C4[13] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017B3D0, _gNeoArkPavilionVariant1Resources },
-    { D_map_neo_ark_8017B410, D_neo_ark_pavilion_80187634 },
-    { D_map_neo_ark_8017B470, D_neo_ark_pavilion_80187658 },
-    { D_map_neo_ark_8017B4B0, D_neo_ark_pavilion_80187670 },
-    { D_map_neo_ark_8017B4E0, D_neo_ark_pavilion_80187694 },
+    { gMapNeoArkPavilionVariant1Placements, _gNeoArkPavilionVariant1Resources },
+    { gMapNeoArkPavilionVariant2Placements, D_neo_ark_pavilion_80187634 },
+    { gMapNeoArkPavilionVariant3Placements, D_neo_ark_pavilion_80187658 },
+    { gMapNeoArkPavilionVariant4Placements, D_neo_ark_pavilion_80187670 },
+    { gMapNeoArkPavilionVariant5Placements, D_neo_ark_pavilion_80187694 },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_neo_ark_8017B530, D_neo_ark_pavilion_801876AC },
+    { gMapNeoArkPavilionVariant11Placements, D_neo_ark_pavilion_801876AC },
     { NULL, NULL },
 };
 

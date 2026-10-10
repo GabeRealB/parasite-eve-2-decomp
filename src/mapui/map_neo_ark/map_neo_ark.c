@@ -184,6 +184,42 @@ enum {
     MAP_NEO_ARK_RESOURCE_ROOK_GRENADE_LAUNCHER = 57,
 };
 
+/// Resource-entry IDs used by these room placement recipes.
+///
+/// Room-scoped selectors can bind different recipes at the same numeric ID.
+enum {
+    MAP_NEO_ARK_NORTH_PROMENADE_RESOURCE_STINGER           = 3,
+    MAP_NEO_ARK_FOREST_ZONE_RESOURCE_EXTRA_HORNED_STRANGER = 10,
+    MAP_NEO_ARK_RESOURCE_WATCHER                           = 21,
+    MAP_NEO_ARK_RESOURCE_KNIGHT_GOLEM                      = 22,
+    MAP_NEO_ARK_RESOURCE_AMOEBA                            = 24,
+    MAP_NEO_ARK_SUBMARINE_TUNNEL_RESOURCE_NO9_WALKER       = 34,
+    MAP_NEO_ARK_RESOURCE_EXTRA_PAWN_GOLEM                  = 56,
+    MAP_NEO_ARK_OBSERVATORY_RESOURCE_SCENE_STOP            = 101,
+    MAP_NEO_ARK_HELIPORT_RESOURCE_JODIE                    = 115,
+    MAP_NEO_ARK_SUBMARINE_TUNNEL_RESOURCE_AYA_WALKER       = 132,
+    MAP_NEO_ARK_HELIPORT_RESOURCE_RUPERT                   = 144,
+};
+
+/// Actor-specific selectors used by these placement tables.
+///
+/// Watcher weapon values index its five-row tuning tables; sight rows select
+/// world-coordinate ranges. Diver modes use low-nibble behavior and high-nibble
+/// waypoint/continuation selection; shot rows select local units per tick.
+enum {
+    MAP_NEO_ARK_SOLDIER_CARRIES_RIFLE               = 1,
+    MAP_NEO_ARK_AMOEBA_ALTERNATE_VARIANT            = 1,
+    MAP_NEO_ARK_WATCHER_WEAPON_VARIANT_1            = 1,
+    MAP_NEO_ARK_WATCHER_WEAPON_VARIANT_2            = 2,
+    MAP_NEO_ARK_WATCHER_WEAPON_VARIANT_3            = 3,
+    MAP_NEO_ARK_WATCHER_SIGHT_7000_ROW              = 6,
+    MAP_NEO_ARK_BOG_DIVER_MODE_TUNNEL               = 2,
+    MAP_NEO_ARK_BOG_DIVER_TUNNEL_CONTINUATION_GROUP = 3 << 4,
+    MAP_NEO_ARK_BOG_DIVER_SHOT_SPEED_200_ROW        = 1,
+    MAP_NEO_ARK_BOG_DIVER_SHOT_SPEED_220_ROW        = 3,
+    MAP_NEO_ARK_BOG_DIVER_SHOT_SPEED_270_ROW        = 6,
+};
+
 /// Movie ring byte extent and Eve Elevator staging origin in VRAM words/rows.
 enum {
     MAP_NEO_ARK_MOVIE_RING_BYTES               = 0x10000,
@@ -998,43 +1034,48 @@ static u8** _gMapNeoArkAreaViewMaps[33] = {
 
 ViewIndexTable gMapNeoArkViewIndexTable = { .viewMaps = _gMapNeoArkAreaViewMaps };
 
-static SpriteView* D_map_neo_ark_8017ADB4[33] = {
-    gShelter1fParkingGarageSpriteViews,
-    gShelter1fVehicularAirlockSpriteViews,
-    gShelter1fBulwarkSpriteViews,
-    gShelter1fHeliportSpriteViews,
-    gShelter1fAirlockSpriteViews,
-    gShelter1fGuardroomSpriteViews,
-    gNeoArkObservatorySpriteViews,
-    gNeoArkEveAccessTunnelSpriteViews,
-    gNeoArkEveElevatorSpriteViews,
-    gNeoArkNorthPromenadeSpriteViews,
-    gNeoArkForestZoneSpriteViews,
-    gNeoArkSubmarineTunnelSpriteViews,
-    gNeoArkPavilionSpriteViews,
-    gNeoArkIslandSpriteViews,
-    gNeoArkGardenSpriteViews,
-    gNeoArkPowerPlant2SpriteViews,
-    gNeoArkPowerPlant1SpriteViews,
-    gNeoArkSavannaZoneSpriteViews,
-    gNeoArkSouthPromenadeSpriteViews,
-    gNeoArkAltarSpriteViews,
-    gNeoArkShrineSpriteViews,
-    gShelterB6NurserySpriteViews,
-    gShelterB6GrowthRoomSpriteViews,
-    gShelterB6CorridorSpriteViews,
-    gShelterB6TrainingRoomSpriteViews,
-    gNeoArkR26SpriteViews,
-    gNeoArkBridgeSpriteViews,
-    gShelter1fTentSpriteViews,
-    gNeoArkWoodlandPathSpriteViews,
-    gNeoArkSubmarineGallerySpriteViews,
-    gNeoArkR31SpriteViews,
-    gNeoArkPyramidSpriteViews,
-    gNeoArkSubstationSpriteViews,
+/// Per-area sprite-view arrays for the 33 Shelter/Neo Ark areas.
+///
+/// Select area - 1, then mapped view - 1. Every area slot borrows its room
+/// overlay's mutable descriptors and source/batch lists; no terminator or
+/// counts are stored. The selected room must remain loaded during use.
+static SpriteView* _gMapNeoArkAreaSpriteViews[MAP_NEO_ARK_AREA_ID_LIMIT] = {
+    [GAME_AREA_SHELTER_1F_PARKING_GARAGE - 1]    = gShelter1fParkingGarageSpriteViews,
+    [GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK - 1] = gShelter1fVehicularAirlockSpriteViews,
+    [GAME_AREA_SHELTER_1F_BULWARK - 1]           = gShelter1fBulwarkSpriteViews,
+    [GAME_AREA_SHELTER_1F_HELIPORT - 1]          = gShelter1fHeliportSpriteViews,
+    [GAME_AREA_SHELTER_1F_AIRLOCK - 1]           = gShelter1fAirlockSpriteViews,
+    [GAME_AREA_SHELTER_1F_GUARDROOM - 1]         = gShelter1fGuardroomSpriteViews,
+    [GAME_AREA_NEO_ARK_OBSERVATORY - 1]          = gNeoArkObservatorySpriteViews,
+    [GAME_AREA_NEO_ARK_EVE_ACCESS_TUNNEL - 1]    = gNeoArkEveAccessTunnelSpriteViews,
+    [GAME_AREA_NEO_ARK_EVE_ELEVATOR - 1]         = gNeoArkEveElevatorSpriteViews,
+    [GAME_AREA_NEO_ARK_NORTH_PROMENADE - 1]      = gNeoArkNorthPromenadeSpriteViews,
+    [GAME_AREA_NEO_ARK_FOREST_ZONE - 1]          = gNeoArkForestZoneSpriteViews,
+    [GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL - 1]     = gNeoArkSubmarineTunnelSpriteViews,
+    [GAME_AREA_NEO_ARK_PAVILION - 1]             = gNeoArkPavilionSpriteViews,
+    [GAME_AREA_NEO_ARK_ISLAND - 1]               = gNeoArkIslandSpriteViews,
+    [GAME_AREA_NEO_ARK_GARDEN - 1]               = gNeoArkGardenSpriteViews,
+    [GAME_AREA_NEO_ARK_POWER_PLANT_2 - 1]        = gNeoArkPowerPlant2SpriteViews,
+    [GAME_AREA_NEO_ARK_POWER_PLANT_1 - 1]        = gNeoArkPowerPlant1SpriteViews,
+    [GAME_AREA_NEO_ARK_SAVANNA_ZONE - 1]         = gNeoArkSavannaZoneSpriteViews,
+    [GAME_AREA_NEO_ARK_SOUTH_PROMENADE - 1]      = gNeoArkSouthPromenadeSpriteViews,
+    [GAME_AREA_NEO_ARK_ALTAR - 1]                = gNeoArkAltarSpriteViews,
+    [GAME_AREA_NEO_ARK_SHRINE - 1]               = gNeoArkShrineSpriteViews,
+    [GAME_AREA_SHELTER_B6_NURSERY - 1]           = gShelterB6NurserySpriteViews,
+    [GAME_AREA_SHELTER_B6_GROWTH_ROOM - 1]       = gShelterB6GrowthRoomSpriteViews,
+    [GAME_AREA_SHELTER_B6_CORRIDOR - 1]          = gShelterB6CorridorSpriteViews,
+    [GAME_AREA_SHELTER_B6_TRAINING_ROOM - 1]     = gShelterB6TrainingRoomSpriteViews,
+    [GAME_AREA_NEO_ARK_R26 - 1]                  = gNeoArkR26SpriteViews,
+    [GAME_AREA_NEO_ARK_BRIDGE - 1]               = gNeoArkBridgeSpriteViews,
+    [GAME_AREA_SHELTER_1F_TENT - 1]              = gShelter1fTentSpriteViews,
+    [GAME_AREA_NEO_ARK_WOODLAND_PATH - 1]        = gNeoArkWoodlandPathSpriteViews,
+    [GAME_AREA_NEO_ARK_SUBMARINE_GALLERY - 1]    = gNeoArkSubmarineGallerySpriteViews,
+    [GAME_AREA_NEO_ARK_R31 - 1]                  = gNeoArkR31SpriteViews,
+    [GAME_AREA_NEO_ARK_PYRAMID - 1]              = gNeoArkPyramidSpriteViews,
+    [GAME_AREA_NEO_ARK_SUBSTATION - 1]           = gNeoArkSubstationSpriteViews,
 };
 
-SpriteAreaTable D_map_neo_ark_8017AE38 = { D_map_neo_ark_8017ADB4 };
+SpriteAreaTable gMapNeoArkSpriteAreaTable = { .areaViews = _gMapNeoArkAreaSpriteViews };
 
 WorldCollisionSurfaceProperties** gMapNeoArkSurfacePropertiesByArea[33] = {
     [GAME_AREA_SHELTER_1F_PARKING_GARAGE - 1]    = gShelter1fParkingGarageSurfaceProperties,
@@ -1088,204 +1129,201 @@ AreaPlacement gMapNeoArkBulwarkDefaultPlacements[3] = {
     { AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017AF30[5] = {
-    { 0x73, 0, 0, 0x6B3, 0, 0x1AA2, 0x800, 0, 0, 2, 0 },
-    { 0x74, 0, 1, 0x35C, 0, 0xBF5, 0x400, 0, 2, 4, 0 },
-    { 0x74, 0, 1, 0x2710, 0, 0x131C, 0xC00, 0, 2, 4, 0 },
-    { 0x74, 0, 0, 0x1CB5, 0, -0x3C9, 0x200, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapNeoArkHeliportVariant1Placements[5] = {
+    { .entryId = MAP_NEO_ARK_HELIPORT_RESOURCE_JODIE, .variant = 0, .mode = 0, .x = 1715, .y = 0, .z = 6818, .yaw = 2048, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_TENT_SOLDIER_B, .variant = 0, .mode = MAP_NEO_ARK_SOLDIER_CARRIES_RIFLE, .x = 860, .y = 0, .z = 3061, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_TENT_SOLDIER_B, .variant = 0, .mode = MAP_NEO_ARK_SOLDIER_CARRIES_RIFLE, .x = 10000, .y = 0, .z = 4892, .yaw = 3072, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_TENT_SOLDIER_B, .variant = 0, .mode = 0, .x = 7349, .y = 0, .z = -969, .yaw = 512, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017AF80[5] = {
-    { 0x90, 0, 0, 0x6B3, 0, 0x1AA2, 0x800, 0, 0, 2, 0 },
-    { 0x74, 0, 1, 0x35C, 0, 0xBF5, 0x400, 0, 2, 4, 0 },
-    { 0x74, 0, 1, 0x2710, 0, 0x131C, 0xC00, 0, 2, 4, 0 },
-    { 0x74, 0, 0, 0x1CB5, 0, -0x3C9, 0x200, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapNeoArkHeliportVariant2Placements[5] = {
+    { .entryId = MAP_NEO_ARK_HELIPORT_RESOURCE_RUPERT, .variant = 0, .mode = 0, .x = 1715, .y = 0, .z = 6818, .yaw = 2048, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_TENT_SOLDIER_B, .variant = 0, .mode = MAP_NEO_ARK_SOLDIER_CARRIES_RIFLE, .x = 860, .y = 0, .z = 3061, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_TENT_SOLDIER_B, .variant = 0, .mode = MAP_NEO_ARK_SOLDIER_CARRIES_RIFLE, .x = 10000, .y = 0, .z = 4892, .yaw = 3072, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_TENT_SOLDIER_B, .variant = 0, .mode = 0, .x = 7349, .y = 0, .z = -969, .yaw = 512, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017AFD0[2] = {
-    { 0x16, 0, 0, -0x5DC, 0, 0x12C0, 0x400, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapNeoArkAirlockKnightPlacements[2] = {
+    { .entryId = MAP_NEO_ARK_RESOURCE_KNIGHT_GOLEM, .variant = 0, .mode = 0, .x = -1500, .y = 0, .z = 4800, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017AFF0[2] = {
-    { 0x27, 0, 0, -0x5DC, 0, 0x12C0, 0x400, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapNeoArkAirlockBishopPlacements[2] = {
+    { .entryId = MAP_NEO_ARK_RESOURCE_BISHOP_GOLEM, .variant = 0, .mode = 0, .x = -1500, .y = 0, .z = 4800, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017B010[2] = {
-    { 0x65, 0, 0, 0, 0, 0, 0, 0, -1, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapNeoArkObservatoryDefaultPlacements[2] = {
+    { .entryId = MAP_NEO_ARK_OBSERVATORY_RESOURCE_SCENE_STOP, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = -1, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017B030[5] = {
-    { 0x15, 2, 0, -0x190, -0x7D0, 0x1900, 0xC00, 0, 0, 2, 6 },
-    { 0x15, 2, 0, -0x802, -0x7D0, 0x1900, 0x400, 0, 0, 2, 6 },
-    { 0x15, 3, 0, -0x190, -0x7D0, 0xE10, 0xC00, 0, 0, 2, 6 },
-    { 0x15, 3, 0, -0x802, -0x7D0, 0xE10, 0x400, 0, 0, 2, 6 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapNeoArkEveAccessTunnelDefaultPlacements[5] = {
+    { .entryId = MAP_NEO_ARK_RESOURCE_WATCHER, .variant = MAP_NEO_ARK_WATCHER_WEAPON_VARIANT_2, .mode = 0, .x = -400, .y = -2000, .z = 6400, .yaw = 3072, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_NEO_ARK_WATCHER_SIGHT_7000_ROW },
+    { .entryId = MAP_NEO_ARK_RESOURCE_WATCHER, .variant = MAP_NEO_ARK_WATCHER_WEAPON_VARIANT_2, .mode = 0, .x = -2050, .y = -2000, .z = 6400, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_NEO_ARK_WATCHER_SIGHT_7000_ROW },
+    { .entryId = MAP_NEO_ARK_RESOURCE_WATCHER, .variant = MAP_NEO_ARK_WATCHER_WEAPON_VARIANT_3, .mode = 0, .x = -400, .y = -2000, .z = 3600, .yaw = 3072, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_NEO_ARK_WATCHER_SIGHT_7000_ROW },
+    { .entryId = MAP_NEO_ARK_RESOURCE_WATCHER, .variant = MAP_NEO_ARK_WATCHER_WEAPON_VARIANT_3, .mode = 0, .x = -2050, .y = -2000, .z = 3600, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_NEO_ARK_WATCHER_SIGHT_7000_ROW },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017B080[7] = {
-    { 0x34, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0 },
-    { 0x15, 2, 0, -0x190, -0x7D0, 0x1900, 0xC00, 0, 2, 4, 6 },
-    { 0x15, 2, 0, -0x802, -0x7D0, 0x1900, 0x400, 0, 2, 4, 6 },
-    { 0x15, 3, 0, -0x190, -0x7D0, 0xE10, 0xC00, 0, 2, 4, 6 },
-    { 0x15, 3, 0, -0x802, -0x7D0, 0xE10, 0x400, 0, 2, 4, 6 },
-    { 0x15, 1, 0, -0x190, -0x7D0, 0x1388, 0xC00, 0, 2, 4, 6 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapNeoArkEveAccessTunnelEncounterPlacements[7] = {
+    { .entryId = MAP_NEO_ARK_RESOURCE_EVE_CONTROLLER, .variant = 0, .mode = 1, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 0, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_WATCHER, .variant = MAP_NEO_ARK_WATCHER_WEAPON_VARIANT_2, .mode = 0, .x = -400, .y = -2000, .z = 6400, .yaw = 3072, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MAP_NEO_ARK_WATCHER_SIGHT_7000_ROW },
+    { .entryId = MAP_NEO_ARK_RESOURCE_WATCHER, .variant = MAP_NEO_ARK_WATCHER_WEAPON_VARIANT_2, .mode = 0, .x = -2050, .y = -2000, .z = 6400, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MAP_NEO_ARK_WATCHER_SIGHT_7000_ROW },
+    { .entryId = MAP_NEO_ARK_RESOURCE_WATCHER, .variant = MAP_NEO_ARK_WATCHER_WEAPON_VARIANT_3, .mode = 0, .x = -400, .y = -2000, .z = 3600, .yaw = 3072, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MAP_NEO_ARK_WATCHER_SIGHT_7000_ROW },
+    { .entryId = MAP_NEO_ARK_RESOURCE_WATCHER, .variant = MAP_NEO_ARK_WATCHER_WEAPON_VARIANT_3, .mode = 0, .x = -2050, .y = -2000, .z = 3600, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MAP_NEO_ARK_WATCHER_SIGHT_7000_ROW },
+    { .entryId = MAP_NEO_ARK_RESOURCE_WATCHER, .variant = MAP_NEO_ARK_WATCHER_WEAPON_VARIANT_1, .mode = 0, .x = -400, .y = -2000, .z = 5000, .yaw = 3072, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = MAP_NEO_ARK_WATCHER_SIGHT_7000_ROW },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017B0F0[3] = {
-    { 3, 0, 0, 0x1194, 0, 0x2CEC, 0x400, 0, 0, 2, 0 },
-    { 3, 0, 1, 0x2C24, 0, 0x1194, 0, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapNeoArkNorthPromenadeVariant2Placements[3] = {
+    { .entryId = MAP_NEO_ARK_NORTH_PROMENADE_RESOURCE_STINGER, .variant = 0, .mode = 0, .x = 4500, .y = 0, .z = 11500, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_NORTH_PROMENADE_RESOURCE_STINGER, .variant = 0, .mode = 1, .x = 11300, .y = 0, .z = 4500, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017B120[4] = {
-    { 0x14, 0, 0, 0x2486, 0, 0xABE, 0, 0, 0, 2, 0 },
-    { 0x14, 5, 1, 0x2DB4, 0, 0xFA0, 0, 0, 0, 2, 0 },
-    { 0x14, 5, 1, 0x1964, 0, 0x2BC0, 0x400, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapNeoArkNorthPromenadeVariant3Placements[4] = {
+    { .entryId = MAP_NEO_ARK_RESOURCE_PAWN_GOLEM, .variant = 0, .mode = 0, .x = 9350, .y = 0, .z = 2750, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_PAWN_GOLEM, .variant = 5, .mode = MAP_NEO_ARK_GOLEM_PATROLS, .x = 11700, .y = 0, .z = 4000, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_PAWN_GOLEM, .variant = 5, .mode = MAP_NEO_ARK_GOLEM_PATROLS, .x = 6500, .y = 0, .z = 11200, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017B160[3] = {
-    { 0x38, 4, 1, 0x251C, 0, 0x2904, 0xC00, 0, 0, 2, 0 },
-    { 0x38, 0, 0, 0xBB8, 0, 0x2EE0, 0x400, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapNeoArkNorthPromenadeVariant11Placements[3] = {
+    { .entryId = MAP_NEO_ARK_RESOURCE_EXTRA_PAWN_GOLEM, .variant = 4, .mode = MAP_NEO_ARK_GOLEM_PATROLS, .x = 9500, .y = 0, .z = 10500, .yaw = 3072, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_EXTRA_PAWN_GOLEM, .variant = 0, .mode = 0, .x = 3000, .y = 0, .z = 12000, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017B190[3] = {
-    { 0xD, 2, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
-    { 0xA, 2, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapNeoArkForestZoneVariant1Placements[3] = {
+    { .entryId = MAP_NEO_ARK_RESOURCE_HORNED_STRANGER, .variant = MAP_NEO_ARK_HORNED_STRANGER_REUSABLE, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_FOREST_ZONE_RESOURCE_EXTRA_HORNED_STRANGER, .variant = MAP_NEO_ARK_HORNED_STRANGER_REUSABLE, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017B1C0[3] = {
-    { 0xD, 2, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
-    { 0xD, 2, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapNeoArkForestZoneVariant2Placements[3] = {
+    { .entryId = MAP_NEO_ARK_RESOURCE_HORNED_STRANGER, .variant = MAP_NEO_ARK_HORNED_STRANGER_REUSABLE, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_HORNED_STRANGER, .variant = MAP_NEO_ARK_HORNED_STRANGER_REUSABLE, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017B1F0[2] = {
-    { 0xD, 2, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
-    { 0xD, 2, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
+AreaPlacement gMapNeoArkForestZoneVariant3And4Placements[13] = {
+    { .entryId = MAP_NEO_ARK_RESOURCE_HORNED_STRANGER, .variant = MAP_NEO_ARK_HORNED_STRANGER_REUSABLE, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_HORNED_STRANGER, .variant = MAP_NEO_ARK_HORNED_STRANGER_REUSABLE, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    [MAP_NEO_ARK_FOREST_ZONE_VARIANT4_PLACEMENT_START] = { .entryId = MAP_NEO_ARK_RESOURCE_BLACK_BEETLE, .variant = 0, .mode = 0, .x = -3950, .y = 0, .z = 100, .yaw = 1650, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_BLACK_BEETLE, .variant = 0, .mode = MAP_NEO_ARK_BLACK_BEETLE_MODE_FLOOR_WANDER, .x = -4450, .y = 0, .z = -900, .yaw = 3250, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_BLACK_BEETLE, .variant = 0, .mode = MAP_NEO_ARK_BLACK_BEETLE_MODE_FLOOR_WANDER, .x = -4500, .y = 0, .z = 1000, .yaw = 2650, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_BLACK_BEETLE, .variant = 0, .mode = MAP_NEO_ARK_BLACK_BEETLE_MODE_FLOOR_WANDER, .x = -2700, .y = 0, .z = 0, .yaw = 2900, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_BLACK_BEETLE, .variant = 0, .mode = MAP_NEO_ARK_BLACK_BEETLE_MODE_FLOOR_WANDER, .x = 700, .y = 0, .z = -900, .yaw = 2450, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_BLACK_BEETLE, .variant = 0, .mode = 0, .x = 1050, .y = 0, .z = 600, .yaw = 1200, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_BLACK_BEETLE, .variant = 0, .mode = MAP_NEO_ARK_BLACK_BEETLE_MODE_FLOOR_WANDER, .x = 1550, .y = 0, .z = -900, .yaw = 500, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_BLACK_BEETLE, .variant = 0, .mode = MAP_NEO_ARK_BLACK_BEETLE_MODE_FLOOR_WANDER, .x = 2500, .y = 0, .z = 200, .yaw = 2750, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_BLACK_BEETLE, .variant = 0, .mode = 0, .x = 2850, .y = 0, .z = 900, .yaw = 1450, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_BLACK_BEETLE, .variant = 0, .mode = 0, .x = 4000, .y = 0, .z = -300, .yaw = 800, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017B210[11] = {
-    { 0x26, 0, 0, -0xF6E, 0, 0x64, 0x672, 0, 0, 2, 0 },
-    { 0x26, 0, 1, -0x1162, 0, -0x384, 0xCB2, 0, 0, 2, 0 },
-    { 0x26, 0, 1, -0x1194, 0, 0x3E8, 0xA5A, 0, 0, 2, 0 },
-    { 0x26, 0, 1, -0xA8C, 0, 0, 0xB54, 0, 0, 2, 0 },
-    { 0x26, 0, 1, 0x2BC, 0, -0x384, 0x992, 0, 0, 2, 0 },
-    { 0x26, 0, 0, 0x41A, 0, 0x258, 0x4B0, 0, 0, 2, 0 },
-    { 0x26, 0, 1, 0x60E, 0, -0x384, 0x1F4, 0, 0, 2, 0 },
-    { 0x26, 0, 1, 0x9C4, 0, 0xC8, 0xABE, 0, 0, 2, 0 },
-    { 0x26, 0, 0, 0xB22, 0, 0x384, 0x5AA, 0, 0, 2, 0 },
-    { 0x26, 0, 0, 0xFA0, 0, -0x12C, 0x320, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapNeoArkForestZoneVariant5Placements[4] = {
+    { .entryId = MAP_NEO_ARK_RESOURCE_PAWN_GOLEM, .variant = 2, .mode = MAP_NEO_ARK_GOLEM_PATROLS, .x = -3500, .y = 0, .z = 0, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_HORNED_STRANGER, .variant = MAP_NEO_ARK_HORNED_STRANGER_WOUNDED, .mode = 4, .x = -5600, .y = 0, .z = -1000, .yaw = 3400, .fileIdLow = 0, .texturePageOffset = 3, .clutRowOffset = 5, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_HORNED_STRANGER, .variant = MAP_NEO_ARK_HORNED_STRANGER_WOUNDED, .mode = 4, .x = 1850, .y = 0, .z = 1000, .yaw = 1200, .fileIdLow = 0, .texturePageOffset = 3, .clutRowOffset = 5, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017B2C0[4] = {
-    { 0x14, 2, 1, -0xDAC, 0, 0, 0x400, 0, 0, 2, 0 },
-    { 0xD, 0x20, 4, -0x15E0, 0, -0x3E8, 0xD48, 0, 3, 5, 0 },
-    { 0xD, 0x20, 4, 0x73A, 0, 0x3E8, 0x4B0, 0, 3, 5, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapNeoArkForestZoneVariant11Placements[3] = {
+    { .entryId = MAP_NEO_ARK_RESOURCE_PAWN_GOLEM, .variant = 5, .mode = MAP_NEO_ARK_GOLEM_PATROLS, .x = 2500, .y = 0, .z = 0, .yaw = 3072, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_EXTRA_PAWN_GOLEM, .variant = 3, .mode = MAP_NEO_ARK_GOLEM_PATROLS, .x = -4000, .y = 0, .z = 0, .yaw = 3072, .fileIdLow = 0, .texturePageOffset = 3, .clutRowOffset = 5, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017B300[3] = {
-    { 0x14, 5, 1, 0x9C4, 0, 0, 0xC00, 0, 0, 2, 0 },
-    { 0x38, 3, 1, -0xFA0, 0, 0, 0xC00, 0, 3, 5, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapNeoArkSubmarineTunnelVariant1Placements[3] = {
+    { .entryId = MAP_NEO_ARK_RESOURCE_BOG_DIVER, .variant = 0, .mode = MAP_NEO_ARK_BOG_DIVER_MODE_TUNNEL, .x = -1920, .y = 0, .z = 1792, .yaw = 2048, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_BOG_DIVER, .variant = 0, .mode = MAP_NEO_ARK_BOG_DIVER_MODE_TUNNEL | MAP_NEO_ARK_BOG_DIVER_TUNNEL_CONTINUATION_GROUP, .x = 8000, .y = 0, .z = 6500, .yaw = 2048, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017B330[3] = {
-    { 4, 0, 2, -0x780, 0, 0x700, 0x800, 0, 0, 2, 0 },
-    { 4, 0, 0x32, 0x1F40, 0, 0x1964, 0x800, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapNeoArkSubmarineTunnelVariant2Placements[3] = {
+    { .entryId = MAP_NEO_ARK_RESOURCE_AMOEBA, .variant = 0, .mode = MAP_NEO_ARK_AMOEBA_ALTERNATE_VARIANT, .x = 500, .y = 3000, .z = 400, .yaw = 3000, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_AMOEBA, .variant = 0, .mode = MAP_NEO_ARK_AMOEBA_ALTERNATE_VARIANT, .x = -250, .y = 3000, .z = -400, .yaw = 3350, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017B360[3] = {
-    { 0x18, 0, 1, 0x1F4, 0xBB8, 0x190, 0xBB8, 0, 0, 2, 0 },
-    { 0x18, 0, 1, -0xFA, 0xBB8, -0x190, 0xD16, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapNeoArkSubmarineTunnelVariant3Placements[3] = {
+    { .entryId = MAP_NEO_ARK_SUBMARINE_TUNNEL_RESOURCE_AYA_WALKER, .variant = 0, .mode = 0, .x = 1500, .y = 3000, .z = 0, .yaw = 3072, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_SUBMARINE_TUNNEL_RESOURCE_NO9_WALKER, .variant = 0, .mode = 0, .x = 1500, .y = 3000, .z = 0, .yaw = 3072, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017B390[3] = {
-    { 0x84, 0, 0, 0x5DC, 0xBB8, 0, 0xC00, 0, 0, 2, 0 },
-    { 0x22, 0, 0, 0x5DC, 0xBB8, 0, 0xC00, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapNeoArkSubmarineTunnelVariant4Placements[1] = {
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017B3C0[1] = {
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapNeoArkPavilionVariant1Placements[4] = {
+    { .entryId = MAP_NEO_ARK_RESOURCE_BOG_DIVER, .variant = 0, .mode = MAP_NEO_ARK_BOG_DIVER_MODE_WATER, .x = 0, .y = 0, .z = 4384, .yaw = 2048, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_NEO_ARK_BOG_DIVER_SHOT_SPEED_200_ROW },
+    { .entryId = MAP_NEO_ARK_RESOURCE_BOG_DIVER, .variant = 0, .mode = MAP_NEO_ARK_BOG_DIVER_MODE_WATER | (1 << MAP_NEO_ARK_BOG_DIVER_WAYPOINT_SET_SHIFT), .x = -7040, .y = 0, .z = 9312, .yaw = 2048, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_NEO_ARK_BOG_DIVER_SHOT_SPEED_200_ROW },
+    { .entryId = MAP_NEO_ARK_RESOURCE_BOG_DIVER, .variant = 0, .mode = MAP_NEO_ARK_BOG_DIVER_MODE_WATER | (2 << MAP_NEO_ARK_BOG_DIVER_WAYPOINT_SET_SHIFT), .x = -7000, .y = 0, .z = -6176, .yaw = 2048, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_NEO_ARK_BOG_DIVER_SHOT_SPEED_200_ROW },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017B3D0[4] = {
-    { 4, 0, 1, 0, 0, 0x1120, 0x800, 0, 0, 2, 1 },
-    { 4, 0, 0x11, -0x1B80, 0, 0x2460, 0x800, 0, 0, 2, 1 },
-    { 4, 0, 0x21, -0x1B58, 0, -0x1820, 0x800, 0, 0, 2, 1 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapNeoArkPavilionVariant2Placements[6] = {
+    { .entryId = MAP_NEO_ARK_RESOURCE_BOG_DIVER, .variant = 0, .mode = MAP_NEO_ARK_BOG_DIVER_MODE_WATER, .x = 0, .y = 0, .z = 4384, .yaw = 2048, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_NEO_ARK_BOG_DIVER_SHOT_SPEED_220_ROW },
+    { .entryId = MAP_NEO_ARK_RESOURCE_BOG_DIVER, .variant = 0, .mode = MAP_NEO_ARK_BOG_DIVER_MODE_WATER | (1 << MAP_NEO_ARK_BOG_DIVER_WAYPOINT_SET_SHIFT), .x = -7040, .y = 0, .z = 9312, .yaw = 2048, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_NEO_ARK_BOG_DIVER_SHOT_SPEED_220_ROW },
+    { .entryId = MAP_NEO_ARK_RESOURCE_BLACK_BEETLE, .variant = 0, .mode = MAP_NEO_ARK_BLACK_BEETLE_MODE_FLOOR_WANDER, .x = -300, .y = 0, .z = 9600, .yaw = 2800, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_BLACK_BEETLE, .variant = 0, .mode = MAP_NEO_ARK_BLACK_BEETLE_MODE_FLOOR_WANDER, .x = -2900, .y = 0, .z = 10800, .yaw = 1550, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_BLACK_BEETLE, .variant = 0, .mode = MAP_NEO_ARK_BLACK_BEETLE_MODE_FLOOR_WANDER, .x = 400, .y = 0, .z = 11100, .yaw = 3000, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017B410[6] = {
-    { 4, 0, 1, 0, 0, 0x1120, 0x800, 0, 0, 2, 3 },
-    { 4, 0, 0x11, -0x1B80, 0, 0x2460, 0x800, 0, 0, 2, 3 },
-    { 0x26, 0, 1, -0x12C, 0, 0x2580, 0xAF0, 0, 2, 4, 0 },
-    { 0x26, 0, 1, -0xB54, 0, 0x2A30, 0x60E, 0, 2, 4, 0 },
-    { 0x26, 0, 1, 0x190, 0, 0x2B5C, 0xBB8, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapNeoArkPavilionVariant3Placements[4] = {
+    { .entryId = MAP_NEO_ARK_RESOURCE_BOG_DIVER, .variant = 0, .mode = MAP_NEO_ARK_BOG_DIVER_MODE_WATER, .x = 0, .y = 0, .z = 4384, .yaw = 2048, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_NEO_ARK_BOG_DIVER_SHOT_SPEED_220_ROW },
+    { .entryId = MAP_NEO_ARK_RESOURCE_BOG_DIVER, .variant = 0, .mode = MAP_NEO_ARK_BOG_DIVER_MODE_WATER | (1 << MAP_NEO_ARK_BOG_DIVER_WAYPOINT_SET_SHIFT), .x = -7040, .y = 0, .z = 9312, .yaw = 2048, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_NEO_ARK_BOG_DIVER_SHOT_SPEED_220_ROW },
+    { .entryId = MAP_NEO_ARK_RESOURCE_BOG_DIVER, .variant = 0, .mode = MAP_NEO_ARK_BOG_DIVER_MODE_WATER | (2 << MAP_NEO_ARK_BOG_DIVER_WAYPOINT_SET_SHIFT), .x = -7000, .y = 0, .z = -6176, .yaw = 2048, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_NEO_ARK_BOG_DIVER_SHOT_SPEED_220_ROW },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017B470[4] = {
-    { 4, 0, 1, 0, 0, 0x1120, 0x800, 0, 0, 2, 3 },
-    { 4, 0, 0x11, -0x1B80, 0, 0x2460, 0x800, 0, 0, 2, 3 },
-    { 4, 0, 0x21, -0x1B58, 0, -0x1820, 0x800, 0, 0, 2, 3 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapNeoArkPavilionVariant4Placements[3] = {
+    { .entryId = MAP_NEO_ARK_RESOURCE_BOG_DIVER, .variant = 0, .mode = MAP_NEO_ARK_BOG_DIVER_MODE_WATER, .x = 0, .y = 0, .z = 4384, .yaw = 2048, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_NEO_ARK_BOG_DIVER_SHOT_SPEED_270_ROW },
+    { .entryId = MAP_NEO_ARK_RESOURCE_MOSSBACK, .variant = 0, .mode = 0, .x = 300, .y = 0, .z = 11000, .yaw = 2600, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017B4B0[3] = {
-    { 4, 0, 1, 0, 0, 0x1120, 0x800, 0, 0, 2, 6 },
-    { 0x31, 0, 0, 0x12C, 0, 0x2AF8, 0xA28, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapNeoArkPavilionVariant5Placements[5] = {
+    { .entryId = MAP_NEO_ARK_RESOURCE_BOG_DIVER, .variant = 0, .mode = MAP_NEO_ARK_BOG_DIVER_MODE_WOUNDED_GROUND, .x = 2000, .y = 0, .z = 11000, .yaw = 900, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_BOG_DIVER, .variant = 0, .mode = MAP_NEO_ARK_BOG_DIVER_MODE_WOUNDED_FLOAT, .x = -3800, .y = 0, .z = 13000, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_BOG_DIVER, .variant = 0, .mode = MAP_NEO_ARK_BOG_DIVER_MODE_WOUNDED_FLOAT, .x = -12000, .y = 0, .z = 9000, .yaw = -300, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_BOG_DIVER, .variant = 0, .mode = MAP_NEO_ARK_BOG_DIVER_MODE_WOUNDED_FLOAT, .x = -9000, .y = 0, .z = 11000, .yaw = 600, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017B4E0[5] = {
-    { 4, 0, 6, 0x7D0, 0, 0x2AF8, 0x384, 0, 0, 2, 0 },
-    { 4, 0, 7, -0xED8, 0, 0x32C8, 0x400, 0, 0, 2, 0 },
-    { 4, 0, 7, -0x2EE0, 0, 0x2328, -0x12C, 0, 0, 2, 0 },
-    { 4, 0, 7, -0x2328, 0, 0x2AF8, 0x258, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapNeoArkPavilionVariant11Placements[2] = {
+    { .entryId = MAP_NEO_ARK_RESOURCE_GRENADE_LAUNCHER_ROOK, .variant = 3, .mode = MAP_NEO_ARK_GOLEM_PATROLS, .x = -500, .y = 0, .z = 9500, .yaw = 3072, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017B530[2] = {
-    { 0x39, 3, 1, -0x1F4, 0, 0x251C, 0xC00, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapNeoArkIslandVariant1Placements[4] = {
+    { .entryId = MAP_NEO_ARK_RESOURCE_BOG_DIVER, .variant = 0, .mode = MAP_NEO_ARK_BOG_DIVER_MODE_WATER, .x = 0, .y = 0, .z = 4384, .yaw = 2048, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_NEO_ARK_BOG_DIVER_SHOT_SPEED_200_ROW },
+    { .entryId = MAP_NEO_ARK_RESOURCE_BOG_DIVER, .variant = 0, .mode = MAP_NEO_ARK_BOG_DIVER_MODE_WATER | (1 << MAP_NEO_ARK_BOG_DIVER_WAYPOINT_SET_SHIFT), .x = 6000, .y = 0, .z = 2500, .yaw = 2048, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_NEO_ARK_BOG_DIVER_SHOT_SPEED_200_ROW },
+    { .entryId = MAP_NEO_ARK_RESOURCE_BOG_DIVER, .variant = 0, .mode = MAP_NEO_ARK_BOG_DIVER_MODE_WATER | (2 << MAP_NEO_ARK_BOG_DIVER_WAYPOINT_SET_SHIFT), .x = 5800, .y = 0, .z = 4800, .yaw = 2048, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = MAP_NEO_ARK_BOG_DIVER_SHOT_SPEED_200_ROW },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017B550[4] = {
-    { 4, 0, 1, 0, 0, 0x1120, 0x800, 0, 0, 2, 1 },
-    { 4, 0, 0x11, 0x1770, 0, 0x9C4, 0x800, 0, 0, 2, 1 },
-    { 4, 0, 0x21, 0x16A8, 0, 0x12C0, 0x800, 0, 0, 2, 1 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapNeoArkIslandVariant2Placements[3] = {
+    { .entryId = MAP_NEO_ARK_RESOURCE_MOSSBACK, .variant = 2, .mode = 0, .x = 3000, .y = 0, .z = -5200, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_MOSSBACK, .variant = 1, .mode = 0, .x = 2700, .y = 0, .z = -300, .yaw = 1900, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017B590[3] = {
-    { 0x31, 2, 0, 0xBB8, 0, -0x1450, 0, 0, 0, 2, 0 },
-    { 0x31, 1, 0, 0xA8C, 0, -0x12C, 0x76C, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapNeoArkIslandVariant3Placements[4] = {
+    { .entryId = MAP_NEO_ARK_RESOURCE_BOG_DIVER, .variant = 0, .mode = MAP_NEO_ARK_BOG_DIVER_MODE_WOUNDED_GROUND, .x = 3500, .y = -100, .z = -4632, .yaw = 256, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_BOG_DIVER, .variant = 0, .mode = MAP_NEO_ARK_BOG_DIVER_MODE_WOUNDED_GROUND, .x = 5100, .y = -100, .z = -4000, .yaw = 2816, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_RESOURCE_BOG_DIVER, .variant = 0, .mode = MAP_NEO_ARK_BOG_DIVER_MODE_WOUNDED_FLOAT, .x = 990, .y = 0, .z = 2400, .yaw = 256, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_neo_ark_8017B5C0[4] = {
-    { 4, 0, 6, 0xDAC, -0x64, -0x1218, 0x100, 0, 0, 2, 0 },
-    { 4, 0, 6, 0x13EC, -0x64, -0xFA0, 0xB00, 0, 0, 2, 0 },
-    { 4, 0, 7, 0x3DE, 0, 0x960, 0x100, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
-};
-
-AreaPlacement D_map_neo_ark_8017B600[1] = {
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapNeoArkIslandVariant4Placements[1] = {
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaPlacement D_map_neo_ark_8017B610[2] = {

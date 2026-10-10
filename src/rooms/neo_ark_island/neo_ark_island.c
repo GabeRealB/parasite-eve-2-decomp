@@ -560,10 +560,10 @@ static AreaResource _gNeoArkIslandVariant11Resources[] = {
 
 AreaVariant D_neo_ark_island_80183F48[13] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017B550, _gNeoArkIslandVariant1Resources },
-    { D_map_neo_ark_8017B590, _gNeoArkIslandVariant2Resources },
-    { D_map_neo_ark_8017B5C0, _gNeoArkIslandVariant3Resources },
-    { D_map_neo_ark_8017B600, _gNeoArkIslandVariant4Resources },
+    { gMapNeoArkIslandVariant1Placements, _gNeoArkIslandVariant1Resources },
+    { gMapNeoArkIslandVariant2Placements, _gNeoArkIslandVariant2Resources },
+    { gMapNeoArkIslandVariant3Placements, _gNeoArkIslandVariant3Resources },
+    { gMapNeoArkIslandVariant4Placements, _gNeoArkIslandVariant4Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
