@@ -27,6 +27,7 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
 
@@ -39,13 +40,6 @@
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern TaskMessageEntry D_dryfield_night_motel_room_4_8017DA48[];
 
-/// The room's sprite points for views 2, 3 and 5: three `SVECTOR`s.
-extern SVECTOR D_dryfield_night_motel_room_4_8017DA70[];
-
-/// The sprite point view 4 draws. Only its first `SVECTOR` is read here; the
-/// words after it are other room data.
-extern SVECTOR D_dryfield_night_motel_room_4_8017DA88[];
-
 /// Room-message ID carrying the inventory's key-item use request.
 enum { DRYFIELD_NIGHT_MOTEL_ROOM_4_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
@@ -55,11 +49,11 @@ static s32  _dryfieldNightMotelRoom4IgnoreActionRequest(Task* unusedTask, s32 me
 static void _dryfieldNightMotelRoom4IdleRoomTask(Task* unusedTask);
 static void _dryfieldNightMotelRoom4InitRoomTask(Task* task);
 
-extern WorldCollisionGrid     D_dryfield_night_motel_room_4_8017E1D0[1];
+static WorldCollisionGrid     _gDryfieldNightMotelRoom4CollisionGrid;
 extern WorldCollisionOccluder D_dryfield_night_motel_room_4_80180044[2];
 extern WorldCollisionTrigger  D_dryfield_night_motel_room_4_8017FBD0[8];
 extern WorldCollisionTrigger  D_dryfield_night_motel_room_4_8017FE30[7];
-extern WorldCoordRoomLights   D_dryfield_night_motel_room_4_801802A8[1];
+static WorldCoordRoomLights   _gDryfieldNightMotelRoom4RoomLights;
 
 TaskMessageEntry D_dryfield_night_motel_room_4_8017DA48[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantMainStreetMsg },
@@ -69,25 +63,28 @@ TaskMessageEntry D_dryfield_night_motel_room_4_8017DA48[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-SVECTOR D_dryfield_night_motel_room_4_8017DA70[3] = {
+/// World-space flare centres in signed game-coordinate units for views 2, 3 and 5.
+///
+/// Element 0 is shared by those views; element 1 is the larger flare in views
+/// 2 and 3, and element 2 is the smaller secondary-texture flare in view 5.
+static SVECTOR _gDryfieldNightMotelRoom4FlarePoints[3] = {
     { 420, -990, 3200, 0 },
     { 2480, -2240, 2400, 0 },
     { 5200, -1920, 2890, 0 },
 };
 
-SVECTOR D_dryfield_night_motel_room_4_8017DA88[1] = {
-    { 6550, -1020, 410, 0 },
-};
+/// World-space centre of view 4's sole flare, in signed game-coordinate units.
+static SVECTOR _gDryfieldNightMotelRoom4View4FlarePoint = { 6550, -1020, 410, 0 };
 
-WorldCoordRoomLighting D_dryfield_night_motel_room_4_8017DA90[1] = {
-    { D_dryfield_night_motel_room_4_801802A8, NULL },
+WorldCoordRoomLighting gDryfieldNightMotelRoom4RoomLighting[1] = {
+    { &_gDryfieldNightMotelRoom4RoomLights, NULL },
 };
 
 WorldCollisionRoomResources D_dryfield_night_motel_room_4_8017DA98[1] = {
-    { D_dryfield_night_motel_room_4_8017E1D0, D_dryfield_night_motel_room_4_8017FBD0, D_dryfield_night_motel_room_4_8017FE30, D_dryfield_night_motel_room_4_80180044 },
+    { &_gDryfieldNightMotelRoom4CollisionGrid, D_dryfield_night_motel_room_4_8017FBD0, D_dryfield_night_motel_room_4_8017FE30, D_dryfield_night_motel_room_4_80180044 },
 };
 
-u8* D_dryfield_night_motel_room_4_8017DAA8[1] = {
+u8* gDryfieldNightMotelRoom4ViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -97,30 +94,52 @@ DirectionWarpEntry D_dryfield_night_motel_room_4_8017DAB0[1] = {
     { { { .word = 0 }, 3580, 0, 541 }, { 0, 0, 0, 0 }, { { .word = 0 }, 3580, 0, 541 }, { 0, 0, 0, 0 }, 0x530E0002, 0x530E0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 483 },
 };
 
-static SVECTOR _gDryfieldNightMotelRoom4Collision00C10Normals[11] = {
+/// Room-space face normals for the room's collision grid, with 4096 per unit.
+static SVECTOR _gDryfieldNightMotelRoom4CollisionGridNormals[11] = {
 #include "assets/dryfield_night_motel_room_4_collision_00C10_normals.inc"
 };
 
-static SVECTOR _gDryfieldNightMotelRoom4Collision00C10Verts[102] = {
+/// Room-space collision vertices in signed game-coordinate units.
+static SVECTOR _gDryfieldNightMotelRoom4CollisionGridVerts[102] = {
 #include "assets/dryfield_night_motel_room_4_collision_00C10_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldNightMotelRoom4Collision00C10Faces[45] = {
+/// Collision quads indexing the room's vertex and normal pools and surface classes 0..3.
+static WorldCollisionGridFace _gDryfieldNightMotelRoom4CollisionGridFaces[45] = {
 #include "assets/dryfield_night_motel_room_4_collision_00C10_faces.inc"
 };
 
-static s16 _gDryfieldNightMotelRoom4Collision00C10Cells[154] = {
+/// Packed signed face-index lists for the four cells, each ending at -1.
+///
+/// The cell table selects starts 0, 46, 84 and 124 in halfwords. The retained
+/// halfword at index 45 follows the first terminator and belongs to no list.
+static s16 _gDryfieldNightMotelRoom4CollisionGridCells[154] = {
 #include "assets/dryfield_night_motel_room_4_collision_00C10_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightMotelRoom4Collision00C10Cells[i])
-static s16* _gDryfieldNightMotelRoom4Collision00C10Table[4] = {
+#define GRID_CELL(i) (&_gDryfieldNightMotelRoom4CollisionGridCells[i])
+/// X-major face-list pointers for the room's 2-by-2 collision grid.
+static s16* _gDryfieldNightMotelRoom4CollisionGridTable[4] = {
 #include "assets/dryfield_night_motel_room_4_collision_00C10_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_night_motel_room_4_8017E1D0[1] = {
-    { NULL, _gDryfieldNightMotelRoom4Collision00C10Normals, _gDryfieldNightMotelRoom4Collision00C10Verts, _gDryfieldNightMotelRoom4Collision00C10Faces, _gDryfieldNightMotelRoom4Collision00C10Table, 0, 0, 2, 2, 4000, 45 },
+/// The room's collision mesh, indexed by four 4000-unit XZ cells from origin (0, 0).
+///
+/// Room setup binds the view coordinate; the record and all pools stay live
+/// while this room overlay is loaded and its grid is active.
+static WorldCollisionGrid _gDryfieldNightMotelRoom4CollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldNightMotelRoom4CollisionGridNormals,
+    .vertices    = _gDryfieldNightMotelRoom4CollisionGridVerts,
+    .faces       = _gDryfieldNightMotelRoom4CollisionGridFaces,
+    .cellFaceIds = _gDryfieldNightMotelRoom4CollisionGridTable,
+    .xBias       = 0,
+    .zBias       = 0,
+    .cellCountX  = 2,
+    .cellCountZ  = 2,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldNightMotelRoom4CollisionGridFaces),
 };
 
 ViewCamera D_dryfield_night_motel_room_4_8017E1F4[6] = {
@@ -132,12 +151,14 @@ ViewCamera D_dryfield_night_motel_room_4_8017E1F4[6] = {
     { { { { 866, 0, -4003 }, { -172, 4092, -37 }, { 3999, 176, 865 } }, { -2200, 1160, -3120 } }, 269 },
 };
 
-SpriteBatch D_dryfield_night_motel_room_4_8017E2CC[2] = {
+/// View 1's empty sprite list; the zero first count retains decoded background strips.
+static SpriteBatch _gDryfieldNightMotelRoom4View1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_motel_room_4_8017E2DC[37] = {
+/// View 2's screen-space sprite rectangles and unscaled sorting depths.
+static SpriteSource _gDryfieldNightMotelRoom4View2SpriteSources[37] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, 72, 900, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, 80, 900, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 40 } }, 128, -120, 650, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
@@ -177,7 +198,8 @@ SpriteSource D_dryfield_night_motel_room_4_8017E2DC[37] = {
     { 143, 0x3FC0, { .fields = { 16, 16 } }, 40, -16, 1600, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_motel_room_4_8017E5C0[5] = {
+/// View 2's three sprite ranges covering 37 sources, after a background-strip selector.
+static SpriteBatch _gDryfieldNightMotelRoom4View2SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 21, 0, 0, { 1, 0 } },
     { 21, 11, 0, 0, { 2, 0 } },
@@ -185,7 +207,8 @@ SpriteBatch D_dryfield_night_motel_room_4_8017E5C0[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_motel_room_4_8017E5E8[83] = {
+/// View 3's screen-space sprite rectangles and unscaled sorting depths.
+static SpriteSource _gDryfieldNightMotelRoom4View3SpriteSources[83] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, 88, 587, { .fields = { 32, 88 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 40, 24 } }, -160, 96, 475, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 40, 24 } }, -120, 96, 475, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
@@ -271,7 +294,8 @@ SpriteSource D_dryfield_night_motel_room_4_8017E5E8[83] = {
     { 143, 0x3FC0, { .fields = { 16, 16 } }, 112, 40, 1237, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_motel_room_4_8017EC64[9] = {
+/// View 3's seven sprite ranges covering 83 sources, after a background-strip selector.
+static SpriteBatch _gDryfieldNightMotelRoom4View3SpriteBatches[9] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 19, 0, 0, { 3, 0 } },
     { 19, 9, 0, 0, { 4, 0 } },
@@ -283,7 +307,8 @@ SpriteBatch D_dryfield_night_motel_room_4_8017EC64[9] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_motel_room_4_8017ECAC[45] = {
+/// View 4's screen-space sprite rectangles and unscaled sorting depths.
+static SpriteSource _gDryfieldNightMotelRoom4View4SpriteSources[45] = {
     { 143, 0x3FC0, { .fields = { 16, 40 } }, -48, -88, 1375, { .fields = { 24, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 40 } }, -48, -48, 1375, { .fields = { 40, 120 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 40 } }, -48, -8, 1375, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
@@ -331,13 +356,15 @@ SpriteSource D_dryfield_night_motel_room_4_8017ECAC[45] = {
     { 143, 0x3FC0, { .fields = { 24, 48 } }, -160, 72, 613, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_motel_room_4_8017F030[3] = {
+/// View 4's whole-source sprite range, after a background-strip selector.
+static SpriteBatch _gDryfieldNightMotelRoom4View4SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 45, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldNightMotelRoom4View4SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_motel_room_4_8017F048[88] = {
+/// View 5's screen-space sprite rectangles and unscaled sorting depths.
+static SpriteSource _gDryfieldNightMotelRoom4View5SpriteSources[88] = {
     { 142, 0x3FC0, { .fields = { 8, 8 } }, 16, 32, 850, { .fields = { 0, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, -120, 850, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 40 } }, 120, -80, 850, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
@@ -428,7 +455,8 @@ SpriteSource D_dryfield_night_motel_room_4_8017F048[88] = {
     { 143, 0x3FC0, { .fields = { 32, 16 } }, 80, 16, 825, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_motel_room_4_8017F728[8] = {
+/// View 5's six sprite ranges covering 88 sources, after a background-strip selector.
+static SpriteBatch _gDryfieldNightMotelRoom4View5SpriteBatches[8] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 22, 0, 0, { 3, 0 } },
     { 22, 23, 0, 0, { 0, 0 } },
@@ -439,7 +467,8 @@ SpriteBatch D_dryfield_night_motel_room_4_8017F728[8] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_motel_room_4_8017F768[50] = {
+/// View 6's screen-space sprite rectangles and unscaled sorting depths.
+static SpriteSource _gDryfieldNightMotelRoom4View6SpriteSources[50] = {
     { 142, 0x3FC0, { .fields = { 40, 40 } }, -160, -120, 500, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 40, 40 } }, -160, -80, 500, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 40, 40 } }, -160, -40, 500, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
@@ -492,7 +521,8 @@ SpriteSource D_dryfield_night_motel_room_4_8017F768[50] = {
     { 142, 0x3FC0, { .fields = { 32, 24 } }, -112, 96, 637, { .fields = { 16, 232 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_motel_room_4_8017FB50[7] = {
+/// View 6's five sprite ranges covering 50 sources, after a background-strip selector.
+static SpriteBatch _gDryfieldNightMotelRoom4View6SpriteBatches[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 30, 0, 0, { 0, 0 } },
     { 30, 5, 0, 0, { 3, 0 } },
@@ -502,13 +532,13 @@ SpriteBatch D_dryfield_night_motel_room_4_8017FB50[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_dryfield_night_motel_room_4_8017FB88[6] = {
-    { { .empty = D_dryfield_night_motel_room_4_8017E2CC }, D_dryfield_night_motel_room_4_8017E2CC, NULL },
-    { { .elements = D_dryfield_night_motel_room_4_8017E2DC }, D_dryfield_night_motel_room_4_8017E5C0, NULL },
-    { { .elements = D_dryfield_night_motel_room_4_8017E5E8 }, D_dryfield_night_motel_room_4_8017EC64, NULL },
-    { { .elements = D_dryfield_night_motel_room_4_8017ECAC }, D_dryfield_night_motel_room_4_8017F030, NULL },
-    { { .elements = D_dryfield_night_motel_room_4_8017F048 }, D_dryfield_night_motel_room_4_8017F728, NULL },
-    { { .elements = D_dryfield_night_motel_room_4_8017F768 }, D_dryfield_night_motel_room_4_8017FB50, NULL },
+SpriteView gDryfieldNightMotelRoom4SpriteViews[6] = {
+    { { .empty = _gDryfieldNightMotelRoom4View1SpriteBatches }, _gDryfieldNightMotelRoom4View1SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightMotelRoom4View2SpriteSources }, _gDryfieldNightMotelRoom4View2SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightMotelRoom4View3SpriteSources }, _gDryfieldNightMotelRoom4View3SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightMotelRoom4View4SpriteSources }, _gDryfieldNightMotelRoom4View4SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightMotelRoom4View5SpriteSources }, _gDryfieldNightMotelRoom4View5SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightMotelRoom4View6SpriteSources }, _gDryfieldNightMotelRoom4View6SpriteBatches, NULL },
 };
 
 WorldCollisionTrigger D_dryfield_night_motel_room_4_8017FBD0[8] = {
@@ -537,19 +567,34 @@ WorldCollisionOccluder D_dryfield_night_motel_room_4_80180044[2] = {
     { NULL, NULL, { 3712, -1568, 4800, 0 }, { { 0, 2064, 720, 0 }, { 0, 2064, -720, 0 }, { 0, -2064, 720, 0 }, { 0, -2064, -720, 0 } }, { 4103, 0, 0, 0 }, 2172, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCoordPointLight D_dryfield_night_motel_room_4_801800BC[4] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 445, -1064, 3258 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 6144, 5816, 5652 }, { 0, 0 } }, 527, 1437 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5010, -1967, 3187 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2400, 2800, 3200 }, { 0, 0 } }, 690, 3545 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2512, -1113, 1911 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2900, 2800, 2700 }, { 0, 0 } }, 1140, 3771 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2510, -1531, 2390 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1100, 1200, 1200 }, { 0, 0 } }, 572, 5081 },
+/// Four authored point lights contributing in every view, with world-unit falloff radii.
+///
+/// Room setup parents and composes their transforms; lighting queries overwrite
+/// attenuation. RGB intensities have 12 fractional bits.
+static WorldCoordPointLight _gDryfieldNightMotelRoom4PointLights[4] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 445, -1064, 3258 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 6144, 5816, 5652 }, { 0, 0 } }, 527, 1437 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5010, -1967, 3187 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2400, 2800, 3200 }, { 0, 0 } }, 690, 3545 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2512, -1113, 1911 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2900, 2800, 2700 }, { 0, 0 } }, 1140, 3771 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2510, -1531, 2390 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1100, 1200, 1200 }, { 0, 0 } }, 572, 5081 },
 };
 
-WorldCoordSpotLight D_dryfield_night_motel_room_4_8018023C[1] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2512, -2274, 2143 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1311, 1269, 1208 }, { 0, 0 } }, { -238, 4082, -226, 0 }, 2320, 3500, 921 },
+/// The room's authored cone light, contributing in every view.
+///
+/// Placement and falloff radii use world units; the axis uses 4096 per unit
+/// and the full opening angle uses 4096 per turn. Transform and attenuation
+/// remain writable for room setup and lighting queries.
+static WorldCoordSpotLight _gDryfieldNightMotelRoom4ConeLights[1] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2512, -2274, 2143 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1311, 1269, 1208 }, { 0, 0 } }, { -238, 4082, -226, 0 }, 2320, 3500, 921 },
 };
 
-WorldCoordRoomLights D_dryfield_night_motel_room_4_801802A8[1] = {
-    { 0, NULL, ARRAY_SIZE(D_dryfield_night_motel_room_4_801800BC), D_dryfield_night_motel_room_4_801800BC, ARRAY_SIZE(D_dryfield_night_motel_room_4_8018023C), D_dryfield_night_motel_room_4_8018023C },
+/// The room's four point lights and one cone light, without directional lights.
+static WorldCoordRoomLights _gDryfieldNightMotelRoom4RoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gDryfieldNightMotelRoom4PointLights),
+    .pointLights           = _gDryfieldNightMotelRoom4PointLights,
+    .coneLightCount        = ARRAY_SIZE(_gDryfieldNightMotelRoom4ConeLights),
+    .coneLights            = _gDryfieldNightMotelRoom4ConeLights,
 };
 
 AreaResource D_dryfield_night_motel_room_4_801802C0[2] = {
@@ -579,43 +624,75 @@ AreaVariant D_dryfield_night_motel_room_4_801802FC[13] = {
     { NULL, NULL },
 };
 
-WorldCollisionFootstepSounds D_dryfield_night_motel_room_4_80180364 = {
-    0x10000035,
-    0x10000037,
-    0x10000035,
+/// Cue-2 footstep bases in the currently loaded type-1 sound bank.
+///
+/// Cue 1 adds one; companion playback adds 100. Scripted jumps reuse walking.
+enum {
+    DRYFIELD_NIGHT_MOTEL_ROOM_4_SURFACE_1_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x35,
+    DRYFIELD_NIGHT_MOTEL_ROOM_4_SURFACE_1_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x37,
+    DRYFIELD_NIGHT_MOTEL_ROOM_4_SURFACE_2_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x01,
+    DRYFIELD_NIGHT_MOTEL_ROOM_4_SURFACE_2_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x03,
 };
 
-WorldCollisionFootstepSounds D_dryfield_night_motel_room_4_80180370 = {
-    0x10000001,
-    0x10000003,
-    0x10000001,
+/// Surface class 1's footstep cue bases; scripted jumps reuse the walking pair.
+static WorldCollisionFootstepSounds _gDryfieldNightMotelRoom4Surface1FootstepSounds = {
+    .walk         = DRYFIELD_NIGHT_MOTEL_ROOM_4_SURFACE_1_WALK_SOUND,
+    .run          = DRYFIELD_NIGHT_MOTEL_ROOM_4_SURFACE_1_RUN_SOUND,
+    .scriptedJump = DRYFIELD_NIGHT_MOTEL_ROOM_4_SURFACE_1_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_motel_room_4_8018037C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Surface class 2's footstep cue bases; scripted jumps reuse the walking pair.
+static WorldCollisionFootstepSounds _gDryfieldNightMotelRoom4Surface2FootstepSounds = {
+    .walk         = DRYFIELD_NIGHT_MOTEL_ROOM_4_SURFACE_2_WALK_SOUND,
+    .run          = DRYFIELD_NIGHT_MOTEL_ROOM_4_SURFACE_2_RUN_SOUND,
+    .scriptedJump = DRYFIELD_NIGHT_MOTEL_ROOM_4_SURFACE_2_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_motel_room_4_80180384[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_motel_room_4_80180364 },
+/// Blocking policy without footstep cues, shared by surface classes 0 and 4..7.
+static WorldCollisionSurfaceProperties _gDryfieldNightMotelRoom4SilentSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_motel_room_4_8018038C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_motel_room_4_80180370 },
+/// Surface class 1 blocks probes, allows weapon impacts and applies pushback with its footstep pair.
+static WorldCollisionSurfaceProperties _gDryfieldNightMotelRoom4Surface1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldNightMotelRoom4Surface1FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_motel_room_4_80180394[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Surface class 2 blocks probes, allows weapon impacts and applies pushback with its footstep pair.
+static WorldCollisionSurfaceProperties _gDryfieldNightMotelRoom4Surface2Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldNightMotelRoom4Surface2FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_night_motel_room_4_8018039C[8] = {
-    D_dryfield_night_motel_room_4_8018037C,
-    D_dryfield_night_motel_room_4_80180384,
-    D_dryfield_night_motel_room_4_8018038C,
-    D_dryfield_night_motel_room_4_80180394,
-    D_dryfield_night_motel_room_4_8018037C,
-    D_dryfield_night_motel_room_4_8018037C,
-    D_dryfield_night_motel_room_4_8018037C,
-    D_dryfield_night_motel_room_4_8018037C,
+/// Surface class 3 passes probes and ignores weapon impacts, with pushback and no footstep cues.
+static WorldCollisionSurfaceProperties _gDryfieldNightMotelRoom4Surface3Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
+};
+
+WorldCollisionSurfaceProperties* gDryfieldNightMotelRoom4SurfaceProperties[8] = {
+    &_gDryfieldNightMotelRoom4SilentSurfaceProperties,
+    &_gDryfieldNightMotelRoom4Surface1Properties,
+    &_gDryfieldNightMotelRoom4Surface2Properties,
+    &_gDryfieldNightMotelRoom4Surface3Properties,
+    &_gDryfieldNightMotelRoom4SilentSurfaceProperties,
+    &_gDryfieldNightMotelRoom4SilentSurfaceProperties,
+    &_gDryfieldNightMotelRoom4SilentSurfaceProperties,
+    &_gDryfieldNightMotelRoom4SilentSurfaceProperties,
 };
 
 /// Refuses every key-item use request in Dryfield Night Motel Room 4.
@@ -698,17 +775,17 @@ void dryfieldNightMotelRoom4DrawFlaresTask(Task* unusedTask)
     switch (gGameSession->location.loc.view) {
         case 2:
         case 3: {
-            glowDrawFlareClipped(&D_dryfield_night_motel_room_4_8017DA70[0], DRYFIELD_NIGHT_MOTEL_ROOM_4_FLARE_TEXTURE_PRIMARY, DRYFIELD_NIGHT_MOTEL_ROOM_4_FLARE_RADIUS_SCALE_STANDARD);
-            glowDrawFlareClipped(&D_dryfield_night_motel_room_4_8017DA70[1], DRYFIELD_NIGHT_MOTEL_ROOM_4_FLARE_TEXTURE_PRIMARY, DRYFIELD_NIGHT_MOTEL_ROOM_4_FLARE_RADIUS_SCALE_LARGE);
+            glowDrawFlareClipped(&_gDryfieldNightMotelRoom4FlarePoints[0], DRYFIELD_NIGHT_MOTEL_ROOM_4_FLARE_TEXTURE_PRIMARY, DRYFIELD_NIGHT_MOTEL_ROOM_4_FLARE_RADIUS_SCALE_STANDARD);
+            glowDrawFlareClipped(&_gDryfieldNightMotelRoom4FlarePoints[1], DRYFIELD_NIGHT_MOTEL_ROOM_4_FLARE_TEXTURE_PRIMARY, DRYFIELD_NIGHT_MOTEL_ROOM_4_FLARE_RADIUS_SCALE_LARGE);
             break;
         }
         case 4: {
-            glowDrawFlareClipped(&D_dryfield_night_motel_room_4_8017DA88[0], DRYFIELD_NIGHT_MOTEL_ROOM_4_FLARE_TEXTURE_PRIMARY, DRYFIELD_NIGHT_MOTEL_ROOM_4_FLARE_RADIUS_SCALE_STANDARD);
+            glowDrawFlareClipped(&_gDryfieldNightMotelRoom4View4FlarePoint, DRYFIELD_NIGHT_MOTEL_ROOM_4_FLARE_TEXTURE_PRIMARY, DRYFIELD_NIGHT_MOTEL_ROOM_4_FLARE_RADIUS_SCALE_STANDARD);
             break;
         }
         case 5: {
-            glowDrawFlareClipped(&D_dryfield_night_motel_room_4_8017DA70[0], DRYFIELD_NIGHT_MOTEL_ROOM_4_FLARE_TEXTURE_PRIMARY, DRYFIELD_NIGHT_MOTEL_ROOM_4_FLARE_RADIUS_SCALE_STANDARD);
-            glowDrawFlareClipped(&D_dryfield_night_motel_room_4_8017DA70[2], DRYFIELD_NIGHT_MOTEL_ROOM_4_FLARE_TEXTURE_SECONDARY, DRYFIELD_NIGHT_MOTEL_ROOM_4_FLARE_RADIUS_SCALE_SMALL);
+            glowDrawFlareClipped(&_gDryfieldNightMotelRoom4FlarePoints[0], DRYFIELD_NIGHT_MOTEL_ROOM_4_FLARE_TEXTURE_PRIMARY, DRYFIELD_NIGHT_MOTEL_ROOM_4_FLARE_RADIUS_SCALE_STANDARD);
+            glowDrawFlareClipped(&_gDryfieldNightMotelRoom4FlarePoints[2], DRYFIELD_NIGHT_MOTEL_ROOM_4_FLARE_TEXTURE_SECONDARY, DRYFIELD_NIGHT_MOTEL_ROOM_4_FLARE_RADIUS_SCALE_SMALL);
             break;
         }
     }

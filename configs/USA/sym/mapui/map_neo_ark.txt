@@ -52,7 +52,7 @@ D_shelter_1f_airlock_8017F07C = 0x8017F07C; // absolute:True owner=shelter_1f_ai
 D_shelter_1f_airlock_8017F84C = 0x8017F84C; // absolute:True owner=shelter_1f_airlock shared=rooms
 shelter1fGuardroomRoomTask = 0x8017D880; // type:func absolute:True owner=shelter_1f_guardroom
 D_shelter_1f_guardroom_8017DA78 = 0x8017DA78; // absolute:True owner=shelter_1f_guardroom shared=rooms
-D_shelter_1f_guardroom_8017DA88 = 0x8017DA88; // absolute:True owner=shelter_1f_guardroom shared=rooms
+D_shelter_1f_guardroom_8017DA88 = 0x8017DA88; // absolute:True owner=shelter_1f_guardroom
 D_shelter_1f_guardroom_8017DA90 = 0x8017DA90; // absolute:True owner=shelter_1f_guardroom shared=rooms
 D_shelter_1f_guardroom_8017DA94 = 0x8017DA94; // absolute:True owner=shelter_1f_guardroom shared=rooms
 D_shelter_1f_guardroom_8017DA98 = 0x8017DA98; // absolute:True owner=shelter_1f_guardroom shared=rooms
