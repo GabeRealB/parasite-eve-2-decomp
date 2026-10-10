@@ -2,6 +2,10 @@
 
 /* Part of the muzzle flash library; see muzzle_flash.h. */
 
+#ifndef MUZZLE_FLASH_OFFSET
+#error "MUZZLE_FLASH_OFFSET must select the carrier's muzzle offset"
+#endif
+
 /// Activates a transient white point light at the effect's initial position.
 ///
 /// `spawnCoord` supplies its local translation in the light's parent frame;
@@ -39,8 +43,10 @@ static inline void _muzzleFlashInitializeLight(const GfxCoord* spawnCoord, World
 /// Its borrowed spawn coordinate and ancestors must survive the flash. The
 /// first visible update attaches the body at the carrier's muzzle offset,
 /// initializes size 1536..2559, spin 0..4095 and brightness 192, and retains
-/// one random streak angle in each quadrant. Later visible updates halve size
-/// and brightness; EffectWork.scale, angle and period hold those values.
+/// one random streak angle in each quadrant in the carrier's shared buffer;
+/// initializing another flash replaces the angles all live flashes read.
+/// Later visible updates halve size and brightness; EffectWork.scale, angle
+/// and period hold those values.
 /// Hidden effects suspend this task completely, including age and cleanup.
 /// Each update draws before freeing the work and task at age seven. Transient
 /// light slot zero is shared and may be overwritten by another effect; its
@@ -81,9 +87,9 @@ static inline void _muzzleFlashTask(Task* task)
 
             // Attach and compose once; normal coordinate updates refresh it thereafter.
             muzzleCoord->parent       = work->parent;
-            muzzleCoord->coord.t[0]   = _gMuzzleOffset.vx;
-            muzzleCoord->coord.t[1]   = _gMuzzleOffset.vy;
-            muzzleCoord->coord.t[2]   = _gMuzzleOffset.vz;
+            muzzleCoord->coord.t[0]   = (MUZZLE_FLASH_OFFSET).vx;
+            muzzleCoord->coord.t[1]   = (MUZZLE_FLASH_OFFSET).vy;
+            muzzleCoord->coord.t[2]   = (MUZZLE_FLASH_OFFSET).vz;
             muzzleCoord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(muzzleCoord);
 
@@ -93,9 +99,9 @@ static inline void _muzzleFlashTask(Task* task)
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->angle     = (gRandomLcgState >> 16) & MUZZLE_FLASH_ANGLE_MASK;
             task->state     = MUZZLE_FLASH_STATE_FADE;
-            for (streakIndex = 0; streakIndex < ARRAY_SIZE(gMuzzleFlashAngles); streakIndex++) {
-                gRandomLcgState                 = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gMuzzleFlashAngles[streakIndex] = ((streakIndex & (ARRAY_SIZE(gMuzzleFlashAngles) - 1)) << MUZZLE_FLASH_QUADRANT_SHIFT) + ((gRandomLcgState >> 16) & (MUZZLE_FLASH_ANGLE_QUARTER_TURN - 1));
+            for (streakIndex = 0; streakIndex < ARRAY_SIZE(_gMuzzleFlashAngles); streakIndex++) {
+                gRandomLcgState                  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                _gMuzzleFlashAngles[streakIndex] = ((streakIndex & (ARRAY_SIZE(_gMuzzleFlashAngles) - 1)) << MUZZLE_FLASH_QUADRANT_SHIFT) + ((gRandomLcgState >> 16) & (MUZZLE_FLASH_ANGLE_QUARTER_TURN - 1));
             }
             break;
         case MUZZLE_FLASH_STATE_FADE:
@@ -108,8 +114,8 @@ static inline void _muzzleFlashTask(Task* task)
     // One byte supplies all tint channels; preserve the single shared load.
     tintRgb[0] = tintRgb[1] = tintRgb[2] = work->period;
     effectDrawScreenTint(tintRgb, GPU_BLEND_ADD);
-    for (streakIndex = 0; streakIndex < ARRAY_SIZE(gMuzzleFlashAngles); streakIndex++) {
-        _muzzleFlashDrawStreak(muzzleCoord, gMuzzleFlashAngles[streakIndex], work->period);
+    for (streakIndex = 0; streakIndex < ARRAY_SIZE(_gMuzzleFlashAngles); streakIndex++) {
+        _muzzleFlashDrawStreak(muzzleCoord, _gMuzzleFlashAngles[streakIndex], work->period);
     }
     // Shrink only the full-strength radius; the zero-contribution radius stays fixed.
     if (pointLight->inner >= MUZZLE_FLASH_LIGHT_RADIUS_STEP + 1) {

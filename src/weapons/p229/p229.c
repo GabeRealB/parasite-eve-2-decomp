@@ -9,8 +9,6 @@
 #include "gte.h"
 #include "types.h"
 
-#include "p229_private.h"
-
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
@@ -48,7 +46,11 @@
 /// Muzzle offset of the P229, in the firing hand's coordinate frame.
 static SVECTOR _gMuzzleOffset = { 0, 0x140, 0x20, 0 };
 
+static s16 _gMuzzleFlashAngles[MUZZLE_FLASH_STREAK_COUNT];
+
+#define MUZZLE_FLASH_OFFSET _gMuzzleOffset
 #include "../../shared/muzzle_flash_task.inc.c"
+#undef MUZZLE_FLASH_OFFSET
 
 void p229MuzzleFlashTask(Task* task)
 {
@@ -1084,7 +1086,8 @@ AnimationBank D_p229_8012B51C = { { {
     NULL,
 } } };
 
-/// The four flash angles rolled on the frame the shot goes off, one per
-/// `_muzzleFlashDrawStreak` quad. Each is a fixed quadrant (`i << 10`) plus a
-/// 10-bit LCG jitter, so the four quads always fan out around the muzzle.
-s16 gMuzzleFlashAngles[4] = { 0, 0, 0, 0 };
+/// Retained streak directions shared by every live flash in this weapon package.
+///
+/// Angles use 4096 units per turn, one random direction in each quadrant.
+/// Each newly initialized flash replaces the directions older flashes read.
+static s16 _gMuzzleFlashAngles[MUZZLE_FLASH_STREAK_COUNT] = { 0, 0, 0, 0 };

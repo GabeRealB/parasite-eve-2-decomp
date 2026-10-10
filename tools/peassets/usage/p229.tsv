@@ -55,4 +55,4 @@ gameplay common sound bank (ancestor; spk not resolved)	entry 0x17	p229:p229Atta
 # `asset_residency.py show p229` prints only `carrier / 0/p229 (2 uploads)` - no layer, though the load is established (cd_loading.c:1099, layer = variant on gPlayerStatus.weapon).
 # tools/peassets/model_textures.tsv has no p229 row; the pairing here was read from the face stream words. asset_data gives pe2img_9 w=64, which is VRAM words: the model's u reaches 249, so the texture is 256 texels wide (m93r.tsv calls the same-shaped image "64x64").
 # checklist key p229_model_01110 names the stream offset; the manifest cuts the model at 0xF38 with its TmdSource at 0x1424 (overlays.toml:323).
-# gMuzzleFlashAngles (p229.c:1090) and _gMuzzleOffset (p229.c:49) are small code-owned data, not assets; no literal-number track or path found in the overlay.
+# _gMuzzleFlashAngles (p229.c:1090) and _gMuzzleOffset (p229.c:49) are small code-owned data, not assets; no literal-number track or path found in the overlay.

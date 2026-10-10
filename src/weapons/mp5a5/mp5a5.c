@@ -6,10 +6,9 @@
 #include <psyq/inline_c.h>
 #include <psyq/libgs.h>
 
+#include "common.h"
 #include "gte.h"
 #include "types.h"
-
-#include "mp5a5_private.h"
 
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"
@@ -51,10 +50,14 @@
 #error "WEAPON_ID is a per-package build parameter"
 #endif
 
-/// Muzzle offset of the weapon, in the firing hand's coordinate frame.
-static SVECTOR _gMuzzleOffset = { 0, 0x240, 0x40, 0 };
+/// MP5A5 alternate-fire flash origin in integer weapon-root coordinates.
+static SVECTOR _gMp5a5MuzzleFlashOffset = { 0, 576, 64, 0 };
 
+static s16 _gMuzzleFlashAngles[MUZZLE_FLASH_STREAK_COUNT];
+
+#define MUZZLE_FLASH_OFFSET _gMp5a5MuzzleFlashOffset
 #include "../../shared/muzzle_flash_task.inc.c"
+#undef MUZZLE_FLASH_OFFSET
 
 void mp5a5MuzzleFlashTask(Task* task)
 {
@@ -186,124 +189,169 @@ void mp5a5AttackState(Task* playerTask)
     SCRATCH_STACK_RELEASE_BLOCK(GfxCoord);
 }
 
-static TmdBone _gMp5a5Model01318Skeleton[1] = {
+/// Initial identity transform of the weapon's sole, self-parented root part.
+static TmdBone _gMp5a5WeaponModelSkeleton[] = {
 #include "assets/mp5a5_model_01318_skeleton.inc"
 };
 
-static u32 _gMp5a5Model01318PartVerts[1] = {
+/// Number of part-local vertices belonging to the weapon's root part.
+static u32 _gMp5a5WeaponModelPartVerts[] = {
 #include "assets/mp5a5_model_01318_partVerts.inc"
 };
 
-static SVECTOR _gMp5a5Model01318Verts[54] = {
+/// Equipped MP5A5 vertices in integer weapon-root coordinates.
+static SVECTOR _gMp5a5WeaponModelVerts[] = {
 #include "assets/mp5a5_model_01318_verts.inc"
 };
 
-static SVECTOR _gMp5a5Model01318Normals[58] = {
+/// Equipped MP5A5 lighting normals, indexed independently of its vertices.
+static SVECTOR _gMp5a5WeaponModelNormals[] = {
 #include "assets/mp5a5_model_01318_normals.inc"
 };
 
-static u32 _gMp5a5Model01318Stream[393] = {
+/// Writable draw commands for the weapon's single part, including stream terminators.
+static u32 _gMp5a5WeaponModelStream[] = {
 #include "assets/mp5a5_model_01318_stream.inc"
 };
 
-TmdSource D_mp5a5_8011EAFC = {
+TmdSource gMp5a5WeaponModel = {
     0,
-    2824,
+    sizeof(POLY_FT4) + 2 * sizeof(POLY_GT3) + 52 * sizeof(POLY_GT4),
     0,
-    1,
-    _gMp5a5Model01318PartVerts,
-    _gMp5a5Model01318Verts,
-    _gMp5a5Model01318Normals,
-    _gMp5a5Model01318Skeleton,
-    _gMp5a5Model01318Stream,
+    ARRAY_SIZE(_gMp5a5WeaponModelSkeleton),
+    _gMp5a5WeaponModelPartVerts,
+    _gMp5a5WeaponModelVerts,
+    _gMp5a5WeaponModelNormals,
+    _gMp5a5WeaponModelSkeleton,
+    _gMp5a5WeaponModelStream,
 };
 
-static AnimationPackedPose _gMp5a5Animation01AF0Bank1[2] = {
+/// Encoding-1 local translations and rotations for the MP5A5 idle pose.
+static AnimationPackedPose _gMp5a5IdleAnimationBank1[] = {
 #include "assets/mp5a5_animation_01AF0_bank1.inc"
 };
 
-static AnimationPackedRotation _gMp5a5Animation01AF0Bank4[8] = {
+/// Encoding-4 rotations for the MP5A5 idle pose, in eight-unit angle steps.
+static AnimationPackedRotation _gMp5a5IdleAnimationBank4[] = {
 #include "assets/mp5a5_animation_01AF0_bank4.inc"
 };
 
-static AnimationRecord _gMp5a5Animation01AF0Records[76] = {
+/// Keyframes and control records holding the MP5A5 idle pose on each player-rig track.
+static AnimationRecord _gMp5a5IdleAnimationRecords[] = {
 #include "assets/mp5a5_animation_01AF0_records.inc"
 };
 
-static u16 _gMp5a5Animation01AF0Indices[20] = {
+/// Absolute record starts for the idle pose's 19 player-rig tracks.
+///
+/// The final serialized halfword is retained but is not another track start.
+static u16 _gMp5a5IdleAnimationIndices[] = {
 #include "assets/mp5a5_animation_01AF0_indices.inc"
 };
 
-static AnimationSet _gMp5a5Animation01AF0 = {
-    _gMp5a5Animation01AF0Records,
-    _gMp5a5Animation01AF0Indices,
-    { NULL, _gMp5a5Animation01AF0Bank1, NULL, NULL, _gMp5a5Animation01AF0Bank4, NULL, NULL, NULL },
+/// MP5A5 player's stationary idle pose, also reused by bank slots 21, 22 and 41.
+///
+/// Provides 19 player-rig tracks; these do not animate the one-part weapon model.
+/// Playback borrows the data for the lifetime of the loaded weapon package.
+static AnimationSet _gMp5a5IdleAnimation = {
+    _gMp5a5IdleAnimationRecords,
+    _gMp5a5IdleAnimationIndices,
+    { NULL, _gMp5a5IdleAnimationBank1, NULL, NULL, _gMp5a5IdleAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gMp5a5Animation02194Bank1[12] = {
+/// Encoding-1 local translations and rotations for MP5A5 forward walking.
+static AnimationPackedPose _gMp5a5WalkAnimationBank1[] = {
 #include "assets/mp5a5_animation_02194_bank1.inc"
 };
 
-static AnimationPackedRotation _gMp5a5Animation02194Bank4[151] = {
+/// Encoding-4 rotations for MP5A5 forward walking, in eight-unit angle steps.
+static AnimationPackedRotation _gMp5a5WalkAnimationBank4[] = {
 #include "assets/mp5a5_animation_02194_bank4.inc"
 };
 
-static AnimationRecord _gMp5a5Animation02194Records[218] = {
+/// Forward-walk keyframes and control records; segment durations count normal-rate frames.
+static AnimationRecord _gMp5a5WalkAnimationRecords[] = {
 #include "assets/mp5a5_animation_02194_records.inc"
 };
 
-static u16 _gMp5a5Animation02194Indices[20] = {
+/// Absolute record starts for the forward-walk clip's 19 player-rig tracks.
+///
+/// The final serialized halfword is retained but is not another track start.
+static u16 _gMp5a5WalkAnimationIndices[] = {
 #include "assets/mp5a5_animation_02194_indices.inc"
 };
 
-static AnimationSet _gMp5a5Animation02194 = {
-    _gMp5a5Animation02194Records,
-    _gMp5a5Animation02194Indices,
-    { NULL, _gMp5a5Animation02194Bank1, NULL, NULL, _gMp5a5Animation02194Bank4, NULL, NULL, NULL },
+/// MP5A5 player's forward-walk clip, also selected for unarmed walking in bank slot 19.
+///
+/// Provides 19 player-rig tracks; these do not animate the one-part weapon model.
+/// Playback borrows the data for the lifetime of the loaded weapon package.
+static AnimationSet _gMp5a5WalkAnimation = {
+    _gMp5a5WalkAnimationRecords,
+    _gMp5a5WalkAnimationIndices,
+    { NULL, _gMp5a5WalkAnimationBank1, NULL, NULL, _gMp5a5WalkAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gMp5a5Animation02A6CBank1[19] = {
+/// Encoding-1 local translations and rotations for MP5A5 backward walking.
+static AnimationPackedPose _gMp5a5BackwardWalkAnimationBank1[] = {
 #include "assets/mp5a5_animation_02A6C_bank1.inc"
 };
 
-static AnimationPackedRotation _gMp5a5Animation02A6CBank4[193] = {
+/// Encoding-4 rotations for MP5A5 backward walking, in eight-unit angle steps.
+static AnimationPackedRotation _gMp5a5BackwardWalkAnimationBank4[] = {
 #include "assets/mp5a5_animation_02A6C_bank4.inc"
 };
 
-static AnimationRecord _gMp5a5Animation02A6CRecords[296] = {
+/// Backward-walk keyframes and control records; segment durations count normal-rate frames.
+static AnimationRecord _gMp5a5BackwardWalkAnimationRecords[] = {
 #include "assets/mp5a5_animation_02A6C_records.inc"
 };
 
-static u16 _gMp5a5Animation02A6CIndices[20] = {
+/// Absolute record starts for the backward-walk clip's 19 player-rig tracks.
+///
+/// The final serialized halfword is retained but is not another track start.
+static u16 _gMp5a5BackwardWalkAnimationIndices[] = {
 #include "assets/mp5a5_animation_02A6C_indices.inc"
 };
 
-static AnimationSet _gMp5a5Animation02A6C = {
-    _gMp5a5Animation02A6CRecords,
-    _gMp5a5Animation02A6CIndices,
-    { NULL, _gMp5a5Animation02A6CBank1, NULL, NULL, _gMp5a5Animation02A6CBank4, NULL, NULL, NULL },
+/// MP5A5 player's backward-walk clip in native bank slot 3.
+///
+/// Provides 19 player-rig tracks; these do not animate the one-part weapon model.
+/// Playback borrows the data for the lifetime of the loaded weapon package.
+static AnimationSet _gMp5a5BackwardWalkAnimation = {
+    _gMp5a5BackwardWalkAnimationRecords,
+    _gMp5a5BackwardWalkAnimationIndices,
+    { NULL, _gMp5a5BackwardWalkAnimationBank1, NULL, NULL, _gMp5a5BackwardWalkAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gMp5a5Animation031A0Bank1[13] = {
+/// Encoding-1 local translations and rotations for MP5A5 running.
+static AnimationPackedPose _gMp5a5RunAnimationBank1[] = {
 #include "assets/mp5a5_animation_031A0_bank1.inc"
 };
 
-static AnimationPackedRotation _gMp5a5Animation031A0Bank4[167] = {
+/// Encoding-4 rotations for MP5A5 running, in eight-unit angle steps.
+static AnimationPackedRotation _gMp5a5RunAnimationBank4[] = {
 #include "assets/mp5a5_animation_031A0_bank4.inc"
 };
 
-static AnimationRecord _gMp5a5Animation031A0Records[235] = {
+/// Run keyframes and control records; segment durations count normal-rate frames.
+static AnimationRecord _gMp5a5RunAnimationRecords[] = {
 #include "assets/mp5a5_animation_031A0_records.inc"
 };
 
-static u16 _gMp5a5Animation031A0Indices[20] = {
+/// Absolute record starts for the run clip's 19 player-rig tracks.
+///
+/// The final serialized halfword is retained but is not another track start.
+static u16 _gMp5a5RunAnimationIndices[] = {
 #include "assets/mp5a5_animation_031A0_indices.inc"
 };
 
-static AnimationSet _gMp5a5Animation031A0 = {
-    _gMp5a5Animation031A0Records,
-    _gMp5a5Animation031A0Indices,
-    { NULL, _gMp5a5Animation031A0Bank1, NULL, NULL, _gMp5a5Animation031A0Bank4, NULL, NULL, NULL },
+/// MP5A5 player's run clip in native bank slot 4.
+///
+/// Provides 19 player-rig tracks; these do not animate the one-part weapon model.
+/// Playback borrows the data for the lifetime of the loaded weapon package.
+static AnimationSet _gMp5a5RunAnimation = {
+    _gMp5a5RunAnimationRecords,
+    _gMp5a5RunAnimationIndices,
+    { NULL, _gMp5a5RunAnimationBank1, NULL, NULL, _gMp5a5RunAnimationBank4, NULL, NULL, NULL },
 };
 
 static AnimationPackedPose _gMp5a5Animation03A00Bank1[19] = {
@@ -990,10 +1038,10 @@ static AnimationSet _gMp5a5Animation0E1E4 = {
 
 AnimationBank D_mp5a5_8012B3CC = { { {
     NULL,
-    &_gMp5a5Animation01AF0,
-    &_gMp5a5Animation02194,
-    &_gMp5a5Animation02A6C,
-    &_gMp5a5Animation031A0,
+    &_gMp5a5IdleAnimation,
+    &_gMp5a5WalkAnimation,
+    &_gMp5a5BackwardWalkAnimation,
+    &_gMp5a5RunAnimation,
     &_gMp5a5Animation03A00,
     &_gMp5a5Animation04264,
     &_gMp5a5Animation0DC58,
@@ -1008,10 +1056,10 @@ AnimationBank D_mp5a5_8012B3CC = { { {
     &_gMp5a5Animation06EC8,
     &_gMp5a5Animation071E8,
     &_gMp5a5Animation079AC,
-    &_gMp5a5Animation02194,
+    &_gMp5a5WalkAnimation,
     &_gMp5a5Animation0D268,
-    &_gMp5a5Animation01AF0,
-    &_gMp5a5Animation01AF0,
+    &_gMp5a5IdleAnimation,
+    &_gMp5a5IdleAnimation,
     &_gMp5a5Animation08C44,
     &_gMp5a5Animation09ED8,
     &_gMp5a5Animation097BC,
@@ -1030,7 +1078,7 @@ AnimationBank D_mp5a5_8012B3CC = { { {
     &_gMp5a5Animation05AC0,
     &_gMp5a5Animation05730,
     &_gMp5a5Animation04578,
-    &_gMp5a5Animation01AF0,
+    &_gMp5a5IdleAnimation,
     &_gMp5a5Animation0AA94,
     &_gMp5a5Animation0AC88,
     &_gMp5a5Animation0B108,
@@ -1070,6 +1118,10 @@ AnimationBank D_mp5a5_8012B3CC = { { {
     NULL,
 } } };
 
-s16 gMuzzleFlashAngles[4] = { 0, 0, 0, 0 };
+/// Retained streak directions shared by every live flash in this weapon package.
+///
+/// Angles use 4096 units per turn, one random direction in each quadrant.
+/// Each newly initialized flash replaces the directions older flashes read.
+static s16 _gMuzzleFlashAngles[MUZZLE_FLASH_STREAK_COUNT] = { 0, 0, 0, 0 };
 
 PACKAGE_ALIASES

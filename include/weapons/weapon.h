@@ -92,7 +92,12 @@ extern TmdSource D_tonfa_baton_8011E5EC;
 
 extern TmdSource D_m4a1_bayonet_8011E9FC;
 
-extern TmdSource D_mp5a5_8011EAFC;
+/// Single-part equipped MP5A5 model used by the base weapon and both upgrades.
+///
+/// Instances borrow the loaded weapon package's geometry and command stream;
+/// keep the package loaded until those instances are released. The stream's
+/// draw-handler slots are resolved in place on first use.
+extern TmdSource gMp5a5WeaponModel;
 
 /// Held Gunblade geometry and initial one-part pose.
 ///
