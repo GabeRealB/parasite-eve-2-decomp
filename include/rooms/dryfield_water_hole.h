@@ -13,8 +13,13 @@
 
 extern AreaVariant D_dryfield_water_hole_801827BC[13];
 
-// dryfield_water_hole
-extern WorldCollisionRoomResources D_dryfield_water_hole_8017FD2C[];
+/// Collision resources for the four daytime water-hole room variants.
+///
+/// Index by room - 1. Every variant shares the grid, view boundaries and sight
+/// occluders; rooms 1/3 use switch-on actions and rooms 2/4 switch-off actions.
+/// The linked grid, triggers and occluders stay mutable and must remain loaded
+/// until unlinked or replaced by another room's resources.
+extern WorldCollisionRoomResources gDryfieldWaterHoleRoomCollisionResources[4];
 
 /// Logical-view maps for the four daytime water-hole room variants.
 ///
@@ -27,7 +32,12 @@ extern WorldCollisionRoomResources D_dryfield_water_hole_8017FD2C[];
 /// The directory and local maps remain valid while this room overlay is loaded.
 extern u8* gDryfieldWaterHoleRoomViewMaps[4];
 
-extern ViewCount D_dryfield_water_hole_8017FD94[];
+/// Logical-view reverse-search lengths for daytime water-hole rooms 1..4.
+///
+/// Index by room - 1. Each signed-halfword count searches logical slots 1..8;
+/// it does not bound forward map lookups or count the camera/sprite resources.
+/// The four-element array has no terminator and lives with the room overlay.
+extern ViewCount gDryfieldWaterHoleRoomViewCounts[4];
 
 /// Model lighting for the four daytime water-hole room variants.
 ///
@@ -37,11 +47,33 @@ extern ViewCount D_dryfield_water_hole_8017FD94[];
 /// composition and attenuation; all room pointers expire when the overlay unloads.
 extern WorldCoordRoomLighting gDryfieldWaterHoleRoomLighting[4];
 
-extern DirectionWarpEntry D_dryfield_water_hole_8017FDBC[];
+/// Three stored daytime water-hole warp endpoints.
+///
+/// Index by warp - 1. Player and companion share each arrival transform, in room
+/// game coordinates with yaw in 4096 units per turn. The driveway endpoint
+/// starts in logical view 3 and fades departure; the underpass starts in view 8.
+/// The third starts in view 2 and marks GAME_FLAG_MAP_MARK_WATER; its selection
+/// is unproven. The first two use the water-hole sound bank. There is no
+/// terminator; entries are borrowed while the overlay is loaded.
+extern DirectionWarpEntry gDryfieldWaterHoleWarpEntries[3];
 
-extern ViewCamera D_dryfield_water_hole_80180284[];
+/// Twenty-six stored daytime water-hole cameras, indexed by camera resource - 1.
+///
+/// Logical-view maps select resources 1..20; the remaining six stored cameras
+/// are outside those mappings and their selection is unproven. Rotations use
+/// Q12, translations store negated room-space camera origins in game units,
+/// and projection distances are pixels. No terminator is stored. The map
+/// directory borrows this array for the room overlay's loaded lifetime.
+extern ViewCamera gDryfieldWaterHoleViewCameras[26];
 
-extern SpriteView D_dryfield_water_hole_80181634[];
+/// Sprite resources for the twenty mapped daytime water-hole views.
+///
+/// Index by mapped resource - 1, independently of the eight logical views.
+/// Every list keeps decoded background strips and has no clipping areas.
+/// Empty source slots retain their batch-list address without selecting any
+/// sprites. Sources and batches stay writable; borrowed pointers require the
+/// room overlay to remain loaded while packets are initialized or drawn.
+extern SpriteView gDryfieldWaterHoleSpriteViews[20];
 
 /// Collision and footstep profiles indexed directly by surface class 0..7.
 ///

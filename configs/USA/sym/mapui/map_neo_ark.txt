@@ -33,7 +33,7 @@ gShelter1fBulwarkCameras = 0x8018066C; // absolute:True owner=shelter_1f_bulwark
 gShelter1fBulwarkSpriteViews = 0x801807B0; // absolute:True owner=shelter_1f_bulwark
 gShelter1fBulwarkSurfaceProperties = 0x80180E9C; // absolute:True owner=shelter_1f_bulwark
 shelter1fHeliportRoomTask = 0x80180768; // type:func absolute:True owner=shelter_1f_heliport
-D_shelter_1f_heliport_801812D0 = 0x801812D0; // absolute:True owner=shelter_1f_heliport shared=rooms
+D_shelter_1f_heliport_801812D0 = 0x801812D0; // absolute:True owner=shelter_1f_heliport
 gShelter1fHeliportRoomLighting = 0x801812E0; // absolute:True owner=shelter_1f_heliport
 gShelter1fHeliportViewMaps = 0x801812E8; // absolute:True owner=shelter_1f_heliport
 gShelter1fHeliportViewCounts = 0x801812EC; // absolute:True owner=shelter_1f_heliport
