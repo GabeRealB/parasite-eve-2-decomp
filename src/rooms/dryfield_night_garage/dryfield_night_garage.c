@@ -325,8 +325,8 @@ static void _dryfieldNightGarageInitRoomTask(Task* task)
 
     task->msgTable = D_dryfield_night_garage_80181C38;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    (D_dryfield_night_garage_80186D7C + DRYFIELD_NIGHT_GARAGE_TRIGGER_AFTER_REFUELING)->flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
-    companion                                                                                  = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
+    (gDryfieldNightGarageEarlyRoomActionTriggers + DRYFIELD_NIGHT_GARAGE_TRIGGER_AFTER_REFUELING)->flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
+    companion                                                                                             = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     // Restore the companion before starting either the first-visit scene or its pose-only script.
     if (gGameSession->location.loc.variant == DRYFIELD_NIGHT_GARAGE_VARIANT_COMPANION && companion != NULL) {
         TASK_MESSAGE_DISPATCH_POINTER(companion, GAME_ACTOR_MESSAGE_PLACE, &gActor136300CompanionGaragePlacement, 0);
@@ -347,7 +347,7 @@ static void _dryfieldNightGarageInitRoomTask(Task* task)
         if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) == DRYFIELD_NIGHT_GARAGE_PROGRESS_SCENE_STARTED) {
             gameFlagSetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS, DRYFIELD_NIGHT_GARAGE_PROGRESS_REVISITED);
         }
-        afterRefuelingTrigger          = D_dryfield_night_garage_80186D7C + DRYFIELD_NIGHT_GARAGE_TRIGGER_AFTER_REFUELING;
+        afterRefuelingTrigger          = gDryfieldNightGarageEarlyRoomActionTriggers + DRYFIELD_NIGHT_GARAGE_TRIGGER_AFTER_REFUELING;
         beforeRefuelingTrigger         = afterRefuelingTrigger + (DRYFIELD_NIGHT_GARAGE_TRIGGER_BEFORE_REFUELING - DRYFIELD_NIGHT_GARAGE_TRIGGER_AFTER_REFUELING);
         afterRefuelingTrigger->flags  |= WORLD_COLLISION_TRIGGER_ENABLED;
         beforeRefuelingTrigger->flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
@@ -366,7 +366,7 @@ static inline void _dryfieldNightGarageEnableRefueledTriggers(void)
     WorldCollisionTrigger* afterRefuelingTrigger;
     WorldCollisionTrigger* beforeRefuelingTrigger;
 
-    afterRefuelingTrigger          = D_dryfield_night_garage_80186D7C + AFTER_REFUELING_TRIGGER;
+    afterRefuelingTrigger          = gDryfieldNightGarageEarlyRoomActionTriggers + AFTER_REFUELING_TRIGGER;
     beforeRefuelingTrigger         = afterRefuelingTrigger + (BEFORE_REFUELING_TRIGGER - AFTER_REFUELING_TRIGGER);
     afterRefuelingTrigger->flags  |= WORLD_COLLISION_TRIGGER_ENABLED;
     beforeRefuelingTrigger->flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);

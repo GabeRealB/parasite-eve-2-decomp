@@ -1673,7 +1673,7 @@ D_shelter_b6_corridor_80180304 = 0x80180304; // absolute:True owner=shelter_b6_c
 
 D_shelter_b6_growth_room_80180338 = 0x80180338; // absolute:True owner=shelter_b6_growth_room
 
-D_shelter_b6_nursery_801874A4 = 0x801874A4; // absolute:True owner=shelter_b6_nursery shared=rooms
+D_shelter_b6_nursery_801874A4 = 0x801874A4; // absolute:True owner=shelter_b6_nursery
 
 D_shelter_b6_training_room_801859DC = 0x801859DC; // absolute:True owner=shelter_b6_training_room shared=rooms
 

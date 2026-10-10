@@ -39,7 +39,15 @@ extern EvsCommand D_dryfield_night_garage_801831B8[19];
 /// selects its separate grid.
 extern WorldCollisionGrid gDryfieldNightGarageEarlyRoomCollisionGrid;
 
-extern WorldCollisionTrigger D_dryfield_night_garage_80186D7C[16];
+/// Room 1's sixteen interaction and warp triggers, including the final live record.
+///
+/// The list ends with WORLD_COLLISION_TRIGGER_LAST on entry 15. Entries 3 and
+/// 5 select the post-refueling and original refueling hotspots; room progress
+/// switches their enabled bits. Other entries select dialogue, companion
+/// interaction, CAP commands and the factory/junk-yard exits. Setup writes
+/// links, coordinates and enabled bits, so keep this room-owned storage loaded
+/// until unlinked. Positions and radii are game units; normals use 4096 per unit.
+extern WorldCollisionTrigger gDryfieldNightGarageEarlyRoomActionTriggers[16];
 
 /// Displayed weapon-supply quantity in signed 24.8 fixed point.
 ///

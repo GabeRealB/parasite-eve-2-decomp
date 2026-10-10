@@ -24,7 +24,12 @@ extern AreaVariant D_dryfield_night_garage_801874BC[12];
 /// is loaded; light transforms and attenuation are writable query state.
 extern WorldCoordRoomLighting gDryfieldNightGarageRoomLighting[2];
 
-extern WorldCollisionRoomResources D_dryfield_night_garage_80183404[];
+/// Collision resources for night-garage rooms 1 and 2, indexed by room ID minus one.
+///
+/// Each room has its own grid, view boundaries and action triggers; neither
+/// has sight occluders. Setup borrows and links mutable room-owned resources,
+/// which must stay loaded until their grid is inactive and triggers unlinked.
+extern WorldCollisionRoomResources gDryfieldNightGarageRoomCollisionResources[2];
 
 /// Logical-view maps for night-garage rooms 1 and 2, indexed by room ID minus one.
 ///
@@ -34,13 +39,37 @@ extern WorldCollisionRoomResources D_dryfield_night_garage_80183404[];
 /// and room-2 map require the room overlay to remain loaded.
 extern u8* gDryfieldNightGarageViewMaps[2];
 
-extern ViewCount D_dryfield_night_garage_8018343C[];
+/// Logical-view search counts for night-garage rooms 1 and 2.
+///
+/// Indexed by room ID minus one; both maps contain 15 valid logical views.
+/// These signed element counts bound reverse lookup in the loaded room maps.
+extern ViewCount gDryfieldNightGarageViewCounts[2];
 
-extern DirectionWarpEntry D_dryfield_night_garage_80183440[];
+/// The night garage's factory and junk-yard warp endpoints, in slots 1 and 2.
+///
+/// Indexed by warp ID minus one, with no terminator. Both player and companion
+/// use the same placement at each endpoint, in whole room units and 4096-angle
+/// units per turn. Slot 1 arrives in view 2 and fades departure; slot 2 arrives
+/// in view 6 and has a blocked-departure sound. Borrow only while the overlay
+/// is loaded; transition handling copies the selected record.
+extern DirectionWarpEntry gDryfieldNightGarageWarpEntries[2];
 
-extern ViewCamera D_dryfield_night_garage_801843F8[];
+/// Cameras for the night garage's mapped view files 1..15.
+///
+/// Indexed by mapped view minus one, after the current room's logical-view map.
+/// Rotation coefficients use 4096 for unity; translations are negated camera
+/// origins in world units and projection distances are pixels. Queued camera
+/// application borrows a record until dispatch, requiring the loaded overlay.
+extern ViewCamera gDryfieldNightGarageViewCameras[15];
 
-extern SpriteView D_dryfield_night_garage_80186258[];
+/// Sprite resources for the night garage's mapped view files 1..15.
+///
+/// Indexed by mapped view minus one, independently of logical view numbers.
+/// Each batch list ends with SPRITE_BATCH_END; views 1, 8, 10, 11, 13 and 14
+/// have no sources, and every view retains decoded background strips. No view
+/// supplies clipping areas. Sources and batches are mutable room-owned data
+/// and must stay loaded while sprite packets are allocated or linked.
+extern SpriteView gDryfieldNightGarageSpriteViews[15];
 
 /// Collision policies for the night garage's eight surface classes, indexed 0..7.
 ///
