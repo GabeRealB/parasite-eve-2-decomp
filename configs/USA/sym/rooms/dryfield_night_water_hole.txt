@@ -85,10 +85,10 @@ _gDryfieldNightWaterHoleShelterRouteOpenClass2Surface = 0x801835D0; // size:0x8 
 D_dryfield_night_water_hole_801835D8 = 0x801835D8; // size:0x20 defined:True
 gActor101100Tasks = 0x80147400; // absolute:True owner=actor_101100
 gActor400600ZebraStalkerTaskDesc = 0x80151B10; // absolute:True owner=actor_400600
-D_map_dryfield_full_8017CCE8 = 0x8017CCE8; // absolute:True owner=map_dryfield_full
-D_map_dryfield_full_8017CD08 = 0x8017CD08; // absolute:True owner=map_dryfield_full
-D_map_dryfield_full_8017CD38 = 0x8017CD38; // absolute:True owner=map_dryfield_full
-D_map_dryfield_full_8017CD48 = 0x8017CD48; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullWaterHoleVariant1Placements = 0x8017CCE8; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullWaterHoleVariant2Placements = 0x8017CD08; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullWaterHoleVariant10Placements = 0x8017CD38; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullWaterHoleVariant21Placements = 0x8017CD48; // absolute:True owner=map_dryfield_full
 _gDryfieldNightWaterHoleArrivalAnimationBankExtension = 0x80180624; // size:0x8 defined:True
 _gDryfieldNightWaterHoleArrivalPlayerAnimation = 0x8018062C; // size:0x14 defined:True
 _gDryfieldNightWaterHoleArrivalPlayerIdleAnimation = 0x80180640; // size:0x14 defined:True

@@ -101,6 +101,9 @@ STATIC_ASSERT_SIZEOF(MenuMapIcon, 8);
 /// `MenuMapMarker.area` of a marker the map screen never draws.
 #define MENU_MAP_MARKER_AREA_NEVER 0xFF
 
+/// Alternate-picture bit in a packed map-marker flag word.
+enum { MENU_MAP_MARKER_ALTERNATE_PICTURE = 0x800 };
+
 /// A 16x16 marker the map screen draws at a fixed point while a game flag asks for it.
 ///
 /// Each stage has a table of these, closed by a record whose `page` is 0, beside

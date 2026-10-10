@@ -466,7 +466,7 @@ s16 menuMapGetMarkerState(s16 markerIndex)
     enum {
         MENU_MAP_ACROPOLIS_MARKER_COUNT            = 14,
         MENU_MAP_DRYFIELD_MARKER_COUNT             = 29,
-        MENU_MAP_DRYFIELD_NIGHT_MARKER_COUNT       = 30,
+        MENU_MAP_DRYFIELD_NIGHT_MARKER_COUNT       = ARRAY_SIZE(gMapDryfieldFullMarkerFlags),
         MENU_MAP_SHELTER_MARKER_COUNT              = 30,
         MENU_MAP_NEO_ARK_MARKER_COUNT              = 9,
         MENU_MAP_DRYFIELD_NIGHT_STORY_MARKER       = 29,
@@ -495,7 +495,7 @@ s16 menuMapGetMarkerState(s16 markerIndex)
                 }
                 return MENU_MAP_MARKER_STATE_VISIBLE + MENU_MAP_MARKER_ALTERNATE_PICTURE;
             }
-            return _menuMapReadMarkerState(D_map_dryfield_full_8017A738, markerIndex);
+            return _menuMapReadMarkerState(gMapDryfieldFullMarkerFlags, markerIndex);
         case GAME_STAGE_MINE_SHELTER:
             if (markerIndex >= MENU_MAP_SHELTER_MARKER_COUNT) {
                 break;

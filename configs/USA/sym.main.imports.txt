@@ -289,12 +289,12 @@ gMapDryfieldMovieWorkspaceBytesByArea = 0x80179B4C; // absolute:True owner=map_d
 gMapNeoArkMovieWorkspaceBytesByArea = 0x80179EC8; // absolute:True owner=map_neo_ark
 D_map_akropolis_8017C1B4 = 0x8017C1B4; // absolute:True owner=map_akropolis
 D_map_dryfield_8017BDE0 = 0x8017BDE0; // absolute:True owner=map_dryfield
-D_map_dryfield_full_8017D238 = 0x8017D238; // absolute:True
+gMapDryfieldFullAreaMusicEntries = 0x8017D238; // absolute:True owner=map_dryfield_full
 D_map_shelter_8017BE28 = 0x8017BE28; // absolute:True owner=map_shelter
 D_map_neo_ark_8017CB54 = 0x8017CB54; // absolute:True owner=map_neo_ark
 D_map_akropolis_8017C304 = 0x8017C304; // absolute:True owner=map_akropolis
 D_map_dryfield_8017C004 = 0x8017C004; // absolute:True owner=map_dryfield
-D_map_dryfield_full_8017D594 = 0x8017D594; // absolute:True
+gMapDryfieldFullCountdownMusicEntries = 0x8017D594; // absolute:True owner=map_dryfield_full
 D_map_shelter_8017C2D8 = 0x8017C2D8; // absolute:True owner=map_shelter
 D_map_neo_ark_8017CDFC = 0x8017CDFC; // absolute:True owner=map_neo_ark
 gFsImageWorkspace = 0x801D7000; // absolute:True

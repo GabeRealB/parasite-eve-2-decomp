@@ -968,17 +968,17 @@ AreaResource D_dryfield_night_cellar_8018075C[3] = {
 
 AreaVariant D_dryfield_night_cellar_80180780[12] = {
     { NULL, NULL },
-    { D_map_dryfield_full_8017CD88, D_dryfield_night_cellar_80180720 },
+    { gMapDryfieldFullCellarVariant1Placements, D_dryfield_night_cellar_80180720 },
     { NULL, NULL },
-    { D_map_dryfield_full_8017CDE8, D_dryfield_night_cellar_80180738 },
-    { NULL, NULL },
-    { NULL, NULL },
+    { gMapDryfieldFullCellarVariant3Placements, D_dryfield_night_cellar_80180738 },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017CEA8, D_dryfield_night_cellar_8018075C },
+    { NULL, NULL },
+    { NULL, NULL },
+    { gMapDryfieldFullCellarVariant11Placements, D_dryfield_night_cellar_8018075C },
 };
 
 /// Cue-2 script bases in the loaded type-1 room bank; cue 1 uses the next entry.

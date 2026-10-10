@@ -54,9 +54,9 @@ gActor103700BatTaskDesc = 0x80139DAC; // absolute:True owner=actor_103700
 gActor101600ScavengerTaskDesc = 0x801445DC; // absolute:True owner=actor_101600
 gActor200700RatTaskDesc = 0x80150C80; // absolute:True owner=actor_200700
 gActor203700BatTaskDesc = 0x80151DAC; // absolute:True owner=actor_203700
-D_map_dryfield_full_8017CD88 = 0x8017CD88; // absolute:True owner=map_dryfield_full
-D_map_dryfield_full_8017CDE8 = 0x8017CDE8; // absolute:True owner=map_dryfield_full
-D_map_dryfield_full_8017CEA8 = 0x8017CEA8; // absolute:True
+gMapDryfieldFullCellarVariant1Placements = 0x8017CD88; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullCellarVariant3Placements = 0x8017CDE8; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullCellarVariant11Placements = 0x8017CEA8; // absolute:True owner=map_dryfield_full
 
 dryfieldNightCellarDrawGlowsTask = 0x8017DA28; // type:func
 _glowDrawFlare = 0x8017D7A0; // type:func

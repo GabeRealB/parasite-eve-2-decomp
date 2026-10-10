@@ -1271,8 +1271,8 @@ static AreaResource _gDryfieldNightWaterHoleVariant21Resources[2] = {
 
 AreaVariant D_dryfield_night_water_hole_80183418[22] = {
     { NULL, NULL },
-    { D_map_dryfield_full_8017CCE8, _gDryfieldNightWaterHoleVariant1Resources },
-    { D_map_dryfield_full_8017CD08, _gDryfieldNightWaterHoleVariant2Resources },
+    { gMapDryfieldFullWaterHoleVariant1Placements, _gDryfieldNightWaterHoleVariant1Resources },
+    { gMapDryfieldFullWaterHoleVariant2Placements, _gDryfieldNightWaterHoleVariant2Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -1280,7 +1280,7 @@ AreaVariant D_dryfield_night_water_hole_80183418[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017CD38, _gDryfieldNightWaterHoleVariant10Resources },
+    { gMapDryfieldFullWaterHoleVariant10Placements, _gDryfieldNightWaterHoleVariant10Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -1291,7 +1291,7 @@ AreaVariant D_dryfield_night_water_hole_80183418[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017CD48, _gDryfieldNightWaterHoleVariant21Resources },
+    { gMapDryfieldFullWaterHoleVariant21Placements, _gDryfieldNightWaterHoleVariant21Resources },
 };
 
 /// Ambient minima by logical view for rooms 1 and 3, with switch 1 on.

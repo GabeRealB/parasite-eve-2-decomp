@@ -357,7 +357,7 @@ UiObjectDesc D_8010F09C = { 0, { -144, 0, 90, 70 }, 52, 0, TASK_BODY_NONE, 192, 
 MenuMapAreaName* Gp_MapNameTables[5] = {
     D_map_akropolis_8017A3BC,
     D_map_dryfield_8017A044,
-    D_map_dryfield_full_80179F4C,
+    gMapDryfieldFullAreaNames,
     D_map_shelter_8017A268,
     D_map_neo_ark_8017A28C,
 };
@@ -365,7 +365,7 @@ MenuMapAreaName* Gp_MapNameTables[5] = {
 MenuMapIcon* D_8010F0CC[5] = {
     D_map_akropolis_8017A38C,
     D_map_dryfield_80179FEC,
-    D_map_dryfield_full_80179F04,
+    gMapDryfieldFullIcons,
     D_map_shelter_8017A1F0,
     D_map_neo_ark_8017A26C,
 };
@@ -373,7 +373,7 @@ MenuMapIcon* D_8010F0CC[5] = {
 MenuMapMarker* D_8010F0E0[5] = {
     D_map_akropolis_8017A330,
     D_map_dryfield_80179F38,
-    D_map_dryfield_full_80179E48,
+    gMapDryfieldFullMarkers,
     D_map_shelter_8017A134,
     D_map_neo_ark_8017A230,
 };
@@ -381,7 +381,7 @@ MenuMapMarker* D_8010F0E0[5] = {
 MenuMapArea* Gp_MapRecTables[5] = {
     D_map_akropolis_8017A154,
     D_map_dryfield_80179BD0,
-    D_map_dryfield_full_80179AE0,
+    gMapDryfieldFullAreas,
     D_map_shelter_80179CD8,
     D_map_neo_ark_80179F24,
 };
@@ -389,7 +389,7 @@ MenuMapArea* Gp_MapRecTables[5] = {
 u8* Gp_MapFlagIds[5] = {
     D_map_akropolis_8017A14C,
     D_map_dryfield_80179BCC,
-    D_map_dryfield_full_80179ADC,
+    gMapDryfieldFullPageFlagIds,
     D_map_shelter_80179CD0,
     D_map_neo_ark_80179F1C,
 };

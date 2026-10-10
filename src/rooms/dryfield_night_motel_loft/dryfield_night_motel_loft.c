@@ -314,14 +314,14 @@ AreaVariant D_dryfield_night_motel_loft_80180888[13] = {
     { D_map_dryfield_full_8017CB58, D_dryfield_night_motel_loft_8018081C },
     { NULL, NULL },
     { D_map_dryfield_full_8017CB98, D_dryfield_night_motel_loft_80180834 },
-    { D_map_dryfield_full_8017CBF8, D_dryfield_night_motel_loft_80180858 },
+    { gMapDryfieldFullMotelLoftVariant4Placements, D_dryfield_night_motel_loft_80180858 },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017CC78, D_dryfield_night_motel_loft_80180870 },
+    { gMapDryfieldFullMotelLoftVariant11Placements, D_dryfield_night_motel_loft_80180870 },
     { NULL, NULL },
 };
 

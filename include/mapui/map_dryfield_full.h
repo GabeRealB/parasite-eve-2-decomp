@@ -21,6 +21,15 @@
 /// Highest area ID represented by the night stage's directories, including empty slots.
 enum { MAP_DRYFIELD_FULL_AREA_ID_LIMIT = GAME_AREA_DRYFIELD_NIGHT_UNDERPASS };
 
+/// Map-page and marker extents; the marker table adds a page-zero terminator.
+enum {
+    MAP_DRYFIELD_FULL_PAGE_COUNT   = 3,
+    MAP_DRYFIELD_FULL_MARKER_COUNT = 30,
+};
+
+/// Columns per area in the flat music table; scene progress selects 0..10.
+enum { MAP_DRYFIELD_FULL_MUSIC_COLUMN_COUNT = 11 };
+
 /// Captured-frame and auxiliary-heap RAM regions for Dryfield at night.
 ///
 /// Indexed directly by area ID (0..38), with no terminator. Areas 4, 10, 33
@@ -30,27 +39,62 @@ enum { MAP_DRYFIELD_FULL_AREA_ID_LIMIT = GAME_AREA_DRYFIELD_NIGHT_UNDERPASS };
 /// this stage is unproven. The map overlay must remain loaded during lookup.
 extern GfxImageSlot gMapDryfieldFullImageSlots[MAP_DRYFIELD_FULL_AREA_ID_LIMIT + 1];
 
-extern StageMusicEntry D_map_dryfield_full_8017D238[];
+/// Area music for Dryfield at night, in flat rows of eleven scene columns.
+///
+/// Index is area ID * `MAP_DRYFIELD_FULL_MUSIC_COLUMN_COUNT` + column:
+/// areas 0..38, columns 0..10. The final zero entry is outside those rows;
+/// its role is unproven and it is not a terminator. Entry zero of each row
+/// also controls the ambient loop. Keep this overlay loaded during music tasks.
+extern StageMusicEntry gMapDryfieldFullAreaMusicEntries[(MAP_DRYFIELD_FULL_AREA_ID_LIMIT + 1) * MAP_DRYFIELD_FULL_MUSIC_COLUMN_COUNT + 1];
 
-extern StageMusicEntry D_map_dryfield_full_8017D594[];
+/// Scene-indexed countdown music for Dryfield at night.
+///
+/// `gStageSceneMusicEntry` directly selects 0..19, without a terminator or
+/// bounds check. Entries 12..19 retain sequence zero and start mode zero.
+/// Keep this overlay loaded until the music task finishes using its selection.
+extern StageMusicEntry gMapDryfieldFullCountdownMusicEntries[20];
 
-/// This stage's `Gp_MapFlagIds` entry, indexed by map room id.
-extern u8 D_map_dryfield_full_80179ADC[];
+/// Availability flags for Dryfield-at-night map pages.
+///
+/// Indexed by page (1..3); slot 0 is the navigation boundary. All pages use
+/// nibble flag 0x16: a nonzero value unlocks them, otherwise visited areas
+/// determine availability, including daytime visits. There is no end entry;
+/// navigation uses the page count. Keep this overlay loaded during lookup.
+extern u8 gMapDryfieldFullPageFlagIds[MAP_DRYFIELD_FULL_PAGE_COUNT + 1];
 
-/// This stage's `Gp_MapRecTables` entry: where each room sits on the map, by room.
-extern MenuMapArea D_map_dryfield_full_80179AE0[];
+/// Area-to-map coordinate mappings for Dryfield at night.
+///
+/// Indexed directly by area ID (0..38); unmapped slots use PAGE_NONE. The extra
+/// record at index 39 also has PAGE_NONE, rather than PAGE_END. The retained
+/// page-availability walk therefore reads into the adjacent area-shape table
+/// until it encounters a page word of 0xFFFF. This array remains 40 records;
+/// the neighboring bytes are not part of it. Keep this overlay loaded for use.
+extern MenuMapArea gMapDryfieldFullAreas[MAP_DRYFIELD_FULL_AREA_ID_LIMIT + 2];
 
 /// This stage's `Gp_MapMarkTables` entry: the area shapes, indexed by area.
 extern MenuMapAreaShape D_map_dryfield_full_80179D10[];
 
-/// This stage's `D_8010F0E0` entry, ended by a page of 0.
-extern MenuMapMarker D_map_dryfield_full_80179E48[];
+/// Fixed map markers for Dryfield at night, followed by a page-zero terminator.
+///
+/// Indices 0..29 correspond to `gMapDryfieldFullMarkerFlags`; every marker is
+/// independent of area visit bits. Index 29 is controlled directly by story
+/// progress. Coordinates are signed map pixels. Keep this overlay loaded for use.
+extern MenuMapMarker gMapDryfieldFullMarkers[MAP_DRYFIELD_FULL_MARKER_COUNT + 1];
 
-/// This stage's `D_8010F0CC` entry, ended by a page of 0.
-extern MenuMapIcon D_map_dryfield_full_80179F04[];
+/// Fixed and objective icons on the Dryfield-at-night map.
+///
+/// Eight records and a page-zero terminator; areas and pages are one-based.
+/// Fixed icons require a visited area and any nonzero condition flag; objective
+/// icons compare their condition with the current objective byte. Coordinates
+/// are signed map pixels. Keep this overlay loaded while drawing.
+extern MenuMapIcon gMapDryfieldFullIcons[9];
 
-/// This stage's `Gp_MapNameTables` entry: the room names, indexed by room - 1.
-extern MenuMapAreaName D_map_dryfield_full_80179F4C[];
+/// Area names displayed by the Dryfield-at-night map.
+///
+/// Indexed by area ID minus one (0..37), without a terminator. Each record is
+/// a NUL-terminated ASCII line in 32 bytes; unnamed slots contain empty strings.
+/// Keep this overlay loaded while measuring or drawing the text.
+extern MenuMapAreaName gMapDryfieldFullAreaNames[MAP_DRYFIELD_FULL_AREA_ID_LIMIT];
 
 /// Placed-object lists and spawn recipes for Dryfield at night.
 ///
@@ -61,12 +105,21 @@ extern MenuMapAreaName D_map_dryfield_full_80179F4C[];
 /// their spawned tasks use them.
 extern AreaObjectRoom gMapDryfieldFullObjectRooms[MAP_DRYFIELD_FULL_AREA_ID_LIMIT + 2];
 
-/// This stage's `D_8010FABC` entry: the task each room starts, keyed by
-/// `GP_TASK_LOC_KEY` and ended by flags of 0xFFFF.
-extern TaskDesc D_map_dryfield_full_8017A5AC[];
+/// Default room-task recipes for the 32 populated Dryfield-at-night areas.
+///
+/// Each data value is `GP_TASK_LOC_KEY(stage, area, 0)`, so every room of that
+/// area shares its callback. Tasks have no body and priority 32. The final
+/// `TASK_DESC_END` entry closes the search; keep this overlay and the selected
+/// room callback's overlay loaded through spawning and task execution.
+extern TaskDesc gMapDryfieldFullRoomTaskDescriptors[33];
 
-/// This stage's flag table for `menuMapGetMarkerState`.
-extern u16 D_map_dryfield_full_8017A738[];
+/// Packed flag and picture selectors for Dryfield-at-night map markers.
+///
+/// Indexed in parallel with `gMapDryfieldFullMarkers` (0..29), with no
+/// terminator. Low eleven bits select a game-flag nibble; bit eleven selects
+/// the alternate picture. Index 29's zero word is bypassed by the story test
+/// in `menuMapGetMarkerState`. Keep this overlay loaded during lookup.
+extern u16 gMapDryfieldFullMarkerFlags[MAP_DRYFIELD_FULL_MARKER_COUNT];
 
 /// Per-area directories of room lighting for Dryfield at night.
 ///
@@ -403,40 +456,94 @@ extern AreaPlacement D_map_dryfield_full_8017CB58[];
 
 extern AreaPlacement D_map_dryfield_full_8017CB98[];
 
-extern AreaPlacement D_map_dryfield_full_8017CBF8[];
+/// Seven posed Scavengers for night Motel Loft placement variant 4.
+///
+/// Ends with `AREA_PLACEMENT_END`; actors borrow these records from this overlay.
+extern AreaPlacement gMapDryfieldFullMotelLoftVariant4Placements[8];
 
-extern AreaPlacement D_map_dryfield_full_8017CC78[];
+/// Six active Scavengers for night Motel Loft placement variant 11.
+///
+/// Ends with `AREA_PLACEMENT_END`; actors borrow these records from this overlay.
+extern AreaPlacement gMapDryfieldFullMotelLoftVariant11Placements[7];
 
-extern AreaPlacement D_map_dryfield_full_8017CCE8[];
+/// One Zebra Stalker with a water entrance and no ceiling perch, for night Water Hole variant 1.
+///
+/// Ends with `AREA_PLACEMENT_END`; the actor borrows its record from this overlay.
+extern AreaPlacement gMapDryfieldFullWaterHoleVariant1Placements[2];
 
-extern AreaPlacement D_map_dryfield_full_8017CD08[];
+/// Two ordinary Mossbacks for night Water Hole placement variant 2.
+///
+/// Ends with `AREA_PLACEMENT_END`; actors borrow these records from this overlay.
+extern AreaPlacement gMapDryfieldFullWaterHoleVariant2Placements[3];
 
-extern AreaPlacement D_map_dryfield_full_8017CD38[];
+/// Empty placement list for night Water Hole variant 10's ending scene.
+///
+/// Only `AREA_PLACEMENT_END`; the variant still loads its scene controller,
+/// which room initialization starts separately. Keep this overlay loaded for lookup.
+extern AreaPlacement gMapDryfieldFullWaterHoleVariant10Placements[1];
 
-extern AreaPlacement D_map_dryfield_full_8017CD48[];
+/// Three Zebra Stalkers without ceiling perches, for night Water Hole variant 21.
+///
+/// Ends with `AREA_PLACEMENT_END`; actors borrow these records from this overlay.
+extern AreaPlacement gMapDryfieldFullWaterHoleVariant21Placements[4];
 
-extern AreaPlacement D_map_dryfield_full_8017CD88[];
+/// Five active Scavengers for night Cellar placement variant 1.
+///
+/// Ends with `AREA_PLACEMENT_END`; actors borrow these records from this overlay.
+extern AreaPlacement gMapDryfieldFullCellarVariant1Placements[6];
 
-extern AreaPlacement D_map_dryfield_full_8017CDE8[];
+/// Six wandering bats and five rats for night Cellar placement variant 3.
+///
+/// Bats use turn-rate row 4. Ends with `AREA_PLACEMENT_END`; actors borrow
+/// these records from this overlay.
+extern AreaPlacement gMapDryfieldFullCellarVariant3Placements[12];
 
-extern AreaPlacement D_map_dryfield_full_8017CEA8[];
+/// Two Scavengers and eight perched bats for night Cellar placement variant 11.
+///
+/// Bats use turn-rate row 5. Ends with `AREA_PLACEMENT_END`; actors borrow
+/// these records from this overlay.
+extern AreaPlacement gMapDryfieldFullCellarVariant11Placements[11];
 
-extern AreaPlacement D_map_dryfield_full_8017CF58[];
+/// One Gray Stalker for night Underpass placement variant 1.
+///
+/// Ends with `AREA_PLACEMENT_END`; the actor borrows its record from this overlay.
+extern AreaPlacement gMapDryfieldFullUnderpassVariant1Placements[2];
 
-extern AreaPlacement D_map_dryfield_full_8017CF78[];
+/// Five active Scavengers for night Underpass placement variant 2.
+///
+/// Ends with `AREA_PLACEMENT_END`; actors borrow these records from this overlay.
+extern AreaPlacement gMapDryfieldFullUnderpassVariant2Placements[6];
 
-extern AreaPlacement D_map_dryfield_full_8017CFD8[];
+/// Three Mossbacks with movement-sensitive awareness, for night Underpass variant 3.
+///
+/// Ends with `AREA_PLACEMENT_END`; actors borrow these records from this overlay.
+extern AreaPlacement gMapDryfieldFullUnderpassVariant3Placements[4];
 
-extern AreaPlacement D_map_dryfield_full_8017D018[];
+/// One Knight GOLEM for night Underpass placement variant 7.
+///
+/// Ends with `AREA_PLACEMENT_END`; the actor borrows its record from this overlay.
+extern AreaPlacement gMapDryfieldFullUnderpassVariant7Placements[2];
 
-extern AreaPlacement D_map_dryfield_full_8017D038[];
+/// Seven ceiling-perched Mind Sucklers barred from wall reperching, for night Underpass variant 11.
+///
+/// Ends with `AREA_PLACEMENT_END`; actors borrow these records from this overlay.
+extern AreaPlacement gMapDryfieldFullUnderpassVariant11Placements[8];
 
-/// This stage's `D_8010F9F4` and `D_8010FA0C` entries: items awarded
-/// for battles won at a location, each list ended by a key of
-/// `INVENTORY_BATTLE_REWARD_LIST_END`.
-extern InventoryBattleReward D_map_dryfield_full_8017D0B8[];
+/// Dryfield-at-night battle rewards for normal, replay and Scavenger runs.
+///
+/// Twenty-two location-keyed rows and `INVENTORY_BATTLE_REWARD_LIST_END`.
+/// Each nonzero item slot grants one pack; slot 3 requires a Medicine Wheel.
+/// Keys select stage 3, area and placement variant, independent of room/view.
+/// Keep this overlay loaded during reward lookup.
+extern InventoryBattleReward gMapDryfieldFullBattleRewards[23];
 
-extern InventoryBattleReward D_map_dryfield_full_8017D1CC[];
+/// Dryfield-at-night battle rewards for Bounty and Nightmare runs.
+///
+/// Eight location-keyed rows and `INVENTORY_BATTLE_REWARD_LIST_END`.
+/// Each nonzero item slot grants one pack; slot 3 requires a Medicine Wheel.
+/// Keys select stage 3, area and placement variant, independent of room/view.
+/// Keep this overlay loaded during reward lookup.
+extern InventoryBattleReward gMapDryfieldFullHardBattleRewards[9];
 
 /// Resolves the night Junk Yard's destination room from event progress.
 ///

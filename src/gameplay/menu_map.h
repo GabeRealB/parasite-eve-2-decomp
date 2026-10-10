@@ -3,10 +3,11 @@
 
 #include "types.h"
 
+#include "gameplay/map.h"
+
 /// Packed marker-table entry and marker-state values used by the map screen.
 enum {
     MENU_MAP_MARKER_FLAG_ID_MASK      = 0x7FF,
-    MENU_MAP_MARKER_ALTERNATE_PICTURE = 0x800,
     MENU_MAP_MARKER_STATE_VISIBLE     = 2,
     MENU_MAP_MARKER_STATE_UNAVAILABLE = -1
 };

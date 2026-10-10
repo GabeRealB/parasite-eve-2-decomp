@@ -841,17 +841,17 @@ AreaResource D_dryfield_night_underpass_801802C4[2] = {
 
 AreaVariant D_dryfield_night_underpass_801802DC[12] = {
     { NULL, NULL },
-    { D_map_dryfield_full_8017CF58, _gDryfieldNightUnderpassGrayStalkerResources },
-    { D_map_dryfield_full_8017CF78, _gDryfieldNightUnderpassScavengerResources },
-    { D_map_dryfield_full_8017CFD8, D_dryfield_night_underpass_80180294 },
+    { gMapDryfieldFullUnderpassVariant1Placements, _gDryfieldNightUnderpassGrayStalkerResources },
+    { gMapDryfieldFullUnderpassVariant2Placements, _gDryfieldNightUnderpassScavengerResources },
+    { gMapDryfieldFullUnderpassVariant3Placements, D_dryfield_night_underpass_80180294 },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017D018, D_dryfield_night_underpass_801802AC },
+    { gMapDryfieldFullUnderpassVariant7Placements, D_dryfield_night_underpass_801802AC },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017D038, D_dryfield_night_underpass_801802C4 },
+    { gMapDryfieldFullUnderpassVariant11Placements, D_dryfield_night_underpass_801802C4 },
 };
 
 /// Cue-2 bases in the currently loaded type-1 bank; cue 1 uses the next entry.
