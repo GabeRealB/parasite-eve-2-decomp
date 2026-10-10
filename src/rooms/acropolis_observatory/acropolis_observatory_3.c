@@ -75,18 +75,12 @@ extern s16 D_acropolis_observatory_8017FE68[];
 extern SVECTOR D_acropolis_observatory_8017FE78[8];
 extern u16     D_acropolis_observatory_8017FEB8[8];
 
-extern WorldCollisionGrid    D_acropolis_observatory_80180A50[1];
+static WorldCollisionGrid    _gAcropolisObservatoryCollisionGrid;
 extern WorldCollisionTrigger D_acropolis_observatory_80180A74[10];
 extern WorldCollisionTrigger D_acropolis_observatory_80180D6C[9];
-extern WorldCoordRoomLights  D_acropolis_observatory_8018177C[1];
+static WorldCoordRoomLights  _gAcropolisObservatoryRoomLights;
 
 static void _acropolisObservatoryScriptedBattleTask(Task* task);
-
-extern SpriteBatch  D_acropolis_observatory_80181794[2];
-extern SpriteBatch  D_acropolis_observatory_80181B78[7];
-extern SpriteBatch  D_acropolis_observatory_80182074[22];
-extern SpriteSource D_acropolis_observatory_801817A4[49];
-extern SpriteSource D_acropolis_observatory_80181BB0[61];
 
 s16 D_acropolis_observatory_8017FE68[2] = {
     -1,
@@ -118,11 +112,12 @@ u16 D_acropolis_observatory_8017FEB8[8] = {
 };
 
 WorldCollisionRoomResources D_acropolis_observatory_8017FEC8[2] = {
-    { D_acropolis_observatory_80180A50, D_acropolis_observatory_80180A74, D_acropolis_observatory_80180D6C, NULL },
-    { D_acropolis_observatory_80180A50, D_acropolis_observatory_80180A74, D_acropolis_observatory_80180D6C, NULL },
+    { &_gAcropolisObservatoryCollisionGrid, D_acropolis_observatory_80180A74, D_acropolis_observatory_80180D6C, NULL },
+    { &_gAcropolisObservatoryCollisionGrid, D_acropolis_observatory_80180A74, D_acropolis_observatory_80180D6C, NULL },
 };
 
-u8 D_acropolis_observatory_8017FEE8[8] = {
+/// Room 2's eight logical-view mappings, exchanging camera/image/sprite indices 2 and 8.
+static u8 _gAcropolisObservatoryRoom2ViewMap[ACROPOLIS_OBSERVATORY_VIEW_COUNT] = {
     1,
     8,
     3,
@@ -133,16 +128,16 @@ u8 D_acropolis_observatory_8017FEE8[8] = {
     2,
 };
 
-u8* D_acropolis_observatory_8017FEF0[2] = {
+u8* gAcropolisObservatoryViewMaps[ACROPOLIS_OBSERVATORY_ROOM_COUNT] = {
     gViewIdentityMap,
-    D_acropolis_observatory_8017FEE8,
+    _gAcropolisObservatoryRoom2ViewMap,
 };
 
 ViewCount D_acropolis_observatory_8017FEF8[2] = { 8, 8 };
 
-WorldCoordRoomLighting D_acropolis_observatory_8017FEFC[2] = {
-    { D_acropolis_observatory_8018177C, NULL },
-    { D_acropolis_observatory_8018177C, NULL },
+WorldCoordRoomLighting gAcropolisObservatoryRoomLightingTable[ACROPOLIS_OBSERVATORY_ROOM_COUNT] = {
+    { &_gAcropolisObservatoryRoomLights, NULL },
+    { &_gAcropolisObservatoryRoomLights, NULL },
 };
 
 DirectionWarpEntry D_acropolis_observatory_8017FF0C[4] = {
@@ -152,30 +147,49 @@ DirectionWarpEntry D_acropolis_observatory_8017FF0C[4] = {
     { { { .word = 1024 }, -2408, -2926, -1748 }, { 0, 0, 0, 0 }, { { .word = 0 }, 0, 0, 0 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SECURITY_ROOM },
 };
 
-static SVECTOR _gAcropolisObservatoryCollision03490Normals[22] = {
+/// Room-space collision normals, with `ONE` representing unit length.
+static SVECTOR _gAcropolisObservatoryCollisionGridNormals[22] = {
 #include "assets/acropolis_observatory_collision_03490_normals.inc"
 };
 
-static SVECTOR _gAcropolisObservatoryCollision03490Verts[155] = {
+/// Collision vertex pool in signed halfword room-coordinate units.
+static SVECTOR _gAcropolisObservatoryCollisionGridVerts[155] = {
 #include "assets/acropolis_observatory_collision_03490_verts.inc"
 };
 
-static WorldCollisionGridFace _gAcropolisObservatoryCollision03490Faces[62] = {
+/// Indexed collision faces: 58 class-0 surfaces and four class-1 footstep surfaces.
+static WorldCollisionGridFace _gAcropolisObservatoryCollisionGridFaces[62] = {
 #include "assets/acropolis_observatory_collision_03490_faces.inc"
 };
 
-static s16 _gAcropolisObservatoryCollision03490Cells[232] = {
+/// Packed signed face-index lists, each ending with `WORLD_COLLISION_GRID_CELL_END`.
+static s16 _gAcropolisObservatoryCollisionGridCells[232] = {
 #include "assets/acropolis_observatory_collision_03490_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gAcropolisObservatoryCollision03490Cells[i])
-static s16* _gAcropolisObservatoryCollision03490Table[9] = {
+#define GRID_CELL(i) (&_gAcropolisObservatoryCollisionGridCells[i])
+/// X-major 3-by-3 directory of starts in the packed cell face-index lists.
+static s16* _gAcropolisObservatoryCollisionGridTable[9] = {
 #include "assets/acropolis_observatory_collision_03490_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_acropolis_observatory_80180A50[1] = {
-    { NULL, _gAcropolisObservatoryCollision03490Normals, _gAcropolisObservatoryCollision03490Verts, _gAcropolisObservatoryCollision03490Faces, _gAcropolisObservatoryCollision03490Table, 8340, 0x2D57, 3, 3, 4000, 62 },
+/// Collision mesh shared by both rooms, indexed by a 3-by-3 XZ grid of 4000-unit cells.
+///
+/// The room origin is (-8340, -11607) on XZ. Activation binds the writable record
+/// to the current view; its mesh and cell lists remain borrowed from this overlay.
+static WorldCollisionGrid _gAcropolisObservatoryCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gAcropolisObservatoryCollisionGridNormals,
+    .vertices    = _gAcropolisObservatoryCollisionGridVerts,
+    .faces       = _gAcropolisObservatoryCollisionGridFaces,
+    .cellFaceIds = _gAcropolisObservatoryCollisionGridTable,
+    .xBias       = 8340,
+    .zBias       = 11607,
+    .cellCountX  = 3,
+    .cellCountZ  = 3,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gAcropolisObservatoryCollisionGridFaces),
 };
 
 WorldCollisionTrigger D_acropolis_observatory_80180A74[10] = {
@@ -203,12 +217,20 @@ WorldCollisionTrigger D_acropolis_observatory_80180D6C[9] = {
     { NULL, NULL, NULL, { -4864, -3104, -3584, 0 }, { { -1664, 0, 560, 0 }, { 1664, 0, -1072, 0 }, { -1664, 0, 1072, 0 }, { 1664, 0, -560, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1978, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_acropolis_observatory_80181018[2] = {
+/// Variant 1's entry-19 Grinning Stranger resource and terminating record.
+///
+/// Loads base-30 file 19 and the low-4 placement file; both placements use task 0.
+/// Resources and descriptors are borrowed for the lifetime of their loaded overlays.
+static AreaResource _gAcropolisObservatoryVariant1Resources[2] = {
     { 19, 19, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor301900GrinningStrangerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_acropolis_observatory_80181030[2] = {
+/// Variant 2's entry-11 actor resource and terminating record.
+///
+/// Loads base-10 file 11 and the low-1 placement file; both placements use task 0.
+/// Resources and descriptors are borrowed for the lifetime of their loaded overlays.
+static AreaResource _gAcropolisObservatoryVariant2Resources[2] = {
     { 11, 11, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor101100Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -301,8 +323,8 @@ AreaPlacement D_acropolis_observatory_80181244[2] = {
 
 AreaVariant D_acropolis_observatory_80181264[19] = {
     { NULL, NULL },
-    { D_map_akropolis_8017B6DC, D_acropolis_observatory_80181018 },
-    { D_map_akropolis_8017B70C, D_acropolis_observatory_80181030 },
+    { D_map_akropolis_8017B6DC, _gAcropolisObservatoryVariant1Resources },
+    { D_map_akropolis_8017B70C, _gAcropolisObservatoryVariant2Resources },
     { D_map_akropolis_8017B73C, D_acropolis_observatory_80181048 },
     { NULL, NULL },
     { NULL, NULL },
@@ -439,68 +461,103 @@ static WorldCoordPointLight _gAcropolisObservatoryPointLights[] = {
     },
 };
 
-WorldCoordRoomLights D_acropolis_observatory_8018177C[1] = {
-    { 0, NULL, ARRAY_SIZE(_gAcropolisObservatoryPointLights), _gAcropolisObservatoryPointLights, 0, NULL },
+/// The twelve point lights shared by both rooms, without directional or cone lights.
+///
+/// Borrows the mutable point-light array while this overlay is loaded.
+static WorldCoordRoomLights _gAcropolisObservatoryRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gAcropolisObservatoryPointLights),
+    .pointLights           = _gAcropolisObservatoryPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
-SpriteBatch D_acropolis_observatory_80181794[2] = {
+/// GPU page and palette encodings for the view sprites' 8-bit texture atlas.
+///
+/// Page names give the VRAM X origin; every page starts at Y=0 and uses average
+/// blending for semitransparent sprites. Palette names give the VRAM row at X=0.
+enum {
+    ACROPOLIS_OBSERVATORY_SPRITE_TEXTURE_DEPTH_8BIT = 1,
+    ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X832         = getTPage(ACROPOLIS_OBSERVATORY_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 832, 0),
+    ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896         = getTPage(ACROPOLIS_OBSERVATORY_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0),
+    ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960         = getTPage(ACROPOLIS_OBSERVATORY_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0),
+    ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255          = getClut(0, 255),
+    ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256          = getClut(0, 256),
+    ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y257          = getClut(0, 257),
+    ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y258          = getClut(0, 258),
+};
+
+/// Mapped view 1's empty sprite list, retaining decoded background strips.
+///
+/// The zero-count first record selects the background; `SPRITE_BATCH_END` ends
+/// the list. The source slot retains this list's address without dereferencing it.
+static SpriteBatch _gAcropolisObservatoryView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_observatory_801817A4[49] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 8, 48, 1167, { .fields = { 16, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 88 } }, 104, -40, 742, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 40 } }, 104, 48, 729, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 88 } }, -160, -48, 1538, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -88, -16, 1450, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -72, -24, 1325, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, -56, -40, 1200, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 104 } }, -40, -56, 1180, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, -8, -16, 1167, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 88 } }, -128, -48, 1475, { .fields = { 24, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -56, -48, 1389, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, -128, 0, 1521, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -104, 0, 1449, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 32 } }, -96, -16, 1408, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -88, -24, 1550, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, -72, -32, 1384, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 32 } }, -64, -48, 1384, { .fields = { 120, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 32 } }, -32, -80, 1157, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -8, -64, 1132, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, 24, -88, 1132, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 56 } }, -160, -8, 1216, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 88 } }, -88, 32, 1350, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 88 } }, -120, 32, 1450, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 88 } }, -144, 32, 1475, { .fields = { 0, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 88 } }, -160, 32, 1500, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 80 } }, -40, 40, 1175, { .fields = { 48, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 80 } }, -64, 40, 1250, { .fields = { 24, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, 32, -88, 1171, { .fields = { 88, 248 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 56, 40 } }, -24, -88, 1206, { .fields = { 48, 40 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 8, 32 } }, -32, -72, 1200, { .fields = { 96, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 8, 32 } }, -40, -64, 1250, { .fields = { 112, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 8, 24 } }, -48, -56, 1316, { .fields = { 0, 232 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 8, 32 } }, -56, -56, 1352, { .fields = { 64, 112 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 8, 32 } }, -64, -48, 1374, { .fields = { 64, 80 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 8, 32 } }, -72, -40, 1396, { .fields = { 64, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 8, 32 } }, -80, -32, 1419, { .fields = { 72, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 8, 32 } }, -88, -24, 1388, { .fields = { 104, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 8, 32 } }, -96, -16, 1472, { .fields = { 64, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 8, 32 } }, -104, -8, 1501, { .fields = { 56, 80 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 8, 32 } }, -112, 0, 1490, { .fields = { 56, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 8, 24 } }, -120, 8, 1534, { .fields = { 112, 232 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 8, 24 } }, -128, 16, 1601, { .fields = { 120, 232 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 48, 48 } }, -32, -8, 1180, { .fields = { 72, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 8, 16 } }, 16, 8, 1141, { .fields = { 96, 232 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 8, 48 } }, -40, 0, 1245, { .fields = { 104, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 8, 48 } }, -48, 8, 1250, { .fields = { 112, 48 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 8, 48 } }, -56, 8, 1250, { .fields = { 120, 88 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 8, 48 } }, -64, 16, 1257, { .fields = { 104, 48 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 8, 48 } }, -72, 24, 1350, { .fields = { 112, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+/// The 49 foreground texture rectangles for mapped view 2, selected by its batches.
+///
+/// Pixel positions are relative to the view centre; depths are unscaled sorting
+/// values. The mutable sources remain live with this overlay and have no sentinel.
+static SpriteSource _gAcropolisObservatoryView2SpriteSources[49] = {
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 8 } }, 8, 48, 1167, { .fields = { 16, 248 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 48, 88 } }, 104, -40, 742, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 48, 40 } }, 104, 48, 729, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 32, 88 } }, -160, -48, 1538, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 56 } }, -88, -16, 1450, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 72 } }, -72, -24, 1325, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 88 } }, -56, -40, 1200, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 32, 104 } }, -40, -56, 1180, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 32, 64 } }, -8, -16, 1167, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 40, 88 } }, -128, -48, 1475, { .fields = { 24, 88 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 8 } }, -56, -48, 1389, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 40 } }, -128, 0, 1521, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 16 } }, -104, 0, 1449, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 32 } }, -96, -16, 1408, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 16 } }, -88, -24, 1550, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 16 } }, -72, -32, 1384, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 32 } }, -64, -48, 1384, { .fields = { 120, 136 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 32 } }, -32, -80, 1157, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 32, 16 } }, -8, -64, 1132, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 40 } }, 24, -88, 1132, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 40, 56 } }, -160, -8, 1216, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 88 } }, -88, 32, 1350, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 32, 88 } }, -120, 32, 1450, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 88 } }, -144, 32, 1475, { .fields = { 0, 88 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 88 } }, -160, 32, 1500, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 32, 80 } }, -40, 40, 1175, { .fields = { 48, 176 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 80 } }, -64, 40, 1250, { .fields = { 24, 176 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 8, 8 } }, 32, -88, 1171, { .fields = { 88, 248 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 56, 40 } }, -24, -88, 1206, { .fields = { 48, 40 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 8, 32 } }, -32, -72, 1200, { .fields = { 96, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 8, 32 } }, -40, -64, 1250, { .fields = { 112, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 8, 24 } }, -48, -56, 1316, { .fields = { 0, 232 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 8, 32 } }, -56, -56, 1352, { .fields = { 64, 112 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 8, 32 } }, -64, -48, 1374, { .fields = { 64, 80 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 8, 32 } }, -72, -40, 1396, { .fields = { 64, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 8, 32 } }, -80, -32, 1419, { .fields = { 72, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 8, 32 } }, -88, -24, 1388, { .fields = { 104, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 8, 32 } }, -96, -16, 1472, { .fields = { 64, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 8, 32 } }, -104, -8, 1501, { .fields = { 56, 80 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 8, 32 } }, -112, 0, 1490, { .fields = { 56, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 8, 24 } }, -120, 8, 1534, { .fields = { 112, 232 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 8, 24 } }, -128, 16, 1601, { .fields = { 120, 232 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 48, 48 } }, -32, -8, 1180, { .fields = { 72, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 8, 16 } }, 16, 8, 1141, { .fields = { 96, 232 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 8, 48 } }, -40, 0, 1245, { .fields = { 104, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 8, 48 } }, -48, 8, 1250, { .fields = { 112, 48 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 8, 48 } }, -56, 8, 1250, { .fields = { 120, 88 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 8, 48 } }, -64, 16, 1257, { .fields = { 104, 48 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 8, 48 } }, -72, 24, 1350, { .fields = { 112, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteBatch D_acropolis_observatory_80181B78[7] = {
+/// Mapped view 2's five foreground ranges, covering all 49 sources.
+///
+/// A leading zero-count record retains decoded background strips; the terminal
+/// record ends the list. Hidden/excluded flags start clear; `SpriteBatch.field_6`'s role is unproven.
+static SpriteBatch _gAcropolisObservatoryView2SpriteBatches[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 10, 0, 0, { 0, 0 } },
     { 10, 10, 0, 0, { 3, 0 } },
@@ -510,71 +567,80 @@ SpriteBatch D_acropolis_observatory_80181B78[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_observatory_80181BB0[61] = {
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 64, -64, 1996, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 16 } }, 32, -48, 2050, { .fields = { 56, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 24, -48, 2175, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 24, -64, 2133, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, 8, -48, 2208, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, -8, -40, 2275, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -24, -32, 2375, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -40, -16, 2450, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 56, -24, 2075, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 40, -24, 2075, { .fields = { 0, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, 24, -48, 2170, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -8, -24, 2269, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 8, -24, 2211, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -24, -40, 2362, { .fields = { 24, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -40, -40, 2425, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -56, -48, 2433, { .fields = { 40, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, 48, -16, 2075, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, 32, -16, 2212, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 16, -16, 2277, { .fields = { 8, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, 0, -8, 2275, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -16, 0, 2300, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, 8, 2275, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -96, -24, 1776, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -104, -40, 1776, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -112, -40, 1737, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -120, -40, 1715, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, -136, -40, 1715, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -144, -40, 1675, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -40, -8, 2075, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -56, -16, 2050, { .fields = { 8, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -72, -16, 1885, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, -16, 2436, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -112, 16, 1275, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -128, 8, 1210, { .fields = { 16, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, -160, -8, 1131, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 104, 8, 1962, { .fields = { 24, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, 112, -24, 1669, { .fields = { 24, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 120 } }, 120, -16, 825, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 112, 64, 825, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 152, -16, 725, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 104 } }, 136, 16, 725, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 128, 64, 725, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 152, -120, 1625, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 64 } }, 128, -120, 1625, { .fields = { 40, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 104 } }, 128, -56, 1625, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 96 } }, 120, -56, 1650, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 112, -16, 1650, { .fields = { 40, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, 112, -120, 1650, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 40, 24 } }, 32, -64, 2070, { .fields = { 80, 224 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 16, 40 } }, 16, -64, 2177, { .fields = { 56, 208 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 16, 32 } }, 0, -48, 2256, { .fields = { 104, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 16, 32 } }, -16, -40, 2362, { .fields = { 104, 64 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 16, 32 } }, -32, -24, 2432, { .fields = { 120, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 16, 32 } }, -48, -16, 2433, { .fields = { 120, 112 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 16, 24 } }, -64, 0, 2431, { .fields = { 88, 72 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 16, 8 } }, -32, 16, 2175, { .fields = { 56, 248 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 16, 24 } }, -16, 0, 2181, { .fields = { 96, 24 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 16, 32 } }, 0, -8, 2273, { .fields = { 120, 208 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 16, 32 } }, 16, -16, 2271, { .fields = { 120, 176 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 16, 24 } }, 32, -16, 2200, { .fields = { 24, 232 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 16, 24 } }, 48, -16, 2077, { .fields = { 96, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+/// The 61 foreground texture rectangles for mapped view 3, selected by its batches.
+///
+/// Pixel positions are relative to the view centre; depths are unscaled sorting
+/// values. The mutable sources remain live with this overlay and have no sentinel.
+static SpriteSource _gAcropolisObservatoryView3SpriteSources[61] = {
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 16 } }, 64, -64, 1996, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 48, 16 } }, 32, -48, 2050, { .fields = { 56, 120 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 16 } }, 24, -48, 2175, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 16 } }, 24, -64, 2133, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 32 } }, 8, -48, 2208, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 32 } }, -8, -40, 2275, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 32 } }, -24, -32, 2375, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 32 } }, -40, -16, 2450, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 40 } }, 56, -24, 2075, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 40 } }, 40, -24, 2075, { .fields = { 0, 40 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 64 } }, 24, -48, 2170, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 40 } }, -8, -24, 2269, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 40 } }, 8, -24, 2211, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 56 } }, -24, -40, 2362, { .fields = { 24, 120 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 56 } }, -40, -40, 2425, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 56 } }, -56, -48, 2433, { .fields = { 40, 184 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 32 } }, 48, -16, 2075, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 32 } }, 32, -16, 2212, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 40 } }, 16, -16, 2277, { .fields = { 8, 216 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 32 } }, 0, -8, 2275, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 24 } }, -16, 0, 2300, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 16 } }, -32, 8, 2275, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 56 } }, -96, -24, 1776, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 72 } }, -104, -40, 1776, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 72 } }, -112, -40, 1737, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 80 } }, -120, -40, 1715, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 80 } }, -136, -40, 1715, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 24 } }, -144, -40, 1675, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 24 } }, -40, -8, 2075, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 40 } }, -56, -16, 2050, { .fields = { 8, 96 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 40 } }, -72, -16, 1885, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 16 } }, -80, -16, 2436, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 24 } }, -112, 16, 1275, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 40 } }, -128, 8, 1210, { .fields = { 16, 56 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 32, 64 } }, -160, -8, 1131, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 24 } }, 104, 8, 1962, { .fields = { 24, 96 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 56 } }, 112, -24, 1669, { .fields = { 24, 176 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 32, 120 } }, 120, -16, 825, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 32 } }, 112, 64, 825, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 32 } }, 152, -16, 725, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 104 } }, 136, 16, 725, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 56 } }, 128, 64, 725, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 72 } }, 152, -120, 1625, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 64 } }, 128, -120, 1625, { .fields = { 40, 64 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 104 } }, 128, -56, 1625, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 96 } }, 120, -56, 1650, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 56 } }, 112, -16, 1650, { .fields = { 40, 128 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 32 } }, 112, -120, 1650, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 40, 24 } }, 32, -64, 2070, { .fields = { 80, 224 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 16, 40 } }, 16, -64, 2177, { .fields = { 56, 208 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 16, 32 } }, 0, -48, 2256, { .fields = { 104, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 16, 32 } }, -16, -40, 2362, { .fields = { 104, 64 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 16, 32 } }, -32, -24, 2432, { .fields = { 120, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 16, 32 } }, -48, -16, 2433, { .fields = { 120, 112 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 16, 24 } }, -64, 0, 2431, { .fields = { 88, 72 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 16, 8 } }, -32, 16, 2175, { .fields = { 56, 248 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 16, 24 } }, -16, 0, 2181, { .fields = { 96, 24 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 16, 32 } }, 0, -8, 2273, { .fields = { 120, 208 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 16, 32 } }, 16, -16, 2271, { .fields = { 120, 176 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 16, 24 } }, 32, -16, 2200, { .fields = { 24, 232 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 16, 24 } }, 48, -16, 2077, { .fields = { 96, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteBatch D_acropolis_observatory_80182074[22] = {
+/// Mapped view 3's twenty foreground slots, covering all 61 sources in ten live ranges.
+///
+/// Zero-count slots remain in the list, including the first which retains decoded
+/// background strips; only `SPRITE_BATCH_END` terminates it. Hidden/excluded flags
+/// start clear; `SpriteBatch.field_6`'s role is unproven.
+static SpriteBatch _gAcropolisObservatoryView3SpriteBatches[22] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 16, 0 } },
     { 8, 8, 0, 0, { 3, 0 } },
@@ -606,77 +672,85 @@ u16 D_acropolis_observatory_80182124[4] = {
     0,
 };
 
-SpriteSource D_acropolis_observatory_8018212C[67] = {
-    { 143, 0x3FC0, { .fields = { 16, 96 } }, 144, -48, 1287, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 48, -8, 1675, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 64, -16, 1565, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, 88, -16, 1434, { .fields = { 88, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 104, -16, 1412, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 112, -16, 1412, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -136, -16, 1000, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -160, -24, 1000, { .fields = { 16, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -160, 40, 1000, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, -152, -24, 1000, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -136, 40, 1000, { .fields = { 24, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -32, 16, 1850, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 8, 8, 1962, { .fields = { 24, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 40, 8, 2000, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 0, -24, 1962, { .fields = { 16, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 40, -24, 2050, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 72, -104, 2050, { .fields = { 0, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 128 } }, 80, -112, 2050, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 72, -56, 2050, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 96, -112, 2050, { .fields = { 112, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, -56, -24, 1798, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -16, -24, 1900, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -40, -72, 2221, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 0, -56, 1925, { .fields = { 0, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 0, -48, 1925, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 24, -32, 1995, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, -16, 2000, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -80, -80, 1797, { .fields = { 0, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -72, -56, 1797, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -32, -72, 1797, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, -32, -56, 1797, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -16, -48, 1800, { .fields = { 8, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 0, -40, 1925, { .fields = { 8, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 8, -48, 1925, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 16, -24, 1925, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 32, -32, 1945, { .fields = { 0, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 24, -16, 1945, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 40, -8, 2000, { .fields = { 0, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 48, -8, 2000, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 56, -16, 2000, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -56, -16, 1797, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -48, 8, 1872, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, -48, -16, 1797, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -16, -8, 1925, { .fields = { 16, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 0, 0, 1942, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, 8, 8, 1942, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, -8, 16, 1925, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 40, 32 } }, -56, -16, 1850, { .fields = { 16, 168 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 16, 40 } }, -16, -16, 1965, { .fields = { 40, 128 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 16, 32 } }, 0, -8, 1966, { .fields = { 24, 80 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 16, 16 } }, 16, 8, 1965, { .fields = { 72, 240 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4040, { .fields = { 48, 32 } }, -72, -72, 2275, { .fields = { 8, 200 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4040, { .fields = { 16, 48 } }, -24, -72, 2275, { .fields = { 80, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4040, { .fields = { 16, 40 } }, -8, -56, 2275, { .fields = { 56, 128 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4040, { .fields = { 16, 48 } }, 8, -48, 2275, { .fields = { 72, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4040, { .fields = { 16, 40 } }, 24, -32, 2275, { .fields = { 56, 208 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4040, { .fields = { 16, 40 } }, 40, -24, 2275, { .fields = { 56, 168 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4040, { .fields = { 16, 32 } }, 56, -8, 2275, { .fields = { 24, 112 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4080, { .fields = { 56, 32 } }, -72, -72, 1697, { .fields = { 88, 32 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4080, { .fields = { 16, 32 } }, -16, -64, 1807, { .fields = { 16, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4080, { .fields = { 16, 40 } }, 0, -56, 1912, { .fields = { 56, 48 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4080, { .fields = { 16, 32 } }, 16, -40, 1940, { .fields = { 8, 112 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4080, { .fields = { 16, 32 } }, 48, -16, 2050, { .fields = { 8, 80 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4080, { .fields = { 16, 32 } }, 64, -8, 2050, { .fields = { 0, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4080, { .fields = { 16, 16 } }, 80, 8, 2075, { .fields = { 120, 104 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4080, { .fields = { 8, 32 } }, 32, -32, 1945, { .fields = { 0, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4080, { .fields = { 8, 32 } }, 40, -24, 2013, { .fields = { 96, 224 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+/// The 67 foreground texture rectangles for mapped view 4, selected by its batches.
+///
+/// Pixel positions are relative to the view centre; depths are unscaled sorting
+/// values. The mutable sources remain live with this overlay and have no sentinel.
+static SpriteSource _gAcropolisObservatoryView4SpriteSources[67] = {
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 96 } }, 144, -48, 1287, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 40 } }, 48, -8, 1675, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 48 } }, 64, -16, 1565, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 56 } }, 88, -16, 1434, { .fields = { 88, 168 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 48 } }, 104, -16, 1412, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 32 } }, 112, -16, 1412, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 8 } }, -136, -16, 1000, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 24 } }, -160, -24, 1000, { .fields = { 16, 144 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 32 } }, -160, 40, 1000, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 88 } }, -152, -24, 1000, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 24 } }, -136, 40, 1000, { .fields = { 24, 144 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 40, 16 } }, -32, 16, 1850, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 32, 24 } }, 8, 8, 1962, { .fields = { 24, 232 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 32, 24 } }, 40, 8, 2000, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 40, 40 } }, 0, -24, 1962, { .fields = { 16, 40 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 32, 40 } }, 40, -24, 2050, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 16 } }, 72, -104, 2050, { .fields = { 0, 232 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 128 } }, 80, -112, 2050, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 72 } }, 72, -56, 2050, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 16 } }, 96, -112, 2050, { .fields = { 112, 16 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 40, 48 } }, -56, -24, 1798, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 48 } }, -16, -24, 1900, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 8 } }, -40, -72, 2221, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 8 } }, 0, -56, 1925, { .fields = { 0, 136 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 8 } }, 0, -48, 1925, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 8 } }, 24, -32, 1995, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 8 } }, 48, -16, 2000, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 24 } }, -80, -80, 1797, { .fields = { 0, 176 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 40, 16 } }, -72, -56, 1797, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 16 } }, -32, -72, 1797, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 80 } }, -32, -56, 1797, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 24 } }, -16, -48, 1800, { .fields = { 8, 232 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 16 } }, 0, -40, 1925, { .fields = { 8, 64 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 32 } }, 8, -48, 1925, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 16 } }, 16, -24, 1925, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 16 } }, 32, -32, 1945, { .fields = { 0, 120 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 16 } }, 24, -16, 1945, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 16 } }, 40, -8, 2000, { .fields = { 0, 200 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 24 } }, 48, -8, 2000, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 32 } }, 56, -16, 2000, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 32 } }, -56, -16, 1797, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 40, 16 } }, -48, 8, 1872, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 40, 8 } }, -48, -16, 1797, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 8 } }, -16, -8, 1925, { .fields = { 16, 32 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 8 } }, 0, 0, 1942, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 8 } }, 8, 8, 1942, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 8 } }, -8, 16, 1925, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 40, 32 } }, -56, -16, 1850, { .fields = { 16, 168 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 16, 40 } }, -16, -16, 1965, { .fields = { 40, 128 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 16, 32 } }, 0, -8, 1966, { .fields = { 24, 80 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 16, 16 } }, 16, 8, 1965, { .fields = { 72, 240 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y257, { .fields = { 48, 32 } }, -72, -72, 2275, { .fields = { 8, 200 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y257, { .fields = { 16, 48 } }, -24, -72, 2275, { .fields = { 80, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y257, { .fields = { 16, 40 } }, -8, -56, 2275, { .fields = { 56, 128 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y257, { .fields = { 16, 48 } }, 8, -48, 2275, { .fields = { 72, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y257, { .fields = { 16, 40 } }, 24, -32, 2275, { .fields = { 56, 208 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y257, { .fields = { 16, 40 } }, 40, -24, 2275, { .fields = { 56, 168 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y257, { .fields = { 16, 32 } }, 56, -8, 2275, { .fields = { 24, 112 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y258, { .fields = { 56, 32 } }, -72, -72, 1697, { .fields = { 88, 32 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y258, { .fields = { 16, 32 } }, -16, -64, 1807, { .fields = { 16, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y258, { .fields = { 16, 40 } }, 0, -56, 1912, { .fields = { 56, 48 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y258, { .fields = { 16, 32 } }, 16, -40, 1940, { .fields = { 8, 112 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y258, { .fields = { 16, 32 } }, 48, -16, 2050, { .fields = { 8, 80 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y258, { .fields = { 16, 32 } }, 64, -8, 2050, { .fields = { 0, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y258, { .fields = { 16, 16 } }, 80, 8, 2075, { .fields = { 120, 104 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y258, { .fields = { 8, 32 } }, 32, -32, 1945, { .fields = { 0, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y258, { .fields = { 8, 32 } }, 40, -24, 2013, { .fields = { 96, 224 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteBatch D_acropolis_observatory_80182668[12] = {
+/// Mapped view 4's ten foreground ranges, covering all 67 sources.
+///
+/// A leading zero-count record retains decoded background strips; the terminal
+/// record ends the list. Hidden/excluded flags start clear; `SpriteBatch.field_6`'s role is unproven.
+static SpriteBatch _gAcropolisObservatoryView4SpriteBatches[12] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 6, 0 } },
     { 1, 5, 0, 0, { 1, 0 } },
@@ -691,44 +765,56 @@ SpriteBatch D_acropolis_observatory_80182668[12] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_observatory_801826C8[2] = {
+/// Mapped view 5's empty sprite list, retaining decoded background strips.
+///
+/// The zero-count first record selects the background; `SPRITE_BATCH_END` ends
+/// the list. The source slot retains this list's address without dereferencing it.
+static SpriteBatch _gAcropolisObservatoryView5SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_observatory_801826D8[29] = {
-    { 141, 0x3FC0, { .fields = { 88, 16 } }, -8, -120, 700, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 48 } }, -24, -104, 700, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 64, -104, 700, { .fields = { 0, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -104, 32, 375, { .fields = { 88, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -88, 8, 375, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 32 } }, -64, -8, 375, { .fields = { 0, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, 32, 0, 375, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, 56, 16, 375, { .fields = { 72, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 72 } }, 88, 48, 375, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -8, -120, 756, { .fields = { 48, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, 72, -120, 865, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 64 } }, -56, -64, 544, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 48 } }, -32, -80, 562, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 56, 32 } }, -8, -88, 564, { .fields = { 88, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 48 } }, 48, -80, 540, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 72 } }, 72, -64, 553, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 0, -120, 1500, { .fields = { 0, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, 32, -120, 1500, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 40 } }, 56, -120, 1500, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
-    { 141, 0x4000, { .fields = { 120, 40 } }, -24, -120, 375, { .fields = { 72, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 104, 56 } }, -88, -24, 250, { .fields = { 112, 56 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 88, 56 } }, 16, -24, 250, { .fields = { 8, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 112, 48 } }, -112, 32, 250, { .fields = { 16, 168 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 104, 48 } }, 0, 32, 250, { .fields = { 8, 48 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 88, 40 } }, -136, 80, 250, { .fields = { 40, 216 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 141, 0x4000, { .fields = { 80, 40 } }, -48, 80, 250, { .fields = { 88, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 141, 0x4000, { .fields = { 80, 40 } }, 32, 80, 250, { .fields = { 88, 216 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 80, 56 } }, -56, -80, 375, { .fields = { 120, 112 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 72, 56 } }, 24, -80, 375, { .fields = { 32, 200 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+/// The 29 foreground texture rectangles for mapped view 6, selected by its batches.
+///
+/// Pixel positions are relative to the view centre; depths are unscaled sorting
+/// values. The mutable sources remain live with this overlay and have no sentinel.
+static SpriteSource _gAcropolisObservatoryView6SpriteSources[29] = {
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X832, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 88, 16 } }, -8, -120, 700, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 48 } }, -24, -104, 700, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 32, 48 } }, 64, -104, 700, { .fields = { 0, 168 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 64 } }, -104, 32, 375, { .fields = { 88, 72 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 48 } }, -88, 8, 375, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 96, 32 } }, -64, -8, 375, { .fields = { 0, 136 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 40 } }, 32, 0, 375, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 32, 64 } }, 56, 16, 375, { .fields = { 72, 136 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 72 } }, 88, 48, 375, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 32 } }, -8, -120, 756, { .fields = { 48, 168 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 40 } }, 72, -120, 865, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 64 } }, -56, -64, 544, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 48 } }, -32, -80, 562, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X832, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 56, 32 } }, -8, -88, 564, { .fields = { 88, 168 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 48 } }, 48, -80, 540, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 32, 72 } }, 72, -64, 553, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 32, 40 } }, 0, -120, 1500, { .fields = { 0, 216 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 8 } }, 32, -120, 1500, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 32, 40 } }, 56, -120, 1500, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X832, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 120, 40 } }, -24, -120, 375, { .fields = { 72, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 104, 56 } }, -88, -24, 250, { .fields = { 112, 56 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 88, 56 } }, 16, -24, 250, { .fields = { 8, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 112, 48 } }, -112, 32, 250, { .fields = { 16, 168 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 104, 48 } }, 0, 32, 250, { .fields = { 8, 48 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 88, 40 } }, -136, 80, 250, { .fields = { 40, 216 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X832, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 80, 40 } }, -48, 80, 250, { .fields = { 88, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X832, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 80, 40 } }, 32, 80, 250, { .fields = { 88, 216 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 80, 56 } }, -56, -80, 375, { .fields = { 120, 112 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 72, 56 } }, 24, -80, 375, { .fields = { 32, 200 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteBatch D_acropolis_observatory_8018291C[6] = {
+/// Mapped view 6's four foreground ranges, covering all 29 sources.
+///
+/// A leading zero-count record retains decoded background strips; the terminal
+/// record ends the list. Hidden/excluded flags start clear; `SpriteBatch.field_6`'s role is unproven.
+static SpriteBatch _gAcropolisObservatoryView6SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 9, 0, 0, { 3, 0 } },
     { 9, 7, 0, 0, { 0, 0 } },
@@ -737,46 +823,54 @@ SpriteBatch D_acropolis_observatory_8018291C[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_observatory_8018294C[36] = {
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, -96, -104, 750, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 24 } }, -80, -112, 750, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -72, -120, 750, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, -32, -112, 750, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, -16, -96, 750, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -96, -32, 475, { .fields = { 16, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 56 } }, -80, -56, 470, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 64, 24 } }, -48, -64, 475, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, 16, -56, 475, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 40, -32, 475, { .fields = { 0, 56 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 24 } }, -8, 96, 255, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 32 } }, 32, 88, 247, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 40 } }, 56, 80, 246, { .fields = { 40, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 32 } }, 120, 88, 251, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, -96, -88, 750, { .fields = { 0, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 48 } }, 0, -80, 750, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 32 } }, -72, -96, 751, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -96, -120, 800, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 48, 16 } }, -80, -120, 800, { .fields = { 104, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 64 } }, -32, -120, 800, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, -96, -104, 1500, { .fields = { 32, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 24 } }, -80, -112, 1500, { .fields = { 0, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, -40, -104, 1500, { .fields = { 32, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 40 } }, -96, -120, 1250, { .fields = { 72, 80 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 141, 0x4000, { .fields = { 40, 24 } }, -80, -120, 1250, { .fields = { 120, 88 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 24, 48 } }, -40, -120, 1250, { .fields = { 104, 56 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 96, 40 } }, -96, -120, 630, { .fields = { 24, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 136, 48 } }, -96, -80, 450, { .fields = { 0, 176 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 88, 64 } }, -96, -32, 388, { .fields = { 40, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 96, 64 } }, -8, -32, 394, { .fields = { 32, 64 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 104, 64 } }, -96, 32, 280, { .fields = { 24, 128 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 96, 64 } }, 8, 32, 175, { .fields = { 8, 192 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 40, 40 } }, 104, 56, 175, { .fields = { 64, 120 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 141, 0x4000, { .fields = { 80, 24 } }, -104, 96, 249, { .fields = { 56, 136 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 141, 0x4000, { .fields = { 104, 24 } }, -24, 96, 197, { .fields = { 64, 224 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 141, 0x4000, { .fields = { 80, 24 } }, 80, 96, 203, { .fields = { 72, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+/// The 36 foreground texture rectangles for mapped view 7, selected by its batches.
+///
+/// Pixel positions are relative to the view centre; depths are unscaled sorting
+/// values. The mutable sources remain live with this overlay and have no sentinel.
+static SpriteSource _gAcropolisObservatoryView7SpriteSources[36] = {
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 40 } }, -96, -104, 750, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 24 } }, -80, -112, 750, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 40, 16 } }, -72, -120, 750, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 16 } }, -32, -112, 750, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 32 } }, -16, -96, 750, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 56 } }, -96, -32, 475, { .fields = { 16, 64 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 32, 56 } }, -80, -56, 470, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X832, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 64, 24 } }, -48, -64, 475, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 40 } }, 16, -56, 475, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 48 } }, 40, -32, 475, { .fields = { 0, 56 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X832, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 40, 24 } }, -8, 96, 255, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 32 } }, 32, 88, 247, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 64, 40 } }, 56, 80, 246, { .fields = { 40, 40 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 40, 32 } }, 120, 88, 251, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 56 } }, -96, -88, 750, { .fields = { 0, 120 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 48 } }, 0, -80, 750, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 72, 32 } }, -72, -96, 751, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 64 } }, -96, -120, 800, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X832, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 48, 16 } }, -80, -120, 800, { .fields = { 104, 24 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 64 } }, -32, -120, 800, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 32 } }, -96, -104, 1500, { .fields = { 32, 80 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 40, 24 } }, -80, -112, 1500, { .fields = { 0, 40 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 32 } }, -40, -104, 1500, { .fields = { 32, 112 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 16, 40 } }, -96, -120, 1250, { .fields = { 72, 80 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X832, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 40, 24 } }, -80, -120, 1250, { .fields = { 120, 88 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 24, 48 } }, -40, -120, 1250, { .fields = { 104, 56 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 96, 40 } }, -96, -120, 630, { .fields = { 24, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 136, 48 } }, -96, -80, 450, { .fields = { 0, 176 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 88, 64 } }, -96, -32, 388, { .fields = { 40, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 96, 64 } }, -8, -32, 394, { .fields = { 32, 64 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 104, 64 } }, -96, 32, 280, { .fields = { 24, 128 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 96, 64 } }, 8, 32, 175, { .fields = { 8, 192 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 40, 40 } }, 104, 56, 175, { .fields = { 64, 120 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X832, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 80, 24 } }, -104, 96, 249, { .fields = { 56, 136 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X832, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 104, 24 } }, -24, 96, 197, { .fields = { 64, 224 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X832, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 80, 24 } }, 80, 96, 203, { .fields = { 72, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteBatch D_acropolis_observatory_80182C1C[8] = {
+/// Mapped view 7's six foreground ranges, covering all 36 sources.
+///
+/// A leading zero-count record retains decoded background strips; the terminal
+/// record ends the list. Hidden/excluded flags start clear; `SpriteBatch.field_6`'s role is unproven.
+static SpriteBatch _gAcropolisObservatoryView7SpriteBatches[8] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 14, 0, 0, { 3, 0 } },
     { 14, 3, 0, 0, { 0, 0 } },
@@ -787,91 +881,99 @@ SpriteBatch D_acropolis_observatory_80182C1C[8] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_observatory_80182C5C[81] = {
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, -56, 1547, { .fields = { 32, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 64, -40, 1467, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 32, -16, 1544, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 8, -24, 1609, { .fields = { 40, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 16, -40, 1557, { .fields = { 32, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 16, -64, 1612, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -16, -48, 1797, { .fields = { 24, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -16, -32, 1761, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -16, -16, 1770, { .fields = { 24, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -40, -40, 1971, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -48, -16, 1938, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -32, -8, 1842, { .fields = { 32, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 0, 2139, { .fields = { 56, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 16, -24, 1800, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 8, -8, 1785, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 24, 0, 1775, { .fields = { 32, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, 8, 16, 1750, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, 0, 0, 1775, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -16, 0, 1775, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, 8, 1984, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -16, 16, 2019, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 40, 16, 1746, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, 8, 1703, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 96, 112, 1349, { .fields = { 72, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -8, -8, 1862, { .fields = { 104, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 0, 0, 1800, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 32, 8, 1712, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 16, 0, 1717, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -24, -8, 1900, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -40, -24, 1900, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -56, -32, 1987, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -72, -40, 2000, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -88, -48, 2037, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 136, 56, 875, { .fields = { 24, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 136, 72, 993, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 120, 72, 1075, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 112, 88, 1198, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 104, 96, 1271, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 128, 32, 875, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 16 } }, -96, 0, 2157, { .fields = { 104, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 8 } }, -120, 32, 1950, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 8 } }, -40, 32, 1927, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, -112, 24, 1987, { .fields = { 64, 8 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, -40, 24, 1988, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, -104, 16, 2020, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, -56, 16, 2020, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -80, 56, 1575, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -88, 0, 1762, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -72, 32, 1761, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -104, 16, 1637, { .fields = { 0, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -120, 32, 1591, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -112, 48, 1575, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -96, 56, 1575, { .fields = { 40, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -96, 32, 1587, { .fields = { 48, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 104, 48, 1475, { .fields = { 120, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 96, 64, 1475, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 88, 72, 1475, { .fields = { 0, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, 88, 80, 1475, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 96, 88, 1475, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -64, 16, 1787, { .fields = { 24, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, 16, 1775, { .fields = { 16, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -160, 32, 1500, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -144, 56, 1500, { .fields = { 8, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -160, 56, 1500, { .fields = { 24, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -160, 72, 1554, { .fields = { 0, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -160, 88, 1549, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -48, -32, 1754, { .fields = { 88, 248 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 64, 16 } }, 16, -40, 1524, { .fields = { 96, 208 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 64, 16 } }, 16, -24, 1540, { .fields = { 88, 16 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 40, 8 } }, 32, -8, 1554, { .fields = { 96, 48 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 32, 16 } }, -16, -40, 1690, { .fields = { 120, 80 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 32, 24 } }, -16, -24, 1731, { .fields = { 32, 48 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 24, 24 } }, -40, -40, 1898, { .fields = { 48, 184 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 24, 16 } }, -40, -16, 1879, { .fields = { 0, 224 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 16, 24 } }, -32, 8, 2052, { .fields = { 72, 24 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 16, 24 } }, 32, 8, 1750, { .fields = { 72, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 16, 32 } }, 16, 0, 1750, { .fields = { 88, 216 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 16, 32 } }, -16, 0, 1800, { .fields = { 88, 136 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 16, 24 } }, 0, 0, 1800, { .fields = { 64, 48 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 32, 16 } }, -16, -56, 1841, { .fields = { 0, 176 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 72, 24 } }, 16, -64, 1607, { .fields = { 16, 136 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+/// The 81 foreground texture rectangles for mapped view 8, selected by its batches.
+///
+/// Pixel positions are relative to the view centre; depths are unscaled sorting
+/// values. The mutable sources remain live with this overlay and have no sentinel.
+static SpriteSource _gAcropolisObservatoryView8SpriteSources[81] = {
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 16 } }, 72, -56, 1547, { .fields = { 32, 104 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 24 } }, 64, -40, 1467, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 40, 16 } }, 32, -16, 1544, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 16 } }, 8, -24, 1609, { .fields = { 40, 120 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 16 } }, 16, -40, 1557, { .fields = { 32, 184 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 24 } }, 16, -64, 1612, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 16 } }, -16, -48, 1797, { .fields = { 24, 16 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 16 } }, -16, -32, 1761, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 16 } }, -16, -16, 1770, { .fields = { 24, 224 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 24 } }, -40, -40, 1971, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 24 } }, -48, -16, 1938, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 8 } }, -32, -8, 1842, { .fields = { 32, 200 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 8 } }, -64, 0, 2139, { .fields = { 56, 208 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 16 } }, 16, -24, 1800, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 40 } }, 8, -8, 1785, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 16 } }, 24, 0, 1775, { .fields = { 32, 208 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 32, 16 } }, 8, 16, 1750, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 8 } }, 0, 0, 1775, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 16 } }, -16, 0, 1775, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 16 } }, -32, 8, 1984, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 16 } }, -16, 16, 2019, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 16 } }, 40, 16, 1746, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 8 } }, 48, 8, 1703, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 8 } }, 96, 112, 1349, { .fields = { 72, 184 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 40 } }, -8, -8, 1862, { .fields = { 104, 136 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 32 } }, 0, 0, 1800, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 40 } }, 32, 8, 1712, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 40 } }, 16, 0, 1717, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 32 } }, -24, -8, 1900, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 48 } }, -40, -24, 1900, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 48 } }, -56, -32, 1987, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 56 } }, -72, -40, 2000, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 64 } }, -88, -48, 2037, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 16 } }, 136, 56, 875, { .fields = { 24, 72 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 48 } }, 136, 72, 993, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 48 } }, 120, 72, 1075, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 32 } }, 112, 88, 1198, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 24 } }, 104, 96, 1271, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 32, 24 } }, 128, 32, 875, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 72, 16 } }, -96, 0, 2157, { .fields = { 104, 32 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 80, 8 } }, -120, 32, 1950, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 80, 8 } }, -40, 32, 1927, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 72, 8 } }, -112, 24, 1987, { .fields = { 64, 8 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 56, 8 } }, -40, 24, 1988, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 48, 8 } }, -104, 16, 2020, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 48, 8 } }, -56, 16, 2020, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 8 } }, -80, 56, 1575, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 16 } }, -88, 0, 1762, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 24 } }, -72, 32, 1761, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 32, 16 } }, -104, 16, 1637, { .fields = { 0, 104 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 16 } }, -120, 32, 1591, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 24 } }, -112, 48, 1575, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 24 } }, -96, 56, 1575, { .fields = { 40, 160 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 24 } }, -96, 32, 1587, { .fields = { 48, 24 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 16 } }, 104, 48, 1475, { .fields = { 120, 136 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 32, 8 } }, 96, 64, 1475, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 8 } }, 88, 72, 1475, { .fields = { 0, 96 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 8 } }, 88, 80, 1475, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 8 } }, 96, 88, 1475, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 16 } }, -64, 16, 1787, { .fields = { 24, 160 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 8, 16 } }, -72, 16, 1775, { .fields = { 16, 160 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 24 } }, -160, 32, 1500, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 24, 16 } }, -144, 56, 1500, { .fields = { 8, 192 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 16, 16 } }, -160, 56, 1500, { .fields = { 24, 88 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 40, 16 } }, -160, 72, 1554, { .fields = { 0, 120 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y255, { .fields = { 32, 24 } }, -160, 88, 1549, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 8, 8 } }, -48, -32, 1754, { .fields = { 88, 248 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 64, 16 } }, 16, -40, 1524, { .fields = { 96, 208 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 64, 16 } }, 16, -24, 1540, { .fields = { 88, 16 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 40, 8 } }, 32, -8, 1554, { .fields = { 96, 48 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X896, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 32, 16 } }, -16, -40, 1690, { .fields = { 120, 80 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 32, 24 } }, -16, -24, 1731, { .fields = { 32, 48 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 24, 24 } }, -40, -40, 1898, { .fields = { 48, 184 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 24, 16 } }, -40, -16, 1879, { .fields = { 0, 224 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 16, 24 } }, -32, 8, 2052, { .fields = { 72, 24 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 16, 24 } }, 32, 8, 1750, { .fields = { 72, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 16, 32 } }, 16, 0, 1750, { .fields = { 88, 216 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 16, 32 } }, -16, 0, 1800, { .fields = { 88, 136 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 16, 24 } }, 0, 0, 1800, { .fields = { 64, 48 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 32, 16 } }, -16, -56, 1841, { .fields = { 0, 176 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_OBSERVATORY_SPRITE_TPAGE_X960, ACROPOLIS_OBSERVATORY_SPRITE_CLUT_Y256, { .fields = { 72, 24 } }, 16, -64, 1607, { .fields = { 16, 136 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteBatch D_acropolis_observatory_801832B0[10] = {
+/// Mapped view 8's eight foreground ranges, covering all 81 sources.
+///
+/// A leading zero-count record retains decoded background strips; the terminal
+/// record ends the list. Hidden/excluded flags start clear; `SpriteBatch.field_6`'s role is unproven.
+static SpriteBatch _gAcropolisObservatoryView8SpriteBatches[10] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 13, 0, 0, { 6, 0 } },
     { 13, 2, 0, 0, { 1, 0 } },
@@ -884,19 +986,19 @@ SpriteBatch D_acropolis_observatory_801832B0[10] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_acropolis_observatory_80183300[8] = {
-    { { .empty = D_acropolis_observatory_80181794 }, D_acropolis_observatory_80181794, NULL },
-    { { .elements = D_acropolis_observatory_801817A4 }, D_acropolis_observatory_80181B78, NULL },
-    { { .elements = D_acropolis_observatory_80181BB0 }, D_acropolis_observatory_80182074, NULL },
-    { { .elements = D_acropolis_observatory_8018212C }, D_acropolis_observatory_80182668, NULL },
-    { { .empty = D_acropolis_observatory_801826C8 }, D_acropolis_observatory_801826C8, NULL },
-    { { .elements = D_acropolis_observatory_801826D8 }, D_acropolis_observatory_8018291C, NULL },
-    { { .elements = D_acropolis_observatory_8018294C }, D_acropolis_observatory_80182C1C, NULL },
-    { { .elements = D_acropolis_observatory_80182C5C }, D_acropolis_observatory_801832B0, NULL },
+SpriteView gAcropolisObservatorySpriteViews[ACROPOLIS_OBSERVATORY_VIEW_COUNT] = {
+    { { .empty = _gAcropolisObservatoryView1SpriteBatches }, _gAcropolisObservatoryView1SpriteBatches, NULL },
+    { { .elements = _gAcropolisObservatoryView2SpriteSources }, _gAcropolisObservatoryView2SpriteBatches, NULL },
+    { { .elements = _gAcropolisObservatoryView3SpriteSources }, _gAcropolisObservatoryView3SpriteBatches, NULL },
+    { { .elements = _gAcropolisObservatoryView4SpriteSources }, _gAcropolisObservatoryView4SpriteBatches, NULL },
+    { { .empty = _gAcropolisObservatoryView5SpriteBatches }, _gAcropolisObservatoryView5SpriteBatches, NULL },
+    { { .elements = _gAcropolisObservatoryView6SpriteSources }, _gAcropolisObservatoryView6SpriteBatches, NULL },
+    { { .elements = _gAcropolisObservatoryView7SpriteSources }, _gAcropolisObservatoryView7SpriteBatches, NULL },
+    { { .elements = _gAcropolisObservatoryView8SpriteSources }, _gAcropolisObservatoryView8SpriteBatches, NULL },
 };
 
-ViewCamera D_acropolis_observatory_80183360[8] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 4000, 0x7530, 6417 } }, 447 },
+ViewCamera gAcropolisObservatoryViewCameras[ACROPOLIS_OBSERVATORY_VIEW_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 4000, 0x7530, 6417 } }, 447 },
     { { { { 3720, 0, 1712 }, { 16, 4095, -35 }, { -1712, 39, 3720 } }, { 805, 3995, 6905 } }, 230 },
     { { { { 3737, 0, 1674 }, { 228, 4057, -510 }, { -1659, 559, 3702 } }, { 988, 4680, 0x2AC5 } }, 230 },
     { { { { -3839, 0, 1427 }, { 215, 4048, 580 }, { -1411, 618, -3795 } }, { 1561, 4666, 3006 } }, 230 },
@@ -934,29 +1036,48 @@ PadScriptVibrationSegment D_acropolis_observatory_801834B8[2] = {
     { 60, 60, 1, 0 },
 };
 
-WorldCollisionFootstepSounds D_acropolis_observatory_801834C0 = {
-    0x10000011,
-    0x10000013,
-    0x10000011,
+/// Type-1 sound requests: cue-2 entries in the currently loaded bank.
+enum {
+    ACROPOLIS_OBSERVATORY_FOOTSTEP_WALK_BASE = 0x10000011,
+    ACROPOLIS_OBSERVATORY_FOOTSTEP_RUN_BASE  = 0x10000013,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_observatory_801834CC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Cue-2 footstep bases for surface class 1 in the currently loaded sound bank.
+///
+/// Cue 1 adds one; companions add 100. Scripted jumps use the walking pair.
+static WorldCollisionFootstepSounds _gAcropolisObservatoryFootstepSounds = {
+    .walk         = ACROPOLIS_OBSERVATORY_FOOTSTEP_WALK_BASE,
+    .run          = ACROPOLIS_OBSERVATORY_FOOTSTEP_RUN_BASE,
+    .scriptedJump = ACROPOLIS_OBSERVATORY_FOOTSTEP_WALK_BASE,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_observatory_801834D4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_observatory_801834C0 },
+/// Blocking collision policy without surface footstep cues, shared by classes 0 and 2..7.
+static WorldCollisionSurfaceProperties _gAcropolisObservatorySilentSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_acropolis_observatory_801834DC[8] = {
-    D_acropolis_observatory_801834CC,
-    D_acropolis_observatory_801834D4,
-    D_acropolis_observatory_801834CC,
-    D_acropolis_observatory_801834CC,
-    D_acropolis_observatory_801834CC,
-    D_acropolis_observatory_801834CC,
-    D_acropolis_observatory_801834CC,
-    D_acropolis_observatory_801834CC,
+/// Blocking collision policy with walking, running and scripted-jump cues for class 1.
+static WorldCollisionSurfaceProperties _gAcropolisObservatoryFootstepSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gAcropolisObservatoryFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gAcropolisObservatorySurfacePropertiesByClass[ACROPOLIS_OBSERVATORY_SURFACE_CLASS_COUNT] = {
+    &_gAcropolisObservatorySilentSurfaceProperties,
+    &_gAcropolisObservatoryFootstepSurfaceProperties,
+    &_gAcropolisObservatorySilentSurfaceProperties,
+    &_gAcropolisObservatorySilentSurfaceProperties,
+    &_gAcropolisObservatorySilentSurfaceProperties,
+    &_gAcropolisObservatorySilentSurfaceProperties,
+    &_gAcropolisObservatorySilentSurfaceProperties,
+    &_gAcropolisObservatorySilentSurfaceProperties,
 };
 
 /// Runs the observatory's scripted player pose and enemy-entrance battle handoff.

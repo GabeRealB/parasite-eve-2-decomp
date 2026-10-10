@@ -1397,7 +1397,7 @@ D_acropolis_cafeteria_80189DCC = 0x80189DCC; // absolute:True owner=acropolis_ca
 
 D_acropolis_east_elevator_hall_80186C50 = 0x80186C50; // absolute:True owner=acropolis_east_elevator_hall
 
-D_acropolis_fire_escape_8018294C = 0x8018294C; // absolute:True owner=acropolis_fire_escape shared=rooms
+D_acropolis_fire_escape_8018294C = 0x8018294C; // absolute:True owner=acropolis_fire_escape
 
 D_acropolis_forked_road_801831C4 = 0x801831C4; // absolute:True owner=acropolis_forked_road
 

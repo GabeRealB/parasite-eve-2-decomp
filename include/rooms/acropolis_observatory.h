@@ -11,24 +11,61 @@
 
 #include "main/task_types.h"
 
+/// Extents of the observatory's room, mapped-view and surface-class tables.
+enum {
+    ACROPOLIS_OBSERVATORY_ROOM_COUNT          = 2,
+    ACROPOLIS_OBSERVATORY_VIEW_COUNT          = 8,
+    ACROPOLIS_OBSERVATORY_SURFACE_CLASS_COUNT = 8,
+};
+
 extern AreaVariant D_acropolis_observatory_80181264[19];
 
 // acropolis_observatory
 extern WorldCollisionRoomResources D_acropolis_observatory_8017FEC8[];
 
-extern u8* D_acropolis_observatory_8017FEF0[];
+/// Logical-to-mapped view indices for rooms 1 and 2, indexed by room minus one.
+///
+/// Each room uses eight unsigned 1-based camera/image/sprite indices, indexed by
+/// logical view minus one, without a terminator. Room 1 borrows gameplay's larger
+/// identity map; room 2 swaps indices 2 and 8. Keep gameplay and this room
+/// overlay loaded while using the borrowed maps.
+extern u8* gAcropolisObservatoryViewMaps[ACROPOLIS_OBSERVATORY_ROOM_COUNT];
 
 extern ViewCount D_acropolis_observatory_8017FEF8[];
 
-extern WorldCoordRoomLighting D_acropolis_observatory_8017FEFC[];
+/// Lighting descriptors for rooms 1 and 2, indexed by room minus one.
+///
+/// Both borrow the same twelve point lights and use gameplay's default ambient
+/// minima. Light transforms and attenuation remain writable; keep this overlay
+/// loaded while the descriptors or light arrays are in use.
+extern WorldCoordRoomLighting gAcropolisObservatoryRoomLightingTable[ACROPOLIS_OBSERVATORY_ROOM_COUNT];
 
 extern DirectionWarpEntry D_acropolis_observatory_8017FF0C[];
 
-extern SpriteView D_acropolis_observatory_80183300[];
+/// Foreground sprite resources for mapped views 1..8, indexed by view minus one.
+///
+/// Sources use pixel rectangles relative to the view centre and unscaled sorting
+/// depths. Each batch list ends with `SPRITE_BATCH_END` and starts with a zero-count
+/// record requesting decoded background strips. Views 1 and 5 have no source
+/// sprites; all views have no clipping areas. Keep this overlay loaded during
+/// packet allocation and drawing; the borrowed source and batch arrays are mutable.
+extern SpriteView gAcropolisObservatorySpriteViews[ACROPOLIS_OBSERVATORY_VIEW_COUNT];
 
-extern ViewCamera D_acropolis_observatory_80183360[];
+/// Camera transforms and projection distances for mapped views 1..8.
+///
+/// Indexed by mapped view minus one, with no terminator. Rotation uses `ONE`
+/// (4096) for unity; translation is the negated origin in world units, applied
+/// before rotation. Projection distance is in pixels (447 for view 1, 230 for
+/// the others). Keep this overlay loaded until a queued camera request applies.
+extern ViewCamera gAcropolisObservatoryViewCameras[ACROPOLIS_OBSERVATORY_VIEW_COUNT];
 
-extern WorldCollisionSurfaceProperties* D_acropolis_observatory_801834DC[];
+/// Collision policies for surface classes 0..7 in both observatory rooms.
+///
+/// Class 1 supplies paired walking/running footstep cues; the other classes have
+/// no surface cues. Every class blocks probes, allows weapon impacts and applies
+/// pushback. The directory has no terminator and borrows records from this overlay;
+/// keep it loaded while collision or actor-footstep queries use those records.
+extern WorldCollisionSurfaceProperties* gAcropolisObservatorySurfacePropertiesByClass[ACROPOLIS_OBSERVATORY_SURFACE_CLASS_COUNT];
 
 /// Emits the observatory's lens flares at anchors enabled for the mapped view.
 ///
