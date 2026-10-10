@@ -17,10 +17,10 @@ mineCavernRoomTask = 0x8017DF54; // type:func absolute:True owner=mine_cavern
 D_mine_cavern_80188FE0 = 0x80188FE0; // absolute:True owner=mine_cavern
 gMineCavernRoomLighting = 0x80189010; // absolute:True owner=mine_cavern
 gMineCavernRoomViewMaps = 0x80189060; // absolute:True owner=mine_cavern
-D_mine_cavern_8018906C = 0x8018906C; // absolute:True owner=mine_cavern
+gMineCavernRoomViewCounts = 0x8018906C; // absolute:True owner=mine_cavern
 D_mine_cavern_80189074 = 0x80189074; // absolute:True owner=mine_cavern shared=rooms
-D_mine_cavern_80189840 = 0x80189840; // absolute:True owner=mine_cavern
-D_mine_cavern_8018CD10 = 0x8018CD10; // absolute:True owner=mine_cavern
+gMineCavernViewCameras = 0x80189840; // absolute:True owner=mine_cavern
+gMineCavernSpriteViews = 0x8018CD10; // absolute:True owner=mine_cavern
 gMineCavernSurfacePropertiesByClass = 0x8018E30C; // absolute:True owner=mine_cavern
 mineTunnelEntranceRoomTask = 0x8017D6BC; // type:func absolute:True owner=mine_tunnel_entrance shared=rooms
 D_mine_tunnel_entrance_8017DB58 = 0x8017DB58; // absolute:True owner=mine_tunnel_entrance

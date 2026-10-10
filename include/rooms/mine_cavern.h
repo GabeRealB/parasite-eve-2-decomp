@@ -31,13 +31,30 @@ extern WorldCoordRoomLighting gMineCavernRoomLighting[3];
 /// maps with no terminator. Cavern-owned storage requires this overlay loaded.
 extern u8* gMineCavernRoomViewMaps[3];
 
-extern ViewCount D_mine_cavern_8018906C[];
+/// Reverse-search limits for cavern rooms 1..3, indexed by room minus one.
+///
+/// Each signed-halfword count searches 25 logical-view entries. The counts
+/// describe search lengths independently of map storage and resource capacity;
+/// there is no terminator. Borrowed by the Shelter map while the cavern is loaded.
+extern ViewCount gMineCavernRoomViewCounts[3];
 
 extern DirectionWarpEntry D_mine_cavern_80189074[];
 
-extern ViewCamera D_mine_cavern_80189840[];
+/// Cameras for cavern mapped view indices 1..25, indexed by mapped index minus one.
+///
+/// Rotation has 12 fractional bits, translation is the negated world-space
+/// camera origin, and projection distance is in pixels. There is no terminator.
+/// The Shelter map borrows this array; queued camera use requires it to stay loaded.
+extern ViewCamera gMineCavernViewCameras[25];
 
-extern SpriteView D_mine_cavern_8018CD10[];
+/// Sprite resources for cavern mapped view indices 1..25, indexed by index minus one.
+///
+/// Views 5 and 25 share sources and batches. Views 1 and 11..19 retain their
+/// empty batch-list address in the source slot without supplying source elements.
+/// All batch lists begin with zero sprites, selecting decoded background strips,
+/// and end at `SPRITE_BATCH_END`; clipping lists are NULL. Progress can change
+/// batch visibility. The directory and borrowed arrays require the cavern loaded.
+extern SpriteView gMineCavernSpriteViews[25];
 
 /// Cavern collision policies indexed directly by surface class 0..7.
 ///

@@ -45,6 +45,7 @@
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
+#include "main/areas.h"
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/gameflag.h"
@@ -167,25 +168,6 @@ extern WorldCollisionTrigger  D_mine_cavern_8018D154[20];
 extern WorldCollisionTrigger  D_mine_cavern_8018D744[18];
 extern WorldCollisionTrigger  D_mine_cavern_8018DC9C[13];
 static WorldCoordRoomLights   _gMineCavernRoomLights;
-
-extern SpriteBatch  D_mine_cavern_8018B7D0[2];
-extern SpriteBatch  D_mine_cavern_8018B7E0[2];
-extern SpriteBatch  D_mine_cavern_8018B7F0[2];
-extern SpriteBatch  D_mine_cavern_8018B800[2];
-extern SpriteBatch  D_mine_cavern_8018B810[2];
-extern SpriteBatch  D_mine_cavern_8018B820[2];
-extern SpriteBatch  D_mine_cavern_8018B830[2];
-extern SpriteBatch  D_mine_cavern_8018B840[2];
-extern SpriteBatch  D_mine_cavern_8018BC10[5];
-extern SpriteBatch  D_mine_cavern_8018C048[4];
-extern SpriteBatch  D_mine_cavern_8018C504[7];
-extern SpriteBatch  D_mine_cavern_8018C8E8[5];
-extern SpriteBatch  D_mine_cavern_8018CCD0[6];
-extern SpriteSource D_mine_cavern_8018B850[48];
-extern SpriteSource D_mine_cavern_8018BC38[52];
-extern SpriteSource D_mine_cavern_8018C068[59];
-extern SpriteSource D_mine_cavern_8018C53C[47];
-extern SpriteSource D_mine_cavern_8018C910[48];
 
 static void _mineCavernActivateRoom2(void);
 static void _mineCavernScriptNoop(void);
@@ -560,7 +542,13 @@ static AnimationSet _gMineCavernAnimation0A38C = {
 
 TaskDesc D_mine_cavern_80187974 = { { { TASK_BODY_NONE, 192 } }, mineCavernTimedSoundTask, { .value = 0 } };
 
-AnimationSet* D_mine_cavern_80187980[17] = {
+/// Animation-set pointers installed in the player's equipped-weapon bank for cavern scenes.
+///
+/// The 17-word extension fills bank entries 47..63: its NULL first slot is
+/// not playable, and the remaining entries supply clips 48..63. This counted
+/// directory has no terminator. Copied pointers and their clip data remain
+/// borrowed from the cavern, which must stay loaded through playback.
+static AnimationSet* _gMineCavernSceneAnimationSets[17] = {
     NULL,
     &_gMineCavernAnimation069D8,
     &_gMineCavernAnimation07544,
@@ -580,7 +568,7 @@ AnimationSet* D_mine_cavern_80187980[17] = {
     &_gMineCavernAnimation0A38C,
 };
 
-AnimationBankCopyRequest D_mine_cavern_801879C4 = { { .sets = D_mine_cavern_80187980 }, ARRAY_SIZE(D_mine_cavern_80187980) };
+AnimationBankCopyRequest D_mine_cavern_801879C4 = { { .sets = _gMineCavernSceneAnimationSets }, ARRAY_SIZE(_gMineCavernSceneAnimationSets) };
 
 AnimationPlayRequest D_mine_cavern_801879CC = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -673,7 +661,17 @@ ActorCommand D_mine_cavern_80187C60 = { { .loc = { 4, 2 } }, 7 };
 
 ActorCommand D_mine_cavern_80187C64 = { { .loc = { 4, 2 } }, 10 };
 
-ActorCommand D_mine_cavern_80187C68 = { { .loc = { 4, 2 } }, 11 };
+enum { MINE_CAVERN_ACTOR_COMMAND_START_TURN = 11 };
+
+/// Starts the placed Blizzard Chaser's turning behavior after a cavern scene.
+///
+/// The command belongs to the Mine/Shelter cavern namespace and addresses
+/// placement slot 0. It starts turning with forward patrol/turn directions
+/// and reverse watch direction; a burned actor also regains its alternate HP
+/// and parameters. Normal and skip scripts borrow the record through dispatch.
+static ActorCommand _gMineCavernActorStartTurnCommand = {
+    { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_CAVERN } }, MINE_CAVERN_ACTOR_COMMAND_START_TURN
+};
 
 ActorCommand D_mine_cavern_80187C6C = { { .loc = { 4, 2 } }, 12 };
 
@@ -717,7 +715,7 @@ EvsCommand D_mine_cavern_80187C74[41] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = mineCavernEngageScriptedBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C68 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMineCavernActorStartTurnCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_mine_cavern_80187BFC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -741,7 +739,7 @@ EvsCommand D_mine_cavern_8018804C[19] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = mineCavernEngageScriptedBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C68 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMineCavernActorStartTurnCommand } }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -804,7 +802,7 @@ EvsCommand D_mine_cavern_80188214[60] = {
     { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C68 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMineCavernActorStartTurnCommand } }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -819,7 +817,7 @@ EvsCommand D_mine_cavern_801887B4[27] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C58 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C50 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C54 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C68 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMineCavernActorStartTurnCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mineCavernReleaseEventBattleHold }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1044,7 +1042,11 @@ u8* gMineCavernRoomViewMaps[3] = {
     _gMineCavernRoom3ViewMap,
 };
 
-ViewCount D_mine_cavern_8018906C[3] = { 25, 25, 25 };
+enum { MINE_CAVERN_LOGICAL_VIEW_COUNT = 25 };
+
+ViewCount gMineCavernRoomViewCounts[3] = {
+    MINE_CAVERN_LOGICAL_VIEW_COUNT, MINE_CAVERN_LOGICAL_VIEW_COUNT, MINE_CAVERN_LOGICAL_VIEW_COUNT
+};
 
 DirectionWarpEntry D_mine_cavern_80189074[2] = {
     { { { .word = 3072 }, 0x4524, 0, 2500 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x4524, 0, 2500 }, { 0, 0, 0, 0 }, 0x54020002, 0x54020001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 448 },
@@ -1077,8 +1079,8 @@ WorldCollisionGrid D_mine_cavern_8018981C[1] = {
     { NULL, _gMineCavernCollision0C25CNormals, _gMineCavernCollision0C25CVerts, _gMineCavernCollision0C25CFaces, _gMineCavernCollision0C25CTable, 1000, 1200, 6, 3, 4000, 38 },
 };
 
-ViewCamera D_mine_cavern_80189840[25] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -9000, 0x541A, -4500 } }, 269 },
+ViewCamera gMineCavernViewCameras[25] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -9000, 0x541A, -4500 } }, 269 },
     { { { { -4078, 0, -376 }, { -147, 3767, 1601 }, { 346, 1607, -3751 } }, { -0x3C2B, 3769, -9847 } }, 282 },
     { { { { 760, 0, -4024 }, { -1190, 3912, -224 }, { 3844, 1211, 726 } }, { -7741, 2840, -961 } }, 257 },
     { { { { 1072, 0, 3953 }, { 1176, 3910, -319 }, { -3774, 1219, 1023 } }, { -0x3909, 2740, -561 } }, 257 },
@@ -1664,98 +1666,151 @@ static SpriteBatch _gMineCavernView11SpriteBatches[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mine_cavern_8018B7D0[2] = {
+/// Empty sprite-batch list for cavern mapped view 12.
+///
+/// The zero-count first record selects decoded background strips; the next
+/// record ends the list. The view's source slot retains this address without
+/// supplying source elements. Storage belongs to the loaded cavern.
+static SpriteBatch _gMineCavernView12SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mine_cavern_8018B7E0[2] = {
+/// Empty sprite-batch list for cavern mapped view 13.
+///
+/// The zero-count first record selects decoded background strips; the next
+/// record ends the list. The view's source slot retains this address without
+/// supplying source elements. Storage belongs to the loaded cavern.
+static SpriteBatch _gMineCavernView13SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mine_cavern_8018B7F0[2] = {
+/// Empty sprite-batch list for cavern mapped view 14.
+///
+/// The zero-count first record selects decoded background strips; the next
+/// record ends the list. The view's source slot retains this address without
+/// supplying source elements. Storage belongs to the loaded cavern.
+static SpriteBatch _gMineCavernView14SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mine_cavern_8018B800[2] = {
+/// Empty sprite-batch list for cavern mapped view 15.
+///
+/// The zero-count first record selects decoded background strips; the next
+/// record ends the list. The view's source slot retains this address without
+/// supplying source elements. Storage belongs to the loaded cavern.
+static SpriteBatch _gMineCavernView15SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mine_cavern_8018B810[2] = {
+/// Empty sprite-batch list for cavern mapped view 16.
+///
+/// The zero-count first record selects decoded background strips; the next
+/// record ends the list. The view's source slot retains this address without
+/// supplying source elements. Storage belongs to the loaded cavern.
+static SpriteBatch _gMineCavernView16SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mine_cavern_8018B820[2] = {
+/// Empty sprite-batch list for cavern mapped view 17.
+///
+/// The zero-count first record selects decoded background strips; the next
+/// record ends the list. The view's source slot retains this address without
+/// supplying source elements. Storage belongs to the loaded cavern.
+static SpriteBatch _gMineCavernView17SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mine_cavern_8018B830[2] = {
+/// Empty sprite-batch list for cavern mapped view 18.
+///
+/// The zero-count first record selects decoded background strips; the next
+/// record ends the list. The view's source slot retains this address without
+/// supplying source elements. Storage belongs to the loaded cavern.
+static SpriteBatch _gMineCavernView18SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mine_cavern_8018B840[2] = {
+/// Empty sprite-batch list for cavern mapped view 19.
+///
+/// The zero-count first record selects decoded background strips; the next
+/// record ends the list. The view's source slot retains this address without
+/// supplying source elements. Storage belongs to the loaded cavern.
+static SpriteBatch _gMineCavernView19SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mine_cavern_8018B850[48] = {
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, -160, -120, 250, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -160, -104, 250, { .fields = { 24, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 16 } }, -72, -120, 250, { .fields = { 8, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -96, -120, 250, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, -16, -120, 250, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, 72, -120, 250, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, 8, 1549, { .fields = { 80, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 48, -72, 1458, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 64, -72, 1446, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, 56, -40, 1541, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 48, 16, 1549, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 64, 16, 1532, { .fields = { 40, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 64, 32, 1460, { .fields = { 32, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 56, -120, 1339, { .fields = { 16, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 64, -104, 1383, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, -160, -64, 1157, { .fields = { 8, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -48, -24, 1399, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -48, 0, 1529, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -48, 24, 1458, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -56, -24, 1402, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -64, -24, 1375, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -56, 0, 1470, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -56, 24, 1296, { .fields = { 120, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -64, 0, 1379, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -64, 24, 1280, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -120, 56, 1105, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, -160, 56, 1096, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -88, 48, 1131, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -80, 32, 1361, { .fields = { 40, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -72, 48, 1275, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -88, 32, 1113, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -112, 32, 1127, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -136, 32, 1105, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -160, 32, 1101, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -120, -48, 1189, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, -160, -48, 1266, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -128, 8, 1076, { .fields = { 48, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -128, -24, 1170, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -160, 8, 1077, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -104, 8, 1089, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -96, -24, 1380, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -96, -8, 1396, { .fields = { 40, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -80, 8, 1374, { .fields = { 72, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, -24, 1225, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, -64, 1289, { .fields = { 40, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -96, -64, 1369, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -88, -64, 1470, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -80, -48, 1579, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
+/// Source rectangles for cavern mapped view 20.
+///
+/// The 48 elements have no terminator; `_gMineCavernView20SpriteBatches`
+/// selects ranges within them. Positions and sizes use drawing-origin pixels;
+/// texture origins use texels and depth is an unscaled sorting value. Pages
+/// use eight-bit textures and neutral RGB. Storage requires the cavern loaded.
+static SpriteSource _gMineCavernView20SpriteSources[48] = {
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 64, 8 } }, -160, -120, 250, { .fields = { 120, 184 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 64, 8 } }, -160, -104, 250, { .fields = { 24, 248 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 56, 16 } }, -72, -120, 250, { .fields = { 8, 208 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 24 } }, -96, -120, 250, { .fields = { 64, 200 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 88, 8 } }, -16, -120, 250, { .fields = { 96, 192 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 88, 8 } }, 72, -120, 250, { .fields = { 96, 200 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 8 } }, 48, 8, 1549, { .fields = { 80, 24 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 32 } }, 48, -72, 1458, { .fields = { 88, 0 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 32 } }, 64, -72, 1446, { .fields = { 72, 32 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 56 } }, 56, -40, 1541, { .fields = { 104, 0 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 24 } }, 48, 16, 1549, { .fields = { 56, 112 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 16 } }, 64, 16, 1532, { .fields = { 40, 120 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 16 } }, 64, 32, 1460, { .fields = { 32, 88 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 40, 16 } }, 56, -120, 1339, { .fields = { 16, 104 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 32 } }, 64, -104, 1383, { .fields = { 96, 56 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 48, 16 } }, -160, -64, 1157, { .fields = { 8, 152 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 24 } }, -48, -24, 1399, { .fields = { 48, 0 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 24 } }, -48, 0, 1529, { .fields = { 56, 160 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 32 } }, -48, 24, 1458, { .fields = { 112, 144 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 24 } }, -56, -24, 1402, { .fields = { 56, 0 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 24 } }, -64, -24, 1375, { .fields = { 56, 136 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 24 } }, -56, 0, 1470, { .fields = { 64, 176 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 48 } }, -56, 24, 1296, { .fields = { 120, 56 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 24 } }, -64, 0, 1379, { .fields = { 56, 184 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 32 } }, -64, 24, 1280, { .fields = { 120, 224 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 32 } }, -120, 56, 1105, { .fields = { 88, 176 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 40, 32 } }, -160, 56, 1096, { .fields = { 72, 120 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 40 } }, -88, 48, 1131, { .fields = { 112, 104 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 16 } }, -80, 32, 1361, { .fields = { 40, 168 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 24 } }, -72, 48, 1275, { .fields = { 96, 32 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -88, 32, 1113, { .fields = { 112, 88 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 24 } }, -112, 32, 1127, { .fields = { 64, 152 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 24 } }, -136, 32, 1105, { .fields = { 64, 0 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 24 } }, -160, 32, 1101, { .fields = { 88, 152 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 24 } }, -120, -48, 1189, { .fields = { 72, 64 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 40, 24 } }, -160, -48, 1266, { .fields = { 40, 224 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 24 } }, -128, 8, 1076, { .fields = { 48, 24 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 32 } }, -128, -24, 1170, { .fields = { 80, 88 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 24 } }, -160, 8, 1077, { .fields = { 40, 48 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 24 } }, -104, 8, 1089, { .fields = { 56, 88 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 16 } }, -96, -24, 1380, { .fields = { 88, 240 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 16 } }, -96, -8, 1396, { .fields = { 40, 72 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 24 } }, -80, 8, 1374, { .fields = { 72, 176 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 32 } }, -160, -24, 1225, { .fields = { 88, 208 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 16 } }, -112, -64, 1289, { .fields = { 40, 136 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 40 } }, -96, -64, 1369, { .fields = { 120, 144 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 40 } }, -88, -64, 1470, { .fields = { 120, 184 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 24 } }, -80, -48, 1579, { .fields = { 80, 224 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_mine_cavern_8018BC10[5] = {
+/// Sprite drawing batches for cavern mapped view 20.
+///
+/// The zero-count first record selects decoded background strips. The ranges
+/// 0..5, 6..14 and 15..47 cover `_gMineCavernView20SpriteSources` exactly;
+/// the final record ends the list. Hidden and packet-skip flags start clear;
+/// the serialized trailer bytes have unproven roles. Storage requires the
+/// cavern loaded.
+static SpriteBatch _gMineCavernView20SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 6, 0, 0, { 1, 0 } },
     { 6, 9, 0, 0, { 2, 0 } },
@@ -1763,131 +1818,159 @@ SpriteBatch D_mine_cavern_8018BC10[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mine_cavern_8018BC38[52] = {
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -160, -8, 1006, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -144, 80, 1067, { .fields = { 72, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, 80, 1062, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -160, 48, 1030, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -144, 56, 1099, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -120, -120, 1412, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -96, -120, 1401, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -104, 16, 1621, { .fields = { 0, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -104, 24, 1582, { .fields = { 0, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -104, 32, 1525, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -112, -96, 1459, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -112, -56, 1575, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -104, -40, 1559, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -88, -16, 1674, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -104, -16, 1669, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -88, -64, 1505, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -88, -48, 1574, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -112, -72, 1472, { .fields = { 32, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -88, -72, 1472, { .fields = { 16, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, 56, 96, 1071, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 128, 96, 1052, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 24 } }, 48, 56, 1115, { .fields = { 24, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 48 } }, 48, 8, 1089, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 56, -8, 1282, { .fields = { 8, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 48, -16, 1435, { .fields = { 0, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 48, -24, 1480, { .fields = { 0, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 48, -8, 1537, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 80, -24, 1250, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 112, -104, 1394, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 128, -104, 1180, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 144, -104, 989, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 104, -64, 1492, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 120, -64, 1353, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 136, -64, 1031, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 104, 48, 1278, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 104, 64, 1179, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, 144, 40, 1206, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 136, 48, 1049, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 104, 32, 1217, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 104, 16, 1299, { .fields = { 24, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 104, 0, 1341, { .fields = { 24, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 104, -16, 1443, { .fields = { 24, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, 0, 1749, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, 16, 1557, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, 32, 1408, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, 48, 1285, { .fields = { 32, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, 64, 1181, { .fields = { 24, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, 80, 1114, { .fields = { 32, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, 48, 80, 1089, { .fields = { 8, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 96, 80, 1085, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 144, 0, 954, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 144, -16, 1074, { .fields = { 40, 136 } }, 128, 128, 128, 0 },
+/// Source rectangles for cavern mapped view 21.
+///
+/// The 52 elements have no terminator; `_gMineCavernView21SpriteBatches`
+/// selects ranges within them. Positions and sizes use drawing-origin pixels;
+/// texture origins use texels and depth is an unscaled sorting value. Pages
+/// use eight-bit textures and neutral RGB. Storage requires the cavern loaded.
+static SpriteSource _gMineCavernView21SpriteSources[52] = {
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 56 } }, -160, -8, 1006, { .fields = { 112, 56 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 40 } }, -144, 80, 1067, { .fields = { 72, 88 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 40 } }, -160, 80, 1062, { .fields = { 96, 168 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 32 } }, -160, 48, 1030, { .fields = { 80, 160 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 24 } }, -144, 56, 1099, { .fields = { 56, 136 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 24 } }, -120, -120, 1412, { .fields = { 48, 112 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 24 } }, -96, -120, 1401, { .fields = { 56, 88 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 8 } }, -104, 16, 1621, { .fields = { 0, 72 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 8 } }, -104, 24, 1582, { .fields = { 0, 80 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 8 } }, -104, 32, 1525, { .fields = { 8, 144 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 24 } }, -112, -96, 1459, { .fields = { 56, 160 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 16 } }, -112, -56, 1575, { .fields = { 32, 168 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 24 } }, -104, -40, 1559, { .fields = { 64, 64 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 32 } }, -88, -16, 1674, { .fields = { 72, 128 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 32 } }, -104, -16, 1669, { .fields = { 64, 32 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 16 } }, -88, -64, 1505, { .fields = { 48, 240 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 32 } }, -88, -48, 1574, { .fields = { 88, 128 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 16 } }, -112, -72, 1472, { .fields = { 32, 80 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 8 } }, -88, -72, 1472, { .fields = { 16, 64 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 72, 8 } }, 56, 96, 1071, { .fields = { 88, 120 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 16 } }, 128, 96, 1052, { .fields = { 0, 0 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 56, 24 } }, 48, 56, 1115, { .fields = { 24, 184 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 56, 48 } }, 48, 8, 1089, { .fields = { 64, 208 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 16 } }, 56, -8, 1282, { .fields = { 8, 32 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 8 } }, 48, -16, 1435, { .fields = { 0, 88 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 8 } }, 48, -24, 1480, { .fields = { 0, 112 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, 48, -8, 1537, { .fields = { 80, 32 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 32 } }, 80, -24, 1250, { .fields = { 64, 0 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 40 } }, 112, -104, 1394, { .fields = { 96, 88 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 40 } }, 128, -104, 1180, { .fields = { 96, 48 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 40 } }, 144, -104, 989, { .fields = { 96, 128 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 48 } }, 104, -64, 1492, { .fields = { 112, 160 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 48 } }, 120, -64, 1353, { .fields = { 112, 112 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 48 } }, 136, -64, 1031, { .fields = { 88, 0 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 16 } }, 104, 48, 1278, { .fields = { 32, 0 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 16 } }, 104, 64, 1179, { .fields = { 32, 64 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 56 } }, 144, 40, 1206, { .fields = { 112, 0 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 48 } }, 136, 48, 1049, { .fields = { 120, 208 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 40, 16 } }, 104, 32, 1217, { .fields = { 24, 208 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 40, 16 } }, 104, 16, 1299, { .fields = { 24, 224 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 40, 16 } }, 104, 0, 1341, { .fields = { 24, 48 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 40, 16 } }, 104, -16, 1443, { .fields = { 24, 16 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 16 } }, 32, 0, 1749, { .fields = { 80, 192 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 16 } }, 32, 16, 1557, { .fields = { 48, 32 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 16 } }, 32, 32, 1408, { .fields = { 32, 240 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 16 } }, 32, 48, 1285, { .fields = { 32, 112 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 16 } }, 32, 64, 1181, { .fields = { 24, 128 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 16 } }, 32, 80, 1114, { .fields = { 32, 32 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 48, 16 } }, 48, 80, 1089, { .fields = { 8, 96 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 40, 16 } }, 96, 80, 1085, { .fields = { 16, 152 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 40 } }, 144, 0, 954, { .fields = { 80, 48 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 16 } }, 144, -16, 1074, { .fields = { 40, 136 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_mine_cavern_8018C048[4] = {
+/// Sprite drawing batches for cavern mapped view 21.
+///
+/// The zero-count first record selects decoded background strips. The ranges
+/// 0..18 and 19..51 cover `_gMineCavernView21SpriteSources` exactly;
+/// the final record ends the list. Hidden and packet-skip flags start clear;
+/// the serialized trailer bytes have unproven roles. Storage requires the
+/// cavern loaded.
+static SpriteBatch _gMineCavernView21SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 19, 0, 0, { 1, 0 } },
     { 19, 33, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mine_cavern_8018C068[59] = {
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, -120, 421, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -160, -80, 430, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 24 } }, -136, -72, 437, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 16 } }, -120, -88, 440, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 16 } }, -96, -104, 441, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 16 } }, -64, -120, 449, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, -160, -32, 468, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -160, 32, 459, { .fields = { 0, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, -160, 80, 485, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, -144, -120, 937, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 16 } }, -144, -112, 966, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 16 } }, -96, -112, 982, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -88, -96, 998, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -144, -96, 966, { .fields = { 64, 16 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 16 } }, -136, -80, 982, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 24 } }, -136, -64, 986, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -136, -40, 1039, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -128, -24, 1028, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -128, -8, 1045, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -128, 8, 1080, { .fields = { 48, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -120, 24, 1108, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -120, 40, 1116, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -120, 72, 1150, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -120, 56, 1149, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 24 } }, -112, -112, 1187, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -96, -88, 1187, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, -64, 1336, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 144, -112, 910, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 16, 8, 1795, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 24, -16, 1748, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 24, 8, 1699, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 24, 24, 1601, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 40, -32, 1486, { .fields = { 72, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, 48, -88, 1330, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 40, -8, 1451, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, 56, -8, 1217, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 112 } }, 72, -8, 1097, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, 88, -8, 950, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, 112, -8, 1194, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 88, 32, 1173, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 112, 32, 872, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, 88, 80, 1048, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 112, 80, 957, { .fields = { 0, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, 128, 64, 825, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, 144, 64, 933, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, 128, 0, 1027, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, 144, 0, 1140, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, 144, -64, 951, { .fields = { 96, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, 128, -64, 1098, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, 128, -104, 995, { .fields = { 120, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 120, -56, 1183, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 112, -56, 888, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, 64, -64, 1187, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 80, -56, 1032, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 96, -56, 930, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, 72, -96, 1342, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 88, -104, 1241, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 104, -104, 853, { .fields = { 40, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 72, 48 } }, -96, -40, 2750, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+/// Source rectangles for cavern mapped view 22.
+///
+/// The 59 elements have no terminator; `_gMineCavernView22SpriteBatches`
+/// selects ranges within them. Positions and sizes use drawing-origin pixels;
+/// texture origins use texels and depth is an unscaled sorting value. Pages
+/// use eight-bit textures and neutral RGB. Storage requires the cavern loaded.
+/// Elements 58 use the progress palette and nursery-controlled batch.
+static SpriteSource _gMineCavernView22SpriteSources[59] = {
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 40 } }, -160, -120, 421, { .fields = { 96, 216 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 48 } }, -160, -80, 430, { .fields = { 8, 144 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 40, 24 } }, -136, -72, 437, { .fields = { 80, 208 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 48, 16 } }, -120, -88, 440, { .fields = { 56, 80 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 48, 16 } }, -96, -104, 441, { .fields = { 56, 64 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 48, 16 } }, -64, -120, 449, { .fields = { 56, 112 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 64 } }, -160, -32, 468, { .fields = { 64, 192 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 48 } }, -160, 32, 459, { .fields = { 0, 48 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 40, 40 } }, -160, 80, 485, { .fields = { 120, 192 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 8 } }, -144, -120, 937, { .fields = { 72, 248 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 48, 16 } }, -144, -112, 966, { .fields = { 56, 96 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 56, 16 } }, -96, -112, 982, { .fields = { 48, 48 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 40, 16 } }, -88, -96, 998, { .fields = { 64, 0 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 40, 16 } }, -144, -96, 966, { .fields = { 64, 16 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 56, 16 } }, -136, -80, 982, { .fields = { 48, 32 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 40, 24 } }, -136, -64, 986, { .fields = { 120, 232 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 40, 16 } }, -136, -40, 1039, { .fields = { 64, 128 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 16 } }, -128, -24, 1028, { .fields = { 72, 232 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 16 } }, -128, -8, 1045, { .fields = { 48, 160 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 16 } }, -128, 8, 1080, { .fields = { 48, 216 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 16 } }, -120, 24, 1108, { .fields = { 48, 200 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 16 } }, -120, 40, 1116, { .fields = { 72, 144 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 16 } }, -120, 72, 1150, { .fields = { 32, 240 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 40, 16 } }, -120, 56, 1149, { .fields = { 64, 184 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 40, 24 } }, -112, -112, 1187, { .fields = { 80, 160 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 56 } }, -96, -88, 1187, { .fields = { 64, 0 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 8 } }, 80, -64, 1336, { .fields = { 8, 136 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 48 } }, 144, -112, 910, { .fields = { 48, 96 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 24 } }, 16, 8, 1795, { .fields = { 64, 168 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 24 } }, 24, -16, 1748, { .fields = { 104, 232 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 16 } }, 24, 8, 1699, { .fields = { 120, 176 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 24 } }, 24, 24, 1601, { .fields = { 104, 184 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 24 } }, 40, -32, 1486, { .fields = { 72, 168 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 80 } }, 48, -88, 1330, { .fields = { 96, 0 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 72 } }, 40, -8, 1451, { .fields = { 96, 80 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 88 } }, 56, -8, 1217, { .fields = { 112, 112 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 112 } }, 72, -8, 1097, { .fields = { 112, 0 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 40 } }, 88, -8, 950, { .fields = { 104, 88 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 40 } }, 112, -8, 1194, { .fields = { 104, 0 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 48 } }, 88, 32, 1173, { .fields = { 40, 192 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 48 } }, 112, 32, 872, { .fields = { 32, 48 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 40 } }, 88, 80, 1048, { .fields = { 104, 48 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 40 } }, 112, 80, 957, { .fields = { 0, 96 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 56 } }, 128, 64, 825, { .fields = { 64, 56 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 56 } }, 144, 64, 933, { .fields = { 112, 200 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 64 } }, 128, 0, 1027, { .fields = { 80, 64 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 64 } }, 144, 0, 1140, { .fields = { 80, 128 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 64 } }, 144, -64, 951, { .fields = { 96, 152 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 64 } }, 128, -64, 1098, { .fields = { 80, 0 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 40 } }, 128, -104, 995, { .fields = { 120, 136 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 48 } }, 120, -56, 1183, { .fields = { 32, 144 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 48 } }, 112, -56, 888, { .fields = { 32, 192 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 56 } }, 64, -64, 1187, { .fields = { 64, 112 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 48 } }, 80, -56, 1032, { .fields = { 32, 96 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 48 } }, 96, -56, 930, { .fields = { 48, 48 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 32 } }, 72, -96, 1342, { .fields = { 104, 128 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 48 } }, 88, -104, 1241, { .fields = { 16, 96 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 48 } }, 104, -104, 853, { .fields = { 40, 144 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_PROGRESS_SPRITE_CLUT, { .fields = { 72, 48 } }, -96, -40, 2750, { .fields = { 120, 0 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_mine_cavern_8018C504[7] = {
+/// Sprite drawing batches for cavern mapped view 22.
+///
+/// The zero-count first record selects decoded background strips. The ranges
+/// 0..8, 9..23, 24..25, 26..57 and 58 cover `_gMineCavernView22SpriteSources` exactly;
+/// the final record ends the list. Hidden and packet-skip flags start clear;
+/// the serialized trailer bytes have unproven roles. Storage requires the
+/// cavern loaded.
+/// Nursery progress controls visibility of the range 58.
+static SpriteBatch _gMineCavernView22SpriteBatches[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 9, 0, 0, { 0, 0 } },
     { 9, 15, 0, 0, { 3, 0 } },
@@ -1897,57 +1980,72 @@ SpriteBatch D_mine_cavern_8018C504[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mine_cavern_8018C53C[47] = {
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 72, -120, 1099, { .fields = { 24, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 88, -104, 1100, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 72 } }, 112, -120, 1125, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 72 } }, 104, -48, 1173, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 96, 24, 1242, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 88, 72, 1271, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 104, 72, 1274, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 104, 80, 1250, { .fields = { 16, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -72, 64, 1195, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -56, 80, 1266, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -160, 96, 669, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -160, 80, 755, { .fields = { 24, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 144 } }, -152, -64, 1125, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 144 } }, -160, -64, 1145, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -136, 16, 1125, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -120, 24, 1125, { .fields = { 16, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, -120, 40, 1049, { .fields = { 0, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -136, 40, 1060, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -136, 56, 902, { .fields = { 32, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -120, 56, 943, { .fields = { 24, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -96, 56, 1004, { .fields = { 40, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -88, 56, 1062, { .fields = { 32, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, 56, 1173, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -136, 72, 855, { .fields = { 16, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -136, 88, 759, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -120, 88, 829, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, 104, 1075, { .fields = { 32, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -96, 104, 1075, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, 104, 1015, { .fields = { 32, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, 104, 1056, { .fields = { 40, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, 104, 1106, { .fields = { 48, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -112, 72, 872, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -104, 72, 930, { .fields = { 48, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -104, 88, 991, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -96, 88, 991, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -88, 88, 1012, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, 88, 1089, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, 88, 1118, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, 88, 1162, { .fields = { 48, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -56, 88, 1225, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -96, 72, 1083, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -88, 72, 1080, { .fields = { 48, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, 72, 1105, { .fields = { 48, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, 72, 1191, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, 72, 1244, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 72, 80 } }, 32, -8, 2250, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 24 } }, 120, 40, 1750, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
+/// Source rectangles for cavern mapped view 23.
+///
+/// The 47 elements have no terminator; `_gMineCavernView23SpriteBatches`
+/// selects ranges within them. Positions and sizes use drawing-origin pixels;
+/// texture origins use texels and depth is an unscaled sorting value. Pages
+/// use eight-bit textures and neutral RGB. Storage requires the cavern loaded.
+/// Elements 45..46 use the progress palette and nursery-controlled batch.
+static SpriteSource _gMineCavernView23SpriteSources[47] = {
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 16 } }, 72, -120, 1099, { .fields = { 24, 168 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 40 } }, 88, -104, 1100, { .fields = { 48, 48 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 72 } }, 112, -120, 1125, { .fields = { 72, 72 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 72 } }, 104, -48, 1173, { .fields = { 72, 0 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 48 } }, 96, 24, 1242, { .fields = { 40, 0 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 24 } }, 88, 72, 1271, { .fields = { 80, 224 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 8 } }, 104, 72, 1274, { .fields = { 64, 248 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 16 } }, 104, 80, 1250, { .fields = { 16, 32 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 8 } }, -72, 64, 1195, { .fields = { 56, 248 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 8 } }, -56, 80, 1266, { .fields = { 88, 248 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 24 } }, -160, 96, 669, { .fields = { 56, 224 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 16 } }, -160, 80, 755, { .fields = { 24, 184 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 144 } }, -152, -64, 1125, { .fields = { 104, 0 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 144 } }, -160, -64, 1145, { .fields = { 120, 0 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 16 } }, -136, 16, 1125, { .fields = { 32, 144 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 16 } }, -120, 24, 1125, { .fields = { 16, 216 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 48, 16 } }, -120, 40, 1049, { .fields = { 0, 200 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 16 } }, -136, 40, 1060, { .fields = { 32, 96 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 16 } }, -136, 56, 902, { .fields = { 32, 80 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 16 } }, -120, 56, 943, { .fields = { 24, 128 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -96, 56, 1004, { .fields = { 40, 112 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -88, 56, 1062, { .fields = { 32, 112 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -80, 56, 1173, { .fields = { 32, 48 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 16 } }, -136, 72, 855, { .fields = { 16, 64 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 32 } }, -136, 88, 759, { .fields = { 112, 224 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 32 } }, -120, 88, 829, { .fields = { 96, 224 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 16 } }, -112, 104, 1075, { .fields = { 32, 232 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 16 } }, -96, 104, 1075, { .fields = { 24, 0 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -80, 104, 1015, { .fields = { 32, 16 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -72, 104, 1056, { .fields = { 40, 64 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -64, 104, 1106, { .fields = { 48, 88 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 32 } }, -112, 72, 872, { .fields = { 104, 224 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -104, 72, 930, { .fields = { 48, 104 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -104, 88, 991, { .fields = { 48, 120 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -96, 88, 991, { .fields = { 56, 128 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -88, 88, 1012, { .fields = { 64, 112 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -80, 88, 1089, { .fields = { 64, 128 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -72, 88, 1118, { .fields = { 56, 112 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -64, 88, 1162, { .fields = { 48, 216 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -56, 88, 1225, { .fields = { 48, 200 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -96, 72, 1083, { .fields = { 40, 48 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -88, 72, 1080, { .fields = { 48, 232 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -80, 72, 1105, { .fields = { 48, 152 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -72, 72, 1191, { .fields = { 48, 136 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -64, 72, 1244, { .fields = { 48, 184 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_PROGRESS_SPRITE_CLUT, { .fields = { 72, 80 } }, 32, -8, 2250, { .fields = { 56, 144 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_PROGRESS_SPRITE_CLUT, { .fields = { 16, 24 } }, 120, 40, 1750, { .fields = { 56, 88 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_mine_cavern_8018C8E8[5] = {
+/// Sprite drawing batches for cavern mapped view 23.
+///
+/// The zero-count first record selects decoded background strips. The ranges
+/// 0..7, 8..44 and 45..46 cover `_gMineCavernView23SpriteSources` exactly;
+/// the final record ends the list. Hidden and packet-skip flags start clear;
+/// the serialized trailer bytes have unproven roles. Storage requires the
+/// cavern loaded.
+/// Nursery progress controls visibility of the range 45..46.
+static SpriteBatch _gMineCavernView23SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 1, 0 } },
     { 8, 37, 0, 0, { 2, 0 } },
@@ -1955,58 +2053,73 @@ SpriteBatch D_mine_cavern_8018C8E8[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mine_cavern_8018C910[48] = {
-    { 143, 0x3FC0, { .fields = { 72, 80 } }, -8, -96, 2250, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -72, 64, 1195, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -56, 80, 1266, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -160, 96, 669, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -160, 80, 755, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 144 } }, -160, -64, 1145, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 144 } }, -152, -64, 1125, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -136, 16, 1125, { .fields = { 0, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -120, 24, 1125, { .fields = { 8, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -136, 40, 1060, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -136, 56, 902, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -136, 72, 855, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -136, 88, 759, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -120, 88, 829, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 16 } }, -120, 40, 1049, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, -120, 56, 943, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -96, 56, 1004, { .fields = { 16, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -88, 56, 1062, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, 56, 1173, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -112, 72, 872, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, 104, 1075, { .fields = { 16, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -96, 104, 1075, { .fields = { 8, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, 104, 1015, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, 104, 1056, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, 104, 1106, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -104, 72, 930, { .fields = { 16, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -104, 88, 991, { .fields = { 16, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -96, 72, 1083, { .fields = { 8, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -88, 72, 1080, { .fields = { 16, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, 72, 1105, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, 72, 1191, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, 72, 1244, { .fields = { 8, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -96, 88, 991, { .fields = { 16, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -88, 88, 1012, { .fields = { 8, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, 88, 1089, { .fields = { 8, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, 88, 1118, { .fields = { 8, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, 88, 1162, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -56, 88, 1225, { .fields = { 16, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, 72, -120, 1099, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 88, -104, 1100, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 72 } }, 112, -120, 1125, { .fields = { 24, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 72 } }, 104, -48, 1173, { .fields = { 24, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 96, 24, 1242, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 88, 72, 1271, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 104, 72, 1274, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 104, 80, 1250, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 72, 80 } }, 32, -8, 2250, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 24 } }, 120, 40, 1750, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
+/// Source rectangles for cavern mapped view 24.
+///
+/// The 48 elements have no terminator; `_gMineCavernView24SpriteBatches`
+/// selects ranges within them. Positions and sizes use drawing-origin pixels;
+/// texture origins use texels and depth is an unscaled sorting value. Pages
+/// use eight-bit textures and neutral RGB. Storage requires the cavern loaded.
+/// Elements 46..47 use the progress palette and nursery-controlled batch.
+static SpriteSource _gMineCavernView24SpriteSources[48] = {
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 72, 80 } }, -8, -96, 2250, { .fields = { 32, 0 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 8 } }, -72, 64, 1195, { .fields = { 80, 248 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 8 } }, -56, 80, 1266, { .fields = { 88, 248 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 24 } }, -160, 96, 669, { .fields = { 40, 224 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 16 } }, -160, 80, 755, { .fields = { 16, 240 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 144 } }, -160, -64, 1145, { .fields = { 104, 0 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 144 } }, -152, -64, 1125, { .fields = { 112, 0 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 16 } }, -136, 16, 1125, { .fields = { 0, 136 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 16 } }, -120, 24, 1125, { .fields = { 8, 224 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 16 } }, -136, 40, 1060, { .fields = { 56, 96 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 16 } }, -136, 56, 902, { .fields = { 64, 128 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 16 } }, -136, 72, 855, { .fields = { 80, 128 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 32 } }, -136, 88, 759, { .fields = { 112, 224 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 32 } }, -120, 88, 829, { .fields = { 104, 224 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 48, 16 } }, -120, 40, 1049, { .fields = { 112, 40 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 16 } }, -120, 56, 943, { .fields = { 120, 152 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -96, 56, 1004, { .fields = { 16, 120 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -88, 56, 1062, { .fields = { 56, 80 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -80, 56, 1173, { .fields = { 56, 112 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 32 } }, -112, 72, 872, { .fields = { 96, 224 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 16 } }, -112, 104, 1075, { .fields = { 16, 56 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 16 } }, -96, 104, 1075, { .fields = { 8, 72 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -80, 104, 1015, { .fields = { 64, 112 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -72, 104, 1056, { .fields = { 64, 80 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -64, 104, 1106, { .fields = { 56, 128 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -104, 72, 930, { .fields = { 16, 104 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -104, 88, 991, { .fields = { 16, 88 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -96, 72, 1083, { .fields = { 8, 120 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -88, 72, 1080, { .fields = { 16, 184 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -80, 72, 1105, { .fields = { 16, 136 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -72, 72, 1191, { .fields = { 16, 152 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -64, 72, 1244, { .fields = { 8, 88 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -96, 88, 991, { .fields = { 16, 200 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -88, 88, 1012, { .fields = { 8, 56 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -80, 88, 1089, { .fields = { 8, 200 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -72, 88, 1118, { .fields = { 8, 240 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -64, 88, 1162, { .fields = { 8, 168 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 8, 16 } }, -56, 88, 1225, { .fields = { 16, 168 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 16 } }, 72, -120, 1099, { .fields = { 112, 104 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 40 } }, 88, -104, 1100, { .fields = { 8, 0 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 72 } }, 112, -120, 1125, { .fields = { 24, 80 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 72 } }, 104, -48, 1173, { .fields = { 24, 152 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 32, 48 } }, 96, 24, 1242, { .fields = { 72, 80 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 16, 24 } }, 88, 72, 1271, { .fields = { 80, 224 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 8 } }, 104, 72, 1274, { .fields = { 56, 248 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X896, MINE_CAVERN_SPRITE_CLUT, { .fields = { 24, 16 } }, 104, 80, 1250, { .fields = { 120, 184 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_PROGRESS_SPRITE_CLUT, { .fields = { 72, 80 } }, 32, -8, 2250, { .fields = { 56, 144 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_CAVERN_SPRITE_TEXTURE_PAGE_X960, MINE_CAVERN_PROGRESS_SPRITE_CLUT, { .fields = { 16, 24 } }, 120, 40, 1750, { .fields = { 64, 224 } }, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, MINE_CAVERN_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_mine_cavern_8018CCD0[6] = {
+/// Sprite drawing batches for cavern mapped view 24.
+///
+/// The zero-count first record selects decoded background strips. The ranges
+/// 0, 1..37, 38..45 and 46..47 cover `_gMineCavernView24SpriteSources` exactly;
+/// the final record ends the list. Hidden and packet-skip flags start clear;
+/// the serialized trailer bytes have unproven roles. Storage requires the
+/// cavern loaded.
+/// Nursery progress controls visibility of the range 46..47.
+static SpriteBatch _gMineCavernView24SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 3, 0 } },
     { 1, 37, 0, 0, { 0, 0 } },
@@ -2020,7 +2133,7 @@ SpriteBatch D_mine_cavern_8018CD00[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_mine_cavern_8018CD10[25] = {
+SpriteView gMineCavernSpriteViews[25] = {
     { { .empty = _gMineCavernView1SpriteBatches }, _gMineCavernView1SpriteBatches, NULL },
     { { .elements = _gMineCavernView2SpriteSources }, _gMineCavernView2SpriteBatches, NULL },
     { { .elements = _gMineCavernView3SpriteSources }, _gMineCavernView3SpriteBatches, NULL },
@@ -2032,19 +2145,19 @@ SpriteView D_mine_cavern_8018CD10[25] = {
     { { .elements = _gMineCavernView9SpriteSources }, _gMineCavernView9SpriteBatches, NULL },
     { { .elements = _gMineCavernView10SpriteSources }, _gMineCavernView10SpriteBatches, NULL },
     { { .empty = _gMineCavernView11SpriteBatches }, _gMineCavernView11SpriteBatches, NULL },
-    { { .empty = D_mine_cavern_8018B7D0 }, D_mine_cavern_8018B7D0, NULL },
-    { { .empty = D_mine_cavern_8018B7E0 }, D_mine_cavern_8018B7E0, NULL },
-    { { .empty = D_mine_cavern_8018B7F0 }, D_mine_cavern_8018B7F0, NULL },
-    { { .empty = D_mine_cavern_8018B800 }, D_mine_cavern_8018B800, NULL },
-    { { .empty = D_mine_cavern_8018B810 }, D_mine_cavern_8018B810, NULL },
-    { { .empty = D_mine_cavern_8018B820 }, D_mine_cavern_8018B820, NULL },
-    { { .empty = D_mine_cavern_8018B830 }, D_mine_cavern_8018B830, NULL },
-    { { .empty = D_mine_cavern_8018B840 }, D_mine_cavern_8018B840, NULL },
-    { { .elements = D_mine_cavern_8018B850 }, D_mine_cavern_8018BC10, NULL },
-    { { .elements = D_mine_cavern_8018BC38 }, D_mine_cavern_8018C048, NULL },
-    { { .elements = D_mine_cavern_8018C068 }, D_mine_cavern_8018C504, NULL },
-    { { .elements = D_mine_cavern_8018C53C }, D_mine_cavern_8018C8E8, NULL },
-    { { .elements = D_mine_cavern_8018C910 }, D_mine_cavern_8018CCD0, NULL },
+    { { .empty = _gMineCavernView12SpriteBatches }, _gMineCavernView12SpriteBatches, NULL },
+    { { .empty = _gMineCavernView13SpriteBatches }, _gMineCavernView13SpriteBatches, NULL },
+    { { .empty = _gMineCavernView14SpriteBatches }, _gMineCavernView14SpriteBatches, NULL },
+    { { .empty = _gMineCavernView15SpriteBatches }, _gMineCavernView15SpriteBatches, NULL },
+    { { .empty = _gMineCavernView16SpriteBatches }, _gMineCavernView16SpriteBatches, NULL },
+    { { .empty = _gMineCavernView17SpriteBatches }, _gMineCavernView17SpriteBatches, NULL },
+    { { .empty = _gMineCavernView18SpriteBatches }, _gMineCavernView18SpriteBatches, NULL },
+    { { .empty = _gMineCavernView19SpriteBatches }, _gMineCavernView19SpriteBatches, NULL },
+    { { .elements = _gMineCavernView20SpriteSources }, _gMineCavernView20SpriteBatches, NULL },
+    { { .elements = _gMineCavernView21SpriteSources }, _gMineCavernView21SpriteBatches, NULL },
+    { { .elements = _gMineCavernView22SpriteSources }, _gMineCavernView22SpriteBatches, NULL },
+    { { .elements = _gMineCavernView23SpriteSources }, _gMineCavernView23SpriteBatches, NULL },
+    { { .elements = _gMineCavernView24SpriteSources }, _gMineCavernView24SpriteBatches, NULL },
     { { .elements = _gMineCavernView5SpriteSources }, _gMineCavernView5SpriteBatches, NULL },
 };
 
@@ -2144,59 +2257,119 @@ AreaResource D_mine_cavern_8018E0F0[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_mine_cavern_8018E108[2] = {
-    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor400600ZebraStalkerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+// Placement/resource keys and the shared texture adjustment of cavern actors.
+enum {
+    MINE_CAVERN_RESOURCE_BRAIN_STINGER   = 3,
+    MINE_CAVERN_RESOURCE_ZEBRA_STALKER   = 6,
+    MINE_CAVERN_RESOURCE_KNIGHT_GOLEM    = 22,
+    MINE_CAVERN_RESOURCE_BLIZZARD_CHASER = 30,
+    MINE_CAVERN_ZEBRA_STALKER_NO_CEILING = 1,
+    MINE_CAVERN_ACTOR_CLUT_ROW_OFFSET    = 2
 };
 
-AreaResource D_mine_cavern_8018E120[2] = {
-    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor400600ZebraStalkerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Zebra Stalker loading and spawn recipe for cavern placement variant 2.
+///
+/// Resource key 6 resolves the two placements to file 400600 and descriptor 0.
+/// The second record ends the table. Storage and its task descriptor must stay
+/// loaded through loading, spawning and model-flag updates.
+static AreaResource _gMineCavernVariant2Resources[2] = {
+    { .entryId = MINE_CAVERN_RESOURCE_ZEBRA_STALKER, .fileNumber = 6, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor400600ZebraStalkerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_mine_cavern_8018E138[2] = {
-    { 3, 3, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100300Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Zebra Stalker loading and spawn recipe for cavern placement variant 3.
+///
+/// Resource key 6 resolves the two placements to file 400600 and descriptor 0.
+/// The second record ends the table. Storage and its task descriptor must stay
+/// loaded through loading, spawning and model-flag updates.
+static AreaResource _gMineCavernVariant3Resources[2] = {
+    { .entryId = MINE_CAVERN_RESOURCE_ZEBRA_STALKER, .fileNumber = 6, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor400600ZebraStalkerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_mine_cavern_8018E150[2] = {
-    { 22, 22, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor402200GolemTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Brain Stinger loading and spawn recipe for cavern placement variant 11.
+///
+/// Resource key 3 resolves both placements to file 100300 and descriptor 0.
+/// The second record ends the table. Storage and its task table must stay
+/// loaded through loading, spawning and model-flag updates.
+static AreaResource _gMineCavernVariant11Resources[2] = {
+    { .entryId = MINE_CAVERN_RESOURCE_BRAIN_STINGER, .fileNumber = 3, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = gActor100300Tasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_mine_cavern_8018E168[2] = {
-    { 30, 0, 0, 2000, 0, 3960, 3072, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Knight GOLEM loading and spawn recipe for cavern placement variant 17.
+///
+/// Resource key 22 resolves the placement to file 402200 and descriptor 0.
+/// The second record ends the table. Storage and its task descriptor must stay
+/// loaded through loading, spawning and model-flag updates.
+static AreaResource _gMineCavernVariant17Resources[2] = {
+    { .entryId = MINE_CAVERN_RESOURCE_KNIGHT_GOLEM, .fileNumber = 22, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor402200GolemTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_mine_cavern_8018E188[3] = {
-    { 6, 0, 1, 0x2C24, 0, 1750, 900, 0, 0, 2, 0 },
-    { 6, 0, 1, 6700, 0, 1500, 3000, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Blizzard Chaser placement for the cavern's initial layout, variant 1.
+///
+/// Resource key 30 supplies the actor in placement slot 0; the next record
+/// terminates the list. XYZ uses world units and yaw uses 4096 units per turn.
+/// The base-file placement applies a two-row CLUT offset. Spawned actors borrow
+/// the placement, so the cavern must remain loaded until they are released.
+static AreaPlacement _gMineCavernVariant1Placements[2] = {
+    { .entryId = MINE_CAVERN_RESOURCE_BLIZZARD_CHASER, .variant = 0, .mode = 0, .x = 2000, .y = 0, .z = 3960, .yaw = 3072, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = MINE_CAVERN_ACTOR_CLUT_ROW_OFFSET, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_mine_cavern_8018E1B8[3] = {
-    { 6, 0, 1, 2272, 0, 1792, 1536, 0, 0, 2, 0 },
-    { 6, 0, 1, 0x2920, 0, 7296, 0, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Two Zebra Stalker placements for cavern layout variant 2.
+///
+/// Both use resource key 6 and mode 1, disabling ceiling jumps. XYZ uses world
+/// units and yaw uses 4096 units per turn. Base-file loading applies a two-row
+/// CLUT offset; the third record ends the list. Spawned actors borrow these
+/// records, so the cavern must remain loaded until they are released.
+static AreaPlacement _gMineCavernVariant2Placements[3] = {
+    { .entryId = MINE_CAVERN_RESOURCE_ZEBRA_STALKER, .variant = 0, .mode = MINE_CAVERN_ZEBRA_STALKER_NO_CEILING, .x = 0x2C24, .y = 0, .z = 1750, .yaw = 900, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = MINE_CAVERN_ACTOR_CLUT_ROW_OFFSET, .rowIndex = 0 },
+    { .entryId = MINE_CAVERN_RESOURCE_ZEBRA_STALKER, .variant = 0, .mode = MINE_CAVERN_ZEBRA_STALKER_NO_CEILING, .x = 6700, .y = 0, .z = 1500, .yaw = 3000, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = MINE_CAVERN_ACTOR_CLUT_ROW_OFFSET, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_mine_cavern_8018E1E8[3] = {
-    { 3, 0, 0, 5500, 0, 1500, 1024, 0, 0, 2, 0 },
-    { 3, 0, 1, 8500, 0, 7500, 2048, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Two Zebra Stalker placements for cavern layout variant 3.
+///
+/// Both use resource key 6 and mode 1, disabling ceiling jumps. XYZ uses world
+/// units and yaw uses 4096 units per turn. Base-file loading applies a two-row
+/// CLUT offset; the third record ends the list. Spawned actors borrow these
+/// records, so the cavern must remain loaded until they are released.
+static AreaPlacement _gMineCavernVariant3Placements[3] = {
+    { .entryId = MINE_CAVERN_RESOURCE_ZEBRA_STALKER, .variant = 0, .mode = MINE_CAVERN_ZEBRA_STALKER_NO_CEILING, .x = 2272, .y = 0, .z = 1792, .yaw = 1536, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = MINE_CAVERN_ACTOR_CLUT_ROW_OFFSET, .rowIndex = 0 },
+    { .entryId = MINE_CAVERN_RESOURCE_ZEBRA_STALKER, .variant = 0, .mode = MINE_CAVERN_ZEBRA_STALKER_NO_CEILING, .x = 0x2920, .y = 0, .z = 7296, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = MINE_CAVERN_ACTOR_CLUT_ROW_OFFSET, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_mine_cavern_8018E218[2] = {
-    { 22, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Two Brain Stinger placements for cavern layout variant 11.
+///
+/// Resource key 3 supplies both actors; modes 0 and 1 select their patrol routes.
+/// XYZ uses world units and yaw uses 4096 units per turn. Base-file loading
+/// applies a two-row CLUT offset; the third record ends the list. Spawned actors
+/// borrow these records, so the cavern must stay loaded until they are released.
+static AreaPlacement _gMineCavernVariant11Placements[3] = {
+    { .entryId = MINE_CAVERN_RESOURCE_BRAIN_STINGER, .variant = 0, .mode = 0, .x = 5500, .y = 0, .z = 1500, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = MINE_CAVERN_ACTOR_CLUT_ROW_OFFSET, .rowIndex = 0 },
+    { .entryId = MINE_CAVERN_RESOURCE_BRAIN_STINGER, .variant = 0, .mode = 1, .x = 8500, .y = 0, .z = 7500, .yaw = 2048, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = MINE_CAVERN_ACTOR_CLUT_ROW_OFFSET, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+/// Stationary Knight GOLEM placement for cavern layout variant 17.
+///
+/// Resource key 22 supplies placement slot 0 at the world origin with zero yaw;
+/// mode 0 disables patrol. Base-file loading applies a two-row CLUT offset.
+/// The second record ends the list. The actor borrows its placement, so the
+/// cavern must remain loaded until it is released.
+static AreaPlacement _gMineCavernVariant17Placements[2] = {
+    { .entryId = MINE_CAVERN_RESOURCE_KNIGHT_GOLEM, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = MINE_CAVERN_ACTOR_CLUT_ROW_OFFSET, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_mine_cavern_8018E238[22] = {
     { NULL, NULL },
-    { D_mine_cavern_8018E168, D_mine_cavern_8018E0F0 },
-    { D_mine_cavern_8018E188, D_mine_cavern_8018E108 },
-    { D_mine_cavern_8018E1B8, D_mine_cavern_8018E120 },
+    { _gMineCavernVariant1Placements, D_mine_cavern_8018E0F0 },
+    { _gMineCavernVariant2Placements, _gMineCavernVariant2Resources },
+    { _gMineCavernVariant3Placements, _gMineCavernVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -2204,13 +2377,13 @@ AreaVariant D_mine_cavern_8018E238[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_mine_cavern_8018E1E8, D_mine_cavern_8018E138 },
+    { _gMineCavernVariant11Placements, _gMineCavernVariant11Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_mine_cavern_8018E218, D_mine_cavern_8018E150 },
+    { _gMineCavernVariant17Placements, _gMineCavernVariant17Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
