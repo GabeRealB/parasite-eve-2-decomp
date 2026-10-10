@@ -709,7 +709,13 @@ extern TaskDesc gActor401300HornedStrangerTaskDesc;
 /// while the spawned tasks use them.
 extern TaskDesc gActor206100SeaDiverTaskDescriptors[2];
 
-extern TaskDesc D_actor_403000_80158D58;
+/// Blizzard Chaser spawn recipe for the Mine Cavern encounter.
+///
+/// Spawn at index 0 with priority 96. The 24-part TMD body skips automatic
+/// primitive-buffer allocation. `Task::spawnArg2` borrows a live `Enemy` for
+/// setup, update and teardown. Keep actor_403000 code and its borrowed model
+/// and animation resources loaded while the spawned actor uses them.
+extern TaskDesc gActor403000TaskDesc;
 
 /// Grinning Stranger spawn recipe for the cafeteria scene.
 ///

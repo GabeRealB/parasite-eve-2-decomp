@@ -2531,7 +2531,7 @@ static WorldCollisionOccluder _gMineCavernSightOccluders[2] = {
 };
 
 AreaResource D_mine_cavern_8018E0F0[2] = {
-    { 30, 30, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_403000_80158D58 },
+    { 30, 30, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor403000TaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

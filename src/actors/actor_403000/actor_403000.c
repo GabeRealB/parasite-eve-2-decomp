@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -401,12 +403,17 @@ typedef struct {
     TaskFunc handlers[35]; // Handler of each state, in state order, taking the actor's task
 } _Actor403000StateTable;
 STATIC_ASSERT_SIZEOF(_Actor403000StateTable, 0x8C);
-static const _Actor403000StateTable D_actor_403000_80131F44;
 
-/// Waypoint grid for `_actor403000ChooseRingDirection`: two rows of five indices
-/// (row by `coord.t[2]`, column by `coord.t[0]` band), each one less than the
-/// `D_actor_403000_80158CE0` entry it selects.
-extern u8 D_actor_403000_80158D48[];
+/// Arena cells in ring order, followed by six bytes with no established use.
+///
+/// Rows split Z at 4200 game units. Columns run from the highest X band to
+/// the lowest, split at 15500, 11000, 6800 and 3400. The retained suffix has
+/// no proven ownership or meaning; it is neither another row nor padding.
+typedef struct {
+    u8 cells[2][5];  // Arena cell/waypoint index, 0..9; the second row reverses X order
+    u8 unknown_A[6]; // Image bytes after the ten used entries; role and object boundary unproven
+} _Actor403000RingCellMap;
+STATIC_ASSERT_SIZEOF(_Actor403000RingCellMap, 16);
 
 /// Static storage for the displacement the actor pushes the player by.
 ///
@@ -463,21 +470,6 @@ typedef struct {
 } _Actor403000ButtonPressHoldStorage;
 STATIC_ASSERT_SIZEOF(_Actor403000ButtonPressHoldStorage, 32);
 
-/// Pairs of hit-effect vectors `_actor403000SpawnHitEffects` picks from by
-/// turn magnitude; `pad` indexes the display object's coordinate parts.
-extern SVECTOR D_actor_403000_80158C48[];
-
-/// The overlay's pose table: 8-byte records of three halfwords at 0x0/0x2/0x4
-/// plus padding, i.e. `SVECTOR`s. Indexed by the low signed halfword of the
-/// caller's id -- `_actor403000WatchState` scales a byte id by 8 into it
-/// the same way -- so a record's `vx`/`vy`/`vz` are the vector an actor's
-/// handlers copy out of it. Lives in the overlay's trailing data region.
-extern SVECTOR D_actor_403000_80158CE0[];
-
-/// Four trigger points (`vx`/`vz` used) `_actor403000CheckTargetBlast` measures
-/// the display object against, one per bit of `gameFlagGetNibble(0xE2)`.
-extern SVECTOR D_actor_403000_80158D64[];
-
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 
 /// Turn joint `coord` by `yaw` about Y in view space, keeping it expressed in
@@ -523,26 +515,62 @@ extern SVECTOR D_actor_403000_80158D64[];
         }                                                        \
     }
 
-/// Arena geometry, clip and message identities used by the state callbacks.
-///
-/// Player clip IDs index the borrowed catch banks; the aim-state slot keeps
-/// scripted playback running after fatal damage without the usual death fallback.
+/// Arena geometry and caught-player control identities.
 enum {
     ACTOR_403000_ACTIVE_TORSO_RADIUS     = 1000,
     ACTOR_403000_RING_PROBE_REACH        = 800,
-    ACTOR_403000_CLIP_WALK               = 2,
-    ACTOR_403000_CLIP_STAND              = 4,
-    ACTOR_403000_CLIP_DROP               = 8,
     ACTOR_403000_PLAYER_FATAL_HOLD_STATE = 10,
     ACTOR_403000_SOUND_CATCH             = 7,
 };
 
-/// Scripted command actions and the clips chained by the scripted state.
+/// Loaded main-rig clip IDs; action names are left unproven where only a slot is known.
+///
+/// Clips 3, 5, 6 and 10 are also loaded but have no local requests. Command
+/// clips retain their script slot identities. Only non-NULL set entries may
+/// be played; transition lookups additionally require both IDs below 45.
+enum {
+    ACTOR_403000_CLIP_INITIAL             = 0,
+    ACTOR_403000_CLIP_PROWL               = 1,
+    ACTOR_403000_CLIP_WALK                = 2,
+    ACTOR_403000_CLIP_STAND               = 4,
+    ACTOR_403000_CLIP_LUNGE               = 7,
+    ACTOR_403000_CLIP_DROP                = 8,
+    ACTOR_403000_CLIP_TURN                = 9,
+    ACTOR_403000_CLIP_GRAB_RUSH           = 11,
+    ACTOR_403000_CLIP_UNPROVEN12          = 12,
+    ACTOR_403000_CLIP_HIT_FLINCH          = 13,
+    ACTOR_403000_CLIP_KNOCKDOWN           = 14,
+    ACTOR_403000_CLIP_DOWN                = 15,
+    ACTOR_403000_CLIP_GET_UP              = 16,
+    ACTOR_403000_CLIP_LUNGE_CATCH         = 17,
+    ACTOR_403000_CLIP_COMMAND24           = 24,
+    ACTOR_403000_CLIP_COMMAND25           = 25,
+    ACTOR_403000_CLIP_COMMAND26           = 26,
+    ACTOR_403000_CLIP_COMMAND27           = 27,
+    ACTOR_403000_CLIP_SCRIPTED_BURN       = 28,
+    ACTOR_403000_CLIP_COMMAND29           = 29,
+    ACTOR_403000_TRANSITION_CLIP_CAPACITY = 45,
+    ACTOR_403000_ANIMATION_SET_CAPACITY   = 46,
+};
+
+/// Paired player clips in both borrowed catch tables; slots 0 and 7 are NULL.
+///
+/// Each odd slot starts a catch and the following slot releases it. After
+/// release, playback returns to the equipped weapon's own bank.
+enum {
+    ACTOR_403000_PLAYER_CLIP_LUNGE_CATCH   = 1,
+    ACTOR_403000_PLAYER_CLIP_LUNGE_RELEASE = 2,
+    ACTOR_403000_PLAYER_CLIP_GRAB_CATCH    = 3,
+    ACTOR_403000_PLAYER_CLIP_GRAB_RELEASE  = 4,
+    ACTOR_403000_PLAYER_CLIP_DROP_CATCH    = 5,
+    ACTOR_403000_PLAYER_CLIP_DROP_RELEASE  = 6,
+    ACTOR_403000_PLAYER_CATCH_SET_CAPACITY = 8,
+};
+
+/// Scripted command actions that select main-rig clips.
 enum {
     ACTOR_403000_COMMAND_PLAY_CLIP27 = 4,
     ACTOR_403000_COMMAND_PLAY_CLIP24 = 10,
-    ACTOR_403000_ANIM_COMMAND27      = 27,
-    ACTOR_403000_ANIM_COMMAND29      = 29,
 };
 
 /// Hit and death requests in the Blizzard Chaser's sound bank.
@@ -587,28 +615,31 @@ static void _actor403000GetUpState(Task* actorTask);
 
 static void _actor403000DownState(Task* actorTask);
 
-extern EnemyParams   D_actor_403000_8013DA00;
-extern EnemyParams   D_actor_403000_8013DA10;
-extern AnimationSet* D_actor_403000_80158B50[46];
-extern AnimationSet* D_actor_403000_80158C08[8];
-extern AnimationSet* D_actor_403000_80158C28[8];
-// Message-table callbacks use the argument views required by this TU.
+// Keep these BSS definitions in their original first-declaration order.
+/// Placement payload aligning the caught player with the actor's paired animation.
+///
+/// Catch entry fills game-unit XYZ and a yaw in 4096-per-turn units, then
+/// lends `placement` synchronously to the player. The storage's tail is unproven.
+static _Actor403000TransformStorage _gActor403000PlayerPlacement;
 
-extern TaskMessageEntry D_actor_403000_80158CA8[7];
+/// Persistent player push, resent across grab and lunge catch ticks.
+///
+/// Ground displacement is in game units. A wall reply clears it; each send
+/// retains player control and requests all collision updates. Tail ownership is unproven.
+static _Actor403000MoveByStorage _gActor403000PlayerPush;
 
-extern _Actor403000TransformStorage D_actor_403000_80158D90;
+/// Zero-press player hold used to test whether a catch may take scripted control.
+///
+/// The player consumes `hold.pressCount` during dispatch without retaining the
+/// record. No package code writes it; the allocation's eight trailing bytes are unproven.
+static _Actor403000ButtonPressHoldStorage _gActor403000PlayerCatchHold;
 
-extern _Actor403000MoveByStorage D_actor_403000_80158DB0;
-
-extern _Actor403000ButtonPressHoldStorage D_actor_403000_80158DD0;
-
-/// Trail history `_actor403000DrawFlareTrail` and `_actor403000RecordFlareTrail`
-/// shift down one slot per call,
-/// storing the newest position in slot 0.
-extern SVECTOR D_actor_403000_80158DF0[18];
-extern s8      D_actor_403000_80158364[45][45];
-
-extern ActorCommand D_actor_403000_80158D8C;
+/// Overlay-wide history of 18 flare positions in world game units.
+///
+/// Each draw or history-only sample shifts older points toward the end and
+/// writes XYZ to slot 0, narrowing to signed halfwords. The fourth halfword
+/// stays zero. History starts zero on overlay load and is shared by its actors.
+static SVECTOR _gActor403000FlareTrailHistory[18];
 
 /// Integer part of the last movement step `_actorContactApplyGridPushback`
 /// applied to the actor's root coordinate.
@@ -678,23 +709,66 @@ static s32  _actor403000PlayAnimation(Task* task, s32 messageId, const Animation
 static void _actor403000Task(Task* task);
 static void _actor403000IgnoreMessage2015(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
-DamageAttack D_actor_403000_8013D9E0[4] = {
-    { 30, 7 },
-    { 20, 7 },
-    { 20, 7 },
-    { 25, 0 },
+/// Attack indices shared by both parameter variants.
+///
+/// Row 2 has no recovered sender. Reaction 7 selects the player's spark/puff
+/// hit presentation without a status effect; ordinary and poison use shared IDs.
+enum {
+    ACTOR_403000_ATTACK_LUNGE                    = 0,
+    ACTOR_403000_ATTACK_GRAB                     = 1,
+    ACTOR_403000_ATTACK_UNPROVEN2                = 2,
+    ACTOR_403000_ATTACK_DROP                     = 3,
+    ACTOR_403000_ATTACK_COUNT                    = 4,
+    ACTOR_403000_ATTACK_REACTION_SPARK_AND_PUFFS = 7,
 };
 
-DamageAttack D_actor_403000_8013D9F0[4] = {
-    { 20, 3 },
-    { 12, 7 },
-    { 12, 7 },
-    { 18, 0 },
+/// Default variant's base HP damage and player reactions, indexed by attack.
+static DamageAttack _gActor403000Attacks[ACTOR_403000_ATTACK_COUNT] = {
+    [ACTOR_403000_ATTACK_LUNGE]     = { 30, ACTOR_403000_ATTACK_REACTION_SPARK_AND_PUFFS },
+    [ACTOR_403000_ATTACK_GRAB]      = { 20, ACTOR_403000_ATTACK_REACTION_SPARK_AND_PUFFS },
+    [ACTOR_403000_ATTACK_UNPROVEN2] = { 20, ACTOR_403000_ATTACK_REACTION_SPARK_AND_PUFFS },
+    [ACTOR_403000_ATTACK_DROP]      = { 25, GAME_ACTOR_REACTION_ORDINARY },
 };
 
-EnemyParams D_actor_403000_8013DA00 = { D_actor_403000_8013D9E0, 500, 300, 200, 10, 100, 6, 100, 0 };
+/// Alternate variant's base HP damage and player reactions, including a poison lunge.
+static DamageAttack _gActor403000AlternateAttacks[ACTOR_403000_ATTACK_COUNT] = {
+    [ACTOR_403000_ATTACK_LUNGE]     = { 20, GAME_ACTOR_REACTION_POISON },
+    [ACTOR_403000_ATTACK_GRAB]      = { 12, ACTOR_403000_ATTACK_REACTION_SPARK_AND_PUFFS },
+    [ACTOR_403000_ATTACK_UNPROVEN2] = { 12, ACTOR_403000_ATTACK_REACTION_SPARK_AND_PUFFS },
+    [ACTOR_403000_ATTACK_DROP]      = { 18, GAME_ACTOR_REACTION_ORDINARY },
+};
 
-EnemyParams D_actor_403000_8013DA10 = { D_actor_403000_8013D9F0, 2500, 500, 300, 30, 100, 3, 100, 20 };
+/// Combat parameters selected at spawn and by the default scripted resets.
+///
+/// Shared by live instances; six buildup steps and zero damage-over-time pulses
+/// are base reaction settings, before the incoming attack's grade scale.
+static EnemyParams _gActor403000Params = {
+    .attacks              = _gActor403000Attacks,
+    .hpMax                = 500,
+    .exp                  = 300,
+    .bp                   = 200,
+    .mp                   = 10,
+    .critChance           = 100,
+    .buildupSteps         = 6,
+    .damageOverTimeChance = 100,
+    .damageOverTimeTicks  = 0,
+};
+
+/// Stronger combat variant selected by alternate resets and a burned-model turn restart.
+///
+/// Shared by live instances; the record changes health, rewards and reaction
+/// timing together with the attack table. Selection resets current HP to `hpMax`.
+static EnemyParams _gActor403000AlternateParams = {
+    .attacks              = _gActor403000AlternateAttacks,
+    .hpMax                = 2500,
+    .exp                  = 500,
+    .bp                   = 300,
+    .mp                   = 30,
+    .critChance           = 100,
+    .buildupSteps         = 3,
+    .damageOverTimeChance = 100,
+    .damageOverTimeTicks  = 20,
+};
 
 static TmdBone _gActor403000BlizzardChaserBodySkeleton[24] = {
 #include "assets/blizzard_chaser_body_skeleton.inc"
@@ -1410,7 +1484,12 @@ static AnimationSet _gActor403000Animation2651C = {
     { NULL, _gActor403000Animation2651CBank1, NULL, NULL, _gActor403000Animation2651CBank4, NULL, NULL, NULL },
 };
 
-s8 D_actor_403000_80158364[45][45] = {
+/// Main-rig blend durations in normal-rate frames: [previous clip][requested clip].
+///
+/// Both IDs must be in 0..44 and select loaded clips. Zero is an immediate
+/// transition; signed bytes widen to the animation API's frame count. Keep all
+/// 45 rows, including unused zero rows; the following pointer table is word-aligned.
+static s8 _gActor403000TransitionFrames[ACTOR_403000_TRANSITION_CLIP_CAPACITY][ACTOR_403000_TRANSITION_CLIP_CAPACITY] = {
     /*  0 */ { 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     /*  1 */ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     /*  2 */ { 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -1458,78 +1537,69 @@ s8 D_actor_403000_80158364[45][45] = {
     /* 44 */ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AnimationSet* D_actor_403000_80158B50[46] = {
-    &_gActor403000Animation139B8,
-    &_gActor403000Animation14AB4,
-    &_gActor403000Animation15528,
-    &_gActor403000Animation1607C,
-    &_gActor403000Animation16A1C,
-    &_gActor403000Animation17038,
-    &_gActor403000Animation17694,
-    &_gActor403000Animation189B4,
-    &_gActor403000Animation19984,
-    &_gActor403000Animation1A69C,
-    &_gActor403000Animation1B000,
-    &_gActor403000Animation1BABC,
-    &_gActor403000Animation1C69C,
-    &_gActor403000Animation1CE64,
-    &_gActor403000Animation1D9E8,
-    &_gActor403000Animation1E058,
-    &_gActor403000Animation1EAC4,
-    &_gActor403000Animation20714,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    &_gActor403000Animation24BD0,
-    &_gActor403000Animation250C4,
-    &_gActor403000Animation25484,
-    &_gActor403000Animation25B24,
-    &_gActor403000Animation2651C,
-    &_gActor403000Animation26334,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
+/// Main and flinch rigs' clip table, borrowed for the actor's lifetime.
+///
+/// Only slots 0..17 and 24..29 contain sets. The other entries are NULL, not
+/// playable clips. This is a set-pointer table, without a player bank's raw extension.
+static AnimationSet* _gActor403000AnimationSets[ACTOR_403000_ANIMATION_SET_CAPACITY] = {
+    [ACTOR_403000_CLIP_INITIAL]       = &_gActor403000Animation139B8,
+    [ACTOR_403000_CLIP_PROWL]         = &_gActor403000Animation14AB4,
+    [ACTOR_403000_CLIP_WALK]          = &_gActor403000Animation15528,
+    [3]                               = &_gActor403000Animation1607C, // Action unproven; no local request
+    [ACTOR_403000_CLIP_STAND]         = &_gActor403000Animation16A1C,
+    [5]                               = &_gActor403000Animation17038, // Action unproven; no local request
+    [6]                               = &_gActor403000Animation17694, // Action unproven; no local request
+    [ACTOR_403000_CLIP_LUNGE]         = &_gActor403000Animation189B4,
+    [ACTOR_403000_CLIP_DROP]          = &_gActor403000Animation19984,
+    [ACTOR_403000_CLIP_TURN]          = &_gActor403000Animation1A69C,
+    [10]                              = &_gActor403000Animation1B000, // Action unproven; no local request
+    [ACTOR_403000_CLIP_GRAB_RUSH]     = &_gActor403000Animation1BABC,
+    [ACTOR_403000_CLIP_UNPROVEN12]    = &_gActor403000Animation1C69C,
+    [ACTOR_403000_CLIP_HIT_FLINCH]    = &_gActor403000Animation1CE64,
+    [ACTOR_403000_CLIP_KNOCKDOWN]     = &_gActor403000Animation1D9E8,
+    [ACTOR_403000_CLIP_DOWN]          = &_gActor403000Animation1E058,
+    [ACTOR_403000_CLIP_GET_UP]        = &_gActor403000Animation1EAC4,
+    [ACTOR_403000_CLIP_LUNGE_CATCH]   = &_gActor403000Animation20714,
+    [ACTOR_403000_CLIP_COMMAND24]     = &_gActor403000Animation24BD0,
+    [ACTOR_403000_CLIP_COMMAND25]     = &_gActor403000Animation250C4,
+    [ACTOR_403000_CLIP_COMMAND26]     = &_gActor403000Animation25484,
+    [ACTOR_403000_CLIP_COMMAND27]     = &_gActor403000Animation25B24,
+    [ACTOR_403000_CLIP_SCRIPTED_BURN] = &_gActor403000Animation2651C,
+    [ACTOR_403000_CLIP_COMMAND29]     = &_gActor403000Animation26334,
 };
 
-AnimationSet* D_actor_403000_80158C08[8] = {
-    NULL,
-    &_gActor403000Animation21A1C,
-    &_gActor403000Animation22500,
-    &_gActor403000Animation23230,
-    &_gActor403000Animation241D8,
-    &_gActor403000Animation229E8,
-    &_gActor403000Animation249EC,
-    NULL,
+/// Player catch/release clips paired with the actor's lunge, front grab and drop.
+///
+/// The player borrows this overlay's sets through catch playback, then restores
+/// its equipped weapon bank. Slots 0 and 7 cannot be played from this table.
+static AnimationSet* _gActor403000PlayerCatchAnimationSets[ACTOR_403000_PLAYER_CATCH_SET_CAPACITY] = {
+    [ACTOR_403000_PLAYER_CLIP_LUNGE_CATCH]   = &_gActor403000Animation21A1C,
+    [ACTOR_403000_PLAYER_CLIP_LUNGE_RELEASE] = &_gActor403000Animation22500,
+    [ACTOR_403000_PLAYER_CLIP_GRAB_CATCH]    = &_gActor403000Animation23230,
+    [ACTOR_403000_PLAYER_CLIP_GRAB_RELEASE]  = &_gActor403000Animation241D8,
+    [ACTOR_403000_PLAYER_CLIP_DROP_CATCH]    = &_gActor403000Animation229E8,
+    [ACTOR_403000_PLAYER_CLIP_DROP_RELEASE]  = &_gActor403000Animation249EC,
 };
 
-AnimationSet* D_actor_403000_80158C28[8] = {
-    NULL,
-    &_gActor403000Animation21A1C,
-    &_gActor403000Animation22500,
-    &_gActor403000Animation239CC,
-    &_gActor403000Animation249EC,
-    &_gActor403000Animation229E8,
-    &_gActor403000Animation249EC,
-    NULL,
+/// Player catch table with the alternate-facing grab and release pair.
+///
+/// Selected for a grab when the absolute player-facing difference is at least
+/// a quarter turn. Slots 3 and 4 differ from the default table; other slots agree.
+static AnimationSet* _gActor403000PlayerRearGrabAnimationSets[ACTOR_403000_PLAYER_CATCH_SET_CAPACITY] = {
+    [ACTOR_403000_PLAYER_CLIP_LUNGE_CATCH]   = &_gActor403000Animation21A1C,
+    [ACTOR_403000_PLAYER_CLIP_LUNGE_RELEASE] = &_gActor403000Animation22500,
+    [ACTOR_403000_PLAYER_CLIP_GRAB_CATCH]    = &_gActor403000Animation239CC,
+    [ACTOR_403000_PLAYER_CLIP_GRAB_RELEASE]  = &_gActor403000Animation249EC,
+    [ACTOR_403000_PLAYER_CLIP_DROP_CATCH]    = &_gActor403000Animation229E8,
+    [ACTOR_403000_PLAYER_CLIP_DROP_RELEASE]  = &_gActor403000Animation249EC,
 };
 
-SVECTOR D_actor_403000_80158C48[12] = {
+/// Part-local hit-effect offsets in game units, with model-part indices in `pad`.
+///
+/// Whole eight-byte records become the effect API's `SVECTOR` arguments. Front
+/// hits choose pairs from 0..3 (4 is an unreachable fallback); rear hits use 5..7,
+/// and the two side bearings use 8/9 and 10/11. Part indices are 2, 7 or 9.
+static SVECTOR _gActor403000HitEffectOffsets[12] = {
     { 60, -12, 30, 2 },
     { -50, -130, 29, 2 },
     { 20, -70, 25, 2 },
@@ -1544,7 +1614,11 @@ SVECTOR D_actor_403000_80158C48[12] = {
     { -25, 0, 0, 2 },
 };
 
-TaskMessageEntry D_actor_403000_80158CA8[7] = {
+/// Actor command, presence, model, placement and playback message dispatch.
+///
+/// The final entry terminates lookup. Message 2015 has no defined result;
+/// callers must ignore its reply. Other payloads follow their request types.
+static TaskMessageEntry _gActor403000MessageHandlers[7] = {
     { ACTOR_403000_MESSAGE_IGNORED, _actor403000IgnoreMessage2015 },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor403000SetModelDraw },
     { ACTOR_MESSAGE_IS_PRESENT, _actor403000IsPresent },
@@ -1554,7 +1628,12 @@ TaskMessageEntry D_actor_403000_80158CA8[7] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-SVECTOR D_actor_403000_80158CE0[13] = {
+/// Arena ring waypoints in the root coordinate's parent frame, in game units.
+///
+/// Indices 0..9 circle the two Z rows in opposite X directions. Their fourth
+/// halfwords are unused. The three subsequent zero records have no established
+/// role or separate-object boundary and remain in this thirteen-record storage.
+static SVECTOR _gActor403000ArenaWaypoints[13] = {
     { 0x445C, 2, 2100, 0 },
     { 0x33C2, 2, 2100, 0 },
     { 8900, 2, 2100, 0 },
@@ -1570,28 +1649,33 @@ SVECTOR D_actor_403000_80158CE0[13] = {
     { 0, 0, 0, 0 },
 };
 
-u8 D_actor_403000_80158D48[16] = {
-    0,
-    1,
-    2,
-    3,
-    4,
-    9,
-    8,
-    7,
-    6,
-    5,
-    0,
-    0,
-    1,
-    0,
-    3,
-    2,
+/// X/Z arena-band mapping to the ten waypoint-ring cells.
+///
+/// Only `cells` is indexed; preserve the six subsequent bytes whose role is unproven.
+static _Actor403000RingCellMap _gActor403000RingCellMap = {
+    .cells     = { { 0, 1, 2, 3, 4 }, { 9, 8, 7, 6, 5 } },
+    .unknown_A = { 0, 0, 1, 0, 3, 2 },
 };
 
-TaskDesc D_actor_403000_80158D58 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor403000Task, { .model = &_gActor403000BlizzardChaserBody } };
+enum {
+    ACTOR_403000_TASK_PRIORITY = 96,
+    ACTOR_403000_TASK_SPAWN    = 0,
+    ACTOR_403000_TASK_UPDATE   = 1,
+    ACTOR_403000_TASK_DESTROY  = 2,
+};
 
-SVECTOR D_actor_403000_80158D64[4] = {
+TaskDesc gActor403000TaskDesc = {
+    .header   = { .fields = { .flags    = TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER,
+                              .priority = ACTOR_403000_TASK_PRIORITY } },
+    .callback = _actor403000Task,
+    .data     = { .model = &_gActor403000BlizzardChaserBody },
+};
+
+/// Horizontal blast centres for bits 0..3 of `GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED`.
+///
+/// X/Z use arena parent-space game units. Y and the fourth halfword are unused;
+/// the complete records retain their eight-byte stride.
+static SVECTOR _gActor403000TargetBlastPositions[4] = {
     { 4550, 0, 310, 0 },
     { 0x3566, 0, 330, 0 },
     { 4340, 0, 8710, 0 },
@@ -1600,15 +1684,11 @@ SVECTOR D_actor_403000_80158D64[4] = {
 
 SVECTOR ActorContact_ScratchPosition = { 0 };
 
-ActorCommand D_actor_403000_80158D8C = { 0 };
-
-_Actor403000TransformStorage D_actor_403000_80158D90;
-
-_Actor403000MoveByStorage D_actor_403000_80158DB0;
-
-_Actor403000ButtonPressHoldStorage D_actor_403000_80158DD0;
-
-SVECTOR D_actor_403000_80158DF0[18];
+/// Synchronous scene broadcast emitted when direct hit damage kills this actor.
+///
+/// Each send fills context stage 9, area 1 and command 3, then lends this record
+/// to the scene for routing as `ACTOR_COMMAND_MESSAGE_APPLY`, consumed before return.
+static ActorCommand _gActor403000DeathCommand = { 0 };
 
 static void                _actor403000DrawFlare(GfxCoord* flareCoord, const SVECTOR* localPosition, s32 unusedArg);
 static void                _actor403000RecordFlareTrail(GfxCoord* flareCoord);
@@ -1673,11 +1753,9 @@ static s32 _actor403000ApplyCommand(Task* task, s32 messageId, const ActorComman
         ACTOR_403000_COMMAND_START_TURN             = 11,
         ACTOR_403000_COMMAND_SCRIPTED_DISSOLVE      = 12,
         ACTOR_403000_COMMAND_SMOLDER                = 13,
-        ACTOR_403000_ANIM_COMMAND24                 = 0x18,
-        ACTOR_403000_ANIM_COMMAND25                 = 0x19,
-        ACTOR_403000_ANIM_COMMAND26                 = 0x1A,
-        ACTOR_403000_TEXTURE_BURNED                 = 2,
-        ACTOR_403000_CLUT_BURNED                    = 4,
+
+        ACTOR_403000_TEXTURE_BURNED = 2,
+        ACTOR_403000_CLUT_BURNED    = 4,
     };
 
     Actor403000Work* work  = task->work;
@@ -1696,18 +1774,18 @@ static s32 _actor403000ApplyCommand(Task* task, s32 messageId, const ActorComman
             case ACTOR_403000_COMMAND_RESET_CLIP24:
                 worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
                 enemy->reactionFlags  = 0;
-                enemy->param          = &D_actor_403000_8013DA00;
-                enemy->hp             = D_actor_403000_8013DA00.hpMax;
-                work->requestedAnimId = ACTOR_403000_ANIM_COMMAND24;
+                enemy->param          = &_gActor403000Params;
+                enemy->hp             = _gActor403000Params.hpMax;
+                work->requestedAnimId = ACTOR_403000_CLIP_COMMAND24;
                 work->state           = ACTOR_403000_STATE_SCRIPTED;
                 work->prevState       = ACTOR_403000_PREVIOUS_STATE_INVALID;
                 return 1;
             case ACTOR_403000_COMMAND_RESET_CLIP25:
                 worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
                 enemy->reactionFlags  = 0;
-                enemy->param          = &D_actor_403000_8013DA00;
-                enemy->hp             = D_actor_403000_8013DA00.hpMax;
-                work->requestedAnimId = ACTOR_403000_ANIM_COMMAND25;
+                enemy->param          = &_gActor403000Params;
+                enemy->hp             = _gActor403000Params.hpMax;
+                work->requestedAnimId = ACTOR_403000_CLIP_COMMAND25;
                 work->state           = ACTOR_403000_STATE_SCRIPTED;
                 work->prevState       = ACTOR_403000_PREVIOUS_STATE_INVALID;
                 return 1;
@@ -1715,17 +1793,17 @@ static s32 _actor403000ApplyCommand(Task* task, s32 messageId, const ActorComman
                 enemy->hp = 0;
                 worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
                 enemy->reactionFlags  = 0;
-                work->requestedAnimId = ACTOR_403000_ANIM_COMMAND26;
+                work->requestedAnimId = ACTOR_403000_CLIP_COMMAND26;
                 work->state           = ACTOR_403000_STATE_SCRIPTED;
                 work->prevState       = ACTOR_403000_PREVIOUS_STATE_INVALID;
                 enemy->reactionFlags  = 0;
-                enemy->hp             = D_actor_403000_8013DA10.hpMax;
-                enemy->param          = &D_actor_403000_8013DA10;
+                enemy->hp             = _gActor403000AlternateParams.hpMax;
+                enemy->param          = &_gActor403000AlternateParams;
                 return 1;
             case ACTOR_403000_COMMAND_PLAY_CLIP27:
                 worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
                 enemy->reactionFlags  = 0;
-                work->requestedAnimId = ACTOR_403000_ANIM_COMMAND27;
+                work->requestedAnimId = ACTOR_403000_CLIP_COMMAND27;
                 work->state           = ACTOR_403000_STATE_SCRIPTED;
                 work->prevState       = ACTOR_403000_PREVIOUS_STATE_INVALID;
                 return 1;
@@ -1738,9 +1816,9 @@ static s32 _actor403000ApplyCommand(Task* task, s32 messageId, const ActorComman
             case ACTOR_403000_COMMAND_RESET_CLIP25_ALTERNATE:
                 worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
                 enemy->reactionFlags  = 0;
-                enemy->hp             = D_actor_403000_8013DA10.hpMax;
-                enemy->param          = &D_actor_403000_8013DA10;
-                work->requestedAnimId = ACTOR_403000_ANIM_COMMAND25;
+                enemy->hp             = _gActor403000AlternateParams.hpMax;
+                enemy->param          = &_gActor403000AlternateParams;
+                work->requestedAnimId = ACTOR_403000_CLIP_COMMAND25;
                 work->state           = ACTOR_403000_STATE_SCRIPTED;
                 work->prevState       = ACTOR_403000_PREVIOUS_STATE_INVALID;
                 return 1;
@@ -1753,7 +1831,7 @@ static s32 _actor403000ApplyCommand(Task* task, s32 messageId, const ActorComman
             case ACTOR_403000_COMMAND_PLAY_CLIP24:
                 worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
                 enemy->reactionFlags  = 0;
-                work->requestedAnimId = ACTOR_403000_ANIM_COMMAND24;
+                work->requestedAnimId = ACTOR_403000_CLIP_COMMAND24;
                 work->state           = ACTOR_403000_STATE_SCRIPTED;
                 work->prevState       = ACTOR_403000_PREVIOUS_STATE_INVALID;
                 return 1;
@@ -1765,8 +1843,8 @@ static s32 _actor403000ApplyCommand(Task* task, s32 messageId, const ActorComman
                 work->turnRingDir   = 1;
                 if (task->extra.tmd->texturePageOffset == ACTOR_403000_TEXTURE_BURNED) {
                     enemy->reactionFlags = 0;
-                    enemy->hp            = D_actor_403000_8013DA10.hpMax;
-                    enemy->param         = &D_actor_403000_8013DA10;
+                    enemy->hp            = _gActor403000AlternateParams.hpMax;
+                    enemy->param         = &_gActor403000AlternateParams;
                 }
                 return 1;
             case ACTOR_403000_COMMAND_SCRIPTED_DISSOLVE:
@@ -1868,25 +1946,25 @@ static void _actor403000DrawFlare(GfxCoord* flareCoord, const SVECTOR* localPosi
 /// repeatedly except `jointCoord`, evaluated once. Captures no other caller locals,
 /// changes the emitter/cache and XYZ history, and reserves no scratch or GPU storage.
 /// Forms one compound statement; callers supply the semicolon.
-#define ACTOR_403000_SAMPLE_FLARE_TRAIL(trailScratch, jointCoord, sampleIndex)                                                                                                   \
-    {                                                                                                                                                                            \
-        for ((sampleIndex) = 0; (sampleIndex) < ARRAY_SIZE(D_actor_403000_80158DF0) - 1; (sampleIndex)++) {                                                                      \
-            D_actor_403000_80158DF0[ARRAY_SIZE(D_actor_403000_80158DF0) - 1 - (sampleIndex)] = D_actor_403000_80158DF0[ARRAY_SIZE(D_actor_403000_80158DF0) - 2 - (sampleIndex)]; \
-        }                                                                                                                                                                        \
-        gfxSetRotIdentity(&(trailScratch)->emitter.coord);                                                                                                                       \
-        (trailScratch)->emitter.coord.t[0]   = ACTOR_403000_FLARE_OFFSET_X;                                                                                                      \
-        (trailScratch)->emitter.coord.t[1]   = ACTOR_403000_FLARE_OFFSET_Y;                                                                                                      \
-        (trailScratch)->emitter.coord.t[2]   = ACTOR_403000_FLARE_OFFSET_Z;                                                                                                      \
-        (trailScratch)->emitter.parent       = (jointCoord);                                                                                                                     \
-        (trailScratch)->emitter.composeStamp = GRAPHICS_COORD_DIRTY;                                                                                                             \
-        actorRenderComposeCoord(&(trailScratch)->emitter);                                                                                                                       \
-        (trailScratch)->emitterPos.vz = 0;                                                                                                                                       \
-        (trailScratch)->emitterPos.vy = 0;                                                                                                                                       \
-        (trailScratch)->emitterPos.vx = 0;                                                                                                                                       \
-        _actorRenderTransformLocalPointToWorld(&(trailScratch)->emitter, &(trailScratch)->emitterPos);                                                                           \
-        D_actor_403000_80158DF0[0].vx = (trailScratch)->emitterPos.vx;                                                                                                           \
-        D_actor_403000_80158DF0[0].vy = (trailScratch)->emitterPos.vy;                                                                                                           \
-        D_actor_403000_80158DF0[0].vz = (trailScratch)->emitterPos.vz;                                                                                                           \
+#define ACTOR_403000_SAMPLE_FLARE_TRAIL(trailScratch, jointCoord, sampleIndex)                                                                                                                               \
+    {                                                                                                                                                                                                        \
+        for ((sampleIndex) = 0; (sampleIndex) < ARRAY_SIZE(_gActor403000FlareTrailHistory) - 1; (sampleIndex)++) {                                                                                           \
+            _gActor403000FlareTrailHistory[ARRAY_SIZE(_gActor403000FlareTrailHistory) - 1 - (sampleIndex)] = _gActor403000FlareTrailHistory[ARRAY_SIZE(_gActor403000FlareTrailHistory) - 2 - (sampleIndex)]; \
+        }                                                                                                                                                                                                    \
+        gfxSetRotIdentity(&(trailScratch)->emitter.coord);                                                                                                                                                   \
+        (trailScratch)->emitter.coord.t[0]   = ACTOR_403000_FLARE_OFFSET_X;                                                                                                                                  \
+        (trailScratch)->emitter.coord.t[1]   = ACTOR_403000_FLARE_OFFSET_Y;                                                                                                                                  \
+        (trailScratch)->emitter.coord.t[2]   = ACTOR_403000_FLARE_OFFSET_Z;                                                                                                                                  \
+        (trailScratch)->emitter.parent       = (jointCoord);                                                                                                                                                 \
+        (trailScratch)->emitter.composeStamp = GRAPHICS_COORD_DIRTY;                                                                                                                                         \
+        actorRenderComposeCoord(&(trailScratch)->emitter);                                                                                                                                                   \
+        (trailScratch)->emitterPos.vz = 0;                                                                                                                                                                   \
+        (trailScratch)->emitterPos.vy = 0;                                                                                                                                                                   \
+        (trailScratch)->emitterPos.vx = 0;                                                                                                                                                                   \
+        _actorRenderTransformLocalPointToWorld(&(trailScratch)->emitter, &(trailScratch)->emitterPos);                                                                                                       \
+        _gActor403000FlareTrailHistory[0].vx = (trailScratch)->emitterPos.vx;                                                                                                                                \
+        _gActor403000FlareTrailHistory[0].vy = (trailScratch)->emitterPos.vy;                                                                                                                                \
+        _gActor403000FlareTrailHistory[0].vz = (trailScratch)->emitterPos.vz;                                                                                                                                \
     }
 
 /// Records the flare's world position and draws its fading additive ribbon.
@@ -1915,12 +1993,12 @@ static void _actor403000DrawFlareTrail(GfxCoord* flareCoord)
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor403000TrailScratch);
     ACTOR_403000_SAMPLE_FLARE_TRAIL(scratch, flareCoord, historyIndex);
     // Reserve every history slot; only adjacent accepted projections form quads.
-    for (historyIndex = 0; historyIndex < ARRAY_SIZE(D_actor_403000_80158DF0); historyIndex++) {
+    for (historyIndex = 0; historyIndex < ARRAY_SIZE(_gActor403000FlareTrailHistory); historyIndex++) {
         quad           = gGpuPrimCursor;
         gGpuPrimCursor = quad + 1;
         gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_SetTransMatrix(&gGfxViewCoord.workm);
-        gte_ldv0(&D_actor_403000_80158DF0[historyIndex]);
+        gte_ldv0(&_gActor403000FlareTrailHistory[historyIndex]);
         gte_rtps();
         gte_stsxy(&scratch->screen.word);
         gte_stdp(&scratch->depthCue);
@@ -1968,7 +2046,7 @@ static void _actor403000DrawFlareTrail(GfxCoord* flareCoord)
             quad->v2                          = 8;
             quad->tpage                       = ACTOR_403000_TRAIL_TEXTURE_PAGE;
             quad->clut                        = ACTOR_403000_TRAIL_CLUT;
-            GPU_PRIMITIVE_COLOR_WORD(quad, 0) = ((ARRAY_SIZE(D_actor_403000_80158DF0) - 1 - historyIndex) * 4) & 0xFF;
+            GPU_PRIMITIVE_COLOR_WORD(quad, 0) = ((ARRAY_SIZE(_gActor403000FlareTrailHistory) - 1 - historyIndex) * 4) & 0xFF;
             setPolyFT4(quad);
             setSemiTrans(quad, 1);
             addPrim(&gGpuCurrentOt[(((u32)(scratch->otz - ACTOR_403000_TRAIL_DEPTH_BIAS) << gDisplayState.otDepthShift) >> 4) & ACTOR_403000_TRAIL_OT_INDEX_MASK], quad);
@@ -2133,17 +2211,6 @@ static void _actor403000TickBlendedSlots(Task* task)
 static s32 _actor403000PollAnimationSound(Task* task, Actor403000Work* work)
 {
     enum {
-        ACTOR_403000_CUE_CLIP_PROWL       = 1,
-        ACTOR_403000_CUE_CLIP_WALK        = 2,
-        ACTOR_403000_CUE_CLIP_LUNGE       = 7,
-        ACTOR_403000_CUE_CLIP_DROP        = 8,
-        ACTOR_403000_CUE_CLIP_TURN        = 9,
-        ACTOR_403000_CUE_CLIP_GRAB_RUSH   = 11,
-        ACTOR_403000_CUE_CLIP12           = 12, // No local request establishes this clip's action
-        ACTOR_403000_CUE_CLIP_KNOCKDOWN   = 14,
-        ACTOR_403000_CUE_CLIP_LUNGE_CATCH = 17,
-    };
-    enum {
         ACTOR_403000_SOUND_PROWL_TURN_EARLY   = 0x401E0002,
         ACTOR_403000_SOUND_PROWL_TURN_LATE    = 0x401E0001,
         ACTOR_403000_SOUND_KNOCKDOWN          = 0x401E000E,
@@ -2164,7 +2231,7 @@ static s32 _actor403000PollAnimationSound(Task* task, Actor403000Work* work)
         return soundId;
     }
     switch ((s16)(work->requestedAnimId - 1)) {
-        case ACTOR_403000_CUE_CLIP_PROWL - 1:
+        case ACTOR_403000_CLIP_PROWL - 1:
             if ((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 0x21 && work->slotCueIndex[1] < 0x21) {
                 soundId = ACTOR_403000_SOUND_PROWL_TURN_EARLY;
             }
@@ -2172,7 +2239,7 @@ static s32 _actor403000PollAnimationSound(Task* task, Actor403000Work* work)
                 soundId = ACTOR_403000_SOUND_PROWL_TURN_LATE;
             }
             break;
-        case ACTOR_403000_CUE_CLIP_TURN - 1:
+        case ACTOR_403000_CLIP_TURN - 1:
             if ((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 5 && work->slotCueIndex[1] < 5) {
                 soundId = ACTOR_403000_SOUND_PROWL_TURN_EARLY;
             }
@@ -2180,12 +2247,12 @@ static s32 _actor403000PollAnimationSound(Task* task, Actor403000Work* work)
                 soundId = ACTOR_403000_SOUND_PROWL_TURN_LATE;
             }
             break;
-        case ACTOR_403000_CUE_CLIP_KNOCKDOWN - 1:
+        case ACTOR_403000_CLIP_KNOCKDOWN - 1:
             if ((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 0xF && work->slotCueIndex[1] < 0xF) {
                 soundId = ACTOR_403000_SOUND_KNOCKDOWN;
             }
             break;
-        case ACTOR_403000_CUE_CLIP_WALK - 1:
+        case ACTOR_403000_CLIP_WALK - 1:
             if ((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 0x1D && work->slotCueIndex[1] < 0x1D) {
                 soundId = ACTOR_403000_SOUND_WALK_LATE;
             }
@@ -2193,12 +2260,12 @@ static s32 _actor403000PollAnimationSound(Task* task, Actor403000Work* work)
                 soundId = ACTOR_403000_SOUND_WALK_EARLY;
             }
             break;
-        case ACTOR_403000_CUE_CLIP12 - 1:
+        case ACTOR_403000_CLIP_UNPROVEN12 - 1:
             if ((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 0x13 && work->slotCueIndex[1] < 0x13) {
                 soundId = ACTOR_403000_SOUND_CLIP12_RECORD19;
             }
             // Clip 12 shares the following cue tests with clip 11.
-        case ACTOR_403000_CUE_CLIP_GRAB_RUSH - 1:
+        case ACTOR_403000_CLIP_GRAB_RUSH - 1:
             if ((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 0x12 && work->slotCueIndex[1] < 0x12) {
                 soundId = ACTOR_403000_SOUND_GRAB_RUSH_RECORD18;
             }
@@ -2206,17 +2273,17 @@ static s32 _actor403000PollAnimationSound(Task* task, Actor403000Work* work)
                 soundId = ACTOR_403000_SOUND_GRAB_RUSH_RECORD15;
             }
             break;
-        case ACTOR_403000_CUE_CLIP_LUNGE - 1:
+        case ACTOR_403000_CLIP_LUNGE - 1:
             if ((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 0x15 && work->slotCueIndex[1] < 0x15) {
                 soundId = ACTOR_403000_SOUND_LUNGE;
             }
             break;
-        case ACTOR_403000_CUE_CLIP_LUNGE_CATCH - 1:
+        case ACTOR_403000_CLIP_LUNGE_CATCH - 1:
             if ((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 8 && work->slotCueIndex[1] < 8) {
                 soundId = ACTOR_403000_SOUND_LUNGE_CATCH;
             }
             break;
-        case ACTOR_403000_CUE_CLIP_DROP - 1:
+        case ACTOR_403000_CLIP_DROP - 1:
             if ((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 0xD && work->slotCueIndex[1] < 0xD) {
                 soundId = ACTOR_403000_SOUND_DROP;
             }
@@ -2241,7 +2308,7 @@ static inline void _actor403000SeekSlots(Task* task)
     for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->slots); slotIndex++) {
         work->slots[slotIndex].rate = work->animRate;
         requestedAnimId             = work->requestedAnimId;
-        animationSeekSlotWithBlend(&work->anim, slotIndex, requestedAnimId, 0, D_actor_403000_80158364[work->animId][requestedAnimId]);
+        animationSeekSlotWithBlend(&work->anim, slotIndex, requestedAnimId, 0, _gActor403000TransitionFrames[work->animId][requestedAnimId]);
     }
     work->animId = work->requestedAnimId;
 }
@@ -2557,11 +2624,11 @@ static s32 _actor403000ChooseRingDirection(GfxCoord* rootCoord)
         }
     }
     row               = positionZ >= 0x1068;
-    scratch->waypoint = D_actor_403000_80158D48[column + row * (ACTOR_403000_RING_WAYPOINT_COUNT / 2)] + 1;
+    scratch->waypoint = _gActor403000RingCellMap.cells[row][column] + 1;
     if (scratch->waypoint == ACTOR_403000_RING_WAYPOINT_COUNT) {
         scratch->waypoint = 0;
     }
-    waypoints           = D_actor_403000_80158CE0;
+    waypoints           = _gActor403000ArenaWaypoints;
     waypoint            = &waypoints[scratch->waypoint];
     scratch->offset.vx  = waypoint->vx;
     scratch->offset.vy  = waypoint->vy;
@@ -2619,9 +2686,8 @@ static void _actor403000Spawn(Enemy* enemy, Task* task)
         ACTOR_403000_TORSO_RADIUS          = 1000,
         ACTOR_403000_HIND_NECK_RADIUS      = 800,
         ACTOR_403000_HEADING_VECTOR_LENGTH = 5000,
-        ACTOR_403000_ANIM_INITIAL          = 0,
-        ACTOR_403000_PLAYER_ANIM_INITIAL   = 1,
-        ACTOR_403000_PLAYER_BLEND_FRAMES   = 3,
+
+        ACTOR_403000_PLAYER_BLEND_FRAMES = 3,
     };
 
     SVECTOR                scaledHeading;
@@ -2655,11 +2721,11 @@ static void _actor403000Spawn(Enemy* enemy, Task* task)
     enemy->bodyPos.vz       = 0;
     enemy->coord            = &task->extra.tmd->coords[2];
     worldTargetLinkNode(&enemy->node);
-    animationSets         = D_actor_403000_80158B50;
+    animationSets         = _gActor403000AnimationSets;
     work->lockOnSuspended = 1;
     enemy->reactionFlags  = 0;
-    enemy->hp             = D_actor_403000_8013DA00.hpMax;
-    enemy->param          = &D_actor_403000_8013DA00;
+    enemy->hp             = _gActor403000Params.hpMax;
+    enemy->param          = &_gActor403000Params;
     enemy->recs           = work->torsoSphere.contacts;
     // Bind both rigs before their first tick initializes the model pose.
     animationInitContext(&work->anim, animationSets, model,
@@ -2668,7 +2734,7 @@ static void _actor403000Spawn(Enemy* enemy, Task* task)
                          work->blendPoses, work->blendSlots);
     work->animStart         = ACTOR_403000_ANIM_RESTART;
     work->overlayActive     = 0;
-    work->requestedAnimId   = ACTOR_403000_ANIM_INITIAL;
+    work->requestedAnimId   = ACTOR_403000_CLIP_INITIAL;
     work->neckYaw           = 0;
     work->neckYawTarget     = 0;
     work->field_ACC         = 0x10;
@@ -2747,13 +2813,13 @@ static void _actor403000Spawn(Enemy* enemy, Task* task)
     gte_ldsv(headingVector);
     gte_gpf12();
     gte_stsv(headingVector);
-    work->playerAnimation.source.sets          = D_actor_403000_80158C08;
-    work->playerAnimation.animationId          = ACTOR_403000_PLAYER_ANIM_INITIAL;
+    work->playerAnimation.source.sets          = _gActor403000PlayerCatchAnimationSets;
+    work->playerAnimation.animationId          = ACTOR_403000_PLAYER_CLIP_LUNGE_CATCH;
     work->playerAnimation.blendFrames          = ACTOR_403000_PLAYER_BLEND_FRAMES;
     work->playerAnimation.blend                = ANIMATION_BLEND_RESET;
     work->playerAnimation.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
     work->roomEventPending                     = 0;
-    task->msgTable                             = D_actor_403000_80158CA8;
+    task->msgTable                             = _gActor403000MessageHandlers;
     rootCoord->parent                          = &gGfxViewCoord;
     rootCoord->composeStamp                    = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(rootCoord);
@@ -2797,46 +2863,46 @@ static void _actor403000SpawnHitEffects(Task* task, s16 hitYaw, s32 attackKey)
     if (hitYawMagnitude < ACTOR_403000_HIT_FRONT_YAW_LIMIT) {
         switch ((s32)((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3) {
             case 0:
-                hitOffsets[0] = D_actor_403000_80158C48[0];
-                hitOffsets[1] = D_actor_403000_80158C48[3];
+                hitOffsets[0] = _gActor403000HitEffectOffsets[0];
+                hitOffsets[1] = _gActor403000HitEffectOffsets[3];
                 break;
             case 1:
-                hitOffsets[0] = D_actor_403000_80158C48[1];
-                hitOffsets[1] = D_actor_403000_80158C48[2];
+                hitOffsets[0] = _gActor403000HitEffectOffsets[1];
+                hitOffsets[1] = _gActor403000HitEffectOffsets[2];
                 break;
             case 2:
-                hitOffsets[0] = D_actor_403000_80158C48[2];
-                hitOffsets[1] = D_actor_403000_80158C48[0];
+                hitOffsets[0] = _gActor403000HitEffectOffsets[2];
+                hitOffsets[1] = _gActor403000HitEffectOffsets[0];
                 break;
             case 3:
-                hitOffsets[0] = D_actor_403000_80158C48[3];
-                hitOffsets[1] = D_actor_403000_80158C48[1];
+                hitOffsets[0] = _gActor403000HitEffectOffsets[3];
+                hitOffsets[1] = _gActor403000HitEffectOffsets[1];
                 break;
             default:
-                hitOffsets[0] = D_actor_403000_80158C48[4];
+                hitOffsets[0] = _gActor403000HitEffectOffsets[4];
                 break;
         }
     } else if (hitYawMagnitude > ACTOR_403000_HIT_REAR_YAW_LIMIT) {
         switch ((s32)((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 2) {
             case 0:
-                hitOffsets[0] = D_actor_403000_80158C48[5];
-                hitOffsets[1] = D_actor_403000_80158C48[6];
+                hitOffsets[0] = _gActor403000HitEffectOffsets[5];
+                hitOffsets[1] = _gActor403000HitEffectOffsets[6];
                 break;
             case 1:
-                hitOffsets[0] = D_actor_403000_80158C48[6];
-                hitOffsets[1] = D_actor_403000_80158C48[7];
+                hitOffsets[0] = _gActor403000HitEffectOffsets[6];
+                hitOffsets[1] = _gActor403000HitEffectOffsets[7];
                 break;
             default:
-                hitOffsets[0] = D_actor_403000_80158C48[7];
-                hitOffsets[1] = D_actor_403000_80158C48[5];
+                hitOffsets[0] = _gActor403000HitEffectOffsets[7];
+                hitOffsets[1] = _gActor403000HitEffectOffsets[5];
                 break;
         }
     } else if (hitYaw > 0) {
-        hitOffsets[0] = D_actor_403000_80158C48[8];
-        hitOffsets[1] = D_actor_403000_80158C48[9];
+        hitOffsets[0] = _gActor403000HitEffectOffsets[8];
+        hitOffsets[1] = _gActor403000HitEffectOffsets[9];
     } else {
-        hitOffsets[0] = D_actor_403000_80158C48[10];
-        hitOffsets[1] = D_actor_403000_80158C48[11];
+        hitOffsets[0] = _gActor403000HitEffectOffsets[10];
+        hitOffsets[1] = _gActor403000HitEffectOffsets[11];
     }
     // Each spawn consumes its offset before the scratch pair is released.
     work->hitEffectArg.coord      = &task->extra.tmd->coords[hitOffsets[0].pad];
@@ -2871,10 +2937,10 @@ static s32 _actor403000CheckTargetBlast(Task* task)
     if (destroyedTargets == work->seenTargetsDestroyed) {
         return 0;
     }
-    for (targetIndex = 0; targetIndex < ARRAY_SIZE(D_actor_403000_80158D64); targetIndex++) {
+    for (targetIndex = 0; targetIndex < ARRAY_SIZE(_gActor403000TargetBlastPositions); targetIndex++) {
         if (((destroyedTargets >> targetIndex) & 1) && !((work->seenTargetsDestroyed >> targetIndex) & 1)) {
-            targetOffset.vx = task->extra.tmd->coords->coord.t[0] - D_actor_403000_80158D64[targetIndex].vx;
-            targetOffset.vz = task->extra.tmd->coords->coord.t[2] - D_actor_403000_80158D64[targetIndex].vz;
+            targetOffset.vx = task->extra.tmd->coords->coord.t[0] - _gActor403000TargetBlastPositions[targetIndex].vx;
+            targetOffset.vz = task->extra.tmd->coords->coord.t[2] - _gActor403000TargetBlastPositions[targetIndex].vz;
             if (SquareRoot0(targetOffset.vx * targetOffset.vx + targetOffset.vz * targetOffset.vz) < ACTOR_403000_TARGET_BLAST_RADIUS) {
                 work->seenTargetsDestroyed = destroyedTargets;
                 return 1;
@@ -2959,7 +3025,6 @@ static void _actor403000ApplyDamage(Task* actorTask)
         ACTOR_403000_BLAST_PUFF_MIN_TICKS         = 160,
         ACTOR_403000_BLAST_PUFF_RANDOM_MASK       = 31,
         ACTOR_403000_TARGET_BLAST_DAMAGE          = 400,
-        ACTOR_403000_CLIP_HIT_FLINCH              = 13,
         ACTOR_403000_HIT_REACTION_KNOCKDOWN       = 4,
         ACTOR_403000_GET_UP_DOWNED_END_FRAME      = 18,
         ACTOR_403000_GET_UP_BLAST_KNOCKDOWN_FRAME = 19,
@@ -3152,10 +3217,10 @@ static void _actor403000ApplyDamage(Task* actorTask)
                 } else {
                     work->state = ACTOR_403000_STATE_KNOCKDOWN;
                 }
-                D_actor_403000_80158D8C.context.loc.stage = ACTOR_403000_PACK_COMMAND_STAGE;
-                D_actor_403000_80158D8C.context.loc.area  = ACTOR_403000_PACK_COMMAND_AREA;
-                D_actor_403000_80158D8C.command           = ACTOR_403000_DEATH_BROADCAST_COMMAND;
-                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403000_80158D8C, ACTOR_COMMAND_MESSAGE_APPLY);
+                _gActor403000DeathCommand.context.loc.stage = ACTOR_403000_PACK_COMMAND_STAGE;
+                _gActor403000DeathCommand.context.loc.area  = ACTOR_403000_PACK_COMMAND_AREA;
+                _gActor403000DeathCommand.command           = ACTOR_403000_DEATH_BROADCAST_COMMAND;
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &_gActor403000DeathCommand, ACTOR_COMMAND_MESSAGE_APPLY);
                 if (actorTask->extra.tmd->texturePageOffset == 0) {
                     _actor403000PlaySound(actorTask, enemy, ACTOR_403000_SOUND_DEATH_DEFAULT);
                 } else {
@@ -3211,8 +3276,9 @@ static void _actor403000ApplyDamage(Task* actorTask)
 /// playback on the following tick. Build-up completion or death selects DOWN.
 static void _actor403000StunnedState(Task* task)
 {
-    enum { ACTOR_403000_ANIM_STUNNED    = 0xF,
-           ACTOR_403000_STUN_PAUSE_MASK = 0x1F };
+    enum {
+        ACTOR_403000_STUN_PAUSE_MASK = 0x1F
+    };
 
     Actor403000Work* work;
     Enemy*           enemy;
@@ -3227,7 +3293,7 @@ static void _actor403000StunnedState(Task* task)
         model->flags          = 0;
         tmdAllocPrimitiveBuffer(model);
         work->animRate               = ANIMATION_RATE_ONE;
-        work->requestedAnimId        = ACTOR_403000_ANIM_STUNNED;
+        work->requestedAnimId        = ACTOR_403000_CLIP_DOWN;
         work->animStart              = ACTOR_403000_ANIM_RESTART;
         work->stateFrame             = 0;
         work->rootSphere.body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
@@ -3467,7 +3533,6 @@ static void _actor403000ScriptedDissolveState(Task* actorTask)
 static void _actor403000ScriptedBurnState(Task* actorTask)
 {
     enum {
-        ACTOR_403000_CLIP_SCRIPTED_BURN = 28,
         ACTOR_403000_BURN_OT_OFFSET     = 8,
         ACTOR_403000_BURN_TORSO_TICK    = 2,
         ACTOR_403000_BURN_FORELEG_TICK  = 5,
@@ -3540,7 +3605,6 @@ static void _actor403000ScriptedBurnState(Task* actorTask)
 static void _actor403000ScriptedSmolderState(Task* actorTask)
 {
     enum {
-        ACTOR_403000_CLIP_SCRIPTED_BURN    = 28,
         ACTOR_403000_BURN_OT_OFFSET        = 8,
         ACTOR_403000_BURN_TORSO_TICK       = 2,
         ACTOR_403000_BURN_FORELEG_TICK     = 5,
@@ -3679,7 +3743,7 @@ static inline s8 _actor403000GetRingCell(GfxCoord* coord)
         column = positionX < 0x3C8C;
     }
     row      = positionZ >= 0x1068;
-    ringCell = (s8)D_actor_403000_80158D48[column + row * (ACTOR_403000_RING_WAYPOINT_COUNT / 2)];
+    ringCell = (s8)_gActor403000RingCellMap.cells[row][column];
     return ringCell;
 }
 
@@ -3924,17 +3988,17 @@ static inline void _actor403000AlignGrabCatch(Task* actorTask, Task* player, _Ac
     gte_ldsv(alignmentOffset);
     gte_gpf12();
     gte_stsv(alignmentOffset);
-    actorTask->extra.tmd->coords->coord.t[0]   = player->extra.tmd->coords->coord.t[0] + scratch->offset.vx;
-    actorTask->extra.tmd->coords->coord.t[1]   = player->extra.tmd->coords->coord.t[1] + scratch->offset.vy;
-    actorTask->extra.tmd->coords->coord.t[2]   = player->extra.tmd->coords->coord.t[2] + scratch->offset.vz;
-    actorTask->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    D_actor_403000_80158D90.placement.pos.vx   = player->extra.tmd->coords->coord.t[0];
-    D_actor_403000_80158D90.placement.pos.vy   = player->extra.tmd->coords->coord.t[1];
-    D_actor_403000_80158D90.placement.pos.vz   = player->extra.tmd->coords->coord.t[2];
-    D_actor_403000_80158D90.placement.rot.vx   = 0;
-    D_actor_403000_80158D90.placement.rot.vy   = ratan2(-actorTask->extra.tmd->coords->coord.m[2][0], actorTask->extra.tmd->coords->coord.m[2][2]) + playerYawOffset;
-    D_actor_403000_80158D90.placement.rot.vz   = 0;
-    TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_PLACE, &D_actor_403000_80158D90.placement, 0);
+    actorTask->extra.tmd->coords->coord.t[0]      = player->extra.tmd->coords->coord.t[0] + scratch->offset.vx;
+    actorTask->extra.tmd->coords->coord.t[1]      = player->extra.tmd->coords->coord.t[1] + scratch->offset.vy;
+    actorTask->extra.tmd->coords->coord.t[2]      = player->extra.tmd->coords->coord.t[2] + scratch->offset.vz;
+    actorTask->extra.tmd->coords->composeStamp    = GRAPHICS_COORD_DIRTY;
+    _gActor403000PlayerPlacement.placement.pos.vx = player->extra.tmd->coords->coord.t[0];
+    _gActor403000PlayerPlacement.placement.pos.vy = player->extra.tmd->coords->coord.t[1];
+    _gActor403000PlayerPlacement.placement.pos.vz = player->extra.tmd->coords->coord.t[2];
+    _gActor403000PlayerPlacement.placement.rot.vx = 0;
+    _gActor403000PlayerPlacement.placement.rot.vy = ratan2(-actorTask->extra.tmd->coords->coord.m[2][0], actorTask->extra.tmd->coords->coord.m[2][2]) + playerYawOffset;
+    _gActor403000PlayerPlacement.placement.rot.vz = 0;
+    TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_PLACE, &_gActor403000PlayerPlacement.placement, 0);
 }
 
 /// Approaches the player and tries to catch them during the grab rush.
@@ -3949,9 +4013,7 @@ static inline void _actor403000AlignGrabCatch(Task* actorTask, Task* player, _Ac
 static void _actor403000GrabState(Task* actorTask)
 {
     enum {
-        ACTOR_403000_ATTACK_GRAB                  = 1,
-        ACTOR_403000_PLAYER_CLIP_GRAB_CATCH       = 3,
-        ACTOR_403000_CLIP_GRAB_RUSH               = 11,
+
         ACTOR_403000_GRAB_RUSH_DISTANCE           = 0xDAC,
         ACTOR_403000_GRAB_RUSH_TRAVEL_TICKS       = 15,
         ACTOR_403000_GRAB_BEFORE_FIRST_FRAME      = -1,
@@ -4012,7 +4074,7 @@ static void _actor403000GrabState(Task* actorTask)
             _actorPositionDeltaToPlayer(&gPlayerStatus, rootCoord, toPlayer);
             scratch->turn = headingError = _actorAngleTurnToOffset(actorTask->extra.tmd->coords, toPlayer->vx, toPlayer->vz);
             if (ABS(headingError) < (ACTOR_TRANSFORM_ANGLE_TURN / 4)) {
-                if (_actor403000HasPlayerContact(work->neckSphere.contacts, ARRAY_SIZE(work->neckSphere.contacts)) && enemy->hp > 0 && TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_403000_80158DD0.hold, 0) == 0) {
+                if (_actor403000HasPlayerContact(work->neckSphere.contacts, ARRAY_SIZE(work->neckSphere.contacts)) && enemy->hp > 0 && TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &_gActor403000PlayerCatchHold.hold, 0) == 0) {
                     work->state           = ACTOR_403000_STATE_GRAB_CATCH;
                     work->playerCaught    = 1;
                     work->attackTarget.vx = player->extra.tmd->coords->coord.t[0] - actorTask->extra.tmd->coords->coord.t[0];
@@ -4027,7 +4089,7 @@ static void _actor403000GrabState(Task* actorTask)
                     scratch->yawFromPlayer = playerFacingDifference = _actorAngleNormalizeYaw(scratch->yawFromPlayer);
                     playerFacingDifference                         -= scratch->playerYaw;
                     if (ABS(playerFacingDifference) < (ACTOR_TRANSFORM_ANGLE_TURN / 4)) {
-                        work->playerAnimation.source.sets          = D_actor_403000_80158C08;
+                        work->playerAnimation.source.sets          = _gActor403000PlayerCatchAnimationSets;
                         work->playerAnimation.animationId          = ACTOR_403000_PLAYER_CLIP_GRAB_CATCH;
                         work->playerAnimation.blend                = ANIMATION_BLEND_RESET;
                         work->playerAnimation.blendFrames          = 0;
@@ -4035,7 +4097,7 @@ static void _actor403000GrabState(Task* actorTask)
                         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->playerAnimation, 0);
                         _actor403000AlignGrabCatch(actorTask, player, scratch, -ACTOR_403000_GRAB_FRONT_PLAYER_YAW_OFFSET);
                     } else {
-                        work->playerAnimation.source.sets          = D_actor_403000_80158C28;
+                        work->playerAnimation.source.sets          = _gActor403000PlayerRearGrabAnimationSets;
                         work->playerAnimation.animationId          = ACTOR_403000_PLAYER_CLIP_GRAB_CATCH;
                         work->playerAnimation.blend                = ANIMATION_BLEND_RESET;
                         work->playerAnimation.blendFrames          = 0;
@@ -4122,24 +4184,24 @@ static void _actor403000GrabCatchState(Task* actorTask)
         gte_ldsv(&scratch->offset);
         gte_gpf12();
         gte_stsv(&scratch->offset);
-        D_actor_403000_80158DB0.push.displacement.vx   = scratch->offset.vx;
-        D_actor_403000_80158DB0.push.displacement.vy   = 0;
-        D_actor_403000_80158DB0.push.displacement.vz   = scratch->offset.vz;
-        D_actor_403000_80158DB0.push.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
-        D_actor_403000_80158DB0.push.keepControl       = 1;
+        _gActor403000PlayerPush.push.displacement.vx   = scratch->offset.vx;
+        _gActor403000PlayerPush.push.displacement.vy   = 0;
+        _gActor403000PlayerPush.push.displacement.vz   = scratch->offset.vz;
+        _gActor403000PlayerPush.push.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
+        _gActor403000PlayerPush.push.keepControl       = 1;
         soundId                                        = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_403000_SOUND_CATCH;
         panOffset                                      = (s8)worldCoordGetOriginAudioPan(actorTask->extra.tmd->coords);
         sndEvtRequestScriptStart(soundId, panOffset, (s8)worldCoordGetOriginAudioDepth(actorTask->extra.tmd->coords));
     }
     // Keep resending the latched shove until a wall reply cancels its displacement.
     if (work->stateFrame < ACTOR_403000_GRAB_CATCH_PUSH_TICKS) {
-        wallBlocked = TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_MOVE_BY, &D_actor_403000_80158DB0.push, 0);
+        wallBlocked = TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_MOVE_BY, &_gActor403000PlayerPush.push, 0);
         if (wallBlocked == 1) {
-            D_actor_403000_80158DB0.push.displacement.vx   = 0;
-            D_actor_403000_80158DB0.push.displacement.vy   = 0;
-            D_actor_403000_80158DB0.push.displacement.vz   = 0;
-            D_actor_403000_80158DB0.push.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
-            D_actor_403000_80158DB0.push.keepControl       = wallBlocked;
+            _gActor403000PlayerPush.push.displacement.vx   = 0;
+            _gActor403000PlayerPush.push.displacement.vy   = 0;
+            _gActor403000PlayerPush.push.displacement.vz   = 0;
+            _gActor403000PlayerPush.push.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
+            _gActor403000PlayerPush.push.keepControl       = wallBlocked;
         }
     }
     if (work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
@@ -4162,9 +4224,7 @@ static void _actor403000GrabCatchState(Task* actorTask)
 static void _actor403000LungeState(Task* actorTask)
 {
     enum {
-        ACTOR_403000_ATTACK_LUNGE              = 0,
-        ACTOR_403000_PLAYER_CLIP_LUNGE_CATCH   = 1,
-        ACTOR_403000_CLIP_LUNGE                = 7,
+
         ACTOR_403000_LUNGE_STOP_DISTANCE       = 900,
         ACTOR_403000_LUNGE_TRAVEL_TICKS        = 20,
         ACTOR_403000_LUNGE_MOVE_START_FRAME    = 5,
@@ -4229,14 +4289,14 @@ static void _actor403000LungeState(Task* actorTask)
     }
     // Contact and hold acceptance gate the paired animation and attack damage.
     if (work->stateFrame == ACTOR_403000_LUNGE_CATCH_FRAME) {
-        if (_actor403000HasPlayerContact(work->headCapsule.contacts, ARRAY_SIZE(work->headCapsule.contacts)) && enemy->hp > 0 && TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_403000_80158DD0.hold, 0) == 0) {
-            D_actor_403000_80158D90.placement.pos.vx = player->extra.tmd->coords->coord.t[0];
-            D_actor_403000_80158D90.placement.pos.vy = player->extra.tmd->coords->coord.t[1];
-            D_actor_403000_80158D90.placement.pos.vz = player->extra.tmd->coords->coord.t[2];
-            D_actor_403000_80158D90.placement.rot.vx = 0;
-            D_actor_403000_80158D90.placement.rot.vy = ratan2(-actorTask->extra.tmd->coords->coord.m[2][0], actorTask->extra.tmd->coords->coord.m[2][2]) - (ACTOR_TRANSFORM_ANGLE_TURN / 4);
-            D_actor_403000_80158D90.placement.rot.vz = 0;
-            TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_PLACE, &D_actor_403000_80158D90.placement, 0);
+        if (_actor403000HasPlayerContact(work->headCapsule.contacts, ARRAY_SIZE(work->headCapsule.contacts)) && enemy->hp > 0 && TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &_gActor403000PlayerCatchHold.hold, 0) == 0) {
+            _gActor403000PlayerPlacement.placement.pos.vx = player->extra.tmd->coords->coord.t[0];
+            _gActor403000PlayerPlacement.placement.pos.vy = player->extra.tmd->coords->coord.t[1];
+            _gActor403000PlayerPlacement.placement.pos.vz = player->extra.tmd->coords->coord.t[2];
+            _gActor403000PlayerPlacement.placement.rot.vx = 0;
+            _gActor403000PlayerPlacement.placement.rot.vy = ratan2(-actorTask->extra.tmd->coords->coord.m[2][0], actorTask->extra.tmd->coords->coord.m[2][2]) - (ACTOR_TRANSFORM_ANGLE_TURN / 4);
+            _gActor403000PlayerPlacement.placement.rot.vz = 0;
+            TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_PLACE, &_gActor403000PlayerPlacement.placement, 0);
             damageTarget           = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             scratch->messageResult = taskMessageDispatch(damageTarget, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, ACTOR_403000_ATTACK_LUNGE), 0);
             if (scratch->messageResult == 1) {
@@ -4246,7 +4306,7 @@ static void _actor403000LungeState(Task* actorTask)
                 playerActor->state              = ACTOR_403000_PLAYER_FATAL_HOLD_STATE;
             }
             work->state                                = ACTOR_403000_STATE_LUNGE_CATCH;
-            work->playerAnimation.source.sets          = D_actor_403000_80158C08;
+            work->playerAnimation.source.sets          = _gActor403000PlayerCatchAnimationSets;
             work->playerAnimation.animationId          = ACTOR_403000_PLAYER_CLIP_LUNGE_CATCH;
             work->playerAnimation.blend                = ANIMATION_BLEND_RESET;
             work->playerAnimation.blendFrames          = ACTOR_403000_LUNGE_PLAYER_BLEND_TICKS;
@@ -4282,26 +4342,24 @@ static void _actor403000LungeState(Task* actorTask)
 static void _actor403000LungeCatchState(Task* actorTask)
 {
     enum {
-        ACTOR_403000_CLIP_LUNGE_CATCH          = 17,
-        ACTOR_403000_CATCH_STOP_DISTANCE       = 900,
-        ACTOR_403000_CATCH_STEP_DIVISOR        = 20,
-        ACTOR_403000_CATCH_ENTRY_OFFSET        = 1050,
-        ACTOR_403000_CATCH_PUSH_STEP           = 150,
-        ACTOR_403000_CATCH_MOVE_STEP           = 120,
-        ACTOR_403000_CATCH_PUSH_TARGET_OFFSET  = 1350,
-        ACTOR_403000_CATCH_MOVE_TICKS          = 10,
-        ACTOR_403000_CATCH_TURN_TICKS          = 6,
-        ACTOR_403000_CATCH_THROW_AIM_FRAME     = 41,
-        ACTOR_403000_CATCH_THROW_START_FRAME   = 44,
-        ACTOR_403000_CATCH_THROW_TICKS         = 10,
-        ACTOR_403000_CATCH_THROW_FORWARD_STEP  = 33,
-        ACTOR_403000_CATCH_THROW_SIDE_STEP     = 125,
-        ACTOR_403000_CATCH_RELEASE_FRAME       = 57,
-        ACTOR_403000_PLAYER_CLIP_LUNGE_RELEASE = 2,
-        ACTOR_403000_CATCH_HIT_ATTACK_KEY      = 0x100F,
-        ACTOR_403000_CATCH_HIT_ARGUMENT        = 0x500,
-        ACTOR_403000_CATCH_HIT_REPEATS         = 3,
-        ACTOR_403000_CATCH_RUMBLE_TICKS        = 5,
+        ACTOR_403000_CATCH_STOP_DISTANCE      = 900,
+        ACTOR_403000_CATCH_STEP_DIVISOR       = 20,
+        ACTOR_403000_CATCH_ENTRY_OFFSET       = 1050,
+        ACTOR_403000_CATCH_PUSH_STEP          = 150,
+        ACTOR_403000_CATCH_MOVE_STEP          = 120,
+        ACTOR_403000_CATCH_PUSH_TARGET_OFFSET = 1350,
+        ACTOR_403000_CATCH_MOVE_TICKS         = 10,
+        ACTOR_403000_CATCH_TURN_TICKS         = 6,
+        ACTOR_403000_CATCH_THROW_AIM_FRAME    = 41,
+        ACTOR_403000_CATCH_THROW_START_FRAME  = 44,
+        ACTOR_403000_CATCH_THROW_TICKS        = 10,
+        ACTOR_403000_CATCH_THROW_FORWARD_STEP = 33,
+        ACTOR_403000_CATCH_THROW_SIDE_STEP    = 125,
+        ACTOR_403000_CATCH_RELEASE_FRAME      = 57,
+        ACTOR_403000_CATCH_HIT_ATTACK_KEY     = 0x100F,
+        ACTOR_403000_CATCH_HIT_ARGUMENT       = 0x500,
+        ACTOR_403000_CATCH_HIT_REPEATS        = 3,
+        ACTOR_403000_CATCH_RUMBLE_TICKS       = 5,
     };
 
     Actor403000Work*          work;
@@ -4354,11 +4412,11 @@ static void _actor403000LungeCatchState(Task* actorTask)
         gfxReadMatrixZAxis(&actorTask->extra.tmd->coords->coord, initialPushAxis);
         VectorNormalSS(initialPushAxis, initialPushAxis);
         _actor403000ScaleVectorQ12(initialPushAxis, ACTOR_403000_CATCH_PUSH_STEP);
-        D_actor_403000_80158DB0.push.displacement.vx   = scratch->offset.vx;
-        D_actor_403000_80158DB0.push.displacement.vy   = 0;
-        D_actor_403000_80158DB0.push.displacement.vz   = scratch->offset.vz;
-        D_actor_403000_80158DB0.push.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
-        D_actor_403000_80158DB0.push.keepControl       = 1;
+        _gActor403000PlayerPush.push.displacement.vx   = scratch->offset.vx;
+        _gActor403000PlayerPush.push.displacement.vy   = 0;
+        _gActor403000PlayerPush.push.displacement.vz   = scratch->offset.vz;
+        _gActor403000PlayerPush.push.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
+        _gActor403000PlayerPush.push.keepControl       = 1;
         padScriptSpawnVariableMotorRamp(ACTOR_403000_CATCH_RUMBLE_TICKS, 0xFF, 0x80);
         work->hitEffectArg.coord      = &player->extra.tmd->coords[3];
         work->hitEffectArg.spawnArgLo = ACTOR_403000_CATCH_HIT_ARGUMENT;
@@ -4381,12 +4439,12 @@ static void _actor403000LungeCatchState(Task* actorTask)
         playerPush.vz = playerPush.vz + actorTask->extra.tmd->coords->coord.t[2] - player->extra.tmd->coords->coord.t[2];
         VectorNormalSS(pushDirection, pushDirection);
         _actor403000ScaleVectorQ12(pushDirection, ACTOR_403000_CATCH_PUSH_STEP);
-        D_actor_403000_80158DB0.push.displacement.vy   = 0;
-        D_actor_403000_80158DB0.push.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
-        D_actor_403000_80158DB0.push.keepControl       = 1;
-        D_actor_403000_80158DB0.push.displacement.vx   = playerPush.vx;
-        D_actor_403000_80158DB0.push.displacement.vz   = playerPush.vz;
-        TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_MOVE_BY, &D_actor_403000_80158DB0.push, 0);
+        _gActor403000PlayerPush.push.displacement.vy   = 0;
+        _gActor403000PlayerPush.push.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
+        _gActor403000PlayerPush.push.keepControl       = 1;
+        _gActor403000PlayerPush.push.displacement.vx   = playerPush.vx;
+        _gActor403000PlayerPush.push.displacement.vz   = playerPush.vz;
+        TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_MOVE_BY, &_gActor403000PlayerPush.push, 0);
     }
     if (work->stateFrame < ACTOR_403000_CATCH_TURN_TICKS) {
         toPlayer     = &scratch->offset;
@@ -4403,29 +4461,29 @@ static void _actor403000LungeCatchState(Task* actorTask)
         gfxReadMatrixZAxis(&actorTask->extra.tmd->coords->coord, throwAxis);
         VectorNormalSS(throwAxis, throwAxis);
         _actor403000ScaleVectorQ12(throwAxis, ACTOR_403000_CATCH_THROW_FORWARD_STEP);
-        D_actor_403000_80158DB0.push.displacement.vx = scratch->offset.vx;
-        D_actor_403000_80158DB0.push.displacement.vy = 0;
-        D_actor_403000_80158DB0.push.displacement.vz = scratch->offset.vz;
+        _gActor403000PlayerPush.push.displacement.vx = scratch->offset.vx;
+        _gActor403000PlayerPush.push.displacement.vy = 0;
+        _gActor403000PlayerPush.push.displacement.vz = scratch->offset.vz;
         gfxReadMatrixXAxis(&actorTask->extra.tmd->coords->coord, throwAxis);
         VectorNormalSS(throwAxis, throwAxis);
         _actor403000ScaleVectorQ12(throwAxis, ACTOR_403000_CATCH_THROW_SIDE_STEP);
-        D_actor_403000_80158DB0.push.displacement.vx  += scratch->offset.vx;
-        D_actor_403000_80158DB0.push.displacement.vz  += scratch->offset.vz;
-        D_actor_403000_80158DB0.push.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
-        D_actor_403000_80158DB0.push.keepControl       = 1;
+        _gActor403000PlayerPush.push.displacement.vx  += scratch->offset.vx;
+        _gActor403000PlayerPush.push.displacement.vz  += scratch->offset.vz;
+        _gActor403000PlayerPush.push.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
+        _gActor403000PlayerPush.push.keepControl       = 1;
     }
     if ((u16)(work->stateFrame - ACTOR_403000_CATCH_THROW_START_FRAME) < ACTOR_403000_CATCH_THROW_TICKS) {
-        wallBlocked = TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_MOVE_BY, &D_actor_403000_80158DB0.push, 0);
+        wallBlocked = TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_MOVE_BY, &_gActor403000PlayerPush.push, 0);
         if (wallBlocked == 1) {
-            D_actor_403000_80158DB0.push.displacement.vx   = 0;
-            D_actor_403000_80158DB0.push.displacement.vy   = 0;
-            D_actor_403000_80158DB0.push.displacement.vz   = 0;
-            D_actor_403000_80158DB0.push.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
-            D_actor_403000_80158DB0.push.keepControl       = wallBlocked;
+            _gActor403000PlayerPush.push.displacement.vx   = 0;
+            _gActor403000PlayerPush.push.displacement.vy   = 0;
+            _gActor403000PlayerPush.push.displacement.vz   = 0;
+            _gActor403000PlayerPush.push.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
+            _gActor403000PlayerPush.push.keepControl       = wallBlocked;
         }
     }
     if (work->stateFrame == ACTOR_403000_CATCH_RELEASE_FRAME) {
-        work->playerAnimation.source.sets          = D_actor_403000_80158C08;
+        work->playerAnimation.source.sets          = _gActor403000PlayerCatchAnimationSets;
         work->playerAnimation.animationId          = ACTOR_403000_PLAYER_CLIP_LUNGE_RELEASE;
         work->playerAnimation.blend                = ANIMATION_BLEND_RESET;
         work->playerAnimation.blendFrames          = 0;
@@ -4460,9 +4518,6 @@ static void _actor403000LungeCatchState(Task* actorTask)
 /// A lethal fall leaves the room report pending for the dissolve state.
 static void _actor403000KnockdownState(Task* actorTask)
 {
-    enum {
-        ACTOR_403000_CLIP_KNOCKDOWN = 14,
-    };
 
     Actor403000Work* work;
     Enemy*           enemy;
@@ -4552,7 +4607,7 @@ static void _actor403000ApproachState(Task* actorTask)
     }
     // Follow the neighboring waypoint even on the tick that selects pursuit.
     _actor403000SelectRingNeighbor(scratch, work->seekRingDir);
-    waypoints           = D_actor_403000_80158CE0;
+    waypoints           = _gActor403000ArenaWaypoints;
     waypointPos         = &waypoints[scratch->waypoint];
     scratch->offset.vx  = waypointPos->vx;
     scratch->offset.vy  = waypointPos->vy;
@@ -4646,7 +4701,7 @@ static void _actor403000RetreatState(Task* actorTask)
     }
     // Follow the latched away direction throughout the minimum retreat interval.
     _actor403000SelectRingNeighbor(scratch, work->seekRingDir);
-    waypoints           = D_actor_403000_80158CE0;
+    waypoints           = _gActor403000ArenaWaypoints;
     waypointPos         = &waypoints[scratch->waypoint];
     scratch->offset.vx  = waypointPos->vx;
     scratch->offset.vy  = waypointPos->vy;
@@ -4784,7 +4839,7 @@ static void _actor403000PatrolState(Task* actorTask)
         }
     }
     _actor403000SelectRingNeighbor(scratch, work->patrolRingDir);
-    waypoints           = D_actor_403000_80158CE0;
+    waypoints           = _gActor403000ArenaWaypoints;
     waypointPos         = &waypoints[scratch->waypoint];
     scratch->offset.vx  = waypointPos->vx;
     scratch->offset.vy  = waypointPos->vy;
@@ -4853,7 +4908,7 @@ static void _actor403000WatchState(Task* actorTask)
         // Snap to the cell waypoint and face its neighbor without walking.
         actorCell                                  = _actor403000GetRingCell(actorTask->extra.tmd->coords);
         scratch->cell                              = actorCell;
-        waypoints                                  = D_actor_403000_80158CE0;
+        waypoints                                  = _gActor403000ArenaWaypoints;
         waypointPos                                = &waypoints[actorCell];
         scratch->offset.vx                         = waypointPos->vx;
         scratch->offset.vy                         = waypointPos->vy;
@@ -4929,7 +4984,6 @@ static void _actor403000WatchState(Task* actorTask)
 static void _actor403000TurnState(Task* actorTask)
 {
     enum {
-        ACTOR_403000_CLIP_TURN        = 9,
         ACTOR_403000_TURN_SIDE_DRIFT  = 0x1B,
         ACTOR_403000_TURN_BACK_DRIFT  = 0x29,
         ACTOR_403000_TURN_SWEEP_TICKS = 36,
@@ -4965,7 +5019,7 @@ static void _actor403000TurnState(Task* actorTask)
         } else if (scratch->waypoint < 0) {
             scratch->waypoint += ACTOR_403000_RING_WAYPOINT_COUNT;
         }
-        waypoints           = D_actor_403000_80158CE0;
+        waypoints           = _gActor403000ArenaWaypoints;
         waypointPos         = &waypoints[scratch->waypoint];
         scratch->offset.vx  = waypointPos->vx;
         scratch->offset.vy  = waypointPos->vy;
@@ -5031,16 +5085,15 @@ static void _actor403000TurnState(Task* actorTask)
 static void _actor403000DropState(Task* actorTask)
 {
     enum {
-        ACTOR_403000_ATTACK_DROP            = 3,
-        ACTOR_403000_PLAYER_CLIP_DROP_CATCH = 5,
-        ACTOR_403000_DROP_ORIGIN_X          = 0x2134,
-        ACTOR_403000_DROP_HEIGHT            = 0x1518,
-        ACTOR_403000_DROP_ORIGIN_Z          = 0x1194,
-        ACTOR_403000_DROP_CATCH_FRAME       = 10,
-        ACTOR_403000_DROP_CATCH_RADIUS      = 1000,
-        ACTOR_403000_DROP_FATAL_DELAY       = 0x28,
-        ACTOR_403000_DROP_FALL_STEP         = 0x12C,
-        ACTOR_403000_DROP_TURN_THRESHOLD    = 0x300,
+
+        ACTOR_403000_DROP_ORIGIN_X       = 0x2134,
+        ACTOR_403000_DROP_HEIGHT         = 0x1518,
+        ACTOR_403000_DROP_ORIGIN_Z       = 0x1194,
+        ACTOR_403000_DROP_CATCH_FRAME    = 10,
+        ACTOR_403000_DROP_CATCH_RADIUS   = 1000,
+        ACTOR_403000_DROP_FATAL_DELAY    = 0x28,
+        ACTOR_403000_DROP_FALL_STEP      = 0x12C,
+        ACTOR_403000_DROP_TURN_THRESHOLD = 0x300,
     };
 
     Actor403000Work*          work;
@@ -5111,7 +5164,7 @@ static void _actor403000DropState(Task* actorTask)
         scratch->offset.vy = work->attackTarget.vy - player->extra.tmd->coords->coord.t[1];
         scratch->offset.vz = work->attackTarget.vz - player->extra.tmd->coords->coord.t[2];
         if (!_actorRangeOutsideRadiusXZ(&scratch->offset, ACTOR_403000_DROP_CATCH_RADIUS) && enemy->hp > 0 &&
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_403000_80158DD0.hold, 0) == 0) {
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &_gActor403000PlayerCatchHold.hold, 0) == 0) {
             damageTarget           = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             scratch->messageResult = taskMessageDispatch(damageTarget, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, ACTOR_403000_ATTACK_DROP), 0);
             if (scratch->messageResult == 1) {
@@ -5121,7 +5174,7 @@ static void _actor403000DropState(Task* actorTask)
                 playerActor->state              = ACTOR_403000_PLAYER_FATAL_HOLD_STATE;
             }
             work->state                                = ACTOR_403000_STATE_DROP_CATCH;
-            work->playerAnimation.source.sets          = D_actor_403000_80158C08;
+            work->playerAnimation.source.sets          = _gActor403000PlayerCatchAnimationSets;
             work->playerAnimation.animationId          = ACTOR_403000_PLAYER_CLIP_DROP_CATCH;
             work->playerAnimation.blend                = ANIMATION_BLEND_RESET;
             work->playerAnimation.blendFrames          = 0;
@@ -5208,11 +5261,11 @@ static void _actor403000DropCatchState(Task* actorTask)
         gte_stsv(&scratch->offset);
     }
     // Preserve the reused scratch bytes after the sampling interval; no move is sent here.
-    D_actor_403000_80158DB0.push.displacement.vx   = scratch->offset.vx;
-    D_actor_403000_80158DB0.push.displacement.vy   = 0;
-    D_actor_403000_80158DB0.push.displacement.vz   = scratch->offset.vz;
-    D_actor_403000_80158DB0.push.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
-    D_actor_403000_80158DB0.push.keepControl       = 1;
+    _gActor403000PlayerPush.push.displacement.vx   = scratch->offset.vx;
+    _gActor403000PlayerPush.push.displacement.vy   = 0;
+    _gActor403000PlayerPush.push.displacement.vz   = scratch->offset.vz;
+    _gActor403000PlayerPush.push.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
+    _gActor403000PlayerPush.push.keepControl       = 1;
     if ((work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) && work->stateFrame >= ACTOR_403000_DROP_CATCH_TURN_MIN_TICKS) {
         work->state        = ACTOR_403000_STATE_TURN;
         work->watchRingDir = work->patrolRingDir = work->turnRingDir = -_actor403000ChooseRingDirection(actorTask->extra.tmd->coords);
@@ -5305,7 +5358,6 @@ static void _actor403000AmbushState(Task* actorTask)
 static void _actor403000ProwlState(Task* actorTask)
 {
     enum {
-        ACTOR_403000_CLIP_PROWL      = 1,
         ACTOR_403000_PROWL_TURN_STEP = 8,
         ACTOR_403000_PROWL_WALK_STEP = 0x16,
     };
@@ -5352,7 +5404,7 @@ static void _actor403000ProwlState(Task* actorTask)
     }
     // Continue round the ring at the slow clip's small steering and movement steps.
     _actor403000SelectRingNeighbor(scratch, work->seekRingDir);
-    waypoints           = D_actor_403000_80158CE0;
+    waypoints           = _gActor403000ArenaWaypoints;
     waypointPos         = &waypoints[scratch->waypoint];
     scratch->offset.vx  = waypointPos->vx;
     scratch->offset.vy  = waypointPos->vy;
@@ -5377,34 +5429,38 @@ static void _actor403000ProwlState(Task* actorTask)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403000WaypointScratch);
 }
 
-static const _Actor403000StateTable D_actor_403000_80131F44 = {
-    {
-        _actor403000HiddenState,
-        _actor403000ScriptedState,
-        _actor403000PatrolState,
-        _actor403000WatchState,
-        _actor403000TurnState,
-        _actor403000ChaseState,
-        _actor403000GrabCatchState,
-        _actor403000GrabState,
-        _actor403000LungeState,
-        _actor403000LungeCatchState,
-        _actor403000RetreatState,
-        _actor403000ApproachState,
-        _actor403000DropState,
-        _actor403000DropCatchState,
-        _actor403000ProwlState,
-        _actor403000AmbushState,
-        _actor403000StunnedState,
-        _actor403000KnockdownState,
-        _actor403000DownState,
-        _actor403000GetUpState,
-        _actor403000DissolveState,
-        _actor403000ScriptedBurnState,
-        _actor403000ScriptedDissolveState,
-        _actor403000ScriptedSmolderState,
-        _actor403000DownHitState,
-    }
+/// Behavior handlers indexed by `ACTOR_403000_STATE_*`.
+///
+/// The update copies all 35 slots, including ten trailing NULL pointers. Only
+/// the 25 named states may be selected; this table has no terminator or bounds check.
+static const _Actor403000StateTable _gActor403000StateHandlers = {
+    .handlers = {
+        [ACTOR_403000_STATE_HIDDEN]            = _actor403000HiddenState,
+        [ACTOR_403000_STATE_SCRIPTED]          = _actor403000ScriptedState,
+        [ACTOR_403000_STATE_PATROL]            = _actor403000PatrolState,
+        [ACTOR_403000_STATE_WATCH]             = _actor403000WatchState,
+        [ACTOR_403000_STATE_TURN]              = _actor403000TurnState,
+        [ACTOR_403000_STATE_CHASE]             = _actor403000ChaseState,
+        [ACTOR_403000_STATE_GRAB_CATCH]        = _actor403000GrabCatchState,
+        [ACTOR_403000_STATE_GRAB]              = _actor403000GrabState,
+        [ACTOR_403000_STATE_LUNGE]             = _actor403000LungeState,
+        [ACTOR_403000_STATE_LUNGE_CATCH]       = _actor403000LungeCatchState,
+        [ACTOR_403000_STATE_RETREAT]           = _actor403000RetreatState,
+        [ACTOR_403000_STATE_APPROACH]          = _actor403000ApproachState,
+        [ACTOR_403000_STATE_DROP]              = _actor403000DropState,
+        [ACTOR_403000_STATE_DROP_CATCH]        = _actor403000DropCatchState,
+        [ACTOR_403000_STATE_PROWL]             = _actor403000ProwlState,
+        [ACTOR_403000_STATE_AMBUSH]            = _actor403000AmbushState,
+        [ACTOR_403000_STATE_STUNNED]           = _actor403000StunnedState,
+        [ACTOR_403000_STATE_KNOCKDOWN]         = _actor403000KnockdownState,
+        [ACTOR_403000_STATE_DOWN]              = _actor403000DownState,
+        [ACTOR_403000_STATE_GET_UP]            = _actor403000GetUpState,
+        [ACTOR_403000_STATE_DISSOLVE]          = _actor403000DissolveState,
+        [ACTOR_403000_STATE_SCRIPTED_BURN]     = _actor403000ScriptedBurnState,
+        [ACTOR_403000_STATE_SCRIPTED_DISSOLVE] = _actor403000ScriptedDissolveState,
+        [ACTOR_403000_STATE_SCRIPTED_SMOLDER]  = _actor403000ScriptedSmolderState,
+        [ACTOR_403000_STATE_DOWN_HIT]          = _actor403000DownHitState,
+    },
 };
 
 /// Clears occupied entries in the actor's six initialized contact tables.
@@ -5437,14 +5493,9 @@ static inline void _actor403000ClearFrameContacts(Actor403000Work* work)
 static void _actor403000Update(Enemy* enemy, Task* actorTask)
 {
     enum {
-        ACTOR_403000_SHADOW_RADIUS             = 384,
-        ACTOR_403000_LOCK_ON_RANGE             = 9000,
-        ACTOR_403000_PLAYER_CATCH_GRAB         = 1,
-        ACTOR_403000_PLAYER_RELEASE_GRAB       = 2,
-        ACTOR_403000_PLAYER_CATCH_DROP         = 3,
-        ACTOR_403000_PLAYER_RELEASE_DROP       = 4,
-        ACTOR_403000_PLAYER_CATCH_LUNGE        = 5,
-        ACTOR_403000_PLAYER_RELEASE_LUNGE      = 6,
+        ACTOR_403000_SHADOW_RADIUS = 384,
+        ACTOR_403000_LOCK_ON_RANGE = 9000,
+
         ACTOR_403000_PLAYER_CLIP_RESUME        = 7,
         ACTOR_403000_PLAYER_RESUME_BLEND_TICKS = 16,
         ACTOR_403000_CATCH_IMPACT_SOUND        = 0x401E000A,
@@ -5473,7 +5524,7 @@ static void _actor403000Update(Enemy* enemy, Task* actorTask)
     work                                       = actorTask->work;
     player                                     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     playerStatus                               = &gPlayerStatus;
-    stateHandlers                              = D_actor_403000_80131F44;
+    stateHandlers                              = _gActor403000StateHandlers;
     actorTask->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(actorTask->extra.tmd->coords);
     composedPosition.vx = actorTask->extra.tmd->coords->workm.t[0];
@@ -5560,7 +5611,7 @@ static void _actor403000Update(Enemy* enemy, Task* actorTask)
         work->catchFrame++;
         if (work->playerAnimation.source.sets != Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]->table.sets) {
             switch (work->playerAnimation.animationId) {
-                case ACTOR_403000_PLAYER_CATCH_GRAB:
+                case ACTOR_403000_PLAYER_CLIP_LUNGE_CATCH:
                     if (work->catchFrame == ACTOR_403000_GRAB_RUMBLE_FRAME) {
                         padScriptSpawnVariableMotorRamp(ACTOR_403000_CATCH_RUMBLE_DURATION, 0xFF, 0x80);
                     }
@@ -5568,7 +5619,7 @@ static void _actor403000Update(Enemy* enemy, Task* actorTask)
                         _actor403000PlaySound(actorTask, enemy, ACTOR_403000_CATCH_IMPACT_SOUND);
                     }
                     break;
-                case ACTOR_403000_PLAYER_CATCH_DROP:
+                case ACTOR_403000_PLAYER_CLIP_GRAB_CATCH:
                     if (work->catchFrame == ACTOR_403000_DROP_RUMBLE_FRAME) {
                         padScriptSpawnVariableMotorRamp(ACTOR_403000_CATCH_RUMBLE_DURATION, 0x58, 0xFF);
                     }
@@ -5576,7 +5627,7 @@ static void _actor403000Update(Enemy* enemy, Task* actorTask)
                         _actor403000PlaySound(actorTask, enemy, ACTOR_403000_CATCH_IMPACT_SOUND);
                     }
                     break;
-                case ACTOR_403000_PLAYER_CATCH_LUNGE:
+                case ACTOR_403000_PLAYER_CLIP_DROP_CATCH:
                     if (work->catchFrame == ACTOR_403000_LUNGE_RUMBLE_FRAME) {
                         padScriptSpawnVariableMotorRamp(ACTOR_403000_CATCH_RUMBLE_DURATION, 0x58, 0xFF);
                     }
@@ -5584,9 +5635,9 @@ static void _actor403000Update(Enemy* enemy, Task* actorTask)
                         _actor403000PlaySound(actorTask, enemy, ACTOR_403000_CATCH_IMPACT_SOUND);
                     }
                     break;
-                case ACTOR_403000_PLAYER_RELEASE_GRAB:
-                case ACTOR_403000_PLAYER_RELEASE_DROP:
-                case ACTOR_403000_PLAYER_RELEASE_LUNGE:
+                case ACTOR_403000_PLAYER_CLIP_LUNGE_RELEASE:
+                case ACTOR_403000_PLAYER_CLIP_GRAB_RELEASE:
+                case ACTOR_403000_PLAYER_CLIP_DROP_RELEASE:
                     break;
             }
         }
@@ -5594,30 +5645,30 @@ static void _actor403000Update(Enemy* enemy, Task* actorTask)
             work->catchFrame = 0;
             if (work->playerAnimation.source.sets != Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]->table.sets) {
                 switch (work->playerAnimation.animationId) {
-                    case ACTOR_403000_PLAYER_CATCH_GRAB:
-                        work->playerAnimation.animationId          = ACTOR_403000_PLAYER_RELEASE_GRAB;
+                    case ACTOR_403000_PLAYER_CLIP_LUNGE_CATCH:
+                        work->playerAnimation.animationId          = ACTOR_403000_PLAYER_CLIP_LUNGE_RELEASE;
                         work->playerAnimation.blend                = ANIMATION_BLEND_INTERPOLATE;
                         work->playerAnimation.blendFrames          = 0;
                         work->playerAnimation.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
                         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->playerAnimation, 0);
                         break;
-                    case ACTOR_403000_PLAYER_CATCH_DROP:
-                        work->playerAnimation.animationId          = ACTOR_403000_PLAYER_RELEASE_DROP;
+                    case ACTOR_403000_PLAYER_CLIP_GRAB_CATCH:
+                        work->playerAnimation.animationId          = ACTOR_403000_PLAYER_CLIP_GRAB_RELEASE;
                         work->playerAnimation.blend                = ANIMATION_BLEND_INTERPOLATE;
                         work->playerAnimation.blendFrames          = 0;
                         work->playerAnimation.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
                         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->playerAnimation, 0);
                         break;
-                    case ACTOR_403000_PLAYER_CATCH_LUNGE:
-                        work->playerAnimation.animationId          = ACTOR_403000_PLAYER_RELEASE_LUNGE;
+                    case ACTOR_403000_PLAYER_CLIP_DROP_CATCH:
+                        work->playerAnimation.animationId          = ACTOR_403000_PLAYER_CLIP_DROP_RELEASE;
                         work->playerAnimation.blend                = ANIMATION_BLEND_INTERPOLATE;
                         work->playerAnimation.blendFrames          = 0;
                         work->playerAnimation.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
                         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->playerAnimation, 0);
                         break;
-                    case ACTOR_403000_PLAYER_RELEASE_GRAB:
-                    case ACTOR_403000_PLAYER_RELEASE_DROP:
-                    case ACTOR_403000_PLAYER_RELEASE_LUNGE:
+                    case ACTOR_403000_PLAYER_CLIP_LUNGE_RELEASE:
+                    case ACTOR_403000_PLAYER_CLIP_GRAB_RELEASE:
+                    case ACTOR_403000_PLAYER_CLIP_DROP_RELEASE:
                         work->playerAnimation.source.sets          = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]->table.sets;
                         work->playerAnimation.animationId          = ACTOR_403000_PLAYER_CLIP_RESUME;
                         work->playerAnimation.blendFrames          = ACTOR_403000_PLAYER_RESUME_BLEND_TICKS;
@@ -5663,11 +5714,11 @@ static void _actor403000Update(Enemy* enemy, Task* actorTask)
 
 /// The enemy's three state handlers - spawn, per-frame tick and teardown -
 /// indexed by `Task::state`.
-static const EnemyTaskFuncTable3 D_actor_403000_80132004 = {
-    {
-        _actor403000Spawn,
-        _actor403000Update,
-        enemyDestroy,
+static const EnemyTaskFuncTable3 _gActor403000TaskHandlers = {
+    .funcs = {
+        [ACTOR_403000_TASK_SPAWN]   = _actor403000Spawn,
+        [ACTOR_403000_TASK_UPDATE]  = _actor403000Update,
+        [ACTOR_403000_TASK_DESTROY] = enemyDestroy,
     },
 };
 
@@ -5830,9 +5881,9 @@ static void _actor403000Exit(Task* task)
 /// is retained.
 static void _actor403000CopyArenaWaypoint(SVECTOR* position, s32 waypointIndex)
 {
-    position->vx = D_actor_403000_80158CE0[(s16)waypointIndex].vx;
-    position->vy = D_actor_403000_80158CE0[(s16)waypointIndex].vy;
-    position->vz = D_actor_403000_80158CE0[(s16)waypointIndex].vz;
+    position->vx = _gActor403000ArenaWaypoints[(s16)waypointIndex].vx;
+    position->vy = _gActor403000ArenaWaypoints[(s16)waypointIndex].vy;
+    position->vz = _gActor403000ArenaWaypoints[(s16)waypointIndex].vz;
 }
 
 /// Dispatches the Blizzard Chaser's spawn, update or teardown task callback.
@@ -5845,7 +5896,7 @@ static void _actor403000Task(Task* task)
 {
     EnemyTaskFuncTable3 taskHandlers;
 
-    taskHandlers = D_actor_403000_80132004;
+    taskHandlers = _gActor403000TaskHandlers;
     taskHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
@@ -5880,7 +5931,6 @@ static void _actor403000HiddenState(Task* actorTask)
 static void _actor403000DownHitState(Task* actorTask)
 {
     enum {
-        ACTOR_403000_CLIP_DOWN_HIT      = 15,
         ACTOR_403000_DOWN_HIT_MAX_TICKS = 5,
     };
 
@@ -5895,7 +5945,7 @@ static void _actor403000DownHitState(Task* actorTask)
         work->lockOnSuspended        = 0;
         model->flags                 = 0;
         work->animRate               = (3 * ANIMATION_RATE_ONE);
-        work->requestedAnimId        = ACTOR_403000_CLIP_DOWN_HIT;
+        work->requestedAnimId        = ACTOR_403000_CLIP_DOWN;
         work->animStart              = ACTOR_403000_ANIM_RESTART;
         work->stateFrame             = 0;
         work->rootSphere.body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
@@ -5962,8 +6012,8 @@ static void _actor403000ScriptedState(Task* actorTask)
     if (work->lastCommandId == ACTOR_403000_COMMAND_PLAY_CLIP24) {
         ACTOR_403000_CLEAR_SCRIPTED_COLOR(work->color);
     }
-    if (work->lastCommandId == ACTOR_403000_COMMAND_PLAY_CLIP27 && work->requestedAnimId == ACTOR_403000_ANIM_COMMAND27 && (work->slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
-        work->requestedAnimId = ACTOR_403000_ANIM_COMMAND29;
+    if (work->lastCommandId == ACTOR_403000_COMMAND_PLAY_CLIP27 && work->requestedAnimId == ACTOR_403000_CLIP_COMMAND27 && (work->slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
+        work->requestedAnimId = ACTOR_403000_CLIP_COMMAND29;
         work->animStart       = ACTOR_403000_ANIM_RESTART;
     }
 }
@@ -5977,7 +6027,6 @@ static void _actor403000ScriptedState(Task* actorTask)
 /// later frames tick once. Settling sets both watch and patrol directions to +1.
 static void _actor403000GetUpState(Task* actorTask)
 {
-    enum { ACTOR_403000_CLIP_GET_UP = 16 };
 
     Actor403000Work* work;
     TmdObject*       model;

@@ -86083,10 +86083,10 @@ table and scored 91.07% with `regs=1 reorder=2`. Two independent causes, both
 from the same expression.
 
 **The shift constant.** The m2c seed typed the table `extern M2C_UNK
-D_actor_403000_80158CE0;` (`M2C_UNK` is `s32`) and wrote
+_gActor403000ArenaWaypoints;` (`M2C_UNK` is `s32`) and wrote
 
 ```c
-temp_a1 = ((s32) (arg1 << 0x10) >> 0xD) + &D_actor_403000_80158CE0;
+temp_a1 = ((s32) (arg1 << 0x10) >> 0xD) + &_gActor403000ArenaWaypoints;
 ```
 
 which compiles `sll $5,$5,16` / `sra $5,$5,11`: the `s32` symbol scales the
@@ -86099,7 +86099,7 @@ immediate reads off the record size**:
     stride = 1 << (16 - sra_immediate)      sra 13 -> 8 (SVECTOR), 11 -> 4, 14 -> 16
 
 Reading it that way recovers the declaration: `extern SVECTOR
-D_actor_403000_80158CE0[];` plus `[(s16)value]` reproduces `sll 16` / `sra 13`
+_gActor403000ArenaWaypoints[];` plus `[(s16)value]` reproduces `sll 16` / `sra 13`
 exactly (91.43%, `regs` back to 0). A `s32`-typed symbol silently picks the
 wrong stride; the shift pair is the only place it shows.
 
@@ -86135,7 +86135,7 @@ prescribes - land the body as plain C in each carrier.
 
 `_actor403000CopyArenaWaypoint` / `_actor421600CopyArenaWaypoint` is the smallest
 instance of the shape: 14 instructions, identical modulo the `lui`/`addiu` pair
-naming `D_actor_403000_80158CE0` against `D_actor_421600_80151158`, both 8-byte
+naming `_gActor403000ArenaWaypoints` against `D_actor_421600_80151158`, both 8-byte
 `SVECTOR` runs in the overlay's trailing data. The second copy is a mechanical
 transcription of the first - declare the table `SVECTOR <name>[]` in the
 carrier's *own* header and index it with `(s16)value` - and the overlay checksum
@@ -104867,8 +104867,8 @@ inside the block, so local-alloc hands them all `$s0` in turn. This took the
 score from 91.7% to 98.7% in a single edit, and the `&scaledHeading` set stayed below the call.
 The last 1.3% was plain statement order: `playerAnimation.animationId = 1` before
 `playerAnimation.blendFrames = 3` gives the constant its own `$v1` quantity ahead of the
-`playerAnimation.source.sets` store. Same function: `enemy->hp = D_actor_403000_8013DA00.hpMax;` written
-*before* `enemy->param = &D_actor_403000_8013DA00;` is what puts the `lhu` into `$v1` while `$v0`
+`playerAnimation.source.sets` store. Same function: `enemy->hp = _gActor403000Params.hpMax;` written
+*before* `enemy->param = &_gActor403000Params;` is what puts the `lhu` into `$v1` while `$v0`
 still holds `&D`.
 
 Unresolved: sched.c only ties a pseudo's set to the preceding call when the
@@ -105030,7 +105030,7 @@ references is written into that function's `.s`, not into a file of its own.
 When the function becomes C, `INCLUDE_RODATA(..., D_x)` fails at assembly
 ("can't open ... D_x.s"). For a function-pointer table (`sp = D_x;
 sp.handlers[state](arg)`), define it in C just before the function:
-`const _Actor403000StateTable D_actor_403000_80131F44 = { { f1, f2, ... } };`.
+`const _Actor403000StateTable _gActor403000StateHandlers = { { f1, f2, ... } };`.
 It lands in the unit's `.rodata` ahead of the function's jump tables, in the
 same order as before. Declare any `INCLUDE_ASM` handlers the initializer names.
 
