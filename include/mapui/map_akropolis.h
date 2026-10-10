@@ -18,6 +18,12 @@
 #include "main/stage_types.h"
 #include "main/task_types.h"
 
+/// Live fixed-marker count; the marker records add a page-zero terminator.
+enum { MAP_AKROPOLIS_MARKER_COUNT = 14 };
+
+/// Scene columns per area in the flat area-music table.
+enum { MAP_AKROPOLIS_MUSIC_COLUMN_COUNT = 8 };
+
 /// Places movie decode buffers for the current Acropolis area.
 ///
 /// Borrows `location` only for its area ID. Main must first cache movie pixel
@@ -61,28 +67,63 @@ extern GfxImageSlot gMapAkropolisImageSlots[GAME_AREA_MIST_R21 + 1];
 /// when the CD subsystem reads them.
 extern s32 gMapAkropolisMovieWorkspaceBytesByArea[GAME_AREA_MIST_SHOOTING_GALLERY + 1];
 
-/// Per-map task id tables `Stage_MusicTables` and `Stage_CountdownMusicTables` index.
-extern StageMusicEntry D_map_akropolis_8017C1B4[];
+/// Area music for Acropolis and MIST, in flat rows of eight scene columns.
+///
+/// Index is area ID * `MAP_AKROPOLIS_MUSIC_COLUMN_COUNT` + column: areas
+/// 0..20, columns 0..7. There is no area-21 row or terminator. Each row's first
+/// entry also controls ambient eligibility. Keep this overlay loaded throughout
+/// music selection and any music task borrowing an entry.
+extern StageMusicEntry gMapAkropolisAreaMusicEntries[(GAME_AREA_MIST_SHOOTING_GALLERY + 1) * MAP_AKROPOLIS_MUSIC_COLUMN_COUNT];
 
-extern StageMusicEntry D_map_akropolis_8017C304[];
+/// Scene-indexed countdown music for Acropolis and MIST.
+///
+/// `gStageCountdownMusicEntry` selects an entry directly in 0..19, without a
+/// bounds check or terminator. Entries 0..12 hold explicit scene selections;
+/// entries 13..19 retain sequence zero and start mode zero. Keep this overlay
+/// loaded until the music task finishes using its selection.
+extern StageMusicEntry gMapAkropolisCountdownMusicEntries[20];
 
-/// This stage's `Gp_MapFlagIds` entry, indexed by map room id.
-extern u8 D_map_akropolis_8017A14C[];
+/// Navigation gates for the Acropolis and MIST map pages.
+///
+/// Indexed by one-based page. Pages 1 and 2 use nibble flag `GAME_FLAG_015`,
+/// with visited-area fallback when it is zero. Page 3 (MIST) uses 0xFF to
+/// suppress page navigation. Slot 0 is the left boundary; slots 4..7 are
+/// retained zero bytes outside the used page range. Keep this overlay loaded.
+extern u8 gMapAkropolisPageFlagIds[8];
 
-/// This stage's `Gp_MapRecTables` entry: where each room sits on the map, by room.
-extern MenuMapArea D_map_akropolis_8017A154[];
+/// Area-to-map coordinate mappings for Acropolis and MIST.
+///
+/// Indexed directly by area ID (0..20); unmapped slots use
+/// `MENU_MAP_AREA_PAGE_NONE`. Record 21 is `MENU_MAP_AREA_PAGE_END` for page
+/// availability walks. Origins use world X/Z units, map points use pixels and
+/// scales use world units per pixel. Keep this overlay loaded for lookup.
+extern MenuMapArea gMapAkropolisAreas[GAME_AREA_MIST_SHOOTING_GALLERY + 2];
 
 /// This stage's `Gp_MapMarkTables` entry: the area shapes, indexed by area.
 extern MenuMapAreaShape D_map_akropolis_8017A288[];
 
-/// This stage's `D_8010F0E0` entry, ended by a page of 0.
-extern MenuMapMarker D_map_akropolis_8017A330[];
+/// Fixed map markers on Acropolis page 1, followed by a page-zero terminator.
+///
+/// Indices 0..13 correspond to `gMapAkropolisMarkerFlags`; a flag nibble of
+/// two shows its marker independently of area visits. Coordinates are signed
+/// map pixels. Keep this overlay loaded while drawing.
+extern MenuMapMarker gMapAkropolisMarkers[MAP_AKROPOLIS_MARKER_COUNT + 1];
 
-/// This stage's `D_8010F0CC` entry, ended by a page of 0.
-extern MenuMapIcon D_map_akropolis_8017A38C[];
+/// Telephone, fixed-picture and objective icons for Acropolis and MIST.
+///
+/// Five records and a page-zero terminator; areas and pages are one-based.
+/// Fixed icons require a visited area and any nonzero condition flag; the
+/// objective icon compares its condition with the current objective byte.
+/// The kind-zero picture's appearance is unproven. Coordinates are signed
+/// map pixels. Keep this overlay loaded while drawing.
+extern MenuMapIcon gMapAkropolisIcons[6];
 
-/// This stage's `Gp_MapNameTables` entry: the room names, indexed by room - 1.
-extern MenuMapAreaName D_map_akropolis_8017A3BC[];
+/// Area names displayed by the Acropolis and MIST map.
+///
+/// Indexed by area ID minus one for areas 1..21, without a terminator. Each
+/// record is a NUL-terminated ASCII line in 32 bytes; MIST areas 18 and 21
+/// have empty names. Keep this overlay loaded while measuring or drawing.
+extern MenuMapAreaName gMapAkropolisAreaNames[GAME_AREA_MIST_R21];
 
 /// Placed-object state and spawn directory for Acropolis and MIST areas 0..20.
 ///
@@ -96,12 +137,22 @@ extern MenuMapAreaName D_map_akropolis_8017A3BC[];
 /// directory.
 extern AreaObjectRoom gMapAkropolisObjectRooms[GAME_AREA_MIST_SHOOTING_GALLERY + 2];
 
-/// This stage's `D_8010FABC` entry: the task each room starts, keyed by
-/// `GP_TASK_LOC_KEY` and ended by flags of 0xFFFF.
-extern TaskDesc D_map_akropolis_8017A8AC[];
+/// Room-controller recipes for twenty Acropolis and MIST areas.
+///
+/// Metadata uses `GP_TASK_LOC_KEY(stage, area, room)`: room zero supplies an
+/// area default, while the West elevator hall and MIST briefing select room 1.
+/// Plaza has no recipe. Bodyless tasks run at priority 32; the final
+/// `TASK_DESC_END` entry closes lookup. Keep this map and the selected room
+/// callback's overlay loaded through spawning and task execution.
+extern TaskDesc gMapAkropolisRoomTaskDescriptors[21];
 
-/// This stage's flag table for `menuMapGetMarkerState`.
-extern u16 D_map_akropolis_8017AA0C[];
+/// Packed flag and picture selectors for the Acropolis fixed map markers.
+///
+/// Indices 0..13 correspond to `gMapAkropolisMarkers`, excluding its ending
+/// record. Low 11 bits select a game-flag nibble; bit 11 selects the alternate
+/// picture. Every entry here selects the ordinary picture. There is no
+/// terminator. Keep this overlay loaded while reading marker state.
+extern u16 gMapAkropolisMarkerFlags[MAP_AKROPOLIS_MARKER_COUNT];
 
 /// Per-area room-lighting arrays for Acropolis and MIST.
 ///
@@ -124,7 +175,13 @@ extern SpriteAreaTable gMapAkropolisSpriteAreaTable;
 
 extern DirectionWarpEntry* D_map_akropolis_8017AB20[];
 
-extern ViewCountTable D_map_akropolis_8017ABC0;
+/// Logical-view search counts for Acropolis and MIST areas 1..20.
+///
+/// Indexed by area - 1, then room - 1 in the borrowed room-overlay array.
+/// Counts are signed halfword element counts, independent of camera, image
+/// and sprite capacities. There is no terminator or area-21 entry. Keep this
+/// map and the selected room overlay loaded during lookup.
+extern ViewCountTable gMapAkropolisViewCountTable;
 
 /// Camera directory for Acropolis and MIST areas 1..20.
 ///
@@ -613,27 +670,69 @@ extern AreaPlacement gMapAkropolisRoofGardenVariant8Placements[8];
 /// extent; keep the map overlay loaded while actors borrow these records.
 extern AreaPlacement gMapAkropolisBridgeDefaultPlacements[7];
 
-extern AreaPlacement D_map_akropolis_8017BCEC[];
+/// Empty bridge variant-2 placement list, containing only `AREA_PLACEMENT_END`.
+///
+/// Retains its own map-owned address alongside the variant's empty resources.
+extern AreaPlacement gMapAkropolisBridgeVariant2Placements[1];
 
-extern AreaPlacement D_map_akropolis_8017BCFC[];
+/// Empty bridge variant-3 placement list, containing only `AREA_PLACEMENT_END`.
+///
+/// Retains a separate map-owned address alongside the variant's empty resources.
+extern AreaPlacement gMapAkropolisBridgeVariant3Placements[1];
 
-extern AreaPlacement D_map_akropolis_8017BD0C[];
+/// Stranger placement shared by Fire escape variants 1..3.
+///
+/// Entry 10 selects the room's actor recipe. XYZ uses world units; yaw uses
+/// 4096 units per turn. The extent includes `AREA_PLACEMENT_END`; keep this
+/// map loaded while the spawned actor borrows its placement.
+extern AreaPlacement gMapAkropolisFireEscapePlacements[2];
 
-extern AreaPlacement D_map_akropolis_8017BD2C[];
+/// No. 9 GOLEM placement for Helicopter landing pad variant 1.
+///
+/// Entry 27 selects the room's recipe. The extent includes `AREA_PLACEMENT_END`;
+/// keep this map loaded while the spawned actor borrows its placement.
+extern AreaPlacement gMapAkropolisHelicopterLandingPadVariant1Placements[2];
 
-extern AreaPlacement D_map_akropolis_8017BD4C[];
+/// No. 9, Rupert and helicopter placements for landing-pad variant 2.
+///
+/// Entry IDs 27, 144 and 254 match the room's recipes. All use base resources;
+/// texture-page and CLUT-row offsets belong to each placement. The extent
+/// includes `AREA_PLACEMENT_END`; keep this map loaded while actors borrow it.
+extern AreaPlacement gMapAkropolisHelicopterLandingPadVariant2Placements[4];
 
-extern AreaPlacement D_map_akropolis_8017BD8C[];
+/// Rupert and Baldwin placements shared by MIST briefing variants 1 and 3.
+///
+/// Entry IDs 144 and 105 select the room's recipes. The extent includes
+/// `AREA_PLACEMENT_END`; keep this map loaded while actors borrow the records.
+extern AreaPlacement gMapAkropolisMistR18Placements[3];
 
-extern AreaPlacement D_map_akropolis_8017BDBC[];
+/// Pierce and Jodie placements shared by MIST parking variants 1 and 2.
+///
+/// Entry IDs 143 and 115 select the room's recipes. XYZ uses world units; yaw
+/// uses 4096 units per turn. The extent includes `AREA_PLACEMENT_END`; keep
+/// this map loaded while actors borrow the records.
+extern AreaPlacement gMapAkropolisMistParkingPlacements[3];
 
-extern AreaPlacement D_map_akropolis_8017BDEC[];
+/// Gallery mount and Pierce placements for shooting-gallery variant 1.
+///
+/// Entry IDs 76 and 143 select the room's recipes. The mount's mode 0xFF
+/// rejects its spawn; the record retains its placement identity. XYZ uses
+/// world units and yaw uses 4096 units per turn. The extent includes
+/// `AREA_PLACEMENT_END`; keep this map loaded while actors borrow the records.
+extern AreaPlacement gMapAkropolisMistShootingGalleryPlacements[3];
 
-/// This stage's `D_8010F9F4` and `D_8010FA0C` entries: items awarded
-/// for battles won at a location, each list ended by a key of
-/// `INVENTORY_BATTLE_REWARD_LIST_END`.
-extern InventoryBattleReward D_map_akropolis_8017C0DC[];
+/// Acropolis battle rewards for normal, replay and Scavenger runs.
+///
+/// Eleven layout-keyed rows followed by `INVENTORY_BATTLE_REWARD_LIST_END`.
+/// Nonzero item slots grant one pack; slot 3 requires a Medicine Wheel.
+/// Keys exclude the room and view. Keep this overlay loaded during lookup.
+extern InventoryBattleReward gMapAkropolisBattleRewards[12];
 
-extern InventoryBattleReward D_map_akropolis_8017C16C[];
+/// Acropolis battle rewards for Bounty and Nightmare runs.
+///
+/// Five layout-keyed rows followed by `INVENTORY_BATTLE_REWARD_LIST_END`.
+/// Nonzero item slots grant one pack; slot 3 requires a Medicine Wheel.
+/// Keys exclude the room and view. Keep this overlay loaded during lookup.
+extern InventoryBattleReward gMapAkropolisHardBattleRewards[6];
 
 #endif // INCLUDE_MAPUI_MAP_AKROPOLIS_H

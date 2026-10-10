@@ -381,9 +381,9 @@ static AreaResource _gAcropolisFireEscapeActorResources[2] = {
 
 AreaVariant D_acropolis_fire_escape_8018294C[5] = {
     { NULL, NULL },
-    { D_map_akropolis_8017BD0C, _gAcropolisFireEscapeActorResources },
-    { D_map_akropolis_8017BD0C, _gAcropolisFireEscapeActorResources },
-    { D_map_akropolis_8017BD0C, _gAcropolisFireEscapeActorResources },
+    { gMapAkropolisFireEscapePlacements, _gAcropolisFireEscapeActorResources },
+    { gMapAkropolisFireEscapePlacements, _gAcropolisFireEscapeActorResources },
+    { gMapAkropolisFireEscapePlacements, _gAcropolisFireEscapeActorResources },
     { NULL, NULL },
 };
 

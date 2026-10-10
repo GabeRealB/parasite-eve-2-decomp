@@ -72,8 +72,8 @@ _gAcropolisBridgeRoomLights = 0x80190A0C; // size:0x18 defined:True
 gAcropolisBridgeViewCameras = 0x80190A24; // size:0x168 defined:True
 D_acropolis_bridge_80190B8C = 0x80190B8C; // size:0x18 defined:True
 gMapAkropolisBridgeDefaultPlacements = 0x8017BC7C; // absolute:True owner=map_akropolis
-D_map_akropolis_8017BCEC = 0x8017BCEC; // absolute:True owner=map_akropolis
-D_map_akropolis_8017BCFC = 0x8017BCFC; // absolute:True owner=map_akropolis
+gMapAkropolisBridgeVariant2Placements = 0x8017BCEC; // absolute:True owner=map_akropolis
+gMapAkropolisBridgeVariant3Placements = 0x8017BCFC; // absolute:True owner=map_akropolis
 _gAcropolisBridgeTranslucentPlaneModelSkeleton = 0x80187DDC; // size:0x24 defined:True
 _gAcropolisBridgeTranslucentPlaneModelPartVerts = 0x80187E00; // size:0x4 defined:True
 _gAcropolisBridgeTranslucentPlaneModelVerts = 0x80187E04; // size:0x558 defined:True

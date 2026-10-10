@@ -178,7 +178,7 @@ gMistParkingPrizeAnnouncement = 0x80195328; // size:0x4 defined:True
 gMistParkingShopPlayerHeadAimHandle = 0x8019532C; // size:0x8 defined:True
 gActor113100PierceCarradineTaskDescriptors = 0x80144308; // absolute:True owner=actor_113100
 gActor213100JodieBouquetTaskDescriptors = 0x801521A8; // absolute:True owner=actor_213100
-D_map_akropolis_8017BDBC = 0x8017BDBC; // absolute:True owner=map_akropolis
+gMapAkropolisMistParkingPlacements = 0x8017BDBC; // absolute:True owner=map_akropolis
 gMistParkingPlayerShopTalkAnimation = 0x8019088C; // size:0x14 defined:True
 _gMistParkingPlayerDepartureMenuAnimation = 0x801908A0; // size:0x14 defined:True
 _gMistParkingPlayerStayAnimation = 0x801908B4; // size:0x14 defined:True

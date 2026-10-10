@@ -2382,7 +2382,7 @@ static AreaResource _gMistShootingGalleryVariant1Resources[3] = {
 
 AreaVariant D_mist_shooting_gallery_8018DF74[12] = {
     { NULL, NULL },
-    { D_map_akropolis_8017BDEC, _gMistShootingGalleryVariant1Resources },
+    { gMapAkropolisMistShootingGalleryPlacements, _gMistShootingGalleryVariant1Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

@@ -38,7 +38,7 @@ extern TaskMessageEntry D_8010FAD4[];
 
 TaskDesc* D_8010FABC[6] = {
     NULL,
-    D_map_akropolis_8017A8AC,
+    gMapAkropolisRoomTaskDescriptors,
     gMapDryfieldRoomTaskDescriptors,
     gMapDryfieldFullRoomTaskDescriptors,
     D_map_shelter_8017AB30,

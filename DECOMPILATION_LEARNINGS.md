@@ -48464,7 +48464,7 @@ migratable. Add the address to the overlay's `configs/USA/sym/<family>/<name>.tx
 with the `force_not_migration` attribute and re-split:
 
 ```
-D_map_akropolis_8017997C = 0x8017997C; // force_not_migration:True
+_gMapAkropolisKeyItemPanelTitle = 0x8017997C; // force_not_migration:True
 ```
 
 The symbol then gets `asm/USA/<overlay>/nonmatchings/<unit>/D_..._<addr>.s` of

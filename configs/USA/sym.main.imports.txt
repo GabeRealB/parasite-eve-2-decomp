@@ -287,12 +287,12 @@ gMapNeoArkImageSlotsByArea = 0x80179DB8; // absolute:True owner=map_neo_ark
 gMapAkropolisMovieWorkspaceBytesByArea = 0x8017A0F8; // absolute:True owner=map_akropolis
 gMapDryfieldMovieWorkspaceBytesByArea = 0x80179B4C; // absolute:True owner=map_dryfield
 gMapNeoArkMovieWorkspaceBytesByArea = 0x80179EC8; // absolute:True owner=map_neo_ark
-D_map_akropolis_8017C1B4 = 0x8017C1B4; // absolute:True owner=map_akropolis
+gMapAkropolisAreaMusicEntries = 0x8017C1B4; // absolute:True owner=map_akropolis
 gMapDryfieldAreaMusicEntries = 0x8017BDE0; // absolute:True owner=map_dryfield
 gMapDryfieldFullAreaMusicEntries = 0x8017D238; // absolute:True owner=map_dryfield_full
 gMapShelterAreaMusicEntries = 0x8017BE28; // absolute:True owner=map_shelter
 gMapNeoArkAreaMusicEntries = 0x8017CB54; // absolute:True owner=map_neo_ark
-D_map_akropolis_8017C304 = 0x8017C304; // absolute:True owner=map_akropolis
+gMapAkropolisCountdownMusicEntries = 0x8017C304; // absolute:True owner=map_akropolis
 gMapDryfieldCountdownMusicEntries = 0x8017C004; // absolute:True owner=map_dryfield
 gMapDryfieldFullCountdownMusicEntries = 0x8017D594; // absolute:True owner=map_dryfield_full
 D_map_shelter_8017C2D8 = 0x8017C2D8; // absolute:True owner=map_shelter

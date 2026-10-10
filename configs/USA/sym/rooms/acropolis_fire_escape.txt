@@ -73,7 +73,7 @@ _gAcropolisFireEscapeView8SpriteBatches = 0x80182DD4; // size:0x10 defined:True
 _gAcropolisFireEscapeViews9And10SpriteBatches = 0x80182DE4; // size:0x10 defined:True
 _gAcropolisFireEscapeView9SpriteDrawAreas = 0x80182DF4; // size:0x14 defined:True
 gActor311500StrangerTaskDesc = 0x80169338; // absolute:True owner=actor_311500
-D_map_akropolis_8017BD0C = 0x8017BD0C; // absolute:True owner=map_akropolis
+gMapAkropolisFireEscapePlacements = 0x8017BD0C; // absolute:True owner=map_akropolis
 _gAcropolisFireEscapeUnusedSpriteBatches = 0x80182E08; // size:0x10 defined:True
 gAcropolisFireEscapeSpriteViews = 0x80182E18; // size:0x78 defined:True
 gAcropolisFireEscapeViewCameras = 0x80182E90; // size:0x144 defined:True

@@ -182,12 +182,19 @@ static void _mapAkropolisDrawKeyItemRow(UiList* list, UiObject* object);
 static void _mapAkropolisKeyItemPanelTask(Task* task);
 static void _mapAkropolisKeyItemMenuTask(Task* task);
 
-static const char      D_map_akropolis_8017997C[12];
-static s32             D_map_akropolis_8017A9A8;
-static s32             D_map_akropolis_8017A9AC[4];
-static UiList          D_map_akropolis_8017A9C0;
-static UiObjectDesc    D_map_akropolis_8017A9E4;
-static TaskDesc        D_map_akropolis_8017AA00;
+/// Catalogue row count, task priority and panel spacing of the briefing menu.
+enum {
+    MAP_AKROPOLIS_BRIEFING_ITEM_COUNT        = 4,
+    MAP_AKROPOLIS_KEY_ITEM_TASK_PRIORITY     = 192,
+    MAP_AKROPOLIS_KEY_ITEM_ROW_HEIGHT_PIXELS = 15,
+};
+
+static const char      _gMapAkropolisKeyItemPanelTitle[12];
+static s32             _gMapAkropolisDryfieldMapOpened;
+static s32             _gMapAkropolisBriefingItemIds[MAP_AKROPOLIS_BRIEFING_ITEM_COUNT];
+static UiList          _gMapAkropolisKeyItemList;
+static UiObjectDesc    _gMapAkropolisKeyItemPanelDescriptor;
+static TaskDesc        _gMapAkropolisKeyItemMenuTaskDescriptor;
 static AreaObjectPlace _gMapAkropolisSquareObjectPlaces[6];
 static AreaObjectPlace _gMapAkropolisEastElevatorHallObjectPlaces[2];
 static AreaObjectPlace _gMapAkropolisCafeteriaObjectPlaces[5];
@@ -314,7 +321,7 @@ static void _mapAkropolisDrawKeyItemRow(UiList* list, UiObject* object)
     s32 itemId;
     s32 inputEnabled;
 
-    itemId = D_map_akropolis_8017A9AC[list->currentItemIndex];
+    itemId = _gMapAkropolisBriefingItemIds[list->currentItemIndex];
     textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, itemGetText(itemId, ITEM_TEXT_NAME, 0), list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (((object->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE)) {
         if (list->selectedItemIndex == list->currentItemIndex) {
@@ -328,7 +335,7 @@ static void _mapAkropolisDrawKeyItemRow(UiList* list, UiObject* object)
             uiSpawnObject(&D_8010EAB4[MAP_AKROPOLIS_KEY_ITEM_DETAIL_DESCRIPTOR_INDEX], itemId, USER_INTERFACE_PANEL_ACTIVE, 1, object);
             object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             if (itemId == INVENTORY_COLLECTION_ID_DRYFIELD_MAP) {
-                D_map_akropolis_8017A9A8 = inputEnabled;
+                _gMapAkropolisDryfieldMapOpened = inputEnabled;
             }
         }
     }
@@ -347,10 +354,10 @@ static void _mapAkropolisKeyItemPanelTask(Task* task)
     UiObject* detailObject;
     s32       detailResult;
 
-    list           = &D_map_akropolis_8017A9C0;
+    list           = &_gMapAkropolisKeyItemList;
     object         = task->spawnArg2.pointer;
     object->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&object->panel, D_map_akropolis_8017997C);
+    uiDrawPanelLabel(&object->panel, _gMapAkropolisKeyItemPanelTitle);
     if (task->state == MAP_AKROPOLIS_KEY_ITEM_PANEL_INITIALIZE) {
         uiFitPanelToList(list, &object->panel);
         list->flags           = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
@@ -389,7 +396,7 @@ static void _mapAkropolisKeyItemMenuTask(Task* task)
     if (task->state == MAP_AKROPOLIS_KEY_ITEM_MENU_START) {
         stageEnsureHeapTaskPrimitiveBuffer();
         itemMenuClearPreviewItems();
-        object = uiSpawnObject(&D_map_akropolis_8017A9E4, task->spawnArg1, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
+        object = uiSpawnObject(&_gMapAkropolisKeyItemPanelDescriptor, task->spawnArg1, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
         if (object == NULL) {
             return;
         }
@@ -429,20 +436,20 @@ s32 mapAkropolisOpenKeyItemMenu(s32 unused, s32 retainSelection)
 
     if (retainSelection == 0) {
         itemIndex    = 0;
-        itemIdCursor = D_map_akropolis_8017A9AC;
+        itemIdCursor = _gMapAkropolisBriefingItemIds;
         do {
             inventorySetCollectedBit(*itemIdCursor++);
             itemIndex++;
-        } while (itemIndex < ARRAY_SIZE(D_map_akropolis_8017A9AC));
-        D_map_akropolis_8017A9A8 = 0;
+        } while (itemIndex < ARRAY_SIZE(_gMapAkropolisBriefingItemIds));
+        _gMapAkropolisDryfieldMapOpened = 0;
     }
-    displayQueueModeTask(&D_map_akropolis_8017AA00, 0, 0, STAGE_ENTRY_RELOAD);
+    displayQueueModeTask(&_gMapAkropolisKeyItemMenuTaskDescriptor, 0, 0, STAGE_ENTRY_RELOAD);
     return 1;
 }
 
 s32 mapAkropolisWasDryfieldMapSelected(void)
 {
-    return D_map_akropolis_8017A9A8;
+    return _gMapAkropolisDryfieldMapOpened;
 }
 
 GfxImageSlot gMapAkropolisImageSlots[GAME_AREA_MIST_R21 + 1] = {
@@ -494,31 +501,43 @@ s32 gMapAkropolisMovieWorkspaceBytesByArea[GAME_AREA_MIST_SHOOTING_GALLERY + 1] 
     [GAME_AREA_MIST_SHOOTING_GALLERY]            = 0,
 };
 
-u8 D_map_akropolis_8017A14C[8] = { 0, 0x15, 0x15, 0xFF };
+/// Page IDs used by the map records; MIST's page cannot navigate to Acropolis.
+enum {
+    MAP_AKROPOLIS_PAGE_TOWER          = 1,
+    MAP_AKROPOLIS_PAGE_LANDING_PAD    = 2,
+    MAP_AKROPOLIS_PAGE_MIST           = 3,
+    MAP_AKROPOLIS_PAGE_NAVIGATION_END = 0xFF,
+};
 
-MenuMapArea D_map_akropolis_8017A154[22] = {
-    { 0, 0, 0, 0, 0, 0, MENU_MAP_AREA_PAGE_NONE },
-    { -0x196E, 0x1FF, 0xFFE2, 0xFFBA, 0xE6, 0xC8, 1 },
-    { -0x1480, 0x42C, 0x28, 0xFFBD, 0xE6, 0xC8, 1 },
-    { 0xF42, 0x300, 0xFFE9, 0xFFDD, 0xC8, 0xC8, 1 },
-    { 0x731, -0xCB8, 0xFFCE, 0x19, 0xC8, 0xC8, 1 },
-    { 0, 0, 0, 0, 0, 0, MENU_MAP_AREA_PAGE_NONE },
-    { -0x2E, -0xB3D, 0xFFDD, 0x19, 0xC8, 0xC8, 1 },
-    { 0xBC4, -0x2BA, 0xFFE0, 0x23, 0xC8, 0x12C, 1 },
-    { -0xF38, 0xD8A, 0xFFEC, 0xFFFB, 0xC8, 0xE6, 1 },
-    { -0xFA4, 0x355, 0x19, 0xFFD8, 0xC8, 0x96, 1 },
-    { -0x8F8, -0x2BF2, 0x4E, 7, 0xC8, 0xBE, 1 },
-    { 0x282, 0x23A0, 0x28, 6, 0xDC, 0xCD, 1 },
-    { -0x261A, -0x1F86, 0x2B, 0x4A, 0x96, 0xC8, 1 },
-    { -0x1D22, -0x25F0, 0x3C, 0x2F, 0xE6, 0xC8, 1 },
-    { 0x282, 0x23A0, 0x28, 0xF, 0xD2, 0xE1, 1 },
-    { 0xA44, -0xB7, 0xFFD3, 0x40, 0xA5, 0xCD, 1 },
-    { -0x18F3, 0x18A2, 0xFFDE, 0xFFE2, 0xC8, 0xD2, 2 },
-    { 0x1508, 0x40F, 0xFFDC, 0xFFC0, 0xC8, 0xC8, 1 },
-    { 0, 0, 0, 0, 0, 0, MENU_MAP_AREA_PAGE_NONE },
-    { 0x2100, -0xEF4, 0xFFE4, 0xFFFC, 0xC8, 0xC8, 3 },
-    { 0x2B5C, 0x1450, 0x6E, 1, 0xC8, 0xC8, 3 },
-    { 0, 0, 0, 0, 0, 0, MENU_MAP_AREA_PAGE_END },
+u8 gMapAkropolisPageFlagIds[8] = {
+    [MAP_AKROPOLIS_PAGE_TOWER]       = GAME_FLAG_015,
+    [MAP_AKROPOLIS_PAGE_LANDING_PAD] = GAME_FLAG_015,
+    [MAP_AKROPOLIS_PAGE_MIST]        = MAP_AKROPOLIS_PAGE_NAVIGATION_END,
+};
+
+MenuMapArea gMapAkropolisAreas[GAME_AREA_MIST_SHOOTING_GALLERY + 2] = {
+    [0]                                          = { 0, 0, 0, 0, 0, 0, MENU_MAP_AREA_PAGE_NONE },
+    [GAME_AREA_ACROPOLIS_SQUARE]                 = { -0x196E, 0x1FF, 0xFFE2, 0xFFBA, 0xE6, 0xC8, MAP_AKROPOLIS_PAGE_TOWER },
+    [GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL]     = { -0x1480, 0x42C, 0x28, 0xFFBD, 0xE6, 0xC8, MAP_AKROPOLIS_PAGE_TOWER },
+    [GAME_AREA_ACROPOLIS_PATIO]                  = { 0xF42, 0x300, 0xFFE9, 0xFFDD, 0xC8, 0xC8, MAP_AKROPOLIS_PAGE_TOWER },
+    [GAME_AREA_ACROPOLIS_CAFETERIA]              = { 0x731, -0xCB8, 0xFFCE, 0x19, 0xC8, 0xC8, MAP_AKROPOLIS_PAGE_TOWER },
+    [GAME_AREA_ACROPOLIS_PLAZA]                  = { 0, 0, 0, 0, 0, 0, MENU_MAP_AREA_PAGE_NONE },
+    [GAME_AREA_ACROPOLIS_SECURITY_ROOM]          = { -0x2E, -0xB3D, 0xFFDD, 0x19, 0xC8, 0xC8, MAP_AKROPOLIS_PAGE_TOWER },
+    [GAME_AREA_ACROPOLIS_HALLWAY]                = { 0xBC4, -0x2BA, 0xFFE0, 0x23, 0xC8, 0x12C, MAP_AKROPOLIS_PAGE_TOWER },
+    [GAME_AREA_ACROPOLIS_FOUNTAIN]               = { -0xF38, 0xD8A, 0xFFEC, 0xFFFB, 0xC8, 0xE6, MAP_AKROPOLIS_PAGE_TOWER },
+    [GAME_AREA_ACROPOLIS_FORKED_ROAD]            = { -0xFA4, 0x355, 0x19, 0xFFD8, 0xC8, 0x96, MAP_AKROPOLIS_PAGE_TOWER },
+    [GAME_AREA_ACROPOLIS_OBSERVATORY]            = { -0x8F8, -0x2BF2, 0x4E, 7, 0xC8, 0xBE, MAP_AKROPOLIS_PAGE_TOWER },
+    [GAME_AREA_ACROPOLIS_PROMENADE]              = { 0x282, 0x23A0, 0x28, 6, 0xDC, 0xCD, MAP_AKROPOLIS_PAGE_TOWER },
+    [GAME_AREA_ACROPOLIS_SANCTUARY]              = { -0x261A, -0x1F86, 0x2B, 0x4A, 0x96, 0xC8, MAP_AKROPOLIS_PAGE_TOWER },
+    [GAME_AREA_ACROPOLIS_ROOF_GARDEN]            = { -0x1D22, -0x25F0, 0x3C, 0x2F, 0xE6, 0xC8, MAP_AKROPOLIS_PAGE_TOWER },
+    [GAME_AREA_ACROPOLIS_BRIDGE]                 = { 0x282, 0x23A0, 0x28, 0xF, 0xD2, 0xE1, MAP_AKROPOLIS_PAGE_TOWER },
+    [GAME_AREA_ACROPOLIS_FIRE_ESCAPE]            = { 0xA44, -0xB7, 0xFFD3, 0x40, 0xA5, 0xCD, MAP_AKROPOLIS_PAGE_TOWER },
+    [GAME_AREA_ACROPOLIS_HELICOPTER_LANDING_PAD] = { -0x18F3, 0x18A2, 0xFFDE, 0xFFE2, 0xC8, 0xD2, MAP_AKROPOLIS_PAGE_LANDING_PAD },
+    [GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL]     = { 0x1508, 0x40F, 0xFFDC, 0xFFC0, 0xC8, 0xC8, MAP_AKROPOLIS_PAGE_TOWER },
+    [GAME_AREA_MIST_R18]                         = { 0, 0, 0, 0, 0, 0, MENU_MAP_AREA_PAGE_NONE },
+    [GAME_AREA_MIST_PARKING]                     = { 0x2100, -0xEF4, 0xFFE4, 0xFFFC, 0xC8, 0xC8, MAP_AKROPOLIS_PAGE_MIST },
+    [GAME_AREA_MIST_SHOOTING_GALLERY]            = { 0x2B5C, 0x1450, 0x6E, 1, 0xC8, 0xC8, MAP_AKROPOLIS_PAGE_MIST },
+    [GAME_AREA_MIST_SHOOTING_GALLERY + 1]        = { 0, 0, 0, 0, 0, 0, MENU_MAP_AREA_PAGE_END },
 };
 
 MenuMapAreaShape D_map_akropolis_8017A288[21] = {
@@ -545,55 +564,61 @@ MenuMapAreaShape D_map_akropolis_8017A288[21] = {
     { NULL, 3, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
 };
 
-MenuMapMarker D_map_akropolis_8017A330[15] = {
-    { 1, MENU_MAP_MARKER_AREA_ANY, -33, -69 },
-    { 1, MENU_MAP_MARKER_AREA_ANY, 33, -69 },
-    { 1, MENU_MAP_MARKER_AREA_ANY, -20, -7 },
-    { 1, MENU_MAP_MARKER_AREA_ANY, 20, -7 },
-    { 1, MENU_MAP_MARKER_AREA_ANY, 43, -42 },
-    { 1, MENU_MAP_MARKER_AREA_ANY, -80, -7 },
-    { 1, MENU_MAP_MARKER_AREA_ANY, -62, 34 },
-    { 1, MENU_MAP_MARKER_AREA_ANY, -52, 29 },
-    { 1, MENU_MAP_MARKER_AREA_ANY, -35, 29 },
-    { 1, MENU_MAP_MARKER_AREA_ANY, -28, 34 },
-    { 1, MENU_MAP_MARKER_AREA_ANY, 41, 76 },
-    { 1, MENU_MAP_MARKER_AREA_ANY, 59, 54 },
-    { 1, MENU_MAP_MARKER_AREA_ANY, 26, 65 },
-    { 1, MENU_MAP_MARKER_AREA_ANY, -44, 65 },
+MenuMapMarker gMapAkropolisMarkers[MAP_AKROPOLIS_MARKER_COUNT + 1] = {
+    { MAP_AKROPOLIS_PAGE_TOWER, MENU_MAP_MARKER_AREA_ANY, -33, -69 },
+    { MAP_AKROPOLIS_PAGE_TOWER, MENU_MAP_MARKER_AREA_ANY, 33, -69 },
+    { MAP_AKROPOLIS_PAGE_TOWER, MENU_MAP_MARKER_AREA_ANY, -20, -7 },
+    { MAP_AKROPOLIS_PAGE_TOWER, MENU_MAP_MARKER_AREA_ANY, 20, -7 },
+    { MAP_AKROPOLIS_PAGE_TOWER, MENU_MAP_MARKER_AREA_ANY, 43, -42 },
+    { MAP_AKROPOLIS_PAGE_TOWER, MENU_MAP_MARKER_AREA_ANY, -80, -7 },
+    { MAP_AKROPOLIS_PAGE_TOWER, MENU_MAP_MARKER_AREA_ANY, -62, 34 },
+    { MAP_AKROPOLIS_PAGE_TOWER, MENU_MAP_MARKER_AREA_ANY, -52, 29 },
+    { MAP_AKROPOLIS_PAGE_TOWER, MENU_MAP_MARKER_AREA_ANY, -35, 29 },
+    { MAP_AKROPOLIS_PAGE_TOWER, MENU_MAP_MARKER_AREA_ANY, -28, 34 },
+    { MAP_AKROPOLIS_PAGE_TOWER, MENU_MAP_MARKER_AREA_ANY, 41, 76 },
+    { MAP_AKROPOLIS_PAGE_TOWER, MENU_MAP_MARKER_AREA_ANY, 59, 54 },
+    { MAP_AKROPOLIS_PAGE_TOWER, MENU_MAP_MARKER_AREA_ANY, 26, 65 },
+    { MAP_AKROPOLIS_PAGE_TOWER, MENU_MAP_MARKER_AREA_ANY, -44, 65 },
     { 0, 0, 0, 0 },
 };
 
-MenuMapIcon D_map_akropolis_8017A38C[6] = {
-    { 1, 1, MENU_MAP_ICON_KIND_TELEPHONE, 0, 31, -77 },
-    { 1, 0xF, MENU_MAP_ICON_KIND_TELEPHONE, 0, -76, 53 },
-    { 3, 0x13, MENU_MAP_ICON_KIND_TELEPHONE, 0, -110, -26 },
-    { 3, 0x13, 0, GAME_FLAG_STORY_CHAPTER, -57, -7 },
-    { 1, 4, MENU_MAP_ICON_KIND_OBJECTIVE, 2, -77, 17 },
+/// Fixed icon picture and cafeteria objective number used by this map.
+enum {
+    MAP_AKROPOLIS_ICON_KIND_FIXED_PICTURE = 0,
+    MAP_AKROPOLIS_OBJECTIVE_CAFETERIA     = 2,
+};
+
+MenuMapIcon gMapAkropolisIcons[6] = {
+    { MAP_AKROPOLIS_PAGE_TOWER, GAME_AREA_ACROPOLIS_SQUARE, MENU_MAP_ICON_KIND_TELEPHONE, 0, 31, -77 },
+    { MAP_AKROPOLIS_PAGE_TOWER, GAME_AREA_ACROPOLIS_FIRE_ESCAPE, MENU_MAP_ICON_KIND_TELEPHONE, 0, -76, 53 },
+    { MAP_AKROPOLIS_PAGE_MIST, GAME_AREA_MIST_PARKING, MENU_MAP_ICON_KIND_TELEPHONE, 0, -110, -26 },
+    { MAP_AKROPOLIS_PAGE_MIST, GAME_AREA_MIST_PARKING, MAP_AKROPOLIS_ICON_KIND_FIXED_PICTURE, GAME_FLAG_STORY_CHAPTER, -57, -7 },
+    { MAP_AKROPOLIS_PAGE_TOWER, GAME_AREA_ACROPOLIS_CAFETERIA, MENU_MAP_ICON_KIND_OBJECTIVE, MAP_AKROPOLIS_OBJECTIVE_CAFETERIA, -77, 17 },
     { 0, 0, 0, 0, 0, 0 },
 };
 
-MenuMapAreaName D_map_akropolis_8017A3BC[21] = {
-    { "Square" },
-    { "East elevator hall" },
-    { "Patio" },
-    { "Cafeteria" },
-    { "Plaza" },
-    { "Security room" },
-    { "Hallway" },
-    { "Fountain" },
-    { "Forked road" },
-    { "Observatory" },
-    { "Promenade" },
-    { "Sanctuary" },
-    { "Roof garden" },
-    { "Bridge" },
-    { "Fire escape" },
-    { "Helicopter landing pad" },
-    { "West elevator hall" },
-    { "" },
-    { "MIST parking" },
-    { "Shooting gallery" },
-    { "" },
+MenuMapAreaName gMapAkropolisAreaNames[GAME_AREA_MIST_R21] = {
+    [GAME_AREA_ACROPOLIS_SQUARE - 1]                 = { "Square" },
+    [GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL - 1]     = { "East elevator hall" },
+    [GAME_AREA_ACROPOLIS_PATIO - 1]                  = { "Patio" },
+    [GAME_AREA_ACROPOLIS_CAFETERIA - 1]              = { "Cafeteria" },
+    [GAME_AREA_ACROPOLIS_PLAZA - 1]                  = { "Plaza" },
+    [GAME_AREA_ACROPOLIS_SECURITY_ROOM - 1]          = { "Security room" },
+    [GAME_AREA_ACROPOLIS_HALLWAY - 1]                = { "Hallway" },
+    [GAME_AREA_ACROPOLIS_FOUNTAIN - 1]               = { "Fountain" },
+    [GAME_AREA_ACROPOLIS_FORKED_ROAD - 1]            = { "Forked road" },
+    [GAME_AREA_ACROPOLIS_OBSERVATORY - 1]            = { "Observatory" },
+    [GAME_AREA_ACROPOLIS_PROMENADE - 1]              = { "Promenade" },
+    [GAME_AREA_ACROPOLIS_SANCTUARY - 1]              = { "Sanctuary" },
+    [GAME_AREA_ACROPOLIS_ROOF_GARDEN - 1]            = { "Roof garden" },
+    [GAME_AREA_ACROPOLIS_BRIDGE - 1]                 = { "Bridge" },
+    [GAME_AREA_ACROPOLIS_FIRE_ESCAPE - 1]            = { "Fire escape" },
+    [GAME_AREA_ACROPOLIS_HELICOPTER_LANDING_PAD - 1] = { "Helicopter landing pad" },
+    [GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL - 1]     = { "West elevator hall" },
+    [GAME_AREA_MIST_R18 - 1]                         = { "" },
+    [GAME_AREA_MIST_PARKING - 1]                     = { "MIST parking" },
+    [GAME_AREA_MIST_SHOOTING_GALLERY - 1]            = { "Shooting gallery" },
+    [GAME_AREA_MIST_R21 - 1]                         = { "" },
 };
 
 /// Initial saved object states used by this stage's placements.
@@ -860,95 +885,120 @@ AreaObjectRoom gMapAkropolisObjectRooms[GAME_AREA_MIST_SHOOTING_GALLERY + 2] = {
     [GAME_AREA_MIST_SHOOTING_GALLERY + 1]        = { .places = { .sentinel = AREA_OBJECT_ROOM_END }, .spawns = NULL },
 };
 
-TaskDesc D_map_akropolis_8017A8AC[] = {
-    { { { TASK_BODY_NONE, 0x20 } }, acropolisSquareRoomTask, { .value = GP_TASK_LOC_KEY(1, 1, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, acropolisEastElevatorHallRoomTask, { .value = GP_TASK_LOC_KEY(1, 2, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, acropolisPatioRoomTask, { .value = GP_TASK_LOC_KEY(1, 3, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, acropolisCafeteriaRoomTask, { .value = GP_TASK_LOC_KEY(1, 4, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, acropolisSecurityRoomMessageTask, { .value = GP_TASK_LOC_KEY(1, 6, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, acropolisHallwayRoomTask, { .value = GP_TASK_LOC_KEY(1, 7, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, acropolisFountainRoomTask, { .value = GP_TASK_LOC_KEY(1, 8, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, acropolisForkedRoadRoomTask, { .value = GP_TASK_LOC_KEY(1, 9, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, acropolisObservatoryRoomTask, { .value = GP_TASK_LOC_KEY(1, 10, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, acropolisPromenadeRoomTask, { .value = GP_TASK_LOC_KEY(1, 11, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, acropolisSanctuaryRoomTask, { .value = GP_TASK_LOC_KEY(1, 12, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, acropolisRoofGardenRoomTask, { .value = GP_TASK_LOC_KEY(1, 13, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, acropolisBridgeRoomTask, { .value = GP_TASK_LOC_KEY(1, 14, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, acropolisFireEscapeRoomTask, { .value = GP_TASK_LOC_KEY(1, 15, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, acropolisHelicopterLandingPadRoomTask, { .value = GP_TASK_LOC_KEY(1, 16, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, acropolisWestElevatorHallRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL, 1) } },
-    { { { TASK_BODY_NONE, 0x20 } }, mistR18BriefingTask, { .value = GP_TASK_LOC_KEY(1, 18, 1) } },
-    { { { TASK_BODY_NONE, 0x20 } }, mistParkingRoomTask, { .value = GP_TASK_LOC_KEY(1, 19, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, mistShootingGalleryRoomTask, { .value = GP_TASK_LOC_KEY(1, 20, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, mistR21RoomTask, { .value = GP_TASK_LOC_KEY(1, 21, 0) } },
-    { { { TASK_DESC_END, 0x20 } }, NULL, { 0 } },
+/// Priority required by the room-controller descriptor search.
+enum { MAP_AKROPOLIS_ROOM_TASK_PRIORITY = 32 };
+
+TaskDesc gMapAkropolisRoomTaskDescriptors[21] = {
+    { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, acropolisSquareRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SQUARE, 0) } },
+    { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, acropolisEastElevatorHallRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL, 0) } },
+    { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, acropolisPatioRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 0) } },
+    { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, acropolisCafeteriaRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA, 0) } },
+    { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, acropolisSecurityRoomMessageTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SECURITY_ROOM, 0) } },
+    { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, acropolisHallwayRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_HALLWAY, 0) } },
+    { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, acropolisFountainRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FOUNTAIN, 0) } },
+    { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, acropolisForkedRoadRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FORKED_ROAD, 0) } },
+    { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, acropolisObservatoryRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_OBSERVATORY, 0) } },
+    { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, acropolisPromenadeRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE, 0) } },
+    { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, acropolisSanctuaryRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SANCTUARY, 0) } },
+    { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, acropolisRoofGardenRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0) } },
+    { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, acropolisBridgeRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_BRIDGE, 0) } },
+    { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, acropolisFireEscapeRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FIRE_ESCAPE, 0) } },
+    { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, acropolisHelicopterLandingPadRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_HELICOPTER_LANDING_PAD, 0) } },
+    { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, acropolisWestElevatorHallRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL, 1) } },
+    { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, mistR18BriefingTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_R18, 1) } },
+    { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, mistParkingRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_PARKING, 0) } },
+    { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, mistShootingGalleryRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0) } },
+    { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, mistR21RoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_R21, 0) } },
+    { { { TASK_DESC_END, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, NULL, { 0 } },
 };
 
-/// Which key-item row the panel last had selected.
-static s32 D_map_akropolis_8017A9A8 = 0;
+/// Whether the Dryfield map detail has been opened during the briefing menu.
+///
+/// Signed-word latch (0 not opened, 1 opened). A fresh menu request clears it;
+/// retained requests preserve it, independently of the list's selected row.
+static s32 _gMapAkropolisDryfieldMapOpened = 0;
 
-/// The four text ids the key-item rows draw, in row order.
-static s32 D_map_akropolis_8017A9AC[4] = { 0x109, 0x10A, 0x10B, 0x10C };
-
-/// One-entry row-draw table for the list below; `UiList.rowCallbacks` points here.
-static UiListRowCallback D_map_akropolis_8017A9BC[1] = { _mapAkropolisDrawKeyItemRow };
-
-/// The key-item list: four rows of one line each, 0x0F tall, everything else
-/// filled in at runtime by the list reset.
-static UiList D_map_akropolis_8017A9C0 = {
-    D_map_akropolis_8017A9BC,
-    4,
-    4,
-    1,
-    0x0F,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    { 0 },
-    0,
-    0,
+/// Collection catalogue IDs shown and granted by the MIST briefing menu.
+///
+/// Row indices 0..3 select signed-word IDs; names come from the item catalogue.
+static s32 _gMapAkropolisBriefingItemIds[MAP_AKROPOLIS_BRIEFING_ITEM_COUNT] = {
+    INVENTORY_COLLECTION_ID_MIST_SEARCH_WARRANT,
+    INVENTORY_COLLECTION_ID_NMC_PHOTO,
+    INVENTORY_COLLECTION_ID_MANUAL,
+    INVENTORY_COLLECTION_ID_DRYFIELD_MAP,
 };
 
-/// The panel `uiSpawnObject` builds for the key-item view: 0xFF9C x 0xFFD8,
-/// 0xC8 x 0x3C, drawn by _mapAkropolisKeyItemPanelTask.
-static UiObjectDesc D_map_akropolis_8017A9E4 = {
-    USER_INTERFACE_PANEL_TITLE_STYLE,
-    { -100,
-      -40,
-      0xC8,
-      0x3C },
-    0x3C,
-    0,
-    TASK_BODY_NONE,
-    0xC0,
-    _mapAkropolisKeyItemPanelTask,
-    0,
+/// Shared row renderer for all four briefing items.
+///
+/// The list's shared-callback flag selects entry zero for every item index.
+static UiListRowCallback _gMapAkropolisKeyItemRowCallbacks[1] = { _mapAkropolisDrawKeyItemRow };
+
+/// Mutable singleton list for the four MIST briefing items.
+///
+/// Shows all four rows with wrapping navigation and 15-pixel row spacing.
+/// Panel initialization resets selection/scroll state and enables the shared
+/// row renderer; closing and reopening can retain the Dryfield-map latch.
+static UiList _gMapAkropolisKeyItemList = {
+    .rowCallbacks    = _gMapAkropolisKeyItemRowCallbacks,
+    .itemCount       = ARRAY_SIZE(_gMapAkropolisBriefingItemIds),
+    .visibleRowCount = { .unsignedValue = ARRAY_SIZE(_gMapAkropolisBriefingItemIds) },
+    .wrapNavigation  = 1,
+    .rowHeight       = MAP_AKROPOLIS_KEY_ITEM_ROW_HEIGHT_PIXELS,
 };
 
-/// The display-mode task `displayQueueModeTask` seeds for this map.
-static TaskDesc D_map_akropolis_8017AA00 = { { { TASK_BODY_NONE, 0xC0 } }, _mapAkropolisKeyItemMenuTask, 0 };
+/// Panel recipe for the briefing's key-item list and its detail children.
+///
+/// Bounds are screen-centered pixels; the bodyless content task uses priority
+/// 192 and ordering-table tag base 60. Spawning reads this recipe synchronously.
+static UiObjectDesc _gMapAkropolisKeyItemPanelDescriptor = {
+    .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+    .bounds          = { -100, -40, 200, MAP_AKROPOLIS_BRIEFING_ITEM_COUNT* MAP_AKROPOLIS_KEY_ITEM_ROW_HEIGHT_PIXELS },
+    .otIndexSeed     = 60,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = MAP_AKROPOLIS_KEY_ITEM_TASK_PRIORITY,
+    .contentCallback = _mapAkropolisKeyItemPanelTask,
+};
 
-u16 D_map_akropolis_8017AA0C[14] = {
-    0x1F7,
-    0x1F6,
-    0x1F0,
-    0x1EF,
-    0x1EE,
-    0x1F5,
-    0x1F4,
-    0x1F3,
-    0x1F2,
-    0x1F1,
-    0x1ED,
-    0x1EC,
-    0x1EB,
-    0x1EA,
+/// Bodyless display-mode host for the briefing's key-item UI tree.
+///
+/// Runs at priority 192; spawning copies this map-owned recipe.
+static TaskDesc _gMapAkropolisKeyItemMenuTaskDescriptor = {
+    .header   = { .fields = { TASK_BODY_NONE, MAP_AKROPOLIS_KEY_ITEM_TASK_PRIORITY } },
+    .callback = _mapAkropolisKeyItemMenuTask,
+};
+
+/// Door-marker nibble IDs shared with the corresponding room warp endpoints.
+enum {
+    MAP_AKROPOLIS_MARKER_FLAG_BRIDGE_FIRE_ESCAPE      = 0x1EA,
+    MAP_AKROPOLIS_MARKER_FLAG_PROMENADE_BRIDGE        = 0x1EB,
+    MAP_AKROPOLIS_MARKER_FLAG_SANCTUARY_ROOF_GARDEN   = 0x1EC,
+    MAP_AKROPOLIS_MARKER_FLAG_PROMENADE_SANCTUARY     = 0x1ED,
+    MAP_AKROPOLIS_MARKER_FLAG_FOUNTAIN_FORKED_ROAD    = 0x1EF,
+    MAP_AKROPOLIS_MARKER_FLAG_PATIO_FOUNTAIN          = 0x1F0,
+    MAP_AKROPOLIS_MARKER_FLAG_HALLWAY_FOUNTAIN        = 0x1F1,
+    MAP_AKROPOLIS_MARKER_FLAG_HALLWAY_SECURITY_ROOM   = 0x1F2,
+    MAP_AKROPOLIS_MARKER_FLAG_CAFETERIA_HALLWAY_VIEW3 = 0x1F3,
+    MAP_AKROPOLIS_MARKER_FLAG_CAFETERIA_HALLWAY_VIEW2 = 0x1F4,
+    MAP_AKROPOLIS_MARKER_FLAG_PATIO_CAFETERIA         = 0x1F5,
+    MAP_AKROPOLIS_MARKER_FLAG_SQUARE_EAST_ELEVATOR    = 0x1F6,
+    MAP_AKROPOLIS_MARKER_FLAG_SQUARE_WEST_ELEVATOR    = 0x1F7,
+};
+
+u16 gMapAkropolisMarkerFlags[MAP_AKROPOLIS_MARKER_COUNT] = {
+    MAP_AKROPOLIS_MARKER_FLAG_SQUARE_WEST_ELEVATOR,
+    MAP_AKROPOLIS_MARKER_FLAG_SQUARE_EAST_ELEVATOR,
+    MAP_AKROPOLIS_MARKER_FLAG_PATIO_FOUNTAIN,
+    MAP_AKROPOLIS_MARKER_FLAG_FOUNTAIN_FORKED_ROAD,
+    GAME_FLAG_MAP_MARK_SECURITY_ROOM,
+    MAP_AKROPOLIS_MARKER_FLAG_PATIO_CAFETERIA,
+    MAP_AKROPOLIS_MARKER_FLAG_CAFETERIA_HALLWAY_VIEW2,
+    MAP_AKROPOLIS_MARKER_FLAG_CAFETERIA_HALLWAY_VIEW3,
+    MAP_AKROPOLIS_MARKER_FLAG_HALLWAY_SECURITY_ROOM,
+    MAP_AKROPOLIS_MARKER_FLAG_HALLWAY_FOUNTAIN,
+    MAP_AKROPOLIS_MARKER_FLAG_PROMENADE_SANCTUARY,
+    MAP_AKROPOLIS_MARKER_FLAG_SANCTUARY_ROOF_GARDEN,
+    MAP_AKROPOLIS_MARKER_FLAG_PROMENADE_BRIDGE,
+    MAP_AKROPOLIS_MARKER_FLAG_BRIDGE_FIRE_ESCAPE,
 };
 
 WorldCoordRoomLighting* gMapAkropolisAreaRoomLightingTables[GAME_AREA_MIST_SHOOTING_GALLERY] = {
@@ -1052,30 +1102,34 @@ DirectionWarpEntry* D_map_akropolis_8017AB20[20] = {
     D_mist_shooting_gallery_801853C8,
 };
 
-static ViewCount* D_map_akropolis_8017AB70[20] = {
-    gAcropolisSquareViewCounts,
-    gAcropolisEastElevatorHallViewCounts,
-    gAcropolisPatioViewCounts,
-    gAcropolisCafeteriaViewCounts,
-    gAcropolisPlazaViewCounts,
-    gAcropolisSecurityRoomViewCounts,
-    gAcropolisHallwayViewCounts,
-    gAcropolisFountainViewCounts,
-    gAcropolisForkedRoadViewCounts,
-    gAcropolisObservatoryViewCounts,
-    gAcropolisPromenadeViewCounts,
-    gAcropolisSanctuaryViewCounts,
-    gAcropolisRoofGardenViewCounts,
-    gAcropolisBridgeViewCounts,
-    gAcropolisFireEscapeViewCounts,
-    gAcropolisHelicopterLandingPadViewCounts,
-    gAcropolisWestElevatorHallViewCounts,
-    gMistR18ViewCounts,
-    gMistParkingViewCounts,
-    gMistShootingGalleryViewCounts,
+/// Borrowed room-count arrays for Acropolis and MIST areas 1..20.
+///
+/// Indexed by area - 1; no terminator or area-21 entry. The selected room
+/// overlay owns the signed-halfword counts and must remain loaded for lookup.
+static ViewCount* _gMapAkropolisAreaViewCounts[GAME_AREA_MIST_SHOOTING_GALLERY] = {
+    [GAME_AREA_ACROPOLIS_SQUARE - 1]                 = gAcropolisSquareViewCounts,
+    [GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL - 1]     = gAcropolisEastElevatorHallViewCounts,
+    [GAME_AREA_ACROPOLIS_PATIO - 1]                  = gAcropolisPatioViewCounts,
+    [GAME_AREA_ACROPOLIS_CAFETERIA - 1]              = gAcropolisCafeteriaViewCounts,
+    [GAME_AREA_ACROPOLIS_PLAZA - 1]                  = gAcropolisPlazaViewCounts,
+    [GAME_AREA_ACROPOLIS_SECURITY_ROOM - 1]          = gAcropolisSecurityRoomViewCounts,
+    [GAME_AREA_ACROPOLIS_HALLWAY - 1]                = gAcropolisHallwayViewCounts,
+    [GAME_AREA_ACROPOLIS_FOUNTAIN - 1]               = gAcropolisFountainViewCounts,
+    [GAME_AREA_ACROPOLIS_FORKED_ROAD - 1]            = gAcropolisForkedRoadViewCounts,
+    [GAME_AREA_ACROPOLIS_OBSERVATORY - 1]            = gAcropolisObservatoryViewCounts,
+    [GAME_AREA_ACROPOLIS_PROMENADE - 1]              = gAcropolisPromenadeViewCounts,
+    [GAME_AREA_ACROPOLIS_SANCTUARY - 1]              = gAcropolisSanctuaryViewCounts,
+    [GAME_AREA_ACROPOLIS_ROOF_GARDEN - 1]            = gAcropolisRoofGardenViewCounts,
+    [GAME_AREA_ACROPOLIS_BRIDGE - 1]                 = gAcropolisBridgeViewCounts,
+    [GAME_AREA_ACROPOLIS_FIRE_ESCAPE - 1]            = gAcropolisFireEscapeViewCounts,
+    [GAME_AREA_ACROPOLIS_HELICOPTER_LANDING_PAD - 1] = gAcropolisHelicopterLandingPadViewCounts,
+    [GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL - 1]     = gAcropolisWestElevatorHallViewCounts,
+    [GAME_AREA_MIST_R18 - 1]                         = gMistR18ViewCounts,
+    [GAME_AREA_MIST_PARKING - 1]                     = gMistParkingViewCounts,
+    [GAME_AREA_MIST_SHOOTING_GALLERY - 1]            = gMistShootingGalleryViewCounts,
 };
 
-ViewCountTable D_map_akropolis_8017ABC0 = { D_map_akropolis_8017AB70 };
+ViewCountTable gMapAkropolisViewCountTable = { .viewCounts = _gMapAkropolisAreaViewCounts };
 
 /// Area directory of borrowed camera arrays for Acropolis and MIST.
 ///
@@ -1584,46 +1638,59 @@ AreaPlacement gMapAkropolisBridgeDefaultPlacements[7] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017BCEC[1] = {
+AreaPlacement gMapAkropolisBridgeVariant2Placements[1] = {
     { AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017BCFC[1] = {
+AreaPlacement gMapAkropolisBridgeVariant3Placements[1] = {
     { AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017BD0C[2] = {
-    { 0xA, 0, 0, 0x4B0, 0, -0x5DC, -0x200, 0, 0, 2, 0 },
+/// Resource-entry keys for the scene actors in these placement lists.
+///
+/// These select each room variant's recipe, independently of actor-file IDs.
+enum {
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_GALLERY_MOUNT    = 76,
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_BALDWIN          = 105,
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_JODIE            = 115,
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_PIERCE           = 143,
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_SCENE_RUPERT     = 144,
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_HELICOPTER       = 254,
+    MAP_AKROPOLIS_PLACEMENT_GALLERY_SPAWN_REJECTED = 0xFF,
+};
+
+AreaPlacement gMapAkropolisFireEscapePlacements[2] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_STRANGER, .variant = 0, .mode = 0, .x = 1200, .y = 0, .z = -1500, .yaw = -512, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
     { AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017BD2C[2] = {
-    { 0x1B, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
+AreaPlacement gMapAkropolisHelicopterLandingPadVariant1Placements[2] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_NO9_GOLEM, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
     { AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017BD4C[4] = {
-    { 0x1B, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
-    { 0x90, 0, 0, 0, 0, 0, 0, 0, 3, 5, 0 },
-    { 0xFE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+AreaPlacement gMapAkropolisHelicopterLandingPadVariant2Placements[4] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_NO9_GOLEM, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_SCENE_RUPERT, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 3, .clutRowOffset = 5, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_HELICOPTER, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 0, .rowIndex = 0 },
     { AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017BD8C[3] = {
-    { 0x90, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
-    { 0x69, 0, 0, 0, 0, 0, 0, 0, 2, 4, 0 },
+AreaPlacement gMapAkropolisMistR18Placements[3] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_SCENE_RUPERT, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_BALDWIN, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
     { AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017BDBC[3] = {
-    { 0x8F, 0, 0, 0x13A6, 0, -0x1630, -0x128, 0, 0, 2, 0 },
-    { 0x73, 0, 0, 0x210C, 0, 0x5C, 0x7FF, 0, 2, 4, 0 },
+AreaPlacement gMapAkropolisMistParkingPlacements[3] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_PIERCE, .variant = 0, .mode = 0, .x = 5030, .y = 0, .z = -5680, .yaw = -296, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_JODIE, .variant = 0, .mode = 0, .x = 8460, .y = 0, .z = 92, .yaw = 2047, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
     { AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017BDEC[3] = {
-    { 0x4C, 0, 0xFF, -0x1DB0, 0, 0x4EC, 0x800, 0, 0, 2, 0 },
-    { 0x8F, 0, 0, -0x27F6, 0, 0x1388, 0x800, 0, 4, 0x12, 0 },
+AreaPlacement gMapAkropolisMistShootingGalleryPlacements[3] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_GALLERY_MOUNT, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_GALLERY_SPAWN_REJECTED, .x = -7600, .y = 0, .z = 1260, .yaw = 2048, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_PIERCE, .variant = 0, .mode = 0, .x = -10230, .y = 0, .z = 5000, .yaw = 2048, .fileIdLow = 0, .texturePageOffset = 4, .clutRowOffset = 18, .rowIndex = 0 },
     { AREA_PLACEMENT_END },
 };
 
@@ -1788,224 +1855,238 @@ static AreaObjectPlace _gMapAkropolisMistParkingObjectPlaces[10] = {
     { .flagIndex = AREA_OBJECT_PLACE_END },
 };
 
-InventoryBattleReward D_map_akropolis_8017C0DC[12] = {
-    { GAME_LOCATION_KEY(1, 3, 2, 0), { 0x3B, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(1, 3, 4, 0), { 0xA1, 0, 0, 0xA2 } },
-    { GAME_LOCATION_KEY(1, 4, 1, 0), { 2, 0, 0, 0xE } },
-    { GAME_LOCATION_KEY(1, 8, 2, 0), { 0xA9, 0, 0, 0xAA } },
-    { GAME_LOCATION_KEY(1, 9, 3, 0), { 8, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(1, 9, 4, 0), { 1, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(1, 10, 2, 0), { 0xA1, 0, 0, 0xA2 } },
-    { GAME_LOCATION_KEY(1, 10, 3, 0), { 0xA1, 0, 0, 0xA2 } },
-    { GAME_LOCATION_KEY(1, 11, 1, 0), { 1, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(1, 13, 1, 0), { 6, 0, 0, 1 } },
-    { GAME_LOCATION_KEY(1, 15, 1, 0), { 2, 0, 0, 6 } },
-    { INVENTORY_BATTLE_REWARD_LIST_END },
+/// Additional item catalogue IDs selected by the Acropolis battle reward lists.
+enum {
+    MAP_AKROPOLIS_REWARD_ITEM_MP_BOOST_1   = 6,
+    MAP_AKROPOLIS_REWARD_ITEM_MD_PLAYER    = 14,
+    MAP_AKROPOLIS_REWARD_ITEM_FLARE        = 0x3A,
+    MAP_AKROPOLIS_REWARD_ITEM_PEPPER_SPRAY = 0x3B,
+    MAP_AKROPOLIS_REWARD_ITEM_COMBAT_LIGHT = 0x41,
+    MAP_AKROPOLIS_REWARD_ITEM_P08          = 0x83,
+    MAP_AKROPOLIS_REWARD_ITEM_9MM_SPARTAN  = 0xA2,
+    MAP_AKROPOLIS_REWARD_ITEM_AIRBURST     = 0xAA,
+    MAP_AKROPOLIS_REWARD_ITEM_RIOT         = 0xAB,
 };
 
-InventoryBattleReward D_map_akropolis_8017C16C[6] = {
-    { GAME_LOCATION_KEY(1, 4, 1, 0), { 0x3B, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(1, 8, 7, 0), { 0xAB, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(1, 9, 7, 0), { 0x41, 0xA2, 0x3A, 0 } },
-    { GAME_LOCATION_KEY(1, 10, 7, 0), { 6, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(1, 11, 7, 0), { 0x83, 0xA2, 0x3C, 0 } },
-    { INVENTORY_BATTLE_REWARD_LIST_END },
+InventoryBattleReward gMapAkropolisBattleRewards[12] = {
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 2, 0), .items = { MAP_AKROPOLIS_REWARD_ITEM_PEPPER_SPRAY, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 4, 0), .items = { MAP_AKROPOLIS_KIND_9MM_HYDRA, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_AKROPOLIS_REWARD_ITEM_9MM_SPARTAN } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA, 1, 0), .items = { MAP_AKROPOLIS_KIND_RECOVERY_2, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_AKROPOLIS_REWARD_ITEM_MD_PLAYER } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FOUNTAIN, 2, 0), .items = { MAP_AKROPOLIS_KIND_GRENADE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_AKROPOLIS_REWARD_ITEM_AIRBURST } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FORKED_ROAD, 3, 0), .items = { MAP_AKROPOLIS_KIND_PENICILLIN, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FORKED_ROAD, 4, 0), .items = { MAP_AKROPOLIS_KIND_RECOVERY_1, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_OBSERVATORY, 2, 0), .items = { MAP_AKROPOLIS_KIND_9MM_HYDRA, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_AKROPOLIS_REWARD_ITEM_9MM_SPARTAN } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_OBSERVATORY, 3, 0), .items = { MAP_AKROPOLIS_KIND_9MM_HYDRA, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_AKROPOLIS_REWARD_ITEM_9MM_SPARTAN } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE, 1, 0), .items = { MAP_AKROPOLIS_KIND_RECOVERY_1, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 1, 0), .items = { MAP_AKROPOLIS_REWARD_ITEM_MP_BOOST_1, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_AKROPOLIS_KIND_RECOVERY_1 } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FIRE_ESCAPE, 1, 0), .items = { MAP_AKROPOLIS_KIND_RECOVERY_2, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_AKROPOLIS_REWARD_ITEM_MP_BOOST_1 } },
+    { .areaLayoutKey = INVENTORY_BATTLE_REWARD_LIST_END },
 };
 
-StageMusicEntry D_map_akropolis_8017C1B4[168] = {
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x21, 0 },
-    { 0x22, 0 },
-    { 0x22, 0 },
-    { 0x23, 0 },
-    { 0x24, 0 },
-    { 0xFF, 0 },
-    { 0x26, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x22, 0 },
-    { 0x22, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x1D, 1 },
-    { 0x22, 0 },
-    { 0x23, 0 },
-    { 0x24, 0 },
-    { 0xFF, 0 },
-    { 0x26, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
+InventoryBattleReward gMapAkropolisHardBattleRewards[6] = {
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA, 1, 0), .items = { MAP_AKROPOLIS_REWARD_ITEM_PEPPER_SPRAY, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FOUNTAIN, 7, 0), .items = { MAP_AKROPOLIS_REWARD_ITEM_RIOT, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FORKED_ROAD, 7, 0), .items = { MAP_AKROPOLIS_REWARD_ITEM_COMBAT_LIGHT, MAP_AKROPOLIS_REWARD_ITEM_9MM_SPARTAN, MAP_AKROPOLIS_REWARD_ITEM_FLARE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_OBSERVATORY, 7, 0), .items = { MAP_AKROPOLIS_REWARD_ITEM_MP_BOOST_1, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE, 7, 0), .items = { MAP_AKROPOLIS_REWARD_ITEM_P08, MAP_AKROPOLIS_REWARD_ITEM_9MM_SPARTAN, MAP_AKROPOLIS_KIND_PROTEIN_CAPSULE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = INVENTORY_BATTLE_REWARD_LIST_END },
+};
+
+StageMusicEntry gMapAkropolisAreaMusicEntries[(GAME_AREA_MIST_SHOOTING_GALLERY + 1) * MAP_AKROPOLIS_MUSIC_COLUMN_COUNT] = {
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x21, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x22, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x22, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x23, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x24, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x26, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x22, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x22, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x1D, STAGE_MUSIC_START_DEFERRED },
+    { 0x22, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x23, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x24, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x26, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
     { 5, 0 },
-    { 0x23, 0 },
-    { 0x24, 0 },
+    { 0x23, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x24, STAGE_MUSIC_START_WHEN_VIEW_READY },
     { 6, 1 },
-    { 0x26, 0 },
-    { 0xFF, 0 },
-    { 0x1F, 1 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x23, 0 },
-    { 0x24, 0 },
-    { 0xFF, 0 },
-    { 0x26, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x23, 0 },
-    { 0x24, 0 },
-    { 0xFF, 0 },
-    { 0x26, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x23, 0 },
-    { 0x24, 0 },
-    { 0xFF, 0 },
-    { 0x26, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x22, 0 },
-    { 0x22, 0 },
-    { 0x23, 0 },
-    { 0x24, 0 },
-    { 0xFF, 0 },
-    { 0x26, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x23, 0 },
-    { 0x24, 0 },
-    { 0xFF, 0 },
-    { 0x26, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x23, 0 },
-    { 0x24, 0 },
-    { 0x24, 0 },
-    { 0x26, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x24, 1 },
-    { 0x24, 0 },
-    { 0x24, 0 },
-    { 0x26, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x24, 0 },
-    { 0xFF, 0 },
-    { 0x26, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x24, 0 },
-    { 0xFF, 0 },
-    { 0x26, 0 },
-    { 0xFF, 0 },
+    { 0x26, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x1F, STAGE_MUSIC_START_DEFERRED },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x23, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x24, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x26, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x23, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x24, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x26, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x23, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x24, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x26, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x22, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x22, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x23, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x24, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x26, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x23, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x24, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x26, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x23, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x24, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x24, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x26, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x24, STAGE_MUSIC_START_DEFERRED },
+    { 0x24, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x24, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x26, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x24, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x26, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x24, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x26, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
     { 0x26, 3 },
     { 0x26, 3 },
     { 0x26, 3 },
     { 0x26, 3 },
-    { 0x26, 1 },
+    { 0x26, STAGE_MUSIC_START_DEFERRED },
     { 0x26, 3 },
-    { 0x26, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x26, 1 },
-    { 0xC, 1 },
-    { 0x26, 0 },
-    { 0xFF, 0 },
-    { 0x20, 1 },
-    { 0x22, 0 },
-    { 0x22, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x25, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x11, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x11, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
+    { 0x26, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x26, STAGE_MUSIC_START_DEFERRED },
+    { 0xC, STAGE_MUSIC_START_DEFERRED },
+    { 0x26, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x20, STAGE_MUSIC_START_DEFERRED },
+    { 0x22, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x22, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x25, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x11, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x11, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
 };
 
-StageMusicEntry D_map_akropolis_8017C304[20] = {
-    { 0x1E, 2 },
-    { 0xB, 2 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0xFF, 0 },
-    { 0x45, 2 },
-    { 0x46, 2 },
-    { 0, 0 },
-    { 0, 0 },
-    { 0, 0 },
-    { 0, 0 },
-    { 0, 0 },
-    { 0, 0 },
-    { 0, 0 },
+StageMusicEntry gMapAkropolisCountdownMusicEntries[20] = {
+    { 0x1E, STAGE_MUSIC_START_IMMEDIATE },
+    { 0xB, STAGE_MUSIC_START_IMMEDIATE },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { STAGE_MUSIC_NO_SEQUENCE, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0x45, STAGE_MUSIC_START_IMMEDIATE },
+    { 0x46, STAGE_MUSIC_START_IMMEDIATE },
+    { 0, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0, STAGE_MUSIC_START_WHEN_VIEW_READY },
+    { 0, STAGE_MUSIC_START_WHEN_VIEW_READY },
 };
 
-/// The key-item panel heading. Three bytes follow the terminator that
-/// nothing has been shown to read; they are reproduced so the block matches.
-static const char D_map_akropolis_8017997C[12] = "Key Item\0L#\6";
+/// NUL-terminated title displayed above the briefing's key-item list.
+///
+/// The final three bytes have no established consumer; their role is unproven.
+static const char _gMapAkropolisKeyItemPanelTitle[12] = "Key Item\0L#\6";

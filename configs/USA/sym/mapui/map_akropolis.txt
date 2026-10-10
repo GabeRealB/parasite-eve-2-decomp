@@ -1,7 +1,7 @@
 // Overlay-local symbols for map_akropolis (file 900000).
 // "Key Item" heading plus the blob that follows it; referenced by the matched
 // _mapAkropolisKeyItemPanelTask, so keep it out of that function's .s file.
-D_map_akropolis_8017997C = 0x8017997C; // force_not_migration:True
+_gMapAkropolisKeyItemPanelTitle = 0x8017997C; // force_not_migration:True
 // Its tables are C; what they point at outside the package is named here:
 // room records, task entries and models in the Akropolis and MIST room
 // packages, and marker models in the map pictures. Each lives in a package
@@ -312,3 +312,18 @@ _gMapAkropolisRoofGardenObjectPlaces = 0x8017bfec;
 _gMapAkropolisFireEscapeObjectPlaces = 0x8017c00c;
 _gMapAkropolisWestElevatorHallObjectPlaces = 0x8017c02c;
 _gMapAkropolisMistParkingObjectPlaces = 0x8017c03c;
+_gMapAkropolisDryfieldMapOpened = 0x8017a9a8;
+_gMapAkropolisBriefingItemIds = 0x8017a9ac;
+_gMapAkropolisKeyItemRowCallbacks = 0x8017a9bc;
+_gMapAkropolisKeyItemList = 0x8017a9c0;
+_gMapAkropolisKeyItemPanelDescriptor = 0x8017a9e4;
+_gMapAkropolisKeyItemMenuTaskDescriptor = 0x8017aa00;
+_gMapAkropolisAreaViewCounts = 0x8017ab70;
+gMapAkropolisBridgeVariant2Placements = 0x8017bcec;
+gMapAkropolisBridgeVariant3Placements = 0x8017bcfc;
+gMapAkropolisFireEscapePlacements = 0x8017bd0c;
+gMapAkropolisHelicopterLandingPadVariant1Placements = 0x8017bd2c;
+gMapAkropolisHelicopterLandingPadVariant2Placements = 0x8017bd4c;
+gMapAkropolisMistR18Placements = 0x8017bd8c;
+gMapAkropolisMistParkingPlacements = 0x8017bdbc;
+gMapAkropolisMistShootingGalleryPlacements = 0x8017bdec;

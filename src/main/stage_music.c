@@ -129,14 +129,14 @@ static u8 _gStageMusicColumn = 0;
 /// queued starts can fail, so this byte does not establish actual playback.
 static u8               _gStageMusicSequenceId = 0;
 static StageMusicEntry* Stage_MusicTables[]    = {
-    D_map_akropolis_8017C1B4,
+    gMapAkropolisAreaMusicEntries,
     gMapDryfieldAreaMusicEntries,
     gMapDryfieldFullAreaMusicEntries,
     gMapShelterAreaMusicEntries,
     gMapNeoArkAreaMusicEntries,
 };
 static StageMusicEntry* Stage_CountdownMusicTables[] = {
-    D_map_akropolis_8017C304,
+    gMapAkropolisCountdownMusicEntries,
     gMapDryfieldCountdownMusicEntries,
     gMapDryfieldFullCountdownMusicEntries,
     D_map_shelter_8017C2D8,
@@ -148,7 +148,7 @@ static StageMusicEntry* Stage_CountdownMusicTables[] = {
 /// the loaded map must supply every addressed row. This resident data is distinct
 /// from the column-count template used by `stageMusicSelectColumn`.
 static u8 _gStageMusicColumnCounts[] = {
-    8,
+    MAP_AKROPOLIS_MUSIC_COLUMN_COUNT,
     MAP_DRYFIELD_MUSIC_COLUMN_COUNT,
     MAP_DRYFIELD_FULL_MUSIC_COLUMN_COUNT,
     12,

@@ -1009,8 +1009,8 @@ static AreaResource _gMistParkingActorResources[] = {
 
 AreaVariant D_mist_parking_801951B4[13] = {
     { NULL, NULL },
-    { D_map_akropolis_8017BDBC, _gMistParkingActorResources },
-    { D_map_akropolis_8017BDBC, _gMistParkingActorResources },
+    { gMapAkropolisMistParkingPlacements, _gMistParkingActorResources },
+    { gMapAkropolisMistParkingPlacements, _gMistParkingActorResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
