@@ -18,24 +18,23 @@ static void _maggotCaterpillarPounceState(Task* actor)
         MAGGOT_CATERPILLAR_POUNCE_LAND_FRAME      = 40,
         MAGGOT_CATERPILLAR_POUNCE_EARLY_BITE_END  = 34,
         MAGGOT_CATERPILLAR_POUNCE_REBOUND_CUTOFF  = 35,
-        MAGGOT_CATERPILLAR_POUNCE_STRIDE_COUNT    = 9,
         MAGGOT_CATERPILLAR_POUNCE_RECOVERY_FRAMES = 70,
         MAGGOT_CATERPILLAR_REBOUND_SIDE_START     = 31,
         MAGGOT_CATERPILLAR_REBOUND_SIDE_END       = 46,
         MAGGOT_CATERPILLAR_REBOUND_LAND_FRAME     = 16,
         MAGGOT_CATERPILLAR_POUNCE_LAND_SOUND      = 0x401A0002,
     };
-    MaggotCaterpillarWork* work;
-    GfxCoord*              coord;
-    SVECTOR*               rotation;
-    s16(*pounceStride)[2];
-    s16(*reboundStride)[2];
-    s16 step;
-    s32 soundKey;
-    s32 tableIndex;
-    s32 landingPan;
-    s32 reboundPan;
-    u32 random;
+    MaggotCaterpillarWork*       work;
+    GfxCoord*                    coord;
+    SVECTOR*                     rotation;
+    MaggotCaterpillarStrideStep* pounceStride;
+    MaggotCaterpillarStrideStep* reboundStride;
+    s16                          step;
+    s32                          soundKey;
+    s32                          tableIndex;
+    s32                          landingPan;
+    s32                          reboundPan;
+    u32                          random;
 
     rotation = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
     work     = actor->work;
@@ -60,7 +59,7 @@ static void _maggotCaterpillarPounceState(Task* actor)
                         tableIndex = MAGGOT_CATERPILLAR_ATTACK_BURNING_BITE_EARLY;
                     }
                 }
-                work->attackBody.key = damagePackAttackKey(gMaggotCaterpillarAttacks, tableIndex);
+                work->attackBody.key = damagePackAttackKey(_gMaggotCaterpillarAttacks, tableIndex);
                 if ((work->animFrame < MAGGOT_CATERPILLAR_POUNCE_REBOUND_CUTOFF) && ((work->struck != 0) || (work->blocked != 0))) {
                     work->step              = MAGGOT_CATERPILLAR_POUNCE_REBOUND;
                     work->midLeap           = 0;
@@ -72,11 +71,11 @@ static void _maggotCaterpillarPounceState(Task* actor)
                 work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             }
             tableIndex   = 0;
-            pounceStride = gMaggotCaterpillarPounceStride;
-            for (; tableIndex < MAGGOT_CATERPILLAR_POUNCE_STRIDE_COUNT; tableIndex++, pounceStride++) {
-                if (work->animFrame <= (pounceStride[0][0] + gMaggotCaterpillarPounceLead)) {
-                    coord->coord.t[0] += (s32)(pounceStride[0][1] * rsin(work->yaw)) >> 0xC;
-                    coord->coord.t[2] += (s32)(pounceStride[0][1] * rcos(work->yaw)) >> 0xC;
+            pounceStride = _gMaggotCaterpillarPounceStride;
+            for (; tableIndex < (s32)ARRAY_SIZE(_gMaggotCaterpillarPounceStride); tableIndex++, pounceStride++) {
+                if (work->animFrame <= (pounceStride->lastFrame + _gMaggotCaterpillarAnimBlendFrames[MAGGOT_CATERPILLAR_ANIM_POUNCE])) {
+                    coord->coord.t[0] += (s32)(pounceStride->forwardStep * rsin(work->yaw)) >> 0xC;
+                    coord->coord.t[2] += (s32)(pounceStride->forwardStep * rcos(work->yaw)) >> 0xC;
                     break;
                 }
             }
@@ -91,24 +90,24 @@ static void _maggotCaterpillarPounceState(Task* actor)
                     actor->state    = MAGGOT_CATERPILLAR_TASK_DYING;
                 }
             }
-            if (work->animFrame >= (gMaggotCaterpillarPounceLead + MAGGOT_CATERPILLAR_POUNCE_RECOVERY_FRAMES)) {
+            if (work->animFrame >= (_gMaggotCaterpillarAnimBlendFrames[MAGGOT_CATERPILLAR_ANIM_POUNCE] + MAGGOT_CATERPILLAR_POUNCE_RECOVERY_FRAMES)) {
                 work->behaviour    = MAGGOT_CATERPILLAR_BEHAVIOUR_ROAM;
                 work->step         = 0;
                 work->animId       = MAGGOT_CATERPILLAR_ANIM_IDLE;
                 random             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                work->stateCounter = gMaggotCaterpillarIdleDelay[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex] + ((random >> 0x10) & 0xF);
+                work->stateCounter = _gMaggotCaterpillarIdleDelay[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex] + ((random >> 0x10) & 0xF);
                 gRandomLcgState    = random;
             }
             break;
         case MAGGOT_CATERPILLAR_POUNCE_REBOUND:
             tableIndex         = 0;
-            reboundStride      = gMaggotCaterpillarReboundStride;
+            reboundStride      = _gMaggotCaterpillarReboundStride;
             work->forwardSpeed = 0;
             work->turnRate     = 0;
-            for (; tableIndex < MAGGOT_CATERPILLAR_POUNCE_STRIDE_COUNT; tableIndex++, reboundStride++) {
-                if (work->animFrame <= reboundStride[0][0]) {
-                    coord->coord.t[0] += (s32)(reboundStride[0][1] * rsin(work->yaw)) >> 0xC;
-                    coord->coord.t[2] += (s32)(reboundStride[0][1] * rcos(work->yaw)) >> 0xC;
+            for (; tableIndex < (s32)ARRAY_SIZE(_gMaggotCaterpillarReboundStride); tableIndex++, reboundStride++) {
+                if (work->animFrame <= reboundStride->lastFrame) {
+                    coord->coord.t[0] += (s32)(reboundStride->forwardStep * rsin(work->yaw)) >> 0xC;
+                    coord->coord.t[2] += (s32)(reboundStride->forwardStep * rcos(work->yaw)) >> 0xC;
                     break;
                 }
             }
@@ -132,7 +131,7 @@ static void _maggotCaterpillarPounceState(Task* actor)
                 work->behaviour    = MAGGOT_CATERPILLAR_BEHAVIOUR_ROAM;
                 work->step         = 0;
                 work->animId       = MAGGOT_CATERPILLAR_ANIM_IDLE;
-                work->stateCounter = gMaggotCaterpillarIdleDelay[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex] + (((gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF);
+                work->stateCounter = _gMaggotCaterpillarIdleDelay[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex] + (((gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF);
                 work->field_3AA    = 1;
                 if (work->reactionMode == MAGGOT_CATERPILLAR_REACTION_REBOUND) {
                     MAGGOT_CATERPILLAR_TURN_AROUND(work, coord, rotation);

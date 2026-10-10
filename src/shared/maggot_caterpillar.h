@@ -72,7 +72,7 @@ enum {
     MAGGOT_CATERPILLAR_BEHAVIOUR_DEAD     = 9  // runs nothing: the task's dying state has taken over
 };
 
-/// Clips of `MaggotCaterpillarWork::animId`, indexing `gMaggotCaterpillarAnimSets`.
+/// Clips of `MaggotCaterpillarWork::animId`, indexing `_gMaggotCaterpillarAnimSets`.
 ///
 /// Each is named for the behaviour that plays it. Clip 8 has no set.
 enum {
@@ -90,6 +90,21 @@ enum {
     MAGGOT_CATERPILLAR_ANIM_WAKE    = 13,
     MAGGOT_CATERPILLAR_ANIM_STUN    = 14
 };
+
+/// One interval of clip-driven forward displacement during a leap or rebound.
+///
+/// The first interval whose inclusive end covers the clip frame supplies that
+/// tick's displacement. Pounce frames include the pounce clip's blend duration;
+/// rebound frames start directly at zero. Past the last interval, neither
+/// table contributes displacement.
+typedef struct {
+    s16 lastFrame;   // Inclusive clip-frame threshold, before adding any blend duration
+    s16 forwardStep; // Signed coordinate units moved along the root's yaw each tick
+} MaggotCaterpillarStrideStep;
+STATIC_ASSERT_SIZEOF(MaggotCaterpillarStrideStep, 4);
+
+/// Player body-blast hit presentation used by the burning bite; applies no status.
+enum { MAGGOT_CATERPILLAR_ATTACK_REACTION_BODY_BLAST = 6 };
 
 /// How a hit is taken, held in `MaggotCaterpillarWork::reactionMode`.
 enum {

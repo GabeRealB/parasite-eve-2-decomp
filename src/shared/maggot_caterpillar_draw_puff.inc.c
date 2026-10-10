@@ -4,7 +4,9 @@
 ///
 /// The task must own a live coordinate body and have a live TMD parent. Its
 /// coordinate must already be composed. The frame is the puff age, 0..14; the
-/// cell changes every two ticks. The radius storage must cover every age read.
+/// cell changes every two ticks. The radius table covers ages 0..13; age 14
+/// retains a read of the adjacent body recipe flags (1). Its intended storage
+/// relationship is unproven.
 /// Depth is projected Z / 4; values below 20 emit no primitive. One scratch
 /// quad is reserved and released on every path.
 static void _maggotCaterpillarDrawPuff(Task* actor, s32 frame)
@@ -48,7 +50,7 @@ static void _maggotCaterpillarDrawPuff(Task* actor, s32 frame)
     gte_stszotz(&scratchEnd[-1].otz);
     depth = scratch->otz;
     if (depth >= MAGGOT_CATERPILLAR_PUFF_NEAR_DEPTH) {
-        radius                       = (s32)(gMaggotCaterpillarPuffRadius[frame] * MAGGOT_CATERPILLAR_PUFF_RADIUS_PROJECTION_SCALE) / depth;
+        radius                       = (s32)(_gMaggotCaterpillarPuffRadius[frame] * MAGGOT_CATERPILLAR_PUFF_RADIUS_PROJECTION_SCALE) / depth;
         quad                         = gGpuPrimCursor;
         screenCentre                 = scratch->screenCentre;
         gGpuPrimCursor               = quad + 1;
@@ -76,7 +78,7 @@ static void _maggotCaterpillarDrawPuff(Task* actor, s32 frame)
         setShadeTex(quad, 1);
         quad->tpage = (s16)(((s32)(((parentModel->texturePageOffset << 6) + 0x180) & 0x3FF) >> 6) | 0xB0);
         quad->clut  = (s16)(((s32)((u8)parentModel->clutRowOffset << 0x18) >> 0x12) + 0x3D40);
-        cell        = &gMaggotCaterpillarPuffCells[frame >> 1];
+        cell        = &_gMaggotCaterpillarPuffCells[frame >> 1];
         quad->u0    = cell->u;
         quad->v0    = cell->v;
         quad->u1    = cell->u + MAGGOT_CATERPILLAR_PUFF_CELL_LAST_PIXEL;

@@ -26,25 +26,25 @@ static void _maggotCaterpillarEntranceState(Task* actor)
         MAGGOT_CATERPILLAR_ENTRANCE_LEAP_SOUND       = 0x51090007,
         MAGGOT_CATERPILLAR_ENTRANCE_LAND_SOUND       = 0x401A0002
     };
-    TmdObject*             model;
-    MaggotCaterpillarWork* work;
-    GfxCoord*              coord;
-    s16(*stride)[2];
-    SVECTOR* scratchEnd;
-    SVECTOR* spawnOffset;
-    s32      entranceStep;
-    s32      one;
-    s32      dropAudioPan;
-    s32      leapAudioPan;
-    s32      landingAudioPan;
-    Enemy*   enemy;
-    s32      loopIndex;
-    s32      soundKey;
-    u32      randomY;
-    u32      randomZ;
-    u32      randomX;
-    u32      randomDelay;
-    u32      randomRise;
+    TmdObject*                   model;
+    MaggotCaterpillarWork*       work;
+    GfxCoord*                    coord;
+    MaggotCaterpillarStrideStep* stride;
+    SVECTOR*                     scratchEnd;
+    SVECTOR*                     spawnOffset;
+    s32                          entranceStep;
+    s32                          one;
+    s32                          dropAudioPan;
+    s32                          leapAudioPan;
+    s32                          landingAudioPan;
+    Enemy*                       enemy;
+    s32                          loopIndex;
+    s32                          soundKey;
+    u32                          randomY;
+    u32                          randomZ;
+    u32                          randomX;
+    u32                          randomDelay;
+    u32                          randomRise;
 
     model        = actor->extra.tmd;
     work         = actor->work;
@@ -62,9 +62,9 @@ static void _maggotCaterpillarEntranceState(Task* actor)
             enemy->node.state.parts.flags = one;
             if (gSceneCombatState.maggotCaterpillarEntranceReady == one) {
                 if (work->entranceKind == MAGGOT_CATERPILLAR_ENTRANCE_LEAP) {
-                    work->stateCounter = gMaggotCaterpillarLeapInDelay[work->entranceSlot];
+                    work->stateCounter = _gMaggotCaterpillarLeapInDelay[work->entranceSlot];
                 } else {
-                    work->stateCounter = gMaggotCaterpillarDropInDelay[work->entranceSlot];
+                    work->stateCounter = _gMaggotCaterpillarDropInDelay[work->entranceSlot];
                 }
                 work->step = MAGGOT_CATERPILLAR_ENTRANCE_DELAY;
             }
@@ -90,7 +90,7 @@ static void _maggotCaterpillarEntranceState(Task* actor)
                 work->animId          = MAGGOT_CATERPILLAR_ANIM_DROP;
                 work->behaviour       = MAGGOT_CATERPILLAR_BEHAVIOUR_AMBUSH;
                 work->step            = 1;
-                work->fallSpeed       = gMaggotCaterpillarDropInSpeed[work->entranceSlot];
+                work->fallSpeed       = _gMaggotCaterpillarDropInSpeed[work->entranceSlot];
                 work->body.flags     |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 work->gridBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
                 do {
@@ -131,16 +131,16 @@ static void _maggotCaterpillarEntranceState(Task* actor)
                 } while (loopIndex < MAGGOT_CATERPILLAR_ENTRANCE_LEAP_LEAVES);
                 loopIndex = 0;
             }
-            stride = gMaggotCaterpillarPounceStride;
+            stride = _gMaggotCaterpillarPounceStride;
             do {
                 loopIndex++;
-                if (work->animFrame <= ((*stride)[0] + gMaggotCaterpillarPounceLead)) {
-                    coord->coord.t[0] += ((*stride)[1] * rsin(work->yaw)) >> 12;
-                    coord->coord.t[2] += ((*stride)[1] * rcos(work->yaw)) >> 12;
+                if (work->animFrame <= (stride->lastFrame + _gMaggotCaterpillarAnimBlendFrames[MAGGOT_CATERPILLAR_ANIM_POUNCE])) {
+                    coord->coord.t[0] += (stride->forwardStep * rsin(work->yaw)) >> 12;
+                    coord->coord.t[2] += (stride->forwardStep * rcos(work->yaw)) >> 12;
                     break;
                 }
                 stride++;
-            } while (loopIndex < (s32)ARRAY_SIZE(gMaggotCaterpillarPounceStride));
+            } while (loopIndex < (s32)ARRAY_SIZE(_gMaggotCaterpillarPounceStride));
             if (work->animFrame == MAGGOT_CATERPILLAR_ENTRANCE_LAND_FRAME) {
                 soundKey        = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | MAGGOT_CATERPILLAR_ENTRANCE_LAND_SOUND;
                 landingAudioPan = (s8)worldCoordGetOriginAudioPan(coord);
@@ -149,12 +149,12 @@ static void _maggotCaterpillarEntranceState(Task* actor)
                 work->body.flags     |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 work->gridBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
             }
-            if (work->animFrame >= (gMaggotCaterpillarPounceLead + MAGGOT_CATERPILLAR_ENTRANCE_LEAP_FRAMES)) {
+            if (work->animFrame >= (_gMaggotCaterpillarAnimBlendFrames[MAGGOT_CATERPILLAR_ANIM_POUNCE] + MAGGOT_CATERPILLAR_ENTRANCE_LEAP_FRAMES)) {
                 work->behaviour    = MAGGOT_CATERPILLAR_BEHAVIOUR_ROAM;
                 work->step         = 0;
                 work->animId       = MAGGOT_CATERPILLAR_ANIM_IDLE;
                 randomDelay        = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                work->stateCounter = gMaggotCaterpillarIdleDelay[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex] + ((randomDelay >> 0x10) & 0xF);
+                work->stateCounter = _gMaggotCaterpillarIdleDelay[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex] + ((randomDelay >> 0x10) & 0xF);
                 gRandomLcgState    = randomDelay;
                 sceneEngageBattle(1);
             }

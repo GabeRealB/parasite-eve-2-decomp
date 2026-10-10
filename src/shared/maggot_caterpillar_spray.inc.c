@@ -36,12 +36,12 @@ static void _maggotCaterpillarSprayState(Task* actor)
         enemySpawnFromTable(work->taskTable, MAGGOT_CATERPILLAR_PUFF_DESCRIPTOR_INDEX, 0, actor->spawnArg2.pointer);
         work->puffCount++;
     }
-    if (work->animFrame >= (gMaggotCaterpillarSprayTail + MAGGOT_CATERPILLAR_SPRAY_CLIP_FRAMES)) {
+    if (work->animFrame >= (_gMaggotCaterpillarAnimBlendFrames[MAGGOT_CATERPILLAR_ANIM_SPRAY] + MAGGOT_CATERPILLAR_SPRAY_CLIP_FRAMES)) {
         work->behaviour    = MAGGOT_CATERPILLAR_BEHAVIOUR_ROAM;
         work->step         = 0;
         work->animId       = MAGGOT_CATERPILLAR_ANIM_IDLE;
         randomDelay        = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-        work->stateCounter = gMaggotCaterpillarIdleDelay[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex] + ((randomDelay >> 0x10) & 0xF);
+        work->stateCounter = _gMaggotCaterpillarIdleDelay[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex] + ((randomDelay >> 0x10) & 0xF);
         gRandomLcgState    = randomDelay;
     }
 }

@@ -3,7 +3,7 @@
 /// Alternates timed idle with a crawl toward the player and chooses an attack.
 ///
 /// The placement row must fit the eight-entry idle and crawl-distance tables.
-/// Idle timing comes from `gMaggotCaterpillarIdleDelay`; the crawl counter
+/// Idle timing comes from `_gMaggotCaterpillarIdleDelay`; the crawl counter
 /// spends coordinate units, including a random 0..1023-unit spread. A facing
 /// Maggot can spray if not burning and the player is not blinded; either kind
 /// can pounce in range. Player and actor roots must share a parent frame.
@@ -52,7 +52,7 @@ static void _maggotCaterpillarRoamState(Task* actor)
                 work->step         = MAGGOT_CATERPILLAR_ROAM_CRAWL;
                 work->animId       = MAGGOT_CATERPILLAR_ANIM_CRAWL;
                 crawlRandom        = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                work->stateCounter = gMaggotCaterpillarRoamDelay[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex] + ((crawlRandom >> 0x10) & 0x3FF);
+                work->stateCounter = _gMaggotCaterpillarRoamDistance[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex] + ((crawlRandom >> 0x10) & 0x3FF);
                 gRandomLcgState    = crawlRandom;
                 return;
             }
@@ -71,7 +71,7 @@ static void _maggotCaterpillarRoamState(Task* actor)
                 work->step         = MAGGOT_CATERPILLAR_ROAM_IDLE;
                 work->animId       = MAGGOT_CATERPILLAR_ANIM_IDLE;
                 idleRandom         = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                work->stateCounter = gMaggotCaterpillarIdleDelay[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex] + ((idleRandom >> 0x10) & 0xF);
+                work->stateCounter = _gMaggotCaterpillarIdleDelay[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex] + ((idleRandom >> 0x10) & 0xF);
                 gRandomLcgState    = idleRandom;
                 return;
             }

@@ -80,8 +80,8 @@ static void _maggotCaterpillarSpawn(Enemy* enemy, Task* actor)
     enemy->recs                = work->bodyContacts;
     enemy->bodyPos.vx          = 0;
     enemy->bodyPos.vz          = 0;
-    enemy->param               = &gMaggotCaterpillarParams;
-    enemy->hp                  = (s16)gMaggotCaterpillarParams.hpMax;
+    enemy->param               = &_gMaggotCaterpillarParams;
+    enemy->hp                  = (s16)_gMaggotCaterpillarParams.hpMax;
     work->effectArg.coord      = coord;
     work->effectArg.spawnArgLo = MAGGOT_CATERPILLAR_HIT_EFFECT_SIZE_ARGUMENT;
     work->effectArg.spawnArgHi = 1;
@@ -130,10 +130,10 @@ static void _maggotCaterpillarSpawn(Enemy* enemy, Task* actor)
                     work->behaviour      = MAGGOT_CATERPILLAR_BEHAVIOUR_WAIT;
                     work->fallSpeed      = MAGGOT_CATERPILLAR_GROUND_FALL_STEP;
                     placementRotation.vx = 0;
-                    placementRotation.vy = gMaggotCaterpillarLeapInYaws[work->entranceSlot];
+                    placementRotation.vy = _gMaggotCaterpillarLeapInYaws[work->entranceSlot];
                     placementRotation.vz = 0;
                     RotMatrix(&placementRotation, rootMatrix);
-                    entrancePositions = gMaggotCaterpillarLeapInSpots;
+                    entrancePositions = _gMaggotCaterpillarLeapInSpots;
                     coord->coord.t[0] = entrancePositions[work->entranceSlot].vx;
                     coord->coord.t[1] = entrancePositions[work->entranceSlot].vy;
                     coord->coord.t[2] = entrancePositions[work->entranceSlot].vz;
@@ -150,10 +150,10 @@ static void _maggotCaterpillarSpawn(Enemy* enemy, Task* actor)
                     work->behaviour      = MAGGOT_CATERPILLAR_BEHAVIOUR_WAIT;
                     work->fallSpeed      = MAGGOT_CATERPILLAR_GROUND_FALL_STEP;
                     placementRotation.vx = 0;
-                    placementRotation.vy = gMaggotCaterpillarDropInYaws[work->entranceSlot];
+                    placementRotation.vy = _gMaggotCaterpillarDropInYaws[work->entranceSlot];
                     placementRotation.vz = 0;
                     RotMatrix(&placementRotation, rootMatrix);
-                    entrancePositions = gMaggotCaterpillarDropInSpots;
+                    entrancePositions = _gMaggotCaterpillarDropInSpots;
                     coord->coord.t[0] = entrancePositions[work->entranceSlot].vx;
                     coord->coord.t[1] = entrancePositions[work->entranceSlot].vy;
                     coord->coord.t[2] = entrancePositions[work->entranceSlot].vz;
@@ -168,7 +168,7 @@ static void _maggotCaterpillarSpawn(Enemy* enemy, Task* actor)
         }
     }
     // Seed all driven parts before exposing the initialized collision bodies.
-    animationInitContext(&work->rig.anim, gMaggotCaterpillarAnimSets, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, _gMaggotCaterpillarAnimSets, model, work->rig.poses, work->rig.slots);
     for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
         animationResetSlot(&work->rig.anim, slotIndex, MAGGOT_CATERPILLAR_ANIM_IDLE);
     }

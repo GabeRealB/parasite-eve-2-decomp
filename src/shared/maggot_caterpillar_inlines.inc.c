@@ -17,7 +17,7 @@ static inline void _maggotCaterpillarTickAnimInline(Task* task)
     if (work->animId != work->appliedAnim) {
         work->appliedAnim = work->animId;
         work->animFrame   = 0;
-        blendFrames       = gMaggotCaterpillarAnimBlend[work->animId];
+        blendFrames       = _gMaggotCaterpillarAnimBlendFrames[work->animId];
         for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
             animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->animId, 0, blendFrames);
         }

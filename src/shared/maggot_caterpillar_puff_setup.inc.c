@@ -44,7 +44,7 @@ static void _maggotCaterpillarPuffSetup(Enemy* enemy, Task* task)
     work->body.pos.vz           = 0;
     work->body.context.contacts = work->contacts;
     work->sprayOrdinal          = sprayOrdinal;
-    work->body.key              = damagePackAttackKey(gMaggotCaterpillarAttacks, MAGGOT_CATERPILLAR_ATTACK_PUFF);
+    work->body.key              = damagePackAttackKey(_gMaggotCaterpillarAttacks, MAGGOT_CATERPILLAR_ATTACK_PUFF);
     work->body.radius           = 0x100;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->body);

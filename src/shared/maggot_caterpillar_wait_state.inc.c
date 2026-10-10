@@ -54,7 +54,7 @@ static void _maggotCaterpillarWaitState(Task* actor)
                 placementRow       = ((Enemy*)actor->spawnArg2.pointer)->place->rowIndex;
                 randomDelay        = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 gRandomLcgState    = randomDelay;
-                work->stateCounter = gMaggotCaterpillarIdleDelay[placementRow] + ((randomDelay >> 0x10) & 0xF);
+                work->stateCounter = _gMaggotCaterpillarIdleDelay[placementRow] + ((randomDelay >> 0x10) & 0xF);
             }
             break;
     }

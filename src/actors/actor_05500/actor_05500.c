@@ -56,27 +56,7 @@
 #define MAGGOT_CATERPILLAR_BODY_TASK gActor05500MaggotCaterpillarTasks[0]
 #include "../../shared/maggot_caterpillar.h"
 
-extern TmdSource     gMaggotCaterpillarHuskModel;
-extern DamageAttack  gMaggotCaterpillarAttacks[6];
-extern EnemyParams   gMaggotCaterpillarParams;
-extern u16           gMaggotCaterpillarIdleDelay[];
-extern u16           gMaggotCaterpillarRoamDelay[];
-extern u16           gMaggotCaterpillarDropSpeed[];
-extern s16           gMaggotCaterpillarLeapInDelay[];
-extern SVECTOR       gMaggotCaterpillarLeapInSpots[];
-extern s16           gMaggotCaterpillarLeapInYaws[];
-extern s16           gMaggotCaterpillarDropInDelay[];
-extern s16           gMaggotCaterpillarDropInSpeed[];
-extern SVECTOR       gMaggotCaterpillarDropInSpots[];
-extern s16           gMaggotCaterpillarDropInYaws[];
-extern s16           gMaggotCaterpillarAnimBlend[];
-extern s16           gMaggotCaterpillarSprayTail;
-extern s16           gMaggotCaterpillarPounceLead;
-extern s16           gMaggotCaterpillarPounceStride[][2];
-extern s16           gMaggotCaterpillarReboundStride[][2];
-extern ActorSpriteUv gMaggotCaterpillarPuffCells[];
-extern s16           gMaggotCaterpillarPuffRadius[];
-extern AnimationSet* gMaggotCaterpillarAnimSets[15];
+extern TmdSource gMaggotCaterpillarHuskModel;
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
@@ -446,18 +426,38 @@ static AnimationSet _gActor05500Actor105500Animation08930 = {
     { NULL, _gActor05500Actor105500Animation08930Bank1, NULL, NULL, _gActor05500Actor105500Animation08930Bank4, NULL, NULL, NULL },
 };
 
-DamageAttack gMaggotCaterpillarAttacks[6] = {
-    { 10, 0 },
-    { 16, 0 },
-    { 8, 1 },
-    { 12, 6 },
-    { 18, 6 },
-    { 8, 0 },
+/// Contact attacks indexed by `MAGGOT_CATERPILLAR_ATTACK_*`.
+///
+/// Six entries, without a terminator: ordinary late/early bite, darkness puff,
+/// burning late/early bite and ambush drop. Power is base HP damage before
+/// combat scaling; reaction selects the player's hit presentation/status.
+static DamageAttack _gMaggotCaterpillarAttacks[6] = {
+    [MAGGOT_CATERPILLAR_ATTACK_BITE_LATE]          = { 10, GAME_ACTOR_REACTION_ORDINARY },
+    [MAGGOT_CATERPILLAR_ATTACK_BITE_EARLY]         = { 16, GAME_ACTOR_REACTION_ORDINARY },
+    [MAGGOT_CATERPILLAR_ATTACK_PUFF]               = { 8, GAME_ACTOR_REACTION_DARKNESS },
+    [MAGGOT_CATERPILLAR_ATTACK_BURNING_BITE_LATE]  = { 12, MAGGOT_CATERPILLAR_ATTACK_REACTION_BODY_BLAST },
+    [MAGGOT_CATERPILLAR_ATTACK_BURNING_BITE_EARLY] = { 18, MAGGOT_CATERPILLAR_ATTACK_REACTION_BODY_BLAST },
+    [MAGGOT_CATERPILLAR_ATTACK_DROP]               = { 8, GAME_ACTOR_REACTION_ORDINARY },
 };
 
-EnemyParams gMaggotCaterpillarParams = { gMaggotCaterpillarAttacks, 80, 6, 28, 1, 100, 20, 100, 0 };
+/// Shared combat parameters for every live enemy of this carrier's kind.
+///
+/// The enemy borrows this record and its attack table while the package is
+/// loaded. Rewards accrue on release; reaction counts are scaled by hit grade.
+static EnemyParams _gMaggotCaterpillarParams = {
+    .attacks              = _gMaggotCaterpillarAttacks,
+    .hpMax                = 80,
+    .exp                  = 6,
+    .bp                   = 28,
+    .mp                   = 1,
+    .critChance           = 100,
+    .buildupSteps         = 20,
+    .damageOverTimeChance = 100,
+    .damageOverTimeTicks  = 0,
+};
 
-u16 gMaggotCaterpillarIdleDelay[8] = {
+/// Base idle ticks by placement row 0..7, before a random 0..15-tick spread.
+static u16 _gMaggotCaterpillarIdleDelay[8] = {
     40,
     35,
     30,
@@ -468,7 +468,11 @@ u16 gMaggotCaterpillarIdleDelay[8] = {
     5,
 };
 
-u16 gMaggotCaterpillarRoamDelay[8] = {
+/// Base crawl distance in coordinate units by placement row 0..7.
+///
+/// Roaming adds 0..1023 units and spends the distance by each tick's forward
+/// speed; this is a distance budget rather than a timer.
+static u16 _gMaggotCaterpillarRoamDistance[8] = {
     1600,
     1800,
     2000,
@@ -479,7 +483,8 @@ u16 gMaggotCaterpillarRoamDelay[8] = {
     2500,
 };
 
-u16 gMaggotCaterpillarDropSpeed[8] = {
+/// Ambush downward speed in coordinate units per tick, by placement row 0..7.
+static u16 _gMaggotCaterpillarDropSpeed[8] = {
     100,
     110,
     120,
@@ -490,71 +495,83 @@ u16 gMaggotCaterpillarDropSpeed[8] = {
     170,
 };
 
-s16 gMaggotCaterpillarLeapInDelay[4] = {
+/// Ticks to wait after the room releases a leap entrance, by variant 0..3.
+///
+/// Countdown starts on the next tick; zero still advances to the start phase
+/// through that countdown rather than skipping the phase.
+static s16 _gMaggotCaterpillarLeapInDelay[4] = {
     0,
     2,
     4,
     6,
 };
 
-SVECTOR gMaggotCaterpillarLeapInSpots[4] = {
+/// Root positions in parent-coordinate units for already-cleared leap entrances.
+///
+/// Placement variant 0..3 selects the position used for a dormant revisit after
+/// the forked-road event; these positions do not drive the live entrance leap.
+static SVECTOR _gMaggotCaterpillarLeapInSpots[4] = {
     { -3000, 0, -600, 0 },
     { -3000, 0, -1600, 0 },
     { -2000, 0, -600, 0 },
     { -2000, 0, -1600, 0 },
 };
 
-s16 gMaggotCaterpillarLeapInYaws[4] = {
+/// Root yaw for already-cleared leap entrances, by variant 0..3; 4096 is a turn.
+static s16 _gMaggotCaterpillarLeapInYaws[4] = {
     0,
     1024,
     2048,
     3072,
 };
 
-s16 gMaggotCaterpillarDropInDelay[4] = {
+/// Ticks to wait after the room releases a drop entrance, by variant 0..3.
+static s16 _gMaggotCaterpillarDropInDelay[4] = {
     5,
     10,
     15,
     20,
 };
 
-s16 gMaggotCaterpillarDropInSpeed[4] = {
+/// Scripted drop speed in coordinate units per tick, by entrance variant 0..3.
+static s16 _gMaggotCaterpillarDropInSpeed[4] = {
     100,
     100,
     100,
     100,
 };
 
-SVECTOR gMaggotCaterpillarDropInSpots[4] = {
+/// Root positions in parent-coordinate units for already-cleared drop entrances.
+///
+/// Placement variant 0..3 selects the dormant revisit position after roof-garden
+/// progress reaches 2; the live entrance instead drops from its placement.
+static SVECTOR _gMaggotCaterpillarDropInSpots[4] = {
     { -7000, 0, -7600, 0 },
     { -5600, 0, -7500, 0 },
     { -4700, 0, -6500, 0 },
     { -5600, 0, -5600, 0 },
 };
 
-s16 gMaggotCaterpillarDropInYaws[4] = {
+/// Root yaw for already-cleared drop entrances, by variant 0..3; 4096 is a turn.
+static s16 _gMaggotCaterpillarDropInYaws[4] = {
     600,
     1024,
     2048,
     1800,
 };
 
-s16 gMaggotCaterpillarAnimBlend[3] = {
+/// Initial pose-blend duration in ticks, indexed by `MAGGOT_CATERPILLAR_ANIM_*`.
+///
+/// Idle blends for ten ticks, spray and pounce for eight, stun for four; the
+/// other clips start immediately. The stored run has sixteen halfwords, but
+/// indices 0, 8 and 15 have no animation set and must not be requested.
+static s16 _gMaggotCaterpillarAnimBlendFrames[16] = {
     0,
     10,
     0,
-};
-
-s16 gMaggotCaterpillarSprayTail = 8;
-
-s16 gMaggotCaterpillarPounceLead = 8;
-
-/// Trailing stored halfwords of the animation blend-duration run.
-///
-/// Clip indices 6..14 use whole-frame durations; clip 14 blends for four
-/// frames. The last zero halfword is stored but has no established request.
-/// The indexed base remains a separately declared, undersized table.
-static s16 _gMaggotCaterpillarAnimBlendTail[10] = {
+    8,
+    8,
+    0,
     0,
     0,
     0,
@@ -567,7 +584,11 @@ static s16 _gMaggotCaterpillarAnimBlendTail[10] = {
     0,
 };
 
-s16 gMaggotCaterpillarPounceStride[9][2] = {
+/// Nine intervals of forward displacement for the bite and entrance leaps.
+///
+/// Thresholds are inclusive clip frames plus the pounce blend duration; steps
+/// are coordinate units per tick along the root's yaw.
+static MaggotCaterpillarStrideStep _gMaggotCaterpillarPounceStride[9] = {
     { 20, 0 },
     { 21, 180 },
     { 22, 300 },
@@ -579,7 +600,11 @@ s16 gMaggotCaterpillarPounceStride[9][2] = {
     { 50, 3 },
 };
 
-s16 gMaggotCaterpillarReboundStride[9][2] = {
+/// Nine intervals of signed forward displacement for a blocked bite's rebound.
+///
+/// Inclusive thresholds use rebound clip ticks directly. Negative coordinate
+/// steps move backward along the root's yaw; no step is contributed after 18.
+static MaggotCaterpillarStrideStep _gMaggotCaterpillarReboundStride[9] = {
     { 2, 250 },
     { 3, 10 },
     { 5, -30 },
@@ -591,7 +616,11 @@ s16 gMaggotCaterpillarReboundStride[9][2] = {
     { 18, -10 },
 };
 
-ActorSpriteUv gMaggotCaterpillarPuffCells[8] = {
+/// Eight 32-pixel atlas-cell origins for the puff billboard.
+///
+/// Ages 0..14 select cells 0..7 by age / 2. Coordinates are relative to the
+/// parent's texture page and CLUT; each cell covers offsets 0..31 on both axes.
+static ActorSpriteUv _gMaggotCaterpillarPuffCells[8] = {
     { 0, 0, 0, 0 },
     { 32, 0, 0, 0 },
     { 64, 0, 0, 0 },
@@ -602,7 +631,12 @@ ActorSpriteUv gMaggotCaterpillarPuffCells[8] = {
     { 96, 0, 32, 0 },
 };
 
-s16 gMaggotCaterpillarPuffRadius[14] = {
+/// Billboard half-size in coordinate units for puff ages 0..13.
+///
+/// Projection multiplies by 0x300 and divides by projected Z / 4. The retained
+/// age-14 draw reads the adjacent body descriptor's flags halfword (1), beyond
+/// this array's fourteen entries; the intended storage relationship is unproven.
+static s16 _gMaggotCaterpillarPuffRadius[14] = {
     8,
     12,
     16,
@@ -626,7 +660,11 @@ TaskDesc gActor05500MaggotCaterpillarTasks[2] = {
     { { { TASK_BODY_COORD, ACTOR_05500_TASK_PRIORITY } }, _maggotCaterpillarPuffTask, { .value = 0 } },
 };
 
-AnimationSet* gMaggotCaterpillarAnimSets[15] = {
+/// Borrowed model clips indexed by `MAGGOT_CATERPILLAR_ANIM_*`.
+///
+/// Fifteen pointers cover indices 0..14; 0 and 8 are NULL and must not be
+/// requested. The model and clip storage stay loaded throughout body playback.
+static AnimationSet* _gMaggotCaterpillarAnimSets[15] = {
     NULL,
     &_gActor05500Actor105500Animation061A0,
     &_gActor05500Actor105500Animation06454,

@@ -62,11 +62,11 @@ static void _maggotCaterpillarAmbushState(Task* actor)
                 sceneEngageBattle(1);
                 work->step              = MAGGOT_CATERPILLAR_AMBUSH_DROP;
                 work->animId            = MAGGOT_CATERPILLAR_ANIM_DROP;
-                work->fallSpeed         = gMaggotCaterpillarDropSpeed[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex];
+                work->fallSpeed         = _gMaggotCaterpillarDropSpeed[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex];
                 work->attackBody.coord  = coord;
                 work->attackBody.radius = MAGGOT_CATERPILLAR_AMBUSH_ATTACK_RADIUS;
                 work->attackBody.pos.vy = -MAGGOT_CATERPILLAR_AMBUSH_ATTACK_RADIUS;
-                work->attackBody.key    = damagePackAttackKey(gMaggotCaterpillarAttacks, MAGGOT_CATERPILLAR_ATTACK_DROP);
+                work->attackBody.key    = damagePackAttackKey(_gMaggotCaterpillarAttacks, MAGGOT_CATERPILLAR_ATTACK_DROP);
                 work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 if ((locationWord & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 32, 0, 0)) {
                     soundKey = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | MAGGOT_CATERPILLAR_AMBUSH_DROP_SOUND;
@@ -85,12 +85,12 @@ static void _maggotCaterpillarAmbushState(Task* actor)
                 sceneEngageBattle(1);
                 work->step              = MAGGOT_CATERPILLAR_AMBUSH_LAND;
                 work->animId            = MAGGOT_CATERPILLAR_ANIM_LAND;
-                work->fallSpeed         = gMaggotCaterpillarDropSpeed[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex];
+                work->fallSpeed         = _gMaggotCaterpillarDropSpeed[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex];
                 work->threadFade        = MAGGOT_CATERPILLAR_THREAD_FADE_FRAMES;
                 work->attackBody.radius = MAGGOT_CATERPILLAR_AMBUSH_ATTACK_RADIUS;
                 work->attackBody.coord  = coord;
                 work->attackBody.pos.vy = -MAGGOT_CATERPILLAR_AMBUSH_ATTACK_RADIUS;
-                work->attackBody.key    = damagePackAttackKey(gMaggotCaterpillarAttacks, MAGGOT_CATERPILLAR_ATTACK_DROP);
+                work->attackBody.key    = damagePackAttackKey(_gMaggotCaterpillarAttacks, MAGGOT_CATERPILLAR_ATTACK_DROP);
                 work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 if ((locationWord & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 32, 0, 0)) {
                     soundKey   = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | MAGGOT_CATERPILLAR_AMBUSH_DROP_SOUND;
@@ -136,7 +136,7 @@ static void _maggotCaterpillarAmbushState(Task* actor)
                 work->behaviour         = MAGGOT_CATERPILLAR_BEHAVIOUR_ROAM;
                 work->step              = MAGGOT_CATERPILLAR_AMBUSH_WAIT;
                 work->animId            = MAGGOT_CATERPILLAR_ANIM_IDLE;
-                work->stateCounter      = gMaggotCaterpillarIdleDelay[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex] + (((gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF);
+                work->stateCounter      = _gMaggotCaterpillarIdleDelay[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex] + (((gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF);
                 work->attackBody.coord  = actor->extra.tmd->coords + 4;
                 work->attackBody.radius = 0xC8;
                 work->attackBody.pos.vy = 0;
