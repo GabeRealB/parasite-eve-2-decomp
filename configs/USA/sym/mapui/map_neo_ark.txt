@@ -21,7 +21,7 @@ D_shelter_1f_vehicular_airlock_80182114 = 0x80182114; // absolute:True owner=she
 D_shelter_1f_vehicular_airlock_80182118 = 0x80182118; // absolute:True owner=shelter_1f_vehicular_airlock shared=rooms
 D_shelter_1f_vehicular_airlock_8018211C = 0x8018211C; // absolute:True owner=shelter_1f_vehicular_airlock shared=rooms
 D_shelter_1f_vehicular_airlock_8018245C = 0x8018245C; // absolute:True owner=shelter_1f_vehicular_airlock shared=rooms
-D_shelter_1f_vehicular_airlock_801824F8 = 0x801824F8; // absolute:True owner=shelter_1f_vehicular_airlock shared=rooms
+D_shelter_1f_vehicular_airlock_801824F8 = 0x801824F8; // absolute:True owner=shelter_1f_vehicular_airlock
 D_shelter_1f_vehicular_airlock_80182A80 = 0x80182A80; // absolute:True owner=shelter_1f_vehicular_airlock
 shelter1fBulwarkRoomTask = 0x8017DC20; // type:func absolute:True owner=shelter_1f_bulwark shared=rooms
 D_shelter_1f_bulwark_801803B0 = 0x801803B0; // absolute:True owner=shelter_1f_bulwark shared=rooms
@@ -88,13 +88,13 @@ D_neo_ark_eve_elevator_8017DB20 = 0x8017DB20; // absolute:True owner=neo_ark_eve
 D_neo_ark_eve_elevator_8017DC30 = 0x8017DC30; // absolute:True owner=neo_ark_eve_elevator
 neoArkNorthPromenadeRoomTask = 0x8017D6C8; // type:func absolute:True owner=neo_ark_north_promenade
 D_neo_ark_north_promenade_80181DB4 = 0x80181DB4; // absolute:True owner=neo_ark_north_promenade
-D_neo_ark_north_promenade_80181DC4 = 0x80181DC4; // absolute:True owner=neo_ark_north_promenade shared=rooms
-D_neo_ark_north_promenade_80181DCC = 0x80181DCC; // absolute:True owner=neo_ark_north_promenade shared=rooms
-D_neo_ark_north_promenade_80181DD0 = 0x80181DD0; // absolute:True owner=neo_ark_north_promenade
+gNeoArkNorthPromenadeRoomLighting = 0x80181DC4; // absolute:True owner=neo_ark_north_promenade shared=rooms
+gNeoArkNorthPromenadeViewMaps = 0x80181DCC; // absolute:True owner=neo_ark_north_promenade shared=rooms
+gNeoArkNorthPromenadeViewCounts = 0x80181DD0; // absolute:True owner=neo_ark_north_promenade
 D_neo_ark_north_promenade_80181DD4 = 0x80181DD4; // absolute:True owner=neo_ark_north_promenade shared=rooms
-D_neo_ark_north_promenade_80182410 = 0x80182410; // absolute:True owner=neo_ark_north_promenade shared=rooms
-D_neo_ark_north_promenade_80182CA4 = 0x80182CA4; // absolute:True owner=neo_ark_north_promenade
-D_neo_ark_north_promenade_801832EC = 0x801832EC; // absolute:True owner=neo_ark_north_promenade shared=rooms
+gNeoArkNorthPromenadeViewCameras = 0x80182410; // absolute:True owner=neo_ark_north_promenade shared=rooms
+gNeoArkNorthPromenadeSpriteViews = 0x80182CA4; // absolute:True owner=neo_ark_north_promenade
+gNeoArkNorthPromenadeSurfaceProperties = 0x801832EC; // absolute:True owner=neo_ark_north_promenade shared=rooms
 neoArkForestZoneRoomTask = 0x8017DBBC; // type:func absolute:True owner=neo_ark_forest_zone shared=rooms
 D_neo_ark_forest_zone_801820A4 = 0x801820A4; // absolute:True owner=neo_ark_forest_zone shared=rooms
 D_neo_ark_forest_zone_801820B4 = 0x801820B4; // absolute:True owner=neo_ark_forest_zone

@@ -13,22 +13,56 @@
 
 extern AreaVariant D_neo_ark_north_promenade_8018305C[13];
 
+/// Extents of the promenade's mapped view resources and surface-class directory.
+enum {
+    NEO_ARK_NORTH_PROMENADE_VIEW_COUNT          = 6,
+    NEO_ARK_NORTH_PROMENADE_SURFACE_CLASS_COUNT = 8,
+};
+
 // neo_ark_north_promenade
 extern WorldCollisionRoomResources D_neo_ark_north_promenade_80181DB4[];
 
-extern WorldCoordRoomLighting D_neo_ark_north_promenade_80181DC4[];
+/// Lighting for room 1: two directional lights and the default ambient minima.
+///
+/// Indexed by room - 1. Borrows mutable lights from the loaded promenade overlay.
+extern WorldCoordRoomLighting gNeoArkNorthPromenadeRoomLighting[1];
 
-extern u8* D_neo_ark_north_promenade_80181DCC[];
+/// Logical-view map for room 1, mapping views 1..6 to the same resource indices.
+///
+/// Indexed by room - 1, then view - 1. Borrows gameplay's `gViewIdentityMap`;
+/// only the first `NEO_ARK_NORTH_PROMENADE_VIEW_COUNT` entries belong to this room.
+/// The pointer directory requires the promenade overlay to remain loaded.
+extern u8* gNeoArkNorthPromenadeViewMaps[1];
 
-extern ViewCount D_neo_ark_north_promenade_80181DD0[];
+/// Logical-view search count for room 1, indexed by room - 1.
+///
+/// The six identity-mapped views each select a camera, image and sprite descriptor.
+/// Borrow this signed halfword array only while the promenade overlay is loaded.
+extern ViewCount gNeoArkNorthPromenadeViewCounts[1];
 
 extern DirectionWarpEntry D_neo_ark_north_promenade_80181DD4[];
 
-extern ViewCamera D_neo_ark_north_promenade_80182410[];
+/// Cameras for mapped views 1..6, indexed by mapped view - 1.
+///
+/// Rotations use `ONE` for 1.0, translations are negated world-space camera origins,
+/// and perspective distances are pixels. Keep the overlay loaded until any queued
+/// camera application finishes.
+extern ViewCamera gNeoArkNorthPromenadeViewCameras[NEO_ARK_NORTH_PROMENADE_VIEW_COUNT];
 
-extern SpriteView D_neo_ark_north_promenade_80182CA4[];
+/// Sprite descriptors for mapped views 1..6, indexed by mapped view - 1.
+///
+/// Views 1..3 have no source sprites; views 4..6 have 36, 23 and 32 sources.
+/// All views retain image-strip backgrounds and use no clipping-area list.
+/// Descriptors and mutable source/batch arrays require the overlay to stay loaded.
+extern SpriteView gNeoArkNorthPromenadeSpriteViews[NEO_ARK_NORTH_PROMENADE_VIEW_COUNT];
 
-extern WorldCollisionSurfaceProperties* D_neo_ark_north_promenade_801832EC[];
+/// Collision policies and footstep cues indexed by surface class 0..7.
+///
+/// Class 1 blocks probes and allows weapon impacts with footsteps; class 2 passes
+/// probes and ignores weapon impacts with the same cues. Other classes block
+/// probes and allow impacts without cues. All classes apply grid pushback.
+/// The directory and its borrowed records require the promenade overlay loaded.
+extern WorldCollisionSurfaceProperties* gNeoArkNorthPromenadeSurfaceProperties[NEO_ARK_NORTH_PROMENADE_SURFACE_CLASS_COUNT];
 
 /// Runs the room's charging pink flash, peak screen tint and fading star.
 ///

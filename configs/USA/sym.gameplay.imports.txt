@@ -1599,7 +1599,7 @@ D_shelter_1f_heliport_80182BF4 = 0x80182BF4; // absolute:True owner=shelter_1f_h
 
 D_shelter_1f_tent_80184230 = 0x80184230; // absolute:True owner=shelter_1f_tent
 
-D_shelter_1f_vehicular_airlock_80182A04 = 0x80182A04; // absolute:True owner=shelter_1f_vehicular_airlock shared=rooms
+D_shelter_1f_vehicular_airlock_80182A04 = 0x80182A04; // absolute:True owner=shelter_1f_vehicular_airlock
 
 D_shelter_b1_access_tunnel_8017FE50 = 0x8017FE50; // absolute:True owner=shelter_b1_access_tunnel shared=rooms
 
