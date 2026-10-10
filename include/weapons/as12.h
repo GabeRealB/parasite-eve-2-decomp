@@ -2,6 +2,16 @@
 #define INCLUDE_WEAPONS_AS12_H
 
 #include "main/task_types.h"
+#include "main/tmd_types.h"
+
+/// Held AS12 shotgun model, with one rigid part and its textured geometry.
+///
+/// Model instances borrow the source and arrays from the loaded AS12 package.
+/// Keep the package loaded until those instances are released. First creation
+/// resolves draw handlers in the writable stream; the initial skeleton and
+/// vertex-count table remain read-only. Each primitive-buffer half holds two
+/// textured Gouraud triangles and 41 textured Gouraud quads (2212 bytes).
+extern TmdSource gAs12Model;
 
 /// Runs the AS12 automatic fire cycle while input, ammunition and cooldown permit.
 ///

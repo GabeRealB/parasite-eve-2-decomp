@@ -46,6 +46,8 @@
 
 #include "rooms/acropolis_security_room.h"
 
+#include "weapons/as12.h"
+
 #include "weapons/grenade_pistol.h"
 
 #include "weapons/hypervelocity.h"
@@ -308,7 +310,7 @@ TaskDesc D_800678F4[] = {
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_mm1_8011E494 } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_pa3_8011DA04 } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_sp12_8011DB44 } },
-    { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_as12_8011DCF0 } },
+    { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &gAs12Model } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_m4a1_8011DEC4 } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_m249_8011DE74 } },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },

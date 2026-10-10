@@ -83,8 +83,6 @@ extern TmdSource D_m950_8011DA9C;
 
 extern TmdSource D_sp12_8011DB44;
 
-extern TmdSource D_as12_8011DCF0;
-
 extern TmdSource D_m249_8011DE74;
 
 extern TmdSource D_m4a1_8011DEC4;
