@@ -3,7 +3,7 @@
 #include <psyq/sys/types.h>
 #include <psyq/libgpu.h>
 
-#include "types.h"
+#include "common.h"
 
 #include "gameplay/animation.h"
 
@@ -429,136 +429,215 @@ static AnimationSet _gKyle800103KyleMadiganDamagePart4Animation = {
     },
 };
 
-static AnimationPackedPose _gKyle800103Animation08A1CBank1[10] = {
+/// Encoding-1 translation/rotation poses for the other-body hit clip's parts 0 and 1.
+static const AnimationPackedPose _gKyle800103KyleMadiganDamageOtherBodyAnimationBank1[] SECTION(".data") = {
 #include "assets/kyle_800103_animation_08A1C_bank1.inc"
 };
 
-static AnimationPackedRotation _gKyle800103Animation08A1CBank4[131] = {
+/// Encoding-4 packed rotations for the other-body hit clip's parts 2..19.
+static const AnimationPackedRotation _gKyle800103KyleMadiganDamageOtherBodyAnimationBank4[] SECTION(".data") = {
 #include "assets/kyle_800103_animation_08A1C_bank4.inc"
 };
 
-static AnimationRecord _gKyle800103Animation08A1CRecords[180] = {
+/// Other-body hit keyframes and stop controls; durations count whole playback frames.
+static const AnimationRecord _gKyle800103KyleMadiganDamageOtherBodyAnimationRecords[] SECTION(".data") = {
 #include "assets/kyle_800103_animation_08A1C_records.inc"
 };
 
-static u16 _gKyle800103Animation08A1CIndices[20] = {
+/// Absolute first-record indices for the other-body hit clip's twenty part tracks.
+static const u16 _gKyle800103KyleMadiganDamageOtherBodyAnimationIndices[] SECTION(".data") = {
 #include "assets/kyle_800103_animation_08A1C_indices.inc"
 };
 
-static AnimationSet _gKyle800103Animation08A1C = {
-    _gKyle800103Animation08A1CRecords,
-    _gKyle800103Animation08A1CIndices,
-    { NULL, _gKyle800103Animation08A1CBank1, NULL, NULL, _gKyle800103Animation08A1CBank4, NULL, NULL, NULL },
+/// Kyle Madigan's hit reaction outside body part 4 for companion resource variant 3.
+///
+/// Native bank set 17 supplies twenty part tracks ending in stop controls;
+/// companion playback uses parts 1..19. Banks 1 and 4 encode translation/rotation
+/// for parts 0..1 and rotation for parts 2..19. The immutable arrays retain the
+/// package's data-section layout. Keep this package loaded while playback or
+/// cached record pointers use the clip.
+static AnimationSet _gKyle800103KyleMadiganDamageOtherBodyAnimation = {
+    .records           = _gKyle800103KyleMadiganDamageOtherBodyAnimationRecords,
+    .trackStartIndices = _gKyle800103KyleMadiganDamageOtherBodyAnimationIndices,
+    .poseBanks         = {
+        [KYLE_800103_ANIMATION_TRANSLATION_ROTATION_BANK] = _gKyle800103KyleMadiganDamageOtherBodyAnimationBank1,
+        [KYLE_800103_ANIMATION_PACKED_ROTATION_BANK]      = _gKyle800103KyleMadiganDamageOtherBodyAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gKyle800103Animation08F8CBank1[11] = {
+/// Encoding-1 translation/rotation poses for the stopped clip's parts 0 and 1.
+static const AnimationPackedPose _gKyle800103KyleMadiganStoppedAnimationBank1[] SECTION(".data") = {
 #include "assets/kyle_800103_animation_08F8C_bank1.inc"
 };
 
-static AnimationPackedRotation _gKyle800103Animation08F8CBank4[127] = {
+/// Encoding-4 packed rotations for the stopped clip's parts 2..19.
+static const AnimationPackedRotation _gKyle800103KyleMadiganStoppedAnimationBank4[] SECTION(".data") = {
 #include "assets/kyle_800103_animation_08F8C_bank4.inc"
 };
 
-static AnimationRecord _gKyle800103Animation08F8CRecords[168] = {
+/// Stopped keyframes and stop controls; durations count whole playback frames.
+static const AnimationRecord _gKyle800103KyleMadiganStoppedAnimationRecords[] SECTION(".data") = {
 #include "assets/kyle_800103_animation_08F8C_records.inc"
 };
 
-static u16 _gKyle800103Animation08F8CIndices[20] = {
+/// Absolute first-record indices for the stopped clip's twenty model-part tracks.
+static const u16 _gKyle800103KyleMadiganStoppedAnimationIndices[] SECTION(".data") = {
 #include "assets/kyle_800103_animation_08F8C_indices.inc"
 };
 
-static AnimationSet _gKyle800103Animation08F8C = {
-    _gKyle800103Animation08F8CRecords,
-    _gKyle800103Animation08F8CIndices,
-    { NULL, _gKyle800103Animation08F8CBank1, NULL, NULL, _gKyle800103Animation08F8CBank4, NULL, NULL, NULL },
+/// Kyle Madigan's collapse into the zero-HP stopped pose for resource variant 3.
+///
+/// Native bank set 18 supplies twenty part tracks ending in stop controls;
+/// companion playback uses parts 1..19. Banks 1 and 4 encode translation/rotation
+/// for parts 0..1 and rotation for parts 2..19. Keep this package loaded while
+/// playback or cached record pointers use the clip.
+static AnimationSet _gKyle800103KyleMadiganStoppedAnimation = {
+    .records           = _gKyle800103KyleMadiganStoppedAnimationRecords,
+    .trackStartIndices = _gKyle800103KyleMadiganStoppedAnimationIndices,
+    .poseBanks         = {
+        [KYLE_800103_ANIMATION_TRANSLATION_ROTATION_BANK] = _gKyle800103KyleMadiganStoppedAnimationBank1,
+        [KYLE_800103_ANIMATION_PACKED_ROTATION_BANK]      = _gKyle800103KyleMadiganStoppedAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gKyle800103Animation09798Bank1[10] = {
+/// Encoding-1 translation/rotation poses for the idle variation's parts 0 and 1.
+static const AnimationPackedPose _gKyle800103KyleMadiganIdleVariationAnimationBank1[] SECTION(".data") = {
 #include "assets/kyle_800103_animation_09798_bank1.inc"
 };
 
-static AnimationPackedRotation _gKyle800103Animation09798Bank4[181] = {
+/// Encoding-4 packed rotations for the idle variation's parts 2..19.
+static const AnimationPackedRotation _gKyle800103KyleMadiganIdleVariationAnimationBank4[] SECTION(".data") = {
 #include "assets/kyle_800103_animation_09798_bank4.inc"
 };
 
-static AnimationRecord _gKyle800103Animation09798Records[284] = {
+/// Idle-variation keyframes and loop/stop controls; durations count whole playback frames.
+static const AnimationRecord _gKyle800103KyleMadiganIdleVariationAnimationRecords[] SECTION(".data") = {
 #include "assets/kyle_800103_animation_09798_records.inc"
 };
 
-static u16 _gKyle800103Animation09798Indices[20] = {
+/// Absolute first-record indices for the idle variation's twenty model-part tracks.
+static const u16 _gKyle800103KyleMadiganIdleVariationAnimationIndices[] SECTION(".data") = {
 #include "assets/kyle_800103_animation_09798_indices.inc"
 };
 
-static AnimationSet _gKyle800103Animation09798 = {
-    _gKyle800103Animation09798Records,
-    _gKyle800103Animation09798Indices,
-    { NULL, _gKyle800103Animation09798Bank1, NULL, NULL, _gKyle800103Animation09798Bank4, NULL, NULL, NULL },
+/// Kyle Madigan's looping idle variation for companion resource variant 3.
+///
+/// Native bank set 23 supplies twenty tracks with an entry followed by looping
+/// poses; companion playback uses parts 1..19. Banks 1 and 4 encode
+/// translation/rotation for parts 0..1 and rotation for parts 2..19. Keep this
+/// package loaded while playback or cached record pointers use the clip.
+static AnimationSet _gKyle800103KyleMadiganIdleVariationAnimation = {
+    .records           = _gKyle800103KyleMadiganIdleVariationAnimationRecords,
+    .trackStartIndices = _gKyle800103KyleMadiganIdleVariationAnimationIndices,
+    .poseBanks         = {
+        [KYLE_800103_ANIMATION_TRANSLATION_ROTATION_BANK] = _gKyle800103KyleMadiganIdleVariationAnimationBank1,
+        [KYLE_800103_ANIMATION_PACKED_ROTATION_BANK]      = _gKyle800103KyleMadiganIdleVariationAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gKyle800103Animation09C68Bank1[9] = {
+/// Encoding-1 translation/rotation poses for the kneeling clip's parts 0 and 1.
+static const AnimationPackedPose _gKyle800103KyleMadiganKneelAnimationBank1[] SECTION(".data") = {
 #include "assets/kyle_800103_animation_09C68_bank1.inc"
 };
 
-static AnimationPackedRotation _gKyle800103Animation09C68Bank4[113] = {
+/// Encoding-4 packed rotations for the kneeling clip's parts 2..19.
+static const AnimationPackedRotation _gKyle800103KyleMadiganKneelAnimationBank4[] SECTION(".data") = {
 #include "assets/kyle_800103_animation_09C68_bank4.inc"
 };
 
-static AnimationRecord _gKyle800103Animation09C68Records[148] = {
+/// Kneeling keyframes and stop controls; durations count whole playback frames.
+static const AnimationRecord _gKyle800103KyleMadiganKneelAnimationRecords[] SECTION(".data") = {
 #include "assets/kyle_800103_animation_09C68_records.inc"
 };
 
-static u16 _gKyle800103Animation09C68Indices[20] = {
+/// Absolute first-record indices for the kneeling clip's twenty model-part tracks.
+static const u16 _gKyle800103KyleMadiganKneelAnimationIndices[] SECTION(".data") = {
 #include "assets/kyle_800103_animation_09C68_indices.inc"
 };
 
-static AnimationSet _gKyle800103Animation09C68 = {
-    _gKyle800103Animation09C68Records,
-    _gKyle800103Animation09C68Indices,
-    { NULL, _gKyle800103Animation09C68Bank1, NULL, NULL, _gKyle800103Animation09C68Bank4, NULL, NULL, NULL },
+/// Kyle Madigan's transition from standing to one knee for resource variant 3.
+///
+/// Native bank set 32 supplies twenty part tracks ending in stop controls;
+/// companion playback uses parts 1..19. Banks 1 and 4 encode translation/rotation
+/// for parts 0..1 and rotation for parts 2..19. Keep this package loaded while
+/// playback or cached record pointers use the clip.
+static AnimationSet _gKyle800103KyleMadiganKneelAnimation = {
+    .records           = _gKyle800103KyleMadiganKneelAnimationRecords,
+    .trackStartIndices = _gKyle800103KyleMadiganKneelAnimationIndices,
+    .poseBanks         = {
+        [KYLE_800103_ANIMATION_TRANSLATION_ROTATION_BANK] = _gKyle800103KyleMadiganKneelAnimationBank1,
+        [KYLE_800103_ANIMATION_PACKED_ROTATION_BANK]      = _gKyle800103KyleMadiganKneelAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gKyle800103Animation0A1C0Bank1[8] = {
+/// Encoding-1 translation/rotation poses for the rise from kneeling's parts 0 and 1.
+static const AnimationPackedPose _gKyle800103KyleMadiganRiseFromKneelAnimationBank1[] SECTION(".data") = {
 #include "assets/kyle_800103_animation_0A1C0_bank1.inc"
 };
 
-static AnimationPackedRotation _gKyle800103Animation0A1C0Bank4[129] = {
+/// Encoding-4 packed rotations for the rise from kneeling's parts 2..19.
+static const AnimationPackedRotation _gKyle800103KyleMadiganRiseFromKneelAnimationBank4[] SECTION(".data") = {
 #include "assets/kyle_800103_animation_0A1C0_bank4.inc"
 };
 
-static AnimationRecord _gKyle800103Animation0A1C0Records[169] = {
+/// Rise-from-kneeling keyframes and stop controls; durations count whole playback frames.
+static const AnimationRecord _gKyle800103KyleMadiganRiseFromKneelAnimationRecords[] SECTION(".data") = {
 #include "assets/kyle_800103_animation_0A1C0_records.inc"
 };
 
-static u16 _gKyle800103Animation0A1C0Indices[20] = {
+/// Absolute first-record indices for the rise from kneeling's twenty part tracks.
+static const u16 _gKyle800103KyleMadiganRiseFromKneelAnimationIndices[] SECTION(".data") = {
 #include "assets/kyle_800103_animation_0A1C0_indices.inc"
 };
 
-static AnimationSet _gKyle800103Animation0A1C0 = {
-    _gKyle800103Animation0A1C0Records,
-    _gKyle800103Animation0A1C0Indices,
-    { NULL, _gKyle800103Animation0A1C0Bank1, NULL, NULL, _gKyle800103Animation0A1C0Bank4, NULL, NULL, NULL },
+/// Kyle Madigan's return from one knee to standing for companion resource variant 3.
+///
+/// Native bank set 33 supplies twenty part tracks ending in stop controls;
+/// companion playback uses parts 1..19. Banks 1 and 4 encode translation/rotation
+/// for parts 0..1 and rotation for parts 2..19. Keep this package loaded while
+/// playback or cached record pointers use the clip.
+static AnimationSet _gKyle800103KyleMadiganRiseFromKneelAnimation = {
+    .records           = _gKyle800103KyleMadiganRiseFromKneelAnimationRecords,
+    .trackStartIndices = _gKyle800103KyleMadiganRiseFromKneelAnimationIndices,
+    .poseBanks         = {
+        [KYLE_800103_ANIMATION_TRANSLATION_ROTATION_BANK] = _gKyle800103KyleMadiganRiseFromKneelAnimationBank1,
+        [KYLE_800103_ANIMATION_PACKED_ROTATION_BANK]      = _gKyle800103KyleMadiganRiseFromKneelAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gKyle800103Animation0A3B0Bank1[2] = {
+/// Encoding-1 translation/rotation poses for the combat hold's parts 0 and 1.
+static const AnimationPackedPose _gKyle800103KyleMadiganCombatHoldAnimationBank1[] SECTION(".data") = {
 #include "assets/kyle_800103_animation_0A3B0_bank1.inc"
 };
 
-static AnimationPackedRotation _gKyle800103Animation0A3B0Bank4[18] = {
+/// Encoding-4 packed rotations for the combat hold's parts 2..19.
+static const AnimationPackedRotation _gKyle800103KyleMadiganCombatHoldAnimationBank4[] SECTION(".data") = {
 #include "assets/kyle_800103_animation_0A3B0_bank4.inc"
 };
 
-static AnimationRecord _gKyle800103Animation0A3B0Records[80] = {
+/// Repeated combat-hold keyframes and loop/stop controls; durations count playback frames.
+static const AnimationRecord _gKyle800103KyleMadiganCombatHoldAnimationRecords[] SECTION(".data") = {
 #include "assets/kyle_800103_animation_0A3B0_records.inc"
 };
 
-static u16 _gKyle800103Animation0A3B0Indices[20] = {
+/// Absolute first-record indices for the combat hold's twenty model-part tracks.
+static const u16 _gKyle800103KyleMadiganCombatHoldAnimationIndices[] SECTION(".data") = {
 #include "assets/kyle_800103_animation_0A3B0_indices.inc"
 };
 
-static AnimationSet _gKyle800103Animation0A3B0 = {
-    _gKyle800103Animation0A3B0Records,
-    _gKyle800103Animation0A3B0Indices,
-    { NULL, _gKyle800103Animation0A3B0Bank1, NULL, NULL, _gKyle800103Animation0A3B0Bank4, NULL, NULL, NULL },
+/// Kyle Madigan's fixed held-weapon pose between combat decisions for resource variant 3.
+///
+/// Native bank set 9 repeats one pose per part through twenty looping tracks;
+/// companion playback uses parts 1..19. Banks 1 and 4 encode translation/rotation
+/// for parts 0..1 and rotation for parts 2..19. Keep this package loaded while
+/// playback or cached record pointers use the clip.
+static AnimationSet _gKyle800103KyleMadiganCombatHoldAnimation = {
+    .records           = _gKyle800103KyleMadiganCombatHoldAnimationRecords,
+    .trackStartIndices = _gKyle800103KyleMadiganCombatHoldAnimationIndices,
+    .poseBanks         = {
+        [KYLE_800103_ANIMATION_TRANSLATION_ROTATION_BANK] = _gKyle800103KyleMadiganCombatHoldAnimationBank1,
+        [KYLE_800103_ANIMATION_PACKED_ROTATION_BANK]      = _gKyle800103KyleMadiganCombatHoldAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gKyle800103Animation0AB4CBank1[12] = {
@@ -747,7 +826,7 @@ AnimationBank D_kyle_800103_8017567C = { { {
     &_gKyle800103KyleMadiganTurnRightAnimation,
     &_gKyle800103Animation0C56C,
     &_gKyle800103Animation0CA78,
-    &_gKyle800103Animation0A3B0,
+    &_gKyle800103KyleMadiganCombatHoldAnimation,
     &_gKyle800103Animation0C0D4,
     &_gKyle800103KyleMadiganIdleAnimation,
     &_gKyle800103Animation0B55C,
@@ -755,13 +834,13 @@ AnimationBank D_kyle_800103_8017567C = { { {
     &_gKyle800103Animation0BE4C,
     &_gKyle800103KyleMadiganIdleAnimation,
     &_gKyle800103KyleMadiganDamagePart4Animation,
-    &_gKyle800103Animation08A1C,
-    &_gKyle800103Animation08F8C,
+    &_gKyle800103KyleMadiganDamageOtherBodyAnimation,
+    &_gKyle800103KyleMadiganStoppedAnimation,
     &_gKyle800103KyleMadiganWalkAnimation,
     &_gKyle800103Animation0BE4C,
     &_gKyle800103KyleMadiganIdleAnimation,
     &_gKyle800103KyleMadiganIdleAnimation,
-    &_gKyle800103Animation09798,
+    &_gKyle800103KyleMadiganIdleVariationAnimation,
     &_gKyle800103KyleMadiganIdleAnimation,
     &_gKyle800103KyleMadiganIdleAnimation,
     NULL,
@@ -770,8 +849,8 @@ AnimationBank D_kyle_800103_8017567C = { { {
     NULL,
     NULL,
     NULL,
-    &_gKyle800103Animation09C68,
-    &_gKyle800103Animation0A1C0,
+    &_gKyle800103KyleMadiganKneelAnimation,
+    &_gKyle800103KyleMadiganRiseFromKneelAnimation,
     &_gKyle800103Animation0C56C,
     &_gKyle800103Animation0CA78,
     &_gKyle800103KyleMadiganIdleAnimation,
