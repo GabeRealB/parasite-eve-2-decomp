@@ -22,6 +22,12 @@
 
 #include "weapons/weapon.h"
 
+/// Encoding-indexed `AnimationSet.poseBanks` slots used by the M950 player clips.
+enum {
+    M950_ANIMATION_TRANSLATION_ROTATION_BANK = 1,
+    M950_ANIMATION_PACKED_ROTATION_BANK      = 4,
+};
+
 void m950AttackState(Task* playerTask)
 {
     enum {
@@ -564,136 +570,267 @@ static AnimationSet _gM950PlayerStairAscentFinishOddAnimation = {
     .poseBanks         = { [1] = _gM950PlayerStairAscentFinishOddAnimationBank1, [4] = _gM950PlayerStairAscentFinishOddAnimationBank4 },
 };
 
-static AnimationPackedPose _gM950Animation053ACBank1[7] = {
+/// Translation/Euler keys for `_gM950PlayerStairAscentFinishEvenAnimation`'s tracks 0 and 1.
+///
+/// Translations use model units and angles use 1/4096 turns. Read-only clip
+/// tables retain their serialized positions in .data.
+static const AnimationPackedPose _gM950PlayerStairAscentFinishEvenAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_053AC_bank1.inc"
 };
 
-static AnimationPackedRotation _gM950Animation053ACBank4[73] = {
+/// Rotation-only keys for `_gM950PlayerStairAscentFinishEvenAnimation`'s tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM950PlayerStairAscentFinishEvenAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_053AC_bank4.inc"
 };
 
-static AnimationRecord _gM950Animation053ACRecords[114] = {
+/// Keyframes, terminal stops and the final footstep cue for `_gM950PlayerStairAscentFinishEvenAnimation`.
+///
+/// Track 1 carries the cue. Pose offsets count four-byte words and durations
+/// count normal-rate frames.
+static const AnimationRecord _gM950PlayerStairAscentFinishEvenAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_053AC_records.inc"
 };
 
-static u16 _gM950Animation053ACIndices[20] = {
+/// Absolute record starts for `_gM950PlayerStairAscentFinishEvenAnimation`'s nineteen player tracks.
+///
+/// Tracks 0/1 use bank 1 and tracks 2..18 use bank 4; ordinary child playback
+/// uses tracks 1..18. The resource's final zero halfword is retained.
+static const u16 _gM950PlayerStairAscentFinishEvenAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_053AC_indices.inc"
 };
 
-static AnimationSet _gM950Animation053AC = {
-    _gM950Animation053ACRecords,
-    _gM950Animation053ACIndices,
-    { NULL, _gM950Animation053ACBank1, NULL, NULL, _gM950Animation053ACBank4, NULL, NULL, NULL },
+/// Stair-ascent finish clip at id 38 for an even step count in the M950 player bank.
+///
+/// All nineteen tracks stop; track 1 cues the final footstep. The initial
+/// ascent step-count parity selects this finish. The M950 package must remain
+/// loaded while playback borrows the clip.
+static AnimationSet _gM950PlayerStairAscentFinishEvenAnimation = {
+    .records           = _gM950PlayerStairAscentFinishEvenAnimationRecords,
+    .trackStartIndices = _gM950PlayerStairAscentFinishEvenAnimationIndices,
+    .poseBanks         = {
+        [M950_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM950PlayerStairAscentFinishEvenAnimationBank1,
+        [M950_ANIMATION_PACKED_ROTATION_BANK]      = _gM950PlayerStairAscentFinishEvenAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM950Animation05834Bank1[9] = {
+/// Translation/Euler keys for `_gM950PlayerPeReleaseFamily0Animation`'s tracks 0 and 1.
+///
+/// Translations use model units and angles use 1/4096 turns. Read-only clip
+/// tables retain their serialized positions in .data.
+static const AnimationPackedPose _gM950PlayerPeReleaseFamily0AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_05834_bank1.inc"
 };
 
-static AnimationPackedRotation _gM950Animation05834Bank4[104] = {
+/// Rotation-only keys for `_gM950PlayerPeReleaseFamily0Animation`'s tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM950PlayerPeReleaseFamily0AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_05834_bank4.inc"
 };
 
-static AnimationRecord _gM950Animation05834Records[139] = {
+/// Keyframes and terminal stops for `_gM950PlayerPeReleaseFamily0Animation`'s nineteen tracks.
+///
+/// Pose offsets count four-byte words and durations count normal-rate frames.
+/// No keyframe carries a cue.
+static const AnimationRecord _gM950PlayerPeReleaseFamily0AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_05834_records.inc"
 };
 
-static u16 _gM950Animation05834Indices[20] = {
+/// Absolute record starts for `_gM950PlayerPeReleaseFamily0Animation`'s nineteen player tracks.
+///
+/// Tracks 0/1 use bank 1 and tracks 2..18 use bank 4; ordinary child playback
+/// uses tracks 1..18. The resource's final zero halfword is retained.
+static const u16 _gM950PlayerPeReleaseFamily0AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_05834_indices.inc"
 };
 
-static AnimationSet _gM950Animation05834 = {
-    _gM950Animation05834Records,
-    _gM950Animation05834Indices,
-    { NULL, _gM950Animation05834Bank1, NULL, NULL, _gM950Animation05834Bank4, NULL, NULL, NULL },
+/// Family-0 Parasite Energy release clip at id 26 in the M950 player bank.
+///
+/// Family 0 covers spell IDs 300..600 except tens digit 3, and item IDs at or
+/// above 601 with tens digit 1. Release starts the attachment countdown before
+/// charge and cast. All nineteen tracks stop; the M950 package must remain
+/// loaded while playback borrows the clip.
+static AnimationSet _gM950PlayerPeReleaseFamily0Animation = {
+    .records           = _gM950PlayerPeReleaseFamily0AnimationRecords,
+    .trackStartIndices = _gM950PlayerPeReleaseFamily0AnimationIndices,
+    .poseBanks         = {
+        [M950_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM950PlayerPeReleaseFamily0AnimationBank1,
+        [M950_ANIMATION_PACKED_ROTATION_BANK]      = _gM950PlayerPeReleaseFamily0AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM950Animation05A30Bank1[3] = {
+/// Translation/Euler keys for `_gM950PlayerPeChargeFamily0Animation`'s tracks 0 and 1.
+///
+/// Translations use model units and angles use 1/4096 turns. Read-only clip
+/// tables retain their serialized positions in .data.
+static const AnimationPackedPose _gM950PlayerPeChargeFamily0AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_05A30_bank1.inc"
 };
 
-static AnimationPackedRotation _gM950Animation05A30Bank4[22] = {
+/// Rotation-only keys for `_gM950PlayerPeChargeFamily0Animation`'s tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM950PlayerPeChargeFamily0AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_05A30_bank4.inc"
 };
 
-static AnimationRecord _gM950Animation05A30Records[76] = {
+/// Keyframes, loop jumps and retained stop records for `_gM950PlayerPeChargeFamily0Animation`.
+///
+/// All nineteen tracks jump to their starts; the trailing stops are not reached
+/// during forward playback. Pose offsets count four-byte words, jump targets
+/// count records and durations count normal-rate frames. No keyframe carries a cue.
+static const AnimationRecord _gM950PlayerPeChargeFamily0AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_05A30_records.inc"
 };
 
-static u16 _gM950Animation05A30Indices[20] = {
+/// Absolute record starts for `_gM950PlayerPeChargeFamily0Animation`'s nineteen player tracks.
+///
+/// Tracks 0/1 use bank 1 and tracks 2..18 use bank 4; ordinary child playback
+/// uses tracks 1..18. The resource's final zero halfword is retained.
+static const u16 _gM950PlayerPeChargeFamily0AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_05A30_indices.inc"
 };
 
-static AnimationSet _gM950Animation05A30 = {
-    _gM950Animation05A30Records,
-    _gM950Animation05A30Indices,
-    { NULL, _gM950Animation05A30Bank1, NULL, NULL, _gM950Animation05A30Bank4, NULL, NULL, NULL },
+/// Looping family-0 Parasite Energy charge clip at id 27 in the M950 player bank.
+///
+/// Played between `_gM950PlayerPeReleaseFamily0Animation` and the family-0 cast
+/// while the attachment countdown remains nonzero. All nineteen tracks loop;
+/// the M950 package must remain loaded while playback borrows the clip.
+static AnimationSet _gM950PlayerPeChargeFamily0Animation = {
+    .records           = _gM950PlayerPeChargeFamily0AnimationRecords,
+    .trackStartIndices = _gM950PlayerPeChargeFamily0AnimationIndices,
+    .poseBanks         = {
+        [M950_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM950PlayerPeChargeFamily0AnimationBank1,
+        [M950_ANIMATION_PACKED_ROTATION_BANK]      = _gM950PlayerPeChargeFamily0AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM950Animation05D08Bank1[6] = {
+/// Translation/Euler keys for `_gM950PlayerPeCastFamily0Animation`'s tracks 0 and 1.
+///
+/// Translations use model units and angles use 1/4096 turns. Read-only clip
+/// tables retain their serialized positions in .data.
+static const AnimationPackedPose _gM950PlayerPeCastFamily0AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_05D08_bank1.inc"
 };
 
-static AnimationPackedRotation _gM950Animation05D08Bank4[57] = {
+/// Rotation-only keys for `_gM950PlayerPeCastFamily0Animation`'s tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM950PlayerPeCastFamily0AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_05D08_bank4.inc"
 };
 
-static AnimationRecord _gM950Animation05D08Records[87] = {
+/// Keyframes and terminal stops for `_gM950PlayerPeCastFamily0Animation`'s nineteen tracks.
+///
+/// Pose offsets count four-byte words and durations count normal-rate frames.
+/// No keyframe carries a cue.
+static const AnimationRecord _gM950PlayerPeCastFamily0AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_05D08_records.inc"
 };
 
-static u16 _gM950Animation05D08Indices[20] = {
+/// Absolute record starts for `_gM950PlayerPeCastFamily0Animation`'s nineteen player tracks.
+///
+/// Tracks 0/1 use bank 1 and tracks 2..18 use bank 4; ordinary child playback
+/// uses tracks 1..18. The resource's final zero halfword is retained.
+static const u16 _gM950PlayerPeCastFamily0AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_05D08_indices.inc"
 };
 
-static AnimationSet _gM950Animation05D08 = {
-    _gM950Animation05D08Records,
-    _gM950Animation05D08Indices,
-    { NULL, _gM950Animation05D08Bank1, NULL, NULL, _gM950Animation05D08Bank4, NULL, NULL, NULL },
+/// Family-0 Parasite Energy cast clip at id 28 in the M950 player bank.
+///
+/// Follows `_gM950PlayerPeChargeFamily0Animation` when the attachment countdown
+/// reaches zero. Its body-track completion allows normal control to resume.
+/// All nineteen tracks stop; the M950 package must remain loaded while playback
+/// borrows the clip.
+static AnimationSet _gM950PlayerPeCastFamily0Animation = {
+    .records           = _gM950PlayerPeCastFamily0AnimationRecords,
+    .trackStartIndices = _gM950PlayerPeCastFamily0AnimationIndices,
+    .poseBanks         = {
+        [M950_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM950PlayerPeCastFamily0AnimationBank1,
+        [M950_ANIMATION_PACKED_ROTATION_BANK]      = _gM950PlayerPeCastFamily0AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM950Animation05FACBank1[4] = {
+/// Translation/Euler keys for `_gM950PlayerPeReleaseFamily1Animation`'s tracks 0 and 1.
+///
+/// Translations use model units and angles use 1/4096 turns. Read-only clip
+/// tables retain their serialized positions in .data.
+static const AnimationPackedPose _gM950PlayerPeReleaseFamily1AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_05FAC_bank1.inc"
 };
 
-static AnimationPackedRotation _gM950Animation05FACBank4[55] = {
+/// Rotation-only keys for `_gM950PlayerPeReleaseFamily1Animation`'s tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM950PlayerPeReleaseFamily1AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_05FAC_bank4.inc"
 };
 
-static AnimationRecord _gM950Animation05FACRecords[82] = {
+/// Keyframes and terminal stops for `_gM950PlayerPeReleaseFamily1Animation`'s nineteen tracks.
+///
+/// Pose offsets count four-byte words and durations count normal-rate frames.
+/// No keyframe carries a cue.
+static const AnimationRecord _gM950PlayerPeReleaseFamily1AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_05FAC_records.inc"
 };
 
-static u16 _gM950Animation05FACIndices[20] = {
+/// Absolute record starts for `_gM950PlayerPeReleaseFamily1Animation`'s nineteen player tracks.
+///
+/// Tracks 0/1 use bank 1 and tracks 2..18 use bank 4; ordinary child playback
+/// uses tracks 1..18. The resource's final zero halfword is retained.
+static const u16 _gM950PlayerPeReleaseFamily1AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_05FAC_indices.inc"
 };
 
-static AnimationSet _gM950Animation05FAC = {
-    _gM950Animation05FACRecords,
-    _gM950Animation05FACIndices,
-    { NULL, _gM950Animation05FACBank1, NULL, NULL, _gM950Animation05FACBank4, NULL, NULL, NULL },
+/// Family-1 Parasite Energy release clip at id 29 in the M950 player bank.
+///
+/// Family 1 covers spell IDs below 300 except tens digit 3, and item IDs at or
+/// above 601 with a tens digit other than 1. Release starts the attachment
+/// countdown before charge and cast. All nineteen tracks stop; the M950
+/// package must remain loaded while playback borrows the clip.
+static AnimationSet _gM950PlayerPeReleaseFamily1Animation = {
+    .records           = _gM950PlayerPeReleaseFamily1AnimationRecords,
+    .trackStartIndices = _gM950PlayerPeReleaseFamily1AnimationIndices,
+    .poseBanks         = {
+        [M950_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM950PlayerPeReleaseFamily1AnimationBank1,
+        [M950_ANIMATION_PACKED_ROTATION_BANK]      = _gM950PlayerPeReleaseFamily1AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM950Animation061ACBank1[3] = {
+/// Translation/Euler keys for `_gM950PlayerPeChargeFamily1Animation`'s tracks 0 and 1.
+///
+/// Translations use model units and angles use 1/4096 turns. Read-only clip
+/// tables retain their serialized positions in .data.
+static const AnimationPackedPose _gM950PlayerPeChargeFamily1AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_061AC_bank1.inc"
 };
 
-static AnimationPackedRotation _gM950Animation061ACBank4[23] = {
+/// Rotation-only keys for `_gM950PlayerPeChargeFamily1Animation`'s tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM950PlayerPeChargeFamily1AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_061AC_bank4.inc"
 };
 
-static AnimationRecord _gM950Animation061ACRecords[76] = {
+/// Keyframes, loop jumps and retained stop records for `_gM950PlayerPeChargeFamily1Animation`.
+///
+/// All nineteen tracks jump to their starts; the trailing stops are not reached
+/// during forward playback. Pose offsets count four-byte words, jump targets
+/// count records and durations count normal-rate frames. No keyframe carries a cue.
+static const AnimationRecord _gM950PlayerPeChargeFamily1AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_061AC_records.inc"
 };
 
-static u16 _gM950Animation061ACIndices[20] = {
+/// Absolute record starts for `_gM950PlayerPeChargeFamily1Animation`'s nineteen player tracks.
+///
+/// Tracks 0/1 use bank 1 and tracks 2..18 use bank 4; ordinary child playback
+/// uses tracks 1..18. The resource's final zero halfword is retained.
+static const u16 _gM950PlayerPeChargeFamily1AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_061AC_indices.inc"
 };
 
-static AnimationSet _gM950Animation061AC = {
-    _gM950Animation061ACRecords,
-    _gM950Animation061ACIndices,
-    { NULL, _gM950Animation061ACBank1, NULL, NULL, _gM950Animation061ACBank4, NULL, NULL, NULL },
+/// Looping family-1 Parasite Energy charge clip at id 30 in the M950 player bank.
+///
+/// Played after `_gM950PlayerPeReleaseFamily1Animation` while the attachment
+/// countdown remains nonzero, before the family-1 cast. All nineteen tracks
+/// loop; the M950 package must remain loaded while playback borrows the clip.
+static AnimationSet _gM950PlayerPeChargeFamily1Animation = {
+    .records           = _gM950PlayerPeChargeFamily1AnimationRecords,
+    .trackStartIndices = _gM950PlayerPeChargeFamily1AnimationIndices,
+    .poseBanks         = {
+        [M950_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM950PlayerPeChargeFamily1AnimationBank1,
+        [M950_ANIMATION_PACKED_ROTATION_BANK]      = _gM950PlayerPeChargeFamily1AnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gM950Animation06500Bank1[8] = {
@@ -1141,11 +1278,11 @@ AnimationBank D_m950_8012BA78 = { { {
     &_gM950Animation08530,
     &_gM950Animation097C4,
     &_gM950Animation090A8,
-    &_gM950Animation05834,
-    &_gM950Animation05A30,
-    &_gM950Animation05D08,
-    &_gM950Animation05FAC,
-    &_gM950Animation061AC,
+    &_gM950PlayerPeReleaseFamily0Animation,
+    &_gM950PlayerPeChargeFamily0Animation,
+    &_gM950PlayerPeCastFamily0Animation,
+    &_gM950PlayerPeReleaseFamily1Animation,
+    &_gM950PlayerPeChargeFamily1Animation,
     &_gM950Animation06500,
     &_gM950Animation09C44,
     &_gM950Animation09E1C,
@@ -1153,7 +1290,7 @@ AnimationBank D_m950_8012BA78 = { { {
     &_gM950Animation09E1C,
     &_gM950PlayerStairAscentAnimation,
     &_gM950PlayerStairDescentAnimation,
-    &_gM950Animation053AC,
+    &_gM950PlayerStairAscentFinishEvenAnimation,
     &_gM950PlayerStairAscentFinishOddAnimation,
     &_gM950PlayerItemUseAnimation,
     &_gM950PlayerIdleAnimation,
