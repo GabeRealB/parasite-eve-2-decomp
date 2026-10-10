@@ -1681,7 +1681,7 @@ D_shelter_r36_8017FA40 = 0x8017FA40; // absolute:True owner=shelter_r36
 
 D_shelter_r47_80187CB8 = 0x80187CB8; // absolute:True owner=shelter_r47
 
-D_shelter_r48_8018BC10 = 0x8018BC10; // absolute:True owner=shelter_r48 shared=rooms
+D_shelter_r48_8018BC10 = 0x8018BC10; // absolute:True owner=shelter_r48
 
 D_shelter_r49_8017DD74 = 0x8017DD74; // absolute:True owner=shelter_r49
 

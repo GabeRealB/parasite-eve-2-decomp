@@ -18,11 +18,20 @@ extern AreaVariant D_acropolis_bridge_8019004C[12];
 // acropolis_bridge
 extern WorldCollisionRoomResources D_acropolis_bridge_80189A54[];
 
-extern u8* D_acropolis_bridge_80189A80[];
+/// Logical-to-mapped view indices for the bridge's two rooms.
+///
+/// Index by room - 1, then logical view - 1 (views 1..10). Room 1 uses the
+/// identity map; room 2 shares the same ten camera/sprite views in a different
+/// order. The maps remain borrowed while the bridge overlay is loaded.
+extern u8* gAcropolisBridgeViewMaps[2];
 
 extern ViewCount D_acropolis_bridge_80189A88[];
 
-extern WorldCoordRoomLighting D_acropolis_bridge_80189A8C[];
+/// Lighting descriptors for the bridge's two rooms, indexed by room - 1.
+///
+/// Both borrow the same mutable point-light collection and use the default
+/// ambient minima. Descriptors and lights live with the bridge overlay.
+extern WorldCoordRoomLighting gAcropolisBridgeRoomLightingTable[2];
 
 extern DirectionWarpEntry D_acropolis_bridge_80189AB4[];
 
@@ -30,7 +39,13 @@ extern SpriteView D_acropolis_bridge_8018FFA4[];
 
 extern ViewCamera D_acropolis_bridge_80190A24[];
 
-extern WorldCollisionSurfaceProperties* D_acropolis_bridge_80190C34[];
+/// Collision and footstep policies for the bridge's surface classes 0..7.
+///
+/// Classes 0/3/5/6 share the silent blocking policy; classes 2 and 4 add their
+/// own footstep cues. Class 1 passes probes and suppresses weapon impacts;
+/// class 7 passes probes and suppresses pushback. Records are borrowed from
+/// the loaded bridge overlay, independently of the selected room.
+extern WorldCollisionSurfaceProperties* gAcropolisBridgeSurfacePropertiesByClass[8];
 
 /// Emits the bridge's view-dependent glows, player-joint water effects and framebuffer streaks.
 ///
