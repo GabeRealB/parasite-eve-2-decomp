@@ -258,7 +258,7 @@ D_neo_ark_bridge_80181F88 = 0x80181F88; // absolute:True owner=neo_ark_bridge
 gNeoArkBridgeCollisionGrid = 0x80182814; // absolute:True owner=neo_ark_bridge shared=rooms
 gNeoArkBridgeViewCameras = 0x80182838; // absolute:True owner=neo_ark_bridge
 gNeoArkBridgeSpriteViews = 0x80184564; // absolute:True owner=neo_ark_bridge shared=rooms
-gNeoArkBridgeRoomLights = 0x8018470C; // absolute:True owner=neo_ark_bridge shared=rooms
+gNeoArkBridgeRoomLights = 0x8018470C; // absolute:True owner=neo_ark_bridge
 D_neo_ark_bridge_80184724 = 0x80184724; // absolute:True owner=neo_ark_bridge shared=rooms
 D_neo_ark_bridge_80184AB8 = 0x80184AB8; // absolute:True owner=neo_ark_bridge shared=rooms
 gNeoArkBridgeSurfaceProperties = 0x80184BD4; // absolute:True owner=neo_ark_bridge shared=rooms
@@ -284,7 +284,7 @@ gNeoArkWoodlandPathRoomLights = 0x80183F84; // absolute:True owner=neo_ark_woodl
 D_neo_ark_woodland_path_80183F9C = 0x80183F9C; // absolute:True owner=neo_ark_woodland_path shared=rooms
 D_neo_ark_woodland_path_8018445C = 0x8018445C; // absolute:True owner=neo_ark_woodland_path
 gNeoArkWoodlandPathRoomAmbientByView = 0x8018477C; // absolute:True owner=neo_ark_woodland_path shared=rooms
-D_neo_ark_woodland_path_801847D4 = 0x801847D4; // absolute:True owner=neo_ark_woodland_path shared=rooms
+D_neo_ark_woodland_path_801847D4 = 0x801847D4; // absolute:True owner=neo_ark_woodland_path
 gNeoArkWoodlandPathSurfaceProperties = 0x80184910; // absolute:True owner=neo_ark_woodland_path shared=rooms
 neoArkSubmarineGalleryMessageTask = 0x8017EBCC; // type:func absolute:True owner=neo_ark_submarine_gallery
 gNeoArkSubmarineGalleryViewMaps = 0x80181A08; // absolute:True owner=neo_ark_submarine_gallery
