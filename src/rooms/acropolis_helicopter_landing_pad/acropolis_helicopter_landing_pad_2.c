@@ -1634,14 +1634,14 @@ void acropolisHelicopterLandingPadPrepareDepartureTask(Task* task)
         case ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_START_LIFT:
             // Place in the lift's frame before attaching the player to its root.
             TASK_MESSAGE_DISPATCH_SECOND_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_FIND_OTHER_CHILD, ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_CHILD, &liftTask);
-            TASK_MESSAGE_DISPATCH_POINTER(liftTask, ACTOR_MESSAGE_PLAY_ANIMATION, &D_acropolis_helicopter_landing_pad_80184E28, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_PLACE, &D_acropolis_helicopter_landing_pad_801837B0, 0);
-            D_acropolis_helicopter_landing_pad_80184E3C.animationId  = ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_PLAYER_CLIP;
-            D_acropolis_helicopter_landing_pad_80184E3C.source.index = gPlayerStatus.weapon + 1;
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_acropolis_helicopter_landing_pad_80184E3C, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(liftTask, ACTOR_MESSAGE_PLAY_ANIMATION, &gAcropolisHelicopterLandingPadLiftRaiseRequest, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_PLACE, &gAcropolisHelicopterLandingPadLiftPlayerPlacement, 0);
+            gAcropolisHelicopterLandingPadLiftPlayerAnimationRequest.animationId  = ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_PLAYER_CLIP;
+            gAcropolisHelicopterLandingPadLiftPlayerAnimationRequest.source.index = gPlayerStatus.weapon + 1;
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &gAcropolisHelicopterLandingPadLiftPlayerAnimationRequest, 0);
             liftCoord = liftTask->extra.tmd->coords;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_ATTACH_TO_COORD, liftCoord, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_PLACE, &D_acropolis_helicopter_landing_pad_801837B0, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_PLACE, &gAcropolisHelicopterLandingPadLiftPlayerPlacement, 0);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
             task->state += 1;
             break;
@@ -1673,8 +1673,8 @@ void acropolisHelicopterLandingPadPrepareDepartureTask(Task* task)
         case ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_START_SCENE:
             task->spawnArg1.value -= 1;
             if (task->spawnArg1.value <= 0) {
-                evsStartScriptWithSkip(D_acropolis_helicopter_landing_pad_8018467C, EVENT_SCRIPT_HUD_KEEP,
-                                       D_acropolis_helicopter_landing_pad_80184CF4);
+                evsStartScriptWithSkip(gAcropolisHelicopterLandingPadDepartureScript, EVENT_SCRIPT_HUD_KEEP,
+                                       gAcropolisHelicopterLandingPadDepartureSkipScript);
                 taskKill(task);
             }
             break;
@@ -1752,7 +1752,7 @@ void acropolisHelicopterLandingPadReturnToMistTask(Task* task)
             itemSetIdentified(ACROPOLIS_HELICOPTER_LANDING_PAD_ITEM_MICRO_DEVICE, true);
             gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
             gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_DIALOGUE);
-            taskSpawnFromTable(D_acropolis_helicopter_landing_pad_80184E68, ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_MOVIE_TASK, 0, 0);
+            taskSpawnFromTable(gAcropolisHelicopterLandingPadMovieTasks, ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_MOVIE_TASK, 0, 0);
             task->state += 1;
             return;
         case ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_WAIT_MOVIE:
@@ -1950,7 +1950,7 @@ s32 acropolisHelicopterLandingPadHandleRoomAction(Task* unusedTask, s32 unusedMe
         // Swap the encounter triggers before normal play resumes.
         gGameSession->flowFlags   = (GAME_SESSION_FLOW_SKIP_AREA_MUSIC | GAME_SESSION_FLOW_REEQUIP_WEAPON);
         gStageCountdownMusicEntry = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_MUSIC_ENTRY;
-        evsStartScriptWithSkip(D_acropolis_helicopter_landing_pad_80183A34, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_helicopter_landing_pad_80183FA4);
+        evsStartScriptWithSkip(gAcropolisHelicopterLandingPadEncounterIntroScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gAcropolisHelicopterLandingPadEncounterIntroSkipScript);
         gAcropolisHelicopterLandingPadEncounterPhase = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_STARTED;
         placementTrigger                             = &gAcropolisHelicopterLandingPadActionTriggers[ACROPOLIS_HELICOPTER_LANDING_PAD_PLACEMENT_TRIGGER];
         capInteractionTrigger                        = &gAcropolisHelicopterLandingPadActionTriggers[ACROPOLIS_HELICOPTER_LANDING_PAD_CAP_INTERACTION_TRIGGER];
@@ -2147,12 +2147,12 @@ static void _acropolisHelicopterLandingPadInitRoom(Task* task)
     enum { ACROPOLIS_HELICOPTER_LANDING_PAD_PLACEMENT_TRIGGER = 4 };
     WorldCollisionTrigger* placementTrigger;
 
-    task->msgTable = D_acropolis_helicopter_landing_pad_80183710;
+    task->msgTable = gAcropolisHelicopterLandingPadRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     gAcropolisHelicopterLandingPadPostEncounterPlacementEnabled = 0;
     gAcropolisHelicopterLandingPadEncounterReady                = 0;
     task->state++;
-    evsStartScript(D_acropolis_helicopter_landing_pad_80183A04, EVENT_SCRIPT_HUD_KEEP);
+    evsStartScript(gAcropolisHelicopterLandingPadAmbientSoundScript, EVENT_SCRIPT_HUD_KEEP);
     D_acropolis_helicopter_landing_pad_80187F80 = taskSpawnFromTable(gAcropolisHelicopterLandingPadScriptTasks, ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_PLAYER_PITCH, 0, 0);
     placementTrigger                            = &gAcropolisHelicopterLandingPadActionTriggers[ACROPOLIS_HELICOPTER_LANDING_PAD_PLACEMENT_TRIGGER];
     placementTrigger->flags                    &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);

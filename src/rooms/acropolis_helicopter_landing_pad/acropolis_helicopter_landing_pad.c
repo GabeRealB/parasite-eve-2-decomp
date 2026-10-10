@@ -334,8 +334,8 @@ void acropolisHelicopterLandingPadUpdateEncounterPhase(Task* unusedTask)
         if (taskMessageDispatch(sceneFindPlacedActor(ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) {
             if ((gAttachmentState.mode != phase) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 gAcropolisHelicopterLandingPadEncounterPhase = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_FINISHED;
-                evsStartScriptWithSkip(D_acropolis_helicopter_landing_pad_80184124, EVENT_SCRIPT_HUD_HIDE_RESTORE,
-                                       D_acropolis_helicopter_landing_pad_801844B4);
+                evsStartScriptWithSkip(gAcropolisHelicopterLandingPadEncounterEndingScript, EVENT_SCRIPT_HUD_HIDE_RESTORE,
+                                       gAcropolisHelicopterLandingPadEncounterEndingSkipScript);
                 gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACROPOLIS_HELICOPTER_LANDING_PAD_POST_ENCOUNTER_OBJECTIVE);
             }
         }

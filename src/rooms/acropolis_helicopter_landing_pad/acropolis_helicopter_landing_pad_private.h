@@ -14,10 +14,13 @@
 
 #include "main/task_types.h"
 
-/// Two descriptors that attach no model: entry 0 runs
-/// `_acropolisHelicopterLandingPadStartMovieTask`, entry 1
-/// `_acropolisHelicopterLandingPadMovieTask`.
-extern TaskDesc D_acropolis_helicopter_landing_pad_80184E68[];
+/// Two bodyless priority-192 tasks for the return-to-MIST movie.
+///
+/// Slot 0 transfers display control and spawns slot 1 for view-100 movie playback,
+/// cancellation and resource restoration. This is an indexed table without a
+/// terminator: only slots 0/1 may be spawned. The room overlay and callbacks
+/// must remain loaded until display control returns to gameplay.
+extern TaskDesc gAcropolisHelicopterLandingPadMovieTasks[2];
 
 /// Encounter/departure phases consulted by the room's departure callbacks.
 enum {
@@ -81,9 +84,20 @@ extern SVECTOR ActorContact_ScratchPosition;
 
 extern RoomEventMsg D_acropolis_helicopter_landing_pad_80187F90;
 
-extern TaskMessageEntry D_acropolis_helicopter_landing_pad_80183710[5];
+/// Four room-message handlers followed by the task-message end marker.
+///
+/// Resolves departure, refuses key items, handles direction actions and accepts
+/// room commands. Each handler declares its message's integer or typed pointer
+/// payloads; dispatch borrows them synchronously. Unsupported IDs return zero.
+/// The room task borrows this table and its callbacks while the overlay is live.
+extern TaskMessageEntry gAcropolisHelicopterLandingPadRoomMessages[5];
 
-extern ActorTransform D_acropolis_helicopter_landing_pad_801837B0;
+/// Player placement at the lift origin with quarter-turn yaw 1024.
+///
+/// Position is in the current parent frame and angles use 4096 units per turn.
+/// Applied both before attachment and in the lift's frame after attachment.
+/// Dispatch copies both vectors synchronously and retains no record pointer.
+extern ActorTransform gAcropolisHelicopterLandingPadLiftPlayerPlacement;
 
 /// Leading movement destination with preserved, uninterpreted trailing storage.
 ///
@@ -102,19 +116,57 @@ STATIC_ASSERT_SIZEOF(AcropolisHelicopterLandingPadSceneMarkStorage, 0x48);
 /// The trailing words are preserved but have no established use.
 extern AcropolisHelicopterLandingPadSceneMarkStorage gAcropolisHelicopterLandingPadSceneMarkStorage;
 
-extern EvsCommand D_acropolis_helicopter_landing_pad_80183A04[2];
+/// Starts the landing pad's ambient sound and ends the setup event.
+///
+/// Two commands including END, with no scene selection or waits. Started with
+/// HUD control retained; the room-owned array must stay live until execution ends.
+extern EvsCommand gAcropolisHelicopterLandingPadAmbientSoundScript[2];
 
-extern EvsCommand D_acropolis_helicopter_landing_pad_80183A34[58];
+/// Presents the encounter introduction and starts No. 9's fight.
+///
+/// Fifty-eight commands including END. Stops ambient sound/music, selects the
+/// intro stream and CAP slot 1, places and animates the actors, then restores
+/// normal lighting and player drawing before enabling the fight. CAP cues and
+/// frame waits suspend execution. The paired skip script establishes the fight
+/// without replaying the presentation; all borrowed room/actor data must stay loaded.
+extern EvsCommand gAcropolisHelicopterLandingPadEncounterIntroScript[58];
 
-extern EvsCommand D_acropolis_helicopter_landing_pad_80183FA4[16];
+/// Skips the encounter introduction and establishes its playable fight state.
+///
+/// Sixteen commands including END. Fades through camera view 4, cleans up scene
+/// control, places the player, restores lighting and drawing, and starts the
+/// fight. The interpreter retains this room-owned array as the intro's skip target.
+extern EvsCommand gAcropolisHelicopterLandingPadEncounterIntroSkipScript[16];
 
-extern EvsCommand D_acropolis_helicopter_landing_pad_80184124[38];
+/// Presents the encounter ending and sends the lift down to its lower stop.
+///
+/// Thirty-eight commands including END. Selects CAP slot 2 and the ending
+/// stream, restores the player placement, resumes music and releases battle
+/// control. Uses the saved camera view. Room, actor and lift resources must
+/// remain loaded through the CAP waits and command execution.
+extern EvsCommand gAcropolisHelicopterLandingPadEncounterEndingScript[38];
 
-extern EvsCommand D_acropolis_helicopter_landing_pad_801844B4[19];
+/// Skips the encounter ending, parks the lift and restores normal play.
+///
+/// Nineteen commands including END. Fades through scene cleanup, restores the
+/// player placement and saved view, resumes area music and releases battle
+/// control. Retained as the ending event's skip target while the room is loaded.
+extern EvsCommand gAcropolisHelicopterLandingPadEncounterEndingSkipScript[19];
 
-extern EvsCommand D_acropolis_helicopter_landing_pad_8018467C[69];
+/// Presents helicopter departure and starts the movie-backed return to MIST.
+///
+/// Sixty-nine commands including END. Installs two player clips, selects CAP
+/// slot 3 and the departure stream, stages No. 9, Rupert and the helicopter,
+/// and coordinates pitch/shake cues before fading into the return task.
+/// Commands, payloads and actor_511000 resources must stay live through execution.
+extern EvsCommand gAcropolisHelicopterLandingPadDepartureScript[69];
 
-extern EvsCommand D_acropolis_helicopter_landing_pad_80184CF4[7];
+/// Skips helicopter departure and starts the same movie-backed return to MIST.
+///
+/// Seven commands including END. Stops music, fades out and cleans up scene
+/// control before spawning the return task. The interpreter borrows this array
+/// as the departure's skip target; keep the room loaded through execution.
+extern EvsCommand gAcropolisHelicopterLandingPadDepartureSkipScript[7];
 
 /// Script-task indices in `gAcropolisHelicopterLandingPadScriptTasks`.
 enum {
@@ -136,9 +188,18 @@ enum {
 /// and any borrowed room resources must remain loaded through task teardown.
 extern TaskDesc gAcropolisHelicopterLandingPadScriptTasks[ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_COUNT + 1];
 
-extern AnimationPlayRequest D_acropolis_helicopter_landing_pad_80184E28;
+/// Starts the lift's 120-tick rise from the lower stop for departure.
+///
+/// Only the zero run selector in `animationId` is read; the stored bank, blend
+/// and collision fields are ignored. Dispatch borrows the room-owned request.
+extern AnimationPlayRequest gAcropolisHelicopterLandingPadLiftRaiseRequest;
 
-extern AnimationPlayRequest D_acropolis_helicopter_landing_pad_80184E3C;
+/// Mutable player-animation request used while boarding the rising lift.
+///
+/// Departure setup sets clip 9 and the equipped weapon's bank before dispatch.
+/// Resets playback and disables world collision; the receiver copies the request
+/// synchronously. The request belongs to the room overlay and is reused in place.
+extern AnimationPlayRequest gAcropolisHelicopterLandingPadLiftPlayerAnimationRequest;
 
 /// Player placement applied after the encounter when room action 1 is latched.
 ///

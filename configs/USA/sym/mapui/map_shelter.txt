@@ -273,7 +273,7 @@ gShelterB2ElevatorActionTriggers = 0x8017E8F0; // absolute:True owner=shelter_b2
 gShelterB2ElevatorSurfacePropertiesByClass = 0x8017E9D8; // absolute:True owner=shelter_b2_elevator
 shelterB2ElevatorHallRoomTask = 0x8017DD08; // type:func absolute:True owner=shelter_b2_elevator_hall shared=rooms
 gShelterB2ElevatorHallViewMaps = 0x801838DC; // absolute:True owner=shelter_b2_elevator_hall
-gShelterB2ElevatorHallRoomViewCounts = 0x801838E0; // absolute:True owner=shelter_b2_elevator_hall shared=rooms
+gShelterB2ElevatorHallRoomViewCounts = 0x801838E0; // absolute:True owner=shelter_b2_elevator_hall
 gShelterB2ElevatorHallWarpEntries = 0x801838E4; // absolute:True owner=shelter_b2_elevator_hall shared=rooms
 gShelterB2ElevatorHallRoomCollision = 0x80183DB4; // absolute:True owner=shelter_b2_elevator_hall
 gShelterB2ElevatorHallViewCameras = 0x80183DD8; // absolute:True owner=shelter_b2_elevator_hall

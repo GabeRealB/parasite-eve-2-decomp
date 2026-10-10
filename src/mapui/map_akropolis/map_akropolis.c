@@ -1040,7 +1040,7 @@ static WorldCollisionRoomResources* D_map_akropolis_8017AA78[20] = {
     gAcropolisRoofGardenCollisionRoomResources,
     gAcropolisBridgeRoomCollisionResources,
     gAcropolisFireEscapeCollisionRoomResources,
-    D_acropolis_helicopter_landing_pad_80184F10,
+    gAcropolisHelicopterLandingPadCollisionRoomResources,
     gAcropolisWestElevatorHallCollisionRoomResources,
     gMistR18CollisionRoomResources,
     gMistParkingRoomCollisionResources,

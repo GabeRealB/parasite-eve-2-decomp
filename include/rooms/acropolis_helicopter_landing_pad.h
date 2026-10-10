@@ -26,7 +26,14 @@ extern TmdSource gAcropolisHelicopterLandingPadModel0547C;
 extern TmdSource gAcropolisHelicopterLandingPadModel0A8E8;
 
 // acropolis_helicopter_landing_pad
-extern WorldCollisionRoomResources D_acropolis_helicopter_landing_pad_80184F10[];
+/// Collision resources for the landing pad's single room in Acropolis area 16.
+///
+/// The stage-map directory selects this array at area minus one; room 1 selects
+/// its sole record. It borrows the grid, sixteen view boundaries, nine action
+/// triggers and two sight occluders. Their own LAST flags terminate the lists;
+/// this one-record array has no terminator. Keep the room loaded while any of
+/// its mutable resources are bound or queried.
+extern WorldCollisionRoomResources gAcropolisHelicopterLandingPadCollisionRoomResources[1];
 
 /// Logical-view map directory for the landing pad's single room in area 16.
 ///
