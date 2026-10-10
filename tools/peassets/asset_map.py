@@ -694,6 +694,9 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
                 if not line.startswith("# asset\t") and line.strip("# "):
                     remarks[path.stem].append(line.lstrip("# ").replace("\t", " | "))
                 continue
+            # An editor that strips trailing white space drops an empty note, and with it the line's last tab.
+            if len(cells) == 7 and cells[6] in ("established", "open"):
+                cells.append("")
             if len(cells) < 8:
                 continue
             # The asset field can name several assets, and ranges of them ("bs_41, bs_43..bs_49"): the use is each one's.
