@@ -2,8 +2,9 @@
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 
-#include "types.h"
+#include "common.h"
 
 #include "gameplay/animation.h"
 #include "gameplay/items.h"
@@ -181,36 +182,47 @@ TmdSource D_pa3_8011DA04 = {
     _gPa3Model0056CStream,
 };
 #elif WEAPON_ID == 0xE
-static TmdBone _gSp12Model005CCSkeleton[1] = {
+/// Initial identity transform and self-parented root of the rigid shotgun model.
+///
+/// Read-only asset arrays retain their serialized positions in .data.
+static const TmdBone _gSp12ModelSkeleton[] __attribute__((section(".data"))) = {
 #include "assets/sp12_model_005CC_skeleton.inc"
 };
 
-static u32 _gSp12Model005CCPartVerts[1] = {
+/// Vertex count of the model's sole part, covering all 34 local vertices.
+static const u32 _gSp12ModelPartVerts[ARRAY_SIZE(_gSp12ModelSkeleton)] __attribute__((section(".data"))) = {
 #include "assets/sp12_model_005CC_partVerts.inc"
 };
 
-static SVECTOR _gSp12Model005CCVerts[34] = {
+/// Shotgun vertices in integer coordinates local to its single root part.
+static SVECTOR _gSp12ModelVerts[] = {
 #include "assets/sp12_model_005CC_verts.inc"
 };
 
-static SVECTOR _gSp12Model005CCNormals[30] = {
+/// Part-local lighting normals with twelve fractional bits, indexed independently of vertices.
+static SVECTOR _gSp12ModelNormals[] = {
 #include "assets/sp12_model_005CC_normals.inc"
 };
 
-static u32 _gSp12Model005CCStream[238] = {
+/// Writable draw commands for two textured Gouraud triangles and 31 quads.
+///
+/// First creation resolves handler slots in place. The single part group ends
+/// with `TMD_STREAM_GROUP_END`, followed by `TMD_STREAM_END`; no pre-transformed
+/// region is used.
+static u32 _gSp12ModelStream[] = {
 #include "assets/sp12_model_005CC_stream.inc"
 };
 
-TmdSource D_sp12_8011DB44 = {
-    0,
-    1692,
-    0,
-    1,
-    _gSp12Model005CCPartVerts,
-    _gSp12Model005CCVerts,
-    _gSp12Model005CCNormals,
-    _gSp12Model005CCSkeleton,
-    _gSp12Model005CCStream,
+TmdSource gSp12Model = {
+    .handlersResolved    = false,
+    .bufferHalfBytes     = (2 * sizeof(POLY_GT3)) + (31 * sizeof(POLY_GT4)),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gSp12ModelSkeleton),
+    .partVertexCounts    = _gSp12ModelPartVerts,
+    .verts               = _gSp12ModelVerts,
+    .normals             = _gSp12ModelNormals,
+    .skeleton            = _gSp12ModelSkeleton,
+    .stream              = _gSp12ModelStream,
 };
 #endif
 
@@ -1090,114 +1102,188 @@ AnimationBank D_pa3_8012C18C = { { {
     NULL,
 } } };
 #elif WEAPON_ID == 0xE
-static AnimationPackedPose _gSp12Animation00B38Bank1[2] = {
+/// Encoding-indexed banks used by the player clips below; all other banks are absent.
+enum {
+    SP12_ANIMATION_TRANSLATION_ROTATION_BANK = 1,
+    SP12_ANIMATION_PACKED_ROTATION_BANK      = 4,
+};
+
+/// Translation/rotation keyframes for `_gSp12IdleAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gSp12IdleAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_00B38_bank1.inc"
 };
 
-static AnimationPackedRotation _gSp12Animation00B38Bank4[8] = {
+/// Rotation-only keyframes for `_gSp12IdleAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gSp12IdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_00B38_bank4.inc"
 };
 
-static AnimationRecord _gSp12Animation00B38Records[76] = {
+/// Keyframe durations and control records for `_gSp12IdleAnimation`'s nineteen part tracks.
+static const AnimationRecord _gSp12IdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_00B38_records.inc"
 };
 
-static u16 _gSp12Animation00B38Indices[20] = {
+/// Record-array starts of `_gSp12IdleAnimation`'s nineteen model-part tracks.
+///
+/// The final halfword preserves the serialized descriptor's word alignment;
+/// playback indexes only the first nineteen entries (tracks 0..18).
+static const u16 _gSp12IdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_00B38_indices.inc"
 };
 
-static AnimationSet _gSp12Animation00B38 = {
-    _gSp12Animation00B38Records,
-    _gSp12Animation00B38Indices,
-    { NULL, _gSp12Animation00B38Bank1, NULL, NULL, _gSp12Animation00B38Bank4, NULL, NULL, NULL },
+/// Standing player pose in the SP12 bank, shared by slots 1, 21, 22 and 41.
+///
+/// Locomotion selects slot 1 when movement and turning stop.
+/// Borrowed tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gSp12IdleAnimation = {
+    .records           = _gSp12IdleAnimationRecords,
+    .trackStartIndices = _gSp12IdleAnimationIndices,
+    .poseBanks         = {
+        [SP12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gSp12IdleAnimationBank1,
+        [SP12_ANIMATION_PACKED_ROTATION_BANK]      = _gSp12IdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gSp12Animation011DCBank1[12] = {
+/// Translation/rotation keyframes for `_gSp12UnarmedWalkAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gSp12UnarmedWalkAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_011DC_bank1.inc"
 };
 
-static AnimationPackedRotation _gSp12Animation011DCBank4[151] = {
+/// Rotation-only keyframes for `_gSp12UnarmedWalkAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gSp12UnarmedWalkAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_011DC_bank4.inc"
 };
 
-static AnimationRecord _gSp12Animation011DCRecords[218] = {
+/// Keyframe durations and control records for `_gSp12UnarmedWalkAnimation`'s nineteen part tracks.
+static const AnimationRecord _gSp12UnarmedWalkAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_011DC_records.inc"
 };
 
-static u16 _gSp12Animation011DCIndices[20] = {
+/// Record-array starts of `_gSp12UnarmedWalkAnimation`'s nineteen model-part tracks.
+///
+/// The final halfword preserves the serialized descriptor's word alignment;
+/// playback indexes only the first nineteen entries (tracks 0..18).
+static const u16 _gSp12UnarmedWalkAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_011DC_indices.inc"
 };
 
-static AnimationSet _gSp12Animation011DC = {
-    _gSp12Animation011DCRecords,
-    _gSp12Animation011DCIndices,
-    { NULL, _gSp12Animation011DCBank1, NULL, NULL, _gSp12Animation011DCBank4, NULL, NULL, NULL },
+/// Player forward-walk clip in SP12 bank slot 19 while the held model is absent.
+///
+/// The weapon remains selected; an empty equipment-model slot selects this clip.
+/// Borrowed tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gSp12UnarmedWalkAnimation = {
+    .records           = _gSp12UnarmedWalkAnimationRecords,
+    .trackStartIndices = _gSp12UnarmedWalkAnimationIndices,
+    .poseBanks         = {
+        [SP12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gSp12UnarmedWalkAnimationBank1,
+        [SP12_ANIMATION_PACKED_ROTATION_BANK]      = _gSp12UnarmedWalkAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gSp12Animation01A3CBank1[19] = {
+/// Translation/rotation keyframes for `_gSp12NegativeTurnAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gSp12NegativeTurnAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_01A3C_bank1.inc"
 };
 
-static AnimationPackedRotation _gSp12Animation01A3CBank4[169] = {
+/// Rotation-only keyframes for `_gSp12NegativeTurnAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gSp12NegativeTurnAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_01A3C_bank4.inc"
 };
 
-static AnimationRecord _gSp12Animation01A3CRecords[290] = {
+/// Keyframe durations and control records for `_gSp12NegativeTurnAnimation`'s nineteen part tracks.
+static const AnimationRecord _gSp12NegativeTurnAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_01A3C_records.inc"
 };
 
-static u16 _gSp12Animation01A3CIndices[20] = {
+/// Record-array starts of `_gSp12NegativeTurnAnimation`'s nineteen model-part tracks.
+///
+/// The final halfword preserves the serialized descriptor's word alignment;
+/// playback indexes only the first nineteen entries (tracks 0..18).
+static const u16 _gSp12NegativeTurnAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_01A3C_indices.inc"
 };
 
-static AnimationSet _gSp12Animation01A3C = {
-    _gSp12Animation01A3CRecords,
-    _gSp12Animation01A3CIndices,
-    { NULL, _gSp12Animation01A3CBank1, NULL, NULL, _gSp12Animation01A3CBank4, NULL, NULL, NULL },
+/// Stationary player turn for a negative turn sign, in SP12 bank slot 5.
+///
+/// Borrowed nineteen-part tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gSp12NegativeTurnAnimation = {
+    .records           = _gSp12NegativeTurnAnimationRecords,
+    .trackStartIndices = _gSp12NegativeTurnAnimationIndices,
+    .poseBanks         = {
+        [SP12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gSp12NegativeTurnAnimationBank1,
+        [SP12_ANIMATION_PACKED_ROTATION_BANK]      = _gSp12NegativeTurnAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gSp12Animation022A0Bank1[19] = {
+/// Translation/rotation keyframes for `_gSp12PositiveTurnAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gSp12PositiveTurnAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_022A0_bank1.inc"
 };
 
-static AnimationPackedRotation _gSp12Animation022A0Bank4[170] = {
+/// Rotation-only keyframes for `_gSp12PositiveTurnAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gSp12PositiveTurnAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_022A0_bank4.inc"
 };
 
-static AnimationRecord _gSp12Animation022A0Records[290] = {
+/// Keyframe durations and control records for `_gSp12PositiveTurnAnimation`'s nineteen part tracks.
+static const AnimationRecord _gSp12PositiveTurnAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_022A0_records.inc"
 };
 
-static u16 _gSp12Animation022A0Indices[20] = {
+/// Record-array starts of `_gSp12PositiveTurnAnimation`'s nineteen model-part tracks.
+///
+/// The final halfword preserves the serialized descriptor's word alignment;
+/// playback indexes only the first nineteen entries (tracks 0..18).
+static const u16 _gSp12PositiveTurnAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_022A0_indices.inc"
 };
 
-static AnimationSet _gSp12Animation022A0 = {
-    _gSp12Animation022A0Records,
-    _gSp12Animation022A0Indices,
-    { NULL, _gSp12Animation022A0Bank1, NULL, NULL, _gSp12Animation022A0Bank4, NULL, NULL, NULL },
+/// Stationary player turn for a positive turn sign, in SP12 bank slot 6.
+///
+/// Borrowed nineteen-part tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gSp12PositiveTurnAnimation = {
+    .records           = _gSp12PositiveTurnAnimationRecords,
+    .trackStartIndices = _gSp12PositiveTurnAnimationIndices,
+    .poseBanks         = {
+        [SP12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gSp12PositiveTurnAnimationBank1,
+        [SP12_ANIMATION_PACKED_ROTATION_BANK]      = _gSp12PositiveTurnAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gSp12Animation025B4Bank1[3] = {
+/// Translation/rotation keyframes for `_gSp12ItemUseAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gSp12ItemUseAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_025B4_bank1.inc"
 };
 
-static AnimationPackedRotation _gSp12Animation025B4Bank4[69] = {
+/// Rotation-only keyframes for `_gSp12ItemUseAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gSp12ItemUseAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_025B4_bank4.inc"
 };
 
-static AnimationRecord _gSp12Animation025B4Records[99] = {
+/// Keyframe durations and control records for `_gSp12ItemUseAnimation`'s nineteen part tracks.
+static const AnimationRecord _gSp12ItemUseAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_025B4_records.inc"
 };
 
-static u16 _gSp12Animation025B4Indices[20] = {
+/// Record-array starts of `_gSp12ItemUseAnimation`'s nineteen model-part tracks.
+///
+/// The final halfword preserves the serialized descriptor's word alignment;
+/// playback indexes only the first nineteen entries (tracks 0..18).
+static const u16 _gSp12ItemUseAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_025B4_indices.inc"
 };
 
-static AnimationSet _gSp12Animation025B4 = {
-    _gSp12Animation025B4Records,
-    _gSp12Animation025B4Indices,
-    { NULL, _gSp12Animation025B4Bank1, NULL, NULL, _gSp12Animation025B4Bank4, NULL, NULL, NULL },
+/// Scripted player item-use clip in SP12 bank slot 40.
+///
+/// Playback blends in over six normal-rate frames before returning to aim locomotion.
+/// Borrowed nineteen-part tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gSp12ItemUseAnimation = {
+    .records           = _gSp12ItemUseAnimationRecords,
+    .trackStartIndices = _gSp12ItemUseAnimationIndices,
+    .poseBanks         = {
+        [SP12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gSp12ItemUseAnimationBank1,
+        [SP12_ANIMATION_PACKED_ROTATION_BANK]      = _gSp12ItemUseAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gSp12Animation02D10Bank1[14] = {
@@ -1884,12 +1970,12 @@ static AnimationSet _gSp12Animation0EAE0 = {
 
 AnimationBank D_sp12_8012BCC8 = { { {
     NULL,
-    &_gSp12Animation00B38,
+    &_gSp12IdleAnimation,
     &_gSp12Animation0D96C,
     &_gSp12Animation0E10C,
     &_gSp12Animation0EAE0,
-    &_gSp12Animation01A3C,
-    &_gSp12Animation022A0,
+    &_gSp12NegativeTurnAnimation,
+    &_gSp12PositiveTurnAnimation,
     &_gSp12Animation0CB3C,
     &_gSp12Animation0D0B4,
     &_gSp12Animation0931C,
@@ -1902,10 +1988,10 @@ AnimationBank D_sp12_8012BCC8 = { { {
     &_gSp12Animation04F04,
     &_gSp12Animation05224,
     &_gSp12Animation059E8,
-    &_gSp12Animation011DC,
+    &_gSp12UnarmedWalkAnimation,
     &_gSp12Animation0BA44,
-    &_gSp12Animation00B38,
-    &_gSp12Animation00B38,
+    &_gSp12IdleAnimation,
+    &_gSp12IdleAnimation,
     &_gSp12Animation06C80,
     &_gSp12Animation07F14,
     &_gSp12Animation077F8,
@@ -1923,8 +2009,8 @@ AnimationBank D_sp12_8012BCC8 = { { {
     &_gSp12Animation03498,
     &_gSp12Animation03AFC,
     &_gSp12Animation0376C,
-    &_gSp12Animation025B4,
-    &_gSp12Animation00B38,
+    &_gSp12ItemUseAnimation,
+    &_gSp12IdleAnimation,
     &_gSp12Animation08AD0,
     &_gSp12Animation08CC4,
     &_gSp12Animation09144,

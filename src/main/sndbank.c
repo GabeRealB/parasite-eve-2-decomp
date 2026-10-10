@@ -323,7 +323,7 @@ TaskDesc D_800678F4[] = {
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { .model = &gGrenadePistolWeaponModel } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { .model = &gMm1WeaponModel } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_pa3_8011DA04 } },
-    { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_sp12_8011DB44 } },
+    { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &gSp12Model } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &gAs12Model } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &gM4a1RifleModel } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &gM249WeaponModel } },

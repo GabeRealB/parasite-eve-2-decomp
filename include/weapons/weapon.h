@@ -82,7 +82,12 @@ extern TmdSource gMongooseModel;
 
 extern TmdSource D_pa3_8011DA04;
 
-extern TmdSource D_sp12_8011DB44;
+/// Rigid held SP12 shotgun model, attached through the resident weapon-task bank.
+///
+/// One root part holds 34 vertices and 30 lighting normals. The SP12 overlay
+/// must remain loaded while a model instance borrows this source; creation
+/// resolves its writable command stream and copies the initial root transform.
+extern TmdSource gSp12Model;
 
 extern TmdSource D_tonfa_baton_8011E460;
 
