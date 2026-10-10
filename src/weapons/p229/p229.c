@@ -640,136 +640,238 @@ static AnimationSet _gP229PlayerStairAscentFinishOddAnimation = {
     },
 };
 
-static AnimationPackedPose _gP229Animation05EF4Bank1[7] = {
+/// Translation/rotation poses for `_gP229PlayerStairAscentFinishEvenAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gP229PlayerStairAscentFinishEvenAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_05EF4_bank1.inc"
 };
 
-static AnimationPackedRotation _gP229Animation05EF4Bank4[73] = {
+/// Rotation-only poses for `_gP229PlayerStairAscentFinishEvenAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gP229PlayerStairAscentFinishEvenAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_05EF4_bank4.inc"
 };
 
-static AnimationRecord _gP229Animation05EF4Records[114] = {
+/// Keyframe durations, a track-1 footstep cue and stop controls for `_gP229PlayerStairAscentFinishEvenAnimation`.
+static const AnimationRecord _gP229PlayerStairAscentFinishEvenAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_05EF4_records.inc"
 };
 
-static u16 _gP229Animation05EF4Indices[20] = {
+/// Absolute record starts for `_gP229PlayerStairAscentFinishEvenAnimation`'s model-part tracks 0..18.
+///
+/// The final serialized halfword is retained after the nineteen track starts;
+/// it is outside the playback track range.
+static const u16 _gP229PlayerStairAscentFinishEvenAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_05EF4_indices.inc"
 };
 
-static AnimationSet _gP229Animation05EF4 = {
-    _gP229Animation05EF4Records,
-    _gP229Animation05EF4Indices,
-    { NULL, _gP229Animation05EF4Bank1, NULL, NULL, _gP229Animation05EF4Bank4, NULL, NULL, NULL },
+/// Player stair-ascent finish for an even initial step count, in native-bank set 38.
+///
+/// This non-looping P229-bank clip completes the level stride at the top of
+/// the flight, with a footstep cue on track 1. Tracks 0 and 1 carry
+/// translation/rotation; tracks 2..18 carry rotation only.
+/// The package must remain loaded during player playback.
+static AnimationSet _gP229PlayerStairAscentFinishEvenAnimation = {
+    .records           = _gP229PlayerStairAscentFinishEvenAnimationRecords,
+    .trackStartIndices = _gP229PlayerStairAscentFinishEvenAnimationIndices,
+    .poseBanks         = {
+        [P229_ANIMATION_TRANSLATION_ROTATION_BANK] = _gP229PlayerStairAscentFinishEvenAnimationBank1,
+        [P229_ANIMATION_PACKED_ROTATION_BANK]      = _gP229PlayerStairAscentFinishEvenAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gP229Animation0637CBank1[9] = {
+/// Translation/rotation poses for `_gP229PlayerParasiteEnergyReleaseFamily0Animation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gP229PlayerParasiteEnergyReleaseFamily0AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_0637C_bank1.inc"
 };
 
-static AnimationPackedRotation _gP229Animation0637CBank4[104] = {
+/// Rotation-only poses for `_gP229PlayerParasiteEnergyReleaseFamily0Animation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gP229PlayerParasiteEnergyReleaseFamily0AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_0637C_bank4.inc"
 };
 
-static AnimationRecord _gP229Animation0637CRecords[139] = {
+/// Keyframe durations and stop controls for `_gP229PlayerParasiteEnergyReleaseFamily0Animation`'s nineteen part tracks.
+static const AnimationRecord _gP229PlayerParasiteEnergyReleaseFamily0AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_0637C_records.inc"
 };
 
-static u16 _gP229Animation0637CIndices[20] = {
+/// Absolute record starts for `_gP229PlayerParasiteEnergyReleaseFamily0Animation`'s model-part tracks 0..18.
+///
+/// The final serialized halfword is retained after the nineteen track starts;
+/// it is outside the playback track range.
+static const u16 _gP229PlayerParasiteEnergyReleaseFamily0AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_0637C_indices.inc"
 };
 
-static AnimationSet _gP229Animation0637C = {
-    _gP229Animation0637CRecords,
-    _gP229Animation0637CIndices,
-    { NULL, _gP229Animation0637CBank1, NULL, NULL, _gP229Animation0637CBank4, NULL, NULL, NULL },
+/// Player Parasite Energy family-0 release gesture in P229 native-bank set 26.
+///
+/// Starts the normal-mode action before the family-0 charge loop. The attachment
+/// ID selects the clip family, shared by spells and item actions.
+/// Tracks 0 and 1 carry translation/rotation; tracks 2..18 carry rotation only.
+/// Every track stops at its final pose; the package must remain loaded during playback.
+static AnimationSet _gP229PlayerParasiteEnergyReleaseFamily0Animation = {
+    .records           = _gP229PlayerParasiteEnergyReleaseFamily0AnimationRecords,
+    .trackStartIndices = _gP229PlayerParasiteEnergyReleaseFamily0AnimationIndices,
+    .poseBanks         = {
+        [P229_ANIMATION_TRANSLATION_ROTATION_BANK] = _gP229PlayerParasiteEnergyReleaseFamily0AnimationBank1,
+        [P229_ANIMATION_PACKED_ROTATION_BANK]      = _gP229PlayerParasiteEnergyReleaseFamily0AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gP229Animation06578Bank1[3] = {
+/// Translation/rotation poses for `_gP229PlayerParasiteEnergyChargeFamily0Animation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gP229PlayerParasiteEnergyChargeFamily0AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_06578_bank1.inc"
 };
 
-static AnimationPackedRotation _gP229Animation06578Bank4[22] = {
+/// Rotation-only poses for `_gP229PlayerParasiteEnergyChargeFamily0Animation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gP229PlayerParasiteEnergyChargeFamily0AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_06578_bank4.inc"
 };
 
-static AnimationRecord _gP229Animation06578Records[76] = {
+/// Keyframe durations and loop controls for `_gP229PlayerParasiteEnergyChargeFamily0Animation`'s nineteen part tracks.
+///
+/// Each track jumps to its first keyframe; the serialized stop following each
+/// jump is retained even though normal forward playback does not reach it.
+static const AnimationRecord _gP229PlayerParasiteEnergyChargeFamily0AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_06578_records.inc"
 };
 
-static u16 _gP229Animation06578Indices[20] = {
+/// Absolute record starts for `_gP229PlayerParasiteEnergyChargeFamily0Animation`'s model-part tracks 0..18.
+///
+/// The final serialized halfword is retained after the nineteen track starts;
+/// it is outside the playback track range.
+static const u16 _gP229PlayerParasiteEnergyChargeFamily0AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_06578_indices.inc"
 };
 
-static AnimationSet _gP229Animation06578 = {
-    _gP229Animation06578Records,
-    _gP229Animation06578Indices,
-    { NULL, _gP229Animation06578Bank1, NULL, NULL, _gP229Animation06578Bank4, NULL, NULL, NULL },
+/// Player Parasite Energy family-0 charge loop in P229 native-bank set 27.
+///
+/// Loops after the release gesture until the attachment countdown reaches zero,
+/// then gives way to the family-0 cast gesture.
+/// Tracks 0 and 1 carry translation/rotation; tracks 2..18 carry rotation only.
+/// The package must remain loaded during player playback.
+static AnimationSet _gP229PlayerParasiteEnergyChargeFamily0Animation = {
+    .records           = _gP229PlayerParasiteEnergyChargeFamily0AnimationRecords,
+    .trackStartIndices = _gP229PlayerParasiteEnergyChargeFamily0AnimationIndices,
+    .poseBanks         = {
+        [P229_ANIMATION_TRANSLATION_ROTATION_BANK] = _gP229PlayerParasiteEnergyChargeFamily0AnimationBank1,
+        [P229_ANIMATION_PACKED_ROTATION_BANK]      = _gP229PlayerParasiteEnergyChargeFamily0AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gP229Animation06850Bank1[6] = {
+/// Translation/rotation poses for `_gP229PlayerParasiteEnergyCastFamily0Animation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gP229PlayerParasiteEnergyCastFamily0AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_06850_bank1.inc"
 };
 
-static AnimationPackedRotation _gP229Animation06850Bank4[57] = {
+/// Rotation-only poses for `_gP229PlayerParasiteEnergyCastFamily0Animation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gP229PlayerParasiteEnergyCastFamily0AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_06850_bank4.inc"
 };
 
-static AnimationRecord _gP229Animation06850Records[87] = {
+/// Keyframe durations and stop controls for `_gP229PlayerParasiteEnergyCastFamily0Animation`'s nineteen part tracks.
+static const AnimationRecord _gP229PlayerParasiteEnergyCastFamily0AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_06850_records.inc"
 };
 
-static u16 _gP229Animation06850Indices[20] = {
+/// Absolute record starts for `_gP229PlayerParasiteEnergyCastFamily0Animation`'s model-part tracks 0..18.
+///
+/// The final serialized halfword is retained after the nineteen track starts;
+/// it is outside the playback track range.
+static const u16 _gP229PlayerParasiteEnergyCastFamily0AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_06850_indices.inc"
 };
 
-static AnimationSet _gP229Animation06850 = {
-    _gP229Animation06850Records,
-    _gP229Animation06850Indices,
-    { NULL, _gP229Animation06850Bank1, NULL, NULL, _gP229Animation06850Bank4, NULL, NULL, NULL },
+/// Player Parasite Energy family-0 cast gesture in P229 native-bank set 28.
+///
+/// Replaces the charge loop when the attachment countdown reaches zero and
+/// completes before the player's previous locomotion or aim state resumes.
+/// Tracks 0 and 1 carry translation/rotation; tracks 2..18 carry rotation only.
+/// Every track stops at its final pose; the package must remain loaded during playback.
+static AnimationSet _gP229PlayerParasiteEnergyCastFamily0Animation = {
+    .records           = _gP229PlayerParasiteEnergyCastFamily0AnimationRecords,
+    .trackStartIndices = _gP229PlayerParasiteEnergyCastFamily0AnimationIndices,
+    .poseBanks         = {
+        [P229_ANIMATION_TRANSLATION_ROTATION_BANK] = _gP229PlayerParasiteEnergyCastFamily0AnimationBank1,
+        [P229_ANIMATION_PACKED_ROTATION_BANK]      = _gP229PlayerParasiteEnergyCastFamily0AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gP229Animation06AF4Bank1[4] = {
+/// Translation/rotation poses for `_gP229PlayerParasiteEnergyReleaseFamily1Animation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gP229PlayerParasiteEnergyReleaseFamily1AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_06AF4_bank1.inc"
 };
 
-static AnimationPackedRotation _gP229Animation06AF4Bank4[55] = {
+/// Rotation-only poses for `_gP229PlayerParasiteEnergyReleaseFamily1Animation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gP229PlayerParasiteEnergyReleaseFamily1AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_06AF4_bank4.inc"
 };
 
-static AnimationRecord _gP229Animation06AF4Records[82] = {
+/// Keyframe durations and stop controls for `_gP229PlayerParasiteEnergyReleaseFamily1Animation`'s nineteen part tracks.
+static const AnimationRecord _gP229PlayerParasiteEnergyReleaseFamily1AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_06AF4_records.inc"
 };
 
-static u16 _gP229Animation06AF4Indices[20] = {
+/// Absolute record starts for `_gP229PlayerParasiteEnergyReleaseFamily1Animation`'s model-part tracks 0..18.
+///
+/// The final serialized halfword is retained after the nineteen track starts;
+/// it is outside the playback track range.
+static const u16 _gP229PlayerParasiteEnergyReleaseFamily1AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_06AF4_indices.inc"
 };
 
-static AnimationSet _gP229Animation06AF4 = {
-    _gP229Animation06AF4Records,
-    _gP229Animation06AF4Indices,
-    { NULL, _gP229Animation06AF4Bank1, NULL, NULL, _gP229Animation06AF4Bank4, NULL, NULL, NULL },
+/// Player Parasite Energy family-1 release gesture in P229 native-bank set 29.
+///
+/// Starts the normal-mode action before the family-1 charge loop. The attachment
+/// ID selects the clip family, shared by spells and item actions.
+/// Tracks 0 and 1 carry translation/rotation; tracks 2..18 carry rotation only.
+/// Every track stops at its final pose; the package must remain loaded during playback.
+static AnimationSet _gP229PlayerParasiteEnergyReleaseFamily1Animation = {
+    .records           = _gP229PlayerParasiteEnergyReleaseFamily1AnimationRecords,
+    .trackStartIndices = _gP229PlayerParasiteEnergyReleaseFamily1AnimationIndices,
+    .poseBanks         = {
+        [P229_ANIMATION_TRANSLATION_ROTATION_BANK] = _gP229PlayerParasiteEnergyReleaseFamily1AnimationBank1,
+        [P229_ANIMATION_PACKED_ROTATION_BANK]      = _gP229PlayerParasiteEnergyReleaseFamily1AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gP229Animation06CF4Bank1[3] = {
+/// Translation/rotation poses for `_gP229PlayerParasiteEnergyChargeFamily1Animation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gP229PlayerParasiteEnergyChargeFamily1AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_06CF4_bank1.inc"
 };
 
-static AnimationPackedRotation _gP229Animation06CF4Bank4[23] = {
+/// Rotation-only poses for `_gP229PlayerParasiteEnergyChargeFamily1Animation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gP229PlayerParasiteEnergyChargeFamily1AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_06CF4_bank4.inc"
 };
 
-static AnimationRecord _gP229Animation06CF4Records[76] = {
+/// Keyframe durations and loop controls for `_gP229PlayerParasiteEnergyChargeFamily1Animation`'s nineteen part tracks.
+///
+/// Each track jumps to its first keyframe; the serialized stop following each
+/// jump is retained even though normal forward playback does not reach it.
+static const AnimationRecord _gP229PlayerParasiteEnergyChargeFamily1AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_06CF4_records.inc"
 };
 
-static u16 _gP229Animation06CF4Indices[20] = {
+/// Absolute record starts for `_gP229PlayerParasiteEnergyChargeFamily1Animation`'s model-part tracks 0..18.
+///
+/// The final serialized halfword is retained after the nineteen track starts;
+/// it is outside the playback track range.
+static const u16 _gP229PlayerParasiteEnergyChargeFamily1AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_06CF4_indices.inc"
 };
 
-static AnimationSet _gP229Animation06CF4 = {
-    _gP229Animation06CF4Records,
-    _gP229Animation06CF4Indices,
-    { NULL, _gP229Animation06CF4Bank1, NULL, NULL, _gP229Animation06CF4Bank4, NULL, NULL, NULL },
+/// Player Parasite Energy family-1 charge loop in P229 native-bank set 30.
+///
+/// Loops after the release gesture until the attachment countdown reaches zero,
+/// then gives way to the family-1 cast gesture in set 31.
+/// Tracks 0 and 1 carry translation/rotation; tracks 2..18 carry rotation only.
+/// The package must remain loaded during player playback.
+static AnimationSet _gP229PlayerParasiteEnergyChargeFamily1Animation = {
+    .records           = _gP229PlayerParasiteEnergyChargeFamily1AnimationRecords,
+    .trackStartIndices = _gP229PlayerParasiteEnergyChargeFamily1AnimationIndices,
+    .poseBanks         = {
+        [P229_ANIMATION_TRANSLATION_ROTATION_BANK] = _gP229PlayerParasiteEnergyChargeFamily1AnimationBank1,
+        [P229_ANIMATION_PACKED_ROTATION_BANK]      = _gP229PlayerParasiteEnergyChargeFamily1AnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gP229Animation07048Bank1[8] = {
@@ -1217,11 +1319,11 @@ AnimationBank D_p229_8012B51C = { { {
     &_gP229Animation09078,
     &_gP229Animation0A30C,
     &_gP229Animation09BF0,
-    &_gP229Animation0637C,
-    &_gP229Animation06578,
-    &_gP229Animation06850,
-    &_gP229Animation06AF4,
-    &_gP229Animation06CF4,
+    &_gP229PlayerParasiteEnergyReleaseFamily0Animation,
+    &_gP229PlayerParasiteEnergyChargeFamily0Animation,
+    &_gP229PlayerParasiteEnergyCastFamily0Animation,
+    &_gP229PlayerParasiteEnergyReleaseFamily1Animation,
+    &_gP229PlayerParasiteEnergyChargeFamily1Animation,
     &_gP229Animation07048,
     &_gP229Animation0A78C,
     &_gP229Animation0A964,
@@ -1229,7 +1331,7 @@ AnimationBank D_p229_8012B51C = { { {
     &_gP229Animation0A964,
     &_gP229PlayerStairAscentAnimation,
     &_gP229PlayerStairDescentAnimation,
-    &_gP229Animation05EF4,
+    &_gP229PlayerStairAscentFinishEvenAnimation,
     &_gP229PlayerStairAscentFinishOddAnimation,
     &_gP229PlayerItemUseAnimation,
     &_gP229PlayerIdleAnimation,
