@@ -630,136 +630,220 @@ static AnimationSet _gAs12PeChargeFamily0Animation = {
     },
 };
 
-static AnimationPackedPose _gAs12Animation04EDCBank1[6] = {
+/// Translation/rotation keyframes for `_gAs12PeCastFamily0Animation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gAs12PeCastFamily0AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_04EDC_bank1.inc"
 };
 
-static AnimationPackedRotation _gAs12Animation04EDCBank4[57] = {
+/// Rotation-only keyframes for `_gAs12PeCastFamily0Animation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gAs12PeCastFamily0AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_04EDC_bank4.inc"
 };
 
-static AnimationRecord _gAs12Animation04EDCRecords[87] = {
+/// Keyframe durations and control records for `_gAs12PeCastFamily0Animation`'s nineteen part tracks.
+static const AnimationRecord _gAs12PeCastFamily0AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_04EDC_records.inc"
 };
 
-static u16 _gAs12Animation04EDCIndices[20] = {
+/// Record-array starts of `_gAs12PeCastFamily0Animation`'s nineteen model-part tracks.
+///
+/// The final halfword preserves the serialized descriptor's word alignment;
+/// playback indexes only the first nineteen entries (tracks 0..18).
+static const u16 _gAs12PeCastFamily0AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_04EDC_indices.inc"
 };
 
-static AnimationSet _gAs12Animation04EDC = {
-    _gAs12Animation04EDCRecords,
-    _gAs12Animation04EDCIndices,
-    { NULL, _gAs12Animation04EDCBank1, NULL, NULL, _gAs12Animation04EDCBank4, NULL, NULL, NULL },
+/// Family-0 Parasite Energy cast clip in AS12 bank slot 28.
+///
+/// Plays when the selected family-0 attachment's charge countdown reaches zero.
+/// Borrowed tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gAs12PeCastFamily0Animation = {
+    .records           = _gAs12PeCastFamily0AnimationRecords,
+    .trackStartIndices = _gAs12PeCastFamily0AnimationIndices,
+    .poseBanks         = {
+        [AS12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gAs12PeCastFamily0AnimationBank1,
+        [AS12_ANIMATION_PACKED_ROTATION_BANK]      = _gAs12PeCastFamily0AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gAs12Animation05180Bank1[4] = {
+/// Translation/rotation keyframes for `_gAs12PeReleaseFamily1Animation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gAs12PeReleaseFamily1AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_05180_bank1.inc"
 };
 
-static AnimationPackedRotation _gAs12Animation05180Bank4[55] = {
+/// Rotation-only keyframes for `_gAs12PeReleaseFamily1Animation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gAs12PeReleaseFamily1AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_05180_bank4.inc"
 };
 
-static AnimationRecord _gAs12Animation05180Records[82] = {
+/// Keyframe durations and control records for `_gAs12PeReleaseFamily1Animation`'s nineteen part tracks.
+static const AnimationRecord _gAs12PeReleaseFamily1AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_05180_records.inc"
 };
 
-static u16 _gAs12Animation05180Indices[20] = {
+/// Record-array starts of `_gAs12PeReleaseFamily1Animation`'s nineteen model-part tracks.
+///
+/// The final halfword preserves the serialized descriptor's word alignment;
+/// playback indexes only the first nineteen entries (tracks 0..18).
+static const u16 _gAs12PeReleaseFamily1AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_05180_indices.inc"
 };
 
-static AnimationSet _gAs12Animation05180 = {
-    _gAs12Animation05180Records,
-    _gAs12Animation05180Indices,
-    { NULL, _gAs12Animation05180Bank1, NULL, NULL, _gAs12Animation05180Bank4, NULL, NULL, NULL },
+/// Family-1 Parasite Energy release clip in AS12 bank slot 29.
+///
+/// Plays before the charge phase when the selected attachment uses clip family 1.
+/// Borrowed tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gAs12PeReleaseFamily1Animation = {
+    .records           = _gAs12PeReleaseFamily1AnimationRecords,
+    .trackStartIndices = _gAs12PeReleaseFamily1AnimationIndices,
+    .poseBanks         = {
+        [AS12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gAs12PeReleaseFamily1AnimationBank1,
+        [AS12_ANIMATION_PACKED_ROTATION_BANK]      = _gAs12PeReleaseFamily1AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gAs12Animation05380Bank1[3] = {
+/// Translation/rotation keyframes for `_gAs12PeChargeFamily1Animation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gAs12PeChargeFamily1AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_05380_bank1.inc"
 };
 
-static AnimationPackedRotation _gAs12Animation05380Bank4[23] = {
+/// Rotation-only keyframes for `_gAs12PeChargeFamily1Animation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gAs12PeChargeFamily1AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_05380_bank4.inc"
 };
 
-static AnimationRecord _gAs12Animation05380Records[76] = {
+/// Keyframe durations and control records for `_gAs12PeChargeFamily1Animation`'s nineteen part tracks.
+static const AnimationRecord _gAs12PeChargeFamily1AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_05380_records.inc"
 };
 
-static u16 _gAs12Animation05380Indices[20] = {
+/// Record-array starts of `_gAs12PeChargeFamily1Animation`'s nineteen model-part tracks.
+///
+/// The final halfword preserves the serialized descriptor's word alignment;
+/// playback indexes only the first nineteen entries (tracks 0..18).
+static const u16 _gAs12PeChargeFamily1AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_05380_indices.inc"
 };
 
-static AnimationSet _gAs12Animation05380 = {
-    _gAs12Animation05380Records,
-    _gAs12Animation05380Indices,
-    { NULL, _gAs12Animation05380Bank1, NULL, NULL, _gAs12Animation05380Bank4, NULL, NULL, NULL },
+/// Family-1 Parasite Energy charge clip in AS12 bank slot 30.
+///
+/// Loops while the selected attachment's countdown runs, before the cast clip.
+/// Borrowed tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gAs12PeChargeFamily1Animation = {
+    .records           = _gAs12PeChargeFamily1AnimationRecords,
+    .trackStartIndices = _gAs12PeChargeFamily1AnimationIndices,
+    .poseBanks         = {
+        [AS12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gAs12PeChargeFamily1AnimationBank1,
+        [AS12_ANIMATION_PACKED_ROTATION_BANK]      = _gAs12PeChargeFamily1AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gAs12Animation056D4Bank1[8] = {
+/// Translation/rotation keyframes for `_gAs12PeCastFamily1Animation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gAs12PeCastFamily1AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_056D4_bank1.inc"
 };
 
-static AnimationPackedRotation _gAs12Animation056D4Bank4[68] = {
+/// Rotation-only keyframes for `_gAs12PeCastFamily1Animation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gAs12PeCastFamily1AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_056D4_bank4.inc"
 };
 
-static AnimationRecord _gAs12Animation056D4Records[101] = {
+/// Keyframe durations and control records for `_gAs12PeCastFamily1Animation`'s nineteen part tracks.
+static const AnimationRecord _gAs12PeCastFamily1AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_056D4_records.inc"
 };
 
-static u16 _gAs12Animation056D4Indices[20] = {
+/// Record-array starts of `_gAs12PeCastFamily1Animation`'s nineteen model-part tracks.
+///
+/// The final halfword preserves the serialized descriptor's word alignment;
+/// playback indexes only the first nineteen entries (tracks 0..18).
+static const u16 _gAs12PeCastFamily1AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_056D4_indices.inc"
 };
 
-static AnimationSet _gAs12Animation056D4 = {
-    _gAs12Animation056D4Records,
-    _gAs12Animation056D4Indices,
-    { NULL, _gAs12Animation056D4Bank1, NULL, NULL, _gAs12Animation056D4Bank4, NULL, NULL, NULL },
+/// Family-1 Parasite Energy cast clip in AS12 bank slot 31.
+///
+/// Plays when the selected family-1 attachment's charge countdown reaches zero.
+/// Borrowed tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gAs12PeCastFamily1Animation = {
+    .records           = _gAs12PeCastFamily1AnimationRecords,
+    .trackStartIndices = _gAs12PeCastFamily1AnimationIndices,
+    .poseBanks         = {
+        [AS12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gAs12PeCastFamily1AnimationBank1,
+        [AS12_ANIMATION_PACKED_ROTATION_BANK]      = _gAs12PeCastFamily1AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gAs12Animation05988Bank1[5] = {
+/// Translation/rotation keyframes for `_gAs12Part4HitAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gAs12Part4HitAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_05988_bank1.inc"
 };
 
-static AnimationPackedRotation _gAs12Animation05988Bank4[55] = {
+/// Rotation-only keyframes for `_gAs12Part4HitAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gAs12Part4HitAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_05988_bank4.inc"
 };
 
-static AnimationRecord _gAs12Animation05988Records[83] = {
+/// Keyframe durations and control records for `_gAs12Part4HitAnimation`'s nineteen part tracks.
+static const AnimationRecord _gAs12Part4HitAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_05988_records.inc"
 };
 
-static u16 _gAs12Animation05988Indices[20] = {
+/// Record-array starts of `_gAs12Part4HitAnimation`'s nineteen model-part tracks.
+///
+/// The final halfword preserves the serialized descriptor's word alignment;
+/// playback indexes only the first nineteen entries (tracks 0..18).
+static const u16 _gAs12Part4HitAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_05988_indices.inc"
 };
 
-static AnimationSet _gAs12Animation05988 = {
-    _gAs12Animation05988Records,
-    _gAs12Animation05988Indices,
-    { NULL, _gAs12Animation05988Bank1, NULL, NULL, _gAs12Animation05988Bank4, NULL, NULL, NULL },
+/// Player hit reaction for the model-part-4 collision body, in AS12 bank slot 16.
+///
+/// Selected for recorded hit region 1, including attack and hazard contacts.
+/// Borrowed tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gAs12Part4HitAnimation = {
+    .records           = _gAs12Part4HitAnimationRecords,
+    .trackStartIndices = _gAs12Part4HitAnimationIndices,
+    .poseBanks         = {
+        [AS12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gAs12Part4HitAnimationBank1,
+        [AS12_ANIMATION_PACKED_ROTATION_BANK]      = _gAs12Part4HitAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gAs12Animation05CA8Bank1[6] = {
+/// Translation/rotation keyframes for `_gAs12OtherBodyHitAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gAs12OtherBodyHitAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_05CA8_bank1.inc"
 };
 
-static AnimationPackedRotation _gAs12Animation05CA8Bank4[66] = {
+/// Rotation-only keyframes for `_gAs12OtherBodyHitAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gAs12OtherBodyHitAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_05CA8_bank4.inc"
 };
 
-static AnimationRecord _gAs12Animation05CA8Records[96] = {
+/// Keyframe durations and control records for `_gAs12OtherBodyHitAnimation`'s nineteen part tracks.
+static const AnimationRecord _gAs12OtherBodyHitAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_05CA8_records.inc"
 };
 
-static u16 _gAs12Animation05CA8Indices[20] = {
+/// Record-array starts of `_gAs12OtherBodyHitAnimation`'s nineteen model-part tracks.
+///
+/// The final halfword preserves the serialized descriptor's word alignment;
+/// playback indexes only the first nineteen entries (tracks 0..18).
+static const u16 _gAs12OtherBodyHitAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_05CA8_indices.inc"
 };
 
-static AnimationSet _gAs12Animation05CA8 = {
-    _gAs12Animation05CA8Records,
-    _gAs12Animation05CA8Indices,
-    { NULL, _gAs12Animation05CA8Bank1, NULL, NULL, _gAs12Animation05CA8Bank4, NULL, NULL, NULL },
+/// Player hit reaction for other collision bodies, in AS12 bank slot 17.
+///
+/// Recorded hit region 2 covers root and model-part-1 body contacts.
+/// Borrowed tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gAs12OtherBodyHitAnimation = {
+    .records           = _gAs12OtherBodyHitAnimationRecords,
+    .trackStartIndices = _gAs12OtherBodyHitAnimationIndices,
+    .poseBanks         = {
+        [AS12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gAs12OtherBodyHitAnimationBank1,
+        [AS12_ANIMATION_PACKED_ROTATION_BANK]      = _gAs12OtherBodyHitAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gAs12Animation0646CBank1[18] = {
@@ -1197,8 +1281,8 @@ AnimationBank D_as12_8012C300 = { { {
     &_gAs12Animation0A5E0,
     &_gAs12Animation0C468,
     &_gAs12Animation0C468,
-    &_gAs12Animation05988,
-    &_gAs12Animation05CA8,
+    &_gAs12Part4HitAnimation,
+    &_gAs12OtherBodyHitAnimation,
     &_gAs12Animation0646C,
     &_gAs12UnarmedWalkAnimation,
     &_gAs12Animation0C468,
@@ -1209,10 +1293,10 @@ AnimationBank D_as12_8012C300 = { { {
     &_gAs12Animation0827C,
     &_gAs12PeReleaseFamily0Animation,
     &_gAs12PeChargeFamily0Animation,
-    &_gAs12Animation04EDC,
-    &_gAs12Animation05180,
-    &_gAs12Animation05380,
-    &_gAs12Animation056D4,
+    &_gAs12PeCastFamily0Animation,
+    &_gAs12PeReleaseFamily1Animation,
+    &_gAs12PeChargeFamily1Animation,
+    &_gAs12PeCastFamily1Animation,
     &_gAs12Animation08E18,
     &_gAs12Animation08FF0,
     &_gAs12Animation08E18,
