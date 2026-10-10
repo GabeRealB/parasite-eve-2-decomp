@@ -2897,7 +2897,7 @@ GameFlow_States3            = 0x800134D0;
 _gMcLoadDialogStates         = 0x80013ACC;
 _gMcSaveDialogStates             = 0x800139AC;
 _gTmdReleaseBufferTaskStates              = 0x80013EDC;
-Ui_ObjectStates             = 0x80013F2C;
+_gUiPanelLifecycleHandlers             = 0x80013F2C;
 gMcPreviewNightmareLabel = 0x80013B7C;
 gMcPreviewScavengerLabel = 0x80013B88;
 gMcPreviewBountyLabel = 0x80013B94;
@@ -3065,51 +3065,51 @@ _gTextNumberZero = 0x800138C8;
 
 _gTextUnsignedDecimalOverflow = 0x800138CC;
 
-McLocation_WhereAmI = 0x80067334;
+_gMcSavePointPreviewWhereAmIText = 0x80067334;
 
-McLocation_Square = 0x80067340;
+_gMcSavePointPreviewSquareText = 0x80067340;
 
-McLocation_FireEscape = 0x80067348;
+_gMcSavePointPreviewFireEscapeText = 0x80067348;
 
-McLocation_MistParking = 0x80067354;
+_gMcSavePointPreviewMistParkingText = 0x80067354;
 
-McLocation_GasStation = 0x80067364;
+_gMcSavePointPreviewGasStationText = 0x80067364;
 
-McLocation_TrailerCoach = 0x80067370;
+_gMcSavePointPreviewTrailerCoachText = 0x80067370;
 
-McLocation_MotelLobby = 0x80067380;
+_gMcSavePointPreviewMotelLobbyText = 0x80067380;
 
-McLocation_Refuge = 0x8006738C;
+_gMcSavePointPreviewRefugeText = 0x8006738C;
 
-McLocation_SterilizationRoom = 0x80067394;
+_gMcSavePointPreviewSterilizationRoomText = 0x80067394;
 
-McLocation_UndergroundParking = 0x800673A8;
+_gMcSavePointPreviewUndergroundParkingText = 0x800673A8;
 
-McLocation_Laboratory = 0x800673BC;
+_gMcSavePointPreviewLaboratoryText = 0x800673BC;
 
-McLocation_IncineratorControlRoom = 0x800673C8;
+_gMcSavePointPreviewIncineratorControlRoomText = 0x800673C8;
 
-McLocation_PodDeck = 0x800673E4;
+_gMcSavePointPreviewPodDeckText = 0x800673E4;
 
-McLocation_Nursery = 0x800673F0;
+_gMcSavePointPreviewNurseryText = 0x800673F0;
 
-McLocation_Tent = 0x800673F8;
+_gMcSavePointPreviewTentText = 0x800673F8;
 
-McLocation_Opening = 0x80067400;
+_gMcSavePointPreviewOpeningText = 0x80067400;
 
-McLocation_MotelRoom6 = 0x80067408;
+_gMcSavePointPreviewMotelRoom6Text = 0x80067408;
 
 McTitleLocation_Square = 0x8006745C;
 
-McTitleLocation_FireEscape = 0x8006746C;
+_gMcSavePointTitleFireEscapeText = 0x8006746C;
 
-McTitleLocation_MistParking = 0x80067484;
+_gMcSavePointTitleMistParkingText = 0x80067484;
 
-McTitleLocation_GasStation = 0x800674A0;
+_gMcSavePointTitleGasStationText = 0x800674A0;
 
 McTitleLocation_TrailerCoach = 0x800674B8;
 
-McTitleLocation_MotelLobby = 0x800674D4;
+_gMcSavePointTitleMotelLobbyText = 0x800674D4;
 
 McTitleLocation_Refuge = 0x800674EC;
 
@@ -3117,19 +3117,19 @@ McTitleLocation_SterilizationRm = 0x800674FC;
 
 McTitleLocation_UndergroundPark = 0x80067520;
 
-McTitleLocation_Laboratory = 0x80067544;
+_gMcSavePointTitleLaboratoryText = 0x80067544;
 
-McTitleLocation_IncinControl = 0x8006755C;
+_gMcSavePointTitleIncineratorControlRoomText = 0x8006755C;
 
 McTitleLocation_PodDeck = 0x8006757C;
 
-McTitleLocation_Nursery = 0x80067590;
+_gMcSavePointTitleNurseryText = 0x80067590;
 
 McTitleLocation_Tent = 0x800675A0;
 
-McTitleLocation_Opening = 0x800675AC;
+_gMcSavePointTitleOpeningText = 0x800675AC;
 
-McTitleLocation_MotelRoom6 = 0x800675BC;
+_gMcSavePointTitleMotelRoom6Text = 0x800675BC;
 
 McTitleLocation_WhereAmI = 0x800675D8;
 
@@ -3217,7 +3217,7 @@ _gMcMenuCancelList = 0x800612AC;
 
 gMcMenuPromptDesc = 0x800612D0;
 
-Mc_LocationLabels = 0x80067418;
+gMcSavePointPreviewLabels = 0x80067418;
 
 Mc_LocationTitleLabels = 0x800675F0;
 
@@ -3295,3 +3295,6 @@ gTaskBank9Descs = 0x80067734;
 _gLoadUiDiskSwapCountdown = 0x8007a390;
 _gLoadUiDiskSwapMessageKind = 0x8007a392;
 _gLoadUiDiskSwapRequiredDisc = 0x8007a393;
+_gUiTextColors = 0x8006763C; // type:u32 size:0xC
+_gUiCursorScreenXFixed = 0x80067648;
+_gUiCursorScreenYFixed = 0x8006764c;

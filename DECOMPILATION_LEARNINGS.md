@@ -11410,14 +11410,14 @@ s32 uiGetCursorPositionWord(void) {
     } position;
     s16* cursorX = &position.pixels.x.signedValue;
 
-    *cursorX = D_80067648 >> USER_INTERFACE_CURSOR_FRACTION_BITS;
-    position.pixels.y.signedValue = D_8006764C >> USER_INTERFACE_CURSOR_FRACTION_BITS;
+    *cursorX = _gUiCursorScreenXFixed >> USER_INTERFACE_CURSOR_FRACTION_BITS;
+    position.pixels.y.signedValue = _gUiCursorScreenYFixed >> USER_INTERFACE_CURSOR_FRACTION_BITS;
     return position.word;
 }
 ```
 
-`uiGetCursorPositionWord` is the pure example (fixed-point globals `D_80067648` /
-`D_8006764C`, sra by 8, packed return).
+`uiGetCursorPositionWord` is the pure example (fixed-point globals `_gUiCursorScreenXFixed` /
+`_gUiCursorScreenYFixed`, sra by 8, packed return).
 
 ## Walk word pairs with `s32*`, not struct `+8`
 
@@ -13077,12 +13077,12 @@ The index form then becomes `addiu v1,sp,0x10` / `sll` / `addu v1,v1,v0` /
 `lw v0,0(v1)`. `gameFlowStartSessionTask` is the pure example (3 entries). The same idea
 applies to `GameFlow_States5` (5 entries) for the sibling dispatcher `gameFlowLoadDialogTask`.
 
-Two-arg handlers (e.g. `_UiPanelLifecycleFunc` / `Ui_ObjectStates` / `_uiDispatchPanelLifecycle`) use the same
+Two-arg handlers (e.g. `_UiPanelLifecycleFunc` / `_gUiPanelLifecycleHandlers` / `_uiDispatchPanelLifecycle`) use the same
 struct-assignment pattern. When the object that supplies the index is also the
 first call argument, keep it in a temp so both the index and the call share it:
 
 ```c
-handlers = Ui_ObjectStates;
+handlers = _gUiPanelLifecycleHandlers;
 object = owningTask->spawnArg2.pointer;
 panel = &object->panel;
 handlers.funcs[panel->state](panel, owningTask);
@@ -16240,8 +16240,8 @@ targetY = contentY + screenOriginY;
 targetX <<= USER_INTERFACE_CURSOR_FRACTION_BITS;
 targetY <<= USER_INTERFACE_CURSOR_FRACTION_BITS;
 _uiEaseCursorPosition(targetX, targetY); /* inline elapsed-tick loop */
-targetX = D_80067648 >> USER_INTERFACE_CURSOR_FRACTION_BITS; /* reuses the loop temps → sra t1/t0 */
-targetY = D_8006764C >> USER_INTERFACE_CURSOR_FRACTION_BITS;
+targetX = _gUiCursorScreenXFixed >> USER_INTERFACE_CURSOR_FRACTION_BITS; /* reuses the loop temps → sra t1/t0 */
+targetY = _gUiCursorScreenYFixed >> USER_INTERFACE_CURSOR_FRACTION_BITS;
 _uiDrawAnimatedCursor(panel, targetX - panel->contentOriginX.signedValue, targetY - panel->contentOriginY.signedValue);
 ```
 

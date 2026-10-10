@@ -157,7 +157,15 @@ extern const u8 gMcPreviewUnavailableValue[sizeof("---")];
 /// NUL-terminated BP caption for the cached preview's bounty points.
 extern const u8 gMcPreviewBpLabel[sizeof("BP")];
 
-extern u8* Mc_LocationLabels[];
+/// Save-preview label slots, including the retained Where am I? text at index zero.
+enum { MEMORY_CARD_SAVE_POINT_PREVIEW_LABEL_COUNT = 17 };
+
+/// NUL-terminated ASCII place labels indexed by the saved save-point byte.
+///
+/// Validated previews select 1..16; index 15 is Opening. Slot zero holds
+/// Where am I? and is rejected by preview validation. Resident consumers
+/// borrow the text without modifying or retaining ownership of it.
+extern const u8* gMcSavePointPreviewLabels[MEMORY_CARD_SAVE_POINT_PREVIEW_LABEL_COUNT];
 
 /// NUL-terminated Nightmare label for a completed preview with gameMode 3.
 extern const u8 gMcPreviewNightmareLabel[sizeof("Nightmare")];

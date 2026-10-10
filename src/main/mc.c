@@ -2844,13 +2844,13 @@ void mcDrawFilePreview(UiObject* panelObject, const McWork* work, s32 directoryI
         }
         x = originX + panelObject->panel.contentLeft.signedValue + 4;
         y = originY + panelObject->panel.contentTop.signedValue + 0x11;
-        textDrawUiLine(panelObject, x, y, Mc_LocationLabels[(s8)preview->savePoint], textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(panelObject, x, y, gMcSavePointPreviewLabels[(s8)preview->savePoint], textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
         // Reuse the CLEAR request storage for the parenthesized save number.
         saveLabelScratch.text[0] = 0;
         textAppendString(saveLabelScratch.text, gMcPreviewSaveNumberPrefix);
         textAppendString(saveLabelScratch.text, textItoaSigned(numberScratch.text, preview->saveNumber));
         textAppendString(saveLabelScratch.text, (const u8*)_gMcTextCloseParen);
-        MEMORY_CARD_INIT_PREVIEW_TEXT_REQUEST(detailRequest, panelObject->panel.contentOriginX.unsignedValue + (x + textMeasureLineWidth(Mc_LocationLabels[(s8)preview->savePoint])), panelObject->panel.contentOriginY.unsignedValue + (y - 3), panelObject->panel.otIndex.signedValue + 1, textColorRgb, TEXT_GLYPH_TABLE_LARGE, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
+        MEMORY_CARD_INIT_PREVIEW_TEXT_REQUEST(detailRequest, panelObject->panel.contentOriginX.unsignedValue + (x + textMeasureLineWidth(gMcSavePointPreviewLabels[(s8)preview->savePoint])), panelObject->panel.contentOriginY.unsignedValue + (y - 3), panelObject->panel.otIndex.signedValue + 1, textColorRgb, TEXT_GLYPH_TABLE_LARGE, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
         textDrawString(&detailRequest, saveLabelScratch.text);
         textX                    = originX + panelObject->panel.contentLeft.signedValue;
         x                        = textX + 2;

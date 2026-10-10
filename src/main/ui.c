@@ -140,57 +140,11 @@ extern TmdSource D_8072C8F0;
 
 extern TmdSource D_8075BED4;
 
-static u8 McLocation_WhereAmI[];
-
-static u8 McLocation_Square[];
-
-static u8 McLocation_FireEscape[];
-
-static u8 McLocation_MistParking[];
-
-static u8 McLocation_GasStation[];
-
-static u8 McLocation_TrailerCoach[];
-
-static u8 McLocation_MotelLobby[];
-
-static u8 McLocation_Refuge[];
-
-static u8 McLocation_SterilizationRoom[];
-
-static u8 McLocation_UndergroundParking[];
-
-static u8 McLocation_Laboratory[];
-
-static u8 McLocation_IncineratorControlRoom[];
-
-static u8 McLocation_PodDeck[];
-
-static u8 McLocation_Nursery[];
-
-static u8 McLocation_Tent[];
-
-static u8 McLocation_Opening[];
-
-static u8 McLocation_MotelRoom6[];
-
 /* Ｓｑｕａｒｅ */
 static u8 McTitleLocation_Square[];
 
-/* Ｆｉｒｅ　Ｅｓｃａｐｅ */
-static u8 McTitleLocation_FireEscape[];
-
-/* ＭＩＳＴ　Ｐａｒｋｉｎｇ */
-static u8 McTitleLocation_MistParking[];
-
-/* Ｇａｓ　Ｓｔａｔｉｏｎ */
-static u8 McTitleLocation_GasStation[];
-
 /* Ｔｒａｉｌｅｒ　Ｃｏａｃｈ */
 static u8 McTitleLocation_TrailerCoach[];
-
-/* Ｍｏｔｅｌ　Ｌｏｂｂｙ */
-static u8 McTitleLocation_MotelLobby[];
 
 /* Ｒｅｆｕｇｅ */
 static u8 McTitleLocation_Refuge[];
@@ -201,26 +155,11 @@ static u8 McTitleLocation_SterilizationRm[];
 /* Ｕｎｄｅｒｇｒｏｕｎｄ　Ｐａｒｋ． */
 static u8 McTitleLocation_UndergroundPark[];
 
-/* Ｌａｂｏｒａｔｏｒｙ */
-static u8 McTitleLocation_Laboratory[];
-
-/* Ｉｎｃｉｎ．　Ｃｏｎｔｒｏｌ */
-static u8 McTitleLocation_IncinControl[];
-
 /* Ｐｏｄ　Ｄｅｃｋ */
 static u8 McTitleLocation_PodDeck[];
 
-/* Ｎｕｒｓｅｒｙ */
-static u8 McTitleLocation_Nursery[];
-
 /* Ｔｅｎｔ */
 static u8 McTitleLocation_Tent[];
-
-/* Ｏｐｅｎｉｎｇ */
-static u8 McTitleLocation_Opening[];
-
-/* Ｍｏｔｅｌ　Ｒｏｏｍ　６ */
-static u8 McTitleLocation_MotelRoom6[];
 
 /* Ｗｈｅｒｅ　ａｍ　Ｉ？ */
 static u8 McTitleLocation_WhereAmI[];
@@ -228,24 +167,11 @@ static u8 McTitleLocation_WhereAmI[];
 /// Unreferenced.
 static s32 D_80067638;
 
-static s32 D_8006763C[1];
-
-static s32 D_80067640;
-
-/// Unreferenced.
-static s32 D_80067644;
-
-static s32 D_80067648;
-
-static s32 D_8006764C;
-
 static UiListRowCallback Ui_DialogLineCallbacks[];
 
 static UiList Ui_DialogLineList;
 
 static UiObjectDesc Ui_DialogListDesc;
-
-static const _UiPanelLifecycleFuncTable6 Ui_ObjectStates;
 
 void func_80707534(Task* arg0);
 
@@ -581,122 +507,177 @@ TaskDesc D_800670D0[] = {
     { { { TASK_BODY_TMD, 0x70 } }, effectBurstModelPartTask },
 };
 
-static u8 McLocation_WhereAmI[]               = "Where am I?";
-static u8 McLocation_Square[]                 = "Square";
-static u8 McLocation_FireEscape[]             = "Fire Escape";
-static u8 McLocation_MistParking[]            = "MIST Parking";
-static u8 McLocation_GasStation[]             = "Gas Station";
-static u8 McLocation_TrailerCoach[]           = "Trailer Coach";
-static u8 McLocation_MotelLobby[]             = "Motel Lobby";
-static u8 McLocation_Refuge[]                 = "Refuge";
-static u8 McLocation_SterilizationRoom[]      = "Sterilization Room";
-static u8 McLocation_UndergroundParking[]     = "Underground Parking";
-static u8 McLocation_Laboratory[]             = "Laboratory";
-static u8 McLocation_IncineratorControlRoom[] = "Incinerator Control Room";
-static u8 McLocation_PodDeck[]                = "Pod Deck";
-static u8 McLocation_Nursery[]                = "Nursery";
-static u8 McLocation_Tent[]                   = "Tent";
-static u8 McLocation_Opening[]                = "Opening";
-static u8 McLocation_MotelRoom6[]             = "Motel Room 6";
+/// NUL-terminated ASCII "Where am I?" label in save-preview slot 0.
+static u8 _gMcSavePointPreviewWhereAmIText[sizeof("Where am I?")] = "Where am I?";
+/// NUL-terminated ASCII "Square" label in save-preview slot 1.
+static u8 _gMcSavePointPreviewSquareText[sizeof("Square")] = "Square";
+/// NUL-terminated ASCII "Fire Escape" label in save-preview slot 2.
+static u8 _gMcSavePointPreviewFireEscapeText[sizeof("Fire Escape")] = "Fire Escape";
+/// NUL-terminated ASCII "MIST Parking" label in save-preview slot 3.
+static u8 _gMcSavePointPreviewMistParkingText[sizeof("MIST Parking")] = "MIST Parking";
+/// NUL-terminated ASCII "Gas Station" label in save-preview slot 4.
+static u8 _gMcSavePointPreviewGasStationText[sizeof("Gas Station")] = "Gas Station";
+/// NUL-terminated ASCII "Trailer Coach" label in save-preview slot 5.
+static u8 _gMcSavePointPreviewTrailerCoachText[sizeof("Trailer Coach")] = "Trailer Coach";
+/// NUL-terminated ASCII "Motel Lobby" label in save-preview slot 6.
+static u8 _gMcSavePointPreviewMotelLobbyText[sizeof("Motel Lobby")] = "Motel Lobby";
+/// NUL-terminated ASCII "Refuge" label in save-preview slot 7.
+static u8 _gMcSavePointPreviewRefugeText[sizeof("Refuge")] = "Refuge";
+/// NUL-terminated ASCII "Sterilization Room" label in save-preview slot 8.
+static u8 _gMcSavePointPreviewSterilizationRoomText[sizeof("Sterilization Room")] = "Sterilization Room";
+/// NUL-terminated ASCII "Underground Parking" label in save-preview slot 9.
+static u8 _gMcSavePointPreviewUndergroundParkingText[sizeof("Underground Parking")] = "Underground Parking";
+/// NUL-terminated ASCII "Laboratory" label in save-preview slot 10.
+static u8 _gMcSavePointPreviewLaboratoryText[sizeof("Laboratory")] = "Laboratory";
+/// NUL-terminated ASCII "Incinerator Control Room" label in save-preview slot 11.
+static u8 _gMcSavePointPreviewIncineratorControlRoomText[sizeof("Incinerator Control Room")] = "Incinerator Control Room";
+/// NUL-terminated ASCII "Pod Deck" label in save-preview slot 12.
+static u8 _gMcSavePointPreviewPodDeckText[sizeof("Pod Deck")] = "Pod Deck";
+/// NUL-terminated ASCII "Nursery" label in save-preview slot 13.
+static u8 _gMcSavePointPreviewNurseryText[sizeof("Nursery")] = "Nursery";
+/// NUL-terminated ASCII "Tent" label in save-preview slot 14.
+static u8 _gMcSavePointPreviewTentText[sizeof("Tent")] = "Tent";
+/// NUL-terminated ASCII "Opening" label in save-preview slot 15.
+static u8 _gMcSavePointPreviewOpeningText[sizeof("Opening")] = "Opening";
+/// NUL-terminated ASCII "Motel Room 6" label in save-preview slot 16.
+static u8 _gMcSavePointPreviewMotelRoom6Text[sizeof("Motel Room 6")] = "Motel Room 6";
 
-u8* Mc_LocationLabels[] = {
-    McLocation_WhereAmI,
-    McLocation_Square,
-    McLocation_FireEscape,
-    McLocation_MistParking,
-    McLocation_GasStation,
-    McLocation_TrailerCoach,
-    McLocation_MotelLobby,
-    McLocation_Refuge,
-    McLocation_SterilizationRoom,
-    McLocation_UndergroundParking,
-    McLocation_Laboratory,
-    McLocation_IncineratorControlRoom,
-    McLocation_PodDeck,
-    McLocation_Nursery,
-    McLocation_Tent,
-    McLocation_Opening,
-    McLocation_MotelRoom6,
+const u8* gMcSavePointPreviewLabels[MEMORY_CARD_SAVE_POINT_PREVIEW_LABEL_COUNT] = {
+    _gMcSavePointPreviewWhereAmIText,
+    _gMcSavePointPreviewSquareText,
+    _gMcSavePointPreviewFireEscapeText,
+    _gMcSavePointPreviewMistParkingText,
+    _gMcSavePointPreviewGasStationText,
+    _gMcSavePointPreviewTrailerCoachText,
+    _gMcSavePointPreviewMotelLobbyText,
+    _gMcSavePointPreviewRefugeText,
+    _gMcSavePointPreviewSterilizationRoomText,
+    _gMcSavePointPreviewUndergroundParkingText,
+    _gMcSavePointPreviewLaboratoryText,
+    _gMcSavePointPreviewIncineratorControlRoomText,
+    _gMcSavePointPreviewPodDeckText,
+    _gMcSavePointPreviewNurseryText,
+    _gMcSavePointPreviewTentText,
+    _gMcSavePointPreviewOpeningText,
+    _gMcSavePointPreviewMotelRoom6Text,
 };
 
 /* Ｓｑｕａｒｅ */
 static u8 McTitleLocation_Square[] = "\x82\x72\x82\x91\x82\x95\x82\x81\x82\x92\x82\x85";
-/* Ｆｉｒｅ　Ｅｓｃａｐｅ */
-static u8 McTitleLocation_FireEscape[] = "\x82\x65\x82\x89\x82\x92\x82\x85\x81\x40\x82\x64\x82\x93\x82\x83\x82\x81\x82\x90\x82\x85";
-/* ＭＩＳＴ　Ｐａｒｋｉｎｇ */
-static u8 McTitleLocation_MistParking[] = "\x82\x6C\x82\x68\x82\x72\x82\x73\x81\x40\x82\x6F\x82\x81\x82\x92\x82\x8B\x82\x89\x82\x8E\x82\x87";
-/* Ｇａｓ　Ｓｔａｔｉｏｎ */
-static u8 McTitleLocation_GasStation[] = "\x82\x66\x82\x81\x82\x93\x81\x40\x82\x72\x82\x94\x82\x81\x82\x94\x82\x89\x82\x8F\x82\x8E";
+/// NUL-terminated full-width Shift-JIS Ｆｉｒｅ　Ｅｓｃａｐｅ card-title label in save-point slot 2.
+///
+/// Each glyph occupies two bytes; the title writer copies the encoded bytes unchanged.
+static u8 _gMcSavePointTitleFireEscapeText[2 * 11 + 1] = "\x82\x65\x82\x89\x82\x92\x82\x85\x81\x40\x82\x64\x82\x93\x82\x83\x82\x81\x82\x90\x82\x85";
+/// NUL-terminated full-width Shift-JIS ＭＩＳＴ　Ｐａｒｋｉｎｇ card-title label in save-point slot 3.
+///
+/// Each glyph occupies two bytes; the title writer copies the encoded bytes unchanged.
+static u8 _gMcSavePointTitleMistParkingText[2 * 12 + 1] = "\x82\x6C\x82\x68\x82\x72\x82\x73\x81\x40\x82\x6F\x82\x81\x82\x92\x82\x8B\x82\x89\x82\x8E\x82\x87";
+/// NUL-terminated full-width Shift-JIS Ｇａｓ　Ｓｔａｔｉｏｎ card-title label in save-point slot 4.
+///
+/// Each glyph occupies two bytes; the title writer copies the encoded bytes unchanged.
+static u8 _gMcSavePointTitleGasStationText[2 * 11 + 1] = "\x82\x66\x82\x81\x82\x93\x81\x40\x82\x72\x82\x94\x82\x81\x82\x94\x82\x89\x82\x8F\x82\x8E";
 /* Ｔｒａｉｌｅｒ　Ｃｏａｃｈ */
 static u8 McTitleLocation_TrailerCoach[] = "\x82\x73\x82\x92\x82\x81\x82\x89\x82\x8C\x82\x85\x82\x92\x81\x40\x82\x62\x82\x8F\x82\x81\x82\x83\x82\x88";
-/* Ｍｏｔｅｌ　Ｌｏｂｂｙ */
-static u8 McTitleLocation_MotelLobby[] = "\x82\x6C\x82\x8F\x82\x94\x82\x85\x82\x8C\x81\x40\x82\x6B\x82\x8F\x82\x82\x82\x82\x82\x99";
+/// NUL-terminated full-width Shift-JIS Ｍｏｔｅｌ　Ｌｏｂｂｙ card-title label in save-point slot 6.
+///
+/// Each glyph occupies two bytes; the title writer copies the encoded bytes unchanged.
+static u8 _gMcSavePointTitleMotelLobbyText[2 * 11 + 1] = "\x82\x6C\x82\x8F\x82\x94\x82\x85\x82\x8C\x81\x40\x82\x6B\x82\x8F\x82\x82\x82\x82\x82\x99";
 /* Ｒｅｆｕｇｅ */
 static u8 McTitleLocation_Refuge[] = "\x82\x71\x82\x85\x82\x86\x82\x95\x82\x87\x82\x85";
 /* Ｓｔｅｒｉｌｉｚａｔｉｏｎ　Ｒｍ． */
 static u8 McTitleLocation_SterilizationRm[] = "\x82\x72\x82\x94\x82\x85\x82\x92\x82\x89\x82\x8C\x82\x89\x82\x9A\x82\x81\x82\x94\x82\x89\x82\x8F\x82\x8E\x81\x40\x82\x71\x82\x8D\x81\x44";
 /* Ｕｎｄｅｒｇｒｏｕｎｄ　Ｐａｒｋ． */
 static u8 McTitleLocation_UndergroundPark[] = "\x82\x74\x82\x8E\x82\x84\x82\x85\x82\x92\x82\x87\x82\x92\x82\x8F\x82\x95\x82\x8E\x82\x84\x81\x40\x82\x6F\x82\x81\x82\x92\x82\x8B\x81\x44";
-/* Ｌａｂｏｒａｔｏｒｙ */
-static u8 McTitleLocation_Laboratory[] = "\x82\x6B\x82\x81\x82\x82\x82\x8F\x82\x92\x82\x81\x82\x94\x82\x8F\x82\x92\x82\x99";
-/* Ｉｎｃｉｎ．　Ｃｏｎｔｒｏｌ */
-static u8 McTitleLocation_IncinControl[] = "\x82\x68\x82\x8E\x82\x83\x82\x89\x82\x8E\x81\x44\x81\x40\x82\x62\x82\x8F\x82\x8E\x82\x94\x82\x92\x82\x8F\x82\x8C";
+/// NUL-terminated full-width Shift-JIS Ｌａｂｏｒａｔｏｒｙ card-title label in save-point slot 10.
+///
+/// Each glyph occupies two bytes; the title writer copies the encoded bytes unchanged.
+static u8 _gMcSavePointTitleLaboratoryText[2 * 10 + 1] = "\x82\x6B\x82\x81\x82\x82\x82\x8F\x82\x92\x82\x81\x82\x94\x82\x8F\x82\x92\x82\x99";
+/// NUL-terminated full-width Shift-JIS Ｉｎｃｉｎ．　Ｃｏｎｔｒｏｌ card-title label in save-point slot 11.
+///
+/// Each glyph occupies two bytes; the title writer copies the encoded bytes unchanged.
+static u8 _gMcSavePointTitleIncineratorControlRoomText[2 * 14 + 1] = "\x82\x68\x82\x8E\x82\x83\x82\x89\x82\x8E\x81\x44\x81\x40\x82\x62\x82\x8F\x82\x8E\x82\x94\x82\x92\x82\x8F\x82\x8C";
 /* Ｐｏｄ　Ｄｅｃｋ */
 static u8 McTitleLocation_PodDeck[] = "\x82\x6F\x82\x8F\x82\x84\x81\x40\x82\x63\x82\x85\x82\x83\x82\x8B";
-/* Ｎｕｒｓｅｒｙ */
-static u8 McTitleLocation_Nursery[] = "\x82\x6D\x82\x95\x82\x92\x82\x93\x82\x85\x82\x92\x82\x99";
+/// NUL-terminated full-width Shift-JIS Ｎｕｒｓｅｒｙ card-title label in save-point slot 13.
+///
+/// Each glyph occupies two bytes; the title writer copies the encoded bytes unchanged.
+static u8 _gMcSavePointTitleNurseryText[2 * 7 + 1] = "\x82\x6D\x82\x95\x82\x92\x82\x93\x82\x85\x82\x92\x82\x99";
 /* Ｔｅｎｔ */
 static u8 McTitleLocation_Tent[] = "\x82\x73\x82\x85\x82\x8E\x82\x94";
-/* Ｏｐｅｎｉｎｇ */
-static u8 McTitleLocation_Opening[] = "\x82\x6E\x82\x90\x82\x85\x82\x8E\x82\x89\x82\x8E\x82\x87";
-/* Ｍｏｔｅｌ　Ｒｏｏｍ　６ */
-static u8 McTitleLocation_MotelRoom6[] = "\x82\x6C\x82\x8F\x82\x94\x82\x85\x82\x8C\x81\x40\x82\x71\x82\x8F\x82\x8F\x82\x8D\x81\x40\x82\x55";
+/// NUL-terminated full-width Shift-JIS Ｏｐｅｎｉｎｇ card-title label in save-point slot 15.
+///
+/// Each glyph occupies two bytes; the title writer copies the encoded bytes unchanged.
+static u8 _gMcSavePointTitleOpeningText[2 * 7 + 1] = "\x82\x6E\x82\x90\x82\x85\x82\x8E\x82\x89\x82\x8E\x82\x87";
+/// NUL-terminated full-width Shift-JIS Ｍｏｔｅｌ　Ｒｏｏｍ　６ card-title label in save-point slot 16.
+///
+/// Each glyph occupies two bytes; the title writer copies the encoded bytes unchanged.
+static u8 _gMcSavePointTitleMotelRoom6Text[2 * 12 + 1] = "\x82\x6C\x82\x8F\x82\x94\x82\x85\x82\x8C\x81\x40\x82\x71\x82\x8F\x82\x8F\x82\x8D\x81\x40\x82\x55";
 /* Ｗｈｅｒｅ　ａｍ　Ｉ？ */
 static u8 McTitleLocation_WhereAmI[] = "\x82\x76\x82\x88\x82\x85\x82\x92\x82\x85\x81\x40\x82\x81\x82\x8D\x81\x40\x82\x68\x81\x48";
 
 u8* Mc_LocationTitleLabels[] = {
     McTitleLocation_WhereAmI,
     McTitleLocation_Square,
-    McTitleLocation_FireEscape,
-    McTitleLocation_MistParking,
-    McTitleLocation_GasStation,
+    _gMcSavePointTitleFireEscapeText,
+    _gMcSavePointTitleMistParkingText,
+    _gMcSavePointTitleGasStationText,
     McTitleLocation_TrailerCoach,
-    McTitleLocation_MotelLobby,
+    _gMcSavePointTitleMotelLobbyText,
     McTitleLocation_Refuge,
     McTitleLocation_SterilizationRm,
     McTitleLocation_UndergroundPark,
-    McTitleLocation_Laboratory,
-    McTitleLocation_IncinControl,
+    _gMcSavePointTitleLaboratoryText,
+    _gMcSavePointTitleIncineratorControlRoomText,
     McTitleLocation_PodDeck,
-    McTitleLocation_Nursery,
+    _gMcSavePointTitleNurseryText,
     McTitleLocation_Tent,
-    McTitleLocation_Opening,
-    McTitleLocation_MotelRoom6,
+    _gMcSavePointTitleOpeningText,
+    _gMcSavePointTitleMotelRoom6Text,
 };
 
 /// Current item-information panel; separate from the 17 save-point titles.
 UiObject* D_80067634 = NULL;
 /// Unreferenced.
-static s32 D_80067638    = 0x001C2824;
-static s32 D_8006763C[1] = { 0x000D287F };
-static s32 D_80067640    = 0x00606060;
-/// Unreferenced.
-static s32 D_80067644 = 0x0038443C;
-static s32 D_80067648 = 0xFFFFFF56;
-static s32 D_8006764C = 0xFFFFFF7E;
+static s32 D_80067638 = 0x001C2824;
+/// Indexed text-modulation RGB words, with red in the low byte and no GPU command byte.
+///
+/// Normal and dimmed selectors are 1 and 2. Slot zero is retained data with
+/// no established consumer role; only the three-word indexed view is established.
+static u32 _gUiTextColors[] = {
+    GPU_PACK_COLOR_WORD(127, 40, 13, 0),
+    [USER_INTERFACE_TEXT_COLOR_NORMAL] = GPU_PACK_COLOR_WORD(96, 96, 96, 0),
+    [USER_INTERFACE_TEXT_COLOR_DIMMED] = GPU_PACK_COLOR_WORD(60, 68, 56, 0),
+};
+/// Shared selection-cursor screen-centered X position in signed 1/256-pixel units.
+///
+/// List and direct cursor moves retain this accumulator across panels; the
+/// packed position getter reads it without advancing it. The initial -170
+/// is in accumulator units, rather than whole pixels.
+static s32 _gUiCursorScreenXFixed = -170;
+/// Shared selection-cursor screen-centered Y position in signed 1/256-pixel units.
+///
+/// List and direct cursor moves retain this accumulator across panels; the
+/// packed position getter reads it without advancing it. The initial -130
+/// is in accumulator units, rather than whole pixels.
+static s32 _gUiCursorScreenYFixed = -130;
 
 static UiListRowCallback Ui_DialogLineCallbacks[] = { _uiDrawOptionDialogRow };
 static UiList            Ui_DialogLineList        = { Ui_DialogLineCallbacks, 1, 1, 0, 0x0F };
 static UiObjectDesc      Ui_DialogListDesc        = { USER_INTERFACE_PANEL_TITLE_STYLE, { -48, -32, 0x60, 0x40 }, 0x20, 0, TASK_BODY_NONE, 0xC0, _uiUpdateOptionDialogTask, 0 };
 UiObject*                Wip_UiHolder             = NULL;
 
-static const _UiPanelLifecycleFuncTable6 Ui_ObjectStates = { {
-    _uiPanelInitial,
+/// Panel lifecycle dispatch in initial, opening, open, closing, hiding and hidden order.
+///
+/// `UiPanel.state` selects an unchecked slot in 0..5. Each handler receives
+/// the embedded panel and its owning task. Closing dispatches task exit;
+/// hiding and hidden retain them. Dispatch copies the entire table by value.
+static const _UiPanelLifecycleFuncTable6 _gUiPanelLifecycleHandlers = { {
+    [USER_INTERFACE_PANEL_INITIAL] = _uiPanelInitial,
     [USER_INTERFACE_PANEL_OPENING] = _uiPanelOpening,
     [USER_INTERFACE_PANEL_OPEN]    = _uiPanelOpen,
     [USER_INTERFACE_PANEL_CLOSING] = _uiPanelClosing,
     [USER_INTERFACE_PANEL_HIDING]  = _uiPanelHiding,
-    _uiPanelHidden,
+    [USER_INTERFACE_PANEL_HIDDEN]  = _uiPanelHidden,
 } };
 
 /// Idle callback for task bank 1, slot 36; leaves the live task and all its state unchanged.
@@ -1718,8 +1699,8 @@ static inline void _uiEaseCursorPosition(s32 targetXFixed, s32 targetYFixed)
     }
     do {
         ticksApplied++;
-        D_80067648 += (targetXFixed - D_80067648) >> USER_INTERFACE_CURSOR_EASING_SHIFT;
-        D_8006764C += (targetYFixed - D_8006764C) >> USER_INTERFACE_CURSOR_EASING_SHIFT;
+        _gUiCursorScreenXFixed += (targetXFixed - _gUiCursorScreenXFixed) >> USER_INTERFACE_CURSOR_EASING_SHIFT;
+        _gUiCursorScreenYFixed += (targetYFixed - _gUiCursorScreenYFixed) >> USER_INTERFACE_CURSOR_EASING_SHIFT;
     } while (ticksApplied < frameTicks);
 }
 
@@ -1742,8 +1723,8 @@ static inline void _uiListMoveCursor(const UiPanel* panel, s32 contentX, s32 con
     targetX     <<= USER_INTERFACE_CURSOR_FRACTION_BITS;
     targetY     <<= USER_INTERFACE_CURSOR_FRACTION_BITS;
     _uiEaseCursorPosition(targetX, targetY);
-    targetX = D_80067648 >> USER_INTERFACE_CURSOR_FRACTION_BITS;
-    targetY = D_8006764C >> USER_INTERFACE_CURSOR_FRACTION_BITS;
+    targetX = _gUiCursorScreenXFixed >> USER_INTERFACE_CURSOR_FRACTION_BITS;
+    targetY = _gUiCursorScreenYFixed >> USER_INTERFACE_CURSOR_FRACTION_BITS;
     _uiDrawAnimatedCursor(panel, targetX - panel->contentOriginX.signedValue, targetY - panel->contentOriginY.signedValue);
 }
 
@@ -1780,7 +1761,7 @@ static void _uiUpdateListRows(UiList* list, UiPanel* panel, s32 inputPort)
     playCursorSound  = 0;
     drawHighlight    = 0;
     scrollMarginRows = list->visibleRowCount.signedValue >> 2;
-    defaultColorRgb  = D_80067640;
+    defaultColorRgb  = _gUiTextColors[USER_INTERFACE_TEXT_COLOR_NORMAL];
     if (scrollMarginRows < 2) {
         scrollMarginRows = 0;
     }
@@ -2675,14 +2656,14 @@ void uiEaseAndDrawCursor(const UiPanel* panel, s32 contentX, s32 contentY)
     targetX     <<= USER_INTERFACE_CURSOR_FRACTION_BITS;
     targetY     <<= USER_INTERFACE_CURSOR_FRACTION_BITS;
     _uiEaseCursorPosition(targetX, targetY);
-    targetX = D_80067648 >> USER_INTERFACE_CURSOR_FRACTION_BITS;
-    targetY = D_8006764C >> USER_INTERFACE_CURSOR_FRACTION_BITS;
+    targetX = _gUiCursorScreenXFixed >> USER_INTERFACE_CURSOR_FRACTION_BITS;
+    targetY = _gUiCursorScreenYFixed >> USER_INTERFACE_CURSOR_FRACTION_BITS;
     _uiDrawAnimatedCursor(panel, targetX - panel->contentOriginX.signedValue, targetY - panel->contentOriginY.signedValue);
 }
 
 u32 uiGetTextColor(const UiObject* unusedObject, s32 colorIndex)
 {
-    return D_8006763C[colorIndex];
+    return _gUiTextColors[colorIndex];
 }
 
 s32 uiGetTextRowsHeight(s32 rowCount)
@@ -3128,7 +3109,7 @@ static void _uiDispatchPanelLifecycle(Task* owningTask)
     UiObject*                   object;
     UiPanel*                    panel;
 
-    handlers = Ui_ObjectStates;
+    handlers = _gUiPanelLifecycleHandlers;
     object   = owningTask->spawnArg2.pointer;
     panel    = &object->panel;
     handlers.funcs[panel->state](panel, owningTask);
@@ -3142,8 +3123,8 @@ s32 uiGetCursorPositionWord(void)
     } position;
     s16* cursorX = &position.pixels.x.signedValue;
 
-    *cursorX                      = D_80067648 >> USER_INTERFACE_CURSOR_FRACTION_BITS;
-    position.pixels.y.signedValue = D_8006764C >> USER_INTERFACE_CURSOR_FRACTION_BITS;
+    *cursorX                      = _gUiCursorScreenXFixed >> USER_INTERFACE_CURSOR_FRACTION_BITS;
+    position.pixels.y.signedValue = _gUiCursorScreenYFixed >> USER_INTERFACE_CURSOR_FRACTION_BITS;
     return position.word;
 }
 
