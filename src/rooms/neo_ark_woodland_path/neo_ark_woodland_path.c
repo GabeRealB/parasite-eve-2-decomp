@@ -784,10 +784,10 @@ static AreaResource _gNeoArkWoodlandPathVariant4ActorResources[] = {
 
 AreaVariant D_neo_ark_woodland_path_8018471C[12] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017C3C0, _gNeoArkWoodlandPathVariant1ActorResources },
-    { D_map_neo_ark_8017C3F0, _gNeoArkWoodlandPathVariant2ActorResources },
-    { D_map_neo_ark_8017C420, _gNeoArkWoodlandPathVariant3ActorResources },
-    { D_map_neo_ark_8017C450, _gNeoArkWoodlandPathVariant4ActorResources },
+    { gMapNeoArkWoodlandPathVariant1Placements, _gNeoArkWoodlandPathVariant1ActorResources },
+    { gMapNeoArkWoodlandPathVariant2Placements, _gNeoArkWoodlandPathVariant2ActorResources },
+    { gMapNeoArkWoodlandPathVariant3Placements, _gNeoArkWoodlandPathVariant3ActorResources },
+    { gMapNeoArkWoodlandPathVariant4Placements, _gNeoArkWoodlandPathVariant4ActorResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

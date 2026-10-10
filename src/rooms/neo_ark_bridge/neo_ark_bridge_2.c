@@ -740,18 +740,18 @@ AreaResource D_neo_ark_bridge_80184A38[2] = {
 
 AreaVariant D_neo_ark_bridge_80184A50[13] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017C1D0, _gNeoArkBridgeVariant1Resources },
-    { D_map_neo_ark_8017C210, _gNeoArkBridgeVariant2Resources },
-    { D_map_neo_ark_8017C270, _gNeoArkBridgeVariant3Resources },
-    { D_map_neo_ark_8017C2A0, D_neo_ark_bridge_801849E4 },
-    { D_map_neo_ark_8017C2E0, D_neo_ark_bridge_80184A08 },
+    { gMapNeoArkBridgeVariant1Placements, _gNeoArkBridgeVariant1Resources },
+    { gMapNeoArkBridgeVariant2Placements, _gNeoArkBridgeVariant2Resources },
+    { gMapNeoArkBridgeVariant3Placements, _gNeoArkBridgeVariant3Resources },
+    { gMapNeoArkBridgeVariant4Placements, D_neo_ark_bridge_801849E4 },
+    { gMapNeoArkBridgeVariant5Placements, D_neo_ark_bridge_80184A08 },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_neo_ark_8017C320, D_neo_ark_bridge_80184A20 },
-    { D_map_neo_ark_8017C350, D_neo_ark_bridge_80184A38 },
+    { gMapNeoArkBridgeVariant11Placements, D_neo_ark_bridge_80184A20 },
+    { gMapNeoArkBridgeVariant12Placements, D_neo_ark_bridge_80184A38 },
 };
 
 WorldCollisionTrigger D_neo_ark_bridge_80184AB8[3] = {

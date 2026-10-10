@@ -97,7 +97,7 @@ D_map_neo_ark_8017BF40 = 0x8017BF40; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017BF90 = 0x8017BF90; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017C020 = 0x8017C020; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017C050 = 0x8017C050; // absolute:True owner=map_neo_ark
-D_map_neo_ark_8017C070 = 0x8017C070; // absolute:True owner=map_neo_ark
+gMapNeoArkShrineVariant11Placements = 0x8017C070; // absolute:True owner=map_neo_ark
 gNeoArkShrinePuzzleCellTiles = 0x8018686C; // size:0x20 defined:True
 gNeoArkShrinePuzzleDrawnOrigins = 0x8018688C; // size:0x40 defined:True
 gNeoArkShrinePuzzleTargetOrigins = 0x801868CC; // size:0x40 defined:True

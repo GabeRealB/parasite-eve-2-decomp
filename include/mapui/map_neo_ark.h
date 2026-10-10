@@ -13,11 +13,25 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/gfx_types.h"
 #include "main/session_types.h"
 #include "main/sound_types.h"
 #include "main/stage_types.h"
 #include "main/task_types.h"
+
+/// Highest area ID covered by the stage's menu-map and area-music tables.
+enum { MAP_NEO_ARK_AREA_ID_LIMIT = GAME_AREA_NEO_ARK_SUBSTATION };
+
+/// Picture pages used by the Shelter/Neo Ark menu map.
+enum {
+    MAP_NEO_ARK_PAGE_NEO_ARK    = 1,
+    MAP_NEO_ARK_PAGE_SHELTER_B6 = 2,
+    MAP_NEO_ARK_PAGE_SHELTER_1F = 3,
+};
+
+/// Scene columns per area in the flat music table; selection is clamped to 0..9.
+enum { MAP_NEO_ARK_MUSIC_COLUMN_COUNT = 10 };
 
 /// Captured-frame and auxiliary-memory regions for the Shelter/Neo Ark stage.
 ///
@@ -35,15 +49,36 @@ extern GfxImageSlot gMapNeoArkImageSlotsByArea[34];
 /// a matching movie slot and an in-range area before indexing this table.
 extern s32 gMapNeoArkMovieWorkspaceBytesByArea[21];
 
-extern StageMusicEntry D_map_neo_ark_8017CB54[];
+/// Area music for Shelter/Neo Ark, in flat rows of ten scene columns.
+///
+/// Index is area ID * `MAP_NEO_ARK_MUSIC_COLUMN_COUNT` + column, covering
+/// areas 0..33 and columns 0..9 without a terminator. Each row's column 0
+/// also controls the ambient loop. Keep the map overlay loaded while music
+/// tasks borrow their selected entries.
+extern StageMusicEntry gMapNeoArkAreaMusicEntries[(MAP_NEO_ARK_AREA_ID_LIMIT + 1) * MAP_NEO_ARK_MUSIC_COLUMN_COUNT];
 
-extern StageMusicEntry D_map_neo_ark_8017CDFC[];
+/// Scene-indexed countdown music for Shelter/Neo Ark.
+///
+/// The scene's music entry directly selects 0..19 without a bounds check.
+/// Live sequence entries start immediately; 3..7 request no sequence and
+/// 12..19 retain sequence 0 with the view-ready policy. There is no terminator.
+/// Keep the map overlay loaded until the music task releases its selection.
+extern StageMusicEntry gMapNeoArkCountdownMusicEntries[20];
 
-/// This stage's `Gp_MapFlagIds` entry, indexed by map room id.
-extern u8 D_map_neo_ark_80179F1C[];
+/// Area-shading flags for the three Shelter/Neo Ark map pages.
+///
+/// Indexed by page 1..3: Neo Ark uses nibble flag 0x19, Shelter B6 stores 0x80,
+/// and Shelter 1F uses nibble flag 0x1A. Shading tests these as nibble IDs;
+/// stage 5 disables page navigation, where 0x80 would mean unavailable.
+/// Slot 0 is the boundary; slots 4..7 retain zero. Keep the map overlay loaded.
+extern u8 gMapNeoArkPageFlagIds[8];
 
-/// This stage's `Gp_MapRecTables` entry: where each room sits on the map, by room.
-extern MenuMapArea D_map_neo_ark_80179F24[];
+/// Area-to-map coordinate mappings for the Shelter/Neo Ark stage.
+///
+/// Indexed by area ID 0..33; slots 0, 26 and 31 use `MENU_MAP_AREA_PAGE_NONE`. Index 34
+/// closes the table with `MENU_MAP_AREA_PAGE_END`. Maps world X/Z onto signed map pixels
+/// using per-axis world units per pixel. Keep the map overlay loaded for use.
+extern MenuMapArea gMapNeoArkAreas[MAP_NEO_ARK_AREA_ID_LIMIT + 2];
 
 /// This stage's `Gp_MapMarkTables` entry: the area shapes, indexed by area.
 extern MenuMapAreaShape D_map_neo_ark_8017A110[];
@@ -51,8 +86,13 @@ extern MenuMapAreaShape D_map_neo_ark_8017A110[];
 /// This stage's `D_8010F0E0` entry, ended by a page of 0.
 extern MenuMapMarker D_map_neo_ark_8017A230[];
 
-/// This stage's `D_8010F0CC` entry, ended by a page of 0.
-extern MenuMapIcon D_map_neo_ark_8017A26C[];
+/// Fixed-picture and telephone icons for the Shelter/Neo Ark map.
+///
+/// Heliport has a kind-0 fixed picture and a telephone; Nursery has a telephone.
+/// All three require their area to have been visited, with no flag gate.
+/// Coordinates are signed map pixels; the page-zero record ends the list.
+/// The kind-0 picture's subject is unproven. Keep the map overlay loaded.
+extern MenuMapIcon gMapNeoArkIcons[4];
 
 /// This stage's `Gp_MapNameTables` entry: the room names, indexed by room - 1.
 extern MenuMapAreaName D_map_neo_ark_8017A28C[];
@@ -269,59 +309,222 @@ extern AreaPlacement D_map_neo_ark_8017C020[];
 
 extern AreaPlacement D_map_neo_ark_8017C050[];
 
-extern AreaPlacement D_map_neo_ark_8017C070[];
+/// One Bishop GOLEM for Shrine placement variant 11.
+///
+/// Ends with `AREA_PLACEMENT_END`. XYZ use world units, yaw uses 4096 units
+/// per turn, and signed texture-page/CLUT-row offsets bind the room resources.
+/// Spawn parameters remain actor-specific; the map overlay must outlive actors
+/// borrowing these records.
+extern AreaPlacement gMapNeoArkShrineVariant11Placements[2];
 
-extern AreaPlacement D_map_neo_ark_8017C090[];
+/// Kyle, two Pawn GOLEMs and the second scene body for Nursery variant 1.
+///
+/// Ends with `AREA_PLACEMENT_END`. XYZ use world units, yaw uses 4096 units
+/// per turn, and signed texture-page/CLUT-row offsets bind the room resources.
+/// Spawn parameters remain actor-specific; the map overlay must outlive actors
+/// borrowing these records.
+extern AreaPlacement gMapNeoArkNurseryDefaultPlacements[5];
 
-extern AreaPlacement D_map_neo_ark_8017C0E0[];
+/// Terminator-only actor placements for Growth Room variant 1.
+///
+/// The nonempty scene resource list is separate; this list spawns no actors.
+/// The map overlay must remain loaded while the room borrows it.
+extern AreaPlacement gMapNeoArkGrowthRoomDefaultPlacements[1];
 
-extern AreaPlacement D_map_neo_ark_8017C0F0[];
+/// Masked Eve, Mossback and Eve controller/body placements for Corridor variant 1.
+///
+/// Ends with `AREA_PLACEMENT_END`. XYZ use world units, yaw uses 4096 units
+/// per turn, and signed texture-page/CLUT-row offsets bind the room resources.
+/// Spawn parameters remain actor-specific; the map overlay must outlive actors
+/// borrowing these records.
+extern AreaPlacement gMapNeoArkCorridorDefaultPlacements[5];
 
-extern AreaPlacement D_map_neo_ark_8017C140[];
+/// Masked Eve, Kyle, Stinger and Eve controller/body placements for Training Room variant 1.
+///
+/// Ends with `AREA_PLACEMENT_END`. XYZ use world units, yaw uses 4096 units
+/// per turn, and signed texture-page/CLUT-row offsets bind the room resources.
+/// Spawn parameters remain actor-specific; the map overlay must outlive actors
+/// borrowing these records.
+extern AreaPlacement gMapNeoArkTrainingRoomDefaultPlacements[6];
 
-extern AreaPlacement D_map_neo_ark_8017C1D0[];
+/// Three water-mode Bog Divers for Bridge placement variant 1.
+///
+/// Ends with `AREA_PLACEMENT_END`. XYZ use world units, yaw uses 4096 units
+/// per turn, and signed texture-page/CLUT-row offsets bind the room resources.
+/// Spawn parameters remain actor-specific; the map overlay must outlive actors
+/// borrowing these records.
+extern AreaPlacement gMapNeoArkBridgeVariant1Placements[4];
 
-extern AreaPlacement D_map_neo_ark_8017C210[];
+/// Two water-mode Bog Divers and three Black Beetles for Bridge variant 2.
+///
+/// Ends with `AREA_PLACEMENT_END`. XYZ use world units, yaw uses 4096 units
+/// per turn, and signed texture-page/CLUT-row offsets bind the room resources.
+/// Spawn parameters remain actor-specific; the map overlay must outlive actors
+/// borrowing these records.
+extern AreaPlacement gMapNeoArkBridgeVariant2Placements[6];
 
-extern AreaPlacement D_map_neo_ark_8017C270[];
+/// A water-mode Bog Diver and a Mossback for Bridge variant 3.
+///
+/// Ends with `AREA_PLACEMENT_END`. XYZ use world units, yaw uses 4096 units
+/// per turn, and signed texture-page/CLUT-row offsets bind the room resources.
+/// Spawn parameters remain actor-specific; the map overlay must outlive actors
+/// borrowing these records.
+extern AreaPlacement gMapNeoArkBridgeVariant3Placements[3];
 
-extern AreaPlacement D_map_neo_ark_8017C2A0[];
+/// Two water-mode Bog Divers and a Mossback for Bridge variant 4.
+///
+/// Ends with `AREA_PLACEMENT_END`. XYZ use world units, yaw uses 4096 units
+/// per turn, and signed texture-page/CLUT-row offsets bind the room resources.
+/// Spawn parameters remain actor-specific; the map overlay must outlive actors
+/// borrowing these records.
+extern AreaPlacement gMapNeoArkBridgeVariant4Placements[4];
 
-extern AreaPlacement D_map_neo_ark_8017C2E0[];
+/// One grounded and two floating wounded Bog Divers for Bridge variant 5.
+///
+/// Ends with `AREA_PLACEMENT_END`. XYZ use world units, yaw uses 4096 units
+/// per turn, and signed texture-page/CLUT-row offsets bind the room resources.
+/// Spawn parameters remain actor-specific; the map overlay must outlive actors
+/// borrowing these records.
+extern AreaPlacement gMapNeoArkBridgeVariant5Placements[4];
 
-extern AreaPlacement D_map_neo_ark_8017C320[];
+/// Two beam-sword Rook GOLEMs for Bridge placement variant 11.
+///
+/// Patrol spans are 6000 and 8000 world units, encoded in variant 6/8.
+/// Ends with `AREA_PLACEMENT_END`. XYZ use world units, yaw uses 4096 units
+/// per turn, and signed texture-page/CLUT-row offsets bind the room resources.
+/// Spawn parameters remain actor-specific; the map overlay must outlive actors
+/// borrowing these records.
+extern AreaPlacement gMapNeoArkBridgeVariant11Placements[3];
 
-extern AreaPlacement D_map_neo_ark_8017C350[];
+/// Two beam-sword Rook GOLEMs for Bridge placement variant 12.
+///
+/// Patrol spans are 6000 and 8000 world units, encoded in variant 6/8.
+/// Ends with `AREA_PLACEMENT_END`. XYZ use world units, yaw uses 4096 units
+/// per turn, and signed texture-page/CLUT-row offsets bind the room resources.
+/// Spawn parameters remain actor-specific; the map overlay must outlive actors
+/// borrowing these records.
+extern AreaPlacement gMapNeoArkBridgeVariant12Placements[3];
 
-extern AreaPlacement D_map_neo_ark_8017C380[];
+/// Soldiers C, B and A for Tent placement variant 1.
+///
+/// Ends with `AREA_PLACEMENT_END`. XYZ use world units, yaw uses 4096 units
+/// per turn, and signed texture-page/CLUT-row offsets bind the room resources.
+/// Spawn parameters remain actor-specific; the map overlay must outlive actors
+/// borrowing these records.
+extern AreaPlacement gMapNeoArkTentDefaultPlacements[4];
 
-extern AreaPlacement D_map_neo_ark_8017C3C0[];
+/// Two reusable Horned Stranger pool actors for Woodland Path variant 1.
+///
+/// Ends with `AREA_PLACEMENT_END`. XYZ use world units, yaw uses 4096 units
+/// per turn, and signed texture-page/CLUT-row offsets bind the room resources.
+/// Spawn parameters remain actor-specific; the map overlay must outlive actors
+/// borrowing these records.
+extern AreaPlacement gMapNeoArkWoodlandPathVariant1Placements[3];
 
-extern AreaPlacement D_map_neo_ark_8017C3F0[];
+/// Two reusable Horned Stranger pool actors for Woodland Path variant 2.
+///
+/// Ends with `AREA_PLACEMENT_END`. XYZ use world units, yaw uses 4096 units
+/// per turn, and signed texture-page/CLUT-row offsets bind the room resources.
+/// Spawn parameters remain actor-specific; the map overlay must outlive actors
+/// borrowing these records.
+extern AreaPlacement gMapNeoArkWoodlandPathVariant2Placements[3];
 
-extern AreaPlacement D_map_neo_ark_8017C420[];
+/// Two reusable Horned Stranger pool actors for Woodland Path variant 3.
+///
+/// Ends with `AREA_PLACEMENT_END`. XYZ use world units, yaw uses 4096 units
+/// per turn, and signed texture-page/CLUT-row offsets bind the room resources.
+/// Spawn parameters remain actor-specific; the map overlay must outlive actors
+/// borrowing these records.
+extern AreaPlacement gMapNeoArkWoodlandPathVariant3Placements[3];
 
-extern AreaPlacement D_map_neo_ark_8017C450[];
+/// Four wounded Horned Strangers for Woodland Path placement variant 4.
+///
+/// Ends with `AREA_PLACEMENT_END`. XYZ use world units, yaw uses 4096 units
+/// per turn, and signed texture-page/CLUT-row offsets bind the room resources.
+/// Spawn parameters remain actor-specific; the map overlay must outlive actors
+/// borrowing these records.
+extern AreaPlacement gMapNeoArkWoodlandPathVariant4Placements[5];
 
-extern AreaPlacement D_map_neo_ark_8017C4A0[];
+/// Sea Diver placement and a suppressed Bog Diver for Submarine Gallery variant 1.
+///
+/// The Bog Diver record sets spawn-rejection bit 16 and creates no actor.
+/// Ends with `AREA_PLACEMENT_END`. XYZ use world units, yaw uses 4096 units
+/// per turn, and signed texture-page/CLUT-row offsets bind the room resources.
+/// Spawn parameters remain actor-specific; the map overlay must outlive actors
+/// borrowing these records.
+extern AreaPlacement gMapNeoArkSubmarineGalleryVariant1Placements[3];
 
-extern AreaPlacement D_map_neo_ark_8017C4D0[];
+/// Three water-mode Bog Divers for Submarine Gallery placement variant 2.
+///
+/// Ends with `AREA_PLACEMENT_END`. XYZ use world units, yaw uses 4096 units
+/// per turn, and signed texture-page/CLUT-row offsets bind the room resources.
+/// Spawn parameters remain actor-specific; the map overlay must outlive actors
+/// borrowing these records.
+extern AreaPlacement gMapNeoArkSubmarineGalleryVariant2Placements[4];
 
-extern AreaPlacement D_map_neo_ark_8017C510[];
+/// A floating wounded Bog Diver for Submarine Gallery placement variant 3.
+///
+/// Ends with `AREA_PLACEMENT_END`. XYZ use world units, yaw uses 4096 units
+/// per turn, and signed texture-page/CLUT-row offsets bind the room resources.
+/// Spawn parameters remain actor-specific; the map overlay must outlive actors
+/// borrowing these records.
+extern AreaPlacement gMapNeoArkSubmarineGalleryVariant3Placements[2];
 
-extern AreaPlacement D_map_neo_ark_8017C530[];
+/// A water-mode Bog Diver for Submarine Gallery placement variant 11.
+///
+/// Ends with `AREA_PLACEMENT_END`. XYZ use world units, yaw uses 4096 units
+/// per turn, and signed texture-page/CLUT-row offsets bind the room resources.
+/// Spawn parameters remain actor-specific; the map overlay must outlive actors
+/// borrowing these records.
+extern AreaPlacement gMapNeoArkSubmarineGalleryVariant11Placements[2];
 
-extern AreaPlacement D_map_neo_ark_8017C550[];
+/// Kyle and Aya scene walkers for room 31 placement variant 1.
+///
+/// Ends with `AREA_PLACEMENT_END`. XYZ use world units, yaw uses 4096 units
+/// per turn, and signed texture-page/CLUT-row offsets bind the room resources.
+/// Spawn parameters remain actor-specific; the map overlay must outlive actors
+/// borrowing these records.
+extern AreaPlacement gMapNeoArkR31DefaultPlacements[3];
 
-extern AreaPlacement D_map_neo_ark_8017C580[];
+/// Nine floor/wall Black Beetles for Pyramid placement variant 1.
+///
+/// Ends with `AREA_PLACEMENT_END`. XYZ use world units, yaw uses 4096 units
+/// per turn, and signed texture-page/CLUT-row offsets bind the room resources.
+/// Spawn parameters remain actor-specific; the map overlay must outlive actors
+/// borrowing these records.
+extern AreaPlacement gMapNeoArkPyramidVariant1Placements[10];
 
-extern AreaPlacement D_map_neo_ark_8017C620[];
+/// Six ambush Maggots for Pyramid placement variant 2.
+///
+/// Ends with `AREA_PLACEMENT_END`. XYZ use world units, yaw uses 4096 units
+/// per turn, and signed texture-page/CLUT-row offsets bind the room resources.
+/// Spawn parameters remain actor-specific; the map overlay must outlive actors
+/// borrowing these records.
+extern AreaPlacement gMapNeoArkPyramidVariant2Placements[7];
 
-extern AreaPlacement D_map_neo_ark_8017C690[];
+/// Five Black Beetles and three ambush Maggots for Pyramid variant 3.
+///
+/// Ends with `AREA_PLACEMENT_END`. XYZ use world units, yaw uses 4096 units
+/// per turn, and signed texture-page/CLUT-row offsets bind the room resources.
+/// Spawn parameters remain actor-specific; the map overlay must outlive actors
+/// borrowing these records.
+extern AreaPlacement gMapNeoArkPyramidVariant3Placements[9];
 
-extern AreaPlacement D_map_neo_ark_8017C720[];
+/// Two Pawn GOLEMs and a wounded Horned Stranger for Pyramid variant 4.
+///
+/// Ends with `AREA_PLACEMENT_END`. XYZ use world units, yaw uses 4096 units
+/// per turn, and signed texture-page/CLUT-row offsets bind the room resources.
+/// Spawn parameters remain actor-specific; the map overlay must outlive actors
+/// borrowing these records.
+extern AreaPlacement gMapNeoArkPyramidVariant4Placements[4];
 
-extern AreaPlacement D_map_neo_ark_8017C760[];
+/// Beam-sword and grenade-launcher Rook GOLEMs for Pyramid variant 11.
+///
+/// Ends with `AREA_PLACEMENT_END`. XYZ use world units, yaw uses 4096 units
+/// per turn, and signed texture-page/CLUT-row offsets bind the room resources.
+/// Spawn parameters remain actor-specific; the map overlay must outlive actors
+/// borrowing these records.
+extern AreaPlacement gMapNeoArkPyramidVariant11Placements[3];
 
 /// This stage's `D_8010F9F4` and `D_8010FA0C` entries: items awarded
 /// for battles won at a location, each list ended by a key of

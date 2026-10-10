@@ -345,7 +345,7 @@ static AreaResource _gShelterB6GrowthRoomSceneResources[2] = {
 
 AreaVariant D_shelter_b6_growth_room_80180338[13] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017C0E0, _gShelterB6GrowthRoomSceneResources },
+    { gMapNeoArkGrowthRoomDefaultPlacements, _gShelterB6GrowthRoomSceneResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

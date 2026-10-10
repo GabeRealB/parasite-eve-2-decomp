@@ -122,14 +122,14 @@ static StageMusicEntry* Stage_MusicTables[] = {
     gMapDryfieldAreaMusicEntries,
     gMapDryfieldFullAreaMusicEntries,
     D_map_shelter_8017BE28,
-    D_map_neo_ark_8017CB54,
+    gMapNeoArkAreaMusicEntries,
 };
 static StageMusicEntry* Stage_CountdownMusicTables[] = {
     D_map_akropolis_8017C304,
     gMapDryfieldCountdownMusicEntries,
     gMapDryfieldFullCountdownMusicEntries,
     D_map_shelter_8017C2D8,
-    D_map_neo_ark_8017CDFC,
+    gMapNeoArkCountdownMusicEntries,
 };
 static u8 Stage_MusicRowLengths[]  = { 8, 7, 0xB, 0xC, 0xA };
 static u8 Stage_SceneEventLimits[] = { 9, 8, 0xC, 9, 0x14 };

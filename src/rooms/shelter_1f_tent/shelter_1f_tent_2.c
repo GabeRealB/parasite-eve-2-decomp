@@ -598,7 +598,7 @@ AreaResource D_shelter_1f_tent_80184200[4] = {
 
 AreaVariant D_shelter_1f_tent_80184230[13] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017C380, D_shelter_1f_tent_80184200 },
+    { gMapNeoArkTentDefaultPlacements, D_shelter_1f_tent_80184200 },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

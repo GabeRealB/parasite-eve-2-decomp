@@ -1341,7 +1341,7 @@ AreaVariant D_neo_ark_shrine_801866C8[13] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_neo_ark_8017C070, _gNeoArkShrineVariant11Resources },
+    { gMapNeoArkShrineVariant11Placements, _gNeoArkShrineVariant11Resources },
     { NULL, NULL },
 };
 

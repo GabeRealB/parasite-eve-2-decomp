@@ -891,7 +891,7 @@ AreaResource D_shelter_b6_nursery_80187474[4] = {
 
 AreaVariant D_shelter_b6_nursery_801874A4[13] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017C090, D_shelter_b6_nursery_80187474 },
+    { gMapNeoArkNurseryDefaultPlacements, D_shelter_b6_nursery_80187474 },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

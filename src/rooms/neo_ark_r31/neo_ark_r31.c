@@ -140,7 +140,7 @@ AreaResource D_neo_ark_r31_8017DB94[3] = {
 
 AreaVariant D_neo_ark_r31_8017DBB8[13] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017C550, D_neo_ark_r31_8017DB94 },
+    { gMapNeoArkR31DefaultPlacements, D_neo_ark_r31_8017DB94 },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

@@ -972,9 +972,9 @@ AreaResource D_neo_ark_submarine_gallery_80185848[2] = {
 
 AreaVariant D_neo_ark_submarine_gallery_80185860[13] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017C4A0, _gNeoArkSubmarineGalleryVariant1Resources },
-    { D_map_neo_ark_8017C4D0, D_neo_ark_submarine_gallery_80185818 },
-    { D_map_neo_ark_8017C510, D_neo_ark_submarine_gallery_80185830 },
+    { gMapNeoArkSubmarineGalleryVariant1Placements, _gNeoArkSubmarineGalleryVariant1Resources },
+    { gMapNeoArkSubmarineGalleryVariant2Placements, D_neo_ark_submarine_gallery_80185818 },
+    { gMapNeoArkSubmarineGalleryVariant3Placements, D_neo_ark_submarine_gallery_80185830 },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -982,7 +982,7 @@ AreaVariant D_neo_ark_submarine_gallery_80185860[13] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_neo_ark_8017C530, D_neo_ark_submarine_gallery_80185848 },
+    { gMapNeoArkSubmarineGalleryVariant11Placements, D_neo_ark_submarine_gallery_80185848 },
     { NULL, NULL },
 };
 

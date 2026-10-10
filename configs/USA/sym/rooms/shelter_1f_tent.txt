@@ -85,7 +85,7 @@ D_shelter_1f_tent_801843C4 = 0x801843C4; // size:0x18 defined:True
 gActor460200SoldierATaskDesc = 0x8013FC80; // absolute:True owner=actor_460200
 gActor460200SoldierBTasks = 0x80148118; // absolute:True owner=actor_460200
 gActor460200SoldierCTaskDesc = 0x8015152C; // absolute:True owner=actor_460200
-D_map_neo_ark_8017C380 = 0x8017C380; // absolute:True owner=map_neo_ark
+gMapNeoArkTentDefaultPlacements = 0x8017C380; // absolute:True owner=map_neo_ark
 gAcropolisSquarePostCutsceneAreaUpdates = 0x80188888; // absolute:True owner=acropolis_square
 _gRoomCutsceneTaskDescs = 0x80181CB8; // size:0x24 defined:True
 D_shelter_1f_tent_80181CDC = 0x80181CDC; // size:0x28 defined:True

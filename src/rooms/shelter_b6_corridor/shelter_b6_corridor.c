@@ -643,7 +643,7 @@ static AreaResource _gShelterB6CorridorAreaResources[5] = {
 
 AreaVariant D_shelter_b6_corridor_80180304[13] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017C0F0, _gShelterB6CorridorAreaResources },
+    { gMapNeoArkCorridorDefaultPlacements, _gShelterB6CorridorAreaResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

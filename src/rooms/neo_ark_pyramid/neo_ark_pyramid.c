@@ -518,17 +518,17 @@ AreaResource D_neo_ark_pyramid_80181704[3] = {
 
 AreaVariant D_neo_ark_pyramid_80181728[13] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017C580, D_neo_ark_pyramid_8018168C },
-    { D_map_neo_ark_8017C620, D_neo_ark_pyramid_801816A4 },
-    { D_map_neo_ark_8017C690, D_neo_ark_pyramid_801816BC },
-    { D_map_neo_ark_8017C720, D_neo_ark_pyramid_801816E0 },
+    { gMapNeoArkPyramidVariant1Placements, D_neo_ark_pyramid_8018168C },
+    { gMapNeoArkPyramidVariant2Placements, D_neo_ark_pyramid_801816A4 },
+    { gMapNeoArkPyramidVariant3Placements, D_neo_ark_pyramid_801816BC },
+    { gMapNeoArkPyramidVariant4Placements, D_neo_ark_pyramid_801816E0 },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_neo_ark_8017C760, D_neo_ark_pyramid_80181704 },
+    { gMapNeoArkPyramidVariant11Placements, D_neo_ark_pyramid_80181704 },
     { NULL, NULL },
 };
 
