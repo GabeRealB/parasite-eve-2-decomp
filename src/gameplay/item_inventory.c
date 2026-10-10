@@ -14,70 +14,6 @@
 #include "main/wipsys.h"
 
 /* Item names and descriptions shared by the inventory tables. */
-extern const u8 D_80095000[];
-
-extern const u8 D_8009506C[];
-
-extern const u8 D_800950D0[];
-
-extern const u8 D_80095138[];
-
-extern const u8 D_80095170[];
-
-extern const u8 D_800951C4[];
-
-extern const u8 D_8009521C[];
-
-extern const u8 D_8009526C[];
-
-extern const u8 D_800952B8[];
-
-extern const u8 D_80095310[];
-
-extern const u8 D_80095380[];
-
-extern const u8 D_800953C8[];
-
-extern const u8 D_80095418[];
-
-extern const u8 D_80095470[];
-
-extern const u8 D_800954C0[];
-
-extern const u8 D_80095508[];
-
-extern const u8 D_8009555C[];
-
-extern const u8 D_80095590[];
-
-extern const u8 D_800955DC[];
-
-extern const u8 D_8009562C[];
-
-extern const u8 D_8009565C[];
-
-extern const u8 D_800956AC[];
-
-extern const u8 D_800956F0[];
-
-extern const u8 D_80095748[];
-
-extern const u8 D_800957A8[];
-
-extern const u8 D_80095804[];
-
-extern const u8 D_80095834[];
-
-extern const u8 D_8009585C[];
-
-extern const u8 D_800958B0[];
-
-extern const u8 D_800958E0[];
-
-extern const u8 D_80095924[];
-
-extern const u8 D_80095990[];
-
 extern const u8 D_800959E4[];
 
 extern const u8 D_80095A28[];
@@ -1040,38 +976,422 @@ static const u8 _gItemHammerTextFields[] =
     "An electric prod.\n"
     "\n";
 
-const u8 D_80095000[]   = "Pyke\nSmall portable flamethrower.\nCustom M4A1 attachment.\nIgnition Device\nSome sort of ignition device.\n\n";
-const u8 D_8009506C[]   = "Javelin\nSmall laser gun.\nCustom M4A1 attachment.\nLaser Attachment\nSome sort of weapon attachment.\n\n";
-const u8 D_800950D0[]   = "M203\n40mm grenade launcher.\nCustom M4A1 attachment.\nGrenade Launcher\nA grenade launcher attachment.\n\n";
-const u8 D_80095138[]   = "M9\nClose-combat bayonet.\nCustom M4A1 attachment.\n\n\n\n";
-const u8 D_80095170[]   = "Leather Jacket\nAya's favorite leather jacket.\nDecent armor with special lining.\n\n\n\n";
-const u8 D_800951C4[]   = "Tactical Armor\nModern all-terrain combat armor.\nIncludes heads-up motion detector.\n\n\n\n";
-const u8 D_8009521C[]   = "Combat Armor\nHeavy police body armor.\nHelmet amplifier prevents Silence.\n\n\n\n";
-const u8 D_8009526C[]   = "Assault Suit\nGood desert jacket. Has\nattachments, but poor protection.\n\n\n\n";
-const u8 D_800952B8[]   = "PASGT Vest\nBody armor in current military use.\nIncludes an emergency first aid kit.\n\n\n\n";
-const u8 D_80095310[]   = "Tactical Vest\nBulletproof SWAT vest.\nIncludes an emergency first aid kit.\nBody Armor\nA bulletproof SWAT vest.\n\n";
-const u8 D_80095380[]   = "EOD Suit\nExplosives squad body armor.\nResists explosions and heat.\n\n\n\n";
-const u8 D_800953C8[]   = "Turtle Vest\nNMC Hunter reinforced vest.\nCan be worn under regular clothing.\n\n\n\n";
-const u8 D_80095418[]   = "Chicken Plate\nFlak jacket worn by bomber pilots.\nCeramic vest plates absorb impact.\n\n\n\n";
-const u8 D_80095470[]   = "NBC Suit\nEnvironmental NBC protection suit.\nSuitable for long-term wear.\n\n\n\n";
-const u8 D_800954C0[]   = "PsySuit\nNeo-mitochondria labsuit.\nIncludes remote ANMC analyzer.\n\n\n\n";
-const u8 D_80095508[]   = "Aya Special\nAya's custom-made armored vest.\nOutfitted for anti-NMC operations.\n\n\n\n";
-const u8 D_8009555C[]   = "Shoulder Holster\nHolster worn over a T-shirt.\n\n\n\n\n";
-const u8 D_80095590[]   = "Monk Robe\nMitochondria worshipper's mantle.\nNMC blood stains boost PE.\n\n\n\n";
-const u8 D_800955DC[]   = "P08(S. Magazine)\nP08 modified w/ a snail magazine.\nIncreased ammo capacity.\n\n\n\n";
-const u8 D_8009562C[]   = "M93R\nSemi-auto 9mm, fires 3-round\nbursts.\n\n\n\n";
-const u8 D_8009565C[]   = "M950\nFull-auto 9mm w/ high ammo\ncapacity.\nLarge Handgun\nA full-auto handgun.\n\n";
-const u8 D_800956AC[]   = "P08\nSemi-auto 9mm w/ special\nloader.\nHandgun\nA semi-auto handgun.\n\n";
-const u8 D_800956F0[]   = "P229\nSemi-auto 9mm w/ silencer.\nFlashlight attachment.\nHandgun\nA semi-auto handgun.\n\n";
-const u8 D_80095748[]   = "Mongoose\nLarge 44-caliber revolver.\nSlow reload, but it's worth it.\nLarge Handgun\nA revolver.\n\n";
-const u8 D_800957A8[]   = "Grenade Pistol\nPistol-sized 40mm\ngrenade launcher.\nGrenade Launcher\nA grenade launcher.\n\n";
-const u8 D_80095804[]   = "MM1\n40mm launcher w/ revolving\nmagazine.\n\n\n\n";
-const u8 D_80095834[]   = "PA3\nPump-action 12-gauge\nshotgun.\n\n\n\n";
-const u8 D_8009585C[]   = "SP12\n12-gauge close-combat shotgun.\nPowerful, but cumbersome.\nShotgun\nA shotgun.\n\n";
-const u8 D_800958B0[]   = "AS12\nRapid-fire 12-gauge\ncombat shotgun.\n\n\n\n";
-const u8 D_800958E0[]   = "M4A1 Rifle\n5.56mm assault rifle.\nCustomizable with attachments.\n\n\n\n";
-const u8 D_80095924[]   = "M249\nPortable light machine gun.\nHeavy firepower and a large clip.\nLight Machine Gun\nA light machine gun.\n\n";
-const u8 D_80095990[]   = "Tonfa Baton\nBaton based on an Okinawan design.\nMasters can attack continuously.\n\n\n\n";
+/// Catalogue name and descriptions for the Pyke M4A1 attachment.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first, followed by the unidentified form.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemPykeTextFields[] =
+    "Pyke\n"
+    "Small portable flamethrower.\n"
+    "Custom M4A1 attachment.\n"
+    "Ignition Device\n"
+    "Some sort of ignition device.\n"
+    "\n";
+
+/// Catalogue name and descriptions for the Javelin M4A1 attachment.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first, followed by the unidentified form.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemJavelinTextFields[] =
+    "Javelin\n"
+    "Small laser gun.\n"
+    "Custom M4A1 attachment.\n"
+    "Laser Attachment\n"
+    "Some sort of weapon attachment.\n"
+    "\n";
+
+/// Catalogue name and descriptions for the M203 M4A1 attachment.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first, followed by the unidentified form.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemM203TextFields[] =
+    "M203\n"
+    "40mm grenade launcher.\n"
+    "Custom M4A1 attachment.\n"
+    "Grenade Launcher\n"
+    "A grenade launcher attachment.\n"
+    "\n";
+
+/// Catalogue name and descriptions for the M9 bayonet.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemM9TextFields[] =
+    "M9\n"
+    "Close-combat bayonet.\n"
+    "Custom M4A1 attachment.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for Leather Jacket.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemLeatherJacketTextFields[] =
+    "Leather Jacket\n"
+    "Aya's favorite leather jacket.\n"
+    "Decent armor with special lining.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for Tactical Armor.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemTacticalArmorTextFields[] =
+    "Tactical Armor\n"
+    "Modern all-terrain combat armor.\n"
+    "Includes heads-up motion detector.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for Combat Armor.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemCombatArmorTextFields[] =
+    "Combat Armor\n"
+    "Heavy police body armor.\n"
+    "Helmet amplifier prevents Silence.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for Assault Suit.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemAssaultSuitTextFields[] =
+    "Assault Suit\n"
+    "Good desert jacket. Has\n"
+    "attachments, but poor protection.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for PASGT Vest.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemPasgtVestTextFields[] =
+    "PASGT Vest\n"
+    "Body armor in current military use.\n"
+    "Includes an emergency first aid kit.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for Tactical Vest.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first, followed by the unidentified form.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemTacticalVestTextFields[] =
+    "Tactical Vest\n"
+    "Bulletproof SWAT vest.\n"
+    "Includes an emergency first aid kit.\n"
+    "Body Armor\n"
+    "A bulletproof SWAT vest.\n"
+    "\n";
+
+/// Catalogue name and descriptions for EOD Suit.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemEodSuitTextFields[] =
+    "EOD Suit\n"
+    "Explosives squad body armor.\n"
+    "Resists explosions and heat.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for Turtle Vest.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemTurtleVestTextFields[] =
+    "Turtle Vest\n"
+    "NMC Hunter reinforced vest.\n"
+    "Can be worn under regular clothing.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for Chicken Plate.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemChickenPlateTextFields[] =
+    "Chicken Plate\n"
+    "Flak jacket worn by bomber pilots.\n"
+    "Ceramic vest plates absorb impact.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for NBC Suit.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemNbcSuitTextFields[] =
+    "NBC Suit\n"
+    "Environmental NBC protection suit.\n"
+    "Suitable for long-term wear.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for PsySuit.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemPsySuitTextFields[] =
+    "PsySuit\n"
+    "Neo-mitochondria labsuit.\n"
+    "Includes remote ANMC analyzer.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for Aya Special.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemAyaSpecialTextFields[] =
+    "Aya Special\n"
+    "Aya's custom-made armored vest.\n"
+    "Outfitted for anti-NMC operations.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for Shoulder Holster.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemShoulderHolsterTextFields[] =
+    "Shoulder Holster\n"
+    "Holster worn over a T-shirt.\n"
+    "\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for Monk Robe.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemMonkRobeTextFields[] =
+    "Monk Robe\n"
+    "Mitochondria worshipper's mantle.\n"
+    "NMC blood stains boost PE.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for P08 with a Snail Magazine.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemP08SnailMagazineTextFields[] =
+    "P08(S. Magazine)\n"
+    "P08 modified w/ a snail magazine.\n"
+    "Increased ammo capacity.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for M93R.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemM93rTextFields[] =
+    "M93R\n"
+    "Semi-auto 9mm, fires 3-round\n"
+    "bursts.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for M950.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first, followed by the unidentified form.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemM950TextFields[] =
+    "M950\n"
+    "Full-auto 9mm w/ high ammo\n"
+    "capacity.\n"
+    "Large Handgun\n"
+    "A full-auto handgun.\n"
+    "\n";
+
+/// Catalogue name and descriptions for P08.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first, followed by the unidentified form.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemP08TextFields[] =
+    "P08\n"
+    "Semi-auto 9mm w/ special\n"
+    "loader.\n"
+    "Handgun\n"
+    "A semi-auto handgun.\n"
+    "\n";
+
+/// Catalogue name and descriptions for P229.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first, followed by the unidentified form.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemP229TextFields[] =
+    "P229\n"
+    "Semi-auto 9mm w/ silencer.\n"
+    "Flashlight attachment.\n"
+    "Handgun\n"
+    "A semi-auto handgun.\n"
+    "\n";
+
+/// Catalogue name and descriptions for Mongoose.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first, followed by the unidentified form.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemMongooseTextFields[] =
+    "Mongoose\n"
+    "Large 44-caliber revolver.\n"
+    "Slow reload, but it's worth it.\n"
+    "Large Handgun\n"
+    "A revolver.\n"
+    "\n";
+
+/// Catalogue name and descriptions for Grenade Pistol.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first, followed by the unidentified form.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemGrenadePistolTextFields[] =
+    "Grenade Pistol\n"
+    "Pistol-sized 40mm\n"
+    "grenade launcher.\n"
+    "Grenade Launcher\n"
+    "A grenade launcher.\n"
+    "\n";
+
+/// Catalogue name and descriptions for MM1.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemMm1TextFields[] =
+    "MM1\n"
+    "40mm launcher w/ revolving\n"
+    "magazine.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for PA3.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemPa3TextFields[] =
+    "PA3\n"
+    "Pump-action 12-gauge\n"
+    "shotgun.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for SP12.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first, followed by the unidentified form.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemSp12TextFields[] =
+    "SP12\n"
+    "12-gauge close-combat shotgun.\n"
+    "Powerful, but cumbersome.\n"
+    "Shotgun\n"
+    "A shotgun.\n"
+    "\n";
+
+/// Catalogue name and descriptions for AS12.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemAs12TextFields[] =
+    "AS12\n"
+    "Rapid-fire 12-gauge\n"
+    "combat shotgun.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for M4A1 Rifle.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemM4a1RifleTextFields[] =
+    "M4A1 Rifle\n"
+    "5.56mm assault rifle.\n"
+    "Customizable with attachments.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for M249.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first, followed by the unidentified form.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemM249TextFields[] =
+    "M249\n"
+    "Portable light machine gun.\n"
+    "Heavy firepower and a large clip.\n"
+    "Light Machine Gun\n"
+    "A light machine gun.\n"
+    "\n";
+
+/// Catalogue name and descriptions for Tonfa Baton.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemTonfaBatonTextFields[] =
+    "Tonfa Baton\n"
+    "Baton based on an Okinawan design.\n"
+    "Masters can attack continuously.\n"
+    "\n"
+    "\n"
+    "\n";
+
 const u8 D_800959E4[]   = "M4A1(+1)\nM4A1 assault rifle.\nMagazine holds 30 extra rounds.\n\n\n\n";
 const u8 D_80095A28[]   = "M4A1(+2)\nM4A1 assault rifle.\nMagazine holds 60 extra rounds.\n\n\n\n";
 const u8 D_80095A6C[]   = "Hypervelocity\nMagnetic railgun.\nFires hypersonic rounds.\n\n\n\n";
@@ -1214,10 +1534,10 @@ ItemDesc Gp_ItemDescs[] = {
     { 1000, 0, ITEM_FLAG_NO_DISCARD | 0x8, _gItemGpsTextFields },
     { 60, 0, 0x00, _gItemCombatLightTextFields },
     { 3720, 0, ITEM_FLAG_NO_ATTACHMENT, _gItemHammerTextFields },
-    { 5180, 0, ITEM_FLAG_NO_ATTACHMENT, D_80095000 },
-    { 7500, 0, ITEM_FLAG_NO_ATTACHMENT, D_8009506C },
-    { 2130, 0, ITEM_FLAG_NO_ATTACHMENT, D_800950D0 },
-    { 980, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80095138 },
+    { 5180, 0, ITEM_FLAG_NO_ATTACHMENT, _gItemPykeTextFields },
+    { 7500, 0, ITEM_FLAG_NO_ATTACHMENT, _gItemJavelinTextFields },
+    { 2130, 0, ITEM_FLAG_NO_ATTACHMENT, _gItemM203TextFields },
+    { 980, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemM9TextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
@@ -1243,20 +1563,20 @@ ItemDesc Gp_ItemDescs[] = {
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
-    { 1000, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80095170 },
-    { 12800, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_800951C4 },
-    { 3250, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_8009521C },
-    { 1000, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_8009526C },
-    { 2980, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_800952B8 },
-    { 2120, 16, ITEM_FLAG_NO_ATTACHMENT, D_80095310 },
-    { 4580, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80095380 },
-    { 1680, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_800953C8 },
-    { 1000, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80095418 },
-    { 3980, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80095470 },
-    { 4580, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_800954C0 },
-    { 8000, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80095508 },
-    { 2580, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_8009555C },
-    { 3000, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80095590 },
+    { 1000, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemLeatherJacketTextFields },
+    { 12800, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemTacticalArmorTextFields },
+    { 3250, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemCombatArmorTextFields },
+    { 1000, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemAssaultSuitTextFields },
+    { 2980, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemPasgtVestTextFields },
+    { 2120, 16, ITEM_FLAG_NO_ATTACHMENT, _gItemTacticalVestTextFields },
+    { 4580, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemEodSuitTextFields },
+    { 1680, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemTurtleVestTextFields },
+    { 1000, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemChickenPlateTextFields },
+    { 3980, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemNbcSuitTextFields },
+    { 4580, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemPsySuitTextFields },
+    { 8000, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemAyaSpecialTextFields },
+    { 2580, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemShoulderHolsterTextFields },
+    { 3000, 16, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemMonkRobeTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
@@ -1275,25 +1595,25 @@ ItemDesc Gp_ItemDescs[] = {
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
-    { 1000, 33, 0x8, D_800955DC },
-    { 2000, 33, ITEM_FLAG_NO_DISCARD | 0x8, D_8009562C },
-    { 5750, 34, 0x00, D_8009565C },
-    { 680, 33, 0x00, D_800956AC },
-    { 1880, 33, 0x00, D_800956F0 },
+    { 1000, 33, 0x8, _gItemP08SnailMagazineTextFields },
+    { 2000, 33, ITEM_FLAG_NO_DISCARD | 0x8, _gItemM93rTextFields },
+    { 5750, 34, 0x00, _gItemM950TextFields },
+    { 680, 33, 0x00, _gItemP08TextFields },
+    { 1880, 33, 0x00, _gItemP229TextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
-    { 2850, 34, 0x00, D_80095748 },
+    { 2850, 34, 0x00, _gItemMongooseTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
-    { 1680, 36, 0x00, D_800957A8 },
-    { 23500, 36, 0x8, D_80095804 },
-    { 1000, 37, 0x8, D_80095834 },
-    { 3980, 37, 0x00, D_8009585C },
-    { 12500, 37, 0x8, D_800958B0 },
-    { 2450, 38, 0x8, D_800958E0 },
-    { 15800, 35, 0x00, D_80095924 },
+    { 1680, 36, 0x00, _gItemGrenadePistolTextFields },
+    { 23500, 36, 0x8, _gItemMm1TextFields },
+    { 1000, 37, 0x8, _gItemPa3TextFields },
+    { 3980, 37, 0x00, _gItemSp12TextFields },
+    { 12500, 37, 0x8, _gItemAs12TextFields },
+    { 2450, 38, 0x8, _gItemM4a1RifleTextFields },
+    { 15800, 35, 0x00, _gItemM249TextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
-    { 1000, 39, ITEM_FLAG_NO_DISCARD | 0x8, D_80095990 },
+    { 1000, 39, ITEM_FLAG_NO_DISCARD | 0x8, _gItemTonfaBatonTextFields },
     { 5000, 38, 0x8, D_800959E4 },
     { 7500, 38, 0x8, D_80095A28 },
     { 20000, 36, 0x8, D_80095A6C },
