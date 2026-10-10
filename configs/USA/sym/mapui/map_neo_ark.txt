@@ -151,12 +151,12 @@ D_neo_ark_power_plant_2_8018205C = 0x8018205C; // absolute:True owner=neo_ark_po
 D_neo_ark_power_plant_2_80182F50 = 0x80182F50; // absolute:True owner=neo_ark_power_plant_2
 neoArkPowerPlant1RoomTask = 0x8017D9C0; // type:func absolute:True owner=neo_ark_power_plant_1
 D_neo_ark_power_plant_1_8017F1C8 = 0x8017F1C8; // absolute:True owner=neo_ark_power_plant_1
-D_neo_ark_power_plant_1_8017F1D8 = 0x8017F1D8; // absolute:True owner=neo_ark_power_plant_1
-D_neo_ark_power_plant_1_8017F1E0 = 0x8017F1E0; // absolute:True owner=neo_ark_power_plant_1
+gNeoArkPowerPlant1RoomLighting = 0x8017F1D8; // absolute:True owner=neo_ark_power_plant_1
+gNeoArkPowerPlant1ViewMaps = 0x8017F1E0; // absolute:True owner=neo_ark_power_plant_1
 D_neo_ark_power_plant_1_8017F1E4 = 0x8017F1E4; // absolute:True owner=neo_ark_power_plant_1
 D_neo_ark_power_plant_1_8017F1E8 = 0x8017F1E8; // absolute:True owner=neo_ark_power_plant_1
-D_neo_ark_power_plant_1_801800B4 = 0x801800B4; // absolute:True owner=neo_ark_power_plant_1 shared=rooms
-D_neo_ark_power_plant_1_801814F0 = 0x801814F0; // absolute:True owner=neo_ark_power_plant_1
+gNeoArkPowerPlant1ViewCameras = 0x801800B4; // absolute:True owner=neo_ark_power_plant_1 shared=rooms
+gNeoArkPowerPlant1SpriteViews = 0x801814F0; // absolute:True owner=neo_ark_power_plant_1
 D_neo_ark_power_plant_1_80181BE0 = 0x80181BE0; // absolute:True owner=neo_ark_power_plant_1
 neoArkSavannaZoneRoomTask = 0x8017D954; // type:func absolute:True owner=neo_ark_savanna_zone
 D_neo_ark_savanna_zone_8017F9E4 = 0x8017F9E4; // absolute:True owner=neo_ark_savanna_zone

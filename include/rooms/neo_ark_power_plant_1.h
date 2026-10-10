@@ -16,17 +16,34 @@ extern AreaVariant D_neo_ark_power_plant_1_80181AF8[13];
 // neo_ark_power_plant_1
 extern WorldCollisionRoomResources D_neo_ark_power_plant_1_8017F1C8[];
 
-extern WorldCoordRoomLighting D_neo_ark_power_plant_1_8017F1D8[];
+/// Power Plant 1's room-1 point-light collection and default ambient-light selection.
+///
+/// The Neo Ark map borrows this room-indexed table while the room is loaded.
+/// Its lights remain writable for coordinate composition and shading queries.
+extern WorldCoordRoomLighting gNeoArkPowerPlant1RoomLighting[1];
 
-extern u8* D_neo_ark_power_plant_1_8017F1E0[];
+/// Room-1 mapping from logical views to camera, image and sprite indices.
+///
+/// Borrows `gViewIdentityMap`: logical views 1..9 select the same mapped indices.
+/// The room owns this directory; the mapped bytes belong to loaded gameplay.
+extern u8* gNeoArkPowerPlant1ViewMaps[1];
 
 extern ViewCount D_neo_ark_power_plant_1_8017F1E4[];
 
 extern DirectionWarpEntry D_neo_ark_power_plant_1_8017F1E8[];
 
-extern ViewCamera D_neo_ark_power_plant_1_801800B4[];
+/// Cameras for Power Plant 1's mapped views 1..9, indexed by view minus one.
+///
+/// Transforms use `ONE`-scaled rotation and game-coordinate translation;
+/// projection distance is in pixels. Storage is borrowed while the room is loaded.
+extern ViewCamera gNeoArkPowerPlant1ViewCameras[9];
 
-extern SpriteView D_neo_ark_power_plant_1_801814F0[];
+/// Sprite scenery for Power Plant 1's mapped views 1..9, indexed by view minus one.
+///
+/// Every view retains its decoded image strips; views 1 and 9 have no source
+/// sprites. All clip lists are NULL. Sources and batches live in this room
+/// overlay; Life Support visibility changes in batch 1 of views 6 and 7.
+extern SpriteView gNeoArkPowerPlant1SpriteViews[9];
 
 extern WorldCollisionSurfaceProperties* D_neo_ark_power_plant_1_80181BE0[];
 

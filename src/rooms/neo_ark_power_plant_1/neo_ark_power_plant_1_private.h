@@ -20,9 +20,17 @@ extern EvsCommand D_neo_ark_power_plant_1_8017EEE4[13];
 
 extern s32 D_neo_ark_power_plant_1_8017F01C;
 
-extern WorldCollisionFootstepSounds D_neo_ark_power_plant_1_80181B9C;
+/// Surface class 4's walking, running and scripted-jump footstep cue bases.
+///
+/// Type-1 requests select the loaded bank; cue 1 adds one to each base, and
+/// companion playback adds 100. The surface table borrows this room-owned record.
+extern const WorldCollisionFootstepSounds gNeoArkPowerPlant1Surface4FootstepSounds;
 
-extern WorldCollisionFootstepSounds D_neo_ark_power_plant_1_80181BA8;
+/// Surface class 5's walking, running and scripted-jump footstep cue bases.
+///
+/// Type-1 requests select the loaded bank; cue 1 adds one to each base, and
+/// companion playback adds 100. The surface table borrows this room-owned record.
+extern const WorldCollisionFootstepSounds gNeoArkPowerPlant1Surface5FootstepSounds;
 
 // Callbacks referenced by the overlay's shared data tables.
 
