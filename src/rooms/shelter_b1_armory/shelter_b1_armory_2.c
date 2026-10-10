@@ -28,6 +28,7 @@
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
+#include "main/sound_types.h"
 #include "main/task_types.h"
 
 #include "rooms/room_common.h"
@@ -54,7 +55,7 @@ SVECTOR D_shelter_b1_armory_80182528[11] = {
     { 5210, -1490, -570, 0 },
 };
 
-u8* D_shelter_b1_armory_80182580[1] = {
+u8* gShelterB1ArmoryRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -67,29 +68,53 @@ DirectionWarpEntry D_shelter_b1_armory_80182588[4] = {
     { { { .word = 1024 }, 5900, 0, -1820 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 5900, 0, -1820 }, { 0, 0, 0, 0 }, 0x540D0007, 0x540D0006, 0x540D000A, 4, DIRECTION_WARP_FLAG_NONE, 429 },
 };
 
-static SVECTOR _gShelterB1ArmoryCollision05910Normals[11] = {
+enum {
+    SHELTER_B1_ARMORY_COLLISION_CELL_COUNT_X = 4,
+    SHELTER_B1_ARMORY_COLLISION_CELL_COUNT_Z = 3,
+};
+
+/// Room-space unit normals, scaled by `ONE`, for the armory collision mesh.
+static SVECTOR _gShelterB1ArmoryCollisionGridNormals[11] = {
 #include "assets/shelter_b1_armory_collision_05910_normals.inc"
 };
 
-static SVECTOR _gShelterB1ArmoryCollision05910Verts[111] = {
+/// Room-space vertices in game units for the armory collision mesh.
+static SVECTOR _gShelterB1ArmoryCollisionGridVerts[111] = {
 #include "assets/shelter_b1_armory_collision_05910_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB1ArmoryCollision05910Faces[55] = {
+/// Indexed collision quads carrying the armory's surface classes 0 and 1.
+static WorldCollisionGridFace _gShelterB1ArmoryCollisionGridFaces[55] = {
 #include "assets/shelter_b1_armory_collision_05910_faces.inc"
 };
 
-static s16 _gShelterB1ArmoryCollision05910Cells[234] = {
+/// Cell face-index lists ending in `WORLD_COLLISION_GRID_CELL_END`.
+///
+/// Inter-list storage is retained from the asset and is outside the terminated lists.
+static s16 _gShelterB1ArmoryCollisionGridCells[234] = {
 #include "assets/shelter_b1_armory_collision_05910_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB1ArmoryCollision05910Cells[i])
-static s16* _gShelterB1ArmoryCollision05910Table[12] = {
+#define GRID_CELL(i) (&_gShelterB1ArmoryCollisionGridCells[i])
+/// X-major cell list directory: index is X * cellCountZ + Z.
+static s16* _gShelterB1ArmoryCollisionGridTable[SHELTER_B1_ARMORY_COLLISION_CELL_COUNT_X * SHELTER_B1_ARMORY_COLLISION_CELL_COUNT_Z] = {
 #include "assets/shelter_b1_armory_collision_05910_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b1_armory_80182ED0 = { NULL, _gShelterB1ArmoryCollision05910Normals, _gShelterB1ArmoryCollision05910Verts, _gShelterB1ArmoryCollision05910Faces, _gShelterB1ArmoryCollision05910Table, 1400, 4400, 4, 3, 4000, 55 };
+WorldCollisionGrid gShelterB1ArmoryCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB1ArmoryCollisionGridNormals,
+    .vertices    = _gShelterB1ArmoryCollisionGridVerts,
+    .faces       = _gShelterB1ArmoryCollisionGridFaces,
+    .cellFaceIds = _gShelterB1ArmoryCollisionGridTable,
+    .xBias       = 1400,
+    .zBias       = 4400,
+    .cellCountX  = SHELTER_B1_ARMORY_COLLISION_CELL_COUNT_X,
+    .cellCountZ  = SHELTER_B1_ARMORY_COLLISION_CELL_COUNT_Z,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gShelterB1ArmoryCollisionGridFaces),
+};
 
 ViewCamera D_shelter_b1_armory_80182EF4[13] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -6200, 0x7530, -1480 } }, 564 },
@@ -107,300 +132,339 @@ ViewCamera D_shelter_b1_armory_80182EF4[13] = {
     { { { { -3652, 0, -1853 }, { 337, 4027, -664 }, { 1822, -744, -3591 } }, { -2781, 680, 362 } }, 230 },
 };
 
-SpriteBatch D_shelter_b1_armory_801830C8[2] = {
+/// Texture encodings for 8-bit foreground sprites using VRAM (960, 0).
+///
+/// Palettes are sampled at (0, 255); view 2 also uses the next row. Modulation
+/// 128 preserves the sampled colour. These constants describe source packets;
+/// cached linking enables raw texture independently of the source's zero flags.
+enum {
+    SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE         = getTPage(1, GPU_BLEND_AVERAGE, 960, 0),
+    SHELTER_B1_ARMORY_SPRITE_CLUT                 = getClut(0, 255),
+    SHELTER_B1_ARMORY_VIEW2_ALTERNATE_SPRITE_CLUT = getClut(0, 256),
+    SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR        = 128,
+};
+
+/// Keeps decoded image strips and selects no sprites for mapped view 1.
+static SpriteBatch _gShelterB1ArmoryView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b1_armory_801830D8[26] = {
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, 0, 717, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -136, 0, 769, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -128, 16, 731, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -120, 32, 735, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -160, 40, 683, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -128, 0, 651, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -120, 0, 637, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -104, 0, 660, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -88, 8, 704, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -112, 32, 785, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, 32, 760, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -80, 48, 767, { .fields = { 72, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -80, 64, 739, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -80, 80, 743, { .fields = { 72, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -80, 96, 709, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -112, 48, 650, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -112, 80, 682, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -136, 48, 560, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -136, 88, 580, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -160, 48, 572, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -160, 96, 578, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -88, 40, 751, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -112, 40, 667, { .fields = { 72, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 88 } }, -144, -32, 1150, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 40 } }, -136, 16, 1150, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 104 } }, -160, -48, 1150, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+/// Foreground texture rectangles and sorting depths for mapped view 2.
+///
+/// Sources 0..22 use the primary palette; sources 23..25 use its second row.
+static SpriteSource _gShelterB1ArmoryView2SpriteSources[26] = {
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 40 } }, -160, 0, 717, { .fields = { 96, 104 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 40 } }, -136, 0, 769, { .fields = { 104, 0 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 24 } }, -128, 16, 731, { .fields = { 80, 0 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 16 } }, -120, 32, 735, { .fields = { 80, 184 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 40, 8 } }, -160, 40, 683, { .fields = { 48, 72 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 16 } }, -128, 0, 651, { .fields = { 80, 200 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 32 } }, -120, 0, 637, { .fields = { 88, 184 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 32 } }, -104, 0, 660, { .fields = { 88, 0 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 24 } }, -88, 8, 704, { .fields = { 96, 80 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 40, 8 } }, -112, 32, 785, { .fields = { 64, 248 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 16 } }, -72, 32, 760, { .fields = { 104, 240 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 16 } }, -80, 48, 767, { .fields = { 72, 56 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 16 } }, -80, 64, 739, { .fields = { 72, 40 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 16 } }, -80, 80, 743, { .fields = { 72, 24 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 16 } }, -80, 96, 709, { .fields = { 112, 240 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 32, 32 } }, -112, 48, 650, { .fields = { 64, 80 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 32, 40 } }, -112, 80, 682, { .fields = { 80, 144 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 40 } }, -136, 48, 560, { .fields = { 88, 40 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 32 } }, -136, 88, 580, { .fields = { 80, 216 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 48 } }, -160, 48, 572, { .fields = { 104, 192 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 24 } }, -160, 96, 578, { .fields = { 72, 112 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 8 } }, -88, 40, 751, { .fields = { 104, 184 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 8 } }, -112, 40, 667, { .fields = { 72, 136 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_VIEW2_ALTERNATE_SPRITE_CLUT, { .fields = { 8, 88 } }, -144, -32, 1150, { .fields = { 120, 104 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_VIEW2_ALTERNATE_SPRITE_CLUT, { .fields = { 8, 40 } }, -136, 16, 1150, { .fields = { 112, 144 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_VIEW2_ALTERNATE_SPRITE_CLUT, { .fields = { 16, 104 } }, -160, -48, 1150, { .fields = { 112, 0 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b1_armory_801832E0[4] = {
+/// Keeps image strips and draws view 2's primary and alternate palette ranges.
+///
+/// The ranges select sources 0..22 and 23..25. Serialized `field_6` bytes are
+/// retained; their role is unproven.
+static SpriteBatch _gShelterB1ArmoryView2SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 23, 0, 0, { 1, 0 } },
     { 23, 3, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b1_armory_80183300[15] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 56, 1162, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, 56, 1075, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, 16, 1050, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 80, 16, 1056, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 56, 16, 1062, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 80, 56, 1056, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 56, 56, 1062, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 120, 56, 1050, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, -24, 1050, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, 80, -16, 1056, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 56, -24, 1062, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 48, 16, 1075, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 40, 16, 1162, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 40, -24, 1162, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 48, -24, 1075, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
+/// Foreground texture rectangles and sorting depths for mapped view 3.
+static SpriteSource _gShelterB1ArmoryView3SpriteSources[15] = {
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 8 } }, 40, 56, 1162, { .fields = { 96, 80 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 8 } }, 48, 56, 1075, { .fields = { 96, 88 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 40, 40 } }, 120, 16, 1050, { .fields = { 88, 0 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 40, 40 } }, 80, 16, 1056, { .fields = { 88, 40 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 40 } }, 56, 16, 1062, { .fields = { 104, 80 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 40, 8 } }, 80, 56, 1056, { .fields = { 72, 192 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 8 } }, 56, 56, 1062, { .fields = { 104, 248 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 40, 8 } }, 120, 56, 1050, { .fields = { 88, 240 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 40, 40 } }, 120, -24, 1050, { .fields = { 80, 120 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 40, 32 } }, 80, -16, 1056, { .fields = { 72, 160 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 40 } }, 56, -24, 1062, { .fields = { 96, 200 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 40 } }, 48, 16, 1075, { .fields = { 112, 160 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 40 } }, 40, 16, 1162, { .fields = { 120, 200 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 40 } }, 40, -24, 1162, { .fields = { 120, 160 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 40 } }, 48, -24, 1075, { .fields = { 120, 120 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b1_armory_8018342C[3] = {
+/// Keeps image strips and draws all foreground sources for mapped view 3.
+static SpriteBatch _gShelterB1ArmoryView3SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 15, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB1ArmoryView3SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b1_armory_80183444[36] = {
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 56, -120, 0, { .fields = { 8, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 64 } }, 56, -104, 0, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 56, 8, 0, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 56, 88, 0, { .fields = { 24, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 64, 104, 0, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 56 } }, 128, -120, 454, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 128, -64, 458, { .fields = { 56, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 56 } }, 128, -16, 455, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 128, 40, 426, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 128, 80, 424, { .fields = { 32, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 96, 80, 578, { .fields = { 32, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 96, 40, 562, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 56 } }, 96, -16, 548, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 96, -64, 529, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 56 } }, 96, -120, 514, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 88, -120, 586, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, -104, 677, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 88, -64, 585, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 80, -64, 695, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 72, -40, 749, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 88, -16, 625, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 88, 40, 625, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 88, 80, 650, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, 80, 656, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 80, 48, 645, { .fields = { 24, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 80, 16, 639, { .fields = { 24, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 80, -16, 640, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 64, 16, 777, { .fields = { 40, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 64, -16, 782, { .fields = { 40, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 56, -40, 0, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 64, -40, 0, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 72, 48, 770, { .fields = { 32, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 72, 80, 705, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 64, 80, 842, { .fields = { 48, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 64, 48, 826, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 56, 72, 915, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
+/// Foreground texture rectangles and sorting depths for mapped view 4.
+static SpriteSource _gShelterB1ArmoryView4SpriteSources[36] = {
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 32, 16 } }, 56, -120, 0, { .fields = { 8, 232 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 64 } }, 56, -104, 0, { .fields = { 104, 64 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 64 } }, 56, 8, 0, { .fields = { 120, 0 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 32 } }, 56, 88, 0, { .fields = { 24, 72 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 16 } }, 64, 104, 0, { .fields = { 112, 240 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 32, 56 } }, 128, -120, 454, { .fields = { 64, 56 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 32, 48 } }, 128, -64, 458, { .fields = { 56, 208 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 32, 56 } }, 128, -16, 455, { .fields = { 96, 184 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 32, 40 } }, 128, 40, 426, { .fields = { 24, 0 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 32, 40 } }, 128, 80, 424, { .fields = { 32, 88 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 32, 40 } }, 96, 80, 578, { .fields = { 32, 128 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 32, 40 } }, 96, 40, 562, { .fields = { 32, 48 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 32, 56 } }, 96, -16, 548, { .fields = { 88, 0 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 32, 48 } }, 96, -64, 529, { .fields = { 56, 0 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 32, 56 } }, 96, -120, 514, { .fields = { 88, 128 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 56 } }, 88, -120, 586, { .fields = { 120, 128 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 40 } }, 80, -104, 677, { .fields = { 56, 168 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 48 } }, 88, -64, 585, { .fields = { 80, 112 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 48 } }, 80, -64, 695, { .fields = { 80, 160 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 24 } }, 72, -40, 749, { .fields = { 88, 232 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 56 } }, 88, -16, 625, { .fields = { 96, 56 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 40 } }, 88, 40, 625, { .fields = { 64, 112 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 40 } }, 88, 80, 650, { .fields = { 64, 152 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 40 } }, 80, 80, 656, { .fields = { 72, 152 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 32 } }, 80, 48, 645, { .fields = { 24, 104 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 32 } }, 80, 16, 639, { .fields = { 24, 136 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 32 } }, 80, -16, 640, { .fields = { 24, 40 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 32 } }, 64, 16, 777, { .fields = { 40, 168 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 32 } }, 64, -16, 782, { .fields = { 40, 200 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 48 } }, 56, -40, 0, { .fields = { 88, 184 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 24 } }, 64, -40, 0, { .fields = { 40, 232 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 32 } }, 72, 48, 770, { .fields = { 32, 200 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 40 } }, 72, 80, 705, { .fields = { 72, 112 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 24 } }, 64, 80, 842, { .fields = { 48, 232 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 32 } }, 64, 48, 826, { .fields = { 32, 168 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 16 } }, 56, 72, 915, { .fields = { 120, 240 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b1_armory_80183714[3] = {
+/// Keeps image strips and draws all foreground sources for mapped view 4.
+static SpriteBatch _gShelterB1ArmoryView4SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 36, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB1ArmoryView4SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b1_armory_8018372C[28] = {
-    { 143, 0x3FC0, { .fields = { 64, 24 } }, -152, -72, 0, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 24 } }, -144, -48, 0, { .fields = { 72, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -136, -24, 0, { .fields = { 48, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -128, -16, 0, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -112, -8, 0, { .fields = { 104, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -120, 24, 0, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -112, 40, 0, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, 64, 0, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -96, 80, 0, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, -160, 88, 0, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, 72, 0, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -160, 56, 0, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -160, 40, 0, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -160, 24, 0, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -120, 88, 580, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -128, 80, 576, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -120, 96, 620, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -128, 72, 557, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -136, 64, 540, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -136, 56, 524, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -144, 40, 488, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -152, 24, 474, { .fields = { 80, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -128, -8, 421, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, 8, 447, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -160, -16, 414, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, -24, 420, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -160, -48, 405, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -160, -72, 391, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
+/// Foreground texture rectangles and sorting depths for mapped view 5.
+static SpriteSource _gShelterB1ArmoryView5SpriteSources[28] = {
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 64, 24 } }, -152, -72, 0, { .fields = { 64, 192 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 56, 24 } }, -144, -48, 0, { .fields = { 72, 168 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 48, 8 } }, -136, -24, 0, { .fields = { 48, 152 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 40, 8 } }, -128, -16, 0, { .fields = { 56, 160 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 32 } }, -112, -8, 0, { .fields = { 104, 32 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 32, 16 } }, -120, 24, 0, { .fields = { 64, 32 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 24 } }, -112, 40, 0, { .fields = { 104, 120 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 16 } }, -104, 64, 0, { .fields = { 80, 96 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 16 } }, -96, 80, 0, { .fields = { 96, 216 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 40, 32 } }, -160, 88, 0, { .fields = { 88, 64 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 32, 16 } }, -160, 72, 0, { .fields = { 72, 48 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 16 } }, -160, 56, 0, { .fields = { 80, 120 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 16 } }, -160, 40, 0, { .fields = { 80, 136 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 16 } }, -160, 24, 0, { .fields = { 96, 32 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 8 } }, -120, 88, 580, { .fields = { 80, 232 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 32, 8 } }, -128, 80, 576, { .fields = { 64, 240 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 32, 24 } }, -120, 96, 620, { .fields = { 96, 96 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 8 } }, -128, 72, 557, { .fields = { 72, 248 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 32, 8 } }, -136, 64, 540, { .fields = { 64, 216 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 8 } }, -136, 56, 524, { .fields = { 72, 224 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 32, 16 } }, -144, 40, 488, { .fields = { 96, 240 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 32, 16 } }, -152, 24, 474, { .fields = { 80, 16 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 32 } }, -128, -8, 421, { .fields = { 112, 0 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 32, 16 } }, -160, 8, 447, { .fields = { 80, 0 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 32, 24 } }, -160, -16, 414, { .fields = { 96, 144 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 8 } }, -160, -24, 420, { .fields = { 72, 112 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 24 } }, -160, -48, 405, { .fields = { 104, 216 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 24 } }, -160, -72, 391, { .fields = { 120, 216 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b1_armory_8018395C[3] = {
+/// Keeps image strips and draws all foreground sources for mapped view 5.
+static SpriteBatch _gShelterB1ArmoryView5SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 28, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB1ArmoryView5SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b1_armory_80183974[53] = {
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -160, -96, 0, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -160, -56, 0, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, -24, 0, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, 16, 0, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -160, 48, 0, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -160, 56, 0, { .fields = { 16, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -120, 56, 0, { .fields = { 8, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 56, 0, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -40, -112, 0, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, -120, 0, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -72, 56, 1000, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -80, 24, 1000, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -96, 24, 1000, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -120, 24, 1000, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -128, 24, 1000, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -64, -24, 952, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -80, -16, 1000, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -96, -16, 1000, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -112, -16, 1000, { .fields = { 80, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -128, -8, 1000, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -136, -8, 1000, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -48, -48, 1227, { .fields = { 40, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -64, -48, 915, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -80, -48, 1000, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -136, -24, 1000, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -64, -112, 1128, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -64, -80, 1206, { .fields = { 56, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, -120, 894, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -88, -120, 1000, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -88, -80, 1000, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -96, -48, 1000, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -112, -48, 1000, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -144, -48, 665, { .fields = { 24, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -112, -120, 619, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -112, -80, 1000, { .fields = { 40, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -136, -120, 587, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -136, -80, 1000, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -144, -80, 609, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -144, -120, 578, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -152, -120, 576, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -152, -80, 604, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -160, -120, 568, { .fields = { 48, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -64, 16, 1000, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, -24, 1211, { .fields = { 32, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, -16, 1292, { .fields = { 32, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, -8, 1301, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 0, 1305, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 8, 1311, { .fields = { 32, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 16, 1303, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 24, 1296, { .fields = { 32, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 32, 1177, { .fields = { 32, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 48, 1100, { .fields = { 32, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 40, 1108, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
+/// Foreground texture rectangles and sorting depths for mapped view 6.
+static SpriteSource _gShelterB1ArmoryView6SpriteSources[53] = {
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 40 } }, -160, -96, 0, { .fields = { 112, 0 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 32 } }, -160, -56, 0, { .fields = { 72, 112 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 40 } }, -160, -24, 0, { .fields = { 96, 40 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 32, 32 } }, -160, 16, 0, { .fields = { 56, 80 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 40, 8 } }, -160, 48, 0, { .fields = { 8, 0 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 40, 8 } }, -160, 56, 0, { .fields = { 16, 248 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 48, 8 } }, -120, 56, 0, { .fields = { 8, 232 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 8 } }, -48, 56, 0, { .fields = { 40, 224 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 64 } }, -40, -112, 0, { .fields = { 120, 0 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 8 } }, -48, -120, 0, { .fields = { 48, 240 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 8 } }, -72, 56, 1000, { .fields = { 56, 248 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 32 } }, -80, 24, 1000, { .fields = { 96, 224 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 32 } }, -96, 24, 1000, { .fields = { 72, 0 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 32 } }, -120, 24, 1000, { .fields = { 64, 144 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 24 } }, -128, 24, 1000, { .fields = { 104, 120 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 40 } }, -64, -24, 952, { .fields = { 104, 80 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 40 } }, -80, -16, 1000, { .fields = { 88, 80 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 40 } }, -96, -16, 1000, { .fields = { 88, 120 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 40 } }, -112, -16, 1000, { .fields = { 80, 40 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 32 } }, -128, -8, 1000, { .fields = { 112, 224 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 24 } }, -136, -8, 1000, { .fields = { 112, 120 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 24 } }, -48, -48, 1227, { .fields = { 40, 64 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 24 } }, -64, -48, 915, { .fields = { 88, 160 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 32 } }, -80, -48, 1000, { .fields = { 64, 32 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 16 } }, -136, -24, 1000, { .fields = { 56, 64 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 32 } }, -64, -112, 1128, { .fields = { 48, 0 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 32 } }, -64, -80, 1206, { .fields = { 56, 208 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 8 } }, -64, -120, 894, { .fields = { 64, 240 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 40 } }, -88, -120, 1000, { .fields = { 88, 184 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 32 } }, -88, -80, 1000, { .fields = { 48, 112 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 32 } }, -96, -48, 1000, { .fields = { 48, 32 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 32 } }, -112, -48, 1000, { .fields = { 80, 224 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 32, 24 } }, -144, -48, 665, { .fields = { 24, 176 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 40 } }, -112, -120, 619, { .fields = { 88, 0 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 32 } }, -112, -80, 1000, { .fields = { 40, 144 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 40 } }, -136, -120, 587, { .fields = { 104, 144 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 32 } }, -136, -80, 1000, { .fields = { 56, 176 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 32 } }, -144, -80, 609, { .fields = { 80, 176 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 40 } }, -144, -120, 578, { .fields = { 120, 64 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 40 } }, -152, -120, 576, { .fields = { 120, 104 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 24 } }, -152, -80, 604, { .fields = { 48, 200 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 24 } }, -160, -120, 568, { .fields = { 48, 88 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 40 } }, -64, 16, 1000, { .fields = { 112, 184 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 8 } }, -48, -24, 1211, { .fields = { 32, 8 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 8 } }, -48, -16, 1292, { .fields = { 32, 16 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 8 } }, -48, -8, 1301, { .fields = { 32, 48 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 8 } }, -48, 0, 1305, { .fields = { 32, 40 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 8 } }, -48, 8, 1311, { .fields = { 32, 104 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 8 } }, -48, 16, 1303, { .fields = { 32, 56 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 8 } }, -48, 24, 1296, { .fields = { 32, 88 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 8 } }, -48, 32, 1177, { .fields = { 32, 24 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 8 } }, -48, 48, 1100, { .fields = { 32, 32 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 8 } }, -48, 40, 1108, { .fields = { 32, 96 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b1_armory_80183D98[3] = {
+/// Keeps image strips and draws all foreground sources for mapped view 6.
+static SpriteBatch _gShelterB1ArmoryView6SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 53, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB1ArmoryView6SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b1_armory_80183DB0[28] = {
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, -16, 535, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 40, -16, 538, { .fields = { 104, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 24, 8, 603, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, 16, 559, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, 32, 552, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 40, 16, 574, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 48, 16, 572, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 56, 16, 571, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 64, 16, 568, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 80, 16, 568, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 80, 0, 562, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 64, -8, 542, { .fields = { 104, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, -8, 544, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 48, -16, 541, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 24, 0, 0, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, 56, -16, 0, { .fields = { 40, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 80, -8, 0, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 56, -72, 913, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 48, -64, 975, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 48, -40, 1069, { .fields = { 120, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 24, -56, 984, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 24, -48, 1042, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 40, -48, 1004, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 32, -40, 1015, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 24, -40, 988, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 24, -24, 0, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 24, -72, 0, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 24, -64, 0, { .fields = { 88, 104 } }, 128, 128, 128, 0 },
+/// Foreground texture rectangles and sorting depths for mapped view 7.
+static SpriteSource _gShelterB1ArmoryView7SpriteSources[28] = {
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 16 } }, 24, -16, 535, { .fields = { 96, 48 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 24 } }, 40, -16, 538, { .fields = { 104, 24 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 8 } }, 24, 8, 603, { .fields = { 88, 184 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 16 } }, 24, 16, 559, { .fields = { 104, 240 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 16 } }, 24, 32, 552, { .fields = { 96, 64 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 32 } }, 40, 16, 574, { .fields = { 112, 32 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 32 } }, 48, 16, 572, { .fields = { 112, 0 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 32 } }, 56, 16, 571, { .fields = { 120, 144 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 32 } }, 64, 16, 568, { .fields = { 112, 208 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 32 } }, 80, 16, 568, { .fields = { 112, 176 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 16 } }, 80, 0, 562, { .fields = { 96, 80 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 24 } }, 64, -8, 542, { .fields = { 104, 136 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 24 } }, 56, -8, 544, { .fields = { 112, 64 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 32 } }, 48, -16, 541, { .fields = { 120, 112 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 8 } }, 24, 0, 0, { .fields = { 96, 176 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 72, 8 } }, 56, -16, 0, { .fields = { 40, 168 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 48, 8 } }, 80, -8, 0, { .fields = { 64, 200 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 72 } }, 56, -72, 913, { .fields = { 120, 0 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 24 } }, 48, -64, 975, { .fields = { 104, 0 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 40 } }, 48, -40, 1069, { .fields = { 120, 72 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 8 } }, 24, -56, 984, { .fields = { 88, 192 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 8 } }, 24, -48, 1042, { .fields = { 96, 160 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 24 } }, 40, -48, 1004, { .fields = { 112, 88 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 16 } }, 32, -40, 1015, { .fields = { 120, 240 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 16 } }, 24, -40, 988, { .fields = { 112, 160 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 24 } }, 24, -24, 0, { .fields = { 96, 112 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 32, 8 } }, 24, -72, 0, { .fields = { 80, 96 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 8 } }, 24, -64, 0, { .fields = { 88, 104 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b1_armory_80183FE0[4] = {
+/// Keeps image strips and draws view 7's two contiguous foreground ranges.
+///
+/// The ranges select sources 0..16 and 17..27. Serialized `field_6` bytes are
+/// retained; their role is unproven.
+static SpriteBatch _gShelterB1ArmoryView7SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 17, 0, 0, { 1, 0 } },
     { 17, 11, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b1_armory_80184000[22] = {
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 104, 80, 813, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 104, 72, 834, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 104, 64, 826, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 104, 40, 826, { .fields = { 112, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 112, 48, 818, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 112, 32, 830, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 112, 16, 820, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 112, 8, 795, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 112, -16, 787, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 128, -16, 790, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 112, -32, 777, { .fields = { 104, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 112, -56, 791, { .fields = { 112, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 120, -32, 776, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 120, -48, 784, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 120, -80, 748, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 120, -104, 740, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 104, -104, 0, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, 128, 8, 0, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 104, -16, 0, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 104, -56, 0, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 120, -64, 752, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 120, -56, 777, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
+/// Foreground texture rectangles and sorting depths for mapped view 8.
+static SpriteSource _gShelterB1ArmoryView8SpriteSources[22] = {
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 8 } }, 104, 80, 813, { .fields = { 104, 248 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 8 } }, 104, 72, 834, { .fields = { 88, 88 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 24, 8 } }, 104, 64, 826, { .fields = { 88, 80 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 24 } }, 104, 40, 826, { .fields = { 112, 72 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 16 } }, 112, 48, 818, { .fields = { 96, 0 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 16 } }, 112, 32, 830, { .fields = { 104, 200 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 16 } }, 112, 16, 820, { .fields = { 96, 16 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 8 } }, 112, 8, 795, { .fields = { 96, 72 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 24 } }, 112, -16, 787, { .fields = { 112, 224 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 24 } }, 128, -16, 790, { .fields = { 112, 0 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 16 } }, 112, -32, 777, { .fields = { 104, 32 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 24 } }, 112, -56, 791, { .fields = { 112, 24 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 16 } }, 120, -32, 776, { .fields = { 104, 112 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 16 } }, 120, -48, 784, { .fields = { 104, 96 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 16 } }, 120, -80, 748, { .fields = { 104, 184 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 24 } }, 120, -104, 740, { .fields = { 104, 48 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 48 } }, 104, -104, 0, { .fields = { 112, 136 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 80 } }, 128, 8, 0, { .fields = { 120, 0 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 56 } }, 104, -16, 0, { .fields = { 120, 80 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 8, 40 } }, 104, -56, 0, { .fields = { 120, 184 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 8 } }, 120, -64, 752, { .fields = { 104, 128 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_ARMORY_SPRITE_TEXTURE_PAGE, SHELTER_B1_ARMORY_SPRITE_CLUT, { .fields = { 16, 8 } }, 120, -56, 777, { .fields = { 104, 216 } }, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_ARMORY_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b1_armory_801841B8[3] = {
+/// Keeps image strips and draws all foreground sources for mapped view 8.
+static SpriteBatch _gShelterB1ArmoryView8SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 22, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB1ArmoryView8SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_armory_801841D0[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-SpriteBatch D_shelter_b1_armory_801841E0[2] = {
+/// Keeps decoded image strips and selects no sprites for mapped view 9.
+static SpriteBatch _gShelterB1ArmoryView9SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_armory_801841F0[2] = {
+/// Keeps decoded image strips and selects no sprites for mapped view 10.
+static SpriteBatch _gShelterB1ArmoryView10SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_armory_80184200[2] = {
+/// Keeps decoded image strips and selects no sprites for mapped view 11.
+static SpriteBatch _gShelterB1ArmoryView11SpriteBatches[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+};
+
+/// Keeps decoded image strips and selects no sprites for mapped view 12.
+static SpriteBatch _gShelterB1ArmoryView12SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
@@ -411,47 +475,58 @@ SpriteBatch D_shelter_b1_armory_80184210[2] = {
 };
 
 SpriteView D_shelter_b1_armory_80184220[13] = {
-    { { .empty = D_shelter_b1_armory_801830C8 }, D_shelter_b1_armory_801830C8, NULL },
-    { { .elements = D_shelter_b1_armory_801830D8 }, D_shelter_b1_armory_801832E0, NULL },
-    { { .elements = D_shelter_b1_armory_80183300 }, D_shelter_b1_armory_8018342C, NULL },
-    { { .elements = D_shelter_b1_armory_80183444 }, D_shelter_b1_armory_80183714, NULL },
-    { { .elements = D_shelter_b1_armory_8018372C }, D_shelter_b1_armory_8018395C, NULL },
-    { { .elements = D_shelter_b1_armory_80183974 }, D_shelter_b1_armory_80183D98, NULL },
-    { { .elements = D_shelter_b1_armory_80183DB0 }, D_shelter_b1_armory_80183FE0, NULL },
-    { { .elements = D_shelter_b1_armory_80184000 }, D_shelter_b1_armory_801841B8, NULL },
-    { { .empty = D_shelter_b1_armory_801841D0 }, D_shelter_b1_armory_801841D0, NULL },
-    { { .empty = D_shelter_b1_armory_801841E0 }, D_shelter_b1_armory_801841E0, NULL },
-    { { .empty = D_shelter_b1_armory_801841F0 }, D_shelter_b1_armory_801841F0, NULL },
-    { { .empty = D_shelter_b1_armory_80184200 }, D_shelter_b1_armory_80184200, NULL },
+    { { .empty = _gShelterB1ArmoryView1SpriteBatches }, _gShelterB1ArmoryView1SpriteBatches, NULL },
+    { { .elements = _gShelterB1ArmoryView2SpriteSources }, _gShelterB1ArmoryView2SpriteBatches, NULL },
+    { { .elements = _gShelterB1ArmoryView3SpriteSources }, _gShelterB1ArmoryView3SpriteBatches, NULL },
+    { { .elements = _gShelterB1ArmoryView4SpriteSources }, _gShelterB1ArmoryView4SpriteBatches, NULL },
+    { { .elements = _gShelterB1ArmoryView5SpriteSources }, _gShelterB1ArmoryView5SpriteBatches, NULL },
+    { { .elements = _gShelterB1ArmoryView6SpriteSources }, _gShelterB1ArmoryView6SpriteBatches, NULL },
+    { { .elements = _gShelterB1ArmoryView7SpriteSources }, _gShelterB1ArmoryView7SpriteBatches, NULL },
+    { { .elements = _gShelterB1ArmoryView8SpriteSources }, _gShelterB1ArmoryView8SpriteBatches, NULL },
+    { { .empty = _gShelterB1ArmoryView9SpriteBatches }, _gShelterB1ArmoryView9SpriteBatches, NULL },
+    { { .empty = _gShelterB1ArmoryView10SpriteBatches }, _gShelterB1ArmoryView10SpriteBatches, NULL },
+    { { .empty = _gShelterB1ArmoryView11SpriteBatches }, _gShelterB1ArmoryView11SpriteBatches, NULL },
+    { { .empty = _gShelterB1ArmoryView12SpriteBatches }, _gShelterB1ArmoryView12SpriteBatches, NULL },
     { { .empty = D_shelter_b1_armory_80184210 }, D_shelter_b1_armory_80184210, NULL },
 };
 
-WorldCoordPointLight D_shelter_b1_armory_801842BC[22] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6716, -2500, -1333 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 1638, 1474 }, { 0, 0 } }, 2000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x29FA, -3000, -1340 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1884, 1884, 1720 }, { 0, 0 } }, 3000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2BBE, -2700, 1784 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1556, 1556, 1474 }, { 0, 0 } }, 2000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2723, -1200, 2700 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0, 2048, 1228 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2723, -1200, 1400 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0, 2048, 1228 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2723, -1200, 100 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0, 2048, 1228 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7980, -1200, 100 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0, 2048, 1228 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7980, -1200, 1400 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0, 2048, 1228 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7980, -1200, 2700 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0, 2048, 1228 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2189, -2371, -1612 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3276 }, { 0, 0 } }, 1000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2189, -2371, 1724 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3276 }, { 0, 0 } }, 1000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2F80, -1850, -520 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 1310, 1146 }, { 0, 0 } }, 400, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2F80, -1850, 1440 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 1310, 1146 }, { 0, 0 } }, 400, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5250, -2300, -1760 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 655, 573 }, { 0, 0 } }, 1000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6530, -750, -2610 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 0, 0 }, { 0, 0 } }, 400, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2189, -2371, 4888 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3276 }, { 0, 0 } }, 1000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8220, -1720, -2610 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 0, 0 }, { 0, 0 } }, 400, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9890, -1990, -2610 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 0, 0 }, { 0, 0 } }, 400, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1390, -1330, 5300 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 409, 409 }, { 0, 0 } }, 300, 1600 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -173, -2106, 1999 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 819, 2867, 819 }, { 0, 0 } }, 700, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6504, -2353, 2868 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 0, 0 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6462, -2500, 1553 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 1638, 1474 }, { 0, 0 } }, 2000, 3000 },
+/// Authored point lights in room coordinates, active in every view.
+///
+/// RGB uses 12 fractional bits; falloff radii use game-coordinate units.
+/// Gameplay writes transform parents, composition caches and attenuation.
+static WorldCoordPointLight _gShelterB1ArmoryPointLights[22] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6716, -2500, -1333 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 1638, 1474 }, { 0, 0 } }, 2000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x29FA, -3000, -1340 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1884, 1884, 1720 }, { 0, 0 } }, 3000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2BBE, -2700, 1784 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1556, 1556, 1474 }, { 0, 0 } }, 2000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2723, -1200, 2700 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0, 2048, 1228 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2723, -1200, 1400 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0, 2048, 1228 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2723, -1200, 100 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0, 2048, 1228 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7980, -1200, 100 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0, 2048, 1228 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7980, -1200, 1400 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0, 2048, 1228 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7980, -1200, 2700 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0, 2048, 1228 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2189, -2371, -1612 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3276 }, { 0, 0 } }, 1000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2189, -2371, 1724 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3276 }, { 0, 0 } }, 1000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2F80, -1850, -520 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 1310, 1146 }, { 0, 0 } }, 400, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2F80, -1850, 1440 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 1310, 1146 }, { 0, 0 } }, 400, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5250, -2300, -1760 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 655, 573 }, { 0, 0 } }, 1000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6530, -750, -2610 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 0, 0 }, { 0, 0 } }, 400, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2189, -2371, 4888 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3276 }, { 0, 0 } }, 1000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8220, -1720, -2610 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 0, 0 }, { 0, 0 } }, 400, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 9890, -1990, -2610 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 0, 0 }, { 0, 0 } }, 400, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1390, -1330, 5300 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 409, 409 }, { 0, 0 } }, 300, 1600 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -173, -2106, 1999 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 819, 2867, 819 }, { 0, 0 } }, 700, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6504, -2353, 2868 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 0, 0 }, { 0, 0 } }, 500, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6462, -2500, 1553 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 1638, 1474 }, { 0, 0 } }, 2000, 3000 },
 };
 
-WorldCoordRoomLights D_shelter_b1_armory_80184AFC = { 0, NULL, ARRAY_SIZE(D_shelter_b1_armory_801842BC), D_shelter_b1_armory_801842BC, 0, NULL };
+WorldCoordRoomLights gShelterB1ArmoryRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gShelterB1ArmoryPointLights),
+    .pointLights           = _gShelterB1ArmoryPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
+};
 
 WorldCollisionTrigger D_shelter_b1_armory_80184B14[10] = {
     { NULL, NULL, NULL, { 3248, -1473, 640, 0 }, { { -1536, -3136, -928, 0 }, { 1536, -3136, 928, 0 }, { -1536, 3136, -928, 0 }, { 1536, 3136, 928, 0 } }, { 2119, 0, -3509, 0 }, { 0, 0, 4096, 0 }, 3611, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -494,29 +569,49 @@ WorldCollisionTrigger D_shelter_b1_armory_80184E0C[23] = {
 
 AreaVariant D_shelter_b1_armory_801854E0[11] = { 0 };
 
-WorldCollisionFootstepSounds D_shelter_b1_armory_80185538 = {
-    0x10000015,
-    0x10000017,
-    0x10000015,
+/// Type-1 cue-2 bases; cue 1 uses the next entry in the loaded bank.
+enum {
+    SHELTER_B1_ARMORY_SURFACE1_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x15,
+    SHELTER_B1_ARMORY_SURFACE1_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x17,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b1_armory_80185544[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Surface-class-1 walk/run cue bases, with scripted jumps using the walk base.
+///
+/// The loaded type-1 bank supplies the scripts; paired cues select the following
+/// entry and companion playback adds 100. The surface record borrows this storage.
+static WorldCollisionFootstepSounds _gShelterB1ArmorySurface1FootstepSounds = {
+    .walk         = SHELTER_B1_ARMORY_SURFACE1_WALK_SOUND,
+    .run          = SHELTER_B1_ARMORY_SURFACE1_RUN_SOUND,
+    .scriptedJump = SHELTER_B1_ARMORY_SURFACE1_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b1_armory_8018554C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b1_armory_80185538 },
+/// Blocking surface policy without footstep cues, shared by classes 0 and 2..7.
+static WorldCollisionSurfaceProperties _gShelterB1ArmorySilentSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_b1_armory_80185554[8] = {
-    D_shelter_b1_armory_80185544,
-    D_shelter_b1_armory_8018554C,
-    D_shelter_b1_armory_80185544,
-    D_shelter_b1_armory_80185544,
-    D_shelter_b1_armory_80185544,
-    D_shelter_b1_armory_80185544,
-    D_shelter_b1_armory_80185544,
-    D_shelter_b1_armory_80185544,
+/// Blocking surface-class-1 policy with walk, run and scripted-jump footstep cues.
+static WorldCollisionSurfaceProperties _gShelterB1ArmorySurface1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB1ArmorySurface1FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gShelterB1ArmorySurfacePropertiesByClass[8] = {
+    &_gShelterB1ArmorySilentSurfaceProperties,
+    &_gShelterB1ArmorySurface1Properties,
+    &_gShelterB1ArmorySilentSurfaceProperties,
+    &_gShelterB1ArmorySilentSurfaceProperties,
+    &_gShelterB1ArmorySilentSurfaceProperties,
+    &_gShelterB1ArmorySilentSurfaceProperties,
+    &_gShelterB1ArmorySilentSurfaceProperties,
+    &_gShelterB1ArmorySilentSurfaceProperties,
 };
 
 s32 gShopRefillDisplayQuantityFixed = 0;

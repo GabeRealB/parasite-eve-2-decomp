@@ -16,26 +16,47 @@ extern TaskDesc D_shelter_b1_armory_801824D0;
 
 extern AreaVariant D_shelter_b1_armory_801854E0[11];
 
-// shelter_b1_armory
-extern u8* D_shelter_b1_armory_80182580[];
+/// Logical-view maps for the armory's single room, indexed by room ID minus one.
+///
+/// Room 1 borrows `gViewIdentityMap`: logical views 1..13 select the same
+/// camera, image and sprite indices. The directory lives with this room overlay;
+/// its shared byte map lives with gameplay. Neither level has a terminator.
+extern u8* gShelterB1ArmoryRoomViewMaps[1];
 
 extern ViewCount D_shelter_b1_armory_80182584[];
 
 extern DirectionWarpEntry D_shelter_b1_armory_80182588[];
 
-extern WorldCollisionGrid D_shelter_b1_armory_80182ED0;
+/// The armory's room-space collision mesh and 4-by-3 XZ cell index.
+///
+/// Cells have 4000-unit sides and an origin at (-1400, -4400). The mesh has
+/// 55 quad faces, 111 vertices and 11 unit normals scaled by `ONE`.
+/// Faces use room-local surface classes 0 and 1. Activation binds the mutable
+/// descriptor to the current view; it and its pools stay live with this overlay.
+extern WorldCollisionGrid gShelterB1ArmoryCollisionGrid;
 
 extern ViewCamera D_shelter_b1_armory_80182EF4[];
 
 extern SpriteView D_shelter_b1_armory_80184220[];
 
-extern WorldCoordRoomLights D_shelter_b1_armory_80184AFC;
+/// The armory's 22 point lights for model shading and room-light queries.
+///
+/// All lights are enabled in every view; there are no directional or cone
+/// lights. Gameplay updates their coordinate caches and attenuation in place.
+/// The descriptor and its borrowed array remain valid while this overlay is loaded.
+extern WorldCoordRoomLights gShelterB1ArmoryRoomLights;
 
 extern WorldCollisionTrigger D_shelter_b1_armory_80184B14[];
 
 extern WorldCollisionTrigger D_shelter_b1_armory_80184E0C[];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b1_armory_80185554[];
+/// The armory's collision and footstep policies, indexed by surface class 0..7.
+///
+/// All classes block probes, allow weapon impacts and apply pushback. Class 1
+/// supplies paired walking/running footsteps and uses the walking base for
+/// scripted jumps; classes 0 and 2..7 share a record without footstep sounds.
+/// The directory and its borrowed records remain live with this room overlay.
+extern WorldCollisionSurfaceProperties* gShelterB1ArmorySurfacePropertiesByClass[8];
 
 /// Dispatches the armory controller's initialization, idle tick and teardown.
 ///
