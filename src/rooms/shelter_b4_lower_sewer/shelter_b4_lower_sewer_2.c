@@ -32,6 +32,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
@@ -40,6 +41,7 @@
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/scratch.h"
+#include "main/sound_ids.h"
 #include "main/sound_types.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
@@ -55,11 +57,13 @@
 #define WATER_SHARED_U16_DRAWERS
 #include "../../shared/water_effects.h"
 
-extern SVECTOR D_shelter_b4_lower_sewer_80181EA4[];
-extern SVECTOR D_shelter_b4_lower_sewer_80181F04[];
-extern SVECTOR D_shelter_b4_lower_sewer_80181F14[];
-
-SVECTOR D_shelter_b4_lower_sewer_80181EA4[12] = {
+/// Fifteen world-space endpoint pairs for the lower sewer's capsule glows.
+///
+/// Points 0..27 describe fourteen horizontal spans at Y=-5090; the last pair
+/// is at X=-12930, Y=-1800. Consecutive even/odd points form one capsule.
+/// Mapped views select overlapping ranges with starts at points 0, 12 and 14;
+/// all accesses stay in this single 30-point pool. Storage lasts with the room.
+static SVECTOR _gShelterB4LowerSewerGlowEndpoints[30] = {
     { -0x3B42, -5090, 2290, 0 },
     { -0x3692, -5090, 2290, 0 },
     { -0x2B8E, -5090, 2290, 0 },
@@ -72,14 +76,8 @@ SVECTOR D_shelter_b4_lower_sewer_80181EA4[12] = {
     { -420, -5090, 2290, 0 },
     { 2730, -5090, 2290, 0 },
     { 3930, -5090, 2290, 0 },
-};
-
-SVECTOR D_shelter_b4_lower_sewer_80181F04[2] = {
     { 6730, -5090, 2290, 0 },
     { 7930, -5090, 2290, 0 },
-};
-
-SVECTOR D_shelter_b4_lower_sewer_80181F14[16] = {
     { 0x29EA, -5090, 2290, 0 },
     { 0x2E9A, -5090, 2290, 0 },
     { 0x2E9A, -5090, -1290, 0 },
@@ -104,17 +102,28 @@ u8* gShelterB4LowerSewerViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_b4_lower_sewer_80181FA8[1] = { 9 };
+ViewCount gShelterB4LowerSewerRoomViewCounts[1] = { 9 };
 
-DirectionWarpEntry D_shelter_b4_lower_sewer_80181FAC[4] = {
-    { { { .word = 1024 }, -7821, 0, 2453 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -7800, 0, 1620 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_RESERVOIR_1BF },
-    { { { .word = 3072 }, 0x3075, 0, 1820 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x3075, 0, 1180 }, { 0, 0, 0, 0 }, 0x542B0002, 0x542B0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 1024 }, -6000, -2000, -1180 }, { 0, 0, 0, 0 }, { { .word = 768 }, -5400, -2000, -400 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 9, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 2048 }, 0x37DC, -2000, -410 }, { 0, 0, 0, 0 }, { { .word = 3328 }, 0x3908, -2000, -1400 }, { 0, 0, 0, 0 }, 0x542B0006, 0x542B0005, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+/// Arrival and departure requests from the lower sewer's area sound bank.
+enum {
+    SHELTER_B4_LOWER_SEWER_WARP2_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_LOWER_SEWER, 2),
+    SHELTER_B4_LOWER_SEWER_WARP2_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_LOWER_SEWER, 1),
+    SHELTER_B4_LOWER_SEWER_WARP4_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_LOWER_SEWER, 6),
+    SHELTER_B4_LOWER_SEWER_WARP4_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_LOWER_SEWER, 5)
 };
 
-// Retained data: Eight-point coordinate pool explicitly addressed by the following pointer table; no runtime owner found.
-SVECTOR D_shelter_b4_lower_sewer_8018208C[8] = {
+DirectionWarpEntry gShelterB4LowerSewerWarpEntries[4] = {
+    { { { .word = 1024 }, -7821, 0, 2453 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -7800, 0, 1620 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_RESERVOIR_1BF },
+    { { { .word = 3072 }, 0x3075, 0, 1820 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x3075, 0, 1180 }, { 0, 0, 0, 0 }, SHELTER_B4_LOWER_SEWER_WARP2_ARRIVAL_SOUND, SHELTER_B4_LOWER_SEWER_WARP2_DEPARTURE_SOUND, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 1024 }, -6000, -2000, -1180 }, { 0, 0, 0, 0 }, { { .word = 768 }, -5400, -2000, -400 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 9, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 2048 }, 0x37DC, -2000, -410 }, { 0, 0, 0, 0 }, { { .word = 3328 }, 0x3908, -2000, -1400 }, { 0, 0, 0, 0 }, SHELTER_B4_LOWER_SEWER_WARP4_ARRIVAL_SOUND, SHELTER_B4_LOWER_SEWER_WARP4_DEPARTURE_SOUND, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+};
+
+/// Eight-point Bog Diver patrol ring at Z=1000, borrowed by selector slots 0 and 2.
+///
+/// XYZ use room-coordinate units; swimming goal Y adds the sampled water height
+/// to the unsigned waypoint Y. The ring wraps after entry 7 and has no terminator.
+static SVECTOR _gShelterB4LowerSewerDiverPatrolWaypoints1[8] = {
     { 8256, 1000, 1000, 0 },
     { 3584, 1000, 1000, 0 },
     { -2592, 1000, 1000, 0 },
@@ -125,8 +134,11 @@ SVECTOR D_shelter_b4_lower_sewer_8018208C[8] = {
     { 0x2CEC, 1000, 1000, 0 },
 };
 
-// Retained data: Eight-point coordinate pool explicitly addressed by the following pointer table; no runtime owner found.
-SVECTOR D_shelter_b4_lower_sewer_801820CC[8] = {
+/// Eight-point Bog Diver patrol ring at Z=2000, borrowed by selector slots 1 and 3.
+///
+/// XYZ use room-coordinate units; swimming goal Y adds the sampled water height
+/// to the unsigned waypoint Y. The ring wraps after entry 7 and has no terminator.
+static SVECTOR _gShelterB4LowerSewerDiverPatrolWaypoints2[8] = {
     { 8256, 1000, 2000, 0 },
     { 3584, 1000, 2000, 0 },
     { -2592, 1000, 2000, 0 },
@@ -137,26 +149,30 @@ SVECTOR D_shelter_b4_lower_sewer_801820CC[8] = {
     { 0x2CEC, 1000, 2000, 0 },
 };
 
-// Retained data: Four retained references to the preceding eight-point coordinate pools; no runtime owner found.
-SVECTOR* D_shelter_b4_lower_sewer_8018210C[4] = {
-    D_shelter_b4_lower_sewer_8018208C,
-    D_shelter_b4_lower_sewer_801820CC,
-    D_shelter_b4_lower_sewer_8018208C,
-    D_shelter_b4_lower_sewer_801820CC,
+SVECTOR* gShelterB4LowerSewerDiverPatrolRings[4] = {
+    _gShelterB4LowerSewerDiverPatrolWaypoints1,
+    _gShelterB4LowerSewerDiverPatrolWaypoints2,
+    _gShelterB4LowerSewerDiverPatrolWaypoints1,
+    _gShelterB4LowerSewerDiverPatrolWaypoints2,
 };
 
-// Retained data: Adjacent retained point data, ending with fourth halfword -1; no runtime owner found.
-SVECTOR D_shelter_b4_lower_sewer_8018211C[10] = {
-    { 0, 0, 0, 0 },
-    { -4900, 1000, 1000, 0 },
-    { -2600, 1000, 1000, 0 },
-    { 200, 1000, 1000, 0 },
-    { 2000, 1000, 1000, 0 },
-    { 3800, 1000, 1000, 0 },
-    { 5400, 1000, 1000, 0 },
-    { 8400, 1000, 1000, 0 },
-    { 0x2CEC, 1000, 1000, 0 },
-    { 0, 0, 0, -1 },
+/// Initial and terminal claim marks in the room's writable emergence-spot list.
+enum {
+    SHELTER_B4_LOWER_SEWER_DIVER_SPOT_FREE = 0,
+    SHELTER_B4_LOWER_SEWER_DIVER_SPOT_END  = -1
+};
+
+SVECTOR gShelterB4LowerSewerDiverSurfaceSpots[10] = {
+    { 0, 0, 0, SHELTER_B4_LOWER_SEWER_DIVER_SPOT_FREE },
+    { -4900, 1000, 1000, SHELTER_B4_LOWER_SEWER_DIVER_SPOT_FREE },
+    { -2600, 1000, 1000, SHELTER_B4_LOWER_SEWER_DIVER_SPOT_FREE },
+    { 200, 1000, 1000, SHELTER_B4_LOWER_SEWER_DIVER_SPOT_FREE },
+    { 2000, 1000, 1000, SHELTER_B4_LOWER_SEWER_DIVER_SPOT_FREE },
+    { 3800, 1000, 1000, SHELTER_B4_LOWER_SEWER_DIVER_SPOT_FREE },
+    { 5400, 1000, 1000, SHELTER_B4_LOWER_SEWER_DIVER_SPOT_FREE },
+    { 8400, 1000, 1000, SHELTER_B4_LOWER_SEWER_DIVER_SPOT_FREE },
+    { 0x2CEC, 1000, 1000, SHELTER_B4_LOWER_SEWER_DIVER_SPOT_FREE },
+    { 0, 0, 0, SHELTER_B4_LOWER_SEWER_DIVER_SPOT_END },
 };
 
 /// Room-space collision normals, with 4096 representing unit length.
@@ -202,8 +218,8 @@ WorldCollisionGrid gShelterB4LowerSewerCollisionGrid = {
     .faceCount   = ARRAY_SIZE(_gShelterB4LowerSewerCollisionGridFaces),
 };
 
-ViewCamera D_shelter_b4_lower_sewer_80182908[9] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x7530, 0 } }, 207 },
+ViewCamera gShelterB4LowerSewerViewCameras[9] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 0, 0x7530, 0 } }, 207 },
     { { { { -855, 0, -4005 }, { -579, 4052, 123 }, { 3963, 592, -846 } }, { -4200, 2980, -1880 } }, 257 },
     { { { { -601, 0, -4051 }, { -787, 4017, 116 }, { 3974, 795, -589 } }, { 3545, 3080, -2150 } }, 257 },
     { { { { -804, 0, 4016 }, { 783, 4017, 156 }, { -3939, 799, -788 } }, { -5335, 3080, -2150 } }, 257 },
@@ -391,7 +407,7 @@ WorldCoordRoomLights gShelterB4LowerSewerRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_shelter_b4_lower_sewer_80183444[12] = {
+WorldCollisionTrigger gShelterB4LowerSewerViewBoundaryTriggers[12] = {
     { NULL, NULL, NULL, { 0x2A5F, -3585, -1922, 0 }, { { -6, -3824, 2091, 0 }, { -7, -3824, -2101, 0 }, { -6, 3824, 2091, 0 }, { -7, 3824, -2101, 0 } }, { -4102, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4344, 0, 7, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 0x299F, -3569, -2081, 0 }, { { -4, -3904, -2130, 0 }, { -6, -3904, 2121, 0 }, { -4, 3904, -2130, 0 }, { -6, 3904, 2121, 0 } }, { 4098, 0, 1, 0 }, { 0, 0, 4096, 0 }, 4434, 0, 6, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 2495, -3553, -1985, 0 }, { { -2, -3760, 2094, 0 }, { -2, -3760, -2098, 0 }, { -2, 3761, 2094, 0 }, { -2, 3761, -2098, 0 } }, { -4096, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4283, 0, 8, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -406,13 +422,13 @@ WorldCollisionTrigger D_shelter_b4_lower_sewer_80183444[12] = {
     { NULL, NULL, NULL, { -6818, -1600, 1887, 0 }, { { 101, -2896, 2092, 0 }, { -103, -2896, -2094, 0 }, { 101, 2896, 2092, 0 }, { -103, 2896, -2094, 0 } }, { -4091, 0, 198, 0 }, { 0, 0, 4096, 0 }, 3574, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_shelter_b4_lower_sewer_801837D4[12] = {
+WorldCollisionTrigger gShelterB4LowerSewerActionTriggers[12] = {
     { NULL, NULL, NULL, { -8288, -48, 2976, 0 }, { { -544, 0, -1024, 0 }, { 544, 0, -1024, 0 }, { -544, 0, 1024, 0 }, { 544, 0, 1024, 0 } }, { 0, 4102, 0, 0 }, { 4096, 0, 0, 0 }, 1159, WORLD_COLLISION_TRIGGER_ACTION_FACING, 53, 192, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -8736, -1888, 2384, 0 }, { { 0, 1600, -784, 0 }, { 0, -1600, -784, 0 }, { 0, 1600, 784, 0 }, { 0, -1600, 784, 0 } }, { 4109, 0, 0, 0 }, { 4096, 0, 0, 0 }, 1778, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, 41, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x3200, -48, 1472, 0 }, { { -544, 0, -1024, 0 }, { 544, 0, -1024, 0 }, { -544, 0, 1024, 0 }, { 544, 0, 1024, 0 } }, { 0, 4102, 0, 0 }, { -4096, 0, 0, 0 }, 1159, WORLD_COLLISION_TRIGGER_ACTION_WARP, 44, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x3760, -2080, -224, 0 }, { { 1024, 0, -544, 0 }, { 1024, 0, 544, 0 }, { -1024, 0, -544, 0 }, { -1024, 0, 544, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -4096, 0 }, 1159, WORLD_COLLISION_TRIGGER_ACTION_WARP, 44, 68, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -8736, -1888, 2384, 0 }, { { 0, 1600, -784, 0 }, { 0, -1600, -784, 0 }, { 0, 1600, 784, 0 }, { 0, -1600, 784, 0 } }, { 4109, 0, 0, 0 }, { 4096, 0, 0, 0 }, 1778, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM, 0x12, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x3200, -48, 1472, 0 }, { { -544, 0, -1024, 0 }, { 544, 0, -1024, 0 }, { -544, 0, 1024, 0 }, { 544, 0, 1024, 0 } }, { 0, 4102, 0, 0 }, { -4096, 0, 0, 0 }, 1159, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B4_UPPER_SEWER, 0x21, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x3760, -2080, -224, 0 }, { { 1024, 0, -544, 0 }, { 1024, 0, 544, 0 }, { -1024, 0, -544, 0 }, { -1024, 0, 544, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -4096, 0 }, 1159, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B4_UPPER_SEWER, 0x44, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -6528, -2048, -1024, 0 }, { { -544, 0, -1024, 0 }, { 544, 0, -1024, 0 }, { -544, 0, 1024, 0 }, { 544, 0, 1024, 0 } }, { 0, 4102, 0, 0 }, { 4096, 0, 0, 0 }, 1159, WORLD_COLLISION_TRIGGER_ACTION_FACING, 85, 192, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -7072, -2737, -992, 0 }, { { 0, 1296, -1024, 0 }, { 0, -1295, -1024, 0 }, { 0, 1296, 1024, 0 }, { 0, -1295, 1024, 0 } }, { 4102, 0, 0, 0 }, { 4096, 0, 0, 0 }, 1649, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, 42, 50, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -7072, -2737, -992, 0 }, { { 0, 1296, -1024, 0 }, { 0, -1295, -1024, 0 }, { 0, 1296, 1024, 0 }, { 0, -1295, 1024, 0 } }, { 4102, 0, 0, 0 }, { 4096, 0, 0, 0 }, 1649, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, GAME_AREA_SHELTER_B3_ELEVATOR_HALL, 0x32, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -0x30E0, -64, 736, 0 }, { { -544, 0, -1024, 0 }, { 544, 0, -1024, 0 }, { -544, 0, 1024, 0 }, { 544, 0, 1024, 0 } }, { 0, 4102, 0, 0 }, { 4096, 0, 0, 0 }, 1159, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -176, -64, 304, 0 }, { { -1072, 0, -720, 0 }, { 1072, 0, -720, 0 }, { -1072, 0, 720, 0 }, { 1072, 0, 720, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, 4096, 0 }, 1286, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 704, -64, 2496, 0 }, { { -1360, 0, -720, 0 }, { 1360, 0, -720, 0 }, { -1360, 0, 720, 0 }, { 1360, 0, 720, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 1536, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
@@ -421,89 +437,136 @@ WorldCollisionTrigger D_shelter_b4_lower_sewer_801837D4[12] = {
     { NULL, NULL, NULL, { -2784, -64, 2560, 0 }, { { -1360, 0, -720, 0 }, { 1360, 0, -720, 0 }, { -1360, 0, 720, 0 }, { 1360, 0, 720, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 1536, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_shelter_b4_lower_sewer_80183B64[2] = {
-    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_04400_MAD_CHASER_TASK_ORDINARY, { 0, 0 }, gActor04400MadChaserTaskDescs },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Room-local resource keys shared by the enemy recipes and placements.
+enum {
+    SHELTER_B4_LOWER_SEWER_RESOURCE_MAD_CHASER        = 44,
+    SHELTER_B4_LOWER_SEWER_RESOURCE_BOG_DIVER         = 4,
+    SHELTER_B4_LOWER_SEWER_RESOURCE_CREEPING_STRANGER = 72,
+    SHELTER_B4_LOWER_SEWER_RESOURCE_SKULL_STALKER     = 73,
+    SHELTER_B4_LOWER_SEWER_RESOURCE_PAWN_GOLEM        = 20,
+    SHELTER_B4_LOWER_SEWER_RESOURCE_ROOK_GOLEM        = 23,
+    SHELTER_B4_LOWER_SEWER_RESOURCE_MOSSBACK          = 49,
 };
 
-AreaResource D_shelter_b4_lower_sewer_80183B7C[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Enemy resource recipes for lower-sewer variant 1, terminated by `AREA_PLACEMENT_END`.
+///
+/// Two Mad Chasers; task tables are borrowed from the selected actor-load slots.
+static AreaResource _gShelterB4LowerSewerVariant1Resources[2] = {
+    { .entryId = SHELTER_B4_LOWER_SEWER_RESOURCE_MAD_CHASER, .fileNumber = 44, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = ACTOR_04400_MAD_CHASER_TASK_ORDINARY, .unknown_6 = { 0, 0 }, .taskTable = gActor04400MadChaserTaskDescs },
+    { .entryId = AREA_PLACEMENT_END, .fileNumber = 0, .fileGroupIndex = 0, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = NULL },
 };
 
-AreaResource D_shelter_b4_lower_sewer_80183B94[4] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
-    { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor207200CreepingStrangerTaskDesc },
-    { 73, 73, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor207200SkullStalkerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Enemy resource recipes for lower-sewer variant 2, terminated by `AREA_PLACEMENT_END`.
+///
+/// One Bog Diver; task tables are borrowed from the selected actor-load slots.
+static AreaResource _gShelterB4LowerSewerVariant2Resources[2] = {
+    { .entryId = SHELTER_B4_LOWER_SEWER_RESOURCE_BOG_DIVER, .fileNumber = 4, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = ACTOR_00400_BODY_TASK_INDEX, .unknown_6 = { 0, 0 }, .taskTable = gActor100400Tasks },
+    { .entryId = AREA_PLACEMENT_END, .fileNumber = 0, .fileGroupIndex = 0, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = NULL },
 };
 
-AreaResource D_shelter_b4_lower_sewer_80183BC4[2] = {
-    { 20, 20, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102000PawnGolemTasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Enemy resource recipes for lower-sewer variant 3, terminated by `AREA_PLACEMENT_END`.
+///
+/// Two Bog Divers, a Creeping Stranger and two Skull Stalkers; task tables are borrowed from the selected actor-load slots.
+static AreaResource _gShelterB4LowerSewerVariant3Resources[4] = {
+    { .entryId = SHELTER_B4_LOWER_SEWER_RESOURCE_BOG_DIVER, .fileNumber = 4, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = ACTOR_00400_BODY_TASK_INDEX, .unknown_6 = { 0, 0 }, .taskTable = gActor100400Tasks },
+    { .entryId = SHELTER_B4_LOWER_SEWER_RESOURCE_CREEPING_STRANGER, .fileNumber = 72, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor207200CreepingStrangerTaskDesc },
+    { .entryId = SHELTER_B4_LOWER_SEWER_RESOURCE_SKULL_STALKER, .fileNumber = 73, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor207200SkullStalkerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END, .fileNumber = 0, .fileGroupIndex = 0, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = NULL },
 };
 
-AreaResource D_shelter_b4_lower_sewer_80183BDC[2] = {
-    { 23, 23, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102300RookGolemTasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Enemy resource recipes for lower-sewer variant 7, terminated by `AREA_PLACEMENT_END`.
+///
+/// One Pawn GOLEM; task tables are borrowed from the selected actor-load slots.
+static AreaResource _gShelterB4LowerSewerVariant7Resources[2] = {
+    { .entryId = SHELTER_B4_LOWER_SEWER_RESOURCE_PAWN_GOLEM, .fileNumber = 20, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = gActor102000PawnGolemTasks },
+    { .entryId = AREA_PLACEMENT_END, .fileNumber = 0, .fileGroupIndex = 0, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = NULL },
 };
 
-AreaResource D_shelter_b4_lower_sewer_80183BF4[3] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
-    { 49, 49, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor201100Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Enemy resource recipes for lower-sewer variant 8, terminated by `AREA_PLACEMENT_END`.
+///
+/// One Rook GOLEM; task tables are borrowed from the selected actor-load slots.
+static AreaResource _gShelterB4LowerSewerVariant8Resources[2] = {
+    { .entryId = SHELTER_B4_LOWER_SEWER_RESOURCE_ROOK_GOLEM, .fileNumber = 23, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = gActor102300RookGolemTasks },
+    { .entryId = AREA_PLACEMENT_END, .fileNumber = 0, .fileGroupIndex = 0, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = NULL },
 };
 
-AreaPlacement D_shelter_b4_lower_sewer_80183C18[3] = {
-    { 44, 0, 0, -500, 0, 700, 2700, 0, 0, 2, 0 },
-    { 44, 0, 0, 4500, 0, 2500, 3400, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Enemy resource recipes for lower-sewer variant 11, terminated by `AREA_PLACEMENT_END`.
+///
+/// Two Bog Divers and a Mossback; task tables are borrowed from the selected actor-load slots.
+static AreaResource _gShelterB4LowerSewerVariant11Resources[3] = {
+    { .entryId = SHELTER_B4_LOWER_SEWER_RESOURCE_BOG_DIVER, .fileNumber = 4, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = ACTOR_00400_BODY_TASK_INDEX, .unknown_6 = { 0, 0 }, .taskTable = gActor100400Tasks },
+    { .entryId = SHELTER_B4_LOWER_SEWER_RESOURCE_MOSSBACK, .fileNumber = 49, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = gActor01100Tasks },
+    { .entryId = AREA_PLACEMENT_END, .fileNumber = 0, .fileGroupIndex = 0, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = NULL },
 };
 
-AreaPlacement D_shelter_b4_lower_sewer_80183C48[2] = {
-    { 4, 0, 1, 0x2CEC, 1000, 1000, 1280, 0, 0, 2, 4 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Enemy placements for lower-sewer variant 1, terminated by `AREA_PLACEMENT_END`.
+///
+/// Two Mad Chasers; XYZ use world units and yaw uses 4096 units per turn.
+/// Actors borrow these records for their lifetimes.
+static AreaPlacement _gShelterB4LowerSewerVariant1Placements[3] = {
+    { .entryId = SHELTER_B4_LOWER_SEWER_RESOURCE_MAD_CHASER, .variant = 0, .mode = 0, .x = -500, .y = 0, .z = 700, .yaw = 2700, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = SHELTER_B4_LOWER_SEWER_RESOURCE_MAD_CHASER, .variant = 0, .mode = 0, .x = 4500, .y = 0, .z = 2500, .yaw = 3400, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 0, .rowIndex = 0 },
 };
 
-AreaPlacement D_shelter_b4_lower_sewer_80183C68[6] = {
-    { 4, 0, 1, 0x2CEC, 1000, 1000, 3072, 0, 0, 2, 2 },
-    { 4, 0, 17, -5000, 1000, 2000, 1024, 0, 0, 2, 2 },
-    { 72, 0, 0, 0, -2000, -930, 1024, 0, 2, 4, 0 },
-    { 73, 0, 1, -3600, -2000, -1400, 1200, 0, 2, 4, 0 },
-    { 73, 0, 1, 2250, -2000, -400, 700, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Enemy placements for lower-sewer variant 2, terminated by `AREA_PLACEMENT_END`.
+///
+/// One Bog Diver; XYZ use world units and yaw uses 4096 units per turn.
+/// Actors borrow these records for their lifetimes.
+static AreaPlacement _gShelterB4LowerSewerVariant2Placements[2] = {
+    { .entryId = SHELTER_B4_LOWER_SEWER_RESOURCE_BOG_DIVER, .variant = 0, .mode = 1, .x = 0x2CEC, .y = 1000, .z = 1000, .yaw = 1280, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 4 },
+    { .entryId = AREA_PLACEMENT_END, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 0, .rowIndex = 0 },
 };
 
-AreaPlacement D_shelter_b4_lower_sewer_80183CC8[2] = {
-    { 20, 4, 1, -2000, 0, 1600, 1024, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Enemy placements for lower-sewer variant 3, terminated by `AREA_PLACEMENT_END`.
+///
+/// Two Bog Divers, a Creeping Stranger and two Skull Stalkers; XYZ use world units and yaw uses 4096 units per turn.
+/// Actors borrow these records for their lifetimes.
+static AreaPlacement _gShelterB4LowerSewerVariant3Placements[6] = {
+    { .entryId = SHELTER_B4_LOWER_SEWER_RESOURCE_BOG_DIVER, .variant = 0, .mode = 1, .x = 0x2CEC, .y = 1000, .z = 1000, .yaw = 3072, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 2 },
+    { .entryId = SHELTER_B4_LOWER_SEWER_RESOURCE_BOG_DIVER, .variant = 0, .mode = 17, .x = -5000, .y = 1000, .z = 2000, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 2 },
+    { .entryId = SHELTER_B4_LOWER_SEWER_RESOURCE_CREEPING_STRANGER, .variant = 0, .mode = 0, .x = 0, .y = -2000, .z = -930, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = SHELTER_B4_LOWER_SEWER_RESOURCE_SKULL_STALKER, .variant = 0, .mode = 1, .x = -3600, .y = -2000, .z = -1400, .yaw = 1200, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = SHELTER_B4_LOWER_SEWER_RESOURCE_SKULL_STALKER, .variant = 0, .mode = 1, .x = 2250, .y = -2000, .z = -400, .yaw = 700, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 0, .rowIndex = 0 },
 };
 
-AreaPlacement D_shelter_b4_lower_sewer_80183CE8[2] = {
-    { 23, 5, 1, 7000, -2000, -1000, 3072, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Enemy placements for lower-sewer variant 7, terminated by `AREA_PLACEMENT_END`.
+///
+/// One Pawn GOLEM; XYZ use world units and yaw uses 4096 units per turn.
+/// Actors borrow these records for their lifetimes.
+static AreaPlacement _gShelterB4LowerSewerVariant7Placements[2] = {
+    { .entryId = SHELTER_B4_LOWER_SEWER_RESOURCE_PAWN_GOLEM, .variant = 4, .mode = 1, .x = -2000, .y = 0, .z = 1600, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 0, .rowIndex = 0 },
 };
 
-AreaPlacement D_shelter_b4_lower_sewer_80183D08[4] = {
-    { 4, 0, 1, 0x2CEC, 1000, 1000, 3072, 0, 0, 2, 3 },
-    { 4, 0, 17, -5000, 1000, 2000, 1024, 0, 0, 2, 3 },
-    { 49, 1, 0, 1950, -2000, -1300, 200, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Enemy placements for lower-sewer variant 8, terminated by `AREA_PLACEMENT_END`.
+///
+/// One Rook GOLEM; XYZ use world units and yaw uses 4096 units per turn.
+/// Actors borrow these records for their lifetimes.
+static AreaPlacement _gShelterB4LowerSewerVariant8Placements[2] = {
+    { .entryId = SHELTER_B4_LOWER_SEWER_RESOURCE_ROOK_GOLEM, .variant = 5, .mode = 1, .x = 7000, .y = -2000, .z = -1000, .yaw = 3072, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 0, .rowIndex = 0 },
 };
 
-AreaVariant D_shelter_b4_lower_sewer_80183D48[12] = {
-    { NULL, NULL },
-    { D_shelter_b4_lower_sewer_80183C18, D_shelter_b4_lower_sewer_80183B64 },
-    { D_shelter_b4_lower_sewer_80183C48, D_shelter_b4_lower_sewer_80183B7C },
-    { D_shelter_b4_lower_sewer_80183C68, D_shelter_b4_lower_sewer_80183B94 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_shelter_b4_lower_sewer_80183CC8, D_shelter_b4_lower_sewer_80183BC4 },
-    { D_shelter_b4_lower_sewer_80183CE8, D_shelter_b4_lower_sewer_80183BDC },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_shelter_b4_lower_sewer_80183D08, D_shelter_b4_lower_sewer_80183BF4 },
+/// Enemy placements for lower-sewer variant 11, terminated by `AREA_PLACEMENT_END`.
+///
+/// Two Bog Divers and a Mossback; XYZ use world units and yaw uses 4096 units per turn.
+/// Actors borrow these records for their lifetimes.
+static AreaPlacement _gShelterB4LowerSewerVariant11Placements[4] = {
+    { .entryId = SHELTER_B4_LOWER_SEWER_RESOURCE_BOG_DIVER, .variant = 0, .mode = 1, .x = 0x2CEC, .y = 1000, .z = 1000, .yaw = 3072, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 3 },
+    { .entryId = SHELTER_B4_LOWER_SEWER_RESOURCE_BOG_DIVER, .variant = 0, .mode = 17, .x = -5000, .y = 1000, .z = 2000, .yaw = 1024, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 3 },
+    { .entryId = SHELTER_B4_LOWER_SEWER_RESOURCE_MOSSBACK, .variant = 1, .mode = 0, .x = 1950, .y = -2000, .z = -1300, .yaw = 200, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 0, .rowIndex = 0 },
+};
+
+AreaVariant gShelterB4LowerSewerAreaVariants[12] = {
+    [1]  = { .placements = _gShelterB4LowerSewerVariant1Placements, .resources = _gShelterB4LowerSewerVariant1Resources },
+    [2]  = { .placements = _gShelterB4LowerSewerVariant2Placements, .resources = _gShelterB4LowerSewerVariant2Resources },
+    [3]  = { .placements = _gShelterB4LowerSewerVariant3Placements, .resources = _gShelterB4LowerSewerVariant3Resources },
+    [7]  = { .placements = _gShelterB4LowerSewerVariant7Placements, .resources = _gShelterB4LowerSewerVariant7Resources },
+    [8]  = { .placements = _gShelterB4LowerSewerVariant8Placements, .resources = _gShelterB4LowerSewerVariant8Resources },
+    [11] = { .placements = _gShelterB4LowerSewerVariant11Placements, .resources = _gShelterB4LowerSewerVariant11Resources },
 };
 
 /// Type-1 cue-2 bases; cue 1 adds one and companion playback adds 100.
@@ -595,7 +658,7 @@ WorldCollisionSurfaceProperties* gShelterB4LowerSewerSurfacePropertiesByClass[8]
     &_gShelterB4LowerSewerDefaultSurface,
 };
 
-u8* D_shelter_b4_lower_sewer_80183E14 = NULL;
+u8* gShelterB4LowerSewerWaterPacketCursor = NULL;
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
@@ -632,17 +695,16 @@ void shelterB4LowerSewerDrawGlowsTask(Task* task)
     }
 
     // Select world-space endpoint pairs visible from the mapped camera.
-    // The matched base-relative offsets span the three adjacent endpoint tables.
     switch ((u8)viewGetMappedIndex()) {
         case 2:
         case 6: {
-            const SVECTOR* capsulePoints = D_shelter_b4_lower_sewer_80181F14;
+            const SVECTOR* capsulePoints = &_gShelterB4LowerSewerGlowEndpoints[14];
             _glowDrawCapsule(&capsulePoints[0], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
             _glowDrawCapsule(&capsulePoints[2], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
             break;
         }
         case 3: {
-            const SVECTOR* capsulePoints = D_shelter_b4_lower_sewer_80181F04;
+            const SVECTOR* capsulePoints = &_gShelterB4LowerSewerGlowEndpoints[12];
             _glowDrawCapsule(&capsulePoints[0], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
             _glowDrawCapsule(&capsulePoints[2], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
             _glowDrawCapsule(&capsulePoints[4], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
@@ -650,7 +712,7 @@ void shelterB4LowerSewerDrawGlowsTask(Task* task)
             break;
         }
         case 4: {
-            const SVECTOR* capsulePoints = D_shelter_b4_lower_sewer_80181EA4;
+            const SVECTOR* capsulePoints = _gShelterB4LowerSewerGlowEndpoints;
             _glowDrawCapsule(&capsulePoints[0], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
             _glowDrawCapsule(&capsulePoints[2], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
             _glowDrawCapsule(&capsulePoints[4], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
@@ -661,14 +723,14 @@ void shelterB4LowerSewerDrawGlowsTask(Task* task)
             break;
         }
         case 5: {
-            const SVECTOR* capsulePoints = D_shelter_b4_lower_sewer_80181EA4;
+            const SVECTOR* capsulePoints = _gShelterB4LowerSewerGlowEndpoints;
             _glowDrawCapsule(&capsulePoints[0], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
             _glowDrawCapsule(&capsulePoints[2], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
             _glowDrawCapsule(&capsulePoints[28], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
             break;
         }
         case 7: {
-            const SVECTOR* capsulePoints = D_shelter_b4_lower_sewer_80181F04;
+            const SVECTOR* capsulePoints = &_gShelterB4LowerSewerGlowEndpoints[12];
             _glowDrawCapsule(&capsulePoints[0], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
             _glowDrawCapsule(&capsulePoints[2], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
             _glowDrawCapsule(&capsulePoints[4], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
@@ -677,7 +739,7 @@ void shelterB4LowerSewerDrawGlowsTask(Task* task)
             break;
         }
         case 8: {
-            const SVECTOR* capsulePoints = D_shelter_b4_lower_sewer_80181EA4;
+            const SVECTOR* capsulePoints = _gShelterB4LowerSewerGlowEndpoints;
             _glowDrawCapsule(&capsulePoints[0], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
             _glowDrawCapsule(&capsulePoints[2], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
             _glowDrawCapsule(&capsulePoints[4], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
@@ -690,7 +752,7 @@ void shelterB4LowerSewerDrawGlowsTask(Task* task)
             break;
         }
         case 9: {
-            const SVECTOR* capsulePoints = D_shelter_b4_lower_sewer_80181EA4;
+            const SVECTOR* capsulePoints = _gShelterB4LowerSewerGlowEndpoints;
             _glowDrawCapsule(&capsulePoints[0], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
             _glowDrawCapsule(&capsulePoints[2], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
             _glowDrawCapsule(&capsulePoints[4], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);

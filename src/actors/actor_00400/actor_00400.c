@@ -1356,7 +1356,7 @@ _Actor00400AreaConfig Actor00400_D15F20[12] = {
     { D_neo_ark_pavilion_80183A64, D_neo_ark_pavilion_80183A74, &D_neo_ark_pavilion_801839A0, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_PAVILION, 0 },
     { D_neo_ark_island_80181CE8, D_neo_ark_island_80181CF8, &D_neo_ark_island_80181C24, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ISLAND, 0 },
     { D_shelter_b2_main_corridor_80182EEC, D_shelter_b2_main_corridor_80182EFC, &gShelterB2MainCorridorWaterY, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_MAIN_CORRIDOR, 0 },
-    { D_shelter_b4_lower_sewer_8018210C, D_shelter_b4_lower_sewer_8018211C, &D_shelter_b4_lower_sewer_80181E6C, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_LOWER_SEWER, ACTOR_00400_AREA_CONFIG_GRID_COLLISION },
+    { gShelterB4LowerSewerDiverPatrolRings, gShelterB4LowerSewerDiverSurfaceSpots, &D_shelter_b4_lower_sewer_80181E6C, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_LOWER_SEWER, ACTOR_00400_AREA_CONFIG_GRID_COLLISION },
     { NULL, NULL, NULL, ACTOR_00400_AREA_CONFIG_END, 0, 0 },
 };
 

@@ -194,8 +194,8 @@ static void _shelterB4LowerSewerDrawXWaveStrips(Task* task)
     /// consume it before the quad. Undefined before leaving this function.
 #define SHELTER_B4_LOWER_SEWER_QUEUE_WATER_QUAD()                                                                                                           \
     addPrim((GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + 1), quad); \
-    drawMode                          = (DR_MODE*)D_shelter_b4_lower_sewer_80183E14;                                                                        \
-    D_shelter_b4_lower_sewer_80183E14 = (u8*)(drawMode + 1);                                                                                                \
+    drawMode                              = (DR_MODE*)gShelterB4LowerSewerWaterPacketCursor;                                                                \
+    gShelterB4LowerSewerWaterPacketCursor = (u8*)(drawMode + 1);                                                                                            \
     setDrawTPage(drawMode, 0, 0, getTPage(0, GPU_BLEND_SUBTRACT, 640, 0));                                                                                  \
     addPrim((GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + 1), drawMode)
 
@@ -234,8 +234,8 @@ static void _shelterB4LowerSewerDrawXWaveStrips(Task* task)
             vertex3.vz     = strip->z + strip->dz;
             depth          = RotTransPers4(&vertex0, &vertex1, &vertex2, &vertex3, &screenXY0, &screenXY1, &screenXY2, &screenXY3, &projectionScale, &projectionFlags);
             if (projectionFlags >= 0) {
-                quad                              = (POLY_G4*)D_shelter_b4_lower_sewer_80183E14;
-                D_shelter_b4_lower_sewer_80183E14 = (u8*)(quad + 1);
+                quad                                  = (POLY_G4*)gShelterB4LowerSewerWaterPacketCursor;
+                gShelterB4LowerSewerWaterPacketCursor = (u8*)(quad + 1);
                 setPolyG4(quad);
                 setSemiTrans(quad, 1);
                 GPU_PRIMITIVE_XY_WORD(quad, 0) = screenXY0;
@@ -275,8 +275,8 @@ static void _shelterB4LowerSewerDrawXWaveStrips(Task* task)
             vertex3.vz     = strip->z + strip->dz * 2;
             depth          = RotTransPers4(&vertex0, &vertex1, &vertex2, &vertex3, &screenXY0, &screenXY1, &screenXY2, &screenXY3, &projectionScale, &projectionFlags);
             if (projectionFlags >= 0) {
-                quad                              = (POLY_G4*)D_shelter_b4_lower_sewer_80183E14;
-                D_shelter_b4_lower_sewer_80183E14 = (u8*)(quad + 1);
+                quad                                  = (POLY_G4*)gShelterB4LowerSewerWaterPacketCursor;
+                gShelterB4LowerSewerWaterPacketCursor = (u8*)(quad + 1);
                 setPolyG4(quad);
                 setSemiTrans(quad, 1);
                 GPU_PRIMITIVE_XY_WORD(quad, 0) = screenXY0;
@@ -336,8 +336,8 @@ static void _shelterB4LowerSewerDrawXWaveStrip(Task* task)
     /// consume it before the quad. Undefined before leaving this function.
 #define SHELTER_B4_LOWER_SEWER_QUEUE_WATER_QUAD()                                                                                                           \
     addPrim((GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + 1), quad); \
-    drawMode                          = (DR_MODE*)D_shelter_b4_lower_sewer_80183E14;                                                                        \
-    D_shelter_b4_lower_sewer_80183E14 = (u8*)(drawMode + 1);                                                                                                \
+    drawMode                              = (DR_MODE*)gShelterB4LowerSewerWaterPacketCursor;                                                                \
+    gShelterB4LowerSewerWaterPacketCursor = (u8*)(drawMode + 1);                                                                                            \
     setDrawTPage(drawMode, 0, 0, getTPage(0, GPU_BLEND_SUBTRACT, 640, 0));                                                                                  \
     addPrim((GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + 1), drawMode)
 
@@ -375,8 +375,8 @@ static void _shelterB4LowerSewerDrawXWaveStrip(Task* task)
             vertex3.vz     = strip->z + strip->dz;
             depth          = RotTransPers4(&vertex0, &vertex1, &vertex2, &vertex3, &screenXY0, &screenXY1, &screenXY2, &screenXY3, &projectionScale, &projectionFlags);
             if (projectionFlags >= 0) {
-                quad                              = (POLY_G4*)D_shelter_b4_lower_sewer_80183E14;
-                D_shelter_b4_lower_sewer_80183E14 = (u8*)(quad + 1);
+                quad                                  = (POLY_G4*)gShelterB4LowerSewerWaterPacketCursor;
+                gShelterB4LowerSewerWaterPacketCursor = (u8*)(quad + 1);
                 setPolyG4(quad);
                 setSemiTrans(quad, 1);
                 GPU_PRIMITIVE_XY_WORD(quad, 0) = screenXY0;
@@ -441,9 +441,9 @@ static inline void _shelterB4LowerSewerResetWaterPacketCursor(void)
     enum { SHELTER_B4_LOWER_SEWER_WATER_PACKET_HALF_BYTES = 0xC000 };
     // These are byte offsets into reusable arenas, rather than object members.
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
-        D_shelter_b4_lower_sewer_80183E14 = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * SHELTER_B4_LOWER_SEWER_WATER_PACKET_HALF_BYTES;
+        gShelterB4LowerSewerWaterPacketCursor = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * SHELTER_B4_LOWER_SEWER_WATER_PACKET_HALF_BYTES;
     } else {
-        D_shelter_b4_lower_sewer_80183E14 = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * SHELTER_B4_LOWER_SEWER_WATER_PACKET_HALF_BYTES;
+        gShelterB4LowerSewerWaterPacketCursor = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * SHELTER_B4_LOWER_SEWER_WATER_PACKET_HALF_BYTES;
     }
 }
 

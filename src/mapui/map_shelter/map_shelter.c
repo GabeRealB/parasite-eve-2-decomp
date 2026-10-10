@@ -958,7 +958,7 @@ DirectionWarpEntry* D_map_shelter_8017AF88[49] = {
     D_shelter_b3_garbage_incinerator_8018741C,
     gShelterB3IncineratorControlRoomWarpEntries,
     gShelterB3ElevatorHallWarpEntries,
-    D_shelter_b4_lower_sewer_80181FAC,
+    gShelterB4LowerSewerWarpEntries,
     D_shelter_b4_upper_sewer_80186598,
     gShelterB4ReservoirWarpEntries,
     gShelterB4WaterSupplyWarpEntries,
@@ -1010,7 +1010,7 @@ static ViewCount* D_map_shelter_8017B04C[49] = {
     D_shelter_b3_garbage_incinerator_8018740C,
     gShelterB3IncineratorControlRoomViewCounts,
     gShelterB3ElevatorHallRoomViewCounts,
-    D_shelter_b4_lower_sewer_80181FA8,
+    gShelterB4LowerSewerRoomViewCounts,
     gShelterB4UpperSewerViewCounts,
     gShelterB4ReservoirRoomViewCounts,
     gShelterB4WaterSupplyViewCounts,
@@ -1123,7 +1123,7 @@ static WorldCollisionRoomResources D_map_shelter_8017B2A4[1] = {
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B2B4[1] = {
-    { &gShelterB4LowerSewerCollisionGrid, D_shelter_b4_lower_sewer_80183444, D_shelter_b4_lower_sewer_801837D4, NULL },
+    { &gShelterB4LowerSewerCollisionGrid, gShelterB4LowerSewerViewBoundaryTriggers, gShelterB4LowerSewerActionTriggers, NULL },
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B2C4[1] = {
@@ -1235,7 +1235,7 @@ static ViewCamera* D_map_shelter_8017B3BC[49] = {
     gShelterB3GarbageIncineratorCameras,
     gShelterB3IncineratorControlRoomViewCameras,
     gShelterB3ElevatorHallViewCameras,
-    D_shelter_b4_lower_sewer_80182908,
+    gShelterB4LowerSewerViewCameras,
     gShelterB4UpperSewerViewCameras,
     gShelterB4ReservoirViewCameras,
     gShelterB4WaterSupplyViewCameras,

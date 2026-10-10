@@ -1661,7 +1661,7 @@ gShelterB3GarbageIncineratorAreaVariants = 0x8018FA58; // absolute:True owner=sh
 
 gShelterB3IncineratorControlRoomAreaVariants = 0x80182610; // absolute:True owner=shelter_b3_incinerator_control_room
 
-D_shelter_b4_lower_sewer_80183D48 = 0x80183D48; // absolute:True owner=shelter_b4_lower_sewer
+gShelterB4LowerSewerAreaVariants = 0x80183D48; // absolute:True owner=shelter_b4_lower_sewer
 
 gShelterB4ReservoirAreaVariants = 0x80187350; // absolute:True owner=shelter_b4_reservoir
 

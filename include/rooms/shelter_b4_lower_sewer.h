@@ -15,14 +15,29 @@
 
 #include "main/task_types.h"
 
-// Room data exported to the shared waypoint actor.
-extern SVECTOR* D_shelter_b4_lower_sewer_8018210C[4];
+/// Four borrowed Bog Diver patrol rings, selected by spawn-argument bits 4..5.
+///
+/// Each ring has eight points and wraps at entry 7. Slots 0/2 share the Z=1000
+/// ring; 1/3 share Z=2000. XYZ use room units; swimming goal Y adds the sampled
+/// water height to unsigned waypoint Y. Keep this room loaded while divers live.
+extern SVECTOR* gShelterB4LowerSewerDiverPatrolRings[4];
 
-extern SVECTOR D_shelter_b4_lower_sewer_8018211C[10];
+/// Writable Bog Diver emergence spots, with entry 0 reserved as the claim fallback.
+///
+/// Entries 1..8 supply room-space XZ; their Y is not read by the spot searches.
+/// `SVECTOR.pad` is a mutable claim mark (0 free, 1 claimed, -1 terminator).
+/// Entry 9 terminates the search and is never a spot. Divers release claims on
+/// moving or despawning; keep this room loaded through every diver's lifetime.
+extern SVECTOR gShelterB4LowerSewerDiverSurfaceSpots[10];
 
 extern s16 D_shelter_b4_lower_sewer_80181E6C;
 
-extern AreaVariant D_shelter_b4_lower_sewer_80183D48[12];
+/// Enemy layouts indexed by the saved lower-sewer placement variant, 0..11.
+///
+/// Slots 1, 2, 3, 7, 8 and 11 pair terminated placement and resource lists;
+/// slots 0, 4, 5, 6, 9 and 10 are empty. Variant 1 is the default. Loading and
+/// spawned actors borrow the lists, so this room must stay loaded while used.
+extern AreaVariant gShelterB4LowerSewerAreaVariants[12];
 
 // shelter_b4_lower_sewer
 /// Logical-view maps for the lower sewer's single room, indexed by room ID minus one.
@@ -31,9 +46,18 @@ extern AreaVariant D_shelter_b4_lower_sewer_80183D48[12];
 /// image and sprite indices. The directory requires this room overlay to remain loaded.
 extern u8* gShelterB4LowerSewerViewMaps[1];
 
-extern ViewCount D_shelter_b4_lower_sewer_80181FA8[];
+/// Reverse-lookup view counts for the lower sewer's single room, indexed by room minus one.
+///
+/// Room 1 searches nine logical views in its identity map. The signed-halfword
+/// element counts have no terminator and are borrowed while this room is loaded.
+extern ViewCount gShelterB4LowerSewerRoomViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_b4_lower_sewer_80181FAC[];
+/// Four lower-sewer arrival/departure endpoints, indexed by warp ID minus one.
+///
+/// XYZ use world units and yaw uses 4096 units per turn. Arrival views are
+/// 5, 2, 9 and 6. Endpoint 1 marks the reservoir map flag; endpoints 2 and 4
+/// supply arrival/departure sounds. No terminator; borrow while the room is loaded.
+extern DirectionWarpEntry gShelterB4LowerSewerWarpEntries[4];
 
 /// Lower-sewer room-space collision mesh and its eight-by-two XZ cell index.
 ///
@@ -43,7 +67,12 @@ extern DirectionWarpEntry D_shelter_b4_lower_sewer_80181FAC[];
 /// and valid only while this room overlay is loaded.
 extern WorldCollisionGrid gShelterB4LowerSewerCollisionGrid;
 
-extern ViewCamera D_shelter_b4_lower_sewer_80182908[];
+/// Cameras for the lower sewer's nine mapped views, indexed by mapped view minus one.
+///
+/// Matrices use Q12 rotation and negated world-space camera origins; perspective
+/// distance is 207 pixels for view 1 and 257 for views 2..9. There is no terminator.
+/// Camera application borrows each record while this room overlay is loaded.
+extern ViewCamera gShelterB4LowerSewerViewCameras[9];
 
 /// Sprite descriptors for the lower sewer's nine mapped views, indexed by mapped view minus one.
 ///
@@ -59,9 +88,21 @@ extern SpriteView gShelterB4LowerSewerSpriteViews[9];
 /// Keep this room overlay loaded while the collection is bound.
 extern WorldCoordRoomLights gShelterB4LowerSewerRoomLights;
 
-extern WorldCollisionTrigger D_shelter_b4_lower_sewer_80183444[];
+/// Twelve directed camera boundaries between lower-sewer views 2..9.
+///
+/// The source/destination view bytes select a change only from the source view.
+/// The final boundary carries LAST and is included. Setup binds and links these
+/// writable room-space quads; keep their storage loaded until the list is cleared.
+extern WorldCollisionTrigger gShelterB4LowerSewerViewBoundaryTriggers[12];
 
-extern WorldCollisionTrigger D_shelter_b4_lower_sewer_801837D4[];
+/// Twelve lower-sewer stair, warp and CAP interaction quads.
+///
+/// Two facing actions encode 5 steps with surface classes 3 and 5 at yaw 3072.
+/// Four warps lead to the incinerator control room, elevator hall or upper sewer;
+/// six CAP regions select commands 1..4. The final included quad carries LAST.
+/// Setup binds and links these writable room-space records; keep this room
+/// loaded until their action list is cleared.
+extern WorldCollisionTrigger gShelterB4LowerSewerActionTriggers[12];
 
 /// Lower-sewer collision and footstep policies indexed by surface class 0..7.
 ///
