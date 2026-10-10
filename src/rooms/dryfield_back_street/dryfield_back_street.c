@@ -67,10 +67,10 @@ static s32  _dryfieldBackStreetIgnoreRoomActionMessage(Task* task, s32 messageId
 
 enum { DRYFIELD_BACK_STREET_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
-extern WorldCollisionGrid    D_dryfield_back_street_80180284[1];
-extern WorldCollisionTrigger D_dryfield_back_street_801804C0[6];
-extern WorldCollisionTrigger D_dryfield_back_street_80180688[11];
-extern WorldCoordRoomLights  D_dryfield_back_street_80180FF8[1];
+static WorldCollisionGrid    _gDryfieldBackStreetCollisionGrid;
+static WorldCollisionTrigger _gDryfieldBackStreetViewBoundaries[6];
+static WorldCollisionTrigger _gDryfieldBackStreetActionTriggers[11];
+static WorldCoordRoomLights  _gDryfieldBackStreetRoomLights;
 
 TaskMessageEntry D_dryfield_back_street_8017F964[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantResolveBackStreet },
@@ -87,113 +87,194 @@ TaskDesc D_dryfield_back_street_8017F98C[2] = {
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-WorldCollisionRoomResources D_dryfield_back_street_8017F9B4[1] = {
-    { D_dryfield_back_street_80180284, D_dryfield_back_street_801804C0, D_dryfield_back_street_80180688, NULL },
+WorldCollisionRoomResources gDryfieldBackStreetRoomCollisionResources[1] = {
+    {
+        .grid                 = &_gDryfieldBackStreetCollisionGrid,
+        .viewBoundaryTriggers = _gDryfieldBackStreetViewBoundaries,
+        .actionTriggers       = _gDryfieldBackStreetActionTriggers,
+        .occluders            = NULL,
+    },
 };
 
-u8* D_dryfield_back_street_8017F9C4[1] = {
+u8* gDryfieldBackStreetViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_dryfield_back_street_8017F9C8[1] = { 5 };
+ViewCount gDryfieldBackStreetRoomViewCounts[1] = { ARRAY_SIZE(gDryfieldBackStreetViewCameras) };
 
-WorldCoordRoomLighting D_dryfield_back_street_8017F9CC[1] = {
-    { D_dryfield_back_street_80180FF8, NULL },
+WorldCoordRoomLighting gDryfieldBackStreetRoomLighting[1] = {
+    { .lights = &_gDryfieldBackStreetRoomLights, .ambientTable = NULL },
 };
 
-DirectionWarpEntry D_dryfield_back_street_8017F9D4[4] = {
-    { { { .word = 1024 }, -9597, 0, 4667 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -8696, 0, 5479 }, { 0, 0, 0, 0 }, 0x52050002, 0x52050001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 470 },
-    { { { .word = 2048 }, -7539, 0, 5536 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -8028, 0, 5175 }, { 0, 0, 0, 0 }, 0x52050004, 0x52050003, 0x52050005, 2, DIRECTION_WARP_FLAG_NONE, 469 },
-    { { { .word = 2048 }, -1423, 0, 5449 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -2346, 0, 5223 }, { 0, 0, 0, 0 }, 0x52050002, 0x52050001, 0x52050005, 3, DIRECTION_WARP_FLAG_NONE, 468 },
-    { { { .word = 2048 }, 9463, 2, 5532 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 9800, 2, 4668 }, { 0, 0, 0, 0 }, 0x52050002, 0x52050001, 0x52050005, 5, DIRECTION_WARP_FLAG_NONE, 467 },
+enum {
+    DRYFIELD_BACK_STREET_ARRIVAL_SOUND              = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_BACK_STREET, 2),
+    DRYFIELD_BACK_STREET_DEPARTURE_SOUND            = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_BACK_STREET, 1),
+    DRYFIELD_BACK_STREET_SHOP_ARRIVAL_SOUND         = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_BACK_STREET, 4),
+    DRYFIELD_BACK_STREET_SHOP_DEPARTURE_SOUND       = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_BACK_STREET, 3),
+    DRYFIELD_BACK_STREET_BLOCKED_WARP_SOUND         = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_BACK_STREET, 5),
+    DRYFIELD_BACK_STREET_GENERAL_STORE_MAP_FLAG     = 470,
+    DRYFIELD_BACK_STREET_SOUVENIR_SHOP_MAP_FLAG     = 469,
+    DRYFIELD_BACK_STREET_WAREHOUSE_MAP_FLAG         = 468,
+    DRYFIELD_BACK_STREET_DILAPIDATED_HOUSE_MAP_FLAG = 467,
 };
 
-static SVECTOR _gDryfieldBackStreetCollision02CC4Normals[23] = {
+DirectionWarpEntry gDryfieldBackStreetWarpEntries[4] = {
+    { { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -9597, 0, 4667 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -8696, 0, 5479 }, { 0, 0, 0, 0 }, DRYFIELD_BACK_STREET_ARRIVAL_SOUND, DRYFIELD_BACK_STREET_DEPARTURE_SOUND, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DRYFIELD_BACK_STREET_GENERAL_STORE_MAP_FLAG },
+    { { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, -7539, 0, 5536 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -8028, 0, 5175 }, { 0, 0, 0, 0 }, DRYFIELD_BACK_STREET_SHOP_ARRIVAL_SOUND, DRYFIELD_BACK_STREET_SHOP_DEPARTURE_SOUND, DRYFIELD_BACK_STREET_BLOCKED_WARP_SOUND, 2, DIRECTION_WARP_FLAG_NONE, DRYFIELD_BACK_STREET_SOUVENIR_SHOP_MAP_FLAG },
+    { { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, -1423, 0, 5449 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, -2346, 0, 5223 }, { 0, 0, 0, 0 }, DRYFIELD_BACK_STREET_ARRIVAL_SOUND, DRYFIELD_BACK_STREET_DEPARTURE_SOUND, DRYFIELD_BACK_STREET_BLOCKED_WARP_SOUND, 3, DIRECTION_WARP_FLAG_NONE, DRYFIELD_BACK_STREET_WAREHOUSE_MAP_FLAG },
+    { { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, 9463, 2, 5532 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 9800, 2, 4668 }, { 0, 0, 0, 0 }, DRYFIELD_BACK_STREET_ARRIVAL_SOUND, DRYFIELD_BACK_STREET_DEPARTURE_SOUND, DRYFIELD_BACK_STREET_BLOCKED_WARP_SOUND, 5, DIRECTION_WARP_FLAG_NONE, DRYFIELD_BACK_STREET_DILAPIDATED_HOUSE_MAP_FLAG },
+};
+
+/// Room-space collision normals, with 4096 for unit length.
+static SVECTOR _gDryfieldBackStreetCollisionGridNormals[23] = {
 #include "assets/dryfield_back_street_collision_02CC4_normals.inc"
 };
 
-static SVECTOR _gDryfieldBackStreetCollision02CC4Verts[88] = {
+/// Room-space mesh vertices in signed integer game-coordinate units.
+static SVECTOR _gDryfieldBackStreetCollisionGridVerts[88] = {
 #include "assets/dryfield_back_street_collision_02CC4_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldBackStreetCollision02CC4Faces[39] = {
+/// Indexed collision quads using room-local surface classes 0..2.
+static WorldCollisionGridFace _gDryfieldBackStreetCollisionGridFaces[39] = {
 #include "assets/dryfield_back_street_collision_02CC4_faces.inc"
 };
 
-static s16 _gDryfieldBackStreetCollision02CC4Cells[266] = {
+/// Packed signed face-index lists for the 28 grid cells, each terminated by -1.
+static s16 _gDryfieldBackStreetCollisionGridCells[266] = {
 #include "assets/dryfield_back_street_collision_02CC4_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldBackStreetCollision02CC4Cells[i])
-static s16* _gDryfieldBackStreetCollision02CC4Table[28] = {
+// Generated offsets count halfword elements in this grid's face-list pool.
+#define GRID_CELL(i) (&_gDryfieldBackStreetCollisionGridCells[i])
+/// X-major cell pointers into the face-list pool for the 7 by 4 grid.
+static s16* _gDryfieldBackStreetCollisionGridTable[28] = {
 #include "assets/dryfield_back_street_collision_02CC4_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_back_street_80180284[1] = {
-    { NULL, _gDryfieldBackStreetCollision02CC4Normals, _gDryfieldBackStreetCollision02CC4Verts, _gDryfieldBackStreetCollision02CC4Faces, _gDryfieldBackStreetCollision02CC4Table, 0x2AFE, 100, 7, 4, 4000, 39 },
+/// Back Street's collision mesh and its 7 by 4 XZ cell index.
+///
+/// Cells are 4000 game units wide, with origin (-11006, -100) on XZ.
+/// Setup binds the writable descriptor to the current view coordinate.
+/// Mesh pools and cell lists remain borrowed while this overlay is loaded.
+static WorldCollisionGrid _gDryfieldBackStreetCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldBackStreetCollisionGridNormals,
+    .vertices    = _gDryfieldBackStreetCollisionGridVerts,
+    .faces       = _gDryfieldBackStreetCollisionGridFaces,
+    .cellFaceIds = _gDryfieldBackStreetCollisionGridTable,
+    .xBias       = 0x2AFE,
+    .zBias       = 100,
+    .cellCountX  = 7,
+    .cellCountZ  = 4,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldBackStreetCollisionGridFaces),
 };
 
-ViewCamera D_dryfield_back_street_801802A8[5] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -850, 0x7148, -4850 } }, 329 },
+ViewCamera gDryfieldBackStreetViewCameras[5] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -850, 0x7148, -4850 } }, 329 },
     { { { { 696, 0, 4036 }, { -1070, 3949, 184 }, { -3892, -1085, 671 } }, { 4016, 385, -4128 } }, 230 },
     { { { { 681, 0, 4038 }, { 402, 4075, -67 }, { -4018, 408, 677 } }, { -2416, 1408, -4201 } }, 257 },
     { { { { 615, 0, -4049 }, { -873, 3999, -132 }, { 3954, 883, 600 } }, { 2448, 1600, -4230 } }, 230 },
     { { { { 173, 0, -4092 }, { -1464, 3824, -62 }, { 3821, 1465, 162 } }, { -2046, 2454, -4167 } }, 257 },
 };
 
-SpriteBatch D_dryfield_back_street_8018035C[2] = {
+/// View 1's mutable empty sprite list, retaining decoded background strips.
+///
+/// The zero-count first record is followed by SPRITE_BATCH_END; no source
+/// elements are read. Keep this view's own list live with the room overlay.
+static SpriteBatch _gDryfieldBackStreetView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_back_street_8018036C[2] = {
+/// View 2's mutable empty sprite list, retaining decoded background strips.
+///
+/// The zero-count first record is followed by SPRITE_BATCH_END; no source
+/// elements are read. Keep this view's own list live with the room overlay.
+static SpriteBatch _gDryfieldBackStreetView2SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_back_street_8018037C[2] = {
+/// View 3's mutable empty sprite list, retaining decoded background strips.
+///
+/// The zero-count first record is followed by SPRITE_BATCH_END; no source
+/// elements are read. Keep this view's own list live with the room overlay.
+static SpriteBatch _gDryfieldBackStreetView3SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_back_street_8018038C[5] = {
-    { 143, 0x3FC0, { .fields = { 8, 96 } }, 64, -64, 1295, { .fields = { 48, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 104 } }, 72, -72, 1258, { .fields = { 56, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 152 } }, 80, -72, 1125, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 200 } }, 96, -88, 1022, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 216 } }, 120, -96, 785, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+/// Encoded 8-bit sprite page at (960, 0), palette row 255 and neutral Q7 RGB.
+enum {
+    DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION = 128,
+    DRYFIELD_BACK_STREET_SPRITE_TEXTURE_PAGE       = getTPage(1, 0, 960, 0),
+    DRYFIELD_BACK_STREET_SPRITE_CLUT               = getClut(0, 255),
 };
 
-SpriteBatch D_dryfield_back_street_801803F0[3] = {
+/// View 4's five mutable textured rectangles for depth-sorted scene drawing.
+///
+/// Positions and dimensions are draw pixels, UVs are texels and depth is an
+/// unscaled sorting value. RGB is neutral; command flags select opaque modulation.
+/// Keep the sources live with the room while packets are built and linked.
+static SpriteSource _gDryfieldBackStreetView4SpriteSources[5] = {
+    { DRYFIELD_BACK_STREET_SPRITE_TEXTURE_PAGE, DRYFIELD_BACK_STREET_SPRITE_CLUT, { .fields = { 8, 96 } }, 64, -64, 1295, { .fields = { 48, 152 } }, DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_BACK_STREET_SPRITE_TEXTURE_PAGE, DRYFIELD_BACK_STREET_SPRITE_CLUT, { .fields = { 8, 104 } }, 72, -72, 1258, { .fields = { 56, 152 } }, DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_BACK_STREET_SPRITE_TEXTURE_PAGE, DRYFIELD_BACK_STREET_SPRITE_CLUT, { .fields = { 16, 152 } }, 80, -72, 1125, { .fields = { 48, 0 } }, DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_BACK_STREET_SPRITE_TEXTURE_PAGE, DRYFIELD_BACK_STREET_SPRITE_CLUT, { .fields = { 24, 200 } }, 96, -88, 1022, { .fields = { 64, 0 } }, DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_BACK_STREET_SPRITE_TEXTURE_PAGE, DRYFIELD_BACK_STREET_SPRITE_CLUT, { .fields = { 40, 216 } }, 120, -96, 785, { .fields = { 88, 0 } }, DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+};
+
+/// View 4's mutable range list: decoded background strips, then all five sprites.
+///
+/// The first count is zero; the next range uses source elements, followed by
+/// SPRITE_BATCH_END. Sprites start visible and included in cached packet processing.
+static SpriteBatch _gDryfieldBackStreetView4SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 5, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldBackStreetView4SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_back_street_80180408[5] = {
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 80, -8, 1663, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 72, -16, 1680, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 64, -16, 1714, { .fields = { 120, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 72, -24, 1678, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 80, -16, 1669, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
+/// View 5's five mutable textured rectangles for depth-sorted scene drawing.
+///
+/// Positions and dimensions are draw pixels, UVs are texels and depth is an
+/// unscaled sorting value. RGB is neutral; command flags select opaque modulation.
+/// Keep the sources live with the room while packets are built and linked.
+static SpriteSource _gDryfieldBackStreetView5SpriteSources[5] = {
+    { DRYFIELD_BACK_STREET_SPRITE_TEXTURE_PAGE, DRYFIELD_BACK_STREET_SPRITE_CLUT, { .fields = { 24, 24 } }, 80, -8, 1663, { .fields = { 104, 64 } }, DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_BACK_STREET_SPRITE_TEXTURE_PAGE, DRYFIELD_BACK_STREET_SPRITE_CLUT, { .fields = { 8, 32 } }, 72, -16, 1680, { .fields = { 120, 0 } }, DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_BACK_STREET_SPRITE_TEXTURE_PAGE, DRYFIELD_BACK_STREET_SPRITE_CLUT, { .fields = { 8, 32 } }, 64, -16, 1714, { .fields = { 120, 32 } }, DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_BACK_STREET_SPRITE_TEXTURE_PAGE, DRYFIELD_BACK_STREET_SPRITE_CLUT, { .fields = { 24, 8 } }, 72, -24, 1678, { .fields = { 104, 88 } }, DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
+    { DRYFIELD_BACK_STREET_SPRITE_TEXTURE_PAGE, DRYFIELD_BACK_STREET_SPRITE_CLUT, { .fields = { 32, 8 } }, 80, -16, 1669, { .fields = { 96, 96 } }, DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BACK_STREET_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_dryfield_back_street_8018046C[3] = {
+/// View 5's mutable range list: decoded background strips, then all five sprites.
+///
+/// The first count is zero; the next range uses source elements, followed by
+/// SPRITE_BATCH_END. Sprites start visible and included in cached packet processing.
+static SpriteBatch _gDryfieldBackStreetView5SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 5, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldBackStreetView5SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_dryfield_back_street_80180484[5] = {
-    { { .empty = D_dryfield_back_street_8018035C }, D_dryfield_back_street_8018035C, NULL },
-    { { .empty = D_dryfield_back_street_8018036C }, D_dryfield_back_street_8018036C, NULL },
-    { { .empty = D_dryfield_back_street_8018037C }, D_dryfield_back_street_8018037C, NULL },
-    { { .elements = D_dryfield_back_street_8018038C }, D_dryfield_back_street_801803F0, NULL },
-    { { .elements = D_dryfield_back_street_80180408 }, D_dryfield_back_street_8018046C, NULL },
+SpriteView gDryfieldBackStreetSpriteViews[5] = {
+    { { .empty = _gDryfieldBackStreetView1SpriteBatches }, _gDryfieldBackStreetView1SpriteBatches, NULL },
+    { { .empty = _gDryfieldBackStreetView2SpriteBatches }, _gDryfieldBackStreetView2SpriteBatches, NULL },
+    { { .empty = _gDryfieldBackStreetView3SpriteBatches }, _gDryfieldBackStreetView3SpriteBatches, NULL },
+    { { .elements = _gDryfieldBackStreetView4SpriteSources }, _gDryfieldBackStreetView4SpriteBatches, NULL },
+    { { .elements = _gDryfieldBackStreetView5SpriteSources }, _gDryfieldBackStreetView5SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_dryfield_back_street_801804C0[6] = {
+/// Six directed camera boundaries between views 2/3, 3/4 and 4/5.
+///
+/// Each pair covers both directions. The final record carries LAST and is
+/// included in setup. Positions and radii use game units, normals 4096 per
+/// unit; setup and collision mutate links, coordinate bindings, flags and hits.
+/// Keep these records loaded until the view-boundary list is cleared.
+static WorldCollisionTrigger _gDryfieldBackStreetViewBoundaries[6] = {
     { NULL, NULL, NULL, { -6272, -3296, 4752, 0 }, { { 0, -4320, -1584, 0 }, { 0, -4320, 1584, 0 }, { 0, 4320, -1584, 0 }, { 0, 4320, 1584, 0 } }, { 4099, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4579, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { -5888, -3504, 4672, 0 }, { { 0, -4528, 1584, 0 }, { 0, -4528, -1584, 0 }, { 0, 4528, 1584, 0 }, { 0, 4528, -1584, 0 } }, { -4098, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4775, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { -192, -4160, 4576, 0 }, { { -236, -5184, 1562, 0 }, { 228, -5184, -1572, 0 }, { -236, 5184, 1562, 0 }, { 228, 5184, -1572, 0 } }, { -4054, 0, -601, 0 }, { 0, 0, 4096, 0 }, 5418, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -202,54 +283,108 @@ WorldCollisionTrigger D_dryfield_back_street_801804C0[6] = {
     { NULL, NULL, NULL, { 4416, -4352, 4736, 0 }, { { 0, -5376, 1584, 0 }, { 0, -5376, -1584, 0 }, { 0, 5376, 1584, 0 }, { 0, 5376, -1584, 0 } }, { -4126, 0, 0, 0 }, { 0, 0, 4096, 0 }, 5585, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_back_street_80180688[11] = {
-    { NULL, NULL, NULL, { -9648, -55, 4496, 0 }, { { -400, 0, -560, 0 }, { 400, 0, -560, 0 }, { -400, 0, 560, 0 }, { 400, 0, 560, 0 } }, { 0, 4102, 0, 0 }, { 4096, 0, 0, 0 }, 686, WORLD_COLLISION_TRIGGER_ACTION_WARP, 3, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -7872, -55, 5776, 0 }, { { 832, 0, -352, 0 }, { 832, 0, 352, 0 }, { -832, 0, -352, 0 }, { -832, 0, 352, 0 } }, { 0, 4117, 0, 0 }, { 0, 0, -4096, 0 }, 902, WORLD_COLLISION_TRIGGER_ACTION_WARP, 6, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -1616, -48, 5744, 0 }, { { 688, 0, -352, 0 }, { 688, 0, 352, 0 }, { -688, 0, -352, 0 }, { -688, 0, 352, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -4096, 0 }, 770, WORLD_COLLISION_TRIGGER_ACTION_WARP, 7, 49, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 9424, -48, 5712, 0 }, { { 784, 0, -384, 0 }, { 784, 0, 384, 0 }, { -784, 0, -384, 0 }, { -784, 0, 384, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -4096, 0 }, 872, WORLD_COLLISION_TRIGGER_ACTION_WARP, 9, 65, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x2CA0, -64, 5024, 0 }, { { -1072, 0, -416, 0 }, { 1072, 0, -416, 0 }, { -1072, 0, 416, 0 }, { 1072, 0, 416, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, -4096, 0 }, 1144, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -6113, -64, 5569, 0 }, { { -752, 0, -432, 0 }, { 752, 0, -432, 0 }, { -752, 0, 432, 0 }, { 752, 0, 432, 0 } }, { 0, 4098, 0, 0 }, { 201, 0, -4092, 0 }, 865, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 8288, -64, 2144, 0 }, { { -1696, 0, -208, 0 }, { 1760, 0, -208, 0 }, { -800, 0, 1008, 0 }, { 736, 0, 1008, 0 } }, { 0, 4104, 0, 0 }, { 201, 0, -4092, 0 }, 1768, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 7456, -64, 5696, 0 }, { { -1248, 0, -368, 0 }, { 1248, 0, -368, 0 }, { -1248, 0, 368, 0 }, { 1248, 0, 368, 0 } }, { 0, 4095, 0, 0 }, { 200, 0, -4093, 0 }, 1299, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4576, -64, 5536, 0 }, { { -752, 0, -432, 0 }, { 752, 0, -432, 0 }, { -752, 0, 432, 0 }, { 752, 0, 432, 0 } }, { 0, 4098, 0, 0 }, { 201, 0, -4092, 0 }, 865, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5152, -64, 5664, 0 }, { { 1056, 0, -384, 0 }, { 1056, 0, 384, 0 }, { -1056, 0, -384, 0 }, { -1056, 0, 384, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -4096, 0 }, 1123, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x2790, -64, 5520, 0 }, { { -224, 0, -560, 0 }, { 448, 0, -560, 0 }, { -448, 0, 560, 0 }, { 224, 0, 560, 0 } }, { 0, 4107, 0, 0 }, { -4076, 0, 401, 0 }, 715, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+// One-based indices in this area's warp table; triggers pack them in the high nibble.
+enum {
+    DRYFIELD_BACK_STREET_WARP_GENERAL_STORE     = 1,
+    DRYFIELD_BACK_STREET_WARP_SOUVENIR_SHOP     = 2,
+    DRYFIELD_BACK_STREET_WARP_WAREHOUSE         = 3,
+    DRYFIELD_BACK_STREET_WARP_DILAPIDATED_HOUSE = 4,
 };
 
-AreaResource D_dryfield_back_street_801809CC[2] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
+// CAP command slots for examination dialogue; command 10 branches to placed object 40's pickup.
+enum {
+    DRYFIELD_BACK_STREET_CAP_EXAMINE_1                = 1,
+    DRYFIELD_BACK_STREET_CAP_EXAMINE_4                = 4,
+    DRYFIELD_BACK_STREET_CAP_EXAMINE_6                = 6,
+    DRYFIELD_BACK_STREET_CAP_EXAMINE_7                = 7,
+    DRYFIELD_BACK_STREET_CAP_EXAMINE_8                = 8,
+    DRYFIELD_BACK_STREET_CAP_EXAMINE_PLACED_OBJECT_40 = 10,
+};
+
+/// Four departure quads and seven CAP interaction quads for daytime Back Street.
+///
+/// The warps pack current endpoint 1..4 in the high nibble and destination
+/// endpoint 2/1/1/1 in the low nibble. Six CAP dialogue commands cover seven
+/// spots; the two command-10 quads share placed object 40's pickup dialogue. The other
+/// spots' narrative roles are unproven. Geometry uses game units and Q12 normals.
+/// Setup links and enables every record, including the LAST-marked final quad.
+/// Keep the writable records loaded until the action list is cleared.
+static WorldCollisionTrigger _gDryfieldBackStreetActionTriggers[11] = {
+    { NULL, NULL, NULL, { -9648, -55, 4496, 0 }, { { -400, 0, -560, 0 }, { 400, 0, -560, 0 }, { -400, 0, 560, 0 }, { 400, 0, 560, 0 } }, { 0, 4102, 0, 0 }, { 4096, 0, 0, 0 }, 686, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_GENERAL_STORE, (DRYFIELD_BACK_STREET_WARP_GENERAL_STORE << 4) | 2, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -7872, -55, 5776, 0 }, { { 832, 0, -352, 0 }, { 832, 0, 352, 0 }, { -832, 0, -352, 0 }, { -832, 0, 352, 0 } }, { 0, 4117, 0, 0 }, { 0, 0, -4096, 0 }, 902, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_SOUVENIR_SHOP, (DRYFIELD_BACK_STREET_WARP_SOUVENIR_SHOP << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -1616, -48, 5744, 0 }, { { 688, 0, -352, 0 }, { 688, 0, 352, 0 }, { -688, 0, -352, 0 }, { -688, 0, 352, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -4096, 0 }, 770, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_WAREHOUSE, (DRYFIELD_BACK_STREET_WARP_WAREHOUSE << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 9424, -48, 5712, 0 }, { { 784, 0, -384, 0 }, { 784, 0, 384, 0 }, { -784, 0, -384, 0 }, { -784, 0, 384, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -4096, 0 }, 872, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_DILAPIDATED_HOUSE, (DRYFIELD_BACK_STREET_WARP_DILAPIDATED_HOUSE << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x2CA0, -64, 5024, 0 }, { { -1072, 0, -416, 0 }, { 1072, 0, -416, 0 }, { -1072, 0, 416, 0 }, { 1072, 0, 416, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, -4096, 0 }, 1144, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_BACK_STREET_CAP_EXAMINE_PLACED_OBJECT_40, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -6113, -64, 5569, 0 }, { { -752, 0, -432, 0 }, { 752, 0, -432, 0 }, { -752, 0, 432, 0 }, { 752, 0, 432, 0 } }, { 0, 4098, 0, 0 }, { 201, 0, -4092, 0 }, 865, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_BACK_STREET_CAP_EXAMINE_8, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 8288, -64, 2144, 0 }, { { -1696, 0, -208, 0 }, { 1760, 0, -208, 0 }, { -800, 0, 1008, 0 }, { 736, 0, 1008, 0 } }, { 0, 4104, 0, 0 }, { 201, 0, -4092, 0 }, 1768, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_BACK_STREET_CAP_EXAMINE_4, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 7456, -64, 5696, 0 }, { { -1248, 0, -368, 0 }, { 1248, 0, -368, 0 }, { -1248, 0, 368, 0 }, { 1248, 0, 368, 0 } }, { 0, 4095, 0, 0 }, { 200, 0, -4093, 0 }, 1299, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_BACK_STREET_CAP_EXAMINE_7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4576, -64, 5536, 0 }, { { -752, 0, -432, 0 }, { 752, 0, -432, 0 }, { -752, 0, 432, 0 }, { 752, 0, 432, 0 } }, { 0, 4098, 0, 0 }, { 201, 0, -4092, 0 }, 865, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_BACK_STREET_CAP_EXAMINE_1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5152, -64, 5664, 0 }, { { 1056, 0, -384, 0 }, { 1056, 0, 384, 0 }, { -1056, 0, -384, 0 }, { -1056, 0, 384, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -4096, 0 }, 1123, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_BACK_STREET_CAP_EXAMINE_6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x2790, -64, 5520, 0 }, { { -224, 0, -560, 0 }, { 448, 0, -560, 0 }, { -448, 0, 560, 0 }, { 224, 0, 560, 0 } }, { 0, 4107, 0, 0 }, { -4076, 0, 401, 0 }, 715, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_BACK_STREET_CAP_EXAMINE_PLACED_OBJECT_40, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+};
+
+/// Variant 1's Desert Chaser resource recipe, followed by AREA_PLACEMENT_END.
+///
+/// Placement entry 1 selects file 400100 and descriptor 0. The two placements
+/// live in the stage map; loading and spawning borrow both overlays' storage.
+static AreaResource _gDryfieldBackStreetDesertChaserResources[2] = {
+    { .entryId = 1, .fileNumber = 1, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor00100DesertChaserTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_back_street_801809E4[3] = {
-    { 20, 20, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102000PawnGolemTasks },
-    { 56, 56, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor205600PawnGolemTasks },
+/// Variant 7's two Pawn GOLEM resource recipes, followed by AREA_PLACEMENT_END.
+///
+/// Entries 20/56 select files 102000/205600 and each table's descriptor 0.
+/// The paired placements live in the stage map; loading and spawning borrow
+/// the map, room and actor overlays while using their records.
+static AreaResource _gDryfieldBackStreetPawnGolemResources[3] = {
+    { .entryId = 20, .fileNumber = 20, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = gActor102000PawnGolemTasks },
+    { .entryId = 56, .fileNumber = 56, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = gActor205600PawnGolemTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_back_street_80180A08[2] = {
-    { 15, 15, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
+// Actor variant 0 reads mode bit 0 as wall/ceiling and leaves wall settling enabled.
+enum {
+    DRYFIELD_BACK_STREET_MIND_SUCKLER_ENTRY_ID      = 15,
+    DRYFIELD_BACK_STREET_MIND_SUCKLER_PERCHED       = 0,
+    DRYFIELD_BACK_STREET_MIND_SUCKLER_WALL_PERCH    = 0,
+    DRYFIELD_BACK_STREET_MIND_SUCKLER_CEILING_PERCH = 1,
+};
+
+/// Variant 10's Mind Suckler resource recipe, followed by AREA_PLACEMENT_END.
+///
+/// Placement entry 15 selects file 101500 and descriptor 0. Room placements
+/// and the actor's task descriptor remain borrowed while loading and spawning.
+static AreaResource _gDryfieldBackStreetMindSucklerResources[2] = {
+    { .entryId = DRYFIELD_BACK_STREET_MIND_SUCKLER_ENTRY_ID, .fileNumber = 15, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor01500MindSucklerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_dryfield_back_street_80180A20[3] = {
-    { 15, 0, 0, 6900, -2000, 6050, 0, 0, 0, 2, 0 },
-    { 15, 0, 1, 8000, -2800, 3600, 0, 0, 0, 2, 0 },
+/// Variant 10's two Mind Suckler placements and AREA_PLACEMENT_END record.
+///
+/// Both select resource entry 15 and the perched actor variant, with wall
+/// and ceiling modes respectively; later wall settling remains enabled.
+/// Positions use world units, yaw uses 4096 units per turn. The base resource
+/// is reused with no page shift and a two-row CLUT shift. Actors borrow these
+/// room-owned records through their placement-dependent work; rowIndex is unused.
+static AreaPlacement _gDryfieldBackStreetMindSucklerPlacements[3] = {
+    { .entryId = DRYFIELD_BACK_STREET_MIND_SUCKLER_ENTRY_ID, .variant = DRYFIELD_BACK_STREET_MIND_SUCKLER_PERCHED, .mode = DRYFIELD_BACK_STREET_MIND_SUCKLER_WALL_PERCH, .x = 6900, .y = -2000, .z = 6050, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = DRYFIELD_BACK_STREET_MIND_SUCKLER_ENTRY_ID, .variant = DRYFIELD_BACK_STREET_MIND_SUCKLER_PERCHED, .mode = DRYFIELD_BACK_STREET_MIND_SUCKLER_CEILING_PERCH, .x = 8000, .y = -2800, .z = 3600, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 AreaVariant D_dryfield_back_street_80180A50[13] = {
     { NULL, NULL },
-    { D_map_dryfield_8017AEA4, D_dryfield_back_street_801809CC },
+    { D_map_dryfield_8017AEA4, _gDryfieldBackStreetDesertChaserResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_8017AED4, D_dryfield_back_street_801809E4 },
+    { D_map_dryfield_8017AED4, _gDryfieldBackStreetPawnGolemResources },
     { NULL, NULL },
     { NULL, NULL },
-    { D_dryfield_back_street_80180A20, D_dryfield_back_street_80180A08 },
+    { _gDryfieldBackStreetMindSucklerPlacements, _gDryfieldBackStreetMindSucklerResources },
     { NULL, NULL },
     { NULL, NULL },
 };
@@ -502,37 +637,81 @@ static WorldCoordPointLight _gDryfieldBackStreetPointLights[] = {
     },
 };
 
-WorldCoordRoomLights D_dryfield_back_street_80180FF8[1] = {
-    { 0, NULL, ARRAY_SIZE(_gDryfieldBackStreetPointLights), _gDryfieldBackStreetPointLights, 0, NULL },
+/// Fourteen authored white point lights for model shading in every Back Street view.
+///
+/// No directional or cone lights are present. Coordinates and attenuation
+/// are mutable; the collection and its arrays live with this room overlay.
+static WorldCoordRoomLights _gDryfieldBackStreetRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gDryfieldBackStreetPointLights),
+    .pointLights           = _gDryfieldBackStreetPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
-WorldCollisionFootstepSounds D_dryfield_back_street_80181010 = {
-    0x1000001D,
-    0x1000001F,
-    0x1000001D,
+// Type-1 cue bases select scripts from the currently loaded area bank.
+enum {
+    DRYFIELD_BACK_STREET_WALK_FOOTSTEP_SOUND = 0x1000001D,
+    DRYFIELD_BACK_STREET_RUN_FOOTSTEP_SOUND  = 0x1000001F,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_back_street_8018101C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Paired walking, running and scripted-jump cue bases for surface classes 1/2.
+///
+/// Walking and scripted jumps share base 29; running uses base 31. Animation
+/// cue 1 adds one and companions add 100. Surface records borrow this table
+/// without modifying it; keep the room overlay and current sound bank loaded.
+static WorldCollisionFootstepSounds _gDryfieldBackStreetFootstepSounds = {
+    .walk         = DRYFIELD_BACK_STREET_WALK_FOOTSTEP_SOUND,
+    .run          = DRYFIELD_BACK_STREET_RUN_FOOTSTEP_SOUND,
+    .scriptedJump = DRYFIELD_BACK_STREET_WALK_FOOTSTEP_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_back_street_80181024[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_back_street_80181010 },
+/// Classes 0 and 3..7: blocked probes, enabled weapon impacts and silent footsteps.
+///
+/// Applies pushback. The unused first byte retains its authored zero; its
+/// meaning is unproven. The room overlay owns this shared policy record.
+static WorldCollisionSurfaceProperties _gDryfieldBackStreetBlockingSilentSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_back_street_8018102C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_back_street_80181010 },
+/// Class 1: blocked probes, enabled weapon impacts and walking/running footstep cues.
+///
+/// Applies pushback. The unused first byte retains its authored zero; its
+/// meaning is unproven. Both policy and sound table live with this room overlay.
+static WorldCollisionSurfaceProperties _gDryfieldBackStreetBlockingFootstepSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldBackStreetFootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_back_street_80181034[8] = {
-    D_dryfield_back_street_8018101C,
-    D_dryfield_back_street_80181024,
-    D_dryfield_back_street_8018102C,
-    D_dryfield_back_street_8018101C,
-    D_dryfield_back_street_8018101C,
-    D_dryfield_back_street_8018101C,
-    D_dryfield_back_street_8018101C,
-    D_dryfield_back_street_8018101C,
+/// Class 2: probe passage and suppressed weapon impacts, with walking/running cues.
+///
+/// Applies pushback independently of probe passage. The unused first byte
+/// retains its authored zero; its meaning is unproven. Storage lives with the room.
+static WorldCollisionSurfaceProperties _gDryfieldBackStreetPassThroughFootstepSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldBackStreetFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gDryfieldBackStreetSurfaceProperties[8] = {
+    &_gDryfieldBackStreetBlockingSilentSurface,
+    &_gDryfieldBackStreetBlockingFootstepSurface,
+    &_gDryfieldBackStreetPassThroughFootstepSurface,
+    &_gDryfieldBackStreetBlockingSilentSurface,
+    &_gDryfieldBackStreetBlockingSilentSurface,
+    &_gDryfieldBackStreetBlockingSilentSurface,
+    &_gDryfieldBackStreetBlockingSilentSurface,
+    &_gDryfieldBackStreetBlockingSilentSurface,
 };
 
 s32 D_dryfield_back_street_80181054 = 0;

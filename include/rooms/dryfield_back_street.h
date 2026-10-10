@@ -13,22 +13,64 @@
 
 extern AreaVariant D_dryfield_back_street_80180A50[13];
 
-// dryfield_back_street
-extern WorldCollisionRoomResources D_dryfield_back_street_8017F9B4[];
+/// Daytime Back Street room 1's collision mesh, view boundaries and action triggers.
+///
+/// Dryfield area 5 borrows this room-indexed array at room minus one. Setup
+/// binds the grid and links both trigger lists to the current view; there are
+/// no sight occluders. Keep the overlay loaded until its resources are unlinked.
+extern WorldCollisionRoomResources gDryfieldBackStreetRoomCollisionResources[1];
 
-extern u8* D_dryfield_back_street_8017F9C4[];
+/// Daytime Back Street room 1's logical-view mapping to camera, image and sprite slots.
+///
+/// The sole room entry borrows gameplay's `gViewIdentityMap`: logical views
+/// 1..5 map to slots 1..5. The room directory lives with this overlay; the
+/// shared byte map lives with gameplay and its capacity is independent of
+/// this room's five-view reverse-search limit.
+extern u8* gDryfieldBackStreetViewMaps[1];
 
-extern ViewCount D_dryfield_back_street_8017F9C8[];
+/// Daytime Back Street room 1's five logical views, used to bound reverse mapping.
+///
+/// Indexed by room minus one; the signed halfword is an element count.
+/// This overlay must remain loaded while the stage directory borrows it.
+extern ViewCount gDryfieldBackStreetRoomViewCounts[1];
 
-extern WorldCoordRoomLighting D_dryfield_back_street_8017F9CC[];
+/// Daytime Back Street room 1's point-light collection and default ambient minima.
+///
+/// Indexed by room minus one. The fourteen white point lights contribute in every
+/// view; no room ambient table overrides the gameplay defaults. Coordinates
+/// and attenuation remain writable while this overlay is loaded.
+extern WorldCoordRoomLighting gDryfieldBackStreetRoomLighting[1];
 
-extern DirectionWarpEntry D_dryfield_back_street_8017F9D4[];
+/// Daytime Back Street's four arrival and departure endpoints.
+///
+/// One-based slots 1..4 serve the general store, souvenir shop, warehouse and
+/// dilapidated house, with initial views 2, 2, 3 and 5. Poses use integer
+/// world units and 4096 yaw units per turn. Each endpoint supplies its own
+/// sounds and map-marker flag. Borrow only while this overlay is loaded.
+extern DirectionWarpEntry gDryfieldBackStreetWarpEntries[4];
 
-extern ViewCamera D_dryfield_back_street_801802A8[];
+/// Daytime Back Street's five mapped-view camera records, indexed by view minus one.
+///
+/// Rotation coefficients have 12 fractional bits, translations are negated
+/// camera origins in world units, and projection distances are pixels.
+/// Queued camera application requires this overlay to remain loaded.
+extern ViewCamera gDryfieldBackStreetViewCameras[5];
 
-extern SpriteView D_dryfield_back_street_80180484[];
+/// Daytime Back Street's five mapped-view sprite descriptors, indexed by view minus one.
+///
+/// Views 1..3 have empty batches; views 4/5 each select five source rectangles.
+/// Every view retains decoded background strips and has no draw-area clipping.
+/// The writable descriptors and their lists are borrowed while the overlay is loaded.
+extern SpriteView gDryfieldBackStreetSpriteViews[5];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_back_street_80181034[];
+/// Daytime Back Street's collision and footstep policies for surface classes 0..7.
+///
+/// Class 1 blocks probes and permits weapon impacts with footstep cues; class
+/// 2 passes probes and suppresses weapon impacts with the same cues. Classes
+/// 0 and 3..7 block probes and permit impacts without footsteps. Every class
+/// applies pushback. The mesh uses only classes 0..2; the cache reads all eight.
+/// Borrowed records and sound tables live with this room overlay.
+extern WorldCollisionSurfaceProperties* gDryfieldBackStreetSurfaceProperties[8];
 
 /// Runs Back Street's charging pink flash, peak screen tint and fading star.
 ///
