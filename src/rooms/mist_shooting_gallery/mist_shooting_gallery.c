@@ -123,14 +123,7 @@ typedef struct {
 } _MistShootingGalleryTargetScore;
 STATIC_ASSERT_SIZEOF(_MistShootingGalleryTargetScore, 0x8);
 
-extern UiObjectDesc D_mist_shooting_gallery_80185060;
-
 extern TaskDesc D_mist_shooting_gallery_80184F8C;
-extern TaskDesc D_mist_shooting_gallery_801850D0;
-
-extern char D_mist_shooting_gallery_80184F2C[];
-
-static const char D_mist_shooting_gallery_8017D65C[]; // "TOTAL SCORE"
 
 static const char _gMistShootingGallerySupplyLevelCaption[];
 
@@ -144,29 +137,16 @@ extern s16 D_mist_shooting_gallery_80184F34[];
 
 extern UiList D_mist_shooting_gallery_80184F4C;
 
-extern UiList                          D_mist_shooting_gallery_8018503C;
-extern UiObjectDesc                    D_mist_shooting_gallery_8018507C[];
 extern UiObjectDesc                    D_mist_shooting_gallery_8018501C;
 extern _MistShootingGalleryTargetScore D_mist_shooting_gallery_80184F98[MIST_SHOOTING_GALLERY_TARGET_KIND_COUNT];
 extern TaskMessageEntry                D_mist_shooting_gallery_801850E8[];
 
 extern TaskDesc           D_mist_shooting_gallery_801850DC;
 extern WorldCollisionGrid D_mist_shooting_gallery_80185198;
-extern WorldCollisionGrid D_mist_shooting_gallery_801851F8;
-
-/// The jukebox menu's title, "SELECT". A stray 0xE1 byte follows its
-/// terminator, so the block stays in assembly.
-static const char D_mist_shooting_gallery_8017DB04[];
-
-/// The jukebox's track list, whose row callback is
-/// `_jukeboxDrawRow`.
-extern UiList D_mist_shooting_gallery_80185338;
 
 extern TaskDesc D_mist_shooting_gallery_80185378;
 
 static void _mistShootingGallerySetStoryBarrierLowered(s32 lowered);
-
-static const char D_mist_shooting_gallery_8017D65C[];
 
 static void _mistShootingGalleryJukeboxPanelTask(Task* task);
 static void _mistShootingGalleryModeSplashTask(Task* task);
@@ -219,19 +199,19 @@ static void       _mistShootingGalleryModeRow(UiList* list, UiObject* object);
 static void       _mistShootingGalleryModeHelpPanelTask(Task* task);
 static void       _mistShootingGalleryCapPlaybackTask(Task* task);
 
-static const char D_mist_shooting_gallery_8017D5E0[12];
-static const char D_mist_shooting_gallery_8017D5EC[16];
-static const char D_mist_shooting_gallery_8017D5FC[16];
-static const char D_mist_shooting_gallery_8017D60C[8];
-static const char D_mist_shooting_gallery_8017D614[8];
-static const char D_mist_shooting_gallery_8017D61C[4];
-static const char D_mist_shooting_gallery_8017D620[8];
-static const char D_mist_shooting_gallery_8017D628[8];
-static const char D_mist_shooting_gallery_8017D630[12];
-static const char D_mist_shooting_gallery_8017D63C[4];
-static const char D_mist_shooting_gallery_8017D640[8];
-static const char D_mist_shooting_gallery_8017D648[8];
-static const char D_mist_shooting_gallery_8017D650[12];
+static const char _gMistShootingGalleryRedTargetLabel[12];
+static const char _gMistShootingGalleryBrownTargetLabel[16];
+static const char _gMistShootingGalleryYellowTargetLabel[16];
+static const char _gMistShootingGalleryWomanTargetLabel[8];
+static const char _gMistShootingGalleryCrowTargetLabel[8];
+static const char _gMistShootingGalleryBeeTargetLabel[4];
+static const char _gMistShootingGallerySpiderTargetLabel[8];
+static const char _gMistShootingGallerySnakeTargetLabel[8];
+static const char _gMistShootingGalleryScorpionTargetLabel[12];
+static const char _gMistShootingGalleryRatTargetLabel[4];
+static const char _gMistShootingGalleryMonkeyTargetLabel[8];
+static const char _gMistShootingGalleryBearTargetLabel[8];
+static const char _gMistShootingGalleryBacteriumTargetLabel[12];
 static void       _mistShootingGalleryWeaponRow(UiList* list, UiObject* object);
 static void       _mistShootingGalleryWeaponSelectPanelTask(Task* task);
 
@@ -273,16 +253,8 @@ static const char _gMistShootingGalleryGaugeThreeMarksText[4] __attribute__((sec
 /// NUL-terminated DATA-panel gauge text for rating level 4; each { glyph draws one mark.
 static const char _gMistShootingGalleryGaugeFourMarksText[8] __attribute__((section(".data"))) = "{{{{";
 
-char D_mist_shooting_gallery_80184F2C[8] = {
-    123,
-    123,
-    123,
-    123,
-    123,
-    0,
-    0,
-    0,
-};
+/// NUL-terminated DATA-panel gauge text for rating level 5; each { glyph draws one mark.
+static const char _gMistShootingGalleryGaugeFiveMarksText[8] __attribute__((section(".data"))) = "{{{{{";
 
 s16 D_mist_shooting_gallery_80184F34[10] = {
     129,
@@ -303,45 +275,112 @@ UiListRowCallback D_mist_shooting_gallery_80184F48[1] = {
 
 UiList D_mist_shooting_gallery_80184F4C = { D_mist_shooting_gallery_80184F48, 1, { .unsignedValue = 1 }, 0, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
-UiObjectDesc D_mist_shooting_gallery_80184F70 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -8, 0, 144, 64 }, 32, 0, TASK_BODY_NONE, 192, _mistShootingGalleryWeaponSelectPanelTask, 0 };
+const UiObjectDesc gMistShootingGalleryWeaponSelectPanelDesc __attribute__((section(".data"))) = {
+    .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+    .bounds          = { -8, 0, 144, 64 },
+    .otIndexSeed     = 32,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = 192,
+    .contentCallback = _mistShootingGalleryWeaponSelectPanelTask,
+};
 
 TaskDesc D_mist_shooting_gallery_80184F8C = { { { TASK_BODY_NONE, 192 } }, menuRootTask, { .value = 0 } };
 
 _MistShootingGalleryTargetScore D_mist_shooting_gallery_80184F98[MIST_SHOOTING_GALLERY_TARGET_KIND_COUNT] = {
-    { 600, D_mist_shooting_gallery_8017D650 },
-    { 1600, D_mist_shooting_gallery_8017D648 },
-    { 900, D_mist_shooting_gallery_8017D640 },
-    { 500, D_mist_shooting_gallery_8017D63C },
-    { 2400, D_mist_shooting_gallery_8017D630 },
-    { 500, D_mist_shooting_gallery_8017D628 },
-    { 1300, D_mist_shooting_gallery_8017D620 },
-    { 3000, D_mist_shooting_gallery_8017D61C },
-    { 600, D_mist_shooting_gallery_8017D614 },
-    { -3000, D_mist_shooting_gallery_8017D60C },
-    { 200, D_mist_shooting_gallery_8017D5FC },
-    { 400, D_mist_shooting_gallery_8017D5EC },
-    { 600, D_mist_shooting_gallery_8017D5E0 },
+    { 600, _gMistShootingGalleryBacteriumTargetLabel },
+    { 1600, _gMistShootingGalleryBearTargetLabel },
+    { 900, _gMistShootingGalleryMonkeyTargetLabel },
+    { 500, _gMistShootingGalleryRatTargetLabel },
+    { 2400, _gMistShootingGalleryScorpionTargetLabel },
+    { 500, _gMistShootingGallerySnakeTargetLabel },
+    { 1300, _gMistShootingGallerySpiderTargetLabel },
+    { 3000, _gMistShootingGalleryBeeTargetLabel },
+    { 600, _gMistShootingGalleryCrowTargetLabel },
+    { -3000, _gMistShootingGalleryWomanTargetLabel },
+    { 200, _gMistShootingGalleryYellowTargetLabel },
+    { 400, _gMistShootingGalleryBrownTargetLabel },
+    { 600, _gMistShootingGalleryRedTargetLabel },
 };
 
 UiObjectDesc D_mist_shooting_gallery_80185000 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -104, -48, 208, 64 }, 32, 0, TASK_BODY_NONE, 192, _mistShootingGalleryResultPanelTask, 0 };
 
 UiObjectDesc D_mist_shooting_gallery_8018501C = { USER_INTERFACE_PANEL_TITLE_STYLE, { -72, -48, 144, 56 }, 24, 0, TASK_BODY_NONE, 192, _mistShootingGalleryBonusPanelTask, 0 };
 
-UiListRowCallback D_mist_shooting_gallery_80185038[1] = {
+/// Single row handler shared by every run mode; initialization enables shared dispatch.
+static UiListRowCallback _gMistShootingGalleryModeRowCallbacks[1] = {
     _mistShootingGalleryModeRow,
 };
 
-UiList D_mist_shooting_gallery_8018503C = { D_mist_shooting_gallery_80185038, 4, { .unsignedValue = 4 }, 1, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
-
-UiObjectDesc D_mist_shooting_gallery_80185060 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -96, 176, 64 }, 32, 0, TASK_BODY_NONE, 192, _mistShootingGalleryModeSelectPanelTask, 0 };
-
-UiObjectDesc D_mist_shooting_gallery_8018507C[3] = {
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { 32, -96, 112, 128 }, 28, 0, TASK_BODY_NONE, 192, _mistShootingGalleryModeStatusPanelTask, 0 },
-    { 3, { -144, 32, 288, 48 }, 24, 0, TASK_BODY_NONE, 192, _mistShootingGalleryModeHelpPanelTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -22, 288, 73 }, 20, 0, TASK_BODY_NONE, 192, _mistShootingGalleryModeDataPanelTask, 0 },
+/// Mutable singleton list for carryover run modes 0..3, with wrapping navigation.
+///
+/// The selector limits the four initial rows to the unlocked modes and enables
+/// the shared row callback before dispatch. Rows are 15 pixels apart. Only one
+/// carryover menu may use this state at a time while the gallery stays loaded.
+static UiList _gMistShootingGalleryModeList = {
+    .rowCallbacks    = _gMistShootingGalleryModeRowCallbacks,
+    .itemCount       = 4,
+    .visibleRowCount = { .unsignedValue = 4 },
+    .wrapNavigation  = 1,
+    .rowHeight       = 15,
 };
 
-TaskDesc D_mist_shooting_gallery_801850D0 = { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryCarryoverModeSessionTask, { .value = 0 } };
+/// SELECT panel recipe for carryover run modes, with STATUS, help and DATA children.
+///
+/// Bounds are screen-centered pixels; the bodyless priority-192 task uses OT
+/// base 32. Spawning copies the recipe; its callback stays live with the gallery.
+static const UiObjectDesc _gMistShootingGalleryModeSelectPanelDesc __attribute__((section(".data"))) = {
+    .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+    .bounds          = { -144, -96, 176, 64 },
+    .otIndexSeed     = 32,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = 192,
+    .contentCallback = _mistShootingGalleryModeSelectPanelTask,
+};
+
+enum { MIST_SHOOTING_GALLERY_MODE_HELP_UNTITLED_STYLE = 3 };
+
+/// Carryover selector child recipes in STATUS, untitled help, DATA order.
+///
+/// Bounds are screen-centered pixels; OT bases 28, 24 and 20 order the children.
+/// Every task is bodyless at priority 192 and borrows the live run mode 0..3.
+/// Spawning copies each recipe; its callback must stay loaded until teardown.
+static const UiObjectDesc _gMistShootingGalleryModeChildPanelDescs[3] __attribute__((section(".data"))) = {
+    {
+        .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+        .bounds          = { 32, -96, 112, 128 },
+        .otIndexSeed     = 28,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = 192,
+        .contentCallback = _mistShootingGalleryModeStatusPanelTask,
+    },
+    {
+        .style           = MIST_SHOOTING_GALLERY_MODE_HELP_UNTITLED_STYLE,
+        .bounds          = { -144, 32, 288, 48 },
+        .otIndexSeed     = 24,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = 192,
+        .contentCallback = _mistShootingGalleryModeHelpPanelTask,
+    },
+    {
+        .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+        .bounds          = { -144, -22, 288, 73 },
+        .otIndexSeed     = 20,
+        .taskFlags       = TASK_BODY_NONE,
+        .taskPriority    = 192,
+        .contentCallback = _mistShootingGalleryModeDataPanelTask,
+    },
+};
+
+/// Bodyless priority-192 display session for selecting and applying run-mode carryover.
+///
+/// The display queue borrows this descriptor asynchronously; it and its callback
+/// must stay loaded through session completion. Both spawn arguments are unused
+/// initially; the session later owns the selector object through its second argument.
+static TaskDesc _gMistShootingGalleryCarryoverModeSessionDesc = {
+    .header   = { .fields = { TASK_BODY_NONE, 192 } },
+    .callback = _mistShootingGalleryCarryoverModeSessionTask,
+    .data     = { .value = 0 },
+};
 
 TaskDesc D_mist_shooting_gallery_801850DC = { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryCapPlaybackTask, { .value = 0 } };
 
@@ -377,29 +416,52 @@ static s16* _gMistShootingGalleryCollision07BD8Table[1] = {
 
 WorldCollisionGrid D_mist_shooting_gallery_80185198 = { NULL, _gMistShootingGalleryCollision07BD8Normals, _gMistShootingGalleryCollision07BD8Verts, _gMistShootingGalleryCollision07BD8Faces, _gMistShootingGalleryCollision07BD8Table, 0x28B9, -4925, 1, 1, 4000, 3 };
 
-static SVECTOR _gMistShootingGalleryCollision07C38Normals[1] = {
+/// Training barrier's room-space normal, scaled to 4096 for unit length.
+static SVECTOR _gMistShootingGalleryTrainingBarrierCollisionTemplateNormals[1] = {
 #include "assets/mist_shooting_gallery_collision_07C38_normals.inc"
 };
 
-static SVECTOR _gMistShootingGalleryCollision07C38Verts[4] = {
+/// Training barrier's four original corners in signed room-coordinate units.
+static SVECTOR _gMistShootingGalleryTrainingBarrierCollisionTemplateVerts[4] = {
 #include "assets/mist_shooting_gallery_collision_07C38_verts.inc"
 };
 
-static WorldCollisionGridFace _gMistShootingGalleryCollision07C38Faces[1] = {
+/// Barrier quad with template-local vertex/normal indices and surface class zero.
+static WorldCollisionGridFace _gMistShootingGalleryTrainingBarrierCollisionTemplateFaces[1] = {
 #include "assets/mist_shooting_gallery_collision_07C38_faces.inc"
 };
 
-static s16 _gMistShootingGalleryCollision07C38Cells[2] = {
+/// Sole cell's face-index list: face zero followed by WORLD_COLLISION_GRID_CELL_END.
+static s16 _gMistShootingGalleryTrainingBarrierCollisionTemplateCells[2] = {
 #include "assets/mist_shooting_gallery_collision_07C38_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gMistShootingGalleryCollision07C38Cells[i])
-static s16* _gMistShootingGalleryCollision07C38Table[1] = {
+#define GRID_CELL(i) (&_gMistShootingGalleryTrainingBarrierCollisionTemplateCells[i])
+/// Single-cell XZ table borrowing the barrier template's terminated face list.
+static s16* _gMistShootingGalleryTrainingBarrierCollisionTemplateTable[1] = {
 #include "assets/mist_shooting_gallery_collision_07C38_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_mist_shooting_gallery_801851F8 = { NULL, _gMistShootingGalleryCollision07C38Normals, _gMistShootingGalleryCollision07C38Verts, _gMistShootingGalleryCollision07C38Faces, _gMistShootingGalleryCollision07C38Table, 6500, -3680, 1, 1, 4000, 1 };
+/// Training barrier's restoration mesh: one +X normal, four vertices and one quad.
+///
+/// Copied into live normal/face 3 and vertices 8..11, rebasing the face indices.
+/// The lowering pass also displaces vertices 12..15 without restoring them here.
+/// XYZ are room units, normals use 4096 per unit. Its retained single 4000-unit
+/// XZ cell starts at (-6500, 3680); the template is never activated for queries.
+static const WorldCollisionGrid _gMistShootingGalleryTrainingBarrierCollisionTemplate __attribute__((section(".data"))) = {
+    .viewCoord   = NULL,
+    .normals     = _gMistShootingGalleryTrainingBarrierCollisionTemplateNormals,
+    .vertices    = _gMistShootingGalleryTrainingBarrierCollisionTemplateVerts,
+    .faces       = _gMistShootingGalleryTrainingBarrierCollisionTemplateFaces,
+    .cellFaceIds = _gMistShootingGalleryTrainingBarrierCollisionTemplateTable,
+    .xBias       = 6500,
+    .zBias       = -3680,
+    .cellCountX  = 1,
+    .cellCountZ  = 1,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gMistShootingGalleryTrainingBarrierCollisionTemplateFaces),
+};
 
 // Global MIDI-library sequence IDs used by the gallery playlists (file group 4).
 enum {
@@ -540,11 +602,22 @@ static const JukeboxTrack _gMistShootingGalleryJukeboxRegularUnclearedTracks[] _
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_LAZING_AWAY_THE_MORNING, _gMistShootingGalleryJukeboxRow4LazingAwayTheMorningLabel },
 };
 
-UiListRowCallback D_mist_shooting_gallery_80185334[1] = {
+/// Single jukebox row handler; shared dispatch applies it to all three or four tracks.
+static UiListRowCallback _gMistShootingGalleryJukeboxRowCallbacks[1] = {
     _jukeboxDrawRow,
 };
 
-UiList D_mist_shooting_gallery_80185338 = { D_mist_shooting_gallery_80185334, 1, { .unsignedValue = 1 }, 0, 17, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
+/// Mutable singleton jukebox list with clamped navigation and 17-pixel rows.
+///
+/// Initialization replaces the one-row seed with three training or four regular
+/// tracks, resets selection/scroll origin and enables the shared callback.
+/// Only one jukebox panel may use this state while the gallery stays loaded.
+static UiList _gMistShootingGalleryJukeboxList = {
+    .rowCallbacks    = _gMistShootingGalleryJukeboxRowCallbacks,
+    .itemCount       = 1,
+    .visibleRowCount = { .unsignedValue = 1 },
+    .rowHeight       = 17,
+};
 
 /// Recipe for this overlay's SELECT jukebox panel and track-picker task.
 ///
@@ -571,8 +644,13 @@ TaskDesc D_mist_shooting_gallery_80185384[3] = {
     { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryModeSplashTask, { .value = 0 } },
 };
 
-WorldCollisionRoomResources D_mist_shooting_gallery_801853A8[1] = {
-    { &gMistShootingGalleryCollisionGrid, gMistShootingGalleryViewBoundaryTriggers, gMistShootingGalleryActionTriggers, NULL },
+WorldCollisionRoomResources gMistShootingGalleryRoomCollisionResources[MIST_SHOOTING_GALLERY_ROOM_COUNT] = {
+    {
+        .grid                 = &gMistShootingGalleryCollisionGrid,
+        .viewBoundaryTriggers = gMistShootingGalleryViewBoundaryTriggers,
+        .actionTriggers       = gMistShootingGalleryActionTriggers,
+        .occluders            = NULL,
+    },
 };
 
 u8* gMistShootingGalleryViewMaps[1] = {
@@ -589,14 +667,87 @@ WorldCoordRoomLighting gMistShootingGalleryRoomLightingTable[1] = {
     },
 };
 
-DirectionWarpEntry D_mist_shooting_gallery_801853C8[7] = {
-    { { { .word = 1024 }, -0x2D50, 0, 5200 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -0x2D50, 0, 5200 }, { 0, 0, 0, 0 }, 0x51140002, 0x51140001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 3072 }, -9630, 0, -3040 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -9630, 0, -3040 }, { 0, 0, 0, 0 }, 0x51140004, 0x51140003, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 1024 }, -6800, 0, 3000 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -6800, 0, 3000 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 14, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 1024 }, -8700, 0, -3000 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -8700, 0, -3000 }, { 0, 0, 0, 0 }, 0x51140004, 0x51140003, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 2048 }, -8000, 0, -1800 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -8000, 0, -1800 }, { 0, 0, 0, 0 }, 0x51140006, 0x51140005, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 0 }, -8000, 0, -720 }, { 0, 0, 0, 0 }, { { .word = 0 }, -8000, 0, -720 }, { 0, 0, 0, 0 }, 0x51140006, 0x51140005, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 0 }, -8000, 0, -720 }, { 0, 0, 0, 0 }, { { .word = 0 }, -8000, 0, -720 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 15, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+// Arrival/departure script entries in the gallery's area sound bank.
+enum {
+    MIST_SHOOTING_GALLERY_WARP_1_DEPARTURE_SOUND   = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 1),
+    MIST_SHOOTING_GALLERY_WARP_1_ARRIVAL_SOUND     = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 2),
+    MIST_SHOOTING_GALLERY_WARP_2_4_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 3),
+    MIST_SHOOTING_GALLERY_WARP_2_4_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 4),
+    MIST_SHOOTING_GALLERY_WARP_5_6_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 5),
+    MIST_SHOOTING_GALLERY_WARP_5_6_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 6),
+};
+
+DirectionWarpEntry gMistShootingGalleryWarpEntries[MIST_SHOOTING_GALLERY_WARP_COUNT] = {
+    {
+        .player         = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -11600, 0, 5200 },
+        .companion      = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -11600, 0, 5200 },
+        .arrivalSound   = MIST_SHOOTING_GALLERY_WARP_1_ARRIVAL_SOUND,
+        .departureSound = MIST_SHOOTING_GALLERY_WARP_1_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { { .word = 3 * ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -9630, 0, -3040 },
+        .companion      = { { .word = 3 * ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -9630, 0, -3040 },
+        .arrivalSound   = MIST_SHOOTING_GALLERY_WARP_2_4_ARRIVAL_SOUND,
+        .departureSound = MIST_SHOOTING_GALLERY_WARP_2_4_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 4,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -6800, 0, 3000 },
+        .companion      = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -6800, 0, 3000 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 14,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -8700, 0, -3000 },
+        .companion      = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -8700, 0, -3000 },
+        .arrivalSound   = MIST_SHOOTING_GALLERY_WARP_2_4_ARRIVAL_SOUND,
+        .departureSound = MIST_SHOOTING_GALLERY_WARP_2_4_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 5,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, -8000, 0, -1800 },
+        .companion      = { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, -8000, 0, -1800 },
+        .arrivalSound   = MIST_SHOOTING_GALLERY_WARP_5_6_ARRIVAL_SOUND,
+        .departureSound = MIST_SHOOTING_GALLERY_WARP_5_6_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 5,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { { .word = 0 }, -8000, 0, -720 },
+        .companion      = { { .word = 0 }, -8000, 0, -720 },
+        .arrivalSound   = MIST_SHOOTING_GALLERY_WARP_5_6_ARRIVAL_SOUND,
+        .departureSound = MIST_SHOOTING_GALLERY_WARP_5_6_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 7,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { { .word = 0 }, -8000, 0, -720 },
+        .companion      = { { .word = 0 }, -8000, 0, -720 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 15,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
 /// Fixed world-space points for the gallery's view-selected light glows.
@@ -788,20 +939,33 @@ static void _mistShootingGalleryWeaponRow(UiList* list, UiObject* object)
         }
     }
 }
-static const char D_mist_shooting_gallery_8017D5D8[8]  = "Select";
-static const char D_mist_shooting_gallery_8017D5E0[12] = "Red Target";
-static const char D_mist_shooting_gallery_8017D5EC[16] = "Brown Target";
-static const char D_mist_shooting_gallery_8017D5FC[16] = "Yellow Target";
-static const char D_mist_shooting_gallery_8017D60C[8]  = "Woman";
-static const char D_mist_shooting_gallery_8017D614[8]  = "Crow";
-static const char D_mist_shooting_gallery_8017D61C[4]  = "Bee";
-static const char D_mist_shooting_gallery_8017D620[8]  = "Spider";
-static const char D_mist_shooting_gallery_8017D628[8]  = "Snake";
-static const char D_mist_shooting_gallery_8017D630[12] = "Scorpion";
-static const char D_mist_shooting_gallery_8017D63C[4]  = "Rat";
-static const char D_mist_shooting_gallery_8017D640[8]  = "Monkey";
-static const char D_mist_shooting_gallery_8017D648[8]  = "Bear";
-static const char D_mist_shooting_gallery_8017D650[12] = "Bacterium";
+static const char D_mist_shooting_gallery_8017D5D8[8] = "Select";
+/// RESULT-panel label for red target kind 12 (600 points per kill).
+static const char _gMistShootingGalleryRedTargetLabel[12] = "Red Target";
+/// RESULT-panel label for brown target kind 11 (400 points per kill).
+static const char _gMistShootingGalleryBrownTargetLabel[16] = "Brown Target";
+/// RESULT-panel label for yellow target kind 10 (200 points per kill).
+static const char _gMistShootingGalleryYellowTargetLabel[16] = "Yellow Target";
+/// RESULT-panel label for civilian target kind 9 (3000-point penalty per kill).
+static const char _gMistShootingGalleryWomanTargetLabel[8] = "Woman";
+/// RESULT-panel label for crow target kind 8 (600 points per kill).
+static const char _gMistShootingGalleryCrowTargetLabel[8] = "Crow";
+/// RESULT-panel label for bee target kind 7 (3000 points per kill).
+static const char _gMistShootingGalleryBeeTargetLabel[4] = "Bee";
+/// RESULT-panel label for spider target kind 6 (1300 points per kill).
+static const char _gMistShootingGallerySpiderTargetLabel[8] = "Spider";
+/// RESULT-panel label for snake target kind 5 (500 points per kill).
+static const char _gMistShootingGallerySnakeTargetLabel[8] = "Snake";
+/// RESULT-panel label for scorpion target kind 4 (2400 points per kill).
+static const char _gMistShootingGalleryScorpionTargetLabel[12] = "Scorpion";
+/// RESULT-panel label for rat target kind 3 (500 points per kill).
+static const char _gMistShootingGalleryRatTargetLabel[4] = "Rat";
+/// RESULT-panel label for monkey target kind 2 (900 points per kill).
+static const char _gMistShootingGalleryMonkeyTargetLabel[8] = "Monkey";
+/// RESULT-panel label for bear target kind 1 (1600 points per kill).
+static const char _gMistShootingGalleryBearTargetLabel[8] = "Bear";
+/// RESULT-panel label for bacterium target kind 0 (600 points per kill).
+static const char _gMistShootingGalleryBacteriumTargetLabel[12] = "Bacterium";
 
 /// Updates the centered weapon picker and returns input from its item-help child.
 ///
@@ -861,7 +1025,8 @@ static void _mistShootingGalleryWeaponSelectPanelTask(Task* task)
         }
     }
 }
-static const char D_mist_shooting_gallery_8017D65C[] = "TOTAL SCORE";
+/// NUL-terminated text stream labeling the total in both RESULT and BONUS panels.
+static const u8 _gMistShootingGalleryTotalScoreCaption[] = "TOTAL SCORE";
 
 /// Draws course kill scores and records its first earned BP/prize result.
 ///
@@ -973,7 +1138,7 @@ static void _mistShootingGalleryResultPanelTask(Task* task)
         totalCaptionBaseline = object->panel.contentOriginY.unsignedValue - 6;
         totalCaption.y       = object->panel.contentBottom.unsignedValue + totalCaptionBaseline;
         MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(totalCaption, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_OUTLINED);
-        textDrawString(&totalCaption, D_mist_shooting_gallery_8017D65C);
+        textDrawString(&totalCaption, _gMistShootingGalleryTotalScoreCaption);
 
         totalText.x        = object->panel.contentOriginX.unsignedValue - 5 - contentInset;
         totalValueBaseline = object->panel.contentOriginY.unsignedValue - 4;
@@ -1118,7 +1283,7 @@ static void _mistShootingGalleryBonusPanelTask(Task* task)
     scoreCaption.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     scoreCaption.alignment  = TEXT_ALIGNMENT_LEFT;
     scoreCaption.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&scoreCaption, D_mist_shooting_gallery_8017D65C);
+    textDrawString(&scoreCaption, _gMistShootingGalleryTotalScoreCaption);
 
     scoreText.x          = object->panel.contentOriginX.unsignedValue - contentInset;
     scoreText.y          = object->panel.contentOriginY.unsignedValue + rowY;
@@ -1190,7 +1355,7 @@ static void _mistShootingGalleryModeSelectPanelTask(Task* task)
         MIST_SHOOTING_GALLERY_MODE_DATA_PANEL            = 2,
     };
     UiObject* object = task->spawnArg2.pointer;
-    UiList*   list   = &D_mist_shooting_gallery_8018503C;
+    UiList*   list   = &_gMistShootingGalleryModeList;
 
     object->result = USER_INTERFACE_RESULT_NONE;
     uiDrawPanelLabel(&object->panel, "SELECT");
@@ -1213,9 +1378,9 @@ static void _mistShootingGalleryModeSelectPanelTask(Task* task)
         list->selectedItemIndex = 0;
         uiFitPanelToList(list, &object->panel);
         list->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
-        uiSpawnObject(&D_mist_shooting_gallery_8018507C[MIST_SHOOTING_GALLERY_MODE_STATUS_PANEL], 0, 0, 1, object);
-        uiSpawnObject(&D_mist_shooting_gallery_8018507C[MIST_SHOOTING_GALLERY_MODE_HELP_PANEL], 0, 0, 1, object);
-        uiSpawnObject(&D_mist_shooting_gallery_8018507C[MIST_SHOOTING_GALLERY_MODE_DATA_PANEL], 0, 0, 1, object);
+        uiSpawnObject(&_gMistShootingGalleryModeChildPanelDescs[MIST_SHOOTING_GALLERY_MODE_STATUS_PANEL], 0, 0, 1, object);
+        uiSpawnObject(&_gMistShootingGalleryModeChildPanelDescs[MIST_SHOOTING_GALLERY_MODE_HELP_PANEL], 0, 0, 1, object);
+        uiSpawnObject(&_gMistShootingGalleryModeChildPanelDescs[MIST_SHOOTING_GALLERY_MODE_DATA_PANEL], 0, 0, 1, object);
         task->state = task->state + 1;
     }
     uiUpdateList(list, &object->panel);
@@ -1385,7 +1550,7 @@ static void _mistShootingGalleryModeDataPanelTask(Task* task)
         _gMistShootingGalleryGaugeTwoMarksText,
         _gMistShootingGalleryGaugeThreeMarksText,
         _gMistShootingGalleryGaugeFourMarksText,
-        D_mist_shooting_gallery_80184F2C,
+        _gMistShootingGalleryGaugeFiveMarksText,
     };
     TextDrawReq                       missionCaption;
     TextDrawReq                       missionRatingText;
@@ -1471,7 +1636,7 @@ static void _mistShootingGalleryCarryoverModeSessionTask(Task* task)
     PlayerStatus* player = &gPlayerStatus;
 
     if (task->state == MIST_SHOOTING_GALLERY_CARRYOVER_OPEN) {
-        object = uiSpawnObject(&D_mist_shooting_gallery_80185060, 0, 1, 1, NULL);
+        object = uiSpawnObject(&_gMistShootingGalleryModeSelectPanelDesc, 0, 1, 1, NULL);
         if (object != NULL) {
             // Capture before the row callback starts changing the selected run mode.
             gMistShootingGalleryUnscaledBp  = player->bp;
@@ -1557,7 +1722,7 @@ void mistShootingGalleryOpenCarryoverModeMenu(void)
     enum { MIST_SHOOTING_GALLERY_CARRYOVER_ENTRY_WARP = 7 };
 
     if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) && (gGameSession->location.loc.warp == MIST_SHOOTING_GALLERY_CARRYOVER_ENTRY_WARP)) {
-        displayQueueModeTask(&D_mist_shooting_gallery_801850D0, 0, 0, STAGE_ENTRY_RELOAD);
+        displayQueueModeTask(&_gMistShootingGalleryCarryoverModeSessionDesc, 0, 0, STAGE_ENTRY_RELOAD);
     }
 }
 /// Registers the gallery room task and prepares captions, barriers and entry events.
@@ -1931,15 +2096,15 @@ void mistShootingGallerySetTrainingBarrierLowered(s32 lowered)
            MIST_SHOOTING_GALLERY_TRAINING_BARRIER_VERTEX_COUNT  = 4,
            MIST_SHOOTING_GALLERY_TRAINING_BARRIER_OFFSET_COUNT  = 8,
            MIST_SHOOTING_GALLERY_TRAINING_BARRIER_LOWER_Y       = 4000 };
-    WorldCollisionGrid*     liveGrid     = &gMistShootingGalleryCollisionGrid;
-    WorldCollisionGrid*     templateGrid = &D_mist_shooting_gallery_801851F8;
-    WorldCollisionGridFace* liveFace     = &gMistShootingGalleryCollisionGrid.faces[MIST_SHOOTING_GALLERY_TRAINING_BARRIER_NORMAL_OFFSET];
-    WorldCollisionGridFace* templateFace = D_mist_shooting_gallery_801851F8.faces;
-    SVECTOR                 offset;
-    s32                     index;
-    s32                     corner;
+    WorldCollisionGrid*       liveGrid     = &gMistShootingGalleryCollisionGrid;
+    const WorldCollisionGrid* templateGrid = &_gMistShootingGalleryTrainingBarrierCollisionTemplate;
+    WorldCollisionGridFace*   liveFace     = &gMistShootingGalleryCollisionGrid.faces[MIST_SHOOTING_GALLERY_TRAINING_BARRIER_NORMAL_OFFSET];
+    WorldCollisionGridFace*   templateFace = _gMistShootingGalleryTrainingBarrierCollisionTemplate.faces;
+    SVECTOR                   offset;
+    s32                       index;
+    s32                       corner;
 
-    for (index = 0; index < 1; index++) {
+    for (index = 0; index < (s32)ARRAY_SIZE(_gMistShootingGalleryTrainingBarrierCollisionTemplateFaces); index++) {
         liveGrid->normals[index + MIST_SHOOTING_GALLERY_TRAINING_BARRIER_NORMAL_OFFSET].vx = templateGrid->normals[index].vx;
         liveGrid->normals[index + MIST_SHOOTING_GALLERY_TRAINING_BARRIER_NORMAL_OFFSET].vy = templateGrid->normals[index].vy;
         liveGrid->normals[index + MIST_SHOOTING_GALLERY_TRAINING_BARRIER_NORMAL_OFFSET].vz = templateGrid->normals[index].vz;
@@ -1991,8 +2156,10 @@ static const JukeboxTrackLists _gJukeboxTrackLists = {
     },
 };
 
-/// "SELECT", followed by the non-zero padding the original toolchain left.
-static const char D_mist_shooting_gallery_8017DB04[8] = "SELECT\0\xE1";
+/// SELECT title for the jukebox panel, ending at its first NUL.
+///
+/// The eighth stored byte is 0xE1 and is not rendered; its role is unproven.
+static const char _gMistShootingGalleryJukeboxTitle[8] = "SELECT\0\xE1";
 
 #include "../../shared/jukebox_row.inc.c"
 
@@ -2026,10 +2193,10 @@ static void _mistShootingGalleryJukeboxPanelTask(Task* task)
     u8        sequenceStarted;
 
     object = task->spawnArg2.pointer;
-    list   = &D_mist_shooting_gallery_80185338;
+    list   = &_gMistShootingGalleryJukeboxList;
 
     object->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&(object)->panel, D_mist_shooting_gallery_8017DB04);
+    uiDrawPanelLabel(&(object)->panel, _gMistShootingGalleryJukeboxTitle);
     if (task->state == MIST_SHOOTING_GALLERY_JUKEBOX_INITIALIZE) {
         task->spawnArg1.value = MIST_SHOOTING_GALLERY_JUKEBOX_NO_ROW;
         if (attachmentIsTrainingMode() == 0) {

@@ -168,8 +168,8 @@ gAcropolisHelicopterLandingPadModel0A8E8 = 0x80187F50; // absolute:True owner=ac
 acropolisWestElevatorHallRoomTask = 0x8017F5F4; // type:func absolute:True owner=acropolis_west_elevator_hall
 gAcropolisWestElevatorHallCollisionRoomResources = 0x80185024; // absolute:True owner=acropolis_west_elevator_hall
 gAcropolisWestElevatorHallViewMaps = 0x80185034; // absolute:True owner=acropolis_west_elevator_hall
-gAcropolisWestElevatorHallViewCounts = 0x80185038; // absolute:True owner=acropolis_west_elevator_hall shared=rooms
-gAcropolisWestElevatorHallRoomLightingTable = 0x8018503C; // absolute:True owner=acropolis_west_elevator_hall shared=rooms
+gAcropolisWestElevatorHallViewCounts = 0x80185038; // absolute:True owner=acropolis_west_elevator_hall
+gAcropolisWestElevatorHallRoomLightingTable = 0x8018503C; // absolute:True owner=acropolis_west_elevator_hall
 gAcropolisWestElevatorHallWarpEntries = 0x80185044; // absolute:True owner=acropolis_west_elevator_hall
 gAcropolisWestElevatorHallSpriteViews = 0x80186408; // absolute:True owner=acropolis_west_elevator_hall
 gAcropolisWestElevatorHallViewCameras = 0x801869FC; // absolute:True owner=acropolis_west_elevator_hall
@@ -193,11 +193,11 @@ gMistParkingViewCameras = 0x80192228; // absolute:True owner=mist_parking
 gMistParkingSpriteViews = 0x8019399C; // absolute:True owner=mist_parking
 gMistParkingSurfacePropertiesByClass = 0x801952F0; // absolute:True owner=mist_parking
 mistShootingGalleryRoomTask = 0x8018018C; // type:func absolute:True owner=mist_shooting_gallery
-D_mist_shooting_gallery_801853A8 = 0x801853A8; // absolute:True owner=mist_shooting_gallery
+gMistShootingGalleryRoomCollisionResources = 0x801853A8; // absolute:True owner=mist_shooting_gallery
 gMistShootingGalleryViewMaps = 0x801853B8; // absolute:True owner=mist_shooting_gallery
 gMistShootingGalleryViewCounts = 0x801853BC; // absolute:True owner=mist_shooting_gallery
 gMistShootingGalleryRoomLightingTable = 0x801853C0; // absolute:True owner=mist_shooting_gallery
-D_mist_shooting_gallery_801853C8 = 0x801853C8; // absolute:True owner=mist_shooting_gallery
+gMistShootingGalleryWarpEntries = 0x801853C8; // absolute:True owner=mist_shooting_gallery
 gMistShootingGalleryViewCameras = 0x8018998C; // absolute:True owner=mist_shooting_gallery shared=rooms
 gMistShootingGallerySpriteViews = 0x8018BD10; // absolute:True owner=mist_shooting_gallery
 gMistShootingGallerySurfacePropertiesByClass = 0x8018E09C; // absolute:True owner=mist_shooting_gallery

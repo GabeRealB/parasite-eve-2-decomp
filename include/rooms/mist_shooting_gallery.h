@@ -76,10 +76,27 @@ extern AreaVariant D_mist_shooting_gallery_8018DF74[12];
 
 extern UiObjectDesc D_mist_shooting_gallery_80185000;
 
-extern UiObjectDesc D_mist_shooting_gallery_80184F70;
+/// Gallery weapon-picker recipe exported to the inventory menu's root session.
+///
+/// Initial bounds are (-8, 0, 144, 64) screen-centered pixels, with OT base 32
+/// and a bodyless priority-192 task. Its handler fits and centers the panel to
+/// the owned weapons. Spawning copies the recipe; keep the gallery and callback
+/// loaded until the picker and its help children close.
+extern const UiObjectDesc gMistShootingGalleryWeaponSelectPanelDesc;
 
-// mist_shooting_gallery
-extern WorldCollisionRoomResources D_mist_shooting_gallery_801853A8[];
+/// Extents of the gallery's room directory and 1-based warp endpoint table.
+enum {
+    MIST_SHOOTING_GALLERY_ROOM_COUNT = 1,
+    MIST_SHOOTING_GALLERY_WARP_COUNT = 7,
+};
+
+/// Collision resources for gallery room 1, indexed by room ID minus one.
+///
+/// Borrows the live grid, view boundaries and interaction triggers; no occluder
+/// list is supplied. The Acropolis map's gallery area slot borrows this array.
+/// Setup binds and links the writable resources, including the LAST-marked
+/// trigger records. Keep the gallery loaded until the active lists are cleared.
+extern WorldCollisionRoomResources gMistShootingGalleryRoomCollisionResources[MIST_SHOOTING_GALLERY_ROOM_COUNT];
 
 /// Logical-view mapping for the gallery's single room.
 ///
@@ -105,7 +122,15 @@ extern ViewCount gMistShootingGalleryViewCounts[2];
 /// The table and its borrowed data are valid only while the room overlay is loaded.
 extern WorldCoordRoomLighting gMistShootingGalleryRoomLightingTable[1];
 
-extern DirectionWarpEntry D_mist_shooting_gallery_801853C8[];
+/// Gallery warp endpoints 1..7, indexed by warp ID minus one without a terminator.
+///
+/// The Acropolis map's gallery area slot borrows this table while the room is
+/// loaded. Player and companion placements coincide; XYZ are room units and
+/// yaw uses 4096 per turn. Initial views are 2, 4, 14, 5, 5, 7 and 15.
+/// Endpoints 3 and 7 have no sounds; none has blocked sounds, flags or map markers.
+/// Entry 7 is the cleared-run carryover arrival. Consumers copy whole records,
+/// retaining both byte spans whose roles remain unproven.
+extern DirectionWarpEntry gMistShootingGalleryWarpEntries[MIST_SHOOTING_GALLERY_WARP_COUNT];
 
 /// Extent of the gallery's mapped camera and sprite-view resource arrays.
 enum { MIST_SHOOTING_GALLERY_MAPPED_VIEW_COUNT = 18 };

@@ -503,7 +503,7 @@ void menuRootTask(Task* task)
                 cdCmdEnqueueDisplayResource(1, 0, CD_COMMAND_DISPLAY_LOAD_MENU);
                 rootObject = uiSpawnObject(&D_8010EAB4[ITEM_MENU_ROOT_OPTIONS_DESCRIPTOR], 1, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ROOT_OPTIONS_OPEN_DELAY_TICKS, NULL);
             } else if (menuRequest == ITEM_MENU_ROOT_REQUEST_GALLERY_WEAPON) {
-                rootObject = uiSpawnObject(&D_mist_shooting_gallery_80184F70, 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ROOT_OPEN_DELAY_TICKS, NULL);
+                rootObject = uiSpawnObject(&gMistShootingGalleryWeaponSelectPanelDesc, 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ROOT_OPEN_DELAY_TICKS, NULL);
             } else if (menuRequest == DISPLAY_MODE_MAP) {
                 rootObject = uiSpawnObject(&D_8010F140, 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ROOT_MAP_OPEN_DELAY_TICKS, NULL);
             } else if (menuRequest == ITEM_MENU_ROOT_REQUEST_ATTACHMENTS) {

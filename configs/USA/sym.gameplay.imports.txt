@@ -1741,7 +1741,7 @@ acropolisFountainStartClimb = 0x8017DA78; // type:func absolute:True owner=acrop
 
 acropolisHelicopterLandingPadStartExit = 0x8017EF60; // type:func absolute:True owner=acropolis_helicopter_landing_pad
 
-D_mist_shooting_gallery_80184F70 = 0x80184F70; // absolute:True owner=mist_shooting_gallery
+gMistShootingGalleryWeaponSelectPanelDesc = 0x80184F70; // absolute:True owner=mist_shooting_gallery
 
 D_dryfield_night_r08_801818D8 = 0x801818D8; // absolute:True owner=dryfield_night_r08 shared=rooms
 

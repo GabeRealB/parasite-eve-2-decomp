@@ -1044,7 +1044,7 @@ static WorldCollisionRoomResources* D_map_akropolis_8017AA78[20] = {
     gAcropolisWestElevatorHallCollisionRoomResources,
     gMistR18CollisionRoomResources,
     gMistParkingRoomCollisionResources,
-    D_mist_shooting_gallery_801853A8,
+    gMistShootingGalleryRoomCollisionResources,
 };
 
 WorldCollisionStageResources D_map_akropolis_8017AAC8 = { D_map_akropolis_8017AA78 };
@@ -1099,7 +1099,7 @@ DirectionWarpEntry* D_map_akropolis_8017AB20[20] = {
     gAcropolisWestElevatorHallWarpEntries,
     gMistR18WarpEntries,
     gMistParkingWarpEntries,
-    D_mist_shooting_gallery_801853C8,
+    gMistShootingGalleryWarpEntries,
 };
 
 /// Borrowed room-count arrays for Acropolis and MIST areas 1..20.
