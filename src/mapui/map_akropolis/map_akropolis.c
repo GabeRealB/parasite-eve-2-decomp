@@ -718,7 +718,7 @@ WorldCoordRoomLighting* D_map_akropolis_8017AA28[20] = {
 static WorldCollisionRoomResources* D_map_akropolis_8017AA78[20] = {
     D_acropolis_square_80183B9C,
     gAcropolisEastElevatorHallRoomCollisionResources,
-    D_acropolis_patio_80182E68,
+    gAcropolisPatioRoomCollisionResources,
     gAcropolisCafeteriaCollisionRooms,
     gAcropolisPlazaRoomCollisionResources,
     D_acropolis_security_room_801839D0,
@@ -743,7 +743,7 @@ WorldCollisionStageResources D_map_akropolis_8017AAC8 = { D_map_akropolis_8017AA
 static SpriteView* D_map_akropolis_8017AACC[20] = {
     D_acropolis_square_8018857C,
     gAcropolisEastElevatorHallSpriteViews,
-    D_acropolis_patio_80186360,
+    gAcropolisPatioSpriteViews,
     D_acropolis_cafeteria_8018C48C,
     gAcropolisPlazaSpriteViews,
     D_acropolis_security_room_80184C50,
@@ -768,7 +768,7 @@ SpriteAreaTable D_map_akropolis_8017AB1C = { D_map_akropolis_8017AACC };
 DirectionWarpEntry* D_map_akropolis_8017AB20[20] = {
     D_acropolis_square_80183BBC,
     gAcropolisEastElevatorHallWarpEntries,
-    D_acropolis_patio_80182EEC,
+    gAcropolisPatioWarpEntries,
     gAcropolisCafeteriaWarps,
     gAcropolisPlazaWarpEntries,
     D_acropolis_security_room_801839F0,
@@ -791,7 +791,7 @@ DirectionWarpEntry* D_map_akropolis_8017AB20[20] = {
 static ViewCount* D_map_akropolis_8017AB70[20] = {
     D_acropolis_square_80183BB0,
     gAcropolisEastElevatorHallViewCounts,
-    D_acropolis_patio_80182ECC,
+    gAcropolisPatioViewCounts,
     gAcropolisCafeteriaViewCounts,
     gAcropolisPlazaViewCounts,
     D_acropolis_security_room_801839E4,
@@ -816,7 +816,7 @@ ViewCountTable D_map_akropolis_8017ABC0 = { D_map_akropolis_8017AB70 };
 static ViewCamera* D_map_akropolis_8017ABC4[20] = {
     D_acropolis_square_80188630,
     gAcropolisEastElevatorHallViewCameras,
-    D_acropolis_patio_80186D5C,
+    gAcropolisPatioViewCameras,
     D_acropolis_cafeteria_8018C5AC,
     gAcropolisPlazaViewCameras,
     D_acropolis_security_room_80184D10,

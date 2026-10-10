@@ -58,11 +58,16 @@
 #include "rooms/room_common.h"
 
 extern TaskMessageEntry D_acropolis_patio_8018028C[6];
-extern ActorTransform   D_acropolis_patio_80180428;
 extern s32              D_acropolis_patio_80180440;
-extern Task*            D_acropolis_patio_80187060;
-extern EvsCommand       D_acropolis_patio_80180DEC[];
-extern EvsCommand       D_acropolis_patio_80180EDC[];
+/// Retained bodyless controller for the opening scene's player head aim.
+///
+/// Spawned on room-1 initialization while story progress is below 2. Script
+/// callbacks require this task to be live and set its phase through this handle.
+/// Session rebuild discards the task list and heap; this pointer is not cleared
+/// and must not be used again until a new qualifying initialization replaces it.
+static Task*      _gAcropolisPatioPlayerHeadAimTask;
+extern EvsCommand D_acropolis_patio_80180DEC[];
+extern EvsCommand D_acropolis_patio_80180EDC[];
 /// Cafeteria arrival ID saved after the door-choice task is spawned.
 ///
 /// This singleton byte is borrowed until the accepted choice commits it to the
@@ -80,15 +85,6 @@ extern EvsCommand D_acropolis_patio_8018082C[];
 extern EvsCommand D_acropolis_patio_80180C64[];
 extern EvsCommand D_acropolis_patio_8018280C[];
 extern EvsCommand D_acropolis_patio_80182BE4[];
-
-/// The 14 anchor points of the patio's fountain spray, in the room object's own
-/// space. The first three double as the jitter centres for the mist burst.
-extern SVECTOR D_acropolis_patio_80182DDC[14];
-
-/// Per-anchor camera-view mask, one bit per 1-based `GameSession::location.loc.view`
-/// view: anchor `i` only draws while the room is being seen from a view its
-/// mask names.
-extern u16 D_acropolis_patio_80182E4C[14];
 
 /// Story thresholds, opening phases and one-shot latches used by the patio receiver.
 enum {
@@ -133,11 +129,11 @@ static const TaskFuncTable3 D_acropolis_patio_8017D5C4 = {
     { _acropolisPatioInitializeRoomTask, _acropolisPatioRoomIdleState, taskKill },
 };
 
-extern WorldCollisionGrid     D_acropolis_patio_80183DF8[1];
-extern WorldCollisionOccluder D_acropolis_patio_80184964[2];
-extern WorldCollisionTrigger  D_acropolis_patio_80183E1C[14];
-extern WorldCollisionTrigger  D_acropolis_patio_80184244[12];
-extern WorldCollisionTrigger  D_acropolis_patio_801845D4[12];
+static WorldCollisionGrid     _gAcropolisPatioCollisionGrid;
+static WorldCollisionOccluder _gAcropolisPatioOccluders[2];
+static WorldCollisionTrigger  _gAcropolisPatioViewBoundaryTriggers[14];
+static WorldCollisionTrigger  _gAcropolisPatioRoom1ActionTriggers[12];
+static WorldCollisionTrigger  _gAcropolisPatioRooms2And3ActionTriggers[12];
 static WorldCoordRoomLights   _gAcropolisPatioRoomLights;
 
 static void _acropolisPatioSetBattleActive(s32 battleActive);
@@ -146,10 +142,6 @@ extern AnimationPlayRequest D_acropolis_patio_8018270C;
 extern AnimationPlayRequest D_acropolis_patio_80182720;
 static void                 _acropolisPatioSpawnPlayerTurnLeft(void);
 static void                 _acropolisPatioPlayerTurnLeftTask(Task* task);
-
-extern SpriteBatch D_acropolis_patio_80185F08[2];
-extern SpriteBatch D_acropolis_patio_80185F18[2];
-extern SpriteBatch D_acropolis_patio_80185F28[2];
 
 static void _acropolisPatioSetPlayerHeadAimState(s32 headAimState);
 static void _acropolisPatioActivateRoom2(void);
@@ -461,7 +453,13 @@ static AnimationPlayRequest _gAcropolisPatioPlayerIdleAnimationRequest = {
 /// SWAT member's room-space placement for the opening and follow-up scenes (actor 0).
 static ActorTransform _gAcropolisPatioOpeningSwatPlacement = { .pos = { -7960, 0, 320, 0 }, .rot = { 0, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0 } };
 
-ActorTransform D_acropolis_patio_80180428 = { { -7720, 0, 290, 0 }, { 0, 2048, 0, 0 } };
+/// SWAT member's room-space placement restored after scenes and on entry (actor 0).
+///
+/// Borrowed synchronously by placement messages while the patio overlay is loaded.
+static ActorTransform _gAcropolisPatioRestoredSwatPlacement = {
+    .pos = { -7720, 0, 290, 0 },
+    .rot = { 0, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0 },
+};
 
 s32 D_acropolis_patio_80180440 = 769;
 
@@ -520,7 +518,7 @@ EvsCommand D_acropolis_patio_80180484[23] = {
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_FINISH_SCENE_STREAM, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_patio_80180428 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisPatioRestoredSwatPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gAcropolisPatioSwatAnimation4Command } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisPatioOpeningPlayerEndPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisPatioRestoredStrangerPlacement } }, { .value = 0 } },
@@ -533,7 +531,7 @@ EvsCommand D_acropolis_patio_801806AC[16] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisPatioPlayerIdleAnimationRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_patio_80180428 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisPatioRestoredSwatPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gAcropolisPatioSwatAnimation4Command } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisPatioOpeningPlayerEndPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisPatioRestoredStrangerPlacement } }, { .value = 0 } },
@@ -585,7 +583,7 @@ EvsCommand D_acropolis_patio_8018082C[45] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisPatioFollowUpPlayerEndPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_patio_80180428 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisPatioRestoredSwatPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisPatioSetPlayerHeadAimState }, { .value = ACROPOLIS_PATIO_SCRIPT_HEAD_AIM_IDLE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisPatioFollowUpPlayerAnimation52Request }, { .value = 0 } },
@@ -910,7 +908,13 @@ EvsCommand D_acropolis_patio_80182BE4[21] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-SVECTOR D_acropolis_patio_80182DDC[14] = {
+/// Room-coordinate centres of the patio's fourteen light glows.
+///
+/// Indices 0..2 are larger lights and the centres for nearby moving light points;
+/// 3..6 are ceiling lights and 7..13 are lower-wall lights. Effects copy XYZ on
+/// spawn, and moving points read their centre again when gathering. No sentinel.
+/// The loaded patio overlay owns these signed-halfword game coordinates.
+static SVECTOR _gAcropolisPatioLightAnchors[] = {
     { 180, -1108, 3610, 0 },
     { -6250, -1108, 2580, 0 },
     { -9310, -1108, 1130, 0 },
@@ -927,27 +931,44 @@ SVECTOR D_acropolis_patio_80182DDC[14] = {
     { -8520, -210, -1000, 0 },
 };
 
-u16 D_acropolis_patio_80182E4C[14] = {
-    4,
-    8,
-    24,
-    384,
-    384,
-    192,
-    64,
-    4,
-    4,
-    12,
-    24,
-    24,
-    24,
-    88,
+/// Visibility bits for the logical camera views that show a patio light.
+enum {
+    ACROPOLIS_PATIO_LIGHT_VIEW_3 = 1 << (3 - 1),
+    ACROPOLIS_PATIO_LIGHT_VIEW_4 = 1 << (4 - 1),
+    ACROPOLIS_PATIO_LIGHT_VIEW_5 = 1 << (5 - 1),
+    ACROPOLIS_PATIO_LIGHT_VIEW_7 = 1 << (7 - 1),
+    ACROPOLIS_PATIO_LIGHT_VIEW_8 = 1 << (8 - 1),
+    ACROPOLIS_PATIO_LIGHT_VIEW_9 = 1 << (9 - 1),
 };
 
-WorldCollisionRoomResources D_acropolis_patio_80182E68[3] = {
-    { D_acropolis_patio_80183DF8, D_acropolis_patio_80183E1C, D_acropolis_patio_80184244, D_acropolis_patio_80184964 },
-    { D_acropolis_patio_80183DF8, D_acropolis_patio_80183E1C, D_acropolis_patio_801845D4, D_acropolis_patio_80184964 },
-    { D_acropolis_patio_80183DF8, D_acropolis_patio_80183E1C, D_acropolis_patio_801845D4, D_acropolis_patio_80184964 },
+/// Per-light visibility in logical views, parallel to `_gAcropolisPatioLightAnchors`.
+///
+/// Bit view - 1 is tested against `GameSession.location.loc.view`, independently
+/// of the mapped background index. Glows use indices 0..13; moving points use
+/// 0..2. Logical views 1..19 are valid and views outside the mask hide the light.
+/// Both arrays must remain loaded throughout effect updates. No sentinel.
+static u16 _gAcropolisPatioLightViewMasks[] = {
+    ACROPOLIS_PATIO_LIGHT_VIEW_3,
+    ACROPOLIS_PATIO_LIGHT_VIEW_4,
+    ACROPOLIS_PATIO_LIGHT_VIEW_4 | ACROPOLIS_PATIO_LIGHT_VIEW_5,
+    ACROPOLIS_PATIO_LIGHT_VIEW_8 | ACROPOLIS_PATIO_LIGHT_VIEW_9,
+    ACROPOLIS_PATIO_LIGHT_VIEW_8 | ACROPOLIS_PATIO_LIGHT_VIEW_9,
+    ACROPOLIS_PATIO_LIGHT_VIEW_7 | ACROPOLIS_PATIO_LIGHT_VIEW_8,
+    ACROPOLIS_PATIO_LIGHT_VIEW_7,
+    ACROPOLIS_PATIO_LIGHT_VIEW_3,
+    ACROPOLIS_PATIO_LIGHT_VIEW_3,
+    ACROPOLIS_PATIO_LIGHT_VIEW_3 | ACROPOLIS_PATIO_LIGHT_VIEW_4,
+    ACROPOLIS_PATIO_LIGHT_VIEW_4 | ACROPOLIS_PATIO_LIGHT_VIEW_5,
+    ACROPOLIS_PATIO_LIGHT_VIEW_4 | ACROPOLIS_PATIO_LIGHT_VIEW_5,
+    ACROPOLIS_PATIO_LIGHT_VIEW_4 | ACROPOLIS_PATIO_LIGHT_VIEW_5,
+    ACROPOLIS_PATIO_LIGHT_VIEW_4 | ACROPOLIS_PATIO_LIGHT_VIEW_5 | ACROPOLIS_PATIO_LIGHT_VIEW_7,
+};
+STATIC_ASSERT(ARRAY_SIZE(_gAcropolisPatioLightViewMasks) == ARRAY_SIZE(_gAcropolisPatioLightAnchors), acropolisPatioLightMaskCount);
+
+WorldCollisionRoomResources gAcropolisPatioRoomCollisionResources[ACROPOLIS_PATIO_ROOM_COUNT] = {
+    { .grid = &_gAcropolisPatioCollisionGrid, .viewBoundaryTriggers = _gAcropolisPatioViewBoundaryTriggers, .actionTriggers = _gAcropolisPatioRoom1ActionTriggers, .occluders = _gAcropolisPatioOccluders },
+    { .grid = &_gAcropolisPatioCollisionGrid, .viewBoundaryTriggers = _gAcropolisPatioViewBoundaryTriggers, .actionTriggers = _gAcropolisPatioRooms2And3ActionTriggers, .occluders = _gAcropolisPatioOccluders },
+    { .grid = &_gAcropolisPatioCollisionGrid, .viewBoundaryTriggers = _gAcropolisPatioViewBoundaryTriggers, .actionTriggers = _gAcropolisPatioRooms2And3ActionTriggers, .occluders = _gAcropolisPatioOccluders },
 };
 
 /// Logical-view to camera/image/sprite mapping for patio room 2.
@@ -1014,7 +1035,11 @@ u8* gAcropolisPatioViewMaps[ACROPOLIS_PATIO_ROOM_COUNT] = {
     _gAcropolisPatioRoom3ViewMap,
 };
 
-ViewCount D_acropolis_patio_80182ECC[3] = { 19, 19, 19 };
+ViewCount gAcropolisPatioViewCounts[ACROPOLIS_PATIO_ROOM_COUNT] = {
+    ACROPOLIS_PATIO_VIEW_COUNT,
+    ACROPOLIS_PATIO_VIEW_COUNT,
+    ACROPOLIS_PATIO_VIEW_COUNT,
+};
 
 WorldCoordRoomLighting gAcropolisPatioRoomLightingTable[ACROPOLIS_PATIO_ROOM_COUNT] = {
     { &_gAcropolisPatioRoomLights, NULL },
@@ -1022,136 +1047,282 @@ WorldCoordRoomLighting gAcropolisPatioRoomLightingTable[ACROPOLIS_PATIO_ROOM_COU
     { &_gAcropolisPatioRoomLights, NULL },
 };
 
-DirectionWarpEntry D_acropolis_patio_80182EEC[4] = {
-    { { { .word = 2560 }, 3906, 1, 768 }, { 0, 0, 0, 0 }, { { .word = 2560 }, 3906, 1, 768 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 0 }, 4986, 1, -4079 }, { 0, 0, 0, 0 }, { { .word = 0 }, 4986, 1, -4079 }, { 0, 0, 0, 0 }, 0x51030002, 0x51030001, 0x51030007, 6, DIRECTION_WARP_FLAG_NONE, 496 },
-    { { { .word = 0 }, -7014, -302, -4439 }, { 0, 0, 0, 0 }, { { .word = 0 }, -7014, -302, -4439 }, { 0, 0, 0, 0 }, 0x51030005, 0x51030004, 0x51030006, 7, DIRECTION_WARP_FLAG_NONE, 501 },
-    { { { .word = 2304 }, 4223, -460, 1263 }, { 0, 0, 0, 0 }, { { .word = 2304 }, 4408, -600, 1264 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_SCRIPTED_PLAYER, DIRECTION_WARP_MAP_FLAG_NONE },
+/// Door sound requests and map-marker nibbles carried by the patio warp endpoints.
+enum {
+    ACROPOLIS_PATIO_FOUNTAIN_ARRIVAL_SOUND    = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 2),
+    ACROPOLIS_PATIO_FOUNTAIN_DEPARTURE_SOUND  = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 1),
+    ACROPOLIS_PATIO_FOUNTAIN_BLOCKED_SOUND    = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 7),
+    ACROPOLIS_PATIO_CAFETERIA_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 5),
+    ACROPOLIS_PATIO_CAFETERIA_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 4),
+    ACROPOLIS_PATIO_CAFETERIA_BLOCKED_SOUND   = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 6),
+    ACROPOLIS_PATIO_FOUNTAIN_MAP_FLAG         = 496,
+    ACROPOLIS_PATIO_CAFETERIA_MAP_FLAG        = 501,
 };
 
-static SVECTOR _gAcropolisPatioCollision06838Normals[33] = {
+DirectionWarpEntry gAcropolisPatioWarpEntries[ACROPOLIS_PATIO_WARP_COUNT] = {
+    {
+        .player         = { { .word = 2560 }, 3906, 1, 768 },
+        .companion      = { { .word = 2560 }, 3906, 1, 768 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { { .word = 0 }, 4986, 1, -4079 },
+        .companion      = { { .word = 0 }, 4986, 1, -4079 },
+        .arrivalSound   = ACROPOLIS_PATIO_FOUNTAIN_ARRIVAL_SOUND,
+        .departureSound = ACROPOLIS_PATIO_FOUNTAIN_DEPARTURE_SOUND,
+        .blockedSound   = ACROPOLIS_PATIO_FOUNTAIN_BLOCKED_SOUND,
+        .initialView    = 6,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = ACROPOLIS_PATIO_FOUNTAIN_MAP_FLAG,
+    },
+    {
+        .player         = { { .word = 0 }, -7014, -302, -4439 },
+        .companion      = { { .word = 0 }, -7014, -302, -4439 },
+        .arrivalSound   = ACROPOLIS_PATIO_CAFETERIA_ARRIVAL_SOUND,
+        .departureSound = ACROPOLIS_PATIO_CAFETERIA_DEPARTURE_SOUND,
+        .blockedSound   = ACROPOLIS_PATIO_CAFETERIA_BLOCKED_SOUND,
+        .initialView    = 7,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = ACROPOLIS_PATIO_CAFETERIA_MAP_FLAG,
+    },
+    {
+        .player         = { { .word = 2304 }, 4223, -460, 1263 },
+        .companion      = { { .word = 2304 }, 4408, -600, 1264 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_SCRIPTED_PLAYER,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+};
+
+/// Dimensions of the patio grid's X-major cell directory.
+enum { ACROPOLIS_PATIO_GRID_CELLS_X = 7,
+       ACROPOLIS_PATIO_GRID_CELLS_Z = 4 };
+
+/// Room-space normals of `_gAcropolisPatioCollisionGrid`, using `ONE` per unit.
+static SVECTOR _gAcropolisPatioCollisionGridNormals[33] = {
 #include "assets/acropolis_patio_collision_06838_normals.inc"
 };
 
-static SVECTOR _gAcropolisPatioCollision06838Verts[201] = {
+/// Signed room-coordinate vertex pool of `_gAcropolisPatioCollisionGrid`.
+static SVECTOR _gAcropolisPatioCollisionGridVerts[201] = {
 #include "assets/acropolis_patio_collision_06838_verts.inc"
 };
 
-static WorldCollisionGridFace _gAcropolisPatioCollision06838Faces[70] = {
+/// Indexed triangles and quads of `_gAcropolisPatioCollisionGrid`.
+static WorldCollisionGridFace _gAcropolisPatioCollisionGridFaces[70] = {
 #include "assets/acropolis_patio_collision_06838_faces.inc"
 };
 
-static s16 _gAcropolisPatioCollision06838Cells[402] = {
+/// Packed face-index lists of `_gAcropolisPatioCollisionGrid`, each ending at -1.
+static s16 _gAcropolisPatioCollisionGridCells[402] = {
 #include "assets/acropolis_patio_collision_06838_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gAcropolisPatioCollision06838Cells[i])
-static s16* _gAcropolisPatioCollision06838Table[28] = {
+// Bind the generated directory's constant element offsets to the face-index pool.
+#define GRID_CELL(i) (&_gAcropolisPatioCollisionGridCells[i])
+/// X-major cell directory of `_gAcropolisPatioCollisionGrid`; NULL cells are empty.
+static s16* _gAcropolisPatioCollisionGridTable[ACROPOLIS_PATIO_GRID_CELLS_X * ACROPOLIS_PATIO_GRID_CELLS_Z] = {
 #include "assets/acropolis_patio_collision_06838_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_acropolis_patio_80183DF8[1] = {
-    { NULL, _gAcropolisPatioCollision06838Normals, _gAcropolisPatioCollision06838Verts, _gAcropolisPatioCollision06838Faces, _gAcropolisPatioCollision06838Table, 9010, 7675, 7, 4, 4000, 70 },
+/// Collision mesh shared by all three patio rooms, with 4000-unit square XZ cells.
+///
+/// Room setup binds the writable descriptor to the active view coordinate.
+/// Face indices address 201 vertices and 33 normals; cell lists select 70 faces.
+/// The descriptor and all five pools must remain loaded while the grid is active.
+static WorldCollisionGrid _gAcropolisPatioCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gAcropolisPatioCollisionGridNormals,
+    .vertices    = _gAcropolisPatioCollisionGridVerts,
+    .faces       = _gAcropolisPatioCollisionGridFaces,
+    .cellFaceIds = _gAcropolisPatioCollisionGridTable,
+    .xBias       = 9010,
+    .zBias       = 7675,
+    .cellCountX  = ACROPOLIS_PATIO_GRID_CELLS_X,
+    .cellCountZ  = ACROPOLIS_PATIO_GRID_CELLS_Z,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gAcropolisPatioCollisionGridFaces),
 };
 
-WorldCollisionTrigger D_acropolis_patio_80183E1C[14] = {
-    { NULL, NULL, NULL, { 4988, -2288, -1890, 0 }, { { -2356, -3568, 233, 0 }, { 2357, -3568, -233, 0 }, { -2356, 3568, 233, 0 }, { 2357, 3568, -233, 0 } }, { -406, 0, -4106, 0 }, { 0, 0, 4096, 0 }, 4252, 0, 6, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 5052, -2528, -2276, 0 }, { { 2357, -3552, -233, 0 }, { -2356, -3552, 233, 0 }, { 2357, 3552, -233, 0 }, { -2356, 3552, 233, 0 } }, { 404, 0, 4087, 0 }, { 0, 0, 4096, 0 }, 4252, 0, 2, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1938, -2400, 374, 0 }, { { 906, -3568, 2187, 0 }, { -905, -3568, -2187, 0 }, { 906, 3568, 2187, 0 }, { -905, 3568, -2187, 0 } }, { -3811, 0, 1577, 0 }, { 0, 0, 4096, 0 }, 4252, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1557, -2464, 439, 0 }, { { -797, -3568, -2230, 0 }, { 797, -3568, 2231, 0 }, { -797, 3568, -2230, 0 }, { 797, 3568, 2231, 0 } }, { 3885, 0, -1389, 0 }, { 0, 0, 4096, 0 }, 4252, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -3872, -2432, 256, 0 }, { { 0, -3568, -2368, 0 }, { 0, -3568, 2368, 0 }, { 0, 3568, -2368, 0 }, { 0, 3568, 2368, 0 } }, { 4125, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4252, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -3648, -2400, 192, 0 }, { { 0, -3568, 2368, 0 }, { 0, -3568, -2368, 0 }, { 0, 3568, 2368, 0 }, { 0, 3568, -2368, 0 } }, { -4126, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4252, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -7762, -2432, -2162, 0 }, { { 2171, -3568, -129, 0 }, { -2170, -3568, 130, 0 }, { 2171, 3568, -129, 0 }, { -2170, 3568, 130, 0 } }, { 244, 0, 4096, 0 }, { 0, 0, 4096, 0 }, 4159, 0, 4, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -7562, -2432, -1771, 0 }, { { -2121, -3568, 239, 0 }, { 2122, -3568, -239, 0 }, { -2121, 3568, 239, 0 }, { 2122, 3568, -239, 0 } }, { -459, 0, -4071, 0 }, { 0, 0, 4096, 0 }, 4127, 0, 7, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -6435, -2400, -3410, 0 }, { { -107, -3568, -906, 0 }, { 107, -3568, 906, 0 }, { -107, 3568, -906, 0 }, { 107, 3568, 906, 0 } }, { 4068, 0, -481, 0 }, { 0, 0, 4096, 0 }, 3674, 0, 8, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -6294, -2464, -3156, 0 }, { { 48, -3568, 561, 0 }, { -47, -3568, -560, 0 }, { 48, 3568, 561, 0 }, { -47, 3568, -560, 0 } }, { -4086, 0, 345, 0 }, { 0, 0, 4096, 0 }, 3611, 0, 7, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1537, -2496, -3841, 0 }, { { 333, -3568, 1513, 0 }, { -333, -3568, -1513, 0 }, { 333, 3568, 1513, 0 }, { -333, 3568, -1513, 0 } }, { -4003, 0, 880, 0 }, { 0, 0, 4096, 0 }, 3882, 0, 8, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -2240, -2432, -3824, 0 }, { { -269, -3568, -1433, 0 }, { 269, -3568, 1433, 0 }, { -269, 3568, -1433, 0 }, { 269, 3568, 1433, 0 } }, { 4034, 0, -759, 0 }, { 0, 0, 4096, 0 }, 3848, 0, 9, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -5937, 0, -4513, 0 }, { { 787, -3568, -1098, 0 }, { -786, -3568, 1099, 0 }, { 787, 3568, -1098, 0 }, { -786, 3568, 1099, 0 } }, { 3340, 0, 2391, 0 }, { 0, 0, 4096, 0 }, 3814, 0, 8, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -5890, 0, -4385, 0 }, { { -463, -3568, 692, 0 }, { 463, -3568, -692, 0 }, { -463, 3568, 692, 0 }, { 463, 3568, -692, 0 } }, { -3411, 0, -2283, 0 }, { 0, 0, 4096, 0 }, 3656, 0, 7, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// View-crossing quads shared by all patio rooms, ending at the LAST-marked quad.
+///
+/// Directed logical-view pairs are 2/6, 2/3, 3/4, 4/7, 7/8 (two crossings) and
+/// 8/9. Setup binds these room-coordinate quads to the view and mutates their
+/// links, flags and hit latches. Keep all fourteen records loaded until unlinked.
+static WorldCollisionTrigger _gAcropolisPatioViewBoundaryTriggers[14] = {
+    { NULL, NULL, NULL, { 4988, -2288, -1890, 0 }, { { -2356, -3568, 233, 0 }, { 2357, -3568, -233, 0 }, { -2356, 3568, 233, 0 }, { 2357, 3568, -233, 0 } }, { -406, 0, -4106, 0 }, { 0, 0, ONE, 0 }, 4252, 0, 6, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 5052, -2528, -2276, 0 }, { { 2357, -3552, -233, 0 }, { -2356, -3552, 233, 0 }, { 2357, 3552, -233, 0 }, { -2356, 3552, 233, 0 } }, { 404, 0, 4087, 0 }, { 0, 0, ONE, 0 }, 4252, 0, 2, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1938, -2400, 374, 0 }, { { 906, -3568, 2187, 0 }, { -905, -3568, -2187, 0 }, { 906, 3568, 2187, 0 }, { -905, 3568, -2187, 0 } }, { -3811, 0, 1577, 0 }, { 0, 0, ONE, 0 }, 4252, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1557, -2464, 439, 0 }, { { -797, -3568, -2230, 0 }, { 797, -3568, 2231, 0 }, { -797, 3568, -2230, 0 }, { 797, 3568, 2231, 0 } }, { 3885, 0, -1389, 0 }, { 0, 0, ONE, 0 }, 4252, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -3872, -2432, 256, 0 }, { { 0, -3568, -2368, 0 }, { 0, -3568, 2368, 0 }, { 0, 3568, -2368, 0 }, { 0, 3568, 2368, 0 } }, { 4125, 0, 0, 0 }, { 0, 0, ONE, 0 }, 4252, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -3648, -2400, 192, 0 }, { { 0, -3568, 2368, 0 }, { 0, -3568, -2368, 0 }, { 0, 3568, 2368, 0 }, { 0, 3568, -2368, 0 } }, { -4126, 0, 0, 0 }, { 0, 0, ONE, 0 }, 4252, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -7762, -2432, -2162, 0 }, { { 2171, -3568, -129, 0 }, { -2170, -3568, 130, 0 }, { 2171, 3568, -129, 0 }, { -2170, 3568, 130, 0 } }, { 244, 0, ONE, 0 }, { 0, 0, ONE, 0 }, 4159, 0, 4, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -7562, -2432, -1771, 0 }, { { -2121, -3568, 239, 0 }, { 2122, -3568, -239, 0 }, { -2121, 3568, 239, 0 }, { 2122, 3568, -239, 0 } }, { -459, 0, -4071, 0 }, { 0, 0, ONE, 0 }, 4127, 0, 7, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -6435, -2400, -3410, 0 }, { { -107, -3568, -906, 0 }, { 107, -3568, 906, 0 }, { -107, 3568, -906, 0 }, { 107, 3568, 906, 0 } }, { 4068, 0, -481, 0 }, { 0, 0, ONE, 0 }, 3674, 0, 8, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -6294, -2464, -3156, 0 }, { { 48, -3568, 561, 0 }, { -47, -3568, -560, 0 }, { 48, 3568, 561, 0 }, { -47, 3568, -560, 0 } }, { -4086, 0, 345, 0 }, { 0, 0, ONE, 0 }, 3611, 0, 7, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1537, -2496, -3841, 0 }, { { 333, -3568, 1513, 0 }, { -333, -3568, -1513, 0 }, { 333, 3568, 1513, 0 }, { -333, 3568, -1513, 0 } }, { -4003, 0, 880, 0 }, { 0, 0, ONE, 0 }, 3882, 0, 8, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -2240, -2432, -3824, 0 }, { { -269, -3568, -1433, 0 }, { 269, -3568, 1433, 0 }, { -269, 3568, -1433, 0 }, { 269, 3568, 1433, 0 } }, { 4034, 0, -759, 0 }, { 0, 0, ONE, 0 }, 3848, 0, 9, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -5937, 0, -4513, 0 }, { { 787, -3568, -1098, 0 }, { -786, -3568, 1099, 0 }, { 787, 3568, -1098, 0 }, { -786, 3568, 1099, 0 } }, { 3340, 0, 2391, 0 }, { 0, 0, ONE, 0 }, 3814, 0, 8, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -5890, 0, -4385, 0 }, { { -463, -3568, 692, 0 }, { 463, -3568, -692, 0 }, { -463, 3568, 692, 0 }, { 463, 3568, -692, 0 } }, { -3411, 0, -2283, 0 }, { 0, 0, ONE, 0 }, 3656, 0, 7, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_acropolis_patio_80184244[12] = {
-    { NULL, NULL, NULL, { 3903, -96, 895, 0 }, { { -669, 0, -11, 0 }, { 492, 0, -445, 0 }, { -491, 0, 446, 0 }, { 670, 0, 12, 0 } }, { 0, 4109, 0, 0 }, { -1189, 0, -3920, 0 }, 668, WORLD_COLLISION_TRIGGER_ACTION_FACING, 67, 16, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4927, -64, -4128, 0 }, { { -711, 0, -432, 0 }, { 697, 0, -432, 0 }, { -728, 0, 433, 0 }, { 713, 0, 433, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 846, WORLD_COLLISION_TRIGGER_ACTION_WARP, 8, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -7265, -352, -4704, 0 }, { { -1031, 0, -592, 0 }, { 1017, 0, -592, 0 }, { -1016, 0, 593, 0 }, { 1033, 0, 593, 0 } }, { 0, 4109, 0, 0 }, { 0, 0, 4096, 0 }, 1187, WORLD_COLLISION_TRIGGER_ACTION_WARP, 4, 50, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4689, -384, -4768, 0 }, { { -1335, 0, -592, 0 }, { 1321, 0, -592, 0 }, { -1320, 0, 593, 0 }, { 1337, 0, 593, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1459, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 992, -384, -3272, 0 }, { { -1431, 0, 184, 0 }, { 1001, 0, -1288, 0 }, { -1448, 0, 1465, 0 }, { 1881, 0, -359, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, -4097, 0 }, 2048, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3999, -720, 1183, 0 }, { { -1187, -1164, 440, 0 }, { 1204, -1166, -401, 0 }, { -1204, 1166, 402, 0 }, { 1188, 1164, -440, 0 } }, { -1360, -74, -3864, 0 }, { -1189, 0, -3920, 0 }, 1722, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 21, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4064, -603, 1408, 0 }, { { -1021, 0, 181, 0 }, { 908, 0, -509, 0 }, { -907, 0, 510, 0 }, { 1022, 0, -180, 0 } }, { 0, 4099, 0, 0 }, { 1189, 0, 3920, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100 | WORLD_COLLISION_TRIGGER_AUTOMATIC, 66, 144, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -1680, -384, -4256, 0 }, { { -1895, 0, -880, 0 }, { 1881, 0, -880, 0 }, { -1880, 0, 881, 0 }, { 1897, 0, 881, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, 4096, 0 }, 2079, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -8066, -64, -881, 0 }, { { 621, 0, -386, 0 }, { 639, 0, 374, 0 }, { -637, 0, -372, 0 }, { -620, 0, 387, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, -202, 0 }, 738, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2064, -29, 31, 0 }, { { 325, 0, 1661, 0 }, { -997, 0, -1557, 0 }, { 933, 0, 1461, 0 }, { -261, 0, -1565, 0 } }, { 0, 4115, 0, 0 }, { 3856, 0, -1380, 0 }, 1846, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 0, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { -6543, 0, 48, 0 }, { { -749, 0, -1052, 0 }, { 956, 0, -1517, 0 }, { -1372, 0, 1133, 0 }, { 1165, 0, 1436, 0 } }, { 0, 4099, 0, 0 }, { -1189, 0, -3920, 0 }, 1846, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { -7201, -384, -2240, 0 }, { { -1586, 0, -428, 0 }, { 1574, 0, -446, 0 }, { -1572, 0, 446, 0 }, { 1587, 0, 429, 0 } }, { 0, 4112, 0, 0 }, { -1189, 0, -3920, 0 }, 1639, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 2, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Action IDs, CAP slots and packed warp requests used by the patio action quads.
+///
+/// Warp requests store the patio departure ID in the high nibble and the
+/// destination arrival ID in the low nibble. Stair parameters pack surface
+/// class 4 above the step count; the control bit selects descent.
+enum {
+    ACROPOLIS_PATIO_TRIGGER_OPENING_ACTION      = 0,
+    ACROPOLIS_PATIO_TRIGGER_FOLLOW_UP_ACTION    = 1,
+    ACROPOLIS_PATIO_TRIGGER_SECOND_VISIT_ACTION = 2,
+    ACROPOLIS_PATIO_TRIGGER_CAP_COMMAND_1       = 1,
+    ACROPOLIS_PATIO_TRIGGER_CAP_COMMAND_2       = 2,
+    ACROPOLIS_PATIO_TRIGGER_CAP_COMMAND_5       = 5,
+    ACROPOLIS_PATIO_TRIGGER_CAP_COMMAND_7       = 7,
+    ACROPOLIS_PATIO_TRIGGER_CAP_COMMAND_11      = 11,
+    ACROPOLIS_PATIO_FOUNTAIN_WARP_REQUEST       = (2 << 4) | 1,
+    ACROPOLIS_PATIO_CAFETERIA_WARP_REQUEST      = (3 << 4) | 2,
+    ACROPOLIS_PATIO_SQUARE_WARP_REQUEST         = (1 << 4) | 5,
+    ACROPOLIS_PATIO_STAIR_ASCEND_PARAMETER      = (4 << 4) | 3,
+    ACROPOLIS_PATIO_STAIR_DESCEND_PARAMETER     = (4 << 4) | 2,
+    ACROPOLIS_PATIO_STAIR_DESCEND_CONTROL       = 0x100,
 };
 
-WorldCollisionTrigger D_acropolis_patio_801845D4[12] = {
-    { NULL, NULL, NULL, { 3903, -96, 959, 0 }, { { -669, 0, -11, 0 }, { 492, 0, -445, 0 }, { -491, 0, 446, 0 }, { 670, 0, 12, 0 } }, { 0, 4109, 0, 0 }, { -1189, 0, -3920, 0 }, 668, WORLD_COLLISION_TRIGGER_ACTION_FACING, 67, 16, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4927, -64, -4128, 0 }, { { -711, 0, -432, 0 }, { 697, 0, -432, 0 }, { -728, 0, 433, 0 }, { 713, 0, 433, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 846, WORLD_COLLISION_TRIGGER_ACTION_WARP, 8, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -7265, -352, -4704, 0 }, { { -1031, 0, -592, 0 }, { 1017, 0, -592, 0 }, { -1016, 0, 593, 0 }, { 1033, 0, 593, 0 } }, { 0, 4109, 0, 0 }, { 0, 0, 4096, 0 }, 1187, WORLD_COLLISION_TRIGGER_ACTION_WARP, 4, 50, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4689, -384, -4768, 0 }, { { -1335, 0, -592, 0 }, { 1321, 0, -592, 0 }, { -1320, 0, 593, 0 }, { 1337, 0, 593, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1459, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 992, -384, -3272, 0 }, { { -1431, 0, 184, 0 }, { 1001, 0, -1288, 0 }, { -1448, 0, 1465, 0 }, { 1881, 0, -359, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, -4097, 0 }, 2048, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4128, -464, 1472, 0 }, { { -1021, 0, 181, 0 }, { 908, 0, -509, 0 }, { -907, 0, 510, 0 }, { 1022, 0, -180, 0 } }, { 0, 4099, 0, 0 }, { -1189, 0, -3920, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 21, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4128, -475, 1472, 0 }, { { -1021, 0, 181, 0 }, { 908, 0, -509, 0 }, { -907, 0, 510, 0 }, { 1022, 0, -180, 0 } }, { 0, 4099, 0, 0 }, { 1189, 0, 3920, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100 | WORLD_COLLISION_TRIGGER_AUTOMATIC, 66, 152, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -1680, -384, -4256, 0 }, { { -1895, 0, -880, 0 }, { 1881, 0, -880, 0 }, { -1880, 0, 881, 0 }, { 1897, 0, 881, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, 4096, 0 }, 2079, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -8066, -64, -849, 0 }, { { 621, 0, -418, 0 }, { 639, 0, 406, 0 }, { -637, 0, -404, 0 }, { -620, 0, 419, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, -202, 0 }, 754, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2064, -29, 31, 0 }, { { 325, 0, 1661, 0 }, { -997, 0, -1557, 0 }, { 933, 0, 1461, 0 }, { -261, 0, -1565, 0 } }, { 0, 4115, 0, 0 }, { 3856, 0, -1380, 0 }, 1846, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 0, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { -8239, 0, 592, 0 }, { { -749, 0, -1052, 0 }, { 1788, 0, -1517, 0 }, { -1372, 0, 1133, 0 }, { 1997, 0, 1436, 0 } }, { 0, 4101, 0, 0 }, { -1189, 0, -3920, 0 }, 2455, WORLD_COLLISION_TRIGGER_ACTION_CAP_WEAPON, 11, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -7201, -384, -2240, 0 }, { { -1586, 0, -428, 0 }, { 1574, 0, -446, 0 }, { -1572, 0, 446, 0 }, { 1587, 0, 429, 0 } }, { 0, 4112, 0, 0 }, { -1189, 0, -3920, 0 }, 1639, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 2, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Interaction and automatic-transition quads for patio room 1.
+///
+/// Includes stairs, fountain/cafeteria exits, CAP interactions and three room
+/// action IDs. The twelfth included record carries LAST. Room setup mutates
+/// links, view coordinates, enable flags and hit latches; keep the list loaded
+/// until unlinked. Positions/radii use room units and normals use `ONE` per unit.
+static WorldCollisionTrigger _gAcropolisPatioRoom1ActionTriggers[12] = {
+    { NULL, NULL, NULL, { 3903, -96, 895, 0 }, { { -669, 0, -11, 0 }, { 492, 0, -445, 0 }, { -491, 0, 446, 0 }, { 670, 0, 12, 0 } }, { 0, 4109, 0, 0 }, { -1189, 0, -3920, 0 }, 668, WORLD_COLLISION_TRIGGER_ACTION_FACING, ACROPOLIS_PATIO_STAIR_ASCEND_PARAMETER, 16, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4927, -64, -4128, 0 }, { { -711, 0, -432, 0 }, { 697, 0, -432, 0 }, { -728, 0, 433, 0 }, { 713, 0, 433, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, ONE, 0 }, 846, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_FOUNTAIN, ACROPOLIS_PATIO_FOUNTAIN_WARP_REQUEST, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -7265, -352, -4704, 0 }, { { -1031, 0, -592, 0 }, { 1017, 0, -592, 0 }, { -1016, 0, 593, 0 }, { 1033, 0, 593, 0 } }, { 0, 4109, 0, 0 }, { 0, 0, ONE, 0 }, 1187, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_CAFETERIA, ACROPOLIS_PATIO_CAFETERIA_WARP_REQUEST, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4689, -384, -4768, 0 }, { { -1335, 0, -592, 0 }, { 1321, 0, -592, 0 }, { -1320, 0, 593, 0 }, { 1337, 0, 593, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, ONE, 0 }, 1459, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_PATIO_TRIGGER_CAP_COMMAND_2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 992, -384, -3272, 0 }, { { -1431, 0, 184, 0 }, { 1001, 0, -1288, 0 }, { -1448, 0, 1465, 0 }, { 1881, 0, -359, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, -4097, 0 }, 2048, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_PATIO_TRIGGER_CAP_COMMAND_1, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3999, -720, 1183, 0 }, { { -1187, -1164, 440, 0 }, { 1204, -1166, -401, 0 }, { -1204, 1166, 402, 0 }, { 1188, 1164, -440, 0 } }, { -1360, -74, -3864, 0 }, { -1189, 0, -3920, 0 }, 1722, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, GAME_AREA_ACROPOLIS_SQUARE, ACROPOLIS_PATIO_SQUARE_WARP_REQUEST, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4064, -603, 1408, 0 }, { { -1021, 0, 181, 0 }, { 908, 0, -509, 0 }, { -907, 0, 510, 0 }, { 1022, 0, -180, 0 } }, { 0, 4099, 0, 0 }, { 1189, 0, 3920, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING | ACROPOLIS_PATIO_STAIR_DESCEND_CONTROL | WORLD_COLLISION_TRIGGER_AUTOMATIC, ACROPOLIS_PATIO_STAIR_DESCEND_PARAMETER, 144, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -1680, -384, -4256, 0 }, { { -1895, 0, -880, 0 }, { 1881, 0, -880, 0 }, { -1880, 0, 881, 0 }, { 1897, 0, 881, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, ONE, 0 }, 2079, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_PATIO_TRIGGER_CAP_COMMAND_5, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -8066, -64, -881, 0 }, { { 621, 0, -386, 0 }, { 639, 0, 374, 0 }, { -637, 0, -372, 0 }, { -620, 0, 387, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, -202, 0 }, 738, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_PATIO_TRIGGER_CAP_COMMAND_7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2064, -29, 31, 0 }, { { 325, 0, 1661, 0 }, { -997, 0, -1557, 0 }, { 933, 0, 1461, 0 }, { -261, 0, -1565, 0 } }, { 0, 4115, 0, 0 }, { 3856, 0, -1380, 0 }, 1846, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, ACROPOLIS_PATIO_TRIGGER_OPENING_ACTION, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { -6543, 0, 48, 0 }, { { -749, 0, -1052, 0 }, { 956, 0, -1517, 0 }, { -1372, 0, 1133, 0 }, { 1165, 0, 1436, 0 } }, { 0, 4099, 0, 0 }, { -1189, 0, -3920, 0 }, 1846, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, ACROPOLIS_PATIO_TRIGGER_FOLLOW_UP_ACTION, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { -7201, -384, -2240, 0 }, { { -1586, 0, -428, 0 }, { 1574, 0, -446, 0 }, { -1572, 0, 446, 0 }, { 1587, 0, 429, 0 } }, { 0, 4112, 0, 0 }, { -1189, 0, -3920, 0 }, 1639, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, ACROPOLIS_PATIO_TRIGGER_SECOND_VISIT_ACTION, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionOccluder D_acropolis_patio_80184964[2] = {
+/// Interaction and automatic-transition quads shared by patio rooms 2 and 3.
+///
+/// Uses the later stair geometry, routes CAP command 2 through the room receiver,
+/// and replaces room action 1 with weapon-assisted CAP command 11. The twelfth
+/// included record carries LAST. These are mutable linked room-coordinate
+/// records and must remain loaded until unlinked.
+static WorldCollisionTrigger _gAcropolisPatioRooms2And3ActionTriggers[12] = {
+    { NULL, NULL, NULL, { 3903, -96, 959, 0 }, { { -669, 0, -11, 0 }, { 492, 0, -445, 0 }, { -491, 0, 446, 0 }, { 670, 0, 12, 0 } }, { 0, 4109, 0, 0 }, { -1189, 0, -3920, 0 }, 668, WORLD_COLLISION_TRIGGER_ACTION_FACING, ACROPOLIS_PATIO_STAIR_ASCEND_PARAMETER, 16, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4927, -64, -4128, 0 }, { { -711, 0, -432, 0 }, { 697, 0, -432, 0 }, { -728, 0, 433, 0 }, { 713, 0, 433, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, ONE, 0 }, 846, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_FOUNTAIN, ACROPOLIS_PATIO_FOUNTAIN_WARP_REQUEST, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -7265, -352, -4704, 0 }, { { -1031, 0, -592, 0 }, { 1017, 0, -592, 0 }, { -1016, 0, 593, 0 }, { 1033, 0, 593, 0 } }, { 0, 4109, 0, 0 }, { 0, 0, ONE, 0 }, 1187, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_CAFETERIA, ACROPOLIS_PATIO_CAFETERIA_WARP_REQUEST, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4689, -384, -4768, 0 }, { { -1335, 0, -592, 0 }, { 1321, 0, -592, 0 }, { -1320, 0, 593, 0 }, { 1337, 0, 593, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, ONE, 0 }, 1459, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_PATIO_TRIGGER_CAP_COMMAND_2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 992, -384, -3272, 0 }, { { -1431, 0, 184, 0 }, { 1001, 0, -1288, 0 }, { -1448, 0, 1465, 0 }, { 1881, 0, -359, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, -4097, 0 }, 2048, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_PATIO_TRIGGER_CAP_COMMAND_1, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4128, -464, 1472, 0 }, { { -1021, 0, 181, 0 }, { 908, 0, -509, 0 }, { -907, 0, 510, 0 }, { 1022, 0, -180, 0 } }, { 0, 4099, 0, 0 }, { -1189, 0, -3920, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, GAME_AREA_ACROPOLIS_SQUARE, ACROPOLIS_PATIO_SQUARE_WARP_REQUEST, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4128, -475, 1472, 0 }, { { -1021, 0, 181, 0 }, { 908, 0, -509, 0 }, { -907, 0, 510, 0 }, { 1022, 0, -180, 0 } }, { 0, 4099, 0, 0 }, { 1189, 0, 3920, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING | ACROPOLIS_PATIO_STAIR_DESCEND_CONTROL | WORLD_COLLISION_TRIGGER_AUTOMATIC, ACROPOLIS_PATIO_STAIR_DESCEND_PARAMETER, 152, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -1680, -384, -4256, 0 }, { { -1895, 0, -880, 0 }, { 1881, 0, -880, 0 }, { -1880, 0, 881, 0 }, { 1897, 0, 881, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, ONE, 0 }, 2079, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_PATIO_TRIGGER_CAP_COMMAND_5, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -8066, -64, -849, 0 }, { { 621, 0, -418, 0 }, { 639, 0, 406, 0 }, { -637, 0, -404, 0 }, { -620, 0, 419, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, -202, 0 }, 754, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_PATIO_TRIGGER_CAP_COMMAND_7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2064, -29, 31, 0 }, { { 325, 0, 1661, 0 }, { -997, 0, -1557, 0 }, { 933, 0, 1461, 0 }, { -261, 0, -1565, 0 } }, { 0, 4115, 0, 0 }, { 3856, 0, -1380, 0 }, 1846, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, ACROPOLIS_PATIO_TRIGGER_OPENING_ACTION, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { -8239, 0, 592, 0 }, { { -749, 0, -1052, 0 }, { 1788, 0, -1517, 0 }, { -1372, 0, 1133, 0 }, { 1997, 0, 1436, 0 } }, { 0, 4101, 0, 0 }, { -1189, 0, -3920, 0 }, 2455, WORLD_COLLISION_TRIGGER_ACTION_CAP_WEAPON, ACROPOLIS_PATIO_TRIGGER_CAP_COMMAND_11, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -7201, -384, -2240, 0 }, { { -1586, 0, -428, 0 }, { 1574, 0, -446, 0 }, { -1572, 0, 446, 0 }, { 1587, 0, 429, 0 } }, { 0, 4112, 0, 0 }, { -1189, 0, -3920, 0 }, 1639, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, ACROPOLIS_PATIO_TRIGGER_SECOND_VISIT_ACTION, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+};
+
+/// Two room-space line-of-sight blockers shared by all three patio rooms.
+///
+/// The second included quad carries LAST. Setup mutates links and enable flags;
+/// keep the records loaded until unlinked. Low flag bit 0 is retained resource
+/// data with no proven interpretation. Positions/radii are game units.
+static WorldCollisionOccluder _gAcropolisPatioOccluders[2] = {
     { NULL, NULL, { -1184, -1760, -2112, 0 }, { { -3904, -1984, 0, 0 }, { 3904, -1984, 0, 0 }, { -3904, 1984, 0, 0 }, { 3904, 1984, 0, 0 } }, { 0, 0, -4098, 0 }, 4374, 1, 0 },
     { NULL, NULL, { 2336, -1728, -5888, 0 }, { { 0, -1984, 3904, 0 }, { 0, -1984, -3904, 0 }, { 0, 1984, 3904, 0 }, { 0, 1984, -3904, 0 } }, { -4098, 0, 0, 0 }, 4374, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-AreaResource D_acropolis_patio_801849DC[3] = {
-    { 19, 19, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101900GrinningStrangerTaskDesc },
-    { 107, 122, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor312200SwatMember1TaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Actor loading/spawn recipes for patio placement variant 1: Stranger and SWAT.
+///
+/// Placement IDs 19/107 select decimal files 19/122 in group bases 10/30.
+/// The loaded overlay owns this table through its AREA_PLACEMENT_END record;
+/// task descriptors are borrowed from the loaded actor packages.
+static AreaResource _gAcropolisPatioVariant1ActorResources[] = {
+    { .entryId = 19, .fileNumber = 19, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor101900GrinningStrangerTaskDesc },
+    { .entryId = 107, .fileNumber = 122, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_30, .taskIndex = 0, .taskTable = &gActor312200SwatMember1TaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_acropolis_patio_80184A00[3] = {
-    { 10, 170, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor317000GrinningStrangerTaskDesc },
-    { 19, 19, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101900GrinningStrangerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Actor loading/spawn recipes for patio variant 2's two Stranger packages.
+///
+/// Placement IDs 10/19 select decimal files 170/19 in group bases 30/10.
+/// The overlay-owned list ends at AREA_PLACEMENT_END and borrows the loaded
+/// actor task descriptors, each at descriptor index zero.
+static AreaResource _gAcropolisPatioVariant2ActorResources[] = {
+    { .entryId = 10, .fileNumber = 170, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_30, .taskIndex = 0, .taskTable = &gActor317000GrinningStrangerTaskDesc },
+    { .entryId = 19, .fileNumber = 19, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor101900GrinningStrangerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_acropolis_patio_80184A24[3] = {
-    { 7, 7, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor00700RatTaskDesc },
-    { 8, 7, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor00700MothTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Actor loading/spawn recipes for patio variant 3's rats and moths.
+///
+/// Placement IDs 7/8 share decimal file 7 in group base 10, with distinct task
+/// descriptors. The overlay-owned list ends at AREA_PLACEMENT_END and borrows
+/// the loaded actor package's descriptor records.
+static AreaResource _gAcropolisPatioVariant3ActorResources[] = {
+    { .entryId = 7, .fileNumber = 7, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor00700RatTaskDesc },
+    { .entryId = 8, .fileNumber = 7, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor00700MothTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_acropolis_patio_80184A48[3] = {
-    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor300700MothTaskDesc },
-    { 10, 10, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401000StrangerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Actor loading/spawn recipes for patio variant 4's moths and Stranger.
+///
+/// Placement IDs 8/10 select decimal files 7/10 in group bases 30/40.
+/// The overlay-owned list ends at AREA_PLACEMENT_END and borrows the loaded
+/// actor task descriptors, each at descriptor index zero.
+static AreaResource _gAcropolisPatioVariant4ActorResources[] = {
+    { .entryId = 8, .fileNumber = 7, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_30, .taskIndex = 0, .taskTable = &gActor300700MothTaskDesc },
+    { .entryId = 10, .fileNumber = 10, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .taskTable = &gActor401000StrangerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_acropolis_patio_80184A6C[2] = {
-    { 10, 10, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401000StrangerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Actor loading/spawn recipe for patio variant 5's Stranger placements.
+///
+/// Placement ID 10 selects decimal file 10 in group base 40, descriptor zero.
+/// The overlay-owned list ends at AREA_PLACEMENT_END and borrows the loaded
+/// actor package's descriptor record.
+static AreaResource _gAcropolisPatioVariant5ActorResources[] = {
+    { .entryId = 10, .fileNumber = 10, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .taskTable = &gActor401000StrangerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_acropolis_patio_80184A84[1] = {
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Empty actor-resource list for patio placement variant 10.
+///
+/// Its sole record is AREA_PLACEMENT_END: the variant's placements have no
+/// actor loading/spawn recipes here. The list lives with the patio overlay.
+static AreaResource _gAcropolisPatioVariant10ActorResources[] = {
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_acropolis_patio_80184A90[12] = {
     { NULL, NULL },
-    { D_map_akropolis_8017ACFC, D_acropolis_patio_801849DC },
-    { D_map_akropolis_8017AD2C, D_acropolis_patio_80184A00 },
-    { D_map_akropolis_8017AD7C, D_acropolis_patio_80184A24 },
-    { D_map_akropolis_8017ADEC, D_acropolis_patio_80184A48 },
-    { D_map_akropolis_8017AE3C, D_acropolis_patio_80184A6C },
+    { D_map_akropolis_8017ACFC, _gAcropolisPatioVariant1ActorResources },
+    { D_map_akropolis_8017AD2C, _gAcropolisPatioVariant2ActorResources },
+    { D_map_akropolis_8017AD7C, _gAcropolisPatioVariant3ActorResources },
+    { D_map_akropolis_8017ADEC, _gAcropolisPatioVariant4ActorResources },
+    { D_map_akropolis_8017AE3C, _gAcropolisPatioVariant5ActorResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_akropolis_8017AE6C, D_acropolis_patio_80184A84 },
+    { D_map_akropolis_8017AE6C, _gAcropolisPatioVariant10ActorResources },
     { NULL, NULL },
 };
 
@@ -1627,17 +1798,29 @@ SpriteBatch D_acropolis_patio_80185EF8[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_patio_80185F08[2] = {
+/// Background-only batches for mapped patio view 14.
+///
+/// A zero-count first batch enables decoded image strips; the next record ends
+/// the list. The view retains this overlay-owned address in `sources.empty`.
+static SpriteBatch _gAcropolisPatioView14SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_patio_80185F18[2] = {
+/// Background-only batches for mapped patio view 15.
+///
+/// A zero-count first batch enables decoded image strips; the next record ends
+/// the list. The view retains this overlay-owned address in `sources.empty`.
+static SpriteBatch _gAcropolisPatioView15SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_patio_80185F28[2] = {
+/// Background-only batches for mapped patio view 16.
+///
+/// A zero-count first batch enables decoded image strips; the next record ends
+/// the list. The view retains this overlay-owned address in `sources.empty`.
+static SpriteBatch _gAcropolisPatioView16SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
@@ -1647,75 +1830,97 @@ SpriteBatch D_acropolis_patio_80185F38[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_patio_80185F48[20] = {
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, 80, 800, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, 80, 800, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -80, 80, 800, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -40, 80, 800, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -40, 64, 800, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, 40, 800, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, 40, 800, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -80, 40, 800, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, 0, 800, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, 0, 800, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -80, 0, 800, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, -40, 800, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, -40, 800, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -80, -40, 800, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, -80, 800, { .fields = { 16, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, -80, 800, { .fields = { 8, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -80, -80, 800, { .fields = { 56, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, -120, 800, { .fields = { 8, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, -120, 800, { .fields = { 8, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -80, -120, 800, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
+/// Twenty depth-sorted background sprite rectangles for mapped patio view 18.
+///
+/// Uses opaque 8-bit atlas page 2 and its view-bundle palette at CLUT (0, 255).
+/// Positions/dimensions are screen pixels; every rectangle sorts at depth 800.
+/// The batch selects the whole array, with no source sentinel. These mutable
+/// overlay-owned records must outlive packet initialization and drawing.
+static SpriteSource _gAcropolisPatioView18SpriteSources[] = {
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 40 } }, -160, 80, 800, { .fields = { 88, 120 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 40 } }, -120, 80, 800, { .fields = { 88, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 40 } }, -80, 80, 800, { .fields = { 88, 40 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 40 } }, -40, 80, 800, { .fields = { 120, 80 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 16 } }, -40, 64, 800, { .fields = { 120, 240 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 40 } }, -160, 40, 800, { .fields = { 88, 160 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 40 } }, -120, 40, 800, { .fields = { 88, 200 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 40 } }, -80, 40, 800, { .fields = { 80, 80 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 40 } }, -160, 0, 800, { .fields = { 48, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 40 } }, -120, 0, 800, { .fields = { 48, 40 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 40 } }, -80, 0, 800, { .fields = { 48, 200 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 40 } }, -160, -40, 800, { .fields = { 8, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 40 } }, -120, -40, 800, { .fields = { 48, 160 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 40 } }, -80, -40, 800, { .fields = { 40, 80 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 40 } }, -160, -80, 800, { .fields = { 16, 120 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 40 } }, -120, -80, 800, { .fields = { 8, 160 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 40 } }, -80, -80, 800, { .fields = { 56, 120 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 40 } }, -160, -120, 800, { .fields = { 8, 40 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 40 } }, -120, -120, 800, { .fields = { 8, 200 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 40 } }, -80, -120, 800, { .fields = { 8, 80 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_acropolis_patio_801860D8[3] = {
+/// Background strips plus the full source-sprite range for mapped patio view 18.
+///
+/// The zero first count enables decoded strips; the second batch selects all
+/// twenty source elements, then SPRITE_BATCH_END terminates the list.
+/// The patio overlay owns these mutable records through packet use.
+static SpriteBatch _gAcropolisPatioView18SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 20, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gAcropolisPatioView18SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_patio_801860F0[30] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, -16, 1500, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, -120, 750, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -128, -120, 750, { .fields = { 64, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -96, -120, 750, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, -104, 750, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -128, -104, 750, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -96, -104, 750, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, -88, 750, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -128, -88, 750, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -96, -88, 750, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, -72, 1000, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -128, -72, 1000, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -96, -72, 1000, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, -56, 1000, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -128, -56, 1000, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, -96, -56, 1000, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, -40, 1250, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -128, -40, 1250, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, -96, -40, 1250, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, -24, 1500, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -128, -24, 1500, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, -96, -24, 1500, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, -8, 1750, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -128, -8, 1750, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, -96, -8, 1750, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -48, -8, 1750, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -160, 8, 2000, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -128, 8, 2000, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -48, 8, 2000, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, -96, 8, 2000, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
+/// Thirty depth-sorted background sprite rectangles for mapped patio view 19.
+///
+/// Uses opaque 8-bit atlas page 2 and its view-bundle palette at CLUT (0, 255).
+/// Positions/dimensions are screen pixels; sorting depths range from 750 to 2000.
+/// The batch selects the whole array, with no source sentinel. These mutable
+/// overlay-owned records must outlive packet initialization and drawing.
+static SpriteSource _gAcropolisPatioView19SpriteSources[] = {
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 8 } }, -48, -16, 1500, { .fields = { 80, 160 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 16 } }, -160, -120, 750, { .fields = { 64, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 16 } }, -128, -120, 750, { .fields = { 64, 16 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 16 } }, -96, -120, 750, { .fields = { 64, 80 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 16 } }, -160, -104, 750, { .fields = { 88, 160 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 16 } }, -128, -104, 750, { .fields = { 96, 224 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 16 } }, -96, -104, 750, { .fields = { 96, 240 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 16 } }, -160, -88, 750, { .fields = { 88, 128 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 16 } }, -128, -88, 750, { .fields = { 64, 240 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 16 } }, -96, -88, 750, { .fields = { 56, 224 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 16 } }, -160, -72, 1000, { .fields = { 56, 128 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 16 } }, -128, -72, 1000, { .fields = { 64, 192 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 40, 16 } }, -96, -72, 1000, { .fields = { 56, 96 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 16 } }, -160, -56, 1000, { .fields = { 64, 112 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 16 } }, -128, -56, 1000, { .fields = { 64, 176 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 48, 16 } }, -96, -56, 1000, { .fields = { 80, 64 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 16 } }, -160, -40, 1250, { .fields = { 96, 80 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 16 } }, -128, -40, 1250, { .fields = { 96, 96 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 48, 16 } }, -96, -40, 1250, { .fields = { 80, 48 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 16 } }, -160, -24, 1500, { .fields = { 96, 0 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 16 } }, -128, -24, 1500, { .fields = { 96, 16 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 48, 16 } }, -96, -24, 1500, { .fields = { 80, 32 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 16 } }, -160, -8, 1750, { .fields = { 96, 176 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 16 } }, -128, -8, 1750, { .fields = { 96, 192 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 48, 16 } }, -96, -8, 1750, { .fields = { 80, 208 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 16 } }, -48, -8, 1750, { .fields = { 120, 160 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 8 } }, -160, 8, 2000, { .fields = { 56, 168 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 32, 16 } }, -128, 8, 2000, { .fields = { 96, 112 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 8, 16 } }, -48, 8, 2000, { .fields = { 120, 128 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
+    { ACROPOLIS_PATIO_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_PATIO_SPRITE_CLUT, { .fields = { 48, 16 } }, -96, 8, 2000, { .fields = { 80, 144 } }, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_NEUTRAL_RGB, ACROPOLIS_PATIO_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_acropolis_patio_80186348[3] = {
+/// Background strips plus the full source-sprite range for mapped patio view 19.
+///
+/// The zero first count enables decoded strips; the second batch selects all
+/// thirty source elements, then SPRITE_BATCH_END terminates the list.
+/// The patio overlay owns these mutable records through packet use.
+static SpriteBatch _gAcropolisPatioView19SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 30, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gAcropolisPatioView19SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_acropolis_patio_80186360[19] = {
+SpriteView gAcropolisPatioSpriteViews[ACROPOLIS_PATIO_VIEW_COUNT] = {
     { { .empty = _gAcropolisPatioView1SpriteBatches }, _gAcropolisPatioView1SpriteBatches, NULL },
     { { .elements = _gAcropolisPatioView2SpriteSources }, _gAcropolisPatioView2SpriteBatches, NULL },
     { { .elements = _gAcropolisPatioView3SpriteSources }, _gAcropolisPatioView3SpriteBatches, NULL },
@@ -1729,12 +1934,12 @@ SpriteView D_acropolis_patio_80186360[19] = {
     { { .empty = _gAcropolisPatioView11SpriteBatches }, _gAcropolisPatioView11SpriteBatches, NULL },
     { { .empty = _gAcropolisPatioView12SpriteBatches }, _gAcropolisPatioView12SpriteBatches, NULL },
     { { .elements = _gAcropolisPatioView7SpriteSources }, _gAcropolisPatioView7SpriteBatches, NULL },
-    { { .empty = D_acropolis_patio_80185F08 }, D_acropolis_patio_80185F08, NULL },
-    { { .empty = D_acropolis_patio_80185F18 }, D_acropolis_patio_80185F18, NULL },
-    { { .empty = D_acropolis_patio_80185F28 }, D_acropolis_patio_80185F28, NULL },
+    { { .empty = _gAcropolisPatioView14SpriteBatches }, _gAcropolisPatioView14SpriteBatches, NULL },
+    { { .empty = _gAcropolisPatioView15SpriteBatches }, _gAcropolisPatioView15SpriteBatches, NULL },
+    { { .empty = _gAcropolisPatioView16SpriteBatches }, _gAcropolisPatioView16SpriteBatches, NULL },
     { { .elements = _gAcropolisPatioView4SpriteSources }, _gAcropolisPatioView4SpriteBatches, NULL },
-    { { .elements = D_acropolis_patio_80185F48 }, D_acropolis_patio_801860D8, NULL },
-    { { .elements = D_acropolis_patio_801860F0 }, D_acropolis_patio_80186348, NULL },
+    { { .elements = _gAcropolisPatioView18SpriteSources }, _gAcropolisPatioView18SpriteBatches, NULL },
+    { { .elements = _gAcropolisPatioView19SpriteSources }, _gAcropolisPatioView19SpriteBatches, NULL },
 };
 
 /// Point lights shared by the three patio room entries in every view.
@@ -1951,8 +2156,8 @@ static WorldCoordRoomLights _gAcropolisPatioRoomLights = {
     .coneLights            = NULL,
 };
 
-ViewCamera D_acropolis_patio_80186D5C[19] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 1800, 0x61A8, 0 } }, 418 },
+ViewCamera gAcropolisPatioViewCameras[ACROPOLIS_PATIO_VIEW_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 1800, 25000, 0 } }, 418 },
     { { { { 592, 0, -4052 }, { -336, 4081, -49 }, { 4038, 340, 590 } }, { 1580, 1410, 820 } }, 257 },
     { { { { 808, 0, -4015 }, { -361, 4079, -72 }, { 3999, 368, 805 } }, { 6730, 1610, 770 } }, 230 },
     { { { { 752, 0, 4026 }, { 459, 4069, -85 }, { -3999, 467, 747 } }, { 120, 1700, 660 } }, 257 },
@@ -2057,8 +2262,6 @@ WorldCollisionSurfaceProperties* gAcropolisPatioSurfacePropertiesByClass[ACROPOL
     NULL,
 };
 
-Task* D_acropolis_patio_80187060;
-
 /// Registers the patio room receiver and restores its story-dependent actor setup.
 ///
 /// Requires a live state-0 task and loaded room resources. Before story progress
@@ -2079,10 +2282,10 @@ static void _acropolisPatioInitializeRoomTask(Task* task)
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) < ACROPOLIS_PATIO_STORY_BATTLE_FINISHED) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room == 1) {
-            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_MESSAGE_PLACE, &D_acropolis_patio_80180428, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_MESSAGE_PLACE, &_gAcropolisPatioRestoredSwatPlacement, 0);
             TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &_gAcropolisPatioSwatAnimation3Command, 0);
             taskMessageDispatch(sceneFindPlacedActor(0), ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-            D_acropolis_patio_80187060 = taskSpawnFromTable(_gAcropolisPatioSceneTaskDescriptors, ACROPOLIS_PATIO_PLAYER_HEAD_AIM_TASK, 0, 0);
+            _gAcropolisPatioPlayerHeadAimTask = taskSpawnFromTable(_gAcropolisPatioSceneTaskDescriptors, ACROPOLIS_PATIO_PLAYER_HEAD_AIM_TASK, 0, 0);
         }
         placedActor = sceneFindPlacedActor(1);
         if (placedActor != 0) {
@@ -2473,7 +2676,7 @@ static void _acropolisPatioPlayerHeadAimTask(Task* task)
 /// the supplied signed-word state.
 static void _acropolisPatioSetPlayerHeadAimState(s32 headAimState)
 {
-    D_acropolis_patio_80187060->state = headAimState;
+    _gAcropolisPatioPlayerHeadAimTask->state = headAimState;
 }
 
 /// Selects room 2 in the live and saved location and requests room-object relinking.
@@ -2602,9 +2805,9 @@ void acropolisPatioSpawnLightEffectsTask(Task* task)
         (position)->vy  = MOTE_JITTER_CENTRE - ((gRandomLcgState >> 16) & MOTE_JITTER_MASK); \
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;    \
         (position)->vz  = MOTE_JITTER_CENTRE - ((gRandomLcgState >> 16) & MOTE_JITTER_MASK); \
-        (position)->vx += D_acropolis_patio_80182DDC[(anchorIndex)].vx;                      \
-        (position)->vy += D_acropolis_patio_80182DDC[(anchorIndex)].vy;                      \
-        (position)->vz += D_acropolis_patio_80182DDC[(anchorIndex)].vz;                      \
+        (position)->vx += _gAcropolisPatioLightAnchors[(anchorIndex)].vx;                    \
+        (position)->vy += _gAcropolisPatioLightAnchors[(anchorIndex)].vy;                    \
+        (position)->vz += _gAcropolisPatioLightAnchors[(anchorIndex)].vz;                    \
     }
 
     scratchWork = task->spawnArg2.pointer;
@@ -2613,13 +2816,13 @@ void acropolisPatioSpawnLightEffectsTask(Task* task)
     if (task->state == LIGHT_EMITTER_INIT) {
         // Seed all fixed light glows before allocating their moving points.
         for (anchorIndex = 0; anchorIndex < LARGE_LIGHT_END; anchorIndex++) {
-            effectSpawn(EFFECT_ACROPOLIS_PATIO_FOUNTAIN_JET, parentCoord, anchorIndex + LARGE_LIGHT_ARGUMENT, &D_acropolis_patio_80182DDC[anchorIndex]);
+            effectSpawn(EFFECT_ACROPOLIS_PATIO_FOUNTAIN_JET, parentCoord, anchorIndex + LARGE_LIGHT_ARGUMENT, &_gAcropolisPatioLightAnchors[anchorIndex]);
         }
         for (anchorIndex = LARGE_LIGHT_END; anchorIndex < CEILING_LIGHT_END; anchorIndex++) {
-            effectSpawn(EFFECT_ACROPOLIS_PATIO_FOUNTAIN_JET, parentCoord, anchorIndex + CEILING_LIGHT_ARGUMENT, &D_acropolis_patio_80182DDC[anchorIndex]);
+            effectSpawn(EFFECT_ACROPOLIS_PATIO_FOUNTAIN_JET, parentCoord, anchorIndex + CEILING_LIGHT_ARGUMENT, &_gAcropolisPatioLightAnchors[anchorIndex]);
         }
-        for (anchorIndex = CEILING_LIGHT_END; anchorIndex < ARRAY_SIZE(D_acropolis_patio_80182DDC); anchorIndex++) {
-            effectSpawn(EFFECT_ACROPOLIS_PATIO_FOUNTAIN_JET, parentCoord, anchorIndex + WALL_LIGHT_ARGUMENT, &D_acropolis_patio_80182DDC[anchorIndex]);
+        for (anchorIndex = CEILING_LIGHT_END; anchorIndex < ARRAY_SIZE(_gAcropolisPatioLightAnchors); anchorIndex++) {
+            effectSpawn(EFFECT_ACROPOLIS_PATIO_FOUNTAIN_JET, parentCoord, anchorIndex + WALL_LIGHT_ARGUMENT, &_gAcropolisPatioLightAnchors[anchorIndex]);
         }
         task->state++;
         // Each child snapshots XYZ; these point tasks never read the retained offset pointer.
@@ -2730,7 +2933,7 @@ void acropolisPatioFountainJetTask(Task* task)
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN &&
-        ((D_acropolis_patio_80182E4C[task->spawnArg1.value & ACROPOLIS_PATIO_JET_ANCHOR_MASK] >> (gGameSession->location.loc.view - 1)) & 1)) {
+        ((_gAcropolisPatioLightViewMasks[task->spawnArg1.value & ACROPOLIS_PATIO_JET_ANCHOR_MASK] >> (gGameSession->location.loc.view - 1)) & 1)) {
         actorRenderComposeCoord(coord);
         block = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
         if (task->state == ACROPOLIS_PATIO_JET_INIT) {
@@ -2835,7 +3038,7 @@ void acropolisPatioFountainMistTask(Task* task)
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN &&
-        ((D_acropolis_patio_80182E4C[task->spawnArg1.value] >> (gGameSession->location.loc.view - 1)) & 1)) {
+        ((_gAcropolisPatioLightViewMasks[task->spawnArg1.value] >> (gGameSession->location.loc.view - 1)) & 1)) {
         tileScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectPointTileScratch);
         actorRenderComposeCoord(coord);
         if (task->state == ACROPOLIS_PATIO_MIST_INIT) {
@@ -2851,7 +3054,7 @@ void acropolisPatioFountainMistTask(Task* task)
         if (work->index != ACROPOLIS_PATIO_MIST_DRIFT) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if (((gRandomLcgState >> 16) & ACROPOLIS_PATIO_MIST_AIM_SAMPLE_MASK) == 0) {
-                anchors       = D_acropolis_patio_80182DDC;
+                anchors       = _gAcropolisPatioLightAnchors;
                 velocity      = &work->move;
                 work->move.vx = (u16)anchors[task->spawnArg1.value].vx -
                                 (u16)coord->coord.t[0];

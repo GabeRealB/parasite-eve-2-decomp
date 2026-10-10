@@ -11,16 +11,23 @@
 
 #include "main/task_types.h"
 
-/// Room selectors and collision class indices published by the patio resource tables.
+/// Extents of the patio's exported room, view, warp and collision-class tables.
 enum {
     ACROPOLIS_PATIO_ROOM_COUNT          = 3,
+    ACROPOLIS_PATIO_VIEW_COUNT          = 19,
+    ACROPOLIS_PATIO_WARP_COUNT          = 4,
     ACROPOLIS_PATIO_SURFACE_CLASS_COUNT = 8,
 };
 
 extern AreaVariant D_acropolis_patio_80184A90[12];
 
-// acropolis_patio
-extern WorldCollisionRoomResources D_acropolis_patio_80182E68[];
+/// Collision resources for patio rooms 1..3, indexed by room - 1.
+///
+/// All rooms share one grid, fourteen view boundaries and two sight blockers.
+/// Room 1 selects its own twelve action triggers; rooms 2 and 3 share another
+/// twelve. Setup mutates the borrowed grid and list records. Keep the patio
+/// overlay loaded until the resources are replaced and its lists unlinked.
+extern WorldCollisionRoomResources gAcropolisPatioRoomCollisionResources[ACROPOLIS_PATIO_ROOM_COUNT];
 
 /// Logical-view maps for patio rooms 1..3, indexed by room - 1.
 ///
@@ -32,7 +39,12 @@ extern WorldCollisionRoomResources D_acropolis_patio_80182E68[];
 /// also remain loaded. Maps remain writable through the shared view interface.
 extern u8* gAcropolisPatioViewMaps[ACROPOLIS_PATIO_ROOM_COUNT];
 
-extern ViewCount D_acropolis_patio_80182ECC[];
+/// Signed logical-view search counts for patio rooms 1..3, indexed by room - 1.
+///
+/// Each count is 19 elements for reverse lookup in `gAcropolisPatioViewMaps`.
+/// This is the active logical extent, independent of the maps' storage sizes.
+/// The map overlay borrows these halfwords while the patio overlay is loaded.
+extern ViewCount gAcropolisPatioViewCounts[ACROPOLIS_PATIO_ROOM_COUNT];
 
 /// Lighting descriptors for patio rooms 1..3, indexed by room - 1.
 ///
@@ -41,11 +53,31 @@ extern ViewCount D_acropolis_patio_80182ECC[];
 /// lights; borrowed pointers must not outlive the loaded overlay.
 extern WorldCoordRoomLighting gAcropolisPatioRoomLightingTable[ACROPOLIS_PATIO_ROOM_COUNT];
 
-extern DirectionWarpEntry D_acropolis_patio_80182EEC[];
+/// Patio arrival/departure endpoints, indexed by 1-based warp ID minus one.
+///
+/// IDs 1 and 4 are the square-side stair endpoints; 2 is the fountain door and
+/// 3 is the cafeteria door. ID 4 places the player and companion separately
+/// and starts the player in scripted mode. Door endpoints supply sounds and
+/// map-marker IDs. There is no terminator; the map overlay borrows all four
+/// complete records while the patio overlay is loaded.
+extern DirectionWarpEntry gAcropolisPatioWarpEntries[ACROPOLIS_PATIO_WARP_COUNT];
 
-extern SpriteView D_acropolis_patio_80186360[];
+/// Sprite descriptors for mapped patio views 1..19, indexed by mapped view - 1.
+///
+/// Views 4/17 and 7/13 share source and batch lists. Empty views retain their
+/// batch address in `sources.empty`, which supplies no sprite elements.
+/// All views have NULL clipping lists. Descriptors and mutable source/batch
+/// arrays live with the patio overlay and must outlive packet setup and drawing.
+extern SpriteView gAcropolisPatioSpriteViews[ACROPOLIS_PATIO_VIEW_COUNT];
 
-extern ViewCamera D_acropolis_patio_80186D5C[];
+/// Cameras for mapped patio views 1..19, indexed by mapped view - 1.
+///
+/// Rotations use `ONE` per unit; translations store the negated world origin,
+/// and projection distances are pixels. Views 4/17 and 7/13 have equal camera
+/// values but remain separate records for their distinct mapped backgrounds.
+/// Queued camera tasks borrow a record until application; keep the patio
+/// overlay loaded through that call. There is no terminator.
+extern ViewCamera gAcropolisPatioViewCameras[ACROPOLIS_PATIO_VIEW_COUNT];
 
 /// Patio collision policies selected by surface class 0..7.
 ///
