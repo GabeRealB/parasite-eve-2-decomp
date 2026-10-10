@@ -44107,10 +44107,10 @@ live across two calls it has to sit in a callee-saved register, and the same
 `regs=4` leftover appears with `$s0` in place of `$a0`:
 
 ```
-lui   v0,%hi(D_acropolis_sanctuary_801809F8)   # ours
-addiu s0,v0,%lo(D_acropolis_sanctuary_801809F8)
-lui   s0,%hi(D_acropolis_sanctuary_801809F8)   # target
-addiu s0,s0,%lo(D_acropolis_sanctuary_801809F8)
+lui   v0,%hi(_gAcropolisSanctuaryPlayerSpecialWeaponRestoreRequest)   # ours
+addiu s0,v0,%lo(_gAcropolisSanctuaryPlayerSpecialWeaponRestoreRequest)
+lui   s0,%hi(_gAcropolisSanctuaryPlayerSpecialWeaponRestoreRequest)   # target
+addiu s0,s0,%lo(_gAcropolisSanctuaryPlayerSpecialWeaponRestoreRequest)
 ```
 
 The mechanism is the same: with a join-point temporary the address pseudo is
@@ -53666,7 +53666,7 @@ direct global references, make GCC 2.8.1 materialise the `lui`/`addiu` pair
 crosses the call:
 
 ```c
-for (i = 0; i < 4; i++) { _gAcropolisSanctuaryCollisionGrid.vertices[i].vx = D_acropolis_sanctuary_801822EC.vertices[i].vx; ... }
+for (i = 0; i < 4; i++) { _gAcropolisSanctuaryCollisionGrid.vertices[i].vx = _gAcropolisSanctuaryBlockerCollisionGrid.vertices[i].vx; ... }
 if (gameFlagGetNibble(6) == 0) { ... }
 for (i = 0; i < 8; i++) { _gAcropolisSanctuaryCollisionGrid.vertices[i].vx += placementOffset.vx; }   /* second lui/addiu */
 ```
@@ -53679,7 +53679,7 @@ forced to give it a callee-saved register.
 
 ```c
 WorldCollisionGrid* roomGrid = &_gAcropolisSanctuaryCollisionGrid;
-WorldCollisionGrid* blockerTemplate = &D_acropolis_sanctuary_801822EC;
+WorldCollisionGrid* blockerTemplate = &_gAcropolisSanctuaryBlockerCollisionGrid;
 ```
 
 Declare them in the order the target materialises the addresses. The symptom is
@@ -84581,8 +84581,8 @@ The payload is not an `s32`: it is the five-word `AnimationPlayRequest`
 (`include/gameplay/message.h`, size 0x14) — `source.index` receives the animation-bank table index
 from `playerActorWriteWeaponAnimationBankIndex`, `animationId` is the animation id the handler plays, and
 `blend`/`blendFrames`/`enableWorldCollision` are zero. `src/rooms/acropolis_sanctuary/
-acropolis_sanctuary_2.c` carries the identical pattern already matched as
-`extern AnimationPlayRequest D_acropolis_sanctuary_801809F8;`, and the splat data extent
+acropolis_sanctuary.c` carries the identical pattern already matched as
+`static AnimationPlayRequest _gAcropolisSanctuaryPlayerSpecialWeaponRestoreRequest;`, and the splat data extent
 corroborates it (`actor_335800`: words `1, 0x33, 0, 0, 0` from `0x305C` to
 `0x3068`, next `dlabel` at `0x3070`). Treat the extent as corroboration only —
 see "A data symbol's `dlabel` extent is not the array's length" above. Because

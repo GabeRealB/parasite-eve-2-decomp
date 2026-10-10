@@ -422,7 +422,7 @@ AreaRecord  D_8010CBE4[21]   = {
     { D_acropolis_forked_road_801831C4, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[8].state },
     { D_acropolis_observatory_80181264, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[9].state },
     { gAcropolisPromenadeAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[10].state },
-    { D_acropolis_sanctuary_8018402C, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[11].state },
+    { gAcropolisSanctuaryAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[11].state },
     { D_acropolis_roof_garden_80185934, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[12].state },
     { D_acropolis_bridge_8019004C, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[13].state },
     { D_acropolis_fire_escape_8018294C, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[14].state },

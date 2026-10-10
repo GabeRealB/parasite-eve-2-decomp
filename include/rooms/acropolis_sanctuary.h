@@ -12,7 +12,12 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern AreaVariant D_acropolis_sanctuary_8018402C[12];
+/// Sanctuary layouts indexed by the saved placement variant (0..11).
+///
+/// Variant 1 contains No. 9 GOLEM and Rupert; variant 2 contains Rupert alone.
+/// Slots 0 and 3..11 are absent. Gameplay borrows the placement and resource
+/// tables while this room and the Acropolis map overlay remain loaded.
+extern AreaVariant gAcropolisSanctuaryAreaVariants[12];
 
 extern TmdSource gAcropolisSanctuaryModel090F0;
 

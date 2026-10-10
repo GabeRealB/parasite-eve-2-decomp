@@ -1415,7 +1415,7 @@ gAcropolisPromenadeAreaVariants = 0x80183020; // absolute:True owner=acropolis_p
 
 D_acropolis_roof_garden_80185934 = 0x80185934; // absolute:True owner=acropolis_roof_garden
 
-D_acropolis_sanctuary_8018402C = 0x8018402C; // absolute:True owner=acropolis_sanctuary shared=rooms
+gAcropolisSanctuaryAreaVariants = 0x8018402C; // absolute:True owner=acropolis_sanctuary shared=rooms
 
 D_acropolis_security_room_80184088 = 0x80184088; // absolute:True owner=acropolis_security_room
 

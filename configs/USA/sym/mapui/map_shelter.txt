@@ -257,7 +257,7 @@ gShelterB1ControlRoomAccessTunnelCollisionGrid = 0x80182070; // absolute:True ow
 gShelterB1ControlRoomAccessTunnelViewCameras = 0x80182094; // absolute:True owner=shelter_b1_control_room_access_tunnel shared=rooms
 gShelterB1ControlRoomAccessTunnelSpriteViews = 0x80182130; // absolute:True owner=shelter_b1_control_room_access_tunnel
 gShelterB1ControlRoomAccessTunnelRoomLights = 0x801822D4; // absolute:True owner=shelter_b1_control_room_access_tunnel
-gShelterB1ControlRoomAccessTunnelViewBoundaryTriggers = 0x801822EC; // absolute:True owner=shelter_b1_control_room_access_tunnel shared=rooms
+gShelterB1ControlRoomAccessTunnelViewBoundaryTriggers = 0x801822EC; // absolute:True owner=shelter_b1_control_room_access_tunnel
 gShelterB1ControlRoomAccessTunnelWarpTriggers = 0x80182384; // absolute:True owner=shelter_b1_control_room_access_tunnel shared=rooms
 gShelterB1ControlRoomAccessTunnelSurfacePropertiesByClass = 0x80182678; // absolute:True owner=shelter_b1_control_room_access_tunnel
 shelterB2ElevatorRoomTask = 0x8017DB18; // type:func absolute:True owner=shelter_b2_elevator shared=rooms
