@@ -61,9 +61,6 @@ static void _roomCutsceneTask(Task* task);
 
 static void _roomCutsceneSoundTask(Task* task);
 
-/// Task descriptor tables the room spawns its tasks from.
-extern TaskDesc gRoomCutsceneTaskDescs[];
-
 static s32 _gShopPreviewRowId;
 
 static const u16 _gShopStandardDefaultWeaponsStock[];
@@ -107,9 +104,15 @@ TaskDesc D_mist_parking_8018668C = { { { TASK_BODY_NONE, 192 } }, _shopSessionTa
 
 #include "../../shared/telephone_data.inc.c"
 
-TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneSoundTask, { .value = 0 } },
+/// This carrier's bodyless scene runner and timed sound task, followed by END.
+///
+/// Entry SCENE borrows a RoomCutsceneRec in spawnArg2 and takes the follow-up
+/// CAP command in spawnArg1; SOUND takes a packed sound request in spawnArg2.
+/// Both run at priority 32. Keep callback code and the scene record loaded
+/// until completion; spawning copies the recipe and retains no table pointer.
+static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
+    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -878,7 +881,7 @@ static inline void _mistParkingStartCommandCutscene(void)
     D_mist_parking_8019533C.endSound        = MIST_PARKING_CUTSCENE_END_SOUND;
     D_mist_parking_8019533C.sceneSound      = MIST_PARKING_CUTSCENE_SCENE_SOUND;
     D_mist_parking_8019533C.afterSceneSound = MIST_PARKING_CUTSCENE_AFTER_SOUND;
-    taskSpawnFromTable(gRoomCutsceneTaskDescs, MIST_PARKING_CUTSCENE_DESCRIPTOR, MIST_PARKING_CUTSCENE_COMMAND, &D_mist_parking_8019533C);
+    taskSpawnFromTable(_gRoomCutsceneTaskDescs, MIST_PARKING_CUTSCENE_DESCRIPTOR, MIST_PARKING_CUTSCENE_COMMAND, &D_mist_parking_8019533C);
     session                                                    = gGameSession;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = MIST_PARKING_CUTSCENE_WARP;
     session->location.loc.warp                                 = MIST_PARKING_CUTSCENE_WARP;

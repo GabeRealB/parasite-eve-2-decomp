@@ -111,9 +111,7 @@ static u8 Telephone_Data_80181A18[];
 /// List and descriptor of the remaining usage panel.
 static UiList       Telephone_Data_80181C6C;
 static UiObjectDesc Telephone_Data_80181CC8;
-/// Task tables the room spawns from: the cutscene, the flag-gated exit's
-/// transition, and the console's tasks.
-extern TaskDesc gRoomCutsceneTaskDescs[];
+/// Task tables for the flag-gated exit's transition and the console.
 extern TaskDesc gRoomEventTaskDesc;
 extern TaskDesc D_shelter_b2_laboratory_80182A6C[];
 
@@ -222,9 +220,15 @@ TmdSource gShelterB2LaboratoryAcropolisSanctuaryModel090F0 = {
     _gShelterB2LaboratoryAcropolisSanctuaryModel090F0Stream,
 };
 
-TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneSoundTask, { .value = 0 } },
+/// This carrier's bodyless scene runner and timed sound task, followed by END.
+///
+/// Entry SCENE borrows a RoomCutsceneRec in spawnArg2 and takes the follow-up
+/// CAP command in spawnArg1; SOUND takes a packed sound request in spawnArg2.
+/// Both run at priority 32. Keep callback code and the scene record loaded
+/// until completion; spawning copies the recipe and retains no table pointer.
+static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
+    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -1120,7 +1124,7 @@ static s32 _shelterB2LaboratoryCommandMessage(Task* unusedTask, s32 messageId, s
             D_shelter_b2_laboratory_801864BC.rec.capTPageX = SHELTER_B2_LABORATORY_CAP_COMPLETED_TEXTURE_X;
             D_shelter_b2_laboratory_801864BC.rec.capTPageY = SHELTER_B2_LABORATORY_CAP_COMPLETED_TEXTURE_Y;
             _shelterB2LaboratorySetConsoleSceneSounds(&D_shelter_b2_laboratory_801864BC.rec);
-            taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, SHELTER_B2_LABORATORY_CAP_AFTER_COMPLETED_SCENE, &D_shelter_b2_laboratory_801864BC.rec);
+            taskSpawnFromTable(_gRoomCutsceneTaskDescs, ROOM_CUTSCENE_TASK_SCENE, SHELTER_B2_LABORATORY_CAP_AFTER_COMPLETED_SCENE, &D_shelter_b2_laboratory_801864BC.rec);
             taskSpawnFromTable(D_shelter_b2_laboratory_80182A6C, SHELTER_B2_LABORATORY_TASK_FINISH_CONSOLE_SCENE, 0, 0);
         } else {
             // A zero texture X selects the default page; the runner ignores retained Y.
@@ -1130,7 +1134,7 @@ static s32 _shelterB2LaboratoryCommandMessage(Task* unusedTask, s32 messageId, s
             D_shelter_b2_laboratory_801864BC.rec.skipScene = SHELTER_B2_LABORATORY_PLAY_CONSOLE_SCENE;
             D_shelter_b2_laboratory_801864BC.rec.capTPageX = SHELTER_B2_LABORATORY_CAP_DEFAULT_TEXTURE_PAGE;
             _shelterB2LaboratorySetConsoleSceneSounds(&D_shelter_b2_laboratory_801864BC.rec);
-            taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, SHELTER_B2_LABORATORY_CAP_AFTER_FULL_SCENE, &D_shelter_b2_laboratory_801864BC.rec);
+            taskSpawnFromTable(_gRoomCutsceneTaskDescs, ROOM_CUTSCENE_TASK_SCENE, SHELTER_B2_LABORATORY_CAP_AFTER_FULL_SCENE, &D_shelter_b2_laboratory_801864BC.rec);
         }
     }
     return 0;

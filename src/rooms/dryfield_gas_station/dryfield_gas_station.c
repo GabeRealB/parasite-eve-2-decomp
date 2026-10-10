@@ -67,7 +67,6 @@ static UiList Telephone_Data_80181C6C;
 /// Descriptor of the remaining weapon and PE usage panel.
 static UiObjectDesc Telephone_Data_80181CC8;
 
-extern TaskDesc         gRoomCutsceneTaskDescs[];
 extern TaskDesc         D_dryfield_gas_station_80181E3C[];
 extern TaskMessageEntry D_dryfield_gas_station_80181E54[5];
 
@@ -78,9 +77,15 @@ static void _dryfieldGasStationArrivalSupervisorTask(Task* task);
 
 #include "../../shared/telephone_data.inc.c"
 
-TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneSoundTask, { .value = 0 } },
+/// This carrier's bodyless scene runner and timed sound task, followed by END.
+///
+/// Entry SCENE borrows a RoomCutsceneRec in spawnArg2 and takes the follow-up
+/// CAP command in spawnArg1; SOUND takes a packed sound request in spawnArg2.
+/// Both run at priority 32. Keep callback code and the scene record loaded
+/// until completion; spawning copies the recipe and retains no table pointer.
+static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
+    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -164,7 +169,7 @@ static s32 _dryfieldGasStationHandleRoomCommand(Task* unusedTask, s32 unusedMess
         D_dryfield_gas_station_80184BD8.endSound        = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 0x07);
         D_dryfield_gas_station_80184BD8.sceneSound      = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 0x08);
         D_dryfield_gas_station_80184BD8.afterSceneSound = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 0x10);
-        return (s32)taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, DRYFIELD_GAS_STATION_CUTSCENE_FOLLOW_UP_COMMAND, &D_dryfield_gas_station_80184BD8);
+        return (s32)taskSpawnFromTable(_gRoomCutsceneTaskDescs, ROOM_CUTSCENE_TASK_SCENE, DRYFIELD_GAS_STATION_CUTSCENE_FOLLOW_UP_COMMAND, &D_dryfield_gas_station_80184BD8);
     }
     return 1;
 }

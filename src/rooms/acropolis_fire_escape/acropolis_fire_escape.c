@@ -74,7 +74,7 @@ static void _roomCutsceneTask(Task* task);
 
 static void _roomCutsceneSoundTask(Task* task);
 
-extern WorldCollisionTrigger D_acropolis_fire_escape_8018252C[12];
+static WorldCollisionTrigger _gAcropolisFireEscapeActionTriggers[12];
 
 /// The save's `companionType` byte under a symbol of its own; the cutscene's
 /// end reads it through this name rather than through `gMcSaveData`.
@@ -88,19 +88,12 @@ static u8 Telephone_Data_80181A18[];
 /// List and descriptor of the remaining usage panel.
 static UiList       Telephone_Data_80181C6C;
 static UiObjectDesc Telephone_Data_80181CC8;
-/// Task table the cutscene (entry 0) and its sound task (entry 1) are spawned
-/// from.
-extern TaskDesc gRoomCutsceneTaskDescs[];
 
 /// Message table of the room's message task.
 extern TaskMessageEntry D_acropolis_fire_escape_80181D3C[];
 
 /// Task table holding the room's ambient-sound task.
 extern TaskDesc D_acropolis_fire_escape_80181D64[];
-
-/// Circle table the glow and flare tasks read their wedge corners from, in
-/// 4.12 fixed point: entry `i` is a corner's y and entry `i + 4` its x.
-extern s16 D_acropolis_fire_escape_80181D7C[];
 
 /// Object whose `field_4A` bit 0x40 the message task clears each frame while
 /// the slot-4 task does not answer message 0x7D6.
@@ -147,28 +140,19 @@ static void _acropolisFireEscapeAmbienceTask(Task* task);
 extern WorldCollisionGrid     D_acropolis_fire_escape_801822A8[1];
 extern WorldCollisionOccluder D_acropolis_fire_escape_801828BC[2];
 extern WorldCollisionTrigger  D_acropolis_fire_escape_801822CC[8];
-extern WorldCoordRoomLights   D_acropolis_fire_escape_80182B54[1];
-
-extern SpriteDrawArea D_acropolis_fire_escape_80182D44[2];
-extern SpriteDrawArea D_acropolis_fire_escape_80182DF4[2];
-extern SpriteBatch    D_acropolis_fire_escape_80182B6C[2];
-extern SpriteBatch    D_acropolis_fire_escape_80182B7C[2];
-extern SpriteBatch    D_acropolis_fire_escape_80182C90[3];
-extern SpriteBatch    D_acropolis_fire_escape_80182CA8[2];
-extern SpriteBatch    D_acropolis_fire_escape_80182D1C[3];
-extern SpriteBatch    D_acropolis_fire_escape_80182D34[2];
-extern SpriteBatch    D_acropolis_fire_escape_80182DBC[3];
-extern SpriteBatch    D_acropolis_fire_escape_80182DD4[2];
-extern SpriteBatch    D_acropolis_fire_escape_80182DE4[2];
-extern SpriteSource   D_acropolis_fire_escape_80182B8C[13];
-extern SpriteSource   D_acropolis_fire_escape_80182CB8[5];
-extern SpriteSource   D_acropolis_fire_escape_80182D58[5];
+static WorldCoordRoomLights   _gAcropolisFireEscapeRoomLights;
 
 #include "../../shared/telephone_data.inc.c"
 
-TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneSoundTask, { .value = 0 } },
+/// This carrier's bodyless scene runner and timed sound task, followed by END.
+///
+/// Entry SCENE borrows a RoomCutsceneRec in spawnArg2 and takes the follow-up
+/// CAP command in spawnArg1; SOUND takes a packed sound request in spawnArg2.
+/// Both run at priority 32. Keep callback code and the scene record loaded
+/// until completion; spawning copies the recipe and retains no table pointer.
+static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
+    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -185,7 +169,11 @@ TaskDesc D_acropolis_fire_escape_80181D64[2] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-s16 D_acropolis_fire_escape_80181D7C[24] = {
+/// Signed Q12 cosine samples for the fire escape's glow and radial flare wedges.
+///
+/// Indices 0..22 sample -cos(i * 2*pi/16), with 4096 representing unity;
+/// y uses index i and x uses i + 4. The final stored zero is not sampled.
+static s16 _gAcropolisFireEscapeGlowCircleSamples[24] = {
     -4096,
     -3784,
     -2896,
@@ -213,17 +201,17 @@ s16 D_acropolis_fire_escape_80181D7C[24] = {
 };
 
 WorldCollisionRoomResources D_acropolis_fire_escape_80181DAC[1] = {
-    { D_acropolis_fire_escape_801822A8, D_acropolis_fire_escape_801822CC, D_acropolis_fire_escape_8018252C, D_acropolis_fire_escape_801828BC },
+    { D_acropolis_fire_escape_801822A8, D_acropolis_fire_escape_801822CC, _gAcropolisFireEscapeActionTriggers, D_acropolis_fire_escape_801828BC },
 };
 
-u8* D_acropolis_fire_escape_80181DBC[1] = {
+u8* gAcropolisFireEscapeViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_acropolis_fire_escape_80181DC0[1] = { 10 };
+ViewCount gAcropolisFireEscapeViewCounts[1] = { ARRAY_SIZE(gAcropolisFireEscapeSpriteViews) };
 
-WorldCoordRoomLighting D_acropolis_fire_escape_80181DC4[1] = {
-    { D_acropolis_fire_escape_80182B54, NULL },
+WorldCoordRoomLighting gAcropolisFireEscapeRoomLightingTable[1] = {
+    { &_gAcropolisFireEscapeRoomLights, NULL },
 };
 
 DirectionWarpEntry D_acropolis_fire_escape_80181DCC[3] = {
@@ -269,16 +257,29 @@ WorldCollisionTrigger D_acropolis_fire_escape_801822CC[8] = {
     { NULL, NULL, NULL, { -3859, -2176, 3301, 0 }, { { -1314, -2352, 291, 0 }, { 1303, -2352, -308, 0 }, { -1314, 2352, 291, 0 }, { 1303, 2352, -308, 0 } }, { -915, 0, -3994, 0 }, { 0, 0, 4096, 0 }, 2697, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_acropolis_fire_escape_8018252C[12] = {
-    { NULL, NULL, NULL, { -338, -32, 4144, 0 }, { { -110, 0, -848, 0 }, { 110, 0, -848, 0 }, { -110, 0, 848, 0 }, { 110, 0, 848, 0 } }, { 0, 4102, 0, 0 }, { 4096, 0, 0, 0 }, 853, WORLD_COLLISION_TRIGGER_ACTION_FACING, 9, 192, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3095, -1856, 4095, 0 }, { { -128, 0, -768, 0 }, { 128, 0, -768, 0 }, { -128, 0, 768, 0 }, { 128, 0, 768, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 778, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100, 9, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4486, -1856, 1184, 0 }, { { 384, 0, -176, 0 }, { 384, 0, 176, 0 }, { -384, 0, -176, 0 }, { -384, 0, 176, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, 4096, 0 }, 422, WORLD_COLLISION_TRIGGER_ACTION_FACING, 26, 128, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4320, -2384, 544, 0 }, { { -592, 1552, 0, 0 }, { 592, 1552, 0, 0 }, { -592, -1552, 0, 0 }, { 592, -1552, 0, 0 } }, { 0, 0, 4099, 0 }, { 0, 0, 4096, 0 }, 1659, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, 16, 51, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2544, -32, 0, 0 }, { { -320, 0, -768, 0 }, { 320, 0, -768, 0 }, { -320, 0, 768, 0 }, { 320, 0, 768, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 832, WORLD_COLLISION_TRIGGER_ACTION_WARP, 14, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+/// Stair controls: bit 8 selects descent; parameter0 packs surface class above the step count.
+enum {
+    ACROPOLIS_FIRE_ESCAPE_STAIR_DESCEND            = 0x100,
+    ACROPOLIS_FIRE_ESCAPE_STAIR_CLASS0_NINE_STEPS  = (0 << 4) | 9,
+    ACROPOLIS_FIRE_ESCAPE_STAIR_CLASS1_TEN_STEPS   = (1 << 4) | 10,
+    ACROPOLIS_FIRE_ESCAPE_STAIR_CLASS1_THREE_STEPS = (1 << 4) | 3,
+};
+
+/// Room action quads for stairs, exits, CAP interactions and placed-actor dialogue.
+///
+/// Coordinates and radii use game units; normals use 4096 per unit. Setup
+/// links and enables the twelve writable records, ending with LAST. Entry 5
+/// routes command 1 to the room and is disabled when placement 0 is absent.
+static WorldCollisionTrigger _gAcropolisFireEscapeActionTriggers[12] = {
+    { NULL, NULL, NULL, { -338, -32, 4144, 0 }, { { -110, 0, -848, 0 }, { 110, 0, -848, 0 }, { -110, 0, 848, 0 }, { 110, 0, 848, 0 } }, { 0, 4102, 0, 0 }, { 4096, 0, 0, 0 }, 853, WORLD_COLLISION_TRIGGER_ACTION_FACING, ACROPOLIS_FIRE_ESCAPE_STAIR_CLASS0_NINE_STEPS, 192, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3095, -1856, 4095, 0 }, { { -128, 0, -768, 0 }, { 128, 0, -768, 0 }, { -128, 0, 768, 0 }, { 128, 0, 768, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 778, WORLD_COLLISION_TRIGGER_ACTION_FACING | ACROPOLIS_FIRE_ESCAPE_STAIR_DESCEND, ACROPOLIS_FIRE_ESCAPE_STAIR_CLASS0_NINE_STEPS, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4486, -1856, 1184, 0 }, { { 384, 0, -176, 0 }, { 384, 0, 176, 0 }, { -384, 0, -176, 0 }, { -384, 0, 176, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, 4096, 0 }, 422, WORLD_COLLISION_TRIGGER_ACTION_FACING, ACROPOLIS_FIRE_ESCAPE_STAIR_CLASS1_TEN_STEPS, 128, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4320, -2384, 544, 0 }, { { -592, 1552, 0, 0 }, { 592, 1552, 0, 0 }, { -592, -1552, 0, 0 }, { 592, -1552, 0, 0 } }, { 0, 0, 4099, 0 }, { 0, 0, 4096, 0 }, 1659, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, GAME_AREA_ACROPOLIS_HELICOPTER_LANDING_PAD, 51, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2544, -32, 0, 0 }, { { -320, 0, -768, 0 }, { 320, 0, -768, 0 }, { -320, 0, 768, 0 }, { 320, 0, 768, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 832, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_BRIDGE, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 1440, -96, -1680, 0 }, { { -480, 0, 1216, 0 }, { -480, 0, -320, 0 }, { 1568, 0, 1216, 0 }, { 1568, 0, -320, 0 } }, { 0, 4095, 0, 0 }, { -201, 0, 4091, 0 }, 1982, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 1312, -96, 1856, 0 }, { { -416, 0, 480, 0 }, { -416, 0, -480, 0 }, { 416, 0, 480, 0 }, { 416, 0, -480, 0 } }, { 0, 4102, 0, 0 }, { 4095, 0, 0, 0 }, 633, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -3392, -1856, 2080, 0 }, { { -592, 0, 720, 0 }, { -592, 0, -720, 0 }, { 592, 0, 720, 0 }, { 592, 0, -720, 0 } }, { 0, 4095, 0, 0 }, { -4077, 0, 401, 0 }, 931, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4288, -2544, 160, 0 }, { { 768, 0, -304, 0 }, { 768, 0, 304, 0 }, { -768, 0, -304, 0 }, { -768, 0, 304, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 824, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100 | WORLD_COLLISION_TRIGGER_AUTOMATIC, 19, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4288, -2544, 160, 0 }, { { 768, 0, -304, 0 }, { 768, 0, 304, 0 }, { -768, 0, -304, 0 }, { -768, 0, 304, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 824, WORLD_COLLISION_TRIGGER_ACTION_FACING | ACROPOLIS_FIRE_ESCAPE_STAIR_DESCEND | WORLD_COLLISION_TRIGGER_AUTOMATIC, ACROPOLIS_FIRE_ESCAPE_STAIR_CLASS1_THREE_STEPS, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -4448, -1835, 3984, 0 }, { { -270, 0, -832, 0 }, { 270, 0, -832, 0 }, { -270, 0, 832, 0 }, { 270, 0, 832, 0 } }, { 0, 4099, 0, 0 }, { 4096, 0, 0, 0 }, 872, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 1248, -64, 224, 0 }, { { -416, 0, 480, 0 }, { -416, 0, -480, 0 }, { 416, 0, 480, 0 }, { 416, 0, -480, 0 } }, { 0, 4102, 0, 0 }, { 4095, 0, 0, 0 }, 633, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 2016, -64, -1712, 0 }, { { -686, 0, -384, 0 }, { 686, 0, -384, 0 }, { -686, 0, 384, 0 }, { 686, 0, 384, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, 4096, 0 }, 783, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
@@ -382,21 +383,30 @@ static WorldCoordPointLight _gAcropolisFireEscapePointLights[] = {
     },
 };
 
-WorldCoordRoomLights D_acropolis_fire_escape_80182B54[1] = {
-    { 0, NULL, ARRAY_SIZE(_gAcropolisFireEscapePointLights), _gAcropolisFireEscapePointLights, 0, NULL },
+/// Room 1's mutable collection of five white point lights and no other light kinds.
+static WorldCoordRoomLights _gAcropolisFireEscapeRoomLights = {
+    0,
+    NULL,
+    ARRAY_SIZE(_gAcropolisFireEscapePointLights),
+    _gAcropolisFireEscapePointLights,
+    0,
+    NULL,
 };
 
-SpriteBatch D_acropolis_fire_escape_80182B6C[2] = {
+/// View 1's empty sprite list, selecting decoded background strips.
+static SpriteBatch _gAcropolisFireEscapeView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_fire_escape_80182B7C[2] = {
+/// View 2's empty sprite list, selecting decoded background strips.
+static SpriteBatch _gAcropolisFireEscapeView2SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_fire_escape_80182B8C[13] = {
+/// View 3's thirteen depth-sorted texture rectangles, positioned in view-centred pixels.
+static SpriteSource _gAcropolisFireEscapeView3SpriteSources[13] = {
     { 143, 0x3FC0, { .fields = { 8, 56 } }, -32, -104, 1025, { .fields = { 8, 160 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 56 } }, -32, -48, 1025, { .fields = { 0, 64 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 56 } }, -32, 8, 1025, { .fields = { 0, 176 } }, 128, 128, 128, 0 },
@@ -412,18 +422,21 @@ SpriteSource D_acropolis_fire_escape_80182B8C[13] = {
     { 143, 0x3FC0, { .fields = { 64, 240 } }, -160, -120, 1000, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_fire_escape_80182C90[3] = {
+/// View 3's background-strip selector and complete thirteen-sprite range, then END.
+static SpriteBatch _gAcropolisFireEscapeView3SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 13, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gAcropolisFireEscapeView3SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_fire_escape_80182CA8[2] = {
+/// View 4's empty sprite list, selecting decoded background strips.
+static SpriteBatch _gAcropolisFireEscapeView4SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_fire_escape_80182CB8[5] = {
+/// View 5's five full-height texture columns, positioned in view-centred pixels.
+static SpriteSource _gAcropolisFireEscapeView5SpriteSources[5] = {
     { 143, 0x3FC0, { .fields = { 16, 240 } }, -32, -120, 625, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 240 } }, -48, -120, 650, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 240 } }, -72, -120, 625, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
@@ -431,23 +444,27 @@ SpriteSource D_acropolis_fire_escape_80182CB8[5] = {
     { 142, 0x3FC0, { .fields = { 48, 240 } }, -160, -120, 625, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_fire_escape_80182D1C[3] = {
+/// View 5's background-strip selector and complete five-sprite range, then END.
+static SpriteBatch _gAcropolisFireEscapeView5SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 5, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gAcropolisFireEscapeView5SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_fire_escape_80182D34[2] = {
+/// View 6's empty sprite list; its separate draw-area list still clips scene objects.
+static SpriteBatch _gAcropolisFireEscapeView6SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteDrawArea D_acropolis_fire_escape_80182D44[2] = {
+/// View 6's (103, 0, 215, 239) pixel clip, restored at sorting depth 1000, then END.
+static SpriteDrawArea _gAcropolisFireEscapeView6SpriteDrawAreas[2] = {
     { { 103, 0, 215, 239 }, 1000 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_acropolis_fire_escape_80182D58[5] = {
+/// View 7's five depth-sorted texture rectangles, positioned in view-centred pixels.
+static SpriteSource _gAcropolisFireEscapeView7SpriteSources[5] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -112, 112, 490, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 96, 112, 516, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 160, 112 } }, -88, -120, 500, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
@@ -455,23 +472,27 @@ SpriteSource D_acropolis_fire_escape_80182D58[5] = {
     { 142, 0x3FC0, { .fields = { 200, 40 } }, -104, 80, 500, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_fire_escape_80182DBC[3] = {
+/// View 7's background-strip selector and complete five-sprite range, then END.
+static SpriteBatch _gAcropolisFireEscapeView7SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 5, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gAcropolisFireEscapeView7SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_fire_escape_80182DD4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-SpriteBatch D_acropolis_fire_escape_80182DE4[2] = {
+/// View 8's empty sprite list, selecting decoded background strips.
+static SpriteBatch _gAcropolisFireEscapeView8SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteDrawArea D_acropolis_fire_escape_80182DF4[2] = {
+/// Shared empty sprite list for views 9 and 10; neither source slot supplies sprites.
+static SpriteBatch _gAcropolisFireEscapeViews9And10SpriteBatches[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+};
+
+/// View 9's zero-extent clip at (19, 11), restored at sorting depth 250, then END.
+static SpriteDrawArea _gAcropolisFireEscapeView9SpriteDrawAreas[2] = {
     { { 19, 11, 0, 0 }, 250 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
@@ -481,20 +502,20 @@ SpriteBatch D_acropolis_fire_escape_80182E08[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_acropolis_fire_escape_80182E18[10] = {
-    { { .empty = D_acropolis_fire_escape_80182B6C }, D_acropolis_fire_escape_80182B6C, NULL },
-    { { .empty = D_acropolis_fire_escape_80182B7C }, D_acropolis_fire_escape_80182B7C, NULL },
-    { { .elements = D_acropolis_fire_escape_80182B8C }, D_acropolis_fire_escape_80182C90, NULL },
-    { { .empty = D_acropolis_fire_escape_80182CA8 }, D_acropolis_fire_escape_80182CA8, NULL },
-    { { .elements = D_acropolis_fire_escape_80182CB8 }, D_acropolis_fire_escape_80182D1C, NULL },
-    { { .empty = D_acropolis_fire_escape_80182D34 }, D_acropolis_fire_escape_80182D34, D_acropolis_fire_escape_80182D44 },
-    { { .elements = D_acropolis_fire_escape_80182D58 }, D_acropolis_fire_escape_80182DBC, NULL },
-    { { .empty = D_acropolis_fire_escape_80182DD4 }, D_acropolis_fire_escape_80182DD4, NULL },
-    { { .empty = D_acropolis_fire_escape_80182DE4 }, D_acropolis_fire_escape_80182DE4, D_acropolis_fire_escape_80182DF4 },
-    { { .empty = D_acropolis_fire_escape_80182DE4 }, D_acropolis_fire_escape_80182DE4, NULL },
+SpriteView gAcropolisFireEscapeSpriteViews[10] = {
+    { { .empty = _gAcropolisFireEscapeView1SpriteBatches }, _gAcropolisFireEscapeView1SpriteBatches, NULL },
+    { { .empty = _gAcropolisFireEscapeView2SpriteBatches }, _gAcropolisFireEscapeView2SpriteBatches, NULL },
+    { { .elements = _gAcropolisFireEscapeView3SpriteSources }, _gAcropolisFireEscapeView3SpriteBatches, NULL },
+    { { .empty = _gAcropolisFireEscapeView4SpriteBatches }, _gAcropolisFireEscapeView4SpriteBatches, NULL },
+    { { .elements = _gAcropolisFireEscapeView5SpriteSources }, _gAcropolisFireEscapeView5SpriteBatches, NULL },
+    { { .empty = _gAcropolisFireEscapeView6SpriteBatches }, _gAcropolisFireEscapeView6SpriteBatches, _gAcropolisFireEscapeView6SpriteDrawAreas },
+    { { .elements = _gAcropolisFireEscapeView7SpriteSources }, _gAcropolisFireEscapeView7SpriteBatches, NULL },
+    { { .empty = _gAcropolisFireEscapeView8SpriteBatches }, _gAcropolisFireEscapeView8SpriteBatches, NULL },
+    { { .empty = _gAcropolisFireEscapeViews9And10SpriteBatches }, _gAcropolisFireEscapeViews9And10SpriteBatches, _gAcropolisFireEscapeView9SpriteDrawAreas },
+    { { .empty = _gAcropolisFireEscapeViews9And10SpriteBatches }, _gAcropolisFireEscapeViews9And10SpriteBatches, NULL },
 };
 
-ViewCamera D_acropolis_fire_escape_80182E90[9] = {
+ViewCamera gAcropolisFireEscapeViewCameras[9] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 1200, 0x7530, -1600 } }, 680 },
     { { { { -4039, 0, 676 }, { 308, 3645, 1842 }, { -602, 1868, -3595 } }, { -2490, 2330, -2698 } }, 230 },
     { { { { 4020, 0, 784 }, { 142, 4028, -728 }, { -771, 742, 3953 } }, { -2414, 1819, 1108 } }, 230 },
@@ -506,53 +527,90 @@ ViewCamera D_acropolis_fire_escape_80182E90[9] = {
     { { { { -1538, 0, -3796 }, { -2236, 3309, 906 }, { 3067, 2413, -1242 } }, { 3307, 3439, -2448 } }, 230 },
 };
 
-WorldCollisionFootstepSounds D_acropolis_fire_escape_80182FD4 = {
-    0x10000015,
-    0x10000017,
-    0x10000019,
+/// Type-1 cue-2 bases used by this room's surface footstep records.
+enum {
+    ACROPOLIS_FIRE_ESCAPE_FOOTSTEP_DEFAULT_WALK = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x0D,
+    ACROPOLIS_FIRE_ESCAPE_FOOTSTEP_DEFAULT_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x0F,
+    ACROPOLIS_FIRE_ESCAPE_FOOTSTEP_CLASS1_WALK  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x15,
+    ACROPOLIS_FIRE_ESCAPE_FOOTSTEP_CLASS1_RUN   = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x17,
+    ACROPOLIS_FIRE_ESCAPE_FOOTSTEP_CLASS1_JUMP  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x19,
 };
 
-WorldCollisionFootstepSounds D_acropolis_fire_escape_80182FE0 = {
-    0x10000015,
-    0x10000017,
-    0x10000019,
+/// Surface class 1's loaded-bank walk, run and scripted-stair cue bases.
+static WorldCollisionFootstepSounds _gAcropolisFireEscapeSurfaceClass1FootstepSounds = {
+    .walk         = ACROPOLIS_FIRE_ESCAPE_FOOTSTEP_CLASS1_WALK,
+    .run          = ACROPOLIS_FIRE_ESCAPE_FOOTSTEP_CLASS1_RUN,
+    .scriptedJump = ACROPOLIS_FIRE_ESCAPE_FOOTSTEP_CLASS1_JUMP,
 };
 
-WorldCollisionFootstepSounds D_acropolis_fire_escape_80182FEC = {
-    0x1000000D,
-    0x1000000F,
-    0x1000000D,
+/// Surface class 3's separate cue record, initially identical to class 1's.
+static WorldCollisionFootstepSounds _gAcropolisFireEscapeSurfaceClass3FootstepSounds = {
+    .walk         = ACROPOLIS_FIRE_ESCAPE_FOOTSTEP_CLASS1_WALK,
+    .run          = ACROPOLIS_FIRE_ESCAPE_FOOTSTEP_CLASS1_RUN,
+    .scriptedJump = ACROPOLIS_FIRE_ESCAPE_FOOTSTEP_CLASS1_JUMP,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_fire_escape_80182FF8[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_fire_escape_80182FEC },
+/// Cue bases for classes 0, 2, 4..7; scripted stairs use the walking pair.
+static WorldCollisionFootstepSounds _gAcropolisFireEscapeDefaultFootstepSounds = {
+    .walk         = ACROPOLIS_FIRE_ESCAPE_FOOTSTEP_DEFAULT_WALK,
+    .run          = ACROPOLIS_FIRE_ESCAPE_FOOTSTEP_DEFAULT_RUN,
+    .scriptedJump = ACROPOLIS_FIRE_ESCAPE_FOOTSTEP_DEFAULT_WALK,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_fire_escape_80183000[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_fire_escape_80182FD4 },
+/// Blocking, impact-enabled surface shared by classes 0, 4, 5 and 7.
+static WorldCollisionSurfaceProperties _gAcropolisFireEscapeDefaultSurfaceProperties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    &_gAcropolisFireEscapeDefaultFootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_fire_escape_80183008[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_fire_escape_80182FEC },
+/// Class 1's blocking, impact-enabled surface and its stair-flight cue bases.
+static WorldCollisionSurfaceProperties _gAcropolisFireEscapeSurfaceClass1Properties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    &_gAcropolisFireEscapeSurfaceClass1FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_fire_escape_80183010[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_fire_escape_80182FE0 },
+/// Class 2's separate blocking surface, borrowing the default footstep cues.
+static WorldCollisionSurfaceProperties _gAcropolisFireEscapeSurfaceClass2Properties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    &_gAcropolisFireEscapeDefaultFootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_fire_escape_80183018[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_fire_escape_80182FEC },
+/// Class 3's separate blocking surface and cue record.
+static WorldCollisionSurfaceProperties _gAcropolisFireEscapeSurfaceClass3Properties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    &_gAcropolisFireEscapeSurfaceClass3FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_acropolis_fire_escape_80183020[8] = {
-    D_acropolis_fire_escape_80182FF8,
-    D_acropolis_fire_escape_80183000,
-    D_acropolis_fire_escape_80183008,
-    D_acropolis_fire_escape_80183010,
-    D_acropolis_fire_escape_80182FF8,
-    D_acropolis_fire_escape_80182FF8,
-    D_acropolis_fire_escape_80183018,
-    D_acropolis_fire_escape_80182FF8,
+/// Class 6's probe-passing surface, retaining pushback and default footstep cues.
+static WorldCollisionSurfaceProperties _gAcropolisFireEscapeSurfaceClass6Properties = {
+    0,
+    WORLD_COLLISION_SURFACE_PASS_PROBES,
+    WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    &_gAcropolisFireEscapeDefaultFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gAcropolisFireEscapeSurfacePropertiesByClass[8] = {
+    &_gAcropolisFireEscapeDefaultSurfaceProperties,
+    &_gAcropolisFireEscapeSurfaceClass1Properties,
+    &_gAcropolisFireEscapeSurfaceClass2Properties,
+    &_gAcropolisFireEscapeSurfaceClass3Properties,
+    &_gAcropolisFireEscapeDefaultSurfaceProperties,
+    &_gAcropolisFireEscapeDefaultSurfaceProperties,
+    &_gAcropolisFireEscapeSurfaceClass6Properties,
+    &_gAcropolisFireEscapeDefaultSurfaceProperties,
 };
 
 s32 D_acropolis_fire_escape_80183040;
@@ -612,7 +670,7 @@ static inline void _acropolisFireEscapeStartRepeatScene(void)
     D_acropolis_fire_escape_80183048.endSound        = ACROPOLIS_FIRE_ESCAPE_SCENE_END_SOUND;
     D_acropolis_fire_escape_80183048.sceneSound      = ACROPOLIS_FIRE_ESCAPE_SCENE_PLAYBACK_SOUND;
     D_acropolis_fire_escape_80183048.afterSceneSound = ACROPOLIS_FIRE_ESCAPE_SCENE_AFTER_SOUND;
-    taskSpawnFromTable(gRoomCutsceneTaskDescs, ACROPOLIS_FIRE_ESCAPE_SCENE_TASK, ACROPOLIS_FIRE_ESCAPE_SCENE_FOLLOW_UP_COMMAND, &D_acropolis_fire_escape_80183048);
+    taskSpawnFromTable(_gRoomCutsceneTaskDescs, ACROPOLIS_FIRE_ESCAPE_SCENE_TASK, ACROPOLIS_FIRE_ESCAPE_SCENE_FOLLOW_UP_COMMAND, &D_acropolis_fire_escape_80183048);
 }
 
 /// Handles the fire escape's scene, story-progress and placed-actor dialogue commands.
@@ -834,7 +892,7 @@ static void _acropolisFireEscapeDisableAbsentActorInteraction(Task* unusedTask)
 
     actorTask = sceneFindPlacedActor(0);
     if (actorTask == NULL || taskMessageDispatch(actorTask, ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) {
-        WorldCollisionTrigger* interaction = &D_acropolis_fire_escape_8018252C[ACROPOLIS_FIRE_ESCAPE_ACTOR_INTERACTION_TRIGGER];
+        WorldCollisionTrigger* interaction = &_gAcropolisFireEscapeActionTriggers[ACROPOLIS_FIRE_ESCAPE_ACTOR_INTERACTION_TRIGGER];
         interaction->flags                &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
     }
 }
@@ -1025,40 +1083,40 @@ void acropolisFireEscapeFlickerLightTask(Task* task)
                 quad           = gGpuPrimCursor;
                 gGpuPrimCursor = quad + 1;
                 ACROPOLIS_FIRE_ESCAPE_INIT_GLOW_QUAD(quad, effectWork->scale >> 1, effectWork->scale >> 1, effectWork->scale >> 1);
-                quad->x0 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex + 4]) >> GLOW_TRIG_SHIFT);
-                quad->y0 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex]) >> GLOW_TRIG_SHIFT);
-                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex + 5]) >> GLOW_TRIG_SHIFT);
-                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex + 1]) >> GLOW_TRIG_SHIFT);
+                quad->x0 = projection->screenPos.vx + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[cornerIndex + 4]) >> GLOW_TRIG_SHIFT);
+                quad->y0 = projection->screenPos.vy + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[cornerIndex]) >> GLOW_TRIG_SHIFT);
+                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[cornerIndex + 5]) >> GLOW_TRIG_SHIFT);
+                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[cornerIndex + 1]) >> GLOW_TRIG_SHIFT);
                 quad->x2 = projection->screenPos.vx;
                 quad->y2 = projection->screenPos.vy;
-                quad->x3 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex + 6]) >> GLOW_TRIG_SHIFT);
-                quad->y3 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex + 2]) >> GLOW_TRIG_SHIFT);
+                quad->x3 = projection->screenPos.vx + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[cornerIndex + 6]) >> GLOW_TRIG_SHIFT);
+                quad->y3 = projection->screenPos.vy + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[cornerIndex + 2]) >> GLOW_TRIG_SHIFT);
                 _acropolisFireEscapeQueueGlow(quad, &projection->otz);
 
                 quad           = gGpuPrimCursor;
                 gGpuPrimCursor = quad + 1;
                 ACROPOLIS_FIRE_ESCAPE_INIT_GLOW_QUAD(quad, effectWork->scale, effectWork->scale, effectWork->scale);
-                quad->x0 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex + 4]) >> (GLOW_TRIG_SHIFT + 1));
-                quad->y0 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex]) >> (GLOW_TRIG_SHIFT + 1));
-                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex + 5]) >> (GLOW_TRIG_SHIFT + 1));
-                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex + 1]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->x0 = projection->screenPos.vx + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[cornerIndex + 4]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y0 = projection->screenPos.vy + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[cornerIndex]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[cornerIndex + 5]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[cornerIndex + 1]) >> (GLOW_TRIG_SHIFT + 1));
                 quad->x2 = projection->screenPos.vx;
                 quad->y2 = projection->screenPos.vy;
-                quad->x3 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex + 6]) >> (GLOW_TRIG_SHIFT + 1));
-                quad->y3 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex + 2]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->x3 = projection->screenPos.vx + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[cornerIndex + 6]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y3 = projection->screenPos.vy + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[cornerIndex + 2]) >> (GLOW_TRIG_SHIFT + 1));
                 _acropolisFireEscapeQueueGlow(quad, &projection->otz);
 
                 quad           = gGpuPrimCursor;
                 gGpuPrimCursor = quad + 1;
                 ACROPOLIS_FIRE_ESCAPE_INIT_GLOW_QUAD(quad, (u8)effectWork->scale * 4, (u8)effectWork->scale * 4, (u8)effectWork->scale * 4);
-                quad->x0 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex + 4]) >> (GLOW_TRIG_SHIFT + 3));
-                quad->y0 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex]) >> (GLOW_TRIG_SHIFT + 3));
-                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex + 5]) >> (GLOW_TRIG_SHIFT + 3));
-                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex + 1]) >> (GLOW_TRIG_SHIFT + 3));
+                quad->x0 = projection->screenPos.vx + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[cornerIndex + 4]) >> (GLOW_TRIG_SHIFT + 3));
+                quad->y0 = projection->screenPos.vy + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[cornerIndex]) >> (GLOW_TRIG_SHIFT + 3));
+                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[cornerIndex + 5]) >> (GLOW_TRIG_SHIFT + 3));
+                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[cornerIndex + 1]) >> (GLOW_TRIG_SHIFT + 3));
                 quad->x2 = projection->screenPos.vx;
                 quad->y2 = projection->screenPos.vy;
-                quad->x3 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex + 6]) >> (GLOW_TRIG_SHIFT + 3));
-                quad->y3 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex + 2]) >> (GLOW_TRIG_SHIFT + 3));
+                quad->x3 = projection->screenPos.vx + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[cornerIndex + 6]) >> (GLOW_TRIG_SHIFT + 3));
+                quad->y3 = projection->screenPos.vy + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[cornerIndex + 2]) >> (GLOW_TRIG_SHIFT + 3));
                 _acropolisFireEscapeQueueGlow(quad, &projection->otz);
             }
         }
@@ -1125,56 +1183,57 @@ void acropolisFireEscapeFlareTask(Task* task)
                 quad           = gGpuPrimCursor;
                 gGpuPrimCursor = quad + 1;
                 ACROPOLIS_FIRE_ESCAPE_INIT_GLOW_QUAD(quad, (intensity * (cyan ^ 1)) >> 1, (cyan * intensity) >> 1, (cyan * intensity) >> 1);
-                quad->x0 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 4]) >> GLOW_TRIG_SHIFT);
-                quad->y0 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex]) >> GLOW_TRIG_SHIFT);
-                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 5]) >> GLOW_TRIG_SHIFT);
-                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 1]) >> GLOW_TRIG_SHIFT);
+                quad->x0 = projection->screenPos.vx + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[partIndex + 4]) >> GLOW_TRIG_SHIFT);
+                quad->y0 = projection->screenPos.vy + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[partIndex]) >> GLOW_TRIG_SHIFT);
+                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[partIndex + 5]) >> GLOW_TRIG_SHIFT);
+                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[partIndex + 1]) >> GLOW_TRIG_SHIFT);
                 quad->x2 = projection->screenPos.vx;
                 quad->y2 = projection->screenPos.vy;
-                quad->x3 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 6]) >> GLOW_TRIG_SHIFT);
-                quad->y3 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 2]) >> GLOW_TRIG_SHIFT);
+                quad->x3 = projection->screenPos.vx + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[partIndex + 6]) >> GLOW_TRIG_SHIFT);
+                quad->y3 = projection->screenPos.vy + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[partIndex + 2]) >> GLOW_TRIG_SHIFT);
                 _acropolisFireEscapeQueueGlow(quad, &projection->otz);
 
                 quad           = gGpuPrimCursor;
                 gGpuPrimCursor = quad + 1;
                 ACROPOLIS_FIRE_ESCAPE_INIT_GLOW_QUAD(quad, intensity * (cyan ^ 1), cyan * intensity, cyan * intensity);
-                quad->x0 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 4]) >> (GLOW_TRIG_SHIFT + 1));
-                quad->y0 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex]) >> (GLOW_TRIG_SHIFT + 1));
-                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 5]) >> (GLOW_TRIG_SHIFT + 1));
-                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 1]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->x0 = projection->screenPos.vx + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[partIndex + 4]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y0 = projection->screenPos.vy + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[partIndex]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[partIndex + 5]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[partIndex + 1]) >> (GLOW_TRIG_SHIFT + 1));
                 quad->x2 = projection->screenPos.vx;
                 quad->y2 = projection->screenPos.vy;
-                quad->x3 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 6]) >> (GLOW_TRIG_SHIFT + 1));
-                quad->y3 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 2]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->x3 = projection->screenPos.vx + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[partIndex + 6]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y3 = projection->screenPos.vy + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[partIndex + 2]) >> (GLOW_TRIG_SHIFT + 1));
                 _acropolisFireEscapeQueueGlow(quad, &projection->otz);
             }
             // Overlay four half-bright rays on the concentric disc.
+            // Retain the first ray's pre-array read of the preceding descriptor's zero halfword.
             halfIntensity = intensity >> 1;
             for (partIndex = 2; partIndex < ACROPOLIS_FIRE_ESCAPE_GLOW_CIRCLE_STEPS; partIndex += 8) {
                 quad           = gGpuPrimCursor;
                 gGpuPrimCursor = quad + 1;
                 ACROPOLIS_FIRE_ESCAPE_INIT_GLOW_QUAD(quad, halfIntensity * (cyan ^ 1), cyan * halfIntensity, cyan * halfIntensity);
-                quad->x0 = projection->screenPos.vx + ((projection->innerRadius * D_acropolis_fire_escape_80181D7C[partIndex]) >> GLOW_TRIG_SHIFT);
-                quad->y0 = projection->screenPos.vy + ((projection->innerRadius * D_acropolis_fire_escape_80181D7C[partIndex - 4]) >> GLOW_TRIG_SHIFT);
-                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 4]) >> (GLOW_TRIG_SHIFT - 1));
-                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex]) >> (GLOW_TRIG_SHIFT - 1));
+                quad->x0 = projection->screenPos.vx + ((projection->innerRadius * _gAcropolisFireEscapeGlowCircleSamples[partIndex]) >> GLOW_TRIG_SHIFT);
+                quad->y0 = projection->screenPos.vy + ((projection->innerRadius * _gAcropolisFireEscapeGlowCircleSamples[partIndex - 4]) >> GLOW_TRIG_SHIFT);
+                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[partIndex + 4]) >> (GLOW_TRIG_SHIFT - 1));
+                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[partIndex]) >> (GLOW_TRIG_SHIFT - 1));
                 quad->x2 = projection->screenPos.vx;
                 quad->y2 = projection->screenPos.vy;
-                quad->x3 = projection->screenPos.vx + ((projection->innerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 8]) >> GLOW_TRIG_SHIFT);
-                quad->y3 = projection->screenPos.vy + ((projection->innerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 4]) >> GLOW_TRIG_SHIFT);
+                quad->x3 = projection->screenPos.vx + ((projection->innerRadius * _gAcropolisFireEscapeGlowCircleSamples[partIndex + 8]) >> GLOW_TRIG_SHIFT);
+                quad->y3 = projection->screenPos.vy + ((projection->innerRadius * _gAcropolisFireEscapeGlowCircleSamples[partIndex + 4]) >> GLOW_TRIG_SHIFT);
                 _acropolisFireEscapeQueueGlow(quad, &projection->otz);
 
                 quad           = gGpuPrimCursor;
                 gGpuPrimCursor = quad + 1;
                 ACROPOLIS_FIRE_ESCAPE_INIT_GLOW_QUAD(quad, halfIntensity * (cyan ^ 1), cyan * halfIntensity, cyan * halfIntensity);
-                quad->x0 = projection->screenPos.vx + ((projection->innerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 4]) >> (GLOW_TRIG_SHIFT + 1));
-                quad->y0 = projection->screenPos.vy + ((projection->innerRadius * D_acropolis_fire_escape_80181D7C[partIndex]) >> (GLOW_TRIG_SHIFT + 1));
-                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 8]) >> GLOW_TRIG_SHIFT);
-                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 4]) >> GLOW_TRIG_SHIFT);
+                quad->x0 = projection->screenPos.vx + ((projection->innerRadius * _gAcropolisFireEscapeGlowCircleSamples[partIndex + 4]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y0 = projection->screenPos.vy + ((projection->innerRadius * _gAcropolisFireEscapeGlowCircleSamples[partIndex]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[partIndex + 8]) >> GLOW_TRIG_SHIFT);
+                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * _gAcropolisFireEscapeGlowCircleSamples[partIndex + 4]) >> GLOW_TRIG_SHIFT);
                 quad->x2 = projection->screenPos.vx;
                 quad->y2 = projection->screenPos.vy;
-                quad->x3 = projection->screenPos.vx + ((projection->innerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 0xC]) >> (GLOW_TRIG_SHIFT + 1));
-                quad->y3 = projection->screenPos.vy + ((projection->innerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 8]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->x3 = projection->screenPos.vx + ((projection->innerRadius * _gAcropolisFireEscapeGlowCircleSamples[partIndex + 0xC]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y3 = projection->screenPos.vy + ((projection->innerRadius * _gAcropolisFireEscapeGlowCircleSamples[partIndex + 8]) >> (GLOW_TRIG_SHIFT + 1));
                 _acropolisFireEscapeQueueGlow(quad, &projection->otz);
             }
         } else {

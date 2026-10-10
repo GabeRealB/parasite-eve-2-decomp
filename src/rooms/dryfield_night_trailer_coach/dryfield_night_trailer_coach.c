@@ -69,11 +69,6 @@ static void _roomCutsceneSoundTask(Task* task);
 
 static s32 _gShopPreviewRowId;
 
-/// Task descriptor table the room's cutscene tasks spawn from: the room spawns
-/// entry 0 with a cutscene record as its argument, and
-/// `_roomCutsceneTask` spawns entry 1 for the scene.
-extern TaskDesc gRoomCutsceneTaskDescs[];
-
 #define TELEPHONE_TITLE_BYTES "Telephone\0N\xF2"
 #include "../../shared/telephone.h"
 
@@ -172,9 +167,15 @@ TmdSource gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0 = {
 
 #include "../../shared/telephone_data.inc.c"
 
-TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneSoundTask, { .value = 0 } },
+/// This carrier's bodyless scene runner and timed sound task, followed by END.
+///
+/// Entry SCENE borrows a RoomCutsceneRec in spawnArg2 and takes the follow-up
+/// CAP command in spawnArg1; SOUND takes a packed sound request in spawnArg2.
+/// Both run at priority 32. Keep callback code and the scene record loaded
+/// until completion; spawning copies the recipe and retains no table pointer.
+static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
+    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -1027,7 +1028,7 @@ static inline void _dryfieldNightTrailerCoachQueueCutscene(void)
     D_dryfield_night_trailer_coach_8018C21C.endSound        = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_END_SOUND;
     D_dryfield_night_trailer_coach_8018C21C.sceneSound      = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_SCENE_SOUND;
     D_dryfield_night_trailer_coach_8018C21C.afterSceneSound = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_AFTER_SCENE_SOUND;
-    taskSpawnFromTable(gRoomCutsceneTaskDescs, DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_TASK, DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_FOLLOWUP_COMMAND, &D_dryfield_night_trailer_coach_8018C21C);
+    taskSpawnFromTable(_gRoomCutsceneTaskDescs, DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_TASK, DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_FOLLOWUP_COMMAND, &D_dryfield_night_trailer_coach_8018C21C);
 }
 
 /// Handles the night trailer coach's CAP room commands.

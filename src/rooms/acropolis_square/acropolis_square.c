@@ -89,11 +89,6 @@ static UiList Telephone_Data_80181C6C;
 /// Descriptor of the remaining weapon and PE usage panel.
 static UiObjectDesc Telephone_Data_80181CC8;
 
-/// Task descriptor table of the room's cutscenes: entry 0 is the cutscene
-/// runner, spawned with a cutscene record as its argument, and entry 1 the
-/// sound task the runner spawns for the scene.
-extern TaskDesc gRoomCutsceneTaskDescs[];
-
 /// The room's message table, installed on the room entry task.
 extern TaskMessageEntry D_acropolis_square_801837C4[];
 
@@ -120,7 +115,7 @@ extern s32   D_acropolis_square_801888A4;
 /// The scene sub-task while it runs, NULL otherwise.
 extern Task* gRoomCutsceneSoundTask;
 
-/// The cutscene record the room hands entry 0 of `gRoomCutsceneTaskDescs`.
+/// The cutscene record the room hands entry 0 of `_gRoomCutsceneTaskDescs`.
 extern RoomCutsceneRecStorage D_acropolis_square_801888AC;
 
 extern GfxCoord D_acropolis_square_801888CC;
@@ -173,9 +168,15 @@ static inline TaskDesc* _planarReflectionGetTaskTable(void)
 
 #include "../../shared/telephone_data.inc.c"
 
-TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneSoundTask, { .value = 0 } },
+/// This carrier's bodyless scene runner and timed sound task, followed by END.
+///
+/// Entry SCENE borrows a RoomCutsceneRec in spawnArg2 and takes the follow-up
+/// CAP command in spawnArg1; SOUND takes a packed sound request in spawnArg2.
+/// Both run at priority 32. Keep callback code and the scene record loaded
+/// until completion; spawning copies the recipe and retains no table pointer.
+static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
+    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -1463,7 +1464,7 @@ static inline void _acropolisSquareStartRoomCutscene(void)
     D_acropolis_square_801888AC.rec.afterSceneSound = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SQUARE, 11);
     D_acropolis_square_801888AC.rec.skipScene       = D_acropolis_square_8018382C;
     D_acropolis_square_8018382C                     = 0;
-    taskSpawnFromTable(gRoomCutsceneTaskDescs, ACROPOLIS_SQUARE_CUTSCENE_TASK_ENTRY, ACROPOLIS_SQUARE_CUTSCENE_FOLLOWUP, &D_acropolis_square_801888AC.rec);
+    taskSpawnFromTable(_gRoomCutsceneTaskDescs, ACROPOLIS_SQUARE_CUTSCENE_TASK_ENTRY, ACROPOLIS_SQUARE_CUTSCENE_FOLLOWUP, &D_acropolis_square_801888AC.rec);
 }
 
 /// Starts the square cutscene or a one-time CAP hint from an integer room command.

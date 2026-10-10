@@ -108,7 +108,6 @@ typedef struct {
 } _ShelterR47SpritePart;
 STATIC_ASSERT_SIZEOF(_ShelterR47SpritePart, 0xC);
 
-static TaskDesc             gRoomCutsceneTaskDescs[3];
 static TaskMessageEntry     D_shelter_r47_80186F2C[6];
 static AnimationPlayRequest D_shelter_r47_80186F5C;
 static TaskDesc             D_shelter_r47_80186F70[3];
@@ -163,9 +162,15 @@ static void _shelterR47AdvanceTerminalTour(Task* unusedTask);
 
 #include "../../shared/telephone_data.inc.c"
 
-static TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneSoundTask, { .value = 0 } },
+/// This carrier's bodyless scene runner and timed sound task, followed by END.
+///
+/// Entry SCENE borrows a RoomCutsceneRec in spawnArg2 and takes the follow-up
+/// CAP command in spawnArg1; SOUND takes a packed sound request in spawnArg2.
+/// Both run at priority 32. Keep callback code and the scene record loaded
+/// until completion; spawning copies the recipe and retains no table pointer.
+static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
+    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -892,7 +897,7 @@ static s32 _shelterR47HandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s
             D_shelter_r47_8018A698.endSound        = SHELTER_R47_CUTSCENE_END_SOUND;
             D_shelter_r47_8018A698.sceneSound      = SHELTER_R47_CUTSCENE_SCENE_SOUND;
             D_shelter_r47_8018A698.afterSceneSound = SHELTER_R47_CUTSCENE_AFTER_SCENE_SOUND;
-            taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, SHELTER_R47_CUTSCENE_FOLLOWUP_COMMAND, &D_shelter_r47_8018A698);
+            taskSpawnFromTable(_gRoomCutsceneTaskDescs, ROOM_CUTSCENE_TASK_SCENE, SHELTER_R47_CUTSCENE_FOLLOWUP_COMMAND, &D_shelter_r47_8018A698);
         } else {
             gameFlagSetNibble(GAME_FLAG_SHELTER_R47_FIRST_USE, 1);
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);

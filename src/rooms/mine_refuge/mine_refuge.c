@@ -84,8 +84,6 @@ static u8 Telephone_Data_80181A18[];
 /// List and descriptor of the remaining usage panel.
 static UiList       Telephone_Data_80181C6C;
 static UiObjectDesc Telephone_Data_80181CC8;
-/// Task table the cutscene and its sound task are spawned from.
-extern TaskDesc gRoomCutsceneTaskDescs[];
 
 /// Message table of the room's message task.
 extern TaskMessageEntry D_mine_refuge_80181884[];
@@ -139,9 +137,15 @@ static void                       _mineRefugeCutscenePromptTask(Task* task);
 
 #include "../../shared/telephone_data.inc.c"
 
-TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneSoundTask, { .value = 0 } },
+/// This carrier's bodyless scene runner and timed sound task, followed by END.
+///
+/// Entry SCENE borrows a RoomCutsceneRec in spawnArg2 and takes the follow-up
+/// CAP command in spawnArg1; SOUND takes a packed sound request in spawnArg2.
+/// Both run at priority 32. Keep callback code and the scene record loaded
+/// until completion; spawning copies the recipe and retains no table pointer.
+static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
+    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -782,7 +786,7 @@ static void _mineRefugeStartCutscene(s32 restoreView)
     D_mine_refuge_80182AE0.endSound        = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 6);
     D_mine_refuge_80182AE0.sceneSound      = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 4);
     D_mine_refuge_80182AE0.afterSceneSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 5);
-    taskSpawnFromTable(gRoomCutsceneTaskDescs, MINE_REFUGE_TASK_CUTSCENE, followupCommandIndex, &D_mine_refuge_80182AE0);
+    taskSpawnFromTable(_gRoomCutsceneTaskDescs, MINE_REFUGE_TASK_CUTSCENE, followupCommandIndex, &D_mine_refuge_80182AE0);
 }
 
 /// Installs the room handlers and enables CAP completion sound cues.

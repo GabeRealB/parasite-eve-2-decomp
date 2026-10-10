@@ -26,19 +26,41 @@ extern AreaVariant D_acropolis_fire_escape_8018294C[5];
 // acropolis_fire_escape
 extern WorldCollisionRoomResources D_acropolis_fire_escape_80181DAC[];
 
-extern u8* D_acropolis_fire_escape_80181DBC[];
+/// Room 1's logical-view map, borrowing gameplay's identity map while loaded.
+///
+/// Logical views 1..10 map to the same 1-based image and sprite indices.
+extern u8* gAcropolisFireEscapeViewMaps[1];
 
-extern ViewCount D_acropolis_fire_escape_80181DC0[];
+/// Room 1's ten logical slots for reverse view lookup, independent of camera capacity.
+extern ViewCount gAcropolisFireEscapeViewCounts[1];
 
-extern WorldCoordRoomLighting D_acropolis_fire_escape_80181DC4[];
+/// Room 1's five point lights, with default per-view ambient minima.
+///
+/// Borrows mutable lights from the loaded fire-escape overlay; pointers must
+/// not survive unloading it.
+extern WorldCoordRoomLighting gAcropolisFireEscapeRoomLightingTable[1];
 
 extern DirectionWarpEntry D_acropolis_fire_escape_80181DCC[];
 
-extern SpriteView D_acropolis_fire_escape_80182E18[];
+/// Sprite sources, batches and clipping lists for mapped views 1..10.
+///
+/// Views 3, 5 and 7 have source sprites; all other views retain empty batch
+/// lists. Views 6 and 9 also clip scene drawing. The overlay owns these mutable
+/// records and lists; keep it loaded through packet allocation and linking.
+extern SpriteView gAcropolisFireEscapeSpriteViews[10];
 
-extern ViewCamera D_acropolis_fire_escape_80182E90[];
+/// Nine cameras selected by mapped indices 1..9, borrowing loaded overlay storage.
+///
+/// The logical-view count is ten and does not extend this array. Camera
+/// selection requires an index within these nine records.
+extern ViewCamera gAcropolisFireEscapeViewCameras[9];
 
-extern WorldCollisionSurfaceProperties* D_acropolis_fire_escape_80183020[];
+/// Collision policies and footstep cue bases indexed by surface class 0..7.
+///
+/// Classes 0, 4, 5 and 7 share the default record; classes 1, 2, 3 and 6 have
+/// separate records. Class 6 passes probes and suppresses weapon impacts;
+/// every class permits pushback. Borrowed records require the overlay loaded.
+extern WorldCollisionSurfaceProperties* gAcropolisFireEscapeSurfacePropertiesByClass[8];
 
 /// Packed `spawnArg1` controls of the fire-escape flare task.
 ///

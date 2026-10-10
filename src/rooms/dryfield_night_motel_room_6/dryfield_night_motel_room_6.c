@@ -101,11 +101,6 @@ static UiList Telephone_Data_80181C6C;
 /// Descriptor of the remaining weapon and PE usage panel.
 static UiObjectDesc Telephone_Data_80181CC8;
 
-/// Task table of the room's cutscene: entry 0 is the cutscene task
-/// `_roomCutsceneTask`, entry 1 the sound task
-/// `_roomCutsceneSoundTask` it runs alongside the scene.
-extern TaskDesc gRoomCutsceneTaskDescs[];
-
 /// The room's message table, installed on the room entry task.
 extern TaskMessageEntry D_dryfield_night_motel_room_6_80182EB0[];
 
@@ -169,9 +164,15 @@ static inline TaskDesc* _planarReflectionGetTaskTable(void)
     return D_dryfield_night_motel_room_6_80182E74;
 }
 
-TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneSoundTask, { .value = 0 } },
+/// This carrier's bodyless scene runner and timed sound task, followed by END.
+///
+/// Entry SCENE borrows a RoomCutsceneRec in spawnArg2 and takes the follow-up
+/// CAP command in spawnArg1; SOUND takes a packed sound request in spawnArg2.
+/// Both run at priority 32. Keep callback code and the scene record loaded
+/// until completion; spawning copies the recipe and retains no table pointer.
+static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
+    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

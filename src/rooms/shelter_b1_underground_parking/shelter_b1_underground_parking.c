@@ -204,10 +204,6 @@ STATIC_ASSERT_SIZEOF(_ShelterB1UndergroundParkingPanelWork, 0x10);
 /// The departure the departure task carries out.
 extern RoomDeparture gRoomDeparture;
 
-/// The cutscene task's descriptor table; entry 0 runs a scene record, entry 1
-/// is the scene's sub-task.
-extern TaskDesc gRoomCutsceneTaskDescs[];
-
 static s32 _gShopPreviewRowId;
 
 /// Flag tested as zero / non-zero when drawing the room's view-dependent
@@ -402,9 +398,15 @@ ShelterB1UndergroundParkingShopSessionTaskDescStorage D_shelter_b1_underground_p
 
 TaskDesc D_shelter_b1_underground_parking_80187200 = { { { TASK_BODY_NONE, 32 } }, roomEventDepartureTask, { .value = 0 } };
 
-TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneSoundTask, { .value = 0 } },
+/// This carrier's bodyless scene runner and timed sound task, followed by END.
+///
+/// Entry SCENE borrows a RoomCutsceneRec in spawnArg2 and takes the follow-up
+/// CAP command in spawnArg1; SOUND takes a packed sound request in spawnArg2.
+/// Both run at priority 32. Keep callback code and the scene record loaded
+/// until completion; spawning copies the recipe and retains no table pointer.
+static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
+    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -1937,14 +1939,14 @@ static s32 _shelterB1UndergroundParkingHandleCommand(Task* roomTask, s32 message
                     scene->capSlot   = SHELTER_B1_UNDERGROUND_PARKING_SCENE_CAP_SLOT;
                     scene->capFile   = SHELTER_B1_UNDERGROUND_PARKING_SCENE_CAP_RESOURCE;
                     scene->skipScene = 0;
-                    taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, SHELTER_B1_UNDERGROUND_PARKING_SCENE_AFTER_COMMAND, scene);
+                    taskSpawnFromTable(_gRoomCutsceneTaskDescs, ROOM_CUTSCENE_TASK_SCENE, SHELTER_B1_UNDERGROUND_PARKING_SCENE_AFTER_COMMAND, scene);
                 }
             } else {
                 D_shelter_b1_underground_parking_8018D758 = 0;
                 scene->capSlot                            = SHELTER_B1_UNDERGROUND_PARKING_EVENT_CAP_SLOT;
                 scene->capFile                            = 0;
                 scene->skipScene                          = 1;
-                taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, commandId, scene);
+                taskSpawnFromTable(_gRoomCutsceneTaskDescs, ROOM_CUTSCENE_TASK_SCENE, commandId, scene);
             }
             break;
         case SHELTER_B1_UNDERGROUND_PARKING_COMMAND_DIALOGUE_LOOP:

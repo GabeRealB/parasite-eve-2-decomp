@@ -143,7 +143,7 @@ static void _roomCutsceneTask(Task* task)
             break;
         case ROOM_CUTSCENE_STATE_START_SCENE:
             ROOM_CUTSCENE_SOUND_TASK =
-                taskSpawnFromTable(gRoomCutsceneTaskDescs, 1, 0, cutscene->sceneSound);
+                taskSpawnFromTable(_gRoomCutsceneTaskDescs, ROOM_CUTSCENE_TASK_SOUND, 0, cutscene->sceneSound);
             capStartSequenceSlot(cutscene->capSlot, CAP_PLAYBACK_IN_PLACE, ROOM_CUTSCENE_SCENE_VARIANT);
             task->state++;
             break;

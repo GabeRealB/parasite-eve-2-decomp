@@ -127,9 +127,7 @@ static u8           Telephone_Data_80181A18[];
 static UiObjectDesc Telephone_Data_80181CC8;
 
 /// Mutable list of the remaining weapon and PE usage panel.
-static UiList Telephone_Data_80181C6C;
-/// Task tables: the cutscene and its sound task; the ambient sound task.
-extern TaskDesc gRoomCutsceneTaskDescs[];
+static UiList   Telephone_Data_80181C6C;
 extern TaskDesc D_shelter_b6_nursery_80185000;
 
 /// The room's message table.
@@ -168,9 +166,15 @@ static void _shelterB6NurseryAmbienceTask(Task* task);
 
 #include "../../shared/telephone_data.inc.c"
 
-TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneSoundTask, { .value = 0 } },
+/// This carrier's bodyless scene runner and timed sound task, followed by END.
+///
+/// Entry SCENE borrows a RoomCutsceneRec in spawnArg2 and takes the follow-up
+/// CAP command in spawnArg1; SOUND takes a packed sound request in spawnArg2.
+/// Both run at priority 32. Keep callback code and the scene record loaded
+/// until completion; spawning copies the recipe and retains no table pointer.
+static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
+    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -875,7 +879,7 @@ static inline void _shelterB6NurseryStartCommandScene(RoomCutsceneRec* scene, s3
     scene->capSlot   = capSlot;
     scene->capFile   = SHELTER_B6_NURSERY_CAP_FILE_KEEP_CURRENT;
     scene->skipScene = skipScene;
-    taskSpawnFromTable(gRoomCutsceneTaskDescs, SHELTER_B6_NURSERY_COMMAND_SCENE_TASK, followUpCommand, scene);
+    taskSpawnFromTable(_gRoomCutsceneTaskDescs, SHELTER_B6_NURSERY_COMMAND_SCENE_TASK, followUpCommand, scene);
 }
 
 /// Handles command 10's nursery progress, CAP playback and cutscene selection.

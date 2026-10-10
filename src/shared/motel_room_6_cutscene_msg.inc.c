@@ -51,7 +51,7 @@ static s32 _motelRoom6CutsceneMessage(Task* task, s32 messageId, s32 command, s3
         gMotelRoom6CutsceneRec.endSound        = sndScriptResolveStageId(SOUND_MOTEL_ROOM_6_SCENE_END);
         gMotelRoom6CutsceneRec.sceneSound      = sndScriptResolveStageId(SOUND_MOTEL_ROOM_6_SCENE_TRACK);
         gMotelRoom6CutsceneRec.afterSceneSound = sndScriptResolveStageId(SOUND_MOTEL_ROOM_6_SCENE_COMPLETE);
-        taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, followUpCommand, &gMotelRoom6CutsceneRec);
+        taskSpawnFromTable(_gRoomCutsceneTaskDescs, ROOM_CUTSCENE_TASK_SCENE, followUpCommand, &gMotelRoom6CutsceneRec);
     } else {
         MOTEL_ROOM_6_HANDLE_OTHER_COMMAND(task, messageId, command, secondArg);
     }
