@@ -24,12 +24,19 @@ extern AreaVariant D_dryfield_night_trailer_coach_8018C15C[13];
 
 extern TmdSource gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0;
 
-// dryfield_night_trailer_coach
-extern WorldCoordRoomLighting D_dryfield_night_trailer_coach_80189500[];
+/// Model lighting for the nighttime coach's sole room (room ID 1).
+///
+/// Night Dryfield area 27 borrows thirteen writable point lights and an
+/// eight-view ambient table. Records and lights require this room to stay loaded.
+extern WorldCoordRoomLighting gDryfieldNightTrailerCoachRoomLighting[1];
 
 extern WorldCollisionRoomResources D_dryfield_night_trailer_coach_80189508[];
 
-extern u8* D_dryfield_night_trailer_coach_80189518[];
+/// Logical-view map directory for the nighttime coach's sole room (room ID 1).
+///
+/// Borrows gameplay's `gViewIdentityMap`: logical views 1..8 retain the same
+/// 1-based camera/image/sprite indices. The directory lives with this room overlay.
+extern u8* gDryfieldNightTrailerCoachViewMaps[1];
 
 extern ViewCount D_dryfield_night_trailer_coach_8018951C[];
 
@@ -37,9 +44,21 @@ extern DirectionWarpEntry D_dryfield_night_trailer_coach_80189520[];
 
 extern ViewCamera D_dryfield_night_trailer_coach_80189A44[];
 
-extern SpriteView D_dryfield_night_trailer_coach_8018B64C[];
+/// Sprite resources for the nighttime coach's mapped views 1..8.
+///
+/// Views 2..7 select 101, 160, 39, 5, 22 and 7 source rectangles respectively;
+/// views 1 and 8 retain empty batch lists. Every view keeps its decoded
+/// background and has no clipping areas. The mutable sources and batches
+/// belong to this loaded room; empty source slots retain their batch addresses.
+extern SpriteView gDryfieldNightTrailerCoachSpriteViews[8];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_night_trailer_coach_8018C1E8[];
+/// Nighttime coach collision policies indexed directly by surface class 0..7.
+///
+/// All classes block probes, permit weapon impacts and apply pushback.
+/// Class 6 is the y=0 floor and supplies footstep sounds; class 5 retains
+/// a separate silent policy. Classes 0..4 and 7 share the silent default.
+/// The pointer table and its records require this room overlay to stay loaded.
+extern WorldCollisionSurfaceProperties* gDryfieldNightTrailerCoachSurfacePropertiesByClass[8];
 
 /// Updates the night trailer coach's telephone save menu and statistics panels.
 ///
