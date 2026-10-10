@@ -250,9 +250,9 @@ static s16 _gDryfieldWarehouseBeamRadii[8] = {
 };
 
 WorldCollisionRoomResources D_dryfield_warehouse_8017FBBC[3] = {
-    { &_gDryfieldWarehouseBeforeEventCollisionGrid, D_dryfield_warehouse_801816A4, D_dryfield_warehouse_801817D4, NULL },
-    { &_gDryfieldWarehouseAfterEventCollisionGrid, D_dryfield_warehouse_801816A4, D_dryfield_warehouse_80181BB0, NULL },
-    { &_gDryfieldWarehouseRoom3CollisionGrid, D_dryfield_warehouse_801816A4, D_dryfield_warehouse_801817D4, NULL },
+    { &_gDryfieldWarehouseBeforeEventCollisionGrid, gDryfieldWarehouseViewBoundaryTriggers, gDryfieldWarehouseBeforeEventActionTriggers, NULL },
+    { &_gDryfieldWarehouseAfterEventCollisionGrid, gDryfieldWarehouseViewBoundaryTriggers, gDryfieldWarehouseAfterEventActionTriggers, NULL },
+    { &_gDryfieldWarehouseRoom3CollisionGrid, gDryfieldWarehouseViewBoundaryTriggers, gDryfieldWarehouseBeforeEventActionTriggers, NULL },
 };
 
 /// Camera/image/sprite mapping for room 2, after the Monkey Wrench event.
@@ -311,9 +311,9 @@ ViewCount gDryfieldWarehouseRoomViewCounts[3] = {
 };
 
 WorldCoordRoomLighting D_dryfield_warehouse_8017FC18[3] = {
-    { D_dryfield_warehouse_801820E8, NULL },
-    { D_dryfield_warehouse_801820E8, NULL },
-    { D_dryfield_warehouse_801820E8, NULL },
+    { &gDryfieldWarehouseLights, NULL },
+    { &gDryfieldWarehouseLights, NULL },
+    { &gDryfieldWarehouseLights, NULL },
 };
 
 DirectionWarpEntry D_dryfield_warehouse_8017FC30[2] = {
@@ -615,23 +615,23 @@ static void _dryfieldWarehouseSkipCutscene(s32 phase)
     switch (phase) {
         case DRYFIELD_WAREHOUSE_SKIP_RESTORE:
             // Restore the player's equipment and placement before switching room objects.
-            if (D_dryfield_warehouse_801821C0 != NULL) {
-                taskKill(D_dryfield_warehouse_801821C0);
+            if (gDryfieldWarehouseFadeOutTask != NULL) {
+                taskKill(gDryfieldWarehouseFadeOutTask);
             }
             SetDispMask(1);
-            work = D_dryfield_warehouse_801821BC->work;
+            work = gDryfieldWarehouseCutsceneTask->work;
             _dryfieldWarehouseRestoreSkippedPlayer(work);
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room != ROOM_AFTER_CUTSCENE) {
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ROOM_AFTER_CUTSCENE;
                 gGameSession->location.loc.room                            = ROOM_AFTER_CUTSCENE;
-                D_dryfield_warehouse_801821C4                              = 1;
+                gDryfieldWarehouseSkipRoomChanged                          = true;
                 return;
             }
-            D_dryfield_warehouse_801821C4 = 0;
+            gDryfieldWarehouseSkipRoomChanged = false;
             return;
         case DRYFIELD_WAREHOUSE_SKIP_REFRESH:
             // The script separates the room commit and its deferred redraw by one tick.
-            if (D_dryfield_warehouse_801821C4 != 0) {
+            if (gDryfieldWarehouseSkipRoomChanged != 0) {
                 gGameSession->viewDirty     = phase;
                 gGameSession->roomObjsDirty = phase;
             }
@@ -736,11 +736,11 @@ static void _dryfieldWarehouseExecuteCutsceneCommand(Task* task)
             work->soundLoopFrames++;
             return;
         case DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_SPAWN_FADE_OUT:
-            D_dryfield_warehouse_801821C0 = taskSpawnFromTable(D_dryfield_warehouse_8017FB08, DRYFIELD_WAREHOUSE_TASK_FADE_OUT, DRYFIELD_WAREHOUSE_FADE_INTENSITY_STEP, 0);
+            gDryfieldWarehouseFadeOutTask = taskSpawnFromTable(D_dryfield_warehouse_8017FB08, DRYFIELD_WAREHOUSE_TASK_FADE_OUT, DRYFIELD_WAREHOUSE_FADE_INTENSITY_STEP, 0);
             break;
         case DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_RESTORE_AND_FADE_IN:
             // The restore goes through the published cutscene task's block.
-            publishedWork = D_dryfield_warehouse_801821BC->work;
+            publishedWork = gDryfieldWarehouseCutsceneTask->work;
             DRYFIELD_WAREHOUSE_RESTORE_COMMAND_PLAYER(publishedWork, scratch.animation, weaponSlot, animationBankIndex);
             switch (work->commandStep) {
                 case DRYFIELD_WAREHOUSE_COMMAND_STEP_BEGIN:
@@ -884,11 +884,11 @@ static void _dryfieldWarehouseCutsceneTask(Task* task)
                     taskKill(task);
                 } else {
                     memFillBytes(work, 0, sizeof(*work));
-                    work->player                  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                    D_dryfield_warehouse_801821BC = task;
+                    work->player                   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                    gDryfieldWarehouseCutsceneTask = task;
                 }
                 DRYFIELD_WAREHOUSE_PLAY_CUTSCENE_IDLE_ANIMATION();
-                D_dryfield_warehouse_801821C0 = NULL;
+                gDryfieldWarehouseFadeOutTask = NULL;
                 D_80115768                    = DRYFIELD_WAREHOUSE_PLAYER_TICK_HOLD;
                 task->state                   = task->state + 1;
             } else {
@@ -968,7 +968,7 @@ static void _dryfieldWarehouseFadeOutTask(Task* task)
                 return;
             }
             SetDispMask(0);
-            D_dryfield_warehouse_801821C0 = NULL;
+            gDryfieldWarehouseFadeOutTask = NULL;
             taskKill(task);
             break;
     }
@@ -984,7 +984,7 @@ static void _dryfieldWarehouseSetCutsceneCommand(s16 command)
 {
     enum { DRYFIELD_WAREHOUSE_CUTSCENE_FIRST_COMMAND_STEP = 0 };
 
-    _DryfieldWarehouseCutsceneWork* work = D_dryfield_warehouse_801821BC->work;
+    _DryfieldWarehouseCutsceneWork* work = gDryfieldWarehouseCutsceneTask->work;
 
     work->command     = command;
     work->commandStep = DRYFIELD_WAREHOUSE_CUTSCENE_FIRST_COMMAND_STEP;

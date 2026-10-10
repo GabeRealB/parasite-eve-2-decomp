@@ -1,10 +1,11 @@
 #include "common.h"
 
 /* GCC orders BSS by first declaration; keep this prologue before the API headers. */
-/// Volume last asked of the warehouse's ambient track, or 0 when none is
-/// playing. Written by `dryfieldWarehouseAmbienceTask` and cleared by state 0
-/// of the same task.
-s32 D_dryfield_warehouse_801821B8;
+/// Last requested warehouse ambience gain, in percent (0, 50, 60 or 100).
+///
+/// Zero requests silence; this cache records requests even when sound admission
+/// fails and does not prove playback state. Reset when the ambience task starts.
+static s32 _gDryfieldWarehouseAmbienceVolumePercent;
 
 #include "rooms/dryfield_warehouse.h"
 
@@ -33,31 +34,41 @@ s32 D_dryfield_warehouse_801821B8;
 #include "main/task.h"
 #include "main/task_types.h"
 
-/// Cutscene task spawned by state 0, polled by `taskPollKill` in state 1 and
-/// killed along with its parent in state 2.
-extern Task* D_dryfield_warehouse_801821B4;
-
-SpriteBatch D_dryfield_warehouse_801815F8[2] = {
+/// Unreferenced empty sprite-batch list; its intended view assignment is unproven.
+///
+/// Retains a zero-count background-strip record and an end marker.
+static SpriteBatch D_dryfield_warehouse_801815F8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_warehouse_80181608[2] = {
+/// Unreferenced empty sprite-batch list; its intended view assignment is unproven.
+///
+/// Retains a zero-count background-strip record and an end marker.
+static SpriteBatch D_dryfield_warehouse_80181608[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_warehouse_80181618[2] = {
+/// Empty mapped-view-8 sprite list, retaining decoded background strips.
+///
+/// The zero-count leading record is followed by `SPRITE_BATCH_END`; the view
+/// also retains this list as its empty source slot without reading sprites.
+static SpriteBatch _gDryfieldWarehouseView8SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_warehouse_80181628[2] = {
+/// Empty mapped-view-9 sprite list, retaining decoded background strips.
+///
+/// The zero-count leading record is followed by `SPRITE_BATCH_END`; the view
+/// also retains this list as its empty source slot without reading sprites.
+static SpriteBatch _gDryfieldWarehouseView9SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_dryfield_warehouse_80181638[9] = {
+SpriteView gDryfieldWarehouseSpriteViews[9] = {
     { { .empty = gDryfieldWarehouseView1SpriteBatches }, gDryfieldWarehouseView1SpriteBatches, NULL },
     { { .elements = gDryfieldWarehouseView2SpriteSources }, gDryfieldWarehouseView2SpriteBatches, NULL },
     { { .elements = gDryfieldWarehouseView3And6SpriteSources }, gDryfieldWarehouseView3And6SpriteBatches, NULL },
@@ -65,20 +76,26 @@ SpriteView D_dryfield_warehouse_80181638[9] = {
     { { .empty = gDryfieldWarehouseView5SpriteBatches }, gDryfieldWarehouseView5SpriteBatches, NULL },
     { { .elements = gDryfieldWarehouseView3And6SpriteSources }, gDryfieldWarehouseView3And6SpriteBatches, NULL },
     { { .elements = gDryfieldWarehouseView4And7SpriteSources }, gDryfieldWarehouseView4And7SpriteBatches, NULL },
-    { { .empty = D_dryfield_warehouse_80181618 }, D_dryfield_warehouse_80181618, NULL },
-    { { .empty = D_dryfield_warehouse_80181628 }, D_dryfield_warehouse_80181628, NULL },
+    { { .empty = _gDryfieldWarehouseView8SpriteBatches }, _gDryfieldWarehouseView8SpriteBatches, NULL },
+    { { .empty = _gDryfieldWarehouseView9SpriteBatches }, _gDryfieldWarehouseView9SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_dryfield_warehouse_801816A4[4] = {
+WorldCollisionTrigger gDryfieldWarehouseViewBoundaryTriggers[4] = {
     { NULL, NULL, NULL, { 2927, -1584, -2065, 0 }, { { -487, 1744, 1952, 0 }, { 487, 1744, -1951, 0 }, { -487, -1744, 1952, 0 }, { 487, -1744, -1951, 0 } }, { 3985, 0, 994, 0 }, { 0, 0, 4096, 0 }, 2660, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 3072, -960, -2114, 0 }, { { 487, 1984, -1951, 0 }, { -487, 1984, 1952, 0 }, { 487, -1984, -1951, 0 }, { -487, -1984, 1952, 0 } }, { -3980, 0, -994, 0 }, { 0, 0, 4096, 0 }, 2816, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 4703, -1104, -1858, 0 }, { { 1097, 2128, -1688, 0 }, { -1133, 2128, 1658, 0 }, { 1097, -2128, -1688, 0 }, { -1133, -2128, 1658, 0 } }, { -3424, 0, -2283, 0 }, { 0, 0, 4096, 0 }, 2918, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 4607, -1168, -1922, 0 }, { { -1133, 2192, 1655, 0 }, { 1097, 2192, -1692, 0 }, { -1133, -2192, 1655, 0 }, { 1097, -2192, -1692, 0 } }, { 3424, 0, 2281, 0 }, { 0, 0, 4096, 0 }, 2974, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_warehouse_801817D4[13] = {
-    { NULL, NULL, NULL, { 2303, -63, -3664, 0 }, { { -543, 0, -208, 0 }, { 544, 0, -208, 0 }, { -543, 0, 208, 0 }, { 544, 0, 208, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 579, WORLD_COLLISION_TRIGGER_ACTION_WARP, 5, 19, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5056, -61, -880, 0 }, { { 352, 0, -687, 0 }, { 352, 0, 688, 0 }, { -352, 0, -687, 0 }, { -352, 0, 688, 0 } }, { 0, 4100, 0, 0 }, { -4096, 0, 0, 0 }, 770, WORLD_COLLISION_TRIGGER_ACTION_WARP, 9, 34, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+/// Packed 1-based departure and arrival slots for the warehouse's two exits.
+enum {
+    DRYFIELD_WAREHOUSE_BACK_STREET_WARP_SLOTS       = (1 << 4) | 3,
+    DRYFIELD_WAREHOUSE_DILAPIDATED_HOUSE_WARP_SLOTS = (2 << 4) | 2,
+};
+
+WorldCollisionTrigger gDryfieldWarehouseBeforeEventActionTriggers[13] = {
+    { NULL, NULL, NULL, { 2303, -63, -3664, 0 }, { { -543, 0, -208, 0 }, { 544, 0, -208, 0 }, { -543, 0, 208, 0 }, { 544, 0, 208, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 579, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_BACK_STREET, DRYFIELD_WAREHOUSE_BACK_STREET_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5056, -61, -880, 0 }, { { 352, 0, -687, 0 }, { 352, 0, 688, 0 }, { -352, 0, -687, 0 }, { -352, 0, 688, 0 } }, { 0, 4100, 0, 0 }, { -4096, 0, 0, 0 }, 770, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_DILAPIDATED_HOUSE, DRYFIELD_WAREHOUSE_DILAPIDATED_HOUSE_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 5456, -64, -1824, 0 }, { { 528, 0, -703, 0 }, { 528, 0, 704, 0 }, { -528, 0, -703, 0 }, { -528, 0, 704, 0 } }, { 0, 4110, 0, 0 }, { -2897, 0, -2896, 0 }, 879, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 2992, -64, -416, 0 }, { { -1231, 0, -1008, 0 }, { 1232, 0, -1008, 0 }, { -1231, 0, 400, 0 }, { 1232, 0, 400, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, 4096, 0 }, 1588, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 1456, -64, -1216, 0 }, { { -383, 0, -1168, 0 }, { 384, 0, -1168, 0 }, { -383, 0, 1168, 0 }, { 384, 0, 1168, 0 } }, { 0, 4100, 0, 0 }, { 4095, 0, 0, 0 }, 1227, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
@@ -92,9 +109,9 @@ WorldCollisionTrigger D_dryfield_warehouse_801817D4[13] = {
     { NULL, NULL, NULL, { 5344, -64, -1904, 0 }, { { 896, 0, -911, 0 }, { 896, 0, 912, 0 }, { -896, 0, -911, 0 }, { -896, 0, 912, 0 } }, { 0, 4095, 0, 0 }, { 201, 0, -4091, 0 }, 1273, WORLD_COLLISION_TRIGGER_ACTION_ROOM, WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_warehouse_80181BB0[10] = {
-    { NULL, NULL, NULL, { 2303, -48, -3664, 0 }, { { -543, 0, -208, 0 }, { 544, 0, -208, 0 }, { -543, 0, 208, 0 }, { 544, 0, 208, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 579, WORLD_COLLISION_TRIGGER_ACTION_WARP, 5, 19, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5728, -48, -864, 0 }, { { 352, 0, -671, 0 }, { 352, 0, 672, 0 }, { -352, 0, -671, 0 }, { -352, 0, 672, 0 } }, { 0, 4102, 0, 0 }, { -4096, 0, 0, 0 }, 757, WORLD_COLLISION_TRIGGER_ACTION_WARP, 9, 34, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+WorldCollisionTrigger gDryfieldWarehouseAfterEventActionTriggers[10] = {
+    { NULL, NULL, NULL, { 2303, -48, -3664, 0 }, { { -543, 0, -208, 0 }, { 544, 0, -208, 0 }, { -543, 0, 208, 0 }, { 544, 0, 208, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 579, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_BACK_STREET, DRYFIELD_WAREHOUSE_BACK_STREET_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5728, -48, -864, 0 }, { { 352, 0, -671, 0 }, { 352, 0, 672, 0 }, { -352, 0, -671, 0 }, { -352, 0, 672, 0 } }, { 0, 4102, 0, 0 }, { -4096, 0, 0, 0 }, 757, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_DILAPIDATED_HOUSE, DRYFIELD_WAREHOUSE_DILAPIDATED_HOUSE_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 5120, -64, -2256, 0 }, { { 352, 0, -655, 0 }, { 352, 0, 656, 0 }, { -352, 0, -655, 0 }, { -352, 0, 656, 0 } }, { 0, 4102, 0, 0 }, { -4096, 0, 0, 0 }, 743, WORLD_COLLISION_TRIGGER_ACTION_CAP, 9, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
     { NULL, NULL, NULL, { 2992, -64, -416, 0 }, { { -1231, 0, -1008, 0 }, { 1232, 0, -1008, 0 }, { -1231, 0, 400, 0 }, { 1232, 0, 400, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, 4096, 0 }, 1588, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 1456, -64, -1216, 0 }, { { -383, 0, -1168, 0 }, { 384, 0, -1168, 0 }, { -383, 0, 1168, 0 }, { 384, 0, 1168, 0 } }, { 0, 4100, 0, 0 }, { 4095, 0, 0, 0 }, 1227, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
@@ -105,7 +122,12 @@ WorldCollisionTrigger D_dryfield_warehouse_80181BB0[10] = {
     { NULL, NULL, NULL, { 4736, -64, -336, 0 }, { { -847, 0, -256, 0 }, { 848, 0, -256, 0 }, { -847, 0, 256, 0 }, { 848, 0, 256, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, -4096, 0 }, 884, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCoordPointLight D_dryfield_warehouse_80181EA8[6] = {
+/// Six point lights shared by all warehouse rooms and views.
+///
+/// Positions and falloff radii use game-coordinate units; RGB intensities have
+/// 12 fractional bits. Coordinate updates and lighting queries mutate the
+/// transforms and attenuation while this room overlay is loaded.
+static WorldCoordPointLight _gDryfieldWarehousePointLights[6] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2870, -1533, -81 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 968, 3039 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1060, -710, -1699 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3280, 3280, 3280 }, { 0, 0 } }, 710, 1060 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3317, -270, -901 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1232, 1232, 1232 }, { 0, 0 } }, 561, 755 },
@@ -114,52 +136,106 @@ WorldCoordPointLight D_dryfield_warehouse_80181EA8[6] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3159, -1641, -3270 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1941, 3832 },
 };
 
-WorldCoordRoomLights D_dryfield_warehouse_801820E8[1] = {
-    { 0, NULL, ARRAY_SIZE(D_dryfield_warehouse_80181EA8), D_dryfield_warehouse_80181EA8, 0, NULL },
+WorldCoordRoomLights gDryfieldWarehouseLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gDryfieldWarehousePointLights),
+    .pointLights           = _gDryfieldWarehousePointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
-AreaVariant D_dryfield_warehouse_80182100[13] = { 0 };
+AreaVariant gDryfieldWarehousePlacementVariants[13] = { 0 };
 
-WorldCollisionFootstepSounds D_dryfield_warehouse_80182168 = {
-    0x10000045,
-    0x10000047,
-    0x10000045,
+// Type-1 requests resolve against the currently loaded area sound bank.
+enum {
+    DRYFIELD_WAREHOUSE_WALK_FOOTSTEP_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x45,
+    DRYFIELD_WAREHOUSE_RUN_FOOTSTEP_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x47,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_warehouse_80182174[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Walking, running and scripted-jump cue bases for warehouse surface class 6.
+///
+/// Walking and jumps use entry 69; running uses entry 71 in the loaded type-1
+/// bank. Animation cue 1 adds one; cue 2 uses the base. The surface borrows this
+/// record while the room overlay is loaded.
+static WorldCollisionFootstepSounds _gDryfieldWarehouseFootstepSounds = {
+    .walk         = DRYFIELD_WAREHOUSE_WALK_FOOTSTEP_SOUND,
+    .run          = DRYFIELD_WAREHOUSE_RUN_FOOTSTEP_SOUND,
+    .scriptedJump = DRYFIELD_WAREHOUSE_WALK_FOOTSTEP_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_warehouse_8018217C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Silent blocking policy for warehouse surface classes 0..3 and 7.
+///
+/// Allows weapon impacts and applies pushback. The authored first byte is zero;
+/// its role is unproven. The class directory borrows this record.
+static WorldCollisionSurfaceProperties _gDryfieldWarehouseBlockingSilentSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_warehouse_80182184[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Silent blocking policy for the warehouse meshes' surface class 4.
+///
+/// Allows weapon impacts and applies pushback. Retains its separate authored
+/// record even though its flags equal the default policy. The first byte's role
+/// is unproven; the class directory borrows this record.
+static WorldCollisionSurfaceProperties _gDryfieldWarehouseClass4Surface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_warehouse_8018218C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_warehouse_80182168 },
+/// Silent surface-class-5 policy passing probes and suppressing weapon impacts.
+///
+/// Applies pushback independently of probe passage. The first byte's role is
+/// unproven; the class directory borrows this record.
+static WorldCollisionSurfaceProperties _gDryfieldWarehousePassThroughSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_warehouse_80182194[8] = {
-    D_dryfield_warehouse_80182174,
-    D_dryfield_warehouse_80182174,
-    D_dryfield_warehouse_80182174,
-    D_dryfield_warehouse_80182174,
-    D_dryfield_warehouse_8018217C,
-    D_dryfield_warehouse_80182184,
-    D_dryfield_warehouse_8018218C,
-    D_dryfield_warehouse_80182174,
+/// Surface-class-6 floor policy with walking, running and jump footstep cues.
+///
+/// Blocks probes, allows weapon impacts and applies pushback. The first byte's
+/// role is unproven. Policy and borrowed sounds live with the room overlay.
+static WorldCollisionSurfaceProperties _gDryfieldWarehouseFootstepSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldWarehouseFootstepSounds,
 };
 
-Task* D_dryfield_warehouse_801821B4 = NULL;
+WorldCollisionSurfaceProperties* gDryfieldWarehouseSurfacePropertiesByClass[8] = {
+    &_gDryfieldWarehouseBlockingSilentSurface,
+    &_gDryfieldWarehouseBlockingSilentSurface,
+    &_gDryfieldWarehouseBlockingSilentSurface,
+    &_gDryfieldWarehouseBlockingSilentSurface,
+    &_gDryfieldWarehouseClass4Surface,
+    &_gDryfieldWarehousePassThroughSurface,
+    &_gDryfieldWarehouseFootstepSurface,
+    &_gDryfieldWarehouseBlockingSilentSurface,
+};
 
-Task* D_dryfield_warehouse_801821BC;
+/// Cutscene handle retained by the warehouse event gate until its requested exit.
+///
+/// The gate spawns the task and polls it with `taskPollKill`, which releases it
+/// when it requests exit. The handle is not cleared afterwards and must not be
+/// dereferenced after that poll succeeds. The gate does not adopt the cutscene.
+static Task* _gDryfieldWarehouseEventCutsceneTask = NULL;
 
-Task* D_dryfield_warehouse_801821C0;
+Task* gDryfieldWarehouseCutsceneTask;
 
-s16 D_dryfield_warehouse_801821C4;
+Task* gDryfieldWarehouseFadeOutTask;
+
+s16 gDryfieldWarehouseSkipRoomChanged;
 
 static void _dryfieldWarehouseInitializeRoomTask(Task* task);
 static void _dryfieldWarehouseIdleRoomTask(Task* unusedTask);
@@ -184,8 +260,8 @@ void dryfieldWarehouseAmbienceTask(Task* task)
 
     switch (task->state) {
         case DRYFIELD_WAREHOUSE_AMBIENCE_INITIALIZE:
-            D_dryfield_warehouse_801821B8 = DRYFIELD_WAREHOUSE_AMBIENCE_SILENT;
-            task->state                   = task->state + (DRYFIELD_WAREHOUSE_AMBIENCE_UPDATE - DRYFIELD_WAREHOUSE_AMBIENCE_INITIALIZE);
+            _gDryfieldWarehouseAmbienceVolumePercent = DRYFIELD_WAREHOUSE_AMBIENCE_SILENT;
+            task->state                              = task->state + (DRYFIELD_WAREHOUSE_AMBIENCE_UPDATE - DRYFIELD_WAREHOUSE_AMBIENCE_INITIALIZE);
             return;
         case DRYFIELD_WAREHOUSE_AMBIENCE_UPDATE:
             break;
@@ -212,18 +288,18 @@ void dryfieldWarehouseAmbienceTask(Task* task)
         }
     }
 
-    if (targetVolumePercent == D_dryfield_warehouse_801821B8) {
+    if (targetVolumePercent == _gDryfieldWarehouseAmbienceVolumePercent) {
         return;
     }
     // Translate the percentage gain to the sound API's signed-byte attenuation.
-    if (D_dryfield_warehouse_801821B8 == DRYFIELD_WAREHOUSE_AMBIENCE_SILENT) {
+    if (_gDryfieldWarehouseAmbienceVolumePercent == DRYFIELD_WAREHOUSE_AMBIENCE_SILENT) {
         sndEvtRequestScriptStart(SOUND_WAREHOUSE_AMBIENCE, 0, (s8)(((DRYFIELD_WAREHOUSE_AMBIENCE_FULL_PERCENT - targetVolumePercent) * DRYFIELD_WAREHOUSE_AMBIENCE_MAX_ATTENUATION) / DRYFIELD_WAREHOUSE_AMBIENCE_FULL_PERCENT));
     } else if (targetVolumePercent == DRYFIELD_WAREHOUSE_AMBIENCE_SILENT) {
         sndEvtRequestScriptStop(SOUND_WAREHOUSE_AMBIENCE, DRYFIELD_WAREHOUSE_AMBIENCE_STOP_AUDIO_TICKS);
     } else {
         sndEvtRequestScriptMix(SOUND_WAREHOUSE_AMBIENCE, 0, (s8)(((DRYFIELD_WAREHOUSE_AMBIENCE_FULL_PERCENT - targetVolumePercent) * DRYFIELD_WAREHOUSE_AMBIENCE_MAX_ATTENUATION) / DRYFIELD_WAREHOUSE_AMBIENCE_FULL_PERCENT));
     }
-    D_dryfield_warehouse_801821B8 = targetVolumePercent;
+    _gDryfieldWarehouseAmbienceVolumePercent = targetVolumePercent;
 }
 
 /// Tests whether the live action list contains a hit warehouse event region.
@@ -295,11 +371,11 @@ void dryfieldWarehouseEventTask(Task* task)
     switch (task->state) {
         case EVENT_START:
             SetDispMask(0);
-            D_dryfield_warehouse_801821B4 = taskSpawnFromTable(D_dryfield_warehouse_8017FB08, CUTSCENE_TASK, 0, 0);
-            task->state                  += 1;
+            _gDryfieldWarehouseEventCutsceneTask = taskSpawnFromTable(D_dryfield_warehouse_8017FB08, CUTSCENE_TASK, 0, 0);
+            task->state                         += 1;
             return;
         case EVENT_WAIT:
-            if (taskPollKill(D_dryfield_warehouse_801821B4, &cutsceneResult) != 0) {
+            if (taskPollKill(_gDryfieldWarehouseEventCutsceneTask, &cutsceneResult) != 0) {
                 task->state += 1;
                 return;
             }
@@ -331,10 +407,11 @@ static void _dryfieldWarehouseIdleRoomTask(Task* unusedTask)
 {
 }
 
-/// The three states of the room's main task, run by
-/// `dryfieldWarehouseRoomTask`: set-up, the idle per-frame step and the
-/// kill.
-static const TaskFuncTable3 D_dryfield_warehouse_8017D5C4 = {
+/// Warehouse room task callbacks indexed by state: 0 register, 1 idle, 2 release.
+///
+/// Copied to the dispatcher stack as a three-entry `TaskFuncTable3`; every
+/// callback accepts the room task and returns no value. State must be 0..2.
+static const TaskFuncTable3 _gDryfieldWarehouseRoomStateHandlers = {
     { _dryfieldWarehouseInitializeRoomTask, _dryfieldWarehouseIdleRoomTask, taskKill },
 };
 
@@ -342,6 +419,6 @@ void dryfieldWarehouseRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_dryfield_warehouse_8017D5C4;
+    stateHandlers = _gDryfieldWarehouseRoomStateHandlers;
     stateHandlers.funcs[task->state](task);
 }

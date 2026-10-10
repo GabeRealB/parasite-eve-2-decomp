@@ -15,19 +15,59 @@
 /// the one that ramps them down from 0xFF.
 extern TaskDesc D_dryfield_warehouse_8017FB08[];
 
-extern WorldCollisionTrigger D_dryfield_warehouse_801816A4[4];
+/// Four logical-view boundaries shared by warehouse rooms 1..3.
+///
+/// The quads pair transitions 2/3 and 3/4; the fourth includes
+/// `WORLD_COLLISION_TRIGGER_LAST`. Positions/radii use game coordinates and
+/// normals use 4096 per unit. Room setup binds and links these mutable records;
+/// keep the overlay loaded until they are unlinked.
+extern WorldCollisionTrigger gDryfieldWarehouseViewBoundaryTriggers[4];
 
-extern WorldCollisionTrigger D_dryfield_warehouse_801817D4[13];
+/// Thirteen action quads for warehouse room 1 and the third configured room.
+///
+/// Two warps, eight CAP interactions and three Monkey Wrench event regions;
+/// the final event region includes `WORLD_COLLISION_TRIGGER_LAST`. The quads
+/// use game coordinates and 4096-unit normals. Room setup borrows and mutates
+/// their links, transforms, flags and hit latches while the overlay is loaded.
+extern WorldCollisionTrigger gDryfieldWarehouseBeforeEventActionTriggers[13];
 
-extern WorldCollisionTrigger D_dryfield_warehouse_80181BB0[10];
+/// Ten action quads for warehouse room 2 after the Monkey Wrench event.
+///
+/// Two warps and eight CAP interactions replace the earlier list without its
+/// event regions; the final CAP quad includes `WORLD_COLLISION_TRIGGER_LAST`.
+/// Geometry uses game coordinates and 4096-unit normals. Keep these mutable
+/// borrowed records loaded until room setup unlinks them.
+extern WorldCollisionTrigger gDryfieldWarehouseAfterEventActionTriggers[10];
 
-extern WorldCoordRoomLights D_dryfield_warehouse_801820E8[1];
+/// Single point-light collection shared by warehouse rooms 1..3.
+///
+/// Contains six lights active in every logical view, with no directional or
+/// cone lights. Room lighting records borrow this collection and its mutable
+/// point-light array while the room overlay is loaded.
+extern WorldCoordRoomLights gDryfieldWarehouseLights;
 
-extern Task* D_dryfield_warehouse_801821BC;
+/// Published warehouse cutscene task whose work is borrowed by script callbacks.
+///
+/// Set after successful cutscene-work allocation and initialization. Command
+/// posting, player restoration and skip callbacks require that task/work to
+/// remain live. The event gate releases the task on its requested exit; this
+/// pointer is retained afterwards and is invalid outside the active cutscene.
+extern Task* gDryfieldWarehouseCutsceneTask;
 
-extern Task* D_dryfield_warehouse_801821C0;
+/// Borrowed handle to the warehouse cutscene's outstanding fade-out task.
+///
+/// Reset at cutscene initialization, set when a fade-out is spawned, and
+/// cleared when that fade completes normally. The skip callback kills a
+/// non-NULL handle without clearing it; fade-work allocation failure also leaves
+/// the recorded handle unchanged. Use only within the cutscene's script lifetime.
+extern Task* gDryfieldWarehouseFadeOutTask;
 
-extern s16 D_dryfield_warehouse_801821C4;
+/// Whether skip restoration changed the saved warehouse room to room 2 (0/1).
+///
+/// Phase 0 overwrites this latch on every skip; phase 1 uses it one script tick
+/// later to refresh the view and room objects. It is not the session room ID.
+/// Storage remains a signed halfword.
+extern s16 gDryfieldWarehouseSkipRoomChanged;
 
 extern TaskMessageEntry D_dryfield_warehouse_8017F554[3];
 

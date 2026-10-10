@@ -11,7 +11,13 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_dryfield_warehouse_80182100[13];
+/// Thirteen empty placement-variant slots for the daytime warehouse.
+///
+/// Indexed directly by the placement variant, 0..12, with slot zero reserved.
+/// Every slot has NULL placement/resource pointers, so the warehouse publishes
+/// no placed actors or their resources. Gameplay borrows this table while the
+/// room overlay is loaded.
+extern AreaVariant gDryfieldWarehousePlacementVariants[13];
 
 // dryfield_warehouse
 extern WorldCollisionRoomResources D_dryfield_warehouse_8017FBBC[];
@@ -47,9 +53,23 @@ extern DirectionWarpEntry D_dryfield_warehouse_8017FC30[];
 /// the warehouse overlay is loaded.
 extern ViewCamera gDryfieldWarehouseViewCameras[9];
 
-extern SpriteView D_dryfield_warehouse_80181638[];
+/// Sprite descriptors for the warehouse's nine mapped camera/image indices.
+///
+/// Indexed by mapped view minus one, 0..8. Views 1, 5, 8 and 9 have no source
+/// sprites and retain their batch lists in `sources.empty`; views 3/6 and 4/7
+/// share foreground sources and batches. All views use decoded background
+/// strips and no clipping list. The room owns the mutable sources and batches;
+/// gameplay borrows them only while the room overlay is loaded.
+extern SpriteView gDryfieldWarehouseSpriteViews[9];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_warehouse_80182194[];
+/// Collision and footstep policies indexed by warehouse surface class, 0..7.
+///
+/// All classes apply pushback. Class 5 passes probes and suppresses weapon
+/// impacts; all others block probes and allow impacts. Only class 6 supplies
+/// footstep cues. The class-4 record is distinct from the equal default record
+/// used by classes 0..3 and 7. The meshes select classes 4..6; collision setup
+/// reads all eight slots. Policies and sounds live with the loaded room overlay.
+extern WorldCollisionSurfaceProperties* gDryfieldWarehouseSurfacePropertiesByClass[8];
 
 /// Draws the daytime warehouse's view-selected grey prism and circular light beams.
 ///
