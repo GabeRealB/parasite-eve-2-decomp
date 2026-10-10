@@ -88,15 +88,15 @@ static s32  _dryfieldGarageRejectKeyItemUse(Task* task, s32 messageId, s32 itemI
 static void _dryfieldGarageInitRoomTask(Task* task);
 static void _dryfieldGarageIdleRoomTask(Task* unusedTask);
 
-extern WorldCollisionGrid         D_dryfield_garage_8017E64C[1];
-extern WorldCollisionTrigger      D_dryfield_garage_8017F69C[14];
-extern WorldCollisionTrigger      D_dryfield_garage_8017FD1C[11];
-extern WorldCoordRoomAmbientEntry D_dryfield_garage_80180148[16];
-extern WorldCoordRoomLights       D_dryfield_garage_8017FD04[1];
-static s32                        _dryfieldGarageResolveRoomEventMessage(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
-static s32                        _dryfieldGarageHandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg);
-static s32                        _dryfieldGarageHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
-static void                       _dryfieldGarageJunkYardRefusalTask(Task* task);
+static WorldCollisionGrid               _gDryfieldGarageCollisionGrid;
+extern WorldCollisionTrigger            D_dryfield_garage_8017F69C[14];
+extern WorldCollisionTrigger            D_dryfield_garage_8017FD1C[11];
+static const WorldCoordRoomAmbientEntry _gDryfieldGarageAmbientByView[16];
+static WorldCoordRoomLights             _gDryfieldGarageRoomLights;
+static s32                              _dryfieldGarageResolveRoomEventMessage(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static s32                              _dryfieldGarageHandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg);
+static s32                              _dryfieldGarageHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
+static void                             _dryfieldGarageJunkYardRefusalTask(Task* task);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -117,17 +117,17 @@ TaskDesc D_dryfield_garage_8017DCAC[2] = {
 ActorTransform D_dryfield_garage_8017DCC4 = { { 1680, 0, 6170, 0 }, { 0, 2048, 0, 0 } };
 
 WorldCollisionRoomResources D_dryfield_garage_8017DCDC[1] = {
-    { D_dryfield_garage_8017E64C, D_dryfield_garage_8017F69C, D_dryfield_garage_8017FD1C, NULL },
+    { &_gDryfieldGarageCollisionGrid, D_dryfield_garage_8017F69C, D_dryfield_garage_8017FD1C, NULL },
 };
 
-u8* D_dryfield_garage_8017DCEC[1] = {
+u8* gDryfieldGarageRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
 ViewCount D_dryfield_garage_8017DCF0[1] = { 15 };
 
-WorldCoordRoomLighting D_dryfield_garage_8017DCF4[1] = {
-    { D_dryfield_garage_8017FD04, D_dryfield_garage_80180148 },
+WorldCoordRoomLighting gDryfieldGarageRoomLighting[1] = {
+    { &_gDryfieldGarageRoomLights, _gDryfieldGarageAmbientByView },
 };
 
 DirectionWarpEntry D_dryfield_garage_8017DCFC[2] = {
@@ -135,30 +135,48 @@ DirectionWarpEntry D_dryfield_garage_8017DCFC[2] = {
     { { { .word = 2048 }, 950, 0, 7300 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 1100, 0, 7300 }, { 0, 0, 0, 0 }, 0x52180002, 0x52180001, 0x52180007, 6, DIRECTION_WARP_FLAG_NONE, 472 },
 };
 
-SVECTOR gDryfieldGarageCollision0108CNormals[39] = {
+SVECTOR gDryfieldGarageCollisionGridNormals[39] = {
 #include "assets/dryfield_garage_collision_0108C_normals.inc"
 };
 
-SVECTOR gDryfieldGarageCollision0108CVerts[106] = {
+SVECTOR gDryfieldGarageCollisionGridVerts[106] = {
 #include "assets/dryfield_garage_collision_0108C_verts.inc"
 };
 
-WorldCollisionGridFace gDryfieldGarageCollision0108CFaces[54] = {
+WorldCollisionGridFace gDryfieldGarageCollisionGridFaces[54] = {
 #include "assets/dryfield_garage_collision_0108C_faces.inc"
 };
 
-static s16 _gDryfieldGarageCollision0108CCells[214] = {
+/// Signed face-index lists for the nine cells, each ending with -1.
+static s16 _gDryfieldGarageCollisionGridCells[214] = {
 #include "assets/dryfield_garage_collision_0108C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldGarageCollision0108CCells[i])
-static s16* _gDryfieldGarageCollision0108CTable[9] = {
+#define GRID_CELL(i) (&_gDryfieldGarageCollisionGridCells[i])
+/// X-major 3-by-3 directory into the grid's face-index lists.
+static s16* _gDryfieldGarageCollisionGridTable[9] = {
 #include "assets/dryfield_garage_collision_0108C_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_garage_8017E64C[1] = {
-    { NULL, gDryfieldGarageCollision0108CNormals, gDryfieldGarageCollision0108CVerts, gDryfieldGarageCollision0108CFaces, _gDryfieldGarageCollision0108CTable, 150, 0, 3, 3, 4000, 54 },
+/// The garage's room collision mesh and 3-by-3 XZ cell index.
+///
+/// Cells span 4000 room-coordinate units, starting at X=-150 and Z=0.
+/// Activation binds the current view transform. Gary's scene actor replaces the
+/// leading three normals, twelve vertices and three faces in the public pools.
+/// The descriptor and all pools remain live while the garage overlay is loaded.
+static WorldCollisionGrid _gDryfieldGarageCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = gDryfieldGarageCollisionGridNormals,
+    .vertices    = gDryfieldGarageCollisionGridVerts,
+    .faces       = gDryfieldGarageCollisionGridFaces,
+    .cellFaceIds = _gDryfieldGarageCollisionGridTable,
+    .xBias       = 150,
+    .zBias       = 0,
+    .cellCountX  = 3,
+    .cellCountZ  = 3,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(gDryfieldGarageCollisionGridFaces),
 };
 
 ViewCamera D_dryfield_garage_8017E670[15] = {
@@ -179,218 +197,309 @@ ViewCamera D_dryfield_garage_8017E670[15] = {
     { { { { 1971, 0, 3590 }, { 498, 4056, -274 }, { -3555, 569, 1952 } }, { -6690, 1477, -1070 } }, 257 },
 };
 
-SpriteBatch D_dryfield_garage_8017E88C[2] = {
+/// Room-sprite GPU encodings: 8-bit pages at Y=0 and a palette at (0, 255).
+///
+/// RGB 128 is neutral modulation; zero code flags select opaque modulation.
+enum {
+    DRYFIELD_GARAGE_SPRITE_PAGE_960         = getTPage(1, GPU_BLEND_AVERAGE, 960, 0),
+    DRYFIELD_GARAGE_SPRITE_PAGE_896         = getTPage(1, GPU_BLEND_AVERAGE, 896, 0),
+    DRYFIELD_GARAGE_SPRITE_CLUT             = getClut(0, 255),
+    DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR    = 128,
+    DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED = 0,
+};
+
+/// View 1's empty sprite list, retaining decoded background strips.
+///
+/// A zero-count background selector precedes the terminal record. Its address
+/// also occupies the unused source slot and is never read as source sprites.
+static SpriteBatch _gDryfieldGarageView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_garage_8017E89C[41] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, 16, 705, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 24, 56, 965, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 40 } }, 104, -64, 1117, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 96, -48, 1377, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 32 } }, 104, -24, 1037, { .fields = { 24, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 96, -32, 1109, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 88, -32, 1019, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 80, -32, 921, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 96, 8, 1021, { .fields = { 0, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 136, 16, 673, { .fields = { 40, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 112, 16, 687, { .fields = { 48, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 88, 16, 714, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 144, 104, 517, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 144, 96, 548, { .fields = { 48, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 136, 88, 572, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 120, 88, 572, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 120, 96, 540, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 136, 40, 613, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 96, 80, 599, { .fields = { 32, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 96, 88, 567, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 72, 80, 597, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 48, 72, 630, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 24, 96, 668, { .fields = { 40, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 16, 104, 695, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 24, 64, 667, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 32, 32, 661, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 32, 0, 635, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 48, 56, 677, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 112, 40, 602, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 88, 32, 639, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 72, 72, 628, { .fields = { 8, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 72, 24, 676, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 72, -24, 858, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 64, -16, 795, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 64, 24, 716, { .fields = { 72, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 56, -16, 760, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 48, -8, 710, { .fields = { 120, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -144, 40, 800, { .fields = { 120, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, 56, 800, { .fields = { 80, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -160, 32, 790, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -160, 8, 756, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
+/// View 2's 41 depth-sorted texture rectangles from the 8-bit page at X=960.
+///
+/// XY and sizes are pixels relative to the view origin; UVs are texels and depth
+/// is an unscaled ordering value. Uses the palette at (0, 255). Packet allocation
+/// snapshots geometry and texture data; keep the room overlay loaded while used.
+static SpriteSource _gDryfieldGarageView2SpriteSources[41] = {
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 8 } }, 80, 16, 705, { .fields = { 80, 176 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 8 } }, 24, 56, 965, { .fields = { 120, 232 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 56, 40 } }, 104, -64, 1117, { .fields = { 48, 96 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 16 } }, 96, -48, 1377, { .fields = { 88, 80 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 56, 32 } }, 104, -24, 1037, { .fields = { 24, 136 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 40 } }, 96, -32, 1109, { .fields = { 104, 184 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 48 } }, 88, -32, 1019, { .fields = { 112, 192 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 48 } }, 80, -32, 921, { .fields = { 112, 144 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 64, 8 } }, 96, 8, 1021, { .fields = { 0, 208 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 24, 24 } }, 136, 16, 673, { .fields = { 40, 56 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 24, 24 } }, 112, 16, 687, { .fields = { 48, 168 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 24, 16 } }, 88, 16, 714, { .fields = { 40, 80 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 16 } }, 144, 104, 517, { .fields = { 112, 240 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 8 } }, 144, 96, 548, { .fields = { 48, 216 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 24, 8 } }, 136, 88, 572, { .fields = { 24, 0 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 8 } }, 120, 88, 572, { .fields = { 88, 136 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 24, 24 } }, 120, 96, 540, { .fields = { 48, 224 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 24, 48 } }, 136, 40, 613, { .fields = { 96, 48 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 40, 8 } }, 96, 80, 599, { .fields = { 32, 248 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 24, 32 } }, 96, 88, 567, { .fields = { 48, 0 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 24, 40 } }, 72, 80, 597, { .fields = { 80, 184 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 24, 48 } }, 48, 72, 630, { .fields = { 96, 0 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 24, 24 } }, 24, 96, 668, { .fields = { 40, 32 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 16 } }, 16, 104, 695, { .fields = { 80, 80 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 24, 32 } }, 24, 64, 667, { .fields = { 72, 224 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 32 } }, 32, 32, 661, { .fields = { 64, 40 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 32 } }, 32, 0, 635, { .fields = { 96, 224 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 24, 16 } }, 48, 56, 677, { .fields = { 40, 192 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 24, 40 } }, 112, 40, 602, { .fields = { 72, 0 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 24, 40 } }, 88, 32, 639, { .fields = { 88, 144 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 40, 8 } }, 72, 72, 628, { .fields = { 8, 8 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 48 } }, 72, 24, 676, { .fields = { 104, 96 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 48 } }, 72, -24, 858, { .fields = { 120, 184 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 40 } }, 64, -16, 795, { .fields = { 80, 136 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 32 } }, 64, 24, 716, { .fields = { 72, 168 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 72 } }, 56, -16, 760, { .fields = { 120, 0 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 64 } }, 48, -8, 710, { .fields = { 120, 72 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 48 } }, -144, 40, 800, { .fields = { 120, 136 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 40 } }, -160, 56, 800, { .fields = { 80, 40 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 24 } }, -160, 32, 790, { .fields = { 64, 200 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 24 } }, -160, 8, 756, { .fields = { 64, 72 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
 };
 
-SpriteBatch D_dryfield_garage_8017EBD0[4] = {
+/// View 2's 2 sprite ranges, covering all 41 source elements.
+///
+/// The initial zero-count record retains decoded background strips; the final
+/// sentinel ends the list. Visibility flags remain writable; the two serialized
+/// bytes at the end of each record retain their unproven interpretation.
+static SpriteBatch _gDryfieldGarageView2SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 37, 0, 0, { 1, 0 } },
-    { 37, 4, 0, 0, { 0, 0 } },
+    { 37, ARRAY_SIZE(_gDryfieldGarageView2SpriteSources) - 37, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_garage_8017EBF0[28] = {
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -160, 48, 905, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -144, 48, 903, { .fields = { 72, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, 64, 900, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, 56, 861, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -160, 64, 850, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -144, 64, 871, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, 128, 24, 837, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 136, 24, 827, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 136, 32, 800, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, 136, 40, 800, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, 144, 40, 762, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 16, -40, 1975, { .fields = { 88, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 24, -40, 1925, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 24, -32, 1822, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 48, -32, 1786, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 64, -24, 2000, { .fields = { 40, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -24, -24, 1875, { .fields = { 32, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -72, -24, 1850, { .fields = { 24, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -72, -16, 1750, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -80, 0, 1825, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 56 } }, -64, -16, 1650, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 72, -16, 1862, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 40 } }, 16, -16, 1769, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -160, 8, 1600, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -160, 16, 1562, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -136, 16, 1575, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -128, 16, 1600, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, 32, 1525, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
+/// View 3's 28 depth-sorted texture rectangles from the 8-bit page at X=960.
+///
+/// XY and sizes are pixels relative to the view origin; UVs are texels and depth
+/// is an unscaled ordering value. Uses the palette at (0, 255). Packet allocation
+/// snapshots geometry and texture data; keep the room overlay loaded while used.
+static SpriteSource _gDryfieldGarageView3SpriteSources[28] = {
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 16 } }, -160, 48, 905, { .fields = { 72, 216 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 16 } }, -144, 48, 903, { .fields = { 72, 56 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 32, 32 } }, -160, 64, 900, { .fields = { 88, 224 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 24, 8 } }, -160, 56, 861, { .fields = { 64, 72 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 48 } }, -160, 64, 850, { .fields = { 96, 56 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 40 } }, -144, 64, 871, { .fields = { 96, 184 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 88 } }, 128, 24, 837, { .fields = { 120, 0 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 24, 8 } }, 136, 24, 827, { .fields = { 64, 248 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 24, 8 } }, 136, 32, 800, { .fields = { 48, 56 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 80 } }, 136, 40, 800, { .fields = { 120, 168 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 80 } }, 144, 40, 762, { .fields = { 112, 88 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 24 } }, 16, -40, 1975, { .fields = { 88, 56 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 40, 8 } }, 24, -40, 1925, { .fields = { 32, 64 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 24, 16 } }, 24, -32, 1822, { .fields = { 72, 80 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 16 } }, 48, -32, 1786, { .fields = { 80, 184 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 32, 8 } }, 64, -24, 2000, { .fields = { 40, 144 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 40, 8 } }, -24, -24, 1875, { .fields = { 32, 88 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 48, 8 } }, -72, -24, 1850, { .fields = { 24, 80 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 56 } }, -72, -16, 1750, { .fields = { 112, 168 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 32 } }, -80, 0, 1825, { .fields = { 112, 56 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 80, 56 } }, -64, -16, 1650, { .fields = { 40, 0 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 40, 40 } }, 72, -16, 1862, { .fields = { 72, 144 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 56, 40 } }, 16, -16, 1769, { .fields = { 56, 104 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 32, 8 } }, -160, 8, 1600, { .fields = { 64, 96 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 24, 16 } }, -160, 16, 1562, { .fields = { 56, 184 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 16 } }, -136, 16, 1575, { .fields = { 72, 232 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 16 } }, -128, 16, 1600, { .fields = { 80, 232 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 32, 16 } }, -160, 32, 1525, { .fields = { 64, 200 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
 };
 
-SpriteBatch D_dryfield_garage_8017EE20[7] = {
+/// View 3's 5 sprite ranges, covering all 28 source elements.
+///
+/// The initial zero-count record retains decoded background strips; the final
+/// sentinel ends the list. Visibility flags remain writable; the two serialized
+/// bytes at the end of each record retain their unproven interpretation.
+static SpriteBatch _gDryfieldGarageView3SpriteBatches[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 3, 0, 0, { 0, 0 } },
     { 3, 3, 0, 0, { 3, 0 } },
     { 6, 5, 0, 0, { 2, 0 } },
     { 11, 12, 0, 0, { 4, 0 } },
-    { 23, 5, 0, 0, { 1, 0 } },
+    { 23, ARRAY_SIZE(_gDryfieldGarageView3SpriteSources) - 23, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_garage_8017EE58[11] = {
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -64, 16, 798, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, -80, 16, 784, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 96 } }, -104, 0, 854, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 96 } }, -48, 0, 854, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -56, 16, 820, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -96, 16, 824, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -88, 16, 789, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -80, 8, 825, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -96, 0, 897, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -96, 8, 837, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 8, 837, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+/// View 4's 11 depth-sorted texture rectangles from the 8-bit page at X=960.
+///
+/// XY and sizes are pixels relative to the view origin; UVs are texels and depth
+/// is an unscaled ordering value. Uses the palette at (0, 255). Packet allocation
+/// snapshots geometry and texture data; keep the room overlay loaded while used.
+static SpriteSource _gDryfieldGarageView4SpriteSources[11] = {
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 80 } }, -64, 16, 798, { .fields = { 112, 0 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 80 } }, -80, 16, 784, { .fields = { 104, 80 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 96 } }, -104, 0, 854, { .fields = { 120, 96 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 96 } }, -48, 0, 854, { .fields = { 120, 0 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 80 } }, -56, 16, 820, { .fields = { 112, 160 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 80 } }, -96, 16, 824, { .fields = { 104, 160 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 80 } }, -88, 16, 789, { .fields = { 104, 0 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 8 } }, -80, 8, 825, { .fields = { 112, 240 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 48, 8 } }, -96, 0, 897, { .fields = { 80, 248 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 8 } }, -96, 8, 837, { .fields = { 96, 240 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 8 } }, -64, 8, 837, { .fields = { 88, 0 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
 };
 
-SpriteBatch D_dryfield_garage_8017EF34[3] = {
+/// View 4's one sprite range, covering all 11 source elements.
+///
+/// The initial zero-count record retains decoded background strips; the final
+/// sentinel ends the list. Visibility flags remain writable; the two serialized
+/// bytes at the end of each record retain their unproven interpretation.
+static SpriteBatch _gDryfieldGarageView4SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 11, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldGarageView4SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_garage_8017EF4C[12] = {
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -120, -48, 1405, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -144, -40, 1407, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -128, -56, 1405, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -144, -56, 1407, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -136, -48, 1392, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 48, -80, 1417, { .fields = { 120, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 56, -80, 1415, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 64, -80, 1416, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 56, -64, 1416, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 40, -104, 1250, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 32, -80, 1425, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 48, -112, 1175, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+/// View 5's 12 depth-sorted texture rectangles from the 8-bit page at X=960.
+///
+/// XY and sizes are pixels relative to the view origin; UVs are texels and depth
+/// is an unscaled ordering value. Uses the palette at (0, 255). Packet allocation
+/// snapshots geometry and texture data; keep the room overlay loaded while used.
+static SpriteSource _gDryfieldGarageView5SpriteSources[12] = {
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 16 } }, -120, -48, 1405, { .fields = { 112, 160 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 24, 8 } }, -144, -40, 1407, { .fields = { 104, 208 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 16 } }, -128, -56, 1405, { .fields = { 120, 192 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 16 } }, -144, -56, 1407, { .fields = { 112, 176 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 32, 24 } }, -136, -48, 1392, { .fields = { 96, 32 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 24 } }, 48, -80, 1417, { .fields = { 120, 56 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 16 } }, 56, -80, 1415, { .fields = { 120, 128 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 16 } }, 64, -80, 1416, { .fields = { 112, 144 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 24, 8 } }, 56, -64, 1416, { .fields = { 104, 216 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 24 } }, 40, -104, 1250, { .fields = { 120, 104 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 24 } }, 32, -80, 1425, { .fields = { 112, 80 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 32, 32 } }, 48, -112, 1175, { .fields = { 96, 0 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
 };
 
-SpriteBatch D_dryfield_garage_8017F03C[5] = {
+/// View 5's 3 sprite ranges, covering all 12 source elements.
+///
+/// The initial zero-count record retains decoded background strips; the final
+/// sentinel ends the list. Visibility flags remain writable; the two serialized
+/// bytes at the end of each record retain their unproven interpretation.
+static SpriteBatch _gDryfieldGarageView5SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 4, 0, 0, { 1, 0 } },
     { 4, 1, 0, 0, { 2, 0 } },
-    { 5, 7, 0, 0, { 0, 0 } },
+    { 5, ARRAY_SIZE(_gDryfieldGarageView5SpriteSources) - 5, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_garage_8017F064[13] = {
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 80, -64, 1023, { .fields = { 48, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 96 } }, 144, -48, 950, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 88 } }, 120, -40, 975, { .fields = { 72, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 104, -24, 1036, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 64 } }, 80, -16, 1026, { .fields = { 8, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 112 } }, 64, -64, 1150, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 72 } }, 72, 48, 950, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 96, 136 } }, -32, -88, 1275, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 64, -80, 934, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 104, -80, 1000, { .fields = { 16, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, -40, 1000, { .fields = { 0, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 32 } }, 64, -112, 1017, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 24 } }, -8, -112, 1226, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
+/// View 6's 13 depth-sorted texture rectangles from 8-bit pages at X=896 and X=960.
+///
+/// XY and sizes are pixels relative to the view origin; UVs are texels and depth
+/// is an unscaled ordering value. Uses the palette at (0, 255). Packet allocation
+/// snapshots geometry and texture data; keep the room overlay loaded while used.
+static SpriteSource _gDryfieldGarageView6SpriteSources[13] = {
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 24, 48 } }, 80, -64, 1023, { .fields = { 48, 208 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 96 } }, 144, -48, 950, { .fields = { 96, 136 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 24, 88 } }, 120, -40, 975, { .fields = { 72, 136 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 72 } }, 104, -24, 1036, { .fields = { 16, 0 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 24, 64 } }, 80, -16, 1026, { .fields = { 8, 72 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 112 } }, 64, -64, 1150, { .fields = { 112, 136 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_896, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 88, 72 } }, 72, 48, 950, { .fields = { 112, 136 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 96, 136 } }, -32, -88, 1275, { .fields = { 32, 0 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 40, 16 } }, 64, -80, 934, { .fields = { 72, 232 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 32, 40 } }, 104, -80, 1000, { .fields = { 16, 208 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 16 } }, 104, -40, 1000, { .fields = { 0, 56 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_896, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 64, 32 } }, 64, -112, 1017, { .fields = { 80, 0 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_896, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 72, 24 } }, -8, -112, 1226, { .fields = { 72, 32 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
 };
 
-SpriteBatch D_dryfield_garage_8017F168[3] = {
+/// View 6's one sprite range, covering all 13 source elements.
+///
+/// The initial zero-count record retains decoded background strips; the final
+/// sentinel ends the list. Visibility flags remain writable; the two serialized
+/// bytes at the end of each record retain their unproven interpretation.
+static SpriteBatch _gDryfieldGarageView6SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 13, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldGarageView6SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_garage_8017F180[25] = {
-    { 143, 0x3FC0, { .fields = { 24, 96 } }, 40, -16, 600, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 112, 112, 399, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 56, 96, 490, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, 40, 80, 550, { .fields = { 16, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 144, 104, 429, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 96, -16, 653, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 128, -16, 682, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, 96, 16, 538, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 128, 96, 457, { .fields = { 48, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 72, 96, 456, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 88, 96, 463, { .fields = { 32, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 96, 104, 410, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 112, 104, 429, { .fields = { 48, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 72, 104, 464, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 32, 72, 602, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 16, 72, 605, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 40, 88, 529, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 80, 104, 441, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, 64, -16, 626, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 64, 48, 570, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 80 } }, 128, 16, 462, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 112, 80, 510, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 96, 80, 550, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 56, 88, 509, { .fields = { 40, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 88, 88, 503, { .fields = { 48, 24 } }, 128, 128, 128, 0 },
+/// View 7's 25 depth-sorted texture rectangles from the 8-bit page at X=960.
+///
+/// XY and sizes are pixels relative to the view origin; UVs are texels and depth
+/// is an unscaled ordering value. Uses the palette at (0, 255). Packet allocation
+/// snapshots geometry and texture data; keep the room overlay loaded while used.
+static SpriteSource _gDryfieldGarageView7SpriteSources[25] = {
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 24, 96 } }, 40, -16, 600, { .fields = { 104, 0 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 48, 8 } }, 112, 112, 399, { .fields = { 32, 96 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 24 } }, 56, 96, 490, { .fields = { 64, 64 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 56, 8 } }, 40, 80, 550, { .fields = { 16, 40 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 8 } }, 144, 104, 429, { .fields = { 56, 48 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 32, 32 } }, 96, -16, 653, { .fields = { 64, 160 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 32, 32 } }, 128, -16, 682, { .fields = { 64, 192 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 32, 64 } }, 96, 16, 538, { .fields = { 72, 0 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 32, 8 } }, 128, 96, 457, { .fields = { 48, 88 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 8 } }, 72, 96, 456, { .fields = { 56, 0 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 40, 8 } }, 88, 96, 463, { .fields = { 32, 8 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 16 } }, 96, 104, 410, { .fields = { 96, 240 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 32, 8 } }, 112, 104, 429, { .fields = { 48, 104 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 16 } }, 72, 104, 464, { .fields = { 96, 64 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 8, 48 } }, 32, 72, 602, { .fields = { 88, 112 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 48 } }, 16, 72, 605, { .fields = { 80, 64 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 32 } }, 40, 88, 529, { .fields = { 72, 112 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 16 } }, 80, 104, 441, { .fields = { 72, 144 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 32, 64 } }, 64, -16, 626, { .fields = { 96, 176 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 32, 32 } }, 64, 48, 570, { .fields = { 64, 224 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 32, 80 } }, 128, 16, 462, { .fields = { 96, 96 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 16 } }, 112, 80, 510, { .fields = { 112, 240 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 16, 8 } }, 96, 80, 550, { .fields = { 56, 32 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 32, 8 } }, 56, 88, 509, { .fields = { 40, 16 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_GARAGE_SPRITE_PAGE_960, DRYFIELD_GARAGE_SPRITE_CLUT, { .fields = { 24, 8 } }, 88, 88, 503, { .fields = { 48, 24 } }, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_NEUTRAL_COLOR, DRYFIELD_GARAGE_SPRITE_OPAQUE_MODULATED },
 };
 
-SpriteBatch D_dryfield_garage_8017F374[3] = {
+/// View 7's one sprite range, covering all 25 source elements.
+///
+/// The initial zero-count record retains decoded background strips; the final
+/// sentinel ends the list. Visibility flags remain writable; the two serialized
+/// bytes at the end of each record retain their unproven interpretation.
+static SpriteBatch _gDryfieldGarageView7SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 25, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldGarageView7SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_garage_8017F38C[2] = {
+/// View 8's empty sprite list, retaining decoded background strips.
+///
+/// A zero-count background selector precedes the terminal record. Its address
+/// also occupies the unused source slot and is never read as source sprites.
+static SpriteBatch _gDryfieldGarageView8SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_garage_8017F39C[2] = {
+/// View 9's empty sprite list, retaining decoded background strips.
+///
+/// A zero-count background selector precedes the terminal record. Its address
+/// also occupies the unused source slot and is never read as source sprites.
+static SpriteBatch _gDryfieldGarageView9SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_garage_8017F3AC[2] = {
+/// View 10's empty sprite list, retaining decoded background strips.
+///
+/// A zero-count background selector precedes the terminal record. Its address
+/// also occupies the unused source slot and is never read as source sprites.
+static SpriteBatch _gDryfieldGarageView10SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_garage_8017F3BC[2] = {
+/// View 11's empty sprite list, retaining decoded background strips.
+///
+/// A zero-count background selector precedes the terminal record. Its address
+/// also occupies the unused source slot and is never read as source sprites.
+static SpriteBatch _gDryfieldGarageView11SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
@@ -444,17 +553,17 @@ SpriteBatch D_dryfield_garage_8017F5C8[4] = {
 };
 
 SpriteView D_dryfield_garage_8017F5E8[15] = {
-    { { .empty = D_dryfield_garage_8017E88C }, D_dryfield_garage_8017E88C, NULL },
-    { { .elements = D_dryfield_garage_8017E89C }, D_dryfield_garage_8017EBD0, NULL },
-    { { .elements = D_dryfield_garage_8017EBF0 }, D_dryfield_garage_8017EE20, NULL },
-    { { .elements = D_dryfield_garage_8017EE58 }, D_dryfield_garage_8017EF34, NULL },
-    { { .elements = D_dryfield_garage_8017EF4C }, D_dryfield_garage_8017F03C, NULL },
-    { { .elements = D_dryfield_garage_8017F064 }, D_dryfield_garage_8017F168, NULL },
-    { { .elements = D_dryfield_garage_8017F180 }, D_dryfield_garage_8017F374, NULL },
-    { { .empty = D_dryfield_garage_8017F38C }, D_dryfield_garage_8017F38C, NULL },
-    { { .empty = D_dryfield_garage_8017F39C }, D_dryfield_garage_8017F39C, NULL },
-    { { .empty = D_dryfield_garage_8017F3AC }, D_dryfield_garage_8017F3AC, NULL },
-    { { .empty = D_dryfield_garage_8017F3BC }, D_dryfield_garage_8017F3BC, NULL },
+    { { .empty = _gDryfieldGarageView1SpriteBatches }, _gDryfieldGarageView1SpriteBatches, NULL },
+    { { .elements = _gDryfieldGarageView2SpriteSources }, _gDryfieldGarageView2SpriteBatches, NULL },
+    { { .elements = _gDryfieldGarageView3SpriteSources }, _gDryfieldGarageView3SpriteBatches, NULL },
+    { { .elements = _gDryfieldGarageView4SpriteSources }, _gDryfieldGarageView4SpriteBatches, NULL },
+    { { .elements = _gDryfieldGarageView5SpriteSources }, _gDryfieldGarageView5SpriteBatches, NULL },
+    { { .elements = _gDryfieldGarageView6SpriteSources }, _gDryfieldGarageView6SpriteBatches, NULL },
+    { { .elements = _gDryfieldGarageView7SpriteSources }, _gDryfieldGarageView7SpriteBatches, NULL },
+    { { .empty = _gDryfieldGarageView8SpriteBatches }, _gDryfieldGarageView8SpriteBatches, NULL },
+    { { .empty = _gDryfieldGarageView9SpriteBatches }, _gDryfieldGarageView9SpriteBatches, NULL },
+    { { .empty = _gDryfieldGarageView10SpriteBatches }, _gDryfieldGarageView10SpriteBatches, NULL },
+    { { .empty = _gDryfieldGarageView11SpriteBatches }, _gDryfieldGarageView11SpriteBatches, NULL },
     { { .empty = D_dryfield_garage_8017F3CC }, D_dryfield_garage_8017F3CC, NULL },
     { { .empty = D_dryfield_garage_8017F3DC }, D_dryfield_garage_8017F3DC, NULL },
     { { .empty = D_dryfield_garage_8017F3EC }, D_dryfield_garage_8017F3EC, NULL },
@@ -478,17 +587,31 @@ WorldCollisionTrigger D_dryfield_garage_8017F69C[14] = {
     { NULL, NULL, NULL, { 4592, -1760, 1648, 0 }, { { -175, -2672, 1978, 0 }, { 162, -2672, -1987, 0 }, { -175, 2672, 1978, 0 }, { 162, 2672, -1987, 0 } }, { -4098, 0, -349, 0 }, { 0, 0, 4096, 0 }, 3328, 0, 15, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCoordPointLight D_dryfield_garage_8017FAC4[6] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3565, -1012, 1211 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 642, 2848 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7335, -1012, 1897 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 564, 2686 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2845, -1012, 4145 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 562, 1281 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5512, -5017, 2053 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2375, 2457, 2457 }, { 0, 0 } }, 0, 0x2710 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2367, -1012, 6804 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 441, 1201 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6622, -1012, 6746 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 522, 1542 },
+/// Six point lights contributing in every garage view.
+///
+/// Positions and falloff radii use room-coordinate units; RGB intensity uses
+/// twelve fractional bits. The view-bound transforms and attenuation remain
+/// writable for composition and lighting queries while this overlay is loaded.
+static WorldCoordPointLight _gDryfieldGaragePointLights[6] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3565, -1012, 1211 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 642, 2848 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7335, -1012, 1897 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 564, 2686 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2845, -1012, 4145 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 562, 1281 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5512, -5017, 2053 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2375, 2457, 2457 }, { 0, 0 } }, 0, 0x2710 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2367, -1012, 6804 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 441, 1201 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6622, -1012, 6746 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 522, 1542 },
 };
 
-WorldCoordRoomLights D_dryfield_garage_8017FD04[1] = {
-    { 0, NULL, ARRAY_SIZE(D_dryfield_garage_8017FAC4), D_dryfield_garage_8017FAC4, 0, NULL },
+/// The garage's six point lights, without directional or cone lights.
+///
+/// Borrows writable light records for coordinate updates and shading queries;
+/// neither this collection nor its pointers may outlive the loaded room overlay.
+static WorldCoordRoomLights _gDryfieldGarageRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gDryfieldGaragePointLights),
+    .pointLights           = _gDryfieldGaragePointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 WorldCollisionTrigger D_dryfield_garage_8017FD1C[11] = {
@@ -546,8 +669,13 @@ AreaVariant D_dryfield_garage_801800E0[13] = {
     { NULL, NULL },
 };
 
-WorldCoordRoomAmbientEntry D_dryfield_garage_80180148[16] = {
-    { .viewCount = ARRAY_SIZE(D_dryfield_garage_80180148) - 1 },
+/// View-count header followed by the fifteen views' minimum ambient colours.
+///
+/// Entries 1..15 use sixteen units per 8-bit colour level. The retained luma
+/// values do not participate in ambient clamping. Views above the count use
+/// gameplay's default ambient entry.
+static const WorldCoordRoomAmbientEntry _gDryfieldGarageAmbientByView[16] SECTION(".data") = {
+    { .viewCount = ARRAY_SIZE(_gDryfieldGarageAmbientByView) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 200, 200, 200, 200 } },
     { .color = { 650, 650, 650, 650 } },
@@ -565,29 +693,48 @@ WorldCoordRoomAmbientEntry D_dryfield_garage_80180148[16] = {
     { .color = { 560, 560, 560, 560 } },
 };
 
-WorldCollisionFootstepSounds D_dryfield_garage_801801C8 = {
-    0x10000051,
-    0x10000053,
-    0x10000051,
+enum {
+    DRYFIELD_GARAGE_WALK_FOOTSTEP_CUE2 = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x51,
+    DRYFIELD_GARAGE_RUN_FOOTSTEP_CUE2  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x53,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_garage_801801D4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Class-1 footstep cue bases in the currently loaded type-1 sound bank.
+///
+/// Cue 1 uses base + 1; ordinary companion playback adds 100. Scripted jumps
+/// share the walking pair. The surface policy borrows this immutable record.
+static const WorldCollisionFootstepSounds _gDryfieldGarageSurface1FootstepSounds SECTION(".data") = {
+    .walk         = DRYFIELD_GARAGE_WALK_FOOTSTEP_CUE2,
+    .run          = DRYFIELD_GARAGE_RUN_FOOTSTEP_CUE2,
+    .scriptedJump = DRYFIELD_GARAGE_WALK_FOOTSTEP_CUE2,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_garage_801801DC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_garage_801801C8 },
+/// Blocking, impact-enabled, pushback-enabled policy without footsteps for classes 0 and 2..7.
+static WorldCollisionSurfaceProperties _gDryfieldGarageSilentSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_garage_801801E4[8] = {
-    D_dryfield_garage_801801D4,
-    D_dryfield_garage_801801DC,
-    D_dryfield_garage_801801D4,
-    D_dryfield_garage_801801D4,
-    D_dryfield_garage_801801D4,
-    D_dryfield_garage_801801D4,
-    D_dryfield_garage_801801D4,
-    D_dryfield_garage_801801D4,
+/// Class-1 blocking, impact-enabled, pushback-enabled policy with footstep cues.
+static WorldCollisionSurfaceProperties _gDryfieldGarageSurface1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldGarageSurface1FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gDryfieldGarageSurfacePropertiesByClass[8] = {
+    &_gDryfieldGarageSilentSurfaceProperties,
+    &_gDryfieldGarageSurface1Properties,
+    &_gDryfieldGarageSilentSurfaceProperties,
+    &_gDryfieldGarageSilentSurfaceProperties,
+    &_gDryfieldGarageSilentSurfaceProperties,
+    &_gDryfieldGarageSilentSurfaceProperties,
+    &_gDryfieldGarageSilentSurfaceProperties,
+    &_gDryfieldGarageSilentSurfaceProperties,
 };
 
 AreaApplyRec D_dryfield_garage_80180204[6] = {

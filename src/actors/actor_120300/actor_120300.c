@@ -2233,9 +2233,9 @@ static void _actor120300BodyTask(Task* task)
                     task->state                                        += 1;
                 }
                 // Patch the live garage grid from this actor package's collision records.
-                memCopyBytes(&D_actor_120300_801409A8, gDryfieldGarageCollision0108CNormals, sizeof(D_actor_120300_801409A8));
-                memCopyBytes(&D_actor_120300_80140A20, gDryfieldGarageCollision0108CFaces, sizeof(D_actor_120300_80140A20));
-                memCopyBytes(&D_actor_120300_801409C0, gDryfieldGarageCollision0108CVerts, sizeof(D_actor_120300_801409C0));
+                memCopyBytes(&D_actor_120300_801409A8, gDryfieldGarageCollisionGridNormals, sizeof(D_actor_120300_801409A8));
+                memCopyBytes(&D_actor_120300_80140A20, gDryfieldGarageCollisionGridFaces, sizeof(D_actor_120300_80140A20));
+                memCopyBytes(&D_actor_120300_801409C0, gDryfieldGarageCollisionGridVerts, sizeof(D_actor_120300_801409C0));
                 break;
             }
             return;
