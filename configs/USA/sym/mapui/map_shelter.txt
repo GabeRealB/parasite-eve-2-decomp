@@ -535,12 +535,12 @@ gActor503500Model14DA0 = 0x80147314; // absolute:True owner=actor_503500
 gActor503500Model15820 = 0x80147D6C; // absolute:True owner=actor_503500
 D_mappic_s4_00_8012EFBC = 0x8012EFBC; // absolute:True owner=mappic_s4_00 shared=mappic
 D_mappic_s4_00_8012F0D8 = 0x8012F0D8; // absolute:True owner=mappic_s4_00
-D_mappic_s4_02_8012EFA0 = 0x8012EFA0; // absolute:True owner=mappic_s4_02 shared=mappic
-D_mappic_s4_02_8012F030 = 0x8012F030; // absolute:True owner=mappic_s4_02 shared=mappic
-D_mappic_s4_02_8012F0C0 = 0x8012F0C0; // absolute:True owner=mappic_s4_02
-D_mappic_s4_02_8012F150 = 0x8012F150; // absolute:True owner=mappic_s4_02
-D_mappic_s4_02_8012F1E0 = 0x8012F1E0; // absolute:True owner=mappic_s4_02
-D_mappic_s4_02_8012F28C = 0x8012F28C; // absolute:True owner=mappic_s4_02
+gMappicS402MesaShape = 0x8012EFA0; // absolute:True owner=mappic_s4_02 shared=mappic
+gMappicS402TunnelEntranceShape = 0x8012F030; // absolute:True owner=mappic_s4_02 shared=mappic
+gMappicS402TunnelShape = 0x8012F0C0; // absolute:True owner=mappic_s4_02
+gMappicS402GorgeShape = 0x8012F150; // absolute:True owner=mappic_s4_02
+gMappicS402RefugeShape = 0x8012F1E0; // absolute:True owner=mappic_s4_02
+gMappicS402ForkedTunnelShape = 0x8012F28C; // absolute:True owner=mappic_s4_02
 D_mappic_s4_03_8012EFD8 = 0x8012EFD8; // absolute:True owner=mappic_s4_03 shared=mappic
 D_mappic_s4_03_8012F084 = 0x8012F084; // absolute:True owner=mappic_s4_03 shared=mappic
 D_mappic_s4_03_8012F114 = 0x8012F114; // absolute:True owner=mappic_s4_03 shared=mappic

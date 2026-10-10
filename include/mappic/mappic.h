@@ -452,17 +452,47 @@ extern TmdSource D_mappic_s4_00_8012EFBC;
 extern TmdSource D_mappic_s4_00_8012F0D8;
 
 // mappic_s4_02
-extern TmdSource D_mappic_s4_02_8012EFA0;
+/// Mesa's area-fill quad on page 2 of the Mine/Shelter map.
+///
+/// Four vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s4_02 loaded during use.
+extern TmdSource gMappicS402MesaShape;
 
-extern TmdSource D_mappic_s4_02_8012F030;
+/// Tunnel Entrance's area-fill quad on page 2 of the Mine/Shelter map.
+///
+/// Four vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s4_02 loaded during use.
+extern TmdSource gMappicS402TunnelEntranceShape;
 
-extern TmdSource D_mappic_s4_02_8012F0C0;
+/// Tunnel's area-fill quad on page 2 of the Mine/Shelter map.
+///
+/// Four vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s4_02 loaded during use.
+extern TmdSource gMappicS402TunnelShape;
 
-extern TmdSource D_mappic_s4_02_8012F150;
+/// Gorge's area-fill quad on page 2 of the Mine/Shelter map.
+///
+/// Four vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s4_02 loaded during use.
+extern TmdSource gMappicS402GorgeShape;
 
-extern TmdSource D_mappic_s4_02_8012F1E0;
+/// Refuge's area-fill quad on page 2 of the Mine/Shelter map.
+///
+/// Four vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s4_02 loaded during use.
+extern TmdSource gMappicS402RefugeShape;
 
-extern TmdSource D_mappic_s4_02_8012F28C;
+/// Forked Tunnel's two-quad area fill on page 2 of the Mine/Shelter map.
+///
+/// Six vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s4_02 loaded during use.
+extern TmdSource gMappicS402ForkedTunnelShape;
 
 // mappic_s4_03
 extern TmdSource D_mappic_s4_03_8012EFD8;
