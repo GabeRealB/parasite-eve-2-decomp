@@ -1635,7 +1635,7 @@ gShelterB1UndergroundParkingAreaVariants = 0x8018B5C4; // absolute:True owner=sh
 
 D_shelter_b2_elevator_8017E964 = 0x8017E964; // absolute:True owner=shelter_b2_elevator
 
-D_shelter_b2_elevator_hall_80184C7C = 0x80184C7C; // absolute:True owner=shelter_b2_elevator_hall
+gShelterB2ElevatorHallAreaVariants = 0x80184C7C; // absolute:True owner=shelter_b2_elevator_hall
 
 gShelterB2LaboratoryAreaVariants = 0x80186360; // absolute:True owner=shelter_b2_laboratory shared=rooms
 

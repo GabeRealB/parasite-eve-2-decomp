@@ -942,7 +942,7 @@ DirectionWarpEntry* D_map_shelter_8017AF88[49] = {
     gShelterB1TransferTunnelWarpEntries,
     D_shelter_b1_control_room_access_tunnel_80181F08,
     gShelterB2ElevatorWarps,
-    D_shelter_b2_elevator_hall_801838E4,
+    gShelterB2ElevatorHallWarpEntries,
     D_shelter_b2_south_maintenance_walkway_80182644,
     D_shelter_b2_operating_room_80180BD0,
     D_shelter_b2_north_maintenance_walkway_80183C64,
@@ -994,7 +994,7 @@ static ViewCount* D_map_shelter_8017B04C[49] = {
     gShelterB1TransferTunnelRoomViewCounts,
     gShelterB1ControlRoomAccessTunnelRoomViewCounts,
     gShelterB2ElevatorViewCounts,
-    D_shelter_b2_elevator_hall_801838E0,
+    gShelterB2ElevatorHallRoomViewCounts,
     D_shelter_b2_south_maintenance_walkway_80182640,
     D_shelter_b2_operating_room_80180BCC,
     D_shelter_b2_north_maintenance_walkway_80183C60,
@@ -1070,7 +1070,7 @@ static WorldCollisionRoomResources D_map_shelter_8017B1C4[1] = {
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B1D4[1] = {
-    { &gShelterB2ElevatorHallRoomCollision, D_shelter_b2_elevator_hall_801846CC, D_shelter_b2_elevator_hall_80184968, D_shelter_b2_elevator_hall_8018492C },
+    { &gShelterB2ElevatorHallRoomCollision, gShelterB2ElevatorHallViewBoundaryTriggers, gShelterB2ElevatorHallWarpTriggers, gShelterB2ElevatorHallSightOccluders },
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B1E4[1] = {
@@ -1219,7 +1219,7 @@ static ViewCamera* D_map_shelter_8017B3BC[49] = {
     gShelterB1TransferTunnelViewCameras,
     gShelterB1ControlRoomAccessTunnelViewCameras,
     gShelterB2ElevatorViewCameras,
-    D_shelter_b2_elevator_hall_80183DD8,
+    gShelterB2ElevatorHallViewCameras,
     gShelterB2SouthMaintenanceWalkwayViewCameras,
     gShelterB2OperatingRoomViewCameras,
     gShelterB2NorthMaintenanceWalkwayViewCameras,

@@ -12,7 +12,26 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_shelter_b2_elevator_hall_80184C7C[22];
+/// Extents of the hall's exported room, camera, warp, collision and placement tables.
+enum {
+    SHELTER_B2_ELEVATOR_HALL_ROOM_COUNT                  = 1,
+    SHELTER_B2_ELEVATOR_HALL_VIEW_COUNT                  = 7,
+    SHELTER_B2_ELEVATOR_HALL_WARP_ENTRY_COUNT            = 3,
+    SHELTER_B2_ELEVATOR_HALL_VIEW_BOUNDARY_TRIGGER_COUNT = 8,
+    SHELTER_B2_ELEVATOR_HALL_SIGHT_OCCLUDER_COUNT        = 1,
+    SHELTER_B2_ELEVATOR_HALL_WARP_TRIGGER_COUNT          = 3,
+    SHELTER_B2_ELEVATOR_HALL_AREA_VARIANT_COUNT          = 22,
+};
+
+/// Encounter layouts indexed by the hall's placement variant, 0..21.
+///
+/// Populated slots are 1 (seven Maggots), 2 (two Brain Stingers), 3 (three
+/// large Mossbacks), 11 (four Watchers and a patrolling launcher Rook
+/// GOLEM), and 21 (two Watchers and two launcher Rook GOLEMs). Other slots
+/// contain two NULL pointers. Each populated slot borrows room-owned resource
+/// and placement lists ending at `AREA_PLACEMENT_END`; actors keep placement
+/// pointers, so the overlay must remain loaded until those actors are released.
+extern AreaVariant gShelterB2ElevatorHallAreaVariants[SHELTER_B2_ELEVATOR_HALL_AREA_VARIANT_COUNT];
 
 /// Logical-view maps for the hall's single room, indexed by room ID minus one.
 ///
@@ -21,9 +40,21 @@ extern AreaVariant D_shelter_b2_elevator_hall_80184C7C[22];
 /// overlay is loaded; it has no terminator.
 extern u8* gShelterB2ElevatorHallViewMaps[1];
 
-extern ViewCount D_shelter_b2_elevator_hall_801838E0[];
+/// Reverse-lookup view counts indexed by room minus one; the hall's only room has seven views.
+///
+/// Counts signed logical-view entries in `gShelterB2ElevatorHallViewMaps`, with
+/// no terminator. The map overlay borrows this storage while the hall is loaded.
+extern ViewCount gShelterB2ElevatorHallRoomViewCounts[SHELTER_B2_ELEVATOR_HALL_ROOM_COUNT];
 
-extern DirectionWarpEntry D_shelter_b2_elevator_hall_801838E4[];
+/// Arrival placements and departure options for the hall's three warp endpoints.
+///
+/// Indexed by warp minus one: 1 main corridor (view 2), 2 elevator (view 5),
+/// 3 south maintenance walkway (view 6). Player and companion share each
+/// signed world-unit placement and 4096-unit yaw; each endpoint has its own
+/// arrival/departure sounds and map flag, and endpoint 3 adds a blocked sound.
+/// There is no terminator. The map overlay borrows these records while loaded;
+/// transition consumers copy a complete `DirectionWarpEntry` by value.
+extern DirectionWarpEntry gShelterB2ElevatorHallWarpEntries[SHELTER_B2_ELEVATOR_HALL_WARP_ENTRY_COUNT];
 
 /// The hall's wall and floor collision mesh, indexed by a 5-by-2 XZ cell grid.
 ///
@@ -34,7 +65,14 @@ extern DirectionWarpEntry D_shelter_b2_elevator_hall_801838E4[];
 /// this room overlay.
 extern WorldCollisionGrid gShelterB2ElevatorHallRoomCollision;
 
-extern ViewCamera D_shelter_b2_elevator_hall_80183DD8[];
+/// Camera transforms and projection distances for mapped hall views 1..7.
+///
+/// Indexed by mapped view minus one, with no terminator. Rotation uses twelve
+/// fractional bits, translation is the negated world-space camera origin, and
+/// projection distances are pixels. View 1 looks down; views 2..7 look along
+/// the hall. Queued camera tasks borrow a record until applying it, requiring
+/// this overlay to remain loaded through application.
+extern ViewCamera gShelterB2ElevatorHallViewCameras[SHELTER_B2_ELEVATOR_HALL_VIEW_COUNT];
 
 /// Sprite and clipping resources for mapped hall views 1..7, indexed by view minus one.
 ///
@@ -49,11 +87,30 @@ extern SpriteView gShelterB2ElevatorHallSpriteViews[7];
 /// attenuation. All entries contribute in every view; keep the overlay loaded.
 extern WorldCoordRoomLights gShelterB2ElevatorHallRoomLights;
 
-extern WorldCollisionTrigger D_shelter_b2_elevator_hall_801846CC[];
+/// Eight directed quads changing hall views in pairs 2/3, 3/4, 4/5 and 5/6.
+///
+/// Origins, corner offsets and radii use room game units; normals use 4096 per
+/// unit. The final live quad carries `WORLD_COLLISION_TRIGGER_LAST`. Room setup
+/// binds the view coordinate, links and enables every record. Links and hit
+/// latches are mutable; keep the room overlay loaded until the array is unlinked.
+extern WorldCollisionTrigger gShelterB2ElevatorHallViewBoundaryTriggers[SHELTER_B2_ELEVATOR_HALL_VIEW_BOUNDARY_TRIGGER_COUNT];
 
-extern WorldCollisionOccluder D_shelter_b2_elevator_hall_8018492C[];
+/// One room-space quad blocking enemy sight across the hall.
+///
+/// Positions and radius use game units; the normal uses 4096 per unit. The
+/// sole live record carries `WORLD_COLLISION_OCCLUDER_LAST`; low flag bit 0
+/// and the final zero byte have unproven roles. Setup links and enables it.
+/// Its links are mutable and borrow room storage until the occluder is unlinked.
+extern WorldCollisionOccluder gShelterB2ElevatorHallSightOccluders[SHELTER_B2_ELEVATOR_HALL_SIGHT_OCCLUDER_COUNT];
 
-extern WorldCollisionTrigger D_shelter_b2_elevator_hall_80184968[];
+/// Facing-gated warp quads for the main corridor, elevator and south walkway.
+///
+/// Each uses hall endpoint 1, 2 or 3 respectively and destination arrival 1.
+/// Room-unit origins, corners and radii define the overlap regions; normals
+/// use 4096 per unit. The final live quad carries `WORLD_COLLISION_TRIGGER_LAST`.
+/// Setup binds the view coordinate, links and enables the writable records;
+/// the hall overlay must remain loaded until their links and hit latches retire.
+extern WorldCollisionTrigger gShelterB2ElevatorHallWarpTriggers[SHELTER_B2_ELEVATOR_HALL_WARP_TRIGGER_COUNT];
 
 /// Collision policies and footstep cues indexed by the hall's surface classes 0..7.
 ///
