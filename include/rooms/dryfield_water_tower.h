@@ -32,11 +32,21 @@ extern AreaVariant D_dryfield_water_tower_8018757C[13];
 // dryfield_water_tower
 extern WorldCollisionRoomResources D_dryfield_water_tower_801827CC[];
 
-extern u8* D_dryfield_water_tower_801827DC[];
+/// Logical-view map directory for the water tower's sole room.
+///
+/// Room 1 borrows `gViewIdentityMap`, indexed by logical view minus one.
+/// Reverse-search counts and camera, image and sprite extents are independent.
+/// The directory requires the room overlay loaded; the map requires gameplay.
+extern u8* gDryfieldWaterTowerRoomViewMaps[1];
 
 extern ViewCount D_dryfield_water_tower_801827E0[];
 
-extern WorldCoordRoomLighting D_dryfield_water_tower_801827E4[];
+/// Authored model lighting for the water tower's sole room, indexed by room minus one.
+///
+/// Four directional and five point lights contribute in every view; there are
+/// no cone lights. NULL ambient minima select the gameplay defaults. The room
+/// overlay owns the descriptor and writable light arrays throughout their use.
+extern WorldCoordRoomLighting gDryfieldWaterTowerRoomLighting[1];
 
 extern DirectionWarpEntry D_dryfield_water_tower_801827EC[];
 
@@ -44,7 +54,12 @@ extern ViewCamera D_dryfield_water_tower_801835E8[];
 
 extern SpriteView D_dryfield_water_tower_80186560[];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_water_tower_80187608[];
+/// Collision policies and footstep cues indexed by the water tower's surface class (0..7).
+///
+/// Class 1 passes probes, disables weapon impacts and has no footstep cues.
+/// Other classes block probes, allow weapon impacts and borrow the same cues.
+/// Every class applies pushback. The directory and records require this room loaded.
+extern WorldCollisionSurfaceProperties* gDryfieldWaterTowerSurfacePropertiesByClass[8];
 
 /// Updates the room's ambient-effect gate for the current mapped view each frame.
 ///
