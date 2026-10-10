@@ -15,19 +15,45 @@
 extern AreaVariant D_shelter_b2_north_maintenance_walkway_80186258[22];
 
 // shelter_b2_north_maintenance_walkway
-extern u8* D_shelter_b2_north_maintenance_walkway_80183C5C[];
+/// Room-1 logical-view map selecting the same camera, image and sprite indices.
+///
+/// The sole pointer borrows `gViewIdentityMap`; only logical views 1..8 are
+/// used here, despite that shared map's larger capacity. There is no room
+/// sentinel or room-2 map. Keep the room directory and gameplay loaded.
+extern u8* gShelterB2NorthMaintenanceWalkwayRoomViewMaps[1];
 
 extern ViewCount D_shelter_b2_north_maintenance_walkway_80183C60[];
 
 extern DirectionWarpEntry D_shelter_b2_north_maintenance_walkway_80183C64[];
 
-extern WorldCollisionGrid D_shelter_b2_north_maintenance_walkway_8018401C;
+/// Walkway collision mesh and its two-by-three XZ cell directory.
+///
+/// Cell coordinates are (X + 2872) / 4000 and (Z + 4937) / 4000 in room
+/// game units. The mesh has 18 quads, 38 vertices and 14 normals; class 1
+/// marks the floor. Activation binds the view transform. The descriptor
+/// and its writable pools remain borrowed while this room is loaded.
+extern WorldCollisionGrid gShelterB2NorthMaintenanceWalkwayCollisionGrid;
 
-extern ViewCamera D_shelter_b2_north_maintenance_walkway_80184040[];
+/// Eight camera records selected by mapped view index minus one.
+///
+/// Rotations have 12 fractional bits; translation is the negated camera
+/// origin in world game units and projection distance is in pixels.
+/// Keep the room loaded until any queued camera application finishes.
+extern ViewCamera gShelterB2NorthMaintenanceWalkwayViewCameras[8];
 
-extern SpriteView D_shelter_b2_north_maintenance_walkway_80185B04[];
+/// Sprite descriptors for mapped views 1..8, indexed by view minus one.
+///
+/// Views 1, 2, 5 and 6 supply only decoded-image backgrounds. Views 3, 4,
+/// 7 and 8 add texture rectangles; every batch list preserves the image
+/// background and ends with `SPRITE_BATCH_END`. No view supplies draw-area
+/// clipping. Descriptors and their writable arrays require the loaded room.
+extern SpriteView gShelterB2NorthMaintenanceWalkwaySpriteViews[8];
 
-extern WorldCoordRoomLights D_shelter_b2_north_maintenance_walkway_80185D44;
+/// Room-1 model lighting from five point lights, with no directional or cone lights.
+///
+/// All five contribute in every view. The collection and mutable light
+/// records are borrowed only while the walkway overlay remains loaded.
+extern WorldCoordRoomLights gShelterB2NorthMaintenanceWalkwayLights;
 
 extern WorldCollisionTrigger D_shelter_b2_north_maintenance_walkway_80185D5C[];
 
@@ -35,7 +61,13 @@ extern WorldCollisionTrigger D_shelter_b2_north_maintenance_walkway_80185F24[];
 
 extern WorldCollisionOccluder D_shelter_b2_north_maintenance_walkway_80186308[];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b2_north_maintenance_walkway_80186360[];
+/// Collision and footstep policies indexed by surface class 0..7.
+///
+/// Class 1 is the floor with footstep cues; all other slots share a policy
+/// without surface cues. Every slot blocks probes, permits weapon impacts
+/// and applies pushback. Keep this room and the selected sound bank loaded
+/// while collision or footstep playback uses these borrowed records.
+extern WorldCollisionSurfaceProperties* gShelterB2NorthMaintenanceWalkwaySurfacePropertiesByClass[8];
 
 /// Runs the north maintenance walkway receiver's setup, idle or teardown state.
 ///

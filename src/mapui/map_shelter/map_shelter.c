@@ -676,7 +676,7 @@ static WorldCoordRoomLighting D_map_shelter_8017AE34[1] = {
 };
 
 static WorldCoordRoomLighting D_map_shelter_8017AE3C[1] = {
-    { &D_shelter_b2_north_maintenance_walkway_80185D44, NULL },
+    { &gShelterB2NorthMaintenanceWalkwayLights, NULL },
 };
 
 static WorldCoordRoomLighting D_map_shelter_8017AE44[1] = {
@@ -960,7 +960,7 @@ static WorldCollisionRoomResources D_map_shelter_8017B1F4[1] = {
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B204[1] = {
-    { &D_shelter_b2_north_maintenance_walkway_8018401C, D_shelter_b2_north_maintenance_walkway_80185D5C, D_shelter_b2_north_maintenance_walkway_80185F24, D_shelter_b2_north_maintenance_walkway_80186308 },
+    { &gShelterB2NorthMaintenanceWalkwayCollisionGrid, D_shelter_b2_north_maintenance_walkway_80185D5C, D_shelter_b2_north_maintenance_walkway_80185F24, D_shelter_b2_north_maintenance_walkway_80186308 },
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B214[1] = {
@@ -1100,7 +1100,7 @@ static ViewCamera* D_map_shelter_8017B3BC[49] = {
     D_shelter_b2_elevator_hall_80183DD8,
     D_shelter_b2_south_maintenance_walkway_80182A0C,
     D_shelter_b2_operating_room_80181388,
-    D_shelter_b2_north_maintenance_walkway_80184040,
+    gShelterB2NorthMaintenanceWalkwayViewCameras,
     D_shelter_b2_laboratory_80183580,
     D_shelter_b2_breeding_room_80181118,
     D_shelter_b2_main_corridor_80184464,
@@ -1158,7 +1158,7 @@ static u8** _gMapShelterAreaViewMaps[49] = {
     gShelterB2ElevatorHallViewMaps,
     D_shelter_b2_south_maintenance_walkway_8018263C,
     D_shelter_b2_operating_room_80180BC8,
-    D_shelter_b2_north_maintenance_walkway_80183C5C,
+    gShelterB2NorthMaintenanceWalkwayRoomViewMaps,
     gShelterB2LaboratoryRoomViewMaps,
     gShelterB2BreedingRoomRoomViewMaps,
     gShelterB2MainCorridorViewMaps,
@@ -1216,7 +1216,7 @@ static SpriteView* _gMapShelterAreaSpriteViews[49] = {
     gShelterB2ElevatorHallSpriteViews,
     D_shelter_b2_south_maintenance_walkway_80183018,
     D_shelter_b2_operating_room_80183184,
-    D_shelter_b2_north_maintenance_walkway_80185B04,
+    gShelterB2NorthMaintenanceWalkwaySpriteViews,
     D_shelter_b2_laboratory_801854D0,
     D_shelter_b2_breeding_room_801833D4,
     D_shelter_b2_main_corridor_80188848,
@@ -1270,7 +1270,7 @@ WorldCollisionSurfaceProperties** D_map_shelter_8017B614[49] = {
     gShelterB2ElevatorHallSurfacePropertiesByClass,
     D_shelter_b2_south_maintenance_walkway_801838B4,
     D_shelter_b2_operating_room_801841F4,
-    D_shelter_b2_north_maintenance_walkway_80186360,
+    gShelterB2NorthMaintenanceWalkwaySurfacePropertiesByClass,
     gShelterB2LaboratorySurfacePropertiesByClass,
     gShelterB2BreedingRoomSurfacePropertiesByClass,
     gShelterB2MainCorridorSurfacePropertiesByClass,
