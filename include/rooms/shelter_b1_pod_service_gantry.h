@@ -15,20 +15,35 @@
 
 extern AreaVariant D_shelter_b1_pod_service_gantry_8017FBF8[11];
 
-// shelter_b1_pod_service_gantry
-extern u8* D_shelter_b1_pod_service_gantry_8017FB1C[];
+/// Logical-view maps for the pod service gantry's single room.
+///
+/// Room 1 borrows `gViewIdentityMap`: logical views 1..46 select the same
+/// 1-based camera, image and sprite indices. This directory has no terminator
+/// and stays valid only while the room overlay is loaded.
+extern u8* gShelterB1PodServiceGantryRoomViewMaps[1];
 
 extern ViewCount D_shelter_b1_pod_service_gantry_8017FB20[];
 
 extern DirectionWarpEntry D_shelter_b1_pod_service_gantry_8017FB24[];
 
-extern WorldCollisionGrid D_shelter_b1_pod_service_gantry_801801C4;
+/// The pod service gantry's room-space collision mesh and spatial cell index.
+///
+/// Owns 30 faces over 66 vertices and 13 normals, indexed by 5 x 3 cells of
+/// 4000 game units. Cell coordinates use biases (1003, -1010) on room X/Z.
+/// Room setup borrows the mesh and binds its view transform; the grid and
+/// its private pools must remain writable and loaded while active.
+extern WorldCollisionGrid gShelterB1PodServiceGantryRoomCollision;
 
 extern ViewCamera D_shelter_b1_pod_service_gantry_801801E8[];
 
 extern SpriteView D_shelter_b1_pod_service_gantry_80181BA0[];
 
-extern WorldCoordRoomLights D_shelter_b1_pod_service_gantry_801824F4;
+/// Model-shading lights for the pod service gantry's single room.
+///
+/// Borrows nine point lights and two cone lights, all admitted in every view;
+/// there are no directional lights. Transforms and attenuation are mutable.
+/// The collection and its private backing arrays stay live with the overlay.
+extern WorldCoordRoomLights gShelterB1PodServiceGantryRoomLights;
 
 /// Pod service gantry collision and footstep policies for surface classes 0..7.
 ///

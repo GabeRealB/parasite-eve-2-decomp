@@ -83,9 +83,6 @@ static s32 _shelterB1PodServiceGantryResolveRoomVariant(Task* task, s32 messageI
 static s32 _shelterB1PodServiceGantryIgnoreCommand(Task* task, s32 messageId, s32 command, s32 commandArg);
 static s32 _shelterB1PodServiceGantryIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
-extern WorldCoordPointLight                      D_shelter_b1_pod_service_gantry_80181DC8[9];
-extern ShelterB1PodServiceGantrySpotLightStorage D_shelter_b1_pod_service_gantry_80182128;
-
 TaskMessageEntry D_shelter_b1_pod_service_gantry_8017FAF4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1PodServiceGantryResolveRoomVariant },
     { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB1PodServiceGantryRejectKeyItemUse },
@@ -94,7 +91,7 @@ TaskMessageEntry D_shelter_b1_pod_service_gantry_8017FAF4[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-u8* D_shelter_b1_pod_service_gantry_8017FB1C[1] = {
+u8* gShelterB1PodServiceGantryRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -135,29 +132,47 @@ AreaVariant D_shelter_b1_pod_service_gantry_8017FBF8[11] = {
     { NULL, NULL },
 };
 
-static SVECTOR _gShelterB1PodServiceGantryCollision02C04Normals[13] = {
+/// Room-space collision normals, with 4096 representing unit length.
+static SVECTOR _gShelterB1PodServiceGantryRoomCollisionNormals[13] = {
 #include "assets/shelter_b1_pod_service_gantry_collision_02C04_normals.inc"
 };
 
-static SVECTOR _gShelterB1PodServiceGantryCollision02C04Verts[66] = {
+/// Collision vertices in signed room-coordinate game units.
+static SVECTOR _gShelterB1PodServiceGantryRoomCollisionVerts[66] = {
 #include "assets/shelter_b1_pod_service_gantry_collision_02C04_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB1PodServiceGantryCollision02C04Faces[30] = {
+/// Indexed collision faces selecting the room's vertex, normal and surface pools.
+static WorldCollisionGridFace _gShelterB1PodServiceGantryRoomCollisionFaces[30] = {
 #include "assets/shelter_b1_pod_service_gantry_collision_02C04_faces.inc"
 };
 
-static s16 _gShelterB1PodServiceGantryCollision02C04Cells[172] = {
+/// Face-index lists for nonempty grid cells, each ending with WORLD_COLLISION_GRID_CELL_END.
+static s16 _gShelterB1PodServiceGantryRoomCollisionCells[172] = {
 #include "assets/shelter_b1_pod_service_gantry_collision_02C04_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB1PodServiceGantryCollision02C04Cells[i])
-static s16* _gShelterB1PodServiceGantryCollision02C04Table[15] = {
+// The generated table supplies zero-based element offsets into the cell-list pool.
+#define GRID_CELL(i) (&_gShelterB1PodServiceGantryRoomCollisionCells[i])
+/// X-major cell-list pointers: five X rows of three Z cells; NULL marks an empty cell.
+static s16* _gShelterB1PodServiceGantryRoomCollisionTable[15] = {
 #include "assets/shelter_b1_pod_service_gantry_collision_02C04_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b1_pod_service_gantry_801801C4 = { NULL, _gShelterB1PodServiceGantryCollision02C04Normals, _gShelterB1PodServiceGantryCollision02C04Verts, _gShelterB1PodServiceGantryCollision02C04Faces, _gShelterB1PodServiceGantryCollision02C04Table, 1003, -1010, 5, 3, 4000, 30 };
+WorldCollisionGrid gShelterB1PodServiceGantryRoomCollision = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB1PodServiceGantryRoomCollisionNormals,
+    .vertices    = _gShelterB1PodServiceGantryRoomCollisionVerts,
+    .faces       = _gShelterB1PodServiceGantryRoomCollisionFaces,
+    .cellFaceIds = _gShelterB1PodServiceGantryRoomCollisionTable,
+    .xBias       = 1003,
+    .zBias       = -1010,
+    .cellCountX  = 5,
+    .cellCountZ  = 3,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gShelterB1PodServiceGantryRoomCollisionFaces),
+};
 
 ViewCamera D_shelter_b1_pod_service_gantry_801801E8[46] = {
     { { { { 1403, 0, 3848 }, { 2757, 2857, -1005 }, { -2684, 2934, 978 } }, { -0x2DC3, 4293, -2180 } }, 207 },
@@ -208,296 +223,422 @@ ViewCamera D_shelter_b1_pod_service_gantry_801801E8[46] = {
     { { { { 1676, 0, -3737 }, { -1100, 3914, -493 }, { 3571, 1205, 1601 } }, { -7948, 590, -2568 } }, 329 },
 };
 
-SpriteSource D_shelter_b1_pod_service_gantry_80180860[23] = {
-    { 143, 0x3FC0, { .fields = { 32, 72 } }, 128, 48, 386, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 64 } }, 104, 56, 386, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, 88, 64, 381, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 64, 72, 376, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 48, 80, 391, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 24, 88, 386, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 0, 96, 380, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -16, 104, 376, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -72, 40, 1250, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -56, 40, 1250, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -48, 56, 1250, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -40, 72, 1250, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -32, 96, 1250, { .fields = { 72, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 16, 32, 1250, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 16 } }, -40, 56, 1250, { .fields = { 8, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 16, 56, 1250, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -32, 72, 1250, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 16, 72, 1250, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -24, 96, 1250, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 48, 8, 1250, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 56, 32, 1250, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, 56, 56, 1250, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 32 } }, -48, 24, 1250, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
+// Room sprite atlas: 8-bit texture pages at Y=0, palette at (0, 255).
+enum {
+    SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896 = getTPage(1, 0, 896, 0),
+    SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960 = getTPage(1, 0, 960, 0),
+    SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT              = getClut(0, 255),
+    SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR     = 128,
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80180A2C[4] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 8, 0, 0, { 1, 0 } },
-    { 8, 15, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Texture rectangles and sorting depths for pod service gantry view 1.
+///
+/// This view's batches select all 23 elements. Positions and dimensions
+/// are pixels relative to the view centre; depths are unscaled OT sorting
+/// values. The room owns these writable sources while its overlay is loaded.
+static SpriteSource _gShelterB1PodServiceGantryView1Sources[23] = {
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 72 } }, 128, 48, 386, { .fields = { 96, 72 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 24, 64 } }, 104, 56, 386, { .fields = { 96, 0 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 56 } }, 88, 64, 381, { .fields = { 104, 144 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 24, 48 } }, 64, 72, 376, { .fields = { 80, 144 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 40 } }, 48, 80, 391, { .fields = { 88, 192 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 24, 32 } }, 24, 88, 386, { .fields = { 72, 32 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 24, 24 } }, 0, 96, 380, { .fields = { 48, 32 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 16 } }, -16, 104, 376, { .fields = { 72, 216 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 48 } }, -72, 40, 1250, { .fields = { 112, 208 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 8, 72 } }, -56, 40, 1250, { .fields = { 120, 0 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 8, 64 } }, -48, 56, 1250, { .fields = { 120, 144 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 8, 48 } }, -40, 72, 1250, { .fields = { 104, 200 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 8, 24 } }, -32, 96, 1250, { .fields = { 72, 168 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 40, 24 } }, 16, 32, 1250, { .fields = { 32, 168 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 56, 16 } }, -40, 56, 1250, { .fields = { 8, 232 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 40, 16 } }, 16, 56, 1250, { .fields = { 32, 216 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 24 } }, -32, 72, 1250, { .fields = { 48, 96 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 40, 24 } }, 16, 72, 1250, { .fields = { 64, 232 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 24 } }, -24, 96, 1250, { .fields = { 48, 120 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 24 } }, 48, 8, 1250, { .fields = { 48, 144 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 24 } }, 56, 32, 1250, { .fields = { 56, 192 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 40, 32 } }, 56, 56, 1250, { .fields = { 56, 0 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 64, 32 } }, -48, 24, 1250, { .fields = { 32, 64 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteSource D_shelter_b1_pod_service_gantry_80180A4C[8] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 0, 1300, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -104, 0, 1237, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -104, -48, 1237, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -104, -96, 1237, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -56, -48, 1300, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -56, -96, 1300, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 32 } }, -40, -96, 1350, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -56, 0, 1300, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
+/// Sprite drawing batches for pod service gantry view 1.
+///
+/// The zero-count first batch selects decoded background strips.
+/// Two sprite ranges cover all 23 source elements; ranges start visible
+/// and included in cached drawing. The final two bytes retain unproven
+/// serialized values. Storage remains writable while the overlay is loaded.
+static SpriteBatch _gShelterB1PodServiceGantryView1Batches[4] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 8, .field_6 = { 1, 0 } },
+    { .firstSprite = 8, .spriteCount = 15, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80180AEC[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 8, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Texture rectangles and sorting depths for pod service gantry view 2.
+///
+/// This view's batches select all 8 elements. Positions and dimensions
+/// are pixels relative to the view centre; depths are unscaled OT sorting
+/// values. The room owns these writable sources while its overlay is loaded.
+static SpriteSource _gShelterB1PodServiceGantryView2Sources[8] = {
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 8, 8 } }, -48, 0, 1300, { .fields = { 120, 240 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 48 } }, -104, 0, 1237, { .fields = { 80, 0 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 48 } }, -104, -48, 1237, { .fields = { 80, 48 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 48 } }, -104, -96, 1237, { .fields = { 80, 96 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 48 } }, -56, -48, 1300, { .fields = { 112, 144 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 48 } }, -56, -96, 1300, { .fields = { 112, 192 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 32 } }, -40, -96, 1350, { .fields = { 64, 192 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 8, 48 } }, -56, 0, 1300, { .fields = { 104, 144 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteSource D_shelter_b1_pod_service_gantry_80180B04[12] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 0, 2300, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 72, -40, 2025, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, -56, 2300, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 48, -56, 2125, { .fields = { 88, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, -56, 2015, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 32, -40, 2300, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 72, 737, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 80, 72, 737, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 24, 737, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 96, 24, 737, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 88, 0, 737, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 112, 8, 737, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
+/// Sprite drawing batches for pod service gantry view 2.
+///
+/// The zero-count first batch selects decoded background strips.
+/// One sprite range covers all 8 source elements; ranges start visible
+/// and included in cached drawing. The final two bytes retain unproven
+/// serialized values. Storage remains writable while the overlay is loaded.
+static SpriteBatch _gShelterB1PodServiceGantryView2Batches[3] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gShelterB1PodServiceGantryView2Sources), .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80180BF4[4] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 6, 0, 0, { 1, 0 } },
-    { 6, 6, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Texture rectangles and sorting depths for pod service gantry view 3.
+///
+/// This view's batches select all 12 elements. Positions and dimensions
+/// are pixels relative to the view centre; depths are unscaled OT sorting
+/// values. The room owns these writable sources while its overlay is loaded.
+static SpriteSource _gShelterB1PodServiceGantryView3Sources[12] = {
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 8, 8 } }, 32, 0, 2300, { .fields = { 104, 88 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 48 } }, 72, -40, 2025, { .fields = { 112, 0 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 16 } }, 32, -56, 2300, { .fields = { 96, 192 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 24, 16 } }, 48, -56, 2125, { .fields = { 88, 72 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 16 } }, 72, -56, 2015, { .fields = { 96, 56 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 40 } }, 32, -40, 2300, { .fields = { 112, 192 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 48 } }, 112, 72, 737, { .fields = { 80, 144 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 40 } }, 80, 72, 737, { .fields = { 80, 0 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 48 } }, 112, 24, 737, { .fields = { 80, 96 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 48 } }, 96, 24, 737, { .fields = { 112, 48 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 24, 24 } }, 88, 0, 737, { .fields = { 104, 232 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 16 } }, 112, 8, 737, { .fields = { 96, 40 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteDrawArea D_shelter_b1_pod_service_gantry_80180C14[2] = {
-    { { 195, 0, 125, 239 }, 2500 },
-    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
+/// Sprite drawing batches for pod service gantry view 3.
+///
+/// The zero-count first batch selects decoded background strips.
+/// Two sprite ranges cover all 12 source elements; ranges start visible
+/// and included in cached drawing. The final two bytes retain unproven
+/// serialized values. Storage remains writable while the overlay is loaded.
+static SpriteBatch _gShelterB1PodServiceGantryView3Batches[4] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 6, .field_6 = { 1, 0 } },
+    { .firstSprite = 6, .spriteCount = 6, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_shelter_b1_pod_service_gantry_80180C28[82] = {
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -88, 80, 1075, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -112, 88, 1050, { .fields = { 16, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -80, 88, 1050, { .fields = { 0, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -16, 88, 1056, { .fields = { 0, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 16, 88, 1056, { .fields = { 16, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 48, 88, 1062, { .fields = { 16, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 80, 88, 1081, { .fields = { 16, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 32 } }, 112, 88, 1081, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 144, 88, 1081, { .fields = { 0, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -80, 72, 1045, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -48, 72, 1050, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, -40, 64, 1075, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -16, 72, 1056, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 16, 64, 1057, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 32 } }, 48, 56, 1087, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 80, 56, 1112, { .fields = { 48, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 24 } }, 72, 32, 1187, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 80, 32, 1187, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 112, 56, 1112, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 144, 64, 1112, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 112, 48, 1237, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -48, 88, 1056, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -48, 8, 1050, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -80, 24, 1037, { .fields = { 40, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, -112, 40, 1000, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, -112, 64, 1000, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -112, 88, 1000, { .fields = { 56, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -120, 64, 962, { .fields = { 48, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -120, 88, 962, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -128, 40, 962, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -160, 32, 950, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, -136, 32, 962, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, -80, 40, 1037, { .fields = { 48, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -80, 64, 1037, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -48, 40, 1050, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -48, 64, 1050, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -80, -8, 975, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -64, 8, 962, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, -48, 0, 937, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 64, 64, 1450, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -80, 1450, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -32, 1450, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 32 } }, 112, 16, 1450, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, -80, 1450, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, -32, 1450, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, 16, 1450, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 32, -72, 1445, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 32, -32, 1445, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 32, 16, 1445, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 48, 64, 1445, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 24, 56, 1075, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 80, 56, 1175, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 32, 80, 1175, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 8, 88, 1175, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -16, 72, 1050, { .fields = { 88, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 8, 64, 1062, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 32, 56, 1081, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 56, 56, 1081, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 56, 48, 1081, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 40, 48, 1345, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 16, 56, 1317, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -8, 64, 1295, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -24, 72, 1292, { .fields = { 104, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 0, 64, 1305, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 24, 56, 1330, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 48, 48, 1375, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 32, 48, 1367, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 40, 48, 1387, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 8, 56, 1330, { .fields = { 104, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -16, 64, 1305, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -32, 72, 1300, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -8, 64, 1320, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 16, 56, 1362, { .fields = { 80, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 40, 56, 1375, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 24, 48, 1425, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 32, 48, 1431, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 0, 56, 1382, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -24, 64, 1362, { .fields = { 112, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -40, 72, 1357, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -16, 64, 1375, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 8, 56, 1412, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, 56, 1436, { .fields = { 32, 32 } }, 128, 128, 128, 0 },
+/// Depth-sorted clipping for pod service gantry view 3.
+///
+/// Clips scene drawing to (195, 0, 125, 239) in draw-buffer pixels, then
+/// restores the full screen at unscaled OT depth 2500. The terminal record
+/// emits no command. The room owns this writable list while loaded.
+static SpriteDrawArea _gShelterB1PodServiceGantryView3DrawAreas[2] = {
+    { .clipRect = { 195, 0, 125, 239 }, .restoreDepth = 2500 },
+    { .restoreDepth = SPRITE_DRAW_AREA_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80181290[10] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 22, 0, 0, { 6, 0 } },
-    { 22, 14, 0, 0, { 1, 0 } },
-    { 36, 3, 0, 0, { 4, 0 } },
-    { 39, 11, 0, 0, { 0, 0 } },
-    { 50, 9, 0, 0, { 5, 0 } },
-    { 59, 7, 0, 0, { 3, 0 } },
-    { 66, 8, 0, 0, { 7, 0 } },
-    { 74, 8, 0, 0, { 2, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Texture rectangles and sorting depths for pod service gantry view 4.
+///
+/// This view's batches select all 82 elements. Positions and dimensions
+/// are pixels relative to the view centre; depths are unscaled OT sorting
+/// values. The room owns these writable sources while its overlay is loaded.
+static SpriteSource _gShelterB1PodServiceGantryView4Sources[82] = {
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 8, 8 } }, -88, 80, 1075, { .fields = { 72, 64 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 32 } }, -112, 88, 1050, { .fields = { 16, 224 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 32 } }, -80, 88, 1050, { .fields = { 0, 32 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 32 } }, -16, 88, 1056, { .fields = { 0, 64 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 32 } }, 16, 88, 1056, { .fields = { 16, 128 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 32 } }, 48, 88, 1062, { .fields = { 16, 160 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 32 } }, 80, 88, 1081, { .fields = { 16, 192 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 32 } }, 112, 88, 1081, { .fields = { 112, 160 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 32 } }, 144, 88, 1081, { .fields = { 0, 128 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 16 } }, -80, 72, 1045, { .fields = { 48, 48 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 16 } }, -48, 72, 1050, { .fields = { 112, 240 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 8 } }, -40, 64, 1075, { .fields = { 56, 136 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 16 } }, -16, 72, 1056, { .fields = { 80, 240 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 24 } }, 16, 64, 1057, { .fields = { 56, 96 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 32 } }, 48, 56, 1087, { .fields = { 112, 96 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 32 } }, 80, 56, 1112, { .fields = { 48, 168 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 8, 24 } }, 72, 32, 1187, { .fields = { 88, 176 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 24 } }, 80, 32, 1187, { .fields = { 56, 168 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 32 } }, 112, 56, 1112, { .fields = { 48, 136 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 24 } }, 144, 64, 1112, { .fields = { 72, 120 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 8 } }, 112, 48, 1237, { .fields = { 56, 128 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 32 } }, -48, 88, 1056, { .fields = { 48, 200 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 32 } }, -48, 8, 1050, { .fields = { 16, 96 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 16 } }, -80, 24, 1037, { .fields = { 40, 64 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 24 } }, -112, 40, 1000, { .fields = { 56, 144 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 24 } }, -112, 64, 1000, { .fields = { 72, 72 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 8, 24 } }, -112, 88, 1000, { .fields = { 56, 232 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 8, 24 } }, -120, 64, 962, { .fields = { 48, 232 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 8, 16 } }, -120, 88, 962, { .fields = { 96, 240 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 24 } }, -128, 40, 962, { .fields = { 88, 120 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 24, 16 } }, -160, 32, 950, { .fields = { 104, 240 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 24, 8 } }, -136, 32, 962, { .fields = { 48, 120 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 24 } }, -80, 40, 1037, { .fields = { 48, 24 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 16 } }, -80, 64, 1037, { .fields = { 48, 240 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 24 } }, -48, 40, 1050, { .fields = { 72, 192 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 24 } }, -48, 64, 1050, { .fields = { 72, 216 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 48 } }, -80, -8, 975, { .fields = { 112, 96 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 24 } }, -64, 8, 962, { .fields = { 64, 232 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 24 } }, -48, 0, 937, { .fields = { 112, 216 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 8, 8 } }, 64, 64, 1450, { .fields = { 88, 208 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 48 } }, 112, -80, 1450, { .fields = { 80, 144 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 48 } }, 112, -32, 1450, { .fields = { 80, 0 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 32 } }, 112, 16, 1450, { .fields = { 0, 0 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 48 } }, 64, -80, 1450, { .fields = { 80, 48 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 48 } }, 64, -32, 1450, { .fields = { 80, 192 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 48 } }, 64, 16, 1450, { .fields = { 32, 48 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 40 } }, 32, -72, 1445, { .fields = { 48, 96 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 48 } }, 32, -32, 1445, { .fields = { 80, 96 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 48 } }, 32, 16, 1445, { .fields = { 48, 0 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 8 } }, 48, 64, 1445, { .fields = { 56, 80 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 8, 8 } }, 24, 56, 1075, { .fields = { 64, 216 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 8, 8 } }, 80, 56, 1175, { .fields = { 64, 224 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 8, 8 } }, 32, 80, 1175, { .fields = { 64, 200 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 8, 8 } }, 8, 88, 1175, { .fields = { 64, 208 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 24, 24 } }, -16, 72, 1050, { .fields = { 88, 216 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 24, 24 } }, 8, 64, 1062, { .fields = { 88, 152 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 24, 24 } }, 32, 56, 1081, { .fields = { 80, 0 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 24, 24 } }, 56, 56, 1081, { .fields = { 80, 48 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 8 } }, 56, 48, 1081, { .fields = { 56, 88 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 8, 8 } }, 40, 48, 1345, { .fields = { 64, 192 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 8, 8 } }, 16, 56, 1317, { .fields = { 88, 200 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 8, 8 } }, -8, 64, 1295, { .fields = { 120, 152 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 24, 24 } }, -24, 72, 1292, { .fields = { 104, 24 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 24, 24 } }, 0, 64, 1305, { .fields = { 104, 72 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 24, 24 } }, 24, 56, 1330, { .fields = { 96, 192 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 24, 24 } }, 48, 48, 1375, { .fields = { 104, 128 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 8, 8 } }, 32, 48, 1367, { .fields = { 96, 184 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 8, 8 } }, 40, 48, 1387, { .fields = { 88, 144 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 8, 8 } }, 8, 56, 1330, { .fields = { 104, 176 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 8, 8 } }, -16, 64, 1305, { .fields = { 104, 184 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 24, 24 } }, -32, 72, 1300, { .fields = { 104, 48 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 24, 24 } }, -8, 64, 1320, { .fields = { 88, 96 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 24, 24 } }, 16, 56, 1362, { .fields = { 80, 24 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 16 } }, 40, 56, 1375, { .fields = { 80, 240 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 8, 8 } }, 24, 48, 1425, { .fields = { 104, 120 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 8, 8 } }, 32, 48, 1431, { .fields = { 96, 144 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 8, 8 } }, 0, 56, 1382, { .fields = { 96, 176 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 8, 8 } }, -24, 64, 1362, { .fields = { 112, 152 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 24, 24 } }, -40, 72, 1357, { .fields = { 104, 0 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 24, 24 } }, -16, 64, 1375, { .fields = { 120, 192 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X896, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 24, 24 } }, 8, 56, 1412, { .fields = { 56, 0 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 16 } }, 32, 56, 1436, { .fields = { 32, 32 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteSource D_shelter_b1_pod_service_gantry_801812E0[15] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 32, 925, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, 104, 700, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -96, 72, 750, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -80, 40, 875, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -64, 32, 925, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, 112, 32, 1000, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 16 } }, 56, 32, 1000, { .fields = { 56, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 24, 32, 1000, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -56, 32, 1000, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -40, 48, 1000, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -40, 72, 1000, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -16, 48, 1000, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 16, 48, 1000, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -16, 72, 1000, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 16, 72, 1000, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
+/// Sprite drawing batches for pod service gantry view 4.
+///
+/// The zero-count first batch selects decoded background strips.
+/// Eight sprite ranges cover all 82 source elements; ranges start visible
+/// and included in cached drawing. The final two bytes retain unproven
+/// serialized values. Storage remains writable while the overlay is loaded.
+static SpriteBatch _gShelterB1PodServiceGantryView4Batches[10] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 22, .field_6 = { 6, 0 } },
+    { .firstSprite = 22, .spriteCount = 14, .field_6 = { 1, 0 } },
+    { .firstSprite = 36, .spriteCount = 3, .field_6 = { 4, 0 } },
+    { .firstSprite = 39, .spriteCount = 11, .field_6 = { 0, 0 } },
+    { .firstSprite = 50, .spriteCount = 9, .field_6 = { 5, 0 } },
+    { .firstSprite = 59, .spriteCount = 7, .field_6 = { 3, 0 } },
+    { .firstSprite = 66, .spriteCount = 8, .field_6 = { 7, 0 } },
+    { .firstSprite = 74, .spriteCount = 8, .field_6 = { 2, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_8018140C[4] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 5, 0, 0, { 1, 0 } },
-    { 5, 10, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Texture rectangles and sorting depths for pod service gantry view 5.
+///
+/// This view's batches select all 15 elements. Positions and dimensions
+/// are pixels relative to the view centre; depths are unscaled OT sorting
+/// values. The room owns these writable sources while its overlay is loaded.
+static SpriteSource _gShelterB1PodServiceGantryView5Sources[15] = {
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 8, 8 } }, -48, 32, 925, { .fields = { 120, 248 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 16 } }, -112, 104, 700, { .fields = { 112, 232 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 48 } }, -96, 72, 750, { .fields = { 112, 0 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 48 } }, -80, 40, 875, { .fields = { 112, 48 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 24 } }, -64, 32, 925, { .fields = { 112, 160 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 16 } }, 112, 32, 1000, { .fields = { 64, 32 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 56, 16 } }, 56, 32, 1000, { .fields = { 56, 16 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 16 } }, 24, 32, 1000, { .fields = { 80, 0 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 40, 16 } }, -56, 32, 1000, { .fields = { 72, 80 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 24, 24 } }, -40, 48, 1000, { .fields = { 104, 208 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 24, 32 } }, -40, 72, 1000, { .fields = { 104, 128 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 16 } }, -16, 48, 1000, { .fields = { 80, 64 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 24 } }, 16, 48, 1000, { .fields = { 112, 184 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 16 } }, -16, 72, 1000, { .fields = { 80, 48 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 32 } }, 16, 72, 1000, { .fields = { 112, 96 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_8018142C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Sprite drawing batches for pod service gantry view 5.
+///
+/// The zero-count first batch selects decoded background strips.
+/// Two sprite ranges cover all 15 source elements; ranges start visible
+/// and included in cached drawing. The final two bytes retain unproven
+/// serialized values. Storage remains writable while the overlay is loaded.
+static SpriteBatch _gShelterB1PodServiceGantryView5Batches[4] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 5, .field_6 = { 1, 0 } },
+    { .firstSprite = 5, .spriteCount = 10, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_8018143C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Sprite drawing batches for pod service gantry view 6.
+///
+/// The zero-count first batch selects decoded background strips.
+/// The next record ends the list. Its retained source-slot address supplies
+/// no source elements. The room owns this writable list while loaded.
+static SpriteBatch _gShelterB1PodServiceGantryView6Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_shelter_b1_pod_service_gantry_8018144C[10] = {
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -152, -56, 1950, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -112, -56, 1950, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -72, -56, 1900, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -32, -48, 1800, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 0, -48, 1800, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 32, -56, 1900, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 72, -56, 1950, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 112, -56, 1950, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -24, -16, 1800, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 8, -16, 1800, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
+/// Sprite drawing batches for pod service gantry view 7.
+///
+/// The zero-count first batch selects decoded background strips.
+/// The next record ends the list. Its retained source-slot address supplies
+/// no source elements. The room owns this writable list while loaded.
+static SpriteBatch _gShelterB1PodServiceGantryView7Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80181514[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 10, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Texture rectangles and sorting depths for pod service gantry view 8.
+///
+/// This view's batches select all 10 elements. Positions and dimensions
+/// are pixels relative to the view centre; depths are unscaled OT sorting
+/// values. The room owns these writable sources while its overlay is loaded.
+static SpriteSource _gShelterB1PodServiceGantryView8Sources[10] = {
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 40, 40 } }, -152, -56, 1950, { .fields = { 88, 120 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 40, 40 } }, -112, -56, 1950, { .fields = { 88, 160 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 40, 40 } }, -72, -56, 1900, { .fields = { 88, 200 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 32 } }, -32, -48, 1800, { .fields = { 56, 0 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 32 } }, 0, -48, 1800, { .fields = { 56, 32 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 40, 40 } }, 32, -56, 1900, { .fields = { 88, 80 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 40, 40 } }, 72, -56, 1950, { .fields = { 88, 40 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 40, 40 } }, 112, -56, 1950, { .fields = { 88, 0 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 16 } }, -24, -16, 1800, { .fields = { 96, 240 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 16, 16 } }, 8, -16, 1800, { .fields = { 112, 240 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteSource D_shelter_b1_pod_service_gantry_8018152C[24] = {
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, -64, 0, 812, { .fields = { 40, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -112, -8, 800, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -160, -8, 800, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -160, -24, 800, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, 16, 0, 812, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, 64, -8, 800, { .fields = { 40, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, 112, -8, 800, { .fields = { 48, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 136, -24, 800, { .fields = { 32, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -72, 56, 634, { .fields = { 40, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -120, 56, 656, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -152, 56, 827, { .fields = { 48, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, -160, 32, 649, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, 24, 56, 634, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, 72, 56, 656, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 120, 56, 673, { .fields = { 24, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 120, 32, 650, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -64, 0, 570, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -64, 32, 630, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, -64, 64, 701, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -48, 96, 801, { .fields = { 64, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 24, 96, 802, { .fields = { 56, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, 24, 64, 701, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 32, 32, 631, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 32, 0, 570, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
+/// Sprite drawing batches for pod service gantry view 8.
+///
+/// The zero-count first batch selects decoded background strips.
+/// One sprite range covers all 10 source elements; ranges start visible
+/// and included in cached drawing. The final two bytes retain unproven
+/// serialized values. Storage remains writable while the overlay is loaded.
+static SpriteBatch _gShelterB1PodServiceGantryView8Batches[3] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gShelterB1PodServiceGantryView8Sources), .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_8018170C[7] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 4, 0, 0, { 0, 0 } },
-    { 4, 4, 0, 0, { 3, 0 } },
-    { 8, 4, 0, 0, { 2, 0 } },
-    { 12, 4, 0, 0, { 4, 0 } },
-    { 16, 8, 0, 0, { 1, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Texture rectangles and sorting depths for pod service gantry view 9.
+///
+/// This view's batches select all 24 elements. Positions and dimensions
+/// are pixels relative to the view centre; depths are unscaled OT sorting
+/// values. The room owns these writable sources while its overlay is loaded.
+static SpriteSource _gShelterB1PodServiceGantryView9Sources[24] = {
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 16 } }, -64, 0, 812, { .fields = { 40, 200 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 24 } }, -112, -8, 800, { .fields = { 48, 128 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 24 } }, -160, -8, 800, { .fields = { 40, 0 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 24, 16 } }, -160, -24, 800, { .fields = { 104, 240 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 16 } }, 16, 0, 812, { .fields = { 56, 240 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 24 } }, 64, -8, 800, { .fields = { 40, 176 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 24 } }, 112, -8, 800, { .fields = { 48, 104 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 24, 16 } }, 136, -24, 800, { .fields = { 32, 232 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 24 } }, -72, 56, 634, { .fields = { 40, 152 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 24 } }, -120, 56, 656, { .fields = { 80, 216 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 16 } }, -152, 56, 827, { .fields = { 48, 216 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 40, 24 } }, -160, 32, 649, { .fields = { 88, 192 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 24 } }, 24, 56, 634, { .fields = { 48, 32 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 24 } }, 72, 56, 656, { .fields = { 48, 80 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 16 } }, 120, 56, 673, { .fields = { 24, 56 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 40, 24 } }, 120, 32, 650, { .fields = { 56, 56 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 32 } }, -64, 0, 570, { .fields = { 96, 64 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 32 } }, -64, 32, 630, { .fields = { 96, 32 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 40, 32 } }, -64, 64, 701, { .fields = { 88, 0 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 24, 8 } }, -48, 96, 801, { .fields = { 64, 24 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 24, 8 } }, 24, 96, 802, { .fields = { 56, 232 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 40, 32 } }, 24, 64, 701, { .fields = { 88, 160 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 32 } }, 32, 32, 631, { .fields = { 96, 128 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 32 } }, 32, 0, 570, { .fields = { 96, 96 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80181744[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Sprite drawing batches for pod service gantry view 9.
+///
+/// The zero-count first batch selects decoded background strips.
+/// Five sprite ranges cover all 24 source elements; ranges start visible
+/// and included in cached drawing. The final two bytes retain unproven
+/// serialized values. Storage remains writable while the overlay is loaded.
+static SpriteBatch _gShelterB1PodServiceGantryView9Batches[7] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 4, .field_6 = { 0, 0 } },
+    { .firstSprite = 4, .spriteCount = 4, .field_6 = { 3, 0 } },
+    { .firstSprite = 8, .spriteCount = 4, .field_6 = { 2, 0 } },
+    { .firstSprite = 12, .spriteCount = 4, .field_6 = { 4, 0 } },
+    { .firstSprite = 16, .spriteCount = 8, .field_6 = { 1, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_shelter_b1_pod_service_gantry_80181754[2] = {
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 88, 104, 520, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 120, 104, 511, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+/// Sprite drawing batches for pod service gantry view 10.
+///
+/// The zero-count first batch selects decoded background strips.
+/// The next record ends the list. Its retained source-slot address supplies
+/// no source elements. The room owns this writable list while loaded.
+static SpriteBatch _gShelterB1PodServiceGantryView10Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_8018177C[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 2, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Texture rectangles and sorting depths for pod service gantry view 11.
+///
+/// This view's batches select all 2 elements. Positions and dimensions
+/// are pixels relative to the view centre; depths are unscaled OT sorting
+/// values. The room owns these writable sources while its overlay is loaded.
+static SpriteSource _gShelterB1PodServiceGantryView11Sources[2] = {
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 16 } }, 88, 104, 520, { .fields = { 96, 16 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 16 } }, 120, 104, 511, { .fields = { 96, 0 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80181794[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Sprite drawing batches for pod service gantry view 11.
+///
+/// The zero-count first batch selects decoded background strips.
+/// One sprite range covers all 2 source elements; ranges start visible
+/// and included in cached drawing. The final two bytes retain unproven
+/// serialized values. Storage remains writable while the overlay is loaded.
+static SpriteBatch _gShelterB1PodServiceGantryView11Batches[3] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gShelterB1PodServiceGantryView11Sources), .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_801817A4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Sprite drawing batches for pod service gantry view 12.
+///
+/// The zero-count first batch selects decoded background strips.
+/// The next record ends the list. Its retained source-slot address supplies
+/// no source elements. The room owns this writable list while loaded.
+static SpriteBatch _gShelterB1PodServiceGantryView12Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
+};
+
+/// Sprite drawing batches for pod service gantry view 13.
+///
+/// The zero-count first batch selects decoded background strips.
+/// The next record ends the list. Its retained source-slot address supplies
+/// no source elements. The room owns this writable list while loaded.
+static SpriteBatch _gShelterB1PodServiceGantryView13Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
 SpriteSource D_shelter_b1_pod_service_gantry_801817B4[14] = {
@@ -697,19 +838,19 @@ SpriteBatch D_shelter_b1_pod_service_gantry_80181B90[2] = {
 };
 
 SpriteView D_shelter_b1_pod_service_gantry_80181BA0[46] = {
-    { { .elements = D_shelter_b1_pod_service_gantry_80180860 }, D_shelter_b1_pod_service_gantry_80180A2C, NULL },
-    { { .elements = D_shelter_b1_pod_service_gantry_80180A4C }, D_shelter_b1_pod_service_gantry_80180AEC, NULL },
-    { { .elements = D_shelter_b1_pod_service_gantry_80180B04 }, D_shelter_b1_pod_service_gantry_80180BF4, D_shelter_b1_pod_service_gantry_80180C14 },
-    { { .elements = D_shelter_b1_pod_service_gantry_80180C28 }, D_shelter_b1_pod_service_gantry_80181290, NULL },
-    { { .elements = D_shelter_b1_pod_service_gantry_801812E0 }, D_shelter_b1_pod_service_gantry_8018140C, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_8018142C }, D_shelter_b1_pod_service_gantry_8018142C, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_8018143C }, D_shelter_b1_pod_service_gantry_8018143C, NULL },
-    { { .elements = D_shelter_b1_pod_service_gantry_8018144C }, D_shelter_b1_pod_service_gantry_80181514, NULL },
-    { { .elements = D_shelter_b1_pod_service_gantry_8018152C }, D_shelter_b1_pod_service_gantry_8018170C, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_80181744 }, D_shelter_b1_pod_service_gantry_80181744, NULL },
-    { { .elements = D_shelter_b1_pod_service_gantry_80181754 }, D_shelter_b1_pod_service_gantry_8018177C, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_80181794 }, D_shelter_b1_pod_service_gantry_80181794, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_801817A4 }, D_shelter_b1_pod_service_gantry_801817A4, NULL },
+    { { .elements = _gShelterB1PodServiceGantryView1Sources }, _gShelterB1PodServiceGantryView1Batches, NULL },
+    { { .elements = _gShelterB1PodServiceGantryView2Sources }, _gShelterB1PodServiceGantryView2Batches, NULL },
+    { { .elements = _gShelterB1PodServiceGantryView3Sources }, _gShelterB1PodServiceGantryView3Batches, _gShelterB1PodServiceGantryView3DrawAreas },
+    { { .elements = _gShelterB1PodServiceGantryView4Sources }, _gShelterB1PodServiceGantryView4Batches, NULL },
+    { { .elements = _gShelterB1PodServiceGantryView5Sources }, _gShelterB1PodServiceGantryView5Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView6Batches }, _gShelterB1PodServiceGantryView6Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView7Batches }, _gShelterB1PodServiceGantryView7Batches, NULL },
+    { { .elements = _gShelterB1PodServiceGantryView8Sources }, _gShelterB1PodServiceGantryView8Batches, NULL },
+    { { .elements = _gShelterB1PodServiceGantryView9Sources }, _gShelterB1PodServiceGantryView9Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView10Batches }, _gShelterB1PodServiceGantryView10Batches, NULL },
+    { { .elements = _gShelterB1PodServiceGantryView11Sources }, _gShelterB1PodServiceGantryView11Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView12Batches }, _gShelterB1PodServiceGantryView12Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView13Batches }, _gShelterB1PodServiceGantryView13Batches, NULL },
     { { .elements = D_shelter_b1_pod_service_gantry_801817B4 }, D_shelter_b1_pod_service_gantry_801818CC, NULL },
     { { .empty = D_shelter_b1_pod_service_gantry_801818E4 }, D_shelter_b1_pod_service_gantry_801818E4, NULL },
     { { .empty = D_shelter_b1_pod_service_gantry_801818F4 }, D_shelter_b1_pod_service_gantry_801818F4, NULL },
@@ -745,22 +886,32 @@ SpriteView D_shelter_b1_pod_service_gantry_80181BA0[46] = {
     { { .empty = D_shelter_b1_pod_service_gantry_80181B90 }, D_shelter_b1_pod_service_gantry_80181B90, NULL },
 };
 
-WorldCoordPointLight D_shelter_b1_pod_service_gantry_80181DC8[9] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x310C, -2576, 7191 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1756, 3216, 2480 }, { 0, 0 } }, 100, 200 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x309F, -2482, 7439 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1019, 3392, 1019 }, { 0, 0 } }, 100, 461 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x38B7, -3643, 7891 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2170, 2209, 2195 }, { 0, 0 } }, 1878, 3562 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4133, -2789, 3232 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2983, 2975, 2968 }, { 0, 0 } }, 1970, 6109 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8491, -3002, 3193 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2615, 2612, 2602 }, { 0, 0 } }, 3836, 6579 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x33FB, -2300, 0x2736 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2435, 3392, 2909 }, { 0, 0 } }, 300, 800 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x4074, -2305, 6109 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2059, 4119, 2889 }, { 0, 0 } }, 401, 855 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x41F1, -1881, 7349 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1756, 3216, 2480 }, { 0, 0 } }, 100, 200 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x35EA, -1128, 2778 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1944, 1895, 1866 }, { 0, 0 } }, 5201, 9559 },
+/// Nine room-owned point lights contributing in every gantry view.
+///
+/// Positions and falloff radii use world-coordinate game units; RGB uses
+/// 12 fractional bits. Gameplay updates transforms and attenuation in place.
+/// The collection borrows all nine records for the room overlay's lifetime.
+static WorldCoordPointLight _gShelterB1PodServiceGantryPointLights[9] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x310C, -2576, 7191 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1756, 3216, 2480 }, { 0, 0 } }, 100, 200 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x309F, -2482, 7439 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1019, 3392, 1019 }, { 0, 0 } }, 100, 461 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x38B7, -3643, 7891 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2170, 2209, 2195 }, { 0, 0 } }, 1878, 3562 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4133, -2789, 3232 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2983, 2975, 2968 }, { 0, 0 } }, 1970, 6109 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8491, -3002, 3193 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2615, 2612, 2602 }, { 0, 0 } }, 3836, 6579 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x33FB, -2300, 0x2736 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2435, 3392, 2909 }, { 0, 0 } }, 300, 800 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x4074, -2305, 6109 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2059, 4119, 2889 }, { 0, 0 } }, 401, 855 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x41F1, -1881, 7349 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1756, 3216, 2480 }, { 0, 0 } }, 100, 200 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x35EA, -1128, 2778 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1944, 1895, 1866 }, { 0, 0 } }, 5201, 9559 },
 };
 
-ShelterB1PodServiceGantrySpotLightStorage D_shelter_b1_pod_service_gantry_80182128 = {
+/// Two live cone lights followed by 756 bytes of unproven purpose and boundaries.
+///
+/// The collection borrows only `coneLights`, both admitted in every view.
+/// Gameplay updates their transforms and attenuation while the overlay is
+/// loaded. The following byte storage is outside the published light count.
+static ShelterB1PodServiceGantrySpotLightStorage _gShelterB1PodServiceGantrySpotLightStorage = {
     .coneLights = {
-        { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { -4003, -2, 873 }, { 869, 266, 4000 }, { -59, 4087, -261 } }, { 3412, -0x5063, 9454 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2764, 2764, 2425 }, { 0, 0 } }, { 872, 3993, -260, 0 }, 0x4E20, 0x7530, 0x2C71 },
-        { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { -4092, 0, -222 }, { 215, -909, -3996 }, { -50, -3996, 908 } }, { 8054, 5038, 1813 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 226, 226, 198 }, { 0, 0 } }, { -221, -3988, 907, 0 }, 10, 0x4E20, 0x2C71 },
+        { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { -4003, -2, 873 }, { 869, 266, 4000 }, { -59, 4087, -261 } }, { 3412, -0x5063, 9454 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2764, 2764, 2425 }, { 0, 0 } }, { 872, 3993, -260, 0 }, 0x4E20, 0x7530, 0x2C71 },
+        { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { -4092, 0, -222 }, { 215, -909, -3996 }, { -50, -3996, 908 } }, { 8054, 5038, 1813 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 226, 226, 198 }, { 0, 0 } }, { -221, -3988, 907, 0 }, 10, 0x4E20, 0x2C71 },
     },
     .unknown_D8 = {
         0x00,
@@ -1522,7 +1673,14 @@ ShelterB1PodServiceGantrySpotLightStorage D_shelter_b1_pod_service_gantry_801821
     },
 };
 
-WorldCoordRoomLights D_shelter_b1_pod_service_gantry_801824F4 = { 0, NULL, ARRAY_SIZE(D_shelter_b1_pod_service_gantry_80181DC8), D_shelter_b1_pod_service_gantry_80181DC8, ARRAY_SIZE(D_shelter_b1_pod_service_gantry_80182128.coneLights), D_shelter_b1_pod_service_gantry_80182128.coneLights };
+WorldCoordRoomLights gShelterB1PodServiceGantryRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gShelterB1PodServiceGantryPointLights),
+    .pointLights           = _gShelterB1PodServiceGantryPointLights,
+    .coneLightCount        = ARRAY_SIZE(_gShelterB1PodServiceGantrySpotLightStorage.coneLights),
+    .coneLights            = _gShelterB1PodServiceGantrySpotLightStorage.coneLights,
+};
 
 /// Plays the gantry scene and movie, replaces the actor package and leaves after the next scene.
 ///

@@ -34,7 +34,7 @@ gShelter1fBulwarkSpriteViews = 0x801807B0; // absolute:True owner=shelter_1f_bul
 gShelter1fBulwarkSurfaceProperties = 0x80180E9C; // absolute:True owner=shelter_1f_bulwark
 shelter1fHeliportRoomTask = 0x80180768; // type:func absolute:True owner=shelter_1f_heliport
 D_shelter_1f_heliport_801812D0 = 0x801812D0; // absolute:True owner=shelter_1f_heliport shared=rooms
-D_shelter_1f_heliport_801812E0 = 0x801812E0; // absolute:True owner=shelter_1f_heliport shared=rooms
+D_shelter_1f_heliport_801812E0 = 0x801812E0; // absolute:True owner=shelter_1f_heliport
 D_shelter_1f_heliport_801812E8 = 0x801812E8; // absolute:True owner=shelter_1f_heliport
 D_shelter_1f_heliport_801812EC = 0x801812EC; // absolute:True owner=shelter_1f_heliport
 D_shelter_1f_heliport_801812F0 = 0x801812F0; // absolute:True owner=shelter_1f_heliport
@@ -132,11 +132,11 @@ gNeoArkIslandViewCameras = 0x801826EC; // absolute:True owner=neo_ark_island
 gNeoArkIslandSpriteViews = 0x80183B14; // absolute:True owner=neo_ark_island
 gNeoArkIslandSurfaceProperties = 0x80183FE8; // absolute:True owner=neo_ark_island shared=rooms
 neoArkGardenRoomTask = 0x8017EA44; // type:func absolute:True owner=neo_ark_garden
-gNeoArkGardenCollisionRooms = 0x8018140C; // absolute:True owner=neo_ark_garden shared=rooms
+gNeoArkGardenCollisionRooms = 0x8018140C; // absolute:True owner=neo_ark_garden
 gNeoArkGardenRoomLighting = 0x8018141C; // absolute:True owner=neo_ark_garden
 gNeoArkGardenViewMaps = 0x80181424; // absolute:True owner=neo_ark_garden
 gNeoArkGardenViewCounts = 0x80181428; // absolute:True owner=neo_ark_garden shared=rooms
-gNeoArkGardenWarpEntries = 0x8018142C; // absolute:True owner=neo_ark_garden shared=rooms
+gNeoArkGardenWarpEntries = 0x8018142C; // absolute:True owner=neo_ark_garden
 gNeoArkGardenViewCameras = 0x801816E8; // absolute:True owner=neo_ark_garden
 gNeoArkGardenSpriteViews = 0x80182540; // absolute:True owner=neo_ark_garden shared=rooms
 gNeoArkGardenSurfacePropertiesByClass = 0x80182BD8; // absolute:True owner=neo_ark_garden
