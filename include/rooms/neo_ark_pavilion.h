@@ -28,19 +28,46 @@ extern AreaVariant D_neo_ark_pavilion_801876C4[13];
 // neo_ark_pavilion
 extern WorldCollisionRoomResources D_neo_ark_pavilion_801838B4[];
 
-extern WorldCoordRoomLighting D_neo_ark_pavilion_801838D4[];
+/// Lighting for pavilion rooms 1 and 2, indexed by room ID minus one.
+///
+/// Both rooms borrow the same four directional lights and use default ambient
+/// minima. Keep the pavilion overlay loaded while these records are selected.
+extern WorldCoordRoomLighting gNeoArkPavilionRoomLighting[2];
 
-extern u8* D_neo_ark_pavilion_801838EC[];
+/// Logical-view maps for pavilion rooms 1 and 2, indexed by room ID minus one.
+///
+/// Each room has seven logical views, indexed by view ID minus one. Room 1
+/// borrows `gViewIdentityMap`; room 2 maps them to 1, 4, 5, 2, 3, 6, 7.
+/// Values select the shared camera, image and sprite resources at index minus
+/// one. Borrowed room storage remains valid while this overlay is loaded.
+extern u8* gNeoArkPavilionViewMaps[2];
 
 extern ViewCount D_neo_ark_pavilion_801838F4[];
 
 extern DirectionWarpEntry D_neo_ark_pavilion_801838F8[];
 
-extern ViewCamera D_neo_ark_pavilion_80184208[];
+/// Seven pavilion cameras, indexed by mapped view ID minus one.
+///
+/// Transforms use Q12 rotation and signed world-coordinate translation;
+/// projection distances are pixels. Both rooms share this array. A queued
+/// camera application requires the pavilion overlay to remain loaded.
+extern ViewCamera gNeoArkPavilionViewCameras[7];
 
-extern SpriteView D_neo_ark_pavilion_801873B8[];
+/// Sprite resources for the pavilion's seven mapped views, indexed at ID minus one.
+///
+/// Every view keeps the decoded background image. View 1 has no source sprites;
+/// views 2..7 add 149, 97, 157, 115, 43 and 48 depth-sorted sprites respectively.
+/// No view supplies clipping areas. Descriptors and writable sources/batches
+/// remain borrowed only while the pavilion overlay is loaded.
+extern SpriteView gNeoArkPavilionSpriteViews[7];
 
-extern WorldCollisionSurfaceProperties* D_neo_ark_pavilion_801879EC[];
+/// Collision policies indexed by the pavilion's surface classes 0..7.
+///
+/// Class 1 passes probes and ignores weapon impacts; class 4 blocks probes,
+/// allows weapon impacts and supplies floor footstep cues. Other classes block probes and allow weapon
+/// impacts without footstep cues. All classes apply pushback. The eight entries
+/// share three writable records owned by the loaded pavilion overlay.
+extern WorldCollisionSurfaceProperties* gNeoArkPavilionSurfaceProperties[8];
 
 /// Installs the pavilion's eight enemy and water effect IDs on the first task tick.
 ///

@@ -115,13 +115,13 @@ D_neo_ark_submarine_tunnel_80186B78 = 0x80186B78; // absolute:True owner=neo_ark
 D_neo_ark_submarine_tunnel_801878EC = 0x801878EC; // absolute:True owner=neo_ark_submarine_tunnel shared=rooms
 neoArkPavilionRoomTask = 0x8017EBF4; // type:func absolute:True owner=neo_ark_pavilion shared=rooms
 D_neo_ark_pavilion_801838B4 = 0x801838B4; // absolute:True owner=neo_ark_pavilion shared=rooms
-D_neo_ark_pavilion_801838D4 = 0x801838D4; // absolute:True owner=neo_ark_pavilion shared=rooms
-D_neo_ark_pavilion_801838EC = 0x801838EC; // absolute:True owner=neo_ark_pavilion shared=rooms
+gNeoArkPavilionRoomLighting = 0x801838D4; // absolute:True owner=neo_ark_pavilion shared=rooms
+gNeoArkPavilionViewMaps = 0x801838EC; // absolute:True owner=neo_ark_pavilion shared=rooms
 D_neo_ark_pavilion_801838F4 = 0x801838F4; // absolute:True owner=neo_ark_pavilion shared=rooms
 D_neo_ark_pavilion_801838F8 = 0x801838F8; // absolute:True owner=neo_ark_pavilion shared=rooms
-D_neo_ark_pavilion_80184208 = 0x80184208; // absolute:True owner=neo_ark_pavilion
-D_neo_ark_pavilion_801873B8 = 0x801873B8; // absolute:True owner=neo_ark_pavilion
-D_neo_ark_pavilion_801879EC = 0x801879EC; // absolute:True owner=neo_ark_pavilion
+gNeoArkPavilionViewCameras = 0x80184208; // absolute:True owner=neo_ark_pavilion
+gNeoArkPavilionSpriteViews = 0x801873B8; // absolute:True owner=neo_ark_pavilion
+gNeoArkPavilionSurfaceProperties = 0x801879EC; // absolute:True owner=neo_ark_pavilion
 neoArkIslandRoomTask = 0x8017EB10; // type:func absolute:True owner=neo_ark_island
 D_neo_ark_island_80181B94 = 0x80181B94; // absolute:True owner=neo_ark_island shared=rooms
 gNeoArkIslandRoomLighting = 0x80181BA4; // absolute:True owner=neo_ark_island shared=rooms
