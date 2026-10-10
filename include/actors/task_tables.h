@@ -18,6 +18,17 @@ extern TaskDesc gActor146000WaterHoleSceneTasks[2];
 /// use the corresponding slot alias and must keep that slot's resources loaded.
 extern TaskDesc gActor01200BoneSucklerTaskDesc;
 
+/// Bodyless motel-room placement placeholder, priority 192; ends its task on first dispatch.
+extern TaskDesc gActor120500EmptyPlacementTaskDesc;
+
+/// Dumping-hole spawn recipes: 0 encounter/blaze controller, 1 kill placeholder, 2 fade, 3 body fire, 4 fire emitter.
+///
+/// All run at priority 192; only entry 4 has a coordinate body, the others are
+/// bodyless. Indices 0..4 have no terminator. Fade argument 2 borrows the live
+/// controller; emitter argument 1 carries its start delay. Keep actor_342100 and
+/// the dumping-hole resources loaded through the encounter and burn sequence.
+extern TaskDesc gActor342100EncounterBlazeTaskDescriptors[5];
+
 // Room placement records address these tables in the currently loaded actor
 // slots. Different packages occupy those slots over the lifetime of a stage.
 
@@ -278,7 +289,12 @@ extern TaskDesc gActor04000BloodSucklerTaskDesc;
 
 extern TaskDesc D_actor_120400_8013E748[];
 
-extern TaskDesc D_actor_420700_8013EF68[];
+/// Trailer-coach Gary Douglas spawn recipes: 0 body, 1 head-and-hat, 2 shotgun.
+///
+/// All are TMD bodies at priority 192, without a terminator. Body placement
+/// supplies a live Enemy in spawn argument 2; attachment spawns use zero
+/// arguments and borrow the published singleton body. Keep actor_420700 loaded.
+extern TaskDesc gActor420700GaryDouglasTaskDescriptors[3];
 
 /// Slot export of `gActor07000SlouchTaskDescs` from actor_107000, with the same descriptor contract.
 extern TaskDesc gActor107000SlouchTaskDescs[3];
@@ -293,9 +309,18 @@ extern TaskDesc D_actor_135400_8013F8D8;
 
 extern TaskDesc D_actor_136100_80140744[];
 
-extern TaskDesc D_actor_143900_801413EC;
+/// First scripted walker TMD recipe, priority 192 with automatic model buffers.
+///
+/// Spawn at index 0 with its live Enemy owner in spawn argument 2. Keep
+/// actor_143900 geometry, clips and callbacks loaded throughout the singleton walker's life.
+extern TaskDesc gActor143900ScriptedWalkerTaskDesc;
 
-extern TaskDesc D_actor_105100_80141464[];
+/// Stinger spawn recipes: 0 enemy TMD body, 1 fireball coordinate body, 2 beam coordinate body.
+///
+/// All execute at priority 96; indices 0..2 have no terminator. Enemy spawns
+/// supply a live Enemy in spawn argument 2. Keep this package loaded until
+/// the body and its coordinate children are released.
+extern TaskDesc gActor105100TaskDescriptors[3];
 
 extern TaskDesc D_actor_461800_801437EC;
 
@@ -353,7 +378,13 @@ extern TaskDesc gActor101900GrinningStrangerTaskDesc;
 /// loaded while its callbacks and borrowed model geometry are in use.
 extern TaskDesc gActor05600PawnGolemTasks[3];
 
-extern TaskDesc D_actor_143900_80149664[];
+/// Second scripted walker spawn recipes: 0 body, 1 attachment 1, 2 attachment 2.
+///
+/// All are TMD bodies at priority 192, without a terminator. Body placement
+/// supplies a live Enemy in spawn argument 2. Attachment spawn argument 1
+/// names the borrowed body part (1 or 12); both attachment tasks and the
+/// singleton body require actor_143900 resources to remain loaded.
+extern TaskDesc gActor143900SecondScriptedWalkerTaskDescriptors[3];
 
 extern TaskDesc D_actor_450800_8014AC88[];
 

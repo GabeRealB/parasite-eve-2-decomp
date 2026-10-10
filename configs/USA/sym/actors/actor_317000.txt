@@ -67,3 +67,4 @@ _actor317000Init = 0x8016267c; // type:func
 _actor317000Update = 0x80161e68; // type:func
 _actor317000Task = 0x80162624; // type:func
 _gActor317000LeapLaunchVelocity = 0x80161e40;
+_gActor317000LeapStepHandlers = 0x80161e30;

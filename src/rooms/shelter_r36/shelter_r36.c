@@ -525,8 +525,8 @@ WorldCollisionTrigger D_shelter_r36_8017F6F4[10] = {
 };
 
 AreaResource D_shelter_r36_8017F9EC[3] = {
-    { 111, 439, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_143900_801413EC },
-    { 112, 601, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_actor_143900_80149664 },
+    { 111, 439, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor143900ScriptedWalkerTaskDesc },
+    { 112, 601, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, gActor143900SecondScriptedWalkerTaskDescriptors },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

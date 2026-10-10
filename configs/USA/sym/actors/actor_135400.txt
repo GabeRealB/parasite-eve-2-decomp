@@ -1,5 +1,5 @@
 // Overlay-local symbols for actor_135400.
-D_actor_135400_8013F904 = 0x8013F904; // size:0x30 defined:True
+_gActor135400FlintLights = 0x8013F904; // size:0x30 defined:True
 D_actor_135400_8013F8D8 = 0x8013F8D8; // size:0xC defined:True
 D_actor_135400_8013F8E4 = 0x8013F8E4; // size:0x20 defined:True
 _gActor135400GaryDouglasBodySkeleton = 0x80132F9C; // size:0x2D0 defined:True
@@ -102,3 +102,5 @@ _actor135400FlintSpawn = 0x80132b60; // type:func
 _actor135400FlintTask = 0x80132af4; // type:func
 _actor135400GaryDouglasTask = 0x801325a8; // type:func
 _actor135400GaryDouglasSpawn = 0x80132064; // type:func
+_gActor135400GaryDouglasHeadStates = 0x80131e24;
+_gActor135400GaryDouglasCarriedStates = 0x80131e30;

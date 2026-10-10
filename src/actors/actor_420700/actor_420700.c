@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include "actors/actor_420700.h"
 
 #include <psyq/sys/types.h>
@@ -102,7 +104,6 @@ enum {
 // Message-table callbacks use the argument views required by this TU.
 
 extern TaskMessageEntry D_actor_420700_8013EF48[4];
-extern TaskDesc         D_actor_420700_8013EF68[];
 extern u8               D_actor_420700_8013EF8C[];
 extern s32              D_actor_420700_8013EFF0;
 extern s32              D_actor_420700_8013EFF4;
@@ -940,7 +941,7 @@ TaskMessageEntry D_actor_420700_8013EF48[4] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_420700_8013EF68[3] = {
+TaskDesc gActor420700GaryDouglasTaskDescriptors[3] = {
     { { { TASK_BODY_TMD, 192 } }, _actor420700GaryDouglasTask, { .model = &_gActor420700GaryDouglasBody } },
     { { { TASK_BODY_TMD, 192 } }, _actor420700HeadHatTask, { .model = &_gActor420700GaryDouglasHeadHat } },
     { { { TASK_BODY_TMD, 192 } }, _actor420700ShotgunTask, { .model = &_gActor420700GaryDouglasShotgun } },
@@ -1093,8 +1094,8 @@ static void _actor420700Spawn(Enemy* enemy, Task* task)
     bodyModel->flags                 = 0;
     // The head-and-hat must spawn successfully before its texture binding.
     _gActor420700BodyTask   = task;
-    D_actor_420700_8013EFE8 = taskSpawnFromTable(D_actor_420700_8013EF68, ACTOR_420700_SPAWN_HEAD_HAT_TASK, 0, NULL);
-    D_actor_420700_8013EFEC = taskSpawnFromTable(D_actor_420700_8013EF68, ACTOR_420700_SPAWN_SHOTGUN_TASK, 0, NULL);
+    D_actor_420700_8013EFE8 = taskSpawnFromTable(gActor420700GaryDouglasTaskDescriptors, ACTOR_420700_SPAWN_HEAD_HAT_TASK, 0, NULL);
+    D_actor_420700_8013EFEC = taskSpawnFromTable(gActor420700GaryDouglasTaskDescriptors, ACTOR_420700_SPAWN_SHOTGUN_TASK, 0, NULL);
     _actorRenderApplyTaskPlacementTextureOffsets(D_actor_420700_8013EFE8, enemy);
     bodyModel->lightMtx     = &_gScriptedWalkWork->light;
     bodyModel->colorMtx     = &_gScriptedWalkWork->color;

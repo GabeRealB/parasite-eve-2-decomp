@@ -1,3 +1,6 @@
+#include "actors/actor_143900.h"
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
@@ -7,6 +10,7 @@
 
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
+#include "gameplay/captions.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
@@ -89,18 +93,6 @@ static Task* _gActor143900SecondScriptedWalkerTask;
 /// forward step until the next approach message.
 static s16 _gScriptedWalkSecondMode;
 
-/// The second variant's message table; its spawn routine publishes it as
-/// `Task::msgTable`.
-extern TaskMessageEntry D_actor_143900_80149634[];
-
-/// Spawn table the second variant's spawn routine starts its two attachment tasks
-/// from, indices 1 and 2; the tasks are parked in `attachment1` / `attachment2`.
-extern TaskDesc D_actor_143900_80149664[];
-
-/// Animation stream the second variant's spawn routine binds into its work
-/// block's animation context with `animationInitContext`.
-extern u8 D_actor_143900_80149688[];
-
 static void _actorRenderWalkerFrame(Enemy* unusedEnemy, Task* task);
 static void _actor143900ExitScriptedWalker(Task* task);
 static void _scriptedWalkUpdateSecond(Task* task);
@@ -132,26 +124,33 @@ static void _actor143900SpawnScriptedWalker(Enemy* enemy, Task* task);
 
 static void _actor143900StartObservatoryTransition(void);
 
-AnimationPlayRequest D_actor_143900_801334FC = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Entry-scene player request: equipped-bank clip 1, reset, world collision disabled.
+///
+/// The weapon-animation opcode copies the request and replaces its stored bank index.
+static AnimationPlayRequest _gActor143900EntryPlayerAnimation = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_143900_80133510 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Entry-scene walker request for clip 1, reset without world collision.
+static AnimationPlayRequest _gActor143900EntryWalkerAnimation1 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_143900_80133524 = { { .index = 1 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Entry-scene walker request for clip 2, reset without world collision.
+static AnimationPlayRequest _gActor143900EntryWalkerAnimation2 = { { .index = 1 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_143900_80133538 = { { .index = 1 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Entry-scene walker request for clip 3, reset without world collision.
+static AnimationPlayRequest _gActor143900EntryWalkerAnimation3 = { { .index = 1 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_143900_8013354C = { { .index = 1 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Entry-scene walker request for clip 4, reset without world collision.
+static AnimationPlayRequest _gActor143900EntryWalkerAnimation4 = { { .index = 1 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-EvsCommand D_actor_143900_80133560[32] = {
+EvsCommand gActor143900ObservatoryEntryScript[32] = {
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54310002 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_143900_801334FC }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor143900EntryPlayerAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_143900_80133510 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor143900EntryWalkerAnimation1 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -161,11 +160,11 @@ EvsCommand D_actor_143900_80133560[32] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54310003 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_143900_80133524 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor143900EntryWalkerAnimation2 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_143900_80133538 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor143900EntryWalkerAnimation3 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_143900_8013354C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor143900EntryWalkerAnimation4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -177,7 +176,7 @@ EvsCommand D_actor_143900_80133560[32] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_143900_80133860[12] = {
+EvsCommand gActor143900ObservatoryEntrySkipScript[12] = {
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -188,7 +187,7 @@ EvsCommand D_actor_143900_80133860[12] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -686,7 +685,7 @@ static TaskMessageEntry _gActor143900ScriptedWalkerMessages[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_143900_801413EC = { { { TASK_BODY_TMD, 192 } }, _actor143900ScriptedWalkerTask, { .model = &_gActor143900Body1 } };
+TaskDesc gActor143900ScriptedWalkerTaskDesc = { { { TASK_BODY_TMD, 192 } }, _actor143900ScriptedWalkerTask, { .model = &_gActor143900Body1 } };
 
 /// Borrowed animation sets for the first scripted walker.
 ///
@@ -1040,7 +1039,11 @@ static TmdSource _gActor143900Model17688 = {
 /// nonnegative. The range is not checked.
 static s16 _gScriptedWalkSecondBlendFrames = SCRIPTED_WALK_DEFAULT_BLEND_FRAMES;
 
-TaskMessageEntry D_actor_143900_80149634[6] = {
+/// Second walker message dispatch: animation, drawing, placement, attachments and approach.
+///
+/// The terminated table borrows the second walker's published singleton work.
+/// Animation requests must select a loaded clip, 1..10.
+static TaskMessageEntry _gActor143900SecondScriptedWalkerMessages[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor143900PlaySecondScriptedWalkerAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor143900SetSecondScriptedWalkerModelDraw },
     { ACTOR_MESSAGE_PLACE, _scriptedWalkPlaceSecond },
@@ -1049,61 +1052,29 @@ TaskMessageEntry D_actor_143900_80149634[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_143900_80149664[3] = {
+TaskDesc gActor143900SecondScriptedWalkerTaskDescriptors[3] = {
     { { { TASK_BODY_TMD, 192 } }, _actor143900SecondScriptedWalkerTask, { .model = &_gActor143900Body2 } },
     { { { TASK_BODY_TMD, 192 } }, _actor143900ScriptedWalkerAttachmentTask, { .model = &_gActor143900Model173A8 } },
     { { { TASK_BODY_TMD, 192 } }, _actor143900ScriptedWalkerAttachmentTask, { .model = &_gActor143900Model17688 } },
 };
 
-u8 D_actor_143900_80149688[48] = {
-    0,
-    0,
-    0,
-    0,
-    60,
-    121,
-    20,
-    128,
-    12,
-    124,
-    20,
-    128,
-    244,
-    128,
-    20,
-    128,
-    132,
-    131,
-    20,
-    128,
-    204,
-    132,
-    20,
-    128,
-    12,
-    135,
-    20,
-    128,
-    48,
-    140,
-    20,
-    128,
-    160,
-    144,
-    20,
-    128,
-    80,
-    113,
-    20,
-    128,
-    244,
-    117,
-    20,
-    128,
-    0,
-    0,
-    0,
-    0,
+/// Borrowed animation sets for the second scripted walker.
+///
+/// Loaded twenty-track clips occupy 1..10; entries 0 and 11 are NULL and cannot
+/// be played. Keep the table and descriptors loaded for the walker's lifetime.
+static AnimationSet* _gActor143900SecondScriptedWalkerAnimationSets[12] = {
+    NULL,
+    &_gActor143900Animation15B1C,
+    &_gActor143900Animation15DEC,
+    &_gActor143900Animation162D4,
+    &_gActor143900Animation16564,
+    &_gActor143900Animation166AC,
+    &_gActor143900Animation168EC,
+    &_gActor143900Animation16E10,
+    &_gActor143900Animation17280,
+    &_gActor143900Animation15330,
+    &_gActor143900Animation157D4,
+    NULL,
 };
 
 /// Borrowed work block of the first scripted walker.
@@ -1122,7 +1093,7 @@ static Task* _gActor143900ScriptedWalkerTask = NULL;
 /// Signed approach mode of the first walker's last walk-to message (`SCRIPTED_WALK_MODE_*`).
 static s16 _gScriptedWalkMode = 0;
 
-/// A halfword stored after the mode; nothing references it.
+/// Initialized halfword with no recovered consumer; its original role is unproven.
 u16 D_actor_143900_801496C2 = 0x49E7;
 
 /// Borrowed work block of the second scripted walker and its two model attachments.
@@ -1407,22 +1378,22 @@ static void _actor143900SpawnSecondScriptedWalker(Enemy* enemy, Task* task)
     lightSample.vz                        = rootCoord->workm.t[2];
     _gActor143900SecondScriptedWalkerTask = task;
     worldCoordSetModelLighting(walkerModel, &lightSample, 0, ACTOR_143900_WALKER_LIGHT_COUNT);
-    animationInitContext(&_gScriptedWalkSecondWork->rig.anim, (AnimationSet**)D_actor_143900_80149688, walkerModel,
+    animationInitContext(&_gScriptedWalkSecondWork->rig.anim, _gActor143900SecondScriptedWalkerAnimationSets, walkerModel,
                          _gScriptedWalkSecondWork->rig.poses, _gScriptedWalkSecondWork->rig.slots);
     _gScriptedWalkSecondWork->st.animId = ACTOR_143900_WALKER_INITIAL_CLIP;
     _gScriptedWalkSecondWork->st.state  = ACTOR_ENEMY_ANIM_RESET;
     // The attachments borrow coordinates, but do not join the walker's task tree.
-    attachmentTask = taskSpawnFromTable(D_actor_143900_80149664, ACTOR_143900_ATTACHMENT1_ENTRY, ACTOR_143900_ATTACHMENT1_PART, 0);
+    attachmentTask = taskSpawnFromTable(gActor143900SecondScriptedWalkerTaskDescriptors, ACTOR_143900_ATTACHMENT1_ENTRY, ACTOR_143900_ATTACHMENT1_PART, 0);
     if (attachmentTask != NULL) {
         _gScriptedWalkSecondWork->attachment1 = attachmentTask;
     }
-    attachmentTask = taskSpawnFromTable(D_actor_143900_80149664, ACTOR_143900_ATTACHMENT2_ENTRY, ACTOR_143900_ATTACHMENT2_PART, 0);
+    attachmentTask = taskSpawnFromTable(gActor143900SecondScriptedWalkerTaskDescriptors, ACTOR_143900_ATTACHMENT2_ENTRY, ACTOR_143900_ATTACHMENT2_PART, 0);
     if (attachmentTask != NULL) {
         _gScriptedWalkSecondWork->attachment2 = attachmentTask;
     }
     _gScriptedWalkSecondWork->st.travel  = 0;
     _gScriptedWalkSecondWork->turnFrames = 0;
-    task->msgTable                       = D_actor_143900_80149634;
+    task->msgTable                       = _gActor143900SecondScriptedWalkerMessages;
     _scriptedWalkUpdateSecond(task);
     task->state++;
 }
@@ -1646,7 +1617,7 @@ static void _actor143900ScriptedWalkerAttachmentTask(Task* task)
 /// acceptance and retains no request pointer.
 static s32 _actor143900PlaySecondScriptedWalkerAnimation(Task* unusedTask, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument)
 {
-    enum { ACTOR_143900_WALKER_CLIP_COUNT = (s32)(sizeof(D_actor_143900_80149688) / sizeof(AnimationSet*)) };
+    enum { ACTOR_143900_WALKER_CLIP_COUNT = (s32)ARRAY_SIZE(_gActor143900SecondScriptedWalkerAnimationSets) };
 
     if (request->animationId < ACTOR_143900_WALKER_CLIP_COUNT) {
         _gScriptedWalkSecondWork->st.animId = request->animationId;

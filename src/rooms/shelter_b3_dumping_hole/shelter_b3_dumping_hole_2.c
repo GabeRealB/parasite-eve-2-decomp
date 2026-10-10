@@ -616,13 +616,11 @@ extern WorldCollisionGrid    D_shelter_b3_dumping_hole_8018C3EC[1];
 extern WorldCollisionTrigger D_shelter_b3_dumping_hole_8018E88C[8];
 extern WorldCollisionTrigger D_shelter_b3_dumping_hole_8018EF9C[8];
 
-s32         _shelterB3DumpingHoleEncounterStopMessage(Task* task, s32 messageId, ActorCommand* request, s32 unused);
-static void _shelterB3DumpingHoleEncounterTask(Task* task);
-static void _shelterB3DumpingHoleEncounterMadChaserTask(Task* task);
-static void _shelterB3DumpingHoleEncounterSlouchTask(Task* task);
-static void _shelterB3DumpingHoleEncounterPairTask(Task* task);
-
-extern TaskDesc D_actor_342100_80164B78[];
+s32             _shelterB3DumpingHoleEncounterStopMessage(Task* task, s32 messageId, ActorCommand* request, s32 unused);
+static void     _shelterB3DumpingHoleEncounterTask(Task* task);
+static void     _shelterB3DumpingHoleEncounterMadChaserTask(Task* task);
+static void     _shelterB3DumpingHoleEncounterSlouchTask(Task* task);
+static void     _shelterB3DumpingHoleEncounterPairTask(Task* task);
 extern TaskDesc D_shelter_b3_dumping_hole_80188BC8[5];
 
 _ShelterB3DumpingHoleSpriteFrame D_shelter_b3_dumping_hole_801880B8[13] = {
@@ -2148,7 +2146,7 @@ AreaResource D_shelter_b3_dumping_hole_8018EBB0[5] = {
     { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_04400_MAD_CHASER_TASK_SCRIPTED_NO_BUFFER, { 0, 0 }, gActor04400MadChaserTaskDescs },
     { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 2, { 0, 0 }, gActor207000SlouchTaskDescs },
     { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_20, 1, { 0, 0 }, gActor207000SucklercephTaskDescs },
-    { 103, 421, AREA_RESOURCE_FILE_GROUP_BASE_30, 1, { 0, 0 }, D_actor_342100_80164B78 },
+    { 103, 421, AREA_RESOURCE_FILE_GROUP_BASE_30, 1, { 0, 0 }, gActor342100EncounterBlazeTaskDescriptors },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

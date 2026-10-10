@@ -9,6 +9,8 @@
 #include "common.h"
 #include "gte.h"
 
+#include "actors/task_tables.h"
+
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
 #include "gameplay/area_transitions.h"
@@ -71,8 +73,6 @@
 static void _roomCutsceneTask(Task* task);
 
 static void _roomCutsceneSoundTask(Task* task);
-
-extern TaskDesc D_actor_120500_8013843C;
 
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType` (ally present), read through its own symbol.
 
@@ -1874,7 +1874,7 @@ WorldCoordRoomAmbientEntry D_dryfield_motel_room_6_801866D8[13] = {
 };
 
 AreaResource D_dryfield_motel_room_6_80186740[2] = {
-    { 101, 205, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_120500_8013843C },
+    { 101, 205, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor120500EmptyPlacementTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -2090,7 +2090,7 @@ static void _dryfieldMotelRoom6RunActorEventTask(Task* task)
 
     switch (task->state) {
         case DRYFIELD_MOTEL_ROOM_6_EVENT_SPAWN:
-            D_dryfield_motel_room_6_80186828 = taskSpawnFromTable(&D_actor_120500_8013843C, DRYFIELD_MOTEL_ROOM_6_SCENE_ACTOR_DESCRIPTOR, 0, 0);
+            D_dryfield_motel_room_6_80186828 = taskSpawnFromTable(&gActor120500EmptyPlacementTaskDesc, DRYFIELD_MOTEL_ROOM_6_SCENE_ACTOR_DESCRIPTOR, 0, 0);
             task->state++;
             break;
         case DRYFIELD_MOTEL_ROOM_6_EVENT_WAIT:

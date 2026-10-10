@@ -76,14 +76,6 @@ typedef struct {
 } _Actor210700Work;
 STATIC_ASSERT_SIZEOF(_Actor210700Work, 0x540);
 
-/// The actor's message table, parked in `Task::msgTable`: 0x7D3
-/// `_actor210700PlayAnimation`, 0x7D4 `_actor210700Place`, 0x7D5
-/// `_actor210700SetModelDraw`, 0x7E0 `_actor210700SetEyes`.
-// Handler views preserve the signatures used by this TU. The dispatcher
-// transports each argument in a word register.
-
-extern TaskMessageEntry D_actor_210700_801585D8[];
-
 static void _actor210700UpdateBlink(Task* task);
 static void _actor210700Task(Task* task);
 static void _actor210700Init(Task* task);
@@ -536,7 +528,11 @@ static AnimationSet** _gActor210700AnimationBanks[1] = {
 
 TaskDesc D_actor_210700_801585CC = { { { TASK_BODY_TMD, 192 } }, _actor210700Task, { .model = &_gActor210700RupertBroderickBody1 } };
 
-TaskMessageEntry D_actor_210700_801585D8[5] = {
+/// Rupert message dispatch: animation, placement, drawing and eye images.
+///
+/// The spawned actor borrows this terminated table and its callbacks until teardown.
+/// Eye mode 0/2 opens the eyes, 1 closes them, and 3 starts a blink.
+static TaskMessageEntry _gActor210700Messages[5] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor210700PlayAnimation },
     { ACTOR_MESSAGE_PLACE, _actor210700Place },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor210700SetModelDraw },
@@ -686,7 +682,7 @@ static void _actor210700Init(Task* task)
     _actor210700PlayAnimation(task, ACTOR_MESSAGE_PLAY_ANIMATION, &initialAnimation, 0);
     ACTOR_210700_DRAW_GROUND_SHADOW(task, groundPoint);
     _actor210700BindLighting(task);
-    task->msgTable     = D_actor_210700_801585D8;
+    task->msgTable     = _gActor210700Messages;
     task->exitCallback = _actor210700Exit;
     task->state++;
 }

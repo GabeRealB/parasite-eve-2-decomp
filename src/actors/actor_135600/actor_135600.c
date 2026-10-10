@@ -35,12 +35,6 @@
 #include "../../shared/actor_motion.h"
 #include "../../shared/actor_messages.h"
 
-/// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
-
-/// The marker quad's two vertex pairs, in the actor's local frame: `-4/+4`
-/// and `-3/+3` along X, all coplanar in Z.
-extern SVECTOR D_actor_135600_8013B060[4];
-
 /// Animation bank table the 0x7D3 handler seeds the slot array from, indexed
 /// by the preset's bank index.
 extern AnimationSet*  D_actor_135600_8013B080[16];
@@ -597,7 +591,11 @@ static AnimationSet _gActor135600Animation09218 = {
     { NULL, _gActor135600Animation09218Bank1, NULL, NULL, _gActor135600Animation09218Bank4, NULL, NULL, NULL },
 };
 
-SVECTOR D_actor_135600_8013B060[4] = {
+/// Screen-pixel offsets of the held-item quad's near pair followed by its far pair.
+///
+/// The near -4/+4 X pair rotates with the projected item axis; the far -3/+3
+/// pair stays horizontal. Y, Z and the vector's fourth halfword are zero.
+static SVECTOR _gActor135600HeldItemQuadCorners[4] = {
     { -4, 0, 0, 0 },
     { 4, 0, 0, 0 },
     { -3, 0, 0, 0 },
@@ -717,12 +715,12 @@ static s32 _actor135600DrawHeldItemQuad(GfxCoord* itemRoot, s32 lengthScale12)
     gfxSetRotIdentity(&matrix);
     RotMatrixZ(screenAngle, &matrix);
 
-    for (pairIndex = 0; pairIndex < (s32)ARRAY_SIZE(screenCorners) / 2; pairIndex++) {
-        ApplyMatrixSV(&matrix, &D_actor_135600_8013B060[pairIndex], &screenCorners[pairIndex]);
+    for (pairIndex = 0; pairIndex < (s32)ARRAY_SIZE(_gActor135600HeldItemQuadCorners) / 2; pairIndex++) {
+        ApplyMatrixSV(&matrix, &_gActor135600HeldItemQuadCorners[pairIndex], &screenCorners[pairIndex]);
         screenCorners[pairIndex].vx    += nearScreenX;
         screenCorners[pairIndex].vy    += nearScreenY;
-        screenCorners[pairIndex + 2].vx = D_actor_135600_8013B060[pairIndex + 2].vx + farScreenX;
-        screenCorners[pairIndex + 2].vy = D_actor_135600_8013B060[pairIndex + 2].vy + farScreenY;
+        screenCorners[pairIndex + 2].vx = _gActor135600HeldItemQuadCorners[pairIndex + 2].vx + farScreenX;
+        screenCorners[pairIndex + 2].vy = _gActor135600HeldItemQuadCorners[pairIndex + 2].vy + farScreenY;
     }
 
     if (depthCue >= 0) {

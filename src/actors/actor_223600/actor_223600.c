@@ -205,11 +205,16 @@ static TmdSource _gActor223600BloodSucklerBody;
 
 #include "../../shared/actor_contacts.h"
 
-DamageAttack D_actor_223600_8014CFC8[1] = {
-    { 24, 7 },
+enum { ACTOR_223600_ATTACK_REACTION_SPARK_AND_PUFFS = 7 };
+
+/// Blood Suckler attack row 0: base damage 24 with the spark-and-puff hit reaction.
+///
+/// The kind parameters borrow this single row for packed contact keys; it applies no status.
+static DamageAttack _gActor223600Attacks[1] = {
+    { 24, ACTOR_223600_ATTACK_REACTION_SPARK_AND_PUFFS },
 };
 
-EnemyParams D_actor_223600_8014CFCC = { D_actor_223600_8014CFC8, 1, 6, 20, 3, 100, 0, 100, 0 };
+EnemyParams D_actor_223600_8014CFCC = { _gActor223600Attacks, 1, 6, 20, 3, 100, 0, 100, 0 };
 
 PadScriptCmd D_actor_223600_8014CFDC[3] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },

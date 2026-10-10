@@ -507,8 +507,8 @@ D_actor_150400_80132D70 = 0x80132D70; // absolute:True owner=actor_150400
 actor503500ClearFadeFromBlackHandle = 0x80132F58; // type:func absolute:True owner=actor_503500
 D_actor_150400_80133088 = 0x80133088; // absolute:True owner=actor_150400
 D_actor_151000_801334EC = 0x801334EC; // absolute:True owner=actor_151000
-D_actor_143900_80133560 = 0x80133560; // absolute:True owner=actor_143900
-D_actor_143900_80133860 = 0x80133860; // absolute:True owner=actor_143900 shared=actors
+gActor143900ObservatoryEntryScript = 0x80133560; // absolute:True owner=actor_143900
+gActor143900ObservatoryEntrySkipScript = 0x80133860; // absolute:True owner=actor_143900 shared=actors
 D_actor_535700_80133898 = 0x80133898; // absolute:True owner=actor_535700
 D_actor_151000_80133954 = 0x80133954; // absolute:True owner=actor_151000
 D_actor_461800_80133F90 = 0x80133F90; // absolute:True owner=actor_461800
@@ -540,7 +540,7 @@ D_actor_142900_801378D0 = 0x801378D0; // absolute:True owner=actor_142900
 D_actor_146300_80137C28 = 0x80137C28; // absolute:True owner=actor_146300 shared=actors
 D_actor_450200_80137EE4 = 0x80137EE4; // absolute:True owner=actor_450200
 D_actor_142900_801380F8 = 0x801380F8; // absolute:True owner=actor_142900
-D_actor_120500_8013843C = 0x8013843C; // absolute:True owner=actor_120500
+gActor120500EmptyPlacementTaskDesc = 0x8013843C; // absolute:True owner=actor_120500
 D_actor_146300_80138570 = 0x80138570; // absolute:True owner=actor_146300
 D_actor_450200_80138694 = 0x80138694; // absolute:True owner=actor_450200
 D_actor_450800_80139964 = 0x80139964; // absolute:True owner=actor_450800
@@ -599,7 +599,7 @@ gActor207000SlouchTaskDescs = 0x801575F0; // absolute:True owner=actor_207000
 actor341300ResetScriptTaskHandle = 0x8016268C; // type:func absolute:True owner=actor_341300
 actor361100ClearHeadAimTaskHandle = 0x80162B0C; // type:func absolute:True owner=actor_361100
 D_actor_341900_80164190 = 0x80164190; // absolute:True owner=actor_341900
-D_actor_342100_80164B78 = 0x80164B78; // absolute:True owner=actor_342100
+gActor342100EncounterBlazeTaskDescriptors = 0x80164B78; // absolute:True owner=actor_342100
 D_actor_342000_80164FF8 = 0x80164FF8; // absolute:True owner=actor_342000
 D_actor_335800_80165060 = 0x80165060; // absolute:True owner=actor_335800
 D_actor_341300_80165354 = 0x80165354; // absolute:True owner=actor_341300

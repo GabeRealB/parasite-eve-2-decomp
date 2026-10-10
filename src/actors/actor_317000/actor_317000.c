@@ -101,9 +101,10 @@ static const TaskFuncTable3 D_actor_317000_80161E24 = { {
     _actor317000Exit,
 } };
 
-/// The four step handlers `_actor317000RunLeapStep` runs by
-/// `_Actor317000Work::walk.motionStep`.
-static const TaskFuncTable4 D_actor_317000_80161E30 = { {
+/// Grinning Stranger leap phases: turn to launch yaw, launch, land, face the player.
+///
+/// walk.motionStep 0..3 indexes a complete stack copy, without a bounds check.
+static const TaskFuncTable4 _gActor317000LeapStepHandlers = { {
     _actor317000TurnToLaunchYaw,
     _actor317000LaunchLeap,
     _actor317000LandLeap,
@@ -748,7 +749,7 @@ static void _actor317000RunLeapStep(Task* task)
     _Actor317000Work* work;
 
     work     = task->work;
-    handlers = D_actor_317000_80161E30;
+    handlers = _gActor317000LeapStepHandlers;
     handlers.funcs[work->walk.motionStep](task);
 }
 

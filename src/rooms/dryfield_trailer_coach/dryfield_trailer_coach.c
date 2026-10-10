@@ -949,7 +949,7 @@ static WorldCollisionGrid _gDryfieldTrailerCoachRoomCollisionGrid = {
 };
 
 AreaResource D_dryfield_trailer_coach_801876D8[2] = {
-    { 106, 207, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_420700_8013EF68 },
+    { 106, 207, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, gActor420700GaryDouglasTaskDescriptors },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

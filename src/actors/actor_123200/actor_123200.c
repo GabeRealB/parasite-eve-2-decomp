@@ -128,25 +128,21 @@ STATIC_ASSERT_SIZEOF(_Actor123200Work, 0x22C);
 STATIC_ASSERT(OFFSET_OF(_Actor123200Work, rig) == OFFSET_OF(AnimDriverWork, rig), Actor123200Work_rig);
 STATIC_ASSERT(OFFSET_OF(_Actor123200Work, driver) == OFFSET_OF(AnimDriverWork, state), Actor123200Work_driver);
 
-/// Enemy parameters the spawn handler installs at `Enemy::param`.
-extern EnemyParams D_actor_123200_80134208;
-
-/// Resource whose animation-set table is bound by `animationInitContext`.
-extern u8 D_actor_123200_80137154[];
-
-/// Message table the spawn handler publishes as `Task::msgTable`.
-// Message-table callbacks use the argument views required by this TU.
-
-extern TaskMessageEntry D_actor_123200_80137214[4];
+/// Staged Bone Suckler animation resource with an established loaded-clip prefix.
+///
+/// The remaining bytes have no recovered consumer; their original format and the
+/// extent of any additional NULL table entries are unproven.
+typedef struct {
+    AnimationSet* sets[11];        // NULL at 0, loaded six-track clips at 1..10
+    u8            unknown_2C[148]; // Retained resource bytes; role and internal boundaries unproven
+} _Actor123200AnimationResource;
+STATIC_ASSERT_SIZEOF(_Actor123200AnimationResource, 0xC0);
 
 /// Integer part of the last movement step `func_actor_123200_801329F0`
 /// applied.
 static SVECTOR ActorContact_ScratchPosition;
 
-/// Overlay-wide spawn record the spawn handler fills for the instance's own
-/// coordinate, with the 0x100 / 1 argument pair. Each overlay that spawns this
-/// way keeps one, and they differ only in the coordinate and the argument.
-extern EffectSpawnArg D_actor_123200_80137248;
+static EffectSpawnArg _gActor123200EffectSpawnArg;
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 
@@ -172,7 +168,11 @@ static DamageAttack _gActor123200Attacks[1] = {
     { 24, ACTOR_123200_ATTACK_REACTION_SPARK_AND_PUFFS },
 };
 
-EnemyParams D_actor_123200_80134208 = { _gActor123200Attacks, 1, 6, 20, 3, 100, 0, 100, 0 };
+/// Bone Suckler kind parameters borrowed by the staged motel-room actor.
+///
+/// The record supplies one attack row and the stored reward/reaction values.
+/// Spawn overrides the instance's hit points to zero and installs no collision bodies.
+static EnemyParams _gActor123200EnemyParams = { _gActor123200Attacks, 1, 6, 20, 3, 100, 0, 100, 0 };
 
 static TmdBone _gActor123200BoneSucklerBodySkeleton[6] = {
 #include "assets/bone_suckler_body_skeleton.inc"
@@ -426,202 +426,180 @@ static AnimationSet _gActor123200Animation0530C = {
     { NULL, _gActor123200Animation0530CBank1, NULL, NULL, _gActor123200Animation0530CBank4, NULL, NULL, NULL },
 };
 
-u8 D_actor_123200_80137154[192] = {
-    0,
-    0,
-    0,
-    0,
-    80,
-    92,
-    19,
-    128,
-    20,
-    95,
-    19,
-    128,
-    184,
-    97,
-    19,
-    128,
-    152,
-    99,
-    19,
-    128,
-    208,
-    100,
-    19,
-    128,
-    112,
-    102,
-    19,
-    128,
-    132,
-    104,
-    19,
-    128,
-    148,
-    108,
-    19,
-    128,
-    84,
-    111,
-    19,
-    128,
-    44,
-    113,
-    19,
-    128,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    6,
-    0,
-    0,
-    0,
-    0,
-    0,
-    9,
-    0,
-    0,
-    0,
-    0,
-    0,
-    6,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    6,
-    6,
-    6,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
+/// Borrowed clip resource of the staged motel-room Bone Suckler.
+///
+/// Playback uses loaded indices 1..10; current staging requests choose 1 and 2.
+/// The resource and its descriptors remain loaded for the actor's lifetime.
+static _Actor123200AnimationResource _gActor123200AnimationResource = {
+    {
+        NULL,
+        &_gActor123200Animation03E30,
+        &_gActor123200Animation040F4,
+        &_gActor123200Animation04398,
+        &_gActor123200Animation04578,
+        &_gActor123200Animation046B0,
+        &_gActor123200Animation04850,
+        &_gActor123200Animation04A64,
+        &_gActor123200Animation04E74,
+        &_gActor123200Animation05134,
+        &_gActor123200Animation0530C,
+    },
+    {
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        6,
+        0,
+        0,
+        0,
+        0,
+        0,
+        9,
+        0,
+        0,
+        0,
+        0,
+        0,
+        6,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        6,
+        6,
+        6,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+    },
 };
 
-TaskMessageEntry D_actor_123200_80137214[4] = {
+/// Staged Bone Suckler message dispatch: drawing, staging commands and placement.
+///
+/// The spawned actor borrows this terminated table and its callbacks until teardown.
+static TaskMessageEntry _gActor123200Messages[4] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor123200SetModelDraw },
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor123200ApplyCommand },
     { ACTOR_MESSAGE_PLACE, actorMsgPlace },
@@ -644,7 +622,11 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
     return &ActorContact_ScratchPosition;
 }
 
-EffectSpawnArg D_actor_123200_80137248;
+/// Hit-effect arguments last prepared by a staged Bone Suckler spawn.
+///
+/// Borrows that instance's root coordinate and stores argument halves 256/1.
+/// This package never passes the record to an effect spawner.
+static EffectSpawnArg _gActor123200EffectSpawnArg;
 
 #include "../../shared/actor_contacts.h"
 
@@ -742,10 +724,10 @@ static void _actor123200Spawn(Enemy* enemy, Task* task)
         return;
     }
     // Bind the animation rig and publish a non-targetable display node.
-    task->msgTable    = D_actor_123200_80137214;
+    task->msgTable    = _gActor123200Messages;
     rootCoord->parent = &gGfxViewCoord;
     model->flags      = 0;
-    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_123200_80137154, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, _gActor123200AnimationResource.sets, model, work->rig.poses, work->rig.slots);
 
     enemy->field_4    = &rootCoord->coord;
     enemy->field_48   = 0;
@@ -755,7 +737,7 @@ static void _actor123200Spawn(Enemy* enemy, Task* task)
     enemy->coord      = &task->extra.tmd->coords[2];
     worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-    enemy->param                  = &D_actor_123200_80134208;
+    enemy->param                  = &_gActor123200EnemyParams;
     enemy->reactionFlags          = 0;
     enemy->hpMax                  = 0;
     enemy->hp                     = 0;
@@ -796,11 +778,11 @@ static void _actor123200Spawn(Enemy* enemy, Task* task)
     spawnDisplacement.vy = 0;
     _actorMovementBuildDisplacement(&spawnDisplacement, ACTOR_123200_SPAWN_DIRECTION_DISTANCE);
 
-    work->state                        = ACTOR_123200_STATE_HIDDEN;
-    work->prevState                    = ACTOR_123200_NO_PREVIOUS_STATE;
-    D_actor_123200_80137248.coord      = task->extra.tmd->coords;
-    D_actor_123200_80137248.spawnArgLo = 0x100;
-    D_actor_123200_80137248.spawnArgHi = 1;
+    work->state                            = ACTOR_123200_STATE_HIDDEN;
+    work->prevState                        = ACTOR_123200_NO_PREVIOUS_STATE;
+    _gActor123200EffectSpawnArg.coord      = task->extra.tmd->coords;
+    _gActor123200EffectSpawnArg.spawnArgLo = 0x100;
+    _gActor123200EffectSpawnArg.spawnArgHi = 1;
     task->state++;
 }
 
@@ -911,14 +893,14 @@ static void _actor123200FirstStagingWalk(Enemy* enemy, Task* task)
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// The three handlers `_actor123200Update` picks between by the work
-/// block's `state` (`ACTOR_123200_STATE_*`), copied onto its stack before the
-/// call: 0 the hidden state, 1 and 2 the two walking handlers.
-static const EnemyTaskFuncTable3 D_actor_123200_80131E24 = {
+/// Staging-state callbacks indexed by ACTOR_123200_STATE_*: hidden and two walks.
+///
+/// The frame update copies all three entries before dispatch; state must be 0..2.
+static const EnemyTaskFuncTable3 _gActor123200StateHandlers = {
     {
-        _actor123200Hide,
-        _actor123200Walk,
-        _actor123200FirstStagingWalk,
+        [ACTOR_123200_STATE_HIDDEN]             = _actor123200Hide,
+        [ACTOR_123200_STATE_WALK]               = _actor123200Walk,
+        [ACTOR_123200_STATE_FIRST_STAGING_WALK] = _actor123200FirstStagingWalk,
     },
 };
 
@@ -944,7 +926,7 @@ static void _actor123200Update(Enemy* enemy, Task* task)
 
     // Compose the root before querying lighting and the projected sound position.
     work                                  = task->work;
-    stateHandlers                         = D_actor_123200_80131E24;
+    stateHandlers                         = _gActor123200StateHandlers;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(task->extra.tmd->coords);
     lightingVector.vx = task->extra.tmd->coords->workm.t[0];

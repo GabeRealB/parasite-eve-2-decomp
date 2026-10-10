@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -342,7 +344,7 @@ TaskDesc D_actor_120500_80138418[3] = {
     { { { TASK_BODY_NONE, 192 } }, _screenFadeOutTask, { .value = 0 } },
 };
 
-TaskDesc D_actor_120500_8013843C = { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } };
+TaskDesc gActor120500EmptyPlacementTaskDesc = { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } };
 
 TaskDesc D_actor_120500_80138448 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor120500SceneTask, { .model = &_gActor120500KyleMadiganBody } };
 

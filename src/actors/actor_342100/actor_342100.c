@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -97,9 +99,6 @@ STATIC_ASSERT_SIZEOF(_Actor342100BlazeWork, 0x44);
 /// The overlay's event/controller task, published by
 /// `_actor342100EncounterBlazeControllerTask`.
 extern Task* D_actor_342100_80164BB8;
-
-/// Single-entry spawn table `_actor342100SetBlazeBodyFireMode` starts as entry 3.
-extern TaskDesc D_actor_342100_80164B78[];
 
 /// Records a burn clip and sends its synchronous, collision-disabled play request.
 ///
@@ -373,7 +372,7 @@ EvsCommand D_actor_342100_801649C8[18] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskDesc D_actor_342100_80164B78[5] = {
+TaskDesc gActor342100EncounterBlazeTaskDescriptors[5] = {
     { { { TASK_BODY_NONE, 192 } }, _actor342100EncounterBlazeControllerTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _blazeFadeTask, { .value = 0 } },
@@ -580,7 +579,7 @@ static void _actor342100SpawnBlazeFireEmitters(void)
     while (placement->vx != 0) {
         delayRoll       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         gRandomLcgState = delayRoll;
-        emitter         = taskSpawnFromTable(D_actor_342100_80164B78, ACTOR_342100_BLAZE_FIRE_EMITTER_DESCRIPTOR, (delayRoll >> 16) & ACTOR_342100_BLAZE_FIRE_DELAY_MASK, 0);
+        emitter         = taskSpawnFromTable(gActor342100EncounterBlazeTaskDescriptors, ACTOR_342100_BLAZE_FIRE_EMITTER_DESCRIPTOR, (delayRoll >> 16) & ACTOR_342100_BLAZE_FIRE_DELAY_MASK, 0);
         coord           = emitter->extra.coordBody->coord;
         _actor342100PlaceBlazeFireEmitter(coord, placement);
         placement++;
@@ -635,7 +634,7 @@ static s32 _actor342100UpdateBlazeScene(Task* controller)
             gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
             evsStartScript(D_actor_342100_801649C8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
-            work->fadeTask   = taskSpawnFromTable(D_actor_342100_80164B78, ACTOR_342100_BLAZE_FADE_DESCRIPTOR, 0, controller);
+            work->fadeTask   = taskSpawnFromTable(gActor342100EncounterBlazeTaskDescriptors, ACTOR_342100_BLAZE_FADE_DESCRIPTOR, 0, controller);
             work->sceneState = work->sceneState + 1;
             break;
         case ACTOR_342100_BLAZE_SCENE_RUNNING:
@@ -853,7 +852,7 @@ static void _actor342100SetBlazeBodyFireMode(s32 spreadToWholeBody)
         if (work->encounterTask != NULL) {
             TASK_MESSAGE_DISPATCH_POINTER(work->encounterTask, ACTOR_COMMAND_MESSAGE_APPLY, &stopRequest, 0);
         }
-        work->bodyFireTask = taskSpawnFromTable(D_actor_342100_80164B78, ACTOR_342100_BLAZE_BODY_FIRE_DESCRIPTOR, 0, 0);
+        work->bodyFireTask = taskSpawnFromTable(gActor342100EncounterBlazeTaskDescriptors, ACTOR_342100_BLAZE_BODY_FIRE_DESCRIPTOR, 0, 0);
         return;
     }
     work->bodyFireTask->spawnArg1.value = 1;

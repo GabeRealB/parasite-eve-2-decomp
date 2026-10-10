@@ -89579,8 +89579,8 @@ one immediate was the entire diff in `_actor135400FlintInitLighting` (99.828%,
 `regs=1`); typing the walk at its real element width fixed it:
 
 ```c
-extern GsF_LIGHT D_actor_135400_8013F904[3];
-    for (i = 0, light = D_actor_135400_8013F904; i < 3; i++, light++) { ... }
+static GsF_LIGHT _gActor135400FlintLights[3];
+    for (i = 0, light = _gActor135400FlintLights; i < 3; i++, light++) { ... }
 ```
 
 `GsF_LIGHT` is 0x10 bytes, which is both the target's stride and the whole of
@@ -126286,7 +126286,7 @@ The shape is the starting preset every actor family writes:
 if (msg->field_0 != work->bank) {
     work->bank = msg->field_0;
     work->animId = -1;
-    animationInitContext(&work->rig.anim, D_actor_323300_80174A70[work->bank], ext, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, _gActor323300StrangerAnimationBanks[work->bank], ext, work->rig.poses, work->rig.slots);
 }
 ```
 

@@ -2,6 +2,8 @@
 
 #include "types.h"
 
+#include "actors/actor_143900.h"
+
 #include "gameplay/direction.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -16,9 +18,6 @@
 #include "mapui/map_shelter.h"
 
 extern TaskMessageEntry D_shelter_r49_8017D9D8[];
-
-extern EvsCommand D_actor_143900_80133560[];
-extern EvsCommand D_actor_143900_80133860[];
 
 static void _shelterR49InitializeRoomTask(Task* task);
 static void _shelterR49RoomIdle(Task* unusedTask);
@@ -97,7 +96,7 @@ static void _shelterR49InitializeRoomTask(Task* task)
     task->msgTable = D_shelter_r49_8017D9D8;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != SHELTER_R49_ATTRACT_DEMO_SCENE) {
-        evsStartScriptWithSkip(D_actor_143900_80133560, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_143900_80133860);
+        evsStartScriptWithSkip(gActor143900ObservatoryEntryScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor143900ObservatoryEntrySkipScript);
     }
     task->state++;
 }

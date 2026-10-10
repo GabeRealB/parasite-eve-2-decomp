@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -807,7 +809,7 @@ static s16 _gActor105100BeamRoutes[10] = {
     0,
 };
 
-TaskDesc D_actor_105100_80141464[3] = {
+TaskDesc gActor105100TaskDescriptors[3] = {
     { { { TASK_BODY_TMD, 96 } }, _actor105100Task, { .model = &_gActor105100StingerBody } },
     { { { TASK_BODY_COORD, 96 } }, _actor105100FireballTask, { .value = 0 } },
     { { { TASK_BODY_COORD, 96 } }, _actor105100BeamTask, { .value = 0 } },
@@ -901,12 +903,6 @@ SVECTOR D_actor_105100_801414E0[7] = {
 /// sinks that store past the `sw` of the LCG state instead of leaving the
 /// lookup and the action store adjacent at the end of the block.
 extern u16 D_actor_105100_801413A8[16];
-
-/// The enemy descriptor run at 0x80141464 the spawn below draws from. Declared
-/// as a scalar rather than an aggregate on purpose: only its address is taken,
-/// so the two words `enemySpawnFromTable` splits it into are the function's
-/// addend, not a load this function has to model.
-extern TaskDesc D_actor_105100_80141464[];
 
 /// The 16-entry run at 0x801413C8 the beam summon's LCG draw picks
 /// `_Actor105100Work::beamPattern` from. Four entries are 0 (two children), five are 1 (three), seven are 2
@@ -1451,7 +1447,7 @@ static void _actor105100SummonFireballs(Task* task, Enemy* unusedEnemy)
         case ACTOR_105100_FIREBALL_CAST_HOLD:
             if (work->animFrame >= ACTOR_105100_FIREBALL_SPAWN_FRAME) {
                 if (--work->fireballTimer <= 0 && work->childCount < ACTOR_105100_FIREBALL_LIMIT && work->summonPhase == ACTOR_105100_SUMMON_FIREBALLS_GATHER) {
-                    enemySpawnFromTable(D_actor_105100_80141464, ACTOR_105100_CHILD_FIREBALL, 0,
+                    enemySpawnFromTable(gActor105100TaskDescriptors, ACTOR_105100_CHILD_FIREBALL, 0,
                                         task->spawnArg2.pointer);
                     work->childCount   += 1;
                     intervalRandomState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
@@ -1553,21 +1549,21 @@ static void _actor105100SummonBeams(Task* task, Enemy* unusedEnemy)
             if (work->animFrame >= ACTOR_105100_BEAM_SPAWN_FRAME) {
                 switch (work->beamPattern) {
                     case ACTOR_105100_BEAMS_PAIR:
-                        enemySpawnFromTable(D_actor_105100_80141464, ACTOR_105100_CHILD_BEAM, 0,
+                        enemySpawnFromTable(gActor105100TaskDescriptors, ACTOR_105100_CHILD_BEAM, 0,
                                             task->spawnArg2.pointer);
-                        enemySpawnFromTable(D_actor_105100_80141464, ACTOR_105100_CHILD_BEAM, 0,
+                        enemySpawnFromTable(gActor105100TaskDescriptors, ACTOR_105100_CHILD_BEAM, 0,
                                             task->spawnArg2.pointer);
                         break;
                     case ACTOR_105100_BEAMS_TRIPLE:
-                        enemySpawnFromTable(D_actor_105100_80141464, ACTOR_105100_CHILD_BEAM, 0,
+                        enemySpawnFromTable(gActor105100TaskDescriptors, ACTOR_105100_CHILD_BEAM, 0,
                                             task->spawnArg2.pointer);
-                        enemySpawnFromTable(D_actor_105100_80141464, ACTOR_105100_CHILD_BEAM, 0,
+                        enemySpawnFromTable(gActor105100TaskDescriptors, ACTOR_105100_CHILD_BEAM, 0,
                                             task->spawnArg2.pointer);
-                        enemySpawnFromTable(D_actor_105100_80141464, ACTOR_105100_CHILD_BEAM, 0,
+                        enemySpawnFromTable(gActor105100TaskDescriptors, ACTOR_105100_CHILD_BEAM, 0,
                                             task->spawnArg2.pointer);
                         break;
                     case ACTOR_105100_BEAMS_SEEKER:
-                        enemySpawnFromTable(D_actor_105100_80141464, ACTOR_105100_CHILD_BEAM, 0,
+                        enemySpawnFromTable(gActor105100TaskDescriptors, ACTOR_105100_CHILD_BEAM, 0,
                                             task->spawnArg2.pointer);
                         break;
                 }

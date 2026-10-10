@@ -128,11 +128,6 @@ extern TaskDesc D_actor_135400_8013A4AC[];
 
 extern TaskMessageEntry D_actor_135400_8013A4D0[5];
 
-/// The three flat lights `_actor135400FlintInitLighting` loads into the model's
-/// light / colour matrices: an axis-aligned light on X, Y and Z (`vy` / `vx` /
-/// `vz`), each the same mid grey.
-extern GsF_LIGHT D_actor_135400_8013F904[3];
-
 /// The second task's message table: `(message id, handler)` pairs for 0x7D3 /
 /// 0x7D4 / 0x7D5, ended by `TASK_MESSAGE_TABLE_END`. `_actor135400FlintSpawn` parks
 /// its address in `Task::msgTable`.
@@ -171,20 +166,19 @@ static void _actor135400FlintTick(Task* task);
 static s32  _actor135400FlintPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
 static s32  _actor135400FlintSetDrawMode(Task* task, s32 messageId, s32 mode, s32 unusedArg);
 
-/// State table of the first part task: state 0 reparents it
-/// (`_modelPlacementAttachPartTask`), state 1 does nothing and state 2 kills it.
-/// Dispatched by `_actor135400GaryDouglasHeadTask`.
-static const TaskFuncTable3 D_actor_135400_80131E24 = { {
+/// Gary Douglas head-and-hat task states: attach, remain attached, kill.
+///
+/// Task state 0..2 indexes a complete stack copy of these callbacks.
+static const TaskFuncTable3 _gActor135400GaryDouglasHeadStates = { {
     _modelPlacementAttachPartTask,
     _actor135400GaryDouglasHeadIdle,
     taskKill,
 } };
 
-/// State table of the second part task: state 0 reparents it
-/// (`_modelPlacementAttachPart`), state 1 runs its placement phases
-/// (`_actor135400GaryDouglasUpdateCarriedPlacement`) and state 2 kills it. Dispatched by
-/// `_actor135400GaryDouglasCarriedTask`.
-static const TaskFuncTable3 D_actor_135400_80131E30 = { {
+/// Gary Douglas carried-model task states: attach, update placement, kill.
+///
+/// Task state 0..2 indexes a complete stack copy; placement commands run within state 1.
+static const TaskFuncTable3 _gActor135400GaryDouglasCarriedStates = { {
     _modelPlacementAttachPart,
     _actor135400GaryDouglasUpdateCarriedPlacement,
     taskKill,
@@ -604,10 +598,14 @@ TaskMessageEntry D_actor_135400_8013F8E4[4] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-GsF_LIGHT D_actor_135400_8013F904[3] = {
-    { 0, 4096, 0, 96, 96, 96 },
-    { 4096, 0, 0, 96, 96, 96 },
-    { 0, 0, 4096, 96, 96, 96 },
+/// Flint's three grey directional lights, ordered +Y, +X, +Z.
+///
+/// Direction components use 4096 per unit; each RGB intensity is 96.
+/// Lighting initialization reads all three into the work-owned model matrices.
+static GsF_LIGHT _gActor135400FlintLights[3] = {
+    { 0, ONE, 0, 96, 96, 96 },
+    { ONE, 0, 0, 96, 96, 96 },
+    { 0, 0, ONE, 96, 96, 96 },
 };
 
 /// Detaches Gary Douglas's carried model root at its current world placement.
@@ -822,7 +820,7 @@ static void _actor135400GaryDouglasHeadTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_actor_135400_80131E24;
+    handlers = _gActor135400GaryDouglasHeadStates;
     handlers.funcs[task->state](task);
 }
 
@@ -842,7 +840,7 @@ static void _actor135400GaryDouglasCarriedTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_actor_135400_80131E30;
+    handlers = _gActor135400GaryDouglasCarriedStates;
     handlers.funcs[task->state](task);
 }
 
@@ -1123,7 +1121,7 @@ static void _actor135400FlintInitLighting(Task* task)
 
     model->lightMtx = &work->model.light;
     model->colorMtx = &work->model.color;
-    for (lightIndex = 0, light = D_actor_135400_8013F904; lightIndex < ARRAY_SIZE(D_actor_135400_8013F904); lightIndex++, light++) {
+    for (lightIndex = 0, light = _gActor135400FlintLights; lightIndex < ARRAY_SIZE(_gActor135400FlintLights); lightIndex++, light++) {
         gfxSetFlatLight(lightIndex, light, &work->model.light, &work->model.color);
     }
 }

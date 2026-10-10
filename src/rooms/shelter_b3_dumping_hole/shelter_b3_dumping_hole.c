@@ -9,6 +9,8 @@
 
 #include "actors/actor_403200.h"
 
+#include "actors/task_tables.h"
+
 #include "gameplay/animation.h"
 #include "gameplay/captions.h"
 #include "gameplay/direction.h"
@@ -31,8 +33,6 @@ extern u8 D_shelter_b3_dumping_hole_8018F4A4;
 // Message-table callbacks use the argument views required by this TU.
 
 extern TaskMessageEntry D_shelter_b3_dumping_hole_80187574[6];
-
-extern TaskDesc D_actor_342100_80164B78[];
 
 static s32  _shelterB3DumpingHoleRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused);
 static s32  _shelterB3DumpingHoleResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
@@ -326,7 +326,7 @@ static void _shelterB3DumpingHoleInitializeRoomTask(Task* task)
         }
     }
     if (gGameSession->location.loc.room >= DUMPING_HOLE_ENCOUNTER_FIRST_ROOM) {
-        taskSpawnFromTable(D_actor_342100_80164B78, DUMPING_HOLE_ENCOUNTER_TASK_INDEX, 0, 0);
+        taskSpawnFromTable(gActor342100EncounterBlazeTaskDescriptors, DUMPING_HOLE_ENCOUNTER_TASK_INDEX, 0, 0);
     }
     task->state                       += 1;
     D_shelter_b3_dumping_hole_8018F4A4 = 0;

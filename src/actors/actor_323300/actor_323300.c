@@ -136,10 +136,6 @@ extern AnimationPlayRequest D_actor_323300_801725B4;
 extern AnimationPlayRequest D_actor_323300_801725C8;
 extern AnimationPlayRequest D_actor_323300_801725DC;
 
-extern AnimationSet**       D_actor_323300_80174A70[1];
-extern AnimationPlayRequest D_actor_323300_80174A74;
-extern ActorTransform       D_actor_323300_80174AB0;
-
 /// Tuning for the toilet-event woman's turn, sound and delayed buffer release.
 enum {
     ACTOR_323300_WOMAN_VIEW2_ATTENUATION          = 40, // Signed sound-script attenuation; pan stays zero
@@ -429,18 +425,28 @@ static AnimationSet* _gActor323300StrangerAnimationSets[4] = {
     &_gActor323300Animation12C18,
 };
 
-AnimationSet** D_actor_323300_80174A70[1] = {
+/// Lesser Stranger animation banks; the only valid bank index is zero.
+///
+/// Borrows the loaded clip table (1..3, NULL at 0) throughout transformation playback.
+static AnimationSet** _gActor323300StrangerAnimationBanks[1] = {
     _gActor323300StrangerAnimationSets,
 };
 
-AnimationPlayRequest D_actor_323300_80174A74 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Lesser Stranger spawn request: bank 0, clip 1, immediate reset without world collision.
+///
+/// Read synchronously by the spawn handler; the request owns no playback storage.
+static AnimationPlayRequest _gActor323300StrangerInitialAnimation = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 AnimationPlayRequest D_actor_323300_80174A88[2] = {
     { { .index = 0 }, 2, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE },
     { { .index = 0 }, 3, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-ActorTransform D_actor_323300_80174AB0 = { { -1700, 0, -1457, 0 }, { 0, -1024, 0, 0 } };
+/// Lesser Stranger spawn placement in the Dryfield toilet's world frame.
+///
+/// Position is (-1700, 0, -1457) coordinate units and yaw is -1024 (4096 per turn).
+/// Placement copies the transform synchronously; the fourth vector components are unused.
+static ActorTransform _gActor323300StrangerInitialPlacement = { { -1700, 0, -1457, 0 }, { 0, -1024, 0, 0 } };
 
 static void _actor323300StrangerSpawn(Task* task);
 static void _actor323300StrangerUpdate(Task* task);
@@ -966,8 +972,8 @@ static void _actor323300StrangerSpawn(Task* task)
     model->flags                 &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     tmdBuildBufferHalf(model);
     tmdBuildBufferHalf(model);
-    _actor323300StrangerPlayAnimation(task, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_80174A74, 0);
-    _actorMsgPlaceEuler(task, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_80174AB0, 0);
+    _actor323300StrangerPlayAnimation(task, ACTOR_MESSAGE_PLAY_ANIMATION, &_gActor323300StrangerInitialAnimation, 0);
+    _actorMsgPlaceEuler(task, ACTOR_MESSAGE_PLAY_ANIMATION, &_gActor323300StrangerInitialPlacement, 0);
 
     // The room owns the shared rest snapshot for this transformation.
     _modelMorphSaveRestShape(task, &gDryfieldToiletLesserStrangerMorph);
@@ -1196,7 +1202,7 @@ static s32 _actor323300StrangerPlayAnimation(Task* task, s32 messageId, const An
     if (request->source.index != work->bank) {
         work->bank   = request->source.index;
         work->animId = ACTOR_MODEL_STATE_NONE;
-        animationInitContext(&work->rig.anim, D_actor_323300_80174A70[work->bank], model,
+        animationInitContext(&work->rig.anim, _gActor323300StrangerAnimationBanks[work->bank], model,
                              work->rig.poses, work->rig.slots);
     }
     if (request->animationId != work->animId) {

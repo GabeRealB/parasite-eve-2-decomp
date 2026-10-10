@@ -76,12 +76,6 @@ typedef struct {
 } _Actor113000Work;
 STATIC_ASSERT_SIZEOF(_Actor113000Work, 0x4CC);
 
-/// Message dispatch table the spawn handler parks in `Task::msgTable`:
-/// message id / handler pairs, terminated by `TASK_MESSAGE_TABLE_END` and a null word.
-// Message-table callbacks use the argument views required by this TU.
-
-extern TaskMessageEntry D_actor_113000_8013ABC0[5];
-
 static void _actor113000Spawn(Task* task);
 static void _actor113000Update(Task* task);
 static void _actor113000InitLighting(Task* task);
@@ -396,11 +390,18 @@ static AnimationSet** _gActor113000AnimationBanks[1] = {
 
 TaskDesc D_actor_113000_8013ABB4 = { { { TASK_BODY_TMD, 192 } }, _actor113000Task, { .model = &_gActor113000RupertBroderickHurtBody } };
 
-TaskMessageEntry D_actor_113000_8013ABC0[5] = {
+/// Eye-image selection or timed-blink message for the hurt Rupert body.
+enum { ACTOR_113000_MESSAGE_SET_EYES = 2016 };
+
+/// Hurt Rupert message dispatch: animation, Euler placement, drawing and eye images.
+///
+/// The spawned actor borrows this terminated table and its callbacks until teardown.
+/// Eye mode 0/2 opens the eyes, 1 closes them, and 3 starts a blink.
+static TaskMessageEntry _gActor113000Messages[5] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor113000PlayAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor113000SetModelDraw },
-    { 2016, _actor113000SetEyes },
+    { ACTOR_113000_MESSAGE_SET_EYES, _actor113000SetEyes },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -518,7 +519,7 @@ static void _actor113000Spawn(Task* task)
         }
     }
     _actor113000InitLighting(task);
-    task->msgTable     = D_actor_113000_8013ABC0;
+    task->msgTable     = _gActor113000Messages;
     task->exitCallback = enemyTaskExit;
     task->state++;
 }
