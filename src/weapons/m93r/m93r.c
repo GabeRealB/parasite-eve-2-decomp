@@ -22,6 +22,12 @@
 
 #include "weapons/weapon.h"
 
+/// Encoding indices for the M93R clips' heterogeneous pose-bank table.
+enum {
+    M93R_ANIMATION_TRANSLATION_ROTATION_BANK = 1,
+    M93R_ANIMATION_PACKED_ROTATION_BANK      = 4,
+};
+
 /// Initial identity transform and self-parented root of the weapon's sole part.
 ///
 /// Read-only skeleton and count data retain their serialized positions in .data.
@@ -341,136 +347,218 @@ void m93rAttackState(Task* playerTask)
     SCRATCH_STACK_RELEASE_BLOCK(GfxCoord);
 }
 
-static AnimationPackedPose _gM93rAnimation02C40Bank1[14] = {
+/// Stair-ascent translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+///
+/// Read-only animation tables retain their serialized positions in .data.
+static const AnimationPackedPose _gM93rPlayerStairAscentAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_02C40_bank1.inc"
 };
 
-static AnimationPackedRotation _gM93rAnimation02C40Bank4[156] = {
+/// Stair-ascent Euler rotations in eight-angle-unit steps for player tracks 2..18.
+static const AnimationPackedRotation _gM93rPlayerStairAscentAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_02C40_bank4.inc"
 };
 
-static AnimationRecord _gM93rAnimation02C40Records[253] = {
+/// Stair-ascent keyframes and loop controls; durations are normal-rate frames and pose offsets count u32 words.
+static const AnimationRecord _gM93rPlayerStairAscentAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_02C40_records.inc"
 };
 
-static u16 _gM93rAnimation02C40Indices[20] = {
+/// Absolute stair-ascent record starts for player tracks 0..18, followed by the retained serialized halfword.
+static const u16 _gM93rPlayerStairAscentAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_02C40_indices.inc"
 };
 
-static AnimationSet _gM93rAnimation02C40 = {
-    _gM93rAnimation02C40Records,
-    _gM93rAnimation02C40Indices,
-    { NULL, _gM93rAnimation02C40Bank1, NULL, NULL, _gM93rAnimation02C40Bank4, NULL, NULL, NULL },
+/// Looping stair-ascent stride for the player using the M93R animation bank.
+///
+/// Native clip 36; its footstep cues gate displacement along the stair flight.
+/// Contains 19 part tracks: translation/rotation for 0..1 and packed rotation
+/// for 2..18. Playback borrows the clip and tables; keep the M93R package loaded
+/// while any slot or cached record pointer refers to them.
+static AnimationSet _gM93rPlayerStairAscentAnimation = {
+    .records           = _gM93rPlayerStairAscentAnimationRecords,
+    .trackStartIndices = _gM93rPlayerStairAscentAnimationIndices,
+    .poseBanks         = {
+        [M93R_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM93rPlayerStairAscentAnimationBank1,
+        [M93R_ANIMATION_PACKED_ROTATION_BANK]      = _gM93rPlayerStairAscentAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM93rAnimation033C8Bank1[16] = {
+/// Stair-descent translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gM93rPlayerStairDescentAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_033C8_bank1.inc"
 };
 
-static AnimationPackedRotation _gM93rAnimation033C8Bank4[167] = {
+/// Stair-descent Euler rotations in eight-angle-unit steps for player tracks 2..18.
+static const AnimationPackedRotation _gM93rPlayerStairDescentAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_033C8_bank4.inc"
 };
 
-static AnimationRecord _gM93rAnimation033C8Records[247] = {
+/// Stair-descent keyframes and loop controls; durations are normal-rate frames and pose offsets count u32 words.
+static const AnimationRecord _gM93rPlayerStairDescentAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_033C8_records.inc"
 };
 
-static u16 _gM93rAnimation033C8Indices[20] = {
+/// Absolute stair-descent record starts for player tracks 0..18, followed by the retained serialized halfword.
+static const u16 _gM93rPlayerStairDescentAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_033C8_indices.inc"
 };
 
-static AnimationSet _gM93rAnimation033C8 = {
-    _gM93rAnimation033C8Records,
-    _gM93rAnimation033C8Indices,
-    { NULL, _gM93rAnimation033C8Bank1, NULL, NULL, _gM93rAnimation033C8Bank4, NULL, NULL, NULL },
+/// Looping stair-descent stride for the player using the M93R animation bank.
+///
+/// Native clip 37; its footstep cues gate displacement along the stair flight.
+/// Contains 19 part tracks: translation/rotation for 0..1 and packed rotation
+/// for 2..18. Playback borrows the clip and tables; keep the M93R package loaded
+/// while any slot or cached record pointer refers to them.
+static AnimationSet _gM93rPlayerStairDescentAnimation = {
+    .records           = _gM93rPlayerStairDescentAnimationRecords,
+    .trackStartIndices = _gM93rPlayerStairDescentAnimationIndices,
+    .poseBanks         = {
+        [M93R_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM93rPlayerStairDescentAnimationBank1,
+        [M93R_ANIMATION_PACKED_ROTATION_BANK]      = _gM93rPlayerStairDescentAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM93rAnimation0369CBank1[6] = {
+/// Odd-count stair-finish translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gM93rPlayerStairAscentFinishOddAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_0369C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM93rAnimation0369CBank4[52] = {
+/// Odd-count stair-finish Euler rotations in eight-angle-unit steps for player tracks 2..18.
+static const AnimationPackedRotation _gM93rPlayerStairAscentFinishOddAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_0369C_bank4.inc"
 };
 
-static AnimationRecord _gM93rAnimation0369CRecords[91] = {
+/// Odd-count stair-finish keyframes and stops; durations are normal-rate frames and pose offsets count u32 words.
+static const AnimationRecord _gM93rPlayerStairAscentFinishOddAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_0369C_records.inc"
 };
 
-static u16 _gM93rAnimation0369CIndices[20] = {
+/// Absolute odd-count stair-finish record starts for tracks 0..18, followed by the retained serialized halfword.
+static const u16 _gM93rPlayerStairAscentFinishOddAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_0369C_indices.inc"
 };
 
-static AnimationSet _gM93rAnimation0369C = {
-    _gM93rAnimation0369CRecords,
-    _gM93rAnimation0369CIndices,
-    { NULL, _gM93rAnimation0369CBank1, NULL, NULL, _gM93rAnimation0369CBank4, NULL, NULL, NULL },
+/// Finishing stride after an odd-count stair ascent in the player's M93R bank.
+///
+/// Native clip 39, selected by the initial stair count's parity. Each of its
+/// 19 part tracks ends with a stop; tracks 0..1 carry translation/rotation and
+/// 2..18 packed rotation. Playback borrows the clip and tables; keep the M93R
+/// package loaded while any slot or cached record pointer refers to them.
+static AnimationSet _gM93rPlayerStairAscentFinishOddAnimation = {
+    .records           = _gM93rPlayerStairAscentFinishOddAnimationRecords,
+    .trackStartIndices = _gM93rPlayerStairAscentFinishOddAnimationIndices,
+    .poseBanks         = {
+        [M93R_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM93rPlayerStairAscentFinishOddAnimationBank1,
+        [M93R_ANIMATION_PACKED_ROTATION_BANK]      = _gM93rPlayerStairAscentFinishOddAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM93rAnimation03A2CBank1[7] = {
+/// Even-count stair-finish translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gM93rPlayerStairAscentFinishEvenAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_03A2C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM93rAnimation03A2CBank4[73] = {
+/// Even-count stair-finish Euler rotations in eight-angle-unit steps for player tracks 2..18.
+static const AnimationPackedRotation _gM93rPlayerStairAscentFinishEvenAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_03A2C_bank4.inc"
 };
 
-static AnimationRecord _gM93rAnimation03A2CRecords[114] = {
+/// Even-count stair-finish keyframes and stops; durations are normal-rate frames and pose offsets count u32 words.
+static const AnimationRecord _gM93rPlayerStairAscentFinishEvenAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_03A2C_records.inc"
 };
 
-static u16 _gM93rAnimation03A2CIndices[20] = {
+/// Absolute even-count stair-finish record starts for tracks 0..18, followed by the retained serialized halfword.
+static const u16 _gM93rPlayerStairAscentFinishEvenAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_03A2C_indices.inc"
 };
 
-static AnimationSet _gM93rAnimation03A2C = {
-    _gM93rAnimation03A2CRecords,
-    _gM93rAnimation03A2CIndices,
-    { NULL, _gM93rAnimation03A2CBank1, NULL, NULL, _gM93rAnimation03A2CBank4, NULL, NULL, NULL },
+/// Finishing stride after an even-count stair ascent in the player's M93R bank.
+///
+/// Native clip 38, selected by the initial stair count's parity. Each of its
+/// 19 part tracks ends with a stop; tracks 0..1 carry translation/rotation and
+/// 2..18 packed rotation. Playback borrows the clip and tables; keep the M93R
+/// package loaded while any slot or cached record pointer refers to them.
+static AnimationSet _gM93rPlayerStairAscentFinishEvenAnimation = {
+    .records           = _gM93rPlayerStairAscentFinishEvenAnimationRecords,
+    .trackStartIndices = _gM93rPlayerStairAscentFinishEvenAnimationIndices,
+    .poseBanks         = {
+        [M93R_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM93rPlayerStairAscentFinishEvenAnimationBank1,
+        [M93R_ANIMATION_PACKED_ROTATION_BANK]      = _gM93rPlayerStairAscentFinishEvenAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM93rAnimation03EB4Bank1[9] = {
+/// PE family-0 release translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gM93rPlayerParasiteEnergyReleaseFamily0AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_03EB4_bank1.inc"
 };
 
-static AnimationPackedRotation _gM93rAnimation03EB4Bank4[104] = {
+/// PE family-0 release Euler rotations in eight-angle-unit steps for player tracks 2..18.
+static const AnimationPackedRotation _gM93rPlayerParasiteEnergyReleaseFamily0AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_03EB4_bank4.inc"
 };
 
-static AnimationRecord _gM93rAnimation03EB4Records[139] = {
+/// PE family-0 release keyframes and stops; durations are normal-rate frames and pose offsets count u32 words.
+static const AnimationRecord _gM93rPlayerParasiteEnergyReleaseFamily0AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_03EB4_records.inc"
 };
 
-static u16 _gM93rAnimation03EB4Indices[20] = {
+/// Absolute PE family-0 release record starts for tracks 0..18, followed by the retained serialized halfword.
+static const u16 _gM93rPlayerParasiteEnergyReleaseFamily0AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_03EB4_indices.inc"
 };
 
-static AnimationSet _gM93rAnimation03EB4 = {
-    _gM93rAnimation03EB4Records,
-    _gM93rAnimation03EB4Indices,
-    { NULL, _gM93rAnimation03EB4Bank1, NULL, NULL, _gM93rAnimation03EB4Bank4, NULL, NULL, NULL },
+/// Parasite Energy release for clip family 0 in the player's M93R bank.
+///
+/// Native clip 26; plays while the attachment's charge countdown starts.
+/// Family 0 is selected by attachment ID. Contains 19 part tracks, with
+/// translation/rotation for 0..1 and packed rotation for 2..18, ending in stops.
+/// Playback borrows the clip and tables; keep the M93R package loaded while
+/// any slot or cached record pointer refers to them.
+static AnimationSet _gM93rPlayerParasiteEnergyReleaseFamily0Animation = {
+    .records           = _gM93rPlayerParasiteEnergyReleaseFamily0AnimationRecords,
+    .trackStartIndices = _gM93rPlayerParasiteEnergyReleaseFamily0AnimationIndices,
+    .poseBanks         = {
+        [M93R_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM93rPlayerParasiteEnergyReleaseFamily0AnimationBank1,
+        [M93R_ANIMATION_PACKED_ROTATION_BANK]      = _gM93rPlayerParasiteEnergyReleaseFamily0AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM93rAnimation040B0Bank1[3] = {
+/// PE family-0 charge translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gM93rPlayerParasiteEnergyChargeFamily0AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_040B0_bank1.inc"
 };
 
-static AnimationPackedRotation _gM93rAnimation040B0Bank4[22] = {
+/// PE family-0 charge Euler rotations in eight-angle-unit steps for player tracks 2..18.
+static const AnimationPackedRotation _gM93rPlayerParasiteEnergyChargeFamily0AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_040B0_bank4.inc"
 };
 
-static AnimationRecord _gM93rAnimation040B0Records[76] = {
+/// PE family-0 charge keyframes and loop controls; durations are normal-rate frames and pose offsets count u32 words.
+static const AnimationRecord _gM93rPlayerParasiteEnergyChargeFamily0AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_040B0_records.inc"
 };
 
-static u16 _gM93rAnimation040B0Indices[20] = {
+/// Absolute PE family-0 charge record starts for tracks 0..18, followed by the retained serialized halfword.
+static const u16 _gM93rPlayerParasiteEnergyChargeFamily0AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_040B0_indices.inc"
 };
 
-static AnimationSet _gM93rAnimation040B0 = {
-    _gM93rAnimation040B0Records,
-    _gM93rAnimation040B0Indices,
-    { NULL, _gM93rAnimation040B0Bank1, NULL, NULL, _gM93rAnimation040B0Bank4, NULL, NULL, NULL },
+/// Looping Parasite Energy charge pose for clip family 0 in the player's M93R bank.
+///
+/// Native clip 27; follows the release clip until the attachment countdown
+/// reaches zero, then yields to casting. Family 0 is selected by attachment ID.
+/// Contains 19 part tracks: translation/rotation for 0..1 and packed rotation
+/// for 2..18. Playback borrows the clip and tables; keep the M93R package loaded
+/// while any slot or cached record pointer refers to them.
+static AnimationSet _gM93rPlayerParasiteEnergyChargeFamily0Animation = {
+    .records           = _gM93rPlayerParasiteEnergyChargeFamily0AnimationRecords,
+    .trackStartIndices = _gM93rPlayerParasiteEnergyChargeFamily0AnimationIndices,
+    .poseBanks         = {
+        [M93R_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM93rPlayerParasiteEnergyChargeFamily0AnimationBank1,
+        [M93R_ANIMATION_PACKED_ROTATION_BANK]      = _gM93rPlayerParasiteEnergyChargeFamily0AnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gM93rAnimation04388Bank1[6] = {
@@ -1050,8 +1138,8 @@ AnimationBank D_m93r_8012ADF8 = { { {
     &_gM93rAnimation06BB0,
     &_gM93rAnimation07E44,
     &_gM93rAnimation07728,
-    &_gM93rAnimation03EB4,
-    &_gM93rAnimation040B0,
+    &_gM93rPlayerParasiteEnergyReleaseFamily0Animation,
+    &_gM93rPlayerParasiteEnergyChargeFamily0Animation,
     &_gM93rAnimation04388,
     &_gM93rAnimation0462C,
     &_gM93rAnimation0482C,
@@ -1060,10 +1148,10 @@ AnimationBank D_m93r_8012ADF8 = { { {
     &_gM93rAnimation0849C,
     &_gM93rAnimation0BBE8,
     &_gM93rAnimation0C2B8,
-    &_gM93rAnimation02C40,
-    &_gM93rAnimation033C8,
-    &_gM93rAnimation03A2C,
-    &_gM93rAnimation0369C,
+    &_gM93rPlayerStairAscentAnimation,
+    &_gM93rPlayerStairDescentAnimation,
+    &_gM93rPlayerStairAscentFinishEvenAnimation,
+    &_gM93rPlayerStairAscentFinishOddAnimation,
     &_gM93rPlayerItemUseAnimation,
     &_gM93rPlayerIdleAnimation,
     &_gM93rAnimation08A00,
