@@ -14,20 +14,42 @@
 
 extern AreaVariant D_shelter_b1_north_maintenance_walkway_80185A38[12];
 
-// shelter_b1_north_maintenance_walkway
-extern u8* D_shelter_b1_north_maintenance_walkway_80184B80[];
+/// Logical-view maps for the walkway's single room.
+///
+/// Room 1 borrows gameplay's `gViewIdentityMap`; logical views 1..6 select
+/// the matching camera, image and sprite view. Both overlays must stay loaded.
+extern u8* gShelterB1NorthMaintenanceWalkwayViewMaps[1];
 
 extern ViewCount D_shelter_b1_north_maintenance_walkway_80184B84[];
 
 extern DirectionWarpEntry D_shelter_b1_north_maintenance_walkway_80184B88[];
 
-extern WorldCollisionGrid D_shelter_b1_north_maintenance_walkway_80184F40;
+/// The walkway's floor and wall mesh, indexed by a 2-by-3 XZ collision grid.
+///
+/// Cells span 4000 world units from origin (-2872, -4937). The 18 faces
+/// borrow this overlay's mesh pools and cell lists; activation binds the view
+/// coordinate. Keep the room overlay loaded while the grid is active.
+extern WorldCollisionGrid gShelterB1NorthMaintenanceWalkwayCollisionGrid;
 
-extern ViewCamera D_shelter_b1_north_maintenance_walkway_80184F64[];
+/// Cameras for the walkway's mapped views 1..6, stored at view minus one.
+///
+/// Rotation uses 4096 for unity and projection distance uses pixels; translation
+/// is the negated world-space camera origin. Borrow only while this room is loaded.
+extern ViewCamera gShelterB1NorthMaintenanceWalkwayViewCameras[6];
 
-extern SpriteView D_shelter_b1_north_maintenance_walkway_801853AC[];
+/// Sprite resources for the walkway's mapped views 1..6, stored at view minus one.
+///
+/// Every view uses decoded image strips; only view 3 adds source sprites.
+/// Its single-sprite scene batch follows the B2 north walkway scene-seen
+/// flag. No view supplies draw-area clipping. Lists stay live with
+/// this overlay and batch visibility remains writable during room setup.
+extern SpriteView gShelterB1NorthMaintenanceWalkwaySpriteViews[6];
 
-extern WorldCoordRoomLights D_shelter_b1_north_maintenance_walkway_801855D4;
+/// The walkway's five authored point lights, with no directional or cone lights.
+///
+/// Positions and falloff radii use world units; RGB uses 12 fractional bits.
+/// The borrowed lights are composed and shaded in place while this room is loaded.
+extern WorldCoordRoomLights gShelterB1NorthMaintenanceWalkwayRoomLights;
 
 extern WorldCollisionTrigger D_shelter_b1_north_maintenance_walkway_801855EC[];
 
@@ -35,7 +57,12 @@ extern WorldCollisionOccluder D_shelter_b1_north_maintenance_walkway_801857B4[];
 
 extern WorldCollisionTrigger D_shelter_b1_north_maintenance_walkway_80185A98[];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b1_north_maintenance_walkway_80185B4C[];
+/// Collision policies indexed by the walkway's surface classes 0..7.
+///
+/// All classes block probes, allow weapon impacts and apply pushback. Class 1
+/// supplies footstep cues; the others share a silent policy. The records and
+/// sound table stay live with this room overlay.
+extern WorldCollisionSurfaceProperties* gShelterB1NorthMaintenanceWalkwaySurfacePropertiesByClass[8];
 
 /// Runs the walkway's room-message receiver and variant-dependent scene setup.
 ///

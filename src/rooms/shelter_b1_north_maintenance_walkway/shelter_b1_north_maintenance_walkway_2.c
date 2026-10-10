@@ -40,6 +40,7 @@
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
@@ -68,7 +69,7 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 #undef ROOM_FX_HALO_STORAGE_TYPE
 #undef ROOM_FX_HALO_STORAGE_BOUND
 
-u8* D_shelter_b1_north_maintenance_walkway_80184B80[1] = {
+u8* gShelterB1NorthMaintenanceWalkwayViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -79,32 +80,52 @@ DirectionWarpEntry D_shelter_b1_north_maintenance_walkway_80184B88[2] = {
     { { { .word = 0 }, 1983, 0, -4420 }, { 0, 0, 0, 0 }, { { .word = 0 }, 1983, 0, -4420 }, { 0, 0, 0, 0 }, 0x540C0004, 0x540C0003, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_1B0 },
 };
 
-static SVECTOR _gShelterB1NorthMaintenanceWalkwayCollision07980Normals[14] = {
+/// Room-space collision normals, with 4096 for unit length.
+static SVECTOR _gShelterB1NorthMaintenanceWalkwayCollisionGridNormals[14] = {
 #include "assets/shelter_b1_north_maintenance_walkway_collision_07980_normals.inc"
 };
 
-static SVECTOR _gShelterB1NorthMaintenanceWalkwayCollision07980Verts[38] = {
+/// Floor and wall vertices in signed room-coordinate units.
+static SVECTOR _gShelterB1NorthMaintenanceWalkwayCollisionGridVerts[38] = {
 #include "assets/shelter_b1_north_maintenance_walkway_collision_07980_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB1NorthMaintenanceWalkwayCollision07980Faces[18] = {
+/// Indexed floor and wall quads; floor faces use surface class 1, the others class 0.
+static WorldCollisionGridFace _gShelterB1NorthMaintenanceWalkwayCollisionGridFaces[18] = {
 #include "assets/shelter_b1_north_maintenance_walkway_collision_07980_faces.inc"
 };
 
-static s16 _gShelterB1NorthMaintenanceWalkwayCollision07980Cells[92] = {
+/// Packed signed face-index lists, each ending at WORLD_COLLISION_GRID_CELL_END.
+///
+/// Retains the authored words between and after the six lists; they are not
+/// additional cells. All selected indices fit the face array.
+static s16 _gShelterB1NorthMaintenanceWalkwayCollisionGridCells[92] = {
 #include "assets/shelter_b1_north_maintenance_walkway_collision_07980_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB1NorthMaintenanceWalkwayCollision07980Cells[i])
-static s16* _gShelterB1NorthMaintenanceWalkwayCollision07980Table[6] = {
+#define GRID_CELL(i) (&_gShelterB1NorthMaintenanceWalkwayCollisionGridCells[i])
+/// X-major cell directory, with three Z cells per X row.
+static s16* _gShelterB1NorthMaintenanceWalkwayCollisionGridTable[6] = {
 #include "assets/shelter_b1_north_maintenance_walkway_collision_07980_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b1_north_maintenance_walkway_80184F40 = { NULL, _gShelterB1NorthMaintenanceWalkwayCollision07980Normals, _gShelterB1NorthMaintenanceWalkwayCollision07980Verts, _gShelterB1NorthMaintenanceWalkwayCollision07980Faces, _gShelterB1NorthMaintenanceWalkwayCollision07980Table, 2872, 4937, 2, 3, 4000, 18 };
+WorldCollisionGrid gShelterB1NorthMaintenanceWalkwayCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB1NorthMaintenanceWalkwayCollisionGridNormals,
+    .vertices    = _gShelterB1NorthMaintenanceWalkwayCollisionGridVerts,
+    .faces       = _gShelterB1NorthMaintenanceWalkwayCollisionGridFaces,
+    .cellFaceIds = _gShelterB1NorthMaintenanceWalkwayCollisionGridTable,
+    .xBias       = 2872,
+    .zBias       = 4937,
+    .cellCountX  = 2,
+    .cellCountZ  = 3,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gShelterB1NorthMaintenanceWalkwayCollisionGridFaces),
+};
 
-ViewCamera D_shelter_b1_north_maintenance_walkway_80184F64[6] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x35D2, 0 } }, 235 },
+ViewCamera gShelterB1NorthMaintenanceWalkwayViewCameras[6] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 0, 0x35D2, 0 } }, 235 },
     { { { { -1505, 0, 3809 }, { 1128, 3912, 446 }, { -3638, 1213, -1437 } }, { -1615, 1990, -4920 } }, 235 },
     { { { { -938, 0, -3987 }, { -839, 4004, 197 }, { 3897, 861, -917 } }, { 2967, 1799, -4953 } }, 235 },
     { { { { -3922, 0, 1178 }, { 358, 3901, 1193 }, { -1122, 1245, -3736 } }, { -2962, 1720, -4953 } }, 225 },
@@ -112,98 +133,131 @@ ViewCamera D_shelter_b1_north_maintenance_walkway_80184F64[6] = {
     { { { { -938, 0, -3987 }, { -839, 4004, 197 }, { 3897, 861, -917 } }, { 2967, 1799, -4953 } }, 235 },
 };
 
-SpriteBatch D_shelter_b1_north_maintenance_walkway_8018503C[2] = {
+/// View 1's empty sprite list; its zero first count enables decoded image strips.
+static SpriteBatch _gShelterB1NorthMaintenanceWalkwayView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_north_maintenance_walkway_8018504C[2] = {
+/// View 2's empty sprite list; its zero first count enables decoded image strips.
+static SpriteBatch _gShelterB1NorthMaintenanceWalkwayView2SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b1_north_maintenance_walkway_8018505C[38] = {
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 128, -96, 730, { .fields = { 16, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, 80, -96, 764, { .fields = { 8, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 40, -80, 955, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 80, -80, 792, { .fields = { 16, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 120, -80, 778, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 120, -64, 875, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 120, -40, 875, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 120, -16, 875, { .fields = { 48, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 120, 8, 875, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 120, 32, 875, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 120, 56, 875, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 80, 48, 1075, { .fields = { 48, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 80, 24, 1050, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 80, 0, 975, { .fields = { 40, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 80, -48, 925, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 80, -64, 925, { .fields = { 8, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 40, -64, 955, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 56, -56, 950, { .fields = { 24, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 64, -48, 950, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 72, -40, 975, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 72, -16, 950, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 72, 8, 1075, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 72, 32, 1075, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 48, 48, 1210, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 40, 32, 1100, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, 24, 1075, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 48, 32, 1109, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 64, 16, 1075, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 80, -24, 922, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 96, -24, 950, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, 32, -96, 945, { .fields = { 8, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 64 } }, -40, -24, 5000, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 32, 40 } }, 128, -120, 875, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 40 } }, 104, -120, 900, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 32, 40 } }, 72, -120, 912, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, 56, -112, 925, { .fields = { 88, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 8 } }, 40, -104, 925, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 48, 16 } }, 24, -96, 925, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
+/// View 3's encoded 8-bit texture page, two palette rows and neutral RGB modulation.
+enum {
+    SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE               = getTPage(1, 0, 960, 0),
+    SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255       = getClut(0, 255),
+    SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_256       = getClut(0, 256),
+    SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION = 128,
+    SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_VIEW_3_SCENE_SPRITE_INDEX = 31,
 };
 
-SpriteBatch D_shelter_b1_north_maintenance_walkway_80185354[5] = {
+/// View 3's 38 textured rectangles for depth-sorted drawing over its image strips.
+///
+/// Positions and sizes use drawing pixels, UVs use texels and depth is unscaled.
+/// Source 31 is the scene patch; its batch visibility follows the B2 scene flag.
+static SpriteSource _gShelterB1NorthMaintenanceWalkwayView3SpriteSources[38] = {
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 32, 16 } }, 128, -96, 730, { .fields = { 16, 64 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 48, 16 } }, 80, -96, 764, { .fields = { 8, 112 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 40, 16 } }, 40, -80, 955, { .fields = { 16, 0 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 40, 16 } }, 80, -80, 792, { .fields = { 16, 16 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 40, 16 } }, 120, -80, 778, { .fields = { 8, 80 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 40, 24 } }, 120, -64, 875, { .fields = { 48, 136 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 40, 24 } }, 120, -40, 875, { .fields = { 48, 160 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 40, 24 } }, 120, -16, 875, { .fields = { 48, 232 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 40, 24 } }, 120, 8, 875, { .fields = { 56, 112 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 40, 24 } }, 120, 32, 875, { .fields = { 48, 64 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 40, 16 } }, 120, 56, 875, { .fields = { 8, 144 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 40, 24 } }, 80, 48, 1075, { .fields = { 48, 88 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 40, 24 } }, 80, 24, 1050, { .fields = { 40, 208 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 40, 24 } }, 80, 0, 975, { .fields = { 40, 184 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 40, 24 } }, 80, -48, 925, { .fields = { 80, 208 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 40, 16 } }, 80, -64, 925, { .fields = { 8, 128 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 40, 8 } }, 40, -64, 955, { .fields = { 8, 176 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 24, 8 } }, 56, -56, 950, { .fields = { 24, 232 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 16, 8 } }, 64, -48, 950, { .fields = { 32, 160 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 8, 24 } }, 72, -40, 975, { .fields = { 112, 232 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 8, 24 } }, 72, -16, 950, { .fields = { 120, 216 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 8, 24 } }, 72, 8, 1075, { .fields = { 112, 184 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 8, 16 } }, 72, 32, 1075, { .fields = { 40, 96 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 32, 24 } }, 48, 48, 1210, { .fields = { 80, 184 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 8, 24 } }, 40, 32, 1100, { .fields = { 88, 64 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 8, 24 } }, 56, 24, 1075, { .fields = { 88, 88 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 8, 16 } }, 48, 32, 1109, { .fields = { 120, 240 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 8, 32 } }, 64, 16, 1075, { .fields = { 120, 184 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 16, 24 } }, 80, -24, 922, { .fields = { 88, 144 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 24, 24 } }, 96, -24, 950, { .fields = { 88, 232 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 48, 16 } }, 32, -96, 945, { .fields = { 8, 32 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_255, { .fields = { 72, 64 } }, -40, -24, 5000, { .fields = { 56, 0 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_256, { .fields = { 32, 40 } }, 128, -120, 875, { .fields = { 96, 64 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_256, { .fields = { 24, 40 } }, 104, -120, 900, { .fields = { 104, 144 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_256, { .fields = { 32, 40 } }, 72, -120, 912, { .fields = { 96, 104 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_256, { .fields = { 16, 16 } }, 56, -112, 925, { .fields = { 88, 168 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_256, { .fields = { 16, 8 } }, 40, -104, 925, { .fields = { 32, 168 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_PAGE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_CLUT_ROW_256, { .fields = { 48, 16 } }, 24, -96, 925, { .fields = { 8, 48 } }, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_MODULATION, 0 },
+};
+
+/// View 3's image-strip marker, two scenery ranges and single-sprite scene range.
+///
+/// The scene range remains writable through `gShelterB1NorthMaintenanceWalkwaySpriteViews`.
+/// The two serialized bytes at the end of each batch retain unproven meaning.
+static SpriteBatch _gShelterB1NorthMaintenanceWalkwayView3SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 31, 0, 0, { 2, 0 } },
-    { 31, 1, 0, 0, { 1, 0 } },
-    { 32, 6, 0, 0, { 0, 0 } },
+    { 0, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_VIEW_3_SCENE_SPRITE_INDEX, 0, 0, { 2, 0 } },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_VIEW_3_SCENE_SPRITE_INDEX, 1, 0, 0, { 1, 0 } },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_VIEW_3_SCENE_SPRITE_INDEX + 1, ARRAY_SIZE(_gShelterB1NorthMaintenanceWalkwayView3SpriteSources) - SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_VIEW_3_SCENE_SPRITE_INDEX - 1, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_north_maintenance_walkway_8018537C[2] = {
+/// View 4's empty sprite list; its zero first count enables decoded image strips.
+static SpriteBatch _gShelterB1NorthMaintenanceWalkwayView4SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_north_maintenance_walkway_8018538C[2] = {
+/// View 5's empty sprite list; its zero first count enables decoded image strips.
+static SpriteBatch _gShelterB1NorthMaintenanceWalkwayView5SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_north_maintenance_walkway_8018539C[2] = {
+/// View 6's empty sprite list; its zero first count enables decoded image strips.
+static SpriteBatch _gShelterB1NorthMaintenanceWalkwayView6SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_shelter_b1_north_maintenance_walkway_801853AC[6] = {
-    { { .empty = D_shelter_b1_north_maintenance_walkway_8018503C }, D_shelter_b1_north_maintenance_walkway_8018503C, NULL },
-    { { .empty = D_shelter_b1_north_maintenance_walkway_8018504C }, D_shelter_b1_north_maintenance_walkway_8018504C, NULL },
-    { { .elements = D_shelter_b1_north_maintenance_walkway_8018505C }, D_shelter_b1_north_maintenance_walkway_80185354, NULL },
-    { { .empty = D_shelter_b1_north_maintenance_walkway_8018537C }, D_shelter_b1_north_maintenance_walkway_8018537C, NULL },
-    { { .empty = D_shelter_b1_north_maintenance_walkway_8018538C }, D_shelter_b1_north_maintenance_walkway_8018538C, NULL },
-    { { .empty = D_shelter_b1_north_maintenance_walkway_8018539C }, D_shelter_b1_north_maintenance_walkway_8018539C, NULL },
+SpriteView gShelterB1NorthMaintenanceWalkwaySpriteViews[6] = {
+    { { .empty = _gShelterB1NorthMaintenanceWalkwayView1SpriteBatches }, _gShelterB1NorthMaintenanceWalkwayView1SpriteBatches, NULL },
+    { { .empty = _gShelterB1NorthMaintenanceWalkwayView2SpriteBatches }, _gShelterB1NorthMaintenanceWalkwayView2SpriteBatches, NULL },
+    { { .elements = _gShelterB1NorthMaintenanceWalkwayView3SpriteSources }, _gShelterB1NorthMaintenanceWalkwayView3SpriteBatches, NULL },
+    { { .empty = _gShelterB1NorthMaintenanceWalkwayView4SpriteBatches }, _gShelterB1NorthMaintenanceWalkwayView4SpriteBatches, NULL },
+    { { .empty = _gShelterB1NorthMaintenanceWalkwayView5SpriteBatches }, _gShelterB1NorthMaintenanceWalkwayView5SpriteBatches, NULL },
+    { { .empty = _gShelterB1NorthMaintenanceWalkwayView6SpriteBatches }, _gShelterB1NorthMaintenanceWalkwayView6SpriteBatches, NULL },
 };
 
-WorldCoordPointLight D_shelter_b1_north_maintenance_walkway_801853F4[5] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1863, -221, 4731 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2758, 2836, 2918 }, { 0, 0 } }, 948, 2672 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 68, -223, 4315 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2698, 2860, 2900 }, { 0, 0 } }, 1359, 3223 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2002, -504, -2007 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 2839, 2881 }, { 0, 0 } }, 1799, 3522 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1916, -2, 445 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2839, 2860, 2999 }, { 0, 0 } }, 1721, 3243 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1988, -223, 2836 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2659, 2760, 2850 }, { 0, 0 } }, 1741, 3222 },
+/// Five mutable world-space point lights contributing in every room view.
+///
+/// RGB uses 12 fractional bits; inner and outer radii use world-coordinate units.
+/// Room lighting binds their parents and updates their composition and attenuation.
+static WorldCoordPointLight _gShelterB1NorthMaintenanceWalkwayPointLights[5] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -1863, -221, 4731 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2758, 2836, 2918 }, { 0, 0 } }, 948, 2672 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 68, -223, 4315 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2698, 2860, 2900 }, { 0, 0 } }, 1359, 3223 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2002, -504, -2007 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 2839, 2881 }, { 0, 0 } }, 1799, 3522 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1916, -2, 445 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2839, 2860, 2999 }, { 0, 0 } }, 1721, 3243 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1988, -223, 2836 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2659, 2760, 2850 }, { 0, 0 } }, 1741, 3222 },
 };
 
-WorldCoordRoomLights D_shelter_b1_north_maintenance_walkway_801855D4 = { 0, NULL, ARRAY_SIZE(D_shelter_b1_north_maintenance_walkway_801853F4), D_shelter_b1_north_maintenance_walkway_801853F4, 0, NULL };
+WorldCoordRoomLights gShelterB1NorthMaintenanceWalkwayRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gShelterB1NorthMaintenanceWalkwayPointLights),
+    .pointLights           = _gShelterB1NorthMaintenanceWalkwayPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
+};
 
 WorldCollisionTrigger D_shelter_b1_north_maintenance_walkway_801855EC[6] = {
     { NULL, NULL, NULL, { 2080, -1584, -576, 0 }, { { -1376, -1904, 192, 0 }, { 1376, -1904, -192, 0 }, { -1376, 1904, 192, 0 }, { 1376, 1904, -192, 0 } }, { -569, 0, -4074, 0 }, { 0, 0, 4096, 0 }, 2346, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -218,89 +272,135 @@ WorldCollisionOccluder D_shelter_b1_north_maintenance_walkway_801857B4[1] = {
     { NULL, NULL, { -1280, -1104, 1776, 0 }, { { -1920, 2128, -848, 0 }, { 1920, 2128, 848, 0 }, { -1920, -2128, -848, 0 }, { 1920, -2128, 848, 0 } }, { -1662, 0, 3761, 0 }, 2985, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-AreaResource D_shelter_b1_north_maintenance_walkway_801857F0[3] = {
-    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
-    { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor202400Tasks },
+/// Resource-entry keys shared by the walkway's actor recipes and placements.
+enum {
+    SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_BRAIN_STINGER = 3,
+    SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_MOSSBACK      = 11,
+    SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_WATCHER       = 21,
+    SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_AMOEBA        = 24,
+    SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_SUCKLERCEPH   = 46,
+    SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_SKULL_STALKER = 47,
+    SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_ROOK_GOLEM    = 57,
+    SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_SLOUCH        = 70,
+};
+
+/// Variant 1's Watcher and Amoeba file selections and spawn recipes.
+///
+/// Matches placement entry IDs and ends at AREA_PLACEMENT_END. The room and
+/// selected actor overlays must remain loaded while recipes are used.
+static AreaResource _gShelterB1NorthMaintenanceWalkwayVariant1Resources[3] = {
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_WATCHER, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_AMOEBA, 24, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor202400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b1_north_maintenance_walkway_80185814[2] = {
-    { 3, 3, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100300Tasks },
+/// Variant 2's Brain Stinger file selection and spawn recipe, then the end marker.
+static AreaResource _gShelterB1NorthMaintenanceWalkwayVariant2Resources[2] = {
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_BRAIN_STINGER, 3, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100300Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b1_north_maintenance_walkway_8018582C[4] = {
-    { 70, 70, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor107000SlouchTaskDescs },
-    { 46, 46, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor204600SucklercephTaskDesc },
-    { 47, 47, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor204600SkullStalkerTaskDesc },
+/// Variant 3's Slouch, Sucklerceph and Skull Stalker file selections and recipes.
+///
+/// Entry 47 retains file number 47 in group 20, although its task descriptor
+/// belongs to the same actor overlay as entry 46. Ends at AREA_PLACEMENT_END.
+static AreaResource _gShelterB1NorthMaintenanceWalkwayVariant3Resources[4] = {
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_SLOUCH, 70, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor107000SlouchTaskDescs },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_SUCKLERCEPH, 46, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor204600SucklercephTaskDesc },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_SKULL_STALKER, 47, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor204600SkullStalkerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b1_north_maintenance_walkway_8018585C[2] = {
-    { 11, 11, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor101100Tasks },
+/// Variant 4's Mossback file selection and spawn recipe, then the end marker.
+static AreaResource _gShelterB1NorthMaintenanceWalkwayVariant4Resources[2] = {
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_MOSSBACK, 11, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor101100Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b1_north_maintenance_walkway_80185874[3] = {
-    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
-    { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor05700RookGolemTasks },
+/// Variant 11's Watcher and Rook GOLEM file selections and spawn recipes.
+///
+/// Matches placement entry IDs and ends at AREA_PLACEMENT_END; recipes borrow
+/// the selected actor overlays' task descriptors.
+static AreaResource _gShelterB1NorthMaintenanceWalkwayVariant11Resources[3] = {
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_WATCHER, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_ROOK_GOLEM, 57, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor05700RookGolemTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_shelter_b1_north_maintenance_walkway_80185898[6] = {
-    { 21, 1, 0, -2900, -2000, 4900, 1024, 0, 0, 2, 3 },
-    { 21, 1, 0, -2900, -2000, 4000, 1024, 0, 0, 2, 3 },
-    { 24, 0, 0, 1500, 0, 2900, 800, 0, 2, 4, 0 },
-    { 24, 0, 0, 2500, 0, 2100, 2300, 0, 2, 4, 0 },
-    { 24, 0, 0, 1500, 0, -1200, 1900, 0, 2, 4, 0 },
+/// Variant 1's two Watchers and three Amoebas, followed by the end marker.
+///
+/// Positions use world units and yaw uses 4096 units per turn. Spawned actors
+/// borrow these records until teardown, so this room overlay must stay loaded.
+static AreaPlacement _gShelterB1NorthMaintenanceWalkwayVariant1Placements[6] = {
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_WATCHER, 1, 0, -2900, -2000, 4900, 1024, 0, 0, 2, 3 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_WATCHER, 1, 0, -2900, -2000, 4000, 1024, 0, 0, 2, 3 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_AMOEBA, 0, 0, 1500, 0, 2900, 800, 0, 2, 4, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_AMOEBA, 0, 0, 2500, 0, 2100, 2300, 0, 2, 4, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_AMOEBA, 0, 0, 1500, 0, -1200, 1900, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b1_north_maintenance_walkway_801858F8[2] = {
-    { 3, 0, 0, 2000, 0, 4000, 3072, 0, 0, 2, 0 },
+/// Variant 2's single Brain Stinger at (2000, 0, 4000), followed by the end marker.
+///
+/// Coordinates use world units and yaw uses 4096 units per turn. The actor
+/// borrows this placement while alive; the room overlay must stay loaded.
+static AreaPlacement _gShelterB1NorthMaintenanceWalkwayVariant2Placements[2] = {
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_BRAIN_STINGER, 0, 0, 2000, 0, 4000, 3072, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b1_north_maintenance_walkway_80185918[10] = {
-    { 70, 0, 0, 1750, 0, -1050, 2400, 0, 0, 2, 0 },
-    { 70, 0, 0, 2300, 0, 3600, 3600, 0, 0, 2, 0 },
-    { 46, 0, 0, 2550, 0, 4500, 500, 0, 2, 4, 0 },
-    { 46, 0, 0, 500, 0, 3600, 3300, 0, 2, 4, 0 },
-    { 46, 0, 0, 1850, 0, 2050, 1500, 0, 2, 4, 0 },
-    { 47, 0, 0, -1800, 0, 4500, 2100, 0, 2, 4, 0 },
-    { 47, 0, 0, -350, 0, 3900, 3050, 0, 2, 4, 0 },
-    { 47, 0, 0, 1550, 0, -2000, 1800, 0, 2, 4, 0 },
-    { 47, 0, 0, 2550, 0, -2400, 2500, 0, 2, 4, 0 },
+/// Variant 3's two Slouches, three Sucklercephs and four Skull Stalkers.
+///
+/// Ends at AREA_PLACEMENT_END. Coordinates use world units and yaw uses 4096
+/// units per turn; spawned actors borrow the records until teardown.
+static AreaPlacement _gShelterB1NorthMaintenanceWalkwayVariant3Placements[10] = {
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_SLOUCH, 0, 0, 1750, 0, -1050, 2400, 0, 0, 2, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_SLOUCH, 0, 0, 2300, 0, 3600, 3600, 0, 0, 2, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_SUCKLERCEPH, 0, 0, 2550, 0, 4500, 500, 0, 2, 4, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_SUCKLERCEPH, 0, 0, 500, 0, 3600, 3300, 0, 2, 4, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_SUCKLERCEPH, 0, 0, 1850, 0, 2050, 1500, 0, 2, 4, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_SKULL_STALKER, 0, 0, -1800, 0, 4500, 2100, 0, 2, 4, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_SKULL_STALKER, 0, 0, -350, 0, 3900, 3050, 0, 2, 4, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_SKULL_STALKER, 0, 0, 1550, 0, -2000, 1800, 0, 2, 4, 0 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_SKULL_STALKER, 0, 0, 2550, 0, -2400, 2500, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b1_north_maintenance_walkway_801859B8[2] = {
-    { 11, 0, 0, 2000, 0, 1600, 0, 0, 0, 2, 0 },
+/// Variant 4's single Mossback at (2000, 0, 1600), followed by the end marker.
+///
+/// Coordinates use world units and yaw uses 4096 units per turn; the actor
+/// borrows this placement while alive.
+static AreaPlacement _gShelterB1NorthMaintenanceWalkwayVariant4Placements[2] = {
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_MOSSBACK, 0, 0, 2000, 0, 1600, 0, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b1_north_maintenance_walkway_801859D8[6] = {
-    { 21, 1, 0, -2900, -2000, 4900, 1024, 0, 0, 2, 3 },
-    { 21, 1, 0, -2900, -2000, 4000, 1024, 0, 0, 2, 3 },
-    { 21, 1, 0, 2000, -1900, 5100, 2048, 0, 0, 2, 3 },
-    { 21, 1, 0, 3200, -1900, 4000, 3072, 0, 0, 2, 3 },
-    { 57, 0, 0, -500, 0, 4000, 1024, 0, 2, 4, 0 },
+/// Variant 11's four Watchers and one Rook GOLEM, followed by the end marker.
+///
+/// Coordinates use world units and yaw uses 4096 units per turn; spawned actors
+/// borrow the records until teardown. All resource keys resolve in this variant.
+static AreaPlacement _gShelterB1NorthMaintenanceWalkwayVariant11Placements[6] = {
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_WATCHER, 1, 0, -2900, -2000, 4900, 1024, 0, 0, 2, 3 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_WATCHER, 1, 0, -2900, -2000, 4000, 1024, 0, 0, 2, 3 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_WATCHER, 1, 0, 2000, -1900, 5100, 2048, 0, 0, 2, 3 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_WATCHER, 1, 0, 3200, -1900, 4000, 3072, 0, 0, 2, 3 },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ENTRY_ROOK_GOLEM, 0, 0, -500, 0, 4000, 1024, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 AreaVariant D_shelter_b1_north_maintenance_walkway_80185A38[12] = {
     { NULL, NULL },
-    { D_shelter_b1_north_maintenance_walkway_80185898, D_shelter_b1_north_maintenance_walkway_801857F0 },
-    { D_shelter_b1_north_maintenance_walkway_801858F8, D_shelter_b1_north_maintenance_walkway_80185814 },
-    { D_shelter_b1_north_maintenance_walkway_80185918, D_shelter_b1_north_maintenance_walkway_8018582C },
-    { D_shelter_b1_north_maintenance_walkway_801859B8, D_shelter_b1_north_maintenance_walkway_8018585C },
+    { _gShelterB1NorthMaintenanceWalkwayVariant1Placements, _gShelterB1NorthMaintenanceWalkwayVariant1Resources },
+    { _gShelterB1NorthMaintenanceWalkwayVariant2Placements, _gShelterB1NorthMaintenanceWalkwayVariant2Resources },
+    { _gShelterB1NorthMaintenanceWalkwayVariant3Placements, _gShelterB1NorthMaintenanceWalkwayVariant3Resources },
+    { _gShelterB1NorthMaintenanceWalkwayVariant4Placements, _gShelterB1NorthMaintenanceWalkwayVariant4Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_shelter_b1_north_maintenance_walkway_801859D8, D_shelter_b1_north_maintenance_walkway_80185874 },
+    { _gShelterB1NorthMaintenanceWalkwayVariant11Placements, _gShelterB1NorthMaintenanceWalkwayVariant11Resources },
 };
 
 WorldCollisionTrigger D_shelter_b1_north_maintenance_walkway_80185A98[2] = {
@@ -308,29 +408,54 @@ WorldCollisionTrigger D_shelter_b1_north_maintenance_walkway_80185A98[2] = {
     { NULL, NULL, NULL, { 1984, -48, -4560, 0 }, { { -1024, 0, -448, 0 }, { 1024, 0, -448, 0 }, { -1024, 0, 448, 0 }, { 1024, 0, 448, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1115, WORLD_COLLISION_TRIGGER_ACTION_WARP, 11, 35, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionFootstepSounds D_shelter_b1_north_maintenance_walkway_80185B30 = {
-    0x1000005D,
-    0x1000005F,
-    0x1000005D,
+/// Type-1 footstep requests whose bank is resolved to the loaded room sound bank.
+enum {
+    SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_WALK_FOOTSTEP_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5D,
+    SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_RUN_FOOTSTEP_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5F,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b1_north_maintenance_walkway_80185B3C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Surface class 1's walking, running and scripted-jump footstep cue bases.
+///
+/// Walk and jump use entry 0x5D; running uses 0x5F. Cue 1 adds one, and
+/// companions add 100. Playback requires the current type-1 sound bank loaded.
+static WorldCollisionFootstepSounds _gShelterB1NorthMaintenanceWalkwaySurfaceClass1FootstepSounds = {
+    .walk         = SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_WALK_FOOTSTEP_SOUND,
+    .run          = SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_RUN_FOOTSTEP_SOUND,
+    .scriptedJump = SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_WALK_FOOTSTEP_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b1_north_maintenance_walkway_80185B44[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b1_north_maintenance_walkway_80185B30 },
+/// Classes 0 and 2..7: blocked probes, enabled weapon impacts, pushback and no footsteps.
+///
+/// The first byte retains its authored zero with unproven meaning.
+static WorldCollisionSurfaceProperties _gShelterB1NorthMaintenanceWalkwaySilentBlockingSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_b1_north_maintenance_walkway_80185B4C[8] = {
-    D_shelter_b1_north_maintenance_walkway_80185B3C,
-    D_shelter_b1_north_maintenance_walkway_80185B44,
-    D_shelter_b1_north_maintenance_walkway_80185B3C,
-    D_shelter_b1_north_maintenance_walkway_80185B3C,
-    D_shelter_b1_north_maintenance_walkway_80185B3C,
-    D_shelter_b1_north_maintenance_walkway_80185B3C,
-    D_shelter_b1_north_maintenance_walkway_80185B3C,
-    D_shelter_b1_north_maintenance_walkway_80185B3C,
+/// Class 1: blocked probes, enabled weapon impacts, pushback and floor footstep cues.
+///
+/// The first byte retains its authored zero with unproven meaning; the sound
+/// table is borrowed from this overlay.
+static WorldCollisionSurfaceProperties _gShelterB1NorthMaintenanceWalkwaySurfaceClass1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB1NorthMaintenanceWalkwaySurfaceClass1FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gShelterB1NorthMaintenanceWalkwaySurfacePropertiesByClass[8] = {
+    &_gShelterB1NorthMaintenanceWalkwaySilentBlockingSurface,
+    &_gShelterB1NorthMaintenanceWalkwaySurfaceClass1Properties,
+    &_gShelterB1NorthMaintenanceWalkwaySilentBlockingSurface,
+    &_gShelterB1NorthMaintenanceWalkwaySilentBlockingSurface,
+    &_gShelterB1NorthMaintenanceWalkwaySilentBlockingSurface,
+    &_gShelterB1NorthMaintenanceWalkwaySilentBlockingSurface,
+    &_gShelterB1NorthMaintenanceWalkwaySilentBlockingSurface,
+    &_gShelterB1NorthMaintenanceWalkwaySilentBlockingSurface,
 };
 
 RoomFadeStorage gRoomEventFade = { 0 };
