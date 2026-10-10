@@ -61,13 +61,34 @@ extern WorldCoordRoomLights gAcropolisCafeteriaRoomLights;
 /// table only while the overlay is loaded.
 extern WorldCoordRoomAmbientEntry gAcropolisCafeteriaViewAmbientColors[25];
 
-extern AreaApplyRec D_acropolis_cafeteria_8018C9D4[3];
+/// Saved-area placement and map changes committed after the cafeteria follow-up scene.
+///
+/// Applies layout 2 to the patio and forked road in every save mode, clearing
+/// the patio's map mark and setting the forked road's. Also discards both areas'
+/// saved enemy poses. The third record is `AREA_APPLY_END`; the synchronous
+/// update call borrows the list while the cafeteria overlay is loaded.
+extern const AreaApplyRec gAcropolisCafeteriaFollowUpAreaUpdates[3];
 
-extern s32 D_acropolis_cafeteria_8018D6A0;
+/// Singleton Stranger recoil X velocity in signed room units per controller tick.
+///
+/// Initialized to zero for each settle controller, then halved toward zero each
+/// tick. Shared with the room's second TU; only one settle controller may use
+/// it at a time, and storage is valid only while the cafeteria overlay is loaded.
+extern s32 gAcropolisCafeteriaStrangerRecoilVelocityX;
 
-extern s32 D_acropolis_cafeteria_8018D6A4;
+/// Singleton Stranger recoil Y velocity in signed room units per controller tick.
+///
+/// Initialized to -20 for each settle controller; positive Y points down.
+/// Gravity adds 5 per tick, capped at +20, even after the root reaches its floor.
+/// Only one settle controller may use it while the cafeteria overlay is loaded.
+extern s32 gAcropolisCafeteriaStrangerRecoilVelocityY;
 
-extern s32 D_acropolis_cafeteria_8018D6A8;
+/// Singleton Stranger recoil Z velocity in signed room units per controller tick.
+///
+/// Initialized to -20 for each settle controller, then halved toward zero each
+/// tick. Only one settle controller may use it while the cafeteria overlay is
+/// loaded; the controller ends once X/Z stop and the root reaches its floor.
+extern s32 gAcropolisCafeteriaStrangerRecoilVelocityZ;
 
 /// Authored cone-light storage shared by all cafeteria lighting sets.
 ///

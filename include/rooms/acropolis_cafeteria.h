@@ -77,9 +77,25 @@ extern WorldCoordRoomLighting gAcropolisCafeteriaRoomLightingTable[4];
 /// sound. No terminator; the map directory borrows this loaded-overlay array.
 extern DirectionWarpEntry gAcropolisCafeteriaWarps[3];
 
-extern SpriteView D_acropolis_cafeteria_8018C48C[];
+/// Number of cafeteria camera/image/sprite slots selected by mapped view indices.
+enum { ACROPOLIS_CAFETERIA_MAPPED_VIEW_COUNT = 24 };
 
-extern ViewCamera D_acropolis_cafeteria_8018C5AC[];
+/// Cafeteria background sprite resources indexed by mapped view minus one (1..24).
+///
+/// Every entry retains decoded background strips. Views 1 and 4 share an empty
+/// batch list; 14 and 22 share source sprites and batches. Other source-less
+/// views retain their own batch address in `sources.empty`. Only view 5 has
+/// clipping commands. No terminator; the Acropolis map directory borrows this
+/// table and its mutable resources while the cafeteria overlay is loaded.
+extern SpriteView gAcropolisCafeteriaSpriteViews[ACROPOLIS_CAFETERIA_MAPPED_VIEW_COUNT];
+
+/// Cafeteria cameras indexed by mapped view minus one (1..24).
+///
+/// Rotation coefficients use 12 fractional bits; translation is the negated
+/// camera origin in world units, and projection distance is in pixels. No
+/// terminator. The Acropolis map directory borrows this array while the room
+/// overlay is loaded; queued camera application must finish before it unloads.
+extern ViewCamera gAcropolisCafeteriaViewCameras[ACROPOLIS_CAFETERIA_MAPPED_VIEW_COUNT];
 
 /// Cafeteria collision and footstep properties indexed by surface class 0..7.
 ///

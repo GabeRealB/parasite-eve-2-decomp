@@ -1634,7 +1634,7 @@ static inline void _acropolisCafeteriaCommitFollowUpDeparture(Task* task)
     gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, ACROPOLIS_CAFETERIA_FOLLOW_UP_RESET);
     gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ACROPOLIS_CAFETERIA_FOLLOW_UP_DIALOGUE);
     gameFlagSetNibble(GAME_FLAG_00E, 1);
-    areaApplySavedUpdates(D_acropolis_cafeteria_8018C9D4);
+    areaApplySavedUpdates(gAcropolisCafeteriaFollowUpAreaUpdates);
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = ACROPOLIS_CAFETERIA_FOLLOW_UP_SCENE_EVENT;
     gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACROPOLIS_CAFETERIA_FOLLOW_UP_OBJECTIVE);
     func_800ABFF8();
@@ -1743,20 +1743,20 @@ static inline void _acropolisCafeteriaStepStrangerRecoil(Task* task, GfxCoord* r
         ACROPOLIS_CAFETERIA_STRANGER_MAX_FALL_SPEED = 20,
     };
 
-    root->coord.t[0] += D_acropolis_cafeteria_8018D6A0;
-    root->coord.t[1] += D_acropolis_cafeteria_8018D6A4;
+    root->coord.t[0] += gAcropolisCafeteriaStrangerRecoilVelocityX;
+    root->coord.t[1] += gAcropolisCafeteriaStrangerRecoilVelocityY;
     if (root->coord.t[1] > ACROPOLIS_CAFETERIA_STRANGER_FLOOR_Y) {
         root->coord.t[1] = ACROPOLIS_CAFETERIA_STRANGER_FLOOR_Y;
     }
-    root->coord.t[2]               += D_acropolis_cafeteria_8018D6A8;
-    root->composeStamp              = GRAPHICS_COORD_DIRTY;
-    D_acropolis_cafeteria_8018D6A0  = D_acropolis_cafeteria_8018D6A0 / 2;
-    D_acropolis_cafeteria_8018D6A4 += ACROPOLIS_CAFETERIA_STRANGER_GRAVITY;
-    if (D_acropolis_cafeteria_8018D6A4 > ACROPOLIS_CAFETERIA_STRANGER_MAX_FALL_SPEED) {
-        D_acropolis_cafeteria_8018D6A4 = ACROPOLIS_CAFETERIA_STRANGER_MAX_FALL_SPEED;
+    root->coord.t[2]                           += gAcropolisCafeteriaStrangerRecoilVelocityZ;
+    root->composeStamp                          = GRAPHICS_COORD_DIRTY;
+    gAcropolisCafeteriaStrangerRecoilVelocityX  = gAcropolisCafeteriaStrangerRecoilVelocityX / 2;
+    gAcropolisCafeteriaStrangerRecoilVelocityY += ACROPOLIS_CAFETERIA_STRANGER_GRAVITY;
+    if (gAcropolisCafeteriaStrangerRecoilVelocityY > ACROPOLIS_CAFETERIA_STRANGER_MAX_FALL_SPEED) {
+        gAcropolisCafeteriaStrangerRecoilVelocityY = ACROPOLIS_CAFETERIA_STRANGER_MAX_FALL_SPEED;
     }
-    D_acropolis_cafeteria_8018D6A8 = D_acropolis_cafeteria_8018D6A8 / 2;
-    if (D_acropolis_cafeteria_8018D6A0 == 0 && D_acropolis_cafeteria_8018D6A8 == 0 &&
+    gAcropolisCafeteriaStrangerRecoilVelocityZ = gAcropolisCafeteriaStrangerRecoilVelocityZ / 2;
+    if (gAcropolisCafeteriaStrangerRecoilVelocityX == 0 && gAcropolisCafeteriaStrangerRecoilVelocityZ == 0 &&
         root->coord.t[1] == ACROPOLIS_CAFETERIA_STRANGER_FLOOR_Y) {
         taskKill(task);
     }
@@ -1785,10 +1785,10 @@ static void _acropolisCafeteriaSettleStrangerTask(Task* task)
             // Start the recoil clip before taking over the root's translation.
             TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(ACROPOLIS_CAFETERIA_PLACED_STRANGER), ACTOR_MESSAGE_PLACE, &_gAcropolisCafeteriaStrangerRecoilPlacement, 0);
             TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(ACROPOLIS_CAFETERIA_PLACED_STRANGER), ACTOR_COMMAND_MESSAGE_APPLY, &_gAcropolisCafeteriaStrangerSettleCommand, 0);
-            D_acropolis_cafeteria_8018D6A0 = 0;
-            D_acropolis_cafeteria_8018D6A4 = ACROPOLIS_CAFETERIA_STRANGER_INITIAL_Y_STEP;
-            D_acropolis_cafeteria_8018D6A8 = ACROPOLIS_CAFETERIA_STRANGER_INITIAL_Z_STEP;
-            task->state                    = task->state + 1;
+            gAcropolisCafeteriaStrangerRecoilVelocityX = 0;
+            gAcropolisCafeteriaStrangerRecoilVelocityY = ACROPOLIS_CAFETERIA_STRANGER_INITIAL_Y_STEP;
+            gAcropolisCafeteriaStrangerRecoilVelocityZ = ACROPOLIS_CAFETERIA_STRANGER_INITIAL_Z_STEP;
+            task->state                                = task->state + 1;
             break;
 
         case ACROPOLIS_CAFETERIA_SETTLE_MOVE:
