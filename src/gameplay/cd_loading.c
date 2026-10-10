@@ -480,7 +480,7 @@ u32        D_8010CDCC[2]  = { 0xFFFF, 0 };
 AreaRecord D_8010CDD4[39] = {
     { NULL, NULL },
     { D_dryfield_night_gas_station_80190624, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[0].state },
-    { D_dryfield_night_main_street_80188A08, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[1].state },
+    { gDryfieldNightMainStreetAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[1].state },
     { D_dryfield_night_general_store_8018572C, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[2].state },
     { NULL, NULL },
     { D_dryfield_night_back_street_80181518, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[3].state },

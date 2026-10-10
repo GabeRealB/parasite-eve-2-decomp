@@ -2599,7 +2599,7 @@ static void _actor136100SceneTask(Task* task)
                 }
                 ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(task, ACTOR_136100_PLAYER_WEAPON_ANIMATION, ANIMATION_BLEND_INTERPOLATE, ACTOR_136100_ANIMATION_BLEND_FRAMES, message.animation);
                 evsStartScriptWithSkip(D_actor_136100_8013F46C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_136100_8013F784);
-                worldCollisionUnlinkTrigger(0, &D_dryfield_night_main_street_8018824C[8]);
+                worldCollisionUnlinkTrigger(WORLD_COLLISION_TRIGGER_LIST_ACTION, &gDryfieldNightMainStreetRooms2And3ActionTriggers[DRYFIELD_NIGHT_MAIN_STREET_ACTION_TRIGGER_AFTER_BURNER]);
                 ACTOR_136100_COPY_PLAYER_ANIMATION_SETS(task, message.copy);
                 gameFlagSetNibble(GAME_FLAG_NIGHT_MAIN_STREET_CUTSCENE_SEEN, 1);
                 task->state++;
@@ -2614,7 +2614,7 @@ static void _actor136100SceneTask(Task* task)
                 }
                 ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(task, ACTOR_136100_PLAYER_WEAPON_ANIMATION, ANIMATION_BLEND_INTERPOLATE, ACTOR_136100_ANIMATION_BLEND_FRAMES, message.animation);
                 evsStartScriptWithSkip(D_actor_136100_8013FD84, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_136100_80140114);
-                worldCollisionUnlinkTrigger(0, &D_dryfield_night_main_street_8018824C[9]);
+                worldCollisionUnlinkTrigger(WORLD_COLLISION_TRIGGER_LIST_ACTION, &gDryfieldNightMainStreetRooms2And3ActionTriggers[DRYFIELD_NIGHT_MAIN_STREET_ACTION_TRIGGER_BEFORE_BURNER]);
                 ACTOR_136100_COPY_PLAYER_ANIMATION_SETS(task, message.copy);
                 gameFlagSetNibble(GAME_FLAG_NIGHT_MAIN_STREET_CUTSCENE_SEEN, 1);
                 task->state++;

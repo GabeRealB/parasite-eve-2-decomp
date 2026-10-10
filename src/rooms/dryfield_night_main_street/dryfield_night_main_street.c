@@ -79,6 +79,38 @@ static void _mainStreetFinishIceBagEvent(Task* task);
 
 static s32 _mainStreetCapSoundCue(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
 
+/// Control values in this room's two-byte sprite visibility commands.
+enum {
+    DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_VISIBLE     = 0,
+    DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_HIDDEN      = 1,
+    DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW = 0xFF,
+    DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END         = 0xFF,
+};
+
+/// One view-selection or batch-visibility command in a balcony-section stream.
+///
+/// Each stream starts with a view selection followed by a batch command.
+/// Every view selection is followed by a batch; index 0xFF stops decoding.
+typedef struct {
+    u8 index;  // Zero-based view or batch slot; 0xFF ends the stream
+    u8 hidden; // Batch visibility (0 visible, 1 hidden), or 0xFF to select a view
+} _DryfieldNightMainStreetSpritePatch;
+STATIC_ASSERT_SIZEOF(_DryfieldNightMainStreetSpritePatch, 2);
+
+/// World-space positions used by this room's light shafts, flares and puffs.
+typedef struct {
+    SVECTOR shaftEndpoints[5][2]; // Five consecutive endpoint pairs in game-coordinate units
+    SVECTOR flareCenters[6];      // Six independent flare centres in game-coordinate units
+    SVECTOR puffSpawnPoint;       // Mutable spawn position; its fourth halfword is retained
+} _DryfieldNightMainStreetAmbientEffectAnchors;
+STATIC_ASSERT_SIZEOF(_DryfieldNightMainStreetAmbientEffectAnchors, 0x88);
+
+enum {
+    DRYFIELD_NIGHT_MAIN_STREET_ROOM_STATE_INITIALIZE = 0,
+    DRYFIELD_NIGHT_MAIN_STREET_ROOM_STATE_IDLE       = 1,
+    DRYFIELD_NIGHT_MAIN_STREET_ROOM_STATE_RELEASE    = 2,
+};
+
 #define DRYFIELD_NIGHT_MAIN_STREET_RAND() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
 
 /// Advances the gameplay LCG and yields the high half of the new state.
@@ -88,31 +120,31 @@ static s32 _mainStreetCapSoundCue(Task* unusedTask, s32 unusedMessageId, s32 cue
 /// 0xFF first byte: `(view, 0xFF)` selects that view's command list, and any
 /// other `(cmd, value)` stores `value` in that batch's `hidden` byte. The list
 /// starts on the view named by its first byte.
-#define DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(table, nibble)               \
-    {                                                                            \
-        GameLocationKey* sess;                                                   \
-        SpriteView*      rec;                                                    \
-        SpriteBatch*     batches;                                                \
-        u8*              p;                                                      \
-        s16              idx;                                                    \
-        u8**             tbl;                                                    \
-                                                                                 \
-        idx     = gameFlagGetNibble(nibble);                                     \
-        tbl     = table;                                                         \
-        p       = tbl[idx];                                                      \
-        sess    = &gGameSession->location.loc;                                   \
-        rec     = gSpriteAreaTables[sess->stage - 1]->areaViews[sess->area - 1]; \
-        batches = rec[p[0]].batches;                                             \
-        if (p[0] != 0xFF) {                                                      \
-            do {                                                                 \
-                if (p[1] == 0xFF) {                                              \
-                    batches = rec[p[0]].batches;                                 \
-                    p      += 2;                                                 \
-                }                                                                \
-                batches[p[0]].hidden = p[1];                                     \
-                p                   += 2;                                        \
-            } while (p[0] != 0xFF);                                              \
-        }                                                                        \
+#define DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(table, nibble)                      \
+    {                                                                                   \
+        GameLocationKey*                      sess;                                     \
+        SpriteView*                           rec;                                      \
+        SpriteBatch*                          batches;                                  \
+        _DryfieldNightMainStreetSpritePatch*  p;                                        \
+        s16                                   idx;                                      \
+        _DryfieldNightMainStreetSpritePatch** tbl;                                      \
+                                                                                        \
+        idx     = gameFlagGetNibble(nibble);                                            \
+        tbl     = table;                                                                \
+        p       = tbl[idx];                                                             \
+        sess    = &gGameSession->location.loc;                                          \
+        rec     = gSpriteAreaTables[sess->stage - 1]->areaViews[sess->area - 1];        \
+        batches = rec[p->index].batches;                                                \
+        if (p->index != DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END) {                  \
+            do {                                                                        \
+                if (p->hidden == DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW) { \
+                    batches = rec[p->index].batches;                                    \
+                    p++;                                                                \
+                }                                                                       \
+                batches[p->index].hidden = p->hidden;                                   \
+                p++;                                                                    \
+            } while (p->index != DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END);          \
+        }                                                                               \
     }
 
 /// Descriptor of the room's own event task, which the message handler spawns.
@@ -128,17 +160,8 @@ extern TaskDesc gMainStreetPlayTimeTaskDesc;
 /// (ids `0x13EE`-`0x13F1`).
 extern TaskMessageEntry D_dryfield_night_main_street_801820B0[];
 
-/// Per-nibble-value sprite patch lists, one table per game-flag nibble.
-extern u8** D_dryfield_night_main_street_80182168;
-extern u8** D_dryfield_night_main_street_8018216C;
-extern u8** D_dryfield_night_main_street_80182170;
-extern u8** D_dryfield_night_main_street_80182174;
-
 /// The room effect mode of each view, indexed by view - 1.
 extern u16 D_dryfield_night_main_street_80182178[];
-
-/// Anchors of the room task's glows; the entries after the first are also
-/// reached by their own names, and entry 16 is the spawn position scratch.
 
 /// View masks of the room task's anchors.
 extern s32 D_dryfield_night_main_street_80182230[];
@@ -171,15 +194,13 @@ enum { DRYFIELD_NIGHT_MAIN_STREET_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 static WorldCollisionGrid    _gDryfieldNightMainStreetRoom1CollisionGrid;
 static WorldCollisionGrid    _gDryfieldNightMainStreetRooms2And3CollisionGrid;
-extern WorldCollisionTrigger D_dryfield_night_main_street_80187704[26];
-extern WorldCollisionTrigger D_dryfield_night_main_street_80187EBC[12];
+static WorldCollisionTrigger _gDryfieldNightMainStreetViewBoundaryTriggers[26];
+static WorldCollisionTrigger _gDryfieldNightMainStreetRoom1ActionTriggers[12];
 
 static WorldCoordRoomAmbientEntry _gDryfieldNightMainStreetRoomAmbientTable[25];
 static WorldCoordRoomLights       _gDryfieldNightMainStreetRoomLights;
 
-extern SpriteBatch  D_dryfield_night_main_street_8018759C[7];
-extern SpriteSource D_dryfield_night_main_street_80187128[57];
-TaskDesc            gMainStreetEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
+TaskDesc gMainStreetEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -194,161 +215,125 @@ TaskMessageEntry D_dryfield_night_main_street_801820B0[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-u8 D_dryfield_night_main_street_801820E0[16] = {
-    13,
-    255,
-    6,
-    0,
-    14,
-    255,
-    3,
-    0,
-    16,
-    255,
-    5,
-    0,
-    255,
-    255,
-    0,
-    0,
+/// Shows balcony section 3 in mapped views 14, 15 and 17 (batches 6, 3 and 5).
+static _DryfieldNightMainStreetSpritePatch _gDryfieldNightMainStreetBalconySection3VisibleSpritePatches[] = {
+    { 13, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
+    { 6, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_VISIBLE },
+    { 14, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
+    { 3, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_VISIBLE },
+    { 16, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
+    { 5, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_VISIBLE },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END },
+    { 0, 0 }, // Stored after the terminator; not decoded
 };
 
-u8 D_dryfield_night_main_street_801820F0[16] = {
-    13,
-    255,
-    6,
-    1,
-    14,
-    255,
-    3,
-    1,
-    16,
-    255,
-    5,
-    1,
-    255,
-    255,
-    0,
-    0,
+/// Hides balcony section 3 in mapped views 14, 15 and 17 (batches 6, 3 and 5).
+static _DryfieldNightMainStreetSpritePatch _gDryfieldNightMainStreetBalconySection3HiddenSpritePatches[] = {
+    { 13, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
+    { 6, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_HIDDEN },
+    { 14, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
+    { 3, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_HIDDEN },
+    { 16, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
+    { 5, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_HIDDEN },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END },
+    { 0, 0 }, // Stored after the terminator; not decoded
 };
 
-u8* D_dryfield_night_main_street_80182100[2] = {
-    D_dryfield_night_main_street_801820E0,
-    D_dryfield_night_main_street_801820F0,
+/// Balcony section 3 patch lists indexed by its saved state (0 visible, 1 hidden).
+static _DryfieldNightMainStreetSpritePatch* _gDryfieldNightMainStreetBalconySection3SpritePatchLists[2] = {
+    [DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_VISIBLE] = _gDryfieldNightMainStreetBalconySection3VisibleSpritePatches,
+    [DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_HIDDEN]  = _gDryfieldNightMainStreetBalconySection3HiddenSpritePatches,
 };
 
-u8 D_dryfield_night_main_street_80182108[16] = {
-    13,
-    255,
-    7,
-    0,
-    14,
-    255,
-    4,
-    0,
-    16,
-    255,
-    6,
-    0,
-    255,
-    255,
-    0,
-    0,
+/// Shows balcony section 4 in mapped views 14, 15 and 17 (batches 7, 4 and 6).
+static _DryfieldNightMainStreetSpritePatch _gDryfieldNightMainStreetBalconySection4VisibleSpritePatches[] = {
+    { 13, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
+    { 7, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_VISIBLE },
+    { 14, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
+    { 4, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_VISIBLE },
+    { 16, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
+    { 6, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_VISIBLE },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END },
+    { 0, 0 }, // Stored after the terminator; not decoded
 };
 
-u8 D_dryfield_night_main_street_80182118[16] = {
-    13,
-    255,
-    7,
-    1,
-    14,
-    255,
-    4,
-    1,
-    16,
-    255,
-    6,
-    1,
-    255,
-    255,
-    0,
-    0,
+/// Hides balcony section 4 in mapped views 14, 15 and 17 (batches 7, 4 and 6).
+static _DryfieldNightMainStreetSpritePatch _gDryfieldNightMainStreetBalconySection4HiddenSpritePatches[] = {
+    { 13, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
+    { 7, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_HIDDEN },
+    { 14, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
+    { 4, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_HIDDEN },
+    { 16, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
+    { 6, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_HIDDEN },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END },
+    { 0, 0 }, // Stored after the terminator; not decoded
 };
 
-u8* D_dryfield_night_main_street_80182128[2] = {
-    D_dryfield_night_main_street_80182108,
-    D_dryfield_night_main_street_80182118,
+/// Balcony section 4 patch lists indexed by its saved state (0 visible, 1 hidden).
+static _DryfieldNightMainStreetSpritePatch* _gDryfieldNightMainStreetBalconySection4SpritePatchLists[2] = {
+    [DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_VISIBLE] = _gDryfieldNightMainStreetBalconySection4VisibleSpritePatches,
+    [DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_HIDDEN]  = _gDryfieldNightMainStreetBalconySection4HiddenSpritePatches,
 };
 
-u8 D_dryfield_night_main_street_80182130[12] = {
-    13,
-    255,
-    8,
-    0,
-    14,
-    255,
-    5,
-    0,
-    255,
-    255,
-    0,
-    0,
+/// Shows balcony section 5 in mapped views 14 and 15 (batches 8 and 5).
+static _DryfieldNightMainStreetSpritePatch _gDryfieldNightMainStreetBalconySection5VisibleSpritePatches[] = {
+    { 13, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
+    { 8, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_VISIBLE },
+    { 14, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
+    { 5, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_VISIBLE },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END },
+    { 0, 0 }, // Stored after the terminator; not decoded
 };
 
-u8 D_dryfield_night_main_street_8018213C[12] = {
-    13,
-    255,
-    8,
-    1,
-    14,
-    255,
-    5,
-    1,
-    255,
-    255,
-    0,
-    0,
+/// Hides balcony section 5 in mapped views 14 and 15 (batches 8 and 5).
+static _DryfieldNightMainStreetSpritePatch _gDryfieldNightMainStreetBalconySection5HiddenSpritePatches[] = {
+    { 13, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
+    { 8, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_HIDDEN },
+    { 14, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
+    { 5, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_HIDDEN },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END },
+    { 0, 0 }, // Stored after the terminator; not decoded
 };
 
-u8* D_dryfield_night_main_street_80182148[2] = {
-    D_dryfield_night_main_street_80182130,
-    D_dryfield_night_main_street_8018213C,
+/// Balcony section 5 patch lists indexed by its saved state (0 visible, 1 hidden).
+static _DryfieldNightMainStreetSpritePatch* _gDryfieldNightMainStreetBalconySection5SpritePatchLists[2] = {
+    [DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_VISIBLE] = _gDryfieldNightMainStreetBalconySection5VisibleSpritePatches,
+    [DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_HIDDEN]  = _gDryfieldNightMainStreetBalconySection5HiddenSpritePatches,
 };
 
-u8 D_dryfield_night_main_street_80182150[8] = {
-    12,
-    255,
-    4,
-    0,
-    255,
-    255,
-    0,
-    0,
+/// Shows balcony section 7 in mapped view 13 (batch 4).
+static _DryfieldNightMainStreetSpritePatch _gDryfieldNightMainStreetBalconySection7VisibleSpritePatches[] = {
+    { 12, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
+    { 4, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_VISIBLE },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END },
+    { 0, 0 }, // Stored after the terminator; not decoded
 };
 
-u8 D_dryfield_night_main_street_80182158[8] = {
-    12,
-    255,
-    4,
-    1,
-    255,
-    255,
-    0,
-    0,
+/// Hides balcony section 7 in mapped view 13 (batch 4).
+static _DryfieldNightMainStreetSpritePatch _gDryfieldNightMainStreetBalconySection7HiddenSpritePatches[] = {
+    { 12, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW },
+    { 4, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_HIDDEN },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END },
+    { 0, 0 }, // Stored after the terminator; not decoded
 };
 
-u8* D_dryfield_night_main_street_80182160[2] = {
-    D_dryfield_night_main_street_80182150,
-    D_dryfield_night_main_street_80182158,
+/// Balcony section 7 patch lists indexed by its saved state (0 visible, 1 hidden).
+static _DryfieldNightMainStreetSpritePatch* _gDryfieldNightMainStreetBalconySection7SpritePatchLists[2] = {
+    [DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_VISIBLE] = _gDryfieldNightMainStreetBalconySection7VisibleSpritePatches,
+    [DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_HIDDEN]  = _gDryfieldNightMainStreetBalconySection7HiddenSpritePatches,
 };
 
-u8** D_dryfield_night_main_street_80182168 = D_dryfield_night_main_street_80182100;
+/// Stored root of balcony section 3's borrowed two-state patch directory.
+static _DryfieldNightMainStreetSpritePatch** _gDryfieldNightMainStreetBalconySection3SpritePatchTable = _gDryfieldNightMainStreetBalconySection3SpritePatchLists;
 
-u8** D_dryfield_night_main_street_8018216C = D_dryfield_night_main_street_80182128;
+/// Stored root of balcony section 4's borrowed two-state patch directory.
+static _DryfieldNightMainStreetSpritePatch** _gDryfieldNightMainStreetBalconySection4SpritePatchTable = _gDryfieldNightMainStreetBalconySection4SpritePatchLists;
 
-u8** D_dryfield_night_main_street_80182170 = D_dryfield_night_main_street_80182148;
+/// Stored root of balcony section 5's borrowed two-state patch directory.
+static _DryfieldNightMainStreetSpritePatch** _gDryfieldNightMainStreetBalconySection5SpritePatchTable = _gDryfieldNightMainStreetBalconySection5SpritePatchLists;
 
-u8** D_dryfield_night_main_street_80182174 = D_dryfield_night_main_street_80182160;
+/// Stored root of balcony section 7's borrowed two-state patch directory.
+static _DryfieldNightMainStreetSpritePatch** _gDryfieldNightMainStreetBalconySection7SpritePatchTable = _gDryfieldNightMainStreetBalconySection7SpritePatchLists;
 
 u16 D_dryfield_night_main_street_80182178[24] = {
     0,
@@ -377,25 +362,28 @@ u16 D_dryfield_night_main_street_80182178[24] = {
     2,
 };
 
-// Indexed views below share one contiguous table.
-SVECTOR D_dryfield_night_main_street_801821A8[17] = {
-    { -930, -2870, 10010, 0 },
-    { -2130, -2870, 10010, 0 },
-    { -6010, -2870, 3050, 0 },
-    { -6010, -2870, 1850, 0 },
-    { -6010, -2870, -2940, 0 },
-    { -6010, -2870, -4150, 0 },
-    { -160, -3100, 8360, 0 },
-    { -160, -2800, 8790, 0 },
-    { -300, -3250, -4100, 0 },
-    { -300, -3190, -4610, 0 },
-    { -4140, -1700, 10930, 0 },
-    { -6910, -1700, 10650, 0 },
-    { -6910, -1700, 6660, 0 },
-    { -6910, -1700, -3150, 0 },
-    { -3150, -4850, 10920, 0 },
-    { -6930, -4850, 5150, 0 },
-    { -850, -1320, 9770, 0 },
+/// Authored shaft/flare positions and the next puff's reusable spawn position.
+///
+/// Positions use signed game-coordinate units in world space. Puff spawning
+/// overwrites only its XYZ and snapshots them into each new effect; keep this
+/// overlay loaded while effects retain the borrowed spawn-point address.
+static _DryfieldNightMainStreetAmbientEffectAnchors _gDryfieldNightMainStreetAmbientEffectAnchors = {
+    .shaftEndpoints = {
+        { { -930, -2870, 10010, 0 }, { -2130, -2870, 10010, 0 } },
+        { { -6010, -2870, 3050, 0 }, { -6010, -2870, 1850, 0 } },
+        { { -6010, -2870, -2940, 0 }, { -6010, -2870, -4150, 0 } },
+        { { -160, -3100, 8360, 0 }, { -160, -2800, 8790, 0 } },
+        { { -300, -3250, -4100, 0 }, { -300, -3190, -4610, 0 } },
+    },
+    .flareCenters = {
+        { -4140, -1700, 10930, 0 },
+        { -6910, -1700, 10650, 0 },
+        { -6910, -1700, 6660, 0 },
+        { -6910, -1700, -3150, 0 },
+        { -3150, -4850, 10920, 0 },
+        { -6930, -4850, 5150, 0 },
+    },
+    .puffSpawnPoint = { -850, -1320, 9770, 0 },
 };
 
 s32 D_dryfield_night_main_street_80182230[16] = {
@@ -434,10 +422,10 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 #undef ROOM_FX_HALO_STORAGE_TYPE
 #undef ROOM_FX_HALO_STORAGE_BOUND
 
-WorldCollisionRoomResources D_dryfield_night_main_street_80182284[3] = {
-    { &_gDryfieldNightMainStreetRoom1CollisionGrid, D_dryfield_night_main_street_80187704, D_dryfield_night_main_street_80187EBC, NULL },
-    { &_gDryfieldNightMainStreetRooms2And3CollisionGrid, D_dryfield_night_main_street_80187704, D_dryfield_night_main_street_8018824C, NULL },
-    { &_gDryfieldNightMainStreetRooms2And3CollisionGrid, D_dryfield_night_main_street_80187704, D_dryfield_night_main_street_8018824C, NULL },
+WorldCollisionRoomResources gDryfieldNightMainStreetRoomCollisionResources[3] = {
+    { .grid = &_gDryfieldNightMainStreetRoom1CollisionGrid, .viewBoundaryTriggers = _gDryfieldNightMainStreetViewBoundaryTriggers, .actionTriggers = _gDryfieldNightMainStreetRoom1ActionTriggers, .occluders = NULL },
+    { .grid = &_gDryfieldNightMainStreetRooms2And3CollisionGrid, .viewBoundaryTriggers = _gDryfieldNightMainStreetViewBoundaryTriggers, .actionTriggers = gDryfieldNightMainStreetRooms2And3ActionTriggers, .occluders = NULL },
+    { .grid = &_gDryfieldNightMainStreetRooms2And3CollisionGrid, .viewBoundaryTriggers = _gDryfieldNightMainStreetViewBoundaryTriggers, .actionTriggers = gDryfieldNightMainStreetRooms2And3ActionTriggers, .occluders = NULL },
 };
 
 WorldCoordRoomLighting gDryfieldNightMainStreetRoomLighting[3] = {
@@ -514,16 +502,16 @@ u8* gDryfieldNightMainStreetViewMaps[3] = {
     _gDryfieldNightMainStreetRoom3ViewMap,
 };
 
-ViewCount D_dryfield_night_main_street_80182308[3] = { 24, 24, 24 };
+ViewCount gDryfieldNightMainStreetViewCounts[3] = { 24, 24, 24 };
 
-DirectionWarpEntry D_dryfield_night_main_street_80182310[7] = {
-    { { { .word = 3072 }, -450, 0, -3435 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -450, 0, -3435 }, { 0, 0, 0, 0 }, 0x53020011, 0x53020010, DIRECTION_WARP_SOUND_NONE, 21, DIRECTION_WARP_FLAG_NONE, 488 },
-    { { { .word = 1024 }, -6588, 0, -2500 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -6588, 0, -2500 }, { 0, 0, 0, 0 }, 0x53020006, 0x53020005, 0x53020009, 7, DIRECTION_WARP_FLAG_NONE, 487 },
-    { { { .word = 1024 }, -6673, 0, 2155 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -6673, 0, 2155 }, { 0, 0, 0, 0 }, 0x53020004, 0x53020003, 0x53020007, 6, DIRECTION_WARP_FLAG_NONE, 486 },
-    { { { .word = 1024 }, -6588, 0, 5900 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -6588, 0, 5900 }, { 0, 0, 0, 0 }, 0x53020006, 0x53020005, 0x53020009, 5, DIRECTION_WARP_FLAG_NONE, 485 },
-    { { { .word = 1024 }, -6652, 0, 0x2956 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -6652, 0, 0x2956 }, { 0, 0, 0, 0 }, 0x53020006, 0x53020005, 0x53020009, 5, DIRECTION_WARP_FLAG_NONE, 484 },
-    { { { .word = 2048 }, -3478, 0, 0x29B5 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -3478, 0, 0x29B5 }, { 0, 0, 0, 0 }, 0x53020006, 0x53020005, 0x53020009, 4, DIRECTION_WARP_FLAG_NONE, 483 },
-    { { { .word = 3072 }, -488, 0, 8495 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -488, 0, 8495 }, { 0, 0, 0, 0 }, 0x53020002, 0x53020001, DIRECTION_WARP_SOUND_NONE, 9, DIRECTION_WARP_FLAG_NONE, 482 },
+DirectionWarpEntry gDryfieldNightMainStreetWarpEntries[7] = {
+    { { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, -450, 0, -3435 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, -450, 0, -3435 }, { 0, 0, 0, 0 }, 0x53020011, 0x53020010, DIRECTION_WARP_SOUND_NONE, 21, DIRECTION_WARP_FLAG_NONE, 488 },
+    { { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -6588, 0, -2500 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -6588, 0, -2500 }, { 0, 0, 0, 0 }, 0x53020006, 0x53020005, 0x53020009, 7, DIRECTION_WARP_FLAG_NONE, 487 },
+    { { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -6673, 0, 2155 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -6673, 0, 2155 }, { 0, 0, 0, 0 }, 0x53020004, 0x53020003, 0x53020007, 6, DIRECTION_WARP_FLAG_NONE, 486 },
+    { { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -6588, 0, 5900 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -6588, 0, 5900 }, { 0, 0, 0, 0 }, 0x53020006, 0x53020005, 0x53020009, 5, DIRECTION_WARP_FLAG_NONE, 485 },
+    { { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -6652, 0, 0x2956 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -6652, 0, 0x2956 }, { 0, 0, 0, 0 }, 0x53020006, 0x53020005, 0x53020009, 5, DIRECTION_WARP_FLAG_NONE, 484 },
+    { { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, -3478, 0, 0x29B5 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, -3478, 0, 0x29B5 }, { 0, 0, 0, 0 }, 0x53020006, 0x53020005, 0x53020009, 4, DIRECTION_WARP_FLAG_NONE, 483 },
+    { { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, -488, 0, 8495 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, -488, 0, 8495 }, { 0, 0, 0, 0 }, 0x53020002, 0x53020001, DIRECTION_WARP_SOUND_NONE, 9, DIRECTION_WARP_FLAG_NONE, 482 },
 };
 
 /// Room-space unit normals for the room-1 collision mesh (4096 per unit).
@@ -616,8 +604,8 @@ static WorldCollisionGrid _gDryfieldNightMainStreetRooms2And3CollisionGrid = {
     .faceCount   = ARRAY_SIZE(gDryfieldNightMainStreetRooms2And3CollisionGridFaces),
 };
 
-ViewCamera D_dryfield_night_main_street_80184564[24] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 4112, 0x6D60, -2748 } }, 289 },
+ViewCamera gDryfieldNightMainStreetViewCameras[24] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 4112, 0x6D60, -2748 } }, 289 },
     { { { { -3906, 0, 1231 }, { 39, 4093, 125 }, { -1231, 131, -3904 } }, { 1214, 1299, -3483 } }, 230 },
     { { { { 3809, 0, 1504 }, { 102, 4086, -259 }, { -1500, 279, 3800 } }, { 1205, 1259, 2882 } }, 230 },
     { { { { 3962, 0, 1037 }, { 65, 4087, -250 }, { -1035, 258, 3954 } }, { 1414, 1228, -1924 } }, 230 },
@@ -1453,74 +1441,82 @@ static SpriteBatch _gDryfieldNightMainStreetView22SpriteBatches[] = {
     { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_dryfield_night_main_street_80187128[57] = {
-    { 143, 0x3FC0, { .fields = { 16, 184 } }, -160, -72, 639, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 184 } }, -144, -72, 655, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 176 } }, -136, -72, 681, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 160 } }, -128, -64, 716, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 144 } }, -120, -48, 785, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 136 } }, -112, -48, 836, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 128 } }, -104, -40, 888, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 128 } }, -96, -40, 969, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 120 } }, -88, -40, 1004, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 112 } }, -80, -32, 1041, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 112 } }, -72, -32, 1076, { .fields = { 40, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 104 } }, -64, -32, 1139, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, -56, -24, 1219, { .fields = { 0, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, -56, -120, 1625, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 184 } }, -48, -120, 1625, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 64 } }, -56, -8, 1625, { .fields = { 120, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -16, -120, 1625, { .fields = { 32, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 104 } }, -8, -120, 1625, { .fields = { 32, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 120 } }, 0, -80, 1625, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, 8, -32, 1625, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 32 } }, 16, 24, 1625, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, -16, 1700, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 0, -8, 1700, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 152, 0, 1700, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -128, 8, 1700, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -48, 24, 1700, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 40, 1700, { .fields = { 40, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -128, 48, 1700, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -104, 48, 1700, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, -160, -24, 1700, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -160, -8, 1700, { .fields = { 32, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -160, 16, 1700, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, -160, 32, 1700, { .fields = { 88, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 88 } }, -120, -32, 1700, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 16 } }, -104, -32, 1700, { .fields = { 16, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 16 } }, -104, -8, 1700, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, -104, 8, 1700, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, -104, 32, 1700, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, -72, 16, 1700, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 88 } }, -40, -24, 1700, { .fields = { 8, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -16, -16, 1700, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 48 } }, 8, 0, 1700, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, 24, 8, 1700, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 32 } }, 40, 24, 1700, { .fields = { 32, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 48 } }, 88, 8, 1700, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 96, 16, 1675, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 32 } }, -24, 24, 1675, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 16, 32, 1675, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 32 } }, 24, 24, 1675, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 64 } }, 56, 24, 1675, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 40 } }, 128, 24, 1675, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, -32, 1675, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, -160, -24, 1675, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 88 } }, -128, -24, 1675, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 64 } }, -104, 0, 1675, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 56 } }, -88, 0, 1675, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, -56, 8, 1675, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped view 23.
+///
+/// Dimensions and positions are pixels; depths are unscaled OT sorting values.
+/// All 57 source elements are selected by its batches, without a terminator.
+/// The source and cached packets remain valid while this overlay is loaded.
+static SpriteSource _gDryfieldNightMainStreetView23SpriteSources[] = {
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_960, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 16, 184 } }, -160, -72, 639, { .fields = { 88, 0 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_960, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 8, 184 } }, -144, -72, 655, { .fields = { 104, 0 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_960, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 8, 176 } }, -136, -72, 681, { .fields = { 80, 0 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_960, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 8, 160 } }, -128, -64, 716, { .fields = { 72, 0 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_960, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 8, 144 } }, -120, -48, 785, { .fields = { 64, 0 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_960, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 8, 136 } }, -112, -48, 836, { .fields = { 56, 0 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_960, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 8, 128 } }, -104, -40, 888, { .fields = { 48, 128 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_960, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 8, 128 } }, -96, -40, 969, { .fields = { 48, 0 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_960, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 8, 120 } }, -88, -40, 1004, { .fields = { 40, 0 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_960, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 8, 112 } }, -80, -32, 1041, { .fields = { 64, 144 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_960, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 8, 112 } }, -72, -32, 1076, { .fields = { 40, 120 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_960, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 8, 104 } }, -64, -32, 1139, { .fields = { 32, 0 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_960, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 8, 88 } }, -56, -24, 1219, { .fields = { 0, 88 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_896, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 8, 16 } }, -56, -120, 1625, { .fields = { 120, 152 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_960, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 16, 184 } }, -48, -120, 1625, { .fields = { 112, 0 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_896, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 8, 64 } }, -56, -8, 1625, { .fields = { 120, 88 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_960, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 8, 48 } }, -16, -120, 1625, { .fields = { 32, 208 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_960, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 8, 104 } }, -8, -120, 1625, { .fields = { 32, 104 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_960, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 8, 120 } }, 0, -80, 1625, { .fields = { 56, 136 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_960, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 8, 88 } }, 8, -32, 1625, { .fields = { 72, 160 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_896, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 8, 32 } }, 16, 24, 1625, { .fields = { 80, 88 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_960, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 8, 8 } }, -104, -16, 1700, { .fields = { 80, 248 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_896, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 8, 8 } }, 0, -8, 1700, { .fields = { 96, 240 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_896, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 8, 8 } }, 152, 0, 1700, { .fields = { 96, 248 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_896, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 8, 8 } }, -128, 8, 1700, { .fields = { 96, 56 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_896, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 8, 8 } }, -48, 24, 1700, { .fields = { 96, 160 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_960, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 8, 8 } }, -48, 40, 1700, { .fields = { 40, 248 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_896, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 8, 8 } }, -128, 48, 1700, { .fields = { 96, 48 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_896, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 8, 8 } }, -104, 48, 1700, { .fields = { 88, 48 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_896, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 40, 8 } }, -160, -24, 1700, { .fields = { 32, 144 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_896, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 40, 16 } }, -160, -8, 1700, { .fields = { 32, 120 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_960, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 40, 8 } }, -160, 16, 1700, { .fields = { 88, 248 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_896, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 40, 8 } }, -160, 32, 1700, { .fields = { 88, 168 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_896, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 16, 88 } }, -120, -32, 1700, { .fields = { 120, 0 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_896, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 56, 16 } }, -104, -32, 1700, { .fields = { 16, 64 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_896, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 56, 16 } }, -104, -8, 1700, { .fields = { 104, 240 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_896, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 24, 16 } }, -104, 8, 1700, { .fields = { 48, 48 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_896, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 64, 8 } }, -104, 32, 1700, { .fields = { 8, 136 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_896, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 32, 8 } }, -72, 16, 1700, { .fields = { 40, 80 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_960, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 24, 88 } }, -40, -24, 1700, { .fields = { 8, 88 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_960, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 16, 64 } }, -16, -16, 1700, { .fields = { 112, 184 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_896, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 16, 48 } }, 8, 0, 1700, { .fields = { 104, 120 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_896, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 16, 40 } }, 24, 8, 1700, { .fields = { 72, 48 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_896, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 48, 32 } }, 40, 24, 1700, { .fields = { 32, 88 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_896, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 72, 48 } }, 88, 8, 1700, { .fields = { 32, 0 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_960, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 8, 8 } }, 96, 16, 1675, { .fields = { 80, 176 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_896, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 40, 32 } }, -24, 24, 1675, { .fields = { 48, 224 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_960, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 8, 16 } }, 16, 32, 1675, { .fields = { 40, 232 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_896, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 32, 32 } }, 24, 24, 1675, { .fields = { 56, 192 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_896, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 72, 64 } }, 56, 24, 1675, { .fields = { 88, 176 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_896, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 32, 40 } }, 128, 24, 1675, { .fields = { 72, 120 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_960, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 8, 8 } }, -160, -32, 1675, { .fields = { 72, 248 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_960, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 32, 64 } }, -160, -24, 1675, { .fields = { 80, 184 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_960, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 24, 88 } }, -128, -24, 1675, { .fields = { 8, 0 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_896, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 16, 64 } }, -104, 0, 1675, { .fields = { 104, 0 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_896, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 32, 56 } }, -88, 0, 1675, { .fields = { 88, 64 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_NIGHT_MAIN_STREET_SPRITE_TPAGE_896, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_CLUT_255, { .fields = { 16, 32 } }, -56, 8, 1675, { .fields = { 72, 160 } }, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MAIN_STREET_SPRITE_OPAQUE_MODULATED },
 };
 
-SpriteBatch D_dryfield_night_main_street_8018759C[7] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 13, 0, 0, { 0, 0 } },
-    { 13, 8, 0, 0, { 3, 0 } },
-    { 21, 24, 0, 0, { 2, 0 } },
-    { 45, 6, 0, 0, { 4, 0 } },
-    { 51, 6, 0, 0, { 1, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Sprite ranges over the decoded background for mapped view 23.
+///
+/// The initial zero count retains image strips; the final record ends the list.
+static SpriteBatch _gDryfieldNightMainStreetView23SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 13 },
+    { .firstSprite = 13, .spriteCount = 8, .field_6 = { 3, 0 } },
+    { .firstSprite = 21, .spriteCount = 24, .field_6 = { 2, 0 } },
+    { .firstSprite = 45, .spriteCount = 6, .field_6 = { 4, 0 } },
+    { .firstSprite = 51, .spriteCount = ARRAY_SIZE(_gDryfieldNightMainStreetView23SpriteSources) - 51, .field_6 = { 1, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
 SpriteBatch D_dryfield_night_main_street_801875D4[2] = {
@@ -1528,7 +1524,7 @@ SpriteBatch D_dryfield_night_main_street_801875D4[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_dryfield_night_main_street_801875E4[24] = {
+SpriteView gDryfieldNightMainStreetSpriteViews[24] = {
     { { .empty = _gDryfieldNightMainStreetView1SpriteBatches }, _gDryfieldNightMainStreetView1SpriteBatches, NULL },
     { { .elements = _gDryfieldNightMainStreetView2SpriteSources }, _gDryfieldNightMainStreetView2SpriteBatches, NULL },
     { { .elements = _gDryfieldNightMainStreetView3SpriteSources }, _gDryfieldNightMainStreetView3SpriteBatches, NULL },
@@ -1551,11 +1547,16 @@ SpriteView D_dryfield_night_main_street_801875E4[24] = {
     { { .empty = _gDryfieldNightMainStreetView20SpriteBatches }, _gDryfieldNightMainStreetView20SpriteBatches, NULL },
     { { .elements = _gDryfieldNightMainStreetView21SpriteSources }, _gDryfieldNightMainStreetView21SpriteBatches, NULL },
     { { .elements = _gDryfieldNightMainStreetView22SpriteSources }, _gDryfieldNightMainStreetView22SpriteBatches, NULL },
-    { { .elements = D_dryfield_night_main_street_80187128 }, D_dryfield_night_main_street_8018759C, NULL },
+    { { .elements = _gDryfieldNightMainStreetView23SpriteSources }, _gDryfieldNightMainStreetView23SpriteBatches, NULL },
     { { .elements = _gDryfieldNightMainStreetViews13And24SpriteSources }, _gDryfieldNightMainStreetViews13And24SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_dryfield_night_main_street_80187704[26] = {
+/// Directed logical-view boundaries shared by room selectors 1..3.
+///
+/// Positions/radii use game coordinates and normals use 4096 per unit. Source
+/// and destination selectors are logical views; the final LAST record is live.
+/// Room activation binds and mutates these nodes; keep their storage loaded.
+static WorldCollisionTrigger _gDryfieldNightMainStreetViewBoundaryTriggers[26] = {
     { NULL, NULL, NULL, { -2385, -3392, 351, 0 }, { { -2863, -4416, -165, 0 }, { 2863, -4416, 165, 0 }, { -2863, 4416, -165, 0 }, { 2863, 4416, 165, 0 } }, { 236, 0, -4102, 0 }, { 0, 0, 4096, 0 }, 5246, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { -2337, -3376, 239, 0 }, { { 2868, -4400, 137, 0 }, { -2867, -4400, -136, 0 }, { 2868, 4400, 137, 0 }, { -2867, 4400, -136, 0 } }, { -195, 0, 4092, 0 }, { 0, 0, 4096, 0 }, 5246, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { -3665, -3232, 5071, 0 }, { { -1383, -4256, 519, 0 }, { 1381, -4256, -521, 0 }, { -1383, 4256, 519, 0 }, { 1381, 4256, -521, 0 } }, { -1447, 0, -3843, 0 }, { 0, 0, 4096, 0 }, 4492, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -1584,7 +1585,12 @@ WorldCollisionTrigger D_dryfield_night_main_street_80187704[26] = {
     { NULL, NULL, NULL, { -1696, -3136, -4480, 0 }, { { -265, -4416, 2218, 0 }, { 265, -4416, -2218, 0 }, { -265, 4416, 2218, 0 }, { 265, 4416, -2218, 0 } }, { -4079, 0, -488, 0 }, { 0, 0, 4096, 0 }, 4937, 0, 2, 21, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_night_main_street_80187EBC[12] = {
+/// Interaction and warp regions for main-street room selector 1.
+///
+/// Seven regions select warp descriptors; the others request CAP or room actions.
+/// The final LAST record is included. Positions/radii use game coordinates and
+/// normals use 4096 per unit. Binding mutates the borrowed nodes and their links.
+static WorldCollisionTrigger _gDryfieldNightMainStreetRoom1ActionTriggers[12] = {
     { NULL, NULL, NULL, { -384, 0, -3712, 0 }, { { -416, 0, -1024, 0 }, { 416, 0, -1024, 0 }, { -416, 0, 1024, 0 }, { 416, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_WARP, 1, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -6912, -48, -2816, 0 }, { { -416, 0, -864, 0 }, { 416, 0, -864, 0 }, { -416, 0, 864, 0 }, { 416, 0, 864, 0 } }, { 0, 4100, 0, 0 }, { 4096, 0, 0, 0 }, 957, WORLD_COLLISION_TRIGGER_ACTION_WARP, 11, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -6880, -48, 2016, 0 }, { { -416, 0, -1024, 0 }, { 416, 0, -1024, 0 }, { -416, 0, 1024, 0 }, { 416, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_WARP, 15, 49, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
@@ -1599,7 +1605,7 @@ WorldCollisionTrigger D_dryfield_night_main_street_80187EBC[12] = {
     { NULL, NULL, NULL, { -2962, -64, 7199, 0 }, { { -624, 0, -512, 0 }, { 625, 0, -512, 0 }, { -624, 0, 513, 0 }, { 625, 0, 513, 0 } }, { 0, 4096, 0, 0 }, { -2598, 0, -3166, 0 }, 807, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 19, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_night_main_street_8018824C[12] = {
+WorldCollisionTrigger gDryfieldNightMainStreetRooms2And3ActionTriggers[12] = {
     { NULL, NULL, NULL, { -384, 0, -3712, 0 }, { { -416, 0, -1024, 0 }, { 416, 0, -1024, 0 }, { -416, 0, 1024, 0 }, { 416, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_WARP, 1, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -6912, -48, -2816, 0 }, { { -416, 0, -864, 0 }, { 416, 0, -864, 0 }, { -416, 0, 864, 0 }, { 416, 0, 864, 0 } }, { 0, 4100, 0, 0 }, { 4096, 0, 0, 0 }, 957, WORLD_COLLISION_TRIGGER_ACTION_WARP, 11, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -6880, -48, 2016, 0 }, { { -416, 0, -1024, 0 }, { 416, 0, -1024, 0 }, { -416, 0, 1024, 0 }, { 416, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_WARP, 15, 49, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
@@ -1642,36 +1648,46 @@ static WorldCoordRoomLights _gDryfieldNightMainStreetRoomLights = {
     .coneLights            = NULL,
 };
 
-AreaResource D_dryfield_night_main_street_801889B4[3] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
-    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor300700MothTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Resource keys matched by the map overlay's main-street placements.
+enum {
+    DRYFIELD_NIGHT_MAIN_STREET_RESOURCE_DESERT_CHASER = 1,
+    DRYFIELD_NIGHT_MAIN_STREET_RESOURCE_BRAIN_STINGER = 3,
+    DRYFIELD_NIGHT_MAIN_STREET_RESOURCE_MOTH          = 8,
+    DRYFIELD_NIGHT_MAIN_STREET_RESOURCE_GARY_DOUGLAS  = 106,
 };
 
-AreaResource D_dryfield_night_main_street_801889D8[2] = {
-    { 106, 361, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor136100SceneTaskDescriptors },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Desert Chaser and Moth file/task recipes for placement variant 1.
+///
+/// Entry IDs match the map's placements. The terminal entry ends the resource
+/// scan; these records and their borrowed task descriptors live with the overlays.
+static AreaResource _gDryfieldNightMainStreetVariant1Resources[3] = {
+    { .entryId = DRYFIELD_NIGHT_MAIN_STREET_RESOURCE_DESERT_CHASER, .fileNumber = 1, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor00100DesertChaserTaskDesc },
+    { .entryId = DRYFIELD_NIGHT_MAIN_STREET_RESOURCE_MOTH, .fileNumber = 7, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_30, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor300700MothTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_dryfield_night_main_street_801889F0[2] = {
-    { 3, 3, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100300Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Gary Douglas's opening-scene file/task recipe for placement variant 2.
+///
+/// The map's entry 106 selects descriptor zero. The terminal entry ends the
+/// scan; keep the room, placement and actor descriptor storage loaded while used.
+static AreaResource _gDryfieldNightMainStreetVariant2Resources[2] = {
+    { .entryId = DRYFIELD_NIGHT_MAIN_STREET_RESOURCE_GARY_DOUGLAS, .fileNumber = 361, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = gActor136100SceneTaskDescriptors },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_dryfield_night_main_street_80188A08[13] = {
-    { NULL, NULL },
-    { gMapDryfieldFullMainStreetVariant1Placements, D_dryfield_night_main_street_801889B4 },
-    { gMapDryfieldFullMainStreetVariant2Placements, D_dryfield_night_main_street_801889D8 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldFullMainStreetVariant7Placements, D_dryfield_night_main_street_801889F0 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+/// Brain Stinger file/task recipe for the two placements in variant 7.
+///
+/// Both map placements use entry 3 and descriptor zero. The terminal entry ends
+/// the scan; the recipe borrows its task table from the loaded actor overlay.
+static AreaResource _gDryfieldNightMainStreetVariant7Resources[2] = {
+    { .entryId = DRYFIELD_NIGHT_MAIN_STREET_RESOURCE_BRAIN_STINGER, .fileNumber = 3, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = gActor100300Tasks },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+AreaVariant gDryfieldNightMainStreetAreaVariants[13] = {
+    [1] = { .placements = gMapDryfieldFullMainStreetVariant1Placements, .resources = _gDryfieldNightMainStreetVariant1Resources },
+    [2] = { .placements = gMapDryfieldFullMainStreetVariant2Placements, .resources = _gDryfieldNightMainStreetVariant2Resources },
+    [7] = { .placements = gMapDryfieldFullMainStreetVariant7Placements, .resources = _gDryfieldNightMainStreetVariant7Resources },
 };
 
 /// Minimum ambient RGB and stored brightness for logical views 1..24.
@@ -1836,9 +1852,15 @@ RoomEventReq gRoomEventReq;
 
 #include "../../shared/room_event_task.inc.c"
 
-/// The room entry task's three states: set the room up, idle, end.
-static const TaskFuncTable3 D_dryfield_night_main_street_8017D5F4 = {
-    { _dryfieldNightMainStreetInitializeRoomTask, _dryfieldNightMainStreetRoomIdle, taskKill },
+/// State-dispatch template for the room receiver: initialize, idle, release.
+///
+/// The dispatcher copies all three callbacks before indexing by Task::state.
+static const TaskFuncTable3 _gDryfieldNightMainStreetRoomTaskStates = {
+    .funcs = {
+        [DRYFIELD_NIGHT_MAIN_STREET_ROOM_STATE_INITIALIZE] = _dryfieldNightMainStreetInitializeRoomTask,
+        [DRYFIELD_NIGHT_MAIN_STREET_ROOM_STATE_IDLE]       = _dryfieldNightMainStreetRoomIdle,
+        [DRYFIELD_NIGHT_MAIN_STREET_ROOM_STATE_RELEASE]    = taskKill,
+    },
 };
 
 #include "../../shared/main_street_resolve_msg.inc.c"
@@ -1895,7 +1917,7 @@ void dryfieldNightMainStreetRoomTask(Task* task)
 {
     TaskFuncTable3 roomStates;
 
-    roomStates = D_dryfield_night_main_street_8017D5F4;
+    roomStates = _gDryfieldNightMainStreetRoomTaskStates;
     roomStates.funcs[task->state](task);
 }
 
@@ -1907,10 +1929,10 @@ void dryfieldNightMainStreetRoomTask(Task* task)
 /// The room entry task calls this after installing its message receiver.
 static void _dryfieldNightMainStreetRestoreSectionSpriteVisibility(void)
 {
-    DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(D_dryfield_night_main_street_80182168, GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_3_STATE);
-    DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(D_dryfield_night_main_street_8018216C, GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_4_STATE);
-    DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(D_dryfield_night_main_street_80182170, GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_5_STATE);
-    DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(D_dryfield_night_main_street_80182174, GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_7_STATE);
+    DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(_gDryfieldNightMainStreetBalconySection3SpritePatchTable, GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_3_STATE);
+    DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(_gDryfieldNightMainStreetBalconySection4SpritePatchTable, GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_4_STATE);
+    DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(_gDryfieldNightMainStreetBalconySection5SpritePatchTable, GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_5_STATE);
+    DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(_gDryfieldNightMainStreetBalconySection7SpritePatchTable, GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_7_STATE);
 }
 
 /// Chooses the next puff's spawn point with three ordered LCG draws.
@@ -1920,11 +1942,9 @@ static void _dryfieldNightMainStreetRestoreSectionSpriteVisibility(void)
 /// X is -1185..-886, Y is -1255..-656 and Z is 9836..10535 coordinate units.
 static inline void _dryfieldNightMainStreetChoosePuffSpawnPoint(void)
 {
-    enum { PUFF_SPAWN_POINT = ARRAY_SIZE(D_dryfield_night_main_street_801821A8) - 1 };
-
-    D_dryfield_night_main_street_801821A8[PUFF_SPAWN_POINT].vx = DRYFIELD_NIGHT_MAIN_STREET_RAND() % 300 - 0x4A1;
-    D_dryfield_night_main_street_801821A8[PUFF_SPAWN_POINT].vy = DRYFIELD_NIGHT_MAIN_STREET_RAND() % 600 - 0x4E7;
-    D_dryfield_night_main_street_801821A8[PUFF_SPAWN_POINT].vz = 0x2927 - DRYFIELD_NIGHT_MAIN_STREET_RAND() % 700;
+    _gDryfieldNightMainStreetAmbientEffectAnchors.puffSpawnPoint.vx = DRYFIELD_NIGHT_MAIN_STREET_RAND() % 300 - 0x4A1;
+    _gDryfieldNightMainStreetAmbientEffectAnchors.puffSpawnPoint.vy = DRYFIELD_NIGHT_MAIN_STREET_RAND() % 600 - 0x4E7;
+    _gDryfieldNightMainStreetAmbientEffectAnchors.puffSpawnPoint.vz = 0x2927 - DRYFIELD_NIGHT_MAIN_STREET_RAND() % 700;
 }
 
 void dryfieldNightMainStreetAmbientEffectsTask(Task* task)
@@ -1937,7 +1957,6 @@ void dryfieldNightMainStreetAmbientEffectsTask(Task* task)
         FLARE_TEXTURE               = 1,
         FIRST_FLARE                 = 10,
         FLARE_END                   = ARRAY_SIZE(D_dryfield_night_main_street_80182230),
-        PUFF_SPAWN_POINT            = ARRAY_SIZE(D_dryfield_night_main_street_801821A8) - 1,
         PUFF_VIEW_FIRST             = 8,
         PUFF_VIEW_SECOND            = 19,
         PUFF_ENTRY_COUNT            = 48,
@@ -1962,23 +1981,23 @@ void dryfieldNightMainStreetAmbientEffectsTask(Task* task)
         D_dryfield_night_main_street_80182230[2] = 0;
     }
     if (viewMask & D_dryfield_night_main_street_80182230[0]) {
-        _glowDrawShaft(D_dryfield_night_main_street_801821A8, SHAFT_RADIUS_SCALE);
+        _glowDrawShaft(_gDryfieldNightMainStreetAmbientEffectAnchors.shaftEndpoints[0], SHAFT_RADIUS_SCALE);
     }
     if (viewMask & D_dryfield_night_main_street_80182230[2]) {
-        _glowDrawShaft(&D_dryfield_night_main_street_801821A8[2], SHAFT_RADIUS_SCALE);
+        _glowDrawShaft(_gDryfieldNightMainStreetAmbientEffectAnchors.shaftEndpoints[1], SHAFT_RADIUS_SCALE);
     }
     if (viewMask & D_dryfield_night_main_street_80182230[4]) {
-        _glowDrawShaft(&D_dryfield_night_main_street_801821A8[4], SHAFT_RADIUS_SCALE);
+        _glowDrawShaft(_gDryfieldNightMainStreetAmbientEffectAnchors.shaftEndpoints[2], SHAFT_RADIUS_SCALE);
     }
     if (viewMask & D_dryfield_night_main_street_80182230[6]) {
-        _glowDrawShaft(&D_dryfield_night_main_street_801821A8[6], SHAFT_RADIUS_SCALE);
+        _glowDrawShaft(_gDryfieldNightMainStreetAmbientEffectAnchors.shaftEndpoints[3], SHAFT_RADIUS_SCALE);
     }
     if (viewMask & D_dryfield_night_main_street_80182230[8]) {
-        _glowDrawShaft(&D_dryfield_night_main_street_801821A8[8], SHAFT_RADIUS_SCALE);
+        _glowDrawShaft(_gDryfieldNightMainStreetAmbientEffectAnchors.shaftEndpoints[4], SHAFT_RADIUS_SCALE);
     }
     for (effectIndex = FIRST_FLARE; effectIndex < FLARE_END; effectIndex++) {
         if (viewMask & D_dryfield_night_main_street_80182230[effectIndex]) {
-            _glowDrawFlare(&D_dryfield_night_main_street_801821A8[effectIndex], FLARE_TEXTURE, FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&_gDryfieldNightMainStreetAmbientEffectAnchors.flareCenters[effectIndex - FIRST_FLARE], FLARE_TEXTURE, FLARE_RADIUS_SCALE);
         }
     }
     gRoomEffectState->roomEffectMode = D_dryfield_night_main_street_80182178[(viewGetMappedIndex() & 0xFF) - 1];
@@ -1988,12 +2007,12 @@ void dryfieldNightMainStreetAmbientEffectsTask(Task* task)
             for (effectIndex = 0; effectIndex < PUFF_ENTRY_COUNT; effectIndex++) {
                 _dryfieldNightMainStreetChoosePuffSpawnPoint();
                 effectSpawn(EFFECT_DRYFIELD_NIGHT_MAIN_STREET_PUFF, NULL, (DRYFIELD_NIGHT_MAIN_STREET_RAND() & PUFF_RANDOM_SIZE_AND_PERIOD) + PUFF_ENTRY_ARGS,
-                            &D_dryfield_night_main_street_801821A8[PUFF_SPAWN_POINT]);
+                            &_gDryfieldNightMainStreetAmbientEffectAnchors.puffSpawnPoint);
             }
         } else if (gDisplayState.animFrame & 1) {
             _dryfieldNightMainStreetChoosePuffSpawnPoint();
             effectSpawn(EFFECT_DRYFIELD_NIGHT_MAIN_STREET_PUFF, NULL, (DRYFIELD_NIGHT_MAIN_STREET_RAND() & PUFF_RANDOM_SIZE_AND_PERIOD) | PUFF_CONTINUING_ARGS,
-                        &D_dryfield_night_main_street_801821A8[PUFF_SPAWN_POINT]);
+                        &_gDryfieldNightMainStreetAmbientEffectAnchors.puffSpawnPoint);
         }
     }
     task->spawnArg1.value = viewGetMappedIndex() & 0xFF;

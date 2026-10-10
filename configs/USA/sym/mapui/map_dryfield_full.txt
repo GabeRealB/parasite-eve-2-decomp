@@ -13,13 +13,13 @@ gDryfieldNightGasStationViewCameras = 0x8018B780; // absolute:True owner=dryfiel
 gDryfieldNightGasStationSpriteViews = 0x8018F6C4; // absolute:True owner=dryfield_night_gas_station
 gDryfieldNightGasStationSurfacePropertiesByClass = 0x80190780; // absolute:True owner=dryfield_night_gas_station
 dryfieldNightMainStreetRoomTask = 0x8017E0C0; // type:func absolute:True owner=dryfield_night_main_street
-D_dryfield_night_main_street_80182284 = 0x80182284; // absolute:True owner=dryfield_night_main_street
+gDryfieldNightMainStreetRoomCollisionResources = 0x80182284; // absolute:True owner=dryfield_night_main_street
 gDryfieldNightMainStreetRoomLighting = 0x801822B4; // absolute:True owner=dryfield_night_main_street
 gDryfieldNightMainStreetViewMaps = 0x801822FC; // absolute:True owner=dryfield_night_main_street shared=rooms
-D_dryfield_night_main_street_80182308 = 0x80182308; // absolute:True owner=dryfield_night_main_street shared=rooms
-D_dryfield_night_main_street_80182310 = 0x80182310; // absolute:True owner=dryfield_night_main_street shared=rooms
-D_dryfield_night_main_street_80184564 = 0x80184564; // absolute:True owner=dryfield_night_main_street shared=rooms
-D_dryfield_night_main_street_801875E4 = 0x801875E4; // absolute:True owner=dryfield_night_main_street shared=rooms
+gDryfieldNightMainStreetViewCounts = 0x80182308; // absolute:True owner=dryfield_night_main_street shared=rooms
+gDryfieldNightMainStreetWarpEntries = 0x80182310; // absolute:True owner=dryfield_night_main_street shared=rooms
+gDryfieldNightMainStreetViewCameras = 0x80184564; // absolute:True owner=dryfield_night_main_street shared=rooms
+gDryfieldNightMainStreetSpriteViews = 0x801875E4; // absolute:True owner=dryfield_night_main_street shared=rooms
 gDryfieldNightMainStreetSurfacePropertiesByClass = 0x80188B84; // absolute:True owner=dryfield_night_main_street
 dryfieldNightGeneralStoreRoomTask = 0x8017DE88; // type:func absolute:True owner=dryfield_night_general_store
 gDryfieldNightGeneralStoreRoomLighting = 0x8017E82C; // absolute:True owner=dryfield_night_general_store

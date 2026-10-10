@@ -1471,7 +1471,7 @@ D_dryfield_night_general_store_8018572C = 0x8018572C; // absolute:True owner=dry
 
 D_dryfield_night_junk_yard_801843F0 = 0x801843F0; // absolute:True owner=dryfield_night_junk_yard shared=rooms
 
-D_dryfield_night_main_street_80188A08 = 0x80188A08; // absolute:True owner=dryfield_night_main_street
+gDryfieldNightMainStreetAreaVariants = 0x80188A08; // absolute:True owner=dryfield_night_main_street
 
 D_dryfield_night_motel_balcony_8018EA94 = 0x8018EA94; // absolute:True owner=dryfield_night_motel_balcony
 
@@ -1525,7 +1525,7 @@ D_dryfield_trailer_coach_801876F0 = 0x801876F0; // absolute:True owner=dryfield_
 
 D_dryfield_underpass_8017F868 = 0x8017F868; // absolute:True owner=dryfield_underpass shared=rooms
 
-gDryfieldWarehousePlacementVariants = 0x80182100; // absolute:True owner=dryfield_warehouse shared=rooms
+gDryfieldWarehousePlacementVariants = 0x80182100; // absolute:True owner=dryfield_warehouse
 
 D_dryfield_water_hole_801827BC = 0x801827BC; // absolute:True owner=dryfield_water_hole
 

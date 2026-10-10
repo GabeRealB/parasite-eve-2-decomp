@@ -33,12 +33,35 @@ extern SVECTOR gDryfieldNightMainStreetRooms2And3CollisionGridVerts[196];
 /// this mesh's vertex and normal pools, which remain live with the room overlay.
 extern WorldCollisionGridFace gDryfieldNightMainStreetRooms2And3CollisionGridFaces[89];
 
-extern WorldCollisionTrigger D_dryfield_night_main_street_8018824C[12];
+/// Automatic room-action regions removed by the opening scene.
+enum {
+    DRYFIELD_NIGHT_MAIN_STREET_ACTION_TRIGGER_AFTER_BURNER  = 8,
+    DRYFIELD_NIGHT_MAIN_STREET_ACTION_TRIGGER_BEFORE_BURNER = 9,
+};
 
-extern AreaVariant D_dryfield_night_main_street_80188A08[13];
+/// Mutable interaction and warp regions shared by room selectors 2 and 3.
+///
+/// The final record carries WORLD_COLLISION_TRIGGER_LAST and is included in
+/// binding. List links, enabled flags and hit latches change during play;
+/// the opening scene unlinks the two named Burner regions. Geometry uses game
+/// coordinates and 4096-per-unit normals. Keep this overlay loaded while linked.
+extern WorldCollisionTrigger gDryfieldNightMainStreetRooms2And3ActionTriggers[12];
 
-// dryfield_night_main_street
-extern WorldCollisionRoomResources D_dryfield_night_main_street_80182284[];
+/// Placement layouts indexed by the saved main-street variant in 0..12.
+///
+/// Slots 1, 2 and 7 supply Desert Chaser/Moth, Gary Douglas scene and Brain
+/// Stinger resources respectively; every other slot is absent (both pointers
+/// NULL). No terminator. Both this room and the map overlay owning placements
+/// must stay loaded during resource loading and actor spawning.
+extern AreaVariant gDryfieldNightMainStreetAreaVariants[13];
+
+/// Collision resources indexed by main-street room selector minus one (rooms 1..3).
+///
+/// All rooms share view boundaries. Room 1 has its own grid/action regions;
+/// rooms 2 and 3 share another grid/action array. No room has occluders and
+/// there is no terminal record. Activation borrows mutable room-overlay storage
+/// until replacement or list clearing; keep the overlay loaded throughout.
+extern WorldCollisionRoomResources gDryfieldNightMainStreetRoomCollisionResources[3];
 
 /// Light and ambient resources for main-street room selectors 1..3.
 ///
@@ -55,13 +78,34 @@ extern WorldCoordRoomLighting gDryfieldNightMainStreetRoomLighting[3];
 /// terminator; keep gameplay and this room overlay loaded while borrowing them.
 extern u8* gDryfieldNightMainStreetViewMaps[3];
 
-extern ViewCount D_dryfield_night_main_street_80182308[];
+/// Logical-view reverse-search counts for room selectors 1..3, indexed by room - 1.
+///
+/// Each signed halfword counts 24 mapping entries, independently of camera or
+/// sprite capacities. No terminator; this borrowed array lives with the overlay.
+extern ViewCount gDryfieldNightMainStreetViewCounts[3];
 
-extern DirectionWarpEntry D_dryfield_night_main_street_80182310[];
+/// Seven warp endpoints selected by 1-based arrival/departure slots 1..7.
+///
+/// Placements use game-coordinate units and 4096 angle units per turn. Entries
+/// supply initial logical views, stage-relative sounds and map-marker flags;
+/// no spawn flags are set. No terminator. Keep this overlay loaded until the
+/// transition has copied its selected entry and finished borrowing its placement.
+extern DirectionWarpEntry gDryfieldNightMainStreetWarpEntries[7];
 
-extern ViewCamera D_dryfield_night_main_street_80184564[];
+/// Cameras indexed by mapped view minus one for mapped indices 1..24.
+///
+/// Rotation coefficients use 4096 per unit; translations are negated world
+/// origins in game-coordinate units. Projection distances are pixels. There is
+/// no terminator; keep this overlay loaded while a camera record is borrowed.
+extern ViewCamera gDryfieldNightMainStreetViewCameras[24];
 
-extern SpriteView D_dryfield_night_main_street_801875E4[];
+/// Sprite resources indexed by mapped view minus one for mapped indices 1..24.
+///
+/// Views 13 and 24 share one source/batch pair; empty views retain only decoded
+/// backgrounds. All clip-list pointers are NULL. Saved balcony states mutate
+/// batch visibility. No view terminator; keep this overlay loaded while its
+/// sources, mutable batches or cached sprite packets are in use.
+extern SpriteView gDryfieldNightMainStreetSpriteViews[24];
 
 /// Collision and footstep policies indexed by room-local surface class 0..7.
 ///
