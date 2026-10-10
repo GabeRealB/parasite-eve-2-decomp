@@ -229,7 +229,7 @@ gDryfieldJunkYardSpriteViews = 0x80180C28; // absolute:True owner=dryfield_junk_
 gDryfieldJunkYardSurfacePropertiesByClass = 0x80181C28; // absolute:True owner=dryfield_junk_yard shared=rooms
 dryfieldTrailerCoachRoomTask = 0x80182950; // type:func absolute:True owner=dryfield_trailer_coach
 gDryfieldTrailerCoachAcropolisSanctuaryModel090F0 = 0x80184554; // absolute:True owner=dryfield_trailer_coach shared=rooms
-gDryfieldTrailerCoachRoomCollisionResources = 0x801871CC; // absolute:True owner=dryfield_trailer_coach shared=rooms
+gDryfieldTrailerCoachRoomCollisionResources = 0x801871CC; // absolute:True owner=dryfield_trailer_coach
 gDryfieldTrailerCoachRoomLighting = 0x801871DC; // absolute:True owner=dryfield_trailer_coach
 gDryfieldTrailerCoachViewMaps = 0x801871E4; // absolute:True owner=dryfield_trailer_coach
 gDryfieldTrailerCoachViewCounts = 0x801871E8; // absolute:True owner=dryfield_trailer_coach

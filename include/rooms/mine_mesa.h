@@ -16,9 +16,19 @@ extern AreaVariant D_mine_mesa_801898F4[12];
 // mine_mesa
 extern WorldCollisionRoomResources D_mine_mesa_80186538[];
 
-extern u8* D_mine_mesa_80186548[];
+/// Logical-view maps for Mine Mesa's single room.
+///
+/// Indexed by room minus one (room 1 only); borrows gameplay's identity map.
+/// Logical views 1..11 map to the same camera, image and sprite indices. The
+/// directory belongs to this room overlay and is valid only while it is loaded.
+extern u8* gMineMesaRoomViewMaps[1];
 
-extern WorldCoordRoomLighting D_mine_mesa_8018654C[];
+/// Lighting resources for Mine Mesa's single room.
+///
+/// Indexed by room minus one (room 1 only). Borrows eight mutable point lights,
+/// one mutable cone light and eleven per-view ambient entries with a count header.
+/// The records and their light arrays stay valid only while this overlay is loaded.
+extern WorldCoordRoomLighting gMineMesaRoomLighting[1];
 
 extern ViewCount D_mine_mesa_80186554[];
 
@@ -28,7 +38,14 @@ extern ViewCamera D_mine_mesa_80187030[];
 
 extern SpriteView D_mine_mesa_80188744[];
 
-extern WorldCollisionSurfaceProperties* D_mine_mesa_80189A60[];
+/// Mine Mesa's collision and footstep records, indexed by surface class 0..7.
+///
+/// Classes 0 and 5..7 share a silent blocking record; class 1 is separately
+/// stored with the same policy. Class 2 blocks probes and provides footstep cues;
+/// class 3 passes probes, ignores weapon impacts and provides footstep cues; class 4
+/// passes probes without cues. All apply pushback. The directory and borrowed
+/// records remain valid only while this room overlay is loaded.
+extern WorldCollisionSurfaceProperties* gMineMesaSurfacePropertiesByClass[8];
 
 /// Rebuilds the room grid's four reserved vertical wall faces from their base edges.
 ///

@@ -145,7 +145,7 @@ gDryfieldNightSaloonGRViewMaps = 0x801851B0; // absolute:True owner=dryfield_nig
 D_dryfield_night_saloon_g_r_801851B8 = 0x801851B8; // absolute:True owner=dryfield_night_saloon_g_r shared=rooms
 D_dryfield_night_saloon_g_r_801851BC = 0x801851BC; // absolute:True owner=dryfield_night_saloon_g_r
 D_dryfield_night_saloon_g_r_80185B74 = 0x80185B74; // absolute:True owner=dryfield_night_saloon_g_r shared=rooms
-D_dryfield_night_saloon_g_r_80187FC8 = 0x80187FC8; // absolute:True owner=dryfield_night_saloon_g_r shared=rooms
+D_dryfield_night_saloon_g_r_80187FC8 = 0x80187FC8; // absolute:True owner=dryfield_night_saloon_g_r
 gDryfieldNightSaloonGRSurfacePropertiesByClass = 0x80188F84; // absolute:True owner=dryfield_night_saloon_g_r shared=rooms
 dryfieldNightGRKitchenRoomTask = 0x8017D9A4; // type:func absolute:True owner=dryfield_night_g_r_kitchen shared=rooms
 D_dryfield_night_g_r_kitchen_8017E2BC = 0x8017E2BC; // absolute:True owner=dryfield_night_g_r_kitchen shared=rooms

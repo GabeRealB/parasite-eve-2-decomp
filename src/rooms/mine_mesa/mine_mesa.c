@@ -214,7 +214,6 @@ static AnimationSet _gMineMesaAnimation06B9C;
 static void _mineMesaHoldBlackScreenTask(Task* task);
 static void _mineMesaStartMovieTask(Task* task);
 
-extern AnimationPlayRequest      D_mine_mesa_80184360;
 extern AnimationPlayRequest      D_mine_mesa_80184374;
 extern AnimationPlayRequest      D_mine_mesa_8018439C;
 extern AnimationPlayRequest      D_mine_mesa_801844B4;
@@ -254,7 +253,6 @@ static void                      _mineMesaLockAttachmentsAndCancelEffects(void);
 static void                      _mineMesaRequestViewRefresh(void);
 static void                      _mineMesaSetSceneCollisionLowered(s32 lowered);
 
-extern AnimationPlayRequest     D_mine_mesa_80184360;
 extern AnimationPlayRequest     D_mine_mesa_801843B0;
 extern AnimationPlayRequest     D_mine_mesa_801844A0;
 extern AnimationPlayRequest     D_mine_mesa_80184518;
@@ -269,8 +267,8 @@ extern EvsCommand               D_mine_mesa_8018515C[17];
 
 extern WorldCollisionOccluder     D_mine_mesa_801899B4[2];
 extern WorldCollisionTrigger      D_mine_mesa_80188E40[8];
-extern WorldCoordRoomAmbientEntry D_mine_mesa_80189954[12];
-extern WorldCoordRoomLights       D_mine_mesa_80188E28[1];
+static WorldCoordRoomAmbientEntry _gMineMesaViewAmbientTable[12];
+static WorldCoordRoomLights       _gMineMesaRoomLights;
 extern ActorTransform             D_mine_mesa_801843F4;
 extern ActorTransform             D_mine_mesa_80184424;
 extern ActorTransform             D_mine_mesa_8018443C;
@@ -284,10 +282,8 @@ static void                       _mineMesaSetFadeFromBlackState(s32 state);
 static void                       _mineMesaSpawnCompanionShotEffects(void);
 static void                       _mineMesaHaltVibrationScript(void);
 
-extern WorldCoordPointLight D_mine_mesa_801887C8[8];
-extern WorldCoordSpotLight  D_mine_mesa_80188AC8[1];
-static s32                  _mineMesaEnemyWaveActorEventMsg(Task* task, s32 messageId, s32 slotIndex, s32 unused);
-static void                 _mineMesaEnemyWaveTask(Task* task);
+static s32  _mineMesaEnemyWaveActorEventMsg(Task* task, s32 messageId, s32 slotIndex, s32 unused);
+static void _mineMesaEnemyWaveTask(Task* task);
 
 static void           _mineMesaUpdateRoomEventsState(Task* task);
 static __inline__ s32 _mineMesaLatchStagedEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event);
@@ -589,7 +585,17 @@ AnimationBankCopyRequest D_mine_mesa_80184344 = { { .sets = D_mine_mesa_8018433C
 // Retained data: Same five-field layout as the following animation arguments; retained unreferenced entry.
 AnimationPlayRequest D_mine_mesa_8018434C = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationPlayRequest D_mine_mesa_80184360 = { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+enum { MINE_MESA_PLAYER_SCENE_RESET_CLIP = ANIMATION_BANK_BASE_SET_COUNT + 1 };
+
+/// Starts or restores the room's player scene animation without blending.
+///
+/// Requires the room's player animation extension in the equipped-weapon bank:
+/// extension slot 1 (clip 48) borrows the room's scene set. Dispatch consumes a
+/// copy synchronously, overwrites the bank selector, resets playback and restores
+/// world collision. The scene set must remain loaded throughout playback.
+static AnimationPlayRequest _gMineMesaPlayerSceneAnimationRequest = {
+    { .index = 1 }, MINE_MESA_PLAYER_SCENE_RESET_CLIP, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE
+};
 
 AnimationPlayRequest D_mine_mesa_80184374 = { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
@@ -767,7 +773,7 @@ EvsCommand D_mine_mesa_80184BA4[21] = {
 EvsCommand D_mine_mesa_80184D9C[25] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_mesa_80184344 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_mesa_80184484 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184360 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineMesaPlayerSceneAnimationRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184540 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -844,7 +850,7 @@ EvsCommand D_mine_mesa_801852F4[19] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_mesa_80184484 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_mesa_801843F4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_mesa_801845F0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184360 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineMesaPlayerSceneAnimationRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184568 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -858,7 +864,7 @@ EvsCommand D_mine_mesa_801852F4[19] = {
 EvsCommand D_mine_mesa_801854BC[21] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_mesa_80184344 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_mesa_80184484 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184360 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineMesaPlayerSceneAnimationRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184540 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -895,7 +901,7 @@ EvsCommand D_mine_mesa_8018578C[110] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaStartFadeFromBlack }, { .value = 900 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_mesa_80184344 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_mesa_80184484 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184360 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineMesaPlayerSceneAnimationRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_801844A0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALL_SCRIPT, { .commands = D_mine_mesa_8018515C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -993,7 +999,7 @@ EvsCommand D_mine_mesa_8018578C[110] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_mesa_801843F4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_mesa_801845F0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184360 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineMesaPlayerSceneAnimationRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetSceneCollisionLowered }, { .value = MINE_MESA_SCENE_COLLISION_NORMAL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1017,7 +1023,7 @@ EvsCommand D_mine_mesa_801861DC[24] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_mesa_801845F0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_mesa_80184344 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_mesa_80184484 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184360 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineMesaPlayerSceneAnimationRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184568 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetSceneCollisionLowered }, { .value = MINE_MESA_SCENE_COLLISION_NORMAL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1088,12 +1094,12 @@ WorldCollisionRoomResources D_mine_mesa_80186538[1] = {
     { &D_mine_mesa_8018700C, D_mine_mesa_80188E40, D_mine_mesa_801890A0, D_mine_mesa_801899B4 },
 };
 
-u8* D_mine_mesa_80186548[1] = {
+u8* gMineMesaRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-WorldCoordRoomLighting D_mine_mesa_8018654C[1] = {
-    { D_mine_mesa_80188E28, D_mine_mesa_80189954 },
+WorldCoordRoomLighting gMineMesaRoomLighting[1] = {
+    { &_gMineMesaRoomLights, _gMineMesaViewAmbientTable },
 };
 
 ViewCount D_mine_mesa_80186554[1] = { 11 };
@@ -1141,385 +1147,493 @@ ViewCamera D_mine_mesa_80187030[11] = {
     { { { { 639, 0, 4045 }, { 392, 4076, -61 }, { -4026, 396, 636 } }, { -0x33D2, 1931, -1371 } }, 230 },
 };
 
-SpriteBatch D_mine_mesa_801871BC[2] = {
+// Room sprite atlas: 8-bit texture pages at Y=0, palette at (0, 255).
+enum {
+    MINE_MESA_SPRITE_TEXTURE_PAGE_X896 = 142,
+    MINE_MESA_SPRITE_TEXTURE_PAGE_X960 = 143,
+    MINE_MESA_SPRITE_CLUT              = 0x3FC0,
+    MINE_MESA_SPRITE_NEUTRAL_COLOR     = 128,
+};
+
+/// Sprite drawing batches for Mine Mesa view 1.
+///
+/// The zero-count first batch selects decoded background strips. The next
+/// record ends the list; the retained source-slot address selects no sprites.
+/// The room owns this writable, sentinel-terminated list while loaded.
+static SpriteBatch _gMineMesaView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mine_mesa_801871CC[48] = {
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -24, -48, 2094, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -48, -48, 1954, { .fields = { 32, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -72, -48, 1938, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -40, -24, 1755, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -56, -24, 1693, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -72, -24, 1435, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -104, -40, 1393, { .fields = { 24, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -136, -40, 1409, { .fields = { 24, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, -88, -16, 1320, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -128, -16, 1317, { .fields = { 0, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -152, -16, 1427, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -136, 0, 1239, { .fields = { 120, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -160, 0, 1254, { .fields = { 0, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -160, 16, 1118, { .fields = { 0, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -136, 16, 1152, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -160, 32, 1075, { .fields = { 80, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -144, 32, 1100, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -120, 32, 1122, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -136, 48, 1239, { .fields = { 56, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -160, 48, 1103, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -104, -16, 1274, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -104, 24, 1200, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 56, 24, 1065, { .fields = { 16, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, 40, 1137, { .fields = { 88, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 72, 48, 1064, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 72, 88, 890, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 64, 48, 987, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 64, 96, 907, { .fields = { 32, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 48, 48, 1002, { .fields = { 24, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 56, 72, 900, { .fields = { 104, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 48, 80, 825, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 40, 80, 750, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 32, 104, 675, { .fields = { 72, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -72, -80, 3082, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -48, -72, 2993, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -24, -72, 2834, { .fields = { 40, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 0, -72, 2711, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 32, -72, 2604, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 64, -64, 2488, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 16, 32, 1445, { .fields = { 32, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 32, 24, 1388, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 56, 32, 1383, { .fields = { 40, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 64, 96, 1019, { .fields = { 16, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 104, 96, 1011, { .fields = { 24, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 136, 104, 1006, { .fields = { 8, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 72, 80, 1099, { .fields = { 0, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 80, 64, 1122, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 80, 48, 1125, { .fields = { 16, 16 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for Mine Mesa view 2.
+///
+/// The view's batches select all 48 elements. Positions and dimensions are
+/// pixels relative to the view centre; depths are unscaled OT sorting values.
+/// The room owns these writable records for its loaded lifetime.
+static SpriteSource _gMineMesaView2SpriteSources[48] = {
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 56 } }, -24, -48, 2094, { .fields = { 96, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 24 } }, -48, -48, 1954, { .fields = { 32, 152 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 24 } }, -72, -48, 1938, { .fields = { 56, 80 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 40 } }, -40, -24, 1755, { .fields = { 56, 144 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 56 } }, -56, -24, 1693, { .fields = { 112, 144 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 64 } }, -72, -24, 1435, { .fields = { 112, 80 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 32, 24 } }, -104, -40, 1393, { .fields = { 24, 32 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 32, 24 } }, -136, -40, 1409, { .fields = { 24, 56 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 80 } }, -88, -16, 1320, { .fields = { 112, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 16 } }, -128, -16, 1317, { .fields = { 0, 48 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 16 } }, -152, -16, 1427, { .fields = { 8, 176 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 32, 16 } }, -136, 0, 1239, { .fields = { 120, 32 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 16 } }, -160, 0, 1254, { .fields = { 0, 64 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 16 } }, -160, 16, 1118, { .fields = { 0, 104 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 32, 16 } }, -136, 16, 1152, { .fields = { 0, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 16 } }, -160, 32, 1075, { .fields = { 80, 40 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 16 } }, -144, 32, 1100, { .fields = { 8, 144 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 48 } }, -120, 32, 1122, { .fields = { 96, 200 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 40 } }, -136, 48, 1239, { .fields = { 56, 40 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 32 } }, -160, 48, 1103, { .fields = { 32, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 40 } }, -104, -16, 1274, { .fields = { 80, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 56 } }, -104, 24, 1200, { .fields = { 112, 200 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 24 } }, 56, 24, 1065, { .fields = { 16, 200 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 40 } }, 80, 40, 1137, { .fields = { 88, 104 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 40 } }, 72, 48, 1064, { .fields = { 96, 104 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 32 } }, 72, 88, 890, { .fields = { 64, 216 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 48 } }, 64, 48, 987, { .fields = { 104, 104 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 24 } }, 64, 96, 907, { .fields = { 32, 128 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 24 } }, 48, 48, 1002, { .fields = { 24, 224 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 48 } }, 56, 72, 900, { .fields = { 104, 56 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 40 } }, 48, 80, 825, { .fields = { 72, 40 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 40 } }, 40, 80, 750, { .fields = { 72, 144 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 16 } }, 32, 104, 675, { .fields = { 72, 184 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 40 } }, -72, -80, 3082, { .fields = { 56, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 40 } }, -48, -72, 2993, { .fields = { 72, 200 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 32 } }, -24, -72, 2834, { .fields = { 40, 216 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 32, 40 } }, 0, -72, 2711, { .fields = { 56, 104 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 32, 48 } }, 32, -72, 2604, { .fields = { 80, 152 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 48 } }, 64, -64, 2488, { .fields = { 80, 56 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 24 } }, 16, 32, 1445, { .fields = { 32, 176 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 32 } }, 32, 24, 1388, { .fields = { 48, 184 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 24 } }, 56, 32, 1383, { .fields = { 40, 128 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 40, 24 } }, 64, 96, 1019, { .fields = { 16, 80 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 32, 24 } }, 104, 96, 1011, { .fields = { 24, 104 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 16 } }, 136, 104, 1006, { .fields = { 8, 160 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 32, 16 } }, 72, 80, 1099, { .fields = { 0, 128 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 16 } }, 80, 64, 1122, { .fields = { 72, 240 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 16 } }, 80, 48, 1125, { .fields = { 16, 16 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_mine_mesa_8018758C[7] = {
+/// Sprite drawing batches for Mine Mesa view 2.
+///
+/// The first zero-count batch keeps decoded background strips; 5
+/// following ranges select the view's 48 source sprites before the end marker.
+/// The room owns this writable, sentinel-terminated list while loaded.
+static SpriteBatch _gMineMesaView2SpriteBatches[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 22, 0, 0, { 0, 0 } },
     { 22, 11, 0, 0, { 3, 0 } },
     { 33, 6, 0, 0, { 2, 0 } },
     { 39, 3, 0, 0, { 4, 0 } },
-    { 42, 6, 0, 0, { 1, 0 } },
+    { 42, ARRAY_SIZE(_gMineMesaView2SpriteSources) - 42, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mine_mesa_801875C4[39] = {
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -88, 8, 1183, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -160, 96, 908, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, 80, 1085, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 16 } }, -160, 80, 931, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 16 } }, -160, 64, 811, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 16 } }, -160, 48, 864, { .fields = { 24, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 16 } }, -160, 32, 902, { .fields = { 24, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 16 } }, -160, 16, 954, { .fields = { 16, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 16 } }, -160, 0, 998, { .fields = { 16, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 16 } }, -160, -16, 1024, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, -16, 1028, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, 0, 1008, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, 16, 983, { .fields = { 56, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, 32, 1002, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, 48, 979, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, 64, 957, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 24, -96, 1690, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 32, -120, 1440, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 32, -80, 1510, { .fields = { 80, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 48, -112, 1210, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 48, -72, 1224, { .fields = { 112, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 48, -24, 1398, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 40, -48, 1507, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 64, -72, 1068, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 64, -40, 1065, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 64, 8, 1119, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 80, -40, 959, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 80, -8, 943, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 80, 40, 1009, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 72, 40, 1191, { .fields = { 72, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 96, -8, 864, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 96, 24, 846, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 96, 72, 890, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 112, 24, 777, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 128, 56, 713, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 144, 88, 665, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 128, 96, 695, { .fields = { 64, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, 112, 64, 776, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 88, 88, 1051, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for Mine Mesa view 3.
+///
+/// The view's batches select all 39 elements. Positions and dimensions are
+/// pixels relative to the view centre; depths are unscaled OT sorting values.
+/// The room owns these writable records for its loaded lifetime.
+static SpriteSource _gMineMesaView3SpriteSources[39] = {
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 24 } }, -88, 8, 1183, { .fields = { 72, 80 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 24 } }, -160, 96, 908, { .fields = { 72, 232 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 16 } }, -104, 80, 1085, { .fields = { 64, 176 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 56, 16 } }, -160, 80, 931, { .fields = { 24, 192 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 56, 16 } }, -160, 64, 811, { .fields = { 24, 208 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 56, 16 } }, -160, 48, 864, { .fields = { 24, 128 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 56, 16 } }, -160, 32, 902, { .fields = { 24, 144 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 56, 16 } }, -160, 16, 954, { .fields = { 16, 160 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 56, 16 } }, -160, 0, 998, { .fields = { 16, 80 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 56, 16 } }, -160, -16, 1024, { .fields = { 16, 240 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 16 } }, -104, -16, 1028, { .fields = { 56, 224 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 16 } }, -104, 0, 1008, { .fields = { 56, 64 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 16 } }, -104, 16, 983, { .fields = { 56, 16 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 16 } }, -104, 32, 1002, { .fields = { 56, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 16 } }, -104, 48, 979, { .fields = { 56, 48 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 16 } }, -104, 64, 957, { .fields = { 56, 32 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 32 } }, 24, -96, 1690, { .fields = { 72, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 40 } }, 32, -120, 1440, { .fields = { 96, 176 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 32 } }, 32, -80, 1510, { .fields = { 80, 40 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 40 } }, 48, -112, 1210, { .fields = { 96, 216 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 48 } }, 48, -72, 1224, { .fields = { 112, 152 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 40 } }, 48, -24, 1398, { .fields = { 96, 96 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 24 } }, 40, -48, 1507, { .fields = { 72, 32 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 32 } }, 64, -72, 1068, { .fields = { 80, 168 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 48 } }, 64, -40, 1065, { .fields = { 112, 200 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 32 } }, 64, 8, 1119, { .fields = { 80, 136 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 32 } }, 80, -40, 959, { .fields = { 80, 200 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 48 } }, 80, -8, 943, { .fields = { 112, 56 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 48 } }, 80, 40, 1009, { .fields = { 112, 104 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 24 } }, 72, 40, 1191, { .fields = { 72, 56 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 32 } }, 96, -8, 864, { .fields = { 80, 72 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 48 } }, 96, 24, 846, { .fields = { 96, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 48 } }, 96, 72, 890, { .fields = { 96, 48 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 40 } }, 112, 24, 777, { .fields = { 80, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 40 } }, 128, 56, 713, { .fields = { 96, 136 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 32 } }, 144, 88, 665, { .fields = { 80, 104 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 24 } }, 128, 96, 695, { .fields = { 64, 104 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 56 } }, 112, 64, 776, { .fields = { 112, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 16 } }, 88, 88, 1051, { .fields = { 72, 160 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_mine_mesa_801878D0[4] = {
+/// Sprite drawing batches for Mine Mesa view 3.
+///
+/// The first zero-count batch keeps decoded background strips; 2
+/// following ranges select the view's 39 source sprites before the end marker.
+/// The room owns this writable, sentinel-terminated list while loaded.
+static SpriteBatch _gMineMesaView3SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 16, 0, 0, { 1, 0 } },
-    { 16, 23, 0, 0, { 0, 0 } },
+    { 16, ARRAY_SIZE(_gMineMesaView3SpriteSources) - 16, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mine_mesa_801878F0[18] = {
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 0, 0, 2026, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -16, -8, 1828, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -32, -24, 1574, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -80, -24, 1686, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -64, -24, 1640, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -48, -24, 1605, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -56, 32, 1235, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -72, 32, 1149, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -96, 32, 1155, { .fields = { 72, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -128, 32, 963, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -160, -8, 971, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -144, -8, 944, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -128, -8, 894, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -112, -8, 904, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -96, -8, 998, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -80, -8, 1101, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -64, -8, 1175, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -48, -8, 1289, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for Mine Mesa view 4.
+///
+/// The view's batches select all 18 elements. Positions and dimensions are
+/// pixels relative to the view centre; depths are unscaled OT sorting values.
+/// The room owns these writable records for its loaded lifetime.
+static SpriteSource _gMineMesaView4SpriteSources[18] = {
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 24 } }, 0, 0, 2026, { .fields = { 88, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 40 } }, -16, -8, 1828, { .fields = { 96, 40 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 56 } }, -32, -24, 1574, { .fields = { 112, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 16 } }, -80, -24, 1686, { .fields = { 80, 72 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 16 } }, -64, -24, 1640, { .fields = { 80, 104 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 16 } }, -48, -24, 1605, { .fields = { 80, 88 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 24 } }, -56, 32, 1235, { .fields = { 96, 232 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 24 } }, -72, 32, 1149, { .fields = { 80, 48 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 24 } }, -96, 32, 1155, { .fields = { 72, 24 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 32, 32 } }, -128, 32, 963, { .fields = { 80, 200 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 56 } }, -160, -8, 971, { .fields = { 112, 112 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 56 } }, -144, -8, 944, { .fields = { 112, 56 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 40 } }, -128, -8, 894, { .fields = { 112, 208 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 40 } }, -112, -8, 904, { .fields = { 112, 168 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 40 } }, -96, -8, 998, { .fields = { 96, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 40 } }, -80, -8, 1101, { .fields = { 96, 120 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 40 } }, -64, -8, 1175, { .fields = { 96, 160 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 40 } }, -48, -8, 1289, { .fields = { 96, 80 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_mine_mesa_80187A58[3] = {
+/// Sprite drawing batches for Mine Mesa view 4.
+///
+/// The first zero-count batch keeps decoded background strips; 1
+/// following ranges select the view's 18 source sprites before the end marker.
+/// The room owns this writable, sentinel-terminated list while loaded.
+static SpriteBatch _gMineMesaView4SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 18, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gMineMesaView4SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mine_mesa_80187A70[66] = {
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 144, -40, 1440, { .fields = { 24, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 144, -16, 1426, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 144, 16, 1505, { .fields = { 0, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 64, -24, 1755, { .fields = { 72, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 72, 8, 1591, { .fields = { 120, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 96, 8, 1554, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 120, 8, 1534, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 72, -8, 1562, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 96, -8, 1514, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 120, -8, 1450, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 72, -32, 1718, { .fields = { 112, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 96, -40, 1696, { .fields = { 24, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 120, -40, 1519, { .fields = { 24, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -88, 8, 1437, { .fields = { 40, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -80, 0, 1446, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -80, 16, 1363, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -80, 32, 1401, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, 0, 1435, { .fields = { 8, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, -64, 16, 1370, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 24 } }, -64, 32, 1408, { .fields = { 120, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -56, 16, 1434, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -80, -56, 1229, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -80, -24, 1393, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -80, 8, 1410, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, -72, 24, 1486, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -96, -64, 1256, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -112, -72, 1287, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -128, -80, 1313, { .fields = { 0, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -128, -56, 1032, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 72 } }, -160, -16, 1075, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, -160, 56, 1075, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 56 } }, -128, -16, 1127, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 72 } }, -128, 40, 1212, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -96, -48, 1116, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -96, -24, 1315, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -96, 24, 1370, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 72 } }, -160, -88, 1030, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -24, 48, 827, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, 152, 104, 697, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 128, 96, 749, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 104, 80, 752, { .fields = { 16, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 104, 104, 803, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 64, 72, 785, { .fields = { 48, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 64, 104, 842, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 80, 80, 760, { .fields = { 16, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 80, 104, 800, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 32, 88, 866, { .fields = { 24, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -8, 104, 888, { .fields = { 72, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 24 } }, -8, 80, 814, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, -8, 56, 797, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -24, 64, 832, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -24, 80, 894, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -40, 80, 900, { .fields = { 8, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -160, -64, 787, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -160, -16, 781, { .fields = { 0, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -152, 8, 796, { .fields = { 0, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -144, 32, 916, { .fields = { 48, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -120, 32, 908, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -64, 56, 843, { .fields = { 0, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -64, 80, 935, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -128, 72, 980, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -80, 56, 865, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -104, 48, 869, { .fields = { 16, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -104, 72, 966, { .fields = { 24, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -80, 72, 950, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -40, 56, 832, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for Mine Mesa view 5.
+///
+/// The view's batches select all 66 elements. Positions and dimensions are
+/// pixels relative to the view centre; depths are unscaled OT sorting values.
+/// The room owns these writable records for its loaded lifetime.
+static SpriteSource _gMineMesaView5SpriteSources[66] = {
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 24 } }, 144, -40, 1440, { .fields = { 24, 24 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 32 } }, 144, -16, 1426, { .fields = { 48, 72 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 24 } }, 144, 16, 1505, { .fields = { 0, 216 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 48 } }, 64, -24, 1755, { .fields = { 72, 168 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 24 } }, 72, 8, 1591, { .fields = { 120, 48 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 24 } }, 96, 8, 1554, { .fields = { 104, 216 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 24 } }, 120, 8, 1534, { .fields = { 104, 120 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 16 } }, 72, -8, 1562, { .fields = { 88, 48 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 16 } }, 96, -8, 1514, { .fields = { 96, 64 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 16 } }, 120, -8, 1450, { .fields = { 96, 168 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 24 } }, 72, -32, 1718, { .fields = { 112, 24 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 32 } }, 96, -40, 1696, { .fields = { 24, 72 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 32 } }, 120, -40, 1519, { .fields = { 24, 104 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 32 } }, -88, 8, 1437, { .fields = { 40, 40 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 16 } }, -80, 0, 1446, { .fields = { 96, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 16 } }, -80, 16, 1363, { .fields = { 104, 240 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 24 } }, -80, 32, 1401, { .fields = { 112, 96 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 16 } }, -64, 0, 1435, { .fields = { 8, 240 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 16 } }, -64, 16, 1370, { .fields = { 112, 48 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 24 } }, -64, 32, 1408, { .fields = { 120, 72 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 40 } }, -56, 16, 1434, { .fields = { 72, 216 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 24 } }, -80, -56, 1229, { .fields = { 112, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 32 } }, -80, -24, 1393, { .fields = { 56, 136 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 40 } }, -80, 8, 1410, { .fields = { 96, 216 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 16 } }, -72, 24, 1486, { .fields = { 96, 80 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 16 } }, -96, -64, 1256, { .fields = { 88, 96 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 16 } }, -112, -72, 1287, { .fields = { 88, 112 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 24 } }, -128, -80, 1313, { .fields = { 0, 192 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 32, 40 } }, -128, -56, 1032, { .fields = { 40, 208 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 32, 72 } }, -160, -16, 1075, { .fields = { 96, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 32, 64 } }, -160, 56, 1075, { .fields = { 64, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 32, 56 } }, -128, -16, 1127, { .fields = { 64, 64 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 32, 72 } }, -128, 40, 1212, { .fields = { 96, 72 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 24 } }, -96, -48, 1116, { .fields = { 112, 192 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 48 } }, -96, -24, 1315, { .fields = { 80, 120 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 48 } }, -96, 24, 1370, { .fields = { 64, 120 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 32, 72 } }, -160, -88, 1030, { .fields = { 96, 144 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 8 } }, -24, 48, 827, { .fields = { 64, 248 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 16 } }, 152, 104, 697, { .fields = { 104, 96 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 24 } }, 128, 96, 749, { .fields = { 16, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 24 } }, 104, 80, 752, { .fields = { 16, 200 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 16 } }, 104, 104, 803, { .fields = { 88, 144 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 32 } }, 64, 72, 785, { .fields = { 48, 104 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 16 } }, 64, 104, 842, { .fields = { 96, 16 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 24 } }, 80, 80, 760, { .fields = { 16, 48 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 16 } }, 80, 104, 800, { .fields = { 88, 32 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 32, 32 } }, 32, 88, 866, { .fields = { 24, 136 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 40, 16 } }, -8, 104, 888, { .fields = { 72, 184 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 40, 24 } }, -8, 80, 814, { .fields = { 112, 144 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 32, 24 } }, -8, 56, 797, { .fields = { 120, 168 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 16 } }, -24, 64, 832, { .fields = { 96, 200 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 24 } }, -24, 80, 894, { .fields = { 0, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 24 } }, -40, 80, 900, { .fields = { 8, 24 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 48 } }, -160, -64, 787, { .fields = { 80, 168 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 24 } }, -160, -16, 781, { .fields = { 0, 96 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 24 } }, -152, 8, 796, { .fields = { 0, 72 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 40 } }, -144, 32, 916, { .fields = { 48, 168 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 40 } }, -120, 32, 908, { .fields = { 80, 216 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 24 } }, -64, 56, 843, { .fields = { 0, 120 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 40 } }, -64, 80, 935, { .fields = { 104, 216 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 40 } }, -128, 72, 980, { .fields = { 40, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 16 } }, -80, 56, 865, { .fields = { 104, 80 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 24 } }, -104, 48, 869, { .fields = { 16, 224 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 32 } }, -104, 72, 966, { .fields = { 24, 168 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 32 } }, -80, 72, 950, { .fields = { 48, 40 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 16 } }, -40, 56, 832, { .fields = { 120, 240 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_mine_mesa_80187F98[6] = {
+/// Sprite drawing batches for Mine Mesa view 5.
+///
+/// The first zero-count batch keeps decoded background strips; 4
+/// following ranges select the view's 66 source sprites before the end marker.
+/// The room owns this writable, sentinel-terminated list while loaded.
+static SpriteBatch _gMineMesaView5SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 13, 0, 0, { 3, 0 } },
     { 13, 8, 0, 0, { 0, 0 } },
     { 21, 16, 0, 0, { 2, 0 } },
-    { 37, 29, 0, 0, { 1, 0 } },
+    { 37, ARRAY_SIZE(_gMineMesaView5SpriteSources) - 37, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mine_mesa_80187FC8[23] = {
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -48, -8, 1420, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -32, -8, 1273, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -24, -24, 1200, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -16, -8, 1156, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -8, -48, 1191, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, 8, -8, 1097, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 8, -56, 1074, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 32, -48, 1152, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 56, -48, 1236, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 32, -24, 959, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 32, 16, 958, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 56, -24, 832, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 56, 0, 850, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 56, 40, 775, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 80, 0, 785, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 80, 40, 702, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 104, 0, 653, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 104, 40, 681, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, 120, 0, 634, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, 144, 0, 640, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 80, -32, 754, { .fields = { 40, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 104, -32, 691, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 128, -32, 630, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for Mine Mesa view 6.
+///
+/// The view's batches select all 23 elements. Positions and dimensions are
+/// pixels relative to the view centre; depths are unscaled OT sorting values.
+/// The room owns these writable records for its loaded lifetime.
+static SpriteSource _gMineMesaView6SpriteSources[23] = {
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 48 } }, -48, -8, 1420, { .fields = { 96, 56 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 48 } }, -32, -8, 1273, { .fields = { 88, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 16 } }, -24, -24, 1200, { .fields = { 80, 88 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 40 } }, -16, -8, 1156, { .fields = { 56, 88 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 40 } }, -8, -48, 1191, { .fields = { 72, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 56 } }, 8, -8, 1097, { .fields = { 104, 112 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 48 } }, 8, -56, 1074, { .fields = { 104, 168 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 24 } }, 32, -48, 1152, { .fields = { 80, 232 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 24 } }, 56, -48, 1236, { .fields = { 48, 64 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 40 } }, 32, -24, 959, { .fields = { 56, 168 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 40 } }, 32, 16, 958, { .fields = { 72, 48 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 24 } }, 56, -24, 832, { .fields = { 40, 208 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 40 } }, 56, 0, 850, { .fields = { 104, 216 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 40 } }, 56, 40, 775, { .fields = { 80, 192 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 40 } }, 80, 0, 785, { .fields = { 80, 152 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 48 } }, 80, 40, 702, { .fields = { 80, 104 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 40 } }, 104, 0, 653, { .fields = { 64, 208 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 40 } }, 104, 40, 681, { .fields = { 64, 128 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 56 } }, 120, 0, 634, { .fields = { 104, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 56 } }, 144, 0, 640, { .fields = { 112, 56 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 32 } }, 80, -32, 754, { .fields = { 40, 128 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 32 } }, 104, -32, 691, { .fields = { 48, 32 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 32, 32 } }, 128, -32, 630, { .fields = { 40, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_mine_mesa_80188194[3] = {
+/// Sprite drawing batches for Mine Mesa view 6.
+///
+/// The first zero-count batch keeps decoded background strips; 1
+/// following ranges select the view's 23 source sprites before the end marker.
+/// The room owns this writable, sentinel-terminated list while loaded.
+static SpriteBatch _gMineMesaView6SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 23, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gMineMesaView6SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mine_mesa_801881AC[2] = {
+/// Sprite drawing batches for Mine Mesa view 7.
+///
+/// The zero-count first batch selects decoded background strips. The next
+/// record ends the list; the retained source-slot address selects no sprites.
+/// The room owns this writable, sentinel-terminated list while loaded.
+static SpriteBatch _gMineMesaView7SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mine_mesa_801881BC[42] = {
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -56, -72, 2064, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -56, -48, 1903, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -56, -32, 1974, { .fields = { 40, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -88, -72, 2051, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -128, -64, 1947, { .fields = { 24, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -160, -72, 1814, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -128, -48, 1843, { .fields = { 24, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -88, -48, 1873, { .fields = { 40, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -96, -32, 1924, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -128, -32, 1902, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -160, -16, 1861, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -160, -32, 1765, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -144, -32, 1975, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -160, -56, 1779, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -152, -56, 1940, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -160, 48, 1349, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -88, 48, 1381, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -56, 56, 1369, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, 56, 1362, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -88, 64, 1375, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -72, 64, 1370, { .fields = { 64, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -128, 64, 1323, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -144, 64, 1346, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -160, 64, 1328, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 24, -112, 2958, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 32, -112, 2687, { .fields = { 112, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 40, -104, 2468, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 48, -96, 2317, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 56, -88, 2171, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 64, -80, 2050, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 72, -72, 1939, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 80, -64, 1832, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 88, -64, 1758, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 96, -56, 1690, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, 104, -48, 1590, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 112, -48, 1501, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 112, 8, 1537, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 136, -24, 1345, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 120, -40, 1429, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 120, 16, 1494, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 128, 0, 1415, { .fields = { 80, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 128, -32, 1359, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for Mine Mesa view 8.
+///
+/// The view's batches select all 42 elements. Positions and dimensions are
+/// pixels relative to the view centre; depths are unscaled OT sorting values.
+/// The room owns these writable records for its loaded lifetime.
+static SpriteSource _gMineMesaView8SpriteSources[42] = {
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 24 } }, -56, -72, 2064, { .fields = { 72, 64 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 16 } }, -56, -48, 1903, { .fields = { 48, 112 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 16 } }, -56, -32, 1974, { .fields = { 40, 32 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 32, 24 } }, -88, -72, 2051, { .fields = { 56, 88 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 40, 16 } }, -128, -64, 1947, { .fields = { 24, 184 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 16 } }, -160, -72, 1814, { .fields = { 48, 64 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 40, 16 } }, -128, -48, 1843, { .fields = { 24, 16 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 32, 16 } }, -88, -48, 1873, { .fields = { 40, 152 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 40, 40 } }, -96, -32, 1924, { .fields = { 64, 192 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 32, 40 } }, -128, -32, 1902, { .fields = { 72, 152 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 32, 24 } }, -160, -16, 1861, { .fields = { 64, 232 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 16 } }, -160, -32, 1765, { .fields = { 56, 168 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 16 } }, -144, -32, 1975, { .fields = { 48, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 24 } }, -160, -56, 1779, { .fields = { 88, 88 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 24 } }, -152, -56, 1940, { .fields = { 72, 112 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 40, 16 } }, -160, 48, 1349, { .fields = { 32, 48 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 32, 16 } }, -88, 48, 1381, { .fields = { 48, 136 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 24 } }, -56, 56, 1369, { .fields = { 96, 232 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 24 } }, -96, 56, 1362, { .fields = { 80, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 16 } }, -88, 64, 1375, { .fields = { 64, 32 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 16 } }, -72, 64, 1370, { .fields = { 64, 16 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 16 } }, -128, 64, 1323, { .fields = { 64, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 16 } }, -144, 64, 1346, { .fields = { 72, 48 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 16 } }, -160, 64, 1328, { .fields = { 80, 136 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 48 } }, 24, -112, 2958, { .fields = { 96, 104 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 64 } }, 32, -112, 2687, { .fields = { 112, 72 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 56 } }, 40, -104, 2468, { .fields = { 104, 192 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 64 } }, 48, -96, 2317, { .fields = { 104, 64 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 64 } }, 56, -88, 2171, { .fields = { 112, 136 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 64 } }, 64, -80, 2050, { .fields = { 104, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 64 } }, 72, -72, 1939, { .fields = { 104, 128 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 72 } }, 80, -64, 1832, { .fields = { 112, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 72 } }, 88, -64, 1758, { .fields = { 120, 152 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 72 } }, 96, -56, 1690, { .fields = { 120, 80 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 80 } }, 104, -48, 1590, { .fields = { 120, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 56 } }, 112, -48, 1501, { .fields = { 96, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 48 } }, 112, 8, 1537, { .fields = { 96, 56 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 32 } }, 136, -24, 1345, { .fields = { 120, 224 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 56 } }, 120, -40, 1429, { .fields = { 112, 200 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 32 } }, 120, 16, 1494, { .fields = { 88, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 24 } }, 128, 0, 1415, { .fields = { 80, 24 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 32 } }, 128, -32, 1359, { .fields = { 88, 32 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_mine_mesa_80188504[5] = {
+/// Sprite drawing batches for Mine Mesa view 8.
+///
+/// The first zero-count batch keeps decoded background strips; 3
+/// following ranges select the view's 42 source sprites before the end marker.
+/// The room owns this writable, sentinel-terminated list while loaded.
+static SpriteBatch _gMineMesaView8SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 15, 0, 0, { 1, 0 } },
     { 15, 9, 0, 0, { 2, 0 } },
-    { 24, 18, 0, 0, { 0, 0 } },
+    { 24, ARRAY_SIZE(_gMineMesaView8SpriteSources) - 24, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mine_mesa_8018852C[24] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, 64, 1327, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 32 } }, -120, 72, 1340, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 16 } }, -64, 72, 1580, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 0, 72, 1022, { .fields = { 24, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 8, 112, 1218, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 104 } }, -152, -32, 1064, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 96 } }, -88, -24, 1043, { .fields = { 48, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 96 } }, -48, -24, 1023, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 104 } }, 16, -32, 1003, { .fields = { 88, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, -48, -48, 1778, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -16, -56, 1757, { .fields = { 8, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 24 } }, 16, -56, 1734, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 32, 72, 1329, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 56, -56, 2000, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 64, 96, 1292, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 88, 64, 1296, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 64, 64, 1246, { .fields = { 24, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 56, 16, 1244, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 88, 16, 1436, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 64, 8, 1282, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 56, -16, 1066, { .fields = { 16, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 96, 8, 1966, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 88, -16, 1878, { .fields = { 8, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 64, -16, 1538, { .fields = { 0, 192 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for Mine Mesa view 9.
+///
+/// The view's batches select all 24 elements. Positions and dimensions are
+/// pixels relative to the view centre; depths are unscaled OT sorting values.
+/// The room owns these writable records for its loaded lifetime.
+static SpriteSource _gMineMesaView9SpriteSources[24] = {
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 8 } }, 56, 64, 1327, { .fields = { 80, 248 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 56, 32 } }, -120, 72, 1340, { .fields = { 112, 96 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 64, 16 } }, -64, 72, 1580, { .fields = { 16, 240 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 32, 40 } }, 0, 72, 1022, { .fields = { 24, 200 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 8 } }, 8, 112, 1218, { .fields = { 48, 96 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 64, 104 } }, -152, -32, 1064, { .fields = { 64, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 40, 96 } }, -88, -24, 1043, { .fields = { 48, 104 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 64, 96 } }, -48, -24, 1023, { .fields = { 0, 0 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 40, 104 } }, 16, -32, 1003, { .fields = { 88, 104 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 32, 24 } }, -48, -48, 1778, { .fields = { 104, 128 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 32, 32 } }, -16, -56, 1757, { .fields = { 8, 128 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 40, 24 } }, 16, -56, 1734, { .fields = { 104, 160 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 32, 24 } }, 32, 72, 1329, { .fields = { 104, 216 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 40 } }, 56, -56, 2000, { .fields = { 56, 200 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 16 } }, 64, 96, 1292, { .fields = { 120, 240 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 48 } }, 88, 64, 1296, { .fields = { 80, 200 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 32 } }, 64, 64, 1246, { .fields = { 24, 160 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 32, 48 } }, 56, 16, 1244, { .fields = { 96, 208 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 48 } }, 88, 16, 1436, { .fields = { 88, 208 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X896, MINE_MESA_SPRITE_CLUT, { .fields = { 32, 8 } }, 64, 8, 1282, { .fields = { 112, 184 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 32 } }, 56, -16, 1066, { .fields = { 16, 160 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 8, 64 } }, 96, 8, 1966, { .fields = { 40, 96 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 16, 24 } }, 88, -16, 1878, { .fields = { 8, 216 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_MESA_SPRITE_TEXTURE_PAGE_X960, MINE_MESA_SPRITE_CLUT, { .fields = { 24, 24 } }, 64, -16, 1538, { .fields = { 0, 192 } }, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, MINE_MESA_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_mine_mesa_8018870C[3] = {
+/// Sprite drawing batches for Mine Mesa view 9.
+///
+/// The first zero-count batch keeps decoded background strips; 1
+/// following ranges select the view's 24 source sprites before the end marker.
+/// The room owns this writable, sentinel-terminated list while loaded.
+static SpriteBatch _gMineMesaView9SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 24, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gMineMesaView9SpriteSources), 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mine_mesa_80188724[2] = {
+/// Sprite drawing batches for Mine Mesa view 10.
+///
+/// The zero-count first batch selects decoded background strips. The next
+/// record ends the list; the retained source-slot address selects no sprites.
+/// The room owns this writable, sentinel-terminated list while loaded.
+static SpriteBatch _gMineMesaView10SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mine_mesa_80188734[2] = {
+/// Sprite drawing batches for Mine Mesa view 11.
+///
+/// The zero-count first batch selects decoded background strips. The next
+/// record ends the list; the retained source-slot address selects no sprites.
+/// The room owns this writable, sentinel-terminated list while loaded.
+static SpriteBatch _gMineMesaView11SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 SpriteView D_mine_mesa_80188744[11] = {
-    { { .empty = D_mine_mesa_801871BC }, D_mine_mesa_801871BC, NULL },
-    { { .elements = D_mine_mesa_801871CC }, D_mine_mesa_8018758C, NULL },
-    { { .elements = D_mine_mesa_801875C4 }, D_mine_mesa_801878D0, NULL },
-    { { .elements = D_mine_mesa_801878F0 }, D_mine_mesa_80187A58, NULL },
-    { { .elements = D_mine_mesa_80187A70 }, D_mine_mesa_80187F98, NULL },
-    { { .elements = D_mine_mesa_80187FC8 }, D_mine_mesa_80188194, NULL },
-    { { .empty = D_mine_mesa_801881AC }, D_mine_mesa_801881AC, NULL },
-    { { .elements = D_mine_mesa_801881BC }, D_mine_mesa_80188504, NULL },
-    { { .elements = D_mine_mesa_8018852C }, D_mine_mesa_8018870C, NULL },
-    { { .empty = D_mine_mesa_80188724 }, D_mine_mesa_80188724, NULL },
-    { { .empty = D_mine_mesa_80188734 }, D_mine_mesa_80188734, NULL },
+    { { .empty = _gMineMesaView1SpriteBatches }, _gMineMesaView1SpriteBatches, NULL },
+    { { .elements = _gMineMesaView2SpriteSources }, _gMineMesaView2SpriteBatches, NULL },
+    { { .elements = _gMineMesaView3SpriteSources }, _gMineMesaView3SpriteBatches, NULL },
+    { { .elements = _gMineMesaView4SpriteSources }, _gMineMesaView4SpriteBatches, NULL },
+    { { .elements = _gMineMesaView5SpriteSources }, _gMineMesaView5SpriteBatches, NULL },
+    { { .elements = _gMineMesaView6SpriteSources }, _gMineMesaView6SpriteBatches, NULL },
+    { { .empty = _gMineMesaView7SpriteBatches }, _gMineMesaView7SpriteBatches, NULL },
+    { { .elements = _gMineMesaView8SpriteSources }, _gMineMesaView8SpriteBatches, NULL },
+    { { .elements = _gMineMesaView9SpriteSources }, _gMineMesaView9SpriteBatches, NULL },
+    { { .empty = _gMineMesaView10SpriteBatches }, _gMineMesaView10SpriteBatches, NULL },
+    { { .empty = _gMineMesaView11SpriteBatches }, _gMineMesaView11SpriteBatches, NULL },
 };
 
-WorldCoordPointLight D_mine_mesa_801887C8[8] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7697, -4012, 1391 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1173, 1575, 1726 }, { 0, 0 } }, 1258, 8401 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -812, -1993, 3861 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3194, 2867, 2129 }, { 0, 0 } }, 0, 3500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6812, -1806, 8035 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4014, 3522, 2703 }, { 0, 0 } }, 600, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2536, -1993, 6425 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3768, 3112 }, { 0, 0 } }, 1000, 3600 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 930, -1993, 94 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3932, 3440, 2621 }, { 0, 0 } }, 600, 3500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4276, -2312, 970 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3768, 2949 }, { 0, 0 } }, 359, 4501 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2842, -1832, -687 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3440, 3276, 2867 }, { 0, 0 } }, 0, 4702 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x28E1, -1993, 5842 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3850, 3276 }, { 0, 0 } }, 1000, 3200 },
+/// The room's eight all-view point lights with distance falloff.
+///
+/// Positions and radii use world-coordinate units; RGB intensity uses ONE as
+/// unity. Coordinate composition and attenuation mutate these records while
+/// the room is loaded; borrowed pointers expire when its overlay unloads.
+static WorldCoordPointLight _gMineMesaPointLights[8] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7697, -4012, 1391 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1173, 1575, 1726 }, { 0, 0 } }, 1258, 8401 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -812, -1993, 3861 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3194, 2867, 2129 }, { 0, 0 } }, 0, 3500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6812, -1806, 8035 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4014, 3522, 2703 }, { 0, 0 } }, 600, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2536, -1993, 6425 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3768, 3112 }, { 0, 0 } }, 1000, 3600 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 930, -1993, 94 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3932, 3440, 2621 }, { 0, 0 } }, 600, 3500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4276, -2312, 970 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3768, 2949 }, { 0, 0 } }, 359, 4501 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2842, -1832, -687 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3440, 3276, 2867 }, { 0, 0 } }, 0, 4702 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x28E1, -1993, 5842 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3850, 3276 }, { 0, 0 } }, 1000, 3200 },
 };
 
-WorldCoordSpotLight D_mine_mesa_80188AC8[1] = {
+/// The room's one all-view cone light, excluding the following preserved bytes.
+///
+/// Its axis has length about ONE, its radius is 12000 world-coordinate units,
+/// and its full opening is 318 angle units, with 4096 units per turn. Composition rewrites
+/// its orientation and parent; shading rewrites attenuation while the room lives.
+static WorldCoordSpotLight _gMineMesaConeLights[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { -540, 0, -4069 }, { -4075, 0, 534 }, { 0, 4105, 0 } }, { 7565, -1101, 4051 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2 * ONE, 2 * ONE, 2 * ONE }, { 0, 0 } }, { -4061, 533, 0, 0 }, 12000, 12000, 318 },
 };
 
@@ -2286,8 +2400,12 @@ static u8 _gMineMesaUnreferencedData[] = {
     0x00,
 };
 
-WorldCoordRoomLights D_mine_mesa_80188E28[1] = {
-    { 0, NULL, ARRAY_SIZE(D_mine_mesa_801887C8), D_mine_mesa_801887C8, ARRAY_SIZE(D_mine_mesa_80188AC8), D_mine_mesa_80188AC8 },
+/// The room's mutable collection of eight point lights and one cone light.
+///
+/// No directional lights are authored here. Counts cover only the live arrays;
+/// coordinate composition and shading borrow them while the room is loaded.
+static WorldCoordRoomLights _gMineMesaRoomLights = {
+    0, NULL, ARRAY_SIZE(_gMineMesaPointLights), _gMineMesaPointLights, ARRAY_SIZE(_gMineMesaConeLights), _gMineMesaConeLights
 };
 
 WorldCollisionTrigger D_mine_mesa_80188E40[8] = {
@@ -2421,8 +2539,12 @@ AreaVariant D_mine_mesa_801898F4[12] = {
     { D_mine_mesa_80189884, D_mine_mesa_801896E0 },
 };
 
-WorldCoordRoomAmbientEntry D_mine_mesa_80189954[12] = {
-    { .viewCount = ARRAY_SIZE(D_mine_mesa_80189954) - 1 },
+/// Minimum ambient levels for Mine Mesa's eleven views, after a count header.
+///
+/// Entries 1..11 correspond to logical views; RGB uses 16 units per 8-bit
+/// colour level. Lighting only reads this room-owned table while it is loaded.
+static WorldCoordRoomAmbientEntry _gMineMesaViewAmbientTable[12] = {
+    { .viewCount = ARRAY_SIZE(_gMineMesaViewAmbientTable) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 700, 900, 850, 818 } },
     { .color = { 200, 300, 320, 265 } },
@@ -2441,41 +2563,71 @@ WorldCollisionOccluder D_mine_mesa_801899B4[2] = {
     { NULL, NULL, { 6207, -136, 4015, 0 }, { { -2297, 1160, -913, 0 }, { 2298, 1160, 914, 0 }, { -2297, -1160, -913, 0 }, { 2298, -1160, 914, 0 } }, { -1518, 0, 3815, 0 }, 2721, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCollisionFootstepSounds D_mine_mesa_80189A2C = {
-    0x10000039,
-    0x1000003B,
-    0x10000039,
+enum {
+    MINE_MESA_FOOTSTEP_WALK_SCRIPT = 57,
+    MINE_MESA_FOOTSTEP_RUN_SCRIPT  = 59,
 };
 
-WorldCollisionSurfaceProperties D_mine_mesa_80189A38[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Paired walk, run and scripted-jump cue requests for surface classes 2 and 3.
+///
+/// Type-1 requests use the loaded sound bank: walk/jump start at entry 57 and
+/// running at 59. The paired animation cue adds one; companion playback adds 100.
+/// Surface classes 2 and 3 borrow this record while the room is loaded.
+static WorldCollisionFootstepSounds _gMineMesaFootstepSounds = {
+    SOUND_SCRIPT_REQUEST_TYPE_1 | MINE_MESA_FOOTSTEP_WALK_SCRIPT,
+    SOUND_SCRIPT_REQUEST_TYPE_1 | MINE_MESA_FOOTSTEP_RUN_SCRIPT,
+    SOUND_SCRIPT_REQUEST_TYPE_1 | MINE_MESA_FOOTSTEP_WALK_SCRIPT,
 };
 
-WorldCollisionSurfaceProperties D_mine_mesa_80189A40[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Collision policy for Mine Mesa surface class 0 and 5..7.
+///
+/// Blocks probes, allows weapon impacts, applies pushback and has no footstep cues.
+/// The class directory borrows this individual record while the room is loaded.
+static WorldCollisionSurfaceProperties _gMineMesaSurfaceClass0Properties = {
+    0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL
 };
 
-WorldCollisionSurfaceProperties D_mine_mesa_80189A48[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_mine_mesa_80189A2C },
+/// Collision policy for Mine Mesa surface class 1.
+///
+/// Blocks probes, allows weapon impacts, applies pushback and has no footstep cues.
+/// The class directory borrows this individual record while the room is loaded.
+static WorldCollisionSurfaceProperties _gMineMesaSurfaceClass1Properties = {
+    0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL
 };
 
-WorldCollisionSurfaceProperties D_mine_mesa_80189A50[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_mine_mesa_80189A2C },
+/// Collision policy for Mine Mesa surface class 2.
+///
+/// Blocks probes, allows weapon impacts, applies pushback and has room footstep cues.
+/// The class directory borrows this individual record while the room is loaded.
+static WorldCollisionSurfaceProperties _gMineMesaSurfaceClass2Properties = {
+    0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &_gMineMesaFootstepSounds
 };
 
-WorldCollisionSurfaceProperties D_mine_mesa_80189A58[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Collision policy for Mine Mesa surface class 3.
+///
+/// Passes probes, ignores weapon impacts, applies pushback and has room footstep cues.
+/// The class directory borrows this individual record while the room is loaded.
+static WorldCollisionSurfaceProperties _gMineMesaSurfaceClass3Properties = {
+    0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &_gMineMesaFootstepSounds
 };
 
-WorldCollisionSurfaceProperties* D_mine_mesa_80189A60[8] = {
-    D_mine_mesa_80189A38,
-    D_mine_mesa_80189A40,
-    D_mine_mesa_80189A48,
-    D_mine_mesa_80189A50,
-    D_mine_mesa_80189A58,
-    D_mine_mesa_80189A38,
-    D_mine_mesa_80189A38,
-    D_mine_mesa_80189A38,
+/// Collision policy for Mine Mesa surface class 4.
+///
+/// Passes probes, ignores weapon impacts, applies pushback and has no footstep cues.
+/// The class directory borrows this individual record while the room is loaded.
+static WorldCollisionSurfaceProperties _gMineMesaSurfaceClass4Properties = {
+    0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL
+};
+
+WorldCollisionSurfaceProperties* gMineMesaSurfacePropertiesByClass[8] = {
+    &_gMineMesaSurfaceClass0Properties,
+    &_gMineMesaSurfaceClass1Properties,
+    &_gMineMesaSurfaceClass2Properties,
+    &_gMineMesaSurfaceClass3Properties,
+    &_gMineMesaSurfaceClass4Properties,
+    &_gMineMesaSurfaceClass0Properties,
+    &_gMineMesaSurfaceClass0Properties,
+    &_gMineMesaSurfaceClass0Properties,
 };
 
 PadScriptCmd D_mine_mesa_80189A80[4] = {
