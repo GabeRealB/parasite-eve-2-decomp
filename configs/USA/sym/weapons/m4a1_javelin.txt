@@ -1,7 +1,7 @@
 // Overlay-local symbols for M4A1 Javelin (file 10329).
-D_m4a1_javelin_8012EB62 = 0x8012EB62; // type:u16 size:0x2
-D_m4a1_javelin_8012EB66 = 0x8012EB66; // type:s16 size:0x2
-D_m4a1_javelin_8012071C = 0x8012071C; // model named by a task descriptor
+_gM4a1JavelinGroundBeamScreenAngle = 0x8012EB62; // type:u16 size:0x2
+_gM4a1JavelinGroundBeamAngleRefreshPending = 0x8012EB66; // type:s16 size:0x2
+gM4a1JavelinWeaponModel = 0x8012071C; // model named by a task descriptor
 
 m4a1JavelinGuideBeamTask = 0x8011D1E4; // type:func
 
@@ -12,3 +12,11 @@ _m4a1JavelinDrawGroundBeamSegment = 0x8011e4a8; // type:func
 _m4a1JavelinDrawMuzzleFlareLine = 0x8011ee78; // type:func
 _m4a1JavelinSetTrackedImpactPoint = 0x8011f4a4; // type:func
 m4a1JavelinAttackState = 0x8011f5d4; // type:func
+_gM4a1JavelinGuideBeamOffset = 0x8011fa90;
+_gM4a1JavelinGroundProbeOffset = 0x8011fa98;
+_gM4a1JavelinBeamSegmentFlags = 0x8011faa0;
+_gM4a1JavelinBeamFadeColours = 0x8011faac;
+_gM4a1JavelinBeamScreenAngle = 0x8012eb60;
+_gM4a1JavelinBeamAngleRefreshPending = 0x8012eb64;
+_gM4a1JavelinTrackedImpactPoint = 0x8012eb68;
+_gM4a1JavelinTrackedImpactValid = 0x8012eb70;

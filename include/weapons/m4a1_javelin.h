@@ -2,6 +2,14 @@
 #define INCLUDE_WEAPONS_M4A1_JAVELIN_H
 
 #include "main/task_types.h"
+#include "main/tmd_types.h"
+
+/// Held M4A1 Javelin model: one rigid part with writable geometry and draw stream.
+///
+/// Borrowed by the weapon's child-model task. The record and its arrays must
+/// remain loaded until every referring model is released; creation resolves
+/// the shared stream's draw handlers in place and copies its initial pose.
+extern TmdSource gM4a1JavelinWeaponModel;
 
 /// Runs the Javelin's muzzle flare, six-segment guide beam and optional ground glow.
 ///

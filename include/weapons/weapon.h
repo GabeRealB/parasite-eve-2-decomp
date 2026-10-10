@@ -106,8 +106,6 @@ extern TmdSource gGunbladeModel;
 
 extern TmdSource D_m4a1_pyke_8011F56C;
 
-extern TmdSource D_m4a1_javelin_8012071C;
-
 /// Model arguments of descriptors that point into the zeroed tail of their
 /// package, where the disc image holds no model record.
 extern TmdSource D_grenade_pistol_8012B5A4;

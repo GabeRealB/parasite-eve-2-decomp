@@ -9,8 +9,6 @@
 #include "common.h"
 #include "gte.h"
 
-#include "m4a1_javelin_private.h"
-
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
@@ -47,6 +45,14 @@
 
 #include "overlay.h"
 #include "types.h"
+
+static u16     _gM4a1JavelinBeamScreenAngle;
+static u16     _gM4a1JavelinGroundBeamScreenAngle;
+static s16     _gM4a1JavelinBeamAngleRefreshPending;
+static s16     _gM4a1JavelinGroundBeamAngleRefreshPending;
+static SVECTOR _gM4a1JavelinTrackedImpactPoint;
+static bool    _gM4a1JavelinTrackedImpactValid;
+
 /// Read-only XYZ translation words from the launch sprite's `GfxCoord::workm.t`.
 #define SPRITE_QUAD_POSITION_SOURCE_TYPE const long
 #define SPRITE_QUAD_POS(p, i)            ((p)[i])
@@ -91,20 +97,28 @@ static void _m4a1JavelinDrawBeamSegment(const SVECTOR* nearPoint, const SVECTOR*
 static void _m4a1JavelinDrawGroundBeamSegment(const SVECTOR* nearPoint, const SVECTOR* farPoint, u16 segmentFlags, u16 rgb444);
 static void _m4a1JavelinDrawMuzzleFlareLine(const SVECTOR* muzzlePoint, const SVECTOR* ringPoint, u16 brightness);
 
-/// Fixed local offset the guide beam's coordinate hangs at.
-static SVECTOR D_m4a1_javelin_8011FA90 = { 0, 0x200, 0x20, 0 };
+/// Guide-beam origin in the weapon model's local coordinate units.
+static SVECTOR _gM4a1JavelinGuideBeamOffset = { 0, 0x200, 0x20, 0 };
 
-/// `(0, 0x800, 0)`: the probe offset `worldCollisionProbeGridSegment` traces each beam segment
-/// against, rotated into world space by `gGfxViewCoord.workm` first.
-static SVECTOR D_m4a1_javelin_8011FA98 = { 0, 0x800, 0, 0 };
+/// Ground-probe displacement along view +Y, in game coordinate units.
+///
+/// Rotated into world space before adding it to each guide-beam sample.
+static const SVECTOR _gM4a1JavelinGroundProbeOffset SECTION(".data") = { 0, 0x800, 0, 0 };
 
-/// Per-segment `flags` for `_m4a1JavelinDrawBeamSegment`, walked from the far
-/// end (`[5]`, bit 1: retake the beam angle) to the muzzle (`[0]`, bit 0: cap
-/// the near end).
-static u16 D_m4a1_javelin_8011FAA0[6] = { 1, 0, 0, 0, 0, 2 };
+/// Controls for the six beam and ground-glow segments, indexed from the muzzle.
+///
+/// Drawing visits indices 5..0: the far segment refreshes the direction and
+/// caps its far end; the muzzle segment caps its near end.
+static u16 _gM4a1JavelinBeamSegmentFlags[] = {
+    M4A1_JAVELIN_SEGMENT_CAP_NEAR_END, 0, 0, 0, 0, M4A1_JAVELIN_SEGMENT_REFRESH_ANGLE
+};
 
-/// The four RGB444 beam colours `EffectWork::step` fades through.
-static u16 D_m4a1_javelin_8011FAAC[4] = { 0x12, 0x124, 0x248, 0x36C };
+/// Guide-beam retirement colours packed as 0x0RGB, darkest to brightest.
+///
+/// Beam retirement visits indices 3..0; ground glow uses that index >> 1,
+/// selecting only entries 1 and 0. Without ground tracing the beam retains
+/// its fixed bright colour instead of reading this ramp.
+static const u16 _gM4a1JavelinBeamFadeColours[] SECTION(".data") = { 0x12, 0x124, 0x248, 0x36C };
 
 static void _m4a1JavelinSetTrackedImpactPoint(const long* worldTranslation);
 
@@ -133,7 +147,7 @@ void m4a1JavelinGuideBeamTask(Task* task)
         M4A1_JAVELIN_GUIDE_INIT             = 0,
         M4A1_JAVELIN_GUIDE_MUZZLE_FLARE     = 1,
         M4A1_JAVELIN_GUIDE_BEAM             = 2,
-        M4A1_JAVELIN_BEAM_SEGMENT_COUNT     = ARRAY_SIZE(D_m4a1_javelin_8011FAA0),
+        M4A1_JAVELIN_BEAM_SEGMENT_COUNT     = ARRAY_SIZE(_gM4a1JavelinBeamSegmentFlags),
         M4A1_JAVELIN_BEAM_LENGTH            = 8000,
         M4A1_JAVELIN_FLARE_INITIAL_RADIUS   = 0x600,
         M4A1_JAVELIN_FLARE_RADIUS_DECREMENT = 0xF0,
@@ -183,23 +197,23 @@ void m4a1JavelinGuideBeamTask(Task* task)
             // Attach the beam to the weapon and reset its shared target/directions.
             coord->parent = work->parent;
             gfxSetRotIdentity(&coord->coord);
-            coord->coord.t[0]   = D_m4a1_javelin_8011FA90.vx;
-            coord->coord.t[1]   = D_m4a1_javelin_8011FA90.vy;
-            coord->coord.t[2]   = D_m4a1_javelin_8011FA90.vz;
+            coord->coord.t[0]   = _gM4a1JavelinGuideBeamOffset.vx;
+            coord->coord.t[1]   = _gM4a1JavelinGuideBeamOffset.vy;
+            coord->coord.t[2]   = _gM4a1JavelinGuideBeamOffset.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
-            task->state                = M4A1_JAVELIN_GUIDE_MUZZLE_FLARE;
-            work->move.vy              = M4A1_JAVELIN_BEAM_LENGTH;
-            work->move.vx              = 0;
-            work->move.vz              = 0;
-            D_m4a1_javelin_8012EB68.vx = 0;
-            D_m4a1_javelin_8012EB68.vy = 0;
-            D_m4a1_javelin_8012EB68.vz = 0;
-            D_m4a1_javelin_8012EB70    = 0;
-            work->period               = M4A1_JAVELIN_FLARE_INITIAL_RADIUS;
-            work->step                 = ARRAY_SIZE(D_m4a1_javelin_8011FAAC) - 1;
-            D_m4a1_javelin_8012EB62    = 0;
-            D_m4a1_javelin_8012EB60    = 0;
+            task->state                        = M4A1_JAVELIN_GUIDE_MUZZLE_FLARE;
+            work->move.vy                      = M4A1_JAVELIN_BEAM_LENGTH;
+            work->move.vx                      = 0;
+            work->move.vz                      = 0;
+            _gM4a1JavelinTrackedImpactPoint.vx = 0;
+            _gM4a1JavelinTrackedImpactPoint.vy = 0;
+            _gM4a1JavelinTrackedImpactPoint.vz = 0;
+            _gM4a1JavelinTrackedImpactValid    = false;
+            work->period                       = M4A1_JAVELIN_FLARE_INITIAL_RADIUS;
+            work->step                         = ARRAY_SIZE(_gM4a1JavelinBeamFadeColours) - 1;
+            _gM4a1JavelinGroundBeamScreenAngle = 0;
+            _gM4a1JavelinBeamScreenAngle       = 0;
             /* fallthrough */
         case M4A1_JAVELIN_GUIDE_MUZZLE_FLARE:
             // Move the narrowing flare ring forward while its spokes brighten.
@@ -250,16 +264,16 @@ void m4a1JavelinGuideBeamTask(Task* task)
             pointLight->head.color.r   = blueIntensity >> 1;
             pointLight->head.color.g   = blueIntensity >> 1;
             gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &lightCoord->coord);
-            D_m4a1_javelin_8012EB64  = 0;
-            lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-            D_m4a1_javelin_8012EB66  = 0;
-            if (D_m4a1_javelin_8012EB70 != 0) {
+            _gM4a1JavelinBeamAngleRefreshPending       = false;
+            lightCoord->composeStamp                   = GRAPHICS_COORD_DIRTY;
+            _gM4a1JavelinGroundBeamAngleRefreshPending = false;
+            if (_gM4a1JavelinTrackedImpactValid != false) {
                 nearPoint.vx = coord->workm.t[0];
                 nearPoint.vy = coord->workm.t[1];
                 nearPoint.vz = coord->workm.t[2];
-                farPoint.vx  = D_m4a1_javelin_8012EB68.vx;
-                farPoint.vy  = D_m4a1_javelin_8012EB68.vy;
-                farPoint.vz  = D_m4a1_javelin_8012EB68.vz;
+                farPoint.vx  = _gM4a1JavelinTrackedImpactPoint.vx;
+                farPoint.vy  = _gM4a1JavelinTrackedImpactPoint.vy;
+                farPoint.vz  = _gM4a1JavelinTrackedImpactPoint.vz;
             } else {
                 gte_SetRotMatrix(&coord->workm);
                 gte_ldv0(&work->move);
@@ -280,7 +294,7 @@ void m4a1JavelinGuideBeamTask(Task* task)
             nearPoint.vz = farPoint.vz;
             if (gRoomEffectState->groundTraceEnabled != 0) {
                 gte_SetRotMatrix(&gGfxViewCoord.workm);
-                gte_ldv0(&D_m4a1_javelin_8011FA98);
+                gte_ldv0(&_gM4a1JavelinGroundProbeOffset);
                 gte_rtv0();
                 gte_stsv(&farGroundPoint);
                 farGroundPoint.vx = farGroundPoint.vx + farPoint.vx;
@@ -297,10 +311,10 @@ void m4a1JavelinGuideBeamTask(Task* task)
                     nearPoint.vx = nearPoint.vx + work->pos.vx;
                     nearPoint.vy = nearPoint.vy + work->pos.vy;
                     nearPoint.vz = nearPoint.vz + work->pos.vz;
-                    _m4a1JavelinDrawBeamSegment(&nearPoint, &farPoint, D_m4a1_javelin_8011FAA0[segmentIndex],
-                                                D_m4a1_javelin_8011FAAC[work->step]);
+                    _m4a1JavelinDrawBeamSegment(&nearPoint, &farPoint, _gM4a1JavelinBeamSegmentFlags[segmentIndex],
+                                                _gM4a1JavelinBeamFadeColours[work->step]);
                     gte_SetRotMatrix(&gGfxViewCoord.workm);
-                    gte_ldv0(&D_m4a1_javelin_8011FA98);
+                    gte_ldv0(&_gM4a1JavelinGroundProbeOffset);
                     gte_rtv0();
                     gte_stsv(&nearGroundPoint);
                     nearGroundPoint.vx = nearGroundPoint.vx + nearPoint.vx;
@@ -309,8 +323,8 @@ void m4a1JavelinGuideBeamTask(Task* task)
                     nearPoint.vy       = nearPoint.vy - M4A1_JAVELIN_PROBE_RAISE;
                     if (worldCollisionProbeGridSegment(&nearGroundPoint, &nearPoint, &nearGroundPoint, NULL) == 1) {
                         if (segmentIndex < previousHitIndex) {
-                            _m4a1JavelinDrawGroundBeamSegment(&nearGroundPoint, &farGroundPoint, D_m4a1_javelin_8011FAA0[segmentIndex],
-                                                              D_m4a1_javelin_8011FAAC[work->step >> 1]);
+                            _m4a1JavelinDrawGroundBeamSegment(&nearGroundPoint, &farGroundPoint, _gM4a1JavelinBeamSegmentFlags[segmentIndex],
+                                                              _gM4a1JavelinBeamFadeColours[work->step >> 1]);
                         }
                         previousHitIndex = segmentIndex;
                     } else {
@@ -329,7 +343,7 @@ void m4a1JavelinGuideBeamTask(Task* task)
                     nearPoint.vx = nearPoint.vx + work->pos.vx;
                     nearPoint.vy = nearPoint.vy + work->pos.vy;
                     nearPoint.vz = nearPoint.vz + work->pos.vz;
-                    _m4a1JavelinDrawBeamSegment(&nearPoint, &farPoint, D_m4a1_javelin_8011FAA0[segmentIndex], M4A1_JAVELIN_BEAM_BASE_RGB444);
+                    _m4a1JavelinDrawBeamSegment(&nearPoint, &farPoint, _gM4a1JavelinBeamSegmentFlags[segmentIndex], M4A1_JAVELIN_BEAM_BASE_RGB444);
                     farPoint.vx = nearPoint.vx;
                     farPoint.vy = nearPoint.vy;
                     farPoint.vz = nearPoint.vz;
@@ -418,10 +432,10 @@ static void _m4a1JavelinDrawBeamSegment(const SVECTOR* nearPoint, const SVECTOR*
             green            = green * 2 / 3;
             blue             = blue * 2 / 3;
             // Share the strip direction and cap its terminal segments.
-            if ((segmentFlags & M4A1_JAVELIN_SEGMENT_REFRESH_ANGLE) || D_m4a1_javelin_8012EB64 != 0) {
-                beamAngle               = ratan2(line->y1 - line->y0, line->x0 - line->x1);
-                D_m4a1_javelin_8012EB60 = beamAngle;
-                D_m4a1_javelin_8012EB64 = 0;
+            if ((segmentFlags & M4A1_JAVELIN_SEGMENT_REFRESH_ANGLE) || _gM4a1JavelinBeamAngleRefreshPending != false) {
+                beamAngle                            = ratan2(line->y1 - line->y0, line->x0 - line->x1);
+                _gM4a1JavelinBeamScreenAngle         = beamAngle;
+                _gM4a1JavelinBeamAngleRefreshPending = false;
                 for (wedgeAngle = (s16)beamAngle; wedgeAngle < (s16)beamAngle + M4A1_JAVELIN_HALF_TURN; wedgeAngle += M4A1_JAVELIN_QUARTER_TURN) {
                     M4A1_JAVELIN_ALLOCATE_BEAM_QUAD(quad, red, green, blue, 0, 0, 0);
                     farCornerAngle = wedgeAngle + M4A1_JAVELIN_HALF_TURN;
@@ -440,7 +454,7 @@ static void _m4a1JavelinDrawBeamSegment(const SVECTOR* nearPoint, const SVECTOR*
                     gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz1);
                 }
             } else {
-                beamAngle = D_m4a1_javelin_8012EB60;
+                beamAngle = _gM4a1JavelinBeamScreenAngle;
             }
             if (segmentFlags & M4A1_JAVELIN_SEGMENT_CAP_NEAR_END) {
                 for (wedgeAngle = (s16)beamAngle; wedgeAngle < (s16)beamAngle + M4A1_JAVELIN_HALF_TURN; wedgeAngle += M4A1_JAVELIN_QUARTER_TURN) {
@@ -476,10 +490,10 @@ static void _m4a1JavelinDrawBeamSegment(const SVECTOR* nearPoint, const SVECTOR*
                 gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz0);
             }
         } else {
-            D_m4a1_javelin_8012EB64 = 1;
+            _gM4a1JavelinBeamAngleRefreshPending = true;
         }
     } else {
-        D_m4a1_javelin_8012EB64 = 1;
+        _gM4a1JavelinBeamAngleRefreshPending = true;
     }
     SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlayPointPairScratch));
 }
@@ -545,10 +559,10 @@ static void _m4a1JavelinDrawGroundBeamSegment(const SVECTOR* nearPoint, const SV
             scratch->radius1 = M4A1_JAVELIN_RADIUS_DEPTH_PRODUCT / scratch->otz1;
 
             // Share the strip direction and cap its terminal segments.
-            if ((segmentFlags & M4A1_JAVELIN_SEGMENT_REFRESH_ANGLE) || D_m4a1_javelin_8012EB66 != 0) {
-                beamAngle               = ratan2(line->y1 - line->y0, line->x0 - line->x1);
-                D_m4a1_javelin_8012EB62 = beamAngle;
-                D_m4a1_javelin_8012EB66 = 0;
+            if ((segmentFlags & M4A1_JAVELIN_SEGMENT_REFRESH_ANGLE) || _gM4a1JavelinGroundBeamAngleRefreshPending != false) {
+                beamAngle                                  = ratan2(line->y1 - line->y0, line->x0 - line->x1);
+                _gM4a1JavelinGroundBeamScreenAngle         = beamAngle;
+                _gM4a1JavelinGroundBeamAngleRefreshPending = false;
                 for (wedgeAngle = (s16)beamAngle; wedgeAngle < (s16)beamAngle + M4A1_JAVELIN_HALF_TURN; wedgeAngle += M4A1_JAVELIN_QUARTER_TURN) {
                     M4A1_JAVELIN_ALLOCATE_BEAM_QUAD(quad, red, green, blue, 0, 0, 0);
                     quad->x0 = line->x1 + ((scratch->radius1 * rsin(wedgeAngle + M4A1_JAVELIN_HALF_TURN)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
@@ -563,7 +577,7 @@ static void _m4a1JavelinDrawGroundBeamSegment(const SVECTOR* nearPoint, const SV
                     gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz1);
                 }
             } else {
-                beamAngle = D_m4a1_javelin_8012EB62;
+                beamAngle = _gM4a1JavelinGroundBeamScreenAngle;
             }
 
             if (segmentFlags & M4A1_JAVELIN_SEGMENT_CAP_NEAR_END) {
@@ -596,10 +610,10 @@ static void _m4a1JavelinDrawGroundBeamSegment(const SVECTOR* nearPoint, const SV
                 gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz0);
             }
         } else {
-            D_m4a1_javelin_8012EB66 = 1;
+            _gM4a1JavelinGroundBeamAngleRefreshPending = true;
         }
     } else {
-        D_m4a1_javelin_8012EB66 = 1;
+        _gM4a1JavelinGroundBeamAngleRefreshPending = true;
     }
     SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlayPointPairScratch));
 }
@@ -678,13 +692,13 @@ static void _m4a1JavelinDrawMuzzleFlareLine(const SVECTOR* muzzlePoint, const SV
 static void _m4a1JavelinSetTrackedImpactPoint(const long* worldTranslation)
 {
     if (worldTranslation == NULL) {
-        D_m4a1_javelin_8012EB70 = 0;
+        _gM4a1JavelinTrackedImpactValid = false;
         return;
     }
-    D_m4a1_javelin_8012EB68.vx = worldTranslation[0];
-    D_m4a1_javelin_8012EB68.vy = worldTranslation[1];
-    D_m4a1_javelin_8012EB70    = 1;
-    D_m4a1_javelin_8012EB68.vz = worldTranslation[2];
+    _gM4a1JavelinTrackedImpactPoint.vx = worldTranslation[0];
+    _gM4a1JavelinTrackedImpactPoint.vy = worldTranslation[1];
+    _gM4a1JavelinTrackedImpactValid    = true;
+    _gM4a1JavelinTrackedImpactPoint.vz = worldTranslation[2];
 }
 
 void m4a1JavelinContactFlashTask(Task* task)
@@ -904,102 +918,140 @@ void m4a1JavelinAttackState(Task* playerTask)
     SCRATCH_STACK_RELEASE_BYTES(M4A1_JAVELIN_ATTACK_SCRATCH_BYTES);
 }
 
-static TmdBone _gM4a1JavelinModel02D7CSkeleton[1] = {
+/// Identity initial pose and self-parented root of the rigid weapon model.
+static const TmdBone _gM4a1JavelinWeaponModelSkeleton[] SECTION(".data") = {
 #include "assets/m4a1_javelin_model_02D7C_skeleton.inc"
 };
 
-static u32 _gM4a1JavelinModel02D7CPartVerts[1] = {
+/// Number of part-local vertices belonging to the weapon model's single part.
+static const u32 _gM4a1JavelinWeaponModelPartVerts[] SECTION(".data") = {
 #include "assets/m4a1_javelin_model_02D7C_partVerts.inc"
 };
 
-static SVECTOR _gM4a1JavelinModel02D7CVerts[74] = {
+/// Weapon-model vertices in integer part-local coordinate units.
+static SVECTOR _gM4a1JavelinWeaponModelVerts[] = {
 #include "assets/m4a1_javelin_model_02D7C_verts.inc"
 };
 
-static SVECTOR _gM4a1JavelinModel02D7CNormals[66] = {
+/// Weapon-model lighting normals in part-local axes, with 4096 representing one.
+static SVECTOR _gM4a1JavelinWeaponModelNormals[] = {
 #include "assets/m4a1_javelin_model_02D7C_normals.inc"
 };
 
-static u32 _gM4a1JavelinModel02D7CStream[504] = {
+/// Writable draw stream for two textured Gouraud triangles and 69 quads.
+///
+/// Geometry references are byte offsets into the vertex and normal arrays;
+/// model creation replaces the draw-handler words in place.
+static u32 _gM4a1JavelinWeaponModelStream[] = {
 #include "assets/m4a1_javelin_model_02D7C_stream.inc"
 };
 
-TmdSource D_m4a1_javelin_8012071C = {
-    0,
-    3668,
-    0,
-    1,
-    _gM4a1JavelinModel02D7CPartVerts,
-    _gM4a1JavelinModel02D7CVerts,
-    _gM4a1JavelinModel02D7CNormals,
-    _gM4a1JavelinModel02D7CSkeleton,
-    _gM4a1JavelinModel02D7CStream,
+TmdSource gM4a1JavelinWeaponModel = {
+    .handlersResolved    = false,
+    .bufferHalfBytes     = 2 * sizeof(POLY_GT3) + 69 * sizeof(POLY_GT4),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gM4a1JavelinWeaponModelSkeleton),
+    .partVertexCounts    = _gM4a1JavelinWeaponModelPartVerts,
+    .verts               = _gM4a1JavelinWeaponModelVerts,
+    .normals             = _gM4a1JavelinWeaponModelNormals,
+    .skeleton            = _gM4a1JavelinWeaponModelSkeleton,
+    .stream              = _gM4a1JavelinWeaponModelStream,
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation03710Bank1[2] = {
+/// Translation/rotation poses for the standing-idle clip's encoding-1 tracks.
+static const AnimationPackedPose _gM4a1JavelinIdleAnimationBank1[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_03710_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation03710Bank4[8] = {
+/// Packed rotation poses for the standing-idle clip's encoding-4 tracks.
+static const AnimationPackedRotation _gM4a1JavelinIdleAnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_03710_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation03710Records[76] = {
+/// Keyframes and playback controls for the nineteen-part standing-idle clip.
+static const AnimationRecord _gM4a1JavelinIdleAnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_03710_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation03710Indices[20] = {
+/// Absolute record starts for the idle clip's nineteen model-part tracks.
+///
+/// The exported final halfword is retained but is outside those track indices.
+static const u16 _gM4a1JavelinIdleAnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_03710_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation03710 = {
-    _gM4a1JavelinAnimation03710Records,
-    _gM4a1JavelinAnimation03710Indices,
-    { NULL, _gM4a1JavelinAnimation03710Bank1, NULL, NULL, _gM4a1JavelinAnimation03710Bank4, NULL, NULL, NULL },
+/// Standing-idle clip for the player while the M4A1 Javelin bank is loaded.
+///
+/// Native bank entry 1; entries 21, 22 and 41 alias this same clip. Playback
+/// borrows nineteen part tracks and read-only pose banks 1 and 4.
+static AnimationSet _gM4a1JavelinIdleAnimation = {
+    .records           = _gM4a1JavelinIdleAnimationRecords,
+    .trackStartIndices = _gM4a1JavelinIdleAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1JavelinIdleAnimationBank1, NULL, NULL, _gM4a1JavelinIdleAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation03DB4Bank1[12] = {
+/// Translation/rotation poses for the unarmed-walk clip's encoding-1 tracks.
+static const AnimationPackedPose _gM4a1JavelinUnarmedWalkAnimationBank1[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_03DB4_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation03DB4Bank4[151] = {
+/// Packed rotation poses for the unarmed-walk clip's encoding-4 tracks.
+static const AnimationPackedRotation _gM4a1JavelinUnarmedWalkAnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_03DB4_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation03DB4Records[218] = {
+/// Keyframes and playback controls for the nineteen-part unarmed-walk clip.
+static const AnimationRecord _gM4a1JavelinUnarmedWalkAnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_03DB4_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation03DB4Indices[20] = {
+/// Absolute record starts for the unarmed-walk clip's nineteen model-part tracks.
+///
+/// The exported final halfword is retained but is outside those track indices.
+static const u16 _gM4a1JavelinUnarmedWalkAnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_03DB4_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation03DB4 = {
-    _gM4a1JavelinAnimation03DB4Records,
-    _gM4a1JavelinAnimation03DB4Indices,
-    { NULL, _gM4a1JavelinAnimation03DB4Bank1, NULL, NULL, _gM4a1JavelinAnimation03DB4Bank4, NULL, NULL, NULL },
+/// Forward-walk clip used when the player's held weapon model is absent.
+///
+/// Native M4A1 Javelin bank entry 19; borrows nineteen part tracks and
+/// read-only pose banks 1 and 4 while this weapon package stays loaded.
+static AnimationSet _gM4a1JavelinUnarmedWalkAnimation = {
+    .records           = _gM4a1JavelinUnarmedWalkAnimationRecords,
+    .trackStartIndices = _gM4a1JavelinUnarmedWalkAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1JavelinUnarmedWalkAnimationBank1, NULL, NULL, _gM4a1JavelinUnarmedWalkAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation04614Bank1[19] = {
+/// Translation/rotation poses for the negative-turn clip's encoding-1 tracks.
+static const AnimationPackedPose _gM4a1JavelinNegativeTurnAnimationBank1[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_04614_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation04614Bank4[169] = {
+/// Packed rotation poses for the negative-turn clip's encoding-4 tracks.
+static const AnimationPackedRotation _gM4a1JavelinNegativeTurnAnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_04614_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation04614Records[290] = {
+/// Keyframes and playback controls for the nineteen-part negative-turn clip.
+static const AnimationRecord _gM4a1JavelinNegativeTurnAnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_04614_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation04614Indices[20] = {
+/// Absolute record starts for the negative-turn clip's nineteen model-part tracks.
+///
+/// The exported final halfword is retained but is outside those track indices.
+static const u16 _gM4a1JavelinNegativeTurnAnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_04614_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation04614 = {
-    _gM4a1JavelinAnimation04614Records,
-    _gM4a1JavelinAnimation04614Indices,
-    { NULL, _gM4a1JavelinAnimation04614Bank1, NULL, NULL, _gM4a1JavelinAnimation04614Bank4, NULL, NULL, NULL },
+/// Stationary negative-turn clip for the player with the M4A1 Javelin equipped.
+///
+/// Native bank entry 5, selected for a negative turn sign; borrows nineteen
+/// part tracks and read-only pose banks 1 and 4 while the package stays loaded.
+static AnimationSet _gM4a1JavelinNegativeTurnAnimation = {
+    .records           = _gM4a1JavelinNegativeTurnAnimationRecords,
+    .trackStartIndices = _gM4a1JavelinNegativeTurnAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1JavelinNegativeTurnAnimationBank1, NULL, NULL, _gM4a1JavelinNegativeTurnAnimationBank4, NULL, NULL, NULL },
 };
 
 static AnimationPackedPose _gM4a1JavelinAnimation04E78Bank1[19] = {
@@ -1752,11 +1804,11 @@ static AnimationSet _gM4a1JavelinAnimation11838 = {
 
 AnimationBank D_m4a1_javelin_8012EA20 = { { {
     NULL,
-    &_gM4a1JavelinAnimation03710,
+    &_gM4a1JavelinIdleAnimation,
     &_gM4a1JavelinAnimation106C4,
     &_gM4a1JavelinAnimation10E64,
     &_gM4a1JavelinAnimation11838,
-    &_gM4a1JavelinAnimation04614,
+    &_gM4a1JavelinNegativeTurnAnimation,
     &_gM4a1JavelinAnimation04E78,
     &_gM4a1JavelinAnimation0F4FC,
     &_gM4a1JavelinAnimation0FE0C,
@@ -1770,10 +1822,10 @@ AnimationBank D_m4a1_javelin_8012EA20 = { { {
     &_gM4a1JavelinAnimation07ADC,
     &_gM4a1JavelinAnimation07DFC,
     &_gM4a1JavelinAnimation085C0,
-    &_gM4a1JavelinAnimation03DB4,
+    &_gM4a1JavelinUnarmedWalkAnimation,
     &_gM4a1JavelinAnimation0E5F4,
-    &_gM4a1JavelinAnimation03710,
-    &_gM4a1JavelinAnimation03710,
+    &_gM4a1JavelinIdleAnimation,
+    &_gM4a1JavelinIdleAnimation,
     &_gM4a1JavelinAnimation09858,
     &_gM4a1JavelinAnimation0AAEC,
     &_gM4a1JavelinAnimation0A3D0,
@@ -1792,7 +1844,7 @@ AnimationBank D_m4a1_javelin_8012EA20 = { { {
     &_gM4a1JavelinAnimation066D4,
     &_gM4a1JavelinAnimation06344,
     &_gM4a1JavelinAnimation0518C,
-    &_gM4a1JavelinAnimation03710,
+    &_gM4a1JavelinIdleAnimation,
     &_gM4a1JavelinAnimation0B6A8,
     &_gM4a1JavelinAnimation0B89C,
     &_gM4a1JavelinAnimation0BD1C,
@@ -1836,9 +1888,38 @@ AnimationBank D_m4a1_javelin_8012EA20 = { { {
 /// value is not zero and its purpose is not established.
 u32 D_m4a1_javelin_8012EB5C = 0x102232DD;
 
-u16     D_m4a1_javelin_8012EB60 = 0;
-u16     D_m4a1_javelin_8012EB62 = 0;
-s16     D_m4a1_javelin_8012EB64 = 0;
-s16     D_m4a1_javelin_8012EB66 = 0;
-SVECTOR D_m4a1_javelin_8012EB68 = { 0, 0, 0, 0 };
-s32     D_m4a1_javelin_8012EB70 = 0;
+/// Cached screen direction shared by visible segments of the airborne guide beam.
+///
+/// Stores the low halfword of a signed angle, in 4096 units per turn. Drawing
+/// interprets it as s16; a refresh replaces it before constructing a far cap.
+static u16 _gM4a1JavelinBeamScreenAngle = 0;
+
+/// Cached ground-glow screen direction, independent of the airborne beam's angle.
+///
+/// Stores the low halfword of a signed angle, in 4096 units per turn, interpreted
+/// as s16 by the ground-strip drawer.
+static u16 _gM4a1JavelinGroundBeamScreenAngle = 0;
+
+/// Requests an airborne-beam direction refresh after an endpoint projection fails.
+///
+/// Boolean halfword (0 clear, 1 pending). Cleared at the start of each beam tick;
+/// within the tick, the next accepted segment refreshes the angle and far cap.
+static s16 _gM4a1JavelinBeamAngleRefreshPending = false;
+
+/// Requests a ground-glow direction refresh after an endpoint projection fails.
+///
+/// Boolean halfword (0 clear, 1 pending), independent of the airborne request.
+/// Cleared at each beam tick and consumed by the next accepted ground segment.
+static s16 _gM4a1JavelinGroundBeamAngleRefreshPending = false;
+
+/// Copied world-space contact endpoint of the current guide beam, in game units.
+///
+/// XYZ are narrowed to signed halfwords. Coordinates are meaningful only while
+/// `_gM4a1JavelinTrackedImpactValid` is true; invalidation retains the stale point.
+static SVECTOR _gM4a1JavelinTrackedImpactPoint = { 0, 0, 0, 0 };
+
+/// Whether the guide beam should end at its copied contact rather than its full reach.
+///
+/// Cleared on guide initialization or a missing contact; set when the contact's
+/// XYZ translation is copied. It owns no pointer into the contact's scratch storage.
+static bool _gM4a1JavelinTrackedImpactValid = false;
