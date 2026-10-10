@@ -1,7 +1,7 @@
 // Overlay-local symbols for aya_10500 (file 10500).
 gAya10500BodyModel = 0x8011C2E4; // model named by a task descriptor
-D_aya_10500_80115B90 = 0x80115B90; // model named by a task descriptor
-D_aya_10500_80115FD0 = 0x80115FD0; // model named by a task descriptor
+gAya10500FirstPairHand0Model = 0x80115B90; // model named by a task descriptor
+gAya10500SecondPairHand0Model = 0x80115FD0; // model named by a task descriptor
 D_aya_10500_801164C0 = 0x801164C0; // model named by a task descriptor
 D_aya_10500_80116900 = 0x80116900; // model named by a task descriptor
 _gAya10500EyesOpenUploads = 0x8011c628;

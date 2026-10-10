@@ -15,68 +15,86 @@ enum {
     AYA_10500_MOUTH_FRAME_HEIGHT_ROWS = 20,
 };
 
-static TmdBone _gAya10500Aya10200Model0019CSkeleton[1] = {
+/// Initial local transform and self-parented root for first-pair hand slot 0.
+///
+/// Read-only source tables retain their serialized positions in the data section.
+static const TmdBone _gAya10500FirstPairHand0ModelSkeleton[1] __attribute__((section(".data"))) = {
 #include "assets/aya_10200_model_0019C_skeleton.inc"
 };
 
-static u32 _gAya10500Aya10200Model0019CPartVerts[1] = {
+/// Vertex count of the hand's sole part: 23.
+static const u32 _gAya10500FirstPairHand0ModelPartVerts[ARRAY_SIZE(_gAya10500FirstPairHand0ModelSkeleton)] __attribute__((section(".data"))) = {
 #include "assets/aya_10200_model_0019C_partVerts.inc"
 };
 
-static SVECTOR _gAya10500Aya10200Model0019CVerts[23] = {
+/// Writable first-pair hand-0 vertices in integer coordinates local to the wrist.
+static SVECTOR _gAya10500FirstPairHand0ModelVerts[23] = {
 #include "assets/aya_10200_model_0019C_verts.inc"
 };
 
-static SVECTOR _gAya10500Aya10200Model0019CNormals[23] = {
+/// Writable first-pair hand-0 lighting normals with twelve fractional bits and independent indices.
+static SVECTOR _gAya10500FirstPairHand0ModelNormals[23] = {
 #include "assets/aya_10200_model_0019C_normals.inc"
 };
 
-static u32 _gAya10500Aya10200Model0019CStream[161] = {
+/// Writable commands for two textured triangles and twenty textured quads, ending in `TMD_STREAM_END`.
+///
+/// First model creation resolves each command's draw-handler slot in place.
+static u32 _gAya10500FirstPairHand0ModelStream[161] = {
 #include "assets/aya_10200_model_0019C_stream.inc"
 };
 
-TmdSource D_aya_10500_80115B90 = {
-    0,
-    1120,
-    0,
-    1,
-    _gAya10500Aya10200Model0019CPartVerts,
-    _gAya10500Aya10200Model0019CVerts,
-    _gAya10500Aya10200Model0019CNormals,
-    _gAya10500Aya10200Model0019CSkeleton,
-    _gAya10500Aya10200Model0019CStream,
+TmdSource gAya10500FirstPairHand0Model = {
+    .handlersResolved    = false,
+    .bufferHalfBytes     = (2 * sizeof(POLY_GT3)) + (20 * sizeof(POLY_GT4)),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gAya10500FirstPairHand0ModelSkeleton),
+    .partVertexCounts    = _gAya10500FirstPairHand0ModelPartVerts,
+    .verts               = _gAya10500FirstPairHand0ModelVerts,
+    .normals             = _gAya10500FirstPairHand0ModelNormals,
+    .skeleton            = _gAya10500FirstPairHand0ModelSkeleton,
+    .stream              = _gAya10500FirstPairHand0ModelStream,
 };
 
-static TmdBone _gAya10500Aya10200Model0019CAt00860Skeleton[1] = {
+/// Initial local transform and self-parented root for second-pair hand slot 0.
+///
+/// Read-only source tables retain their serialized positions in the data section.
+static const TmdBone _gAya10500SecondPairHand0ModelSkeleton[1] __attribute__((section(".data"))) = {
 #include "assets/aya_10200_model_0019C_skeleton.inc"
 };
 
-static u32 _gAya10500Aya10200Model0019CAt00860PartVerts[1] = {
+/// Vertex count of the hand's sole part: 23.
+static const u32 _gAya10500SecondPairHand0ModelPartVerts[ARRAY_SIZE(_gAya10500SecondPairHand0ModelSkeleton)] __attribute__((section(".data"))) = {
 #include "assets/aya_10200_model_0019C_partVerts.inc"
 };
 
-static SVECTOR _gAya10500Aya10200Model0019CAt00860Verts[23] = {
+/// Writable second-pair hand-0 vertices in integer coordinates local to the wrist.
+static SVECTOR _gAya10500SecondPairHand0ModelVerts[23] = {
 #include "assets/aya_10200_model_0019C_verts.inc"
 };
 
-static SVECTOR _gAya10500Aya10200Model0019CAt00860Normals[23] = {
+/// Writable second-pair hand-0 lighting normals with twelve fractional bits and independent indices.
+static SVECTOR _gAya10500SecondPairHand0ModelNormals[23] = {
 #include "assets/aya_10200_model_0019C_normals.inc"
 };
 
-static u32 _gAya10500Aya10200Model0019CAt00860Stream[161] = {
+/// Writable commands for two textured triangles and twenty textured quads, ending in `TMD_STREAM_END`.
+///
+/// First model creation resolves each command's draw-handler slot in place.
+static u32 _gAya10500SecondPairHand0ModelStream[161] = {
 #include "assets/aya_10200_model_0019C_stream.inc"
 };
 
-TmdSource D_aya_10500_80115FD0 = {
-    0,
-    1120,
-    0,
-    1,
-    _gAya10500Aya10200Model0019CAt00860PartVerts,
-    _gAya10500Aya10200Model0019CAt00860Verts,
-    _gAya10500Aya10200Model0019CAt00860Normals,
-    _gAya10500Aya10200Model0019CAt00860Skeleton,
-    _gAya10500Aya10200Model0019CAt00860Stream,
+TmdSource gAya10500SecondPairHand0Model = {
+    .handlersResolved    = false,
+    .bufferHalfBytes     = (2 * sizeof(POLY_GT3)) + (20 * sizeof(POLY_GT4)),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gAya10500SecondPairHand0ModelSkeleton),
+    .partVertexCounts    = _gAya10500SecondPairHand0ModelPartVerts,
+    .verts               = _gAya10500SecondPairHand0ModelVerts,
+    .normals             = _gAya10500SecondPairHand0ModelNormals,
+    .skeleton            = _gAya10500SecondPairHand0ModelSkeleton,
+    .stream              = _gAya10500SecondPairHand0ModelStream,
 };
 
 static TmdBone _gAya10500Aya10200Model00A5CSkeleton[1] = {

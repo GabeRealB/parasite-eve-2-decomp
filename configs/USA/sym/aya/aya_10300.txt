@@ -1,7 +1,7 @@
 // Overlay-local symbols for aya_10300 (file 10300).
 gAya10300BodyModel = 0x8011ACE8; // resource variant 2 player body
 gAya10300FirstPairHand0Model = 0x8011B128; // first pair, hand slot 0
-D_aya_10300_8011B568 = 0x8011B568; // model named by a task descriptor
+gAya10300SecondPairHand0Model = 0x8011B568; // model named by a task descriptor
 gAya10300FirstPairHand1Model = 0x8011BA58; // first pair, hand slot 1
 gAya10300SecondPairHand1Model = 0x8011BE98; // second pair, hand slot 1, weapon parent
 gAya10300EyesRestSequence = 0x8011CD1C; // open eye frame, then NULL

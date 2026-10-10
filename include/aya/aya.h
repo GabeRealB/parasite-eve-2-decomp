@@ -5,18 +5,37 @@
 
 #include "main/tmd_types.h"
 
-/// Models named after the package that holds them.
-extern TmdSource D_aya_10200_80115B90;
+/// One-part hand model for variant 3's first pair, attachment slot 0 at body joint 12.
+///
+/// Pair selector 0 chooses this source. Creation copies its read-only initial
+/// pose and resolves draw-handler slots in its writable stream. Objects borrow
+/// the record, geometry and stream; keep the package loaded until all referring
+/// models are released and queued GPU draws finish.
+extern TmdSource gAya10200FirstPairHand0Model;
 
-extern TmdSource D_aya_10200_80115FD0;
+/// One-part hand model for variant 3's second pair, attachment slot 0 at body joint 12.
+///
+/// Pair selector 1 chooses this separately stored copy of the first pair's
+/// geometry. Its mutability and lifetime follow `gAya10200FirstPairHand0Model`.
+extern TmdSource gAya10200SecondPairHand0Model;
 
 extern TmdSource D_aya_10200_801164C0;
 
 extern TmdSource D_aya_10200_80116900;
 
-extern TmdSource D_aya_10500_80115B90;
+/// One-part hand model for variant 4's first pair, attachment slot 0 at body joint 12.
+///
+/// Pair selector 0 chooses this source. Creation copies its read-only initial
+/// pose and resolves draw-handler slots in its writable stream. Objects borrow
+/// the record, geometry and stream; keep the package loaded until all referring
+/// models are released and queued GPU draws finish.
+extern TmdSource gAya10500FirstPairHand0Model;
 
-extern TmdSource D_aya_10500_80115FD0;
+/// One-part hand model for variant 4's second pair, attachment slot 0 at body joint 12.
+///
+/// Pair selector 1 chooses this separately stored copy of the first pair's
+/// geometry. Its mutability and lifetime follow `gAya10500FirstPairHand0Model`.
+extern TmdSource gAya10500SecondPairHand0Model;
 
 extern TmdSource D_aya_10500_801164C0;
 
@@ -46,7 +65,12 @@ extern TmdSource gAya10300FirstPairHand0Model;
 /// It borrows this package under `gAya10400BodyModel`'s lifetime contract.
 extern TmdSource gAya10400Hand0Model;
 
-extern TmdSource D_aya_10300_8011B568;
+/// One-part hand model for variant 2's second pair, attachment slot 0 at body joint 12.
+///
+/// Pair selector 1 chooses this source. Creation copies the read-only initial
+/// pose and resolves draw-handler slots in the writable stream. It borrows this
+/// package under `gAya10300BodyModel`'s lifetime contract.
+extern TmdSource gAya10300SecondPairHand0Model;
 
 /// One-part hand model for variant 1's first pair, attachment slot 1 at body joint 8.
 ///

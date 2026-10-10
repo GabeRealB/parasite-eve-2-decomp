@@ -1,7 +1,7 @@
 // Overlay-local symbols for aya_10200 (file 10200).
 gAya10200BodyModel = 0x8011C210; // Aya player body, resource variant 3
-D_aya_10200_80115B90 = 0x80115B90; // model named by a task descriptor
-D_aya_10200_80115FD0 = 0x80115FD0; // model named by a task descriptor
+gAya10200FirstPairHand0Model = 0x80115B90; // model named by a task descriptor
+gAya10200SecondPairHand0Model = 0x80115FD0; // model named by a task descriptor
 D_aya_10200_801164C0 = 0x801164C0; // model named by a task descriptor
 D_aya_10200_80116900 = 0x80116900; // model named by a task descriptor
 _gAya10200EyesOpenUploads = 0x8011c554;
