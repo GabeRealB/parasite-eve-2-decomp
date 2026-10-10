@@ -528,136 +528,190 @@ static AnimationSet _gM4a1ParasiteEnergyChargeFamily0Animation = {
     .poseBanks         = { NULL, _gM4a1ParasiteEnergyChargeFamily0AnimationBank1, NULL, NULL, _gM4a1ParasiteEnergyChargeFamily0AnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1Animation047D8Bank1[6] = {
+/// PE family-0 cast translation/rotation keyframes in integer model units and 1/4096 turns.
+///
+/// Read-only clip tables retain their serialized positions in .data.
+static const AnimationPackedPose _gM4a1ParasiteEnergyCastFamily0AnimationBank1[6] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_047D8_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1Animation047D8Bank4[57] = {
+/// PE family-0 cast rotation-only keyframes, with packed angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1ParasiteEnergyCastFamily0AnimationBank4[57] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_047D8_bank4.inc"
 };
 
-static AnimationRecord _gM4a1Animation047D8Records[87] = {
+/// PE family-0 cast keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1ParasiteEnergyCastFamily0AnimationRecords[87] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_047D8_records.inc"
 };
 
-static u16 _gM4a1Animation047D8Indices[20] = {
+/// PE family-0 cast record starts for tracks 0..18, then a retained exporter halfword.
+static const u16 _gM4a1ParasiteEnergyCastFamily0AnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_047D8_indices.inc"
 };
 
-static AnimationSet _gM4a1Animation047D8 = {
-    _gM4a1Animation047D8Records,
-    _gM4a1Animation047D8Indices,
-    { NULL, _gM4a1Animation047D8Bank1, NULL, NULL, _gM4a1Animation047D8Bank4, NULL, NULL, NULL },
+/// Player-rig Parasite Energy family-0 cast gesture in M4A1-family bank entry 28.
+///
+/// Plays when the family-0 attachment countdown reaches zero, after its charge.
+/// Nineteen tracks borrow the loaded M4A1-family overlay throughout playback.
+static AnimationSet _gM4a1ParasiteEnergyCastFamily0Animation = {
+    .records           = _gM4a1ParasiteEnergyCastFamily0AnimationRecords,
+    .trackStartIndices = _gM4a1ParasiteEnergyCastFamily0AnimationIndices,
+    .poseBanks         = { NULL, _gM4a1ParasiteEnergyCastFamily0AnimationBank1, NULL, NULL, _gM4a1ParasiteEnergyCastFamily0AnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1Animation04A7CBank1[4] = {
+/// PE family-1 release translation/rotation keyframes in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1ParasiteEnergyReleaseFamily1AnimationBank1[4] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_04A7C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1Animation04A7CBank4[55] = {
+/// PE family-1 release rotation-only keyframes, with packed angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1ParasiteEnergyReleaseFamily1AnimationBank4[55] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_04A7C_bank4.inc"
 };
 
-static AnimationRecord _gM4a1Animation04A7CRecords[82] = {
+/// PE family-1 release keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1ParasiteEnergyReleaseFamily1AnimationRecords[82] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_04A7C_records.inc"
 };
 
-static u16 _gM4a1Animation04A7CIndices[20] = {
+/// PE family-1 release record starts for tracks 0..18, then a retained exporter halfword.
+static const u16 _gM4a1ParasiteEnergyReleaseFamily1AnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_04A7C_indices.inc"
 };
 
-static AnimationSet _gM4a1Animation04A7C = {
-    _gM4a1Animation04A7CRecords,
-    _gM4a1Animation04A7CIndices,
-    { NULL, _gM4a1Animation04A7CBank1, NULL, NULL, _gM4a1Animation04A7CBank4, NULL, NULL, NULL },
+/// Player-rig Parasite Energy family-1 release gesture in M4A1-family bank entry 29.
+///
+/// Starts the release/charge/cast sequence while the attachment countdown begins.
+/// Family 1 covers IDs below 300 with tens digit other than 3, and item IDs
+/// at least 601 with tens digit other than 1. Nineteen tracks borrow the loaded
+/// M4A1-family overlay throughout playback.
+static AnimationSet _gM4a1ParasiteEnergyReleaseFamily1Animation = {
+    .records           = _gM4a1ParasiteEnergyReleaseFamily1AnimationRecords,
+    .trackStartIndices = _gM4a1ParasiteEnergyReleaseFamily1AnimationIndices,
+    .poseBanks         = { NULL, _gM4a1ParasiteEnergyReleaseFamily1AnimationBank1, NULL, NULL, _gM4a1ParasiteEnergyReleaseFamily1AnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1Animation04C7CBank1[3] = {
+/// PE family-1 charge translation/rotation keyframes in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1ParasiteEnergyChargeFamily1AnimationBank1[3] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_04C7C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1Animation04C7CBank4[23] = {
+/// PE family-1 charge rotation-only keyframes, with packed angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1ParasiteEnergyChargeFamily1AnimationBank4[23] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_04C7C_bank4.inc"
 };
 
-static AnimationRecord _gM4a1Animation04C7CRecords[76] = {
+/// PE family-1 charge keyframes and loop/stop controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1ParasiteEnergyChargeFamily1AnimationRecords[76] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_04C7C_records.inc"
 };
 
-static u16 _gM4a1Animation04C7CIndices[20] = {
+/// PE family-1 charge record starts for tracks 0..18, then a retained exporter halfword.
+static const u16 _gM4a1ParasiteEnergyChargeFamily1AnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_04C7C_indices.inc"
 };
 
-static AnimationSet _gM4a1Animation04C7C = {
-    _gM4a1Animation04C7CRecords,
-    _gM4a1Animation04C7CIndices,
-    { NULL, _gM4a1Animation04C7CBank1, NULL, NULL, _gM4a1Animation04C7CBank4, NULL, NULL, NULL },
+/// Player-rig Parasite Energy family-1 charge loop in M4A1-family bank entry 30.
+///
+/// Runs after `_gM4a1ParasiteEnergyReleaseFamily1Animation` until the attachment
+/// countdown reaches zero and the cast starts, unless the action is cancelled.
+/// Nineteen tracks borrow the loaded M4A1-family overlay throughout playback.
+static AnimationSet _gM4a1ParasiteEnergyChargeFamily1Animation = {
+    .records           = _gM4a1ParasiteEnergyChargeFamily1AnimationRecords,
+    .trackStartIndices = _gM4a1ParasiteEnergyChargeFamily1AnimationIndices,
+    .poseBanks         = { NULL, _gM4a1ParasiteEnergyChargeFamily1AnimationBank1, NULL, NULL, _gM4a1ParasiteEnergyChargeFamily1AnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1Animation04FD0Bank1[8] = {
+/// PE family-1 cast translation/rotation keyframes in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1ParasiteEnergyCastFamily1AnimationBank1[8] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_04FD0_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1Animation04FD0Bank4[68] = {
+/// PE family-1 cast rotation-only keyframes, with packed angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1ParasiteEnergyCastFamily1AnimationBank4[68] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_04FD0_bank4.inc"
 };
 
-static AnimationRecord _gM4a1Animation04FD0Records[101] = {
+/// PE family-1 cast keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1ParasiteEnergyCastFamily1AnimationRecords[101] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_04FD0_records.inc"
 };
 
-static u16 _gM4a1Animation04FD0Indices[20] = {
+/// PE family-1 cast record starts for tracks 0..18, then a retained exporter halfword.
+static const u16 _gM4a1ParasiteEnergyCastFamily1AnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_04FD0_indices.inc"
 };
 
-static AnimationSet _gM4a1Animation04FD0 = {
-    _gM4a1Animation04FD0Records,
-    _gM4a1Animation04FD0Indices,
-    { NULL, _gM4a1Animation04FD0Bank1, NULL, NULL, _gM4a1Animation04FD0Bank4, NULL, NULL, NULL },
+/// Player-rig Parasite Energy family-1 cast gesture in M4A1-family bank entry 31.
+///
+/// Plays when the family-1 attachment countdown reaches zero, after its charge.
+/// Nineteen tracks borrow the loaded M4A1-family overlay throughout playback.
+static AnimationSet _gM4a1ParasiteEnergyCastFamily1Animation = {
+    .records           = _gM4a1ParasiteEnergyCastFamily1AnimationRecords,
+    .trackStartIndices = _gM4a1ParasiteEnergyCastFamily1AnimationIndices,
+    .poseBanks         = { NULL, _gM4a1ParasiteEnergyCastFamily1AnimationBank1, NULL, NULL, _gM4a1ParasiteEnergyCastFamily1AnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1Animation05284Bank1[5] = {
+/// Part-4 hit reaction translation/rotation keyframes in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1Part4HitReactionAnimationBank1[5] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_05284_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1Animation05284Bank4[55] = {
+/// Part-4 hit reaction rotation-only keyframes, with packed angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1Part4HitReactionAnimationBank4[55] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_05284_bank4.inc"
 };
 
-static AnimationRecord _gM4a1Animation05284Records[83] = {
+/// Part-4 hit reaction keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1Part4HitReactionAnimationRecords[83] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_05284_records.inc"
 };
 
-static u16 _gM4a1Animation05284Indices[20] = {
+/// Part-4 hit reaction record starts for tracks 0..18, then a retained exporter halfword.
+static const u16 _gM4a1Part4HitReactionAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_05284_indices.inc"
 };
 
-static AnimationSet _gM4a1Animation05284 = {
-    _gM4a1Animation05284Records,
-    _gM4a1Animation05284Indices,
-    { NULL, _gM4a1Animation05284Bank1, NULL, NULL, _gM4a1Animation05284Bank4, NULL, NULL, NULL },
+/// Player-rig hit reaction for the model-part-4 collision sphere in M4A1-family bank entry 16.
+///
+/// Selected for hit region 1, with a three-frame blend across child slots 1..18.
+/// Nineteen tracks borrow the loaded M4A1-family overlay throughout playback.
+static AnimationSet _gM4a1Part4HitReactionAnimation = {
+    .records           = _gM4a1Part4HitReactionAnimationRecords,
+    .trackStartIndices = _gM4a1Part4HitReactionAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1Part4HitReactionAnimationBank1, NULL, NULL, _gM4a1Part4HitReactionAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1Animation055A4Bank1[6] = {
+/// Other-body hit reaction translation/rotation keyframes in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1OtherBodyHitReactionAnimationBank1[6] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_055A4_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1Animation055A4Bank4[66] = {
+/// Other-body hit reaction rotation-only keyframes, with packed angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1OtherBodyHitReactionAnimationBank4[66] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_055A4_bank4.inc"
 };
 
-static AnimationRecord _gM4a1Animation055A4Records[96] = {
+/// Other-body hit reaction keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1OtherBodyHitReactionAnimationRecords[96] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_055A4_records.inc"
 };
 
-static u16 _gM4a1Animation055A4Indices[20] = {
+/// Other-body hit reaction record starts for tracks 0..18, then a retained exporter halfword.
+static const u16 _gM4a1OtherBodyHitReactionAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_055A4_indices.inc"
 };
 
-static AnimationSet _gM4a1Animation055A4 = {
-    _gM4a1Animation055A4Records,
-    _gM4a1Animation055A4Indices,
-    { NULL, _gM4a1Animation055A4Bank1, NULL, NULL, _gM4a1Animation055A4Bank4, NULL, NULL, NULL },
+/// Player-rig hit reaction for other body regions in M4A1-family bank entry 17.
+///
+/// Selected when the hit region differs from the model-part-4 region, with a
+/// three-frame blend across child slots 1..18. Nineteen tracks borrow the loaded
+/// M4A1-family overlay throughout playback.
+static AnimationSet _gM4a1OtherBodyHitReactionAnimation = {
+    .records           = _gM4a1OtherBodyHitReactionAnimationRecords,
+    .trackStartIndices = _gM4a1OtherBodyHitReactionAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1OtherBodyHitReactionAnimationBank1, NULL, NULL, _gM4a1OtherBodyHitReactionAnimationBank4, NULL, NULL, NULL },
 };
 
 static AnimationPackedPose _gM4a1Animation05D68Bank1[18] = {
@@ -1095,8 +1149,8 @@ AnimationBank D_m4a1_8012B9E4 = { { {
     &_gM4a1Animation09E88,
     &_gM4a1Animation0B894,
     &_gM4a1Animation0B894,
-    &_gM4a1Animation05284,
-    &_gM4a1Animation055A4,
+    &_gM4a1Part4HitReactionAnimation,
+    &_gM4a1OtherBodyHitReactionAnimation,
     &_gM4a1Animation05D68,
     &_gM4a1UnarmedWalkAnimation,
     &_gM4a1Animation0B894,
@@ -1107,10 +1161,10 @@ AnimationBank D_m4a1_8012B9E4 = { { {
     &_gM4a1Animation07B78,
     &_gM4a1ParasiteEnergyReleaseFamily0Animation,
     &_gM4a1ParasiteEnergyChargeFamily0Animation,
-    &_gM4a1Animation047D8,
-    &_gM4a1Animation04A7C,
-    &_gM4a1Animation04C7C,
-    &_gM4a1Animation04FD0,
+    &_gM4a1ParasiteEnergyCastFamily0Animation,
+    &_gM4a1ParasiteEnergyReleaseFamily1Animation,
+    &_gM4a1ParasiteEnergyChargeFamily1Animation,
+    &_gM4a1ParasiteEnergyCastFamily1Animation,
     &_gM4a1Animation08714,
     &_gM4a1Animation088EC,
     &_gM4a1Animation08714,
