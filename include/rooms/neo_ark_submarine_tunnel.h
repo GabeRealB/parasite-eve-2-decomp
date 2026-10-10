@@ -14,6 +14,11 @@
 
 #include "main/task_types.h"
 
+enum {
+    NEO_ARK_SUBMARINE_TUNNEL_ROOM_COUNT          = 1,
+    NEO_ARK_SUBMARINE_TUNNEL_SURFACE_CLASS_COUNT = 8,
+};
+
 // Room data exported to the shared waypoint actor.
 extern SVECTOR* D_neo_ark_submarine_tunnel_80181F94[4];
 
@@ -23,12 +28,21 @@ extern TaskDesc D_neo_ark_submarine_tunnel_801810E4;
 
 extern AreaVariant D_neo_ark_submarine_tunnel_80187470[13];
 
-// neo_ark_submarine_tunnel
-extern WorldCoordRoomLighting D_neo_ark_submarine_tunnel_80181E00[];
+/// Lighting for the tunnel's single room, indexed by room minus one.
+///
+/// Borrows mutable directional and point lights from the loaded room overlay.
+/// No ambient table is supplied, so lighting uses the default ambient minima.
+/// Keep the overlay loaded while these records or their lights are in use.
+extern WorldCoordRoomLighting gNeoArkSubmarineTunnelRoomLighting[NEO_ARK_SUBMARINE_TUNNEL_ROOM_COUNT];
 
 extern WorldCollisionRoomResources D_neo_ark_submarine_tunnel_80181E08[];
 
-extern u8* D_neo_ark_submarine_tunnel_80181E18[];
+/// Logical-view maps for the tunnel's single room, indexed by room minus one.
+///
+/// Borrows `gViewIdentityMap`: logical views 1..10 select the same camera,
+/// image and sprite indices. The identity map's larger capacity does not add
+/// tunnel views. Keep this room directory's overlay loaded while using it.
+extern u8* gNeoArkSubmarineTunnelViewMaps[NEO_ARK_SUBMARINE_TUNNEL_ROOM_COUNT];
 
 extern ViewCount D_neo_ark_submarine_tunnel_80181E1C[];
 
@@ -38,7 +52,12 @@ extern ViewCamera D_neo_ark_submarine_tunnel_80182500[];
 
 extern SpriteView D_neo_ark_submarine_tunnel_80186B78[];
 
-extern WorldCollisionSurfaceProperties* D_neo_ark_submarine_tunnel_801878EC[];
+/// Collision policies for the tunnel's eight surface classes, indexed by class 0..7.
+///
+/// Every class blocks probes, permits weapon impacts and applies pushback.
+/// Only class 4 supplies footstep cues. Records and cues belong to this room
+/// overlay and must remain loaded while collision or footstep queries use them.
+extern WorldCollisionSurfaceProperties* gNeoArkSubmarineTunnelSurfaceProperties[NEO_ARK_SUBMARINE_TUNNEL_SURFACE_CLASS_COUNT];
 
 /// Runs an anchored charge disc with player-joint sparks, flicker and a fading ring.
 ///

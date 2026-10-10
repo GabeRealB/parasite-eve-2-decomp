@@ -1615,7 +1615,7 @@ gShelterB1GolemFreezer1AreaVariants = 0x8017F17C; // absolute:True owner=shelter
 
 D_shelter_b1_main_corridor_80185C30 = 0x80185C30; // absolute:True owner=shelter_b1_main_corridor shared=rooms
 
-D_shelter_b1_north_maintenance_walkway_80185A38 = 0x80185A38; // absolute:True owner=shelter_b1_north_maintenance_walkway shared=rooms
+D_shelter_b1_north_maintenance_walkway_80185A38 = 0x80185A38; // absolute:True owner=shelter_b1_north_maintenance_walkway
 
 D_shelter_b1_pod_access_tunnel_80184C00 = 0x80184C00; // absolute:True owner=shelter_b1_pod_access_tunnel
 

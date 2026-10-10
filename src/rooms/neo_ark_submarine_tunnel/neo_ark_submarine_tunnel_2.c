@@ -36,6 +36,7 @@
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
@@ -46,25 +47,25 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/screen_wave.h"
 
-extern WorldCollisionGrid     D_neo_ark_submarine_tunnel_801824DC[1];
+static WorldCollisionGrid     _gNeoArkSubmarineTunnelCollisionGrid;
 extern WorldCollisionOccluder D_neo_ark_submarine_tunnel_8018781C[3];
 extern WorldCollisionTrigger  D_neo_ark_submarine_tunnel_80187248[6];
 extern WorldCollisionTrigger  D_neo_ark_submarine_tunnel_801874D8[11];
-extern WorldCoordRoomLights   D_neo_ark_submarine_tunnel_80187230[1];
+static WorldCoordRoomLights   _gNeoArkSubmarineTunnelRoomLights;
 
 u8 D_neo_ark_submarine_tunnel_80181DF0 = 0;
 
 #include "../../shared/room_visual_effects_disc_data.inc.c"
 
-WorldCoordRoomLighting D_neo_ark_submarine_tunnel_80181E00[1] = {
-    { D_neo_ark_submarine_tunnel_80187230, NULL },
+WorldCoordRoomLighting gNeoArkSubmarineTunnelRoomLighting[NEO_ARK_SUBMARINE_TUNNEL_ROOM_COUNT] = {
+    { .lights = &_gNeoArkSubmarineTunnelRoomLights, .ambientTable = NULL },
 };
 
 WorldCollisionRoomResources D_neo_ark_submarine_tunnel_80181E08[1] = {
-    { D_neo_ark_submarine_tunnel_801824DC, D_neo_ark_submarine_tunnel_80187248, D_neo_ark_submarine_tunnel_801874D8, D_neo_ark_submarine_tunnel_8018781C },
+    { &_gNeoArkSubmarineTunnelCollisionGrid, D_neo_ark_submarine_tunnel_80187248, D_neo_ark_submarine_tunnel_801874D8, D_neo_ark_submarine_tunnel_8018781C },
 };
 
-u8* D_neo_ark_submarine_tunnel_80181E18[1] = {
+u8* gNeoArkSubmarineTunnelViewMaps[NEO_ARK_SUBMARINE_TUNNEL_ROOM_COUNT] = {
     gViewIdentityMap,
 };
 
@@ -128,30 +129,57 @@ SVECTOR* D_neo_ark_submarine_tunnel_80181F94[4] = {
     D_neo_ark_submarine_tunnel_80181F54,
 };
 
-static SVECTOR _gNeoArkSubmarineTunnelCollision04F1CNormals[27] = {
+enum {
+    NEO_ARK_SUBMARINE_TUNNEL_GRID_CELL_COUNT_X = 6,
+    NEO_ARK_SUBMARINE_TUNNEL_GRID_CELL_COUNT_Z = 1,
+};
+
+/// Collision-face normals in room coordinates, with unit length scaled by ONE.
+static SVECTOR _gNeoArkSubmarineTunnelCollisionGridNormals[] = {
 #include "assets/neo_ark_submarine_tunnel_collision_04F1C_normals.inc"
 };
 
-static SVECTOR _gNeoArkSubmarineTunnelCollision04F1CVerts[65] = {
+/// Collision vertices in signed room-coordinate units.
+static SVECTOR _gNeoArkSubmarineTunnelCollisionGridVerts[] = {
 #include "assets/neo_ark_submarine_tunnel_collision_04F1C_verts.inc"
 };
 
-static WorldCollisionGridFace _gNeoArkSubmarineTunnelCollision04F1CFaces[31] = {
+/// Indexed collision quads carrying the tunnel's surface classes 0 and 4.
+static WorldCollisionGridFace _gNeoArkSubmarineTunnelCollisionGridFaces[] = {
 #include "assets/neo_ark_submarine_tunnel_collision_04F1C_faces.inc"
 };
 
-static s16 _gNeoArkSubmarineTunnelCollision04F1CCells[102] = {
+/// Serialized face-index lists, terminated by WORLD_COLLISION_GRID_CELL_END.
+///
+/// Retains the complete authored storage, including words outside the selected lists.
+static s16 _gNeoArkSubmarineTunnelCollisionGridCells[] = {
 #include "assets/neo_ark_submarine_tunnel_collision_04F1C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkSubmarineTunnelCollision04F1CCells[i])
-static s16* _gNeoArkSubmarineTunnelCollision04F1CTable[6] = {
+#define GRID_CELL(i) (&_gNeoArkSubmarineTunnelCollisionGridCells[i])
+/// X-major pointers to the tunnel grid's six-by-one cell face-index lists.
+static s16* _gNeoArkSubmarineTunnelCollisionGridTable[NEO_ARK_SUBMARINE_TUNNEL_GRID_CELL_COUNT_X * NEO_ARK_SUBMARINE_TUNNEL_GRID_CELL_COUNT_Z] = {
 #include "assets/neo_ark_submarine_tunnel_collision_04F1C_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_neo_ark_submarine_tunnel_801824DC[1] = {
-    { NULL, _gNeoArkSubmarineTunnelCollision04F1CNormals, _gNeoArkSubmarineTunnelCollision04F1CVerts, _gNeoArkSubmarineTunnelCollision04F1CFaces, _gNeoArkSubmarineTunnelCollision04F1CTable, 0x2710, 1000, 6, 1, 4000, 31 },
+/// The tunnel room's collision mesh and XZ cell index.
+///
+/// Activation binds the writable descriptor to the current view coordinate.
+/// Cells span X [-10000, 14000) and Z [-1000, 3000), in room-coordinate units.
+/// The descriptor and all mesh/index arrays remain live while the room is loaded.
+static WorldCollisionGrid _gNeoArkSubmarineTunnelCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gNeoArkSubmarineTunnelCollisionGridNormals,
+    .vertices    = _gNeoArkSubmarineTunnelCollisionGridVerts,
+    .faces       = _gNeoArkSubmarineTunnelCollisionGridFaces,
+    .cellFaceIds = _gNeoArkSubmarineTunnelCollisionGridTable,
+    .xBias       = 10000,
+    .zBias       = 1000,
+    .cellCountX  = NEO_ARK_SUBMARINE_TUNNEL_GRID_CELL_COUNT_X,
+    .cellCountZ  = NEO_ARK_SUBMARINE_TUNNEL_GRID_CELL_COUNT_Z,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gNeoArkSubmarineTunnelCollisionGridFaces),
 };
 
 ViewCamera D_neo_ark_submarine_tunnel_80182500[10] = {
@@ -167,12 +195,17 @@ ViewCamera D_neo_ark_submarine_tunnel_80182500[10] = {
     { { { { 1027, 0, 3965 }, { 1153, 3918, -298 }, { -3793, 1191, 983 } }, { -560, -1900, 495 } }, 380 },
 };
 
-SpriteBatch D_neo_ark_submarine_tunnel_80182668[2] = {
+/// Background-image-only batch list for mapped view 1; selects no source sprites.
+static SpriteBatch _gNeoArkSubmarineTunnelView1SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_submarine_tunnel_80182678[142] = {
+/// Depth-sorted textured room rectangles for mapped view 2.
+///
+/// Semitransparent rectangles precede opaque rectangles; positions and sizes
+/// are in pixels relative to the view centre. Keep the room and view textures loaded.
+static SpriteSource _gNeoArkSubmarineTunnelView2SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -16, -40, 1450, { .fields = { 48, 64 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, -40, 1212, { .fields = { 40, 248 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
     { 142, 0x3FC0, { .fields = { 16, 40 } }, -160, -120, 353, { .fields = { 56, 40 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
@@ -317,16 +350,24 @@ SpriteSource D_neo_ark_submarine_tunnel_80182678[142] = {
     { 143, 0x4000, { .fields = { 8, 48 } }, 72, -32, 1250, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_submarine_tunnel_80183190[6] = {
+/// Sprite ranges for mapped view 2, ending at SPRITE_BATCH_END.
+///
+/// The initial empty range keeps the decoded background image visible.
+/// Later ranges index the matching source array in elements.
+static SpriteBatch _gNeoArkSubmarineTunnelView2SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 68, 0, 0, { 3, 0 } },
     { 68, 18, 0, 0, { 0, 0 } },
     { 86, 23, 0, 0, { 2, 0 } },
-    { 109, 33, 0, 0, { 1, 0 } },
+    { 109, ARRAY_SIZE(_gNeoArkSubmarineTunnelView2SpriteSources) - 109, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_submarine_tunnel_801831C0[144] = {
+/// Depth-sorted textured room rectangles for mapped view 3.
+///
+/// Semitransparent rectangles precede opaque rectangles; positions and sizes
+/// are in pixels relative to the view centre. Keep the room and view textures loaded.
+static SpriteSource _gNeoArkSubmarineTunnelView3SpriteSources[] = {
     { 142, 0x3FC0, { .fields = { 16, 40 } }, -160, -120, 375, { .fields = { 88, 80 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
     { 142, 0x3FC0, { .fields = { 16, 40 } }, -144, -120, 437, { .fields = { 88, 200 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
     { 142, 0x3FC0, { .fields = { 16, 40 } }, -128, -120, 500, { .fields = { 88, 40 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
@@ -473,16 +514,24 @@ SpriteSource D_neo_ark_submarine_tunnel_801831C0[144] = {
     { 143, 0x4000, { .fields = { 8, 64 } }, 88, -48, 1000, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_submarine_tunnel_80183D00[6] = {
+/// Sprite ranges for mapped view 3, ending at SPRITE_BATCH_END.
+///
+/// The initial empty range keeps the decoded background image visible.
+/// Later ranges index the matching source array in elements.
+static SpriteBatch _gNeoArkSubmarineTunnelView3SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 69, 0, 0, { 3, 0 } },
     { 69, 17, 0, 0, { 0, 0 } },
     { 86, 34, 0, 0, { 2, 0 } },
-    { 120, 24, 0, 0, { 1, 0 } },
+    { 120, ARRAY_SIZE(_gNeoArkSubmarineTunnelView3SpriteSources) - 120, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_submarine_tunnel_80183D30[141] = {
+/// Depth-sorted textured room rectangles for mapped view 4.
+///
+/// Semitransparent rectangles precede opaque rectangles; positions and sizes
+/// are in pixels relative to the view centre. Keep the room and view textures loaded.
+static SpriteSource _gNeoArkSubmarineTunnelView4SpriteSources[] = {
     { 142, 0x3FC0, { .fields = { 8, 8 } }, -152, -72, 250, { .fields = { 24, 32 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
     { 142, 0x3FC0, { .fields = { 16, 48 } }, -160, -120, 250, { .fields = { 112, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
     { 142, 0x3FC0, { .fields = { 16, 48 } }, -144, -120, 375, { .fields = { 104, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
@@ -626,16 +675,24 @@ SpriteSource D_neo_ark_submarine_tunnel_80183D30[141] = {
     { 143, 0x4000, { .fields = { 8, 48 } }, 72, -64, 900, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_submarine_tunnel_80184834[6] = {
+/// Sprite ranges for mapped view 4, ending at SPRITE_BATCH_END.
+///
+/// The initial empty range keeps the decoded background image visible.
+/// Later ranges index the matching source array in elements.
+static SpriteBatch _gNeoArkSubmarineTunnelView4SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 61, 0, 0, { 3, 0 } },
     { 61, 17, 0, 0, { 0, 0 } },
     { 78, 23, 0, 0, { 2, 0 } },
-    { 101, 40, 0, 0, { 1, 0 } },
+    { 101, ARRAY_SIZE(_gNeoArkSubmarineTunnelView4SpriteSources) - 101, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_submarine_tunnel_80184864[130] = {
+/// Depth-sorted textured room rectangles for mapped view 5.
+///
+/// Semitransparent rectangles precede opaque rectangles; positions and sizes
+/// are in pixels relative to the view centre. Keep the room and view textures loaded.
+static SpriteSource _gNeoArkSubmarineTunnelView5SpriteSources[] = {
     { 142, 0x3FC0, { .fields = { 16, 40 } }, -160, -120, 262, { .fields = { 48, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
     { 142, 0x3FC0, { .fields = { 16, 40 } }, -144, -120, 287, { .fields = { 48, 40 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
     { 142, 0x3FC0, { .fields = { 16, 40 } }, -128, -120, 362, { .fields = { 32, 160 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
@@ -768,21 +825,30 @@ SpriteSource D_neo_ark_submarine_tunnel_80184864[130] = {
     { 143, 0x4000, { .fields = { 8, 64 } }, -72, -48, 1375, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_submarine_tunnel_8018528C[6] = {
+/// Sprite ranges for mapped view 5, ending at SPRITE_BATCH_END.
+///
+/// The initial empty range keeps the decoded background image visible.
+/// Later ranges index the matching source array in elements.
+static SpriteBatch _gNeoArkSubmarineTunnelView5SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 59, 0, 0, { 3, 0 } },
     { 59, 18, 0, 0, { 0, 0 } },
     { 77, 21, 0, 0, { 2, 0 } },
-    { 98, 32, 0, 0, { 1, 0 } },
+    { 98, ARRAY_SIZE(_gNeoArkSubmarineTunnelView5SpriteSources) - 98, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_submarine_tunnel_801852BC[2] = {
+/// Background-image-only batch list for mapped view 6; selects no source sprites.
+static SpriteBatch _gNeoArkSubmarineTunnelView6SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_submarine_tunnel_801852CC[95] = {
+/// Depth-sorted textured room rectangles for mapped view 7.
+///
+/// Semitransparent rectangles precede opaque rectangles; positions and sizes
+/// are in pixels relative to the view centre. Keep the room and view textures loaded.
+static SpriteSource _gNeoArkSubmarineTunnelView7SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 16, 96 } }, -160, -120, 512, { .fields = { 112, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
     { 143, 0x3FC0, { .fields = { 16, 88 } }, -160, -24, 512, { .fields = { 80, 88 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
     { 143, 0x3FC0, { .fields = { 16, 88 } }, -144, -120, 555, { .fields = { 88, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
@@ -880,15 +946,23 @@ SpriteSource D_neo_ark_submarine_tunnel_801852CC[95] = {
     { 143, 0x4040, { .fields = { 8, 80 } }, 152, -120, 235, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_submarine_tunnel_80185A38[5] = {
+/// Sprite ranges for mapped view 7, ending at SPRITE_BATCH_END.
+///
+/// The initial empty range keeps the decoded background image visible.
+/// Later ranges index the matching source array in elements.
+static SpriteBatch _gNeoArkSubmarineTunnelView7SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 50, 0, 0, { 1, 0 } },
     { 50, 0, 0, 0, { 2, 0 } },
-    { 50, 45, 0, 0, { 0, 0 } },
+    { 50, ARRAY_SIZE(_gNeoArkSubmarineTunnelView7SpriteSources) - 50, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_submarine_tunnel_80185A60[110] = {
+/// Depth-sorted textured room rectangles for mapped view 8.
+///
+/// Semitransparent rectangles precede opaque rectangles; positions and sizes
+/// are in pixels relative to the view centre. Keep the room and view textures loaded.
+static SpriteSource _gNeoArkSubmarineTunnelView8SpriteSources[] = {
     { 142, 0x3FC0, { .fields = { 16, 104 } }, -160, -120, 625, { .fields = { 88, 104 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
     { 143, 0x3FC0, { .fields = { 16, 112 } }, -160, -16, 625, { .fields = { 96, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
     { 142, 0x3FC0, { .fields = { 16, 104 } }, -144, -120, 750, { .fields = { 72, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
@@ -1001,15 +1075,23 @@ SpriteSource D_neo_ark_submarine_tunnel_80185A60[110] = {
     { 142, 0x4040, { .fields = { 8, 24 } }, 128, 64, 825, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_submarine_tunnel_801862F8[5] = {
+/// Sprite ranges for mapped view 8, ending at SPRITE_BATCH_END.
+///
+/// The initial empty range keeps the decoded background image visible.
+/// Later ranges index the matching source array in elements.
+static SpriteBatch _gNeoArkSubmarineTunnelView8SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 50, 0, 0, { 1, 0 } },
     { 50, 0, 0, 0, { 2, 0 } },
-    { 50, 60, 0, 0, { 0, 0 } },
+    { 50, ARRAY_SIZE(_gNeoArkSubmarineTunnelView8SpriteSources) - 50, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_submarine_tunnel_80186320[104] = {
+/// Depth-sorted textured room rectangles for mapped view 9.
+///
+/// Semitransparent rectangles precede opaque rectangles; positions and sizes
+/// are in pixels relative to the view centre. Keep the room and view textures loaded.
+static SpriteSource _gNeoArkSubmarineTunnelView9SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 16, 104 } }, 144, -120, 625, { .fields = { 104, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
     { 143, 0x3FC0, { .fields = { 16, 112 } }, 144, -16, 625, { .fields = { 112, 112 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
     { 143, 0x3FC0, { .fields = { 16, 104 } }, 128, -16, 750, { .fields = { 96, 104 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
@@ -1116,57 +1198,79 @@ SpriteSource D_neo_ark_submarine_tunnel_80186320[104] = {
     { 142, 0x4040, { .fields = { 8, 80 } }, -160, -120, 225, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_submarine_tunnel_80186B40[5] = {
+/// Sprite ranges for mapped view 9, ending at SPRITE_BATCH_END.
+///
+/// The initial empty range keeps the decoded background image visible.
+/// Later ranges index the matching source array in elements.
+static SpriteBatch _gNeoArkSubmarineTunnelView9SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 52, 0, 0, { 1, 0 } },
     { 52, 0, 0, 0, { 2, 0 } },
-    { 52, 52, 0, 0, { 0, 0 } },
+    { 52, ARRAY_SIZE(_gNeoArkSubmarineTunnelView9SpriteSources) - 52, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_submarine_tunnel_80186B68[2] = {
+/// Background-image-only batch list for mapped view 10; selects no source sprites.
+static SpriteBatch _gNeoArkSubmarineTunnelView10SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 SpriteView D_neo_ark_submarine_tunnel_80186B78[10] = {
-    { { .empty = D_neo_ark_submarine_tunnel_80182668 }, D_neo_ark_submarine_tunnel_80182668, NULL },
-    { { .elements = D_neo_ark_submarine_tunnel_80182678 }, D_neo_ark_submarine_tunnel_80183190, NULL },
-    { { .elements = D_neo_ark_submarine_tunnel_801831C0 }, D_neo_ark_submarine_tunnel_80183D00, NULL },
-    { { .elements = D_neo_ark_submarine_tunnel_80183D30 }, D_neo_ark_submarine_tunnel_80184834, NULL },
-    { { .elements = D_neo_ark_submarine_tunnel_80184864 }, D_neo_ark_submarine_tunnel_8018528C, NULL },
-    { { .empty = D_neo_ark_submarine_tunnel_801852BC }, D_neo_ark_submarine_tunnel_801852BC, NULL },
-    { { .elements = D_neo_ark_submarine_tunnel_801852CC }, D_neo_ark_submarine_tunnel_80185A38, NULL },
-    { { .elements = D_neo_ark_submarine_tunnel_80185A60 }, D_neo_ark_submarine_tunnel_801862F8, NULL },
-    { { .elements = D_neo_ark_submarine_tunnel_80186320 }, D_neo_ark_submarine_tunnel_80186B40, NULL },
-    { { .empty = D_neo_ark_submarine_tunnel_80186B68 }, D_neo_ark_submarine_tunnel_80186B68, NULL },
+    { { .empty = _gNeoArkSubmarineTunnelView1SpriteBatches }, _gNeoArkSubmarineTunnelView1SpriteBatches, NULL },
+    { { .elements = _gNeoArkSubmarineTunnelView2SpriteSources }, _gNeoArkSubmarineTunnelView2SpriteBatches, NULL },
+    { { .elements = _gNeoArkSubmarineTunnelView3SpriteSources }, _gNeoArkSubmarineTunnelView3SpriteBatches, NULL },
+    { { .elements = _gNeoArkSubmarineTunnelView4SpriteSources }, _gNeoArkSubmarineTunnelView4SpriteBatches, NULL },
+    { { .elements = _gNeoArkSubmarineTunnelView5SpriteSources }, _gNeoArkSubmarineTunnelView5SpriteBatches, NULL },
+    { { .empty = _gNeoArkSubmarineTunnelView6SpriteBatches }, _gNeoArkSubmarineTunnelView6SpriteBatches, NULL },
+    { { .elements = _gNeoArkSubmarineTunnelView7SpriteSources }, _gNeoArkSubmarineTunnelView7SpriteBatches, NULL },
+    { { .elements = _gNeoArkSubmarineTunnelView8SpriteSources }, _gNeoArkSubmarineTunnelView8SpriteBatches, NULL },
+    { { .elements = _gNeoArkSubmarineTunnelView9SpriteSources }, _gNeoArkSubmarineTunnelView9SpriteBatches, NULL },
+    { { .empty = _gNeoArkSubmarineTunnelView10SpriteBatches }, _gNeoArkSubmarineTunnelView10SpriteBatches, NULL },
 };
 
-WorldCoordLight D_neo_ark_submarine_tunnel_80186BF0[4] = {
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 100, 100, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1642, 2052, 1642 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -100, 100, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1642, 2052, 1642 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 100, -100 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1642, 2052, 1642 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 100, 100 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 2052, 2052 }, { 0, 0 } },
+/// Four directional lights admitted in every tunnel view.
+///
+/// Direction vectors use room coordinates and RGB intensities have 12 fractional bits.
+/// Coordinate composition and shading overwrite the transforms and attenuation.
+static WorldCoordLight _gNeoArkSubmarineTunnelDirectionalLights[] = {
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 100, 100, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1642, 2052, 1642 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -100, 100, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1642, 2052, 1642 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 100, -100 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1642, 2052, 1642 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 100, 100 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 2052, 2052 }, { 0, 0 } },
 };
 
-WorldCoordPointLight D_neo_ark_submarine_tunnel_80186D50[13] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 1000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 2052, 2052 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2710, -2000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 2052, 2052 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x2710, -2000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 2052, 2052 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -8500, -1000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 2052, 2052 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -7000, 0, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 2052, 2052 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1825, 1000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 2052, 2052 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3670, 1000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 2052, 2052 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5470, 1000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 2052, 2052 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1830, 1000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 2052, 2052 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3630, 1000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 2052, 2052 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5530, 1000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 2052, 2052 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7000, 0, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 2052, 2052 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8500, -1000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 2052, 2052 }, { 0, 0 } }, 1000, 2000 },
+/// Thirteen point lights admitted in every tunnel view.
+///
+/// Positions and falloff radii use room-coordinate units: full strength within
+/// 1000 units, fading to zero at 2000. RGB intensities have 12 fractional bits;
+/// coordinate composition and shading overwrite the transforms and attenuation.
+static WorldCoordPointLight _gNeoArkSubmarineTunnelPointLights[] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 1000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 2052, 2052 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2710, -2000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 2052, 2052 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x2710, -2000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 2052, 2052 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -8500, -1000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 2052, 2052 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -7000, 0, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 2052, 2052 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -1825, 1000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 2052, 2052 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -3670, 1000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 2052, 2052 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -5470, 1000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 2052, 2052 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1830, 1000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 2052, 2052 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3630, 1000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 2052, 2052 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5530, 1000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 2052, 2052 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7000, 0, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 2052, 2052 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8500, -1000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 2052, 2052 }, { 0, 0 } }, 1000, 2000 },
 };
 
-WorldCoordRoomLights D_neo_ark_submarine_tunnel_80187230[1] = {
-    { ARRAY_SIZE(D_neo_ark_submarine_tunnel_80186BF0), D_neo_ark_submarine_tunnel_80186BF0, ARRAY_SIZE(D_neo_ark_submarine_tunnel_80186D50), D_neo_ark_submarine_tunnel_80186D50, 0, NULL },
+/// The tunnel room's four directional and thirteen point lights, with no cone lights.
+///
+/// Borrows writable light arrays whose transforms and attenuation change during play.
+static WorldCoordRoomLights _gNeoArkSubmarineTunnelRoomLights = {
+    .directionalLightCount = ARRAY_SIZE(_gNeoArkSubmarineTunnelDirectionalLights),
+    .directionalLights     = _gNeoArkSubmarineTunnelDirectionalLights,
+    .pointLightCount       = ARRAY_SIZE(_gNeoArkSubmarineTunnelPointLights),
+    .pointLights           = _gNeoArkSubmarineTunnelPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 WorldCollisionTrigger D_neo_ark_submarine_tunnel_80187248[6] = {
@@ -1234,29 +1338,50 @@ WorldCollisionOccluder D_neo_ark_submarine_tunnel_8018781C[3] = {
     { NULL, NULL, { 0, 1920, -832, 0 }, { { -0x2720, -1459, 208, 0 }, { 0x2720, -1459, 208, 0 }, { -0x2720, 1458, -209, 0 }, { 0x2720, 1458, -209, 0 } }, { 0, -580, -4055, 0 }, 10084, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCollisionFootstepSounds D_neo_ark_submarine_tunnel_801878D0 = {
-    0x10000015,
-    0x10000017,
-    0x10000015,
+enum {
+    NEO_ARK_SUBMARINE_TUNNEL_SURFACE_4_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 21,
+    NEO_ARK_SUBMARINE_TUNNEL_SURFACE_4_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 23,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_submarine_tunnel_801878DC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Surface-class-4 footstep cue bases from the loaded type-1 sound-script bank.
+///
+/// Walking and scripted jumps share a pair; running selects the next pair.
+/// The player adds one for cue 1 and 100 for companion cues. Keep the room loaded.
+static const WorldCollisionFootstepSounds _gNeoArkSubmarineTunnelSurface4FootstepSounds __attribute__((section(".data"))) = {
+    .walk         = NEO_ARK_SUBMARINE_TUNNEL_SURFACE_4_WALK_SOUND,
+    .run          = NEO_ARK_SUBMARINE_TUNNEL_SURFACE_4_RUN_SOUND,
+    .scriptedJump = NEO_ARK_SUBMARINE_TUNNEL_SURFACE_4_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_submarine_tunnel_801878E4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_submarine_tunnel_801878D0 },
+/// Blocking, impact-enabled surface policies for classes without footstep cues.
+static WorldCollisionSurfaceProperties _gNeoArkSubmarineTunnelDefaultSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_neo_ark_submarine_tunnel_801878EC[8] = {
-    D_neo_ark_submarine_tunnel_801878DC,
-    D_neo_ark_submarine_tunnel_801878DC,
-    D_neo_ark_submarine_tunnel_801878DC,
-    D_neo_ark_submarine_tunnel_801878DC,
-    D_neo_ark_submarine_tunnel_801878E4,
-    D_neo_ark_submarine_tunnel_801878DC,
-    D_neo_ark_submarine_tunnel_801878DC,
-    D_neo_ark_submarine_tunnel_801878DC,
+/// Surface-class-4 collision policies and paired footstep cues.
+///
+/// Blocks probes, permits weapon impacts and applies collision pushback.
+static WorldCollisionSurfaceProperties _gNeoArkSubmarineTunnelSurface4Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gNeoArkSubmarineTunnelSurface4FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gNeoArkSubmarineTunnelSurfaceProperties[NEO_ARK_SUBMARINE_TUNNEL_SURFACE_CLASS_COUNT] = {
+    &_gNeoArkSubmarineTunnelDefaultSurfaceProperties,
+    &_gNeoArkSubmarineTunnelDefaultSurfaceProperties,
+    &_gNeoArkSubmarineTunnelDefaultSurfaceProperties,
+    &_gNeoArkSubmarineTunnelDefaultSurfaceProperties,
+    &_gNeoArkSubmarineTunnelSurface4Properties,
+    &_gNeoArkSubmarineTunnelDefaultSurfaceProperties,
+    &_gNeoArkSubmarineTunnelDefaultSurfaceProperties,
+    &_gNeoArkSubmarineTunnelDefaultSurfaceProperties,
 };
 
 ScreenWaveCtx* gScreenWaveCtx = NULL;
