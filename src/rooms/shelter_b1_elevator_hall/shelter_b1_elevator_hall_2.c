@@ -41,6 +41,7 @@
 #include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
+#include "main/sound_types.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
@@ -57,11 +58,21 @@
 /// Per-index shifts applied to the flash brightness, one per colour channel.
 
 // Indexed views below share one contiguous table.
-extern WorldCollisionGrid     D_shelter_b1_elevator_hall_80183414[1];
+static WorldCollisionGrid     _gShelterB1ElevatorHallCollisionGrid;
 extern WorldCollisionOccluder D_shelter_b1_elevator_hall_80184748[1];
 extern WorldCollisionTrigger  D_shelter_b1_elevator_hall_80184288[10];
 extern WorldCollisionTrigger  D_shelter_b1_elevator_hall_80184580[6];
-extern WorldCoordRoomLights   D_shelter_b1_elevator_hall_80184270[1];
+static WorldCoordRoomLights   _gShelterB1ElevatorHallRoomLights;
+
+enum {
+    SHELTER_B1_ELEVATOR_HALL_GRID_CELLS_X      = 7,
+    SHELTER_B1_ELEVATOR_HALL_GRID_CELLS_Z      = 2,
+    SHELTER_B1_ELEVATOR_HALL_GRID_CELL_SIZE    = 4000,
+    SHELTER_B1_ELEVATOR_HALL_SURFACE1_WALK_CUE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x59,
+    SHELTER_B1_ELEVATOR_HALL_SURFACE1_RUN_CUE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5B,
+    SHELTER_B1_ELEVATOR_HALL_SURFACE2_WALK_CUE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5D,
+    SHELTER_B1_ELEVATOR_HALL_SURFACE2_RUN_CUE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5F,
+};
 
 TaskDesc D_shelter_b1_elevator_hall_80182CAC = { { { TASK_BODY_NONE, 32 } }, shelterElevatorTask, { .value = 0 } };
 
@@ -76,35 +87,25 @@ TaskMessageEntry D_shelter_b1_elevator_hall_80182CB8[6] = {
 
 TaskDesc D_shelter_b1_elevator_hall_80182CE8 = { { { TASK_BODY_NONE, 32 } }, shelterB1ElevatorHallMineTransitTask, { .value = 0 } };
 
-SVECTOR D_shelter_b1_elevator_hall_80182CF4[28] = {
-    { -8833, -620, -1755, 0 },
-    { -8166, -620, -1755, 0 },
-    { -4828, -620, -1755, 0 },
-    { -4165, -620, -1755, 0 },
-    { -828, -620, -1755, 0 },
-    { -165, -620, -1755, 0 },
-    { 2165, -620, -1755, 0 },
-    { 2833, -620, -1755, 0 },
-    { 6165, -620, -1755, 0 },
-    { 6833, -620, -1755, 0 },
-    { 9165, -620, -1755, 0 },
-    { 9833, -620, -1755, 0 },
-    { -828, -620, 1759, 0 },
-    { -165, -620, 1759, 0 },
-    { 2165, -620, 1759, 0 },
-    { 2833, -620, 1759, 0 },
-    { 4726, -620, 2658, 0 },
-    { 4726, -620, 3269, 0 },
-    { 10749, -620, 2564, 0 },
-    { 10749, -620, 3176, 0 },
-    { -4125, -2399, 1652, 0 },
-    { -3753, -2399, 1652, 0 },
-    { 10537, -2376, -252, 0 },
-    { 10537, -2376, -734, 0 },
-    { 10575, -2526, 3841, 0 },
-    { 10575, -2526, 4301, 0 },
-    { -10963, -998, 1157, 0 },
-    { -10695, -998, 1157, 0 },
+/// World-space endpoint pairs for the hall's additive capsule glows.
+///
+/// Each row supplies two signed game-coordinate positions to one capsule.
+/// View selection borrows subsets while this room overlay remains loaded.
+static SVECTOR _gShelterB1ElevatorHallGlowEndpointPairs[14][2] = {
+    { { -8833, -620, -1755, 0 }, { -8166, -620, -1755, 0 } },
+    { { -4828, -620, -1755, 0 }, { -4165, -620, -1755, 0 } },
+    { { -828, -620, -1755, 0 }, { -165, -620, -1755, 0 } },
+    { { 2165, -620, -1755, 0 }, { 2833, -620, -1755, 0 } },
+    { { 6165, -620, -1755, 0 }, { 6833, -620, -1755, 0 } },
+    { { 9165, -620, -1755, 0 }, { 9833, -620, -1755, 0 } },
+    { { -828, -620, 1759, 0 }, { -165, -620, 1759, 0 } },
+    { { 2165, -620, 1759, 0 }, { 2833, -620, 1759, 0 } },
+    { { 4726, -620, 2658, 0 }, { 4726, -620, 3269, 0 } },
+    { { 10749, -620, 2564, 0 }, { 10749, -620, 3176, 0 } },
+    { { -4125, -2399, 1652, 0 }, { -3753, -2399, 1652, 0 } },
+    { { 10537, -2376, -252, 0 }, { 10537, -2376, -734, 0 } },
+    { { 10575, -2526, 3841, 0 }, { 10575, -2526, 4301, 0 } },
+    { { -10963, -998, 1157, 0 }, { -10695, -998, 1157, 0 } },
 };
 
 #define ROOM_FX_HALO_STORAGE_INITIALIZER { { { 0, 1, 2 }, { 2, 1, 0 }, { 0, 2, 1 } }, 0x90EE }
@@ -125,15 +126,15 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-WorldCoordRoomLighting D_shelter_b1_elevator_hall_80182DF8[1] = {
-    { D_shelter_b1_elevator_hall_80184270, NULL },
+WorldCoordRoomLighting gShelterB1ElevatorHallRoomLighting[1] = {
+    { &_gShelterB1ElevatorHallRoomLights, NULL },
 };
 
 WorldCollisionRoomResources D_shelter_b1_elevator_hall_80182E00[1] = {
-    { D_shelter_b1_elevator_hall_80183414, D_shelter_b1_elevator_hall_80184288, D_shelter_b1_elevator_hall_80184580, D_shelter_b1_elevator_hall_80184748 },
+    { &_gShelterB1ElevatorHallCollisionGrid, D_shelter_b1_elevator_hall_80184288, D_shelter_b1_elevator_hall_80184580, D_shelter_b1_elevator_hall_80184748 },
 };
 
-u8* D_shelter_b1_elevator_hall_80182E10[1] = {
+u8* gShelterB1ElevatorHallRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -146,34 +147,53 @@ DirectionWarpEntry D_shelter_b1_elevator_hall_80182E18[4] = {
     { { { .word = 3072 }, 9950, 0, 3740 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 9950, 0, 3740 }, { 0, 0, 0, 0 }, 0x54090005, 0x54090004, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gShelterB1ElevatorHallCollision05E54Normals[8] = {
+/// Room-space collision normals, with 4096 units per unit length.
+static SVECTOR _gShelterB1ElevatorHallCollisionGridNormals[8] = {
 #include "assets/shelter_b1_elevator_hall_collision_05E54_normals.inc"
 };
 
-static SVECTOR _gShelterB1ElevatorHallCollision05E54Verts[58] = {
+/// Collision vertex pool in signed room-coordinate units.
+static SVECTOR _gShelterB1ElevatorHallCollisionGridVerts[58] = {
 #include "assets/shelter_b1_elevator_hall_collision_05E54_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB1ElevatorHallCollision05E54Faces[32] = {
+/// Indexed collision quads carrying the hall's surface classes 0..2.
+static WorldCollisionGridFace _gShelterB1ElevatorHallCollisionGridFaces[32] = {
 #include "assets/shelter_b1_elevator_hall_collision_05E54_faces.inc"
 };
 
-static s16 _gShelterB1ElevatorHallCollision05E54Cells[170] = {
+/// Packed cell face-index lists, each ending in WORLD_COLLISION_GRID_CELL_END.
+static s16 _gShelterB1ElevatorHallCollisionGridCells[170] = {
 #include "assets/shelter_b1_elevator_hall_collision_05E54_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB1ElevatorHallCollision05E54Cells[i])
-static s16* _gShelterB1ElevatorHallCollision05E54Table[14] = {
+#define GRID_CELL(i) (&_gShelterB1ElevatorHallCollisionGridCells[i])
+/// X-major directory of the collision grid's 7 by 2 cell lists.
+static s16* _gShelterB1ElevatorHallCollisionGridTable[SHELTER_B1_ELEVATOR_HALL_GRID_CELLS_X * SHELTER_B1_ELEVATOR_HALL_GRID_CELLS_Z] = {
 #include "assets/shelter_b1_elevator_hall_collision_05E54_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b1_elevator_hall_80183414[1] = {
-    { NULL, _gShelterB1ElevatorHallCollision05E54Normals, _gShelterB1ElevatorHallCollision05E54Verts, _gShelterB1ElevatorHallCollision05E54Faces, _gShelterB1ElevatorHallCollision05E54Table, 0x33A6, 1641, 7, 2, 4000, 32 },
+/// The hall's collision mesh and square-cell index in room coordinates.
+///
+/// Activation borrows the current view coordinate; all mesh storage remains
+/// in this overlay until the active grid is replaced before unloading.
+static WorldCollisionGrid _gShelterB1ElevatorHallCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB1ElevatorHallCollisionGridNormals,
+    .vertices    = _gShelterB1ElevatorHallCollisionGridVerts,
+    .faces       = _gShelterB1ElevatorHallCollisionGridFaces,
+    .cellFaceIds = _gShelterB1ElevatorHallCollisionGridTable,
+    .xBias       = 13222,
+    .zBias       = 1641,
+    .cellCountX  = SHELTER_B1_ELEVATOR_HALL_GRID_CELLS_X,
+    .cellCountZ  = SHELTER_B1_ELEVATOR_HALL_GRID_CELLS_Z,
+    .cellSize    = SHELTER_B1_ELEVATOR_HALL_GRID_CELL_SIZE,
+    .faceCount   = ARRAY_SIZE(_gShelterB1ElevatorHallCollisionGridFaces),
 };
 
-ViewCamera D_shelter_b1_elevator_hall_80183438[9] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 20, 0x7530, -1740 } }, 329 },
+ViewCamera gShelterB1ElevatorHallViewCameras[9] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 20, 0x7530, -1740 } }, 329 },
     { { { { 1125, 0, 3938 }, { 1740, 3674, -497 }, { -3532, 1810, 1009 } }, { 5854, 2660, 842 } }, 230 },
     { { { { 1121, 0, 3939 }, { 444, 4069, -126 }, { -3914, 462, 1114 } }, { 561, 1452, 741 } }, 230 },
     { { { { 1056, 0, 3957 }, { 339, 4080, -90 }, { -3942, 350, 1052 } }, { -2895, 1369, 969 } }, 230 },
@@ -184,184 +204,208 @@ ViewCamera D_shelter_b1_elevator_hall_80183438[9] = {
     { { { { 4070, 0, 459 }, { 337, 2784, -2984 }, { -312, 3003, 2767 } }, { 0x29F8, 1700, -374 } }, 257 },
 };
 
-SpriteBatch D_shelter_b1_elevator_hall_8018357C[2] = {
+/// Background-only batch list for mapped view 1; the terminal record selects no sprites.
+static SpriteBatch _gShelterB1ElevatorHallView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b1_elevator_hall_8018358C[47] = {
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -96, 8, 1138, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -96, -64, 1018, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, -96, -120, 3430, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 56 } }, -128, -120, 984, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -128, -64, 1000, { .fields = { 40, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -120, -32, 3744, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -120, 8, 3708, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -72, -120, 0, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -72, -80, 0, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, -24, 1106, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, -40, 0, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -72, -8, 1123, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -72, 16, 1170, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -96, -32, 1033, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -88, -16, 1126, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, -16, 1113, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, 8, 1164, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -160, -32, 1042, { .fields = { 16, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, -160, -16, 1170, { .fields = { 24, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, -80, 952, { .fields = { 24, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, -64, 1048, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -160, -120, 968, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -72, 32, 0x30D4, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -64, 32, 0x30D4, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -96, 32, 0, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -88, 24, 1145, { .fields = { 40, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -88, 16, 1121, { .fields = { 40, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -88, 8, 1102, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, 8, 1101, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -96, -16, 0, { .fields = { 40, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -80, -16, 1123, { .fields = { 24, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -64, -8, 1121, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -72, -8, 1121, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -96, -8, 1119, { .fields = { 24, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -96, 0, 1088, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, 16, 1121, { .fields = { 72, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, 16, 1123, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 32 } }, -128, -72, 1053, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 24 } }, -128, 24, 1141, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 32 } }, -112, -40, 1064, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 32 } }, -128, -40, 1031, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 32 } }, -112, -8, 1136, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 32 } }, -128, -8, 1167, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 32 } }, -104, -40, 1055, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 32 } }, -104, -8, 1139, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 32, 24 } }, -160, -40, 1128, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 32, 40 } }, -160, -80, 1112, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
+/// Depth-sorted foreground rectangles for mapped view 2, in view-centred pixels.
+static SpriteSource _gShelterB1ElevatorHallView2SpriteSources[47] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, -96, 8, 1138, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, -96, -64, 1018, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 56 } }, -96, -120, 3430, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 56 } }, -128, -120, 984, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 32 } }, -128, -64, 1000, { .fields = { 40, 32 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, -120, -32, 3744, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, -120, 8, 3708, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -72, -120, 0, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -72, -80, 0, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -72, -24, 1106, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -72, -40, 0, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -72, -8, 1123, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -72, 16, 1170, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 16 } }, -96, -32, 1033, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -88, -16, 1126, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -96, -16, 1113, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -160, 8, 1164, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 16 } }, -160, -32, 1042, { .fields = { 16, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 24 } }, -160, -16, 1170, { .fields = { 24, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, -160, -80, 952, { .fields = { 24, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 32 } }, -160, -64, 1048, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, -160, -120, 968, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -72, 32, 0x30D4, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -64, 32, 0x30D4, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -96, 32, 0, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -88, 24, 1145, { .fields = { 40, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -88, 16, 1121, { .fields = { 40, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -88, 8, 1102, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -96, 8, 1101, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -96, -16, 0, { .fields = { 40, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -80, -16, 1123, { .fields = { 24, 8 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -64, -8, 1121, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -72, -8, 1121, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -96, -8, 1119, { .fields = { 24, 16 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -96, 0, 1088, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -64, 16, 1121, { .fields = { 72, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -72, 16, 1123, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 24, 32 } }, -128, -72, 1053, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 24, 24 } }, -128, 24, 1141, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 8, 32 } }, -112, -40, 1064, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 16, 32 } }, -128, -40, 1031, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 8, 32 } }, -112, -8, 1136, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 16, 32 } }, -128, -8, 1167, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 8, 32 } }, -104, -40, 1055, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 8, 32 } }, -104, -8, 1139, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 32, 24 } }, -160, -40, 1128, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 32, 40 } }, -160, -80, 1112, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b1_elevator_hall_80183938[5] = {
+/// Background selector and three foreground source ranges for mapped view 2.
+static SpriteBatch _gShelterB1ElevatorHallView2SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 22, 0, 0, { 2, 0 } },
     { 22, 15, 0, 0, { 1, 0 } },
-    { 37, 10, 0, 0, { 0, 0 } },
+    { 37, ARRAY_SIZE(_gShelterB1ElevatorHallView2SpriteSources) - 37, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_elevator_hall_80183960[2] = {
+/// Background-only batch list for mapped view 3; the terminal record selects no sprites.
+static SpriteBatch _gShelterB1ElevatorHallView3SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_elevator_hall_80183970[2] = {
+/// Background-only batch list for mapped view 4; the terminal record selects no sprites.
+static SpriteBatch _gShelterB1ElevatorHallView4SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b1_elevator_hall_80183980[9] = {
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -88, -48, 1375, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -88, 0, 1375, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -56, 0, 1650, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -56, -48, 1625, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -32, 0, 1730, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -32, -48, 1674, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -16, -48, 1863, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -16, 0, 1887, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -8, 16, 1892, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
+/// Depth-sorted foreground rectangles for mapped view 5, in view-centred pixels.
+static SpriteSource _gShelterB1ElevatorHallView5SpriteSources[9] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 48 } }, -88, -48, 1375, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 48 } }, -88, 0, 1375, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 48 } }, -56, 0, 1650, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 48 } }, -56, -48, 1625, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, -32, 0, 1730, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, -32, -48, 1674, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, -16, -48, 1863, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -16, 0, 1887, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -8, 16, 1892, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b1_elevator_hall_80183A34[3] = {
+/// Background selector and the complete foreground source range for mapped view 5.
+static SpriteBatch _gShelterB1ElevatorHallView5SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 9, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB1ElevatorHallView5SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteDrawArea D_shelter_b1_elevator_hall_80183A4C[2] = {
+/// Mapped view 5 clip in draw-buffer pixels, restored at unscaled sorting depth 1870.
+static SpriteDrawArea _gShelterB1ElevatorHallView5DrawAreas[2] = {
     { { 150, 64, 84, 92 }, 1870 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteBatch D_shelter_b1_elevator_hall_80183A60[2] = {
+/// Background-only batch list for mapped view 6; the terminal record selects no sprites.
+static SpriteBatch _gShelterB1ElevatorHallView6SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_elevator_hall_80183A70[2] = {
+/// Background-only batch list for mapped view 7; the terminal record selects no sprites.
+static SpriteBatch _gShelterB1ElevatorHallView7SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b1_elevator_hall_80183A80[27] = {
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 120, 8, 0, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 120, -104, 0, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 128, -96, 0, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 120, -120, 650, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 128, -104, 669, { .fields = { 72, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 136, -96, 647, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 136, -80, 649, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 128, -72, 655, { .fields = { 72, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 152, -64, 460, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 152, -8, 494, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 152, 40, 624, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 152, 80, 517, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 144, 72, 608, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 144, 32, 676, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 144, -16, 499, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 144, -64, 492, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 136, -64, 645, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 136, 56, 679, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 128, 56, 700, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 128, 16, 768, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 128, -24, 681, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 128, -64, 673, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 120, -64, 0, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 120, -32, 716, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 120, 72, 712, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 136, 16, 696, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 136, -24, 516, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+/// Depth-sorted foreground rectangles for mapped view 8, in view-centred pixels.
+static SpriteSource _gShelterB1ElevatorHallView8SpriteSources[27] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 64 } }, 120, 8, 0, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 120, -104, 0, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 128, -96, 0, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 16 } }, 120, -120, 650, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, 128, -104, 669, { .fields = { 72, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 16 } }, 136, -96, 647, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, 136, -80, 649, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, 128, -72, 655, { .fields = { 72, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, 152, -64, 460, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, 152, -8, 494, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 152, 40, 624, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 152, 80, 517, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 144, 72, 608, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 144, 32, 676, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, 144, -16, 499, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, 144, -64, 492, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 136, -64, 645, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, 136, 56, 679, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, 128, 56, 700, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 128, 16, 768, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 128, -24, 681, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 128, -64, 673, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 120, -64, 0, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 120, -32, 716, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 120, 72, 712, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 136, 16, 696, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 136, -24, 516, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b1_elevator_hall_80183C9C[3] = {
+/// Background selector and the complete foreground source range for mapped view 8.
+static SpriteBatch _gShelterB1ElevatorHallView8SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 27, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB1ElevatorHallView8SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_elevator_hall_80183CB4[2] = {
+/// Background-only batch list for mapped view 9; the terminal record selects no sprites.
+static SpriteBatch _gShelterB1ElevatorHallView9SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_shelter_b1_elevator_hall_80183CC4[9] = {
-    { { .empty = D_shelter_b1_elevator_hall_8018357C }, D_shelter_b1_elevator_hall_8018357C, NULL },
-    { { .elements = D_shelter_b1_elevator_hall_8018358C }, D_shelter_b1_elevator_hall_80183938, NULL },
-    { { .empty = D_shelter_b1_elevator_hall_80183960 }, D_shelter_b1_elevator_hall_80183960, NULL },
-    { { .empty = D_shelter_b1_elevator_hall_80183970 }, D_shelter_b1_elevator_hall_80183970, NULL },
-    { { .elements = D_shelter_b1_elevator_hall_80183980 }, D_shelter_b1_elevator_hall_80183A34, D_shelter_b1_elevator_hall_80183A4C },
-    { { .empty = D_shelter_b1_elevator_hall_80183A60 }, D_shelter_b1_elevator_hall_80183A60, NULL },
-    { { .empty = D_shelter_b1_elevator_hall_80183A70 }, D_shelter_b1_elevator_hall_80183A70, NULL },
-    { { .elements = D_shelter_b1_elevator_hall_80183A80 }, D_shelter_b1_elevator_hall_80183C9C, NULL },
-    { { .empty = D_shelter_b1_elevator_hall_80183CB4 }, D_shelter_b1_elevator_hall_80183CB4, NULL },
+SpriteView gShelterB1ElevatorHallSpriteViews[9] = {
+    { { .empty = _gShelterB1ElevatorHallView1SpriteBatches }, _gShelterB1ElevatorHallView1SpriteBatches, NULL },
+    { { .elements = _gShelterB1ElevatorHallView2SpriteSources }, _gShelterB1ElevatorHallView2SpriteBatches, NULL },
+    { { .empty = _gShelterB1ElevatorHallView3SpriteBatches }, _gShelterB1ElevatorHallView3SpriteBatches, NULL },
+    { { .empty = _gShelterB1ElevatorHallView4SpriteBatches }, _gShelterB1ElevatorHallView4SpriteBatches, NULL },
+    { { .elements = _gShelterB1ElevatorHallView5SpriteSources }, _gShelterB1ElevatorHallView5SpriteBatches, _gShelterB1ElevatorHallView5DrawAreas },
+    { { .empty = _gShelterB1ElevatorHallView6SpriteBatches }, _gShelterB1ElevatorHallView6SpriteBatches, NULL },
+    { { .empty = _gShelterB1ElevatorHallView7SpriteBatches }, _gShelterB1ElevatorHallView7SpriteBatches, NULL },
+    { { .elements = _gShelterB1ElevatorHallView8SpriteSources }, _gShelterB1ElevatorHallView8SpriteBatches, NULL },
+    { { .empty = _gShelterB1ElevatorHallView9SpriteBatches }, _gShelterB1ElevatorHallView9SpriteBatches, NULL },
 };
 
-WorldCoordPointLight D_shelter_b1_elevator_hall_80183D30[14] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -494, -601, -1312 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1800 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1443, -601, -1312 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1800 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6522, -601, -211 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1800 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9439, -601, -491 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1800 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9174, -601, 1918 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1800 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5099, -601, 2541 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1800 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1370, -601, 1216 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1800 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -103, -601, 1216 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1800 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x2827, -2031, 94 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4197, -5422, 94 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 2000, 7641 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2390, -5242, 94 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3532, 3583, 3528 }, { 0, 0 } }, 2000, 6000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8692, -5422, 1815 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 2000, 7341 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -8238, -601, -1312 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1800 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4076, -601, -1312 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1800 },
+/// Fourteen mutable world-space point lights for actor shading in every hall view.
+///
+/// RGB intensities use twelve fractional bits; inner and outer falloff radii
+/// use world-coordinate units. Coordinate setup and shading overwrite parent,
+/// composition and attenuation state while the room overlay is loaded.
+static WorldCoordPointLight _gShelterB1ElevatorHallPointLights[14] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -494, -601, -1312 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1800 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1443, -601, -1312 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1800 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6522, -601, -211 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1800 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 9439, -601, -491 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1800 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 9174, -601, 1918 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1800 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5099, -601, 2541 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1800 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1370, -601, 1216 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1800 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -103, -601, 1216 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1800 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x2827, -2031, 94 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -4197, -5422, 94 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 2000, 7641 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2390, -5242, 94 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3532, 3583, 3528 }, { 0, 0 } }, 2000, 6000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8692, -5422, 1815 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 2000, 7341 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -8238, -601, -1312 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1800 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -4076, -601, -1312 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1800 },
 };
 
-WorldCoordRoomLights D_shelter_b1_elevator_hall_80184270[1] = {
-    { 0, NULL, ARRAY_SIZE(D_shelter_b1_elevator_hall_80183D30), D_shelter_b1_elevator_hall_80183D30, 0, NULL },
+/// The hall's point-light collection, with no directional or cone lights.
+static WorldCoordRoomLights _gShelterB1ElevatorHallRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gShelterB1ElevatorHallPointLights),
+    .pointLights           = _gShelterB1ElevatorHallPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 WorldCollisionTrigger D_shelter_b1_elevator_hall_80184288[10] = {
@@ -459,39 +503,56 @@ AreaVariant D_shelter_b1_elevator_hall_80184940[12] = {
     { D_shelter_b1_elevator_hall_80184910, D_shelter_b1_elevator_hall_801847CC },
 };
 
-WorldCollisionFootstepSounds D_shelter_b1_elevator_hall_801849A0 = {
-    0x10000059,
-    0x1000005B,
-    0x10000059,
+/// Surface-class-1 cue-2 bases in the loaded type-1 bank; cue 1 uses the next entry.
+static WorldCollisionFootstepSounds _gShelterB1ElevatorHallSurface1Footsteps = {
+    .walk         = SHELTER_B1_ELEVATOR_HALL_SURFACE1_WALK_CUE,
+    .run          = SHELTER_B1_ELEVATOR_HALL_SURFACE1_RUN_CUE,
+    .scriptedJump = SHELTER_B1_ELEVATOR_HALL_SURFACE1_WALK_CUE,
 };
 
-WorldCollisionFootstepSounds D_shelter_b1_elevator_hall_801849AC = {
-    0x1000005D,
-    0x1000005F,
-    0x1000005D,
+/// Surface-class-2 cue-2 bases in the loaded type-1 bank; cue 1 uses the next entry.
+static WorldCollisionFootstepSounds _gShelterB1ElevatorHallSurface2Footsteps = {
+    .walk         = SHELTER_B1_ELEVATOR_HALL_SURFACE2_WALK_CUE,
+    .run          = SHELTER_B1_ELEVATOR_HALL_SURFACE2_RUN_CUE,
+    .scriptedJump = SHELTER_B1_ELEVATOR_HALL_SURFACE2_WALK_CUE,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b1_elevator_hall_801849B8[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Blocking, pushback-enabled surfaces without footstep cues (classes 0 and 3..7).
+static WorldCollisionSurfaceProperties _gShelterB1ElevatorHallSilentSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b1_elevator_hall_801849C0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b1_elevator_hall_801849A0 },
+/// Blocking floor surface class 1, with pushback and its walk/run cue pairs.
+static WorldCollisionSurfaceProperties _gShelterB1ElevatorHallSurface1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB1ElevatorHallSurface1Footsteps,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b1_elevator_hall_801849C8[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b1_elevator_hall_801849AC },
+/// Blocking floor surface class 2, with pushback and its distinct walk/run cue pairs.
+static WorldCollisionSurfaceProperties _gShelterB1ElevatorHallSurface2Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB1ElevatorHallSurface2Footsteps,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_b1_elevator_hall_801849D0[8] = {
-    D_shelter_b1_elevator_hall_801849B8,
-    D_shelter_b1_elevator_hall_801849C0,
-    D_shelter_b1_elevator_hall_801849C8,
-    D_shelter_b1_elevator_hall_801849B8,
-    D_shelter_b1_elevator_hall_801849B8,
-    D_shelter_b1_elevator_hall_801849B8,
-    D_shelter_b1_elevator_hall_801849B8,
-    D_shelter_b1_elevator_hall_801849B8,
+WorldCollisionSurfaceProperties* gShelterB1ElevatorHallSurfacePropertiesByClass[8] = {
+    &_gShelterB1ElevatorHallSilentSurfaceProperties,
+    &_gShelterB1ElevatorHallSurface1Properties,
+    &_gShelterB1ElevatorHallSurface2Properties,
+    &_gShelterB1ElevatorHallSilentSurfaceProperties,
+    &_gShelterB1ElevatorHallSilentSurfaceProperties,
+    &_gShelterB1ElevatorHallSilentSurfaceProperties,
+    &_gShelterB1ElevatorHallSilentSurfaceProperties,
+    &_gShelterB1ElevatorHallSilentSurfaceProperties,
 };
 
 RoomFadeStorage D_shelter_b1_elevator_hall_801849F0;
@@ -530,51 +591,51 @@ void shelterB1ElevatorHallDrawGlowsTask(Task* task)
     // Select endpoint pairs visible in this view; each draw reads two consecutive points.
     switch (viewGetMappedIndex() & 0xFF) {
         case 2:
-            _glowDrawCapsule(&D_shelter_b1_elevator_hall_80182CF4[0], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
-            _glowDrawCapsule(&D_shelter_b1_elevator_hall_80182CF4[26], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_CYAN_RGB);
+            _glowDrawCapsule(_gShelterB1ElevatorHallGlowEndpointPairs[0], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
+            _glowDrawCapsule(_gShelterB1ElevatorHallGlowEndpointPairs[13], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_CYAN_RGB);
             break;
         case 3: {
-            const SVECTOR* glowPoints;
-            glowPoints = &D_shelter_b1_elevator_hall_80182CF4[2];
-            _glowDrawCapsule(&glowPoints[0], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
-            _glowDrawCapsule(&glowPoints[18], GLOWS_WARM_RADIUS_SCALE, GLOWS_WARM_RGB);
+            const SVECTOR(*glowPairs)[2];
+            glowPairs = &_gShelterB1ElevatorHallGlowEndpointPairs[1];
+            _glowDrawCapsule(glowPairs[0], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
+            _glowDrawCapsule(glowPairs[9], GLOWS_WARM_RADIUS_SCALE, GLOWS_WARM_RGB);
             break;
         }
         case 4: {
-            const SVECTOR* glowPoints;
-            glowPoints = &D_shelter_b1_elevator_hall_80182CF4[4];
-            _glowDrawCapsule(&glowPoints[0], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
-            _glowDrawCapsule(&glowPoints[8], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
-            _glowDrawCapsule(&glowPoints[16], GLOWS_WARM_RADIUS_SCALE, GLOWS_WARM_RGB);
+            const SVECTOR(*glowPairs)[2];
+            glowPairs = &_gShelterB1ElevatorHallGlowEndpointPairs[2];
+            _glowDrawCapsule(glowPairs[0], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
+            _glowDrawCapsule(glowPairs[4], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
+            _glowDrawCapsule(glowPairs[8], GLOWS_WARM_RADIUS_SCALE, GLOWS_WARM_RGB);
             break;
         }
         case 5: {
-            const SVECTOR* glowPoints;
-            glowPoints = &D_shelter_b1_elevator_hall_80182CF4[6];
-            _glowDrawCapsule(&glowPoints[0], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
-            _glowDrawCapsule(&glowPoints[6], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
-            _glowDrawCapsule(&glowPoints[8], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
-            _glowDrawCapsule(&glowPoints[12], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
-            _glowDrawCapsule(&glowPoints[16], GLOWS_WARM_RADIUS_SCALE, GLOWS_WARM_RGB);
+            const SVECTOR(*glowPairs)[2];
+            glowPairs = &_gShelterB1ElevatorHallGlowEndpointPairs[3];
+            _glowDrawCapsule(glowPairs[0], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
+            _glowDrawCapsule(glowPairs[3], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
+            _glowDrawCapsule(glowPairs[4], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
+            _glowDrawCapsule(glowPairs[6], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
+            _glowDrawCapsule(glowPairs[8], GLOWS_WARM_RADIUS_SCALE, GLOWS_WARM_RGB);
             break;
         }
         case 7: {
-            const SVECTOR* glowPoints;
-            glowPoints = &D_shelter_b1_elevator_hall_80182CF4[18];
-            _glowDrawCapsule(&glowPoints[0], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
-            _glowDrawCapsule(&glowPoints[6], GLOWS_WARM_RADIUS_SCALE, GLOWS_WARM_RGB);
+            const SVECTOR(*glowPairs)[2];
+            glowPairs = &_gShelterB1ElevatorHallGlowEndpointPairs[9];
+            _glowDrawCapsule(glowPairs[0], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
+            _glowDrawCapsule(glowPairs[3], GLOWS_WARM_RADIUS_SCALE, GLOWS_WARM_RGB);
             break;
         }
         case 8: {
-            const SVECTOR* glowPoints;
-            glowPoints = &D_shelter_b1_elevator_hall_80182CF4[8];
-            _glowDrawCapsule(&glowPoints[0], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
-            _glowDrawCapsule(&glowPoints[2], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
-            _glowDrawCapsule(&glowPoints[14], GLOWS_WARM_RADIUS_SCALE, GLOWS_WARM_RGB);
+            const SVECTOR(*glowPairs)[2];
+            glowPairs = &_gShelterB1ElevatorHallGlowEndpointPairs[4];
+            _glowDrawCapsule(glowPairs[0], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
+            _glowDrawCapsule(glowPairs[1], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
+            _glowDrawCapsule(glowPairs[7], GLOWS_WARM_RADIUS_SCALE, GLOWS_WARM_RGB);
             break;
         }
         case 9:
-            _glowDrawCapsule(&D_shelter_b1_elevator_hall_80182CF4[26], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_CYAN_RGB);
+            _glowDrawCapsule(_gShelterB1ElevatorHallGlowEndpointPairs[13], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_CYAN_RGB);
             break;
     }
 }

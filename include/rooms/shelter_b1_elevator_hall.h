@@ -14,21 +14,44 @@
 extern AreaVariant D_shelter_b1_elevator_hall_80184940[12];
 
 // shelter_b1_elevator_hall
-extern WorldCoordRoomLighting D_shelter_b1_elevator_hall_80182DF8[];
+/// Lighting for the hall's single room, indexed by room ID minus one.
+///
+/// Borrows fourteen mutable point lights and uses gameplay's default ambient
+/// minima. The descriptor and light storage remain valid while this overlay is loaded.
+extern WorldCoordRoomLighting gShelterB1ElevatorHallRoomLighting[1];
 
 extern WorldCollisionRoomResources D_shelter_b1_elevator_hall_80182E00[];
 
-extern u8* D_shelter_b1_elevator_hall_80182E10[];
+/// Logical-view map for the hall's single room, indexed by room ID minus one.
+///
+/// Borrows `gViewIdentityMap`: logical views 1..9 map to the same camera,
+/// image and sprite indices. The directory belongs to this loaded overlay;
+/// the shared byte map belongs to gameplay and has no terminator.
+extern u8* gShelterB1ElevatorHallRoomViewMaps[1];
 
 extern ViewCount D_shelter_b1_elevator_hall_80182E14[];
 
 extern DirectionWarpEntry D_shelter_b1_elevator_hall_80182E18[];
 
-extern ViewCamera D_shelter_b1_elevator_hall_80183438[];
+/// Nine cameras selected by the hall's mapped view index minus one.
+///
+/// Rotations use 4096 per unit; translations are negated world-space camera
+/// origins and perspective distances are pixels. Borrow only while this overlay is loaded.
+extern ViewCamera gShelterB1ElevatorHallViewCameras[9];
 
-extern SpriteView D_shelter_b1_elevator_hall_80183CC4[];
+/// Sprite and clipping descriptors selected by mapped hall view minus one.
+///
+/// Nine slots borrow mutable source and batch storage in this overlay. Views
+/// 2, 5 and 8 add foreground sprites; view 5 also clips depth-sorted drawing.
+/// Every slot keeps decoded background strips. Keep this overlay loaded while used.
+extern SpriteView gShelterB1ElevatorHallSpriteViews[9];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b1_elevator_hall_801849D0[];
+/// Collision and footstep policies indexed by the hall's surface class 0..7.
+///
+/// Every class blocks probes, permits weapon impacts and applies pushback.
+/// Classes 1 and 2 select distinct footstep cue pairs; 0 and 3..7 are silent.
+/// The directory and borrowed records remain valid while this overlay is loaded.
+extern WorldCollisionSurfaceProperties* gShelterB1ElevatorHallSurfacePropertiesByClass[8];
 
 /// Registers the hall's room-message receiver, idles, then releases the room task.
 ///
