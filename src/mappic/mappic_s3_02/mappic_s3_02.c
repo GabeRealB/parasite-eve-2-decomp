@@ -64,32 +64,37 @@ TmdSource gMappicS302MainStreetShape = {
     .stream           = _gMappicS302MainStreetShapeStream,
 };
 
-static TmdBone _gMappicS302MappicS202Model00C48001ACSkeleton[1] = {
+/// Identity transform and self-parented root for the General Store shape.
+static TmdBone _gMappicS302GeneralStoreShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00C48_001AC_skeleton.inc"
 };
 
-static u32 _gMappicS302MappicS202Model00C48001ACPartVerts[1] = {
+/// Vertex count of the General Store shape's sole part (four vertices).
+static u32 _gMappicS302GeneralStoreShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_001AC_partVerts.inc"
 };
 
-static SVECTOR _gMappicS302MappicS202Model00C48001ACVerts[4] = {
+/// General Store's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS302GeneralStoreShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_001AC_verts.inc"
 };
 
-static u32 _gMappicS302MappicS202Model00C48001ACStream[9] = {
+/// Packed command stream for the General Store shape's single unlit quad.
+///
+/// Four SVECTOR byte offsets and white colour; two group ends precede the
+/// stream end. The map reads only the first group.
+static u32 _gMappicS302GeneralStoreShapeStream[] = {
 #include "assets/mappic_s2_02_model_00C48_001AC_stream.inc"
 };
 
-TmdSource D_mappic_s3_02_8012F0DC = {
-    0,
-    24,
-    0,
-    1,
-    _gMappicS302MappicS202Model00C48001ACPartVerts,
-    _gMappicS302MappicS202Model00C48001ACVerts,
-    &_gMappicS302MappicS202Model00C48001ACVerts[4],
-    _gMappicS302MappicS202Model00C48001ACSkeleton,
-    _gMappicS302MappicS202Model00C48001ACStream,
+TmdSource gMappicS302GeneralStoreShape = {
+    .bufferHalfBytes  = sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS302GeneralStoreShapeSkeleton),
+    .partVertexCounts = _gMappicS302GeneralStoreShapePartVerts,
+    .verts            = _gMappicS302GeneralStoreShapeVerts,
+    .normals          = &_gMappicS302GeneralStoreShapeVerts[ARRAY_SIZE(_gMappicS302GeneralStoreShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS302GeneralStoreShapeSkeleton,
+    .stream           = _gMappicS302GeneralStoreShapeStream,
 };
 
 static TmdBone _gMappicS302MappicS400Model0005C00258Skeleton[1] = {

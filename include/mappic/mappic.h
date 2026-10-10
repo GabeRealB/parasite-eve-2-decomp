@@ -85,7 +85,13 @@ extern TmdSource gMappicS202GasStationShape;
 /// mappic_s2_02 package loaded while these are used.
 extern TmdSource gMappicS202MainStreetShape;
 
-extern TmdSource D_mappic_s2_02_8012F0DC;
+/// General Store's area-fill quad on page 2 of the daytime Dryfield map.
+///
+/// Four vertices lie in the model X/Z plane; the map applies its 1495/4096
+/// page scale and maps Z to inverted screen Y. Has no normal data.
+/// The map borrows the vertices and first stream group; keep the
+/// mappic_s2_02 package loaded while these are used.
+extern TmdSource gMappicS202GeneralStoreShape;
 
 extern TmdSource D_mappic_s2_02_8012F188;
 
@@ -251,7 +257,13 @@ extern TmdSource gMappicS302GasStationShape;
 /// mappic_s3_02 package loaded while these are used.
 extern TmdSource gMappicS302MainStreetShape;
 
-extern TmdSource D_mappic_s3_02_8012F0DC;
+/// General Store's area-fill quad on page 2 of the nighttime Dryfield map.
+///
+/// Four vertices lie in the model X/Z plane; the map applies its 1495/4096
+/// page scale and maps Z to inverted screen Y. Has no normal data.
+/// The map borrows the vertices and first stream group; keep the
+/// mappic_s3_02 package loaded while these are used.
+extern TmdSource gMappicS302GeneralStoreShape;
 
 extern TmdSource D_mappic_s3_02_8012F188;
 
