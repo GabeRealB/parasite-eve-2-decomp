@@ -508,7 +508,7 @@ gNeoArkGardenWaterRefractionTaskDesc = 0x80181398; // absolute:True owner=neo_ar
 
 D_neo_ark_island_80181B30 = 0x80181B30; // absolute:True owner=neo_ark_island shared=rooms
 
-D_neo_ark_observatory_80180DBC = 0x80180DBC; // absolute:True owner=neo_ark_observatory shared=rooms
+D_neo_ark_observatory_80180DBC = 0x80180DBC; // absolute:True owner=neo_ark_observatory
 
 D_neo_ark_pavilion_8018384C = 0x8018384C; // absolute:True owner=neo_ark_pavilion
 

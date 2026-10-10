@@ -13,12 +13,21 @@
 
 extern AreaVariant D_dryfield_night_motel_room_3_80180D24[13];
 
-// dryfield_night_motel_room_3
-extern WorldCoordRoomLighting D_dryfield_night_motel_room_3_8017DA9C[];
+/// Night motel room 3's single room-lighting entry, borrowed by the stage map.
+///
+/// Room 1 uses seven point lights and one cone light in every view, with the
+/// default ambient minima. Keep this overlay loaded while its lights are used;
+/// coordinate composition and shading mutate the borrowed light records.
+extern WorldCoordRoomLighting gDryfieldNightMotelRoom3RoomLighting[1];
 
 extern WorldCollisionRoomResources D_dryfield_night_motel_room_3_8017DAA4[];
 
-extern u8* D_dryfield_night_motel_room_3_8017DAB4[];
+/// Night motel room 3's per-room logical-view maps, indexed by room minus one.
+///
+/// The sole entry borrows gameplay's `gViewIdentityMap`: logical views 1..11
+/// select the same 1-based camera, image and sprite indices. The room directory
+/// lives in this overlay; the map itself lives in gameplay and has no terminator.
+extern u8* gDryfieldNightMotelRoom3ViewMaps[1];
 
 extern ViewCount D_dryfield_night_motel_room_3_8017DAB8[];
 
@@ -28,7 +37,14 @@ extern ViewCamera D_dryfield_night_motel_room_3_8017E1A4[];
 
 extern SpriteView D_dryfield_night_motel_room_3_80180118[];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_night_motel_room_3_80180DC4[];
+/// Night motel room 3's collision and footstep policies, indexed by class 0..7.
+///
+/// Classes 0 and 4..7 block probes, allow weapon impacts and have no footstep
+/// cues. Classes 1 and 2 have separate cue sets with those same policies.
+/// Class 3 passes probes and suppresses weapon impacts, with no footstep cues.
+/// Every class applies pushback. The directory and its records belong to this
+/// overlay and remain borrowed only while it is loaded; there is no terminator.
+extern WorldCollisionSurfaceProperties* gDryfieldNightMotelRoom3SurfacePropertiesByClass[8];
 
 /// Draws the night motel room 3's flickering textured flares for the current view.
 ///
