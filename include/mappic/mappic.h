@@ -48,17 +48,51 @@ extern TmdSource gMappicS100SecurityRoomShape;
 /// vertices and first stream group; keep mappic_s1_00 loaded during use.
 extern TmdSource gMappicS100HallwayShape;
 
-extern TmdSource D_mappic_s1_00_8012F4F4;
+/// Fountain's area-fill mesh on page 1 of the Acropolis map.
+///
+/// Eleven vertices in the model X/Z plane form one triangle and four quads;
+/// the map scales them by 2107/4096 and maps Z to inverted screen Y.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep mappic_s1_00 loaded during use.
+extern TmdSource gMappicS100FountainShape;
 
-extern TmdSource D_mappic_s1_00_8012F5D4;
+/// Forked road's area-fill mesh on page 1 of the Acropolis map.
+///
+/// Eight vertices in the model X/Z plane form two triangles and two quads;
+/// the map scales them by 2107/4096 and maps Z to inverted screen Y.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep mappic_s1_00 loaded during use.
+extern TmdSource gMappicS100ForkedRoadShape;
 
-extern TmdSource D_mappic_s1_00_8012F684;
+/// Observatory's area-fill mesh on page 1 of the Acropolis map.
+///
+/// Five vertices in the model X/Z plane form one triangle and one quad;
+/// the map scales them by 2107/4096 and maps Z to inverted screen Y.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep mappic_s1_00 loaded during use.
+extern TmdSource gMappicS100ObservatoryShape;
 
-extern TmdSource D_mappic_s1_00_8012F76C;
+/// Promenade's area-fill mesh on page 1 of the Acropolis map.
+///
+/// Nine vertices in the model X/Z plane form one triangle and three quads;
+/// the map scales them by 2107/4096 and maps Z to inverted screen Y.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep mappic_s1_00 loaded during use.
+extern TmdSource gMappicS100PromenadeShape;
 
-extern TmdSource D_mappic_s1_00_8012F7FC;
+/// Sanctuary's area-fill quad on page 1 of the Acropolis map.
+///
+/// Four vertices in the model X/Z plane are scaled by 2107/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s1_00 loaded during use.
+extern TmdSource gMappicS100SanctuaryShape;
 
-extern TmdSource D_mappic_s1_00_8012F88C;
+/// Roof garden's area-fill quad on page 1 of the Acropolis map.
+///
+/// Four vertices in the model X/Z plane are scaled by 2107/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s1_00 loaded during use.
+extern TmdSource gMappicS100RoofGardenShape;
 
 extern TmdSource D_mappic_s1_00_8012F91C;
 
