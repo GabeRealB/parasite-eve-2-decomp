@@ -11,10 +11,20 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_shelter_b2_pod_access_tunnel_801855AC[23];
+/// Enemy placement and resource pairs indexed by the saved area variant, 0..22.
+///
+/// Populated variants are 1..4, 7, 11, 21 and 22; every other slot is empty.
+/// Variant 22 contains a Bishop GOLEM. Each populated pair has terminated
+/// tables. Gameplay borrows this directory during loading and spawning, and
+/// spawned enemies borrow its placements until release; keep this room loaded.
+extern AreaVariant gShelterB2PodAccessTunnelAreaVariants[23];
 
-// shelter_b2_pod_access_tunnel
-extern WorldCollisionRoomResources D_shelter_b2_pod_access_tunnel_80183DEC[];
+/// Collision resources for logical rooms 1 and 2, indexed by room minus one.
+///
+/// Both share the tunnel grid, view boundaries and sight occluder; each room
+/// has its own mutable action-trigger array. Setup binds and links the borrowed
+/// records. Keep this overlay loaded until the resources have been unlinked.
+extern WorldCollisionRoomResources gShelterB2PodAccessTunnelRoomCollisionResources[2];
 
 /// Lighting records for logical rooms 1 and 2 of the pod access tunnel.
 ///
@@ -30,9 +40,19 @@ extern WorldCoordRoomLighting gShelterB2PodAccessTunnelRoomLighting[2];
 /// this overlay loaded while the directory and its maps are borrowed.
 extern u8* gShelterB2PodAccessTunnelRoomViewMaps[2];
 
-extern ViewCount D_shelter_b2_pod_access_tunnel_80183E2C[];
+/// Seven logical views in each of rooms 1 and 2, indexed by room minus one.
+///
+/// Signed element counts bound searches in `gShelterB2PodAccessTunnelRoomViewMaps`;
+/// the arrays have no terminator. Borrow while this overlay is loaded.
+extern ViewCount gShelterB2PodAccessTunnelRoomViewCounts[2];
 
-extern DirectionWarpEntry D_shelter_b2_pod_access_tunnel_80183E30[];
+/// Arrival placements and departure options for the tunnel's three warp slots.
+///
+/// Index by warp minus one (1..3): septic-tank door, R48 door and pod arrival.
+/// Initial views are 2, 4 and 4. Slots 2/3 update the gantry/pod map markers.
+/// Positions use game-coordinate units and yaw uses 4096 units per turn.
+/// Consumers copy complete entries; keep this overlay loaded through the copy.
+extern DirectionWarpEntry gShelterB2PodAccessTunnelWarpEntries[3];
 
 /// Seven cameras indexed by the pod access tunnel's mapped view minus one.
 ///

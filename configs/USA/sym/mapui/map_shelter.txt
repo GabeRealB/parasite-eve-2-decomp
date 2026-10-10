@@ -371,11 +371,11 @@ D_shelter_b2_septic_tank_80186A54 = 0x80186A54; // absolute:True owner=shelter_b
 D_shelter_b2_septic_tank_80186C1C = 0x80186C1C; // absolute:True owner=shelter_b2_septic_tank
 gShelterB2SepticTankSurfacePropertiesByClass = 0x80187014; // absolute:True owner=shelter_b2_septic_tank
 shelterB2PodAccessTunnelRoomTask = 0x8017DC14; // type:func absolute:True owner=shelter_b2_pod_access_tunnel
-D_shelter_b2_pod_access_tunnel_80183DEC = 0x80183DEC; // absolute:True owner=shelter_b2_pod_access_tunnel
+gShelterB2PodAccessTunnelRoomCollisionResources = 0x80183DEC; // absolute:True owner=shelter_b2_pod_access_tunnel
 gShelterB2PodAccessTunnelRoomLighting = 0x80183E0C; // absolute:True owner=shelter_b2_pod_access_tunnel shared=rooms
 gShelterB2PodAccessTunnelRoomViewMaps = 0x80183E24; // absolute:True owner=shelter_b2_pod_access_tunnel
-D_shelter_b2_pod_access_tunnel_80183E2C = 0x80183E2C; // absolute:True owner=shelter_b2_pod_access_tunnel
-D_shelter_b2_pod_access_tunnel_80183E30 = 0x80183E30; // absolute:True owner=shelter_b2_pod_access_tunnel shared=rooms
+gShelterB2PodAccessTunnelRoomViewCounts = 0x80183E2C; // absolute:True owner=shelter_b2_pod_access_tunnel
+gShelterB2PodAccessTunnelWarpEntries = 0x80183E30; // absolute:True owner=shelter_b2_pod_access_tunnel shared=rooms
 gShelterB2PodAccessTunnelViewCameras = 0x801841D8; // absolute:True owner=shelter_b2_pod_access_tunnel
 gShelterB2PodAccessTunnelSpriteViews = 0x80184C6C; // absolute:True owner=shelter_b2_pod_access_tunnel
 gShelterB2PodAccessTunnelSurfacePropertiesByClass = 0x801856D8; // absolute:True owner=shelter_b2_pod_access_tunnel shared=rooms

@@ -8,11 +8,26 @@
 
 #include "main/task_types.h"
 
-extern TaskDesc D_shelter_b2_pod_access_tunnel_80183BC0;
+/// Bodyless, priority-32 recipe for the latched septic-tank departure event.
+///
+/// Spawn entry 0 with unused payloads after setting the room-owned staged
+/// message and event. The descriptor is read synchronously; keep this room's
+/// event state, callback and CAP/sound resources loaded until reload.
+extern TaskDesc gShelterB2PodAccessTunnelStagedEventTaskDesc;
 
-extern TaskMessageEntry D_shelter_b2_pod_access_tunnel_80183BCC[6];
+/// Dispatches the room's transition, key-item, action, command and sound messages.
+///
+/// Five handlers followed by `TASK_MESSAGE_TABLE_END`; unsupported IDs return
+/// zero. The registered room task borrows this table while the overlay is loaded.
+/// Payloads and replies follow each handler's message-specific contract below.
+extern TaskMessageEntry gShelterB2PodAccessTunnelRoomMessages[6];
 
-extern TaskDesc D_shelter_b2_pod_access_tunnel_80183BFC;
+/// Bodyless, priority-32 recipe for the prompted pod ride to B1.
+///
+/// Spawn entry 0 with unused payloads after holding player control. The
+/// descriptor is read synchronously; the room callback and CAP/sound resources
+/// must remain loaded until the prompt is declined or the session reloads.
+extern TaskDesc gShelterB2PodAccessTunnelRideToB1TaskDesc;
 
 // Callbacks referenced by the overlay's shared data tables.
 

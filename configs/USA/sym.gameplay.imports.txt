@@ -1645,7 +1645,7 @@ D_shelter_b2_north_maintenance_walkway_80186258 = 0x80186258; // absolute:True o
 
 gShelterB2OperatingRoomAreaVariants = 0x80184124; // absolute:True owner=shelter_b2_operating_room shared=rooms
 
-D_shelter_b2_pod_access_tunnel_801855AC = 0x801855AC; // absolute:True owner=shelter_b2_pod_access_tunnel shared=rooms
+gShelterB2PodAccessTunnelAreaVariants = 0x801855AC; // absolute:True owner=shelter_b2_pod_access_tunnel shared=rooms
 
 gShelterB2PodBottomAreaVariants = 0x80187678; // absolute:True owner=shelter_b2_pod_bottom shared=rooms
 

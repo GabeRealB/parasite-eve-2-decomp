@@ -164,7 +164,7 @@ static __inline__ s32 _shelterB2PodAccessTunnelStartEvent(const RoomEventMsg* me
             if (event->flagId != ROOM_EVENT_FLAG_NONE) {
                 gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_LATCHED);
             }
-            taskSpawnFromTable(&D_shelter_b2_pod_access_tunnel_80183BC0, 0, 0, 0);
+            taskSpawnFromTable(&gShelterB2PodAccessTunnelStagedEventTaskDesc, 0, 0, 0);
             D_shelter_b2_pod_access_tunnel_80185708 = true;
         }
         return ROOM_EVENT_DEPARTURE_HANDLED;
@@ -304,7 +304,7 @@ s32 shelterB2PodAccessTunnelHandleCommandMessage(Task* unusedTask, s32 messageId
 
     if (commandId == COMMAND_RIDE_TO_B1) {
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-        taskSpawnFromTable(&D_shelter_b2_pod_access_tunnel_80183BFC, 0, 0, 0);
+        taskSpawnFromTable(&gShelterB2PodAccessTunnelRideToB1TaskDesc, 0, 0, 0);
     }
     return 0;
 }
@@ -333,7 +333,7 @@ static void _shelterB2PodAccessTunnelInitializeRoomTask(Task* task)
 {
     enum { ROOM_VARIANT_SKIP_MUSIC = 22 };
 
-    task->msgTable = D_shelter_b2_pod_access_tunnel_80183BCC;
+    task->msgTable = gShelterB2PodAccessTunnelRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == ROOM_VARIANT_SKIP_MUSIC) {
         gGameSession->flowFlags = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC);

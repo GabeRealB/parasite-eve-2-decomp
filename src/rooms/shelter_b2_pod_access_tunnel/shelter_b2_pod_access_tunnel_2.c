@@ -41,6 +41,7 @@
 #include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
+#include "main/sound_ids.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
@@ -56,15 +57,22 @@ static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, 
 static void _effectSpriteDrawRotated(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
 
 static WorldCollisionGrid     _gShelterB2PodAccessTunnelCollisionGrid;
-extern WorldCollisionOccluder D_shelter_b2_pod_access_tunnel_80185664[1];
-extern WorldCollisionTrigger  D_shelter_b2_pod_access_tunnel_80184FD8[4];
-extern WorldCollisionTrigger  D_shelter_b2_pod_access_tunnel_80185108[3];
-extern WorldCollisionTrigger  D_shelter_b2_pod_access_tunnel_801851EC[3];
+static WorldCollisionOccluder _gShelterB2PodAccessTunnelSightOccluders[1];
+static WorldCollisionTrigger  _gShelterB2PodAccessTunnelViewBoundaryTriggers[4];
+static WorldCollisionTrigger  _gShelterB2PodAccessTunnelRoom1ActionTriggers[3];
+static WorldCollisionTrigger  _gShelterB2PodAccessTunnelRoom2ActionTriggers[3];
 static WorldCoordRoomLights   _gShelterB2PodAccessTunnelLightCollection;
 
-TaskDesc D_shelter_b2_pod_access_tunnel_80183BC0 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
+/// Execution priority shared by the room's two departure-event tasks.
+enum { SHELTER_B2_POD_ACCESS_TUNNEL_EVENT_TASK_PRIORITY = 32 };
 
-TaskMessageEntry D_shelter_b2_pod_access_tunnel_80183BCC[6] = {
+TaskDesc gShelterB2PodAccessTunnelStagedEventTaskDesc = {
+    .header   = { .fields = { TASK_BODY_NONE, SHELTER_B2_POD_ACCESS_TUNNEL_EVENT_TASK_PRIORITY } },
+    .callback = roomEventStagedTask,
+    .data     = { .value = 0 },
+};
+
+TaskMessageEntry gShelterB2PodAccessTunnelRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, shelterB2PodAccessTunnelResolveRoomEventMessage },
     { ROOM_MESSAGE_USE_KEY_ITEM, shelterB2PodAccessTunnelRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, shelterB2PodAccessTunnelIgnoreActionMessage },
@@ -73,7 +81,11 @@ TaskMessageEntry D_shelter_b2_pod_access_tunnel_80183BCC[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_shelter_b2_pod_access_tunnel_80183BFC = { { { TASK_BODY_NONE, 32 } }, shelterB2PodAccessTunnelRideToB1Task, { .value = 0 } };
+TaskDesc gShelterB2PodAccessTunnelRideToB1TaskDesc = {
+    .header   = { .fields = { TASK_BODY_NONE, SHELTER_B2_POD_ACCESS_TUNNEL_EVENT_TASK_PRIORITY } },
+    .callback = shelterB2PodAccessTunnelRideToB1Task,
+    .data     = { .value = 0 },
+};
 
 /// Endpoint offsets used as the bases of the mapped-view beam selections.
 enum {
@@ -163,9 +175,19 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-WorldCollisionRoomResources D_shelter_b2_pod_access_tunnel_80183DEC[2] = {
-    { &_gShelterB2PodAccessTunnelCollisionGrid, D_shelter_b2_pod_access_tunnel_80184FD8, D_shelter_b2_pod_access_tunnel_80185108, D_shelter_b2_pod_access_tunnel_80185664 },
-    { &_gShelterB2PodAccessTunnelCollisionGrid, D_shelter_b2_pod_access_tunnel_80184FD8, D_shelter_b2_pod_access_tunnel_801851EC, D_shelter_b2_pod_access_tunnel_80185664 },
+WorldCollisionRoomResources gShelterB2PodAccessTunnelRoomCollisionResources[2] = {
+    {
+        .grid                 = &_gShelterB2PodAccessTunnelCollisionGrid,
+        .viewBoundaryTriggers = _gShelterB2PodAccessTunnelViewBoundaryTriggers,
+        .actionTriggers       = _gShelterB2PodAccessTunnelRoom1ActionTriggers,
+        .occluders            = _gShelterB2PodAccessTunnelSightOccluders,
+    },
+    {
+        .grid                 = &_gShelterB2PodAccessTunnelCollisionGrid,
+        .viewBoundaryTriggers = _gShelterB2PodAccessTunnelViewBoundaryTriggers,
+        .actionTriggers       = _gShelterB2PodAccessTunnelRoom2ActionTriggers,
+        .occluders            = _gShelterB2PodAccessTunnelSightOccluders,
+    },
 };
 
 WorldCoordRoomLighting gShelterB2PodAccessTunnelRoomLighting[2] = {
@@ -194,12 +216,54 @@ u8* gShelterB2PodAccessTunnelRoomViewMaps[2] = {
     _gShelterB2PodAccessTunnelRoom2ViewMap,
 };
 
-ViewCount D_shelter_b2_pod_access_tunnel_80183E2C[2] = { 7, 7 };
+ViewCount gShelterB2PodAccessTunnelRoomViewCounts[2] = { 7, 7 };
 
-DirectionWarpEntry D_shelter_b2_pod_access_tunnel_80183E30[3] = {
-    { { { .word = 0 }, 1700, 0, -0x28CD }, { 0, 0, 0, 0 }, { { .word = 256 }, 1050, 0, -0x2710 }, { 0, 0, 0, 0 }, 0x54230002, 0x54230001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 3072 }, 5500, 0, -1700 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 5500, 0, -1700 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, 0x54230006, 0x54230003, 4, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_POD_SERVICE_GANTRY },
-    { { { .word = 0 }, 4800, 0, -2400 }, { 0, 0, 0, 0 }, { { .word = 2560 }, 4500, 0, -1250 }, { 0, 0, 0, 0 }, 0x54230005, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_POD },
+/// One-based departure slots packed into action-trigger parameter1's high nibble.
+enum {
+    SHELTER_B2_POD_ACCESS_TUNNEL_WARP_SEPTIC_TANK = 1,
+    SHELTER_B2_POD_ACCESS_TUNNEL_WARP_R48         = 2,
+};
+
+/// Room command carried by the pod's CAP-to-message action triggers.
+enum { SHELTER_B2_POD_ACCESS_TUNNEL_COMMAND_RIDE_TO_B1 = 1 };
+
+DirectionWarpEntry gShelterB2PodAccessTunnelWarpEntries[3] = {
+    {
+        .player         = { .yaw = { .word = 0 }, .x = 1700, .y = 0, .z = -10445 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { .yaw = { .word = 256 }, .x = 1050, .y = 0, .z = -10000 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL, 1),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { .yaw = { .word = 3072 }, .x = 5500, .y = 0, .z = -1700 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { .yaw = { .word = 3072 }, .x = 5500, .y = 0, .z = -1700 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL, 6),
+        .blockedSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL, 3),
+        .initialView    = 4,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = GAME_FLAG_MAP_MARK_POD_SERVICE_GANTRY,
+    },
+    {
+        .player         = { .yaw = { .word = 0 }, .x = 4800, .y = 0, .z = -2400 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { .yaw = { .word = 2560 }, .x = 4500, .y = 0, .z = -1250 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL, 5),
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 4,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = GAME_FLAG_MAP_MARK_POD,
+    },
 };
 
 /// Room-space collision normals, with 4096 representing unit length.
@@ -495,23 +559,181 @@ static WorldCoordRoomLights _gShelterB2PodAccessTunnelLightCollection = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_shelter_b2_pod_access_tunnel_80184FD8[4] = {
-    { NULL, NULL, NULL, { 1760, -1648, -4513, 0 }, { { -1824, -2224, 64, 0 }, { 1824, -2224, -64, 0 }, { -1824, 2224, 64, 0 }, { 1824, 2224, -64, 0 } }, { -144, 0, -4100, 0 }, { 0, 0, 4096, 0 }, 2873, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1744, -1632, -4625, 0 }, { { 1808, -2224, -80, 0 }, { -1808, -2224, 80, 0 }, { 1808, 2224, -80, 0 }, { -1808, 2224, 80, 0 } }, { 180, 0, 4096, 0 }, { 0, 0, 4096, 0 }, 2862, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3520, -1632, -1360, 0 }, { { -285, -2224, -1838, 0 }, { 254, -2224, 1809, 0 }, { -285, 2224, -1838, 0 }, { 254, 2224, 1809, 0 } }, { 4054, 0, -601, 0 }, { 0, 0, 4096, 0 }, 2884, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3606, -1664, -1488, 0 }, { { 250, -2224, 1567, 0 }, { -271, -2224, -1585, 0 }, { 250, 2224, 1567, 0 }, { -271, 2224, -1585, 0 } }, { -4049, 0, 668, 0 }, { 0, 0, 4096, 0 }, 2733, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Four directed view boundaries shared by both logical rooms.
+///
+/// Connects logical views 2 to 3, 3 to 2, 4 to 3 and 3 to 4. Setup binds the
+/// quads to the current view and mutates their list links, flags and hit latches.
+/// The fourth quad is included before LAST ends the array. Origins, corner
+/// offsets and radii use game units; plane normals use 4096 per unit.
+static WorldCollisionTrigger _gShelterB2PodAccessTunnelViewBoundaryTriggers[4] = {
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 1760, -1648, -4513, 0 },
+        .vertices     = { { -1824, -2224, 64, 0 }, { 1824, -2224, -64, 0 }, { -1824, 2224, 64, 0 }, { 1824, 2224, -64, 0 } },
+        .normal       = { -144, 0, -4100, 0 },
+        .facingNormal = { 0, 0, 4096, 0 },
+        .radius       = 2873,
+        .control      = 0,
+        .parameter0   = 2,
+        .parameter1   = 3,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 1744, -1632, -4625, 0 },
+        .vertices     = { { 1808, -2224, -80, 0 }, { -1808, -2224, 80, 0 }, { 1808, 2224, -80, 0 }, { -1808, 2224, 80, 0 } },
+        .normal       = { 180, 0, 4096, 0 },
+        .facingNormal = { 0, 0, 4096, 0 },
+        .radius       = 2862,
+        .control      = 0,
+        .parameter0   = 3,
+        .parameter1   = 2,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 3520, -1632, -1360, 0 },
+        .vertices     = { { -285, -2224, -1838, 0 }, { 254, -2224, 1809, 0 }, { -285, 2224, -1838, 0 }, { 254, 2224, 1809, 0 } },
+        .normal       = { 4054, 0, -601, 0 },
+        .facingNormal = { 0, 0, 4096, 0 },
+        .radius       = 2884,
+        .control      = 0,
+        .parameter0   = 4,
+        .parameter1   = 3,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 3606, -1664, -1488, 0 },
+        .vertices     = { { 250, -2224, 1567, 0 }, { -271, -2224, -1585, 0 }, { 250, 2224, 1567, 0 }, { -271, 2224, -1585, 0 } },
+        .normal       = { -4049, 0, 668, 0 },
+        .facingNormal = { 0, 0, 4096, 0 },
+        .radius       = 2733,
+        .control      = 0,
+        .parameter0   = 3,
+        .parameter1   = 4,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST,
+        .hit          = 0,
+    },
 };
 
-WorldCollisionTrigger D_shelter_b2_pod_access_tunnel_80185108[3] = {
-    { NULL, NULL, NULL, { 1728, -48, -0x28CF, 0 }, { { -1024, 0, -464, 0 }, { 1024, 0, -464, 0 }, { -1024, 0, 464, 0 }, { 1024, 0, 464, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 1123, WORLD_COLLISION_TRIGGER_ACTION_WARP, 34, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5856, -48, -1728, 0 }, { { 560, 0, -1024, 0 }, { 560, 0, 1024, 0 }, { -560, 0, -1024, 0 }, { -560, 0, 1024, 0 } }, { 0, 4110, 0, 0 }, { -4096, 0, 0, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_WARP, 48, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4592, -64, -2784, 0 }, { { -944, 0, -464, 0 }, { 944, 0, -464, 0 }, { -944, 0, 464, 0 }, { 944, 0, 464, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 1047, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Room 1's septic-tank and R48 door warps and pod-ride interaction quad.
+///
+/// Warp bytes pack departure/arrival slots 1/2 and 2/1; the pod sends room
+/// command 1. Setup binds the current-view coordinate and links all three
+/// mutable records through LAST. Positions/radii are game units; normals use
+/// 4096 per unit. The room overlay must stay loaded until these are unlinked.
+static WorldCollisionTrigger _gShelterB2PodAccessTunnelRoom1ActionTriggers[3] = {
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 1728, -48, -0x28CF, 0 },
+        .vertices     = { { -1024, 0, -464, 0 }, { 1024, 0, -464, 0 }, { -1024, 0, 464, 0 }, { 1024, 0, 464, 0 } },
+        .normal       = { 0, 4098, 0, 0 },
+        .facingNormal = { 0, 0, 4096, 0 },
+        .radius       = 1123,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_WARP,
+        .parameter0   = GAME_AREA_SHELTER_B2_SEPTIC_TANK,
+        .parameter1   = (SHELTER_B2_POD_ACCESS_TUNNEL_WARP_SEPTIC_TANK << 4) | 2,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 5856, -48, -1728, 0 },
+        .vertices     = { { 560, 0, -1024, 0 }, { 560, 0, 1024, 0 }, { -560, 0, -1024, 0 }, { -560, 0, 1024, 0 } },
+        .normal       = { 0, 4110, 0, 0 },
+        .facingNormal = { -4096, 0, 0, 0 },
+        .radius       = 1166,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_WARP,
+        .parameter0   = GAME_AREA_SHELTER_R48,
+        .parameter1   = (SHELTER_B2_POD_ACCESS_TUNNEL_WARP_R48 << 4) | 1,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 4592, -64, -2784, 0 },
+        .vertices     = { { -944, 0, -464, 0 }, { 944, 0, -464, 0 }, { -944, 0, 464, 0 }, { 944, 0, 464, 0 } },
+        .normal       = { 0, 4096, 0, 0 },
+        .facingNormal = { 0, 0, 4096, 0 },
+        .radius       = 1047,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = SHELTER_B2_POD_ACCESS_TUNNEL_COMMAND_RIDE_TO_B1,
+        .parameter1   = WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST,
+        .hit          = 0,
+    },
 };
 
-WorldCollisionTrigger D_shelter_b2_pod_access_tunnel_801851EC[3] = {
-    { NULL, NULL, NULL, { 1728, -48, -0x28CF, 0 }, { { -1024, 0, -464, 0 }, { 1024, 0, -464, 0 }, { -1024, 0, 464, 0 }, { 1024, 0, 464, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 1123, WORLD_COLLISION_TRIGGER_ACTION_WARP, 34, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5856, -48, -1728, 0 }, { { 560, 0, -1024, 0 }, { 560, 0, 1024, 0 }, { -560, 0, -1024, 0 }, { -560, 0, 1024, 0 } }, { 0, 4110, 0, 0 }, { -4096, 0, 0, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_WARP, 48, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4592, -64, -2784, 0 }, { { -944, 0, -464, 0 }, { 944, 0, -464, 0 }, { -944, 0, 464, 0 }, { 944, 0, 464, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 1047, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Room 2's septic-tank and R48 door warps and pod-ride interaction quad.
+///
+/// Same geometry and actions as room 1, with separate mutable links and hit
+/// latches. Setup binds and links all three through LAST. Warp bytes pack
+/// departure/arrival slots 1/2 and 2/1; the pod sends room command 1. Positions
+/// and radii are game units; normals use 4096 per unit. Keep live until unlinked.
+static WorldCollisionTrigger _gShelterB2PodAccessTunnelRoom2ActionTriggers[3] = {
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 1728, -48, -0x28CF, 0 },
+        .vertices     = { { -1024, 0, -464, 0 }, { 1024, 0, -464, 0 }, { -1024, 0, 464, 0 }, { 1024, 0, 464, 0 } },
+        .normal       = { 0, 4098, 0, 0 },
+        .facingNormal = { 0, 0, 4096, 0 },
+        .radius       = 1123,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_WARP,
+        .parameter0   = GAME_AREA_SHELTER_B2_SEPTIC_TANK,
+        .parameter1   = (SHELTER_B2_POD_ACCESS_TUNNEL_WARP_SEPTIC_TANK << 4) | 2,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 5856, -48, -1728, 0 },
+        .vertices     = { { 560, 0, -1024, 0 }, { 560, 0, 1024, 0 }, { -560, 0, -1024, 0 }, { -560, 0, 1024, 0 } },
+        .normal       = { 0, 4110, 0, 0 },
+        .facingNormal = { -4096, 0, 0, 0 },
+        .radius       = 1166,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_WARP,
+        .parameter0   = GAME_AREA_SHELTER_R48,
+        .parameter1   = (SHELTER_B2_POD_ACCESS_TUNNEL_WARP_R48 << 4) | 1,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 4592, -64, -2784, 0 },
+        .vertices     = { { -944, 0, -464, 0 }, { 944, 0, -464, 0 }, { -944, 0, 464, 0 }, { 944, 0, 464, 0 } },
+        .normal       = { 0, 4096, 0, 0 },
+        .facingNormal = { 0, 0, 4096, 0 },
+        .radius       = 1047,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = SHELTER_B2_POD_ACCESS_TUNNEL_COMMAND_RIDE_TO_B1,
+        .parameter1   = WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST,
+        .hit          = 0,
+    },
 };
 
 /// Placement-entry keys for the actor resources used by this room.
@@ -600,92 +822,136 @@ static AreaResource _gShelterB2PodAccessTunnelVariant21Resources[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b2_pod_access_tunnel_801853B4[2] = {
-    { 39, 39, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor403900GolemTaskDesc },
+/// Placement-entry key for variant 22's Bishop GOLEM resource.
+enum { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_BISHOP_GOLEM = 39 };
+
+/// Bishop GOLEM file and spawn recipe for placement variant 22.
+///
+/// Loads actor-slot-4 file 39 and spawns its sole body descriptor at index 0.
+/// Matches the placement-entry key, then ends at `AREA_PLACEMENT_END`.
+/// The room resource and loaded actor descriptor must stay live through spawn.
+static AreaResource _gShelterB2PodAccessTunnelVariant22Resources[2] = {
+    {
+        .entryId        = SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_BISHOP_GOLEM,
+        .fileNumber     = 39,
+        .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40,
+        .taskIndex      = 0,
+        .unknown_6      = { 0, 0 },
+        .taskTable      = &gActor403900GolemTaskDesc,
+    },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_shelter_b2_pod_access_tunnel_801853CC[5] = {
-    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 4, 0, 1200, -2200, -800, 2048, 0, 0, 2, 0 },
-    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 4, 0, 1950, -2200, -800, 2048, 0, 0, 2, 0 },
-    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 4, 0, 2700, -2200, -800, 2048, 0, 0, 2, 0 },
+/// Variant 1's three Watchers and one Mossback, followed by the end record.
+///
+/// Resource-entry keys select the corresponding variant-1 recipes. Positions
+/// use game units and yaw uses 4096 units per turn; actors borrow these records
+/// until release. Variant, mode and rowIndex carry actor-specific spawn settings.
+static AreaPlacement _gShelterB2PodAccessTunnelVariant1Placements[5] = {
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 4, 0, 1200, -2200, -800, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0, 2, 0 },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 4, 0, 1950, -2200, -800, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0, 2, 0 },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 4, 0, 2700, -2200, -800, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0, 2, 0 },
     { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_MOSSBACK, 0, 0, 1600, 0, -5200, 0, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b2_pod_access_tunnel_8018541C[5] = {
-    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 34, 2048, 1000, -1900, -800, 2048, 0, 0, 2, 1 },
-    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 34, 2048, 1000, -1400, -800, 2048, 0, 0, 2, 1 },
+/// Variant 2's two Watchers and two Mossbacks, followed by the end record.
+///
+/// Resource-entry keys select the corresponding variant-2 recipes. Positions
+/// use game units and yaw uses 4096 units per turn; actors borrow these records
+/// until release. Variant, mode and rowIndex carry actor-specific spawn settings.
+static AreaPlacement _gShelterB2PodAccessTunnelVariant2Placements[5] = {
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 34, 2048, 1000, -1900, -800, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0, 2, 1 },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 34, 2048, 1000, -1400, -800, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0, 2, 1 },
     { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_MOSSBACK, 2, 0, 3200, 0, -1300, 4000, 0, 2, 4, 0 },
     { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_MOSSBACK, 2, 0, 1950, 0, -4700, 3900, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b2_pod_access_tunnel_8018546C[5] = {
+/// Variant 3's three Maggots and one large Mossback, followed by the end record.
+///
+/// Resource-entry keys select the corresponding variant-3 recipes. Positions
+/// use game units and yaw uses 4096 units per turn; actors borrow these records
+/// until release. Variant, mode and rowIndex carry actor-specific spawn settings.
+static AreaPlacement _gShelterB2PodAccessTunnelVariant3Placements[5] = {
     { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_MAGGOT, 0, 0, 1200, 0, -2800, 1700, 0, 0, 2, 0 },
     { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_MAGGOT, 0, 0, 2500, 0, -1000, 1300, 0, 0, 2, 0 },
     { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_MAGGOT, 0, 0, 1100, 0, -1100, 1900, 0, 0, 2, 0 },
-    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_LARGE_MOSSBACK, 1, 0, 1600, 0, -1950, 2048, 0, 2, 4, 0 },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_LARGE_MOSSBACK, 1, 0, 1600, 0, -1950, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b2_pod_access_tunnel_801854BC[2] = {
+/// Variant 4's single Brain Stinger at (1700, 0, -5000), followed by the end record.
+///
+/// Its key selects the variant-4 recipe. Positions use game units and yaw uses
+/// 4096 units per turn. The actor borrows this placement until release.
+static AreaPlacement _gShelterB2PodAccessTunnelVariant4Placements[2] = {
     { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_BRAIN_STINGER, 0, 0, 1700, 0, -5000, 0, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b2_pod_access_tunnel_801854DC[2] = {
+/// Variant 7's single patrolling Beam Sword Rook GOLEM, followed by the end record.
+///
+/// Mode bit 0 enables patrol; variant 7 gives a 7000-unit leg. Its key selects
+/// the variant-7 recipe. Positions use game units and yaw uses 4096 units per
+/// turn. The actor borrows this placement until release.
+static AreaPlacement _gShelterB2PodAccessTunnelVariant7Placements[2] = {
     { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_BEAM_SWORD_ROOK_GOLEM, 7, 1, 1700, 0, -8600, 0, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b2_pod_access_tunnel_801854FC[4] = {
-    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 34, 2048, 1000, -1900, -600, 2048, 0, 0, 2, 3 },
-    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 34, 2048, 1000, -1400, -600, 2048, 0, 0, 2, 3 },
+/// Variant 11's two Watchers and one Beam Sword Rook GOLEM, followed by the end record.
+///
+/// Resource-entry keys select the corresponding variant-11 recipes. Positions
+/// use game units and yaw uses 4096 units per turn; actors borrow these records
+/// until release. Variant, mode and rowIndex carry actor-specific spawn settings.
+static AreaPlacement _gShelterB2PodAccessTunnelVariant11Placements[4] = {
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 34, 2048, 1000, -1900, -600, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0, 2, 3 },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 34, 2048, 1000, -1400, -600, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0, 2, 3 },
     { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_BEAM_SWORD_ROOK_GOLEM, 0, 0, 5200, 0, -1750, 3072, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b2_pod_access_tunnel_8018553C[5] = {
-    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 1, 0, 1200, -2200, -800, 2048, 0, 0, 2, 1 },
-    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 1, 0, 1950, -2200, -800, 2048, 0, 0, 2, 1 },
-    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 1, 0, 2700, -2200, -800, 2048, 0, 0, 2, 1 },
+/// Variant 21's three Watchers and one Launcher Pawn GOLEM, followed by the end record.
+///
+/// Resource-entry keys select the corresponding variant-21 recipes. Positions
+/// use game units and yaw uses 4096 units per turn; actors borrow these records
+/// until release. Variant, mode and rowIndex carry actor-specific spawn settings.
+static AreaPlacement _gShelterB2PodAccessTunnelVariant21Placements[5] = {
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 1, 0, 1200, -2200, -800, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0, 2, 1 },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 1, 0, 1950, -2200, -800, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0, 2, 1 },
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_WATCHER, 1, 0, 2700, -2200, -800, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0, 2, 1 },
     { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_LAUNCHER_PAWN_GOLEM, 0, 0, 1700, 0, -8000, 0, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b2_pod_access_tunnel_8018558C[2] = {
-    { 39, 0, 0, 7000, 0, 1500, 3072, 0, 0, 2, 0 },
+/// Variant 22's single Bishop GOLEM at (7000, 0, 1500), followed by the end record.
+///
+/// Its key selects the variant-22 recipe. Positions use game units and yaw uses
+/// 4096 units per turn. The actor borrows this placement until release.
+static AreaPlacement _gShelterB2PodAccessTunnelVariant22Placements[2] = {
+    { SHELTER_B2_POD_ACCESS_TUNNEL_RESOURCE_BISHOP_GOLEM, 0, 0, 7000, 0, 1500, 3072, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaVariant D_shelter_b2_pod_access_tunnel_801855AC[23] = {
-    { NULL, NULL },
-    { D_shelter_b2_pod_access_tunnel_801853CC, _gShelterB2PodAccessTunnelVariant1Resources },
-    { D_shelter_b2_pod_access_tunnel_8018541C, _gShelterB2PodAccessTunnelVariant2Resources },
-    { D_shelter_b2_pod_access_tunnel_8018546C, _gShelterB2PodAccessTunnelVariant3Resources },
-    { D_shelter_b2_pod_access_tunnel_801854BC, _gShelterB2PodAccessTunnelVariant4Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_shelter_b2_pod_access_tunnel_801854DC, _gShelterB2PodAccessTunnelVariant7Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_shelter_b2_pod_access_tunnel_801854FC, _gShelterB2PodAccessTunnelVariant11Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_shelter_b2_pod_access_tunnel_8018553C, _gShelterB2PodAccessTunnelVariant21Resources },
-    { D_shelter_b2_pod_access_tunnel_8018558C, D_shelter_b2_pod_access_tunnel_801853B4 },
+AreaVariant gShelterB2PodAccessTunnelAreaVariants[23] = {
+    [1]  = { .placements = _gShelterB2PodAccessTunnelVariant1Placements, .resources = _gShelterB2PodAccessTunnelVariant1Resources },
+    [2]  = { .placements = _gShelterB2PodAccessTunnelVariant2Placements, .resources = _gShelterB2PodAccessTunnelVariant2Resources },
+    [3]  = { .placements = _gShelterB2PodAccessTunnelVariant3Placements, .resources = _gShelterB2PodAccessTunnelVariant3Resources },
+    [4]  = { .placements = _gShelterB2PodAccessTunnelVariant4Placements, .resources = _gShelterB2PodAccessTunnelVariant4Resources },
+    [7]  = { .placements = _gShelterB2PodAccessTunnelVariant7Placements, .resources = _gShelterB2PodAccessTunnelVariant7Resources },
+    [11] = { .placements = _gShelterB2PodAccessTunnelVariant11Placements, .resources = _gShelterB2PodAccessTunnelVariant11Resources },
+    [21] = { .placements = _gShelterB2PodAccessTunnelVariant21Placements, .resources = _gShelterB2PodAccessTunnelVariant21Resources },
+    [22] = { .placements = _gShelterB2PodAccessTunnelVariant22Placements, .resources = _gShelterB2PodAccessTunnelVariant22Resources },
 };
 
-WorldCollisionOccluder D_shelter_b2_pod_access_tunnel_80185664[1] = {
+/// Single sight-blocking quad shared by both logical rooms.
+///
+/// Positions and radius use game units; its plane normal uses 4096 per unit.
+/// Setup links and enables this LAST record, mutating its links and flags.
+/// Initial flag bit 0 is preserved by list operations; its role is unproven.
+/// Keep this room-owned storage loaded until the occluder has been unlinked.
+static WorldCollisionOccluder _gShelterB2PodAccessTunnelSightOccluders[1] = {
     { NULL, NULL, { 4815, -1856, -6112, 0 }, { { -1689, 2880, 2964, 0 }, { 1690, 2880, -2964, 0 }, { -1689, -2880, 2964, 0 }, { 1690, -2880, -2964, 0 } }, { 3574, 0, 2037, 0 }, 4463, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
