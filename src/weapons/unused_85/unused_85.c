@@ -407,136 +407,208 @@ static AnimationSet _gUnused85StairAscentFinishOddAnimation = {
     },
 };
 
-static AnimationPackedPose _gUnused85Animation04E4CBank1[7] = {
+/// Even-count stair-ascent finish translation/rotation poses for player tracks 0 and 1.
+static const AnimationPackedPose _gUnused85StairAscentFinishEvenAnimationBank1[7] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_04E4C_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused85Animation04E4CBank4[73] = {
+/// Packed even-count stair-ascent finish rotations for player tracks 2..18.
+static const AnimationPackedRotation _gUnused85StairAscentFinishEvenAnimationBank4[73] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_04E4C_bank4.inc"
 };
 
-static AnimationRecord _gUnused85Animation04E4CRecords[114] = {
+/// Even-count stair-ascent finish keyframes, footstep cue and final-pose stops.
+///
+/// Keyframe durations count normal-rate frames; the cue belongs to track 1.
+static const AnimationRecord _gUnused85StairAscentFinishEvenAnimationRecords[114] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_04E4C_records.inc"
 };
 
-static u16 _gUnused85Animation04E4CIndices[20] = {
+/// Even-count stair-ascent finish track starts for parts 0..18 and the retained export halfword.
+static const u16 _gUnused85StairAscentFinishEvenAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_04E4C_indices.inc"
 };
 
-static AnimationSet _gUnused85Animation04E4C = {
-    _gUnused85Animation04E4CRecords,
-    _gUnused85Animation04E4CIndices,
-    { NULL, _gUnused85Animation04E4CBank1, NULL, NULL, _gUnused85Animation04E4CBank4, NULL, NULL, NULL },
+/// Player one-shot stair-ascent finish clip for an even original step count, for unused weapon index 6.
+///
+/// Native-bank set 38; the stair controller retains the initial count's parity.
+/// Its 19 tracks borrow this package's embedded payloads while it is loaded.
+static AnimationSet _gUnused85StairAscentFinishEvenAnimation = {
+    .records           = _gUnused85StairAscentFinishEvenAnimationRecords,
+    .trackStartIndices = _gUnused85StairAscentFinishEvenAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused85StairAscentFinishEvenAnimationBank1,
+        [UNUSED_85_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused85StairAscentFinishEvenAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused85Animation052D4Bank1[9] = {
+/// Family-0 PE release translation/rotation poses for player tracks 0 and 1.
+static const AnimationPackedPose _gUnused85PeReleaseFamily0AnimationBank1[9] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_052D4_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused85Animation052D4Bank4[104] = {
+/// Packed family-0 PE release rotations for player tracks 2..18.
+static const AnimationPackedRotation _gUnused85PeReleaseFamily0AnimationBank4[104] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_052D4_bank4.inc"
 };
 
-static AnimationRecord _gUnused85Animation052D4Records[139] = {
+/// Family-0 PE release keyframes and final-pose stops; durations count normal-rate frames.
+static const AnimationRecord _gUnused85PeReleaseFamily0AnimationRecords[139] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_052D4_records.inc"
 };
 
-static u16 _gUnused85Animation052D4Indices[20] = {
+/// Family-0 PE release track starts for parts 0..18 and the retained export halfword.
+static const u16 _gUnused85PeReleaseFamily0AnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_052D4_indices.inc"
 };
 
-static AnimationSet _gUnused85Animation052D4 = {
-    _gUnused85Animation052D4Records,
-    _gUnused85Animation052D4Indices,
-    { NULL, _gUnused85Animation052D4Bank1, NULL, NULL, _gUnused85Animation052D4Bank4, NULL, NULL, NULL },
+/// Player Parasite Energy family-0 release clip for unused weapon index 6.
+///
+/// Native-bank set 26, played once before charging while the attachment countdown runs.
+/// Its 19 tracks borrow this package's embedded payloads while it is loaded.
+static AnimationSet _gUnused85PeReleaseFamily0Animation = {
+    .records           = _gUnused85PeReleaseFamily0AnimationRecords,
+    .trackStartIndices = _gUnused85PeReleaseFamily0AnimationIndices,
+    .poseBanks         = {
+        [UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused85PeReleaseFamily0AnimationBank1,
+        [UNUSED_85_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused85PeReleaseFamily0AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused85Animation054D0Bank1[3] = {
+/// Family-0 PE charge translation/rotation poses for player tracks 0 and 1.
+static const AnimationPackedPose _gUnused85PeChargeFamily0AnimationBank1[3] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_054D0_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused85Animation054D0Bank4[22] = {
+/// Packed family-0 PE charge rotations for player tracks 2..18.
+static const AnimationPackedRotation _gUnused85PeChargeFamily0AnimationBank4[22] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_054D0_bank4.inc"
 };
 
-static AnimationRecord _gUnused85Animation054D0Records[76] = {
+/// Family-0 PE charge keyframes, track loops and retained stop controls.
+///
+/// Each keyframe lasts one normal-rate frame; every track jumps back to its start.
+static const AnimationRecord _gUnused85PeChargeFamily0AnimationRecords[76] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_054D0_records.inc"
 };
 
-static u16 _gUnused85Animation054D0Indices[20] = {
+/// Family-0 PE charge track starts for parts 0..18 and the retained export halfword.
+static const u16 _gUnused85PeChargeFamily0AnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_054D0_indices.inc"
 };
 
-static AnimationSet _gUnused85Animation054D0 = {
-    _gUnused85Animation054D0Records,
-    _gUnused85Animation054D0Indices,
-    { NULL, _gUnused85Animation054D0Bank1, NULL, NULL, _gUnused85Animation054D0Bank4, NULL, NULL, NULL },
+/// Player Parasite Energy family-0 charge loop for unused weapon index 6.
+///
+/// Native-bank set 27, repeated until the attachment countdown finishes or is cancelled.
+/// Its 19 tracks borrow this package's embedded payloads while it is loaded.
+static AnimationSet _gUnused85PeChargeFamily0Animation = {
+    .records           = _gUnused85PeChargeFamily0AnimationRecords,
+    .trackStartIndices = _gUnused85PeChargeFamily0AnimationIndices,
+    .poseBanks         = {
+        [UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused85PeChargeFamily0AnimationBank1,
+        [UNUSED_85_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused85PeChargeFamily0AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused85Animation057A8Bank1[6] = {
+/// Family-0 PE cast translation/rotation poses for player tracks 0 and 1.
+static const AnimationPackedPose _gUnused85PeCastFamily0AnimationBank1[6] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_057A8_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused85Animation057A8Bank4[57] = {
+/// Packed family-0 PE cast rotations for player tracks 2..18.
+static const AnimationPackedRotation _gUnused85PeCastFamily0AnimationBank4[57] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_057A8_bank4.inc"
 };
 
-static AnimationRecord _gUnused85Animation057A8Records[87] = {
+/// Family-0 PE cast keyframes and final-pose stops; durations count normal-rate frames.
+static const AnimationRecord _gUnused85PeCastFamily0AnimationRecords[87] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_057A8_records.inc"
 };
 
-static u16 _gUnused85Animation057A8Indices[20] = {
+/// Family-0 PE cast track starts for parts 0..18 and the retained export halfword.
+static const u16 _gUnused85PeCastFamily0AnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_057A8_indices.inc"
 };
 
-static AnimationSet _gUnused85Animation057A8 = {
-    _gUnused85Animation057A8Records,
-    _gUnused85Animation057A8Indices,
-    { NULL, _gUnused85Animation057A8Bank1, NULL, NULL, _gUnused85Animation057A8Bank4, NULL, NULL, NULL },
+/// Player Parasite Energy family-0 cast clip for unused weapon index 6.
+///
+/// Native-bank set 28, played once after the attachment countdown finishes.
+/// Its 19 tracks borrow this package's embedded payloads while it is loaded.
+static AnimationSet _gUnused85PeCastFamily0Animation = {
+    .records           = _gUnused85PeCastFamily0AnimationRecords,
+    .trackStartIndices = _gUnused85PeCastFamily0AnimationIndices,
+    .poseBanks         = {
+        [UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused85PeCastFamily0AnimationBank1,
+        [UNUSED_85_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused85PeCastFamily0AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused85Animation05A4CBank1[4] = {
+/// Family-1 PE release translation/rotation poses for player tracks 0 and 1.
+static const AnimationPackedPose _gUnused85PeReleaseFamily1AnimationBank1[4] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_05A4C_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused85Animation05A4CBank4[55] = {
+/// Packed family-1 PE release rotations for player tracks 2..18.
+static const AnimationPackedRotation _gUnused85PeReleaseFamily1AnimationBank4[55] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_05A4C_bank4.inc"
 };
 
-static AnimationRecord _gUnused85Animation05A4CRecords[82] = {
+/// Family-1 PE release keyframes and final-pose stops; durations count normal-rate frames.
+static const AnimationRecord _gUnused85PeReleaseFamily1AnimationRecords[82] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_05A4C_records.inc"
 };
 
-static u16 _gUnused85Animation05A4CIndices[20] = {
+/// Family-1 PE release track starts for parts 0..18 and the retained export halfword.
+static const u16 _gUnused85PeReleaseFamily1AnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_05A4C_indices.inc"
 };
 
-static AnimationSet _gUnused85Animation05A4C = {
-    _gUnused85Animation05A4CRecords,
-    _gUnused85Animation05A4CIndices,
-    { NULL, _gUnused85Animation05A4CBank1, NULL, NULL, _gUnused85Animation05A4CBank4, NULL, NULL, NULL },
+/// Player Parasite Energy family-1 release clip for unused weapon index 6.
+///
+/// Native-bank set 29, played once before charging while the attachment countdown runs.
+/// Its 19 tracks borrow this package's embedded payloads while it is loaded.
+static AnimationSet _gUnused85PeReleaseFamily1Animation = {
+    .records           = _gUnused85PeReleaseFamily1AnimationRecords,
+    .trackStartIndices = _gUnused85PeReleaseFamily1AnimationIndices,
+    .poseBanks         = {
+        [UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused85PeReleaseFamily1AnimationBank1,
+        [UNUSED_85_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused85PeReleaseFamily1AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused85Animation05C4CBank1[3] = {
+/// Family-1 PE charge translation/rotation poses for player tracks 0 and 1.
+static const AnimationPackedPose _gUnused85PeChargeFamily1AnimationBank1[3] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_05C4C_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused85Animation05C4CBank4[23] = {
+/// Packed family-1 PE charge rotations for player tracks 2..18.
+static const AnimationPackedRotation _gUnused85PeChargeFamily1AnimationBank4[23] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_05C4C_bank4.inc"
 };
 
-static AnimationRecord _gUnused85Animation05C4CRecords[76] = {
+/// Family-1 PE charge keyframes, track loops and retained stop controls.
+///
+/// Each keyframe lasts one normal-rate frame; every track jumps back to its start.
+static const AnimationRecord _gUnused85PeChargeFamily1AnimationRecords[76] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_05C4C_records.inc"
 };
 
-static u16 _gUnused85Animation05C4CIndices[20] = {
+/// Family-1 PE charge track starts for parts 0..18 and the retained export halfword.
+static const u16 _gUnused85PeChargeFamily1AnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_05C4C_indices.inc"
 };
 
-static AnimationSet _gUnused85Animation05C4C = {
-    _gUnused85Animation05C4CRecords,
-    _gUnused85Animation05C4CIndices,
-    { NULL, _gUnused85Animation05C4CBank1, NULL, NULL, _gUnused85Animation05C4CBank4, NULL, NULL, NULL },
+/// Player Parasite Energy family-1 charge loop for unused weapon index 6.
+///
+/// Native-bank set 30, repeated until the attachment countdown finishes or is cancelled.
+/// Its 19 tracks borrow this package's embedded payloads while it is loaded.
+static AnimationSet _gUnused85PeChargeFamily1Animation = {
+    .records           = _gUnused85PeChargeFamily1AnimationRecords,
+    .trackStartIndices = _gUnused85PeChargeFamily1AnimationIndices,
+    .poseBanks         = {
+        [UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused85PeChargeFamily1AnimationBank1,
+        [UNUSED_85_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused85PeChargeFamily1AnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gUnused85Animation05FA0Bank1[8] = {
@@ -984,11 +1056,11 @@ AnimationBank D_unused_85_8012A474 = { { {
     &_gUnused85Animation07FD0,
     &_gUnused85Animation09264,
     &_gUnused85Animation08B48,
-    &_gUnused85Animation052D4,
-    &_gUnused85Animation054D0,
-    &_gUnused85Animation057A8,
-    &_gUnused85Animation05A4C,
-    &_gUnused85Animation05C4C,
+    &_gUnused85PeReleaseFamily0Animation,
+    &_gUnused85PeChargeFamily0Animation,
+    &_gUnused85PeCastFamily0Animation,
+    &_gUnused85PeReleaseFamily1Animation,
+    &_gUnused85PeChargeFamily1Animation,
     &_gUnused85Animation05FA0,
     &_gUnused85Animation096E4,
     &_gUnused85Animation098BC,
@@ -996,7 +1068,7 @@ AnimationBank D_unused_85_8012A474 = { { {
     &_gUnused85Animation098BC,
     &_gUnused85StairAscentAnimation,
     &_gUnused85StairDescentAnimation,
-    &_gUnused85Animation04E4C,
+    &_gUnused85StairAscentFinishEvenAnimation,
     &_gUnused85StairAscentFinishOddAnimation,
     &_gUnused85ItemUseAnimation,
     &_gUnused85IdleAnimation,
