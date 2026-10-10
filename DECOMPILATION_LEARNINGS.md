@@ -23039,8 +23039,7 @@ gFsImageHeaderYShiftRows = t;          /* sb of low 8 bits; li stays -3 */
 ## Force 3-way `%hi` s-reg order: pin + `lui` asm, then `%lo` accesses
 
 When three loop-live globals need a fixed s-reg coloring for split-address
-form (e.g. target `s5=_gMdecSceneImageHeader`, `s7=Fs_ChunkMode`, `s6=D5B498_8006C233`)
-form (e.g. target `s5=Stage_CdEntry`, `s7=gFsChunkLoadPolicy`, `s6=gFsImageXPageOffset`)
+form (e.g. target `s5=_gMdecSceneImageHeader`, `s7=gFsChunkLoadPolicy`, `s6=gFsImageXPageOffset`)
 but natural allocation rotates them, pin and materialise with one asm block,
 then do every load/store through those his:
 
@@ -23051,13 +23050,9 @@ register s32 hi233 asm("s6");
 register s32 hi364 asm("s4");
 __asm__ volatile(
     "lui %0, %%hi(_gMdecSceneImageHeader)\n\t"
-    "lui %1, %%hi(Fs_ChunkMode)\n\t"
-    "lui %2, %%hi(D5B498_8006C233)\n\t"
-    "lui %3, %%hi(_gMdecScenePayloadBase)"
-    "lui %0, %%hi(Stage_CdEntry)\n\t"
     "lui %1, %%hi(gFsChunkLoadPolicy)\n\t"
     "lui %2, %%hi(gFsImageXPageOffset)\n\t"
-    "lui %3, %%hi(Mdec_DecodeBase)"
+    "lui %3, %%hi(_gMdecScenePayloadBase)"
     : "=&r"(hi368), "=&r"(hiMode), "=&r"(hi233), "=r"(hi364));
 /* loads: */  __asm__ volatile("lw %0, %%lo(_gMdecSceneImageHeader)(%1)" : "=r"(base) : "r"(hi368));
 /* stores with branch-delay `li`: use tab-noreorder */

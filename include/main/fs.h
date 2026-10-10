@@ -85,7 +85,7 @@ extern u8 gCdCmdViewSeekPending;
 
 /// Published package-output byte counts for the three actor buffer bases.
 ///
-/// Indices 0/1/2 correspond to `Fs_ActorLoadBase0`, `gFsActorBuffer1Base` and
+/// Indices 0/1/2 correspond to `gFsActorBuffer0Base`, `gFsActorBuffer1Base` and
 /// `gFsActorBuffer2Base`. Package completion or a counted-sector end publishes
 /// the advanced write cursor minus the selected base. Banks 4/5 also mark other
 /// destinations -1; that sentinel means unavailable, not an in-progress count.

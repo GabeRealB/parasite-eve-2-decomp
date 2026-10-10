@@ -62,7 +62,7 @@ mineForkedTunnelAreaObjectTask = 0x8017DBE4; // type:func absolute:True owner=mi
 mineForkedTunnelRoomTask = 0x8017E25C; // type:func absolute:True owner=mine_forked_tunnel
 gMineForkedTunnelModel01B48 = 0x801807B4; // absolute:True owner=mine_forked_tunnel
 gMineForkedTunnelRoomLighting = 0x80183634; // absolute:True owner=mine_forked_tunnel shared=rooms
-gMineForkedTunnelRoomCollisionResources = 0x8018363C; // absolute:True owner=mine_forked_tunnel shared=rooms
+gMineForkedTunnelRoomCollisionResources = 0x8018363C; // absolute:True owner=mine_forked_tunnel
 gMineForkedTunnelRoomViewMaps = 0x8018364C; // absolute:True owner=mine_forked_tunnel shared=rooms
 gMineForkedTunnelRoomViewCounts = 0x80183650; // absolute:True owner=mine_forked_tunnel
 gMineForkedTunnelWarpEntries = 0x80183654; // absolute:True owner=mine_forked_tunnel

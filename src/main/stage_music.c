@@ -151,7 +151,7 @@ static u8 _gStageMusicColumnCounts[] = {
     MAP_AKROPOLIS_MUSIC_COLUMN_COUNT,
     MAP_DRYFIELD_MUSIC_COLUMN_COUNT,
     MAP_DRYFIELD_FULL_MUSIC_COLUMN_COUNT,
-    12,
+    MAP_SHELTER_MUSIC_COLUMN_COUNT,
     MAP_NEO_ARK_MUSIC_COLUMN_COUNT,
 };
 /// Scene-event translation bases passed to music-column selection, by stage minus one.
