@@ -615,13 +615,36 @@ extern TmdSource D_mappic_s4_04_8012F5F4;
 extern TmdSource D_mappic_s4_04_8012F6BC;
 
 // mappic_s4_05
-extern TmdSource D_mappic_s4_05_8012EFF0;
+/// Dumping Hole's area-fill mesh on page 5 (B3) of the Mine/Shelter map.
+///
+/// Eight vertices in the model X/Z plane form two triangles and two quads;
+/// the map scales them by 1495/4096 and maps Z to inverted screen Y.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep mappic_s4_05 loaded during use.
+extern TmdSource gMappicS405DumpingHoleShape;
 
-extern TmdSource D_mappic_s4_05_8012F14C;
+/// Garbage Incinerator's area-fill mesh on page 5 (B3) of the Mine/Shelter map.
+///
+/// Sixteen vertices in the model X/Z plane form four triangles and five quads;
+/// the map scales them by 1495/4096 and maps Z to inverted screen Y.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep mappic_s4_05 loaded during use.
+extern TmdSource gMappicS405GarbageIncineratorShape;
 
-extern TmdSource D_mappic_s4_05_8012F1F8;
+/// Incinerator Control Room's two-quad area fill on page 5 (B3) of the Mine/Shelter map.
+///
+/// Six vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s4_05 loaded during use.
+extern TmdSource gMappicS405IncineratorControlRoomShape;
 
-extern TmdSource D_mappic_s4_05_8012F32C;
+/// B3 Elevator Hall's area-fill mesh on page 5 of the Mine/Shelter map.
+///
+/// Fourteen vertices in the model X/Z plane form two triangles and five quads;
+/// the map scales them by 1495/4096 and maps Z to inverted screen Y.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep mappic_s4_05 loaded during use.
+extern TmdSource gMappicS405ElevatorHallShape;
 
 // mappic_s4_06
 extern TmdSource D_mappic_s4_06_8012EFF0;
