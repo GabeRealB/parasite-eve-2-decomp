@@ -21,28 +21,67 @@ extern TaskDesc D_shelter_b1_control_room_80181B88;
 
 extern AreaVariant D_shelter_b1_control_room_80183A98[22];
 
-// shelter_b1_control_room
-extern u8* D_shelter_b1_control_room_80181C70[];
+/// The control room's one-room directory of logical-view maps.
+///
+/// Room 1 borrows `gViewIdentityMap`: logical views 1..8 select the same
+/// 1-based camera, image and sprite indices. The directory has no terminator;
+/// keep the room and gameplay overlays loaded while borrowing it.
+extern u8* gShelterB1ControlRoomRoomViewMaps[1];
 
 extern ViewCount D_shelter_b1_control_room_80181C74[];
 
 extern DirectionWarpEntry D_shelter_b1_control_room_80181C78[];
 
-extern WorldCollisionGrid D_shelter_b1_control_room_801820F8;
+/// The control room's walls, floors and raised walkway collision mesh.
+///
+/// Contains 29 faces and a 3-by-1 XZ cell index with 4000-unit square cells.
+/// Vertices are room coordinates; normals use 4096 for unit length. Activation
+/// binds the mutable grid to the view coordinate. Its private mesh pools and
+/// face-index lists stay live only while this room overlay is loaded.
+extern WorldCollisionGrid gShelterB1ControlRoomRoomCollision;
 
-extern ViewCamera D_shelter_b1_control_room_8018211C[];
+/// Eight control-room cameras, indexed by the mapped view minus one.
+///
+/// Matrices contain world-to-camera Q12 rotations and negated world origins;
+/// projection distances are pixels. There is no terminator. Queued camera
+/// application borrows a record until dispatch, requiring the room to stay loaded.
+extern ViewCamera gShelterB1ControlRoomViewCameras[8];
 
-extern SpriteView D_shelter_b1_control_room_801833BC[];
+/// The control room's eight mapped-view sprite descriptors.
+///
+/// Indexed by mapped view minus one. Views 2..6 select 99, 43, 29, 21 and 22
+/// source rectangles; views 1, 7 and 8 retain empty batch-list addresses in
+/// their source slots. Every view keeps decoded image strips and uses no clip
+/// list. Descriptors and private mutable sources/batches borrow the room's lifetime.
+extern SpriteView gShelterB1ControlRoomSpriteViews[8];
 
-extern WorldCoordRoomLights D_shelter_b1_control_room_801834DC;
+/// The control room's two authored point lights, with no directional or cone lights.
+///
+/// Both contribute in every logical view. Coordinate updates and lighting queries
+/// mutate their private transforms and attenuation; the collection and light
+/// storage must remain loaded while used. Position and radii use world units,
+/// and RGB intensities use 4096 for full strength.
+extern WorldCoordRoomLights gShelterB1ControlRoomRoomLights;
 
 extern WorldCollisionTrigger D_shelter_b1_control_room_801834F4[];
 
 extern WorldCollisionTrigger D_shelter_b1_control_room_80183624[];
 
-extern WorldCoordRoomAmbientEntry D_shelter_b1_control_room_80183B48[];
+/// The control room's ambient-light minima: a count header and eight view colours.
+///
+/// Entry zero holds the count; logical views 1..8 index the colour entries
+/// directly. RGB minima use 16 units per 8-bit colour level. Lighting reads
+/// these records while the room overlay is loaded; views above the count use
+/// gameplay's default ambient minima.
+extern WorldCoordRoomAmbientEntry gShelterB1ControlRoomAmbientByView[9];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b1_control_room_80183BC0[];
+/// Collision policies and footstep cues for the control room's surface classes 0..7.
+///
+/// All classes block probes, permit weapon impacts and apply pushback. Class 1
+/// selects the main-floor cues; class 2 selects raised-floor and stair cues.
+/// Classes 0 and 3..7 share the silent policy. There is no terminator; the
+/// directory, private records and cue bases stay live with this room overlay.
+extern WorldCollisionSurfaceProperties* gShelterB1ControlRoomSurfacePropertiesByClass[8];
 
 /// Runs the control room's message receiver and entry-scene setup.
 ///

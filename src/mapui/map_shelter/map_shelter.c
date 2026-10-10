@@ -636,7 +636,7 @@ static WorldCoordRoomLighting D_map_shelter_8017ADE4[1] = {
 };
 
 static WorldCoordRoomLighting D_map_shelter_8017ADEC[1] = {
-    { &D_shelter_b1_control_room_801834DC, D_shelter_b1_control_room_80183B48 },
+    { &gShelterB1ControlRoomRoomLights, gShelterB1ControlRoomAmbientByView },
 };
 
 static WorldCoordRoomLighting D_map_shelter_8017ADF4[1] = {
@@ -920,7 +920,7 @@ static WorldCollisionRoomResources D_map_shelter_8017B154[1] = {
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B164[1] = {
-    { &D_shelter_b1_control_room_801820F8, D_shelter_b1_control_room_801834F4, D_shelter_b1_control_room_80183624, NULL },
+    { &gShelterB1ControlRoomRoomCollision, D_shelter_b1_control_room_801834F4, D_shelter_b1_control_room_80183624, NULL },
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B174[1] = {
@@ -1088,7 +1088,7 @@ static ViewCamera* D_map_shelter_8017B3BC[49] = {
     D_shelter_b1_main_corridor_80184114,
     gShelterB1SterilizationRoomViewCameras,
     D_shelter_b1_pod_access_tunnel_80183C48,
-    D_shelter_b1_control_room_8018211C,
+    gShelterB1ControlRoomViewCameras,
     gShelterB1AccessTunnelViewCameras,
     D_shelter_b1_underground_parking_80189778,
     gShelterB1GolemFreezer1ViewCameras,
@@ -1146,7 +1146,7 @@ static u8** _gMapShelterAreaViewMaps[49] = {
     D_shelter_b1_main_corridor_801831F8,
     gShelterB1SterilizationRoomViewMaps,
     D_shelter_b1_pod_access_tunnel_80183A14,
-    D_shelter_b1_control_room_80181C70,
+    gShelterB1ControlRoomRoomViewMaps,
     gShelterB1AccessTunnelRoomViewMaps,
     D_shelter_b1_underground_parking_8018791C,
     gShelterB1GolemFreezer1ViewMaps,
@@ -1204,7 +1204,7 @@ static SpriteView* _gMapShelterAreaSpriteViews[49] = {
     D_shelter_b1_main_corridor_80185128,
     gShelterB1SterilizationRoomSpriteViews,
     D_shelter_b1_pod_access_tunnel_8018462C,
-    D_shelter_b1_control_room_801833BC,
+    gShelterB1ControlRoomSpriteViews,
     gShelterB1AccessTunnelSpriteViews,
     D_shelter_b1_underground_parking_8018AB9C,
     gShelterB1GolemFreezer1SpriteViews,
@@ -1258,7 +1258,7 @@ WorldCollisionSurfaceProperties** D_map_shelter_8017B614[49] = {
     D_shelter_b1_main_corridor_80185D04,
     gShelterB1SterilizationRoomSurfacePropertiesByClass,
     D_shelter_b1_pod_access_tunnel_80184CDC,
-    D_shelter_b1_control_room_80183BC0,
+    gShelterB1ControlRoomSurfacePropertiesByClass,
     gShelterB1AccessTunnelSurfacePropertiesByClass,
     D_shelter_b1_underground_parking_8018D724,
     gShelterB1GolemFreezer1SurfacePropertiesByClass,
