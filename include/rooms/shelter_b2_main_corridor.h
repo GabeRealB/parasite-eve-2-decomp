@@ -25,26 +25,52 @@ extern s16 gShelterB2MainCorridorWaterY;
 
 extern AreaVariant D_shelter_b2_main_corridor_8018933C[22];
 
-// shelter_b2_main_corridor
-extern u8* D_shelter_b2_main_corridor_801830CC[];
+/// Extents of the corridor's room-map directory and collision surface-class table.
+enum {
+    SHELTER_B2_MAIN_CORRIDOR_ROOM_COUNT          = 1,
+    SHELTER_B2_MAIN_CORRIDOR_SURFACE_CLASS_COUNT = 8,
+};
+
+/// Logical-view maps for the corridor's single room, indexed by room ID minus one.
+///
+/// Borrows gameplay's `gViewIdentityMap`: logical views 1..13 select the same
+/// camera, background and sprite indices. The directory has no terminator and
+/// stays live with this overlay; the borrowed map stays live with gameplay.
+extern u8* gShelterB2MainCorridorViewMaps[SHELTER_B2_MAIN_CORRIDOR_ROOM_COUNT];
 
 extern ViewCount D_shelter_b2_main_corridor_801830D0[];
 
 extern DirectionWarpEntry D_shelter_b2_main_corridor_801830D4[];
 
-extern WorldCollisionGrid D_shelter_b2_main_corridor_80184440;
+/// Collision mesh and XZ cell directory for the corridor's walls and floors.
+///
+/// Contains 104 faces in a 4-by-8 grid of 4000-world-unit cells. Activation
+/// binds the mutable descriptor to the view; its mesh pools remain borrowed
+/// from this overlay until the grid is deactivated. Surface classes select
+/// `gShelterB2MainCorridorSurfacePropertiesByClass`.
+extern WorldCollisionGrid gShelterB2MainCorridorCollisionGrid;
 
 extern ViewCamera D_shelter_b2_main_corridor_80184464[];
 
 extern SpriteView D_shelter_b2_main_corridor_80188848[];
 
-extern WorldCoordRoomLights D_shelter_b2_main_corridor_80188BE4;
+/// Eight point lights shared by every corridor view, with no directional or cone lights.
+///
+/// The room owns the mutable transforms and query attenuation. Keep this
+/// overlay loaded while coordinate updates or lighting queries use them.
+extern WorldCoordRoomLights gShelterB2MainCorridorRoomLights;
 
 extern WorldCollisionTrigger D_shelter_b2_main_corridor_80188BFC[];
 
 extern WorldCollisionTrigger D_shelter_b2_main_corridor_801893EC[];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b2_main_corridor_80189624[];
+/// Collision responses for surface classes 0..7, indexed directly by class.
+///
+/// Class 1 passes probes and disables weapon impacts; class 2 blocks probes,
+/// enables impacts and supplies floor footsteps. Classes 0 and 3..7 use the
+/// same silent blocking response. Every class applies pushback. The table
+/// and its borrowed records remain valid only while this overlay is loaded.
+extern WorldCollisionSurfaceProperties* gShelterB2MainCorridorSurfacePropertiesByClass[SHELTER_B2_MAIN_CORRIDOR_SURFACE_CLASS_COUNT];
 
 /// Runs the corridor's message receiver and starts its water-surface task.
 ///
