@@ -82,17 +82,56 @@ extern EvsCommand gMineCavernIntroScript[41];
 /// Requires the same live actor, CAP and room resources as `gMineCavernIntroScript`.
 extern EvsCommand gMineCavernIntroSkipScript[19];
 
-extern EvsCommand D_mine_cavern_80188214[60];
+/// First cavern event: burn and reset the Blizzard Chaser, then resume battle.
+///
+/// All 60 instructions, including END, are borrowed through playback. Places
+/// the player and actor slot 0, installs the player's scene-bank extension,
+/// runs CAP slot 2 and actor sound cues, then selects countdown music entry 4.
+/// Requires live player/actor, CAP, weapon, sound and cavern scene resources.
+/// Pair with `gMineCavernFirstEventSkipScript`.
+extern EvsCommand gMineCavernFirstEventScript[60];
 
-extern EvsCommand D_mine_cavern_801887B4[27];
+/// Fade-covered skip path to the first cavern event's resumed battle.
+///
+/// All 27 instructions, including END, are borrowed through playback. Sets
+/// the final placements and actor commands, releases the previous battle hold,
+/// starts CAP slot 2 variant 1 and prepares the new battle at view 6. Requires
+/// live player/actor and CAP resources, with the cavern scene extension already
+/// installed. Keep sound, weapon and cavern resources loaded through playback.
+extern EvsCommand gMineCavernFirstEventSkipScript[27];
 
-extern EvsCommand D_mine_cavern_80188A3C[31];
+/// Second cavern event: smolder the Blizzard Chaser and open the post-battle layout.
+///
+/// All 31 instructions, including END, are borrowed through playback. Installs
+/// player scene clips, runs CAP slot 3 at views 18/19, then activates room 2,
+/// selects view 23, commits saved-area updates and starts the actor's dissolve.
+/// Requires live player/actor slot 0, CAP and loaded weapon/cavern resources.
+/// Pair with `gMineCavernSecondEventSkipScript`.
+extern EvsCommand gMineCavernSecondEventScript[31];
 
-extern EvsCommand D_mine_cavern_80188D24[24];
+/// Fade-covered skip path committing the second cavern event's final layout.
+///
+/// All 24 instructions, including END, are borrowed through playback. Sets
+/// player/actor poses, starts smolder and dissolve, activates room 2 and dirty
+/// view 23, releases the battle hold and applies the same saved-area updates.
+/// Requires live player/actor slot 0 and loaded weapon/CAP/cavern resources.
+extern EvsCommand gMineCavernSecondEventSkipScript[24];
 
-extern AreaApplyRec D_mine_cavern_8018E32C[9];
+/// Saved mine layouts and map marks committed after the cavern's second event.
+///
+/// Eight updates plus `AREA_APPLY_END`. Sets layouts 2/4 in six mine areas,
+/// clearing the cavern mark and setting the others; Bounty/Nightmare also set
+/// layout 11 and marks in the B1 storeroom and main corridor. Applying a layout
+/// discards that area's saved enemy poses. Borrowed synchronously while the
+/// Mine/Shelter saved-area directories remain loaded.
+extern AreaApplyRec gMineCavernPostEventAreaUpdates[9];
 
-extern TaskMessageEntry D_mine_cavern_80183C6C[7];
+/// Cavern room-task dispatch for transitions, key items, actions, commands, events and sound.
+///
+/// Six synchronous handlers followed by `TASK_MESSAGE_TABLE_END`. The live
+/// room task borrows this table until teardown; payload types and results
+/// follow each message's handler contract. Keep cavern code and data loaded.
+extern TaskMessageEntry gMineCavernRoomMessages[7];
 
 /// Resets the two-stage cavern event's credited battle-release count.
 ///

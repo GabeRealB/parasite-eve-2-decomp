@@ -119963,7 +119963,7 @@ lines moved from after the function to before it, and the
 that table now, so leaving it in duplicates 0xF0 bytes). Declaring the same
 sources after the function instead leaves the table 0x20 bytes early and shifts
 both blobs — a checksum failure with a 100% scratch score. The map is the check:
-`_gMineCavernTargetInitialBlastLog`, `_gMineCavernTargetSecondBlastLog`, `D_mine_cavern_8017D7F8`,
+`_gMineCavernTargetInitialBlastLog`, `_gMineCavernTargetSecondBlastLog`, `_gMineCavernTargetStates`,
 `RoomsShared80183c10Table` came back at 0x8017D7E8 / 0x8017D7F0 / 0x8017D7F8 /
 0x8017D80C with the unit's `.rodata` still 0x2D8 long.
 

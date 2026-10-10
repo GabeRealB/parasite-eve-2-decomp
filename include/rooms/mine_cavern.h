@@ -11,7 +11,13 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_mine_cavern_8018E238[22];
+/// Cavern placement/resource layouts indexed directly by saved variant 0..21.
+///
+/// Slots 1, 2, 3, 11 and 17 supply Blizzard Chaser, two Zebra Stalker layouts,
+/// Brain Stinger and Knight GOLEM recipes. Other slots contain NULL pairs;
+/// there is no directory terminator. Gameplay borrows this directory and its
+/// child records, requiring the cavern loaded during resource and actor use.
+extern AreaVariant gMineCavernAreaVariants[22];
 
 /// Collision resources for cavern rooms 1..3, indexed by room minus one.
 ///

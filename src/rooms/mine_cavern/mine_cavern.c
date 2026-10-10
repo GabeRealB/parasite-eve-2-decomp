@@ -395,7 +395,7 @@ s32 mineCavernAdvanceEvent(Task* task, s32 msgId, s32 unusedEventId, s32 unusedA
         D_mine_cavern_8018EB50 = MINE_CAVERN_EVENT_FIRST_STAGE;
     } else if (gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == MINE_CAVERN_EVENT_FIRST_STAGE) {
         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, MINE_CAVERN_POST_EVENT_OBJECTIVE);
-        evsStartScriptWithSkip(D_mine_cavern_80188A3C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mine_cavern_80188D24);
+        evsStartScriptWithSkip(gMineCavernSecondEventScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gMineCavernSecondEventSkipScript);
         gameFlagSetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS, MINE_CAVERN_EVENT_SECOND_STAGE);
     }
     return 0;
@@ -462,7 +462,7 @@ static void _mineCavernInitRoom(Task* task)
            MINE_CAVERN_PROGRESS_SPRITES_HIDDEN   = 1 };
 
     // Publish the controller before any intro script can send room messages.
-    task->msgTable = D_mine_cavern_80183C6C;
+    task->msgTable = gMineCavernRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if ((gGameSession->location.loc.variant == MINE_CAVERN_VARIANT_INITIAL) && (gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_INTRO_SEEN) == 0)) {
         _mineCavernStartIntroEvent();
@@ -492,7 +492,7 @@ static void _mineCavernStartPendingEvent(Task* unusedTask)
     eventProgress = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS);
     // Compare against the armed latch: its stage-1 value is also wheel-open mode.
     if ((eventProgress == MINE_CAVERN_EVENT_FIRST_STAGE) && (D_mine_cavern_8018EB50 == eventProgress) && (gAttachmentState.mode != D_mine_cavern_8018EB50)) {
-        evsStartScriptWithSkip(D_mine_cavern_80188214, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mine_cavern_801887B4);
+        evsStartScriptWithSkip(gMineCavernFirstEventScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gMineCavernFirstEventSkipScript);
         D_mine_cavern_8018EB50 = MINE_CAVERN_EVENT_SECOND_STAGE;
     }
 }
@@ -574,7 +574,7 @@ void mineCavernSetSceneMusicEvent(s8 sceneEvent)
 
 void mineCavernApplyPostEventAreaUpdates(void)
 {
-    areaApplySavedUpdates(D_mine_cavern_8018E32C);
+    areaApplySavedUpdates(gMineCavernPostEventAreaUpdates);
 }
 
 void mineCavernSelectCountdownMusicEntry(u8 countdownEntry)

@@ -146,7 +146,7 @@ gDryfieldNightSaloonGRViewCounts = 0x801851B8; // absolute:True owner=dryfield_n
 gDryfieldNightSaloonGRWarpEntries = 0x801851BC; // absolute:True owner=dryfield_night_saloon_g_r
 gDryfieldNightSaloonGRViewCameras = 0x80185B74; // absolute:True owner=dryfield_night_saloon_g_r shared=rooms
 gDryfieldNightSaloonGRSpriteViews = 0x80187FC8; // absolute:True owner=dryfield_night_saloon_g_r
-gDryfieldNightSaloonGRSurfacePropertiesByClass = 0x80188F84; // absolute:True owner=dryfield_night_saloon_g_r shared=rooms
+gDryfieldNightSaloonGRSurfacePropertiesByClass = 0x80188F84; // absolute:True owner=dryfield_night_saloon_g_r
 dryfieldNightGRKitchenRoomTask = 0x8017D9A4; // type:func absolute:True owner=dryfield_night_g_r_kitchen shared=rooms
 gDryfieldNightGRKitchenRoomLighting = 0x8017E2BC; // absolute:True owner=dryfield_night_g_r_kitchen shared=rooms
 gDryfieldNightGRKitchenRoomCollisionResources = 0x8017E2C4; // absolute:True owner=dryfield_night_g_r_kitchen

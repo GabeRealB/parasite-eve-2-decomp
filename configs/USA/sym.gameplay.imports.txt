@@ -1533,7 +1533,7 @@ D_dryfield_water_tank_80188BF0 = 0x80188BF0; // absolute:True owner=dryfield_wat
 
 D_dryfield_water_tower_8018757C = 0x8018757C; // absolute:True owner=dryfield_water_tower
 
-D_mine_cavern_8018E238 = 0x8018E238; // absolute:True owner=mine_cavern
+gMineCavernAreaVariants = 0x8018E238; // absolute:True owner=mine_cavern
 
 gMineForkedTunnelAreaVariants = 0x80185504; // absolute:True owner=mine_forked_tunnel
 
