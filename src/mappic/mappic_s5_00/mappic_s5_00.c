@@ -1,175 +1,187 @@
-#include <psyq/sys/types.h>
+#include "mappic/mappic.h"
 
-#include "types.h"
+#include <psyq/libgpu.h>
 
-#include "main/tmd_types.h"
+#include "common.h"
 
-static TmdBone _gMappicS500Model000A4Skeleton[1] = {
+/// Identity transform and self-parented root for the Observatory shape.
+static TmdBone _gMappicS500ObservatoryShapeSkeleton[] = {
 #include "assets/mappic_s5_00_model_000A4_skeleton.inc"
 };
 
-static u32 _gMappicS500Model000A4PartVerts[1] = {
+/// Vertex count of the Observatory shape's sole part (fifteen vertices).
+static u32 _gMappicS500ObservatoryShapePartVerts[] = {
 #include "assets/mappic_s5_00_model_000A4_partVerts.inc"
 };
 
-static SVECTOR _gMappicS500Model000A4Verts[15] = {
+/// Observatory's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS500ObservatoryShapeVerts[] = {
 #include "assets/mappic_s5_00_model_000A4_verts.inc"
 };
 
-static u32 _gMappicS500Model000A4Stream[30] = {
+/// One unlit triangle and six quads with packed vertex byte offsets and white colour, followed by two group ends and the stream end.
+static u32 _gMappicS500ObservatoryShapeStream[] = {
 #include "assets/mappic_s5_00_model_000A4_stream.inc"
 };
 
-TmdSource D_mappic_s5_00_8012F04C = {
-    0,
-    164,
-    0,
-    1,
-    _gMappicS500Model000A4PartVerts,
-    _gMappicS500Model000A4Verts,
-    &_gMappicS500Model000A4Verts[15],
-    _gMappicS500Model000A4Skeleton,
-    _gMappicS500Model000A4Stream,
+TmdSource gMappicS500ObservatoryShape = {
+    .bufferHalfBytes  = sizeof(POLY_F3) + 6 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS500ObservatoryShapeSkeleton),
+    .partVertexCounts = _gMappicS500ObservatoryShapePartVerts,
+    .verts            = _gMappicS500ObservatoryShapeVerts,
+    .normals          = &_gMappicS500ObservatoryShapeVerts[ARRAY_SIZE(_gMappicS500ObservatoryShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS500ObservatoryShapeSkeleton,
+    .stream           = _gMappicS500ObservatoryShapeStream,
 };
 
-static TmdBone _gMappicS500MappicS202Model00C48001ACMappicS500Skeleton[1] = {
+/// Identity transform and self-parented root for the EVE access tunnel shape.
+static TmdBone _gMappicS500EveAccessTunnelShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00C48_001AC_mappic_s5_00_skeleton.inc"
 };
 
-static u32 _gMappicS500MappicS202Model00C48001ACMappicS500PartVerts[1] = {
+/// Vertex count of the EVE access tunnel shape's sole part (four vertices).
+static u32 _gMappicS500EveAccessTunnelShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_001AC_mappic_s5_00_partVerts.inc"
 };
 
-static SVECTOR _gMappicS500MappicS202Model00C48001ACMappicS500Verts[4] = {
+/// EVE access tunnel's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS500EveAccessTunnelShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_001AC_mappic_s5_00_verts.inc"
 };
 
-static u32 _gMappicS500MappicS202Model00C48001ACMappicS500Stream[9] = {
+/// One unlit quad's packed vertex byte offsets and white colour, followed by two group ends and the stream end.
+static u32 _gMappicS500EveAccessTunnelShapeStream[] = {
 #include "assets/mappic_s2_02_model_00C48_001AC_mappic_s5_00_stream.inc"
 };
 
-TmdSource D_mappic_s5_00_8012F0DC = {
-    0,
-    24,
-    0,
-    1,
-    _gMappicS500MappicS202Model00C48001ACMappicS500PartVerts,
-    _gMappicS500MappicS202Model00C48001ACMappicS500Verts,
-    &_gMappicS500MappicS202Model00C48001ACMappicS500Verts[4],
-    _gMappicS500MappicS202Model00C48001ACMappicS500Skeleton,
-    _gMappicS500MappicS202Model00C48001ACMappicS500Stream,
+TmdSource gMappicS500EveAccessTunnelShape = {
+    .bufferHalfBytes  = sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS500EveAccessTunnelShapeSkeleton),
+    .partVertexCounts = _gMappicS500EveAccessTunnelShapePartVerts,
+    .verts            = _gMappicS500EveAccessTunnelShapeVerts,
+    .normals          = &_gMappicS500EveAccessTunnelShapeVerts[ARRAY_SIZE(_gMappicS500EveAccessTunnelShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS500EveAccessTunnelShapeSkeleton,
+    .stream           = _gMappicS500EveAccessTunnelShapeStream,
 };
 
-static TmdBone _gMappicS500Model00270Skeleton[1] = {
+/// Identity transform and self-parented root for the North promenade shape.
+static TmdBone _gMappicS500NorthPromenadeShapeSkeleton[] = {
 #include "assets/mappic_s5_00_model_00270_skeleton.inc"
 };
 
-static u32 _gMappicS500Model00270PartVerts[1] = {
+/// Vertex count of the North promenade shape's sole part (fifteen vertices).
+static u32 _gMappicS500NorthPromenadeShapePartVerts[] = {
 #include "assets/mappic_s5_00_model_00270_partVerts.inc"
 };
 
-static SVECTOR _gMappicS500Model00270Verts[15] = {
+/// North promenade's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS500NorthPromenadeShapeVerts[] = {
 #include "assets/mappic_s5_00_model_00270_verts.inc"
 };
 
-static u32 _gMappicS500Model00270Stream[30] = {
+/// One unlit triangle and six quads with packed vertex byte offsets and white colour, followed by two group ends and the stream end.
+static u32 _gMappicS500NorthPromenadeShapeStream[] = {
 #include "assets/mappic_s5_00_model_00270_stream.inc"
 };
 
-TmdSource D_mappic_s5_00_8012F218 = {
-    0,
-    164,
-    0,
-    1,
-    _gMappicS500Model00270PartVerts,
-    _gMappicS500Model00270Verts,
-    &_gMappicS500Model00270Verts[15],
-    _gMappicS500Model00270Skeleton,
-    _gMappicS500Model00270Stream,
+TmdSource gMappicS500NorthPromenadeShape = {
+    .bufferHalfBytes  = sizeof(POLY_F3) + 6 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS500NorthPromenadeShapeSkeleton),
+    .partVertexCounts = _gMappicS500NorthPromenadeShapePartVerts,
+    .verts            = _gMappicS500NorthPromenadeShapeVerts,
+    .normals          = &_gMappicS500NorthPromenadeShapeVerts[ARRAY_SIZE(_gMappicS500NorthPromenadeShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS500NorthPromenadeShapeSkeleton,
+    .stream           = _gMappicS500NorthPromenadeShapeStream,
 };
 
-static TmdBone _gMappicS500MappicS202Model00C4800378MappicS500Skeleton[1] = {
+/// Identity transform and self-parented root for the Forest zone shape.
+static TmdBone _gMappicS500ForestZoneShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00C48_00378_mappic_s5_00_skeleton.inc"
 };
 
-static u32 _gMappicS500MappicS202Model00C4800378MappicS500PartVerts[1] = {
+/// Vertex count of the Forest zone shape's sole part (four vertices).
+static u32 _gMappicS500ForestZoneShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00378_mappic_s5_00_partVerts.inc"
 };
 
-static SVECTOR _gMappicS500MappicS202Model00C4800378MappicS500Verts[4] = {
+/// Forest zone's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS500ForestZoneShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00378_mappic_s5_00_verts.inc"
 };
 
-static u32 _gMappicS500MappicS202Model00C4800378MappicS500Stream[9] = {
+/// One unlit quad's packed vertex byte offsets and white colour, followed by two group ends and the stream end.
+static u32 _gMappicS500ForestZoneShapeStream[] = {
 #include "assets/mappic_s2_02_model_00C48_00378_mappic_s5_00_stream.inc"
 };
 
-TmdSource D_mappic_s5_00_8012F2A8 = {
-    0,
-    24,
-    0,
-    1,
-    _gMappicS500MappicS202Model00C4800378MappicS500PartVerts,
-    _gMappicS500MappicS202Model00C4800378MappicS500Verts,
-    &_gMappicS500MappicS202Model00C4800378MappicS500Verts[4],
-    _gMappicS500MappicS202Model00C4800378MappicS500Skeleton,
-    _gMappicS500MappicS202Model00C4800378MappicS500Stream,
+TmdSource gMappicS500ForestZoneShape = {
+    .bufferHalfBytes  = sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS500ForestZoneShapeSkeleton),
+    .partVertexCounts = _gMappicS500ForestZoneShapePartVerts,
+    .verts            = _gMappicS500ForestZoneShapeVerts,
+    .normals          = &_gMappicS500ForestZoneShapeVerts[ARRAY_SIZE(_gMappicS500ForestZoneShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS500ForestZoneShapeSkeleton,
+    .stream           = _gMappicS500ForestZoneShapeStream,
 };
 
-static TmdBone _gMappicS500MappicS202Model00C4800408Skeleton[1] = {
+/// Identity transform and self-parented root for the Submarine tunnel shape.
+static TmdBone _gMappicS500SubmarineTunnelShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00C48_00408_skeleton.inc"
 };
 
-static u32 _gMappicS500MappicS202Model00C4800408PartVerts[1] = {
+/// Vertex count of the Submarine tunnel shape's sole part (four vertices).
+static u32 _gMappicS500SubmarineTunnelShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00408_partVerts.inc"
 };
 
-static SVECTOR _gMappicS500MappicS202Model00C4800408Verts[4] = {
+/// Submarine tunnel's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS500SubmarineTunnelShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00408_verts.inc"
 };
 
-static u32 _gMappicS500MappicS202Model00C4800408Stream[9] = {
+/// One unlit quad's packed vertex byte offsets and white colour, followed by two group ends and the stream end.
+static u32 _gMappicS500SubmarineTunnelShapeStream[] = {
 #include "assets/mappic_s2_02_model_00C48_00408_stream.inc"
 };
 
-TmdSource D_mappic_s5_00_8012F338 = {
-    0,
-    24,
-    0,
-    1,
-    _gMappicS500MappicS202Model00C4800408PartVerts,
-    _gMappicS500MappicS202Model00C4800408Verts,
-    &_gMappicS500MappicS202Model00C4800408Verts[4],
-    _gMappicS500MappicS202Model00C4800408Skeleton,
-    _gMappicS500MappicS202Model00C4800408Stream,
+TmdSource gMappicS500SubmarineTunnelShape = {
+    .bufferHalfBytes  = sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS500SubmarineTunnelShapeSkeleton),
+    .partVertexCounts = _gMappicS500SubmarineTunnelShapePartVerts,
+    .verts            = _gMappicS500SubmarineTunnelShapeVerts,
+    .normals          = &_gMappicS500SubmarineTunnelShapeVerts[ARRAY_SIZE(_gMappicS500SubmarineTunnelShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS500SubmarineTunnelShapeSkeleton,
+    .stream           = _gMappicS500SubmarineTunnelShapeStream,
 };
 
-static TmdBone _gMappicS500MappicS202Model00C4800498Skeleton[1] = {
+/// Identity transform and self-parented root for the Pavilion shape.
+static TmdBone _gMappicS500PavilionShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00C48_00498_skeleton.inc"
 };
 
-static u32 _gMappicS500MappicS202Model00C4800498PartVerts[1] = {
+/// Vertex count of the Pavilion shape's sole part (four vertices).
+static u32 _gMappicS500PavilionShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00498_partVerts.inc"
 };
 
-static SVECTOR _gMappicS500MappicS202Model00C4800498Verts[4] = {
+/// Pavilion's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS500PavilionShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00498_verts.inc"
 };
 
-static u32 _gMappicS500MappicS202Model00C4800498Stream[9] = {
+/// One unlit quad's packed vertex byte offsets and white colour, followed by two group ends and the stream end.
+static u32 _gMappicS500PavilionShapeStream[] = {
 #include "assets/mappic_s2_02_model_00C48_00498_stream.inc"
 };
 
-TmdSource D_mappic_s5_00_8012F3C8 = {
-    0,
-    24,
-    0,
-    1,
-    _gMappicS500MappicS202Model00C4800498PartVerts,
-    _gMappicS500MappicS202Model00C4800498Verts,
-    &_gMappicS500MappicS202Model00C4800498Verts[4],
-    _gMappicS500MappicS202Model00C4800498Skeleton,
-    _gMappicS500MappicS202Model00C4800498Stream,
+TmdSource gMappicS500PavilionShape = {
+    .bufferHalfBytes  = sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS500PavilionShapeSkeleton),
+    .partVertexCounts = _gMappicS500PavilionShapePartVerts,
+    .verts            = _gMappicS500PavilionShapeVerts,
+    .normals          = &_gMappicS500PavilionShapeVerts[ARRAY_SIZE(_gMappicS500PavilionShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS500PavilionShapeSkeleton,
+    .stream           = _gMappicS500PavilionShapeStream,
 };
 
 static TmdBone _gMappicS500MappicS406Model0014C00560Skeleton[1] = {

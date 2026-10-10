@@ -323,12 +323,12 @@ D_neo_ark_substation_8017E410 = 0x8017E410; // absolute:True owner=neo_ark_subst
 gNeoArkSubstationViewCameras = 0x8017E8C8; // absolute:True owner=neo_ark_substation
 gNeoArkSubstationSpriteViews = 0x8017F584; // absolute:True owner=neo_ark_substation
 gNeoArkSubstationSurfaceProperties = 0x80180328; // absolute:True owner=neo_ark_substation
-D_mappic_s5_00_8012F04C = 0x8012F04C; // absolute:True owner=mappic_s5_00 shared=mappic
-D_mappic_s5_00_8012F0DC = 0x8012F0DC; // absolute:True owner=mappic_s5_00 shared=mappic
-D_mappic_s5_00_8012F218 = 0x8012F218; // absolute:True owner=mappic_s5_00 shared=mappic
-D_mappic_s5_00_8012F2A8 = 0x8012F2A8; // absolute:True owner=mappic_s5_00 shared=mappic
-D_mappic_s5_00_8012F338 = 0x8012F338; // absolute:True owner=mappic_s5_00
-D_mappic_s5_00_8012F3C8 = 0x8012F3C8; // absolute:True owner=mappic_s5_00
+gMappicS500ObservatoryShape = 0x8012F04C; // absolute:True owner=mappic_s5_00 shared=mappic
+gMappicS500EveAccessTunnelShape = 0x8012F0DC; // absolute:True owner=mappic_s5_00 shared=mappic
+gMappicS500NorthPromenadeShape = 0x8012F218; // absolute:True owner=mappic_s5_00 shared=mappic
+gMappicS500ForestZoneShape = 0x8012F2A8; // absolute:True owner=mappic_s5_00 shared=mappic
+gMappicS500SubmarineTunnelShape = 0x8012F338; // absolute:True owner=mappic_s5_00
+gMappicS500PavilionShape = 0x8012F3C8; // absolute:True owner=mappic_s5_00
 D_mappic_s5_00_8012F490 = 0x8012F490; // absolute:True owner=mappic_s5_00
 D_mappic_s5_00_8012F58C = 0x8012F58C; // absolute:True owner=mappic_s5_00
 D_mappic_s5_00_8012F61C = 0x8012F61C; // absolute:True owner=mappic_s5_00

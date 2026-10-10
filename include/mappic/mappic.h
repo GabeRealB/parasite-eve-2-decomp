@@ -246,17 +246,49 @@ extern TmdSource gMappicS203CellarShape;
 extern TmdSource D_mappic_s2_03_8012F180;
 
 // mappic_s5_00
-extern TmdSource D_mappic_s5_00_8012F04C;
+/// Observatory's area-fill mesh on page 1 of the Neo Ark map.
+///
+/// Fifteen vertices in the model X/Z plane form one triangle and six quads;
+/// the map scales them by 1495/4096 and maps Z to inverted screen Y.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep mappic_s5_00 loaded during use.
+extern TmdSource gMappicS500ObservatoryShape;
 
-extern TmdSource D_mappic_s5_00_8012F0DC;
+/// EVE access tunnel's area-fill quad on page 1 of the Neo Ark map.
+///
+/// Four vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s5_00 loaded during use.
+extern TmdSource gMappicS500EveAccessTunnelShape;
 
-extern TmdSource D_mappic_s5_00_8012F218;
+/// North promenade's area-fill mesh on page 1 of the Neo Ark map.
+///
+/// Fifteen vertices in the model X/Z plane form one triangle and six quads;
+/// the map scales them by 1495/4096 and maps Z to inverted screen Y.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep mappic_s5_00 loaded during use.
+extern TmdSource gMappicS500NorthPromenadeShape;
 
-extern TmdSource D_mappic_s5_00_8012F2A8;
+/// Forest zone's area-fill quad on page 1 of the Neo Ark map.
+///
+/// Four vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s5_00 loaded during use.
+extern TmdSource gMappicS500ForestZoneShape;
 
-extern TmdSource D_mappic_s5_00_8012F338;
+/// Submarine tunnel's area-fill quad on page 1 of the Neo Ark map.
+///
+/// Four vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s5_00 loaded during use.
+extern TmdSource gMappicS500SubmarineTunnelShape;
 
-extern TmdSource D_mappic_s5_00_8012F3C8;
+/// Pavilion's area-fill quad on page 1 of the Neo Ark map.
+///
+/// Four vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s5_00 loaded during use.
+extern TmdSource gMappicS500PavilionShape;
 
 extern TmdSource D_mappic_s5_00_8012F490;
 
